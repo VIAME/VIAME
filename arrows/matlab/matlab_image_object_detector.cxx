@@ -101,15 +101,7 @@ public:
   // -- CONSTRUCTORS --
   priv()
     : m_logger( kwiver::vital::get_logger( "vital.matlab_image_object_detector" ) )
-
-      // @bug The algorithm loader instantiates this class when it is
-      // first loaded to so done introspection. The bad side effect is
-      // that we get a matlab instance too whether you need one or not.
-      //
-      // It would be better to instantiate the matlab engine only when
-      // used. Maybe this needs a class static? That will cause
-      // collisions between detectors.
-    , m_matlab_engine( new matlab_engine )
+    , m_first( true )
   {}
 
   ~priv()
@@ -128,8 +120,8 @@ public:
     // not have them clone themselves all the time.
     if ( ! m_matlab_engine)
     {
-      LOG_DEBUG( m_logger, "Allocating a matlab engine in " << this );
       m_matlab_engine.reset( new matlab_engine );
+      LOG_DEBUG( m_logger, "Allocating a matlab engine @ " << m_matlab_engine );
     }
 
     return m_matlab_engine.get();
@@ -139,10 +131,10 @@ public:
   // ------------------------------------------------------------------
   void check_result()
   {
-    const std::string& results( m_matlab_engine->output() );
+    const std::string& results( engine()->output() );
     if ( results.size() > 0 )
     {
-      LOG_INFO( m_logger, "Matlab output: " << results );
+      LOG_INFO( m_logger, engine() << " Matlab output: " << results );
     }
   }
 
@@ -150,16 +142,57 @@ public:
   // ------------------------------------------------------------------
   void eval( const std::string& expr )
   {
-    LOG_DEBUG( m_logger, "Matlab eval: " << expr );
-    m_matlab_engine->eval( expr );
+    LOG_DEBUG( m_logger, engine() << " Matlab eval: " << expr );
+    engine()->eval( expr );
     check_result();
   }
 
 
+  // ------------------------------------------------------------------
+  void initialize_once()
+  {
+    if ( ! m_first)
+    {
+      return;
+    }
+
+    m_first = false;
+
+    std::ifstream t( m_matlab_program );
+    std::stringstream buffer;
+    buffer << t.rdbuf();
+    eval( buffer.str() );
+
+    // Create path to program file so we can do addpath('path');
+    std::string full_path = kwiversys::SystemTools::CollapseFullPath( m_matlab_program );
+    full_path = kwiversys::SystemTools::GetFilenamePath( full_path );
+
+    eval( "addpath('" + full_path + "')" );
+
+    // Get config values for this algorithm by extracting the subblock
+    auto algo_config = m_config->subblock( "config" );
+
+    // Iterate over all values in this config block and pass the values
+    // to the matlab as variable assignments.
+    auto keys = algo_config->available_values();
+    VITAL_FOREACH( auto k, keys )
+    {
+      std::stringstream config_command;
+      config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";
+      eval( config_command.str() );
+    }// end foreach
+
+    eval( "detector_initialize()" );
+  }
+
+
+  // --- instance data -----
   kwiver::vital::logger_handle_t m_logger;
+  bool m_first;
 
   // MatLab wrapper parameters
   std::string m_matlab_program;       // name of matlab program
+  vital::config_block_sptr m_config;
 
 private:
   // MatLab support. The engine is allocated at the latest time.
@@ -207,35 +240,10 @@ void
 matlab_image_object_detector::
 set_configuration(vital::config_block_sptr config)
 {
+  d->m_config = config;
+
   // Load specified program file into matlab engine
   d->m_matlab_program = config->get_value<std::string>( "program_file" );
-  std::ifstream t( d->m_matlab_program );
-  std::stringstream buffer;
-  buffer << t.rdbuf();
-  d->eval( buffer.str() );
-
-  // Create path to program file so we can do addpath('path');
-  std::string full_path = kwiversys::SystemTools::CollapseFullPath( d->m_matlab_program );
-  full_path = kwiversys::SystemTools::GetFilenamePath( full_path );
-
-  d->eval( "addpath('" + full_path + "')" );
-
-  // Get config values for this algorithm by extracting the subblock
-  auto algo_config = config->subblock( "config" );
-
-  // Iterate over all values in this config block and pass the values
-  // to the matlab as variable assignments.
-  auto keys = algo_config->available_values();
-  VITAL_FOREACH( auto k, keys )
-  {
-    std::stringstream config_command;
-    config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";
-    //+ LOG_DEBUG( d->m_logger, "Sending config value: " << config_command.str() );
-
-    d->eval( config_command.str() );
-  }// end foreach
-
-  d->eval( "detector_initialize()" );
 }
 
 
@@ -244,7 +252,7 @@ bool
 matlab_image_object_detector::
 check_configuration(vital::config_block_sptr config) const
 {
-  d->eval( "check_configuration()" );
+  // d->eval( "check_configuration()" );
 
   //+ not sure this has any value.
   // Need to get a return value back.
@@ -261,6 +269,8 @@ kwiver::vital::detected_object_set_sptr
 matlab_image_object_detector::
 detect( kwiver::vital::image_container_sptr image_data) const
 {
+  d->initialize_once();
+
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
 
   // convert image container to matlab image

@@ -53,9 +53,10 @@ function detect( image )
 
   % for example
   % 3 detections on this object
-  detected_object_set = [ 1 2 10 10 .56; % box and confidence for detection
-                          50 50 60 60 .77;
-                          100 100 140 140 .54];
+  % Box coordinates are tl-x, tl-y, lr-x, lr-y
+  detected_object_set = [ 100 120 220 220 .56; % box and confidence for detection
+                          550 550 860 860 .77;
+                          900 500 1040 1040 .54];
 
   % Classification of the detections are optional, but if there are any
   % they must be represented in the following structure.
