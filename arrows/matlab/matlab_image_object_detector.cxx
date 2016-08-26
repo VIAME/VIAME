@@ -82,12 +82,9 @@ namespace matlab {
  *  - in_image - contains the input image. Shape of the array is the size of the image.
  *
  * Output variables:
- *  - detector_status - status code. 0 for operation completed successfully.
- *    Any other value indicates and error and the error message is returned in
- *    detector_status_msg
- *
- *  - detector_status_msg - Text describing the status/failure of the last API call.
- *
+ *  - detected_object_set - array containing detections; boxes and confidence
+ *  - detected_object_classification - array of structs containing the classification
+ *    labels and scores.
  */
 
 // ----------------------------------------------------------------
