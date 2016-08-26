@@ -39,6 +39,21 @@ option( VIAME_DISABLE_GPU_SUPPORT  "Force the disabling of GPU support" OFF )
 ##
 option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
 
+###
+# Add logic relating to enable flags
+##
+if( VIAME_ENABLE_MATLAB )
+  find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
+endif()
+
+if( WIN32 AND VIAME_ENABLE_CAFFE )
+  message( FATAL_ERROR "Internal Caffe build on windows not currently supported, \
+    please build Caffe externally using the Caffe windows branch, if desired." )
+endif()
+
+###
+# Main build loop for when we are building both VIAME and all dependencies
+##
 if( VIAME_BUILD_DEPENDENCIES )
 
 # Macros and scripts
