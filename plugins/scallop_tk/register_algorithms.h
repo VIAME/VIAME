@@ -28,19 +28,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_ALGORITHMS_REGISTER_ALGORITHMS_H
-#define VIAME_ALGORITHMS_REGISTER_ALGORITHMS_H
+#ifndef VIAME_SCALLOP_TK_REGISTER_ALGORITHMS_H
+#define VIAME_SCALLOP_TK_REGISTER_ALGORITHMS_H
 
-#include <plugins/scallop_tk/viame_algo_export.h>
+#include <plugins/scallop_tk/viame_scallop_tk_export.h>
 
 #include <vital/registrar.h>
 
 namespace viame {
 
 // Register core algorithms with the given or global registrar
-VIAME_ALGO_EXPORT
+VIAME_SCALLOP_TK_EXPORT
 int register_algorithms( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
 
 } // end namespace
 
-#endif /* VIAME_ALGORITHMS_REGISTER_ALGORITHMS_H */
+#endif /* VIAME_SCALLOP_TK_REGISTER_ALGORITHMS_H */

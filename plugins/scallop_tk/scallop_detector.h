@@ -31,13 +31,13 @@
 #ifndef VIAME_SCALLOP_DETECTOR_H
 #define VIAME_SCALLOP_DETECTOR_H
 
-#include <plugins/scallop_tk/viame_algo_export.h>
+#include <plugins/scallop_tk/viame_scallop_tk_export.h>
 
 #include <vital/algo/image_object_detector.h>
 
 namespace viame {
 
-class VIAME_ALGO_EXPORT scallop_detector :
+class VIAME_SCALLOP_TK_EXPORT scallop_detector :
   public kwiver::vital::algorithm_impl< scallop_detector, kwiver::vital::algo::image_object_detector >
 {
 public:

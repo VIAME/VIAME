@@ -25,7 +25,7 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_algo_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_scallop_tk_export.h
   NOPATH   SUBDIR     viame
   )
 

@@ -40,7 +40,7 @@
 #include <vital/registrar.h>
 
 // Register core algorithms with the given or global registrar
-VIAME_ALGO_EXPORT
+VIAME_SCALLOP_TK_EXPORT
 int register_algorithms( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
 
 
