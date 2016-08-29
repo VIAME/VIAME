@@ -29,17 +29,17 @@ kwiver_install_headers(
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_algo
+kwiver_add_library( viame_scallop_tk
   ${plugin_headers}
   ${plugin_sources}
   )
 
-target_link_libraries( viame_algo
+target_link_libraries( viame_scallop_tk
   PUBLIC               vital
                        kwiver_algo_ocv
                        ScallopTK
   )
 
-algorithms_create_plugin( viame_algo
+algorithms_create_plugin( viame_scallop_tk
   algorithm_plugin_interface.cxx
   )
