@@ -35,3 +35,33 @@ The version of cmake you currently get with apt is too old to use for Viame, so 
 
 These instructions build the source code into a working executable, installs the executable into a personal directory, and then lets the operating system know where that directory is so it can find cmake in the future.
 
+******************
+Prepare the Source
+******************
+
+With all our dependencies installed, we need to build the environment for Viame itself. Viame uses git submodules rather than requiring the user to grab each repository totally separately. To prepare the environment and obtain all the necessary source code, use the following commands. Note that you can change `src` to whatever you want to name your Viame source directory.
+
+`git clone git@github.com:Kitware/VIAME git src`
+
+`cd src`
+
+`git submodule init`
+
+`git submodule update`
+
+***********
+Build Viame
+***********
+
+Viame may be built with a number of optional plugins--VXL, Caffe, OpenCV, Scallop_TK, and Matlab--with a corresponding option called VIAME_ENABLE_[option], in all caps. For each plugin to install, you need a cmake build flag setting the option. The flag looks like `-DVIAME_ENABLE_OPENCV:BOOL=ON`, of course changing OPENCV to match the plugin. Multiple plugins may be used, or none.
+
+Viame is meant to be built and installed in the same directory as the source code, so stay in the src directory and run the following commands:
+
+`mkdir build`
+
+`cd build`
+
+`cmake [build_flags] ..` 
+
+`make`
+
