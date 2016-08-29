@@ -9,6 +9,14 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} fletch )
 
+if( WIN32 AND VIAME_ENABLE_VXL )
+  set( fletch_VXL_DEP_FLAGS
+    -DDfletch_ENABLE_ZLib:BOOL=${VIAME_ENABLE_VXL}
+    -Dfletch_ENABLE_libjpeg-turbo:BOOL=${VIAME_ENABLE_VXL}
+    -Dfletch_ENABLE_libtiff:BOOL=${VIAME_ENABLE_VXL}
+  )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -22,12 +30,12 @@ ExternalProject_Add(fletch
 
     # System Related Options
     -Dfletch_DISABLE_GPU_SUPPORT:BOOL=${VIAME_DISABLE_GPU_SUPPORT}
+    -Dfletch_DISABLE_FFMPEG_SUPPORT:BOOL=${VIAME_DISABLE_FFMPEG_SUPPORT}
 
     # Optional Dependencies
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
-	-Dfletch_ENABLE_ZLib:BOOL=${VIAME_ENABLE_VXL}
-	-Dfletch_ENABLE_libjpeg-turbo:BOOL=${VIAME_ENABLE_VXL}
-	-Dfletch_ENABLE_libtiff:BOOL=${VIAME_ENABLE_VXL}
+    ${fletch_VXL_DEP_FLAGS}
+
     -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}
     -DAUTO_ENABLE_CAFFE_DEPENDENCY:BOOL=${VIAME_ENABLE_CAFFE}

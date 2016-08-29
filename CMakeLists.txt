@@ -33,6 +33,7 @@ option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
 # Other misc options
 ##
 option( VIAME_DISABLE_GPU_SUPPORT  "Force the disabling of GPU support" OFF )
+option( VIAME_DISABLE_FFMPEG_SUPPORT  "Force the disabling of FFMPEG support" OFF )
 
 ###
 # Add external package build instructions
