@@ -73,7 +73,7 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
     {                                                                   \
       PEH_eh_ptr_cast->error_code = ec;                                 \
       free(PEH_eh_ptr_cast->message); /* Does nothing if already null */ \
-      PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * strlen(msg)); \
+      PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * (strlen(msg)+1)); \
       strcpy(PEH_eh_ptr_cast->message, msg);                            \
     }                                                                   \
   } while(0)

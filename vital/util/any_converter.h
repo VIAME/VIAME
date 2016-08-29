@@ -98,7 +98,11 @@ public:
   };
 
 
+#ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
   typedef std::unique_ptr< convert_base< T > > converter_ptr;
+#else
+  typedef std::shared_ptr< convert_base< T > > converter_ptr;
+#endif
 
   any_converter() {}
   virtual ~any_converter() {}

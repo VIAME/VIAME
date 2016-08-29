@@ -68,10 +68,9 @@ IMPLEMENT_TEST(any_api)
   double dval = kwiver::vital::any_cast<double>( any_double );
   TEST_EQUAL( "Cast to double", dval, 3.14159 );
 
-  try {
-    std::string sval = kwiver::vital::any_cast<std::string >( any_double );
-    TEST_ERROR( "Expected exception not caught" );
-  } catch ( kwiver::vital::bad_any_cast const& e ) { }
+  EXPECT_EXCEPTION( kwiver::vital::bad_any_cast,
+                    std::string sval = kwiver::vital::any_cast<std::string >( any_double ),
+                    "converting incompatible types" );
 
   kwiver::vital::any new_double = any_double;
   TEST_EQUAL( "Type of copied double any", (new_double.type() == any_double.type()), true );

@@ -486,9 +486,7 @@ vital_config_block_file_write( vital_config_block_t*  cb,
     }
     catch ( kwiver::vital::config_file_write_exception const& e )
     {
-      eh->error_code = 1;
-      eh->message = (char*)malloc( sizeof( char ) * strlen( e.what() ) );
-      strcpy( eh->message, e.what() );
+      POPULATE_EH( eh, 1, e.what() );
     }
 
                 );

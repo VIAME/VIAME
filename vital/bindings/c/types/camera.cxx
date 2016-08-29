@@ -274,7 +274,7 @@ vital_camera_to_string( vital_camera_t const *cam, vital_error_handle_t *eh )
     ss << *cam_sptr;
     std::string ss_str( ss.str() );
 
-    char *output = (char*)malloc( sizeof(char) * ss_str.length() );
+    char *output = (char*)malloc( sizeof(char) * (ss_str.length()+1) );
     strcpy( output, ss_str.c_str() );
     return output;
   );

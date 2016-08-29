@@ -84,6 +84,15 @@ IMPLEMENT_TEST(KRTD_format_read)
   std::cerr << "Read in T: " << T << std::endl;
   TEST_EQUAL( "read camera translation",
               T.isApprox( expected_translation ), true );
+  std::vector<double> expected_distortion = {1, 2, 3, 4, 5};
+  std::vector<double> D = read_camera->intrinsics()->dist_coeffs() ;
+  std::cerr << "Read in D: ";
+  for (size_t i = 0; i < D.size(); ++i)
+  {
+    std::cerr << D[i] << std::endl;
+  }
+  TEST_EQUAL( "read camera distortion",
+              D == expected_distortion, true );
 }
 
 

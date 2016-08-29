@@ -46,7 +46,7 @@ extern "C"
 
 
 /// Opaque structure type
-typedef struct {} vital_rgb_color_t;
+typedef struct vital_rgb_color_s vital_rgb_color_t;
 
 
 /// Create a new rgb_color instance
