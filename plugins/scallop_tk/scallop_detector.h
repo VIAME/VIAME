@@ -38,22 +38,27 @@
 namespace viame {
 
 class VIAME_SCALLOP_TK_EXPORT scallop_detector :
-  public kwiver::vital::algorithm_impl< scallop_detector, kwiver::vital::algo::image_object_detector >
+  public kwiver::vital::algorithm_impl<
+    scallop_detector, kwiver::vital::algo::image_object_detector >
 {
 public:
   scallop_detector();
   scallop_detector( const scallop_detector& other );
   virtual ~scallop_detector();
 
+  // Set the name of this detector which will appear in any pipeline files
   virtual std::string impl_name() const { return "scallop_tk_detector"; }
 
+  // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 
+  // Set configurations automatically parsed from input pipeline and config files
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   // Main detection method
-  virtual kwiver::vital::detected_object_set_sptr detect( kwiver::vital::image_container_sptr image_data ) const;
+  virtual kwiver::vital::detected_object_set_sptr detect(
+    kwiver::vital::image_container_sptr image_data ) const;
 
 
 private:
