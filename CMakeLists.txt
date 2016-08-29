@@ -60,6 +60,7 @@ if( VIAME_BUILD_DEPENDENCIES )
 # Macros and scripts
 include( ExternalProject )
 include( common_args )
+include( common_macros )
 
 # Hard VIAME requirements
 include( add_project_fletch )

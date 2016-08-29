@@ -9,6 +9,8 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
+formatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
+
 ExternalProject_Add(kwiver
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -17,6 +19,7 @@ ExternalProject_Add(kwiver
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    ${VIAME_MATLAB_FLAGS}
 
     # Required
     -DKWIVER_ENABLE_ARROWS:BOOL=ON
