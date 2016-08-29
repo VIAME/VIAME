@@ -37,8 +37,12 @@ ExternalProject_Add(fletch
     ${fletch_VXL_DEP_FLAGS}
 
     -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
+
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}
     -DAUTO_ENABLE_CAFFE_DEPENDENCY:BOOL=${VIAME_ENABLE_CAFFE}
+
+    # Set fletch install path to be viame install path
+    -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   INSTALL_COMMAND ""
