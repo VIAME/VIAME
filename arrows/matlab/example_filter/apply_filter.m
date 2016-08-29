@@ -28,8 +28,10 @@
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %
 
-function out_image = filter(in_image)
+function out_image = apply_filter(in_image)
 
+
+  image(in_image); % display image
   out_image = in_image;
 
 end

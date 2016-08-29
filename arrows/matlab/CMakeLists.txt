@@ -6,6 +6,7 @@ set( sources
   matlab_exception.cxx
   matlab_engine.cxx
   matlab_image_object_detector.cxx
+  matlab_image_filter.cxx
 
   register_algorithms.cxx
   )
@@ -17,6 +18,7 @@ set( public_headers
   matlab_exception.h
   matlab_engine.h
   matlab_image_object_detector.h
+  matlab_image_filter.h
 )
 
 set( private_headers

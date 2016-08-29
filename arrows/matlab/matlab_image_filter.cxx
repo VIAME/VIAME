@@ -176,7 +176,7 @@ public:
   }
 
 
-  // --- instance data -----
+  // ------- instance data -------
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
 
@@ -257,17 +257,15 @@ check_configuration(vital::config_block_sptr config) const
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
 matlab_image_filter::
-filter( kwiver::vital::image_container_sptr image_data) const
+filter( kwiver::vital::image_container_sptr image_data)
 {
   d->initialize_once();
-
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
 
   // convert image container to matlab image
   MxArraySptr mx_image = convert_mx_image( image_data );
 
   d->engine()->put_variable( "in_image", mx_image );
-  d->eval( "out_image=detect(in_image)" );
+  d->eval( "global out_image; out_image=apply_filter(in_image)" );
 
   MxArraySptr out_image = d->engine()-> get_variable( "out_image" ); // throws
   d->check_result();

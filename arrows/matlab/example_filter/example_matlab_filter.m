@@ -70,10 +70,14 @@
 %    but may not have much value in matlab.
 %
 
-% 5) The "detect(image)" function is called with an image. This
+% 5) The "image = apply_filter(image)" function is called with an image. This
 %    function does the actual image processing and object
-%    detection. Refer to the sample detect() function for the output
+%    detection. Refer to the sample apply_filter() function for the output
 %    format and protocol.
 %
 
 clear all; clc; close all;
+
+global out_image;
+
+                                % Set configurable values

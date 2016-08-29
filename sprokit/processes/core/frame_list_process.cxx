@@ -154,6 +154,7 @@ void frame_list_process
   // verify and get file names in a list
   for ( std::string line; std::getline( ifs, line ); )
   {
+    //@todo handle blank lines and comments.
     d->m_files.push_back( line );
     if ( ! kwiversys::SystemTools::FileExists( d->m_files.back() ) )
     {

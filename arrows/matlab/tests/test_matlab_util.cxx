@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,29 +30,54 @@
 
 /**
  * \file
- * \brief Matlab algorithm registration implementation
+ * \brief test detected_object class
  */
 
-#include "register_algorithms.h"
-#include <arrows/algorithm_plugin_interface_macros.h>
+#include <test_common.h>
 
-#include <arrows/matlab/matlab_image_object_detector.h>
-#include <arrows/matlab/matlab_image_filter.h>
+#include <vital/types/detected_object.h>
+#include <arrows/matlab/mxarray.h>
 
-namespace kwiver {
-namespace arrows {
-namespace matlab {
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
-/// Register Matlab algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+
+#define TEST_ARGS       ()
+
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
-  REGISTRATION_INIT( reg );
+  CHECK_ARGS(2);
 
-  REGISTER_TYPE( matlab_image_object_detector );
-  REGISTER_TYPE( matlab_image_filter );
+  testname_t const testname = argv[1];
+  kwiver::vital::path_t data_dir( argv[2] );
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+  RUN_TEST(testname, data_dir);
 }
 
-} } } // end namespace
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(image_conversion)
+{
+  kwiver::vital::path_t test_read_file = data_dir + "/test_kitware_logo.jpg";
+
+  cv::Mat ocv_image;
+  ocv_image = imread(argv[1], cv::CV_LOAD_IMAGE_COLOR);   // Read the file
+  auto ic_sptr = std::make_shared< kwiver::arrows::ocv::image_container >( ocv_image );
+
+  cv::namedWindow( "input OCV image", cv::WINDOW_AUTOSIZE ); // Create a window for display.
+  cv::imshow( "input OCV image", ocv_image ); // Show our image inside it.
+  cv::waitKey( 000 ); // pause for keystroke
+
+  MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( ic_sptr );
+
+  auto ocv_ic = kwiver::arrows::matlab::convert_mx_image( mx_image );
+
+  cv::namedWindow( "output OCV image", cv::WINDOW_AUTOSIZE ); // Create a window for display.
+  cv::imshow( "output OCV image", ocv_image ); // Show our image inside it.
+  cv::waitKey( 000 ); // pause for keystroke
+
+
+}

@@ -58,7 +58,7 @@ public:
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
   // Main detection method
-  virtual vital::image_container_sptr filter( vital::image_container_sptr image_data) const;
+  virtual vital::image_container_sptr filter( vital::image_container_sptr image_data);
 
 private:
   class priv;
@@ -66,6 +66,5 @@ private:
 };
 
 } } } // end namespace
-
 
 #endif // VITAL_BINDINGS_MATLAB_IMAGE_FILTER_H
