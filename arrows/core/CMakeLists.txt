@@ -62,7 +62,7 @@ set( plugin_core_sources
 
 # Address MSVC fatal error C1128:
 # number of sections exceeded object file format limit
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
   set_source_files_properties(
     triangulate.cxx
     PROPERTIES COMPILE_FLAGS "/bigobj"
