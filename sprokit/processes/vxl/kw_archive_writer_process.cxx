@@ -67,7 +67,7 @@
 #include <vnl/vnl_double_2.h>
 
 // instantiate vsl vector routine
-#include <vsl/vsl_vector_io.txx>
+#include <vsl/vsl_vector_io.hxx>
 VSL_VECTOR_IO_INSTANTIATE( char );
 
 
