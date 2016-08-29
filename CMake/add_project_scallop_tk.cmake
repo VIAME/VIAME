@@ -9,6 +9,16 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} scallop_tk )
 
+if( WIN32 )
+  set( ScallopTK_BUILD_SHARED
+    -DBUILD_SHARED_LIBS:BOOL=OFF
+  )
+else()
+  set( ScallopTK_BUILD_SHARED
+    -DBUILD_SHARED_LIBS:BOOL=ON
+  )
+endif()
+
 ExternalProject_Add(scallop_tk
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -17,7 +27,7 @@ ExternalProject_Add(scallop_tk
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
-    -DBUILD_SHARED_LIBS:BOOL=ON
+    ${ScallopTK_BUILD_SHARED}
     -DVC_TOOLNAMES:BOOL=ON
     -DBUILD_TOOLS:BOOL=ON
     -DBUILD_TESTS:BOOL=OFF
