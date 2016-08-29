@@ -35,6 +35,7 @@
 #ifndef KWIVER_VITAL_VIDEO_METADATA_TRAITS_H
 #define KWIVER_VITAL_VIDEO_METADATA_TRAITS_H
 
+#include <vital/video_metadata/vital_video_metadata_export.h>
 #include <vital/video_metadata/video_metadata_tags.h>
 #include <vital/video_metadata/video_metadata.h> // needed for corner points
 
@@ -95,7 +96,7 @@ template <vital_metadata_tag tag> struct vital_meta_trait;
  *
  *
  */
-class VITAL_EXPORT video_metadata_traits
+class VITAL_VIDEO_METADATA_EXPORT video_metadata_traits
 {
 public:
   video_metadata_traits();

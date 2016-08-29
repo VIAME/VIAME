@@ -53,7 +53,7 @@ extern "C"
 
 
 /// Base opaque structure for vital::feature
-typedef struct {} vital_feature_t;
+typedef struct vital_feature_s vital_feature_t;
 
 
 /// Destroy a feature instance

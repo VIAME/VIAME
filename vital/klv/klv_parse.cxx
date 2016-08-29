@@ -108,7 +108,7 @@ FormatString( std::string const& val )
 template < class ITERATOR >
 bool
 klv_ber_length( ITERATOR buffer,
-                unsigned int buffer_len,
+                size_t buffer_len,
                 uint8_t& offset,
                 unsigned int& value_len )
 {

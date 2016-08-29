@@ -143,9 +143,22 @@ operator>>( std::istream& s, simple_camera& k )
 {
   matrix_3x3d K, R;
   vector_3d t;
-  Eigen::VectorXd d;
+  s >> K >> R >> t;
 
-  s >> K >> R >> t >> d;
+  double dVal;
+  std::vector<double> dValues;
+
+  while (s >> dVal)
+  {
+    dValues.push_back(dVal);
+  }
+
+  Eigen::VectorXd d(dValues.size());
+
+  for (size_t i = 0; i < dValues.size(); ++i)
+  {
+    d(i) =  dValues[i];
+  }
   // a single 0 in d is used as a place holder,
   // if a single 0 was loaded then clear d
   if ( ( d.rows() == 1 ) && ( d[0] ==  0.0 ) )

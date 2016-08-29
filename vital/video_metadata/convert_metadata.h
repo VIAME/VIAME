@@ -36,7 +36,7 @@
 #ifndef KWIVER_VITAL_CONVERT_METADATA_H
 #define KWIVER_VITAL_CONVERT_METADATA_H
 
-#include <vital/vital_export.h>
+#include <vital/video_metadata/vital_video_metadata_export.h>
 
 #include <vital/video_metadata/video_metadata.h>
 #include <vital/video_metadata/video_metadata_traits.h>
@@ -61,7 +61,7 @@ namespace vital {
  * @brief
  *
  */
-class VITAL_EXPORT convert_metadata
+class VITAL_VIDEO_METADATA_EXPORT convert_metadata
 {
 public:
   // -- CONSTRUCTORS --
