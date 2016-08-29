@@ -25,6 +25,9 @@ ExternalProject_Add(fletch
 
     # Optional Dependencies
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
+	-Dfletch_ENABLE_ZLib:BOOL=${VIAME_ENABLE_VXL}
+	-Dfletch_ENABLE_libjpeg-turbo:BOOL=${VIAME_ENABLE_VXL}
+	-Dfletch_ENABLE_libtiff:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}
     -DAUTO_ENABLE_CAFFE_DEPENDENCY:BOOL=${VIAME_ENABLE_CAFFE}
