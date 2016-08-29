@@ -30,29 +30,24 @@
 
 /**
  * \file
- * \brief Matlab algorithm registration implementation
+ * \brief image_filter algorithm instantiation
  */
 
-#include "register_algorithms.h"
-#include <arrows/algorithm_plugin_interface_macros.h>
-
-#include <arrows/matlab/matlab_image_object_detector.h>
-#include <arrows/matlab/matlab_image_filter.h>
+#include <vital/algo/algorithm.txx>
+#include <vital/algo/image_filter.h>
 
 namespace kwiver {
-namespace arrows {
-namespace matlab {
+namespace vital {
+namespace algo {
 
-/// Register Matlab algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+image_filter
+::image_filter()
 {
-  REGISTRATION_INIT( reg );
-
-  REGISTER_TYPE( matlab_image_object_detector );
-  REGISTER_TYPE( matlab_image_filter );
-
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+  attach_logger( "image_filter" ); // specify a logger
 }
 
-} } } // end namespace
+} } }
+
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_filter);
+/// \endcond

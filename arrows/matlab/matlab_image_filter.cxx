@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of matlab image object detector
+ * \brief Implementation of matlab image object filter
  */
 
-#include "matlab_image_object_detector.h"
+#include "matlab_image_filter.h"
 #include "matlab_engine.h"
 #include "matlab_util.h"
 
@@ -55,14 +55,14 @@ namespace matlab {
 
 // ----------------------------------------------------------------
 /**
- * @class matlab_image_object_detector
+ * @class matlab_image_filter
  *
- * @brief Wrapper for matlab image detectors.
+ * @brief Wrapper for matlab image filters.
  *
- * This class represents a wrapper for image object detectors written
+ * This class represents a wrapper for image object filters written
  * in MatLab.
  *
- * Image object detectors written in MatLab must support the following
+ * Image object filters written in MatLab must support the following
  * interface, at a minimum.
  *
  * Functions:
@@ -71,20 +71,13 @@ namespace matlab {
  *   - get_configuration() - returns the required configuration (format to be determined)
  *     May just punt and pass a filename to the algorithm and let it decode the config.
  *
- *   - set_configuration() - accepts a new configuration into the detector. (?)
+ *   - set_configuration() - accepts a new configuration into the filter. (?)
  *
  *   - check_configuration() - returns error if there is a configuration problem
  *
- *   - detect() - performs detection operation using input variables as input and
+ *   - filter() - performs detection operation using input variables as input and
  *     produces output on output variables.
  *
- * Input variables:
- *  - in_image - contains the input image. Shape of the array is the size of the image.
- *
- * Output variables:
- *  - detected_object_set - array containing detections; boxes and confidence
- *  - detected_object_classification - array of structs containing the classification
- *    labels and scores.
  */
 
 // ----------------------------------------------------------------
@@ -92,12 +85,12 @@ namespace matlab {
  * @brief
  *
  */
-class matlab_image_object_detector::priv
+class matlab_image_filter::priv
 {
 public:
   // -- CONSTRUCTORS --
   priv()
-    : m_logger( kwiver::vital::get_logger( "vital.matlab_image_object_detector" ) )
+    : m_logger( kwiver::vital::get_logger( "vital.matlab_image_filter" ) )
     , m_first( true )
   {}
 
@@ -111,7 +104,7 @@ public:
     //@bug Because of the way these algorithms are managed and
     // duplicated, the matlab engine pointer must be shared with all
     // copies of this algorithm.  This is not optimal, since different
-    // detectors may collide in the engine.  Doing the JIT creation
+    // filters may collide in the engine.  Doing the JIT creation
     // causes problems in that it allocates multiple engines. The real
     // solution is to get better control of creating these objects and
     // not have them clone themselves all the time.
@@ -179,11 +172,11 @@ public:
       eval( config_command.str() );
     }// end foreach
 
-    eval( "detector_initialize()" );
+    eval( "filter_initialize()" );
   }
 
 
-  // --- instance data -----
+  // ------- instance data -------
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
 
@@ -195,38 +188,38 @@ private:
   // MatLab support. The engine is allocated at the latest time.
   std::shared_ptr<matlab_engine> m_matlab_engine;
 
-}; // end class matlab_image_object_detector::priv
+}; // end class matlab_image_filter::priv
 
 
 // ==================================================================
 
-matlab_image_object_detector::
-matlab_image_object_detector()
+matlab_image_filter::
+matlab_image_filter()
   : d( new priv )
 { }
 
 
-matlab_image_object_detector::
-matlab_image_object_detector( const matlab_image_object_detector& other)
+matlab_image_filter::
+matlab_image_filter( const matlab_image_filter& other)
   : d( new priv( *other.d ) )
 { }
 
 
- matlab_image_object_detector::
-~matlab_image_object_detector()
+ matlab_image_filter::
+~matlab_image_filter()
 { }
 
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
-matlab_image_object_detector::
+matlab_image_filter::
 get_configuration() const
 {
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
   config->set_value( "program_file", d->m_matlab_program,
-                     "File name of the matlab image object detector program to run." );
+                     "File name of the matlab image object filter program to run." );
 
   return config;
 }
@@ -234,7 +227,7 @@ get_configuration() const
 
 // ------------------------------------------------------------------
 void
-matlab_image_object_detector::
+matlab_image_filter::
 set_configuration(vital::config_block_sptr config)
 {
   d->m_config = config;
@@ -246,7 +239,7 @@ set_configuration(vital::config_block_sptr config)
 
 // ------------------------------------------------------------------
 bool
-matlab_image_object_detector::
+matlab_image_filter::
 check_configuration(vital::config_block_sptr config) const
 {
   // d->eval( "check_configuration()" );
@@ -262,99 +255,24 @@ check_configuration(vital::config_block_sptr config) const
 
 
 // ------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
-matlab_image_object_detector::
-detect( kwiver::vital::image_container_sptr image_data) const
+kwiver::vital::image_container_sptr
+matlab_image_filter::
+filter( kwiver::vital::image_container_sptr image_data)
 {
   d->initialize_once();
-
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
 
   // convert image container to matlab image
   MxArraySptr mx_image = convert_mx_image( image_data );
 
   d->engine()->put_variable( "in_image", mx_image );
-  d->eval( "detect(in_image)" );
+  d->eval( "global out_image; out_image=apply_filter(in_image)" );
 
-  MxArraySptr detections = d->engine()-> get_variable( "detected_object_set" ); // throws
+  MxArraySptr out_image = d->engine()-> get_variable( "out_image" ); // throws
   d->check_result();
 
-  // Check dimensionality of returned array
-  size_t col = detections->cols();
-  if ( col < 5 )
-  {
-    throw std::runtime_error ( "Insufficient columns in detections array. Must have 5 columns." );
-  }
+  kwiver::vital::image_container_sptr kv_image = convert_mx_image( out_image );
 
-  if (col > 5)
-  {
-    LOG_WARN( d->m_logger, "Extra columns in detections array. Ignored." );
-  }
-
-  size_t num_det = detections->rows();
-
-  // Get the classification info if there
-  // TBD catch exception (if any) and mark as no classifications
-  size_t class_rows( 0 );
-  size_t class_cols( 0 );
-  MxArraySptr class_dims;
-  d->eval( "temp_temp=size(detected_object_classification);" );
-  try
-  {
-    class_dims = d->engine()-> get_variable( "temp_temp" ); // throws
-    class_rows = class_dims->at<size_t>(0);
-    class_cols = class_dims->at<size_t>(1);
-  }
-  catch( ... ) { }
-
-  // Process each detection and create an object
-  for ( size_t i = 0; i < num_det; i++ )
-  {
-    kwiver::vital::bounding_box_d bbox( detections->at<double>(i, (size_t) 0), // tl-x
-                                        detections->at<double>(i, (size_t) 1), // tl-y
-                                        detections->at<double>(i, (size_t) 2), // lr-x
-                                        detections->at<double>(i, (size_t) 3) ); // lr-y
-
-    // Save classifications in DOT
-    kwiver::vital::detected_object_type_sptr dot;
-    if ( class_rows ) // there are some classification details
-    {
-      dot = std::make_shared< kwiver::vital::detected_object_type >();
-
-      for ( size_t cc = 0; cc < class_cols; ++cc )
-      {
-        // Extract name and score from matlab
-        std::stringstream cmd;
-        cmd << "temp_temp=detected_object_classification(" << (i+1) << "," << (cc+1) << ").name;";
-        d->eval( cmd.str() );
-        MxArraySptr temp = d->engine()-> get_variable( "temp_temp" );
-
-        // If the name is empty, then there are no more names for this detection.
-        if ( temp->size() == 0 )
-        {
-          continue;
-        }
-
-        const std::string c_name = temp->getString();
-
-        cmd.str(""); // reset command string
-        cmd << "temp_temp=detected_object_classification(" << (i+1) << "," << (cc+1) << ").score;";
-        d->eval( cmd.str() );
-        temp =  d->engine()-> get_variable( "temp_temp" );
-        const double c_score = temp->at<double>(0);
-
-        dot->set_score( c_name, c_score );
-      } // end for cc
-    }
-
-    d->eval( "clear temp_temp;" );
-
-    // Add this detection to the set
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, detections->at<double>(i, 4), dot ) );
-
-  } // end for
-
-  return detected_set;
+  return kv_image;
 }
 
 } } } // end namespace

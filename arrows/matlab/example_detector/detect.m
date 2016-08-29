@@ -28,7 +28,7 @@
 % OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 %
 
-function detect( image )
+function detect( in_image )
   global detected_object_set;
   global detected_object_classification;
 
@@ -73,4 +73,5 @@ function detect( image )
   detected_object_classification(3,2).name='rock-lobster';
   detected_object_classification(3,2).score=.3;
 
+  image( in_image );  % TEMP
 end

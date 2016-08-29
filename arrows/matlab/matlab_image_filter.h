@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,29 +30,41 @@
 
 /**
  * \file
- * \brief Matlab algorithm registration implementation
+ * \brief Header defining matlab image_filter
  */
 
-#include "register_algorithms.h"
-#include <arrows/algorithm_plugin_interface_macros.h>
+#ifndef VITAL_BINDINGS_MATLAB_IMAGE_FILTER_H
+#define VITAL_BINDINGS_MATLAB_IMAGE_FILTER_H
 
-#include <arrows/matlab/matlab_image_object_detector.h>
-#include <arrows/matlab/matlab_image_filter.h>
+#include <vital/algo/image_filter.h>
+#include <arrows/matlab/kwiver_algo_matlab_export.h>
 
 namespace kwiver {
 namespace arrows {
 namespace matlab {
 
-/// Register Matlab algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+class KWIVER_ALGO_MATLAB_EXPORT matlab_image_filter
+  : public vital::algorithm_impl< matlab_image_filter, vital::algo::image_filter >
 {
-  REGISTRATION_INIT( reg );
+public:
+  matlab_image_filter();
+  matlab_image_filter( const matlab_image_filter& other );
+  virtual ~matlab_image_filter();
 
-  REGISTER_TYPE( matlab_image_object_detector );
-  REGISTER_TYPE( matlab_image_filter );
+  virtual std::string impl_name() const { return "matlab"; }
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
-}
+  virtual vital::config_block_sptr get_configuration() const;
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
+
+  // Main detection method
+  virtual vital::image_container_sptr filter( vital::image_container_sptr image_data);
+
+private:
+  class priv;
+  const std::unique_ptr<priv> d;
+};
 
 } } } // end namespace
+
+#endif // VITAL_BINDINGS_MATLAB_IMAGE_FILTER_H

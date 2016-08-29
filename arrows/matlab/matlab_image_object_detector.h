@@ -68,4 +68,4 @@ private:
 } } } // end namespace
 
 
-#endif /* VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H */
+#endif // VITAL_BINDINGS_MATLAB_IMAGE_OBJECT_DETECTOR_H

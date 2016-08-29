@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,29 +30,48 @@
 
 /**
  * \file
- * \brief Matlab algorithm registration implementation
+ * \brief Interface to abstract filter image algorithm
  */
 
-#include "register_algorithms.h"
-#include <arrows/algorithm_plugin_interface_macros.h>
+#ifndef VITAL_ALGO_IMAGE_FILTER_H
+#define VITAL_ALGO_IMAGE_FILTER_H
 
-#include <arrows/matlab/matlab_image_object_detector.h>
-#include <arrows/matlab/matlab_image_filter.h>
+#include <vital/vital_config.h>
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
 
 namespace kwiver {
-namespace arrows {
-namespace matlab {
+namespace vital {
+namespace algo {
 
-/// Register Matlab algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+/// \brief Abstract base class for feature set filter algorithms.
+class VITAL_EXPORT image_filter
+  : public kwiver::vital::algorithm_def<image_filter>
 {
-  REGISTRATION_INIT( reg );
+public:
 
-  REGISTER_TYPE( matlab_image_object_detector );
-  REGISTER_TYPE( matlab_image_filter );
+  /// Return the name of this algorithm.
+  static std::string static_type_name() { return "image_filter"; }
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
-}
+  /// Filter a  input image and return resulting image
+  /**
+   * This method implements the filtering operation. The resulting
+   * image should be the same size as the input image.
+   *
+   * \param[in] image_data Image to filter.
+   * \returns a filtered version of the input image
+   */
+  virtual kwiver::vital::image_container_sptr filter( kwiver::vital::image_container_sptr image_data ) = 0;
+
+protected:
+  image_filter();
+
+};
+
+/// type definition for shared pointer to a image_filter algorithm
+typedef std::shared_ptr<image_filter> image_filter_sptr;
+
 
 } } } // end namespace
+
+#endif /* VITAL_ALGO_IMAGE_FILTER_H */

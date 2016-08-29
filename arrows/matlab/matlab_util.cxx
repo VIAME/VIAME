@@ -37,6 +37,7 @@
 
 #include <arrows/ocv/image_container.h>
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <stdint.h>
 #include <memory>
@@ -45,26 +46,35 @@ namespace kwiver {
 namespace arrows {
 namespace matlab {
 
+#define IDX_COLUMN_MAJOR( c, r, p, nrows, ncols ) ( ( c ) + ( ( r ) + ( p ) * ( ncols ) ) * ( nrows ) )
+#define IDX_OPENCV( c, r, p, nrows, ncols, nchannels ) ( ( ( ( c ) * ( ncols ) + ( r ) ) * ( nchannels ) ) + ( p ) )
+
 // ------------------------------------------------------------------
 MxArraySptr
 convert_mx_image( const kwiver::vital::image_container_sptr image )
 {
-  const size_t rows = image->height();
-  const size_t cols = image->width();
-
-  MxArray* mx_image = new MxArray( mxCreateNumericMatrix( rows, cols,  mxUINT8_CLASS, mxREAL ) );
   cv::Mat ocv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image->get_image() );
+
+  const size_t planes = ocv_image.channels();
+  const size_t rows = ocv_image.rows;
+  const size_t cols = ocv_image.cols;
+
+  mwSize dims[3] = { rows, cols, planes };
+  MxArray* mx_image = new MxArray( mxCreateNumericArray( 3, dims, mxUINT8_CLASS, mxREAL ) );
 
   // Copy the pixels
   uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image->get() ) );
+  uint8_t* cv_mem = static_cast< uint8_t* > ( ocv_image.data );
 
-  // convert from column major to row major.
-  for ( size_t i = 0; i < rows; i++ )
+  for ( size_t p = 0; p < planes; p++ )
   {
-    for ( size_t j = 0; j < cols; j++ )
+    for ( size_t c = 0; c < cols; c++ )
     {
-      // row major indexing
-      mx_mem[ (i * cols)  + j ] = ocv_image.at< uint8_t > ( i, j );
+      for ( size_t r = 0; r < rows; r++ )
+      {
+        mx_mem[ IDX_COLUMN_MAJOR( r, c, p, rows, cols ) ] =
+          cv_mem[ IDX_OPENCV(  r, c, (planes - p - 1), rows, cols, planes ) ];
+      }
     }
   }
 
@@ -75,21 +85,27 @@ convert_mx_image( const kwiver::vital::image_container_sptr image )
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr convert_mx_image( const MxArraySptr mx_image )
 {
-  const size_t rows = mx_image->rows();
-  const size_t cols = mx_image->cols();
+  std::vector< mwSize > dims = mx_image->dimensions();
 
-  cv::Mat ocv_image(rows, cols, CV_8UC1 );
+  const size_t rows = dims[0];
+  const size_t cols = dims[1];
+  const size_t planes = dims[2];
+
+  cv::Mat ocv_image(rows, cols, CV_8UC3 );
 
   // Copy the pixels
   uint8_t* mx_mem = static_cast< uint8_t* > ( mxGetData( mx_image->get() ) );
+  uint8_t* cv_mem = static_cast< uint8_t* > ( ocv_image.data );
 
-  // convert from row major to col major.
-  for ( size_t i = 0; i < rows; i++ )
+  for ( size_t p = 0; p < planes; p++ )
   {
-    for ( size_t j = 0; j < cols; j++ )
+    for ( size_t c = 0; c < cols; c++ )
     {
-      // column major indexing
-      ocv_image.at< uint8_t > ( i, j ) = mx_mem[ (i * cols ) + j ];
+      for ( size_t r = 0; r < rows; r++ )
+      {
+          cv_mem[ IDX_OPENCV(  r, c, (planes - p - 1), rows, cols, planes ) ] =
+            mx_mem[ IDX_COLUMN_MAJOR( r, c, p, rows, cols ) ];
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 #
-# Example pipeline configuration for matlab based image object detectors
+# Example pipeline configuration for matlab based image filter
 #
 # ================================================================
 process input
@@ -11,21 +11,15 @@ process input
   :image_reader:type ocv
 
 # ================================================================
-process detector
- :: image_object_detector
-  :detector:type   matlab
-  :detector:matlab:program_file     example_detector/example_matlab_detector.m
+process filter
+ :: image_filter
+  :filter:type   matlab
+  :filter:matlab:program_file     example_filter/example_matlab_filter.m
   # Specify initial config for the detector
   # The following line is presented to the matlab script as "a=1;"
-  :detector:matlab:config:a_var          1
-  :detector:matlab:config:border         2
-  :detector:matlab:config:saving         false
-
-# ================================================================
-process annotate
-  :: draw_detected_object_boxes
-
-
+  :filter:matlab:config:a_var          1
+  :filter:matlab:config:border         2
+  :filter:matlab:config:saving         false
 
 # ================================================================
 process disp
@@ -47,13 +41,7 @@ connect from input.timestamp
         to   disp.timestamp
 
 connect from input.image
-        to   detector.image
+        to   filter.image
 
-connect from input.image
-        to annotate.image
-
-connect from detector.detected_object_set
-        to annotate.detected_object_set
-
-connect from annotate.image
+connect from filter.image
         to   disp.image
