@@ -56,5 +56,5 @@ algorithms_create_plugin( kwiver_algo_matlab
   )
 
 if (KWIVER_ENABLE_TESTS)
-#  add_subdirectory(tests)
+  add_subdirectory(tests)
 endif()

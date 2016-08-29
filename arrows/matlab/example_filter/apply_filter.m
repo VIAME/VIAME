@@ -29,6 +29,11 @@
 %
 
 function out_image = apply_filter(in_image)
+ % This function applies the image filter operation.
+ % The expected operation transforms the input image into the
+ % output image. It is assumed that the output image is the
+ % same size as the input image, but may have more or less
+ % planes or channels, such as in greyscale conversion.
 
 
   image(in_image); % display image

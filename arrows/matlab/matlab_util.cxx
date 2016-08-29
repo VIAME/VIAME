@@ -85,7 +85,7 @@ convert_mx_image( const kwiver::vital::image_container_sptr image )
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr convert_mx_image( const MxArraySptr mx_image )
 {
-  std::vector< mwSize > dims = mx_image.dimensions();
+  std::vector< mwSize > dims = mx_image->dimensions();
 
   const size_t rows = dims[0];
   const size_t cols = dims[1];

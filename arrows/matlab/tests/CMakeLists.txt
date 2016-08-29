@@ -2,7 +2,8 @@ project(arrows_test_matlab)
 
 include(kwiver-test-setup)
 
-set(test_libraries      vital kwiver_algo kwiver_algo_matlab kwiver_algo_ocv ${Matlab_LIBRARIES} )
+set(test_libraries      vital kwiver_algo kwiver_algo_matlab kwiver_algo_ocv
+                        ${Matlab_LIBRARIES} )
 
 ##############################
 # Algorithms Matlab tests

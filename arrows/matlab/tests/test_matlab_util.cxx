@@ -36,18 +36,18 @@
 #include <test_common.h>
 
 #include <vital/types/detected_object.h>
-#include <arrows/matlab/mxarray.h>
+#include <arrows/matlab/matlab_util.h>
+#include <arrows/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-
-#define TEST_ARGS       ()
+#define TEST_ARGS ( kwiver::vital::path_t const &data_dir )
 
 DECLARE_TEST_MAP();
 
 int
-main(int argc, char* argv[])
+main(int argc, char** argv)
 {
   CHECK_ARGS(2);
 
@@ -64,20 +64,24 @@ IMPLEMENT_TEST(image_conversion)
   kwiver::vital::path_t test_read_file = data_dir + "/test_kitware_logo.jpg";
 
   cv::Mat ocv_image;
-  ocv_image = imread(argv[1], cv::CV_LOAD_IMAGE_COLOR);   // Read the file
+  ocv_image = cv::imread(test_read_file, CV_LOAD_IMAGE_COLOR);   // Read the file
+  if(! ocv_image.data )                              // Check for invalid input
+  {
+    TEST_ERROR( "Could not open or find the image" );
+    return;
+  }
+
   auto ic_sptr = std::make_shared< kwiver::arrows::ocv::image_container >( ocv_image );
 
   cv::namedWindow( "input OCV image", cv::WINDOW_AUTOSIZE ); // Create a window for display.
   cv::imshow( "input OCV image", ocv_image ); // Show our image inside it.
   cv::waitKey( 000 ); // pause for keystroke
 
-  MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( ic_sptr );
+  kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( ic_sptr );
 
   auto ocv_ic = kwiver::arrows::matlab::convert_mx_image( mx_image );
 
   cv::namedWindow( "output OCV image", cv::WINDOW_AUTOSIZE ); // Create a window for display.
   cv::imshow( "output OCV image", ocv_image ); // Show our image inside it.
   cv::waitKey( 000 ); // pause for keystroke
-
-
 }
