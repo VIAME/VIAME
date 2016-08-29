@@ -19,6 +19,7 @@ endfunction()
 
 formatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
 formatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
+formatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
 
 ExternalProject_Add(viame
   DEPENDS ${VIAME_PROJECT_LIST}
@@ -32,6 +33,7 @@ ExternalProject_Add(viame
     ${VIAME_ARGS_scallop_tk}
     ${VIAME_ENABLE_FLAGS}
     ${VIAME_DISABLE_FLAGS}
+    ${VIAME_MATLAB_FLAGS}
     -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   INSTALL_COMMAND ""

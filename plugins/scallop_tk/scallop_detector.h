@@ -45,7 +45,7 @@ public:
   scallop_detector( const scallop_detector& other );
   virtual ~scallop_detector();
 
-  virtual std::string impl_name() const { return "scallop_detector"; }
+  virtual std::string impl_name() const { return "scallop_tk_detector"; }
 
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 
