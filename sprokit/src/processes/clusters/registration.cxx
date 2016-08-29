@@ -154,11 +154,11 @@ register_processes()
       }
 
       // log loading file
-      LOG_DEBUG( logger, "Loading cluster from file: " << pstr );
+      LOG_DEBUG( logger, "Loading cluster from file: " << pstr.c_str() );
 
       if (ent.status().type() != boost::filesystem::regular_file)
       {
-        LOG_WARN( logger, "Found non-file loading clusters: " << pstr );
+        LOG_WARN( logger, "Found non-file loading clusters: " << pstr.c_str() );
         continue;
       }
 

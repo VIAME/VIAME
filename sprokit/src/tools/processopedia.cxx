@@ -85,7 +85,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     VITAL_FOREACH (sprokit::module_path_t const& module_dir, paths)
     {
-      std::cout << "    " << module_dir << std::endl;
+      std::cout << "    " << module_dir.c_str() << std::endl;
     }
 
     return EXIT_SUCCESS;

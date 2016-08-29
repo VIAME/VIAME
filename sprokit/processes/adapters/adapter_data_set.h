@@ -117,7 +117,7 @@ public:
    *
    * @return data set type enum.
    */
-  data_set_type type() const { return m_set_type; }
+  data_set_type type() const;
 
   /**
    * @brief Test if this object has end of data marker.
@@ -127,7 +127,7 @@ public:
    *
    * @return \b true if this is end of data element.
    */
-  bool is_end_of_data() const { return (m_set_type == end_of_input); }
+  bool is_end_of_data() const;
 
   /**
    * @brief Add datum to this data set.

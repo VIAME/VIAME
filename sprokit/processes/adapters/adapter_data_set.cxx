@@ -124,4 +124,20 @@ adapter_data_set
   return m_port_datum_set.find( port );
 }
 
+
+// ------------------------------------------------------------------
+bool
+kwiver::adapter::adapter_data_set::is_end_of_data() const
+{
+  return (m_set_type == end_of_input);
+}
+
+
+// ------------------------------------------------------------------
+adapter_data_set::data_set_type
+kwiver::adapter::adapter_data_set::type() const
+{
+  return m_set_type;
+}
+
 } } // end namespace
