@@ -41,6 +41,8 @@
 
 namespace viame {
 
+using namespace ScallopTK;
+
 // ----------------------------------------------------------------
 /**
  * @brief
@@ -57,7 +59,7 @@ public:
   { }
 
   std::string m_config_file;
-  std::shared_ptr< ScallopTK::CoreDetector > m_detector;
+  std::shared_ptr< CoreDetector > m_detector;
 }; // end class scallop_detector::priv
 
 // ==================================================================
@@ -103,7 +105,7 @@ set_configuration( kwiver::vital::config_block_sptr config )
   d->m_config_file = config->get_value< std::string > ( "config_file" );
 
   // Create new detector.
-  d->m_detector = std::make_shared< ScallopTK::CoreDetector > ( d->m_config_file );
+  d->m_detector = std::make_shared< CoreDetector > ( d->m_config_file );
 }
 
 
