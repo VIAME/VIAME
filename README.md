@@ -24,6 +24,6 @@ command if on linux:
 
 Or alternatively by building in visual studio on windows.
 
-There are currently several optional arguments to viame, such as `VIAME_ENABLE_MATLAB`,
-`VIAME_ENABLE_OPENCV`, `VIAME_ENABLE_VXL`,  and 'VIAME_ENABLE_CAFFE` to turn on
-support for different items.
+There are currently several optional arguments to viame, such as "VIAME_ENABLE_MATLAB",
+"VIAME_ENABLE_OPENCV", "VIAME_ENABLE_VXL",  and "VIAME_ENABLE_CAFFE" to turn on
+support for different cpomponents.
