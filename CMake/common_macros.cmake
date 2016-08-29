@@ -1,5 +1,5 @@
 
-function( formatPassdowns _str _varResult )
+function( FormatPassdowns _str _varResult )
   set( _tmpResult "" )
   get_cmake_property( _vars VARIABLES )
   string( REGEX MATCHALL "(^|;)${_str}[A-Za-z0-9_]*" _matchedVars "${_vars}" )

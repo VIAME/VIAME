@@ -9,7 +9,7 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
-formatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
+FormatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
 
 ExternalProject_Add(kwiver
   DEPENDS fletch

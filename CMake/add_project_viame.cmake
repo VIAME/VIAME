@@ -7,9 +7,9 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-formatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
-formatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
-formatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
+FormatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
+FormatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
+FormatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
 
 ExternalProject_Add(viame
   DEPENDS ${VIAME_PROJECT_LIST}
