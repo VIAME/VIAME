@@ -11,7 +11,7 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} fletch )
 
 if( WIN32 AND VIAME_ENABLE_VXL )
   set( fletch_VXL_DEP_FLAGS
-    -DDfletch_ENABLE_ZLib:BOOL=${VIAME_ENABLE_VXL}
+    -Dfletch_ENABLE_ZLib:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_libjpeg-turbo:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_libtiff:BOOL=${VIAME_ENABLE_VXL}
   )
