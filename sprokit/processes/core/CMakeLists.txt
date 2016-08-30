@@ -13,6 +13,7 @@ set( sources
   frame_list_process.cxx
   image_filter_process.cxx
   image_object_detector_process.cxx
+  image_writer_process.cxx
   matcher_process.cxx
   read_descriptor_process.cxx
   stabilize_image_process.cxx
@@ -26,6 +27,7 @@ set( private_headers
   frame_list_process.h
   image_filter_process.h
   image_object_detector_process.h
+  image_writer_process.h
   matcher_process.h
   read_descriptor_process.h
   stabilize_image_process.h

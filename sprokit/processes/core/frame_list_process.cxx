@@ -171,7 +171,6 @@ void frame_list_process
 void frame_list_process
 ::_step()
 {
-
   if ( d->m_current_file != d->m_files.end() )
   {
     // still have an image to read

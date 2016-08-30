@@ -180,6 +180,7 @@ set( vital_public_headers
   util/any_converter.h
   util/enumerate_matrix.h
   util/enumerate_matrix.h
+  util/string_format.h
 
   plugin_loader/plugin_factory.h
   plugin_loader/plugin_manager.h
