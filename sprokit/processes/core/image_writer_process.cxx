@@ -64,7 +64,13 @@ namespace kwiver {
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name_template, std::string, "image%04d.png",
                      "Template for generating output file names. The template is interpreted as a printf format with one "
-                     "format specifier to convert an integer increasing image number." );
+                     "format specifier to convert an integer increasing image number. "
+                     "The image file type is determined by the file extension and the concrete writer selected." );
+
+// This is more for documentation
+create_config_trait( image_writer, std::string , "", "Config block name to configure algorithm. "
+                       "The algorithm type is selected with \"image_writer:type\". Specific writer parameters "
+                       "depend on writer type selected.");
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -155,11 +161,13 @@ void image_writer_process
     }
     else
     {
+      // timestamp does not have valid frame number
       ++d->m_frame_number;
     }
   }
   else
   {
+    // timestamp port not connected.
     ++d->m_frame_number;
   }
 
@@ -182,7 +190,9 @@ void image_writer_process
   required.insert( flag_required );
 
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( timestamp, optional );
+  declare_input_port_using_trait( timestamp, optional,
+    "Image timestamp, optional. The frame number from this timestamp is used to number the output files. "
+    "If the timestamp is not connected or not valid, the output files are sequentially numbered from 1." );
 }
 
 
@@ -191,6 +201,7 @@ void image_writer_process
 ::make_config()
 {
   declare_config_using_trait( file_name_template );
+  declare_config_using_trait( image_writer );
 }
 
 
