@@ -84,8 +84,8 @@ your location of choice, and run the following commands:
 Installing Viame (Windows)
 ==========================
 
-Building on windows can be very similar to Linux if using a shell like [cygwin](https://www.cygwin.com/), though if not you
-may want to go grab the GUI versions of [CMake](https://cmake.org/) and [TortoiseGit](https://tortoisegit.org/).
+Building on windows can be very similar to Linux if using a shell like `cygwin<https://www.cygwin.com/>`_, though if not you
+may want to go grab the GUI versions of `CMake<https://cmake.org/>`_ and `TortoiseGit<https://tortoisegit.org/>`_.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this involves right clicking in your folder of
 choice, selecting Git Clone, and then entering the URL to VIAME (https://github.com/Kitware/VIAME.git) and the location
@@ -94,7 +94,7 @@ of where you want to put the downloaded source code.
 Next, do a git submodule update to pull down all required packages. In TortoiseGit right click on the folder you checked
 out the source into, move to the TortoiseGit menu section, and select `Submodule Update`.
 
-Now, create a build folder and run the [CMake GUI](https://cmake.org/runningcmake/). Point it to your source and build
+Now, create a build folder and run the `CMake GUI<https://cmake.org/runningcmake/>`_. Point it to your source and build
 directories, select your compiler of choice, and setup and build flags you want.
 
 Lastly, compile the source with your compiler of choice.
