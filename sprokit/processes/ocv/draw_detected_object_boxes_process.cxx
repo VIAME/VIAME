@@ -185,7 +185,7 @@ public:
 
     // Make CV rect for out bbox coordinates
     cv::Rect r( bbox.upper_left()[0], bbox.upper_left()[1], bbox.width(), bbox.height() );
-    std::string p = std::to_string( prob ); // convert value to string
+    std::string p = std::to_string( static_cast<long double>( prob ) ); // convert value to string
     std::string txt = label + " " + p;
 
     // Clip threshold to limit value. If less than 0.05, leave threshold as it is.
