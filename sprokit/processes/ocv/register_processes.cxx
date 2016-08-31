@@ -62,6 +62,11 @@ void register_processes()
     "image_viewer", "Display input image and delay",
     sprokit::create_process< kwiver::image_viewer_process > );
 
+  registry->register_process( //+ support for legacy process name. Will be
+    "view_image", "Display input image and delay. Legacy process and will be removed in a future release. "
+    "Convert to use \"image_viewer\" before it is too late.",
+    sprokit::create_process< kwiver::image_viewer_process > );
+
   registry->register_process(
     "draw_detected_object_boxes",
     "Draw detected object boxes on images.",
