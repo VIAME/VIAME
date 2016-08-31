@@ -141,7 +141,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
     double width = sqrt( ( a * a ) + ( b * b ) ) * 2;
     double height = sqrt( ( c * c ) + ( d * d ) ) * 2;
     double x = det.c - width * 0.5;
-    double y = det.r + height * 0.5;
+    double y = det.r - height * 0.5;
     kwiver::vital::bounding_box_d bbox( kwiver::vital::bounding_box_d::vector_type( x, y ), width, height );
 
     // Create possible object types.
