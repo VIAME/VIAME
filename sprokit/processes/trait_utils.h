@@ -302,7 +302,6 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
   GET_MACRO(__VA_ARGS__, xxx, DPUT4, DPUT3)(output, __VA_ARGS__)
 
 
-
 /**
  * \brief Declare sprokit input port using a port trait.
  *

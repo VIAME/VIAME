@@ -33,7 +33,7 @@
  * \brief Image display process implementation.
  */
 
-#include "view_image_process.h"
+#include "image_viewer_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -62,10 +62,9 @@ create_config_trait( title, std::string, "Display window", "Display window title
 create_config_trait( header, std::string, "", "Header text for image display." );
 create_config_trait( footer, std::string, "", "Footer text for image display. Displayed centered at bottom of image." );
 
-
 //----------------------------------------------------------------
 // Private implementation class
-class view_image_process::priv
+class image_viewer_process::priv
 {
 public:
   priv();
@@ -171,10 +170,10 @@ public:
 
 // ================================================================
 
-view_image_process
-::view_image_process( kwiver::vital::config_block_sptr const& config )
+image_viewer_process
+::image_viewer_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new view_image_process::priv )
+    d( new image_viewer_process::priv )
 {
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   make_ports();
@@ -182,15 +181,15 @@ view_image_process
 }
 
 
-view_image_process
-::~view_image_process()
+image_viewer_process
+::~image_viewer_process()
 {
 }
 
 
 // ----------------------------------------------------------------
 void
-view_image_process
+image_viewer_process
 ::_configure()
 {
   d->m_pause_ms = static_cast< int >( config_value_using_trait( pause_time ) * 1000.0 ); // convert to msec
@@ -203,7 +202,7 @@ view_image_process
 
 // ----------------------------------------------------------------
 void
-view_image_process
+image_viewer_process
 ::_step()
 {
   kwiver::vital::timestamp frame_time;
@@ -225,7 +224,7 @@ view_image_process
     image = d->annotate_image( image, frame_time.get_frame() );
   }
 
-  cv::namedWindow( d->m_title, cv::WINDOW_AUTOSIZE ); // Create a window for display.
+  cv::namedWindow( d->m_title, cv::WINDOW_NORMAL ); // Create a window for display.
   cv::imshow( d->m_title, image ); // Show our image inside it.
 
   cv::waitKey( d->m_pause_ms );
@@ -234,7 +233,7 @@ view_image_process
 
 // ----------------------------------------------------------------
 void
-view_image_process
+image_viewer_process
 ::make_ports()
 {
   // Set up for required ports
@@ -251,7 +250,7 @@ view_image_process
 
 // ----------------------------------------------------------------
 void
-view_image_process
+image_viewer_process
 ::make_config()
 {
   declare_config_using_trait( pause_time );
@@ -263,7 +262,7 @@ view_image_process
 
 
 // ================================================================
-view_image_process::priv
+image_viewer_process::priv
 ::priv()
   : m_pause_ms( 0 ),
     m_annotate_image( false )
@@ -271,7 +270,7 @@ view_image_process::priv
 }
 
 
-view_image_process::priv
+image_viewer_process::priv
 ::~priv()
 {
 }
