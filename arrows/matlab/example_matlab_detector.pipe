@@ -24,8 +24,8 @@ process detector
 # ================================================================
 process annotate
   :: draw_detected_object_boxes
-
-
+  :default_color   250 250 250
+  :default_line_thickness 3
 
 # ================================================================
 process disp
@@ -34,6 +34,12 @@ process disp
 :pause_time             1.0
 :footer                 NOAA images
 :header                 header-header
+
+# ================================================================
+process writer
+  :: image_writer
+  :file_name_template image%04d.jpg
+  :image_writer:type ocv
 
 # ================================================================
 # global pipeline config
@@ -57,3 +63,6 @@ connect from detector.detected_object_set
 
 connect from annotate.image
         to   disp.image
+
+connect from annotate.image
+        to   writer.image

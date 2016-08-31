@@ -41,6 +41,7 @@
 #include "stabilize_image_process.h"
 #include "image_object_detector_process.h"
 #include "image_filter_process.h"
+#include "image_writer_process.h"
 
 
 extern "C"
@@ -106,6 +107,10 @@ void register_processes()
   registry->register_process(
     "image_filter", "Apply selected image filter algorithm to incoming images.",
     sprokit::create_process< kwiver::image_filter_process > );
+
+  registry->register_process(
+    "image_writer", "Write image to disk.",
+    sprokit::create_process< kwiver::image_writer_process > );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   registry->mark_module_as_loaded( module_name );

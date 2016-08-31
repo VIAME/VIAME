@@ -227,11 +227,37 @@ sprokit::process::port_t const PN ## _port_trait::port_name = sprokit::process::
 sprokit::process::port_description_t const PN ## _port_trait::description = sprokit::process::port_description_t( DESCRIP ); }
 
 
-#define declare_port_using_trait( D, PN, FLAG )         \
+//
+// Substantial macro magic
+//
+#define DPFT4( D, PN, FLAG, FREQ )                      \
+declare_ ## D ## _port( PN ## _port_trait::port_name,   \
+                        PN ## _port_trait::type_name,   \
+                        FLAG,                           \
+                        PN ## _port_trait::description, \
+                        FREQ )
+
+#define DPFT5( D, PN, FLAG, FREQ, DESCRIP )             \
+declare_ ## D ## _port( PN ## _port_trait::port_name,   \
+                        PN ## _port_trait::type_name,   \
+                        FLAG,                           \
+                        DESCRIP,                        \
+                        FREQ )
+
+#define DPUT3( D, PN, FLAG )         \
 declare_ ## D ## _port( PN ## _port_trait::port_name,   \
                         PN ## _port_trait::type_name,   \
                         FLAG,                           \
                         PN ## _port_trait::description)
+
+#define DPUT4( D, PN, FLAG, DESCRIP  )                  \
+declare_ ## D ## _port( PN ## _port_trait::port_name,   \
+                        PN ## _port_trait::type_name,   \
+                        FLAG,                           \
+                        DESCRIP)
+
+#define GET_MACRO(_1,_2,_3,_4,NAME, ...) NAME
+
 
 /**
  * \brief Declare sprokit input port using a port trait.
@@ -244,12 +270,15 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
   required.insert( flag_required );
 
   declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( timestamp, required, "description" );
  \endcode
  *
  * \param PN Port trait name as defined by create_port_trait()
  * \param FLAG Port flags as defined by sprokit::process::port_flags_t
+ * \param DESCRIP Optional port description
  */
-#define declare_input_port_using_trait( PN, FLAG ) declare_port_using_trait( input, PN, FLAG )
+#define declare_input_port_using_trait(...) \
+  GET_MACRO(__VA_ARGS__, xxx, DPUT4, DPUT3)(input, __VA_ARGS__)
 
 
 /**
@@ -262,12 +291,63 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
   sprokit::process::port_flags_t optional;
 
   declare_output_port_using_trait( src_to_ref_homography, optional );
+  declare_output_port_using_trait( src_to_ref_homography, optional, "description" );
  \endcode
  *
  * \param PN Port trait name as defined by create_port_trait()
  * \param FLAG Port flags as defined by sprokit::process::port_flags_t
+ * \param DESCRIP Optional port description
  */
-#define declare_output_port_using_trait( PN, FLAG ) declare_port_using_trait( output, PN, FLAG )
+#define declare_output_port_using_trait(...) \
+  GET_MACRO(__VA_ARGS__, xxx, DPUT4, DPUT3)(output, __VA_ARGS__)
+
+
+
+/**
+ * \brief Declare sprokit input port using a port trait.
+ *
+ * This macro is used to declare a sprokit input port with a frequency
+ * to the pipeline framework based on the specified port trait.
+ *
+ \code
+  sprokit::process::port_flags_t required;
+  required.insert( flag_required );
+
+  declare_input_port_with_freq_using_trait( timestamp, required );
+  declare_input_port_with_freq_using_trait( timestamp, required, "description" );
+ \endcode
+ *
+ * \param PN Port trait name as defined by create_port_trait()
+ * \param FLAG Port flags as defined by sprokit::process::port_flags_t
+ * \param FREQ Port frequency
+ * \param DESCRIP Optional port description
+ */
+#define declare_input_port_with_freq_using_trait(...) \
+  GET_MACRO(__VA_ARGS__, DPFT5, DPFT4, xxx)(input, __VA_ARGS__)
+
+
+/**
+ * \brief Declare sprokit output port using port trait.
+ *
+ * This macro is used to declare a sprokit output with a frequency
+ * specification port to the pipeline framework based on the specified
+ * port trait.
+ *
+ \code
+  sprokit::process::port_flags_t optional;
+
+  declare_output_port_with_freq_using_trait( src_to_ref_homography, optional );
+  declare_output_port_with_freq_using_trait( src_to_ref_homography, optional, "description" );
+ \endcode
+ *
+ * \param PN Port trait name as defined by create_port_trait()
+ * \param FLAG Port flags as defined by sprokit::process::port_flags_t
+ * \param FREQ Port frequency
+ * \param DESCRIP Optional port description
+ */
+#define declare_output_port_with_freq_using_trait(...) \
+  GET_MACRO(__VA_ARGS__, DPFT5, DPFT4, xxx)(output, __VA_ARGS__)
+
 
 
 /**
