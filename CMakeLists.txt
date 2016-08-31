@@ -129,12 +129,14 @@ add_subdirectory( examples )
 ###
 # Configure setup script
 ##
-kwiver_configure_file(viame-buid-setup
-  "${CMAKE_SOURCE_DIR}/CMake/setup_VIAME.sh.in"
-  setup_VIAME.sh
-  fletch_ROOT
-  KWIVER_MODULE_DIR
-  KWIVER_LIBRARY_DIR
+set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
+  ${VIAME_SETUP_SCRIPT_FILE}
   )
+
+install( PROGRAMS   ${VIAME_SETUP_SCRIPT_FILE}
+  DESTINATION       ${CMAKE_INSTALL_PREFIX} )
 
 endif()

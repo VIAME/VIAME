@@ -1,0 +1,18 @@
+#
+# Script to set up environment to use VIAME
+#
+this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+
+# path for loading algorithms
+export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
+export VIAME_PLUGIN_PATH=$this_dir/lib/modules:$VIAME_PLUGIN_PATH
+
+# path for loading processes
+export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
+
+export PATH=$this_dir/bin:$PATH
+export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
+
+export VG_PLUGIN_PATH=$this_dir
+export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
+export SPROKIT_PYTHON_MODULES=kwiver.processes
