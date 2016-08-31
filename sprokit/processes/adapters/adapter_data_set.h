@@ -218,7 +218,7 @@ public:
     auto it = this->find( port );
     if ( it == this->end() )
     {
-      throw throw std::runtime_error( "Data for port \"" + port + "\" is not in the adapter_data_set." );
+      throw std::runtime_error( "Data for port \"" + port + "\" is not in the adapter_data_set." );
     }
     return it->second->get_datum<T>();
   }
