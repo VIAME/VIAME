@@ -33,8 +33,8 @@
  * \brief Image display process interface.
  */
 
-#ifndef _KWIVER_VIEW_IMAGE_PROCESS_H
-#define _KWIVER_VIEW_IMAGE_PROCESS_H
+#ifndef _KWIVER_IMAGE_VIEWER_PROCESS_H
+#define _KWIVER_IMAGE_VIEWER_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_ocv_export.h"
@@ -49,13 +49,13 @@ namespace kwiver
  * @brief Display images
  *
  */
-class KWIVER_PROCESSES_OCV_NO_EXPORT view_image_process
+class KWIVER_PROCESSES_OCV_NO_EXPORT image_viewer_process
   : public sprokit::process
 {
 public:
   // -- CONSTRUCTORS --
-  view_image_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~view_image_process();
+  image_viewer_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~image_viewer_process();
 
 protected:
   virtual void _configure();
@@ -69,8 +69,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d;
 
-}; // end class view_image_process
+}; // end class image_viewer_process
 
 } // end namespace
 
-#endif /* _KWIVER_VIEW_IMAGE_PROCESS_H */
+#endif // _KWIVER_IMAGE_VIEWER_PROCESS_H

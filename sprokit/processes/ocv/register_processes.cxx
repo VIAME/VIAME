@@ -31,7 +31,7 @@
 #include <sprokit/pipeline/process_registry.h>
 
 // -- list processes to register --
-#include "view_image_process.h"
+#include "image_viewer_process.h"
 #include "draw_detected_object_boxes_process.h"
 
 
@@ -59,8 +59,8 @@ void register_processes()
   // ----------------------------------------------------------------
 
   registry->register_process(
-    "view_image", "Display input image and delay",
-    sprokit::create_process< kwiver::view_image_process > );
+    "image_viewer", "Display input image and delay",
+    sprokit::create_process< kwiver::image_viewer_process > );
 
   registry->register_process(
     "draw_detected_object_boxes",

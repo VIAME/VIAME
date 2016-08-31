@@ -7,12 +7,12 @@ set( sources
   register_processes.cxx
 
   draw_detected_object_boxes_process.cxx
-  view_image_process.cxx
+  image_viewer_process.cxx
 )
 
 set( private_headers
   draw_detected_object_boxes_process.h
-  view_image_process.h
+  image_viewer_process.h
 )
 
 kwiver_private_header_group( ${private_headers} )

@@ -12,7 +12,7 @@ process input
 
 # ================================================================
 process disp
-  :: view_image
+  :: image_viewer
 :annotate_image         true
 :pause_time             0.0333 # 1.0
 :footer                 footer_footer
