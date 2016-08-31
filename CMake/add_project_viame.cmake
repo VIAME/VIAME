@@ -27,7 +27,6 @@ ExternalProject_Add(viame
     -DBUILD_SHARED_LIBS:BOOL=ON
     -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
-  INSTALL_COMMAND ""
   )
 
 ExternalProject_Add_Step(viame forcebuild
