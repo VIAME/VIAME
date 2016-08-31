@@ -388,7 +388,7 @@ image and then displays the annotated image.
 
     # ================================================================
     process disp
-      :: view_image
+      :: image_viewer
       :annotate_image         true
       # pause_time in seconds. 0 means wait for keystroke.
       :pause_time             1.0
