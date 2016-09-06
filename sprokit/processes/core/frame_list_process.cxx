@@ -61,8 +61,14 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-create_config_trait( image_list_file, std::string, "", "Name of file that contains list of image file names." );
-create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds" );
+create_config_trait( image_list_file, std::string, "",
+                     "Name of file that contains list of image file names. "
+                     "Each line in the file specifies the name of a single image file.");
+
+create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds. "
+                     "The generated timestamps will have the specified number of seconds in the generated "
+                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
+                     "video stream application.");
 
 //----------------------------------------------------------------
 // Private implementation class

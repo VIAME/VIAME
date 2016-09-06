@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Interface for detected_object_set detected_object_set
+ * \brief Interface for detected_object_set
  */
 
 #ifndef VITAL_DETECTED_OBJECT_SET_H_
