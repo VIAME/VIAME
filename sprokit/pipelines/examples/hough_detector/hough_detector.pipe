@@ -1,8 +1,7 @@
 # ================================================================
 process input
   :: frame_list_input
-  #:image_list_file    images/image_list_1.txt
-  :image_list_file    images/detect_circles_list.txt
+  :image_list_file    detect_circles_list.txt
   :frame_time          .3333
   :image_reader:type   ocv
 

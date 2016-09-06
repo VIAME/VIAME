@@ -1,1 +1,1 @@
-images/detect_circles_soda.jpg
+detect_circles_soda.jpg
