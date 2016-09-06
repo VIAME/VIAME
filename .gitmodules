@@ -7,3 +7,9 @@
 [submodule "packages/scallop-tk"]
 	path = packages/scallop-tk
 	url = https://github.com/mattdawkins/scallop-tk.git
+[submodule "packages/vibrant"]
+	path = packages/vibrant
+	url = https://github.com/Kitware/vibrant.git
+[submodule "packages/vivia"]
+	path = packages/vivia
+	url = https://github.com/Kitware/vivia.git
