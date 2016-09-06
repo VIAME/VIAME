@@ -26,14 +26,16 @@ set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 option( VIAME_ENABLE_VXL         "Enable VXL plugins"       OFF )
 option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"     OFF )
 option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
-option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
+option( VIAME_ENABLE_PYTHON      "Enable Python plugins"    OFF )
+option( VIAME_ENABLE_DOCS        "Enable Documentation"     OFF )
 option( VIAME_ENABLE_VIVIA       "Enable Vivia GUI system"  OFF )
+option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 
 ###
 # Other misc options
 ##
-option( VIAME_DISABLE_GPU_SUPPORT  "Force the disabling of GPU support" OFF )
+option( VIAME_DISABLE_GPU_SUPPORT     "Force the disabling of GPU support"    OFF )
 option( VIAME_DISABLE_FFMPEG_SUPPORT  "Force the disabling of FFMPEG support" OFF )
 
 ###

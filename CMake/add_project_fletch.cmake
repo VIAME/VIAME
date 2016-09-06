@@ -41,6 +41,8 @@ ExternalProject_Add(fletch
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}
     -DAUTO_ENABLE_CAFFE_DEPENDENCY:BOOL=${VIAME_ENABLE_CAFFE}
 
+    -DFLETCH_BUILD_WITH_PYTHON:BOOL=${VIAME_ENABLE_PYTHON}
+
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
 
