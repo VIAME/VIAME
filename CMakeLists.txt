@@ -28,6 +28,7 @@ option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"     OFF )
 option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
+option( VIAME_ENABLE_VIVIA       "Enable Vivia GUI system"  OFF )
 
 ###
 # Other misc options
@@ -69,6 +70,11 @@ include( add_project_kwiver )
 # Optional requirements
 if( VIAME_ENABLE_SCALLOP_TK )
   include( add_project_scallop_tk )
+endif()
+
+if( VIAME_ENABLE_VIVIA )
+  include( add_project_vibrant )
+  include( add_project_vivia )
 endif()
 
 # Viame plugins
