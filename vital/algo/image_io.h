@@ -62,7 +62,7 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "image_io"; }
 
-  /// Load image image from the file
+  /// Load image from the file
   /**
    * \throws kwiver::vital::path_not_exists Thrown when the given path does not exist.
    *
@@ -74,7 +74,7 @@ public:
    */
   kwiver::vital::image_container_sptr load(std::string const& filename) const;
 
-  /// Save image image to a file
+  /// Save image to a file
   /**
    * Image file format is based on file extension.
    *
