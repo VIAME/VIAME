@@ -89,19 +89,23 @@ public:
   /**
    * @brief Create new reader on input stream.
    *
+   * The supplied stream is used to source the data. It is up to the
+   * original owner to close the stream object
+   *
    * @param strm Input stream to manage.
    */
   data_stream_reader( std::istream& strm );
+
   virtual ~data_stream_reader();
 
   /**
    * @brief Return error status of stream
    *
+   * This method returns the error status of the managed stream.
    *
-   * @return
+   * @return Returns \b true if there is an error on the stream.
    */
   bool operator!();
-
 
   /**
    * @brief Read a line from stream

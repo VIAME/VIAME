@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Interface for detected_object_set input
+ * \brief Interface for detected_object_set output
  */
 
-#ifndef _VITAL_DETECTED_OBJECT_SET_INPUT_H
-#define _VITAL_DETECTED_OBJECT_SET_INPUT_H
+#ifndef _VITAL_DETECTED_OBJECT_SET_OUTPUT_H
+#define _VITAL_DETECTED_OBJECT_SET_OUTPUT_H
 
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
@@ -50,23 +50,24 @@ namespace algo {
 
 // ----------------------------------------------------------------
 /**
- * @brief Read detected object sets
+ * @brief Read and write detected object sets
  *
  * This class is the abstract base class for the detected object set
- * writer.
+ * reader and writer.
  *
  * Detection sets from multiple images are stored in a single file
  * with enough information to recreate a unique image identifier,
- * usually the file name, and an associated set of detections.
+ * usually the file name, and an associated wet of detections.
+ *
  */
-class VITAL_EXPORT detected_object_set_input
-  : public kwiver::vital::algorithm_def<detected_object_set_input>
+class VITAL_EXPORT detected_object_set_output
+  : public kwiver::vital::algorithm_def<detected_object_set_output>
 {
 public:
-  virtual ~detected_object_set_input();
+  virtual ~detected_object_set_output();
 
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "detected_object_set_input"; }
+  static std::string static_type_name() { return "detected_object_set_output"; }
 
   /// Open a file of detection sets.
   /**
@@ -78,20 +79,18 @@ public:
    *
    * \throws kwiver::vital::path_not_a_file Thrown when the given path does
    *    not point to a file (i.e. it points to a directory).
-   *
-   * \throws kwiver::vital::file_not_found_exception
    */
   void open( std::string const& filename );
 
-  /// Read detections from an existing stream
+  /// Write detections to an existing stream
   /**
-   * This method specifies the input stream to use for reading
+   * This method specifies the output stream to use for reading
    * detections. Using a stream is handy when the detections are
    * available in a stream format.
    *
-   * @param strm input stream to use
+   * @param strm output stream to use
    */
-  void use_stream( std::unique_ptr< std::istream > strm );
+  void use_stream( std::unique_ptr< std::ostream > strm );
 
   /// Close detection set file.
   /**
@@ -100,43 +99,30 @@ public:
    */
   void close();
 
-  /// Read next detected object set
+  /// Write detected object set.
   /**
-   * This method reads the next set of detected objects from the
-   * file. \b False is returned when the end of file is reached.
+   * This method writes the specified detected object set and image
+   * name to the currently open file.
    *
-   * \param[out] set Pointer to the new set of detections. Set may be
-   * empty if there are no detections on an image.
-   *
-   * \param[out] image_name Name of the image that goes with the
-   * detections. This string may be empty depending on the source
-   * format.
-   *
-   * @return \b true if detections are returned, \b false if end of file.
+   * \param set Detected object set
+   * \param image_name Name of image
    */
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name ) = 0;
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name ) = 0;
 
-  /// Determine if input file is at end of file.
-  /**
-   * This method reports the end of file status for a file open for reading.
-   *
-   * @return \b true if file is at end.
-   */
-  bool at_eof() const;
 
 protected:
-  detected_object_set_input();
+  detected_object_set_output();
 
-  std::istream& stream();
+  std::ostream& stream();
 
 private:
-  std::unique_ptr< std::istream > m_in_stream;
+  std::unique_ptr< std::ostream > m_out_stream;
 };
 
 
-/// Shared pointer type for generic detected_object_set_input definition type.
-typedef std::shared_ptr<detected_object_set_input> detected_object_set_input_sptr;
+/// Shared pointer type for generic detected_object_set_output definition type.
+typedef std::shared_ptr<detected_object_set_output> detected_object_set_output_sptr;
 
 } } } // end namespace
 
-#endif // _VITAL_DETECTED_OBJECT_SET_INPUT_H
+#endif // _VITAL_DETECTED_OBJECT_SET_OUTPUT_H

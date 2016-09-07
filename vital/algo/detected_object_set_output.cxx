@@ -33,7 +33,7 @@
  * \brief Implementation of load/save wrapping functionality.
  */
 
-#include "detected_object_set_input.h"
+#include "detected_object_set_output.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
@@ -42,7 +42,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::detected_object_set_input);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::detected_object_set_output);
 /// \endcond
 
 
@@ -50,22 +50,22 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-detected_object_set_input
-::detected_object_set_input()
+detected_object_set_output
+::detected_object_set_output()
 {
-  attach_logger( "detected_object_set_input" );
+  attach_logger( "detected_object_set_output" );
 }
 
 
-detected_object_set_input
-::~detected_object_set_input()
+detected_object_set_output
+::~detected_object_set_output()
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-detected_object_set_input
+detected_object_set_output
 ::open( std::string const& filename )
 {
     // Make sure that the given file path exists and is a file.
@@ -80,56 +80,40 @@ detected_object_set_input
   }
 
   // try to open the file
-  std::unique_ptr< std::istream > file( new std::ifstream( filename ) );
+  std::unique_ptr< std::ostream > file( new std::ofstream( filename ) );
   if ( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
-  m_in_stream.swap( file );
+  m_out_stream.swap( file );
 }
 
 
 // ------------------------------------------------------------------
 void
-detected_object_set_input
-::use_stream( std::unique_ptr< std::istream > strm )
+detected_object_set_output
+::use_stream( std::unique_ptr< std::ostream > strm )
 {
-  m_in_stream.swap( strm );
+  m_out_stream.swap( strm );
 }
 
 
 // ------------------------------------------------------------------
 void
-detected_object_set_input
+detected_object_set_output
 ::close()
 {
-  m_in_stream.reset();
+  m_out_stream.reset();
 }
 
 
 // ------------------------------------------------------------------
-bool
-detected_object_set_input
-::at_eof() const
-{
-  if ( m_in_stream )
-  {
-    return m_in_stream->eof();
-  }
-  else
-  {
-    return true; // really error
-  }
-}
-
-
-// ------------------------------------------------------------------
-std::istream&
-detected_object_set_input
+std::ostream&
+detected_object_set_output
 ::stream()
 {
-  return *m_in_stream;
+  return *m_out_stream;
 }
 
 } } } // end namespace
