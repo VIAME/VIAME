@@ -57,6 +57,11 @@ if( WIN32 AND VIAME_ENABLE_CAFFE )
     please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
+if( VIAME_ENABLE_VIVIA)
+  message( FATAL_ERROR "You just enabled vivia even though you have no idea what it does, \
+    are you insane??!?!! (It's a WIP GUI that will be supported soon, please disable)." )
+endif()
+
 ###
 # Main build loop for when we are building both VIAME and all dependencies
 ##
