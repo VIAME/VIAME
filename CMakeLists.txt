@@ -35,8 +35,10 @@ option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 ###
 # Other misc options
 ##
-option( VIAME_DISABLE_GPU_SUPPORT     "Force the disabling of GPU support"    OFF )
-option( VIAME_DISABLE_FFMPEG_SUPPORT  "Force the disabling of FFMPEG support" OFF )
+option( VIAME_DISABLE_GPU_SUPPORT     "Force the disabling of all GPU support"  OFF )
+option( VIAME_DISABLE_FFMPEG_SUPPORT  "Force the disabling of FFMPEG support"   OFF )
+option( VIAME_DISABLE_CUDNN_SUPPORT   "Force the disabling of CUDNN support"    OFF )
+mark_as_advanced( VIAME_DISABLE_CUDNN_SUPPORT )
 
 ###
 # Add external package build instructions
