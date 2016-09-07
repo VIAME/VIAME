@@ -18,17 +18,6 @@ ExternalProject_Add(vibrant
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
 
-    # Required
-    -Dvibrant_ENABLE_ARROWS:BOOL=ON
-    -Dvibrant_ENABLE_TOOLS:BOOL=ON
-    -Dvibrant_ENABLE_SPROKIT:BOOL=ON
-    -Dvibrant_ENABLE_PROCESSES:BOOL=ON
-
-    # Optional
-    -Dvibrant_ENABLE_OPENCV:BOOL=${VIAME_ENABLE_OPENCV}
-    -Dvibrant_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
-    -Dvibrant_ENABLE_MATLAB:BOOL=${VIAME_ENABLE_MATLAB}
-
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 

@@ -26,6 +26,9 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_shapelib:BOOL=ON
     -Dfletch_ENABLE_libjson:BOOL=ON
     -Dfletch_ENABLE_Qt:BOOL=ON
+    -Dfletch_ENABLE_VTK:BOOL=ON
+    -Dfletch_ENABLE_PROJ4:BOOL=ON
+    -Dfletch_ENABLE_libkml:BOOL=ON
   )
 endif()
 
@@ -87,5 +90,12 @@ if( VIAME_ENABLE_CAFFE )
   set(VIAME_ARGS_fletch
      ${VIAME_ARGS_fletch}
     -DCaffe_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/Caffe-build
+    )
+endif()
+
+if( VIAME_ENABLE_VIVIA )
+  set(VIAME_ARGS_libkml
+     ${VIAME_ARGS_libkml}
+    -DKML_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/libkml-build
     )
 endif()
