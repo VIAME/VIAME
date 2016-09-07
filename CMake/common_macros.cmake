@@ -8,3 +8,7 @@ function( FormatPassdowns _str _varResult )
   endforeach()
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
+
+function( DownloadFile URL OutputLoc MD5 )
+  file( DOWNLOAD ${URL} ${OutputLoc} EXPECTED_MD5 ${MD5} )
+endfunction()
