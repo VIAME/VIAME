@@ -26,7 +26,7 @@ ExternalProject_Add(vivia
     ${VIAME_ARGS_libkml}
 
     # Required
-    -DBUILD_SHARED_LIBS:BOOL=OFF
+    -DBUILD_SHARED_LIBS:BOOL=ON
     -DVISGUI_ENABLE_VIDTK:BOOL=OFF
 
     -DVISGUI_ENABLE_VIQUI:BOOL=OFF
