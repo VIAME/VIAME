@@ -8,6 +8,7 @@ set( plugin_core_headers
   compute_ref_homography_core.h
   convert_image_bypass.h
   detected_object_set_input_kw18.h
+  detected_object_set_output_kw18.h
   estimate_canonical_transform.h
   filter_features_magnitude.h
   hierarchical_bundle_adjust.h
@@ -43,6 +44,7 @@ set( plugin_core_sources
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
   detected_object_set_input_kw18.cxx
+  detected_object_set_output_kw18.cxx
   estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
   hierarchical_bundle_adjust.cxx

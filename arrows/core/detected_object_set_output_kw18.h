@@ -30,17 +30,16 @@
 
 /**
  * \file
- * \brief Interface for detected_object_set_input_kw18
+ * \brief Interface for detected_object_set_output_kw18
  */
 
-#ifndef KWIVER_ARROWS_CORE_DETECTED_OBJECT_SET_INPUT_KW18_H
-#define KWIVER_ARROWS_CORE_DETECTED_OBJECT_SET_INPUT_KW18_H
-
+#ifndef KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H
+#define KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H
 
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_export.h>
 
-#include <vital/algo/detected_object_set_input.h>
+#include <vital/algo/detected_object_set_output.h>
 
 #include <memory>
 
@@ -48,13 +47,13 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class KWIVER_ALGO_EXPORT detected_object_set_input_kw18
-  : public vital::algorithm_impl<detected_object_set_input_kw18, vital::algo::detected_object_set_input>
+class KWIVER_ALGO_EXPORT detected_object_set_output_kw18
+  : public vital::algorithm_impl<detected_object_set_output_kw18, vital::algo::detected_object_set_output>
 {
 public:
-  detected_object_set_input_kw18();
-  detected_object_set_input_kw18( detected_object_set_input_kw18 const& other);
-  virtual ~detected_object_set_input_kw18();
+  detected_object_set_output_kw18();
+  detected_object_set_output_kw18( detected_object_set_output_kw18 const& other);
+  virtual ~detected_object_set_output_kw18();
 
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "kw18"; }
@@ -62,7 +61,7 @@ public:
   virtual void set_configuration(vital::config_block_sptr config);
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name );
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name );
 
 private:
   class priv;
@@ -71,4 +70,4 @@ private:
 
 } } } // end namespace
 
-#endif // KWIVER_ARROWS_CORE_DETECTED_OBJECT_SET_INPUT_KW18_H
+#endif // KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H
