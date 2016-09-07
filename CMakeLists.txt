@@ -29,7 +29,7 @@ option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
 option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
 option( VIAME_ENABLE_PYTHON      "Enable Python plugins"    OFF )
 option( VIAME_ENABLE_DOCS        "Enable Documentation"     OFF )
-option( VIAME_ENABLE_VIVIA       "Enable Vivia GUI system"  OFF )
+option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"        OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 
 ###
@@ -37,7 +37,7 @@ option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 ##
 option( VIAME_DISABLE_GPU_SUPPORT     "Force the disabling of all GPU support"  OFF )
 option( VIAME_DISABLE_FFMPEG_SUPPORT  "Force the disabling of FFMPEG support"   OFF )
-option( VIAME_DISABLE_CUDNN_SUPPORT   "Force the disabling of CUDNN support"    OFF )
+option( VIAME_DISABLE_CUDNN_SUPPORT   "Force the disabling of cuDNN support"    OFF )
 mark_as_advanced( VIAME_DISABLE_CUDNN_SUPPORT )
 
 ###
@@ -57,9 +57,12 @@ if( WIN32 AND VIAME_ENABLE_CAFFE )
     please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
-if( VIAME_ENABLE_VIVIA)
-  message( FATAL_ERROR "You just enabled vivia even though you have no idea what it does, \
-    are you insane??!?!! (It's a WIP GUI that will be supported soon, please disable)." )
+if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK )
+  set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
+endif()
+
+if( VIAME_ENABLE_VIVIA )
+  set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
 
 ###
@@ -88,11 +91,6 @@ endif()
 
 # Viame plugins
 include( add_project_viame )
-
-# Forced dependency logic for optional requirements
-if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK )
-  set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
-endif()
 
 else()
 
