@@ -39,6 +39,8 @@ ExternalProject_Add(fletch
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
 
+    -DBUILD_SHARED_LIBS:BOOL=ON
+
     # KWIVER Dependencies, Always On
     -Dfletch_ENABLE_Boost:BOOL=TRUE
     -Dfletch_ENABLE_Eigen:BOOL=TRUE
