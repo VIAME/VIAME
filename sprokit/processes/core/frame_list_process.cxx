@@ -37,6 +37,7 @@
 #include <vital/types/image.h>
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
+#include <vital/util/data_stream_reader.h>
 
 #include <kwiver_type_traits.h>
 
@@ -157,10 +158,11 @@ void frame_list_process
     throw sprokit::invalid_configuration_exception( this->name(), msg.str() );
   }
 
+  kwiver::vital::data_stream_reader stream_reader( ifs );
+
   // verify and get file names in a list
-  for ( std::string line; std::getline( ifs, line ); )
+  for ( std::string line; stream_reader.getline( line ); /* null */ )
   {
-    //@todo handle blank lines and comments.
     d->m_files.push_back( line );
     if ( ! kwiversys::SystemTools::FileExists( d->m_files.back() ) )
     {
@@ -181,6 +183,7 @@ void frame_list_process
   {
     // still have an image to read
     std::string a_file = *d->m_current_file;
+    std::string output_filename = kwiversys::SystemTools::GetFilenameName( a_file );
 
     LOG_DEBUG( logger(), "reading image from file \"" << a_file << "\"" );
 
@@ -209,6 +212,7 @@ void frame_list_process
 
     push_to_port_using_trait( timestamp, frame_ts );
     push_to_port_using_trait( image, img_c );
+    push_to_port_using_trait( image_file_name, output_filename );
 
     ++d->m_current_file;
   }
@@ -222,6 +226,7 @@ void frame_list_process
 
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
+    push_datum_to_port_using_trait( image_file_name, dat );
   }
 }
 
@@ -235,6 +240,9 @@ void frame_list_process
 
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image_file_name, optional,
+                                   "Name of image file processed. Only the base file name and extension are "
+                                   "provided on this port. The leading path components are removed.");
 }
 
 
