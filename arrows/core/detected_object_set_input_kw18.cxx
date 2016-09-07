@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Implementation for detected_object_set_input_kw18
+ */
+
 #include "detected_object_set_input_kw18.h"
 
 #include <vital/util/tokenize.h>
@@ -37,7 +42,7 @@
 
 #include <map>
 #include <sstream>
-#include <memory>
+#include <cstdlib>
 
 namespace kwiver {
 namespace arrows {
@@ -143,7 +148,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
     // set up iterators for returning sets.
     d->m_current_idx = d->m_detected_sets.begin()->first;
     d->m_last_idx = d->m_detected_sets.rbegin()->first;
-  }
+  } // end first
 
   // we do not return image name
   image_name.clear();
@@ -210,10 +215,10 @@ read_all()
     }
 
     kwiver::vital::bounding_box_d bbox(
-      atoi( col[COL_MIN_X].c_str() ),
-      atoi( col[COL_MIN_Y].c_str() ),
-      atoi( col[COL_MAX_X].c_str() ),
-      atoi( col[COL_MAX_Y].c_str() ) );
+      atof( col[COL_MIN_X].c_str() ),
+      atof( col[COL_MIN_Y].c_str() ),
+      atof( col[COL_MAX_X].c_str() ),
+      atof( col[COL_MAX_Y].c_str() ) );
 
     double conf(1.0);
     if ( col.size() == 19 )
