@@ -9,6 +9,8 @@ set( plugin_core_headers
   convert_image_bypass.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
+  detected_object_set_input_csv.h
+  detected_object_set_output_csv.h
   estimate_canonical_transform.h
   filter_features_magnitude.h
   hierarchical_bundle_adjust.h
@@ -45,6 +47,8 @@ set( plugin_core_sources
   convert_image_bypass.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
+  detected_object_set_input_csv.cxx
+  detected_object_set_output_csv.cxx
   estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
   hierarchical_bundle_adjust.cxx

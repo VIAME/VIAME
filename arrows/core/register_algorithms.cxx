@@ -50,7 +50,10 @@
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/triangulate_landmarks.h>
-
+#include <arrows/core/detected_object_set_input_kw18.h>
+#include <arrows/core/detected_object_set_output_kw18.h>
+#include <arrows/core/detected_object_set_input_csv.h>
+#include <arrows/core/detected_object_set_output_csv.h>
 
 namespace kwiver {
 namespace arrows {
@@ -75,6 +78,11 @@ int register_algorithms(vital::registrar &reg)
     REGISTER_TYPE( core::match_features_homography );
     REGISTER_TYPE( core::track_features_core );
     REGISTER_TYPE( core::triangulate_landmarks );
+
+    REGISTER_TYPE( core::detected_object_set_input_kw18 );
+    REGISTER_TYPE( core::detected_object_set_output_kw18 );
+    REGISTER_TYPE( core::detected_object_set_input_csv );
+    REGISTER_TYPE( core::detected_object_set_output_csv );
 
     REGISTRATION_SUMMARY();
     return REGISTRATION_FAILURES();
