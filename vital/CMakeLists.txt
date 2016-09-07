@@ -103,6 +103,7 @@ set( vital_public_headers
   algo/compute_ref_homography.h
   algo/convert_image.h
   algo/detect_features.h
+  algo/detected_object_set_input.h
   algo/draw_tracks.h
   algo/estimate_canonical_transform.h
   algo/estimate_essential_matrix.h
@@ -173,14 +174,16 @@ set( vital_public_headers
   types/vector.h
   types/bounding_box.h
 
-  util/bounded_buffer.h
-  util/get_paths.h
-  util/timer.h
-  util/demangle.h
   util/any_converter.h
+  util/bounded_buffer.h
+  util/data_stream_reader.cxx
+  util/demangle.h
   util/enumerate_matrix.h
   util/enumerate_matrix.h
+  util/get_paths.h
+  util/string_editor.h
   util/string_format.h
+  util/timer.h
 
   plugin_loader/plugin_factory.h
   plugin_loader/plugin_manager.h
@@ -198,6 +201,7 @@ set( vital_sources
   algo/compute_ref_homography.cxx
   algo/convert_image.cxx
   algo/detect_features.cxx
+  algo/detected_object_set_input.cxx
   algo/draw_tracks.cxx
   algo/estimate_canonical_transform.cxx
   algo/estimate_essential_matrix.cxx
@@ -255,8 +259,10 @@ set( vital_sources
   types/track.cxx
   types/track_set.cxx
 
-  util/get_paths.cxx
+  util/data_stream_reader.cxx
   util/demangle.cxx
+  util/get_paths.cxx
+  util/string_editor.cxx
 
   plugin_loader/plugin_manager.cxx
   plugin_loader/plugin_factory.cxx
