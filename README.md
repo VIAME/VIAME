@@ -74,7 +74,7 @@ algorithms. The output should look as follows:
 *  kwiver_algo_vxl_plugin
 *  viame_scallop_tk_plugin
 
-            etc...
+etc...
 
 
 ---- registered algorithms (type_name:impl_name)
@@ -92,7 +92,7 @@ algorithms. The output should look as follows:
 *  detect_features:ocv_BRISK
 *  detect_features:ocv_FAST
 
-            etc...
+etc...
 
 
 The modules loaded list represents the shared objects that have been detected
@@ -123,7 +123,7 @@ The output should appear as follows (omitting the log messages):
 * extract_descriptors: Extract descriptors from detected features
 * feature_matcher: Match extracted descriptors and detected features
 
-              etc...
+etc...
 
 We will be using the image_object_detector process type in a pipeline to apply a
 detector to a stream of images. This process wraps the image_object_detector 
