@@ -13,6 +13,7 @@ set( sources
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
   frame_list_process.cxx
+  image_file_reader_process.cxx
   image_filter_process.cxx
   image_object_detector_process.cxx
   image_writer_process.cxx
@@ -29,6 +30,7 @@ set( private_headers
   draw_tracks_process.h
   extract_descriptors_process.h
   frame_list_process.h
+  image_file_reader_process.h
   image_filter_process.h
   image_object_detector_process.h
   image_writer_process.h
