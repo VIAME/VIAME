@@ -39,9 +39,8 @@ Or alternatively by building it in visual studio or your compiler of choice on w
 
 There are currently several optional arguments to viame, such as:
 
-+------------------------------+---------------------------------------------------+
 | Flag                         | Description                                       |
-+------------------------------+---------------------------------------------------+
+|------------------------------|---------------------------------------------------|
 | VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
 | VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processe           |
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                |
@@ -51,7 +50,6 @@ There are currently several optional arguments to viame, such as:
 | VIAME_ENABLE_SCALLOP_TK      | Builds all ScallopTK-based plugins                |
 | VIAME_DISABLE_GPU_SUPPORT    | Builds all VIAME processes without GPU support    |
 | VIAME_DISABLE_FFMPEG_SUPPORT | Builds all VIAME processes without FFMPEG support |
-+------------------------------+---------------------------------------------------+
 
 Quick Run Instructions
 ----------------------
