@@ -12,5 +12,4 @@ endif()
 ###
 # Install pipelines to pipeline directory
 ##
-install( FILES ${VIAME_PIPELINES}
-  DESTINATION ${VIAME_BUILD_INSTALL_PREFIX}/pipelines )
+install( FILES ${VIAME_PIPELINES} DESTINATION pipelines )
