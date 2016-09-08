@@ -58,7 +58,7 @@ One way to test the system is to see if you can run a pipelined application.
 There are some environment variables that need to be set up before you can run,
 which are all in the install/setup_viame.sh script.
 
-A good initial test is to run the VIAME/build/bin/plugin_explorer program. It
+A good initial test is to run the install/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
@@ -73,6 +73,7 @@ algorithms. The output should look as follows:
 *  kwiver_algo_plugin
 *  kwiver_algo_vxl_plugin
 *  viame_scallop_tk_plugin
+            etc...
 
 
 ---- registered algorithms (type_name:impl_name)
@@ -89,46 +90,7 @@ algorithms. The output should look as follows:
 *  convert_image:bypass
 *  detect_features:ocv_BRISK
 *  detect_features:ocv_FAST
-*  detect_features:ocv_GFTT
-*  detect_features:ocv_MSER
-*  detect_features:ocv_ORB
-*  detect_features:ocv_SIFT
-*  detect_features:ocv_STAR
-*  detect_features:ocv_SURF
-*  detect_features:ocv_simple_blob
-*  draw_tracks:ocv
-*  estimate_canonical_transform:core_pca
-*  estimate_canonical_transform:vxl_plane
-*  estimate_essential_matrix:vxl
-*  estimate_fundamental_matrix:ocv
-*  estimate_fundamental_matrix:vxl
-*  estimate_homography:ocv
-*  estimate_homography:vxl
-*  estimate_similarity_transform:vxl
-*  extract_descriptors:ocv_BRIEF
-*  extract_descriptors:ocv_BRISK
-*  extract_descriptors:ocv_FREAK
-*  extract_descriptors:ocv_ORB
-*  extract_descriptors:ocv_SIFT
-*  extract_descriptors:ocv_SURF
-*  filter_features:magnitude
-*  image_filter:matlab
-*  image_io:ocv
-*  image_io:vxl
-*  image_object_detector:hough_circle_detector
-*  image_object_detector:matlab
-*  image_object_detector:scallop_tk_detector
-*  initialize_cameras_landmarks:core
-*  match_features:fundamental_matrix_guided
-*  match_features:homography_guided
-*  match_features:ocv_brute_force
-*  match_features:ocv_flann_based
-*  match_features:vxl_constrained
-*  optimize_cameras:vxl
-*  track_features:core
-*  triangulate_landmarks:core
-*  triangulate_landmarks:vxl
-*  video_input:vxl
+            etc...
 
 
 The modules loaded list represents the shared objects that have been detected
@@ -158,19 +120,7 @@ The output should appear as follows (omitting the log messages):
 * draw_tracks: Draw feature tracks on image
 * extract_descriptors: Extract descriptors from detected features
 * feature_matcher: Match extracted descriptors and detected features
-* frame_list_input: Reads a list of image file names and generates stream of images and associated time stamps
-* image_filter: Apply selected image filter algorithm to incoming images.
-* image_object_detector: Apply selected image object detector algorithm to incoming images.
-* image_viewer: Display input image and delay
-* image_writer: Write image to disk.
-* input_adapter: Source process for pipeline. Pushes data items into pipeline ports.
-* kw_archive_writer: Write kw archives
-* matlab_bridge: Bridge to process written in Matlab
-* output_adapter: Sink process for pipeline. Accepts data items from pipeline ports.
-* pass: Pass a data stream through
-* read_d_vector: Read vector of doubles
-* sink: Ignores incoming data
-* stabilize_image: Generate current-to-reference image homographies.
+              etc...
 
 We will be using the image_object_detector process type in a pipeline to apply a
 detector to a stream of images. This process wraps the image_object_detector 
