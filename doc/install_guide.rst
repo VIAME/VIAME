@@ -56,9 +56,7 @@ source code, use the following commands. Note that you can change `src` to whate
 
 `cd src`
 
-`git submodule init`
-
-`git submodule update`
+`git submodule update --init --recursive`
 
 ***********
 Build Viame
