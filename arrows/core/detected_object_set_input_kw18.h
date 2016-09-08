@@ -65,6 +65,8 @@ public:
   virtual bool read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name );
 
 private:
+  virtual void new_stream();
+
   class priv;
   std::unique_ptr< priv > d;
 };

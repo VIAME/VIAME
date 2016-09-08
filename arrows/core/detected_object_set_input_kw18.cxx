@@ -177,6 +177,15 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
 }
 
 
+// ------------------------------------------------------------------
+void
+detected_object_set_input_kw18::
+new_stream()
+{
+  d->m_first = true;
+}
+
+
 // ==================================================================
 void
 detected_object_set_input_kw18::priv::
@@ -184,6 +193,8 @@ read_all()
 {
   std::string line;
   kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+
+  m_detected_sets.clear();
 
   while ( stream_reader.getline( line ) )
   {

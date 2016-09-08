@@ -69,8 +69,8 @@ public:
     , m_first( true )
     , m_frame_number( 0 )
     , m_delim( "," )
-
-  { }
+  {
+  }
 
   ~priv() { }
 
@@ -85,7 +85,7 @@ public:
   int m_frame_number;
   std::string m_delim;
 
-  std::shared_ptr<kwiver::vital::data_stream_reader> m_stream_reader;
+  std::shared_ptr< kwiver::vital::data_stream_reader > m_stream_reader;
   std::vector< std::string > m_input_buffer;
   kwiver::vital::detected_object_set_sptr m_current_set;
   std::string m_image_name;
@@ -148,8 +148,11 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
       return false; // indicate end of file.
     }
 
-    // 4) allocate first detection set
+    // allocate first detection set
     d->m_current_set = std::make_shared<kwiver::vital::detected_object_set>();
+
+    // set current frame number from line in buffer
+    d->m_frame_number = atoi( d->m_input_buffer[0].c_str() );
   } // end first
 
   // test for end of stream
@@ -158,33 +161,44 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
     return false;
   }
 
+  bool valid_line( true );
+  int frame;
+
   while( true )
   {
     // check buffer to see if it has the current frame number
-    int frame = atoi( d->m_input_buffer[0].c_str() );
-    if ( frame == d->m_frame_number)
+    frame = atoi( d->m_input_buffer[0].c_str() );
+    if ( valid_line && ( frame == d->m_frame_number ) )
     {
       // We are in the same frame, so add this detection to current set
       d->add_detection();
 
       // Get next input line
-      if ( ! d->get_input() )
-      {
-        return false; // indicate end of file.
-      }
+      valid_line = d->get_input();
     }
     else
     {
-      // we have found a new frame number. Return current set
-      set = d->m_current_set;
-      image_name = d->m_image_name;
-
-      d->m_current_set = std::make_shared<kwiver::vital::detected_object_set>();
-      return true;
+      break;
     }
   } // end while
 
-  return false;
+  // we have found end of file or a new frame number. Return current set
+  set = d->m_current_set;
+  image_name = d->m_image_name;
+
+  d->m_frame_number = frame;
+  d->m_current_set = std::make_shared<kwiver::vital::detected_object_set>();
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object_set_input_csv::
+new_stream()
+{
+  d->m_first = true;
+  d->m_stream_reader = std::make_shared< kwiver::vital::data_stream_reader>( stream() );
 }
 
 
@@ -194,12 +208,12 @@ detected_object_set_input_csv::priv::
 get_input()
 {
   std::string line;
-  m_input_buffer.clear();
   if ( ! m_stream_reader->getline( line ) )
   {
     return false; // end of file.
   }
 
+  m_input_buffer.clear();
   kwiver::vital::tokenize( line, m_input_buffer, m_delim, true );
 
   // Test the minimum number of fields.
@@ -218,9 +232,6 @@ get_input()
         << "\"" << line << "\"";
     throw kwiver::vital::invalid_data( str.str() );
   }
-
-  // set current frame number from line in buffer
-  m_frame_number = atoi( m_input_buffer[0].c_str() );
   return true;
 }
 

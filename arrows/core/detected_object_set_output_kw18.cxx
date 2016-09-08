@@ -122,6 +122,9 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
+    char* cp =  asctime( timeinfo );
+    cp[ strlen( cp )-1 ] = 0; // remove trailing newline
+    const std::string atime( cp );
 
     // Write file header(s)
     stream() << "# 1:Track-id [-1_for_detections] "
@@ -151,7 +154,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
       // parameter that is copied to the file as a configurable
       // comment or marker.
 
-             << "# Written on: " << asctime( timeinfo )
+             << "# Written on: " << atime
              << "   by: detected_object_set_output_kw18"
              << std::endl;
 

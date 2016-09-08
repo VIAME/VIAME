@@ -109,23 +109,25 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
+    char* cp =  asctime( timeinfo );
+    cp[ strlen( cp )-1 ] = 0; // remove trailing newline
+    const std::string atime( cp );
 
     // Write file header(s)
-    stream() << "# 1: frame-number" << d->m_delim
-             << "2:filename" << d->m_delim
+    stream() << "# 1: image-index" << d->m_delim
+             << "2:file-name" << d->m_delim
              << "3:TL-x" << d->m_delim
              << "4:TL-y" << d->m_delim
              << "5:BR-x" << d->m_delim
              << "6:BR-y" << d->m_delim
-             << "7: confidence" << d->m_delim
-             <<"class-name" << d->m_delim << "score ..."
+             << "7:confidence" << d->m_delim
+             <<"{class-name" << d->m_delim << "score}" << d->m_delim << "..."
              << std::endl
 
       // Provide some provenience to the file. Could have a config
       // parameter that is copied to the file as a configurable
       // comment or marker.
-
-             << "# Written on: " << asctime( timeinfo )
+             << "# Written on: " << atime
              << "   by: detected_object_set_output_csv"
              << std::endl;
 
