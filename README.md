@@ -39,24 +39,25 @@ Or alternatively by building it in visual studio or your compiler of choice on w
 
 There are currently several optional arguments to viame, such as:
 
-* "VIAME_ENABLE_MATLAB"     - Builds support for running Matlab processes
-* "VIAME_ENABLE_OPENCV"     - Builds OpenCV and basic OpenCV processes
-* "VIAME_ENABLE_VXL"        - Builds VXL and basic VXL processes
-* "VIAME_ENABLE_CAFFE"      - Builds Caffe and basic Caffe processes 
-* "VIAME_ENABLE_PYTHON"     - Turns on support for using python processes
-* "VIAME_ENABLE_VIVIA"      - Builds VIVIA GUIs
-* "VIAME_ENABLE_SCALLOP_TK" - Builds all ScallopTK-based plugins
-
-* "VIAME_DISABLE_GPU_SUPPORT    - Builds all VIAME processes without GPU support
-* "VIAME_DISABLE_FFMPEG_SUPPORT - Builds all VIAME processes without FFMPEG support
-
+| Flag                         | Description                                       |
+|------------------------------|---------------------------------------------------|
+| VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processe           |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                |
+| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes            |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes       |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs                                 |
+| VIAME_ENABLE_SCALLOP_TK      | Builds all ScallopTK-based plugins                |
+|                              |                                                   |
+| VIAME_DISABLE_GPU_SUPPORT    | Builds all VIAME processes without GPU support    |
+| VIAME_DISABLE_FFMPEG_SUPPORT | Builds all VIAME processes without FFMPEG support |
 
 Quick Run Instructions
 ----------------------
 
 One way to test the system is to see if you can run a pipelined application.
-There are some environment variables that need to be set up before you can run.
-These are set up by the install/setup_viame.sh script.
+There are some environment variables that need to be set up before you can run,
+which set up by the install/setup_viame.sh script.
 
 A good initial test is to run the VIAME/build/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
@@ -77,7 +78,7 @@ algorithms. The output should look as follows:
 
 ---- registered algorithms (type_name:impl_name)
 
-   analyze_tracks:ocv
+*  analyze_tracks:ocv
 *  bundle_adjust:hierarchical
 *  bundle_adjust:vxl
 *  close_loops:bad_frames_only
@@ -170,11 +171,7 @@ The output should appear as follows (omitting the log messages):
 * pass: Pass a data stream through
 * read_d_vector: Read vector of doubles
 * sink: Ignores incoming data
-* stabilize_image: Generate current-to-reference image homographies
-* template: Description of process. Make as long as necessary to fully explain
-  what the process does and how to use it. Explain specific algorithms used, etc.
-* view_image: Display input image and delay. Legacy process and will be removed
-  in a future release. Convert to use "image_viewer" before it is too late.
+* stabilize_image: Generate current-to-reference image homographies.
 
 We will be using the image_object_detector process type in a pipeline to apply a
 detector to a stream of images. This process wraps the image_object_detector 
