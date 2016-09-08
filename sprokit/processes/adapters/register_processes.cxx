@@ -58,14 +58,17 @@ void register_processes()
 
   // ----------------------------------------------------------------
   registry->register_process(
-  "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports.",
+    "input_adapter",
+    "Source process for pipeline. Pushes data items into pipeline ports. "
+    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
     sprokit::create_process< kwiver::input_adapter_process > );
 
   registry->register_process(
-  "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports.",
+    "output_adapter",
+    "Sink process for pipeline. Accepts data items from pipeline ports. "
+    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
     sprokit::create_process< kwiver::output_adapter_process > );
+
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   registry->mark_module_as_loaded( module_name );

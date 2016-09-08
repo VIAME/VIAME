@@ -71,6 +71,8 @@ create_config_trait( frame_time, double, "0.3333333", "Inter frame time in secon
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
 
+create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock" );
+
 //----------------------------------------------------------------
 // Private implementation class
 class frame_list_process::priv
@@ -252,6 +254,7 @@ void frame_list_process
 {
   declare_config_using_trait( image_list_file );
   declare_config_using_trait( frame_time );
+  declare_config_using_trait( image_reader );
 }
 
 

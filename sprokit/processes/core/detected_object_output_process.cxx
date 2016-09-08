@@ -49,7 +49,7 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-create_config_trait( file_name, std::string, "", "Name of the detection set file to read." );
+create_config_trait( file_name, std::string, "", "Name of the detection set file to write." );
 create_config_trait( writer, std::string , "", "Algorithm type to use as the writer." );
 
 //----------------------------------------------------------------
