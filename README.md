@@ -40,17 +40,21 @@ Currently only VS2013 is supported.
 
 There are currently several optional arguments to viame, such as:
 
+<center>
+
 | Flag                         | Description                                       |
 |------------------------------|---------------------------------------------------|
-| VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
 | VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes          |
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                |
 | VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes            |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes       |
+| VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
 | VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs                                 |
 | VIAME_ENABLE_SCALLOP_TK      | Builds all ScallopTK-based plugins                |
 | VIAME_DISABLE_GPU_SUPPORT    | Builds all VIAME processes without GPU support    |
 | VIAME_DISABLE_FFMPEG_SUPPORT | Builds all VIAME processes without FFMPEG support |
+
+</center>
 
 Quick Run Instructions
 ----------------------
