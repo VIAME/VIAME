@@ -73,6 +73,7 @@ algorithms. The output should look as follows:
 *  kwiver_algo_plugin
 *  kwiver_algo_vxl_plugin
 *  viame_scallop_tk_plugin
+
             etc...
 
 
@@ -90,6 +91,7 @@ algorithms. The output should look as follows:
 *  convert_image:bypass
 *  detect_features:ocv_BRISK
 *  detect_features:ocv_FAST
+
             etc...
 
 
@@ -120,6 +122,7 @@ The output should appear as follows (omitting the log messages):
 * draw_tracks: Draw feature tracks on image
 * extract_descriptors: Extract descriptors from detected features
 * feature_matcher: Match extracted descriptors and detected features
+
               etc...
 
 We will be using the image_object_detector process type in a pipeline to apply a
