@@ -146,11 +146,13 @@ IMPLEMENT_TEST(stream_io)
   std::string name;
   bool result = reader.read_set( idos, name );
   TEST_EQUAL( "Reading the first set", result, true );
+  TEST_EQUAL( "Reading first name", name, "image_name_1" );
 
   TEST_EQUAL( "Testing end of stream api", reader.at_eof(), false );
 
   result = reader.read_set( idos, name );
   TEST_EQUAL( "Reading the second set", result, true );
+  TEST_EQUAL( "Reading first name", name, "image_name_2" );
 
   result = reader.read_set( idos, name );
   TEST_EQUAL( "Testing end of stream on read", result, false );

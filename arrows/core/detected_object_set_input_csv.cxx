@@ -265,6 +265,8 @@ add_detection()
   const double confid( atof( m_input_buffer[6].c_str() ) );
 
   m_current_set->add( std::make_shared<kwiver::vital::detected_object>( bbox, confid, dot ) );
+
+  m_image_name = m_input_buffer[1];
 }
 
 } } } // end namespace
