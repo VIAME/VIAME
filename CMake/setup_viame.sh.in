@@ -10,7 +10,7 @@ export VIAME_PLUGIN_PATH=$this_dir/lib/modules:$VIAME_PLUGIN_PATH
 # path for loading processes
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
 
-export PATH=$this_dir/bin:$PATH
+export PATH=$this_dir/bin:$this_dir/pipelines:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 
 export VG_PLUGIN_PATH=$this_dir
