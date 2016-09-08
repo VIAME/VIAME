@@ -50,6 +50,9 @@ option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-bu
 ##
 if( VIAME_ENABLE_MATLAB )
   find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
+
+  get_filename_component( Matlab_LIBRARY_DIR "${Matlab_ENG_LIBRARY}" DIRECTORY )
+  set( SET_MATLAB_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH" )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_CAFFE )

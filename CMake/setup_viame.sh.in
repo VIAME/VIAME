@@ -14,5 +14,8 @@ export PATH=$this_dir/bin:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 
 export VG_PLUGIN_PATH=$this_dir
+
 export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes
+
+@SET_MATLAB_LD_LIBRARY_PATH@
