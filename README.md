@@ -39,8 +39,9 @@ Or alternatively by building it in visual studio or your compiler of choice on w
 
 There are currently several optional arguments to viame, such as:
 
++------------------------------+---------------------------------------------------+
 | Flag                         | Description                                       |
-|------------------------------|---------------------------------------------------|
++------------------------------+---------------------------------------------------+
 | VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
 | VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processe           |
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                |
@@ -48,16 +49,16 @@ There are currently several optional arguments to viame, such as:
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes       |
 | VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs                                 |
 | VIAME_ENABLE_SCALLOP_TK      | Builds all ScallopTK-based plugins                |
-|                              |                                                   |
 | VIAME_DISABLE_GPU_SUPPORT    | Builds all VIAME processes without GPU support    |
 | VIAME_DISABLE_FFMPEG_SUPPORT | Builds all VIAME processes without FFMPEG support |
++------------------------------+---------------------------------------------------+
 
 Quick Run Instructions
 ----------------------
 
 One way to test the system is to see if you can run a pipelined application.
 There are some environment variables that need to be set up before you can run,
-which set up by the install/setup_viame.sh script.
+which are all in the install/setup_viame.sh script.
 
 A good initial test is to run the VIAME/build/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
@@ -132,7 +133,7 @@ algorithms. The output should look as follows:
 *  video_input:vxl
 
 
-The modules loaded list represent the shared objects that have been detected
+The modules loaded list represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm
 list shows each concrete algorithm that could be loaded. Check the log messages
 to see if there are any libraries that could not be located.
