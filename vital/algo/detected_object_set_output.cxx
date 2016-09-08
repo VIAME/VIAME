@@ -52,6 +52,8 @@ namespace algo {
 
 detected_object_set_output
 ::detected_object_set_output()
+  : m_stream( 0 )
+  , m_stream_owned( false )
 {
   attach_logger( "detected_object_set_output" );
 }
@@ -80,22 +82,24 @@ detected_object_set_output
   }
 
   // try to open the file
-  std::unique_ptr< std::ostream > file( new std::ofstream( filename ) );
+  std::ostream* file( new std::ofstream( filename ) );
   if ( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
-  m_out_stream.swap( file );
+  m_stream = file;
+  m_stream_owned = true;
 }
 
 
 // ------------------------------------------------------------------
 void
 detected_object_set_output
-::use_stream( std::unique_ptr< std::ostream > strm )
+::use_stream( std::ostream* strm )
 {
-  m_out_stream.swap( strm );
+  m_stream = strm;
+  m_stream_owned = false;
 }
 
 
@@ -104,7 +108,12 @@ void
 detected_object_set_output
 ::close()
 {
-  m_out_stream.reset();
+  if ( m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
 }
 
 
@@ -113,7 +122,7 @@ std::ostream&
 detected_object_set_output
 ::stream()
 {
-  return *m_out_stream;
+  return *m_stream;
 }
 
 } } } // end namespace

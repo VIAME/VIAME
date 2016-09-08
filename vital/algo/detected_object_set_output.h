@@ -90,7 +90,7 @@ public:
    *
    * @param strm output stream to use
    */
-  void use_stream( std::unique_ptr< std::ostream > strm );
+  void use_stream( std::ostream* strm );
 
   /// Close detection set file.
   /**
@@ -116,7 +116,8 @@ protected:
   std::ostream& stream();
 
 private:
-  std::unique_ptr< std::ostream > m_out_stream;
+  std::ostream* m_stream;
+  bool m_stream_owned;
 };
 
 

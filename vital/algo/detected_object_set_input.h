@@ -91,7 +91,7 @@ public:
    *
    * @param strm input stream to use
    */
-  void use_stream( std::unique_ptr< std::istream > strm );
+  void use_stream( std::istream* strm );
 
   /// Close detection set file.
   /**
@@ -129,8 +129,13 @@ protected:
 
   std::istream& stream();
 
+  // Called when a new stream is specified. Allows derived classes to
+  // reinitialize.
+  virtual void new_stream();
+
 private:
-  std::unique_ptr< std::istream > m_in_stream;
+  std::istream* m_stream;
+  bool m_stream_owned;
 };
 
 

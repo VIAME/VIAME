@@ -52,6 +52,8 @@ namespace algo {
 
 detected_object_set_input
 ::detected_object_set_input()
+  : m_stream( 0 )
+  , m_stream_owned( false )
 {
   attach_logger( "detected_object_set_input" );
 }
@@ -60,6 +62,12 @@ detected_object_set_input
 detected_object_set_input
 ::~detected_object_set_input()
 {
+  if ( m_stream && m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
 }
 
 
@@ -80,22 +88,28 @@ detected_object_set_input
   }
 
   // try to open the file
-  std::unique_ptr< std::istream > file( new std::ifstream( filename ) );
+  std::istream* file( new std::ifstream( filename ) );
   if ( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
-  m_in_stream.swap( file );
+  m_stream = file;
+  m_stream_owned = true;
+
+  new_stream();
 }
 
 
 // ------------------------------------------------------------------
 void
 detected_object_set_input
-::use_stream( std::unique_ptr< std::istream > strm )
+::use_stream( std::istream* strm )
 {
-  m_in_stream.swap( strm );
+  m_stream = strm;
+  m_stream_owned = false;
+
+  new_stream();
 }
 
 
@@ -104,7 +118,12 @@ void
 detected_object_set_input
 ::close()
 {
-  m_in_stream.reset();
+  if ( m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
 }
 
 
@@ -113,9 +132,9 @@ bool
 detected_object_set_input
 ::at_eof() const
 {
-  if ( m_in_stream )
+  if ( m_stream )
   {
-    return m_in_stream->eof();
+    return m_stream->eof();
   }
   else
   {
@@ -129,7 +148,14 @@ std::istream&
 detected_object_set_input
 ::stream()
 {
-  return *m_in_stream;
+  return *m_stream;
 }
+
+
+// ------------------------------------------------------------------
+void
+detected_object_set_input
+::new_stream()
+{ }
 
 } } } // end namespace
