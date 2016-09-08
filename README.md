@@ -43,7 +43,7 @@ There are currently several optional arguments to viame, such as:
 | Flag                         | Description                                       |
 |------------------------------|---------------------------------------------------|
 | VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processe           |
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes          |
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                |
 | VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes            |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes       |
