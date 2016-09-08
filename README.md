@@ -36,6 +36,7 @@ command if on linux:
 	make -j8
 
 Or alternatively by building it in visual studio or your compiler of choice on windows.
+Currently only VS2013 is supported.
 
 There are currently several optional arguments to viame, such as:
 

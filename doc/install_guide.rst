@@ -83,7 +83,8 @@ Installing Viame (Windows)
 ==========================
 
 Building on windows can be very similar to Linux if using a shell like cygwin (`https://www.cygwin.com/`), though if not you
-may want to go grab the GUI versions of CMake (`https://cmake.org/`) and TortoiseGit (`https://tortoisegit.org/`).
+may want to go grab the GUI versions of CMake (`https://cmake.org/`) and TortoiseGit (`https://tortoisegit.org/`). Currently
+the only Visual Studio version supported is VS2013.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this involves right clicking in your folder of
 choice, selecting Git Clone, and then entering the URL to VIAME (`https://github.com/Kitware/VIAME.git`) and the location
