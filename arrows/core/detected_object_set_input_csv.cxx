@@ -40,7 +40,6 @@
 #include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 
-#include <map>
 #include <sstream>
 #include <cstdlib>
 
@@ -143,6 +142,8 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
 {
   if ( d->m_first )
   {
+    d->m_first = false;
+
     if ( ! d->get_input() )
     {
       return false; // indicate end of file.
@@ -188,6 +189,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
 
   d->m_frame_number = frame;
   d->m_current_set = std::make_shared<kwiver::vital::detected_object_set>();
+
   return true;
 }
 
@@ -232,6 +234,7 @@ get_input()
         << "\"" << line << "\"";
     throw kwiver::vital::invalid_data( str.str() );
   }
+
   return true;
 }
 

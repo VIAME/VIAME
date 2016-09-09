@@ -1,8 +1,7 @@
 # ================================================================
 process input
   :: video_input
-  :video_filename     /disk2/projects/KWIVER/kwgitlab/source/examples/motion-133953-20012015.mp4
-#  :video_filename     /home/linus/.EXPORTCONT/video/U-ITAR_20090319_1115_I2_10_stamped.mpg
+  :video_filename     <video.mpg>
   :frame_time          .3333
 
 # Algorithm to use for 'video_input'.
