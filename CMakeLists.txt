@@ -30,6 +30,7 @@ option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
 option( VIAME_ENABLE_PYTHON      "Enable Python plugins"    OFF )
 option( VIAME_ENABLE_DOCS        "Enable Documentation"     OFF )
 option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"        OFF )
+option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"   OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
 
 ###
@@ -90,6 +91,10 @@ endif()
 if( VIAME_ENABLE_VIVIA )
   include( add_project_vibrant )
   include( add_project_vivia )
+endif()
+
+if( VIAME_ENABLE_KWANT )
+  include( add_project_kwant )
 endif()
 
 # Viame plugins
