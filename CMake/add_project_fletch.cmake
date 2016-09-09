@@ -30,6 +30,13 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
   )
+
+  if( APPLE )
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -Dfletch_ENABLE_PNG:BOOL=ON
+    )
+  endif()
 endif()
 
 ExternalProject_Add(fletch
