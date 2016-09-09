@@ -1,0 +1,48 @@
+#
+# Pipe file to display annotations from test data set
+#
+
+# ==================================================================
+process read_annotations
+  :: detected_object_input
+#  :file_name   habcam.csv
+#  :reader:type csv
+  :file_name   /videonas2/other/data_golden/whoi_scallop/drop_1/training_set_metadata_5_6_2016.txt
+  :reader:type habcam
+
+# ==================================================================
+process image_reader
+  :: image_file_reader
+  :error_mode    skip
+  :path   /videonas2/other/data_golden/whoi_scallop/drop_1/HabCam_trainingSet_5_6_2016
+  :image_reader:type ocv
+
+# ==================================================================
+process draw_box
+:: draw_detected_object_boxes
+
+# ================================================================
+process disp
+  :: image_viewer
+:annotate_image         true
+:pause_time             2.0
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 10
+
+
+# ================================================================
+connect from read_annotations.image_file_name
+        to   image_reader.image_file_name
+
+connect from read_annotations.detected_object_set
+        to   draw_box.detected_object_set
+
+connect from image_reader.image
+        to   draw_box.image
+
+connect from draw_box.image
+        to   disp.image
