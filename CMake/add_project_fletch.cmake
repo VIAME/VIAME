@@ -9,7 +9,7 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} fletch )
 
-if( WIN32 AND VIAME_ENABLE_VXL )
+if( ( WIN32 OR APPLE ) AND VIAME_ENABLE_VXL )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_ZLib:BOOL=ON
