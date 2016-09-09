@@ -100,7 +100,11 @@ create_port_trait( track_set, track_set, "Set of feature tracks for stabilizatio
 create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
-create_port_trait( image_file_name, image_file_name, "Name of an image file. Usually a single frame of a video." );
+create_port_trait( image_file_name, image_file_name, "Name of an image file. "
+                   "Only the base file name and extension are "
+                   "provided on this port. The leading path components are removed" );
+create_port_trait( image_file_path, image_file_name, "Name of an image file. "
+                   "The full name of the image file including leading path components." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 
 #endif /* KWIVER_VITAL_TYPE_TRAITS_H */

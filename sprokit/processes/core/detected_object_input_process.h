@@ -28,48 +28,53 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
-
-#include "input_adapter_process.h"
-#include "output_adapter_process.h"
-
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
-
-
-// ----------------------------------------------------------------
-/*! \brief Regsiter processes
- *
- *
+/**
+ * \file
+ * \brief Interface for detected_object_set_input process
  */
-void register_processes()
+
+#ifndef _KWIVER_DETECTED_OBJECT_INPUT_PROCESS_H
+#define _KWIVER_DETECTED_OBJECT_INPUT_PROCESS_H
+#include <sprokit/pipeline/process.h>
+#include "kwiver_processes_export.h"
+
+#include <memory>
+
+namespace kwiver
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
-
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return;
-  }
 
   // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
+/**
+ * \class detected_object_input_process
+ *
+ * \brief Reads a series of images
+ *
+ * \iports
+ * \iport{image_name}
+ * \iport{detection_set}
+ *
+ */
+class KWIVER_PROCESSES_NO_EXPORT detected_object_input_process
+  : public sprokit::process
+{
+public:
+  detected_object_input_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~detected_object_input_process();
 
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
+protected:
+  virtual void _configure();
+  virtual void _init();
+  virtual void _step();
+
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class detected_object_input_process
 
 
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
-}
+} // end namespace
+
+#endif // _KWIVER_DETECTED_OBJECT_INPUT_PROCESS_H

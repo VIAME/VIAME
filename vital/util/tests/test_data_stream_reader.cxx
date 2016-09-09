@@ -28,48 +28,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
-
-#include "input_adapter_process.h"
-#include "output_adapter_process.h"
-
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
-
-
-// ----------------------------------------------------------------
-/*! \brief Regsiter processes
- *
- *
+/**
+ * \file
+ * \brief test util string_editor class
  */
-void register_processes()
+#include <test_common.h>
+
+#include <vital/util/data_stream_reader.h>
+
+#include <sstream>
+
+
+#define TEST_ARGS ( )
+
+DECLARE_TEST_MAP();
+
+// ------------------------------------------------------------------
+int
+main( int argc, char* argv[] )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
+  CHECK_ARGS( 1 );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
+  testname_t const testname = argv[1];
 
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return;
-  }
-
-  // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
-
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
+  RUN_TEST( testname );
+}
 
 
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( test_reader )
+{
+  std::stringstream str;
+
+  str << "first line\n"
+    "second line\n"
+    "  \n" // blank line
+    "# comment\n"
+    "foo bar # trailing comment\n";
+
+  kwiver::vital::data_stream_reader dsr( str );
+
+  std::string line;
+  TEST_EQUAL( "return code", dsr.getline( line ), true );
+  TEST_EQUAL( "first line", line, "first line" );
+  // std::cout << "|" << line << "|  line number: " << dsr.line_number() << std::endl; ;
+  TEST_EQUAL( "line count", dsr.line_number(), 1 );
+
+  TEST_EQUAL( "return code", dsr.getline( line ), true );
+  TEST_EQUAL( "second line", line, "second line" );
+  // std::cout << "|" << line << "|  line number: " << dsr.line_number() << std::endl; ;
+  TEST_EQUAL( "line count", dsr.line_number(), 2 );
+
+  TEST_EQUAL( "return code", dsr.getline( line ), true );
+  TEST_EQUAL( "third line", line, "foo bar" );
+  // std::cout << "|" << line << "|  line number: " << dsr.line_number() << std::endl; ;
+  TEST_EQUAL( "line count", dsr.line_number(), 5 );
+
+}
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( test_file )
+{
+
 }

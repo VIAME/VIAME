@@ -28,48 +28,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
-
-#include "input_adapter_process.h"
-#include "output_adapter_process.h"
-
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
-
-
-// ----------------------------------------------------------------
-/*! \brief Regsiter processes
- *
- *
+/**
+ * \file
+ * \brief test util string_editor class
  */
-void register_processes()
+#include <test_common.h>
+
+#include <vital/util/string_editor.h>
+
+
+#define TEST_ARGS ( )
+
+DECLARE_TEST_MAP();
+
+// ------------------------------------------------------------------
+int
+main( int argc, char* argv[] )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
+  CHECK_ARGS( 1 );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
+  testname_t const testname = argv[1];
 
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return;
-  }
-
-  // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
-
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
+  RUN_TEST( testname );
+}
 
 
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( test_editor )
+{
+  kwiver::vital::string_editor se;
+
+  std::string str( "first line\n" );
+  std::string astr( str );
+
+  // test empty editor
+  se.edit( str );
+
+  TEST_EQUAL( "Empty editor", str, astr );
+
+  se.add( new kwiver::vital::edit_operation::shell_comment() );
+  se.add( new kwiver::vital::edit_operation::right_trim() );
+  se.add( new kwiver::vital::edit_operation::remove_blank_string() );
+
+  se.edit(str);
+  // std::cout << "|" << str << "|\n";
+  TEST_EQUAL( "typical line", str, "first line" );
+
+  str = "  \n";
+  TEST_EQUAL( "absorb blank line", se.edit(str), false );
+
+  str = "trailing spaces        \n";
+  se.edit(str);
+  //  std::cout << "|" << str << "|\n";
+  TEST_EQUAL( "Trailing spaces", str, "trailing spaces" );
+
+  str = "# comment  \n";
+  se.edit(str);
+  TEST_EQUAL( "absorb comment line", se.edit(str), false );
+
+  str = "foo bar  # trailing comment  \n";
+  se.edit(str);
+  TEST_EQUAL( "trailing comment", str, "foo bar" );
+  // std::cout << "|" << str << "|\n";
 }

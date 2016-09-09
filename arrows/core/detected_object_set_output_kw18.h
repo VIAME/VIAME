@@ -28,48 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
-
-#include "input_adapter_process.h"
-#include "output_adapter_process.h"
-
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
-
-
-// ----------------------------------------------------------------
-/*! \brief Regsiter processes
- *
- *
+/**
+ * \file
+ * \brief Interface for detected_object_set_output_kw18
  */
-void register_processes()
+
+#ifndef KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H
+#define KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H
+
+#include <vital/vital_config.h>
+#include <arrows/core/kwiver_algo_export.h>
+
+#include <vital/algo/detected_object_set_output.h>
+
+#include <memory>
+
+namespace kwiver {
+namespace arrows {
+namespace core {
+
+class KWIVER_ALGO_EXPORT detected_object_set_output_kw18
+  : public vital::algorithm_impl<detected_object_set_output_kw18, vital::algo::detected_object_set_output>
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
+public:
+  detected_object_set_output_kw18();
+  detected_object_set_output_kw18( detected_object_set_output_kw18 const& other);
+  virtual ~detected_object_set_output_kw18();
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
+  /// Return the name of this implementation
+  virtual std::string impl_name() const { return "kw18"; }
 
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return;
-  }
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name );
 
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
 
+} } } // end namespace
 
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
-}
+#endif // KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H

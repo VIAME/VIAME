@@ -10,3 +10,5 @@ set( test_libraries    kwiver_algo vital vital_apm )
 kwiver_discover_tests(core_triangulate_landmarks        test_libraries test_triangulate_landmarks.cxx)
 kwiver_discover_tests(core_epipolar_geometry            test_libraries test_epipolar_geometry.cxx)
 kwiver_discover_tests(core_interpolate_camera           test_libraries test_interpolate_camera.cxx)
+
+kwiver_discover_tests(core_detected_object_io           test_libraries test_detected_object_io.cxx)

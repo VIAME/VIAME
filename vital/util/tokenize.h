@@ -28,6 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Implementation of the tokenize function.
+ */
 
 #ifndef VITAL_TOKENIZE_H
 #define VITAL_TOKENIZE_H
@@ -55,7 +59,7 @@ namespace vital {
 template < class ContainerT >
 void
 tokenize( std::string const& str, // i: string to tokenize
-          ContainerT& tokens, // o: list of tokens
+          ContainerT& tokens,     // o: list of tokens
           std::string const& delimiters = " ",
           bool trimEmpty = false )
 {

@@ -28,48 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
+#include "string_editor.h"
 
-#include "input_adapter_process.h"
-#include "output_adapter_process.h"
+#include <vital/vital_foreach.h>
 
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
+namespace kwiver {
+namespace vital {
+
+// ------------------------------------------------------------------
+string_editor::
+string_editor()
+{ }
 
 
-// ----------------------------------------------------------------
-/*! \brief Regsiter processes
- *
- *
- */
-void register_processes()
+string_editor::
+~string_editor()
+{ }
+
+
+// ------------------------------------------------------------------
+void
+string_editor::
+add( string_edit_operation* op )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
-
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return;
-  }
-
-  // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
-
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
-
-
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+  m_editor_list.push_back( std::shared_ptr< string_edit_operation >( op ) );
 }
+
+
+// ------------------------------------------------------------------
+bool
+string_editor::
+edit( std::string& str )
+{
+  bool result( true );
+
+  VITAL_FOREACH( auto op, m_editor_list )
+  {
+    if ( ! op->process( str ) )
+    {
+      result = false;
+      break;
+    }
+  }     // end foreach
+
+  return result;
+}
+
+} }   // end namespace

@@ -28,48 +28,79 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
-
-#include "input_adapter_process.h"
-#include "output_adapter_process.h"
-
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
+#include "data_stream_reader.h"
 
 
-// ----------------------------------------------------------------
-/*! \brief Regsiter processes
- *
- *
- */
-void register_processes()
+namespace kwiver {
+namespace vital {
+
+data_stream_reader::
+data_stream_reader( std::istream& strm )
+  : m_in_stream( strm ),
+  m_line_count( 0 )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
-
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return;
-  }
-
-  // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
-
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
-
-
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+  m_string_editor.add( new edit_operation::shell_comment() );
+  m_string_editor.add( new edit_operation::right_trim() );
+  m_string_editor.add( new edit_operation::remove_blank_string() );
 }
+
+
+data_stream_reader::
+  ~data_stream_reader()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+data_stream_reader::
+getline( std::string& str )
+{
+  std::string line;
+
+  while ( true )
+  {
+    if ( ! std::getline( m_in_stream, line ) )
+    {
+      // read failed.
+      return false;
+    }
+
+    ++m_line_count;
+
+    if ( m_string_editor.edit( line ) )
+    {
+      break;
+    }
+  }   // end while
+
+  str = line;
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+bool
+data_stream_reader::
+operator!()
+{
+  return ! m_in_stream.good();
+}
+
+// ------------------------------------------------------------------
+size_t
+data_stream_reader::
+line_number() const
+{
+  return m_line_count;
+}
+
+
+// ------------------------------------------------------------------
+void
+data_stream_reader::
+reset_line_number( int num )
+{
+  m_line_count = num;
+}
+
+} }   // end namespace
