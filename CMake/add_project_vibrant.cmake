@@ -9,6 +9,8 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} vibrant )
 
+set( VIBRANT_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x" )
+
 ExternalProject_Add(vibrant
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -17,6 +19,8 @@ ExternalProject_Add(vibrant
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+
+    -DCMAKE_CXX_FLAGS:STRING=${VIBRANT_CXX_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
