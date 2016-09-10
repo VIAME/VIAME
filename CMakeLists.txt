@@ -185,7 +185,7 @@ configure_file(
 option( KWIVER_INSTALL_SET_UP_SCRIPT "Whether or not to install setup_KWIVER.sh" ON )
 mark_as_advanced( KWIVER_INSTALL_SET_UP_SCRIPT )
 
-if( KWIVER_INSALL_SET_UP_SCRIPT )
+if( KWIVER_INSTALL_SET_UP_SCRIPT )
   install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
     DESTINATION ${CMAKE_INSTALL_PREFIX} )
 endif()
