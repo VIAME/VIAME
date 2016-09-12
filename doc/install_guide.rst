@@ -1,10 +1,21 @@
+========
+Contents
+========
+
+1. Linux Build Instructions :ref:`linux-label`
+2. Mac Build Instructions :ref:`mac-label`
+3. Windows Build Instructions :ref:`windows-label`
+4. Common Build Issues :ref:`issues-label`
+
+.. _linux-label:
+
 ========================
 Installing Viame (Linux)
 ========================
 
 These instructions are designed to help build Viame on a fresh machine. They were written for and tested on Ubuntu
 16.04 Desktop version. Other Linux machines will have similar directions, but some steps (particularly the dependency
-install) may not be exactly identical.
+install) may not be exactly identical. Known other working systems: CentOS/RHEL 6+, Fedora 19+, Ubuntu 14.04+.
 
 ********************
 Install Dependencies
@@ -21,10 +32,11 @@ manager than apt, but even on Ubuntu this should help to provide a starting poin
 Install CMAKE
 =============
 
-The version of cmake you currently get with apt is often too old to use for Viame, so you may need to do a manual install.
-Go to the cmake website, `https://cmake.org/download`, and download the appropriate binary distribution (for Ubuntu, this
-would be something like cmake-3.6.1-Linux-x86_64.sh, depending on version). Download the source code, cmake-3.6.1.tar.gz
-(or just download and use the installer for windows).  To untar and build the source, use the following set of commands.
+Depending on the OS, the version of cmake you get with apt is often too old to use for Viame, so you may need to do a
+manual install. Go to the cmake website, `https://cmake.org/download`, and download the appropriate binary distribution
+(for Ubuntu, this would be something like cmake-3.6.1-Linux-x86_64.sh, depending on version). Download the source code,
+cmake-3.6.1.tar.gz (or just download and use the installer for windows).  To untar and build the source, use the following
+set of commands.
 Keep in mind that if you're not using version 3.6.1, you'll need to update the version number to match your download.
 
 `cd ~/Downloads`
@@ -74,9 +86,22 @@ your location of choice, and run the following commands:
 
 `cd build`
 
-`cmake [build_flags] ..` 
+`cmake [build_flags] ..`
 
 `make` or `make -j10` for a threaded build
+
+.. _mac-label:
+
+======================
+Installing Viame (Mac)
+======================
+
+Building on Mac is very similar to Linux, minus the dependency install stage. Currently, we have only tested VIAME
+with OSX 10.11.5 and Clang 7.3.0, but other versions may also work. Make sure you have a C/C++ development
+environment set up, install git, install cmake either from the source or a using a binary installer, and lastly,
+follow the same Linux build instructions above.
+
+.. _windows-label:
 
 ==========================
 Installing Viame (Windows)
@@ -84,7 +109,7 @@ Installing Viame (Windows)
 
 Building on windows can be very similar to Linux if using a shell like cygwin (`https://www.cygwin.com/`), though if not you
 may want to go grab the GUI versions of CMake (`https://cmake.org/`) and TortoiseGit (`https://tortoisegit.org/`). Currently
-the only Visual Studio version supported is VS2013.
+the only Visual Studio version supported is VS2013, though VS2015 support will be added in the future.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this involves right clicking in your folder of
 choice, selecting Git Clone, and then entering the URL to VIAME (`https://github.com/Kitware/VIAME.git`) and the location
@@ -96,7 +121,7 @@ out the source into, move to the TortoiseGit menu section, and select `Submodule
 Now, create a build folder and run the CMake GUI (`https://cmake.org/runningcmake/`). Point it to your source and build
 directories, select your compiler of choice, and setup and build flags you want.
 
-Lastly, compile the source with your compiler of choice.
+.. _issues-label:
 
 ============
 Known Issues
