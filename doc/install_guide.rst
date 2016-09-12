@@ -1,8 +1,4 @@
-=================
-Table of Contents
-=================
-
-.. contents:: `List`
+.. contents:: ``
    :depth: 3
    :local:
 
