@@ -2,7 +2,7 @@
 Table of Contents
 =================
 
-.. contents:: ``
+.. contents:: ` `
    :depth: 3
    :local:
 
