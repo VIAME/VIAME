@@ -9,6 +9,10 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} fletch )
 
+if( VIAME_ENABLE_PYTHON )
+  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+endif()
+
 if( ( WIN32 OR APPLE ) AND VIAME_ENABLE_VXL )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -45,6 +49,7 @@ ExternalProject_Add(fletch
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
+    ${VIAME_PYTHON_FLAGS}
 
     -DBUILD_SHARED_LIBS:BOOL=ON
 
@@ -59,7 +64,7 @@ ExternalProject_Add(fletch
 
     # Optional Dependencies
     ${fletch_DEP_FLAGS}
-  
+
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
 

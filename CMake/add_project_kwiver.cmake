@@ -9,7 +9,13 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
-FormatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
+if( VIAME_ENABLE_MATLAB )
+  FormatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
+endif()
+
+if( VIAME_ENABLE_PYTHON )
+  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+endif()
 
 ExternalProject_Add(kwiver
   DEPENDS fletch
@@ -20,6 +26,7 @@ ExternalProject_Add(kwiver
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_MATLAB_FLAGS}
+    ${VIAME_PYTHON_FLAGS}
 
     # Required
     -DKWIVER_ENABLE_ARROWS:BOOL=ON

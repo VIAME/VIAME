@@ -69,6 +69,11 @@ if( VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
 
+if( VIAME_ENABLE_PYTHON )
+  find_package( PythonLibs )
+  find_package( PythonInterp REQUIRED )
+endif()
+
 ###
 # Main build loop for when we are building both VIAME and all dependencies
 ##
