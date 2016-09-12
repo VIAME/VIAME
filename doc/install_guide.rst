@@ -1,11 +1,6 @@
-========
-Contents
-========
-
-1. Linux Build Instructions :ref:`linux-label`
-2. Mac Build Instructions :ref:`mac-label`
-3. Windows Build Instructions :ref:`windows-label`
-4. Common Build Issues :ref:`issues-label`
+.. contents:: `Table of contents`
+   :depth: 1
+   :local:
 
 .. _linux-label:
 
