@@ -1,4 +1,8 @@
-.. contents:: `Table of Contents`
+=================
+Table of Contents
+=================
+
+.. contents:: ``
    :depth: 3
    :local:
 
@@ -74,7 +78,8 @@ called VIAME_ENABLE_[option], in all caps. For each plugin to install, you need 
 flag looks like `-DVIAME_ENABLE_OPENCV:BOOL=ON`, of course changing OPENCV to match the plugin. Multiple plugins may be
 used, or none.
 
-Viame can be built either in the source directory tree or in a seperate build directory (recommended). Replace "build" with
+Viame can be built either in the source ild/install/lib/libviame_scallop_tk.so
+-- Set runtime path of "/home/matt/Dev/directory tree or in a seperate build directory (recommended). Replace "build" with
 your location of choice, and run the following commands:
 
 `mkdir build`
@@ -122,9 +127,37 @@ directories, select your compiler of choice, and setup and build flags you want.
 Known Issues
 ============
 
-VIAME contains a `VIAME_DISABLE_GPU_SUPPORT` flag due to numerous issues relating to GPU code building.
 
-If you get any issues relating to `cannot find cublas_v2.h` or linking issues against CUDA, you may want to
-set this flag. Alternatively you can debug the issue (incorrect CUDA drivers for OpenCV, Caffe, etc...)
+Issue:
+
+When PYTHON is enabled, getting the below error.
+
+[100%] Building CXX object python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o
+_caffe.cpp:8:41: error: boost/python/raw_function.hpp: No such file or directory
+_caffe.cpp: In function ‘void caffe::init_module__caffe()’:
+_caffe.cpp:349: error: ‘raw_function’ is not a member of ‘bp’
+_caffe.cpp:406: error: ‘raw_function’ is not a member of ‘bp’
+make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1
+make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2
+make: *** [all] Error 2
+
+Solution:
+
+raw_function.hpp doesn't get installed for some reason on some systems. Manually copy it from:
+
+[VIAME_BUILD]/build/src/fletch-build/build/src/Boost/boost/python/raw_function.hpp
+to
+[VIAME_BUILD]/install/include/boost/python/
+
+
+Issue:
+
+`cannot find cublas_v2.h` or linking issues against CUDA
+
+Solution:
+
+VIAME contains a `VIAME_DISABLE_GPU_SUPPORT` flag due to numerous issues relating to GPU code building.
+Alternatively you can debug the issue (incorrect CUDA drivers for OpenCV, Caffe, etc...), or alternatively
+not having your CUDA headers set to be in your include path.
 
 
