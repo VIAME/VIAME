@@ -35,7 +35,7 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_libkml:BOOL=ON
   )
 
-  if( APPLE )
+  if( WIN32 OR APPLE )
     set( fletch_DEP_FLAGS
       ${fletch_DEP_FLAGS}
       -Dfletch_ENABLE_PNG:BOOL=ON

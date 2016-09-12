@@ -74,8 +74,7 @@ called VIAME_ENABLE_[option], in all caps. For each plugin to install, you need 
 flag looks like `-DVIAME_ENABLE_OPENCV:BOOL=ON`, of course changing OPENCV to match the plugin. Multiple plugins may be
 used, or none.
 
-Viame can be built either in the source ild/install/lib/libviame_scallop_tk.so
--- Set runtime path of "/home/matt/Dev/directory tree or in a seperate build directory (recommended). Replace "build" with
+Viame can be built either in the source directory tree or in a seperate build directory (recommended). Replace "build" with
 your location of choice, and run the following commands:
 
 `mkdir build`
