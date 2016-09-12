@@ -226,6 +226,7 @@ sprokit::process::type_t const PN ## _port_trait::type_name = sprokit::process::
 sprokit::process::port_t const PN ## _port_trait::port_name = sprokit::process::port_t( # PN ); \
 sprokit::process::port_description_t const PN ## _port_trait::description = sprokit::process::port_description_t( DESCRIP ); }
 
+#if VITAL_VARIADAC_MACRO
 
 //
 // Substantial macro magic
@@ -347,7 +348,32 @@ declare_ ## D ## _port( PN ## _port_trait::port_name,   \
 #define declare_output_port_with_freq_using_trait(...) \
   GET_MACRO(__VA_ARGS__, DPFT5, DPFT4, xxx)(output, __VA_ARGS__)
 
+#else
 
+//
+// Some compilers have trouble with the preceding approach.
+//
+
+#define declare_port_using_trait( D, PN, FLAG, ... )    \
+declare_ ## D ## _port( PN ## _port_trait::port_name,   \
+                        PN ## _port_trait::type_name,   \
+                        FLAG,                           \
+                        PN ## _port_trait::description)
+
+#define declare_port_with_freq_using_trait( D, PN, FLAG, ... )  \
+declare_ ## D ## _port( PN ## _port_trait::port_name,           \
+                        PN ## _port_trait::type_name,           \
+                        FLAG,                                   \
+                        PN ## _port_trait::description)
+
+#define declare_input_port_using_trait( PN, FLAG, ... ) declare_port_using_trait( input, PN, FLAG, __VA_ARGS__ )
+#define declare_output_port_using_trait( PN, FLAG, ... ) declare_port_using_trait( output, PN, FLAG, __VA_ARGS__ )
+
+#define declare_input_port_with_freq_using_trait( PN, FLAG, FREQ, ... ) declare_port_with_freq_using_trait( input, PN, FLAG, __VA_ARGS__ )
+
+#define declare_output_port_with_freq_using_trait( PN, FLAG, FREQ, ... ) declare_port_with_freq_using_trait( output, PN, FLAG, __VA_ARGS__ )
+
+#endif
 
 /**
  * \brief Get input from port using port trait name.
