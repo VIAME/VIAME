@@ -1,4 +1,4 @@
-.. contents:: ``
+.. contents::
    :depth: 3
    :local:
 
