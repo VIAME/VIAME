@@ -1,5 +1,5 @@
-.. contents:: `===========\nTable of contents===========\n`
-   :depth: 2
+.. contents:: `Table of Contents`
+   :depth: 3
    :local:
 
 .. _linux-label:
