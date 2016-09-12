@@ -61,7 +61,7 @@ if( WIN32 AND VIAME_ENABLE_CAFFE )
     please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
-if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK )
+if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
 endif()
 
