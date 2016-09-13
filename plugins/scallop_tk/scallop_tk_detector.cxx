@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "scallop_detector.h"
+#include "scallop_tk_detector.h"
 
 #include <arrows/ocv/image_container.h>
 
@@ -47,7 +47,7 @@ using namespace ScallopTK;
  * @brief
  *
  */
-class scallop_detector::priv
+class scallop_tk_detector::priv
 {
 public:
   // -- CONSTRUCTORS --
@@ -59,30 +59,30 @@ public:
 
   std::string m_config_file;
   std::shared_ptr< CoreDetector > m_detector;
-}; // end class scallop_detector::priv
+}; // end class scallop_tk_detector::priv
 
 // ==================================================================
 
-scallop_detector::
-scallop_detector()
+scallop_tk_detector::
+scallop_tk_detector()
   : d( new priv )
 { }
 
 
-scallop_detector::
-  scallop_detector( const scallop_detector& other )
+scallop_tk_detector::
+  scallop_tk_detector( const scallop_tk_detector& other )
   : d( new priv( *other.d ) )
 { }
 
 
-scallop_detector::
-  ~scallop_detector()
+scallop_tk_detector::
+  ~scallop_tk_detector()
 { }
 
 
 // ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
-scallop_detector::
+scallop_tk_detector::
 get_configuration() const
 {
   // Get base config from base class
@@ -98,7 +98,7 @@ get_configuration() const
 
 // ------------------------------------------------------------------
 void
-scallop_detector::
+scallop_tk_detector::
 set_configuration( kwiver::vital::config_block_sptr config )
 {
   d->m_config_file = config->get_value< std::string > ( "config_file" );
@@ -110,7 +110,7 @@ set_configuration( kwiver::vital::config_block_sptr config )
 
 // ------------------------------------------------------------------
 bool
-scallop_detector::
+scallop_tk_detector::
 check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
@@ -119,7 +119,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 // ------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
-scallop_detector::
+scallop_tk_detector::
 detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set > ();

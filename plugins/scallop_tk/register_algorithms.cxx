@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include "scallop_detector.h"
+#include "scallop_tk_detector.h"
 #include "register_algorithms.h"
 
 #include <arrows/algorithm_plugin_interface.h>
@@ -43,14 +43,14 @@
 namespace viame {
 
 // Register core algorithms with the given or global registrar
-int register_algorithms(kwiver::vital::registrar &reg)
+int register_algorithms( kwiver::vital::registrar &reg )
 {
-    REGISTRATION_INIT( reg );
+  REGISTRATION_INIT( reg );
 
-    REGISTER_TYPE( viame::scallop_detector );
+  REGISTER_TYPE( viame::scallop_tk_detector );
 
-    REGISTRATION_SUMMARY();
-    return REGISTRATION_FAILURES();
+  REGISTRATION_SUMMARY();
+  return REGISTRATION_FAILURES();
 }
 
 } // end namespace viame

@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_SCALLOP_DETECTOR_H
-#define VIAME_SCALLOP_DETECTOR_H
+#ifndef VIAME_SCALLOP_TK_DETECTOR_H
+#define VIAME_SCALLOP_TK_DETECTOR_H
 
 #include <plugins/scallop_tk/viame_scallop_tk_export.h>
 
@@ -37,14 +37,14 @@
 
 namespace viame {
 
-class VIAME_SCALLOP_TK_EXPORT scallop_detector :
+class VIAME_SCALLOP_TK_EXPORT scallop_tk_detector :
   public kwiver::vital::algorithm_impl<
-    scallop_detector, kwiver::vital::algo::image_object_detector >
+    scallop_tk_detector, kwiver::vital::algo::image_object_detector >
 {
 public:
-  scallop_detector();
-  scallop_detector( const scallop_detector& other );
-  virtual ~scallop_detector();
+  scallop_tk_detector();
+  scallop_tk_detector( const scallop_tk_detector& other );
+  virtual ~scallop_tk_detector();
 
   // Set the name of this detector which will appear in any pipeline files
   virtual std::string impl_name() const { return "scallop_tk_detector"; }
@@ -68,4 +68,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_SCALLOP_DETECTOR_H */
+#endif /* VIAME_scallop_tk_detector_H */

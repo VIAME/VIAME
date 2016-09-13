@@ -10,11 +10,11 @@ include_directories( "${ScallopTK_INCLUDE_DIR}" )
 link_directories( "${ScallopTK_LIBRARY_DIR}" )
 
 set( plugin_headers
-  scallop_detector.h
+  scallop_tk_detector.h
   )
 
 set( plugin_sources
-  scallop_detector.cxx
+  scallop_tk_detector.cxx
 
   register_algorithms.h    register_algorithms.cxx
   )
