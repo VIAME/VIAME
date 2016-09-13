@@ -147,6 +147,15 @@ to
 
 Issue:
 
+ImportError: No module named numpy.distutils
+
+Solution:
+
+You have python installed, but not numpy. Install numpy.
+
+
+Issue:
+
 `cannot find cublas_v2.h` or linking issues against CUDA
 
 Solution:
