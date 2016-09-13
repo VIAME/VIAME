@@ -60,7 +60,6 @@ public:
   virtual kwiver::vital::detected_object_set_sptr detect(
     kwiver::vital::image_container_sptr image_data ) const;
 
-
 private:
   class priv;
   const std::unique_ptr< priv > d;
@@ -68,4 +67,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_scallop_tk_detector_H */
+#endif /* VIAME_SCALLOP_TK_DETECTOR_H */

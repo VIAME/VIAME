@@ -1,31 +1,39 @@
-#include <caffe/common.hpp>
 
 #include "faster_rcnn_detector.h"
-
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include <vital/types/vector.h>
-#include <vital/io/eigen_io.h>
-#include <vital/util/cpu_timer.h>
-#include <vital/logger/logger.h>
-#include <kwiversys/SystemTools.hxx>
-
-#include <arrows/ocv/image_container.h>
 
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 #include <math.h>
 
+#include <vital/vital_config.h>
+#include <vital/io/eigen_io.h>
+#include <vital/util/cpu_timer.h>
+#include <vital/algo/algorithm.h>
+#include <vital/types/vector.h>
+#include <vital/types/image_container.h>
+#include <vital/logger/logger.h>
 
+#include <kwiversys/SystemTools.hxx>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <arrows/ocv/image_container.h>
+
+#include <caffe/common.hpp>
+#include <caffe/blob.hpp>
+#include <caffe/net.hpp>
+
+namespace viame {
+  
 using caffe::Caffe;
 using caffe::TEST;
 using caffe::Net;
 using caffe::Blob;
 
-namespace kwiver {
-namespace arrows {
-namespace caffe {
+using namespace kwiver;
 
 class faster_rcnn_detector::priv
 {
@@ -33,7 +41,7 @@ public:
   std::string m_prototxt_file;
   std::string m_classes_file;
   std::string m_caffe_model;
-  vital::object_labels_sptr m_labels;
+
   double m_target_size;
   cv::Scalar m_pixel_means;
   double m_max_size;
@@ -53,8 +61,7 @@ public:
 
 // =====================================================================
   priv()
-  : m_labels(NULL),
-    m_target_size(600),
+  : m_target_size(600),
     m_pixel_means(102.9801, 115.9465, 122.7717),
     m_max_size(1000),
     m_net(NULL),
@@ -70,7 +77,7 @@ public:
 
   priv(priv const& other)
   :m_prototxt_file(other.m_prototxt_file), m_classes_file(other.m_classes_file), m_caffe_model(other.m_caffe_model),
-   m_labels(other.m_labels), m_target_size(other.m_target_size), m_pixel_means(other.m_pixel_means),
+   m_target_size(other.m_target_size), m_pixel_means(other.m_pixel_means),
    m_max_size(other.m_max_size), m_net(other.m_net), m_use_gpu(other.m_use_gpu), m_gpu_id(other.m_gpu_id),
    m_use_box_deltas(other.m_use_box_deltas),
    m_chip_image(other.m_chip_image), m_chip_width(other.m_chip_width), m_chip_height(other.m_chip_height), m_stride(other.m_stride),
@@ -189,8 +196,6 @@ set_configuration(vital::config_block_sptr config_in)
     if(line.empty()) continue;
     labels.push_back(trim(line));
   }
-
-  this->d->m_labels = vital::object_labels_sptr(new vital::object_labels(labels));
 
   this->d->m_target_size = config->get_value<double>("target_size");
 
@@ -448,4 +453,4 @@ prepair_image(cv::Mat const& in_image) const
   return std::pair<cv::Mat, double>(scaleImage, scale);
 }
 
-} } } //end namespace
+} //end namespace viame

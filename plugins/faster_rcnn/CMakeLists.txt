@@ -3,7 +3,7 @@
 
 find_package( Caffe REQUIRED )
 
-include_directories( "${Caffe_INCLUDE_DIR}" )
+include_directories( "${Caffe_INCLUDE_DIRS}" )
 link_directories( "${Caffe_LIBRARY_DIR}" )
 
 set( plugin_headers

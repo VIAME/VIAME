@@ -28,62 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef VIAME_FASTER_RCNN_DETECTOR_H
+#define VIAME_FASTER_RCNN_DETECTOR_H
 
-#ifndef KWIVER_ARROWS_FASTER_RCNN_DETECTOR_H_
-#define KWIVER_ARROWS_FASTER_RCNN_DETECTOR_H_
+#include <plugins/faster_rcnn/viame_faster_rcnn_export.h>
 
-#include <arrows/caffe/kwiver_algo_caffe_export.h>
-
-#include <vital/vital_config.h>
-
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/object_labels.h>
 #include <vital/algo/image_object_detector.h>
-#include <vital/config/config_block.h>
 
-#include <opencv2/core/core.hpp>
+namespace viame {
 
-#include <caffe/blob.hpp>
-#include <caffe/net.hpp>
-
-#include <utility>
-
-namespace kwiver {
-namespace arrows {
-namespace caffe {
-
-// ----------------------------------------------------------------
-/**
- * @brief
- *
- */
-class KWIVER_ALGO_CAFFE_EXPORT faster_rcnn_detector
-  : public vital::algorithm_impl<faster_rcnn_detector, vital::algo::image_object_detector>
+class VIAME_FASTER_RCNN_EXPORT faster_rcnn_detector :
+  public kwiver::vital::algorithm_impl<
+    faster_rcnn_detector, kwiver::vital::algo::image_object_detector >
 {
 public:
 
   faster_rcnn_detector();
   faster_rcnn_detector( faster_rcnn_detector const& frd );
-
   virtual ~faster_rcnn_detector();
 
   virtual std::string impl_name() const { return "faster_rcnn_detector"; }
 
-  virtual vital::config_block_sptr get_configuration() const;
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
+  virtual kwiver::vital::detected_object_set_sptr detect(
+    kwiver::vital::image_container_sptr image_data ) const;
 
 private:
 
   class priv;
   const std::unique_ptr<priv> d;
-
 };
 
-}}}
+}
 
-#endif // KWIVER_ARROWS_FASTER_RCNN_DETECTOR_H_
+#endif // VIAME_FASTER_RCNN_DETECTOR_H
