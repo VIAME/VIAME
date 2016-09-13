@@ -44,18 +44,17 @@ using namespace ScallopTK;
 
 // ----------------------------------------------------------------
 /**
- * @brief
- *
+ * @brief Storage class for private member variables
  */
 class scallop_tk_detector::priv
 {
 public:
   // -- CONSTRUCTORS --
   priv()
-  { }
+  {}
 
   ~priv()
-  { }
+  {}
 
   std::string m_config_file;
   std::shared_ptr< CoreDetector > m_detector;

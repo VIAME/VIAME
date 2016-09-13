@@ -29,9 +29,9 @@
 namespace viame {
   
 using caffe::Caffe;
-using caffe::TEST;
 using caffe::Net;
 using caffe::Blob;
+using caffe::TEST;
 
 using namespace kwiver;
 
@@ -56,7 +56,7 @@ public:
 
   kwiver::vital::logger_handle_t m_logger;
 
-  std::pair<cv::Mat, double> prepair_image(cv::Mat const& in_image) const;
+  std::pair<cv::Mat, double> format_image(cv::Mat const& input_image) const;
   std::vector< Blob<float>* > set_up_inputs(std::pair<cv::Mat, double> const& pair) const;
 
 // =====================================================================
@@ -316,7 +316,7 @@ detect( vital::image_container_sptr image_data) const
   std::vector<vital::detected_object_sptr> detected_objects;
   for(size_t img_at = 0; img_at < image_chips.size(); ++img_at)
   {
-    std::pair<cv::Mat, double> image_scale = this->d->prepair_image(image_chips[img_at]);
+    std::pair<cv::Mat, double> image_scale = this->d->format_image(image_chips[img_at]);
     std::vector< Blob<float>* > input_layers = this->d->set_up_inputs(image_scale);
     this->d->m_net->Forward(input_layers);
 
@@ -431,26 +431,27 @@ std::vector< Blob<float>* > faster_rcnn_detector::priv::set_up_inputs(std::pair<
 
 // --------------------------------------------------------------------
 std::pair<cv::Mat, double>
-faster_rcnn_detector::priv::
-prepair_image(cv::Mat const& in_image) const
+faster_rcnn_detector::priv
+::format_image( cv::Mat const& input_image ) const
 {
   cv::Mat im_float;
-  in_image.convertTo(im_float, CV_32F);
+  input_image.convertTo( im_float, CV_32F );
   im_float = im_float - this->m_pixel_means;
 
-  double min_size = std::min(im_float.size[0], im_float.size[1]);
-  double max_size = std::max(im_float.size[0], im_float.size[1]);
+  double min_size = std::min( im_float.size[0], im_float.size[1] );
+  double max_size = std::max( im_float.size[0], im_float.size[1] );
 
-  double scale = this->m_target_size/min_size;
-    //std::cout << scale << " " << scale * max_size << " " << MAX_SIZE << std::endl;
-  if ( round(scale * max_size) > this->m_max_size)
+  double scale = this->m_target_size / min_size;
+
+  if( round( scale * max_size ) > this->m_max_size )
   {
     scale = this->m_max_size / max_size;
   }
-  cv::Mat scaleImage;
-  cv::resize(im_float, scaleImage, cv::Size(), scale, scale);
-  //std::cout << scale << std::endl;
-  return std::pair<cv::Mat, double>(scaleImage, scale);
+
+  cv::Mat scaled_image;
+  cv::resize( im_float, scaled_image, cv::Size(), scale, scale );
+
+  return std::pair<cv::Mat, double>( scaled_image, scale );
 }
 
 } //end namespace viame
