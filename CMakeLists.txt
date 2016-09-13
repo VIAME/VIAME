@@ -23,15 +23,16 @@ set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 ###
 # Add plugin enable flags
 ##
-option( VIAME_ENABLE_VXL         "Enable VXL plugins"       OFF )
-option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"     OFF )
-option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"    OFF )
-option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"    OFF )
-option( VIAME_ENABLE_PYTHON      "Enable Python plugins"    OFF )
-option( VIAME_ENABLE_DOCS        "Enable Documentation"     OFF )
-option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"        OFF )
-option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"   OFF )
-option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins" OFF )
+option( VIAME_ENABLE_VXL         "Enable VXL plugins"         OFF )
+option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"       OFF )
+option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"      OFF )
+option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"      OFF )
+option( VIAME_ENABLE_PYTHON      "Enable Python plugins"      OFF )
+option( VIAME_ENABLE_DOCS        "Enable Documentation"       OFF )
+option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"          OFF )
+option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"     OFF )
+option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins"   OFF )
+option( VIAME_ENABLE_FASTER_RCNN "Enable Faster RCNN plugins" OFF )
 
 ###
 # Other misc options

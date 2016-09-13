@@ -1,13 +1,13 @@
 ###
 # Loadable algorithms
 
-find_package( faster_rcnn REQUIRED )
+find_package( ScallopTK REQUIRED )
 
 ## These should come from the find package.
-set( faster_rcnn_LIBS faster_rcnn )
+set( ScallopTK_LIBS ScallopTK )
 
-include_directories( "${faster_rcnn_INCLUDE_DIR}" )
-link_directories( "${faster_rcnn_LIBRARY_DIR}" )
+include_directories( "${ScallopTK_INCLUDE_DIR}" )
+link_directories( "${ScallopTK_LIBRARY_DIR}" )
 
 set( plugin_headers
   scallop_detector.h
@@ -37,7 +37,7 @@ kwiver_add_library( viame_scallop_tk
 target_link_libraries( viame_scallop_tk
   PUBLIC               vital
                        kwiver_algo_ocv
-                       faster_rcnn
+                       ScallopTK
   )
 
 algorithms_create_plugin( viame_scallop_tk
