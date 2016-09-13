@@ -33,17 +33,24 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
+#include "faster_rcnn_detector.h"
 #include "register_algorithms.h"
 
 #include <arrows/algorithm_plugin_interface.h>
+#include <arrows/algorithm_plugin_interface_macros.h>
 #include <vital/registrar.h>
 
+namespace viame {
+
 // Register core algorithms with the given or global registrar
-VIAME_SCALLOP_TK_EXPORT
-int register_algorithms( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
-
-
-int register_algo_impls( kwiver::vital::registrar &reg )
+int register_algorithms( kwiver::vital::registrar &reg )
 {
-  return viame::register_algorithms( reg );
+  REGISTRATION_INIT( reg );
+
+  REGISTER_TYPE( viame::faster_rcnn_detector );
+
+  REGISTRATION_SUMMARY();
+  return REGISTRATION_FAILURES();
 }
+
+} // end namespace viame

@@ -1,20 +1,17 @@
 ###
 # Loadable algorithms
 
-find_package( ScallopTK REQUIRED )
+find_package( Caffe REQUIRED )
 
-## These should come from the find package.
-set( ScallopTK_LIBS ScallopTK )
-
-include_directories( "${ScallopTK_INCLUDE_DIR}" )
-link_directories( "${ScallopTK_LIBRARY_DIR}" )
+include_directories( "${Caffe_INCLUDE_DIR}" )
+link_directories( "${Caffe_LIBRARY_DIR}" )
 
 set( plugin_headers
-  scallop_detector.h
+  faster_rcnn_detector.h
   )
 
 set( plugin_sources
-  scallop_detector.cxx
+  faster_rcnn_detector.cxx
 
   register_algorithms.h    register_algorithms.cxx
   )
@@ -25,21 +22,20 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_scallop_tk_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_faster_rcnn_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_scallop_tk
+kwiver_add_library( viame_faster_rcnn
   ${plugin_headers}
   ${plugin_sources}
   )
 
-target_link_libraries( viame_scallop_tk
+target_link_libraries( viame_faster_rcnn
   PUBLIC               vital
                        kwiver_algo_ocv
-                       ScallopTK
   )
 
-algorithms_create_plugin( viame_scallop_tk
+algorithms_create_plugin( viame_faster_rcnn
   algorithm_plugin_interface.cxx
   )

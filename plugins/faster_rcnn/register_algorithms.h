@@ -28,22 +28,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Defaults plugin algorithm registration interface impl
- */
+#ifndef VIAME_FASTER_RCNN_REGISTER_ALGORITHMS_H
+#define VIAME_FASTER_RCNN_REGISTER_ALGORITHMS_H
 
-#include "register_algorithms.h"
+#include <plugins/faster_rcnn/viame_faster_rcnn_export.h>
 
-#include <arrows/algorithm_plugin_interface.h>
 #include <vital/registrar.h>
 
+namespace viame {
+
 // Register core algorithms with the given or global registrar
-VIAME_SCALLOP_TK_EXPORT
+VIAME_FASTER_RCNN_EXPORT
 int register_algorithms( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
 
+} // end namespace
 
-int register_algo_impls( kwiver::vital::registrar &reg )
-{
-  return viame::register_algorithms( reg );
-}
+#endif /* VIAME_FASTER_RCNN_REGISTER_ALGORITHMS_H */
