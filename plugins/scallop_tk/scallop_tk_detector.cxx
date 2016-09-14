@@ -117,7 +117,7 @@ kwiver::vital::detected_object_set_sptr
 scallop_tk_detector::
 detect( kwiver::vital::image_container_sptr image_data ) const
 {
-  auto detected_set = std::make_shared< kwiver::vital::detected_object_set > ();
+  auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
 
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
 
