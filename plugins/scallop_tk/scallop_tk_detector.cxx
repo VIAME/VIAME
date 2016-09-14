@@ -42,44 +42,41 @@ namespace viame {
 
 using namespace ScallopTK;
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------------------------
 /**
  * @brief Storage class for private member variables
  */
 class scallop_tk_detector::priv
 {
 public:
-  // -- CONSTRUCTORS --
-  priv()
-  {}
 
-  ~priv()
-  {}
+  priv() {}
+  ~priv() {}
 
   std::string m_config_file;
   std::shared_ptr< CoreDetector > m_detector;
 }; // end class scallop_tk_detector::priv
 
-// ==================================================================
+// =================================================================================================
 
 scallop_tk_detector::
 scallop_tk_detector()
   : d( new priv )
-{ }
+{}
 
 
 scallop_tk_detector::
   scallop_tk_detector( const scallop_tk_detector& other )
   : d( new priv( *other.d ) )
-{ }
+{}
 
 
 scallop_tk_detector::
   ~scallop_tk_detector()
-{ }
+{}
 
 
-// ------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 scallop_tk_detector::
 get_configuration() const
@@ -88,26 +85,25 @@ get_configuration() const
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
   config->set_value( "config_file", d->m_config_file,
-                     "Name of ScallopTK configuration file."
-                   );
+                     "Name of ScallopTK configuration file." );
 
   return config;
 }
 
 
-// ------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 void
 scallop_tk_detector::
 set_configuration( kwiver::vital::config_block_sptr config )
 {
-  d->m_config_file = config->get_value< std::string > ( "config_file" );
+  d->m_config_file = config->get_value< std::string >( "config_file" );
 
   // Create new detector.
-  d->m_detector = std::make_shared< CoreDetector > ( d->m_config_file );
+  d->m_detector = std::make_shared< CoreDetector >( d->m_config_file );
 }
 
 
-// ------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 bool
 scallop_tk_detector::
 check_configuration( kwiver::vital::config_block_sptr config ) const
@@ -116,7 +112,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 }
 
 
-// ------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
 scallop_tk_detector::
 detect( kwiver::vital::image_container_sptr image_data ) const
@@ -132,6 +128,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
   // process results
   VITAL_FOREACH( auto det, det_list )
   {
+    // Get parameters from ellipse output
     double angle = det.angle * PI / 180;
     double a = det.major * cos( angle );
     double b = det.minor * sin( angle );
@@ -141,6 +138,8 @@ detect( kwiver::vital::image_container_sptr image_data ) const
     double height = sqrt( ( c * c ) + ( d * d ) ) * 2;
     double x = det.c - width * 0.5;
     double y = det.r - height * 0.5;
+
+    // Create kwiver style bounding box
     kwiver::vital::bounding_box_d bbox( kwiver::vital::bounding_box_d::vector_type( x, y ), width, height );
 
     // Create possible object types.

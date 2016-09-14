@@ -3,6 +3,10 @@
 
 find_package( Caffe REQUIRED )
 
+if( VIAME_DISABLE_GPU_SUPPORT )
+  add_definitions( -DCPU_ONLY )
+endif()
+
 include_directories( "${Caffe_INCLUDE_DIRS}" )
 link_directories( "${Caffe_LIBRARY_DIR}" )
 
@@ -34,6 +38,7 @@ kwiver_add_library( viame_faster_rcnn
 target_link_libraries( viame_faster_rcnn
   PUBLIC               vital
                        kwiver_algo_ocv
+                       ${Caffe_LIBRARIES}
   )
 
 algorithms_create_plugin( viame_faster_rcnn

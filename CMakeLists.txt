@@ -67,6 +67,10 @@ if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
 endif()
 
+if( VIAME_ENABLE_FASTER_RCNN )
+  set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
+endif()
+
 if( VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
