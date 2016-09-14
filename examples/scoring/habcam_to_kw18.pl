@@ -176,7 +176,7 @@ sub usage {
     print "Usage: habcam_to_kw18.pl [opts] file \n";
     print "  Options:\n";
     print "    --help                     print usage\n";
-    print "    --out-file   file-name     Write image file/index correspondence to file\n";
-    print "    --in-file    file-name     Read image file/index correspondence to file\n";
+    print "    --write-file file-name     Write image file/index correspondence to file\n";
+    print "    --read-file  file-name     Read image file/index correspondence to file\n";
     print "    --cache-only               With --in-file, does not add process images unless they are already in cache\n";
 }

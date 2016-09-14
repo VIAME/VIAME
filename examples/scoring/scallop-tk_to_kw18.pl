@@ -158,7 +158,7 @@ sub usage {
     print "Usage: scallop-tk_to_kw18.pl [opts] file \n";
     print "  Options:\n";
     print "    --help                     print usage\n";
-    print "    --out_file   file-name     Write image file/index correspondence to file\n";
-    print "    --in_file    file-name     Read image file/index correspondence to file\n";
+    print "    --write_file file-name     Write image file/index correspondence to file\n";
+    print "    --read_file  file-name     Read image file/index correspondence to file\n";
     print "    --cache-only               With --in-file, does not add process images unless they are already in cache\n";
 }
