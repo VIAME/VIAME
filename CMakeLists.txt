@@ -142,6 +142,10 @@ include( kwiver-utils )
 include( viame-flags )
 
 ##
+# Build system hack for visual system, will be removed
+include( windows-ksys-hack )
+
+##
 # check compiler support
 include( kwiver-configcheck )
 
