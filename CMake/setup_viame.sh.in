@@ -1,7 +1,7 @@
 #
 # Script to set up environment to use VIAME
 #
-this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+@SETUP_READLINK_CMD@
 
 # paths for loading algorithms
 export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
@@ -12,7 +12,7 @@ export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
 
 # paths for adding exes to path
 export PATH=$this_dir/bin:$this_dir/pipelines:$PATH
-export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
+@SETUP_LIBRARY_PATH@
 
 # paths for the GUIs
 export VG_PLUGIN_PATH=$this_dir
@@ -23,4 +23,4 @@ export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes
 
 # paths for matlab
-@SET_MATLAB_LD_LIBRARY_PATH@
+@SETUP_MATLAB_LIBRARY_PATH@

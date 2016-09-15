@@ -50,13 +50,6 @@ option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-bu
 ###
 # Add logic relating to enable flags
 ##
-if( VIAME_ENABLE_MATLAB )
-  find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
-
-  get_filename_component( Matlab_LIBRARY_DIR "${Matlab_ENG_LIBRARY}" DIRECTORY )
-  set( SET_MATLAB_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH" )
-endif()
-
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
     VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
@@ -72,6 +65,10 @@ endif()
 
 if( VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
+endif()
+
+if( VIAME_ENABLE_MATLAB )
+  find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
@@ -173,6 +170,8 @@ add_subdirectory( examples )
 ###
 # Configure setup script
 ##
+include( setup_viame_paths )
+
 set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
 configure_file(
