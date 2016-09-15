@@ -10,7 +10,7 @@ Installing Viame (Linux)
 
 These instructions are designed to help build Viame on a fresh machine. They were written for and tested on Ubuntu
 16.04 Desktop version. Other Linux machines will have similar directions, but some steps (particularly the dependency
-install) may not be exactly identical. Known other working systems: CentOS/RHEL 6+, Fedora 19+, Ubuntu 14.04+.
+install) may not be exactly identical. Viame has also been built on: CentOS/RHEL 6+, Fedora 19+, Ubuntu 14.04+.
 
 ********************
 Install Dependencies
@@ -18,7 +18,7 @@ Install Dependencies
 
 Some of the dependencies required for Viame can be installed with one quick and easy instruction with no configuration
 required. Different Linux distributions may have different packages already installed, or may use a different package
-manager than apt, but even on Ubuntu this should help to provide a starting point.
+manager than apt, but on Ubuntu this should help to provide a starting point.
 
 `sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev`
 
@@ -27,7 +27,7 @@ manager than apt, but even on Ubuntu this should help to provide a starting poin
 Install CMAKE
 =============
 
-Depending on the OS, the version of cmake you get with apt is often too old to use for Viame, so you may need to do a
+Depending on the OS, the version of cmake you get with apt/yum is often too old to use for Viame, so you may need to do a
 manual install. Go to the cmake website, `https://cmake.org/download`, and download the appropriate binary distribution
 (for Ubuntu, this would be something like cmake-3.6.1-Linux-x86_64.sh, depending on version). Download the source code,
 cmake-3.6.1.tar.gz (or just download and use the installer for windows).  To untar and build the source, use the following

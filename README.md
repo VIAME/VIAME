@@ -50,7 +50,8 @@ There are currently several optional arguments to viame, such as:
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes       |
 | VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
 | VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs                                 |
-| VIAME_ENABLE_SCALLOP_TK      | Builds all ScallopTK-based plugins                |
+| VIAME_ENABLE_SCALLOP_TK      | Builds ScallopTK based plugin                     |
+| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based plugin                   |
 | VIAME_DISABLE_GPU_SUPPORT    | Builds all VIAME processes without GPU support    |
 | VIAME_DISABLE_FFMPEG_SUPPORT | Builds all VIAME processes without FFMPEG support |
 

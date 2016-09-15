@@ -57,11 +57,6 @@ if( VIAME_ENABLE_MATLAB )
   set( SET_MATLAB_LD_LIBRARY_PATH "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH" )
 endif()
 
-if( WIN32 AND VIAME_ENABLE_CAFFE )
-  message( FATAL_ERROR "Internal Caffe build on windows not currently supported, \
-    please build Caffe externally using the Caffe windows branch, if desired." )
-endif()
-
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
     VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
@@ -71,6 +66,10 @@ if( VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
 endif()
 
+if( VIAME_ENABLE_FASTER_RCNN )
+  set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
+endif()
+
 if( VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
@@ -78,6 +77,11 @@ endif()
 if( VIAME_ENABLE_PYTHON )
   find_package( PythonLibs )
   find_package( PythonInterp REQUIRED )
+endif()
+
+if( WIN32 AND VIAME_ENABLE_CAFFE )
+  message( FATAL_ERROR "Internal Caffe build on windows not currently supported, \
+    please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
 # Include internal common CMake macros used across all CMakeLists.txt
