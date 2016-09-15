@@ -1,6 +1,6 @@
 
 if( APPLE )
-  set( SETUP_READLINK_CMD "this_dir=$(cd '$(dirname '$\{BASH_SOURCE[0]\}')' && pwd)" )
+  set( SETUP_READLINK_CMD "this_dir=$(cd \"$(dirname \"$BASH_SOURCE[0]\")\" && pwd)" )
   set( SETUP_LIBRARY_PATH "export DYLD_FALLBACK_LIBRARY_PATH=$this_dir/lib:$DYLD_FALLBACK_LIBRARY_PATH" )
 else()
   set( SETUP_READLINK_CMD "this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))" )
