@@ -80,15 +80,19 @@ if( VIAME_ENABLE_PYTHON )
   find_package( PythonInterp REQUIRED )
 endif()
 
+# Include internal common CMake macros used across all CMakeLists.txt
+include( common_macros )
+
 ###
 # Main build loop for when we are building both VIAME and all dependencies
 ##
 if( VIAME_BUILD_DEPENDENCIES )
 
-# Macros and scripts
+# Include for CMake external project add command
 include( ExternalProject )
+
+# Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
 include( common_args )
-include( common_macros )
 
 # Hard VIAME requirements
 include( add_project_fletch )
