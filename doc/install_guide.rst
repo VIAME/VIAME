@@ -166,3 +166,11 @@ Alternatively you can debug the issue (incorrect CUDA drivers for OpenCV, Caffe,
 not having your CUDA headers set to be in your include path.
 
 
+Issue:
+
+When VIAME_ENABLE_DOC is turned on and doing a multi-threaded build, sometimes the build fails.
+
+Solution:
+
+Run make -jX multiple times, or don't run make -jX when VIAME_ENABLE_DOCS is enabled.
+
