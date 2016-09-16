@@ -100,7 +100,7 @@ void detected_object_input_process
              "Required file name not specified." );
   }
 
-  // Get algo conrig entries
+  // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
   algo::detected_object_set_input::set_nested_algo_configuration( "reader", algo_config, d->m_reader);
   if ( ! d->m_reader )

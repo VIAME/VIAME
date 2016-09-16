@@ -57,8 +57,10 @@ class VITAL_EXPORT algorithm_exception
 
     /// The name of the algorithm type
     std::string m_algo_type;
+
     /// The name of the algorithm implementation
     std::string m_algo_impl;
+
     /// String explanation of the reason for the exception
     std::string m_reason;
 };
