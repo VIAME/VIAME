@@ -1,11 +1,15 @@
 
 ###
-# add all plugin subdirectories below
+# Add all plugin subdirectories below
+##
 
+###
+# Core plugin (always built)
+##
 add_subdirectory( core )
 
 ###
-# OpenCV plugin
+# OpenCV plugin (uses higher level OpenCV flag)
 ##
 if( VIAME_ENABLE_OPENCV )
   add_subdirectory( opencv )
