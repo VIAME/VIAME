@@ -56,7 +56,7 @@
 #include <caffe/net.hpp>
 
 namespace viame {
-  
+
 using caffe::Caffe;
 using caffe::Net;
 using caffe::Blob;
@@ -109,7 +109,7 @@ public:
   : m_target_size( 500 ),
     m_max_size( 1000 ),
     m_pixel_means( 127.5, 127.5, 127.5 ),
-    m_net( NULL ),
+    m_net(),
     m_use_gpu( false ),
     m_gpu_id( 0 ),
     m_use_box_deltas( true ),
@@ -244,7 +244,7 @@ set_configuration( vital::config_block_sptr config_in )
   {
     if( line.empty() )
       continue;
-  
+
     labels.push_back( trim( line ) );
   }
 
@@ -328,7 +328,7 @@ detect( vital::image_container_sptr image_data ) const
 
   // Convert to opencv image
   if( image_data == NULL )
-    return NULL;
+    return vital::detected_object_set_sptr();
 
   vital::scoped_cpu_timer t( "Time to detect objects" );
   cv::Mat image = arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
@@ -454,7 +454,7 @@ detect( vital::image_container_sptr image_data ) const
           vital::vector_2d halfS(pw*0.5, ph*0.5);
           vital::bounding_box_d pbox(center-halfS, center+halfS);
           auto dot = std::make_shared< vital::detected_object_type >( this->d->m_labels, class_probs2 );
-  
+
           detected_set->add( std::make_shared< kwiver::vital::detected_object >( pbox, 1.0, dot ) );
           class_probs2[j] = vital::detected_object_type::INVALID_SCORE;
         }

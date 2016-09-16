@@ -36,7 +36,7 @@ kwiver_add_library( viame_faster_rcnn
   )
 
 target_link_libraries( viame_faster_rcnn
-  PUBLIC               vital
+  PUBLIC               vital kwiversys
                        kwiver_algo_ocv
                        ${Caffe_LIBRARIES}
   )
