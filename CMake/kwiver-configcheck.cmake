@@ -85,3 +85,14 @@ try_compile( success
 set( VITAL_USE_CPP_FINAL ${success} )
 
 ###
+# See if nullptr is supported
+try_compile( success
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/configcheck/null_ptr.cxx
+  CMAKE_FLAGS
+     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+  OUTPUT_VARIABLE OUTPUT)
+
+set( VITAL_USE_STD_NULLPTR ${success} )
+
+###
