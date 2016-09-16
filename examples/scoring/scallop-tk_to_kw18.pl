@@ -104,11 +104,11 @@ while (my $buf = <$fhi>)
         $next_frame_index++;
     }
 
-    # if this is the same bbox, then skip the line
+    # only process top rank class-name
     if ( $line[8] == 1 )
     {
         my $ts = $frame_idx * 0.0333;
-        print "$track_id 1 $frame_idx 0 0  0 0  0 0 $line[1] $line[2] $line[3] $line[4] 0  0 0 0  $ts -1\n";
+        print "$track_id 1 $frame_idx 0 0  0 0  0 0 $line[1] $line[2] $line[3] $line[4] 0  0 0 0  $ts $line[7]\n";
         $track_id++;
     }
 } # end while
