@@ -80,6 +80,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <mex.h>
 
+#include <vital/vital_config.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <set>
@@ -128,6 +130,8 @@ public:
     , m_owner( false )
   { }
 
+#if VITAL_USE_STD_NULLPTR
+
   /** NULL assignment.
    */
   MxArray& operator=( std::nullptr_t )
@@ -136,6 +140,7 @@ public:
     return *this;
   }
 
+#endif
 
   /** Move constructor.
    */
