@@ -10,7 +10,7 @@
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
 if( VIAME_ENABLE_MATLAB )
-  FormatPassdowns( "MATLAB" VIAME_MATLAB_FLAGS )
+  FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
