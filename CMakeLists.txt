@@ -23,14 +23,16 @@ set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 ###
 # Add plugin enable flags
 ##
-option( VIAME_ENABLE_VXL         "Enable VXL plugin support"      OFF )
-option( VIAME_ENABLE_CAFFE       "Enable Caffe plugin support"    OFF )
-option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugin support"   OFF )
-option( VIAME_ENABLE_MATLAB      "Enable Matlab plugin support"   OFF )
-option( VIAME_ENABLE_PYTHON      "Enable Python plugin support"   OFF )
-option( VIAME_ENABLE_DOCS        "Enable Documentation"           OFF )
-option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"              OFF )
-option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"         OFF )
+option( VIAME_ENABLE_VXL         "Enable VXL plugins"         OFF )
+option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"       OFF )
+option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"      OFF )
+option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"      OFF )
+option( VIAME_ENABLE_PYTHON      "Enable Python plugins"      OFF )
+option( VIAME_ENABLE_DOCS        "Enable Documentation"       OFF )
+option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"          OFF )
+option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"     OFF )
+option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins"   OFF )
+option( VIAME_ENABLE_FASTER_RCNN "Enable Faster RCNN plugins" OFF )
 
 ###
 # Other misc options
@@ -48,8 +50,17 @@ option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-bu
 ###
 # Add logic relating to enable flags
 ##
-if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_MATLAB )
+if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
+    VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
+endif()
+
+if( VIAME_ENABLE_FASTER_RCNN )
+  set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
+endif()
+
+if( VIAME_ENABLE_FASTER_RCNN )
+  set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
