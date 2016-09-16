@@ -35,5 +35,16 @@ if( VIAME_ENABLE_FASTER_RCNN )
   add_subdirectory( faster_rcnn )
 
   set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
-  set( VIAME_ENABLE_CAFFE  ON CACHE BOOL "Caffe required for other projects"  FORCE )
+  set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
+endif()
+
+###
+# Matlab VIAME Example
+##
+option( VIAME_ENABLE_MATLAB_EX "Enable Example Matlab plugin" OFF )
+
+if( VIAME_ENABLE_MATLAB_EX )
+  add_subdirectory( faster_rcnn )
+
+  set( VIAME_ENABLE_MATLAB ON CACHE BOOL "Matlab required for other projects" FORCE )
 endif()
