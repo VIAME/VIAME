@@ -10,10 +10,6 @@ export VIAME_PLUGIN_PATH=$this_dir/lib/modules:$VIAME_PLUGIN_PATH
 # paths for loading processes
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
 
-# paths for adding exes to path
-export PATH=$this_dir/bin:$this_dir/pipelines:$PATH
-@SETUP_LIBRARY_PATH@
-
 # paths for the GUIs
 export VG_PLUGIN_PATH=$this_dir
 export QT_PLUGIN_PATH=$this_dir/lib/qt4/plugins
@@ -22,5 +18,9 @@ export QT_PLUGIN_PATH=$this_dir/lib/qt4/plugins
 export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes
 
-# paths for matlab
+# paths for matlab (empty if not built with matlab)
 @SETUP_MATLAB_LIBRARY_PATH@
+
+# paths for adding exes to path (must occur after python and matlab)
+export PATH=$this_dir/bin:$this_dir/pipelines:$PATH
+@SETUP_LIBRARY_PATH@
