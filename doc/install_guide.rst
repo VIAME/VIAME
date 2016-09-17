@@ -124,7 +124,7 @@ Known Issues
 ============
 
 
-Issue:
+**Issue:**
 
 When PYTHON is enabled, getting the below error.
 
@@ -137,7 +137,7 @@ make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1
 make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2
 make: *** [all] Error 2
 
-Solution:
+**Solution:**
 
 raw_function.hpp doesn't get installed for some reason on some systems. Manually copy it from:
 
@@ -146,31 +146,46 @@ to
 [VIAME_BUILD]/install/include/boost/python/
 
 
-Issue:
+**Issue:**
 
 ImportError: No module named numpy.distutils
 
-Solution:
+**Solution:**
 
 You have python installed, but not numpy. Install numpy.
 
 
-Issue:
+**Issue:**
 
 `cannot find cublas_v2.h` or linking issues against CUDA
 
-Solution:
+**Solution:**
 
 VIAME contains a `VIAME_DISABLE_GPU_SUPPORT` flag due to numerous issues relating to GPU code building.
 Alternatively you can debug the issue (incorrect CUDA drivers for OpenCV, Caffe, etc...), or alternatively
 not having your CUDA headers set to be in your include path.
 
 
-Issue:
+**Issue:**
 
 When VIAME_ENABLE_DOC is turned on and doing a multi-threaded build, sometimes the build fails.
 
-Solution:
+**Solution:**
 
 Run make -jX multiple times, or don't run make -jX when VIAME_ENABLE_DOCS is enabled.
 
+
+**Issue:**
+
+CMake says it cannot find matlab
+
+**Solution:**
+
+Make sure your matlab CMake paths are set to something like the following
+
+Matlab_ENG_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libeng.so
+Matlab_INCLUDE_DIRS:PATH=[matlab_install_loc]/extern/include
+Matlab_MEX_EXTENSION:STRING=mexa64
+Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so
+Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so
+Matlab_ROOT_DIR:PATH=[matlab_install_loc]
