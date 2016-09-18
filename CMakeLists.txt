@@ -113,6 +113,10 @@ if( VIAME_ENABLE_KWANT )
   include( add_project_kwant )
 endif()
 
+if( VIAME_ENABLE_FASTER_RCNN )
+  include( add_project_faster_rcnn )
+endif()
+
 # Viame plugins
 include( add_project_viame )
 
