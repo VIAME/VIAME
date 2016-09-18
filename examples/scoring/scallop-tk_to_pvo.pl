@@ -154,7 +154,7 @@ sub read_file_index {
 
 # ----------------------------------------------------------------
 sub usage {
-    print "Usage: scallop-tk_to_kw18.pl [opts] file \n";
+    print "Usage: scallop-tk_to_pvo.pl [opts] file \n";
     print "  Options:\n";
     print "    --help                     print usage\n";
     print "    --write_file file-name     Write image file/index correspondence to file\n";
