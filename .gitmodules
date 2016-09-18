@@ -15,7 +15,7 @@
 	url = https://github.com/Kitware/vivia.git
 [submodule "packages/py-faster-rcnn"]
 	path = packages/py-faster-rcnn
-	url = https://github.com/rbgirshick/py-faster-rcnn.git
+	url = https://github.com/mattdawkins/py-faster-rcnn.git
 [submodule "packages/kwant"]
 	path = packages/kwant
 	url = https://github.com/Kitware/kwant.git
