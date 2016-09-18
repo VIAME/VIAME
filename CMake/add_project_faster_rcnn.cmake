@@ -17,6 +17,8 @@ if( NOT WIN32 )
       ${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/Caffe-build
       ${VIAME_PACKAGES_DIR}/py-faster-rcnn/caffe-fast-rcnn
     BUILD_COMMAND cd ${VIAME_PACKAGES_DIR}/py-faster-rcnn/lib && make
-    INSTALL_COMMAND ""
+    INSTALL_COMMAND ${CMAKE_COMMAND}
+      -DVIAME_CMAKE_DIR:PATH=${CMAKE_SOURCE_DIR}/CMake
+      -P ${VIAME_SOURCE_DIR}/CMake/custom_faster_rcnn_install.cmake
     )
 endif()
