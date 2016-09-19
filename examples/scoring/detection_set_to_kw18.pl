@@ -100,6 +100,9 @@ while (my $buf = <$fhi>)
         $next_frame_index++;
     }
 
+    # vpview frames start at 0 not 1
+    $frame_idx = $frame_idx - 1;
+
     # if this is the same bbox, then skip the line
     if ( $line[8] == 1 )
     {

@@ -75,6 +75,7 @@ while (my $buf = <$fhi>)
 
     # get frame index for this image
     my $frame_idx = $image_dict{$line[0]};
+
     if ( length($frame_idx) == 0)
     {
         next if $opt_cache_only == 1;
@@ -84,6 +85,9 @@ while (my $buf = <$fhi>)
         $image_dict{$line[0]} = $next_frame_index;
         $next_frame_index++;
     }
+
+    # vpview frames start at 0 not 1
+    $frame_idx = $frame_idx - 1;
 
     next if ( $#line < 4 );
     # print "\n--- processing line: $buf\n"; # test
