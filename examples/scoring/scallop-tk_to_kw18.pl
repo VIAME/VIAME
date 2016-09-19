@@ -111,7 +111,8 @@ while (my $buf = <$fhi>)
     if ( $line[8] == 1 )
     {
         my $ts = $frame_idx * 0.0333;
-        print "$track_id 1 $frame_idx 0 0  0 0  0 0 $line[1] $line[2] $line[3] $line[4] 0  0 0 0  $ts $line[7]\n";
+
+        print "$track_id 1 $frame_idx 0 0  0 0  0 0 $line[2] $line[1] $line[4] $line[3] 0  0 0 0  $ts $line[7]\n";
         $track_id++;
     }
 } # end while

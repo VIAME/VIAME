@@ -110,7 +110,8 @@ while (my $buf = <$fhi>)
     # only process top rank class-name
     if ( $line[8] == 1 )
     {
-        print "$track_id 0.0 $line[7] 0.0\n";
+        my $inv = 1.0 - $line[7];
+        print "$track_id 0.0 $line[7] $inv\n";
         $track_id++;
     }
 } # end while
