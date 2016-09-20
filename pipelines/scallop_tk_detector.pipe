@@ -27,7 +27,7 @@ process disp
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 2
+       :capacity 5
 
 # =============================================================================
 # connections
