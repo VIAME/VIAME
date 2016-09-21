@@ -28,12 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <boost/python/def.hpp>
+#include <boost/python/module.hpp>
+#include <boost/python/class.hpp>
+
 #include <sprokit/pipeline/version.h>
 
 #include <sprokit/version.h>
 
-#include <boost/python/module.hpp>
-#include <boost/python/class.hpp>
 
 /**
  * \file version.cxx
