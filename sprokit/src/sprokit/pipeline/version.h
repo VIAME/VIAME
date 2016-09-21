@@ -33,6 +33,7 @@
 
 #include "pipeline-config.h"
 
+#include <boost/python/def.hpp>
 #include <boost/cstdint.hpp>
 
 #include <string>

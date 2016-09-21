@@ -170,6 +170,10 @@ set_target_properties(sprokit_pipeline
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_LIB)
 
+if(APPLE AND KWIVER_ENABLE_PYTHON)
+  set_target_properties(sprokit_pipeline PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
+endif()
+
 add_dependencies(sprokit_pipeline     configure-version.h)
 
 if (WIN32)

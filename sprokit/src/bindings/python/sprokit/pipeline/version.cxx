@@ -32,9 +32,8 @@
 
 #include <sprokit/version.h>
 
-#include <boost/python/class.hpp>
-#include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
+#include <boost/python/class.hpp>
 
 /**
  * \file version.cxx
