@@ -24,6 +24,8 @@ manager than apt, but on Ubuntu this should help to provide a starting point.
 
 `sudo apt-get build-dep libboost-all-dev qt5-default`
 
+`sudo pip install numpy`
+
 Install CMAKE
 =============
 
