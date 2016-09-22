@@ -51,6 +51,9 @@ function detect( in_image )
 % detected_object_classification(i,j).score = 0.23;
 %
 
+  % Print out text
+  Disp('Hello World')
+
   % for example
   % 3 detections on this object
   % Box coordinates are tl-x, tl-y, lr-x, lr-y
