@@ -10,11 +10,11 @@ include_directories( "${predictor_uw_INCLUDE_DIR}" )
 link_directories( "${predictor_uw_LIBRARY_DIR}" )
 
 set( plugin_headers
-  scallop_tk_detector.h
+  predictor_uw_detector.h
   )
 
 set( plugin_sources
-  scallop_tk_detector.cxx
+  predictor_uw_detector.cxx
 
   register_algorithms.h    register_algorithms.cxx
   )
@@ -25,21 +25,21 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_scallop_tk_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_predictor_uw_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_scallop_tk
+kwiver_add_library( viame_predictor_uw
   ${plugin_headers}
   ${plugin_sources}
   )
 
-target_link_libraries( viame_scallop_tk
+target_link_libraries( viame_predictor_uw
   PUBLIC               vital
                        kwiver_algo_ocv
                        predictor_uw
   )
 
-algorithms_create_plugin( viame_scallop_tk
+algorithms_create_plugin( viame_predictor_uw
   algorithm_plugin_interface.cxx
   )
