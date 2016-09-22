@@ -1,0 +1,25 @@
+# =============================================================================
+process input
+  :: frame_list_input
+  :image_list_file     input_files.txt
+  :frame_time          .3333
+  :image_reader:type   ocv
+
+# =============================================================================
+process detector
+  :: image_object_detector
+  :detector:type                              hello_world_detector
+  :detector:hello_world_detector              Hello World!!!
+
+# =============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+# =============================================================================
+# connections
+connect from input.image
+        to   detector.image
+
+# -- end of file --

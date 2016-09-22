@@ -30,8 +30,6 @@
 
 #include "hello_world_detector.h"
 
-#include <arrows/ocv/image_container.h>
-
 #include <cmath>
 
 namespace viame {
@@ -112,8 +110,6 @@ hello_world_detector::
 detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
-
-  // cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
 
   LOG_INFO( m_logger, "Text: " << d->m_text );
 

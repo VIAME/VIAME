@@ -1,11 +1,6 @@
 ###
 # Loadable algorithms
 
-find_package( OpenCV REQUIRED )
-
-# include_directories( "${OpenCV_INCLUDE_DIRS}" )
-# link_directories( "${OpenCV_LIBRARY_DIR}" )
-
 set( plugin_headers
   hello_world_detector.h
   )
@@ -33,7 +28,6 @@ kwiver_add_library( viame_hello_world
 
 target_link_libraries( viame_hello_world
   PUBLIC               vital
-                       ${OpenCV_LIBRARIES}
   )
 
 algorithms_create_plugin( viame_hello_world
