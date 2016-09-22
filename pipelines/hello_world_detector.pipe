@@ -9,7 +9,7 @@ process input
 process detector
   :: image_object_detector
   :detector:type                              hello_world_detector
-  :detector:hello_world_detector              Hello World!!!
+  :detector:hello_world_detector:text         Hello World!!!
 
 # =============================================================================
 # global pipeline config

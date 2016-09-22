@@ -42,7 +42,7 @@ class hello_world_detector::priv
 {
 public:
 
-  priv() {}
+  priv() : m_text( "Hello World" ) {}
   ~priv() {}
 
   std::string m_text;
@@ -75,7 +75,7 @@ get_configuration() const
   // Get base config from base class
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
-  config->set_value( "text", "Hello World!", "Text to display to user." );
+  config->set_value( "text", d->m_text, "Text to display to user." );
 
   return config;
 }
