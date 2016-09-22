@@ -1,6 +1,8 @@
 ###
 # Loadable algorithms
 
+find_package( OpenCV REQUIRED )
+
 set( plugin_headers
   classHierarchy.h
 #  highgui.h
@@ -39,7 +41,6 @@ kwiver_add_library( viame_uw_predictor
 target_link_libraries( viame_uw_predictor
   PUBLIC               vital
                        kwiver_algo_ocv
-                       uw_predictor
   )
 
 algorithms_create_plugin( viame_uw_predictor

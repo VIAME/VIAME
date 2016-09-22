@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "uw_predictor_detector.h"
+#include "uw_predictor_classifier.h"
 
 #include <arrows/ocv/image_container.h>
 
@@ -38,13 +38,11 @@
 
 namespace viame {
 
-using namespace uw_predictor;
-
 // -----------------------------------------------------------------------------------------------
 /**
  * @brief Storage class for private member variables
  */
-class uw_predictor_detector::priv
+class uw_predictor_classifier::priv
 {
 public:
 
@@ -52,31 +50,30 @@ public:
   ~priv() {}
 
   std::string m_config_file;
-  std::shared_ptr< CoreDetector > m_detector;
-}; // end class uw_predictor_detector::priv
+};
 
 // =================================================================================================
 
-uw_predictor_detector::
-uw_predictor_detector()
+uw_predictor_classifier::
+uw_predictor_classifier()
   : d( new priv )
 {}
 
 
-uw_predictor_detector::
-  uw_predictor_detector( const uw_predictor_detector& other )
+uw_predictor_classifier::
+  uw_predictor_classifier( const uw_predictor_classifier& other )
   : d( new priv( *other.d ) )
 {}
 
 
-uw_predictor_detector::
-  ~uw_predictor_detector()
+uw_predictor_classifier::
+  ~uw_predictor_classifier()
 {}
 
 
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
-uw_predictor_detector::
+uw_predictor_classifier::
 get_configuration() const
 {
   // Get base config from base class
@@ -91,19 +88,16 @@ get_configuration() const
 
 // -------------------------------------------------------------------------------------------------
 void
-uw_predictor_detector::
+uw_predictor_classifier::
 set_configuration( kwiver::vital::config_block_sptr config )
 {
   d->m_config_file = config->get_value< std::string >( "config_file" );
-
-  // Create new detector.
-  d->m_detector = std::make_shared< CoreDetector >( d->m_config_file );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 bool
-uw_predictor_detector::
+uw_predictor_classifier::
 check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
@@ -112,7 +106,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
-uw_predictor_detector::
+uw_predictor_classifier::
 detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto input_detections = std::make_shared< kwiver::vital::detected_object_set >(); // TODO become input detections
@@ -121,7 +115,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
 
   // process results
-  VITAL_FOREACH( auto det, input_detections )
+  VITAL_FOREACH( auto det, input_detections->select() )
   {
     // Crop out chip
     // []
@@ -130,10 +124,10 @@ detect( kwiver::vital::image_container_sptr image_data ) const
     // []
 
     // Convert UW detections to KWIVER format
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >( det.classIDs, det.classProbabilities );
+    //auto dot = std::make_shared< kwiver::vital::detected_object_type >( det.classIDs, det.classProbabilities );
 
     // Create detection
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    //detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
 
   return output_detections;

@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_UW_PREDICTOR_DETECTOR_H
-#define VIAME_UW_PREDICTOR_DETECTOR_H
+#ifndef VIAME_UW_PREDICTOR_CLASSIFIER_H
+#define VIAME_UW_PREDICTOR_CLASSIFIER_H
 
 #include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
@@ -37,17 +37,17 @@
 
 namespace viame {
 
-class VIAME_UW_PREDICTOR_EXPORT uw_predictor_detector :
+class VIAME_UW_PREDICTOR_EXPORT uw_predictor_classifier :
   public kwiver::vital::algorithm_impl<
-    uw_predictor_detector, kwiver::vital::algo::image_object_detector >
+    uw_predictor_classifier, kwiver::vital::algo::image_object_detector >
 {
 public:
-  uw_predictor_detector();
-  uw_predictor_detector( const uw_predictor_detector& other );
-  virtual ~uw_predictor_detector();
+  uw_predictor_classifier();
+  uw_predictor_classifier( const uw_predictor_classifier& other );
+  virtual ~uw_predictor_classifier();
 
   // Set the name of this detector which will appear in any pipeline files
-  virtual std::string impl_name() const { return "uw_predictor_detector"; }
+  virtual std::string impl_name() const { return "uw_predictor_classifier"; }
 
   // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;
@@ -67,4 +67,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_UW_PREDICTOR_DETECTOR_H */
+#endif /* VIAME_UW_PREDICTOR_CLASSIFIER_H */
