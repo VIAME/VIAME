@@ -28,14 +28,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+#include <boost/python/import.hpp>
+
 #include "registration.h"
 
 #include <sprokit/pipeline/utils.h>
 
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
-
-#include <boost/python/import.hpp>
 
 #include <Python.h>
 
