@@ -1,13 +1,13 @@
 ###
 # Loadable algorithms
 
-find_package( ScallopTK REQUIRED )
+find_package( predictor_uw REQUIRED )
 
 ## These should come from the find package.
-set( ScallopTK_LIBS ScallopTK )
+set( predictor_uw_LIBS predictor_uw )
 
-include_directories( "${ScallopTK_INCLUDE_DIR}" )
-link_directories( "${ScallopTK_LIBRARY_DIR}" )
+include_directories( "${predictor_uw_INCLUDE_DIR}" )
+link_directories( "${predictor_uw_LIBRARY_DIR}" )
 
 set( plugin_headers
   scallop_tk_detector.h
@@ -37,7 +37,7 @@ kwiver_add_library( viame_scallop_tk
 target_link_libraries( viame_scallop_tk
   PUBLIC               vital
                        kwiver_algo_ocv
-                       ScallopTK
+                       predictor_uw
   )
 
 algorithms_create_plugin( viame_scallop_tk

@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_SCALLOP_TK_DETECTOR_H
-#define VIAME_SCALLOP_TK_DETECTOR_H
+#ifndef VIAME_PREDICTOR_UW_DETECTOR_H
+#define VIAME_PREDICTOR_UW_DETECTOR_H
 
 #include <plugins/scallop_tk/viame_scallop_tk_export.h>
 
@@ -37,7 +37,7 @@
 
 namespace viame {
 
-class VIAME_SCALLOP_TK_EXPORT scallop_tk_detector :
+class VIAME_PREDICTOR_UW_EXPORT scallop_tk_detector :
   public kwiver::vital::algorithm_impl<
     scallop_tk_detector, kwiver::vital::algo::image_object_detector >
 {
@@ -67,4 +67,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_SCALLOP_TK_DETECTOR_H */
+#endif /* VIAME_PREDICTOR_UW_DETECTOR_H */

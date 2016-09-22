@@ -36,11 +36,11 @@
 
 #include <cmath>
 
-#include <ScallopTK/Pipelines/CoreDetector.h>
+#include <predictor_uw/Pipelines/CoreDetector.h>
 
 namespace viame {
 
-using namespace ScallopTK;
+using namespace predictor_uw;
 
 // -----------------------------------------------------------------------------------------------
 /**
@@ -85,7 +85,7 @@ get_configuration() const
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
   config->set_value( "config_file", d->m_config_file,
-                     "Name of ScallopTK configuration file." );
+                     "Name of predictor_uw configuration file." );
 
   return config;
 }
