@@ -40,9 +40,9 @@ implementation of type converters.
 
 import ctypes
 
-from vital import ImageContainer
-from vital import TrackSet
-from vital.util import find_library_path
+from vital.types import ImageContainer
+from vital.types import TrackSet
+from vital.util import find_vital_library
 
 __VITAL_CONVERTERS_LIB__ = None
 
@@ -53,7 +53,7 @@ def _find_converter_lib():
     # or similar to locate library.
     global __VITAL_CONVERTERS_LIB__
     if not __VITAL_CONVERTERS_LIB__:
-        lib_path = find_library_path("vital_type_converters")
+        lib_path = find_vital_library_path()
         if not lib_path:
             raise RuntimeError( "Unable to locate 'vital_type_converters' support library")
 
