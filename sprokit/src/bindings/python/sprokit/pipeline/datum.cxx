@@ -28,11 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/datum.h>
-
-#include <sprokit/python/any_conversion/prototypes.h>
-#include <sprokit/python/any_conversion/registration.h>
-#include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
@@ -43,6 +38,12 @@
 #include <boost/python/object.hpp>
 #include <boost/any.hpp>
 #include <boost/cstdint.hpp>
+
+#include <sprokit/pipeline/datum.h>
+
+#include <sprokit/python/any_conversion/prototypes.h>
+#include <sprokit/python/any_conversion/registration.h>
+#include <sprokit/python/util/python_gil.h>
 
 #include <limits>
 #include <string>
