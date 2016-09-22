@@ -17,6 +17,11 @@ process draw
   :default_line_thickness 3
 
 # =============================================================================
+#process writer
+#  :: detected_object_set_output
+#  :detector:type                              csv
+
+# =============================================================================
 process disp
   :: view_image
   :annotate_image         true
@@ -27,7 +32,7 @@ process disp
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 2
+       :capacity 5
 
 # =============================================================================
 # connections
@@ -37,11 +42,14 @@ connect from input.image
 connect from detector.detected_object_set
         to   draw.detected_object_set
 connect from input.image
-        to draw.image
+        to   draw.image
 
 connect from input.timestamp
         to   disp.timestamp
 connect from draw.image
         to   disp.image
+
+#connect from detector.detected_object_set
+#        to   writer.detected_object_set
 
 # -- end of file --

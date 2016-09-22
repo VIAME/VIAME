@@ -42,7 +42,7 @@ use strict;
 use List::Util qw[min max];
 use Math::Complex;
 
-my $opt_cache_only = 0;
+my $opt_cache_only = 1;
 
 my $point_delta = 50;
 
@@ -94,6 +94,7 @@ while (my $buf = <$fhi>)
 
     # get frame index for this image
     my $frame_idx = $image_dict{$line[0]};
+
     if ( length($frame_idx) == 0)
     {
         next if $opt_cache_only;
@@ -104,11 +105,35 @@ while (my $buf = <$fhi>)
         $next_frame_index++;
     }
 
+    # vpview frames start at 0 not 1
+    $frame_idx = $frame_idx - 1;
+
     # only process top rank class-name
     if ( $line[8] == 1 )
     {
         my $ts = $frame_idx * 0.0333;
-        print "$track_id 1 $frame_idx 0 0  0 0  0 0 $line[1] $line[2] $line[3] $line[4] 0  0 0 0  $ts $line[7]\n";
+
+        my $cx = $line[2];
+        my $cy = $line[1];
+
+        my $r = $line[3];
+
+        my $min_x = $cx - $r;
+        my $max_x = $cx + $r;
+        my $min_y = $cy - $r;
+        my $max_y = $cy + $r;
+
+        if( $min_x < 0 )
+        {
+          $min_x = 0;
+        }
+
+        if( $min_y < 0 )
+        {
+          $min_y = 0;
+        }
+
+        print "$track_id 1 $frame_idx 0 0  0 0  0 0 $min_x $min_y $max_x $max_y 0  0 0 0  $ts $line[7]\n";
         $track_id++;
     }
 } # end while
@@ -142,11 +167,20 @@ sub read_file_index {
     my ($filename) = @_;
 
     open( my $fh, "<", $filename ) or die "Can't open file $filename";
+    my $counter = 1;
     while (my $line = <$fh>)
     {
         chomp $line;
         my @parts = split( ' ', $line );
-        $image_dict{$parts[0]} = $parts[1];
+        if( length( $parts[1] ) gt 0 )
+        {
+          $image_dict{$parts[0]} = $parts[1];
+        }
+        else
+        {
+          $image_dict{$parts[0]} = $counter;
+        }
+        $counter = $counter + 1;
     }
 
     close($fh);

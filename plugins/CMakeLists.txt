@@ -3,6 +3,7 @@
 # add all plugin subdirectories below
 
 add_subdirectory( core )
+add_subdirectory( hello_world )
 
 if( VIAME_ENABLE_OPENCV )
   add_subdirectory( opencv )

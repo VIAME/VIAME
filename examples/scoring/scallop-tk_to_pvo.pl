@@ -104,10 +104,14 @@ while (my $buf = <$fhi>)
         $next_frame_index++;
     }
 
+    # vpview frames start at 0 not 1
+    $frame_idx = $frame_idx - 1;
+
     # only process top rank class-name
     if ( $line[8] == 1 )
     {
-        print "$track_id 0.0 $line[7] 0.0\n";
+        my $inv = 1.0 - $line[7];
+        print "$track_id 0.0 $line[7] $inv\n";
         $track_id++;
     }
 } # end while
@@ -141,11 +145,20 @@ sub read_file_index {
     my ($filename) = @_;
 
     open( my $fh, "<", $filename ) or die "Can't open file $filename";
+    my $counter = 1;
     while (my $line = <$fh>)
     {
         chomp $line;
         my @parts = split( ' ', $line );
-        $image_dict{$parts[0]} = $parts[1];
+        if( length( $parts[1] ) gt 0 )
+        {
+          $image_dict{$parts[0]} = $parts[1];
+        }
+        else
+        {
+          $image_dict{$parts[0]} = $counter;
+        }
+        $counter = $counter + 1;
     }
 
     close($fh);
