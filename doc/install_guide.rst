@@ -24,6 +24,10 @@ manager than apt, but on Ubuntu this should help to provide a starting point.
 
 `sudo apt-get build-dep libboost-all-dev qt5-default`
 
+If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy, e.g.:
+
+`sudo pip install numpy`
+
 Install CMAKE
 =============
 
