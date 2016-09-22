@@ -11,11 +11,11 @@ link_directories( "${uw_predictor_LIBRARY_DIR}" )
 
 set( plugin_headers
   classHierarchy.h
-  highgui.h
+#  highgui.h
   register_algorithms.h
-  util.h
-  cv.h
-  uw_predictor_classifier.h
+#  util.h
+#  cv.h
+  predictor_uw_classifier.h
   SpeciesIDLib.h
   math_common.hpp
   )
@@ -23,7 +23,7 @@ set( plugin_headers
 set( plugin_sources
   algorithm_plugin_interface.cxx
   register_algorithms.cxx
-  uw_predictor_classifier.cxx
+  predictor_uw_classifier.cxx
 
   register_algorithms.h    register_algorithms.cxx
   )
