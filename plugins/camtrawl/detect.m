@@ -51,27 +51,11 @@ function detect( in_image )
 % detected_object_classification(i,j).score = 0.23;
 %
 
-  % for example
-  % 3 detections on this object
-  % Box coordinates are tl-x, tl-y, lr-x, lr-y
-  detected_object_set = [ 100 120 220 220 .56; % box and confidence for detection
-                          550 550 860 860 .77;
-                          900 500 1040 1040 .54];
 
-  % Classification of the detections are optional, but if there are any
-  % they must be represented in the following structure.
-  % There *must* be the same number of rows in the classification array as there are detections.
-  % 2 possible classifications for object 1
-  detected_object_classification(1,1).name='scallop';
-  detected_object_classification(1,1).score=.56;
-  detected_object_classification(1,2).name='rock';
-  detected_object_classification(1,2).score=.3;
+[mask, imd, GMM_detector]=gmm_background_remove(GMM_detector,in_image,factor);
+targets=extract_targets2(mask,imd,min_size,ROI,min_aspect,max_aspect,factor);
+detected_object_set = extract_chip_coords(targets,im);
 
-  detected_object_classification(2,1).name='scallop';
-  detected_object_classification(2,1).score=.56;
-
-  detected_object_classification(3,2).name='rock-lobster';
-  detected_object_classification(3,2).score=.3;
 
   image( in_image );  % TEMP
 end
