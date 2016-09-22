@@ -33,6 +33,7 @@ option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"          OFF )
 option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins"   OFF )
 option( VIAME_ENABLE_FASTER_RCNN "Enable Faster RCNN plugins" OFF )
+option( VIAME_ENABLE_UW_PREDICTOR "Enable UW predictor plugin" OFF )
 
 ###
 # Other misc options
