@@ -1,21 +1,13 @@
 ###
 # Loadable algorithms
 
-find_package( uw_predictor REQUIRED )
-
-## These should come from the find package.
-set( uw_predictor_LIBS uw_predictor )
-
-include_directories( "${uw_predictor_INCLUDE_DIR}" )
-link_directories( "${uw_predictor_LIBRARY_DIR}" )
-
 set( plugin_headers
   classHierarchy.h
 #  highgui.h
   register_algorithms.h
 #  util.h
 #  cv.h
-  predictor_uw_classifier.h
+  uw_predictor_classifier.h
   SpeciesIDLib.h
   math_common.hpp
   )
@@ -23,7 +15,7 @@ set( plugin_headers
 set( plugin_sources
   algorithm_plugin_interface.cxx
   register_algorithms.cxx
-  predictor_uw_classifier.cxx
+  uw_predictor_classifier.cxx
 
   register_algorithms.h    register_algorithms.cxx
   )

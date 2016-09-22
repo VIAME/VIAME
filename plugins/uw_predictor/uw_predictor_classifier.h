@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_PREDICTOR_UW_DETECTOR_H
-#define VIAME_PREDICTOR_UW_DETECTOR_H
+#ifndef VIAME_UW_PREDICTOR_DETECTOR_H
+#define VIAME_UW_PREDICTOR_DETECTOR_H
 
 #include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
@@ -37,7 +37,7 @@
 
 namespace viame {
 
-class VIAME_PREDICTOR_UW_EXPORT uw_predictor_detector :
+class VIAME_UW_PREDICTOR_EXPORT uw_predictor_detector :
   public kwiver::vital::algorithm_impl<
     uw_predictor_detector, kwiver::vital::algo::image_object_detector >
 {
@@ -67,4 +67,4 @@ private:
 
 } // end namespace
 
-#endif /* VIAME_PREDICTOR_UW_DETECTOR_H */
+#endif /* VIAME_UW_PREDICTOR_DETECTOR_H */

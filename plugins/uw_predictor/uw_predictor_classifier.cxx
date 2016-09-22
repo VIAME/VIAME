@@ -36,8 +36,6 @@
 
 #include <cmath>
 
-#include <uw_predictor/Pipelines/CoreDetector.h>
-
 namespace viame {
 
 using namespace uw_predictor;

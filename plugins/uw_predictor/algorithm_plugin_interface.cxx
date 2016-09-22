@@ -39,7 +39,7 @@
 #include <vital/registrar.h>
 
 // Register core algorithms with the given or global registrar
-VIAME_PREDICTOR_UW_EXPORT
+VIAME_UW_PREDICTOR_EXPORT
 int register_algorithms( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
 
 

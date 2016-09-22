@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_PREDICTOR_UW_REGISTER_ALGORITHMS_H
-#define VIAME_PREDICTOR_UW_REGISTER_ALGORITHMS_H
+#ifndef VIAME_UW_PREDICTOR_REGISTER_ALGORITHMS_H
+#define VIAME_UW_PREDICTOR_REGISTER_ALGORITHMS_H
 
 #include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
@@ -38,9 +38,9 @@
 namespace viame {
 
 // Register core algorithms with the given or global registrar
-VIAME_PREDICTOR_UW_EXPORT
+VIAME_UW_PREDICTOR_EXPORT
 int register_algorithms( kwiver::vital::registrar &reg = kwiver::vital::registrar::instance() );
 
 } // end namespace
 
-#endif /* VIAME_PREDICTOR_UW_REGISTER_ALGORITHMS_H */
+#endif /* VIAME_UW_PREDICTOR_REGISTER_ALGORITHMS_H */
