@@ -72,6 +72,4 @@ function detect( in_image )
 
   detected_object_classification(3,2).name='rock-lobster';
   detected_object_classification(3,2).score=.3;
-
-  image( in_image );  % TEMP
 end
