@@ -49,7 +49,7 @@
 % process detector
 %  :: image_object_detector
 %   :detector:type   matlab
-%   :detector:matlab:program_file     example_detector/example_matlab_detector.m
+%   :detector:matlab:program_file     matlab/hello_world_matlab_detector.m
 %   # Specify initial config for the detector
 %   # The following line is presented to the matlab script as "a=1;"
 %   :detector:matlab:config:a_var          1
