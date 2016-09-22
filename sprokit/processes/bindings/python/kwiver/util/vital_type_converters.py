@@ -42,7 +42,7 @@ import ctypes
 
 from vital.types import ImageContainer
 from vital.types import TrackSet
-from vital.util import find_vital_library
+from vital.util import find_vital_type_converter_library
 
 __VITAL_CONVERTERS_LIB__ = None
 
@@ -53,7 +53,10 @@ def _find_converter_lib():
     # or similar to locate library.
     global __VITAL_CONVERTERS_LIB__
     if not __VITAL_CONVERTERS_LIB__:
-        lib_path = find_vital_library_path()
+        # lib_path = find_vital_library_path()
+        # lib_path = find_library_path("vital_type_converters")
+        lib_path = find_vital_type_converter_library.find_vital_library_path()
+
         if not lib_path:
             raise RuntimeError( "Unable to locate 'vital_type_converters' support library")
 
@@ -77,8 +80,8 @@ def _convert_image_container_in(datum_ptr):
     # get opaque handle from the datum
     handle = func(datum_ptr)
 
-    # convert handle to python object
-    py_ic_obj = ImageContainer.from_c_pointer( handle )
+    # convert handle to python object - from c-ptr
+    py_ic_obj = ImageContainer( None, handle )
 
     return py_ic_obj
 
