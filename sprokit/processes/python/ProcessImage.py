@@ -57,11 +57,6 @@ class ProcessImage(KwiverProcess):
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
 
-        # declare port using sprokit API. Traits do not have to be
-        # used, which can work for simple data types.
-        self.declare_input_port( 'input', 'integer',required,
-            'Where numbers are read from.')
-
         self.declare_output_port_using_trait('out_image', optional )
 
     # ----------------------------------------------
@@ -73,10 +68,7 @@ class ProcessImage(KwiverProcess):
 
     # ----------------------------------------------
     def _step(self):
-        # grab number from port using sprokit API
-        num = self.grab_value_from_port('input')
-        print "Number received:", num
-
+        print "[DEBUG] ----- start step"
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
@@ -87,6 +79,7 @@ class ProcessImage(KwiverProcess):
         pil_image = in_img.get_pil_image()
 
         # draw on the image to prove we can do it
+        num = 37
         import ImageDraw
         draw = ImageDraw.Draw(pil_image)
         draw.line((0, 0) + pil_image.size, fill=128, width=5)
