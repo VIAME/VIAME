@@ -29,8 +29,8 @@
 
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
-from vital import Image
-from vital import ImageContainer
+from vital.types import Image
+from vital.types import ImageContainer
 
 
 class ProcessImage(KwiverProcess):
