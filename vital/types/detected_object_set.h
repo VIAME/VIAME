@@ -69,6 +69,8 @@ public:
    */
   detected_object_set();
 
+  ~detected_object_set() VITAL_DEFAULT_DTOR
+
   /**
    * @brief Create new set of detected objects.
    *
@@ -88,8 +90,6 @@ public:
    * @param object Detection to be added to set.
    */
   void add( detected_object_sptr object );
-
-  ~detected_object_set() VITAL_DEFAULT_DTOR
 
   /**
    * @brief Get number of detections in this set.
