@@ -28,8 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/stamp.h>
-
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 // XXX(python): 2.7
@@ -41,6 +39,8 @@
 #if PY_VERSION_HEX >= 0x02070000
 #include <boost/python/scope.hpp>
 #endif
+
+#include <sprokit/pipeline/stamp.h>
 
 /**
  * \file stamp.cxx
