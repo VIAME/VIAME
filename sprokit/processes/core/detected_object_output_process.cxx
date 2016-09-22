@@ -152,8 +152,8 @@ void detected_object_output_process
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
-  declare_output_port_using_trait( image_file_name, optional );
-  declare_output_port_using_trait( detected_object_set, required );
+  declare_input_port_using_trait( image_file_name, optional );
+  declare_input_port_using_trait( detected_object_set, required );
 }
 
 
