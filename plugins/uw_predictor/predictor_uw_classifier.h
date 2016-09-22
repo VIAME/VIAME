@@ -31,23 +31,23 @@
 #ifndef VIAME_PREDICTOR_UW_DETECTOR_H
 #define VIAME_PREDICTOR_UW_DETECTOR_H
 
-#include <plugins/predictor_uw/viame_predictor_uw_export.h>
+#include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
 #include <vital/algo/image_object_detector.h>
 
 namespace viame {
 
-class VIAME_PREDICTOR_UW_EXPORT predictor_uw_detector :
+class VIAME_PREDICTOR_UW_EXPORT uw_predictor_detector :
   public kwiver::vital::algorithm_impl<
-    predictor_uw_detector, kwiver::vital::algo::image_object_detector >
+    uw_predictor_detector, kwiver::vital::algo::image_object_detector >
 {
 public:
-  predictor_uw_detector();
-  predictor_uw_detector( const predictor_uw_detector& other );
-  virtual ~predictor_uw_detector();
+  uw_predictor_detector();
+  uw_predictor_detector( const uw_predictor_detector& other );
+  virtual ~uw_predictor_detector();
 
   // Set the name of this detector which will appear in any pipeline files
-  virtual std::string impl_name() const { return "predictor_uw_detector"; }
+  virtual std::string impl_name() const { return "uw_predictor_detector"; }
 
   // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;

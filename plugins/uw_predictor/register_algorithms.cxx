@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include "predictor_uw_detector.h"
+#include "uw_predictor_detector.h"
 #include "register_algorithms.h"
 
 #include <arrows/algorithm_plugin_interface.h>
@@ -47,7 +47,7 @@ int register_algorithms( kwiver::vital::registrar &reg )
 {
   REGISTRATION_INIT( reg );
 
-  REGISTER_TYPE( viame::predictor_uw_detector );
+  REGISTER_TYPE( viame::uw_predictor_detector );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();

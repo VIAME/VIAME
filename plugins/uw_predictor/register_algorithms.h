@@ -31,7 +31,7 @@
 #ifndef VIAME_PREDICTOR_UW_REGISTER_ALGORITHMS_H
 #define VIAME_PREDICTOR_UW_REGISTER_ALGORITHMS_H
 
-#include <plugins/predictor_uw/viame_predictor_uw_export.h>
+#include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
 #include <vital/registrar.h>
 

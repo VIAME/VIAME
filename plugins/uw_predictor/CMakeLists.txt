@@ -1,20 +1,29 @@
 ###
 # Loadable algorithms
 
-find_package( predictor_uw REQUIRED )
+find_package( uw_predictor REQUIRED )
 
 ## These should come from the find package.
-set( predictor_uw_LIBS predictor_uw )
+set( uw_predictor_LIBS uw_predictor )
 
-include_directories( "${predictor_uw_INCLUDE_DIR}" )
-link_directories( "${predictor_uw_LIBRARY_DIR}" )
+include_directories( "${uw_predictor_INCLUDE_DIR}" )
+link_directories( "${uw_predictor_LIBRARY_DIR}" )
 
 set( plugin_headers
-  predictor_uw_detector.h
+  classHierarchy.h
+  highgui.h
+  register_algorithms.h
+  util.h
+  cv.h
+  uw_predictor_classifier.h
+  SpeciesIDLib.h
+  math_common.hpp
   )
 
 set( plugin_sources
-  predictor_uw_detector.cxx
+  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
+  uw_predictor_classifier.cxx
 
   register_algorithms.h    register_algorithms.cxx
   )
@@ -25,21 +34,22 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_predictor_uw_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_algorithm_plugin_interface.cxx  register_algorithms.cxx
+uw_predictor_classifier.cxx_export.h
   NOPATH   SUBDIR     viame
   )
 
-kwiver_add_library( viame_predictor_uw
+kwiver_add_library( viame_uw_predictor
   ${plugin_headers}
   ${plugin_sources}
   )
 
-target_link_libraries( viame_predictor_uw
+target_link_libraries( viame_uw_predictor
   PUBLIC               vital
                        kwiver_algo_ocv
-                       predictor_uw
+                       uw_predictor
   )
 
-algorithms_create_plugin( viame_predictor_uw
+algorithms_create_plugin( viame_uw_predictor
   algorithm_plugin_interface.cxx
   )
