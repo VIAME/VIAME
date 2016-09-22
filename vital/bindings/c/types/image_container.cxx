@@ -79,6 +79,18 @@ vital_image_container_t* vital_image_container_from_sptr( kwiver::vital::image_c
 }
 
 
+vital_image_container_t* vital_image_container_from_c_pointer( kwiver::vital::image_container* ptr )
+{
+  STANDARD_CATCH(
+    "C::image_container::from_c_ptr", 0,
+    kwiver::vital::image_container_sptr sptr(ptr);
+    kwiver::vital_c::IMGC_SPTR_CACHE.store( sptr );
+    return reinterpret_cast<vital_image_container_t*>( ptr );
+    );
+  return 0;
+}
+
+
 kwiver::vital::image_container_sptr vital_image_container_to_sptr( vital_image_container_t* handle )
 {
   STANDARD_CATCH(
