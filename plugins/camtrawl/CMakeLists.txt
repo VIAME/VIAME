@@ -6,7 +6,7 @@ set( plugin_matlab_files
   initialize_gmm.m
   gmm_background_remove.m
   extract_targets2.m
-  extract_chip_coords.m
+  extract_chip_coords2.m
   imOrientedBoxx.m
   detect.m
   detector_initialize.m

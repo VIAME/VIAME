@@ -1,0 +1,55 @@
+# =============================================================================
+process input
+  :: frame_list_input
+  :image_list_file     C:\Users\kwilliams\Desktop\Hack-a-thon\autoprocess_test_set\image_data\image_names.txt
+  :frame_time          .3333
+  :image_reader:type   ocv
+
+# =============================================================================
+process detector
+  :: image_object_detector
+   :detector:type   matlab
+   :detector:matlab:program_file     C:\Users\kwilliams\Desktop\Hack-a-thon\VIAME build\install\matlab\camtrawl\camtrawl_detector.m
+   # Specify initial config for the detector
+   :detector:matlab:config:min_aspect       3.5
+   :detector:matlab:config:max_aspect       7.5
+   :detector:matlab:config:min_size         2000
+   :detector:matlab:config:ROI         		[12,12,412*2-24,309*2-24]
+   :detector:matlab:config:factor         	2
+   :detector:matlab:config:num_frames       30
+   :detector:matlab:config:init_var         900
+
+# =============================================================================
+process draw
+  :: draw_detected_object_boxes
+  :default_line_thickness 3
+
+# =============================================================================
+process disp
+  :: view_image
+  :annotate_image         true
+  :pause_time             0  # 1.0
+  :title                  NOAA images
+
+# =============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 2
+
+# =============================================================================
+# connections
+connect from input.image
+        to   detector.image
+
+connect from detector.detected_object_set
+        to   draw.detected_object_set
+connect from input.image
+        to draw.image
+
+connect from input.timestamp
+        to   disp.timestamp
+connect from draw.image
+        to   disp.image
+
+# -- end of file --

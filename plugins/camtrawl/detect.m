@@ -31,6 +31,7 @@
 function detect( in_image )
   global detected_object_set;
   global detected_object_classification;
+  global detected_object_chips;
 
 % This function is called to perform the detection operation on the
 % supplied image.
@@ -53,8 +54,8 @@ function detect( in_image )
 
 [mask, imd, GMM_detector]=gmm_background_remove(GMM_detector,in_image,factor);
 targets=extract_targets2(mask,imd,min_size,ROI,min_aspect,max_aspect,factor);
-detected_object_set  = extract_chip_coords(targets);
-% [detected_object_set, chips] = extract_chip_coords2(targets,imd);
+% detected_object_set  = extract_chip_coords(targets);
+[detected_object_set, detected_object_chips] = extract_chip_coords2(targets,imd);
 
 image( in_image );  % TEMP
 
