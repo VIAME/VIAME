@@ -1,7 +1,7 @@
 # =============================================================================
 process input
   :: frame_list_input
-  :image_list_file     input_files.txt
+  :image_list_file     C:\Users\kwilliams\Desktop\Hack-a-thon\autoprocess_test_set\image_data\image_names.txt
   :frame_time          .3333
   :image_reader:type   ocv
 
@@ -9,9 +9,8 @@ process input
 process detector
   :: image_object_detector
    :detector:type   matlab
-   :detector:matlab:program_file     example_detector/example_matlab_detector.m
+   :detector:matlab:program_file     C:\Users\kwilliams\Desktop\Hack-a-thon\VIAME build\install\matlab\camtrawl\camtrawl_detector.m
    # Specify initial config for the detector
-   # The following line is presented to the matlab script as "a=1;"
    :detector:matlab:config:min_aspect       3.5
    :detector:matlab:config:max_aspect       7.5
    :detector:matlab:config:min_size         2000
