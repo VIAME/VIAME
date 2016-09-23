@@ -34,6 +34,8 @@
 
 #include <opencv2/core/core.hpp>
 
+#include <boost/lexical_cast.hpp>
+
 #include "util.h"
 #include "classHierarchy.h"
 #include "SpeciesIDLib.h"
@@ -121,24 +123,46 @@ refine( kwiver::vital::image_container_sptr image_data,
 
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
 
+  if( src.channels() == 3 )
+  {
+    cv::cvtColor( src, src, CV_RGB2GRAY );
+  }
+
   // process results
   VITAL_FOREACH( auto det, input_dets->select() )
   {
     // Crop out chip
-    // []
+    auto bbox = det->bounding_box();
+
+    cv::Rect roi( bbox.min_x(), bbox.min_y(), bbox.width(), bbox.height() );
+    cv::Mat roi_crop = src( roi );
 
     // Run UW predictor code on each chip
     vector< int > predictions;
     vector< double > probabilities;
 
+    cv::Mat segment_chip = kwiver::arrows::ocv::image_container::vital_to_ocv( det->mask()->get_image() );
+
+    if( segment_chip.channels() == 3 )
+    {
+      cv::cvtColor( segment_chip, segment_chip, CV_RGB2GRAY );
+    }
+
     cv::Mat fg_rect;
-    bool is_partial = d->m_fish_model.predict( cv::Mat(), cv::Mat(), predictions, probabilities, fg_rect );
+    bool is_partial = d->m_fish_model.predict( roi_crop, segment_chip, predictions, probabilities, fg_rect );
 
     // Convert UW detections to KWIVER format
-    //auto dot = std::make_shared< kwiver::vital::detected_object_type >( det.classIDs, det.classProbabilities );
+    vector< string > names;
+
+    VITAL_FOREACH( int i, predictions )
+    {
+      names.push_back( boost::lexical_cast< std::string >( i ) );
+    }
+
+    auto dot = std::make_shared< kwiver::vital::detected_object_type >( names, probabilities );
 
     // Create detection
-    //output_detections->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    output_detections->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
 
   return output_detections;
