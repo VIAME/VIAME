@@ -67,7 +67,7 @@ public:
    * \returns vector of image objects found
    */
   virtual detected_object_set_sptr
-      detect( image_container_sptr image_data,
+      refine( image_container_sptr image_data,
               detected_object_set_sptr detections ) const = 0;
 
 protected:

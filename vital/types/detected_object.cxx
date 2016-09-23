@@ -88,14 +88,14 @@ set_confidence( double d )
 // ------------------------------------------------------------------
 image_container_sptr
 detected_object::
-mask() const
+mask()
 {
   return m_image;
 }
 
 
 // ------------------------------------------------------------------
-image_container_sptr
+void
 detected_object::
 set_mask( image_container_sptr m )
 {

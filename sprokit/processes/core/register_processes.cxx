@@ -36,6 +36,7 @@
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
 #include "draw_tracks_process.h"
+#include "detection_refiner_process.h"
 #include "extract_descriptors_process.h"
 #include "frame_list_process.h"
 #include "image_file_reader_process.h"
@@ -83,6 +84,10 @@ void register_processes()
   registry->register_process(
     "detect_features", "Detect features in an image that will be used for stabilization",
     sprokit::create_process< kwiver::detect_features_process > );
+
+  registry->register_process(
+    "detection_refiner", "Refines detections for a given frame",
+    sprokit::create_process< kwiver::detection_refiner_process > );
 
   registry->register_process(
     "extract_descriptors", "Extract descriptors from detected features",

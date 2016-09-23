@@ -105,10 +105,10 @@ detection_refiner_process::
 _step()
 {
   vital::image_container_sptr image = grab_from_port_using_trait( image );
-  vital::detected_object_set dets = grab_from_port_using_trait( dets );
+  vital::detected_object_set_sptr dets = grab_from_port_using_trait( detected_object_set );
 
   // Get detections from refiner on image
-  vital::detected_object_set_sptr results = d->m_refiner->detect( image, dets );
+  vital::detected_object_set_sptr results = d->m_refiner->refine( image, dets );
 
   push_to_port_using_trait( detected_object_set, results );
 }
@@ -127,7 +127,7 @@ make_ports()
 
   // -- input --
   declare_input_port_using_trait( image, optional );
-  declare_input_port_using_trait( detection_object_set, required );
+  declare_input_port_using_trait( detected_object_set, required );
 
   // -- output --
   declare_output_port_using_trait( detected_object_set, optional );
