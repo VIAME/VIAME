@@ -38,6 +38,7 @@
 
 #include <arrows/matlab/matlab_image_object_detector.h>
 #include <arrows/matlab/matlab_image_filter.h>
+#include <arrows/matlab/matlab_detection_output.h>
 
 namespace kwiver {
 namespace arrows {
@@ -50,6 +51,7 @@ int register_algorithms( vital::registrar &reg )
 
   REGISTER_TYPE( matlab_image_object_detector );
   REGISTER_TYPE( matlab_image_filter );
+  REGISTER_TYPE( matlab_detection_output );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();
