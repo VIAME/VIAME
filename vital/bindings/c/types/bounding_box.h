@@ -30,31 +30,69 @@
 
 /**
  * \file
- * \brief Matlab algorithm registration implementation
+ * \brief Interface for bounding box class
  */
 
-#include "register_algorithms.h"
-#include <arrows/algorithm_plugin_interface_macros.h>
+#ifndef VITAL_C_BOUNDING_BOX_H_
+#define VITAL_C_BOUNDING_BOX_H_
 
-#include <arrows/matlab/matlab_image_object_detector.h>
-#include <arrows/matlab/matlab_image_filter.h>
-#include <arrows/matlab/matlab_detection_output.h>
+#include <vital/bindings/c/vital_c_export.h>
 
-namespace kwiver {
-namespace arrows {
-namespace matlab {
-
-/// Register Matlab algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+#ifdef __cplusplus
+extern "C"
 {
-  REGISTRATION_INIT( reg );
+#endif
 
-  REGISTER_TYPE( matlab_image_object_detector );
-  REGISTER_TYPE( matlab_image_filter );
-  REGISTER_TYPE( matlab_detection_output );
+/// VITAL bounding_box opaque structure
+typedef struct vital_bounding_box_s vital_bounding_box_t;
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+VITAL_C_EXPORT
+vital_bounding_box_t* vital_bounding_box_new_from_vectors(
+  double* ul, double* lr);
+
+VITAL_C_EXPORT
+vital_bounding_box_t* vital_bounding_box_new_from_point_width_height(
+  double* ul, double  width, double height);
+
+VITAL_C_EXPORT
+vital_bounding_box_t* vital_bounding_box_new_from_coordinates(
+  double xmin, double  ymin, double xmax, double ymax);
+
+VITAL_C_EXPORT
+void vital_bounding_box_destroy();
+
+VITAL_C_EXPORT
+double* vital_bounding_box_center( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double* vital_bounding_box_upper_left( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double* vital_bounding_box_lower_right( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_min_x( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_max_x( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_min_y( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_max_y( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_width( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_height( vital_bounding_box_t* bbox);
+
+VITAL_C_EXPORT
+double vital_bounding_box_area( vital_bounding_box_t* bbox);
+
+#ifdef __cplusplus
 }
+#endif
 
-} } } // end namespace
+#endif /* VITAL_C_BOUNDING_BOX_H_ */

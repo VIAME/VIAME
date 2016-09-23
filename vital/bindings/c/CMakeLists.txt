@@ -12,6 +12,7 @@ set(vital_c_public_headers
   algo_def/image_io.h
   algo_def/track_features.h
 
+  types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
   types/camera_map.h
@@ -56,6 +57,7 @@ set(vital_c_sources
 
   helpers/c_utils.cxx
 
+  types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
   types/camera_map.cxx

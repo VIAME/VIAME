@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,31 +30,41 @@
 
 /**
  * \file
- * \brief Matlab algorithm registration implementation
+ * \brief Header defining matlab image object set writer
  */
 
-#include "register_algorithms.h"
-#include <arrows/algorithm_plugin_interface_macros.h>
+#ifndef KWIVER_VITAL_BINDINGS_MATLAB_DETECTION_OUTPUT_H_
+#define KWIVER_VITAL_BINDINGS_MATLAB_DETECTION_OUTPUT_H_
 
-#include <arrows/matlab/matlab_image_object_detector.h>
-#include <arrows/matlab/matlab_image_filter.h>
-#include <arrows/matlab/matlab_detection_output.h>
+#include <vital/algo/detected_object_set_output.h>
+#include <arrows/matlab/kwiver_algo_matlab_export.h>
 
 namespace kwiver {
 namespace arrows {
 namespace matlab {
 
-/// Register Matlab algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+class KWIVER_ALGO_MATLAB_EXPORT matlab_detection_output
+  : public vital::algorithm_impl<matlab_detection_output, vital::algo::detected_object_set_output>
 {
-  REGISTRATION_INIT( reg );
+public:
+  matlab_detection_output();
+  matlab_detection_output( matlab_detection_output const& other);
+  virtual ~matlab_detection_output();
 
-  REGISTER_TYPE( matlab_image_object_detector );
-  REGISTER_TYPE( matlab_image_filter );
-  REGISTER_TYPE( matlab_detection_output );
+  /// Return the name of this implementation
+  virtual std::string impl_name() const { return "matlab"; }
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
-}
+  virtual vital::config_block_sptr get_configuration() const;
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
+
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name );
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
 
 } } } // end namespace
+
+#endif /* KWIVER_VITAL_BINDINGS_MATLAB_DETECTION_OUTPUT_H_ */
