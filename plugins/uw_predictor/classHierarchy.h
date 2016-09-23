@@ -15,6 +15,8 @@
 #include <iostream>
 #include <cmath>
 #include <map>
+#include <memory>
+
 #include "util.h"
 
 #include <opencv2/core/core.hpp>

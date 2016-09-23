@@ -18,9 +18,9 @@
 #include <opencv2/objdetect/objdetect.hpp>
 
 #include "classHierarchy.h"
-//#include "featureExtraction.h"
-//#include "FGExtraction.h"
-//#include "FGObject.h"
+#include "featureExtraction.h"
+#include "FGExtraction.h"
+#include "FGObject.h"
 
 using namespace std;
 using namespace cv;

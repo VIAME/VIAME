@@ -4,6 +4,8 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
+#include "FGObject.h"
+
 #include <sstream>
 
 //#include "FGObject.h"
@@ -39,7 +41,7 @@ void nonMaxSuppression(const Mat& src, const int sz, Mat& dst, const Mat mask);
 
 vector<vector<int>> combnk(vector<vector<int>> buff, vector<int> input, int k);
 
-//Rect outputTargetImage(const FGObject& obj, InputArray src, InputArray fgSrc, OutputArray dst, OutputArray dstFg, Mat& R, Point& shift);
+Rect outputTargetImage(const FGObject& obj, InputArray src, InputArray fgSrc, OutputArray dst, OutputArray dstFg, Mat& R, Point& shift);
 
 Point computeOrigCoord(Mat R, Point inputPt);
 

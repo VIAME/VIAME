@@ -12,12 +12,24 @@ set( plugin_headers
   uw_predictor_classifier.h
   SpeciesIDLib.h
   math_common.hpp
+  FGExtraction.h
+  FGObject.h
+  featureExtraction.h
+  parameters.h
   )
 
 set( plugin_sources
   algorithm_plugin_interface.cxx
   register_algorithms.cxx
   uw_predictor_classifier.cxx
+
+  classHierarchy.cpp
+  FGObject.cpp
+  SpeciesIDLib.cpp
+  featureExtraction.cpp
+  FGExtraction.cpp
+  parameters.cpp
+  util.cpp
 
   register_algorithms.h    register_algorithms.cxx
   )
