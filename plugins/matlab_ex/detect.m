@@ -31,6 +31,7 @@
 function detect( in_image )
   global detected_object_set;
   global detected_object_classification;
+  global detected_object_chips;
 
 % This function is called to perform the detection operation on the
 % supplied image.
@@ -75,6 +76,20 @@ function detect( in_image )
 
   detected_object_classification(3,2).name='rock-lobster';
   detected_object_classification(3,2).score=.3;
+
+  % Classification of the detections are optional, but if there are any
+  % they must be represented in the following structure.
+  % There *must* be the same number of rows in the classification array as there are detections.
+  % 2 possible classifications for object 1
+  detected_object_chips(1).chip = [ 100 120 123 0 12 0;
+                                    10 2013 20 2 1;
+                                    10 20 20 ];
+  detected_object_chips(2).chip = [ 100 120 123 0 12 0;
+                                    10 2013 20 2 1;
+                                    10 20 20 ];
+  detected_object_chips(3).chip = [ 100 120 123 0 12 0;
+                                    10 2013 20 2 1;
+                                    10 20 20 02 1 ];
 
   image( in_image );  % TEMP
 end

@@ -138,7 +138,7 @@ refine( kwiver::vital::image_container_sptr image_data,
     //auto dot = std::make_shared< kwiver::vital::detected_object_type >( det.classIDs, det.classProbabilities );
 
     // Create detection
-    //detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    //output_detections->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
 
   return output_detections;
