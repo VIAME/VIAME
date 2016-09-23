@@ -85,7 +85,7 @@ private:
 	SVMParams _svmParams;
 
 	// SVM classifier
-	SVM       _svm;
+	std::shared_ptr< SVM >       _svm;
 };
 
 void write(FileStorage& fs, const string& , const ClassHierarchyNode& x);
