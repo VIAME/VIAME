@@ -21,3 +21,7 @@ if( VIAME_ENABLE_MATLAB )
   add_subdirectory( matlab_ex )
   add_subdirectory( camtrawl )
 endif()
+
+if( VIAME_ENABLE_UW_PREDICTOR )
+  add_subdirectory( uw_predictor )
+endif()

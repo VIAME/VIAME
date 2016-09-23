@@ -5,6 +5,10 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include "FGObject.h"
+
+#include <sstream>
+
+//#include "FGObject.h"
 //#include "parameters.h"
 
 using namespace cv;
@@ -26,7 +30,7 @@ RotatedRect orientedBoundingBox(const vector<Point>& contour);
 template<class T>
 string numToStr(const T& num)
 {
-	ostringstream ss;
+	std::ostringstream ss;
 	ss << num;
 	return ss.str();
 }
