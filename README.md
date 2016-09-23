@@ -174,7 +174,6 @@ As with the previous pipeline, the numbers will be written to an output file, th
 
 
 
-
 # vital #
 
 Vital is an open source C++ collection of libraries and tools that supply basic types and services to the Kitware KWIVER imagery tool kit.
