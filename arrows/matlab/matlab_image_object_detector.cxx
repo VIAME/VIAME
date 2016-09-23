@@ -307,6 +307,17 @@ detect( kwiver::vital::image_container_sptr image_data) const
   }
   catch( ... ) { }
 
+  // Get the mask info if there is any
+  size_t mask_entries( 0 );
+  MxArraySptr mask_dims;
+  d->eval( "temp_temp_temp=size(detected_object_chips);" );
+  try
+  {
+    mask_dims = d->engine()-> get_variable( "temp_temp_temp" ); // throws
+    mask_entries = mask_dims->at<size_t>(0);\
+  }
+  catch( ... ) { }
+
   // Process each detection and create an object
   for ( size_t i = 0; i < num_det; i++ )
   {
@@ -347,10 +358,35 @@ detect( kwiver::vital::image_container_sptr image_data) const
       } // end for cc
     }
 
+    // Save mask in DOT
+    auto detection = std::make_shared< kwiver::vital::detected_object >( bbox, detections->at<double>(i, 4), dot );
+
+    if( mask_entries )
+    {
+      kwiver::vital::image_container_sptr mask;
+
+      // Extract name and score from matlab
+      std::stringstream cmd;
+      cmd << "temp_temp_temp=detected_object_chip(" << (i+1) << ").chip;";
+      d->eval( cmd.str() );
+      MxArraySptr temp = d->engine()-> get_variable( "temp_temp_temp" );
+
+      // If the name is empty, then there are no more names for this detection.
+      if ( temp->size() == 0 )
+      {
+        continue;
+      }
+
+      mask = convert_mx_image( temp );
+
+      detection->set_mask( mask );
+    }
+
     d->eval( "clear temp_temp;" );
+    d->eval( "clear temp_temp_temp;" );
 
     // Add this detection to the set
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, detections->at<double>(i, 4), dot ) );
+    detected_set->add( detection );
 
   } // end for
 
