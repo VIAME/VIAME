@@ -53,7 +53,8 @@ public:
   priv() {}
   ~priv() {}
 
-  std::string m_config_file;
+  std::string m_model_file;
+  FishSpeciesID m_fish_model;
 };
 
 // =================================================================================================
@@ -83,8 +84,8 @@ get_configuration() const
   // Get base config from base class
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
-  config->set_value( "config_file", d->m_config_file,
-                     "Name of uw_predictor configuration file." );
+  config->set_value( "model_file", d->m_model_file,
+                     "Name of uw_predictor model file." );
 
   return config;
 }
@@ -95,7 +96,9 @@ void
 uw_predictor_classifier::
 set_configuration( kwiver::vital::config_block_sptr config )
 {
-  d->m_config_file = config->get_value< std::string >( "config_file" );
+  d->m_model_file = config->get_value< std::string >( "model_file" );
+
+	d->m_fish_model.loadModel( d->m_model_file.c_str() );
 }
 
 
@@ -111,21 +114,25 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
 uw_predictor_classifier::
-detect( kwiver::vital::image_container_sptr image_data ) const
+refine( kwiver::vital::image_container_sptr image_data,
+  kwiver::vital::detected_object_set_sptr input_dets ) const
 {
-  auto input_detections = std::make_shared< kwiver::vital::detected_object_set >(); // TODO become input detections
   auto output_detections = std::make_shared< kwiver::vital::detected_object_set >();
 
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
 
   // process results
-  VITAL_FOREACH( auto det, input_detections->select() )
+  VITAL_FOREACH( auto det, input_dets->select() )
   {
     // Crop out chip
     // []
 
-    // Run UW predictor code on matlab chip
-    // []
+    // Run UW predictor code on each chip
+    vector< int > predictions;
+    vector< double > probabilities;
+
+    cv::Mat fg_rect;
+    bool is_partial = d->m_fish_model.predict( cv::Mat(), cv::Mat(), predictions, probabilities, fg_rect );
 
     // Convert UW detections to KWIVER format
     //auto dot = std::make_shared< kwiver::vital::detected_object_type >( det.classIDs, det.classProbabilities );

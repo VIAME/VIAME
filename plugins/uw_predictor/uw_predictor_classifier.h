@@ -33,13 +33,13 @@
 
 #include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
-#include <vital/algo/image_object_detector.h>
+#include <vital/algo/detection_refiner.h>
 
 namespace viame {
 
 class VIAME_UW_PREDICTOR_EXPORT uw_predictor_classifier :
   public kwiver::vital::algorithm_impl<
-    uw_predictor_classifier, kwiver::vital::algo::image_object_detector >
+    uw_predictor_classifier, kwiver::vital::algo::detection_refiner >
 {
 public:
   uw_predictor_classifier();
@@ -57,8 +57,9 @@ public:
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   // Main detection method
-  virtual kwiver::vital::detected_object_set_sptr detect(
-    kwiver::vital::image_container_sptr image_data ) const;
+  virtual kwiver::vital::detected_object_set_sptr refine(
+    kwiver::vital::image_container_sptr image_data,
+    kwiver::vital::detected_object_set_sptr input_dets ) const;
 
 private:
   class priv;
