@@ -35,7 +35,7 @@ public:
 	ClassHierarchyNode();
 	ClassHierarchyNode(int id);
 	~ClassHierarchyNode();
-	
+
 	void trainSVM(Mat trainData, Mat labels);
 	int predictSVM(Mat sample, double& prob);
 
@@ -48,7 +48,7 @@ public:
 	void setID(int id) { _ID = id; }
 	void setPosClass(int n) { _posClass = n; }
 	void setNegClass(int n) { _negClass = n; }
-	
+
 	void read(const FileNode& fn);
 	void write(FileStorage& fs) const;
 
@@ -72,7 +72,7 @@ private:
 
 	// SVM margin (distance between support vector and decision hyperplane)
 	double    _margin;
-	
+
 	// indecision threshold used by partial classification
 	double    _decThresh;
 

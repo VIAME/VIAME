@@ -34,6 +34,10 @@
 
 #include <opencv2/core/core.hpp>
 
+#include "util.h"
+#include "classHierarchy.h"
+#include "SpeciesIDLib.h"
+
 #include <cmath>
 
 namespace viame {

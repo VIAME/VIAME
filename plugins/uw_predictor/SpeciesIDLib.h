@@ -16,12 +16,11 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/ml/ml.hpp>
 
 #include "classHierarchy.h"
-#include "featureExtraction.h"
-#include "FGExtraction.h"
-#include "FGObject.h"
+//#include "featureExtraction.h"
+//#include "FGExtraction.h"
+//#include "FGObject.h"
 
 using namespace std;
 using namespace cv;
@@ -48,12 +47,12 @@ public:
 
 	// training routine
 	void train(Mat data, Mat labels);
-	
+
 	// testing routine
 	bool predict(Mat img, Mat img2, vector<int>& predictions, vector<double>& probabilities, Mat &fgRect);
 
 	int getDimFeat() {return _dimFeat;};
-	
+
 private:
 	// feature extraction from the training/testing image
 	int extractFeatures(Mat src, Mat src2, Mat& features, bool useTailFD, bool useHeadFD, Mat &fgRect, Point& shift, Mat& rotateR);

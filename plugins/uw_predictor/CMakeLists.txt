@@ -28,8 +28,7 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/viame_algorithm_plugin_interface.cxx  register_algorithms.cxx
-uw_predictor_classifier.cxx_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/viame_uw_predictor_export.h
   NOPATH   SUBDIR     viame
   )
 
