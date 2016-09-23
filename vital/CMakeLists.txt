@@ -105,6 +105,7 @@ set( vital_public_headers
   algo/detect_features.h
   algo/detected_object_set_input.h
   algo/detected_object_set_output.h
+  algo/detection_refiner.h
   algo/draw_tracks.h
   algo/estimate_canonical_transform.h
   algo/estimate_essential_matrix.h
@@ -204,6 +205,7 @@ set( vital_sources
   algo/detect_features.cxx
   algo/detected_object_set_input.cxx
   algo/detected_object_set_output.cxx
+  algo/detection_refiner.cxx
   algo/draw_tracks.cxx
   algo/estimate_canonical_transform.cxx
   algo/estimate_essential_matrix.cxx

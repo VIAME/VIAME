@@ -10,6 +10,7 @@ set( sources
   detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
+  detection_refiner_process.cxx
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
   frame_list_process.cxx
@@ -27,6 +28,7 @@ set( private_headers
   detect_features_process.h
   detected_object_output_process.h
   detected_object_input_process.h
+  detection_refiner_process.h
   draw_tracks_process.h
   extract_descriptors_process.h
   frame_list_process.h

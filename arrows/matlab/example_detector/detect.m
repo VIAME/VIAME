@@ -31,6 +31,7 @@
 function detect( in_image )
   global detected_object_set;
   global detected_object_classification;
+  global detected_object_chips;
 
 % This function is called to perform the detection operation on the
 % supplied image.

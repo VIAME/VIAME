@@ -80,5 +80,6 @@ clear all; clc; close all;
 
 global detected_object_set;
 global detected_object_classification;
+global detected_object_chips;
 
                                 % Set configurable values
