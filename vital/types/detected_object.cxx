@@ -86,6 +86,24 @@ set_confidence( double d )
 
 
 // ------------------------------------------------------------------
+image_container_sptr
+detected_object::
+mask() const
+{
+  return m_image;
+}
+
+
+// ------------------------------------------------------------------
+image_container_sptr
+detected_object::
+set_mask( image_container_sptr m )
+{
+  m_image = m;
+}
+
+
+// ------------------------------------------------------------------
 detected_object_type_sptr
 detected_object::
 type()

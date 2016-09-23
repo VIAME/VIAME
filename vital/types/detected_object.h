@@ -45,6 +45,7 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
+#include <vital/types/image_container.h>
 
 #include <vital/io/eigen_io.h>
 #include <Eigen/Geometry>
@@ -155,9 +156,31 @@ public:
    */
   void set_type( detected_object_type_sptr c );
 
+  /**
+   * @brief Get pointer to optional classifications object.
+   *
+   * This method returns the pointer to the classification object if
+   * there is one. If there is no classification object the pointer is
+   * NULL.
+   *
+   * @return Pointer to classification object or NULL.
+   */
+  image_container_sptr mask();
+
+  /**
+   * @brief Set new classifications for this detection.
+   *
+   * This method supplies a new set of class_names and scores for this
+   * detection.
+   *
+   * @param c New classification for this detection
+   */
+  void set_mask( image_container_sptr m );
+
 private:
   std::shared_ptr< bounding_box_d > m_bounding_box;
   double m_confidence;
+  image_container_sptr m_image;
 
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;
