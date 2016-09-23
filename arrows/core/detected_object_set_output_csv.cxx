@@ -28,9 +28,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Implementation of detected object set csv output
+ */
+
 #include "detected_object_set_output_csv.h"
 
 #include <time.h>
+
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {

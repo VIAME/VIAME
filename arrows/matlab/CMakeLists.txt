@@ -7,6 +7,7 @@ set( sources
   matlab_engine.cxx
   matlab_image_object_detector.cxx
   matlab_image_filter.cxx
+  matlab_detection_output.cxx
 
   register_algorithms.cxx
   )
@@ -19,6 +20,7 @@ set( public_headers
   matlab_engine.h
   matlab_image_object_detector.h
   matlab_image_filter.h
+  matlab_detection_output.h
 )
 
 set( private_headers
