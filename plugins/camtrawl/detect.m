@@ -52,6 +52,8 @@ function detect( in_image )
 % detected_object_classification(i,j).score = 0.23;
 %
 
+  global GMM_detector;
+
 [mask, imd, GMM_detector]=gmm_background_remove(GMM_detector,in_image,factor);
 targets=extract_targets2(mask,imd,min_size,ROI,min_aspect,max_aspect,factor);
 % detected_object_set  = extract_chip_coords(targets);

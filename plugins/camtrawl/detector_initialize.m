@@ -32,6 +32,7 @@ function detector_initialize()
 % This function is called to initialize the detector after all
 % configuration parameters have beed applied as assignments.
   disp ('In initialize');
-  
+
+  global GMM_detector;
   GMM_detector = vision.ForegroundDetector('NumTrainingFrames', num_frames, 'InitialVariance', init_var);
 end
