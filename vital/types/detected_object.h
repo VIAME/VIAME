@@ -78,11 +78,6 @@ public:
 
 
   /**
-   * @brief Create an empty object
-   */
-  detected_object();
-
-  /**
    * @brief Create detected object with bounding box and other attributes.
    *
    * @param bbox Bounding box surrounding detected object, in image coordinates.
@@ -136,6 +131,54 @@ public:
   void set_confidence( double d );
 
   /**
+   * @brief Get detection index.
+   *
+   * This method returns the index for this detection.
+   *
+   * The detection index is a general purpose field that the
+   * application can use to individually identify a detection. In some
+   * cases, this field can be used to correlate the detection of an
+   * object over multiple frames.
+   *
+   * @return Detection index fof this detections.
+   */
+  uint64_t index() const;
+
+  /**
+   * @brief Set detection index.
+   *
+   * This method sets tne index value for this detection.
+   *
+   * The detection index is a general purpose field that the
+   * application can use to individually identify a detection. In some
+   * cases, this field can be used to correlate the detection of an
+   * object over multiple frames.
+   *
+   * @param idx Detection index.
+   */
+  void set_index( uint64_t idx );
+
+  /**
+   * @brief Get detector name.
+   *
+   * This method returns the name of the detector that created this
+   * element. An empty string is returned if the detector name is not
+   * set.
+   *
+   * @return Name of the detector.
+   */
+  const std::string& detector_name() const;
+
+  /**
+   * @brief Set detector name.
+   *
+   * This method sets the name of the detector for this detection.
+   *
+   * @param name Detector name.
+   */
+  void set_detector_name( const std::string& name );
+
+  /**
    * @brief Get pointer to optional classifications object.
    *
    * This method returns the pointer to the classification object if
@@ -184,6 +227,9 @@ private:
 
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;
+
+  uint64_t m_index; ///< index for this object
+  std::string m_detector_name;
 };
 
 } }

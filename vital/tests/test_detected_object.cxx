@@ -82,6 +82,20 @@ IMPLEMENT_TEST(detected_object_creation)
     TEST_ERROR( "detected object type returned incorrectly" );
   }
 
+  // Test associated API
+  auto idx = dobj.index();
+  TEST_EQUAL( "Default index value", idx, 0 );
+
+  dobj.set_index(1234);
+  idx = dobj.index();
+  TEST_EQUAL( "Explicit index value", idx, 1234 );
+
+  std::string dname = dobj.detector_name();
+  TEST_EQUAL( "Default detector name", dname, "" );
+
+  dobj.set_detector_name( "foo detector" );
+  dname = dobj.detector_name();
+  TEST_EQUAL( "Explicit detector name", dname, "foo detector" );
 }
 
 
