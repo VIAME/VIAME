@@ -23,6 +23,7 @@ kwiver_discover_tests(core_track              test_libraries test_track.cxx)
 kwiver_discover_tests(core_track_set          test_libraries test_track_set.cxx)
 kwiver_discover_tests(core_vector             test_libraries test_vector.cxx)
 kwiver_discover_tests(core_bounding_box       test_libraries test_bounding_box.cxx)
+kwiver_discover_tests(core_vital_uuid         test_libraries test_uuid.cxx)
 ## kwiver_discover_tests(core_algo               test_libraries test_algo.cxx)
 
 kwiver_discover_tests(core_est                test_libraries test_estimate_similarity_transform.cxx)
