@@ -35,4 +35,5 @@ endif()
 kwiver_install_headers(
   kwiver_type_traits.h
   trait_utils.h
+  SUBDIR sprokit/processes
   )
