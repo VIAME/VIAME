@@ -22,8 +22,8 @@ process detector
 # =============================================================================
 process classifier
   :: detection_refiner
-   :classifier:type                               uw_predictor_classifier
-   :classifier:uw_predictor_classifier:model_file Model_SVM.xml
+   :refiner:type                               uw_predictor_classifier
+   :refiner:uw_predictor_classifier:model_file Model_SVM.xml
 
 # =============================================================================
 process draw
