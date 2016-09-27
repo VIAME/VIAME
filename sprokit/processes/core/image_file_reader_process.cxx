@@ -78,6 +78,11 @@ create_config_trait( path, std::string, "",
                      "Path to search for image file. The format is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
 
+create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds. "
+                     "The generated timestamps will have the specified number of seconds in the generated "
+                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
+                     "video stream application.");
+
 create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock." )
 
 
@@ -97,7 +102,11 @@ public:
   // Configuration values
   int m_config_error_mode; // error mode
   std::vector< std::string > m_config_path;
+  kwiver::vital::timestamp::time_t m_config_frame_time;
 
+  // local state
+  kwiver::vital::timestamp::frame_t m_frame_number;
+  kwiver::vital::timestamp::time_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -133,6 +142,7 @@ void image_file_reader_process
   // Examine the configuration
   std::string mode = config_value_using_trait( error_mode );
   std::string path = config_value_using_trait( path );
+  d->m_config_frame_time = config_value_using_trait( frame_time ) * 1e6; // in usec
 
   kwiver::vital::tokenize( path, d->m_config_path, ":", true );
   d->m_config_path.push_back( "." ); // add current directory
@@ -211,6 +221,13 @@ void image_file_reader_process
 #endif
   // -- end debug
 
+  kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
+
+  // update timestamp
+  ++d->m_frame_number;
+  d->m_frame_time += d->m_config_frame_time;
+
+  push_to_port_using_trait( timestamp, frame_ts );
   push_to_port_using_trait( image, img_c );
   push_to_port_using_trait( image_file_name, resolved_file );
 }
@@ -251,6 +268,8 @@ void image_file_reader_process
 // ================================================================
 image_file_reader_process::priv
 ::priv()
+  : m_frame_number( 1 )
+  , m_frame_time( 0 )
 {
 }
 
