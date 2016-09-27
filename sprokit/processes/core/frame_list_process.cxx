@@ -241,9 +241,7 @@ void frame_list_process
 
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( image_file_path, optional,
-                                   "Name of image file processed. Only the base file name and extension are "
-                                   "provided on this port. The leading path components are removed.");
+  declare_output_port_using_trait( image_file_name, optional );
 }
 
 

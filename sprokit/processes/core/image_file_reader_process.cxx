@@ -192,8 +192,6 @@ void image_file_reader_process
     } // end switch
   }
 
-  std::string output_filename = kwiversys::SystemTools::GetFilenameName( resolved_file );
-
   LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );
 
   // read image file
@@ -214,8 +212,7 @@ void image_file_reader_process
   // -- end debug
 
   push_to_port_using_trait( image, img_c );
-  push_to_port_using_trait( image_file_name, output_filename );
-  push_to_port_using_trait( image_file_path, resolved_file );
+  push_to_port_using_trait( image_file_name, resolved_file );
 }
 
 
@@ -234,9 +231,9 @@ void image_file_reader_process
                                   "local directory.");
 
   // -- outputs --
+  declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
   declare_output_port_using_trait( image_file_name, optional );
-  declare_output_port_using_trait( image_file_path, optional );
 
 }
 
