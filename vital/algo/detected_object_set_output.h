@@ -105,9 +105,10 @@ public:
    * name to the currently open file.
    *
    * \param set Detected object set
-   * \param image_name Name of image
+   * \param image_path File path to image associated with the detections.
    */
-  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name ) = 0;
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set,
+                          std::string const& image_path ) = 0;
 
 
 protected:
