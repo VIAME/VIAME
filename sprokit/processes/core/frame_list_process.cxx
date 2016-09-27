@@ -185,7 +185,6 @@ void frame_list_process
   {
     // still have an image to read
     std::string a_file = *d->m_current_file;
-    std::string output_filename = kwiversys::SystemTools::GetFilenameName( a_file );
 
     LOG_DEBUG( logger(), "reading image from file \"" << a_file << "\"" );
 
@@ -214,7 +213,7 @@ void frame_list_process
 
     push_to_port_using_trait( timestamp, frame_ts );
     push_to_port_using_trait( image, img_c );
-    push_to_port_using_trait( image_file_name, output_filename );
+    push_to_port_using_trait( image_file_name, a_file );
 
     ++d->m_current_file;
   }
@@ -242,7 +241,7 @@ void frame_list_process
 
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( image_file_name, optional,
+  declare_output_port_using_trait( image_file_path, optional,
                                    "Name of image file processed. Only the base file name and extension are "
                                    "provided on this port. The leading path components are removed.");
 }
@@ -261,8 +260,8 @@ void frame_list_process
 // ================================================================
 frame_list_process::priv
 ::priv()
-  : m_frame_number( 1 ),
-    m_frame_time( 0 )
+  : m_frame_number( 1 )
+  , m_frame_time( 0 )
 {
 }
 

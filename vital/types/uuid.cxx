@@ -33,7 +33,7 @@
  * \brief Implementation of vital uuid
  */
 
-#include "vital_uuid.h"
+#include "uuid.h"
 
 #include <sstream>
 #include <cstring>
@@ -43,24 +43,24 @@ namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
-vital_uuid::
-vital_uuid( const vital_uuid::uuid_data_t& data)
+uuid::
+uuid( const uuid::uuid_data_t& data)
 {
   memcpy( this->m_uuid, data, sizeof( this->m_uuid) );
 }
 
 
 // ------------------------------------------------------------------
-  const kwiver::vital::vital_uuid::uuid_data_t&
-vital_uuid::
-uuid() const
+  const kwiver::vital::uuid::uuid_data_t&
+uuid::
+value() const
 {
   return m_uuid;
 }
 
 // ------------------------------------------------------------------
 std::string
-vital_uuid::
+uuid::
 format() const
 {
   std::stringstream str;
@@ -81,8 +81,8 @@ format() const
 }
 
 
-bool vital_uuid::
-operator==( const vital_uuid& other )
+bool uuid::
+operator==( const uuid& other )
 {
   for (int i = 0; i < sizeof(m_uuid); i++)
   {
@@ -95,8 +95,8 @@ operator==( const vital_uuid& other )
 }
 
 
-bool vital_uuid::
-operator!=( const vital_uuid& other )
+bool uuid::
+operator!=( const uuid& other )
 {
   return ! operator==( other );
 }

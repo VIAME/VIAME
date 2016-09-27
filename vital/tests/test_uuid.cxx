@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <vital/types/vital_uuid.h>
+#include <vital/types/uuid.h>
 #include <iostream>
 
 #define TEST_ARGS      ()
@@ -57,7 +57,7 @@ IMPLEMENT_TEST( test_API )
 {
   uint8_t init[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-  kwiver::vital::vital_uuid foo( init );
+  kwiver::vital::uuid foo( init );
 
   auto foo_2 = foo;
   auto foo_3( foo );

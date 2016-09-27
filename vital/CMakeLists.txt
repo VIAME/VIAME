@@ -175,7 +175,7 @@ set( vital_public_headers
   types/track.h
   types/track_set.h
   types/vector.h
-  types/vital_uuid.h
+  types/uuid.h
 
   util/any_converter.h
   util/bounded_buffer.h
@@ -263,7 +263,7 @@ set( vital_sources
   types/timestamp.cxx
   types/track.cxx
   types/track_set.cxx
-  types/vital_uuid.cxx
+  types/uuid.cxx
 
   util/data_stream_reader.cxx
   util/demangle.cxx
