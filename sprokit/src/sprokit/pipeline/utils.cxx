@@ -90,8 +90,6 @@
 namespace sprokit
 {
 
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "sprokit:pipeline_utilities" ) );
-
 #ifdef NAME_THREAD_USING_PRCTL
 static bool name_thread_prctl(thread_name_t const& name);
 #endif
@@ -147,6 +145,8 @@ name_thread(thread_name_t const& name)
 envvar_value_t
 get_envvar(envvar_name_t const& name)
 {
+  kwiver::vital::logger_handle_t m_logger(kwiver::vital::get_logger("sprokit:pipeline_utilities"));
+
   envvar_value_t value;
 
 #if defined(_WIN32) || defined(_WIN64)

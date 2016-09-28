@@ -89,10 +89,6 @@ static module_path_t const default_module_dirs = module_path_t(DEFAULT_MODULE_PA
 static envvar_name_t const sprokit_module_envvar = envvar_name_t("SPROKIT_MODULE_PATH");
 static lib_suffix_t const library_suffix = lib_suffix_t(LIBRARY_SUFFIX);
 
-// There may be a better way to get this logger than static CTOR
-static kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "sprokit.modules" ) );
-
-
 // ------------------------------------------------------------------
 module_paths_t
 get_module_load_path()
@@ -138,6 +134,8 @@ load_known_modules()
 void
 look_in_directory(module_path_t const& directory)
 {
+  kwiver::vital::logger_handle_t m_logger(kwiver::vital::get_logger("sprokit.modules"));
+
   if (directory.empty())
   {
     return;
@@ -190,6 +188,8 @@ look_in_directory(module_path_t const& directory)
 void
 load_from_module(module_path_t const& path)
 {
+  kwiver::vital::logger_handle_t m_logger(kwiver::vital::get_logger("sprokit.modules"));
+
   library_t library = NULL;
 
 #if defined(_WIN32) || defined(_WIN64)
