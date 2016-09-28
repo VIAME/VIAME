@@ -28,7 +28,7 @@
 
 add_custom_target(configure ALL)
 
-function (_sprokit_configure_file name source dest)
+function (int_sprokit_configure_file name source dest)
   file(WRITE "${configure_script}"
     "# Configure script for \"${source}\" -> \"${dest}\"\n")
 
@@ -76,7 +76,7 @@ function (sprokit_configure_file name source dest)
   set(configured_path
     "${configure_script}.output")
 
-  _sprokit_configure_file(${name} "${source}" "${dest}" ${ARGN})
+  int_sprokit_configure_file(${name} "${source}" "${dest}" ${ARGN})
 
   add_custom_command(
     OUTPUT  "${dest}"
@@ -91,6 +91,7 @@ function (sprokit_configure_file name source dest)
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\"")
+
   if (NOT no_configure_target)
     add_custom_target(configure-${name} ${all}
       DEPENDS "${dest}"
