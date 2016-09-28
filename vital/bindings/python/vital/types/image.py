@@ -195,7 +195,7 @@ class Image (VitalObject):
         """ Get image in python friendly format
         Assumptions are that the image has byte pixels.
 
-        :return: numpy array containing image
+        :return: array containing image
         :rtype: pil image
         """
         import PIL.Image as PIM
@@ -225,3 +225,33 @@ class Image (VitalObject):
             raise RuntimeError("Unsupported image depth.")
 
         return pil_image
+
+
+    # ------------------------------------------------------------------
+    # return image as a numpy array
+    def get_numpy_array(self):
+        """ Get image in python friendly format
+        Assumptions are that the image has byte pixels.
+
+        :return: numpy array containing image
+        :rtype: numpy array
+        """
+        pil_image = get_pil_image(self)
+        numpy_array = numpy.array(pil_image)
+        return numpy_array
+
+
+    # ------------------------------------------------------------------
+    # return image as an ocv iamge
+    # Convert RGB to BGR
+    def get_ocv_image(self):
+        """ Get image in python friendly format
+        Assumptions are that the image has byte pixels.
+
+        :return: image in openCV format
+        :rtype: ocv image
+        """
+        numpy_array = get_numpy_array(self)
+        # Convert RGB to BGR
+        open_cv_image = numpy_array[:, :, ::-1].copy()
+        return open_cv_image

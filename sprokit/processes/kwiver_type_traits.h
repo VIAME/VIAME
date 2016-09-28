@@ -37,13 +37,15 @@
 #define KWIVER_VITAL_TYPE_TRAITS_H
 
 #include <vital/vital_types.h>
-#include <vital/types/geo_lat_lon.h>
-#include <vital/types/geo_corner_points.h>
-#include <vital/types/image_container.h>
-#include <vital/types/feature_set.h>
+
 #include <vital/types/descriptor_set.h>
-#include <vital/types/track_set.h>
 #include <vital/types/detected_object_set.h>
+#include <vital/types/feature_set.h>
+#include <vital/types/geo_corner_points.h>
+#include <vital/types/geo_lat_lon.h>
+#include <vital/types/image_container.h>
+#include <vital/types/track_set.h>
+#include <vital/types/uuid.h>
 
 #include "trait_utils.h"
 
@@ -83,6 +85,7 @@ create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
+create_type_trait( uuid, "kwiver:video_uuid", kwiver::vital::uuid );
 
 
 // ================================================================
@@ -101,10 +104,8 @@ create_port_trait( detected_object_set, detected_object_set, "Set of detected ob
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. "
-                   "Only the base file name and extension are "
-                   "provided on this port. The leading path components are removed" );
-create_port_trait( image_file_path, image_file_name, "Name of an image file. "
-                   "The full name of the image file including leading path components." );
+                   "The file name may contain leading path components." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
+create_port_trait( uuid, uuid, "UUID    value." );
 
 #endif /* KWIVER_VITAL_TYPE_TRAITS_H */

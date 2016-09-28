@@ -45,6 +45,7 @@ detected_object::detected_object( const bounding_box_d& bbox,
   : m_bounding_box( std::make_shared< bounding_box_d >( bbox ) )
   , m_confidence( confidence )
   , m_type( classifications )
+  , m_index( 0 )
 {
 }
 
@@ -119,5 +120,41 @@ set_type( detected_object_type_sptr c )
 {
   m_type = c;
 }
+
+// ------------------------------------------------------------------
+uint64_t
+detected_object::
+index() const
+{
+  return m_index;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object::
+set_index( uint64_t idx )
+{
+  m_index = idx;
+}
+
+
+// ------------------------------------------------------------------
+const std::string&
+detected_object::
+detector_name() const
+{
+  return m_detector_name;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object::
+set_detector_name( const std::string& name )
+{
+  m_detector_name = name;
+}
+
 
 } } // end namespace

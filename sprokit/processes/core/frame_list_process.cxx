@@ -38,6 +38,7 @@
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
+#include <vital/util/tokenize.h>
 
 #include <kwiver_type_traits.h>
 
@@ -66,6 +67,10 @@ create_config_trait( image_list_file, std::string, "",
                      "Name of file that contains list of image file names. "
                      "Each line in the file specifies the name of a single image file.");
 
+create_config_trait( path, std::string, "",
+                     "Path to search for image file. The format is the same as the standard "
+                     "path specification, a set of directories separated by a colon (':')" );
+
 create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds. "
                      "The generated timestamps will have the specified number of seconds in the generated "
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
@@ -84,6 +89,7 @@ public:
   // Configuration values
   std::string m_config_image_list_filename;
   kwiver::vital::timestamp::time_t m_config_frame_time;
+  std::vector< std::string > m_config_path;
 
   // process local data
   std::vector < kwiver::vital::path_t > m_files;
@@ -127,6 +133,10 @@ void frame_list_process
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
 
+  std::string path = config_value_using_trait( path );
+  kwiver::vital::tokenize( path, d->m_config_path, ":", true );
+  d->m_config_path.push_back( "." ); // add current directory
+
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
@@ -165,11 +175,14 @@ void frame_list_process
   // verify and get file names in a list
   for ( std::string line; stream_reader.getline( line ); /* null */ )
   {
-    d->m_files.push_back( line );
-    if ( ! kwiversys::SystemTools::FileExists( d->m_files.back() ) )
+    // Resolve against specified path
+    std::string resolved_file = kwiversys::SystemTools::FindFile( line, d->m_config_path, true );
+    if ( resolved_file.empty() )
     {
-      throw kwiver::vital::path_not_exists( d->m_files.back() );
+      throw kwiver::vital::file_not_found_exception( line, "" );
     }
+
+    d->m_files.push_back( resolved_file );
   } // end for
 
   d->m_current_file = d->m_files.begin();
@@ -185,7 +198,6 @@ void frame_list_process
   {
     // still have an image to read
     std::string a_file = *d->m_current_file;
-    std::string output_filename = kwiversys::SystemTools::GetFilenameName( a_file );
 
     LOG_DEBUG( logger(), "reading image from file \"" << a_file << "\"" );
 
@@ -193,8 +205,7 @@ void frame_list_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    kwiver::vital::image_container_sptr img_c;
-    img_c = d->m_image_reader->load( a_file );
+    auto img_c = d->m_image_reader->load( a_file );
 
     // --- debug
 #if defined DEBUG
@@ -214,7 +225,7 @@ void frame_list_process
 
     push_to_port_using_trait( timestamp, frame_ts );
     push_to_port_using_trait( image, img_c );
-    push_to_port_using_trait( image_file_name, output_filename );
+    push_to_port_using_trait( image_file_name, a_file );
 
     ++d->m_current_file;
   }
@@ -242,9 +253,7 @@ void frame_list_process
 
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( image_file_name, optional,
-                                   "Name of image file processed. Only the base file name and extension are "
-                                   "provided on this port. The leading path components are removed.");
+  declare_output_port_using_trait( image_file_name, optional );
 }
 
 
@@ -255,14 +264,15 @@ void frame_list_process
   declare_config_using_trait( image_list_file );
   declare_config_using_trait( frame_time );
   declare_config_using_trait( image_reader );
+  declare_config_using_trait( path );
 }
 
 
 // ================================================================
 frame_list_process::priv
 ::priv()
-  : m_frame_number( 1 ),
-    m_frame_time( 0 )
+  : m_frame_number( 1 )
+  , m_frame_time( 0 )
 {
 }
 

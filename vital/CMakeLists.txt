@@ -140,6 +140,7 @@ set( vital_public_headers
   io/landmark_map_io.h
   io/track_set_io.h
 
+  types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
   types/camera_map.h
@@ -154,10 +155,10 @@ set( vital_public_headers
   types/feature.h
   types/feature_set.h
   types/fundamental_matrix.h
-  types/geo_lat_lon.h
-  types/geo_UTM.h
   types/geo_MGRS.h
+  types/geo_UTM.h
   types/geo_corner_points.h
+  types/geo_lat_lon.h
   types/homography.h
   types/homography_f2f.h
   types/homography_f2w.h
@@ -174,7 +175,7 @@ set( vital_public_headers
   types/track.h
   types/track_set.h
   types/vector.h
-  types/bounding_box.h
+  types/uuid.h
 
   util/any_converter.h
   util/bounded_buffer.h
@@ -248,10 +249,10 @@ set( vital_sources
   types/essential_matrix.cxx
   types/feature.cxx
   types/fundamental_matrix.cxx
-  types/geo_lat_lon.cxx
-  types/geo_UTM.cxx
   types/geo_MGRS.cxx
+  types/geo_UTM.cxx
   types/geo_corner_points.cxx
+  types/geo_lat_lon.cxx
   types/homography.cxx
   types/homography_f2f.cxx
   types/homography_f2w.cxx
@@ -262,6 +263,7 @@ set( vital_sources
   types/timestamp.cxx
   types/track.cxx
   types/track_set.cxx
+  types/uuid.cxx
 
   util/data_stream_reader.cxx
   util/demangle.cxx
