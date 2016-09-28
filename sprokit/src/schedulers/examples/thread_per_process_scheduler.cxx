@@ -69,6 +69,8 @@ class thread_per_process_scheduler::priv
     mutable mutex_t mut;
 };
 
+
+// ------------------------------------------------------------------
 thread_per_process_scheduler
 ::thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
@@ -98,6 +100,8 @@ thread_per_process_scheduler
   shutdown();
 }
 
+
+// ------------------------------------------------------------------
 void
 thread_per_process_scheduler
 ::_start()
@@ -115,6 +119,8 @@ thread_per_process_scheduler
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 thread_per_process_scheduler
 ::_wait()
@@ -157,6 +163,8 @@ thread_per_process_scheduler::priv
 
 static kwiver::vital::config_block_sptr monitor_edge_config();
 
+
+// ------------------------------------------------------------------
 void
 thread_per_process_scheduler::priv
 ::run_process(process_t const& process)
@@ -172,10 +180,14 @@ thread_per_process_scheduler::priv
 
   while (!complete)
   {
+    // This locking will cause this thread to pause if the scheduler
+    // pause() method is called.
     shared_lock_t const lock(mut);
 
     (void)lock;
 
+    // This call allows an exception to be thrown (boost::thread_interrupted)
+    // Since this exception is not caught, it causes the thread to terminate.
     boost::this_thread::interruption_point();
 
     process->step();
@@ -193,6 +205,8 @@ thread_per_process_scheduler::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 monitor_edge_config()
 {
