@@ -23,17 +23,17 @@ set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 ###
 # Add plugin enable flags
 ##
-option( VIAME_ENABLE_VXL         "Enable VXL plugins"         OFF )
-option( VIAME_ENABLE_CAFFE       "Enable Caffe plugins"       OFF )
-option( VIAME_ENABLE_OPENCV      "Enable OpenCV plugins"      OFF )
-option( VIAME_ENABLE_MATLAB      "Enable Matlab plugins"      OFF )
-option( VIAME_ENABLE_PYTHON      "Enable Python plugins"      OFF )
-option( VIAME_ENABLE_DOCS        "Enable Documentation"       OFF )
-option( VIAME_ENABLE_VIVIA       "Enable Vivia GUIs"          OFF )
-option( VIAME_ENABLE_KWANT       "Enable KW Scoring Code"     OFF )
-option( VIAME_ENABLE_SCALLOP_TK  "Enable ScallopTK plugins"   OFF )
-option( VIAME_ENABLE_FASTER_RCNN "Enable Faster RCNN plugins" OFF )
-option( VIAME_ENABLE_UW_PREDICTOR "Enable UW predictor plugin" OFF )
+option( VIAME_ENABLE_VXL            "Enable VXL plugins"            OFF )
+option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
+option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         OFF )
+option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
+option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
+option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
+option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
+option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
+option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugins"      OFF )
+option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugins"    OFF )
+option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 ###
 # Other misc options
@@ -173,18 +173,42 @@ add_subdirectory( pipelines )
 add_subdirectory( examples )
 
 ###
-# Configure setup script
+# Configure setup scripts
 ##
 include( setup_viame_paths )
 
-set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
+if( WIN32 )
+  set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
+  set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
+  set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
 
-configure_file(
-  ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
-  ${VIAME_SETUP_SCRIPT_FILE}
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
+    ${VIAME_PIPELINE_RUNNER_SCRIPT}
+  )
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/CMake/processopedia.bat.in
+    ${VIAME_PROCESSOPEDIA_SCRIPT}
+  )
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/CMake/plugin_explorer.bat.in
+    ${VIAME_PLUGIN_EXPLORER_SCRIPT}
   )
 
-install( PROGRAMS   ${VIAME_SETUP_SCRIPT_FILE}
-  DESTINATION       ${CMAKE_INSTALL_PREFIX} )
+  install( PROGRAMS      ${VIAME_PIPELINE_RUNNER_SCRIPT}
+                         ${VIAME_PROCESSOPEDIA_SCRIPT}
+					     ${VIAME_PLUGIN_EXPLORER_SCRIPT}
+           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+else()
+  set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
+    ${VIAME_SETUP_SCRIPT_FILE}
+  )
+
+  install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
+           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+endif()
+  
 endif()
