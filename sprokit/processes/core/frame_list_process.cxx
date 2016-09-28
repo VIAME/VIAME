@@ -38,6 +38,7 @@
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
+#include <vital/util/tokenize.h>
 
 #include <kwiver_type_traits.h>
 
@@ -88,7 +89,7 @@ public:
   // Configuration values
   std::string m_config_image_list_filename;
   kwiver::vital::timestamp::time_t m_config_frame_time;
-    std::vector< std::string > m_config_path;
+  std::vector< std::string > m_config_path;
 
   // process local data
   std::vector < kwiver::vital::path_t > m_files;
@@ -131,6 +132,10 @@ void frame_list_process
   // Examine the configuration
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
+
+  std::string path = config_value_using_trait( path );
+  kwiver::vital::tokenize( path, d->m_config_path, ":", true );
+  d->m_config_path.push_back( "." ); // add current directory
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
@@ -176,6 +181,7 @@ void frame_list_process
     {
       throw kwiver::vital::file_not_found_exception( line, "" );
     }
+
     d->m_files.push_back( resolved_file );
   } // end for
 
@@ -258,6 +264,7 @@ void frame_list_process
   declare_config_using_trait( image_list_file );
   declare_config_using_trait( frame_time );
   declare_config_using_trait( image_reader );
+  declare_config_using_trait( path );
 }
 
 
