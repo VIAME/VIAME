@@ -1,7 +1,16 @@
-SET VIAME_INSTALL="%~dp0"
+SET VIAME_INSTALL=%~dp0
 
 SET KWIVER_PLUGIN_PATH=%KWIVER_PLUGIN_PATH%;%VIAME_INSTALL%\lib\modules
 SET VIAME_PLUGIN_PATH=%VIAME_PLUGIN_PATH%;%VIAME_INSTALL%\lib\modules
+
+set argC=0
+for %%x in (%*) do Set /A argC+=1
+
+IF %argC%==2 %VIAME_INSTALL%\bin\pipeline_runner.exe -p "%1" -s input:image_list_file="%2"
+
+IF %argC%==1 %VIAME_INSTALL%\bin\pipeline_runner.exe -p "%1"
+
+IF %argC%==0 ECHO "Usage: [pipeline_file] [optional=text_file]"
 
 %VIAME_INSTALL%\bin\pipeline_runner.exe
 
