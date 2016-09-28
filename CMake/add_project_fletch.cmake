@@ -51,6 +51,7 @@ ExternalProject_Add(fletch
     ${VIAME_ARGS_COMMON}
     ${VIAME_PYTHON_FLAGS}
 
+    -DCMAKE_BUILD_TYPE:STRING=RELEASE
     -DBUILD_SHARED_LIBS:BOOL=ON
 
     # KWIVER Dependencies, Always On
