@@ -138,6 +138,7 @@ set( vital_public_headers
   io/camera_map_io.h
   io/eigen_io.h
   io/landmark_map_io.h
+  io/mesh_io.h
   io/track_set_io.h
 
   types/bounding_box.h
@@ -239,6 +240,7 @@ set( vital_sources
   io/camera_io.cxx
   io/camera_map_io.cxx
   io/landmark_map_io.cxx
+  io/mesh_io.cxx
   io/track_set_io.cxx
 
   types/bounding_box.cxx
