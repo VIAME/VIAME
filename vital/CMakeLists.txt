@@ -168,6 +168,7 @@ set( vital_public_headers
   types/landmark_map.h
   types/match_set.h
   types/matrix.h
+  types/mesh.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
@@ -258,6 +259,7 @@ set( vital_sources
   types/homography_f2w.cxx
   types/image.cxx
   types/landmark.cxx
+  types/mesh.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
