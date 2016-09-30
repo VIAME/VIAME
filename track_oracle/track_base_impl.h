@@ -68,7 +68,7 @@ public:
   std::map< field_handle_type, schema_position_type > list_schema_elements() const;
 };
 
-std::ostream& TRACK_ORACLE_EXPORT operator<<( std::ostream& os, track_base_impl& track );
+TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, track_base_impl& track );
 
 } // ...track_oracle
 } // ...kwiver

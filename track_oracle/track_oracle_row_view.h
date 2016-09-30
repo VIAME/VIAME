@@ -57,7 +57,7 @@ public:
 
 };
 
-std::ostream& TRACK_ORACLE_EXPORT operator<<( std::ostream& os, const track_oracle_row_view& r );
+TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const track_oracle_row_view& r );
 
 } // ...track_oracle
 } // ...kwiver

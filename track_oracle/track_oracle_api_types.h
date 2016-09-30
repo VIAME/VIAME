@@ -61,8 +61,8 @@ struct TRACK_ORACLE_EXPORT track_handle_type
 bool TRACK_ORACLE_EXPORT operator==( const track_handle_type& lhs, const track_handle_type& rhs );
 bool TRACK_ORACLE_EXPORT operator!=( const track_handle_type& lhs, const track_handle_type& rhs );
 bool TRACK_ORACLE_EXPORT operator<( const track_handle_type& lhs, const track_handle_type& rhs );
-std::ostream& TRACK_ORACLE_EXPORT operator<<( std::ostream& os, const track_handle_type& t );
-std::istream& TRACK_ORACLE_EXPORT operator>>( std::istream& os, track_handle_type& t );
+TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const track_handle_type& t );
+TRACK_ORACLE_EXPORT std::istream& operator>>( std::istream& os, track_handle_type& t );
 
 struct TRACK_ORACLE_EXPORT frame_handle_type
 {
@@ -74,8 +74,8 @@ struct TRACK_ORACLE_EXPORT frame_handle_type
 bool TRACK_ORACLE_EXPORT operator==( const frame_handle_type& lhs, const frame_handle_type& rhs );
 bool TRACK_ORACLE_EXPORT operator!=( const frame_handle_type& lhs, const frame_handle_type& rhs );
 bool TRACK_ORACLE_EXPORT operator<( const  frame_handle_type& lhs, const frame_handle_type& rhs );
-std::ostream& TRACK_ORACLE_EXPORT operator<<( std::ostream& os, const frame_handle_type& f );
-std::istream& TRACK_ORACLE_EXPORT operator>>( std::istream& os, frame_handle_type& f );
+TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const frame_handle_type& f );
+TRACK_ORACLE_EXPORT std::istream& operator>>( std::istream& os, frame_handle_type& f );
 
 // lists of handles
 

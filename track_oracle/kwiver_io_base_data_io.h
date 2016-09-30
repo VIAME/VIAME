@@ -18,10 +18,10 @@
 namespace kwiver {
 namespace track_oracle {
 
-std::ostream& TRACK_ORACLE_EXPORT operator<<(std::ostream& os, const std::set< std::string >& v );
-std::istream& TRACK_ORACLE_EXPORT operator>>(std::istream& is, std::set< std::string >& v );
-std::ostream& TRACK_ORACLE_EXPORT operator<<(std::ostream& os, const std::pair<unsigned, unsigned >& v );
-std::istream& TRACK_ORACLE_EXPORT operator>>(std::istream& is, std::pair<unsigned, unsigned>& v );
+TRACK_ORACLE_EXPORT std::ostream& operator<<(std::ostream& os, const std::set< std::string >& v );
+TRACK_ORACLE_EXPORT std::istream& operator>>(std::istream& is, std::set< std::string >& v );
+TRACK_ORACLE_EXPORT std::ostream& operator<<(std::ostream& os, const std::pair<unsigned, unsigned >& v );
+TRACK_ORACLE_EXPORT std::istream& operator>>(std::istream& is, std::pair<unsigned, unsigned>& v );
 
 } // ...track_oracle
 } // ...kwiver

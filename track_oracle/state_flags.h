@@ -63,8 +63,8 @@ private:
   std::vector<size_t> data;
 };
 
-std::ostream& TRACK_ORACLE_EXPORT operator<<( std::ostream& os, const state_flag_type& t );
-std::istream& TRACK_ORACLE_EXPORT operator>>( std::istream& os, state_flag_type& t );
+TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const state_flag_type& t );
+TRACK_ORACLE_EXPORT std::istream& operator>>( std::istream& os, state_flag_type& t );
 
 
 namespace dt {

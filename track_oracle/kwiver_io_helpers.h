@@ -22,26 +22,26 @@
 namespace kwiver {
 namespace track_oracle {
 
-std::ostream& TRACK_ORACLE_EXPORT kwiver_write_highprecision( std::ostream& os, double d, std::streamsize new_prec = 10 );
+TRACK_ORACLE_EXPORT std::ostream& kwiver_write_highprecision( std::ostream& os, double d, std::streamsize new_prec = 10 );
 
-bool TRACK_ORACLE_EXPORT kwiver_read( const std::string& s, vgl_point_2d<double>& d );
-std::ostream& TRACK_ORACLE_EXPORT kwiver_write( std::ostream& os, const vgl_point_2d<double>& d, const std::string& sep );
-std::vector<std::string> TRACK_ORACLE_EXPORT kwiver_csv_header_pair( const std::string& n, const std::string& p1, const std::string& p2 );
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vgl_point_2d<double>& d );
+TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vgl_point_2d<double>& d, const std::string& sep );
+TRACK_ORACLE_EXPORT std::vector<std::string> kwiver_csv_header_pair( const std::string& n, const std::string& p1, const std::string& p2 );
 
-bool TRACK_ORACLE_EXPORT kwiver_read( const std::string& s, vgl_box_2d<double>& d );
-std::ostream& TRACK_ORACLE_EXPORT kwiver_write( std::ostream& os, const vgl_box_2d<double>& d, const std::string& sep );
-std::vector<std::string> TRACK_ORACLE_EXPORT kwiver_box_2d_headers( const std::string& s );
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vgl_box_2d<double>& d );
+TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vgl_box_2d<double>& d, const std::string& sep );
+TRACK_ORACLE_EXPORT std::vector<std::string> kwiver_box_2d_headers( const std::string& s );
 
-bool TRACK_ORACLE_EXPORT kwiver_read( const std::string& s, vgl_point_3d<double>& d );
-std::ostream& TRACK_ORACLE_EXPORT kwiver_write( std::ostream& os, const vgl_point_3d<double>& d, const std::string& sep );
-std::vector<std::string> TRACK_ORACLE_EXPORT kwiver_point_3d_headers( const std::string& n );
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vgl_point_3d<double>& d );
+TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vgl_point_3d<double>& d, const std::string& sep );
+TRACK_ORACLE_EXPORT std::vector<std::string> kwiver_point_3d_headers( const std::string& n );
 
-std::pair<std::string, std::string > TRACK_ORACLE_EXPORT kwiver_ts_to_strings( const vital::timestamp& ts );
-bool TRACK_ORACLE_EXPORT kwiver_ts_string_read( const std::string& frame_str,
+TRACK_ORACLE_EXPORT std::pair<std::string, std::string > kwiver_ts_to_strings( const vital::timestamp& ts );
+TRACK_ORACLE_EXPORT bool kwiver_ts_string_read( const std::string& frame_str,
                                                 const std::string& time_str,
                                                 vital::timestamp& t );
-bool TRACK_ORACLE_EXPORT kwiver_read( const std::string& s, vital::timestamp& ts );
-std::ostream& TRACK_ORACLE_EXPORT kwiver_write( std::ostream& os, const vital::timestamp& ts );
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vital::timestamp& ts );
+TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vital::timestamp& ts );
 
 //
 // default, unimplemented output routine for TMP
