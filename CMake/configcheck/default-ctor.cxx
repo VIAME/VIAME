@@ -1,15 +1,16 @@
 struct Foo
 {
-  Foo() = default;
+  Foo() { }
   Foo(const Foo&) = default;
-  ~Foo() = default;
+  virtual ~Foo() = default; // c++11 feature
 };
 
 struct Bar
 {
-  Bar() = delete;
+  Bar() { }
   Bar(const Bar&) = delete;
-  virtual ~Bar() = delete;
+  Bar& operator=( const Bar& ) = delete;
+  virtual ~Bar() { }
 };
 
 int main()

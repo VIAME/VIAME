@@ -95,9 +95,11 @@
 #if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR
   #define VITAL_DEFAULT_CTOR = default;
   #define VITAL_DEFAULT_DTOR = default;
+  #define VITAL_DELETE_DECL = delete
 #else
   #define VITAL_DEFAULT_CTOR {}
   #define VITAL_DEFAULT_DTOR {}
+  #define VITAL_DELETE_DECL /* nothing */
 #endif
 
 #endif // VITAL_VITAL_CONFIG_H

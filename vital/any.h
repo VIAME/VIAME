@@ -232,7 +232,7 @@ private:
     T m_any_data;
 
     // -- NOT IMPLEMENTED --
-    internal_typed& operator=( const internal_typed& );
+    internal_typed& operator=( const internal_typed& ) VITAL_DELETE_DECL;
   };
 
 

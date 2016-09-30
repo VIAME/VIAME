@@ -8,7 +8,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/auto.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_CPP_AUTO ${success} )
@@ -19,7 +19,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/range-for.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_CPP_RANGE_FOR ${success} )
@@ -30,7 +30,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/default-ctor.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_CPP_DEFAULT_CTOR ${success} )
@@ -41,7 +41,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/throw-noexcept.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_CPP_NOEXCEPT ${success} )
@@ -52,7 +52,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/std_chrono.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_STD_CHRONO ${success} )
@@ -63,7 +63,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/std_random.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 # Known issue with std::random in GCC 4.4.7 and probably below.
@@ -79,7 +79,7 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/final.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_CPP_FINAL ${success} )
@@ -90,9 +90,25 @@ try_compile( success
   ${CMAKE_BINARY_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/configcheck/null_ptr.cxx
   CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=#${CMAKE_CXX_FLAGS}
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
 set( VITAL_USE_STD_NULLPTR ${success} )
+
+###
+# See if demangle API is supported
+try_compile( success
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/configcheck/demangle.cxx
+  CMAKE_FLAGS
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+  OUTPUT_VARIABLE OUTPUT)
+
+# use for debugging
+#message( "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}" )
+#message( "success: ${success}" )
+#message( "OUTPUT: ${OUTPUT}" )
+
+set( VITAL_USE_ABI_DEMANGLE ${success} )
 
 ###
