@@ -84,7 +84,7 @@ format() const
 bool uuid::
 operator==( const uuid& other )
 {
-  for (int i = 0; i < sizeof(m_uuid); i++)
+  for (size_t i = 0; i < sizeof(m_uuid); i++)
   {
     if (this->m_uuid[i] != other.m_uuid[i])
     {
