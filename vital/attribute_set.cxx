@@ -30,76 +30,122 @@
 
 /**
  * \file
- * \brief Implementation of vital uuid
+ * \brief Implementation of attribute_set class
  */
 
-#include "uuid.h"
+#include "attribute_set.h"
 
 #include <sstream>
-#include <cstring>
-#include <iomanip>
+
 
 namespace kwiver {
 namespace vital {
 
-// ------------------------------------------------------------------
-uuid::
-uuid( const uuid::uuid_data_t& data)
+// ==================================================================
+attribute_set_exception::
+attribute_set_exception( std::string const& str )
 {
-  memcpy( this->m_uuid, data, sizeof( this->m_uuid) );
+  m_what = str;
+}
+
+
+attribute_set_exception::
+~attribute_set_exception() VITAL_NOTHROW
+{ }
+
+
+
+// ==================================================================
+attribute_set::
+attribute_set()
+{ }
+
+
+attribute_set::
+~attribute_set()
+{ }
+
+
+// ------------------------------------------------------------------
+void
+attribute_set::
+add( const std::string& name, const kwiver::vital::any& val )
+{
+#ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
+  m_attr_map[name] = std::make_unique<kwiver::vital::any>(val);
+#else
+  m_attr_map[name] = std::make_shared<kwiver::vital::any>(val);
+#endif
 }
 
 
 // ------------------------------------------------------------------
-  const kwiver::vital::uuid::uuid_data_t&
-uuid::
-value() const
+bool attribute_set::
+has( const std::string& name ) const
 {
-  return m_uuid;
+  return m_attr_map.count( name ) > 0;
 }
+
 
 // ------------------------------------------------------------------
-std::string
-uuid::
-format() const
+bool
+attribute_set::
+erase( const std::string& name )
 {
-  std::stringstream str;
-  size_t idx = 0;
-  static constexpr char convert[] = "0123456789abcdef";
-
-#define CONV(B)  str << convert[(B >> 4) & 0x0f] << convert[B & 0x0f]
-
-  for (int i = 0; i < 4; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 6; i++, idx++) { CONV(m_uuid[idx]); }
-
-#undef CONV
-
-  return str.str();
+  return m_attr_map.erase(name) > 0;
 }
 
 
-bool uuid::
-operator==( const uuid& other )
+// ------------------------------------------------------------------
+attribute_set::const_iterator_t
+attribute_set::
+begin() const
 {
-  for (size_t i = 0; i < sizeof(m_uuid); i++)
+  return m_attr_map.begin();
+}
+
+
+// ------------------------------------------------------------------
+attribute_set::const_iterator_t
+attribute_set::
+end() const
+{
+  return m_attr_map.end();
+}
+
+
+// ------------------------------------------------------------------
+size_t
+attribute_set::
+size() const
+{
+  return m_attr_map.size();
+}
+
+
+// ------------------------------------------------------------------
+bool
+attribute_set::
+empty() const
+{
+  return m_attr_map.empty();
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::any
+attribute_set::
+data( const std::string& name ) const
+{
+  auto ix = m_attr_map.find( name );
+  if ( ix == m_attr_map.end() )
   {
-    if (this->m_uuid[i] != other.m_uuid[i])
-    {
-      return false;
-    }
+    std::stringstream str;
+    str << "Attribute name \"" << name << "\" is not in the set.";
+    throw attribute_set_exception( str.str() );
   }
-  return true;
+
+  return *(ix->second);
 }
-
-
-bool uuid::
-operator!=( const uuid& other )
-{
-  return ! operator==( other );
-}
-
 
 } } // end namespace

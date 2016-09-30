@@ -44,8 +44,8 @@ struct VIBRANT_DESCRIPTORS_EXPORT descriptor_cutic_type
 
 };
 
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT operator<<( std::ostream& os, const descriptor_cutic_type& );
-std::istream& VIBRANT_DESCRIPTORS_EXPORT operator>>( std::istream& is, descriptor_cutic_type& );
+VIBRANT_DESCRIPTORS_EXPORT std::ostream& operator<<( std::ostream& os, const descriptor_cutic_type& );
+VIBRANT_DESCRIPTORS_EXPORT std::istream& operator>>( std::istream& is, descriptor_cutic_type& );
 
 } // ...track_oracle
 } // ...kwiver

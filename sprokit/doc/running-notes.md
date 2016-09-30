@@ -89,7 +89,6 @@ selected.
 ```
 config _scheduler
   :num_thread 23
-  :instrumentaion trace
 
 ```
 

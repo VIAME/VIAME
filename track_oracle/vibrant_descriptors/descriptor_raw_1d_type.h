@@ -36,8 +36,8 @@ struct VIBRANT_DESCRIPTORS_EXPORT descriptor_raw_1d_type
   }
 };
 
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT operator<<( std::ostream& os, const descriptor_raw_1d_type& d );
-std::istream& VIBRANT_DESCRIPTORS_EXPORT operator>>( std::istream& os, descriptor_raw_1d_type& d );
+VIBRANT_DESCRIPTORS_EXPORT std::ostream& operator<<( std::ostream& os, const descriptor_raw_1d_type& d );
+VIBRANT_DESCRIPTORS_EXPORT std::istream& operator>>( std::istream& os, descriptor_raw_1d_type& d );
 
 } // ...track_oracle
 } // ...kwiver
