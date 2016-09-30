@@ -232,6 +232,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \class data_info process.h <sprokit/pipeline/process.h>
      *
      * \brief Information about a set of data.
+     *
+     *
      */
     class SPROKIT_PIPELINE_EXPORT data_info
     {
@@ -242,7 +244,7 @@ class SPROKIT_PIPELINE_EXPORT process
          * \param in_sync_ Whether the data is synchonized.
          * \param max_status_ The highest priority status of the data.
          */
-        data_info(bool in_sync_,
+        data_info(bool          in_sync_,
                   datum::type_t max_status_);
         /**
          * \brief Destructor.
@@ -251,6 +253,7 @@ class SPROKIT_PIPELINE_EXPORT process
 
         /// True if the data is synchonized.
         bool const in_sync;
+
         /// The highest priority status in the set.
         datum::type_t const max_status;
     };
@@ -310,7 +313,8 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Reset the process.
      *
-     * Calling this removes all edges from the process.
+     * This method calls the _reset() method in the derived process
+     * and then deletes all edged connected to this process.
      */
     void reset();
 
@@ -542,8 +546,8 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_type_t const type_data_dependent;
 
     /**
-     * \brief A type which indicates that the type depends on the
-     * connected port's type.
+     * \brief An option which indicates that the port type depends on
+     * the connected port's type.
      *
      * This flag is used when the process wants this port to be typed
      * based on the type of the port that is connected. This can be
@@ -571,7 +575,9 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief A flag which indicates that the output cannot be modified.
      *
      * Marks that an output is "const" and may not be modified by
-     * receivers of the data.
+     * receivers of the data. This is usually used for data that is
+     * sent, and a reference is kept internally to help reduce memory
+     * usage.
      */
     static port_flag_t const flag_output_const;
 
@@ -604,7 +610,7 @@ class SPROKIT_PIPELINE_EXPORT process
           :static/foo  3.14159
      * \endcode
      *
-     * This flag may not be combined with \ref flag_required because
+     * This flag may \b not be combined with \ref flag_required because
      * it is implied that either the port must be connected or a
      * static value be provided in the configuration.
      *
@@ -614,11 +620,10 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_flag_t const flag_input_static;
 
     /**
-     * \brief A flag which indicates that the input may be modified.
+     * \brief A flag which indicates that the input will be modified.
      *
      * Marks that an input is modified within the process and that
-     * other receivers of the data may see the changes if the data is
-     * not handled carefully.
+     * other receivers of the data may see the changes.
      */
     static port_flag_t const flag_input_mutable;
 
@@ -680,11 +685,18 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Reset logic for subclasses.
+     *
+     * A derived class can use this to perform any process specific
+     * actions needed to handle a pipeline reset. After a process is
+     * reset, configure() and init() will be called.
      */
     virtual void _reset();
 
     /**
      * \brief Flush logic for subclasses.
+     *
+     * This method is called when there is a flush datum pending in
+     * any one of the required input ports.
      */
     virtual void _flush();
 
@@ -979,6 +991,13 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Get the number of connected edges for an output port.
      *
+     * This method returns the number of down stream processes are
+     * connected to the port. This is useful in determining if there
+     * are any consumers of an output port.
+     *
+     * For example, this can be used to optimize a process. An
+     * expensive output can be skipped if there are no consumers.
+     *
      * \param port The port to get the count for.
      *
      * \returns The number of edges connected to the \p port.
@@ -1041,14 +1060,15 @@ class SPROKIT_PIPELINE_EXPORT process
     T grab_from_port_as(port_t const& port) const;
 
     /**
-     * \brief Grab an input as a certain type.
+     * \brief Grab an input as a specific type.
      *
      * This method returns a data value form a port or the configured
      * static value. If there is a value on the port, then this method
-     * behaves the same as grab_from_port_as().
+     * behaves the same as grab_from_port_as(). This method should be used
+     * with ports that are created with the \c flag_input_static option.
      *
      * If there is no value at the port, then the value taken from the
-     * configuration entry \key "static/" + port_name is used.
+     * configuration entry \key "static/" + \key port_name.
      *
      * If the templated data type does not have a conversion from a
      * string to an instance of the data type, you will need to
@@ -1057,7 +1077,10 @@ class SPROKIT_PIPELINE_EXPORT process
      *
      * \param port The port to get data from.
      *
-     * \returns The input datum.
+     * \throws no_such_port_exception if the named port does not exist.
+     * \throws missing_connection_exception if port not connected.
+     *
+     * \returns The input datum as specified type.
      */
     template <typename T>
     T grab_input_as(port_t const& port) const;
@@ -1141,6 +1164,11 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Check a set of edge data for certain properties.
+     *
+     * This method checks the supplied edge_data_t to see if all items
+     * are synchronized and report the highest priority data item.
+     *
+     * \todo Need a method to produce an edge_data_t (vector).
      *
      * \param data The data to inspect.
      *

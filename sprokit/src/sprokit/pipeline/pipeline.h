@@ -235,7 +235,13 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     /**
      * \brief Resets the pipeline.
      *
-     * \throws reset_running_pipeline_exception Thrown when the pipeline is running.
+     * This method resets a stopped pipeline. The process::reset()
+     * method is called on each process and all internal
+     * connections/edges are cleared. Then all connections are
+     * reestablished.
+     *
+     * \throws reset_running_pipeline_exception Thrown when the
+     * pipeline is running.
      */
     void reset();
 
