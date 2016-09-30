@@ -68,8 +68,8 @@ public:
  * purpose of this class is to provide a mechanism for associating an
  * set of names attributes with another object.
  *
- * When integrating core capabilities into other systems, there is
- * usually some associated data that has to be transported with the
+ * When integrating kwiver core capabilities into other systems, there
+ * is usually some associated data that has to be transported with the
  * core data. This associated data is not used in the main algorithm
  * but must be available at the output so the artifact created can be
  * associated with the specific input.
@@ -244,6 +244,8 @@ public:
 private:
   attribute_map_t m_attr_map;
 }; // end class attribute_set
+
+typedef std::shared_ptr< attribute_set > attribute_set_sptr;
 
 } } // end namespace
 

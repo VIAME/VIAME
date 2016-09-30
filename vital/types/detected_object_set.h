@@ -38,6 +38,7 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/attribute_set.h>
 
 #include <vital/types/detected_object.h>
 
@@ -133,9 +134,31 @@ public:
   const detected_object::vector_t select( const std::string& class_name,
                                           double             threshold = detected_object_type::INVALID_SCORE ) const;
 
+  /**
+   * @brief Get attributes set.
+   *
+   * This method returns a pointer to the attribute set that is
+   * attached to this object. It is possible that the pointer is NULL,
+   * so check before using it.
+   *
+   * @return Pointer to attribute set or NULL
+   */
+  attribute_set_sptr attributes();
+
+  /**
+   * @brief Attach attributes set to this object.
+   *
+   * This method attaches the specified attribute set to this object.
+   *
+   * @param attrs Pointer to attribute set to attach.
+   */
+  void set_attributes( attribute_set_sptr attrs );
+
 private:
   // List of detections ordered by confidence value.
   detected_object::vector_t m_detected_objects;
+
+  attribute_set_sptr m_attrs;
 };
 
 } } // end namespace
