@@ -23,32 +23,32 @@ namespace kwiver {
 namespace track_oracle {
 
 template< >
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT
+VIBRANT_DESCRIPTORS_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< descriptor_cutic_type >& f);
 
 template< >
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT
+VIBRANT_DESCRIPTORS_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< descriptor_metadata_type >& f );
 
 template< >
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT
+VIBRANT_DESCRIPTORS_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< descriptor_motion_type >& f );
 
 template< >
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT
+VIBRANT_DESCRIPTORS_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< descriptor_overlap_type >& f );
 
 template< >
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT
+VIBRANT_DESCRIPTORS_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< descriptor_event_label_type >& f );
 
 template< >
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT
+VIBRANT_DESCRIPTORS_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< descriptor_raw_1d_type >& f );
 
