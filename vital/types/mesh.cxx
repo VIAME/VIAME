@@ -35,10 +35,10 @@
 
 
 #include <vital/types/mesh.h>
+#include <vital/logger/logger.h>
 #include <Eigen/Geometry>
 
 #include <map>
-#include <iostream>
 
 namespace kwiver {
 namespace vital {
@@ -650,9 +650,12 @@ mesh
       break;
     }
     case TEX_COORD_ON_CORNER:
-      std::cerr << "mesh::label_ccw_tex_faces_valid()"
-                << " not implemented for TEX_COORD_ON_CORNER\n";
+    {
+      logger_handle_t logger(get_logger( "vital.mesh" ));
+      LOG_ERROR(logger, "mesh::label_ccw_tex_faces_valid()"
+                        " not implemented for TEX_COORD_ON_CORNER");
       break;
+    }
     default:
       break;
   }

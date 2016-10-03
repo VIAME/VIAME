@@ -35,12 +35,12 @@
 
 #include "mesh_io.h"
 
-#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <limits>
 
 #include <vital/exceptions.h>
+#include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
 
 
@@ -310,6 +310,7 @@ read_obj(const std::string& filename)
 mesh_sptr
 read_obj(std::istream& is)
 {
+  logger_handle_t logger(get_logger( "vital.mesh_io.read_obj" ));
   std::unique_ptr<mesh_vertex_array<3> > verts(new mesh_vertex_array<3>);
   std::unique_ptr<mesh_face_array> faces(new mesh_face_array);
   std::vector<vector_3d> normals;
@@ -379,7 +380,7 @@ read_obj(std::istream& is)
                 }
                 else
                 {
-                  std::cerr << "improperly formed face line in OBJ: "<<line<<'\n';
+                  LOG_ERROR(logger, "improperly formed face line in OBJ: "<<line);
                   return false;
                 }
               }
@@ -394,7 +395,7 @@ read_obj(std::istream& is)
               }
               else
               {
-                std::cerr << "improperly formed face line in OBJ: "<<line<<'\n';
+                LOG_ERROR(logger, "improperly formed face line in OBJ: "<<line);
                 return false;
               }
             }
@@ -602,7 +603,8 @@ write_kml_collada(std::ostream& os, const mesh& mesh)
   // get mesh faces as triangles
   if (mesh.faces().regularity() != 3)
   {
-    std::cerr << "ERROR! only triangle meshes are supported.\n";
+    logger_handle_t logger(get_logger( "vital.mesh_io.write_kml_collada" ));
+    LOG_ERROR(logger, "ERROR! only triangle meshes are supported.");
     return;
   }
   const mesh_regular_face_array<3>& tris =
@@ -760,10 +762,11 @@ write_vrml(const std::string& filename, const mesh& mesh)
 void
 write_vrml(std::ostream& os, const mesh& mesh)
 {
+  logger_handle_t logger(get_logger( "vital.mesh_io.write_vrml" ));
   // get mesh faces as triangles
   if (mesh.faces().regularity() != 3)
   {
-    std::cerr << "ERROR! only triangle meshes are supported.\n";
+    LOG_ERROR(logger, "ERROR! only triangle meshes are supported.");
     return;
   }
   const mesh_regular_face_array<3>& tris =
@@ -772,7 +775,7 @@ write_vrml(std::ostream& os, const mesh& mesh)
   unsigned d = vertsb.dim();
   if (d!=2&&d!=3)
   {
-    std::cerr << "vertex dimension must be 2 or 3.\n";
+    LOG_ERROR(logger, "vertex dimension must be 2 or 3.");
     return;
   }
   const unsigned int nfaces = tris.size();
