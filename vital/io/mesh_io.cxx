@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of file IO functions for a \ref kwiver::vital::map
+ * \brief Implementation of file IO functions for a \ref kwiver::vital::mesh
  */
 
 #include "mesh_io.h"
