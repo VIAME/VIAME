@@ -139,6 +139,7 @@ set( vital_public_headers
   io/camera_map_io.h
   io/eigen_io.h
   io/landmark_map_io.h
+  io/mesh_io.h
   io/track_set_io.h
 
   types/bounding_box.h
@@ -169,6 +170,7 @@ set( vital_public_headers
   types/landmark_map.h
   types/match_set.h
   types/matrix.h
+  types/mesh.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
@@ -240,6 +242,7 @@ set( vital_sources
   io/camera_io.cxx
   io/camera_map_io.cxx
   io/landmark_map_io.cxx
+  io/mesh_io.cxx
   io/track_set_io.cxx
 
   types/bounding_box.cxx
@@ -260,6 +263,7 @@ set( vital_sources
   types/homography_f2w.cxx
   types/image.cxx
   types/landmark.cxx
+  types/mesh.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
