@@ -186,34 +186,43 @@ mesh_sptr read_ply(std::istream& is)
   std::string str;
   is >> str;
   bool done=false;
-  while (!done) {
+  while (!done)
+  {
     is >> str;
-    if (str.compare("element")==0)  {
+    if (str.compare("element")==0)
+    {
       is >> str;
-      if (str.compare("vertex")==0) {
+      if (str.compare("vertex")==0)
+      {
         is >> num_verts;
       }
-      else if (str.compare("face")==0) {
+      else if (str.compare("face")==0)
+      {
         is >> num_faces;
       }
     }
-    else if (str.compare("end_header")==0)  {
+    else if (str.compare("end_header")==0)
+    {
       done = true;
     }
   }
   std::unique_ptr<mesh_vertex_array<3> > verts(new mesh_vertex_array<3>(num_verts));
   std::unique_ptr<mesh_face_array > faces(new mesh_face_array(num_faces));
-  for (unsigned int v=0; v<num_verts; ++v) {
+  for (unsigned int v=0; v<num_verts; ++v)
+  {
     vector_3d& vert = (*verts)[v];
     is >> vert[0] >> vert[1] >> vert[2];
   }
-  for (unsigned int f=0; f<num_faces; ++f) {
+  for (unsigned int f=0; f<num_faces; ++f)
+  {
     std::vector<unsigned int>& face = (*faces)[f];
     unsigned int cnt;
     is >> cnt;
     face.resize(cnt,0);
     for (unsigned int v=0; v<cnt; ++v)
+    {
       is >> face[v];
+    }
   }
 
   return std::make_shared<mesh>(std::move(verts), std::move(faces));
@@ -235,17 +244,21 @@ void write_ply2(std::ostream& os, const mesh& mesh)
 {
   os << mesh.num_verts() <<'\n'<< mesh.num_faces() <<'\n';
   const mesh_vertex_array_base& verts = mesh.vertices();
-  for (unsigned int v=0; v<verts.size(); ++v) {
+  for (unsigned int v=0; v<verts.size(); ++v)
+  {
     os << verts(v,0) << ' '
        << verts(v,1) << ' '
        << verts(v,2) << '\n';
   }
 
   const mesh_face_array_base& faces = mesh.faces();
-  for (unsigned int f=0; f<faces.size(); ++f) {
+  for (unsigned int f=0; f<faces.size(); ++f)
+  {
     os << faces.num_verts(f);
     for (unsigned int v=0; v<faces.num_verts(f); ++v)
+    {
       os << ' ' << faces(f,v);
+    }
     os << '\n';
   }
 }
@@ -254,29 +267,32 @@ void write_ply2(std::ostream& os, const mesh& mesh)
 /// Read texture coordinates from a UV2 file
 bool read_uv2(const std::string& filename, mesh& mesh)
 {
-   std::ifstream fh(filename.c_str());
-   bool retval = read_uv2(fh,mesh);
-   fh.close();
-   return retval;
+  std::ifstream fh(filename.c_str());
+  bool retval = read_uv2(fh,mesh);
+  fh.close();
+  return retval;
 }
 
 
 /// Read texture coordinates from a UV2 stream
 bool read_uv2(std::istream& is, mesh& mesh)
 {
-   std::vector<vector_2d > uv;
-   unsigned int num_verts, num_faces;
-   is >> num_verts >> num_faces;
-   if (num_verts != mesh.num_verts() && num_verts != mesh.num_edges()*2)
-     return false;
+  std::vector<vector_2d > uv;
+  unsigned int num_verts, num_faces;
+  is >> num_verts >> num_faces;
+  if (num_verts != mesh.num_verts() && num_verts != mesh.num_edges()*2)
+  {
+    return false;
+  }
 
-   for (unsigned int i=0; i<num_verts; ++i) {
-      double u,v;
-      is >> u >> v;
-      uv.push_back(vector_2d(u,v));
-   }
-   mesh.set_tex_coords(uv);
-   return true;
+  for (unsigned int i=0; i<num_verts; ++i)
+  {
+    double u,v;
+    is >> u >> v;
+    uv.push_back(vector_2d(u,v));
+  }
+  mesh.set_tex_coords(uv);
+  return true;
 }
 
 
@@ -343,32 +359,41 @@ read_obj(std::istream& is)
         std::vector<unsigned int> vi, ti, ni;
         unsigned int v;
         std::stringstream ss(line);
-        while (ss >> v) {
+        while (ss >> v)
+        {
           vi.push_back(v-1);
-          if (ss.peek() == '/') {
+          if (ss.peek() == '/')
+          {
             ss.ignore();
-            if (ss.peek() != '/') {
+            if (ss.peek() != '/')
+            {
               ss >> v;
               ti.push_back(v-1);
-              if (ss.peek() == '/') {
+              if (ss.peek() == '/')
+              {
                 ss.ignore();
-                if (ss.peek() >= '0' && ss.peek() <= '9') {
+                if (ss.peek() >= '0' && ss.peek() <= '9')
+                {
                   ss >> v;
                   ni.push_back(v-1);
                 }
-                else {
+                else
+                {
                   std::cerr << "improperly formed face line in OBJ: "<<line<<'\n';
                   return false;
                 }
               }
             }
-            else {
+            else
+            {
               ss.ignore();
-              if (ss.peek() >= '0' && ss.peek() <= '9') {
+              if (ss.peek() >= '0' && ss.peek() <= '9')
+              {
                 ss >> v;
                 ni.push_back(v-1);
               }
-              else {
+              else
+              {
                 std::cerr << "improperly formed face line in OBJ: "<<line<<'\n';
                 return false;
               }
@@ -393,10 +418,14 @@ read_obj(std::istream& is)
 
   // make the last group
   if (faces->has_groups())
+  {
     faces->make_group(last_group);
+  }
 
   if (normals.size() == verts->size())
+  {
     verts->set_normals(normals);
+  }
 
   mesh_sptr m = std::make_shared<mesh>(std::move(verts), std::move(faces));
   m->set_tex_coords(tex);
@@ -419,7 +448,8 @@ void
 write_obj(std::ostream& os, const mesh& mesh)
 {
   const mesh_vertex_array_base& verts = mesh.vertices();
-  for (unsigned int v=0; v<verts.size(); ++v) {
+  for (unsigned int v=0; v<verts.size(); ++v)
+  {
     os << "v "
        << verts(v,0) << ' '
        << verts(v,1) << ' '
@@ -427,7 +457,8 @@ write_obj(std::ostream& os, const mesh& mesh)
   }
 
   if (verts.has_normals()) {
-    for (unsigned int n=0; n<verts.size(); ++n) {
+    for (unsigned int n=0; n<verts.size(); ++n)
+    {
       const vector_3d& v = verts.normal(n);
       os << "vn "
          << v.x() << ' '
@@ -436,9 +467,11 @@ write_obj(std::ostream& os, const mesh& mesh)
     }
   }
 
-  if (mesh.has_tex_coords()) {
+  if (mesh.has_tex_coords())
+  {
     const std::vector<vector_2d >& tex = mesh.tex_coords();
-    for (unsigned int t=0; t<tex.size(); ++t) {
+    for (unsigned int t=0; t<tex.size(); ++t)
+    {
       os << "vt " << tex[t].x() << ' ' << tex[t].y() << '\n';
     }
   }
@@ -449,31 +482,44 @@ write_obj(std::ostream& os, const mesh& mesh)
   bool write_extra = mesh.has_tex_coords() || verts.has_normals();
 
   if (!groups.empty())
+  {
     os << "g " << groups[0].first << '\n';
+  }
   unsigned int g=0;
   unsigned int e=0;
   for (unsigned int f=0; f<faces.size(); ++f)
   {
-    while (g < groups.size() && groups[g].second <= f) {
+    while (g < groups.size() && groups[g].second <= f)
+    {
       ++g;
       if (g < groups.size())
+      {
         os << "g " << groups[g].first << '\n';
-      else {
+      }
+      else
+      {
         os << "g ungrouped\n";
       }
     }
     os << 'f';
-    for (unsigned int v=0; v<faces.num_verts(f); ++v) {
+    for (unsigned int v=0; v<faces.num_verts(f); ++v)
+    {
       os << ' ' << faces(f,v)+1;
-      if (write_extra) {
+      if (write_extra)
+      {
         os << '/';
-        if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_CORNER) {
+        if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_CORNER)
+        {
           os << ++e;
         }
         if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_VERT)
+        {
           os << faces(f,v)+1;
+        }
         if (verts.has_normals())
+        {
           os << '/' << faces(f,v)+1;
+        }
       }
     }
     os << '\n';
@@ -498,9 +544,10 @@ write_kml(std::ostream& os, const mesh& mesh)
   const mesh_face_array_base& faces = mesh.faces();
   const mesh_vertex_array_base& verts = mesh.vertices();
 
-  if (faces.size() <= 1) {
-      // single mesh face is probably ground plane, which we do not want to render
-      return;
+  if (faces.size() <= 1)
+  {
+    // single mesh face is probably ground plane, which we do not want to render
+    return;
   }
 
   os.precision(12);
@@ -515,7 +562,8 @@ write_kml(std::ostream& os, const mesh& mesh)
        << "          <LinearRing>\n"
        << "            <coordinates>" << std::endl;
 
-    for (unsigned int v=0; v<faces.num_verts(f); ++v) {
+    for (unsigned int v=0; v<faces.num_verts(f); ++v)
+    {
       unsigned int idx = faces(f,v);
       double x = verts(idx, 0);
       double y = verts(idx, 1);
@@ -621,7 +669,9 @@ write_kml_collada(std::ostream& os, const mesh& mesh)
      <<"        <float_array id=\"" << geometry_position_array_id << "\" count=\"" << nverts*3 << "\">\n";
 
   for (unsigned int v=0; v<nverts; ++v)
+  {
     os << "          "<< verts[v][0] << ' ' << verts[v][1] << ' ' << verts[v][2] << '\n';
+  }
 
   os <<"\n        </float_array>\n"
      <<"        <technique_common>\n"
@@ -635,7 +685,8 @@ write_kml_collada(std::ostream& os, const mesh& mesh)
      <<"      <source id=\"" << "geometry_normal" << "\">\n"
 
      <<"        <float_array id=\"" << "geometry_normal_array" << "\" count=\"" << nfaces*3 << "\">\n";
-  for (unsigned int f=0; f<nfaces; ++f) {
+  for (unsigned int f=0; f<nfaces; ++f)
+  {
     const vector_3d& n = tris.normal(f);
     os << "          " << n.x() << ' ' << n.y() << ' ' << n.z() << '\n';
   }
@@ -659,7 +710,8 @@ write_kml_collada(std::ostream& os, const mesh& mesh)
 
      <<"        <p>\n";
 
-  for (unsigned int f=0; f<nfaces; ++f) {
+  for (unsigned int f=0; f<nfaces; ++f)
+  {
     os << "          "
        << tris[f][0] << ' ' << f <<"  "
        << tris[f][1] << ' ' << f <<"  "
@@ -743,21 +795,28 @@ write_vrml(std::ostream& os, const mesh& mesh)
      << "  {\n"
      << "   coord Coordinate{\n"
      << "    point [\n";
-  if (d == 2) {
+  if (d == 2)
+  {
     const mesh_vertex_array<2>& verts2= mesh.vertices<2>();
     for (unsigned i=0;i<verts2.size();++i)
+    {
       os << "    " << verts2[i][0] << ' ' << verts2[i][1] << ' ' << 0.0 << '\n';
+    }
   }
-  else {
+  else
+  {
     const mesh_vertex_array<3>& verts3= mesh.vertices<3>();
     for (unsigned i=0;i<verts3.size();++i)
+    {
       os << "    " << verts3[i][0] << ' ' << verts3[i][1] << ' ' << verts3[i][2] << '\n';
+    }
   }
   os << "    ]}\n";
 
   //write faces (all triangles)
   os << "  coordIndex [\n";
-  for (unsigned i=0;i<nfaces;++i) {
+  for (unsigned i=0;i<nfaces;++i)
+  {
     os << "    "
        << tris[i][0] << ' '
        << tris[i][1] << ' '
@@ -767,21 +826,25 @@ write_vrml(std::ostream& os, const mesh& mesh)
   os << "  ]\n";
 
   //write texture coordinates
-  if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_VERT) {
+  if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_VERT)
+  {
     os << " texCoord TextureCoordinate {\n"
        << "   point [\n";
 
     //write tex coordinates (should be same number as vertices above)
     const std::vector<vector_2d >& tc = mesh.tex_coords();
     for (unsigned int i=0; i<tc.size(); ++i)
+    {
       os << "    " << tc[i].x() << ' ' << tc[i].y() << ",\n";
+    }
 
     //close texture coordinates
     os << "    ]}\n";
 
     //write face mapping again
     os << "   texCoordIndex [\n";
-    for (unsigned i=0;i<nfaces;++i) {
+    for (unsigned i=0;i<nfaces;++i)
+    {
       os << "    "
          << tris[i][0] << ' '
          << tris[i][1] << ' '
@@ -791,7 +854,6 @@ write_vrml(std::ostream& os, const mesh& mesh)
     os << "  ]\n";
   }
 
-  //
   os << "solid TRUE\n"
      << "convex FALSE\n"
      << "creaseAngle 0\n";

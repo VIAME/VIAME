@@ -298,7 +298,10 @@ public:
 
   /// Set the face normals
   void set_normals(const std::vector<vector_3d >& n)
-  { assert(n.size() == this->size()); normals_ = n; }
+  {
+    assert(n.size() == this->size());
+    normals_ = n;
+  }
 
   /// Access a face normal
   vector_3d& normal(unsigned int f) { return normals_[f]; }
@@ -615,7 +618,8 @@ public:
     /// Assignment
     f_iterator& operator = (const f_iterator& other)
     {
-      if (this != &other){
+      if (this != &other)
+      {
         assert(&edge_set_ == &other.edge_set_);
         half_edge_index_ = other.half_edge_index_;
       }
@@ -685,7 +689,8 @@ public:
     /// Assignment
     f_const_iterator& operator = (const f_const_iterator& other)
     {
-      if (this != &other){
+      if (this != &other)
+      {
         assert(&edge_set_ == &other.edge_set_);
         half_edge_index_ = other.half_edge_index_;
       }
@@ -744,7 +749,8 @@ public:
     /// Assignment
     v_iterator& operator = (const v_iterator& other)
     {
-      if (this != &other){
+      if (this != &other)
+      {
         assert(&edge_set_ == &other.edge_set_);
         half_edge_index_ = other.half_edge_index_;
       }
@@ -815,7 +821,8 @@ public:
     /// Assignment
     v_const_iterator& operator = (const v_const_iterator& other)
     {
-      if (this != &other){
+      if (this != &other)
+      {
         assert(&edge_set_ == &other.edge_set_);
         half_edge_index_ = other.half_edge_index_;
       }

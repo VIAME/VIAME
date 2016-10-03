@@ -383,7 +383,8 @@ mesh&
 mesh
 ::operator=(mesh const& other)
 {
-  if (this != &other) {
+  if (this != &other)
+  {
     verts_ = std::unique_ptr<mesh_vertex_array_base>((other.verts_.get()) ?
                                                    other.verts_->clone() : 0);
     faces_ = std::unique_ptr<mesh_face_array_base>((other.faces_.get()) ?
@@ -410,10 +411,12 @@ mesh
   if (this->has_tex_coords() == TEX_COORD_NONE)
   {
     std::vector<vector_2d> tex;
-    if (other.has_tex_coords() == TEX_COORD_ON_VERT) {
+    if (other.has_tex_coords() == TEX_COORD_ON_VERT)
+    {
       tex = std::vector<vector_2d>(num_v, vector_2d(0,0));
     }
-    else if (other.has_tex_coords() == TEX_COORD_ON_CORNER) {
+    else if (other.has_tex_coords() == TEX_COORD_ON_CORNER)
+    {
       tex = std::vector<vector_2d>(2*num_e, vector_2d(0,0));
     }
 
@@ -428,9 +431,13 @@ mesh
   }
 
   if (this->has_half_edges() && other.has_half_edges())
+  {
     this->build_edge_graph();
+  }
   else
+  {
     this->half_edges_.clear();
+  }
 }
 
 
@@ -440,11 +447,17 @@ mesh
 ::set_tex_coords(const std::vector<vector_2d>& tc)
 {
   if (tc.size() == this->num_verts())
+  {
     tex_coord_status_ = TEX_COORD_ON_VERT;
+  }
   else if (tc.size() == 2*this->num_edges())
+  {
     tex_coord_status_ = TEX_COORD_ON_CORNER;
+  }
   else
+  {
     tex_coord_status_ = TEX_COORD_NONE;
+  }
 
   tex_coords_ = tc;
 }
@@ -457,10 +470,13 @@ mesh
 {
   const mesh_face_array_base& faces = this->faces();
   std::vector<std::vector<unsigned int> > face_list(faces.size());
-  for (unsigned int f=0; f<faces.size(); ++f) {
+  for (unsigned int f=0; f<faces.size(); ++f)
+  {
     face_list[f].resize(faces.num_verts(f));
     for (unsigned int v=0; v<faces.num_verts(f); ++v)
+    {
       face_list[f][v] =  faces(f,v);
+    }
   }
 
   half_edges_.build_from_ifs(face_list);
@@ -473,17 +489,22 @@ mesh
 ::compute_vertex_normals()
 {
   if (!this->has_half_edges())
+  {
     this->build_edge_graph();
+  }
 
   const mesh_half_edge_set& half_edges = this->half_edges();
   mesh_vertex_array<3>& verts = this->vertices<3>();
 
   std::vector<vector_3d> normals(this->num_verts(), vector_3d(0,0,0));
 
-  for (unsigned int he=0; he < half_edges.size(); ++he) {
+  for (unsigned int he=0; he < half_edges.size(); ++he)
+  {
     mesh_half_edge_set::f_const_iterator fi(he,half_edges);
     if (fi->is_boundary())
+    {
       continue;
+    }
     const unsigned int vp = fi->vert_index();
     const unsigned int v = (++fi)->vert_index();
     const unsigned int vn = (++fi)->vert_index();
@@ -505,10 +526,14 @@ mesh
 ::compute_vertex_normals_from_faces()
 {
   if (!this->has_half_edges())
+  {
     this->build_edge_graph();
+  }
 
   if (!this->faces_->has_normals())
+  {
     this->compute_face_normals();
+  }
 
   const std::vector<vector_3d>& fnormals = faces_->normals();
 
@@ -517,10 +542,13 @@ mesh
 
   std::vector<vector_3d> normals(this->num_verts(), vector_3d(0,0,0));
 
-  for (unsigned int he=0; he < half_edges.size(); ++he) {
+  for (unsigned int he=0; he < half_edges.size(); ++he)
+  {
     const mesh_half_edge& half_edge = half_edges[he];
     if (half_edge.is_boundary())
+    {
       continue;
+    }
     const unsigned int v = half_edge.vert_index();
     normals[v] += fnormals[half_edge.face_index()].normalized();
   }
@@ -544,16 +572,20 @@ mesh
 
   std::vector<vector_3d> normals(this->num_faces(), vector_3d(0,0,0));
 
-  for (unsigned int i=0; i<faces.size(); ++i) {
+  for (unsigned int i=0; i<faces.size(); ++i)
+  {
     const unsigned int num_v = faces.num_verts(i);
     vector_3d& n = normals[i];
-    for (unsigned int j=2; j<num_v; ++j) {
+    for (unsigned int j=2; j<num_v; ++j)
+    {
       n += mesh_tri_normal(verts[faces(i,0)],
                             verts[faces(i,j-1)],
                             verts[faces(i,j)]);
     }
     if (norm)
+    {
       n.normalize();
+    }
   }
 
   faces.set_normals(normals);
@@ -585,7 +617,9 @@ mesh
 ::set_valid_tex_faces(const std::vector<bool>& valid)
 {
   if (valid.size() == this->num_faces() && has_tex_coords())
+  {
     valid_tex_faces_ = valid;
+  }
 }
 
 
