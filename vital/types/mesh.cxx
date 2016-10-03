@@ -145,7 +145,7 @@ mesh_face_array_base
   {
     // group any ungrouped faces in this array
     this->make_group("ungrouped");
-    unsigned int offset = this->size();
+    const unsigned int offset = this->size();
     for (unsigned int g=0; g<other.groups_.size(); ++g)
     {
       groups_.push_back(other.groups_[g]);
@@ -484,9 +484,9 @@ mesh
     mesh_half_edge_set::f_const_iterator fi(he,half_edges);
     if (fi->is_boundary())
       continue;
-    unsigned int vp = fi->vert_index();
-    unsigned int v = (++fi)->vert_index();
-    unsigned int vn = (++fi)->vert_index();
+    const unsigned int vp = fi->vert_index();
+    const unsigned int v = (++fi)->vert_index();
+    const unsigned int vn = (++fi)->vert_index();
     normals[v] += mesh_tri_normal(verts[v],verts[vn],verts[vp]).normalized();
   }
 
@@ -521,7 +521,7 @@ mesh
     const mesh_half_edge& half_edge = half_edges[he];
     if (half_edge.is_boundary())
       continue;
-    unsigned int v = half_edge.vert_index();
+    const unsigned int v = half_edge.vert_index();
     normals[v] += fnormals[half_edge.face_index()].normalized();
   }
 
@@ -568,9 +568,9 @@ mesh
   vector_2d tex(0,0);
   if (this->tex_coord_status_ == TEX_COORD_ON_VERT)
   {
-    unsigned int v1 = (*faces_)(tri,0);
-    unsigned int v2 = (*faces_)(tri,1);
-    unsigned int v3 = (*faces_)(tri,2);
+    const unsigned int v1 = (*faces_)(tri,0);
+    const unsigned int v2 = (*faces_)(tri,1);
+    const unsigned int v3 = (*faces_)(tri,2);
     tex += (1-u-v) * tex_coords_[v1];
     tex += u * tex_coords_[v2];
     tex += v * tex_coords_[v3];

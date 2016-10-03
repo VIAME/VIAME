@@ -112,7 +112,7 @@ read_mesh(const std::string& filename)
 {
   check_input_file(filename);
   std::ifstream input_stream(filename.c_str());
-  std::string ext = kwiversys::SystemTools::GetFilenameLastExtension(filename);
+  const std::string ext = kwiversys::SystemTools::GetFilenameLastExtension(filename);
   if (ext == ".ply2")
   {
     return read_ply2(input_stream);
@@ -563,13 +563,13 @@ write_kml_collada(std::ostream& os, const mesh& mesh)
   const unsigned int nverts = verts.size();
   const unsigned int nfaces = tris.size();
 
-  std::string geometry_id = "geometry";
-  std::string geometry_position_id = "geometry_position";
-  std::string geometry_position_array_id = "geometry_position_array";
-  std::string geometry_uv_id = "geometry_uv";
-  std::string geometry_uv_array_id = "geometry_uv_array";
-  std::string geometry_vertex_id = "geometry_vertex";
-  std::string geometry_normal_id = "geometry_normal";
+  const std::string geometry_id = "geometry";
+  const std::string geometry_position_id = "geometry_position";
+  const std::string geometry_position_array_id = "geometry_position_array";
+  const std::string geometry_uv_id = "geometry_uv";
+  const std::string geometry_uv_array_id = "geometry_uv_array";
+  const std::string geometry_vertex_id = "geometry_vertex";
+  const std::string geometry_normal_id = "geometry_normal";
 
   // Write the COLLADA XML
   os <<"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
