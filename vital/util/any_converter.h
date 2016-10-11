@@ -39,6 +39,7 @@
 
 #include <vector>
 #include <memory>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -56,6 +57,34 @@ any_converter<int> any_to_int;
 
 any_to_int.add_converter<uint8_t>();  // add converter from uint8_t;
 any_to_int.add_converter<float>();    // add converter from float;
+
+kwiver::vital::any ui8 = (uint8_t) 123;
+if ( any_to_int.can_convert( ui8 ) )
+{
+  any_to_int.convert( ui8 );
+}
+
+
+//
+// Custom converter
+//
+struct uuid_converter
+  : public kwiver::vital::any_converter<std::string>::convert_base< std::string >
+{
+  virtual bool can_convert( kwiver::vital::any const& data ) const
+  {
+    return data.type() == typeid( kwiver::vital::uuid );
+  }
+
+  virtual std::string convert( kwiver::vital::any const& data ) const
+  {
+    return  kwiver::vital::any_cast< kwiver::vital::uuid > ( data ).format();
+  }
+};
+
+any_converter<std::string> any_to_string;
+any_to_string.add_converter( new uuid_converter() );
+
 \endcode
  *
  */
@@ -69,7 +98,6 @@ public:
   struct convert_base
   {
     convert_base() { }
-
     virtual ~convert_base() { }
 
     virtual bool can_convert( kwiver::vital::any const& data ) const = 0;
@@ -82,10 +110,6 @@ public:
   struct converter
     : public convert_base< DEST >
   {
-    converter() { }
-
-    virtual ~converter() { }
-
     virtual bool can_convert( kwiver::vital::any const& data ) const
     {
       return data.type() == typeid( SRC );
@@ -97,6 +121,24 @@ public:
     }
   };
 
+
+  // ------------------------------------------------------------------
+  template < typename SRC >
+  struct converter<std::string, SRC>
+    : public convert_base< std::string >
+  {
+    virtual bool can_convert( kwiver::vital::any const& data ) const
+    {
+      return data.type() == typeid( SRC );
+    }
+
+    virtual std::string convert( kwiver::vital::any const& data ) const
+    {
+      std::stringstream str;
+      str << kwiver::vital::any_cast< SRC > ( data );
+      return str.str();
+    }
+  };
 
 #ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
   typedef std::unique_ptr< convert_base< T > > converter_ptr;
@@ -161,7 +203,7 @@ public:
     return false;
   }
 
-  /// Add converter based on from type.
+  /// Add converter based on convert-from type.
   /**
    * Adds a new converter that handles a specific source type. The
    * types (DEST and SRC) must be convertable, either implicitly or
@@ -173,6 +215,19 @@ public:
   void add_converter( )
   {
     m_converter_list.push_back( converter_ptr( new converter< T, SRC >() ) );
+  }
+
+  /// Add converter object.
+  /**
+   * Add a new converter object. The converter must be allocated from
+   * the heap and ownership of the object is assumed by the converter.
+   *
+   * @param conv Converter object.
+   */
+  template<typename SRC>
+  void add_converter( convert_base< SRC >* conv )
+  {
+    m_converter_list.push_back( converter_ptr( conv ) );
   }
 
 private:
