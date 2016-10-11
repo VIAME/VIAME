@@ -94,6 +94,13 @@ private:
   uuid_data_t m_uuid;
 }; // end class uuid
 
+
+inline std::ostream& operator<<( std::ostream& str, const uuid& obj)
+{
+  str << obj.format();
+  return str;
+}
+
 } } // end namespace
 
 #endif /* KWIVER_VITAL_TYPES_UUID_H */
