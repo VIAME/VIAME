@@ -35,6 +35,7 @@
 #if VITAL_USE_ABI_DEMANGLE
 
 #include <cxxabi.h>
+#include <cstdlib>
 
 #endif
 
