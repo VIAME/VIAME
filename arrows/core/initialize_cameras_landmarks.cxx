@@ -244,8 +244,8 @@ initialize_cameras_landmarks::priv
                                                           inliers.end(), true));
   if( this->verbose )
   {
-    std::cout << "E matrix num inliers = " << num_inliers
-              << "/" << inliers.size() << std::endl;
+    LOG_INFO(m_logger, "E matrix num inliers = " << num_inliers
+                       << "/" << inliers.size());
   }
 
   // get the first inlier index
@@ -508,9 +508,25 @@ initialize_cameras_landmarks
 
   d_->retriangulate_all = config->get_value<bool>("retriangulate_all",
                                                   d_->retriangulate_all);
+
+  d_->reverse_ba_error_ratio =
+      config->get_value<double>("reverse_ba_error_ratio",
+                                d_->reverse_ba_error_ratio);
+
   d_->next_frame_max_distance =
       config->get_value<unsigned int>("next_frame_max_distance",
                                       d_->next_frame_max_distance);
+
+  d_->global_ba_rate = config->get_value<double>("global_ba_rate",
+                                                 d_->global_ba_rate);
+
+  d_->interim_reproj_thresh =
+      config->get_value<double>("interim_reproj_thresh",
+                                d_->interim_reproj_thresh);
+
+  d_->final_reproj_thresh =
+      config->get_value<double>("final_reproj_thresh",
+                                d_->final_reproj_thresh);
 
   vital::config_block_sptr bc = config->subblock("base_camera");
   simple_camera_intrinsics K2(bc->get_value<double>("focal_length",
@@ -884,7 +900,7 @@ initialize_cameras_landmarks
       if( search_range < 1 )
       {
         f = next_best_frame(tracks, lms, new_frame_ids, d_->m_logger);
-    }
+      }
       else
       {
         std::set<frame_id_t> nearby;
@@ -1030,30 +1046,30 @@ initialize_cameras_landmarks
 
     if( d_->reverse_ba_error_ratio > 0 )
     {
-    // reverse cameras and optimize again
-    camera_map_sptr ba_cams2(new simple_camera_map(cams1));
-    landmark_map_sptr ba_lms2(new simple_landmark_map(lms1));
-    necker_reverse(ba_cams2, ba_lms2);
-    d_->lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
+      // reverse cameras and optimize again
+      camera_map_sptr ba_cams2(new simple_camera_map(cams1));
+      landmark_map_sptr ba_lms2(new simple_landmark_map(lms1));
+      necker_reverse(ba_cams2, ba_lms2);
+      d_->lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
       init_rmse = kwiver::arrows::reprojection_rmse(ba_cams2->cameras(), ba_lms2->landmarks(), trks);
       LOG_DEBUG(d_->m_logger, "Necker reversed initial reprojection RMSE: " << init_rmse);
       if( init_rmse < final_rmse1 * d_->reverse_ba_error_ratio )
       {
         LOG_INFO(d_->m_logger, "Running Necker reversed bundle adjustment for comparison");
-    d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks);
-    map_cam_t cams2 = ba_cams2->cameras();
-    map_landmark_t lms2 = ba_lms2->landmarks();
+        d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks);
+        map_cam_t cams2 = ba_cams2->cameras();
+        map_landmark_t lms2 = ba_lms2->landmarks();
         double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
         LOG_DEBUG(d_->m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
 
         if(final_rmse2 < final_rmse1)
-    {
+        {
           LOG_INFO(d_->m_logger, "Necker reversed solution is better");
-      cams = ba_cams2->cameras();
-      lms = ba_lms2->landmarks();
+          cams = ba_cams2->cameras();
+          lms = ba_lms2->landmarks();
         }
+      }
     }
-  }
 
     // if using bundle adjustment, remove landmarks with large error
     // after optimization
@@ -1063,7 +1079,7 @@ initialize_cameras_landmarks
                            << "/" << lms.size()
                            << " landmarks with RMSE > "
                            << d_->final_reproj_thresh);
-  remove_landmarks(to_remove, lms);
+    remove_landmarks(to_remove, lms);
   }
   cameras = camera_map_sptr(new simple_camera_map(cams));
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
