@@ -286,7 +286,7 @@ void
 process_config()
 {
   // Parse custom class color specification
-  // class/line-thickness/color-rgb;class/line-thickness/color-rgc
+  // class/line-thickness/color-rgb;class/line-thickness/color-rgb
   // e.g. person/3.5/0 0 255;
   {
     std::vector< std::string > cspec;
