@@ -381,7 +381,7 @@ read_obj(std::istream& is)
                 else
                 {
                   LOG_ERROR(logger, "improperly formed face line in OBJ: "<<line);
-                  return false;
+                  return mesh_sptr();
                 }
               }
             }
@@ -396,7 +396,7 @@ read_obj(std::istream& is)
               else
               {
                 LOG_ERROR(logger, "improperly formed face line in OBJ: "<<line);
-                return false;
+                return mesh_sptr();
               }
             }
           }
