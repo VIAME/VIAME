@@ -94,8 +94,14 @@ public:
   /// Convert an OpenCV cv::Mat to a VITAL image
   static vital::image ocv_to_vital(const cv::Mat& img);
 
+  /// Convert an OpenCV cv::Mat type value to a vital::image::pixel_traits_t
+  static vital::image::pixel_traits_t ocv_to_vital(int type);
+
   /// Convert a VITAL image to an OpenCV cv::Mat
   static cv::Mat vital_to_ocv(const vital::image& img);
+
+  /// Convert a vital::image::pixel_traits_t to an OpenCV cv::Mat type integer
+  static int vital_to_ocv(const vital::image::pixel_traits_t& pt);
 
 protected:
   /// image data

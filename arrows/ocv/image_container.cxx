@@ -77,9 +77,39 @@ image_container
 {
   image_memory_sptr memory(new mat_image_memory(img));
 
+  image::pixel_traits_t pt(img.elemSize1());
   return image(memory, img.data + (img.channels() == 3 ? 2 : 0),
-               img.cols, img.rows, img.channels(), img.elemSize1(),
-               img.elemSize(), img.step, (img.channels() == 3 ? -1 : 1));
+               img.cols, img.rows, img.channels(),
+               img.elemSize(), img.step, (img.channels() == 3 ? -1 : 1),
+               ocv_to_vital(img.type()));
+}
+
+
+/// Convert an OpenCV cv::Mat type value to a vital::image::pixel_traits_t
+vital::image::pixel_traits_t
+image_container
+::ocv_to_vital(int type)
+{
+  typedef vital::image::pixel_traits_t pixel_traits_t;
+  switch(type % 8)
+  {
+    case CV_8U:
+      return pixel_traits_t(false, true, 1);
+    case CV_8S:
+      return pixel_traits_t(true, true, 1);
+    case CV_16U:
+      return pixel_traits_t(false, true, 2);
+    case CV_16S:
+      return pixel_traits_t(true, true, 2);
+    case CV_32S:
+      return pixel_traits_t(true, true, 4);
+    case CV_32F:
+      return pixel_traits_t(true, false, 4);
+    case CV_64F:
+      return pixel_traits_t(true, false, 8);
+    default:
+      throw image_type_mismatch_exception("kwiver::arrows::ocv::image_container::ocv_to_vital(int)");
+  }
 }
 
 
@@ -88,7 +118,11 @@ cv::Mat
 image_container
 ::vital_to_ocv(const vital::image& img)
 {
-  // cv::Mat is limited in the image data layouts that it supports.
+  // Find the matching OpenCV matrix type or throw and exception if there is no
+  // compatible type
+  const int cv_type = vital_to_ocv(img.pixel_traits());
+
+  // cv::Mat is limited in the image data layouts and types that it supports.
   // Color channels must be reversed and interleaved (d_step==-1) and the
   // step between columns must equal the number of channels (w_step==depth).
   // If the image does not have these properties we must allocate
@@ -98,7 +132,7 @@ image_container
   {
     image_memory_sptr memory = img.memory();
     cv::Mat out(static_cast<int>(img.height()), static_cast<int>(img.width()),
-                CV_MAKETYPE(CV_8U, static_cast<int>(img.depth())),
+                CV_MAKETYPE(cv_type, static_cast<int>(img.depth())),
                 memory->data(), img.h_step());
 
     // if this VITAL image is already wrapping cv::Mat allocated data,
@@ -120,12 +154,47 @@ image_container
 
   // allocated a new cv::Mat
   cv::Mat out(static_cast<int>(img.height()), static_cast<int>(img.width()),
-              CV_MAKETYPE(CV_8U, static_cast<int>(img.depth())));
+              CV_MAKETYPE(cv_type, static_cast<int>(img.depth())));
   // wrap the new image as a VITAL image (always a shallow copy)
   image new_img = ocv_to_vital(out);
   new_img.copy_from(img);
 
   return out;
+}
+
+
+/// Convert a vital::image::pixel_traits_t to an OpenCV cv::Mat type integer
+int
+image_container
+::vital_to_ocv(const vital::image::pixel_traits_t& pt)
+{
+  if( pt.is_integer )
+  {
+    if( pt.num_bytes == 1 ) 
+    {
+      return pt.is_signed ? CV_8S : CV_8U;
+    }
+    if( pt.num_bytes == 2 )
+    {
+      return pt.is_signed ? CV_16S : CV_16U;
+    }
+    if( pt.num_bytes == 4 && pt.is_signed )
+    {
+      return CV_32S;
+    }
+  }
+  else if( pt.is_signed )
+  {
+    if( pt.num_bytes == 4 )
+    {
+      return CV_32F;
+    }
+    if( pt.num_bytes == 8 )
+    {
+      return CV_64F;
+    }
+  }
+  throw image_type_mismatch_exception("kwiver::arrows::ocv::image_container::vital_to_ocv(pixel_traits_t)");
 }
 
 
