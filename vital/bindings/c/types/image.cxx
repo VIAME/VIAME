@@ -91,7 +91,7 @@ vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
       for ( unsigned int w = 0; w < width; ++w )
       {
         int w_idx = w * w_step;
-        (*new_image)( w, h, d ) = first_pixel[ w_idx + h_idx + d_idx ];
+        new_image->at<unsigned char>( w, h, d ) = first_pixel[ w_idx + h_idx + d_idx ];
       }
     }
   }
@@ -126,7 +126,7 @@ int vital_image_get_pixel2( vital_image_t *image, unsigned i, unsigned j )
 {
   STANDARD_CATCH(
     "C::image::destroy", 0,
-    return reinterpret_cast<kwiver::vital::image*>( image )->operator()(i, j);
+    return reinterpret_cast<kwiver::vital::image*>( image )->at<unsigned char>(i, j);
   );
   return 0;
 }
@@ -136,7 +136,7 @@ int vital_image_get_pixel3( vital_image_t *image, unsigned i, unsigned j, unsign
 {
   STANDARD_CATCH(
     "C::image::destroy", 0,
-    return reinterpret_cast<kwiver::vital::image*>( image )->operator()(i, j, k);
+    return reinterpret_cast<kwiver::vital::image*>( image )->at<unsigned char>(i, j, k);
   );
   return 0;
 }
@@ -156,12 +156,14 @@ TYPE vital_image_ ## NAME( vital_image_t *image )                       \
 
 /// Get the number of bytes allocated in the given image
 ACCESSOR( size_t, size )
-ACCESSOR( vital_image_byte*, first_pixel )
+ACCESSOR( void*, first_pixel )
 ACCESSOR( size_t, width )
 ACCESSOR( size_t, height )
 ACCESSOR( size_t, depth )
+ACCESSOR( size_t, bytes_per_pixel )
 ACCESSOR( size_t, w_step )
 ACCESSOR( size_t, h_step )
 ACCESSOR( size_t, d_step )
+ACCESSOR( bool, is_contiguous )
 
 #undef ACCESSOR

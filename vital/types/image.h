@@ -39,6 +39,8 @@
 #include <vital/types/color.h>
 
 #include <vital/vital_export.h>
+#include <vital/vital_types.h>
+#include <vital/exceptions/image.h>
 
 #include <memory>
 #include <stdexcept>
@@ -118,7 +120,10 @@ class VITAL_EXPORT image
 public:
 
   /// Default Constructor
-  image();
+  /**
+   * \param bpp Change the number of bytes per pixel.
+   */
+  image(size_t bpp=1);
 
   /// Constructor that allocates image memory
   /**
@@ -127,9 +132,10 @@ public:
    * \param width Number of pixels in width
    * \param height Number of pixel rows
    * \param depth Number of image channels
+   * \param bpp Number of bytes per pixel
    * \param interleave Set if the pixels are interleaved
    */
-  image( size_t width, size_t height, size_t depth = 1, bool interleave = false );
+  image( size_t width, size_t height, size_t depth = 1, size_t bbp=1, bool interleave = false );
 
   /// Constructor that points at existing memory
   /**
@@ -142,30 +148,35 @@ public:
    * \param width Number of pixels wide
    * \param height Number of pixels high
    * \param depth Number of image channels
-   * \param w_step Byte increment to get to next pixel column
-   * \param h_step Byte increment to get to next pixel row
-   * \param d_step Byte increment to get to next image channel
+   * \param bpp Number of bytes per pixel
+   * \param w_step pointer increment to get to next pixel column
+   * \param h_step pointer increment to get to next pixel row
+   * \param d_step pointer increment to get to next image channel
    */
-  image( const byte* first_pixel, size_t width, size_t height, size_t depth,
+  image( const void* first_pixel,
+         size_t width, size_t height, size_t depth, size_t bpp,
          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
 
   /// Constructor that shares memory with another image
   /**
    * Create a new image from existing image.
    *
-   * \param mem Address of the first pixel in the image. This
+   * \param mem Shared memory block to be used
+   * \param first_pixel Address of the first pixel in the image. This
    * does not have to be the lowest memory address of the image
    * memory.
    *
    * \param width Number of pixels wide
    * \param height Number of pixels high
    * \param depth Number of image channels
-   * \param w_step Byte increment to get to next pixel column
-   * \param h_step Byte increment to get to next pixel row
-   * \param d_step Byte increment to get to next image channel
+   * \param bpp Number of bytes per pixel
+   * \param w_step pointer increment to get to next pixel column
+   * \param h_step pointer increment to get to next pixel row
+   * \param d_step pointer increment to get to next image channel
    */
   image( const image_memory_sptr& mem,
-         const byte* first_pixel, size_t width, size_t height, size_t depth,
+         const void* first_pixel,
+         size_t width, size_t height, size_t depth, size_t bpp,
          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
 
   /// Copy Constructor
@@ -196,14 +207,14 @@ public:
    * This may differ from \a data() if the image is a
    * window into a large image memory chunk.
    */
-  const byte* first_pixel() const { return first_pixel_; }
+  const void* first_pixel() const { return first_pixel_; }
 
   /// Access to the pointer to first image pixel
   /**
    * This may differ from \a data() if the image is a
    * window into a larger image memory chunk.
    */
-  byte* first_pixel() { return first_pixel_; }
+  void* first_pixel() { return first_pixel_; }
 
   /// The width of the image in pixels
   size_t width() const { return width_; }
@@ -214,6 +225,9 @@ public:
   /// The depth (or number of channels) of the image
   size_t depth() const { return depth_; }
 
+  /// The number of bytes per pixel
+  size_t bytes_per_pixel() const { return bytes_per_pixel_; }
+
   /// The the step in memory to next pixel in the width direction
   ptrdiff_t w_step() const { return w_step_; }
 
@@ -222,6 +236,205 @@ public:
 
   /// The the step in memory to next pixel in the depth direction
   ptrdiff_t d_step() const { return d_step_; }
+
+  /// Return true if the pixels accessible in this image form a contiguous memory block
+  bool is_contiguous() const;
+
+  /// Access pixels in the first channel of the image
+  /**
+   * \param i width position (x)
+   * \param j height position (y)
+   */
+  template <typename T>
+  inline T& at( unsigned i, unsigned j )
+  {
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned)");
+    }
+    return reinterpret_cast<T*>(first_pixel_)[w_step_ * i + h_step_ * j];
+  }
+
+
+  /// Const access pixels in the first channel of the image
+  template <typename T>
+  inline const T& at( unsigned i, unsigned j ) const
+  {
+    if( i >= width_ || j >= height_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned) const");
+    }
+    return reinterpret_cast<const T*>(first_pixel_)[w_step_ * i + h_step_ * j];
+  }
+
+
+  /// Access pixels in the image (width, height, channel)
+  template <typename T>
+  inline T& at( unsigned i, unsigned j, unsigned k )
+  {
+    if( i >= width_ || j >= height_ || k >= depth_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned, unsigned)");
+    }
+    return reinterpret_cast<T*>(first_pixel_)[w_step_ * i + h_step_ * j + d_step_ * k];
+  }
+
+
+  /// Const access pixels in the image (width, height, channel)
+  template <typename T>
+  inline const T& at( unsigned i, unsigned j, unsigned k ) const
+  {
+    if( i >= width_ || j >= height_ || k >= depth_ )
+    {
+      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned, unsigned) const");
+    }
+    return reinterpret_cast<const T*>(first_pixel_)[w_step_ * i + h_step_ * j + d_step_ * k];
+  }
+
+
+  /// Deep copy the image data from another image into this one
+  void copy_from( const image& other );
+
+  /// Set the size of the image.
+  /**
+   * If the size has not changed, do nothing.
+   * Otherwise, allocate new memory matching the new size.
+   * \param width a new image width
+   * \param height a new image height
+   * \param depth a new image depth
+   */
+  void set_size( size_t width, size_t height, size_t depth );
+
+
+protected:
+  /// Smart pointer to memory viewed by this class
+  image_memory_sptr data_;
+  /// Pointer to the pixel at the origin
+  void* first_pixel_;
+  /// The number of bytes to represent each pixel
+  size_t bytes_per_pixel_;
+  /// Width of the image
+  size_t width_;
+  /// Height of the image
+  size_t height_;
+  /// Depth of the image (i.e. number of channels)
+  size_t depth_;
+  /// Increment to move to the next pixel along the width direction
+  ptrdiff_t w_step_;
+  /// Increment to move to the next pixel along the height direction
+  ptrdiff_t h_step_;
+  /// Increment to move to the next pixel along the depth direction
+  ptrdiff_t d_step_;
+};
+
+
+// ==================================================================
+/// The representation of an in-memory image.
+/**
+ * Images share memory using the image_memory class.  This is
+ * effectively a view on an image.
+ */
+template <typename T>
+class VITAL_EXPORT image_of : public image
+{
+public:
+  /// Convenience typedef for the size of a byte
+  typedef unsigned char byte;
+
+  /// Default Constructor
+  image_of()
+  : image(sizeof(T)) {}
+
+  /// Constructor that allocates image memory
+  /**
+   * Create a new blank (empty) image of specified size.
+   *
+   * \param width Number of pixels in width
+   * \param height Number of pixel rows
+   * \param depth Number of image channels
+   * \param interleave Set if the pixels are interleaved
+   */
+  image_of( size_t width, size_t height, size_t depth = 1, bool interleave = false )
+  : image( width, height, depth, sizeof(T), interleave ) {}
+
+  /// Constructor that points at existing memory
+  /**
+   * Create a new image from supplied memory.
+   *
+   * \param first_pixel Address of the first pixel in the image. This
+   * does not have to be the lowest memory address of the image
+   * memory.
+   *
+   * \param width Number of pixels wide
+   * \param height Number of pixels high
+   * \param depth Number of image channels
+   * \param w_step pointer increment to get to next pixel column
+   * \param h_step pointer increment to get to next pixel row
+   * \param d_step pointer increment to get to next image channel
+   */
+  image_of( const T* first_pixel, size_t width, size_t height, size_t depth,
+            ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
+  : image( first_pixel, width, height, depth, sizeof(T),
+           w_step, h_step, d_step ) {}
+
+  /// Constructor that shares memory with another image
+  /**
+   * Create a new image from existing image.
+   *
+   * \param mem Address of the first pixel in the image. This
+   * does not have to be the lowest memory address of the image
+   * memory.
+   *
+   * \param width Number of pixels wide
+   * \param height Number of pixels high
+   * \param depth Number of image channels
+   * \param w_step pointer increment to get to next pixel column
+   * \param h_step pointer increment to get to next pixel row
+   * \param d_step pointer increment to get to next image channel
+   */
+  image_of( const image_memory_sptr& mem,
+            const T* first_pixel, size_t width, size_t height, size_t depth,
+            ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
+  : image( mem, first_pixel, width, height, depth, sizeof(T),
+           w_step, h_step, d_step ) {}
+
+  /// Constructor from base class
+  /**
+   * The new image will share the same memory as the old image
+   * \param other The other image.
+   */
+  explicit image_of( const image_of<T>& other )
+  : image(other)
+  {
+    if ( other.bytes_per_pixel() != sizeof(T) )
+    {
+      throw image_type_mismatch_exception("kwiver::vital::image_of<T>(kwiver::vital::image)");
+    }
+  }
+
+  /// Assignment operator
+  const image_of<T>& operator=( const image& other )
+  {
+    if ( other.bytes_per_pixel() != sizeof(T) )
+    {
+      throw image_type_mismatch_exception("kwiver::vital::image_of<T>::operator=(kwiver::vital::image)");
+    }
+    return image::operator=(other);
+  }
+
+  /// Const access to the pointer to first image pixel
+  /**
+   * This may differ from \a data() if the image is a
+   * window into a large image memory chunk.
+   */
+  const T* first_pixel() const { return reinterpret_cast<const T*>(first_pixel_); }
+
+  /// Access to the pointer to first image pixel
+  /**
+   * This may differ from \a data() if the image is a
+   * window into a larger image memory chunk.
+   */
+  byte* first_pixel() { return reinterpret_cast<T*>(first_pixel_); }
 
   /// Const access pixels in the image
   /**
@@ -260,80 +473,31 @@ public:
    * \param i width position (x)
    * \param j height position (y)
    */
-  inline byte& operator()( unsigned i, unsigned j )
+  inline T& operator()( unsigned i, unsigned j )
   {
-    if( i >= width_ || j >= height_ )
-    {
-      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned)");
-    }
-    return first_pixel_[w_step_ * i + h_step_ * j];
+    return image::at<T>(i,j);
   }
 
 
   /// Const access pixels in the first channel of the image
   inline const byte& operator()( unsigned i, unsigned j ) const
   {
-    if( i >= width_ || j >= height_ )
-    {
-      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned) const");
-    }
-    return first_pixel_[w_step_ * i + h_step_ * j];
+    return image::at<T>(i,j);
   }
 
 
   /// Access pixels in the image (width, height, channel)
   inline byte& operator()( unsigned i, unsigned j, unsigned k )
   {
-    if( i >= width_ || j >= height_ || k >= depth_ )
-    {
-      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned, unsigned)");
-    }
-    return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
+    return image::at<T>(i,j,k);
   }
 
 
   /// Const access pixels in the image (width, height, channel)
   inline const byte& operator()( unsigned i, unsigned j, unsigned k ) const
   {
-    if( i >= width_ || j >= height_ || k >= depth_ )
-    {
-      throw std::out_of_range("kwiver::vital::image::operator()(unsigned, unsigned, unsigned) const");
-    }
-    return first_pixel_[w_step_ * i + h_step_ * j + d_step_ * k];
+    return image::at<T>(i,j,k);
   }
-
-
-  /// Deep copy the image data from another image into this one
-  void copy_from( const image& other );
-
-  /// Set the size of the image.
-  /**
-   * If the size has not changed, do nothing.
-   * Otherwise, allocate new memory matching the new size.
-   * \param width a new image width
-   * \param height a new image height
-   * \param depth a new image depth
-   */
-  void set_size( size_t width, size_t height, size_t depth );
-
-
-protected:
-  /// Smart pointer to memory viewed by this class
-  image_memory_sptr data_;
-  /// Pointer to the pixel at the origin
-  byte* first_pixel_;
-  /// Width of the image
-  size_t width_;
-  /// Height of the image
-  size_t height_;
-  /// Depth of the image (i.e. number of channels)
-  size_t depth_;
-  /// Increment to move to the next pixel along the width direction
-  ptrdiff_t w_step_;
-  /// Increment to move to the next pixel along the height direction
-  ptrdiff_t h_step_;
-  /// Increment to move to the next pixel along the depth direction
-  ptrdiff_t d_step_;
 
 };
 
@@ -382,8 +546,8 @@ kwiver::vital::transform_image( mask_img, multiply_by( 5 ) );
  * \param img Input image reference to transform the data of
  * \param op Unary function which takes a const byte& and returns a byte
  */
-VITAL_EXPORT void transform_image( image& img,
-                                   image::byte ( * op )( image::byte const& ) );
+VITAL_EXPORT void transform_image( image_of<byte>& img,
+                                   byte ( * op )( byte const& ) );
 
 
 } }   // end namespace vital

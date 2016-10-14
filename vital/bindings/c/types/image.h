@@ -103,31 +103,39 @@ size_t vital_image_size( vital_image_t* image );
 
 /// Get first pixel address
 VITAL_C_EXPORT
-vital_image_byte* vital_image_first_pixel( vital_image_t* image );
+void* vital_image_first_pixel( vital_image_t* image );
 
 /// Get image width
 VITAL_C_EXPORT
-size_t vital_image_width(  vital_image_t* image );
+size_t vital_image_width( vital_image_t* image );
 
 /// Get image height
 VITAL_C_EXPORT
-size_t vital_image_height(  vital_image_t* image );
+size_t vital_image_height( vital_image_t* image );
 
 /// Get image depth
 VITAL_C_EXPORT
-size_t vital_image_depth(  vital_image_t* image );
+size_t vital_image_depth( vital_image_t* image );
+
+/// Get image depth
+VITAL_C_EXPORT
+size_t vital_image_bytes_per_pixel( vital_image_t* image );
 
 /// Get image w_step
 VITAL_C_EXPORT
-size_t vital_image_w_step(  vital_image_t* image );
+size_t vital_image_w_step( vital_image_t* image );
 
 /// Get image h_step
 VITAL_C_EXPORT
-size_t vital_image_h_step(  vital_image_t* image );
+size_t vital_image_h_step( vital_image_t* image );
 
 /// Get image d_step
 VITAL_C_EXPORT
-size_t vital_image_d_step(  vital_image_t* image );
+size_t vital_image_d_step( vital_image_t* image );
+
+/// Get image d_step
+VITAL_C_EXPORT
+bool vital_image_is_contiguous( vital_image_t* image );
 
 VITAL_C_EXPORT
 int vital_image_get_pixel2( vital_image_t *image, unsigned i, unsigned j );
