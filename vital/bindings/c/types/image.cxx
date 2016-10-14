@@ -59,7 +59,9 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
   STANDARD_CATCH(
     "C::image:new_with_dim", 0,
     return reinterpret_cast<vital_image_t*>(
-      new kwiver::vital::image( width, height, depth, interleave )
+      new kwiver::vital::image( width, height, depth,
+                                kwiver::vital::image::pixel_traits_t(),
+                                interleave )
       );
   );
   return 0;
@@ -154,16 +156,34 @@ TYPE vital_image_ ## NAME( vital_image_t *image )                       \
   return 0;                                                             \
 }
 
-/// Get the number of bytes allocated in the given image
 ACCESSOR( size_t, size )
 ACCESSOR( void*, first_pixel )
 ACCESSOR( size_t, width )
 ACCESSOR( size_t, height )
 ACCESSOR( size_t, depth )
-ACCESSOR( size_t, bytes_per_pixel )
 ACCESSOR( size_t, w_step )
 ACCESSOR( size_t, h_step )
 ACCESSOR( size_t, d_step )
 ACCESSOR( bool, is_contiguous )
 
 #undef ACCESSOR
+
+//
+// A little shortcut for defining pixel traits accessors
+//
+#define PT_ACCESSOR( TYPE, NAME )                                       \
+TYPE vital_image_pixel_ ## NAME( vital_image_t *image )                 \
+{                                                                       \
+  STANDARD_CATCH(                                                       \
+    "C::image::pixel_format_t::" # NAME, 0,                             \
+    return reinterpret_cast<kwiver::vital::image*>(image)               \
+             ->pixel_traits().NAME;                                     \
+  );                                                                    \
+  return 0;                                                             \
+}
+
+PT_ACCESSOR( size_t, num_bytes )
+PT_ACCESSOR( bool, is_signed )
+PT_ACCESSOR( bool, is_integer )
+
+#undef PT_ACCESSOR

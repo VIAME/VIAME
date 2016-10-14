@@ -117,9 +117,17 @@ size_t vital_image_height( vital_image_t* image );
 VITAL_C_EXPORT
 size_t vital_image_depth( vital_image_t* image );
 
-/// Get image depth
+/// Get number of bytes in a pixel
 VITAL_C_EXPORT
-size_t vital_image_bytes_per_pixel( vital_image_t* image );
+size_t vital_image_pixel_num_bytes( vital_image_t* image );
+
+/// Return true if the pixel data type is signed
+VITAL_C_EXPORT
+bool vital_image_pixel_is_signed( vital_image_t* image );
+
+/// Return true if the pixel data type is integer
+VITAL_C_EXPORT
+bool vital_image_pixel_is_integer( vital_image_t* image );
 
 /// Get image w_step
 VITAL_C_EXPORT

@@ -121,9 +121,20 @@ public:
   /// A struct containing traits of the data type stored at each pixel
   struct pixel_traits_t
   {
-    /// Constructor
-    pixel_traits_t(bool is_s=false, bool is_i=true, size_t num_b=1)
-    : is_signed(), is_integer(is_i), num_bytes(num_b) {}
+    /// Constructor - defaults to unsigned char (uint8) traits
+    explicit pixel_traits_t( bool is_s=false, bool is_i=true, size_t num_b=1 )
+    : is_signed(is_s), is_integer(is_i), num_bytes(num_b) {}
+
+    /// Equality operator
+    bool operator==( const pixel_traits_t& other ) const
+    {
+      return this->is_signed  == other.is_signed &&
+             this->is_integer == other.is_integer &&
+             this->num_bytes  == other.num_bytes;
+    }
+
+    /// Inequality operator
+    bool operator!=( const pixel_traits_t& other ) const { return !(*this == other); }
 
     /// is the data type signed (otherwise unsigned)
     bool is_signed;
@@ -136,9 +147,9 @@ public:
 
   /// Default Constructor
   /**
-   * \param bpp Change the number of bytes per pixel.
+   * \param pt Change the pixel traits of the image
    */
-  image(size_t bpp=1);
+  image( const pixel_traits_t& pt=pixel_traits_t() );
 
   /// Constructor that allocates image memory
   /**
@@ -147,10 +158,12 @@ public:
    * \param width Number of pixels in width
    * \param height Number of pixel rows
    * \param depth Number of image channels
-   * \param bpp Number of bytes per pixel
+   * \param pt data type traits of the image pixels
    * \param interleave Set if the pixels are interleaved
    */
-  image( size_t width, size_t height, size_t depth = 1, size_t bbp=1, bool interleave = false );
+  image( size_t width, size_t height, size_t depth = 1,
+         const pixel_traits_t& pt=pixel_traits_t(),
+         bool interleave = false );
 
   /// Constructor that points at existing memory
   /**
@@ -163,14 +176,15 @@ public:
    * \param width Number of pixels wide
    * \param height Number of pixels high
    * \param depth Number of image channels
-   * \param bpp Number of bytes per pixel
    * \param w_step pointer increment to get to next pixel column
    * \param h_step pointer increment to get to next pixel row
    * \param d_step pointer increment to get to next image channel
+   * \param pt data type traits of the image pixels
    */
   image( const void* first_pixel,
-         size_t width, size_t height, size_t depth, size_t bpp,
-         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
+         size_t width, size_t height, size_t depth,
+         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step,
+         const pixel_traits_t& pt=pixel_traits_t() );
 
   /// Constructor that shares memory with another image
   /**
@@ -184,15 +198,16 @@ public:
    * \param width Number of pixels wide
    * \param height Number of pixels high
    * \param depth Number of image channels
-   * \param bpp Number of bytes per pixel
    * \param w_step pointer increment to get to next pixel column
    * \param h_step pointer increment to get to next pixel row
    * \param d_step pointer increment to get to next image channel
+   * \param pt data type traits of the image pixels
    */
   image( const image_memory_sptr& mem,
          const void* first_pixel,
-         size_t width, size_t height, size_t depth, size_t bpp,
-         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step );
+         size_t width, size_t height, size_t depth,
+         ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step,
+         const pixel_traits_t& pt=pixel_traits_t() );
 
   /// Copy Constructor
   /**
@@ -240,8 +255,8 @@ public:
   /// The depth (or number of channels) of the image
   size_t depth() const { return depth_; }
 
-  /// The number of bytes per pixel
-  size_t bytes_per_pixel() const { return bytes_per_pixel_; }
+  /// The trait of the pixel data type
+  const pixel_traits_t& pixel_traits() const { return pixel_traits_; }
 
   /// The the step in memory to next pixel in the width direction
   ptrdiff_t w_step() const { return w_step_; }
@@ -326,8 +341,8 @@ protected:
   image_memory_sptr data_;
   /// Pointer to the pixel at the origin
   void* first_pixel_;
-  /// The number of bytes to represent each pixel
-  size_t bytes_per_pixel_;
+  /// The traits of each pixel data type
+  pixel_traits_t pixel_traits_;
   /// Width of the image
   size_t width_;
   /// Height of the image
@@ -353,12 +368,20 @@ template <typename T>
 class VITAL_EXPORT image_of : public image
 {
 public:
-  /// Convenience typedef for the size of a byte
-  typedef unsigned char byte;
+  /// A struct containing traits of the data type stored at each pixel
+  struct pixel_traits_t : public image::pixel_traits_t
+  {
+    /// Constructor
+    pixel_traits_t()
+      : image::pixel_traits_t(std::numeric_limits<T>::is_signed,
+                              std::numeric_limits<T>::is_integer,
+                              sizeof(T)) {}
+  };
+
 
   /// Default Constructor
   image_of()
-  : image(sizeof(T)) {}
+  : image(pixel_traits_t()) {}
 
   /// Constructor that allocates image memory
   /**
@@ -370,7 +393,7 @@ public:
    * \param interleave Set if the pixels are interleaved
    */
   image_of( size_t width, size_t height, size_t depth = 1, bool interleave = false )
-  : image( width, height, depth, sizeof(T), interleave ) {}
+  : image( width, height, depth, pixel_traits_t(), interleave ) {}
 
   /// Constructor that points at existing memory
   /**
@@ -389,8 +412,8 @@ public:
    */
   image_of( const T* first_pixel, size_t width, size_t height, size_t depth,
             ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
-  : image( first_pixel, width, height, depth, sizeof(T),
-           w_step, h_step, d_step ) {}
+  : image( first_pixel, width, height, depth,
+           w_step, h_step, d_step, pixel_traits_t() ) {}
 
   /// Constructor that shares memory with another image
   /**
@@ -410,8 +433,8 @@ public:
   image_of( const image_memory_sptr& mem,
             const T* first_pixel, size_t width, size_t height, size_t depth,
             ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
-  : image( mem, first_pixel, width, height, depth, sizeof(T),
-           w_step, h_step, d_step ) {}
+  : image( mem, first_pixel, width, height, depth,
+           w_step, h_step, d_step, pixel_traits_t() ) {}
 
   /// Constructor from base class
   /**
@@ -421,7 +444,7 @@ public:
   explicit image_of( const image_of<T>& other )
   : image(other)
   {
-    if ( other.bytes_per_pixel() != sizeof(T) )
+    if ( other.pixel_traits != pixel_traits_t() )
     {
       throw image_type_mismatch_exception("kwiver::vital::image_of<T>(kwiver::vital::image)");
     }
@@ -430,7 +453,7 @@ public:
   /// Assignment operator
   const image_of<T>& operator=( const image& other )
   {
-    if ( other.bytes_per_pixel() != sizeof(T) )
+    if ( other.pixel_traits() != pixel_traits_t() )
     {
       throw image_type_mismatch_exception("kwiver::vital::image_of<T>::operator=(kwiver::vital::image)");
     }
@@ -449,7 +472,7 @@ public:
    * This may differ from \a data() if the image is a
    * window into a larger image memory chunk.
    */
-  byte* first_pixel() { return reinterpret_cast<T*>(first_pixel_); }
+  T* first_pixel() { return reinterpret_cast<T*>(first_pixel_); }
 
   /// Const access pixels in the image
   /**

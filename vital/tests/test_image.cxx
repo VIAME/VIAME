@@ -84,9 +84,10 @@ IMPLEMENT_TEST(default_constructor)
   {
     TEST_ERROR("The default image is not empty");
   }
-  if (img.bytes_per_pixel() != 1)
+  const kwiver::vital::image::pixel_traits_t& pt = img.pixel_traits();
+  if (pt.num_bytes != 1 || pt.is_signed || !pt.is_integer)
   {
-    TEST_ERROR("Default image constructor should use one byte per pixel");
+    TEST_ERROR("Default image constructor should use unsigned char pixel traits");
   }
 }
 
@@ -102,7 +103,7 @@ IMPLEMENT_TEST(constructor)
       TEST_ERROR("Constructed image does not have correct dimensions");
     }
 
-    if (img.bytes_per_pixel() != 1)
+    if (img.pixel_traits().num_bytes != 1)
     {
       TEST_ERROR("Constructed image was expected to have one byte per pixel");
     }
@@ -121,7 +122,7 @@ IMPLEMENT_TEST(constructor)
       TEST_ERROR("Constructed image does not have correct dimensions");
     }
 
-    if (img.bytes_per_pixel() != 1)
+    if (img.pixel_traits().num_bytes != 1)
     {
       TEST_ERROR("Constructed image was expected to have one byte per pixel");
     }
@@ -132,7 +133,7 @@ IMPLEMENT_TEST(constructor)
     }
   }
   {
-    kwiver::vital::image img(200,300,3,sizeof(double));
+    kwiver::vital::image_of<double> img(200,300,3);
     if (img.width() != 200  ||
         img.height() != 300 ||
         img.depth() != 3 )
@@ -140,9 +141,17 @@ IMPLEMENT_TEST(constructor)
       TEST_ERROR("Constructed image does not have correct dimensions");
     }
 
-    if (img.bytes_per_pixel() != sizeof(double))
+    if (img.pixel_traits().num_bytes != sizeof(double))
     {
       TEST_ERROR("Constructed image was expected to have sizeof(double) bytes per pixel");
+    }
+    if (img.pixel_traits().is_integer)
+    {
+      TEST_ERROR("Constructed double image was expected to have non-integer values");
+    }
+    if (!img.pixel_traits().is_signed)
+    {
+      TEST_ERROR("Constructed double image was expected to have signed values");
     }
 
     if (img.size() != 200*300*3*sizeof(double))
@@ -156,17 +165,17 @@ IMPLEMENT_TEST(constructor)
 
 IMPLEMENT_TEST(copy_constructor)
 {
-  kwiver::vital::image img(100,75,2,4);
+  kwiver::vital::image_of<int> img(100,75,2);
   kwiver::vital::image img_cpy(img);
-  if (img.width()            != img_cpy.width()  ||
-      img.height()           != img_cpy.height() ||
-      img.depth()            != img_cpy.depth()  ||
-      img.bytes_per_pixel()  != img_cpy.bytes_per_pixel()  ||
-      img.w_step()           != img_cpy.w_step() ||
-      img.h_step()           != img_cpy.h_step() ||
-      img.d_step()           != img_cpy.d_step() ||
-      img.first_pixel()      != img_cpy.first_pixel() ||
-      img.memory()           != img_cpy.memory() )
+  if (img.width()         != img_cpy.width()  ||
+      img.height()        != img_cpy.height() ||
+      img.depth()         != img_cpy.depth()  ||
+      img.pixel_traits()  != img_cpy.pixel_traits()  ||
+      img.w_step()        != img_cpy.w_step() ||
+      img.h_step()        != img_cpy.h_step() ||
+      img.d_step()        != img_cpy.d_step() ||
+      img.first_pixel()   != reinterpret_cast<const int*>(img_cpy.first_pixel()) ||
+      img.memory()        != img_cpy.memory() )
   {
     TEST_ERROR("Copy constructed image does not match original");
   }
@@ -208,18 +217,19 @@ IMPLEMENT_TEST(is_contiguous)
   TEST_EQUAL("Basic constructor should produce contiguous image",
              img.is_contiguous(), true);
 
-  img = kwiver::vital::image(w,h,d,1,true);
+  typedef kwiver::vital::image::pixel_traits_t pixel_traits_t;
+  img = kwiver::vital::image(w, h, d, pixel_traits_t(), true);
   TEST_EQUAL("Interleaved image is contiguous",
              img.is_contiguous(), true);
 
   // a view using every other row of a larger image
   auto mem = std::make_shared<kwiver::vital::image_memory>(w*h*d*2);
-  img = kwiver::vital::image(mem, mem->data(), w, h, d, 1,
+  img = kwiver::vital::image(mem, mem->data(), w, h, d,
                              1, 2*w, 2*w*h);
   TEST_EQUAL("View of image skipping rows should be non-contiguous",
              img.is_contiguous(), false);
 
-  img = kwiver::vital::image(mem, mem->data(), w, h, d, 1,
+  img = kwiver::vital::image(mem, mem->data(), w, h, d,
                              d, 2*w*d, 1);
   TEST_EQUAL("View of interleaved image skipping rows should be non-contiguous",
              img.is_contiguous(), false);
