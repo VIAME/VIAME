@@ -118,6 +118,21 @@ typedef std::shared_ptr< image_memory > image_memory_sptr;
 class VITAL_EXPORT image
 {
 public:
+  /// A struct containing traits of the data type stored at each pixel
+  struct pixel_traits_t
+  {
+    /// Constructor
+    pixel_traits_t(bool is_s=false, bool is_i=true, size_t num_b=1)
+    : is_signed(), is_integer(is_i), num_bytes(num_b) {}
+
+    /// is the data type signed (otherwise unsigned)
+    bool is_signed;
+    /// is the data type integer (otherwise floating point)
+    bool is_integer;
+    /// the number of bytes need to represent pixel data
+    size_t num_bytes;
+  };
+
 
   /// Default Constructor
   /**
