@@ -99,9 +99,9 @@ image_container
     memory = vital::image_memory_sptr(new vil_image_memory(chunk));
   }
 
-  return vital::image(memory, img.top_left_ptr(),
-               img.ni(), img.nj(), img.nplanes(),
-               img.istep(), img.jstep(), img.planestep());
+  return vital::image_of<vital::byte>(memory, img.top_left_ptr(),
+                                      img.ni(), img.nj(), img.nplanes(),
+                                      img.istep(), img.jstep(), img.planestep());
 }
 
 
@@ -128,7 +128,7 @@ image_container
     chunk = new image_memory_chunk(memory);
   }
 
-  return vil_image_view<vxl_byte>(chunk, img.first_pixel(),
+  return vil_image_view<vxl_byte>(chunk, reinterpret_cast<const vxl_byte*>(img.first_pixel()),
                                   static_cast<unsigned int>(img.width()),
                                   static_cast<unsigned int>(img.height()),
                                   static_cast<unsigned int>(img.depth()),

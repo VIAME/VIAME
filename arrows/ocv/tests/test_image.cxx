@@ -75,7 +75,7 @@ IMPLEMENT_TEST(factory)
 IMPLEMENT_TEST(image_convert)
 {
   using namespace kwiver::arrows;
-  kwiver::vital::image img(200,300,3);
+  kwiver::vital::image_of<byte> img(200,300,3);
   for( unsigned int p=0; p<img.depth(); ++p )
   {
     for( unsigned int j=0; j<img.height(); ++j )

@@ -78,7 +78,7 @@ image_container
   image_memory_sptr memory(new mat_image_memory(img));
 
   return image(memory, img.data + (img.channels() == 3 ? 2 : 0),
-               img.cols, img.rows, img.channels(),
+               img.cols, img.rows, img.channels(), img.elemSize1(),
                img.elemSize(), img.step, (img.channels() == 3 ? -1 : 1));
 }
 
