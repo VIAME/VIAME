@@ -32,9 +32,8 @@
 #include <test_scene.h>
 #include <test_triangulate_landmarks.h>
 
-#include <vital/algorithm_plugin_manager.h>
-
 #include <arrows/core/triangulate_landmarks.h>
+#include <arrows/core/register_algorithms.h>
 
 
 #define TEST_ARGS ()
@@ -48,8 +47,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  // locate all plugins
-  kwiver::vital::algorithm_plugin_manager::instance().register_plugins();
+  kwiver::arrows::core::register_algorithms();
 
   RUN_TEST(testname);
 }
