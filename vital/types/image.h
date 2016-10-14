@@ -116,8 +116,6 @@ typedef std::shared_ptr< image_memory > image_memory_sptr;
 class VITAL_EXPORT image
 {
 public:
-  /// Convenience typedef for the size of a byte
-  typedef unsigned char byte;
 
   /// Default Constructor
   image();
