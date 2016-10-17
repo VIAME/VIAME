@@ -44,6 +44,7 @@
 #include <vital/vital_foreach.h>
 #include <kwiversys/CommandLineArguments.hxx>
 
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <string>
