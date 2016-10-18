@@ -518,21 +518,21 @@ public:
 
 
   /// Const access pixels in the first channel of the image
-  inline const byte& operator()( unsigned i, unsigned j ) const
+  inline const T& operator()( unsigned i, unsigned j ) const
   {
     return image::at<T>(i,j);
   }
 
 
   /// Access pixels in the image (width, height, channel)
-  inline byte& operator()( unsigned i, unsigned j, unsigned k )
+  inline T& operator()( unsigned i, unsigned j, unsigned k )
   {
     return image::at<T>(i,j,k);
   }
 
 
   /// Const access pixels in the image (width, height, channel)
-  inline const byte& operator()( unsigned i, unsigned j, unsigned k ) const
+  inline const T& operator()( unsigned i, unsigned j, unsigned k ) const
   {
     return image::at<T>(i,j,k);
   }
