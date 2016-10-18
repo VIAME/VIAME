@@ -143,7 +143,8 @@ main( int argc, char* argv[] )
   typedef kwiversys::CommandLineArguments argT;
 
   arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "--plugin-name", argT::SPACE_ARGUMENT, &plugin_name, "Display usage information" );
+  arg.AddArgument( "-h",            argT::NO_ARGUMENT, &opt_help, "Display usage information" );
+  arg.AddArgument( "--plugin-name", argT::SPACE_ARGUMENT, &plugin_name, "Optional name of single plugin to display." );
   arg.AddArgument( "--detail",      argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
   arg.AddArgument( "-d",            argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
   arg.AddArgument( "--config",      argT::NO_ARGUMENT, &opt_config, "Display configuration information needed by plugins" );
