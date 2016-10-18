@@ -116,7 +116,7 @@ image_memory
 
 /// Default Constructor
 image
-::image(const pixel_traits_t& pt)
+::image(const image_pixel_traits& pt)
   : data_(),
     first_pixel_( NULL ),
     pixel_traits_( pt ),
@@ -133,7 +133,7 @@ image
 /// Constructor that allocates image memory
 image
 ::image( size_t width, size_t height, size_t depth,
-         const pixel_traits_t& pt, bool interleave )
+         bool interleave, const image_pixel_traits& pt)
   : data_( new image_memory( width * height * depth * pt.num_bytes) ),
     first_pixel_( data_->data() ),
     pixel_traits_( pt ),
@@ -158,7 +158,7 @@ image
 ::image( const void* first_pixel,
          size_t width, size_t height, size_t depth,
          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step,
-         const pixel_traits_t& pt )
+         const image_pixel_traits& pt )
   : data_(),
     first_pixel_( const_cast< void* > ( first_pixel ) ),
     pixel_traits_( pt ),
@@ -178,7 +178,7 @@ image
          const void* first_pixel,
          size_t width, size_t height, size_t depth,
          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step,
-         const pixel_traits_t& pt)
+         const image_pixel_traits& pt)
   : data_( mem ),
     first_pixel_( const_cast< void* > ( first_pixel ) ),
     pixel_traits_( pt ),
@@ -357,7 +357,7 @@ equal_content( const image& img1, const image& img2 )
   const size_t width = img1.width();
   const size_t height = img1.height();
   const size_t depth = img1.depth();
-  const image::pixel_traits_t& pt = img1.pixel_traits();
+  const image_pixel_traits& pt = img1.pixel_traits();
   if ( ( width  != img2.width() ) ||
        ( height != img2.height() ) ||
        ( depth  != img2.depth() ) ||

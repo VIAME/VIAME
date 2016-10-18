@@ -52,6 +52,13 @@ typedef unsigned char vital_image_byte;
 /// VITAL Image opaque structure
 typedef struct vital_image_s vital_image_t;
 
+/// Enum for different pixel types in an image
+enum vital_image_pixel_type_t {VITAL_PIXEL_UNKNOWN = 0,
+                               VITAL_PIXEL_UNSIGNED = 1,
+                               VITAL_PIXEL_SIGNED = 2,
+                               VITAL_PIXEL_FLOAT = 3,
+                               VITAL_PIXEL_BOOL = 4};
+
 
 /// Create a new, empty image
 VITAL_C_EXPORT
@@ -121,13 +128,9 @@ size_t vital_image_depth( vital_image_t* image );
 VITAL_C_EXPORT
 size_t vital_image_pixel_num_bytes( vital_image_t* image );
 
-/// Return true if the pixel data type is signed
+/// Return the type enum of a pixel
 VITAL_C_EXPORT
-bool vital_image_pixel_is_signed( vital_image_t* image );
-
-/// Return true if the pixel data type is integer
-VITAL_C_EXPORT
-bool vital_image_pixel_is_integer( vital_image_t* image );
+vital_image_pixel_type_t vital_image_pixel_type( vital_image_t* image );
 
 /// Get image w_step
 VITAL_C_EXPORT

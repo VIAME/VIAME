@@ -60,7 +60,6 @@ vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
     "C::image:new_with_dim", 0,
     return reinterpret_cast<vital_image_t*>(
       new kwiver::vital::image( width, height, depth,
-                                kwiver::vital::image::pixel_traits_t(),
                                 interleave )
       );
   );
@@ -175,15 +174,15 @@ ACCESSOR( bool, is_contiguous )
 TYPE vital_image_pixel_ ## NAME( vital_image_t *image )                 \
 {                                                                       \
   STANDARD_CATCH(                                                       \
-    "C::image::pixel_format_t::" # NAME, 0,                             \
-    return reinterpret_cast<kwiver::vital::image*>(image)               \
-             ->pixel_traits().NAME;                                     \
+    "C::image::pixel_format::" # NAME, 0,                               \
+    return static_cast<TYPE>(                                           \
+        reinterpret_cast<kwiver::vital::image*>(image)                  \
+             ->pixel_traits().NAME);                                    \
   );                                                                    \
-  return 0;                                                             \
+  return static_cast<TYPE>(0);                                          \
 }
 
 PT_ACCESSOR( size_t, num_bytes )
-PT_ACCESSOR( bool, is_signed )
-PT_ACCESSOR( bool, is_integer )
+PT_ACCESSOR( vital_image_pixel_type_t, type )
 
 #undef PT_ACCESSOR

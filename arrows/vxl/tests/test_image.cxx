@@ -153,10 +153,8 @@ run_vil_conversion_tests(const vil_image_view<T>& img, const std::string& type_s
   kwiver::vital::image vimg =  vxl::image_container::vxl_to_vital(img);
   TEST_EQUAL("VXL image conversion of type "+type_str+" has the correct bit depth",
              vimg.pixel_traits().num_bytes, sizeof(T));
-  TEST_EQUAL("VXL image conversion of type "+type_str+" has the correct is_signed trait",
-             vimg.pixel_traits().is_signed, std::numeric_limits<T>::is_signed);
-  TEST_EQUAL("VXL image conversion of type "+type_str+" has the correct is_integer trait",
-             vimg.pixel_traits().is_integer, std::numeric_limits<T>::is_integer);
+  TEST_EQUAL("VXL image conversion of type "+type_str+" has the correct pixel type",
+             vimg.pixel_traits().type, image_pixel_traits_of<T>::static_type);
   TEST_EQUAL("VXL image conversion of type "+type_str+" has the correct number of planes",
              vimg.depth(), img.nplanes());
   TEST_EQUAL("VXL image conversion of type "+type_str+" has the correct width",
@@ -244,10 +242,8 @@ run_vital_conversion_tests(const kwiver::vital::image_of<T>& img, const std::str
   kwiver::vital::image img2 = vxl::image_container::vxl_to_vital(vimg);
   TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct bit depth",
              img2.pixel_traits().num_bytes, sizeof(T));
-  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct is_signed trait",
-             img2.pixel_traits().is_signed, std::numeric_limits<T>::is_signed);
-  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct is_integer trait",
-             img2.pixel_traits().is_integer, std::numeric_limits<T>::is_integer);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct pixel type",
+             img2.pixel_traits().type, image_pixel_traits_of<T>::static_type);
   TEST_EQUAL("Vital image re-conversion of type "+type_str+" is identical",
              kwiver::vital::equal_content(img, img2), true);
   TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the same memory",

@@ -77,7 +77,6 @@ image_container
 {
   image_memory_sptr memory(new mat_image_memory(img));
 
-  image::pixel_traits_t pt(img.elemSize1());
   return image(memory, img.data + (img.channels() == 3 ? 2 : 0),
                img.cols, img.rows, img.channels(),
                img.elemSize(), img.step, (img.channels() == 3 ? -1 : 1),
@@ -85,28 +84,28 @@ image_container
 }
 
 
-/// Convert an OpenCV cv::Mat type value to a vital::image::pixel_traits_t
-vital::image::pixel_traits_t
+/// Convert an OpenCV cv::Mat type value to a vital::image_pixel_traits
+vital::image_pixel_traits
 image_container
 ::ocv_to_vital(int type)
 {
-  typedef vital::image::pixel_traits_t pixel_traits_t;
+  typedef vital::image_pixel_traits pixel_traits_t;
   switch(type % 8)
   {
     case CV_8U:
-      return pixel_traits_t(false, true, 1);
+      return pixel_traits_t(vital::image_pixel_traits::UNSIGNED, 1);
     case CV_8S:
-      return pixel_traits_t(true, true, 1);
+      return pixel_traits_t(vital::image_pixel_traits::SIGNED, 1);
     case CV_16U:
-      return pixel_traits_t(false, true, 2);
+      return pixel_traits_t(vital::image_pixel_traits::UNSIGNED, 2);
     case CV_16S:
-      return pixel_traits_t(true, true, 2);
+      return pixel_traits_t(vital::image_pixel_traits::SIGNED, 2);
     case CV_32S:
-      return pixel_traits_t(true, true, 4);
+      return pixel_traits_t(vital::image_pixel_traits::SIGNED, 4);
     case CV_32F:
-      return pixel_traits_t(true, false, 4);
+      return pixel_traits_t(vital::image_pixel_traits::FLOAT, 4);
     case CV_64F:
-      return pixel_traits_t(true, false, 8);
+      return pixel_traits_t(vital::image_pixel_traits::FLOAT, 8);
     default:
       throw image_type_mismatch_exception("kwiver::arrows::ocv::image_container::ocv_to_vital(int)");
   }
@@ -163,36 +162,55 @@ image_container
 }
 
 
-/// Convert a vital::image::pixel_traits_t to an OpenCV cv::Mat type integer
+/// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
 int
 image_container
-::vital_to_ocv(const vital::image::pixel_traits_t& pt)
+::vital_to_ocv(const vital::image_pixel_traits& pt)
 {
-  if( pt.is_integer )
+  switch (pt.num_bytes)
   {
-    if( pt.num_bytes == 1 ) 
-    {
-      return pt.is_signed ? CV_8S : CV_8U;
-    }
-    if( pt.num_bytes == 2 )
-    {
-      return pt.is_signed ? CV_16S : CV_16U;
-    }
-    if( pt.num_bytes == 4 && pt.is_signed )
-    {
-      return CV_32S;
-    }
-  }
-  else if( pt.is_signed )
-  {
-    if( pt.num_bytes == 4 )
-    {
-      return CV_32F;
-    }
-    if( pt.num_bytes == 8 )
-    {
-      return CV_64F;
-    }
+    case 1:
+      if( pt.type == vital::image_pixel_traits::UNSIGNED )
+      {
+        return CV_8U;
+      }
+      if( pt.type == vital::image_pixel_traits::SIGNED )
+      {
+        return CV_8S;
+      }
+      break;
+
+    case 2:
+      if( pt.type == vital::image_pixel_traits::UNSIGNED )
+      {
+        return CV_16U;
+      }
+      if( pt.type == vital::image_pixel_traits::SIGNED )
+      {
+        return CV_16S;
+      }
+      break;
+
+    case 4:
+      if( pt.type == vital::image_pixel_traits::FLOAT )
+      {
+        return CV_32F;
+      }
+      if( pt.type == vital::image_pixel_traits::SIGNED )
+      {
+        return CV_32S;
+      }
+      break;
+
+    case 8:
+      if( pt.type == vital::image_pixel_traits::FLOAT )
+      {
+        return CV_64F;
+      }
+      break;
+
+    default:
+      break;
   }
   throw image_type_mismatch_exception("kwiver::arrows::ocv::image_container::vital_to_ocv(pixel_traits_t)");
 }

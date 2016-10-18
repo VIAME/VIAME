@@ -50,6 +50,129 @@
 namespace kwiver {
 namespace vital {
 
+
+/// A struct containing traits of the data type stored at each pixel
+struct VITAL_EXPORT image_pixel_traits
+{
+  /// enumeration of the different type of pixel data
+  enum pixel_type {UNKNOWN = 0, UNSIGNED = 1, SIGNED = 2, FLOAT = 3, BOOL = 4};
+
+  /// Constructor - defaults to unsigned char (uint8) traits
+  explicit image_pixel_traits( pixel_type t=UNSIGNED, size_t num_b=1 )
+  : type(t), num_bytes(num_b) {}
+
+  /// Equality operator
+  bool operator==( const image_pixel_traits& other ) const
+  {
+    return this->type  == other.type &&
+           this->num_bytes  == other.num_bytes;
+  }
+
+  /// Inequality operator
+  bool operator!=( const image_pixel_traits& other ) const { return !(*this == other); }
+
+  /// how we interpret this pixel
+  pixel_type type;
+
+  /// the number of bytes need to represent pixel data
+  size_t num_bytes;
+};
+
+
+/// Helper struct to determine pixel type at compile time using std::numeric_limits
+/*
+ * This struct is an implementation detail and should generally not be use directly
+ * \tparam V indicates that the type has a valid numeric_limits specialization
+ * \tparam I indicates that this is an integer type
+ * \tparam S indicates that this is a signed type
+ */
+template <bool V, bool I, bool S>
+struct image_pixel_traits_helper;
+
+/// Specialization of helper class for unknown types
+template <bool I, bool S>
+struct image_pixel_traits_helper<false, I, S>
+{
+  const static image_pixel_traits::pixel_type type = image_pixel_traits::UNKNOWN;
+};
+
+/// Specialization of helper class for signed types
+template <>
+struct image_pixel_traits_helper<true, true, true>
+{
+  const static image_pixel_traits::pixel_type type = image_pixel_traits::SIGNED;
+};
+
+/// Specialization of helper class for unsigned types
+template <>
+struct image_pixel_traits_helper<true, true, false>
+{
+  const static image_pixel_traits::pixel_type type = image_pixel_traits::UNSIGNED;
+};
+
+/// Specialization of helper class for floating point types
+template <>
+struct image_pixel_traits_helper<true, false, true>
+{
+  const static image_pixel_traits::pixel_type type = image_pixel_traits::FLOAT;
+};
+
+
+/// This class is used to instantiate an image_pixel_traits class based on type
+/*
+ * This class also contains \p static_type for compile-time look-up of the pixel_type
+ * enum value by type.
+ */
+template <typename T>
+struct VITAL_EXPORT image_pixel_traits_of : public image_pixel_traits
+{
+  const static image_pixel_traits::pixel_type static_type =
+    image_pixel_traits_helper<std::numeric_limits<T>::is_specialized,
+                              std::numeric_limits<T>::is_integer,
+                              std::numeric_limits<T>::is_signed>::type;
+  image_pixel_traits_of()
+  : image_pixel_traits(static_type, sizeof(T)) {}
+};
+
+/// Specialization of image_pixel_traits_of for bool
+template <>
+struct VITAL_EXPORT image_pixel_traits_of<bool> : public image_pixel_traits
+{
+  const static image_pixel_traits::pixel_type static_type = image_pixel_traits::BOOL;
+  image_pixel_traits_of<bool>()
+  : image_pixel_traits(static_type, sizeof(bool)) {}
+};
+
+
+// ==================================================================
+/// Provide compile-time look-up of data type from pixel_type enum and size 
+/*
+ * This struct and its specializations provide compile-time mapping from
+ * image_pixel_traits properties (pixel_type and num_bytes) to a concrete type
+ */
+template <image_pixel_traits::pixel_type T, size_t S>
+struct VITAL_EXPORT image_pixel_from_traits
+{ typedef void * type; };
+
+#define image_pixel_from_traits_macro( T ) \
+template <> struct VITAL_EXPORT \
+image_pixel_from_traits<image_pixel_traits_of<T>::static_type, sizeof(T)> { typedef T type; }
+
+image_pixel_from_traits_macro( unsigned char );
+image_pixel_from_traits_macro( char );
+image_pixel_from_traits_macro( unsigned short );
+image_pixel_from_traits_macro( short );
+image_pixel_from_traits_macro( unsigned int );
+image_pixel_from_traits_macro( int );
+image_pixel_from_traits_macro( unsigned long );
+image_pixel_from_traits_macro( long );
+image_pixel_from_traits_macro( float );
+image_pixel_from_traits_macro( double );
+image_pixel_from_traits_macro( bool );
+#undef image_pixel_from_traits_macro
+
+
+// ==================================================================
 /// Basic in memory image.
 /**
  * This class represents an image with byte wide pixels in a block of
@@ -118,38 +241,11 @@ typedef std::shared_ptr< image_memory > image_memory_sptr;
 class VITAL_EXPORT image
 {
 public:
-  /// A struct containing traits of the data type stored at each pixel
-  struct pixel_traits_t
-  {
-    /// Constructor - defaults to unsigned char (uint8) traits
-    explicit pixel_traits_t( bool is_s=false, bool is_i=true, size_t num_b=1 )
-    : is_signed(is_s), is_integer(is_i), num_bytes(num_b) {}
-
-    /// Equality operator
-    bool operator==( const pixel_traits_t& other ) const
-    {
-      return this->is_signed  == other.is_signed &&
-             this->is_integer == other.is_integer &&
-             this->num_bytes  == other.num_bytes;
-    }
-
-    /// Inequality operator
-    bool operator!=( const pixel_traits_t& other ) const { return !(*this == other); }
-
-    /// is the data type signed (otherwise unsigned)
-    bool is_signed;
-    /// is the data type integer (otherwise floating point)
-    bool is_integer;
-    /// the number of bytes need to represent pixel data
-    size_t num_bytes;
-  };
-
-
   /// Default Constructor
   /**
    * \param pt Change the pixel traits of the image
    */
-  image( const pixel_traits_t& pt=pixel_traits_t() );
+  image( const image_pixel_traits& pt=image_pixel_traits() );
 
   /// Constructor that allocates image memory
   /**
@@ -162,8 +258,8 @@ public:
    * \param interleave Set if the pixels are interleaved
    */
   image( size_t width, size_t height, size_t depth = 1,
-         const pixel_traits_t& pt=pixel_traits_t(),
-         bool interleave = false );
+         bool interleave = false,
+         const image_pixel_traits& pt=image_pixel_traits());
 
   /// Constructor that points at existing memory
   /**
@@ -184,7 +280,7 @@ public:
   image( const void* first_pixel,
          size_t width, size_t height, size_t depth,
          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step,
-         const pixel_traits_t& pt=pixel_traits_t() );
+         const image_pixel_traits& pt=image_pixel_traits() );
 
   /// Constructor that shares memory with another image
   /**
@@ -207,7 +303,7 @@ public:
          const void* first_pixel,
          size_t width, size_t height, size_t depth,
          ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step,
-         const pixel_traits_t& pt=pixel_traits_t() );
+         const image_pixel_traits& pt=image_pixel_traits() );
 
   /// Copy Constructor
   /**
@@ -256,7 +352,7 @@ public:
   size_t depth() const { return depth_; }
 
   /// The trait of the pixel data type
-  const pixel_traits_t& pixel_traits() const { return pixel_traits_; }
+  const image_pixel_traits& pixel_traits() const { return pixel_traits_; }
 
   /// The the step in memory to next pixel in the width direction
   ptrdiff_t w_step() const { return w_step_; }
@@ -342,7 +438,7 @@ protected:
   /// Pointer to the pixel at the origin
   void* first_pixel_;
   /// The traits of each pixel data type
-  pixel_traits_t pixel_traits_;
+  image_pixel_traits pixel_traits_;
   /// Width of the image
   size_t width_;
   /// Height of the image
@@ -368,20 +464,9 @@ template <typename T>
 class VITAL_EXPORT image_of : public image
 {
 public:
-  /// A struct containing traits of the data type stored at each pixel
-  struct pixel_traits_t : public image::pixel_traits_t
-  {
-    /// Constructor
-    pixel_traits_t()
-      : image::pixel_traits_t(std::numeric_limits<T>::is_signed,
-                              std::numeric_limits<T>::is_integer,
-                              sizeof(T)) {}
-  };
-
-
   /// Default Constructor
   image_of()
-  : image(pixel_traits_t()) {}
+  : image(image_pixel_traits_of<T>()) {}
 
   /// Constructor that allocates image memory
   /**
@@ -393,7 +478,7 @@ public:
    * \param interleave Set if the pixels are interleaved
    */
   image_of( size_t width, size_t height, size_t depth = 1, bool interleave = false )
-  : image( width, height, depth, pixel_traits_t(), interleave ) {}
+  : image( width, height, depth, interleave, image_pixel_traits_of<T>() ) {}
 
   /// Constructor that points at existing memory
   /**
@@ -413,7 +498,7 @@ public:
   image_of( const T* first_pixel, size_t width, size_t height, size_t depth,
             ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
   : image( first_pixel, width, height, depth,
-           w_step, h_step, d_step, pixel_traits_t() ) {}
+           w_step, h_step, d_step, image_pixel_traits_of<T>() ) {}
 
   /// Constructor that shares memory with another image
   /**
@@ -434,7 +519,7 @@ public:
             const T* first_pixel, size_t width, size_t height, size_t depth,
             ptrdiff_t w_step, ptrdiff_t h_step, ptrdiff_t d_step )
   : image( mem, first_pixel, width, height, depth,
-           w_step, h_step, d_step, pixel_traits_t() ) {}
+           w_step, h_step, d_step, image_pixel_traits_of<T>() ) {}
 
   /// Constructor from base class
   /**
@@ -444,7 +529,7 @@ public:
   explicit image_of( const image_of<T>& other )
   : image(other)
   {
-    if ( other.pixel_traits != pixel_traits_t() )
+    if ( other.pixel_traits != image_pixel_traits_of<T>() )
     {
       throw image_type_mismatch_exception("kwiver::vital::image_of<T>(kwiver::vital::image)");
     }
@@ -453,7 +538,7 @@ public:
   /// Assignment operator
   const image_of<T>& operator=( const image& other )
   {
-    if ( other.pixel_traits() != pixel_traits_t() )
+    if ( other.pixel_traits() != image_pixel_traits_of<T>() )
     {
       throw image_type_mismatch_exception("kwiver::vital::image_of<T>::operator=(kwiver::vital::image)");
     }

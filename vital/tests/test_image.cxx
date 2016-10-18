@@ -84,8 +84,8 @@ IMPLEMENT_TEST(default_constructor)
   {
     TEST_ERROR("The default image is not empty");
   }
-  const kwiver::vital::image::pixel_traits_t& pt = img.pixel_traits();
-  if (pt.num_bytes != 1 || pt.is_signed || !pt.is_integer)
+  const kwiver::vital::image_pixel_traits& pt = img.pixel_traits();
+  if (pt.num_bytes != 1 || pt.type != kwiver::vital::image_pixel_traits::UNSIGNED)
   {
     TEST_ERROR("Default image constructor should use unsigned char pixel traits");
   }
@@ -145,13 +145,9 @@ IMPLEMENT_TEST(constructor)
     {
       TEST_ERROR("Constructed image was expected to have sizeof(double) bytes per pixel");
     }
-    if (img.pixel_traits().is_integer)
+    if (img.pixel_traits().type != kwiver::vital::image_pixel_traits::FLOAT)
     {
-      TEST_ERROR("Constructed double image was expected to have non-integer values");
-    }
-    if (!img.pixel_traits().is_signed)
-    {
-      TEST_ERROR("Constructed double image was expected to have signed values");
+      TEST_ERROR("Constructed double image was expected to have FLOAT type");
     }
 
     if (img.size() != 200*300*3*sizeof(double))
@@ -217,8 +213,7 @@ IMPLEMENT_TEST(is_contiguous)
   TEST_EQUAL("Basic constructor should produce contiguous image",
              img.is_contiguous(), true);
 
-  typedef kwiver::vital::image::pixel_traits_t pixel_traits_t;
-  img = kwiver::vital::image(w, h, d, pixel_traits_t(), true);
+  img = kwiver::vital::image(w, h, d, true);
   TEST_EQUAL("Interleaved image is contiguous",
              img.is_contiguous(), true);
 

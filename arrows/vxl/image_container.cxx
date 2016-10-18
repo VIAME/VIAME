@@ -176,53 +176,61 @@ vil_image_view_base_sptr
 image_container
 ::vital_to_vxl(const vital::image& img)
 {
-  const vital::image::pixel_traits_t& pt = img.pixel_traits();
-  if( pt.is_integer )
+  const vital::image_pixel_traits& pt = img.pixel_traits();
+  switch (pt.num_bytes)
   {
-    if( pt.num_bytes == 1 )
-    {
-      vil_memory_chunk_sptr chunk = vxl::vital_to_vxl(img.memory());
-      // This special case only works for images that started as
-      // vil_image_view<bool> and were wrapped by vital::image.
-      // These cases will convert back to bool, but there is currently no
-      // way to make a native vital::image convert to bool.
-      if( chunk->pixel_format() == VIL_PIXEL_FORMAT_BOOL )
+    case 1:
+      switch (pt.type)
       {
-        return make_vil_image_view<bool>(img);
+        case vital::image_pixel_traits::BOOL:
+          return make_vil_image_view<bool>(img);
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_byte>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_sbyte>(img);
+        default:
+          break;
       }
-      return pt.is_signed ? make_vil_image_view<vxl_sbyte>(img)
-                          : make_vil_image_view<vxl_byte>(img);
-    }
-    if( pt.num_bytes == 2 )
-    {
-      return pt.is_signed ? make_vil_image_view<vxl_int_16>(img)
-                          : make_vil_image_view<vxl_uint_16>(img);
-    }
-    if( pt.num_bytes == 4 )
-    {
-      return pt.is_signed ? make_vil_image_view<vxl_int_32>(img)
-                          : make_vil_image_view<vxl_uint_32>(img);
-    }
-#if VXL_HAS_INT_64
-    if( pt.num_bytes == 8 )
-    {
-      return pt.is_signed ? make_vil_image_view<vxl_int_64>(img)
-                          : make_vil_image_view<vxl_uint_64>(img);
-    }
-#endif
-  }
-  else if( pt.is_signed )
-  {
-    if( pt.num_bytes == 4 )
-    {
-      return make_vil_image_view<float>(img);
-    }
-    if( pt.num_bytes == 8 )
-    {
-      return make_vil_image_view<double>(img);
-    }
-  }
 
+    case 2:
+      switch (pt.type)
+      {
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_uint_16>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_int_16>(img);
+        default:
+          break;
+      }
+
+    case 4:
+      switch (pt.type)
+      {
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_uint_32>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_int_32>(img);
+        case vital::image_pixel_traits::FLOAT:
+          return make_vil_image_view<float>(img);
+        default:
+          break;
+      }
+
+    case 8:
+      switch (pt.type)
+      {
+#if VXL_HAS_INT_64
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_uint_64>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_int_64>(img);
+#endif
+        case vital::image_pixel_traits::FLOAT:
+          return make_vil_image_view<double>(img);
+        default:
+          break;
+      }
+  }
   throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_container::vital_to_vxl(const image&)");
   return vil_image_view_base_sptr();
 }
