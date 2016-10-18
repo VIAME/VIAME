@@ -54,49 +54,40 @@ vital_image_t* vital_image_new()
 
 /// Create a new image with dimensions, allocating memory
 vital_image_t* vital_image_new_with_dim( size_t width, size_t height,
-                                         size_t depth, bool interleave )
+                                         size_t depth, bool interleave,
+                                         vital_image_pixel_type_t pixel_type,
+                                         size_t pixel_num_bytes)
 {
   STANDARD_CATCH(
     "C::image:new_with_dim", 0,
+    typedef kwiver::vital::image_pixel_traits pixel_traits;
+    pixel_traits pt(static_cast<pixel_traits::pixel_type>(pixel_type), pixel_num_bytes);
     return reinterpret_cast<vital_image_t*>(
       new kwiver::vital::image( width, height, depth,
-                                interleave )
+                                interleave, pt )
       );
   );
   return 0;
 }
 
 
-/// Create a new image from new data
-vital_image_t* vital_image_new_from_data( unsigned char const *first_pixel,
+/// Create a new image wrapping existing data
+vital_image_t* vital_image_new_from_data( void const* first_pixel,
                                           size_t width, size_t height, size_t depth,
-                                          int32_t w_step, int32_t h_step, int32_t d_step )
+                                          int32_t w_step, int32_t h_step, int32_t d_step,
+                                          vital_image_pixel_type_t pixel_type,
+                                          size_t pixel_num_bytes)
 {
-  kwiver::vital::image* new_image = new kwiver::vital::image( width, height, depth );
-  for ( unsigned int d = 0; d < depth; ++d )
-  {
-    // This is a little crazy, but it is used to convert BGR to RGB
-    int d_idx(0);
-    if (d_step >= 0)
-    {
-      d_idx = d * d_step;
-    }
-    else
-    {
-      d_idx = static_cast< int >( (depth - d - 1) * (-d_step) );
-    }
-
-    for ( unsigned int h = 0; h < height; ++h )
-    {
-      int h_idx = h * h_step;
-      for ( unsigned int w = 0; w < width; ++w )
-      {
-        int w_idx = w * w_step;
-        new_image->at<unsigned char>( w, h, d ) = first_pixel[ w_idx + h_idx + d_idx ];
-      }
-    }
-  }
-  return reinterpret_cast<vital_image_t*>( new_image );
+  STANDARD_CATCH(
+    "C::image:new_from_data", 0,
+    typedef kwiver::vital::image_pixel_traits pixel_traits;
+    pixel_traits pt(static_cast<pixel_traits::pixel_type>(pixel_type), pixel_num_bytes);
+    return reinterpret_cast<vital_image_t*>(
+      new kwiver::vital::image( first_pixel, width, height, depth,
+                                w_step, h_step, d_step, pt )
+      );
+  );
+  return 0;
 }
 
 
@@ -122,25 +113,41 @@ void vital_image_destroy( vital_image_t *image )
   );
 };
 
-
-int vital_image_get_pixel2( vital_image_t *image, unsigned i, unsigned j )
-{
-  STANDARD_CATCH(
-    "C::image::destroy", 0,
-    return reinterpret_cast<kwiver::vital::image*>( image )->at<unsigned char>(i, j);
-  );
-  return 0;
+//
+// A little shortcut for defining pixel accessors
+//
+#define GET_PIXEL( TYPE, NAME )                                             \
+TYPE vital_image_get_pixel2_ ## NAME( vital_image_t *image,                 \
+                                      unsigned i, unsigned j )              \
+{                                                                           \
+  STANDARD_CATCH(                                                           \
+    "C::image::get_pixel2_" # NAME, 0,                                      \
+    return reinterpret_cast<kwiver::vital::image*>(image)->at<TYPE>(i,j);   \
+  );                                                                        \
+  return static_cast<TYPE>(0);                                              \
+}                                                                           \
+TYPE vital_image_get_pixel3_ ## NAME( vital_image_t *image,                 \
+                                      unsigned i, unsigned j, unsigned k )  \
+{                                                                           \
+  STANDARD_CATCH(                                                           \
+    "C::image::get_pixel2_" # NAME, 0,                                      \
+    return reinterpret_cast<kwiver::vital::image*>(image)->at<TYPE>(i,j);   \
+  );                                                                        \
+  return static_cast<TYPE>(0);                                              \
 }
 
+GET_PIXEL( uint8_t,  uint8 )
+GET_PIXEL( int8_t,   int8 )
+GET_PIXEL( uint16_t, uint16 )
+GET_PIXEL( int16_t,  int16 )
+GET_PIXEL( uint32_t, uint32 )
+GET_PIXEL( int32_t,  int32 )
+GET_PIXEL( uint64_t, uint64 )
+GET_PIXEL( int64_t,  int64 )
+GET_PIXEL( float,    float )
+GET_PIXEL( double,   double )
+GET_PIXEL( bool,     bool )
 
-int vital_image_get_pixel3( vital_image_t *image, unsigned i, unsigned j, unsigned k )
-{
-  STANDARD_CATCH(
-    "C::image::destroy", 0,
-    return reinterpret_cast<kwiver::vital::image*>( image )->at<unsigned char>(i, j, k);
-  );
-  return 0;
-}
 
 //
 // A little shortcut for defining accessors
