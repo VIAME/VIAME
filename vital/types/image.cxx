@@ -40,6 +40,42 @@
 namespace kwiver {
 namespace vital {
 
+/// Output stream operator for image_pixel_traits::pixel_type
+std::ostream& operator<<(std::ostream& os, image_pixel_traits::pixel_type pt)
+{
+  switch (pt)
+  {
+    case image_pixel_traits::UNKNOWN:
+      os << "Unknown";
+      break;
+    case image_pixel_traits::UNSIGNED:
+      os << "Unsigned";
+      break;
+    case image_pixel_traits::SIGNED:
+      os << "Signed";
+      break;
+    case image_pixel_traits::FLOAT:
+      os << "Float";
+      break;
+    case image_pixel_traits::BOOL:
+      os << "Bool";
+      break;
+    default:
+      os << "Invalid";
+      break;
+  }
+  return os;
+}
+
+
+/// Output stream operator for image_pixel_traits
+std::ostream& operator<<(std::ostream& os, image_pixel_traits const& pt)
+{
+  os << pt.type <<"_"<<pt.num_bytes;
+  return os;
+}
+
+
 /// Default Constructor
 image_memory
 ::image_memory()

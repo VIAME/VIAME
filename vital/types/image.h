@@ -78,6 +78,12 @@ struct VITAL_EXPORT image_pixel_traits
   size_t num_bytes;
 };
 
+/// Output stream operator for image_pixel_traits::pixel_type
+VITAL_EXPORT std::ostream& operator<<(std::ostream& os, image_pixel_traits::pixel_type pt);
+
+/// Output stream operator for image_pixel_traits
+VITAL_EXPORT std::ostream& operator<<(std::ostream& os, image_pixel_traits const& pt);
+
 
 /// Helper struct to determine pixel type at compile time using std::numeric_limits
 /*
