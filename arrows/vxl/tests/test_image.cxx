@@ -78,7 +78,7 @@ IMPLEMENT_TEST(factory)
 // helper function to populate the image with a pattern
 template <typename T>
 void
-populate_image(vil_image_view<T>& img)
+populate_vil_image(vil_image_view<T>& img)
 {
   const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
   const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
@@ -99,12 +99,35 @@ populate_image(vil_image_view<T>& img)
 }
 
 
-IMPLEMENT_TEST(image_convert)
+// helper function to populate the image with a pattern
+template <typename T>
+void
+populate_vital_image(kwiver::vital::image& img)
+{
+  const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
+  const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
+
+  const double range = static_cast<double>(maxv) - static_cast<double>(minv);
+  const double offset = - minv;
+  for( unsigned int p=0; p<img.depth(); ++p )
+  {
+    for( unsigned int j=0; j<img.height(); ++j )
+    {
+      for( unsigned int i=0; i<img.width(); ++i )
+      {
+        double val = ((i/(5*(p+1)))%2) + ((j/(5*(p+1)))%2);
+        img.at<T>(i,j,p) = static_cast<T>(val / 2 * range + offset);
+      }
+    }
+  }
+}
+
+
+IMPLEMENT_TEST(image_io)
 {
   using namespace kwiver::arrows;
   kwiver::vital::image_of<kwiver::vital::byte> img(200,300,3);
-  vil_image_view<vxl_byte> vimg = vxl::image_container::vital_to_vxl(img);
-  populate_image(vimg);
+  populate_vital_image<kwiver::vital::byte>(img);
   image_container_sptr c(new simple_image_container(img));
   vxl::image_io io;
   io.save("test.png", c);
@@ -123,7 +146,7 @@ IMPLEMENT_TEST(image_convert)
 
 template <typename T>
 void
-run_conversion_tests(const vil_image_view<T>& img, const std::string& type_str)
+run_vil_conversion_tests(const vil_image_view<T>& img, const std::string& type_str)
 {
   using namespace kwiver::arrows;
   // convert to a vital image and verify that the properties are correct
@@ -161,7 +184,12 @@ run_conversion_tests(const vil_image_view<T>& img, const std::string& type_str)
 
   // convert back to VXL and test again
   vil_image_view<T> img2 = vxl::image_container::vital_to_vxl(vimg);
-
+  if( !img2 )
+  {
+    TEST_ERROR("VXL image re-conversion of type "+type_str+" did not produce a valid vil_image_view");
+    return;
+  }
+ 
   TEST_EQUAL("VXL image re-conversion of type "+type_str+" has the correct pixel format",
              img.pixel_format(), img2.pixel_format());
   TEST_EQUAL("VXL image re-conversion of type "+type_str+" is identical",
@@ -173,25 +201,102 @@ run_conversion_tests(const vil_image_view<T>& img, const std::string& type_str)
 
 template <typename T>
 void
-test_conversion(const std::string& type_str)
+run_vital_conversion_tests(const kwiver::vital::image_of<T>& img, const std::string& type_str)
 {
-  vil_image_view<T> img(100,200,3);
-  populate_image(img);
-  run_conversion_tests(img, type_str);
+  using namespace kwiver::arrows;
+  // convert to a vil image and verify that the properties are correct
+  vil_image_view<T> vimg =  vxl::image_container::vital_to_vxl(img);
+  if( !vimg )
+  {
+    TEST_ERROR("Vital image conversion of type "+type_str+" did not produce a valid vil_image_view");
+    return;
+  }
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct pixel format",
+             vimg.pixel_format(), vil_pixel_format_of(T()));
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct number of planes",
+             vimg.nplanes(), img.depth());
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct width",
+             vimg.nj(), img.height());
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct height",
+             vimg.ni(), img.width());
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the same memory",
+             vimg.top_left_ptr(), img.first_pixel());
+  bool equal_data = true;
+  for( unsigned int p=0; equal_data && p<vimg.nplanes(); ++p )
+  {
+    for( unsigned int j=0; equal_data && j<vimg.nj(); ++j )
+    {
+      for( unsigned int i=0; equal_data && i<vimg.ni(); ++i )
+      {
+        if( img(i,j,p) != vimg(i,j,p) )
+        {
+          std::cout << "Pixel "<<i<<", "<<j<<", "<<p<<" has values "
+                    <<img(i,j,p)<<" != "<<vimg(i,j,p)<<std::endl;
+          equal_data = false;
+        }
+      }
+    }
+  }
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the same values",
+             equal_data, true);
 
-  vil_image_view<T> img2(100,200,3,true);
-  populate_image(img2);
-  run_conversion_tests(img2, type_str+" (interleaved)");
-
-  vil_image_view<T> img3(200,300,3);
-  populate_image(img3);
-  vil_image_view<T> img_crop = vil_crop(img3, 50, 100, 40, 200);
-  run_conversion_tests(img_crop, type_str+" (cropped)");
-
+  // convert back to VXL and test again
+  kwiver::vital::image img2 = vxl::image_container::vxl_to_vital(vimg);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct bit depth",
+             img2.pixel_traits().num_bytes, sizeof(T));
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct is_signed trait",
+             img2.pixel_traits().is_signed, std::numeric_limits<T>::is_signed);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct is_integer trait",
+             img2.pixel_traits().is_integer, std::numeric_limits<T>::is_integer);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" is identical",
+             kwiver::vital::equal_content(img, img2), true);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the same memory",
+             img.first_pixel(), img2.first_pixel());
 }
 
 
-IMPLEMENT_TEST(image_types)
+template <typename T>
+void
+test_conversion(const std::string& type_str)
+{
+  // create vil_image_view and convert to an from vital images
+  {
+    vil_image_view<T> img(100,200,3);
+    populate_vil_image(img);
+    run_vil_conversion_tests(img, type_str);
+  }
+
+  {
+    vil_image_view<T> img(100,200,3,true);
+    populate_vil_image(img);
+    run_vil_conversion_tests(img, type_str+" (interleaved)");
+  }
+
+  {
+    vil_image_view<T> img(200,300,3);
+    populate_vil_image(img);
+    vil_image_view<T> img_crop = vil_crop(img, 50, 100, 40, 200);
+    run_vil_conversion_tests(img_crop, type_str+" (cropped)");
+  }
+
+  // create vital images and convert to an from vil_image_view
+  // Note: different code paths are taken depending on whether the image
+  // is natively created as vil or vital, so we need to test both ways.
+  {
+    kwiver::vital::image_of<T> img(200, 300, 3);
+    populate_vital_image<T>(img);
+    run_vital_conversion_tests(img, type_str);
+  }
+
+  {
+    kwiver::vital::image_of<T> img(200, 300, 3, true);
+    populate_vital_image<T>(img);
+    run_vital_conversion_tests(img, type_str+" (interleaved)");
+  }
+}
+
+
+IMPLEMENT_TEST(image_convert)
 {
   using namespace kwiver::arrows;
   test_conversion<vxl_byte>("byte");
