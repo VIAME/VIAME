@@ -48,6 +48,7 @@ set( public_headers
   data_stream_reader.h
   string_editor.h
   token_expander.h
+  token_expand_editor.h
   token_type_env.h
   token_type.h
   token_type_symtab.h
@@ -63,6 +64,7 @@ set( sources
   data_stream_reader.cxx
   string_editor.cxx
   token_expander.cxx
+  token_expand_editor.cxx
   token_type.cxx
   token_type_env.cxx
   token_type_symtab.cxx

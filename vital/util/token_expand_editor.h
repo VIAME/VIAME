@@ -32,7 +32,7 @@
 #define VITAL_UTIL_TOKEN_EXPAND_EDITOR_H
 
 
-#include <vital/util/string_edit_operation.h>
+#include <vital/util/string_editor.h>
 
 #include <vital/util/token_expander.h>
 
@@ -46,7 +46,7 @@ namespace edit_operation {
  * @brief String editor that does token/macro expansion.
  *
  */
-class token_expand_editor
+class VITAL_UTIL_EXPORT token_expand_editor
 {
 public:
   // -- CONSTRUCTORS --
@@ -55,7 +55,11 @@ public:
   virtual bool process( std::string& line );
 
   /**
-   * @brief Add additional toke type expander.
+   * @brief Add additional token type expander.
+   *
+   * Add an additional token expander to the collection. This editor
+   * takes ownership of the specified object and will delete it when
+   * being destroyed.
    *
    * @param tt New expander object.
    */
@@ -69,4 +73,4 @@ private:
 
 } } } // end namespace
 
-#endif /* VITAL_UTIL_TOKEN_EXPAND_EDITOR_H */
+#endif // VITAL_UTIL_TOKEN_EXPAND_EDITOR_H

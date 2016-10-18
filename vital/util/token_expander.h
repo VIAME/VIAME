@@ -161,4 +161,4 @@ private:
 
 } } // end namespace
 
-#endif /* _TOKEN_EXPANDER_H_ */
+#endif // _TOKEN_EXPANDER_H_
