@@ -31,7 +31,7 @@
 #ifndef KWIVER_VITAL_DEMANGLE_H
 #define KWIVER_VITAL_DEMANGLE_H
 
-#include <vital/vital_export.h>
+#include <vital/util/vital_util_export.h>
 
 #include <string>
 #include <typeinfo>
@@ -39,8 +39,8 @@
 namespace kwiver {
 namespace vital {
 
-VITAL_EXPORT std::string demangle( char const* name );
-VITAL_EXPORT std::string demangle( std::string const& name );
+VITAL_UTIL_EXPORT std::string demangle( char const* name );
+VITAL_UTIL_EXPORT std::string demangle( std::string const& name );
 
 /**
  *

@@ -31,7 +31,7 @@
 #ifndef VITAL_STRING_EDITOR_H
 #define VITAL_STRING_EDITOR_H
 
-#include <vital/vital_export.h>
+#include <vital/util/vital_util_export.h>
 
 #include <string>
 #include <vector>
@@ -48,7 +48,7 @@ namespace vital {
  * A string is presented to the process() method which can return a
  * modified string or absorb the string.
  */
-class VITAL_EXPORT string_edit_operation
+class VITAL_UTIL_EXPORT string_edit_operation
 {
 public:
   string_edit_operation() { }
@@ -78,7 +78,7 @@ public:
  * applied in a fixed order. An instance of this class is configured
  * by adding one or more string_edit_operation objects.
  */
-class VITAL_EXPORT string_editor
+class VITAL_UTIL_EXPORT string_editor
 {
 public:
   // -- CONSTRUCTORS --

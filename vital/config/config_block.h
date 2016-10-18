@@ -38,6 +38,7 @@
 
 #include <vital/config/vital_config_export.h>
 #include <vital/noncopyable.h>
+#include <vital/util/source_location.h>
 
 #include "config_block_types.h"
 #include "config_block_exception.h"

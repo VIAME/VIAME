@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,38 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _TOKEN_TYPE_SYSENV_H_
-#define _TOKEN_TYPE_SYSENV_H_
+#include "token_expand_editor.h"
 
-#include "token_type.h"
-
-#include <kwiversys/SystemInformation.hxx>
-
+#include <vital/util/token_type_symtab.h>
+#include <vital/util/token_type_sysenv.h>
 
 namespace kwiver {
 namespace vital {
 
-// ----------------------------------------------------------------
-/** System attributes resolver.
- *
- *
- */
-class token_type_sysenv
-  : public token_type
+namespace edit_operation {
+} } }
+
+
+token_expand_editor::
+token_expand_editor()
 {
-public:
-  token_type_sysenv();
-  virtual ~token_type_sysenv();
+  // Add the default expanders
+  m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
+  m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
+}
 
-  /** Lookup name in token type resolver.
-   */
-  virtual bool lookup_entry (std::string const& name, std::string& result);
 
-  kwiversys::SystemInformation m_sysinfo;
+token_expand_editor::
+~token_expand_editor()
+{ }
 
-}; // end class token_type_sysenv
 
-} // end namespace
-} // end namespace
+bool
+token_expand_editor::
+process( std::string& line )
+{
+  const std::string output = m_token_expander.expand_token( line );
+  line = output;
+  return true;
+}
 
-#endif /* _TOKEN_TYPE_SYSENV_H_ */
+} } } // end namespace

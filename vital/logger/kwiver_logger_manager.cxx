@@ -133,11 +133,7 @@ kwiver_logger_manager
     }
     else
     {
-      std::cerr << "Info: Could not load default logger factory.\n"
-                << "Typical usage: export "
-                << PLUGIN_ENV_VAR << "=" << factory << "\n"
-                << "Specify name of shared object, with or without a path. Behaviour depends on host system.\n"
-                << "Defaulting to built-in logger." << std::endl;
+      std::cerr << "INFO: Could not load default logger factory. Using built-in logger." << std::endl;
     }
   }
 
@@ -148,8 +144,7 @@ kwiver_logger_manager
 
 kwiver_logger_manager
 ::~kwiver_logger_manager()
-{
-}
+{ }
 
 
 // ----------------------------------------------------------------
@@ -191,6 +186,7 @@ get_logger( char const* name )
 }
 
 
+// ------------------------------------------------------------------
 VITAL_LOGGER_EXPORT
 logger_handle_t
 get_logger( std::string const& name )

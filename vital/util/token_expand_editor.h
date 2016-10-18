@@ -28,41 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Wrapper over C functions to get executable path and module path.
- */
+#ifndef VITAL_UTIL_TOKEN_EXPAND_EDITOR_H
+#define VITAL_UTIL_TOKEN_EXPAND_EDITOR_H
 
-#ifndef KWIVER_GET_PATHS_H
-#define KWIVER_GET_PATHS_H
 
-#include <vital/vital_config.h>
-#include <vital/util/vital_util_export.h>
+#include <vital/util/string_edit_operation.h>
 
-#include <string>
+#include <vital/util/token_expander.h>
 
 namespace kwiver {
-namespace vital{
+namespace vital {
 
+namespace edit_operation {
+
+// ----------------------------------------------------------------
 /**
- * @brief Get path to current executable.
+ * @brief String editor that does token/macro expansion.
  *
- * Get the name of the directory that contains the current executable
- * file. The returned string does not include the file name.
- *
- * @return Directory name.
  */
-std::string VITAL_UTIL_EXPORT get_executable_path();
+class token_expand_editor
+{
+public:
+  // -- CONSTRUCTORS --
+  token_expand_editor();
+  virtual ~token_expand_editor();
+  virtual bool process( std::string& line );
 
-/**
- * @brief Get path to the current module.
- *
- *
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_module_path();
+  /**
+   * @brief Add additional toke type expander.
+   *
+   * @param tt New expander object.
+   */
+  void add_expander( kwiver::vital::token_type * tt );
 
-} }
 
-#endif /* KWIVER_GET_PATHS_H */
+private:
+    token_expander m_token_expander;
+
+}; // end class token_expand_editor
+
+} } } // end namespace
+
+#endif /* VITAL_UTIL_TOKEN_EXPAND_EDITOR_H */

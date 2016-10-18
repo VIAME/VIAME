@@ -31,6 +31,12 @@
 #ifndef KWIVER_VITAL_PLUGIN_FACTORY_H
 #define KWIVER_VITAL_PLUGIN_FACTORY_H
 
+#include <vital/vital_config.h>
+#include <vital/plugin_loader/vital_vpm_export.h>
+
+#include <vital/noncopyable.h>
+#include <vital/vital_foreach.h>
+#include <vital/exceptions/plugin.h>
 #include <string>
 #include <sstream>
 #include <map>
@@ -38,11 +44,6 @@
 #include <stdexcept>
 #include <typeinfo>
 #include <memory>
-
-#include <vital/vital_config.h>
-#include <vital/noncopyable.h>
-#include <vital/vital_foreach.h>
-
 
 namespace kwiver {
 namespace vital {
@@ -58,7 +59,7 @@ typedef std::vector< plugin_factory_handle_t >    plugin_factory_vector_t;
  * @brief Abstract base class for plugin factory.
  *
  */
-class plugin_factory
+class VITAL_VPM_EXPORT plugin_factory
   : public std::enable_shared_from_this< plugin_factory >,
     private kwiver::vital::noncopyable
 {
@@ -71,6 +72,7 @@ public:
   static const std::string PLUGIN_FILE_NAME;
   static const std::string PLUGIN_NAME;
   static const std::string PLUGIN_DESCRIPTION;
+  static const std::string PLUGIN_VERSION;
 
   /**
    * @brief Get attribute from factory
@@ -100,7 +102,7 @@ public:
    * interface type for this factory. If not, an exception is thrown.
    *
    * @return Object of registered type.
-   * @throws std::runtime_error
+   * @throws kwiver::vital::plugin_factory_type_creation_error
    */
   template <class T>
   T* create_object()
@@ -111,7 +113,7 @@ public:
       std::stringstream str;
       str << "Can not create object of requested type: " <<  typeid( T ).name()
           <<"  Factory created objects of type: " << m_interface_type;
-      throw std::runtime_error( str.str() );
+      throw kwiver::vital::plugin_factory_type_creation_error( str.str() );
     }
 
     // Call derived class to create concrete type object
@@ -120,13 +122,20 @@ public:
     {
       std::stringstream str;
 
-      str << "class_loader:: Unable to create object";
-      throw std::runtime_error( str.str() );
+      str << "plugin_factory:: Unable to create object of type "
+          << typeid( T ).name();
+      throw kwiver::vital::plugin_factory_type_creation_error( str.str() );
     }
 
     return new_object;
   }
 
+  //@{
+  /**
+   * @brief Iterate over all attributes
+   *
+   * @param f Factory object
+   */
   template < class T > void for_each_attr( T& f )
   {
     VITAL_FOREACH( auto val, m_attribute_map )
@@ -143,6 +152,7 @@ public:
     }
   }
 
+  //@}
 
 protected:
   plugin_factory( std::string const& itype);

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,41 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Wrapper over C functions to get executable path and module path.
- */
+#ifndef _TOKEN_TYPE_SYSENV_H_
+#define _TOKEN_TYPE_SYSENV_H_
 
-#ifndef KWIVER_GET_PATHS_H
-#define KWIVER_GET_PATHS_H
+#include "token_type.h"
 
-#include <vital/vital_config.h>
 #include <vital/util/vital_util_export.h>
 
-#include <string>
+#include <kwiversys/SystemInformation.hxx>
+
 
 namespace kwiver {
-namespace vital{
+namespace vital {
 
-/**
- * @brief Get path to current executable.
+// ----------------------------------------------------------------
+/** System attributes resolver.
  *
- * Get the name of the directory that contains the current executable
- * file. The returned string does not include the file name.
  *
- * @return Directory name.
  */
-std::string VITAL_UTIL_EXPORT get_executable_path();
+class VITAL_UTIL_EXPORT token_type_sysenv
+  : public token_type
+{
+public:
+  token_type_sysenv();
+  virtual ~token_type_sysenv();
 
-/**
- * @brief Get path to the current module.
- *
- *
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_module_path();
+  /** Lookup name in token type resolver.
+   */
+  virtual bool lookup_entry (std::string const& name, std::string& result);
 
-} }
+  kwiversys::SystemInformation m_sysinfo;
 
-#endif /* KWIVER_GET_PATHS_H */
+}; // end class token_type_sysenv
+
+} // end namespace
+} // end namespace
+
+#endif /* _TOKEN_TYPE_SYSENV_H_ */
