@@ -83,7 +83,7 @@ kwiver_add_library( kwiver_algo
   )
 
 target_link_libraries( kwiver_algo
-  PUBLIC               vital
+  PUBLIC               vital_algo
   )
 
 algorithms_create_plugin( kwiver_algo
