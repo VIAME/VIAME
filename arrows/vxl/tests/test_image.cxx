@@ -94,6 +94,26 @@ public:
 };
 
 
+// helper functor for use in transform_image
+// This funcion mimics the vil_convert_stretch_range_limited operation
+template <typename T>
+class range_to_byte {
+private:
+  double scale;
+  T lo;
+  T hi;
+
+public:
+  range_to_byte(double minv, double maxv) : scale(255.0 / (maxv - minv)), lo(minv), hi(maxv) { }
+
+  uint8_t operator () (T const& val) const
+  {
+    return val <= lo ? 0 : static_cast<uint8_t>( val >= hi ? 255 : (scale * (val - lo) + 0.5) );
+  }
+};
+
+
+
 // helper function to populate the image with a pattern
 // the dynamic range is stretched between minv and maxv
 template <typename T>
@@ -272,6 +292,18 @@ IMPLEMENT_TEST(image_io_stretch)
              img8t.pixel_traits(), img_loaded.pixel_traits());
   TEST_EQUAL("12-bit image is truncated to 8-bit range with force_byte",
              equal_content(img_loaded, img8t), true);
+
+  // load as an 8-bit image custom stretching
+  vital::transform_image(img12, img8, range_to_byte<uint16_t>(100, 4000));
+  config->set_value("manual_stretch", true);
+  config->set_value("intensity_range", "100 4000");
+  io.set_configuration(config);
+  c = io.load("test12.tiff");
+  img_loaded = c->get_image();
+  TEST_EQUAL("12-bit image is compressed to 8-bits when loading with force_byte",
+             img8.pixel_traits(), img_loaded.pixel_traits());
+  TEST_EQUAL("12-bit image is manually stretched to 8-bit range with force_byte",
+             equal_content(img_loaded, img8), true);
 
   if( std::remove("test12.tiff") != 0 )
   {
