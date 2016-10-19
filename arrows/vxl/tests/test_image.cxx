@@ -38,6 +38,7 @@
 #include <arrows/vxl/register_algorithms.h>
 #include <arrows/vxl/image_container.h>
 #include <arrows/vxl/image_io.h>
+#include <vital/util/transform_image.h>
 
 #include <vil/vil_crop.h>
 
@@ -74,15 +75,31 @@ IMPLEMENT_TEST(factory)
   }
 }
 
+namespace {
+
+// helper functor for use in transform_image
+template <typename T>
+class scale_offset {
+private:
+  double scale;
+  double offset;
+
+public:
+  scale_offset(double s, double o) : scale(s), offset(o) { }
+
+  T operator () (T const& val) const
+  {
+    return static_cast<T>(scale * val + offset);
+  }
+};
+
 
 // helper function to populate the image with a pattern
+// the dynamic range is stretched between minv and maxv
 template <typename T>
 void
-populate_vil_image(vil_image_view<T>& img)
+populate_vil_image(vil_image_view<T>& img, T minv, T maxv)
 {
-  const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
-  const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
-
   const double range = static_cast<double>(maxv) - static_cast<double>(minv);
   const double offset = - minv;
   for( unsigned int p=0; p<img.nplanes(); ++p )
@@ -102,11 +119,20 @@ populate_vil_image(vil_image_view<T>& img)
 // helper function to populate the image with a pattern
 template <typename T>
 void
-populate_vital_image(kwiver::vital::image& img)
+populate_vil_image(vil_image_view<T>& img)
 {
   const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
   const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
+  populate_vil_image(img, minv, maxv);
+}
 
+
+// helper function to populate the image with a pattern
+// the dynamic range is stretched between minv and maxv
+template <typename T>
+void
+populate_vital_image(kwiver::vital::image& img, T minv, T maxv)
+{
   const double range = static_cast<double>(maxv) - static_cast<double>(minv);
   const double offset = - minv;
   for( unsigned int p=0; p<img.depth(); ++p )
@@ -123,26 +149,133 @@ populate_vital_image(kwiver::vital::image& img)
 }
 
 
-IMPLEMENT_TEST(image_io)
+// helper function to populate the image with a pattern
+template <typename T>
+void
+populate_vital_image(kwiver::vital::image& img)
+{
+  const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
+  const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
+  populate_vital_image<T>(img, minv, maxv);
+}
+
+
+template <typename T>
+void
+run_image_io_tests(kwiver::vital::image_of<T> const& img, std::string const& type_str)
 {
   using namespace kwiver::arrows;
-  kwiver::vital::image_of<kwiver::vital::byte> img(200,300,3);
-  populate_vital_image<kwiver::vital::byte>(img);
   image_container_sptr c(new simple_image_container(img));
   vxl::image_io io;
-  io.save("test.png", c);
-  image_container_sptr c2 = io.load("test.png");
+  io.save("test.tiff", c);
+  image_container_sptr c2 = io.load("test.tiff");
   kwiver::vital::image img2 = c2->get_image();
-  if( ! equal_content(img, img2) )
-  {
-    TEST_ERROR("Saved image is not identical to loaded image");
-  }
-  if( std::remove("test.png") != 0 )
+  TEST_EQUAL("Image of type "+type_str+" has same type after saving and loading",
+             img.pixel_traits(), img2.pixel_traits());
+  TEST_EQUAL("Image of type "+type_str+" has same content after saving and loading",
+             equal_content(img, img2), true);
+  if( std::remove("test.tiff") != 0 )
   {
     TEST_ERROR("Unable to delete temporary image file.");
   }
 }
 
+} // end anonymous namespace
+
+
+IMPLEMENT_TEST(image_io_types)
+{
+  {
+    kwiver::vital::image_of<kwiver::vital::byte> img(200,300,3);
+    populate_vital_image<kwiver::vital::byte>(img);
+    run_image_io_tests(img, "uint8");
+  }
+  {
+    kwiver::vital::image_of<float> img(200,300,3);
+    populate_vital_image<float>(img);
+    run_image_io_tests(img, "float");
+  }
+  {
+    // currently VXL support only single channel double TIFFs
+    kwiver::vital::image_of<double> img(200,300,1);
+    populate_vital_image<double>(img);
+    run_image_io_tests(img, "double");
+  }
+  {
+    kwiver::vital::image_of<uint16_t> img(200,300,3);
+    populate_vital_image<uint16_t>(img);
+    run_image_io_tests(img, "uint16_t");
+  }
+  {
+    // currently VXL support only single channel boolean TIFFs
+    kwiver::vital::image_of<bool> img(200,300,1);
+    populate_vital_image<bool>(img);
+    run_image_io_tests(img, "bool");
+  }
+}
+
+
+IMPLEMENT_TEST(image_io_stretch)
+{
+  using namespace kwiver;
+  vital::image_of<uint8_t> img8(200,300,3);
+  populate_vital_image<uint8_t>(img8);
+
+  // an image with 12-bit data in a 16-bit image
+  vital::image_of<uint16_t> img12(200,300,3);
+  populate_vital_image<uint16_t>(img12, 0, 4095);
+  image_container_sptr c(new simple_image_container(img12));
+
+  vital::image_of<uint16_t> img16(200,300,3);
+  img16.copy_from(img12);
+  double scale = 65535.0 / 4095.0;
+  vital::transform_image(img16, scale_offset<uint16_t>(scale, 0));
+
+  // save a 12-bit image
+  arrows::vxl::image_io io;
+  io.save("test12.tiff", c);
+  std::cout << "wrote 12-bit test image" <<std::endl;
+
+  vital::config_block_sptr config = vital::config_block::empty_config();
+  config->set_value("auto_stretch", true);
+  io.set_configuration(config);
+  c = io.load("test12.tiff");
+  vital::image img_loaded = c->get_image();
+  TEST_EQUAL("12-bit image is represented as 16-bits after saving and loading",
+             img16.pixel_traits(), img_loaded.pixel_traits());
+  TEST_EQUAL("12-bit image is automatically stretched to 16-bit range",
+             equal_content(img_loaded, img16), true);
+
+  // load as an 8-bit image
+  config->set_value("force_byte", true);
+  io.set_configuration(config);
+  c = io.load("test12.tiff");
+  img_loaded = c->get_image();
+  TEST_EQUAL("12-bit image is compressed to 8-bits when loading with force_byte",
+             img8.pixel_traits(), img_loaded.pixel_traits());
+  TEST_EQUAL("12-bit image is automatically stretched to 8-bit range with force_byte",
+             equal_content(img_loaded, img8), true);
+
+  // load as an 8-bit image without stretching
+  vital::image_of<uint8_t> img8t(200,300,3);
+  vital::cast_image(img12, img8t);
+  config->set_value("auto_stretch", false);
+  io.set_configuration(config);
+  c = io.load("test12.tiff");
+  img_loaded = c->get_image();
+  TEST_EQUAL("12-bit image is truncated to 8-bits when loading with force_byte",
+             img8t.pixel_traits(), img_loaded.pixel_traits());
+  TEST_EQUAL("12-bit image is truncated to 8-bit range with force_byte",
+             equal_content(img_loaded, img8t), true);
+
+  if( std::remove("test12.tiff") != 0 )
+  {
+    TEST_ERROR("Unable to delete temporary image file.");
+  }
+}
+
+
+namespace {
 
 template <typename T>
 void
@@ -187,7 +320,7 @@ run_vil_conversion_tests(const vil_image_view<T>& img, const std::string& type_s
     TEST_ERROR("VXL image re-conversion of type "+type_str+" did not produce a valid vil_image_view");
     return;
   }
- 
+
   TEST_EQUAL("VXL image re-conversion of type "+type_str+" has the correct pixel format",
              img.pixel_format(), img2.pixel_format());
   TEST_EQUAL("VXL image re-conversion of type "+type_str+" is identical",
@@ -290,6 +423,8 @@ test_conversion(const std::string& type_str)
     run_vital_conversion_tests(img, type_str+" (interleaved)");
   }
 }
+
+} // end anonymous namespace
 
 
 IMPLEMENT_TEST(image_convert)
