@@ -64,12 +64,12 @@ convert_image_helper(const vil_image_view<inP>& src,
                      bool manual_stretch, vector_2d intensity_range)
 {
   vil_image_view<double> temp;
+  // The maximum value is extended by almost one such that dest_maxv still truncates
+  // to the outP maximimum value after casting.  The purpose for this is to more evenly
+  // distribute the values across the dynamic range.
+  const double almost_one = 1 - 1e-6;
   double dest_minv = static_cast<double>(std::numeric_limits<outP>::min());
-  double dest_maxv = static_cast<double>(std::numeric_limits<outP>::max());
-  // find the largest double that is > dest_maxv but < dest_maxv + 1
-  // this way the stretched values span [dest_minv, dest_maxv+1) but will
-  // always fall in range of outP after casting.
-  dest_maxv = std::nextafter(dest_maxv + 1.0, dest_minv);
+  double dest_maxv = static_cast<double>(std::numeric_limits<outP>::max()) + almost_one;
   if( !std::numeric_limits<outP>::is_integer )
   {
     dest_minv = outP(0);
