@@ -79,9 +79,8 @@ kwiver::vital::transform_image( mask_img, multiply_by( 5 ) );
  * \param img Input image reference to transform the data of
  * \param op Unary function which takes a const byte& and returns a byte
  */
-template <typename T>
-VITAL_EXPORT void transform_image( image_of<T>& img,
-                                   T ( * op )( T const& ) )
+template <typename T, typename OP>
+VITAL_EXPORT void transform_image( image_of<T>& img, OP op )
 {
   // determine which order to traverse dimensions
   // [0] -> smalled distance between values
