@@ -220,17 +220,20 @@ IMPLEMENT_TEST(image_io_types)
 IMPLEMENT_TEST(image_io_stretch)
 {
   using namespace kwiver;
-  vital::image_of<uint8_t> img8(200,300,3);
-  populate_vital_image<uint8_t>(img8);
 
   // an image with 12-bit data in a 16-bit image
   vital::image_of<uint16_t> img12(200,300,3);
   populate_vital_image<uint16_t>(img12, 0, 4095);
   image_container_sptr c(new simple_image_container(img12));
 
+  vital::image_of<uint8_t> img8(200,300,3);
   vital::image_of<uint16_t> img16(200,300,3);
   img16.copy_from(img12);
-  double scale = 65535.0 / 4095.0;
+  double scale = 255.0 / 4095.0;
+  vital::transform_image(img16, scale_offset<uint16_t>(scale, 0));
+  cast_image(img16, img8);
+  img16.copy_from(img12);
+  scale = (65536.0 - 1e-6) / 4095.0;
   vital::transform_image(img16, scale_offset<uint16_t>(scale, 0));
 
   // save a 12-bit image
