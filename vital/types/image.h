@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -639,45 +639,6 @@ public:
  * \param img2 second image to compare
  */
 VITAL_EXPORT bool equal_content( const image& img1, const image& img2 );
-
-
-/// Transform a given image in place given a unary function
-/**
- * Apply a given unary function to all pixels in the image. This is guareteed
- * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
- *
- * Example:
-\code
-static kwiver::vital::image::byte invert_mask_pixel( kwiver::vital::image::byte const &b )
-{ return !b; }
-
-kwiver::vital::image   mask_img( mask->get_image() );
-kwiver::vital::transform_image( mask_img, invert_mask_pixel );
-
-// or as a functor
-class multiply_by {
-private:
-    int factor;
-
-public:
-    multiply_by(int x) : factor(x) { }
-
-    kwiver::vital::image::byte   operator () (kwiver::vital::image::byte const& other) const
-    {
-        return factor * other;
-    }
-};
-
-kwiver::vital::transform_image( mask_img, multiply_by( 5 ) );
-
-\endcode
- *
- * \param img Input image reference to transform the data of
- * \param op Unary function which takes a const byte& and returns a byte
- */
-VITAL_EXPORT void transform_image( image_of<byte>& img,
-                                   byte ( * op )( byte const& ) );
-
 
 } }   // end namespace vital
 

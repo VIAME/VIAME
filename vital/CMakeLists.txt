@@ -187,6 +187,7 @@ set( vital_public_headers
   util/enumerate_matrix.h
   util/enumerate_matrix.h
   util/get_paths.h
+  util/transform_image.h
   util/string_editor.h
   util/string_format.h
   util/timer.h

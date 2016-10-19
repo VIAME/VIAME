@@ -36,6 +36,7 @@
 #include <test_common.h>
 
 #include <vital/types/image.h>
+#include <vital/util/transform_image.h>
 
 #define TEST_ARGS ()
 
