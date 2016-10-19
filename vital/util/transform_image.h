@@ -121,6 +121,61 @@ VITAL_EXPORT void transform_image( image_of<T>& img, OP op )
   }
 }
 
+
+/// Transform an input image to an output image given a unary function
+/**
+ * This function is similar to the inplace variant except it copies the transformed data
+ * from one const image to another.  The input and ouput images must have the same dimensions
+ * but can have different types and memory layouts.  If the output image does not have the
+ * correct dimensions its memory will be reallocated to match the dimensions of the input image.
+ */
+template <typename T1, typename T2, typename OP>
+VITAL_EXPORT void transform_image( image_of<T1> const& img_in, image_of<T2>& img_out, OP op )
+{
+  const unsigned width = img_in.width();
+  const unsigned height = img_in.height();
+  const unsigned depth = img_in.depth();
+
+  // make sure the output image has the same size as the input image
+  img_out.set_size(width, height, depth);
+  // Pointers to the first pixel of the current dimension iteration
+  T1 const* d0_i, * d1_i, * d2_i;
+  T2* d0_o, * d1_o, * d2_o;
+
+  d2_i = img_in.first_pixel();
+  d2_o = img_out.first_pixel();
+  for ( unsigned i2 = 0; i2 < depth; ++i2, d2_i += img_in.d_step(), d2_o += img_out.d_step() )
+  {
+    d1_i = d2_i;
+    d1_o = d2_o;
+    for ( unsigned i1 = 0; i1 < height; ++i1, d1_i += img_in.h_step(), d1_o += img_out.h_step() )
+    {
+      d0_i = d1_i;
+      d0_o = d1_o;
+      for ( unsigned i0 = 0; i0 < width; ++i0, d0_i += img_in.w_step(), d0_o += img_out.w_step() )
+      {
+        *d0_o = op( *d0_i );
+      }
+    }
+  }
+}
+
+
+/// Functor for casting pixel values for use in the cast_image function
+template <typename T1, typename T2>
+struct cast_pixel
+{
+  T2 operator () (T1 const& v) const { return static_cast<T2>(v); }
+};
+
+
+/// Static cast and image of one type to that of another type
+template <typename T1, typename T2>
+VITAL_EXPORT void cast_image( image_of<T1> const& img_in, image_of<T2>& img_out )
+{
+  transform_image(img_in, img_out, cast_pixel<T1,T2>());
+}
+
 } }   // end namespace vital
 
 
