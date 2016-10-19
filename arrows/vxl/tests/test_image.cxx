@@ -187,16 +187,17 @@ void
 run_image_io_tests(kwiver::vital::image_of<T> const& img, std::string const& type_str)
 {
   using namespace kwiver::arrows;
+  const std::string image_path = "test_"+type_str+".tiff";
   image_container_sptr c(new simple_image_container(img));
   vxl::image_io io;
-  io.save("test.tiff", c);
-  image_container_sptr c2 = io.load("test.tiff");
+  io.save(image_path, c);
+  image_container_sptr c2 = io.load(image_path);
   kwiver::vital::image img2 = c2->get_image();
   TEST_EQUAL("Image of type "+type_str+" has same type after saving and loading",
              img.pixel_traits(), img2.pixel_traits());
   TEST_EQUAL("Image of type "+type_str+" has same content after saving and loading",
              equal_content(img, img2), true);
-  if( std::remove("test.tiff") != 0 )
+  if( std::remove(image_path.c_str()) != 0 )
   {
     TEST_ERROR("Unable to delete temporary image file.");
   }
