@@ -295,18 +295,41 @@ IMPLEMENT_TEST(image_io_stretch)
              equal_content(img_loaded, img8t), true);
 
   // load as an 8-bit image custom stretching
-  vital::transform_image(img12, img8, range_to_byte<uint16_t>(100, 4000));
+  vital::image_of<uint8_t> img8m(200,300,3);
+  vital::transform_image(img12, img8m, range_to_byte<uint16_t>(100, 4000));
   config->set_value("manual_stretch", true);
   config->set_value("intensity_range", "100 4000");
   io.set_configuration(config);
   c = io.load("test12.tiff");
   img_loaded = c->get_image();
   TEST_EQUAL("12-bit image is compressed to 8-bits when loading with force_byte",
-             img8.pixel_traits(), img_loaded.pixel_traits());
+             img8m.pixel_traits(), img_loaded.pixel_traits());
   TEST_EQUAL("12-bit image is manually stretched to 8-bit range with force_byte",
-             equal_content(img_loaded, img8), true);
+             equal_content(img_loaded, img8m), true);
 
   if( std::remove("test12.tiff") != 0 )
+  {
+    TEST_ERROR("Unable to delete temporary image file.");
+  }
+
+  // test the range stretching at save time
+  c = std::make_shared<simple_image_container>(img12);
+  config->set_value("auto_stretch", true);
+  config->set_value("manual_stretch", false);
+  config->set_value("force_byte", true);
+  io.set_configuration(config);
+  io.save("test8.tiff", c);
+  config->set_value("auto_stretch", false);
+  config->set_value("force_byte", false);
+  io.set_configuration(config);
+  c = io.load("test8.tiff");
+  img_loaded = c->get_image();
+  TEST_EQUAL("12-bit image is compressed to 8-bits when saving with force_byte",
+             img8.pixel_traits(), img_loaded.pixel_traits());
+  TEST_EQUAL("8-bit image has correct content (stretched automatically when saved)",
+             equal_content(img_loaded, img8), true);
+
+  if( std::remove("test8.tiff") != 0 )
   {
     TEST_ERROR("Unable to delete temporary image file.");
   }
