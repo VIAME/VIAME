@@ -108,8 +108,9 @@ populate_vil_image(vil_image_view<T>& img, T minv, T maxv)
     {
       for( unsigned int i=0; i<img.ni(); ++i )
       {
-        double val = ((i/(5*(p+1)))%2) + ((j/(5*(p+1)))%2);
-        img(i,j,p) = static_cast<T>(val / 2 * range + offset);
+        const double pi = 3.14159265358979323846;
+        double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;
+        img(i,j,p) = static_cast<T>(val * range + offset);
       }
     }
   }
@@ -141,8 +142,9 @@ populate_vital_image(kwiver::vital::image& img, T minv, T maxv)
     {
       for( unsigned int i=0; i<img.width(); ++i )
       {
-        double val = ((i/(5*(p+1)))%2) + ((j/(5*(p+1)))%2);
-        img.at<T>(i,j,p) = static_cast<T>(val / 2 * range + offset);
+        const double pi = 3.14159265358979323846;
+        double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;
+        img.at<T>(i,j,p) = static_cast<T>(val * range + offset);
       }
     }
   }
