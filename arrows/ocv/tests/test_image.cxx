@@ -349,6 +349,7 @@ test_conversion(const std::string& type_str)
 
 IMPLEMENT_TEST(image_convert)
 {
+  using namespace kwiver;
   using namespace kwiver::arrows;
   test_conversion<uint8_t>("uint8");
   test_conversion<int8_t>("int8");
@@ -357,4 +358,16 @@ IMPLEMENT_TEST(image_convert)
   test_conversion<int32_t>("int32");
   test_conversion<float>("float");
   test_conversion<double>("double");
+
+  // some types not supported by OpenCV and should throw an exception
+  std::cout << "Test conversion of types not supported by OpenCV" << std::endl;
+  EXPECT_EXCEPTION(vital::image_type_mismatch_exception,
+                   ocv::image_container::vital_to_ocv(vital::image_of<uint32_t>(200, 300)),
+                   "converting uint32_t image to cv::Mat");
+  EXPECT_EXCEPTION(vital::image_type_mismatch_exception,
+                   ocv::image_container::vital_to_ocv(vital::image_of<int64_t>(200, 300)),
+                   "converting int64_t image to cv::Mat");
+  EXPECT_EXCEPTION(vital::image_type_mismatch_exception,
+                   ocv::image_container::vital_to_ocv(vital::image_of<uint64_t>(200, 300)),
+                   "converting uint64_t image to cv::Mat");
 }
