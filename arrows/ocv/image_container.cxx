@@ -77,9 +77,9 @@ image_container
 {
   image_memory_sptr memory(new mat_image_memory(img));
 
-  return image(memory, img.data + (img.channels() == 3 ? 2 : 0),
+  return image(memory, img.data,
                img.cols, img.rows, img.channels(),
-               img.elemSize(), img.step, (img.channels() == 3 ? -1 : 1),
+               img.channels(), img.step1(), 1,
                ocv_to_vital(img.type()));
 }
 
@@ -122,11 +122,11 @@ image_container
   const int cv_type = vital_to_ocv(img.pixel_traits());
 
   // cv::Mat is limited in the image data layouts and types that it supports.
-  // Color channels must be reversed and interleaved (d_step==-1) and the
+  // Color channels must be interleaved (d_step==1) and the
   // step between columns must equal the number of channels (w_step==depth).
   // If the image does not have these properties we must allocate
   // a new cv::Mat and deep copy the data.  Otherwise, share memory.
-  if( ( img.depth() == 1 || ( img.depth() == 3 && img.d_step() == -1 ) ) &&
+  if( ( img.depth() == 1 || img.d_step() == 1 ) &&
       img.w_step() == static_cast<ptrdiff_t>(img.depth()) )
   {
     void * data_ptr = const_cast<void *>(img.first_pixel());
