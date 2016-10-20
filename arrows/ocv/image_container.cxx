@@ -129,13 +129,14 @@ image_container
   if( ( img.depth() == 1 || ( img.depth() == 3 && img.d_step() == -1 ) ) &&
       img.w_step() == static_cast<ptrdiff_t>(img.depth()) )
   {
-    image_memory_sptr memory = img.memory();
+    void * data_ptr = const_cast<void *>(img.first_pixel());
     cv::Mat out(static_cast<int>(img.height()), static_cast<int>(img.width()),
                 CV_MAKETYPE(cv_type, static_cast<int>(img.depth())),
-                memory->data(), img.h_step());
+                data_ptr, img.h_step() * img.pixel_traits().num_bytes);
 
     // if this VITAL image is already wrapping cv::Mat allocated data,
     // then restore the original cv::Mat reference counter.
+    image_memory_sptr memory = img.memory();
     if( mat_image_memory* mat_memory =
           dynamic_cast<mat_image_memory*>(memory.get()) )
     {
