@@ -38,6 +38,7 @@
 #include <arrows/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 namespace kwiver {
@@ -53,7 +54,16 @@ vital::image_container_sptr
 image_io
 ::load_(const std::string& filename) const
 {
-  cv::Mat img = cv::imread(filename.c_str());
+  cv::Mat img = cv::imread(filename.c_str(), -1);
+  // OpenCV color images are read as BGR or BGRA, but KWIVER expects RGB or RGBA
+  if ( img.channels() == 3 )
+  {
+    cv::cvtColor(img, img, CV_BGR2RGB);
+  }
+  if ( img.channels() == 4 )
+  {
+    cv::cvtColor(img, img, CV_BGRA2RGBA);
+  }
   return vital::image_container_sptr(new ocv::image_container(img));
 }
 
@@ -68,8 +78,17 @@ image_io
 ::save_(const std::string& filename,
        vital::image_container_sptr data) const
 {
-  cv::imwrite(filename.c_str(),
-              ocv::image_container::vital_to_ocv(data->get_image()));
+  cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image());
+  // OpenCV color images are written as BGR or BGRA, but KWIVER assumes RGB or RGBA
+  if ( img.channels() == 3 )
+  {
+    cv::cvtColor(img, img, CV_RGB2BGR);
+  }
+  if ( img.channels() == 4 )
+  {
+    cv::cvtColor(img, img, CV_RGBA2BGRA);
+  }
+  cv::imwrite(filename.c_str(), img);
 }
 
 } // end namespace ocv
