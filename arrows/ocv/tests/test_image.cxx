@@ -72,32 +72,6 @@ IMPLEMENT_TEST(factory)
 }
 
 
-IMPLEMENT_TEST(image_io)
-{
-  using namespace kwiver::arrows;
-  kwiver::vital::image_of<byte> img(200,300,3);
-  for( unsigned int p=0; p<img.depth(); ++p )
-  {
-    for( unsigned int j=0; j<img.height(); ++j )
-    {
-      for( unsigned int i=0; i<img.width(); ++i )
-      {
-        img(i,j,p) = ((i/(5*(p+1)))%2) * 100 + ((j/(5*(p+1)))%2) * 100;
-      }
-    }
-  }
-  image_container_sptr c(new simple_image_container(img));
-  ocv::image_io io;
-  io.save("test.png", c);
-  image_container_sptr c2 = io.load("test.png");
-  kwiver::vital::image img2 = c2->get_image();
-  if( ! equal_content(img, img2) )
-  {
-    TEST_ERROR("Saved image is not identical to loaded image");
-  }
-}
-
-
 namespace {
 
 // helper function to populate the image with a pattern
@@ -370,4 +344,63 @@ IMPLEMENT_TEST(image_convert)
   EXPECT_EXCEPTION(vital::image_type_mismatch_exception,
                    ocv::image_container::vital_to_ocv(vital::image_of<uint64_t>(200, 300)),
                    "converting uint64_t image to cv::Mat");
+}
+
+
+namespace {
+
+template <typename T>
+void
+run_image_io_tests(kwiver::vital::image_of<T> const& img, std::string const& type_str)
+{
+  using namespace kwiver::arrows;
+  const std::string image_path = "test_"+type_str+".png";
+  image_container_sptr c(new simple_image_container(img));
+  ocv::image_io io;
+  io.save(image_path, c);
+  image_container_sptr c2 = io.load(image_path);
+  kwiver::vital::image img2 = c2->get_image();
+  TEST_EQUAL("Image of type "+type_str+" has same type after saving and loading",
+             img2.pixel_traits(), img.pixel_traits());
+  TEST_EQUAL("Image of type "+type_str+" has same number of channels after saving and loading",
+             img2.depth(), img.depth());
+  TEST_EQUAL("Image of type "+type_str+" has same content after saving and loading",
+             equal_content(img, img2), true);
+
+  if( std::remove(image_path.c_str()) != 0 )
+  {
+    TEST_ERROR("Unable to delete temporary image file.");
+  }
+}
+
+} // end anonymous namespace
+
+
+IMPLEMENT_TEST(image_io_types)
+{
+  {
+    kwiver::vital::image_of<uint8_t> img(200,300,1);
+    populate_vital_image<uint8_t>(img);
+    run_image_io_tests(img, "uint8_C1");
+  }
+  {
+    kwiver::vital::image_of<uint8_t> img(200,300,3);
+    populate_vital_image<uint8_t>(img);
+    run_image_io_tests(img, "uint8_C3");
+  }
+  {
+    kwiver::vital::image_of<uint8_t> img(200,300,4);
+    populate_vital_image<uint8_t>(img);
+    run_image_io_tests(img, "uint8_C4");
+  }
+  {
+    kwiver::vital::image_of<uint16_t> img(200,300,1);
+    populate_vital_image<uint16_t>(img);
+    run_image_io_tests(img, "uint16_C1");
+  }
+  {
+    kwiver::vital::image_of<uint16_t> img(200,300,3);
+    populate_vital_image<uint16_t>(img);
+    run_image_io_tests(img, "uint16_C3");
+  }
 }
