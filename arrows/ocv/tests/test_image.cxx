@@ -72,7 +72,7 @@ IMPLEMENT_TEST(factory)
 }
 
 
-IMPLEMENT_TEST(image_convert)
+IMPLEMENT_TEST(image_io)
 {
   using namespace kwiver::arrows;
   kwiver::vital::image_of<byte> img(200,300,3);
@@ -95,4 +95,266 @@ IMPLEMENT_TEST(image_convert)
   {
     TEST_ERROR("Saved image is not identical to loaded image");
   }
+}
+
+
+namespace {
+
+// helper function to populate the image with a pattern
+// the dynamic range is stretched between minv and maxv
+template <typename T>
+void
+populate_ocv_image(cv::Mat& img, T minv, T maxv)
+{
+  const double range = static_cast<double>(maxv) - static_cast<double>(minv);
+  const double offset = - minv;
+  const unsigned num_c = img.channels();
+  for( unsigned int p=0; p<num_c; ++p )
+  {
+    for( unsigned int j=0; j<img.rows; ++j )
+    {
+      for( unsigned int i=0; i<img.cols; ++i )
+      {
+        const double pi = 3.14159265358979323846;
+        double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;
+        img.template ptr<T>(j)[num_c * i + p] = static_cast<T>(val * range + offset);
+      }
+    }
+  }
+}
+
+
+// helper function to populate the image with a pattern
+template <typename T>
+void
+populate_ocv_image(cv::Mat& img)
+{
+  const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
+  const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
+  populate_ocv_image(img, minv, maxv);
+}
+
+
+// helper function to populate the image with a pattern
+// the dynamic range is stretched between minv and maxv
+template <typename T>
+void
+populate_vital_image(kwiver::vital::image& img, T minv, T maxv)
+{
+  const double range = static_cast<double>(maxv) - static_cast<double>(minv);
+  const double offset = - minv;
+  for( unsigned int p=0; p<img.depth(); ++p )
+  {
+    for( unsigned int j=0; j<img.height(); ++j )
+    {
+      for( unsigned int i=0; i<img.width(); ++i )
+      {
+        const double pi = 3.14159265358979323846;
+        double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;
+        img.at<T>(i,j,p) = static_cast<T>(val * range + offset);
+      }
+    }
+  }
+}
+
+
+// helper function to populate the image with a pattern
+template <typename T>
+void
+populate_vital_image(kwiver::vital::image& img)
+{
+  const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
+  const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
+  populate_vital_image<T>(img, minv, maxv);
+}
+
+
+template <typename T>
+void
+run_ocv_conversion_tests(const cv::Mat& img, const std::string& type_str)
+{
+  using namespace kwiver::arrows;
+  // convert to a vital image and verify that the properties are correct
+  kwiver::vital::image vimg =  ocv::image_container::ocv_to_vital(img);
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct bit depth",
+             vimg.pixel_traits().num_bytes, sizeof(T));
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct pixel type",
+             vimg.pixel_traits().type, image_pixel_traits_of<T>::static_type);
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct number of planes",
+             vimg.depth(), img.channels());
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct width",
+             vimg.height(), img.rows);
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct height",
+             vimg.width(), img.cols);
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the same memory",
+             vimg.first_pixel() == img.data, true);
+  bool equal_data = true;
+  const unsigned num_c = img.channels();
+  for( unsigned int d=0; equal_data && d<vimg.depth(); ++d )
+  {
+    for( unsigned int j=0; equal_data && j<vimg.height(); ++j )
+    {
+      for( unsigned int i=0; equal_data && i<vimg.width(); ++i )
+      {
+        if( img.ptr<T>(j)[num_c * i + d] != vimg.at<T>(i,j,d) )
+        {
+          equal_data = false;
+        }
+      }
+    }
+  }
+  TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the same values",
+             equal_data, true);
+
+  // convert back to cv::Mat and test again
+  cv::Mat img2 = ocv::image_container::vital_to_ocv(vimg);
+  if( !img2.data)
+  {
+    TEST_ERROR("OpenCV image re-conversion of type "+type_str+" did not produce a valid cv::Mat");
+    return;
+  }
+
+  TEST_EQUAL("OpenCV image re-conversion of type "+type_str+" has the correct pixel format",
+             img.type(), img2.type());
+  std::vector<cv::Mat> channels1(img.channels()), channels2(img2.channels());
+  cv::split(img, channels1);
+  cv::split(img2, channels2);
+  unsigned int num_diff = 0;
+  for (unsigned d=0; d<channels1.size(); ++d)
+  {
+    num_diff += cv::countNonZero( channels1[d] != channels2[d]);
+  }
+  TEST_EQUAL("OpenCV image re-conversion of type "+type_str+" is identical",
+             num_diff, 0);
+  TEST_EQUAL("OpenCV image re-conversion of type "+type_str+" has the same memory",
+             img.data == img2.data, true);
+}
+
+
+template <typename T>
+void
+run_vital_conversion_tests(const kwiver::vital::image_of<T>& img,
+                           const std::string& type_str,
+                           bool requires_copy = false)
+{
+  using namespace kwiver::arrows;
+  // convert to a cv::Mat and verify that the properties are correct
+  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img);
+  if( !ocv_img.data )
+  {
+    TEST_ERROR("Vital image conversion of type "+type_str+" did not produce a valid cv::Mat");
+    return;
+  }
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct pixel format",
+             ocv_img.type()%8, cv::Mat_<T>(1,1).type()%8);
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct number of planes",
+             ocv_img.channels(), img.depth());
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct width",
+             ocv_img.rows, img.height());
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct height",
+             ocv_img.cols, img.width());
+  if( !requires_copy )
+  {
+    TEST_EQUAL("Vital image conversion of type "+type_str+" has the same memory",
+               reinterpret_cast<T *>(ocv_img.data) == img.first_pixel(), true);
+  }
+  bool equal_data = true;
+  const unsigned num_c = ocv_img.channels();
+  for( unsigned int d=0; equal_data && d<img.depth(); ++d )
+  {
+    for( unsigned int j=0; equal_data && j<img.height(); ++j )
+    {
+      for( unsigned int i=0; equal_data && i<img.width(); ++i )
+      {
+        if( img(i,j,d) != ocv_img.ptr<T>(j)[num_c * i + d] )
+        {
+          std::cout << "Pixel "<<i<<", "<<j<<", "<<d<<" has values "
+                    <<int(img(i,j,d))<<" != "<< int(ocv_img.ptr<T>(j)[num_c * i + d]) <<std::endl;
+          equal_data = false;
+        }
+      }
+    }
+  }
+  TEST_EQUAL("Vital image conversion of type "+type_str+" has the same values",
+             equal_data, true);
+
+  // convert back to vital::image and test again
+  kwiver::vital::image img2 = ocv::image_container::ocv_to_vital(ocv_img);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct bit depth",
+             img2.pixel_traits().num_bytes, sizeof(T));
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the correct pixel type",
+             img2.pixel_traits().type, image_pixel_traits_of<T>::static_type);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" is identical",
+             kwiver::vital::equal_content(img, img2), true);
+  TEST_EQUAL("Vital image re-conversion of type "+type_str+" has the same memory",
+             reinterpret_cast<T *>(ocv_img.data) == img2.first_pixel(), true);
+}
+
+
+template <typename T>
+void
+test_conversion(const std::string& type_str)
+{
+  // create cv::Mat and convert to an from vital images
+  {
+    std::cout << "Testing single channel cv::Mat of type " << type_str << std::endl;
+    cv::Mat_<T> img(100,200);
+    populate_ocv_image<T>(img);
+    run_ocv_conversion_tests<T>(img, type_str);
+  }
+
+  {
+    std::cout << "Testing three channel cv::Mat of type " << type_str << std::endl;
+    cv::Mat_<cv::Vec<T,3> > img(100,200);
+    populate_ocv_image<T>(img);
+    run_ocv_conversion_tests<T>(img, type_str);
+  }
+
+  {
+    std::cout << "Testing cropped cv::Mat of type " << type_str << std::endl;
+    cv::Mat_<T> img(200,300);
+    populate_ocv_image<T>(img);
+    cv::Rect window( cv::Point(40,50), cv::Point(240, 150) );
+    cv::Mat_<T> img_crop(img, window);
+    run_ocv_conversion_tests<T>(img_crop, type_str+" (cropped)");
+  }
+
+  // create vital images and convert to an from cv::Mat
+  // Note: different code paths are taken depending on whether the image
+  // is natively created as OpenCV or vital, so we need to test both ways.
+  {
+    std::cout << "Testing single channel vital::image of type " << type_str << std::endl;
+    kwiver::vital::image_of<T> img(200, 300, 1);
+    populate_vital_image<T>(img);
+    run_vital_conversion_tests(img, type_str);
+  }
+
+  {
+    std::cout << "Testing three channel vital::image of type " << type_str << std::endl;
+    kwiver::vital::image_of<T> img(200, 300, 3);
+    populate_vital_image<T>(img);
+    run_vital_conversion_tests(img, type_str, true);
+  }
+
+  {
+    std::cout << "Testing interleaved vital::image of type " << type_str << std::endl;
+    kwiver::vital::image_of<T> img(200, 300, 3, true);
+    populate_vital_image<T>(img);
+    run_vital_conversion_tests(img, type_str+" (interleaved)");
+  }
+}
+
+} // end anonymous namespace
+
+
+IMPLEMENT_TEST(image_convert)
+{
+  using namespace kwiver::arrows;
+  test_conversion<uint8_t>("uint8");
+  test_conversion<int8_t>("int8");
+  test_conversion<uint16_t>("uint16");
+  test_conversion<int16_t>("int16");
+  test_conversion<int32_t>("int32");
+  test_conversion<float>("float");
+  test_conversion<double>("double");
 }
