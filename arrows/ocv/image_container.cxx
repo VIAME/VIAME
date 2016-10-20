@@ -75,7 +75,18 @@ image
 image_container
 ::ocv_to_vital(const cv::Mat& img)
 {
-  image_memory_sptr memory(new mat_image_memory(img));
+  // if the cv::Mat has reference counted memory then wrap it to keep a
+  // counted reference too it.  If it doesn't own its memory, then the
+  // vital image won't take ownership either
+  image_memory_sptr memory;
+#ifndef KWIVER_HAS_OPENCV_VER_3
+  if ( !img.refcount )
+#else
+  if ( !out.u )
+#endif
+  {
+    memory = std::make_shared<mat_image_memory>(img);
+  }
 
   return image(memory, img.data,
                img.cols, img.rows, img.channels(),
