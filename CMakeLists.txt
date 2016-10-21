@@ -175,7 +175,8 @@ set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
 mark_as_advanced( LIB_SUFFIX )
 
-
+###
+# Configure setup script.
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_SETUP_SCRIPT_FILE}
@@ -189,6 +190,14 @@ if( KWIVER_INSTALL_SET_UP_SCRIPT )
   install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
     DESTINATION ${CMAKE_INSTALL_PREFIX} )
 endif()
+
+###
+# Install the basic logger properties file.
+file( COPY log4cxx.properties
+  DESTINATION  "${KWIVER_BINARY_DIR}" )
+
+install( FILES log4cxx.properties
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 add_subdirectory( vital )
 
