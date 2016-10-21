@@ -43,6 +43,7 @@
 #include <vital/exceptions/image.h>
 
 #include <memory>
+#include <limits>
 #include <stdexcept>
 
 #include <cstddef>
