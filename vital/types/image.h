@@ -585,15 +585,16 @@ public:
       throw std::out_of_range("kwiver::vital::image::at(unsigned, unsigned) const");
     }
 
+    T const* data = this->first_pixel();
     if ( depth_ < 3 )
     {
-      auto const v = first_pixel_[w_step_ * i + h_step_ * j];
+      auto const v = data[w_step_ * i + h_step_ * j];
       return { v, v, v };
     }
 
-    auto const r = first_pixel_[w_step_ * i + h_step_ * j + d_step_ * 0];
-    auto const g = first_pixel_[w_step_ * i + h_step_ * j + d_step_ * 1];
-    auto const b = first_pixel_[w_step_ * i + h_step_ * j + d_step_ * 2];
+    auto const r = data[w_step_ * i + h_step_ * j + d_step_ * 0];
+    auto const g = data[w_step_ * i + h_step_ * j + d_step_ * 1];
+    auto const b = data[w_step_ * i + h_step_ * j + d_step_ * 2];
     return { r, g, b };
   }
 
