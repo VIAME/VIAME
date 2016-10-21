@@ -328,10 +328,14 @@ public:
   /// Access to the image memory
   image_memory_sptr memory() { return data_; }
 
-  /// The size of the image data in bytes
+  /// The size of the image managed data in bytes
   /**
    * This size includes all allocated image memory,
-   * which could be larger than width*height*depth.
+   * which could be larger than width*height*depth*bytes_per_pixel.
+   *
+   * \note This size only accounts for memory which is owned by
+   *       the image.  If this image was constructed as a view
+   *       into third party memory then the size is reported as 0.
    */
   size_t size() const;
 
