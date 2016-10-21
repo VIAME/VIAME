@@ -299,8 +299,8 @@ image
     std::swap(sizes[1], sizes[2]);
   }
   return sizes[0].first == 1 &&
-         sizes[1].first == sizes[0].second &&
-         sizes[2].first == sizes[0].second * sizes[1].second;
+         sizes[1].first == static_cast<ptrdiff_t>(sizes[0].second) &&
+         sizes[2].first == static_cast<ptrdiff_t>(sizes[0].second * sizes[1].second);
 }
 
 
