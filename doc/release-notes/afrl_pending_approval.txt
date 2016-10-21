@@ -61,7 +61,12 @@ Vital
 
  * Updated the C bindings for vital::image to support pixel types.  Added
    get_pixel2 and get_pixel3 variants for the most common data types.
-   Added a binding for is_contiguous.
+   Added a bindings for is_contiguous and equal_content.
+
+ * Updated the Python bindings for vital::image to support pixel types.
+   Added bindings for get_pixel2 and get_pixel3 variants, is_contiguous,
+   equal_content, and others.  Updated the conversion to PIL to work with
+   different pixel types.
 
 
 Fixes since last public release
