@@ -38,7 +38,7 @@
 
 #include <iostream>
 #include <vital/registrar.h>
-
+#include <vital/logger/logger.h>
 
 // Helper macros for algorithm registration
 /// Initialize required variable for algorithm type registration
@@ -55,23 +55,15 @@
   kwiver::vital::registrar &algorithms_api_registrar_ = reg
 
 
-/// Log to standard error a summary of registration results
-/**
- * NOTE: Logging only occurs when built in debug (-DNDEBUG)
- */
-#ifndef NDEBUG
-# define REGISTRATION_SUMMARY() \
-    std::cerr << "[DEBUG][algorithms::algorithm_plugin_interface_macros::REGISTRATION_SUMMARY] " \
-              << "Registered " << algorithms_api_registered_ << " of " << algorithms_api_expected_ << " algorithms" << std::endl \
-              << "\t(@" << __FILE__ << ")" << std::endl;
-#else
-# define REGISTRATION_SUMMARY()
-#endif
-
+/// Log a summary of registration results
+#define REGISTRATION_SUMMARY()                                          \
+  LOG_DEBUG( kwiver::vital::get_logger( "algorithms::algorithm_plugin_interface_macros" ), \
+    "REGISTRATION_SUMMARY] Registered " << algorithms_api_registered_   \
+    << " of " << algorithms_api_expected_ << " algorithms\n" \
+    << "\t(@" << __FILE__ << ")" );
 
 /// Return the number of registrations that failed (int).
-#define REGISTRATION_FAILURES() \
-  (algorithms_api_expected_ - algorithms_api_registered_)
+#define REGISTRATION_FAILURES()   (algorithms_api_expected_ - algorithms_api_registered_)
 
 
 /**
