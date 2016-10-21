@@ -119,6 +119,17 @@ vital_image_t* vital_image_new_from_image( vital_image_t *other_image );
 VITAL_C_EXPORT
 void vital_image_destroy( vital_image_t* image );
 
+/// Copy the data from \p image_src into \p image_dest
+/**
+ * The if destination image does not match the source image in size
+ * or pixel type, the destination image will be reallocated to match
+ *
+ * @param image_dest The destination of the image copy
+ * @param image_src  The source image to copy
+ */
+VITAL_C_EXPORT
+void vital_image_copy_from_image(vital_image_t *image_dest,
+                                 vital_image_t *image_src );
 
 /// Get the number of bytes allocated in the given image
 VITAL_C_EXPORT

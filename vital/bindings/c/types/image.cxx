@@ -113,6 +113,19 @@ void vital_image_destroy( vital_image_t *image )
   );
 };
 
+
+/// Copy the data from \p image_src into \p image_dest
+void vital_image_copy_from_image(vital_image_t *image_dest,
+                                 vital_image_t *image_src )
+{
+  STANDARD_CATCH(
+    "C::image::copy_from", 0,
+    reinterpret_cast<kwiver::vital::image*>( image_dest )->copy_from(
+      *reinterpret_cast<kwiver::vital::image*>( image_src ));
+  );
+}
+
+
 //
 // A little shortcut for defining pixel accessors
 //
