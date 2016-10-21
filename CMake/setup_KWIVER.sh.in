@@ -8,11 +8,5 @@ export PATH=$this_dir/bin:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
-export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger.so
-export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties
 
-@SET_FLETCH_LD_LIBRARY_PATH@
-@SET_FLETCH_PYTHON_PATH@
-@SET_MATLAB_LD_LIBRARY_PATH@
-export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
-export SPROKIT_PYTHON_MODULES=kwiver.processes
+# Append here

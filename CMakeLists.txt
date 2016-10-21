@@ -199,6 +199,24 @@ file( COPY log4cxx.properties
 install( FILES log4cxx.properties
   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
+if ( KWIVER_ENABLE_LOG4CXX )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger.so\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
+endif()
+
+if (KWIVER_ENABLE_PYTHON)
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
+endif()
+
+if ( KWIVER_ENABLE_MATLAB )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
+endif()
+
+if ( fletch_ROOT )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH\n" )
+endif()
+
 add_subdirectory( vital )
 
 if (KWIVER_ENABLE_TRACK_ORACLE)
