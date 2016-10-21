@@ -126,6 +126,19 @@ void vital_image_copy_from_image(vital_image_t *image_dest,
 }
 
 
+/// Return true if two images have equal content (deep equality)
+VITAL_C_EXPORT
+bool vital_image_equal_content( vital_image_t* image1, vital_image_t* image2 )
+{
+  STANDARD_CATCH(
+    "C::image::equal_content", 0,
+    return kwiver::vital::equal_content(*reinterpret_cast<kwiver::vital::image*>( image1 ),
+                                        *reinterpret_cast<kwiver::vital::image*>( image2 ));
+  );
+  return false;
+}
+
+
 //
 // A little shortcut for defining pixel accessors
 //

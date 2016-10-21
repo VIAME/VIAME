@@ -175,6 +175,10 @@ size_t vital_image_d_step( vital_image_t* image );
 VITAL_C_EXPORT
 bool vital_image_is_contiguous( vital_image_t* image );
 
+/// Return true if two images have equal content (deep equality)
+VITAL_C_EXPORT
+bool vital_image_equal_content( vital_image_t* image1, vital_image_t* image2 );
+
 
 /// Get pixel value at location (i,j) assuming a single channel unsigned 8-bit image
 VITAL_C_EXPORT
