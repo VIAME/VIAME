@@ -1798,7 +1798,6 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
 
   for(p = info; p != NULL; p = p->ai_next)
     {
-    printf("hostname: %s\n", p->ai_canonname);
     std::string candidate = p->ai_canonname;
     if ((candidate.find(base)!=std::string::npos) && baseSize<candidate.size())
       {
