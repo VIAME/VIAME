@@ -179,9 +179,17 @@ main( int argc, char* argv[] )
     path_string += module_dir + ":";
   }
 
-  std::cout << "---- Algorithm search path\n"
-            << path_string << std::endl
-            << std::endl;
+  {
+    std::vector< std::string > path;
+    kwiver::vital::tokenize( path_string, path, ":" );
+
+    std::cout << "---- Algorithm search path\n";
+    VITAL_FOREACH( std::string p, path)
+    {
+      std::cout << "    " << p << std::endl;
+    }
+    std::cout << std::endl;
+  }
 
   std::cout << "---- Registered module names:\n";
   std::vector< std::string > module_list = apm.registered_module_names();

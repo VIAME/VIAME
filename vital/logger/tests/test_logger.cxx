@@ -34,6 +34,7 @@
 
 #include <functional>
 #include <algorithm>
+#include <stdlib.h>
 
 #define TEST_ARGS ()
 
@@ -98,6 +99,7 @@ IMPLEMENT_TEST(check_levels)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(logger_factory)
 {
+  unsetenv( "VITAL_LOGGER_FACTORY" );
   kwiver::vital::logger_handle_t log2 = kwiver::vital::get_logger( "main.logger" );
 
   TEST_EQUAL( "default logger factory name", log2->get_factory_name(), "default_logger factory" );
