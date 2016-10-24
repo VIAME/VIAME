@@ -72,6 +72,7 @@
 #cmakedefine01  VITAL_USE_CPP_DEFAULT_CTOR
 #cmakedefine01  VITAL_USE_CPP_NOEXCEPT
 #cmakedefine01  VITAL_USE_CPP_FINAL
+#cmakedefine01  VITAL_USE_CPP_CONSTEXPR
 
 #cmakedefine01  VITAL_USE_STD_CHRONO
 #cmakedefine01  VITAL_USE_STD_RANDOM
@@ -90,6 +91,12 @@
   #define VITAL_FINAL final
 #else
   #define VITAL_FINAL
+#endif
+
+#if VITAL_USE_CPP_CONSTEXPR
+  #define VITAL_CONSTEXPR constexpr
+#else
+  #define VITAL_CONSTEXPR const
 #endif
 
 #if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR

@@ -65,7 +65,7 @@ format() const
 {
   std::stringstream str;
   size_t idx = 0;
-  static constexpr char convert[] = "0123456789abcdef";
+  static VITAL_CONSTEXPR char convert[] = "0123456789abcdef";
 
 #define CONV(B)  str << convert[(B >> 4) & 0x0f] << convert[B & 0x0f]
 
