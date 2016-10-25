@@ -80,8 +80,8 @@ private:
 
 };
 
-std::ostream& SCORABLE_MGRS_EXPORT operator<<( std::ostream& os, const scorable_mgrs& m );
-std::istream& SCORABLE_MGRS_EXPORT operator>>( std::istream& os, scorable_mgrs& m );
+SCORABLE_MGRS_EXPORT std::ostream& operator<<( std::ostream& os, const scorable_mgrs& m );
+SCORABLE_MGRS_EXPORT std::istream& operator>>( std::istream& os, scorable_mgrs& m );
 
 } // ...track_oracle
 } // ...kwiver
