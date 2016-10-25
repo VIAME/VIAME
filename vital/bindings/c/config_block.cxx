@@ -442,7 +442,11 @@ vital_config_block_file_read( char const*           filepath,
 {
   STANDARD_CATCH(
     "C::config_block::file_read", eh,
-    return read_config_file_helper( eh, filepath );
+    // TODO: Reflect full C++ function sig in C function sig
+    return read_config_file_helper( eh,
+                                    filepath,
+                                    kwiver::vital::config_path_list_t{},
+                                    false );
                 );
   return 0;
 }

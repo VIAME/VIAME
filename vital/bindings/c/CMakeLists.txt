@@ -93,4 +93,5 @@ kwiver_add_library( vital_c
 target_link_libraries( vital_c
   PRIVATE     vital
               vital_apm
+              vital_algo
   )

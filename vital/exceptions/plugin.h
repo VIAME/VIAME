@@ -30,39 +30,58 @@
 
 /**
  * \file
- * \brief Wrapper over C functions to get executable path and module path.
+ * \brief Interface for plugin exceptions
  */
 
-#ifndef KWIVER_GET_PATHS_H
-#define KWIVER_GET_PATHS_H
+#ifndef VITAL_CORE_EXCEPTION_PLUGIN_H
+#define VITAL_CORE_EXCEPTION_PLUGIN_H
 
-#include <vital/vital_config.h>
-#include <vital/util/vital_util_export.h>
-
-#include <string>
+#include <vital/exceptions/base.h>
 
 namespace kwiver {
-namespace vital{
+namespace vital {
 
-/**
- * @brief Get path to current executable.
- *
- * Get the name of the directory that contains the current executable
- * file. The returned string does not include the file name.
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_executable_path();
+// ------------------------------------------------------------------
+/// Generic plugin exception
+class VITAL_EXPORT plugin_exception
+  : public vital_core_base_exception
+{
+public:
+  /// Constructor
+  plugin_exception() VITAL_NOTHROW;
 
-/**
- * @brief Get path to the current module.
- *
- *
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_module_path();
+  /// Destructor
+  virtual ~plugin_exception() VITAL_NOTHROW;
+};
 
-} }
 
-#endif /* KWIVER_GET_PATHS_H */
+// ------------------------------------------------------------------
+/// Requested factory not found.
+class VITAL_EXPORT plugin_factory_not_found
+  : public plugin_exception
+{
+public:
+  /// Constructor
+  plugin_factory_not_found( std::string const& msg) VITAL_NOTHROW;
+
+  /// Destructor
+  virtual ~plugin_factory_not_found() VITAL_NOTHROW;
+};
+
+
+// ------------------------------------------------------------------
+/// Unable to create desired type.
+class VITAL_EXPORT plugin_factory_type_creation_error
+  : public plugin_exception
+{
+public:
+  /// Constructor
+  plugin_factory_type_creation_error( std::string const& msg) VITAL_NOTHROW;
+
+  /// Destructor
+  virtual ~plugin_factory_type_creation_error() VITAL_NOTHROW;
+};
+
+} } // end namespace
+
+#endif /* VITAL_CORE_EXCEPTION_PLUGIN_H */

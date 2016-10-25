@@ -79,11 +79,109 @@ IMPLEMENT_TEST(converter)
 }
 
 
+// ==================================================================
+// make a custom specialization
+namespace kwiver {
+namespace vital {
+namespace any_convert {
+
+template < >
+struct converter< bool, std::string >
+  : public convert_base< bool >
+{
+  converter()
+  {
+    convert_map.insert( std::pair< std::string, bool > ( "yes", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "YES", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "no", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "NO", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "0", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "zero", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "1", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "one", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "on", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "ON", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "off", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "OFF", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "ja", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "nein", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "up", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "down", false ) );
+    convert_map.insert( std::pair< std::string, bool > ( "true", true ) );
+    convert_map.insert( std::pair< std::string, bool > ( "false", false ) );
+  }
+
+
+  virtual ~converter() VITAL_DEFAULT_DTOR
+
+  virtual bool can_convert( kwiver::vital::any const & data ) const
+  {
+    return ( data.type() == typeid( std::string ) ) &&
+           convert_map.find( kwiver::vital::any_cast< std::string > ( data ) ) != convert_map.end();
+  }
+
+
+  virtual bool convert( kwiver::vital::any const& data ) const
+  {
+    auto it = convert_map.find( kwiver::vital::any_cast< std::string > ( data ) );
+    if ( it != convert_map.end() )
+    {
+      return it->second;
+    }
+    throw kwiver::vital::bad_any_cast( typeid( bool ).name(), typeid( std::string ).name() );
+  }
+
+
+private:
+  std::map< std::string, bool > convert_map;
+
+};
+
+} } }     // end namespace
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( test_custom_converter )
+{
+  kwiver::vital::any_converter< bool > convert_to_bool;
+
+
+  convert_to_bool.add_converter< bool > ();      // self type needs to be added too
+  convert_to_bool.add_converter< int > ();
+  convert_to_bool.add_converter< std::string > ();      // Use custom converter
+
+  std::string value;
+
+  value = "yes";
+  TEST_EQUAL( "Convertable string", convert_to_bool.can_convert( value ), true );
+  TEST_EQUAL( "Convert string to bool", convert_to_bool.convert( value ), true );
+
+  value = "up";
+  TEST_EQUAL( "Convertable string", convert_to_bool.can_convert( value ), true );
+  TEST_EQUAL( "Convert string to bool", convert_to_bool.convert( value ), true );
+
+  value = "false";
+  TEST_EQUAL( "Convertable string", convert_to_bool.can_convert( value ), true );
+  TEST_EQUAL( "Convert string to bool", convert_to_bool.convert( value ), false );
+
+  value = "true";
+  TEST_EQUAL( "Convertable string", convert_to_bool.can_convert( value ), true );
+  TEST_EQUAL( "Convert string to bool", convert_to_bool.convert( value ), true );
+
+  TEST_EQUAL( "Convertable int", convert_to_bool.can_convert( 10 ), true );
+  TEST_EQUAL( "Convert int to bool", convert_to_bool.convert( 10 ), true );
+
+  TEST_EQUAL( "Convertable bool", convert_to_bool.can_convert( true ), true );
+  TEST_EQUAL( "Convert bool to bool", convert_to_bool.convert( true ), true );
+
+  TEST_EQUAL( "UnConvertable string", convert_to_bool.can_convert( std::string( "yup" ) ), false );
+}
+
+
 //
 // Custom converter object
 //
 struct uuid_converter
-  : public kwiver::vital::any_converter< std::string >::convert_base< std::string >
+  : public kwiver::vital::any_convert::convert_base< std::string >
 {
   virtual bool can_convert( kwiver::vital::any const& data ) const
   {

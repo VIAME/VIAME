@@ -274,6 +274,59 @@ IMPLEMENT_TEST( include_files )
 }
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST( include_files_in_path )
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  char const *pathSep = ";";
+#else
+  char const *pathSep = ":";
+#endif
+
+  // Should pick up file in the first directory in the path list.
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + data_dir + "/test_config-standard-dir-first"
+                + pathSep + data_dir + "/test_config-standard-dir-second" );
+  auto config_a =
+    kwiver::vital::read_config_file( data_dir + "/test_config-include_files_in_path.txt" );
+  TEST_EQUAL( "[A] num config opts",
+              config_a->available_values().size(),
+              1 );
+  TEST_EQUAL( "[A] included:a value",
+              config_a->get_value< std::string >( "included:a" ),
+              "a" );
+
+  // If we set the KCP in reverse order, we should see
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + data_dir + "/test_config-standard-dir-second"
+                + pathSep + data_dir + "/test_config-standard-dir-first");
+  auto config_b =
+    kwiver::vital::read_config_file( data_dir + "/test_config-include_files_in_path.txt" );
+  TEST_EQUAL( "[B] num config opts",
+              config_b->available_values().size(),
+              2 );
+  TEST_EQUAL( "[B] included:a value",
+              config_b->get_value< std::string >( "included:a" ),
+              "b" );
+  TEST_EQUAL( "[B] included:b value",
+              config_b->get_value< std::string >( "included:b" ),
+              "c" );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( include_files_failure )
+{
+  // NOT setting KWIVER_CONFIG_PATH
+
+  // Should pick up file with the same name in the first directory in the
+  // path list: test_config-standard-dir-first/test_config-standard.txt
+  EXPECT_EXCEPTION(
+    config_file_not_found_exception,
+    kwiver::vital::read_config_file( data_dir + "/test_config-include_files_in_path.txt" ),
+    "included file not in search path dirs"
+  );
+}
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( invalid_config_file )
 {
   EXPECT_EXCEPTION(
@@ -422,6 +475,15 @@ IMPLEMENT_TEST( write_config_simple_success )
                 config->get_value< config_block_value_t > ( keyG ),
                 valueG );
   }
+  // Clean up generated configuration files
+  if( ! ST::RemoveFile( output_path_1 ) )
+  {
+    cerr << "Failed to remove output path 1" << endl;
+}
+  if( ! ST::RemoveFile( output_path_2 ) )
+  {
+    cerr << "Failed to remove output path 2" << endl;
+  }
 }
 
 // ------------------------------------------------------------------
@@ -462,14 +524,15 @@ IMPLEMENT_TEST( empty_config_write_failure )
 }
 
 // ------------------------------------------------------------------
+/// Return KWIVER_CONFIG_PATH string referring to two sub-directories in dir
 static
 std::string
 test_standard_paths( kwiver::vital::config_path_t const& data_dir )
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
-  char const pathSep = ';';
+  char const *pathSep = ";";
 #else
-  char const pathSep = ':';
+  char const *pathSep = ":";
 #endif
 
   return data_dir + "/test_config-standard-dir-first" + pathSep +
@@ -482,12 +545,19 @@ IMPLEMENT_TEST( standard_config_read_without_merge )
   kwiversys::SystemTools::PutEnv(
     "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
 
+  std::cerr << "Current working directory: "
+            << kwiversys::SystemTools::GetCurrentWorkingDirectory()
+            << std::endl;
   auto const config =
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", {}, {}, false );
 
   TEST_EQUAL( "num config params",
               config->available_values().size(),
+              2 );
+
+  TEST_EQUAL( "general:zero param",
+              config->get_value< int >( "general:zero" ),
               1 );
 
   TEST_EQUAL( "general:first param",
@@ -497,14 +567,45 @@ IMPLEMENT_TEST( standard_config_read_without_merge )
 
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_without_merge_with_cwd )
+{
+  kwiversys::SystemTools::ChangeDirectory( data_dir );
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
+
+  std::cerr << "Current working directory: "
+            << kwiversys::SystemTools::GetCurrentWorkingDirectory()
+            << std::endl;
+
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", {}, {}, false );
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              1 );
+
+  TEST_EQUAL( "general:zero param",
+              config->get_value< int > ( "general:zero" ),
+              0 );
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST( standard_config_read_with_merge )
 {
   kwiversys::SystemTools::PutEnv(
     "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
 
+  std::cerr << "Current working directory: "
+            << kwiversys::SystemTools::GetCurrentWorkingDirectory()
+            << std::endl;
   auto const config =
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", {}, {}, true );
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              3 );
 
   TEST_EQUAL( "general:first param",
               config->get_value< std::string > ( "general:first" ),
@@ -515,6 +616,37 @@ IMPLEMENT_TEST( standard_config_read_with_merge )
               "bar" );
 }
 
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( standard_config_read_with_merge_with_cwd )
+{
+  kwiversys::SystemTools::ChangeDirectory( data_dir );
+  kwiversys::SystemTools::PutEnv(
+    "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
+
+  std::cerr << "Current working directory: "
+            << kwiversys::SystemTools::GetCurrentWorkingDirectory()
+            << std::endl;
+
+  auto const config =
+    kwiver::vital::read_config_file( "test_config-standard.txt",
+                                     "vital", {}, {}, true );
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              3 );
+
+  TEST_EQUAL( "general:zero param",
+              config->get_value< int > ( "general:zero" ),
+              0 );
+
+  TEST_EQUAL( "general:first param",
+              config->get_value< std::string > ( "general:first" ),
+              "foo" );
+
+  TEST_EQUAL( "general:second param",
+              config->get_value< std::string > ( "general:second" ),
+              "bar" );
+}
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( standard_config_read_from_prefix )
@@ -522,6 +654,13 @@ IMPLEMENT_TEST( standard_config_read_from_prefix )
   auto const config =
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", "test", data_dir );
+  std::cerr << "Current working directory: "
+            << kwiversys::SystemTools::GetCurrentWorkingDirectory()
+            << std::endl;
+
+  TEST_EQUAL( "num config params",
+              config->available_values().size(),
+              3 );
 
   TEST_EQUAL( "animal:dog param",
               config->get_value< std::string > ( "animal:dog" ),

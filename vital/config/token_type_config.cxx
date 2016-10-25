@@ -35,7 +35,7 @@ namespace vital {
 
 // ----------------------------------------------------------------
 token_type_config::
-token_type_config( kwiver::vital::config_block * blk )
+token_type_config( kwiver::vital::config_block_sptr blk )
   : token_type ("CONFIG")
   , m_config( blk )
 { }

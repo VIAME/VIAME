@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _TOKEN_TYPE_ENV_H_
-#define _TOKEN_TYPE_ENV_H_
+#ifndef _TOKEN_TYPE_SYSENV_H_
+#define _TOKEN_TYPE_SYSENV_H_
 
 #include "token_type.h"
+
+#include <vital/util/vital_util_export.h>
+
+#include <kwiversys/SystemInformation.hxx>
 
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------
-/** Virtual base class for token types.
+/** System attributes resolver.
  *
  *
  */
-class token_type_env
+class VITAL_UTIL_EXPORT token_type_sysenv
   : public token_type
 {
 public:
-  token_type_env();
-  virtual ~token_type_env();
-
+  token_type_sysenv();
+  virtual ~token_type_sysenv();
 
   /** Lookup name in token type resolver.
    */
   virtual bool lookup_entry (std::string const& name, std::string& result);
 
-}; // end class token_type_env
+  kwiversys::SystemInformation m_sysinfo;
 
-} } // end namespace
+}; // end class token_type_sysenv
 
-#endif /* _TOKEN_TYPE_ENV_H_ */
+} // end namespace
+} // end namespace
+
+#endif /* _TOKEN_TYPE_SYSENV_H_ */

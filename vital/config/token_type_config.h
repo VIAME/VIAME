@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,9 @@
 #ifndef _TOKEN_TYPE_CONFIG_H_
 #define _TOKEN_TYPE_CONFIG_H_
 
-#include "token_type.h"
+#include <vital/util/token_type.h>
 
+#include <vital/config/vital_config_export.h>
 #include <vital/config/config_block.h>
 
 
@@ -56,7 +57,7 @@ kwiver::vital::config_block block;
 
 \endcode
  */
-class token_type_config
+class VITAL_CONFIG_EXPORT token_type_config
   : public token_type
 {
 public:
@@ -66,7 +67,7 @@ public:
    *
    * @param[in] blk - config block
    */
-  token_type_config( kwiver::vital::config_block* blk );
+  token_type_config( kwiver::vital::config_block_sptr blk );
   virtual ~token_type_config();
 
   /** Lookup name in token type resolver.
@@ -75,7 +76,7 @@ public:
 
 
 private:
-  kwiver::vital::config_block* m_config;
+  kwiver::vital::config_block_sptr m_config;
 
 }; // end class token_type_config
 

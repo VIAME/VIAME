@@ -38,6 +38,7 @@ const std::string plugin_factory::CONCRETE_TYPE( "concrete-type" );
 const std::string plugin_factory::PLUGIN_FILE_NAME( "plugin-file-name" );
 const std::string plugin_factory::PLUGIN_NAME( "plugin-name" );
 const std::string plugin_factory::PLUGIN_DESCRIPTION( "plugin-descrip" );
+const std::string plugin_factory::PLUGIN_VERSION( "plugin-version" );
 
 
 // ------------------------------------------------------------------

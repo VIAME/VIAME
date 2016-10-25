@@ -34,11 +34,11 @@
  */
 
 #include "config_parser.h"
-#include "token_expander.h"
-#include "token_type_symtab.h"
-#include "token_type_sysenv.h"
-#include "token_type_env.h"
-#include "token_type_config.h"
+#include <vital/util/token_expander.h>
+#include <vital/util/token_type_symtab.h>
+#include <vital/util/token_type_sysenv.h>
+#include <vital/util/token_type_env.h>
+#include <vital/config/token_type_config.h>
 
 #include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
@@ -140,7 +140,7 @@ public:
   {
     m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
     m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
-    m_token_expander.add_token_type( new kwiver::vital::token_type_config( m_config_block.get() ) );
+    m_token_expander.add_token_type( new kwiver::vital::token_type_config( m_config_block ) );
     m_token_expander.add_token_type( m_symtab );
   }
 
@@ -186,7 +186,7 @@ public:
 
     while ( true )
     {
-      // Get next non-blank line. We are done of EOF is found.
+      // Get next non-blank line. We are done if EOF is found.
       token_t token;
       get_token( in_stream, token );
 
@@ -478,7 +478,7 @@ public:
   {
     while ( true )
     {
-      if ( ! getline( str, line ) )
+      if ( ! std::getline( str, line ) )
       {
         // read failed.
         return false;
@@ -643,7 +643,8 @@ public:
 
     // The file is on a relative path.
     // See if file can be found in the search path.
-    std::string res_file = kwiversys::SystemTools::FindFile( file_name, this->m_search_path, false );
+    std::string res_file =
+      kwiversys::SystemTools::FindFile( file_name, this->m_search_path, true );
     if ( "" != res_file )
     {
       return res_file;
@@ -670,7 +671,7 @@ public:
       }
     } // end for
 
-    return kwiversys::SystemTools::FindFile( file_name, include_paths, false );
+    return kwiversys::SystemTools::FindFile( file_name, include_paths, true );
   }
 
 

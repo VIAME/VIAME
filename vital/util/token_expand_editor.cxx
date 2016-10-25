@@ -28,41 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Wrapper over C functions to get executable path and module path.
- */
+#include "token_expand_editor.h"
 
-#ifndef KWIVER_GET_PATHS_H
-#define KWIVER_GET_PATHS_H
-
-#include <vital/vital_config.h>
-#include <vital/util/vital_util_export.h>
-
-#include <string>
+#include <vital/util/token_type_env.h>
+#include <vital/util/token_type_sysenv.h>
 
 namespace kwiver {
-namespace vital{
+namespace vital {
 
-/**
- * @brief Get path to current executable.
- *
- * Get the name of the directory that contains the current executable
- * file. The returned string does not include the file name.
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_executable_path();
+namespace edit_operation {
 
-/**
- * @brief Get path to the current module.
- *
- *
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_module_path();
+token_expand_editor::
+token_expand_editor()
+{
+  // Add the default expanders
+  m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
+  m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
+}
 
-} }
 
-#endif /* KWIVER_GET_PATHS_H */
+token_expand_editor::
+~token_expand_editor()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+token_expand_editor::
+process( std::string& line )
+{
+  const std::string output = m_token_expander.expand_token( line );
+  line = output;
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+void
+token_expand_editor::
+add_expander( kwiver::vital::token_type * tt )
+{
+  m_token_expander.add_token_type( tt );
+}
+
+} } } // end namespace

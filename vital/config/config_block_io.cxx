@@ -170,19 +170,34 @@ write_cb_comment( std::ostream& ofile, config_block_description_t const& comment
   }
 } // write_cb_comment
 
+// ------------------------------------------------------------------
+/// Add paths in the KWIVER_CONFIG_PATH env variable to the given path vector
+/**
+ * Appends the current working directory (".") and then the contents of the
+ * \c KWIVER_CONFIG_PATH environment variable, in order, to the back of the
+ * given vector.
+ *
+ * \param path_vector The vector to append to
+ */
+void append_kwiver_config_paths( config_path_list_t &path_vector )
+{
+  // Current working directory always takes precedence
+  path_vector.push_back(".");
+  kwiversys::SystemTools::GetPath( path_vector, "KWIVER_CONFIG_PATH" );
+}
 } //end anonymous namespace
 
 
 // ------------------------------------------------------------------
 // Helper method to get all possible locations of application config files
 config_path_list_t
-config_file_paths( std::string const& application_name,
+application_config_file_paths(std::string const& application_name,
                    std::string const& application_version,
                    config_path_t const& install_prefix )
 {
   // First, add any paths specified by our local environment variable
   auto paths = config_path_list_t{};
-  kwiversys::SystemTools::GetPath( paths, "KWIVER_CONFIG_PATH" );
+  append_kwiver_config_paths( paths );
 
   // Now add platform specific directories
   auto data_paths = config_path_list_t{};
@@ -265,7 +280,8 @@ config_file_paths( std::string const& application_name,
 // ------------------------------------------------------------------
 config_block_sptr
 read_config_file( config_path_t const&     file_path,
-                  config_path_list_t const& search_path )
+                  config_path_list_t const& search_paths,
+                  bool use_system_paths )
 {
   // The file specified really must be a file.
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )
@@ -281,7 +297,13 @@ read_config_file( config_path_t const&     file_path,
   }
 
   kwiver::vital::config_parser the_parser;
-  the_parser.add_search_path( search_path );
+  if( use_system_paths )
+  {
+    auto kw_config_paths = config_path_list_t{};
+    append_kwiver_config_paths( kw_config_paths );
+    the_parser.add_search_path( kw_config_paths );
+  }
+  the_parser.add_search_path( search_paths );
   the_parser.parse_config( file_path );
 
   return the_parser.get_config();
@@ -301,7 +323,8 @@ read_config_file( std::string const& file_name,
   auto result = config_block_sptr{};
 
   auto const& search_paths =
-    config_file_paths( application_name, application_version, install_prefix );
+    application_config_file_paths( application_name, application_version,
+                                   install_prefix );
 
   // See if file name is an absolute path. If so, then just process the file.
   if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
@@ -311,7 +334,7 @@ read_config_file( std::string const& file_name,
     return config;
   }
 
-  // use current directory when searching for this file.
+  // current working directory is already added before KWIVER_CONFIG_PATH
   config_path_list_t local_search_paths( search_paths );
   local_search_paths.push_back( "." );
 
@@ -333,7 +356,7 @@ read_config_file( std::string const& file_name,
       continue;
     }
 
-    auto const& config = read_config_file( config_path, search_paths );
+    auto const& config = read_config_file( config_path, search_paths, true );
 
     LOG_DEBUG( logger, "Read config file \"" << config_path << "\"" );
 

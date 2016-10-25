@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,41 +28,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Wrapper over C functions to get executable path and module path.
- */
 
-#ifndef KWIVER_GET_PATHS_H
-#define KWIVER_GET_PATHS_H
+#ifndef _TOKEN_TYPE_H_
+#define _TOKEN_TYPE_H_
 
-#include <vital/vital_config.h>
 #include <vital/util/vital_util_export.h>
-
 #include <string>
 
 namespace kwiver {
-namespace vital{
+namespace vital {
 
-/**
- * @brief Get path to current executable.
+// ----------------------------------------------------------------
+/** Abstract base class for token types.
  *
- * Get the name of the directory that contains the current executable
- * file. The returned string does not include the file name.
  *
- * @return Directory name.
  */
-std::string VITAL_UTIL_EXPORT get_executable_path();
+class VITAL_UTIL_EXPORT token_type
+{
+public:
+  virtual ~token_type();
 
-/**
- * @brief Get path to the current module.
- *
- *
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_module_path();
+  /** Return our token type name. This is used to retrieve the name of
+   * this token type when it is added to the token expander.
+   */
+  std::string const& token_type_name() const;
 
-} }
 
-#endif /* KWIVER_GET_PATHS_H */
+  /** Lookup name in token type resolver.
+   * @param[in] name Name to look up
+   * @param[out] result Translated string
+   * @return TRUE if name found in table; false otherwise
+   */
+  virtual bool lookup_entry (std::string const& name, std::string& result) = 0;
+
+
+protected:
+  token_type(std::string const& name);
+
+
+private:
+  std::string m_typeName;
+
+}; // end class token_type
+
+} } // end namespace
+
+#endif /* _TOKEN_TYPE_H_ */

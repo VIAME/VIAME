@@ -30,39 +30,46 @@
 
 /**
  * \file
- * \brief Wrapper over C functions to get executable path and module path.
+ * \brief Implementation of source_location class.
  */
 
-#ifndef KWIVER_GET_PATHS_H
-#define KWIVER_GET_PATHS_H
-
-#include <vital/vital_config.h>
-#include <vital/util/vital_util_export.h>
-
-#include <string>
+#include "source_location.h"
 
 namespace kwiver {
-namespace vital{
+namespace vital {
 
-/**
- * @brief Get path to current executable.
- *
- * Get the name of the directory that contains the current executable
- * file. The returned string does not include the file name.
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_executable_path();
+// ------------------------------------------------------------------
+source_location::
+source_location()
+  : m_line_num(0)
+{ }
 
-/**
- * @brief Get path to the current module.
- *
- *
- *
- * @return Directory name.
- */
-std::string VITAL_UTIL_EXPORT get_module_path();
 
-} }
+// ------------------------------------------------------------------
+source_location::
+source_location( std::shared_ptr< std::string > f, int l)
+: m_file_name(f)
+, m_line_num(l)
+{ }
 
-#endif /* KWIVER_GET_PATHS_H */
+
+// ------------------------------------------------------------------
+source_location::
+~source_location()
+{ }
+
+
+// ------------------------------------------------------------------
+std::ostream &
+source_location::
+format (std::ostream & str) const
+{
+  if (m_line_num > 0)
+  {
+    str << m_file_name << ":" << m_line_num;
+  }
+
+  return str;
+}
+
+} } // end namespace

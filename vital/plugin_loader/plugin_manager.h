@@ -28,56 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_VITAL_PLUGIN_MANAGER_H_
-#define KWIVER_VITAL_PLUGIN_MANAGER_H_
+/**
+ * \file
+ * \brief Interface for plugin manager.
+ */
+
+#ifndef KWIVER_VITAL_PLUGIN_MANAGER_H
+#define KWIVER_VITAL_PLUGIN_MANAGER_H
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
-#include <vital/vital_types.h>
+#include <vital/plugin_loader/vital_vpm_export.h>
 
-#include <kwiversys/DynamicLoader.hxx>
+#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/exceptions/plugin.h>
+#include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
+#include <vital/util/demangle.h>
+#include <vital/noncopyable.h>
 
-#include <vector>
-#include <string>
-#include <map>
 #include <memory>
-
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
 
-// base class of factory hierarchy
-class plugin_factory;
-
-typedef std::shared_ptr< plugin_factory >         plugin_factory_handle_t;
-typedef std::vector< plugin_factory_handle_t >    plugin_factory_vector_t;
-typedef std::map< std::string, plugin_factory_vector_t > plugin_map_t;
-
-class plugin_manager_impl;
-
 // ----------------------------------------------------------------
 /**
- * @brief Manages a set of plugins.
+ * @brief Vital plugin manager.
  *
- * The plugin manager keeps track of all factories from plugins that
- * are discovered on the disk.
+ * This class is the main plugin manager for all kwiver components.
  *
+ * Behaves as a decorator for plugin_loader
  */
-class VITAL_EXPORT plugin_manager
+class VITAL_VPM_EXPORT plugin_manager
+  : private kwiver::vital::noncopyable
 {
 public:
-  typedef kwiversys::DynamicLoader   DL;
-
-  /**
-   * @brief Constructor
-   *
-   * This method constructs a new plugin manager.
-   *
-   * @param init_function Name of the plugin initialization function
-   * to be called to effect loading of the plugin.
-   */
-  plugin_manager( std::string const& init_function );
-  virtual ~plugin_manager();
+  static plugin_manager& instance();  // singleton interface
 
   /**
    * @brief Load all reachable plugins.
@@ -112,7 +100,7 @@ public:
    *
    * @return vector of paths that are searched
    */
-  std::vector< path_t > const& get_search_path() const;
+  std::vector< path_t > const& search_path() const;
 
   /**
    * @brief Get list of factories for interface type.
@@ -124,35 +112,7 @@ public:
    *
    * @return Vector of factories. (vector may be empty)
    */
-  plugin_factory_vector_t const& get_factories( std::string const& type_name ) const;
-
-  /**
-   * @brief Add factory to manager.
-   *
-   * This method adds the specified plugin factory to the plugin
-   * manager. This method is usually called from the plugin
-   * registration function in the loadable module to self-register all
-   * plugins in a module.
-   *
-   * Plugin factory objects are grouped under the interface type name,
-   * so all factories that create the same interface are together.
-   *
-   * @param fact Plugin factory object to register
-   *
-   * @return A pointer is returned to the added factory in case
-   * attributes need to be added to the factory.
-   *
-   * Example:
-   \code
-   void add_factories( plugin_manager* pm )
-   {
-     //                                              interface type    concrete type
-     plugin_factory_handle_t fact = pm->ADD_FACTORY( reader_interface, reader_nit );
-     fact.add_attribute( "file-type", "xml mit" );
-   }
-   \endcode
-   */
-  plugin_factory_handle_t add_factory( plugin_factory* fact );
+  plugin_factory_vector_t const& get_factories( std::string const& type_name );
 
   /**
    * @brief Get map of known plugins.
@@ -161,7 +121,7 @@ public:
    *
    * @return Map of plugins
    */
-  plugin_map_t const& get_plugin_map() const;
+  plugin_map_t const& plugin_map();
 
   /**
    * @brief Get list of files loaded.
@@ -171,64 +131,179 @@ public:
    *
    * @return List of file names.
    */
-  std::vector< std::string > get_file_list() const;
-
-protected:
-  friend class plugin_manager_impl;
+  std::vector< std::string > file_list();
 
   /**
-   * @brief Test if plugin should be loaded.
+   * @brief Reload all plugins.
    *
-   * This method is a hook that can be implemented by a derived class
-   * to verify that the specified plugin should be loaded. This
-   * provides an application level approach to filter specific plugins
-   * from a directory. The default implementation is to load all
-   * discovered plugins.
+   * The current list of factories is deleted, all currently open
+   * files are closed, and storage released. The module loading
+   * process is performed using the current state of this manager.
    *
-   * This method is called after the plugin is opened and the
-   * designated initialization method has been located but not yet
-   * called. Returning \b false from this method will result in the
-   * library being closed without further processing.
-   *
-   * The library handle can be used to inspect the contents of the
-   * plugin as needed.
-   *
-   * @param path File path to the plugin being loaded.
-   * @param lib_handle Handle to library.
-   *
-   * @return \b true if the plugin should be loaded, \b false if plugin should not be loaded
+   * This effectively resets the singleton.
    */
-  virtual bool load_plugin_hook( path_t const& path,
-                                 DL::LibraryHandle lib_handle ) const;
+  void reload_plugins();
 
   /**
-   * @brief Test if factory should be registered.
+   * @brief Has the module been loaded
    *
-   * This method is a hook that can be implemented by a derived class
-   * to verify that the specified factory should be registered. This
-   * provides an application level approach to filtering specific
-   * class factories from a plugin.
+   * This method reports if the specified module has been loaded.
    *
-   * This method is called as the plugin is registering class
-   * factories and can inspect attributes to determine if this factory
-   * should be registered. Returning \b false will prevent this
-   * factory from being registered with the plugin manager.
-   *
-   * A slight misapplication of this hook method could be to add
-   * specific attributes to a set of factories before they are
-   * registered.
-   *
-   * @param fact Pointer to the factory object.
-   *
-   * @return \b true if the plugin should be registered, \b false otherwise.
+   * @return \b true if module has been loaded. \b false otherwise.
    */
-  virtual bool add_factory_hook( plugin_factory_handle_t fact ) const;
+  bool is_module_loaded( std::string const& name) const;
+
+  /**
+   * @brief Mark module as loaded.
+   *
+   * This method adds the specified module name to the list of loaded
+   * modules. The presence of a module name can be determined with the
+   * is_module_loaded() method.
+   *
+   * @param name Module to mark as loaded.
+   */
+  void mark_module_as_loaded( std::string const& name );
+
+  /**
+   * @brief Get list of loaded modules
+   *
+   * This call returns a map of loaded modules with the files they
+   * were defined.
+   *
+   * @return Map of loaded modules.
+   */
+  std::map< std::string, std::string > const& module_map() const;
+
+  /**
+   * @brief Get logger handle.
+   *
+   * This method returns the handle for the plugin manager
+   * logger. This logger can be used by the plugin module to log
+   * diagnostics during the factory creation process.
+   *
+   * @return Handle to plugin_manager logger
+   */
+  kwiver::vital::logger_handle_t logger();
 
 private:
+  plugin_manager();
+  ~plugin_manager();
 
-  const std::unique_ptr< plugin_manager_impl > m_impl;
+  class priv;
+  const std::unique_ptr< priv > m_priv;
+
+  static plugin_manager* s_instance;
 }; // end class plugin_manager
+
+
+// ==================================================================
+/**
+ * \brief Typed implementation factory.
+ *
+ * This struct implements a typed implementation factory. It uses the
+ * \ref plugin_manager to create an instance of a class that
+ * creates a specific variant of the interface type.
+ *
+ * The list of factories that create variants for the specified
+ * interface type is queried from the \ref plugin_manager. This list
+ * is searched for an entry that has the desired value in the
+ * specified factory attribute.
+ *
+ * This struct is intended as a base class with derived structs
+ * specifying the desired attribute name, as in \ref
+ * implementation_factory_by_name.
+ *
+ *
+ * \tparam I Interface type
+ */
+template <typename I>
+struct implementation_factory
+{
+  /**
+   * @brief CTOR
+   *
+   * This constructor creates an implementation factory that uses a
+   * specific attribute to chose the factory object. The name of the
+   * attribute is supplied in this call is used as the key field. The
+   * create() selects the factory which has a specific value in this
+   * field.
+   *
+   * @param attr Name of attribute to use as key field.
+   */
+  implementation_factory( std::string const& attr)
+    : m_attr( attr)
+  { }
+
+  /**
+   * @brief Create object based on attribute value.
+   *
+   * The list of factories which create the interface type I is
+   * scanned for an entry which contains the supplied value in the
+   * attribute field. When one is found, that factory is used to
+   * create a new object. An exception is thrown if the attribute
+   * field is not present or no factory has the requested value.
+   *
+   * @param value Attribute value.
+   *
+   * @return Pointer to new object of type I.
+   *
+   * @throws kwiver::vital::plugin_factory_not_found
+   */
+  I* create( std::string const& value )
+  {
+    // Get singleton plugin manager
+    kwiver::vital::plugin_manager& pm = kwiver::vital::plugin_manager::instance();
+
+    auto fact_list = pm.get_factories( typeid( I ).name() );
+    // Scan fact_list for CONCRETE_TYPE
+    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+    {
+      std::string attr_val;
+      if ( a_fact->get_attribute( m_attr, attr_val ) && ( attr_val == value ) )
+      {
+        return a_fact->create_object<I>();
+      }
+    }
+
+    std::stringstream str;
+    str << "Could not find factory where attr \"" << m_attr << "\" is \"" << value
+        << " for interface type \"" << type_name<I>()
+        << "\"";
+
+    throw kwiver::vital::plugin_factory_not_found( str.str() );
+  }
+
+  std::string m_attr;
+};
+
+
+// ----------------------------------------------------------------
+/**
+ * @brief Implementation factory that uses name attribute.
+ *
+ * This struct provides a common implementation for creating objects
+ * of a specific type based on the "name" attribute.
+ *
+ * Example usage:
+ * \code
+// create name for factory to create specific interface object.
+typedef implementation_factory_by_name< sprokit::process_instrumentation > instrumentation_factory;
+
+// instantiate factory when needed.
+instrumentation_factory ifact;
+auto instr = ifact.create( provider );
+\endcode
+ *
+ */
+template <typename T>
+struct implementation_factory_by_name
+  : public implementation_factory< T >
+{
+  implementation_factory_by_name()
+    : implementation_factory<T>( "plugin-name" )
+  { }
+};
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_PLUGIN_MANAGER_H_ */
+#endif /* KWIVER_VITAL_PLUGIN_MANAGER_H */

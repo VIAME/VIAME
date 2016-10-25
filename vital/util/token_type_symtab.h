@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _TOKEN_TYPE_SYMTAB_H_
+#define _TOKEN_TYPE_SYMTAB_H_
 
-#ifndef _TOKEN_TYPE_H_
-#define _TOKEN_TYPE_H_
+#include "token_type.h"
 
-#include <string>
+#include <vital/util/vital_util_export.h>
+
+#include <map>
+
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------
-/** Abstract base class for token types.
+/** Symbol table token expander.
  *
+ * This token expander replaces one string with another.
  *
+ * The defult name for this token type should be sufficient for most
+ * users, but clever naming can have one of these symbol tables
+ * masquerade as another fixed name token type, such as "ENV".
+ *
+ * For example, if you want to force a specific value into a file that
+ * was initially expanded over the environment, a symtab can be
+ * created that will do that.
  */
-class token_type
+class VITAL_UTIL_EXPORT token_type_symtab
+  : public token_type
 {
 public:
-  virtual ~token_type();
-
-  /** Return our token type name. This is used to retrieve the name of
-   * this token type when it is added to the token expander.
-   */
-  std::string const& token_type_name() const;
+  token_type_symtab(std::string const& name = "SYMTAB");
+  virtual ~token_type_symtab();
 
 
   /** Lookup name in token type resolver.
-   * @param[in] name Name to look up
-   * @param[out] result Translated string
-   * @return TRUE if name found in table; false otherwise
    */
-  virtual bool lookup_entry (std::string const& name, std::string& result) = 0;
+  virtual bool lookup_entry (std::string const& name, std::string& result);
 
+  /** Add entry to table.
+   */
+  virtual void add_entry (std::string const& name, std::string const& value);
 
-protected:
-  token_type(std::string const& name);
+  virtual void remove_entry (std::string const& name);
 
 
 private:
-  std::string m_typeName;
+  std::map < std::string, std::string > m_table;
 
-}; // end class token_type
+}; // end class token_type_symtab
 
 } } // end namespace
 
-#endif /* _TOKEN_TYPE_H_ */
+#endif /* _TOKEN_TYPE_SYMTAB_H_ */
