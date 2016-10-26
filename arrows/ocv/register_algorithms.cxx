@@ -49,6 +49,7 @@
 #include <arrows/ocv/detect_features_MSER.h>
 #include <arrows/ocv/detect_features_simple_blob.h>
 #include <arrows/ocv/detect_features_STAR.h>
+#include <arrows/ocv/draw_detected_object_set.h>
 #include <arrows/ocv/draw_tracks.h>
 #include <arrows/ocv/estimate_fundamental_matrix.h>
 #include <arrows/ocv/estimate_homography.h>
