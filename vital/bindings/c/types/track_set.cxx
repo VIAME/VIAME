@@ -55,22 +55,23 @@ namespace vital_c {
 
 /// Create a new track set from an array of track instances
 vital_trackset_t*
-vital_trackset_new( size_t length, vital_track_t **tracks )
+vital_trackset_new( size_t length, vital_track_t** tracks )
 {
   STANDARD_CATCH(
     "C::track_set::new", NULL,
 
-    std::vector<kwiver::vital::track_sptr> track_vec;
-    for( size_t i=0; i < length; ++i )
+    std::vector< kwiver::vital::track_sptr > track_vec;
+    for ( size_t i = 0; i < length; ++i )
     {
       track_vec.push_back( kwiver::vital_c::TRACK_SPTR_CACHE.get( tracks[i] ) );
     }
-    kwiver::vital::track_set_sptr ts_sptr(
-      new kwiver::vital::simple_track_set( track_vec )
-    );
+
+    kwiver::vital::track_set_sptr ts_sptr( new kwiver::vital::simple_track_set( track_vec )
+                                         );
+
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
-    return reinterpret_cast<vital_trackset_t*>( ts_sptr.get() );
-  );
+    return reinterpret_cast< vital_trackset_t* > ( ts_sptr.get() );
+    );
   return 0;
 }
 

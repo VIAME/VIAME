@@ -204,6 +204,7 @@ public:
     }
   };
 
+  // ------------------------------------------------------------------
   /// Constructor
   SharedPointerCache( std::string name )
     : cache_(),
@@ -211,9 +212,11 @@ public:
       name_( name )
   {}
 
+  // ------------------------------------------------------------------
   /// Destructor
   virtual ~SharedPointerCache() VITAL_DEFAULT_DTOR
 
+  // ------------------------------------------------------------------
   /// Store a shared pointer
   void store( sptr_t sptr )
   {
@@ -237,6 +240,7 @@ public:
     }
   }
 
+  // ------------------------------------------------------------------
   /// Access a stored shared pointer based on a supplied pointer
   sptr_t get( vital_t const *ptr ) const
   {
@@ -261,12 +265,14 @@ public:
     }
   }
 
+  // ------------------------------------------------------------------
   /// Access a stored shared pointer based on the C interface opaque type
   sptr_t get( C_t const *ptr ) const
   {
     return this->get( reinterpret_cast< vital_t const * >( ptr ) );
   }
 
+  // ------------------------------------------------------------------
   /// Erase an entry in the cache by vital-type pointer
   void erase( vital_t const *ptr )
   {
@@ -290,6 +296,7 @@ public:
     }
   }
 
+  // ------------------------------------------------------------------
   /// Erase an entry in the cache by C Interface opaque type pointer
   void erase( C_t const *ptr )
   {
