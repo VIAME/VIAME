@@ -1803,6 +1803,7 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
       {
       // success, stop now.
       fqdn=candidate;
+      freeaddrinfo(info);
       return 0;
       }
     }
