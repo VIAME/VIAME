@@ -64,11 +64,7 @@ else ()
   set(path_sep ":")
 endif ()
 
-cmake_dependent_option(SPROKIT_USE_BUILD_MODULE_PATHS "Whether to use the build tree for the default module path" ON
-  KWIVER_USE_BUILD_TREE OFF)
-mark_as_advanced(SPROKIT_USE_BUILD_MODULE_PATHS)
-
-if (SPROKIT_USE_BUILD_MODULE_PATHS)
+if (KWIVER_USE_BUILD_TREE)
   set(sprokit_default_module_paths "${sprokit_default_module_paths}${path_sep}${module_output_path}")
 endif ()
 
