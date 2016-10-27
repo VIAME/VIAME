@@ -78,6 +78,7 @@ kwiver_install_headers(
 
 # install generated header
 kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h
   ${CMAKE_CURRENT_BINARY_DIR}/wall_timer.h
   SUBDIR   vital/util
