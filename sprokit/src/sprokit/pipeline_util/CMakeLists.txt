@@ -33,11 +33,7 @@ endif ()
 
 set(sprokit_default_pipe_include_paths   "${CMAKE_INSTALL_PREFIX}/share/sprokit/pipelines/include")
 
-cmake_dependent_option(SPROKIT_USE_BUILD_INCLUDE_PATHS "Whether to use the build tree for the default include path" ON
-  KWIVER_USE_BUILD_TREE OFF)
-mark_as_advanced(SPROKIT_USE_BUILD_INCLUDE_PATHS)
-
-if (SPROKIT_USE_BUILD_INCLUDE_PATHS)
+if (KWIVER_USE_BUILD_TREE)
   set(sprokit_default_pipe_include_paths
     "${sprokit_default_pipe_include_paths}${path_sep}${sprokit_source_dir}/src/tools/pipelines/include")
 endif ()
