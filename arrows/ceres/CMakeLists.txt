@@ -34,8 +34,13 @@ kwiver_add_library( kwiver_algo_ceres
   )
 target_link_libraries( kwiver_algo_ceres
   PUBLIC               kwiver_algo
-  PRIVATE              ceres glog
+  PRIVATE              ceres
   )
+if(NOT CERES_USES_MINILOG)
+  target_link_libraries( kwiver_algo_ceres
+    PRIVATE              glog
+    )
+endif()
 
 algorithms_create_plugin( kwiver_algo_ceres
   algorithm_plugin_interface.cxx
