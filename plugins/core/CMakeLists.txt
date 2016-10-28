@@ -26,7 +26,7 @@ kwiver_add_library( viame_core
   )
 
 target_link_libraries( viame_core
-  PUBLIC               vital
+  PUBLIC               vital_algo
   )
 
 algorithms_create_plugin( viame_core

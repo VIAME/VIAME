@@ -27,7 +27,7 @@ kwiver_add_library( viame_hello_world
   )
 
 target_link_libraries( viame_hello_world
-  PUBLIC               vital
+  PUBLIC               vital_algo
   )
 
 algorithms_create_plugin( viame_hello_world
