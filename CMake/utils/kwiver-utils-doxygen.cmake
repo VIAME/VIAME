@@ -82,6 +82,8 @@ function(kwiver_create_doxygen name inputdir)
       "${doxy_files_dir}/Doxyfile.common.in"
       "${doxy_project_output_dir}/Doxyfile.common"
       doxy_project_name
+      doxy_display_name
+      doxy_project_number
       doxy_doc_output_path
       doxy_project_source_dir
       doxy_exclude_patterns
