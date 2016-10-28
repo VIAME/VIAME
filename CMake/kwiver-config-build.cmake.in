@@ -21,7 +21,7 @@ else ()
   set(KWIVER_LIBRARY_DIR    "@KWIVER_BINARY_DIR@/lib")
 endif ()
 
-set(KWIVER_LIBRARIES           "@kwiver_libs@")
+set(KWIVER_LIBRARIES           @kwiver_libs@)
 set(KWIVER_ENABLE_PYTHON       "@KWIVER_ENABLE_PYTHON@")
 set(KWIVER_LIBRARY_DIRS        "${KWIVER_LIBRARY_DIR}"  "${Boost_LIBRARY_DIRS}")
 set(KWIVER_MODULE_DIR          "${KWIVER_LIBRARY_DIR}/modules")

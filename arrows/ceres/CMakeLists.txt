@@ -36,7 +36,7 @@ target_link_libraries( kwiver_algo_ceres
   PUBLIC               kwiver_algo
   PRIVATE              ceres
   )
-if(NOT CERES_USES_MINILOG)
+if(NOT CERES_USES_MINIGLOG)
   target_link_libraries( kwiver_algo_ceres
     PRIVATE              glog
     )
