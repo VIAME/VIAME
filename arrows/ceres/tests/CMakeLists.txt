@@ -3,7 +3,7 @@ project(arrows_test_ceres)
 include(kwiver-test-setup)
 
 set(test_libraries    kwiver_algo_ceres)
-if(NOT CERES_USES_MINILOG)
+if(NOT CERES_USES_MINIGLOG)
   list(APPEND test_libraries glog)
 endif()
 
