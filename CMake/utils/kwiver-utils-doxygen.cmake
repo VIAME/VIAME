@@ -17,15 +17,22 @@ if(${CMAKE_PROJECT_NAME}_ENABLE_DOCS)
   add_custom_target(doxygen ALL)
 endif()
 
+include(CMakeParseArguments)
 
 #+
 # Register a directory to have Doxygen generate documentation.
 #
-#   kwiver_create_doxygen(name input_dir [tagdep1 [tagdep2 ...]])
+#   kwiver_create_doxygen(name input_dir [tagdep1 [tagdep2 ...]]
+#                          [DISPLAY_NAME name]
+#                          [VERSION_NUMBER ver])
 #
 # Create documentation via Doxygen over the given inputdir. The name given is
 # used to create the build targets. 'tagdep' arguments should be names of
 # other documentation sets (i.e. module names) this set depends on.
+#
+# Optional argument DISPLAY_NAME sets the name of the project to display.
+#
+# Optional argument VERSION_NUMBER sets the version number to display.
 #
 # If Doxygen was not found, this method does nothing as documentation cannot
 # be built, period.
@@ -35,6 +42,9 @@ function(kwiver_create_doxygen name inputdir)
 
     message(STATUS "[doxy-${name}] Creating doxygen targets")
 
+    set(singleValueArgs DISPLAY_NAME VERSION_NUMBER)
+    cmake_parse_arguments(kwdoxy "" "${singleValueArgs}" "" ${ARGN})
+
     # Constants -- could be moved outside this function?
     set(doxy_include_path       "${CMAKE_SOURCE_DIR};${CMAKE_BINARY_DIR}")
     set(doxy_doc_output_path    "${CMAKE_BINARY_DIR}/doc")
@@ -42,6 +52,8 @@ function(kwiver_create_doxygen name inputdir)
 
     # current project specific variables
     set(doxy_project_name       "${name}")
+    set(doxy_display_name       "${kwdoxy_DISPLAY_NAME}")
+    set(doxy_project_number     "${kwdoxy_VERSION_NUMBER}")
     set(doxy_project_source_dir "${inputdir}")
     set(doxy_project_output_dir "${doxy_doc_output_path}/${doxy_project_name}")
     set(doxy_project_tag_file   "${doxy_project_output_dir}/${name}.tag")
@@ -49,8 +61,8 @@ function(kwiver_create_doxygen name inputdir)
     # Build up tag file and target dependency lists
     set(doxy_tag_files)
     set(tag_target_deps)
-    message(STATUS "[doxy-${name}] given tag deps: \"${ARGN}\"")
-    foreach (tag IN LISTS ARGN)
+    message(STATUS "[doxy-${name}] given tag deps: \"${kwdoxy_UNPARSED_ARGUMENTS}\"")
+    foreach (tag IN LISTS kwdoxy_UNPARSED_ARGUMENTS)
       message(STATUS "[doxy-${name}] - tag: ${tag}")
       list(APPEND doxy_tag_files
         "${doxy_doc_output_path}/${tag}/${tag}.tag=${doxy_doc_output_path}/${tag}"
