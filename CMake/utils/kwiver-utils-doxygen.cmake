@@ -51,6 +51,10 @@ function(kwiver_create_doxygen name inputdir)
     set(doxy_files_dir "${CMAKE_SOURCE_DIR}/CMake/templates/doxygen")
 
     # current project specific variables
+    if(NOT DEFINED kwdoxy_DISPLAY_NAME)
+      # fallback to the project name if no display name is given
+      set(kwdoxy_DISPLAY_NAME "${name}")
+    endif()
     set(doxy_project_name       "${name}")
     set(doxy_display_name       "${kwdoxy_DISPLAY_NAME}")
     set(doxy_project_number     "${kwdoxy_VERSION_NUMBER}")
