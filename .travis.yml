@@ -1,0 +1,47 @@
+#Travis CI configuration for KWIVER
+# See http://travis-ci.org/Kitware/kwiver/
+
+sudo: false
+
+language: cpp
+compiler:
+  - gcc
+  - clang
+
+cache:
+  directories:
+  - $HOME/deps
+
+before_script:
+  - bash .travis/install-deps.sh
+
+addons:
+  apt:
+    packages:
+    - libproj-dev
+    - libgl1-mesa-dev
+    - libxt-dev
+    - libqt4-dev
+    - libatlas-base-dev
+
+script:
+  - export PATH=$HOME/deps/bin:$PATH
+  - mkdir build
+  - cd build
+  - cmake -DKWIVER_ENABLE_ARROWS=ON
+          -DKWIVER_ENABLE_CERES=ON
+          -DKWIVER_ENABLE_C_BINDINGS=ON
+          -DKWIVER_ENABLE_DOCS=OFF
+          -DKWIVER_ENABLE_LOG4CXX=OFF
+          -DKWIVER_ENABLE_OPENCV=ON
+          -DKWIVER_ENABLE_PROJ=ON
+          -DKWIVER_ENABLE_PYTHON=OFF
+          -DKWIVER_ENABLE_SPROKIT=OFF
+          -DKWIVER_ENABLE_TESTS=ON
+          -DKWIVER_ENABLE_TOOLS=ON
+          -DKWIVER_ENABLE_TRACK_ORACLE=OFF
+          -DKWIVER_ENABLE_VISCL=OFF
+          -DKWIVER_ENABLE_VXL=ON
+          ../
+  - make -j2
+  - ctest

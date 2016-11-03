@@ -3,7 +3,6 @@
 if (KWIVER_ENABLE_SPROKIT OR KWIVER_ENABLE_TRACK_ORACLE)
 
   if(WIN32)
-    set(Boost_USE_STATIC_LIBS TRUE)
     set(Boost_WIN_MODULES chrono)
   endif()
 
