@@ -49,12 +49,15 @@ namespace vital {
  * The config entry passed to the constructor is still under the
  * control of the originator and will not be deleted by this class.
  *
+ * When the string "$CONFIG{key}" is found in the input text is is
+ * replaces with the value in the config block specified by the key.
+ *
  * Example:
 \code
 kwiver::vital::config_block block;
+kwiver::vital::token_expander m_token_expander;
 
-
-
+m_token_expander.add_token_type( new kwiver::vital::token_type_config( block ) );
 \endcode
  */
 class VITAL_CONFIG_EXPORT token_type_config
