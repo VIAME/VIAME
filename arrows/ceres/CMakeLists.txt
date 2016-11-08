@@ -7,6 +7,7 @@ set( ceres_headers_public
   optimize_cameras.h
   register_algorithms.h
   reprojection_error.h
+  camera_smoothness.h
   )
 set( ceres_headers_private
   options.h

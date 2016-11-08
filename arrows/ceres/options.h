@@ -215,6 +215,8 @@ public:
   bool optimize_dist_k4_k5_k6;
   /// the type of sharing of intrinsics between cameras to use
   CameraIntrinsicShareType camera_intrinsic_share_type;
+  /// the scale of the camera path smoothness regularization
+  double camera_path_smoothness;
 };
 
 

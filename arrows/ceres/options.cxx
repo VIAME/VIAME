@@ -132,7 +132,8 @@ camera_options
     optimize_dist_k3(false),
     optimize_dist_p1_p2(false),
     optimize_dist_k4_k5_k6(false),
-    camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS)
+    camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS),
+    camera_path_smoothness(0.0)
 {
 }
 
@@ -149,7 +150,8 @@ camera_options
     optimize_dist_k3(other.optimize_dist_k3),
     optimize_dist_p1_p2(other.optimize_dist_p1_p2),
     optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
-    camera_intrinsic_share_type(other.camera_intrinsic_share_type)
+    camera_intrinsic_share_type(other.camera_intrinsic_share_type),
+    camera_path_smoothness(other.camera_path_smoothness)
 {
 }
 
@@ -191,6 +193,9 @@ camera_options
                     "COMMON enforces that all cameras share common intrinsics\n"
                     "UNIQUE enforces that each camera has its own intrinsics parameters."
                     + ceres_options< ceres::CameraIntrinsicShareType >());
+  config->set_value("camera_path_smoothness", this->camera_path_smoothness,
+                    "Controls the amount a regularization to apply to the camera path. "
+                    "If set to zero the path regularization is disabled.");
 }
 
 
@@ -213,6 +218,7 @@ camera_options
   GET_VALUE(bool, optimize_dist_k4_k5_k6);
   GET_VALUE(ceres::LensDistortionType, lens_distortion_type);
   GET_VALUE(ceres::CameraIntrinsicShareType, camera_intrinsic_share_type);
+  GET_VALUE(double, camera_path_smoothness);
 #undef GET_VALUE
 }
 

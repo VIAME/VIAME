@@ -43,6 +43,7 @@
 #include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
 #include <arrows/ceres/reprojection_error.h>
+#include <arrows/ceres/camera_smoothness.h>
 #include <arrows/ceres/types.h>
 #include <arrows/ceres/options.h>
 
@@ -288,6 +289,27 @@ bundle_adjust
       // set a subset of parameters in the block constant
       problem.SetParameterization(&cip[0],
           new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
+    }
+  }
+
+  // Add camera path regularization residuals
+  if( d_->camera_path_smoothness > 0.0 &&
+      camera_params.size() >= 3 )
+  {
+    typedef cam_param_map_t::iterator cp_itr_t;
+    cp_itr_t prev_cam = camera_params.begin();
+    cp_itr_t curr_cam = prev_cam;
+    curr_cam++;
+    cp_itr_t next_cam = curr_cam;
+    next_cam++;
+    for(; next_cam != camera_params.end();
+        prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
+    {
+      problem.AddResidualBlock(create_smoothness_cost_func(d_->camera_path_smoothness),
+                               loss_func,
+                               &prev_cam->second[0],
+                               &curr_cam->second[0],
+                               &next_cam->second[0]);
     }
   }
 
