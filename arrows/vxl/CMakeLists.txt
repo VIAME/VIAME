@@ -60,11 +60,12 @@ kwiver_add_library( kwiver_algo_vxl
   )
 target_link_libraries( kwiver_algo_vxl
   PUBLIC               kwiver_algo
-                       vil vidl vgl
+                       vil vpgl vgl
   PRIVATE              vital_klv
                        vital_video_metadata
                        rrel rsdl
                        vnl
+                       vidl
                        vgl_algo
                        vpgl_algo
   )

@@ -55,7 +55,6 @@ namespace vxl {
  * @return Equivalent bounding box.
  */
 template <typename T>
-KWIVER_ALGO_VXL_EXPORT
 kwiver::vital::bounding_box<T> convert( const vgl_box_2d<T>& vbox )
 {
   return kwiver::vital::bounding_box<T>( vbox.min_x(),
@@ -74,7 +73,6 @@ kwiver::vital::bounding_box<T> convert( const vgl_box_2d<T>& vbox )
  * @return Equivalent vgl_box_2d
  */
 template <typename T>
-KWIVER_ALGO_VXL_EXPORT
 vgl_box_2d<T> convert(const kwiver::vital::bounding_box<T>& bbox )
 {
   return vgl_box_2d<T>( bbox.min_x(), bbox.max_x(),

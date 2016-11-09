@@ -99,7 +99,14 @@ IMPLEMENT_TEST(check_levels)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(logger_factory)
 {
+  // Need to unset any logger factory specification so we will use the
+  // default factory
+#if defined _WIN32
+  _putenv( "VITAL_LOGGER_FACTORY=" );
+#else
   unsetenv( "VITAL_LOGGER_FACTORY" );
+#endif
+
   kwiver::vital::logger_handle_t log2 = kwiver::vital::get_logger( "main.logger" );
 
   TEST_EQUAL( "default logger factory name", log2->get_factory_name(), "default_logger factory" );
