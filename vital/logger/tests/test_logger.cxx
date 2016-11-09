@@ -102,7 +102,7 @@ IMPLEMENT_TEST(logger_factory)
   // Need to unset any logger factory specification so we will use the
   // default factory
 #if defined _WIN32
-  _putetenv( "VITAL_LOGGER_FACTORY=" );
+  _putenv( "VITAL_LOGGER_FACTORY=" );
 #else
   unsetenv( "VITAL_LOGGER_FACTORY" );
 #endif
