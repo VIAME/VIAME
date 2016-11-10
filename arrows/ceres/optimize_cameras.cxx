@@ -34,7 +34,7 @@
 */
 
 #include "optimize_cameras.h"
-#include "camera_options.h"
+#include "options.h"
 
 
 

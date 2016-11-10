@@ -10,7 +10,7 @@ set( ceres_headers_public
   )
 set( ceres_headers_private
   types.h
-  camera_options.h
+  options.h
   )
 
 kwiver_install_headers(
@@ -24,7 +24,7 @@ kwiver_install_headers(
   )
 
 set( ceres_sources
-  camera_options.cxx
+  options.cxx
   bundle_adjust.cxx
   optimize_cameras.cxx
   register_algorithms.cxx

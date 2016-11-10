@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of Ceres camera options
+ * \brief Implementation of Ceres options helper classes
  */
 
-#include "camera_options.h"
+#include "options.h"
 
 using namespace kwiver::vital;
 

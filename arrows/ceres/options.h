@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Internal header for helper functions for Ceres camera options
+ * \brief Internal header for helper classes containing Ceres options
  */
 
 #ifndef KWIVER_ARROWS_CERES_CAMERA_OPTIONS_H_

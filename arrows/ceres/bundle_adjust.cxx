@@ -44,7 +44,7 @@
 #include <vital/io/eigen_io.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
-#include <arrows/ceres/camera_options.h>
+#include <arrows/ceres/options.h>
 
 #include <ceres/ceres.h>
 
