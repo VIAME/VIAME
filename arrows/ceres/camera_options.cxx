@@ -139,6 +139,61 @@ camera_options
 #undef GET_VALUE
 }
 
+
+/// enumerate the intrinsics held constant
+std::vector<int>
+camera_options
+::enumerate_constant_intrinsics() const
+{
+  std::vector<int> constant_intrinsics;
+
+  // number of lens distortion parameters in the selected model
+  const unsigned int ndp = num_distortion_params(this->lens_distortion_type);
+
+  if (!this->optimize_focal_length)
+  {
+    constant_intrinsics.push_back(0);
+  }
+  if (!this->optimize_principal_point)
+  {
+    constant_intrinsics.push_back(1);
+    constant_intrinsics.push_back(2);
+  }
+  if (!this->optimize_aspect_ratio)
+  {
+    constant_intrinsics.push_back(3);
+  }
+  if (!this->optimize_skew)
+  {
+    constant_intrinsics.push_back(4);
+  }
+  if (!this->optimize_dist_k1 && ndp > 0)
+  {
+    constant_intrinsics.push_back(5);
+  }
+  if (!this->optimize_dist_k2 && ndp > 1)
+  {
+    constant_intrinsics.push_back(6);
+  }
+  if (!this->optimize_dist_p1_p2 && ndp > 3)
+  {
+    constant_intrinsics.push_back(7);
+    constant_intrinsics.push_back(8);
+  }
+  if (!this->optimize_dist_k3 && ndp > 4)
+  {
+    constant_intrinsics.push_back(9);
+  }
+  if (!this->optimize_dist_k4_k5_k6 && ndp > 7)
+  {
+    constant_intrinsics.push_back(10);
+    constant_intrinsics.push_back(11);
+    constant_intrinsics.push_back(12);
+  }
+  return constant_intrinsics;
+}
+
+
 } // end namespace ceres
 } // end namespace arrows
 } // end namespace kwiver

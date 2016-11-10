@@ -332,47 +332,7 @@ bundle_adjust
   ::ceres::Problem problem;
 
   // enumerate the intrinsics held constant
-  std::vector<int> constant_intrinsics;
-  if (!d_->optimize_focal_length)
-  {
-    constant_intrinsics.push_back(0);
-  }
-  if (!d_->optimize_principal_point)
-  {
-    constant_intrinsics.push_back(1);
-    constant_intrinsics.push_back(2);
-  }
-  if (!d_->optimize_aspect_ratio)
-  {
-    constant_intrinsics.push_back(3);
-  }
-  if (!d_->optimize_skew)
-  {
-    constant_intrinsics.push_back(4);
-  }
-  if (!d_->optimize_dist_k1 && ndp > 0)
-  {
-    constant_intrinsics.push_back(5);
-  }
-  if (!d_->optimize_dist_k2 && ndp > 1)
-  {
-    constant_intrinsics.push_back(6);
-  }
-  if (!d_->optimize_dist_p1_p2 && ndp > 3)
-  {
-    constant_intrinsics.push_back(7);
-    constant_intrinsics.push_back(8);
-  }
-  if (!d_->optimize_dist_k3 && ndp > 4)
-  {
-    constant_intrinsics.push_back(9);
-  }
-  if (!d_->optimize_dist_k4_k5_k6 && ndp > 7)
-  {
-    constant_intrinsics.push_back(10);
-    constant_intrinsics.push_back(11);
-    constant_intrinsics.push_back(12);
-  }
+  std::vector<int> constant_intrinsics = d_->enumerate_constant_intrinsics();
 
   // Create the loss function to use
   ::ceres::LossFunction* loss_func

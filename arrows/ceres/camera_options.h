@@ -60,6 +60,27 @@ public:
   /// set the member variables from the config block
   void set_configuration(vital::config_block_sptr config);
 
+  /// enumerate the intrinsics held constant
+  /**
+   * Based on the settings of the boolean optimization switches
+   * poplulate a vector of indices marking which intrinsic camera
+   * paramaters are held constant.  Indices are:
+   *   - \b 0 : focal length
+   *   - \b 1 : principal point X
+   *   - \b 2 : principal point Y
+   *   - \b 3 : aspect ratio
+   *   - \b 4 : skew
+   *   - \b 5 : radial distortion (k1)
+   *   - \b 6 : radial distortion (k2)
+   *   - \b 7 : tangential distortion (p1)
+   *   - \b 8 : tangential distortion (p2)
+   *   - \b 9 : radial distortion (k3)
+   *   - \b 10 : radial distortion (k4)
+   *   - \b 11 : radial distortion (k5)
+   *   - \b 12 : radial distortion (k6)
+   */
+  std::vector<int> enumerate_constant_intrinsics() const;
+
   /// option to optimize the focal length
   bool optimize_focal_length;
   /// option to optimize aspect ratio
