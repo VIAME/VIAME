@@ -70,8 +70,8 @@ public:
   double m_min_dist;
   double m_param1;
   double m_param2;
-  double m_min_radius;
-  double m_max_radius;
+  int m_min_radius;
+  int m_max_radius;
 
 }; // end class hough_circle_detector::priv
 
@@ -139,8 +139,8 @@ set_configuration(vital::config_block_sptr config)
   d->m_min_dist   = config->get_value<double>( "min_dist" );
   d->m_param1     = config->get_value<double>( "param1" );
   d->m_param2     = config->get_value<double>( "param2" );
-  d->m_min_radius = config->get_value<double>( "min_radius" );
-  d->m_max_radius = config->get_value<double>( "max_radius" );
+  d->m_min_radius = config->get_value<int>( "min_radius" );
+  d->m_max_radius = config->get_value<int>( "max_radius" );
 }
 
 
