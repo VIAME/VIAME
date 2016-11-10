@@ -142,7 +142,7 @@ public:
   }
 
   /// returns the number of vertices
-  virtual unsigned int size() const { return verts_.size(); }
+  virtual unsigned int size() const { return static_cast<unsigned int>(verts_.size()); }
 
   /// returns the dimension of the vertices
   virtual unsigned int dim() const { return d; }
@@ -377,10 +377,10 @@ public:
   virtual unsigned int regularity() const { return 0; }
 
   /// returns the number of faces
-  virtual unsigned int size() const { return faces_.size(); }
+  virtual unsigned int size() const { return static_cast<unsigned int>(faces_.size()); }
 
   /// returns the number of vertices in face \param f
-  virtual unsigned int num_verts(unsigned int f) const { return faces_[f].size(); }
+  virtual unsigned int num_verts(unsigned int f) const { return static_cast<unsigned int>(faces_[f].size()); }
 
   /// Access a vertex index by face index and within-face index
   virtual unsigned int operator() (unsigned int f, unsigned int i) const { return faces_[f][i]; }
@@ -449,7 +449,7 @@ public:
   virtual unsigned int regularity() const { return s; }
 
   /// returns the number of faces
-  virtual unsigned int size() const { return faces_.size(); }
+  virtual unsigned int size() const { return static_cast<unsigned int>(faces_.size()); }
 
   /// returns the number of vertices in face \param f
   virtual unsigned int num_verts(unsigned int /*f*/) const { return s; }
@@ -481,7 +481,7 @@ public:
     assert(other.regularity() == s);
     const mesh_regular_face_array<s>& fs =
         static_cast<const mesh_regular_face_array<s>&>(other);
-    const unsigned int new_begin = faces_.size();
+    const unsigned int new_begin = static_cast<unsigned int>(faces_.size());
     faces_.insert(faces_.end(), fs.faces_.begin(), fs.faces_.end());
     if (ind_shift > 0)
     {
@@ -582,7 +582,7 @@ public:
   mesh_half_edge& operator [] (unsigned int i)  { return half_edges_[i]; }
 
   /// number of half edges
-  unsigned int size() const { return half_edges_.size(); }
+  unsigned int size() const { return static_cast<unsigned int>(half_edges_.size()); }
 
   /// clear the edges
   void clear()
