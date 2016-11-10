@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,33 +29,30 @@
  */
 
 /**
- * \file
- * \brief Ceres algorithm registration implementation
- */
+* \file
+* \brief Header defining CERES algorithm implementation of camera optimization.
+*/
 
-#include "register_algorithms.h"
+#include "optimize_cameras.h"
 
 
-#include <arrows/algorithm_plugin_interface_macros.h>
-#include <arrows/ceres/bundle_adjust.h>
-#include <arrows/ceres/optimize_cameras.h>
 
+using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
 namespace ceres {
 
-/// Register Ceres algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+
+/// Optimize a single camera given corresponding features and landmarks
+void
+optimize_cameras
+::optimize(vital::camera_sptr& camera,
+           const std::vector<vital::feature_sptr>& features,
+           const std::vector<vital::landmark_sptr>& landmarks) const
 {
-  REGISTRATION_INIT( reg );
-
-  REGISTER_TYPE( ceres::bundle_adjust );
-  REGISTER_TYPE( ceres::optimize_cameras );
-
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
 }
+
 
 } // end namespace ceres
 } // end namespace arrows

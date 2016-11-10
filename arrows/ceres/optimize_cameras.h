@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,61 @@
  */
 
 /**
- * \file
- * \brief Ceres algorithm registration implementation
- */
+* \file
+* \brief Header defining Ceres algorithm implementation of camera optimization.
+*/
 
-#include "register_algorithms.h"
+#ifndef KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
+#define KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
 
 
-#include <arrows/algorithm_plugin_interface_macros.h>
-#include <arrows/ceres/bundle_adjust.h>
-#include <arrows/ceres/optimize_cameras.h>
+#include <string>
+
+#include <vital/vital_config.h>
+#include <arrows/ceres/kwiver_algo_ceres_export.h>
+
+#include <vital/algo/algorithm.h>
+#include <vital/algo/optimize_cameras.h>
 
 
 namespace kwiver {
 namespace arrows {
 namespace ceres {
 
-/// Register Ceres algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+class KWIVER_ALGO_CERES_EXPORT optimize_cameras
+  : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
 {
-  REGISTRATION_INIT( reg );
+public:
+  virtual std::string impl_name() const { return "ceres"; }
 
-  REGISTER_TYPE( ceres::bundle_adjust );
-  REGISTER_TYPE( ceres::optimize_cameras );
+  /// \cond DoxygenSuppress
+  virtual void set_configuration(vital::config_block_sptr /*config*/) { }
+  virtual bool check_configuration(vital::config_block_sptr /*config*/) const { return true; }
+  /// \endcond
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
-}
+  using vital::algo::optimize_cameras::optimize;
+
+  /// Optimize a single camera given corresponding features and landmarks
+  /**
+   * This function assumes that 2D features viewed by this camera have
+   * already been put into correspondence with 3D landmarks by aligning
+   * them into two parallel vectors
+   *
+   * \param[in,out] camera    The camera to optimize.
+   * \param[in]     features  The vector of features observed by \p camera
+   *                          to use as constraints.
+   * \param[in]     landmarks The vector of landmarks corresponding to
+   *                          \p features.
+   */
+  virtual void
+  optimize(vital::camera_sptr & camera,
+           const std::vector<vital::feature_sptr>& features,
+           const std::vector<vital::landmark_sptr>& landmarks) const;
+};
+
 
 } // end namespace ceres
 } // end namespace arrows
 } // end namespace kwiver
+
+#endif // KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
