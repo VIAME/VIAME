@@ -38,6 +38,7 @@
 
 
 #include <vital/vital_config.h>
+#include <vital/config/config_block.h>
 #include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 #include <string>
@@ -110,8 +111,55 @@ CameraIntrinsicShareTypeToString(CameraIntrinsicShareType type);
 KWIVER_ALGO_CERES_EXPORT bool
 StringToCameraIntrinsicShareType(std::string value, CameraIntrinsicShareType* type);
 
+
+/// Defult implementation of string options for Ceres enums
+template <typename T>
+std::string
+ceres_options()
+{
+  return std::string();
+}
+
 } // end namespace ceres
 } // end namespace arrows
 } // end namespace kwiver
+
+
+#define CERES_ENUM_HELPERS(NS, ceres_type)                              \
+namespace kwiver {                                                      \
+namespace vital {                                                       \
+                                                                        \
+template<>                                                              \
+config_block_value_t                                                    \
+config_block_set_value_cast(NS::ceres_type const& value);               \
+                                                                        \
+template<>                                                              \
+NS::ceres_type                                                          \
+config_block_get_value_cast(config_block_value_t const& value);         \
+                                                                        \
+}                                                                       \
+                                                                        \
+namespace arrows {                                                      \
+namespace ceres {                                                       \
+                                                                        \
+template<>                                                              \
+std::string                                                             \
+ceres_options< NS::ceres_type >();                                      \
+                                                                        \
+}                                                                       \
+}                                                                       \
+}
+
+CERES_ENUM_HELPERS(::ceres, LinearSolverType)
+CERES_ENUM_HELPERS(::ceres, PreconditionerType)
+CERES_ENUM_HELPERS(::ceres, TrustRegionStrategyType)
+CERES_ENUM_HELPERS(::ceres, DoglegType)
+
+CERES_ENUM_HELPERS(kwiver::arrows::ceres, LossFunctionType)
+CERES_ENUM_HELPERS(kwiver::arrows::ceres, LensDistortionType)
+CERES_ENUM_HELPERS(kwiver::arrows::ceres, CameraIntrinsicShareType)
+
+#undef CERES_ENUM_HELPERS
+
 
 #endif // KWIVER_ARROWS_CERES_TYPES_H_

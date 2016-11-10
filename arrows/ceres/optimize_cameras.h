@@ -36,30 +36,40 @@
 #ifndef KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
 #define KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
 
-
-#include <string>
-
 #include <vital/vital_config.h>
 #include <arrows/ceres/kwiver_algo_ceres_export.h>
 
-#include <vital/algo/algorithm.h>
 #include <vital/algo/optimize_cameras.h>
 
+#include <memory>
 
 namespace kwiver {
 namespace arrows {
 namespace ceres {
 
+/// A class for optimization of camera paramters using Ceres
 class KWIVER_ALGO_CERES_EXPORT optimize_cameras
-  : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
+: public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
 {
 public:
+  /// Constructor
+  optimize_cameras();
+
+  /// Destructor
+  virtual ~optimize_cameras();
+
+  /// Copy Constructor
+  optimize_cameras(const optimize_cameras& other);
+
+  /// Return the name of this implementation
   virtual std::string impl_name() const { return "ceres"; }
 
-  /// \cond DoxygenSuppress
-  virtual void set_configuration(vital::config_block_sptr /*config*/) { }
-  virtual bool check_configuration(vital::config_block_sptr /*config*/) const { return true; }
-  /// \endcond
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  virtual vital::config_block_sptr get_configuration() const;
+  /// Set this algorithm's properties via a config block
+  virtual void set_configuration(vital::config_block_sptr config);
+  /// Check that the algorithm's currently configuration is valid
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
   using vital::algo::optimize_cameras::optimize;
 
@@ -79,6 +89,11 @@ public:
   optimize(vital::camera_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks) const;
+
+private:
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
 };
 
 

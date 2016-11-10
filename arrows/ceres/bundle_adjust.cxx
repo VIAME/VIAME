@@ -44,92 +44,11 @@
 #include <vital/io/eigen_io.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
+#include <arrows/ceres/camera_options.h>
 
 #include <ceres/ceres.h>
 
 using namespace kwiver::vital;
-
-
-#define CERES_ENUM_HELPERS(NS, ceres_type)                        \
-namespace kwiver {                                                      \
-namespace vital {                                                       \
-                                                                        \
-template<>                                                              \
-inline                                                                  \
-config_block_value_t                                                    \
-config_block_set_value_cast(NS::ceres_type const& value)                \
-{                                                                       \
-  return NS::ceres_type##ToString(value);                               \
-}                                                                       \
-                                                                        \
-template<>                                                              \
-inline                                                                  \
-NS::ceres_type                                                          \
-config_block_get_value_cast(config_block_value_t const& value)          \
-{                                                                       \
-  NS::ceres_type cet;                                                   \
-  if(!NS::StringTo##ceres_type(value, &cet))                            \
-  {                                                                     \
-    throw bad_config_block_cast(value);                                 \
-  }                                                                     \
-  return cet;                                                           \
-}                                                                       \
-                                                                        \
-}                                                                       \
-                                                                        \
-namespace arrows {                                                      \
-namespace ceres {                                                       \
-                                                                        \
-template<>                                                              \
-std::string                                                             \
-ceres_options< NS::ceres_type >()                                       \
-{                                                                       \
-  typedef NS::ceres_type T;                                             \
-  std::string options_str = "\nMust be one of the following options:";  \
-  std::string opt;                                                      \
-  for (unsigned i=0; i<20; ++i)                                         \
-  {                                                                     \
-    opt = NS::ceres_type##ToString(static_cast<T>(i));                  \
-    if (opt == "UNKNOWN")                                               \
-    {                                                                   \
-      break;                                                            \
-    }                                                                   \
-    options_str += "\n  - " + opt;                                      \
-  }                                                                     \
-  return options_str;                                                   \
-}                                                                       \
-                                                                        \
-}                                                                       \
-}                                                                       \
-}
-
-namespace kwiver {
-namespace arrows {
-namespace ceres {
-
-/// Defult implementation of string options for Ceres enums
-template <typename T>
-std::string
-ceres_options()
-{
-  return std::string();
-}
-
-} // end namespace ceres
-} // end namespace arrows
-} // end namespace kwiver
-
-CERES_ENUM_HELPERS(::ceres, LinearSolverType)
-CERES_ENUM_HELPERS(::ceres, PreconditionerType)
-CERES_ENUM_HELPERS(::ceres, TrustRegionStrategyType)
-CERES_ENUM_HELPERS(::ceres, DoglegType)
-
-CERES_ENUM_HELPERS(kwiver::arrows::ceres, LossFunctionType)
-CERES_ENUM_HELPERS(kwiver::arrows::ceres, LensDistortionType)
-CERES_ENUM_HELPERS(kwiver::arrows::ceres, CameraIntrinsicShareType)
-
-#undef CERES_ENUM_HELPERS
-
 
 namespace kwiver {
 namespace arrows {
@@ -137,43 +56,24 @@ namespace ceres {
 
 /// Private implementation class
 class bundle_adjust::priv
+  : public camera_options
 {
 public:
   /// Constructor
   priv()
-  : verbose(false),
+  : camera_options(),
+    verbose(false),
     loss_function_type(TRIVIAL_LOSS),
     loss_function_scale(1.0),
-    optimize_focal_length(true),
-    optimize_aspect_ratio(false),
-    optimize_principal_point(false),
-    optimize_skew(false),
-    lens_distortion_type(NO_DISTORTION),
-    optimize_dist_k1(true),
-    optimize_dist_k2(false),
-    optimize_dist_k3(false),
-    optimize_dist_p1_p2(false),
-    optimize_dist_k4_k5_k6(false),
-    camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS),
     m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
   {
   }
 
   priv(const priv& other)
-  : verbose(other.verbose),
+  : camera_options(other),
+    verbose(other.verbose),
     loss_function_type(other.loss_function_type),
     loss_function_scale(other.loss_function_scale),
-    optimize_focal_length(other.optimize_focal_length),
-    optimize_aspect_ratio(other.optimize_aspect_ratio),
-    optimize_principal_point(other.optimize_principal_point),
-    optimize_skew(other.optimize_skew),
-    lens_distortion_type(other.lens_distortion_type),
-    optimize_dist_k1(other.optimize_dist_k1),
-    optimize_dist_k2(other.optimize_dist_k2),
-    optimize_dist_k3(other.optimize_dist_k3),
-    optimize_dist_p1_p2(other.optimize_dist_p1_p2),
-    optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
-    camera_intrinsic_share_type(other.camera_intrinsic_share_type),
     m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
   {
   }
@@ -186,28 +86,6 @@ public:
   LossFunctionType loss_function_type;
   /// the scale of the loss function
   double loss_function_scale;
-  /// option to optimize the focal length
-  bool optimize_focal_length;
-  /// option to optimize aspect ratio
-  bool optimize_aspect_ratio;
-  /// option to optimize principal point
-  bool optimize_principal_point;
-  /// option to optimize skew
-  bool optimize_skew;
-  /// the lens distortion model to use
-  LensDistortionType lens_distortion_type;
-  /// option to optimize radial distortion parameter k1
-  bool optimize_dist_k1;
-  /// option to optimize radial distortion parameter k2
-  bool optimize_dist_k2;
-  /// option to optimize radial distortion parameter k3
-  bool optimize_dist_k3;
-  /// option to optimize tangential distortions parameters p1, p2
-  bool optimize_dist_p1_p2;
-  /// option to optimize radial distortion parameters k4, k5, k6
-  bool optimize_dist_k4_k5_k6;
-  /// the type of sharing of intrinsics between cameras to use
-  CameraIntrinsicShareType camera_intrinsic_share_type;
 
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -280,38 +158,10 @@ bundle_adjust
                     + ceres_options< ceres::LossFunctionType >());
   config->set_value("loss_function_scale", d_->loss_function_scale,
                     "Robust loss function scale factor.");
-  config->set_value("optimize_focal_length", d_->optimize_focal_length,
-                    "Include focal length parameters in bundle adjustment.");
-  config->set_value("optimize_aspect_ratio", d_->optimize_aspect_ratio,
-                    "Include aspect ratio parameters in bundle adjustment.");
-  config->set_value("optimize_principal_point", d_->optimize_principal_point,
-                    "Include principal point parameters in bundle adjustment.");
-  config->set_value("optimize_skew", d_->optimize_skew,
-                    "Include skew parameters in bundle adjustment.");
-  config->set_value("lens_distortion_type", d_->lens_distortion_type,
-                    "Lens distortion model to use."
-                    + ceres_options< ceres::LensDistortionType >());
-  config->set_value("optimize_dist_k1", d_->optimize_dist_k1,
-                    "Include radial lens distortion parameter k1 in "
-                    "bundle adjustment.");
-  config->set_value("optimize_dist_k2", d_->optimize_dist_k2,
-                    "Include radial lens distortion parameter k2 in "
-                    "bundle adjustment.");
-  config->set_value("optimize_dist_k3", d_->optimize_dist_k3,
-                    "Include radial lens distortion parameter k3 in "
-                    "bundle adjustment.");
-  config->set_value("optimize_dist_p1_p2", d_->optimize_dist_p1_p2,
-                    "Include tangential lens distortion parameters "
-                    "p1 and p2 in bundle adjustment.");
-  config->set_value("optimize_dist_k4_k5_k6", d_->optimize_dist_k4_k5_k6,
-                    "Include radial lens distortion parameters "
-                    "k4, k5, and k6 in bundle adjustment.");
-  config->set_value("camera_intrinsic_share_type", d_->camera_intrinsic_share_type,
-                    "Determines how to share intrinsics across cameras.\n"
-                    "AUTO shares intrinsics between cameras with a common camera_intrinsic_sptr\n"
-                    "COMMON enforces that all cameras share common intrinsics\n"
-                    "UNIQUE enforces that each camera has its own intrinsics parameters."
-                    + ceres_options< ceres::CameraIntrinsicShareType >());
+
+  // get the camera configuation options
+  d_->camera_options::get_configuration(config);
+
   return config;
 }
 
@@ -362,31 +212,9 @@ bundle_adjust
                                                     d_->loss_function_type);
   d_->loss_function_scale = config->get_value<double>("loss_function_scale",
                                                       d_->loss_function_scale);
-  d_->optimize_focal_length = config->get_value<bool>("optimize_focal_length",
-                                                      d_->optimize_focal_length);
-  d_->optimize_aspect_ratio = config->get_value<bool>("optimize_aspect_ratio",
-                                                      d_->optimize_aspect_ratio);
-  d_->optimize_principal_point = config->get_value<bool>("optimize_principal_point",
-                                                         d_->optimize_principal_point);
-  d_->optimize_skew = config->get_value<bool>("optimize_skew",
-                                              d_->optimize_skew);
-  typedef ceres::LensDistortionType cld_t;
-  d_->lens_distortion_type = config->get_value<cld_t>("lens_distortion_type",
-                                                      d_->lens_distortion_type);
-  d_->optimize_dist_k1 = config->get_value<bool>("optimize_dist_k1",
-                                                 d_->optimize_dist_k1);
-  d_->optimize_dist_k2 = config->get_value<bool>("optimize_dist_k2",
-                                                 d_->optimize_dist_k2);
-  d_->optimize_dist_k3 = config->get_value<bool>("optimize_dist_k3",
-                                                 d_->optimize_dist_k3);
-  d_->optimize_dist_p1_p2 = config->get_value<bool>("optimize_dist_p1_p2",
-                                                    d_->optimize_dist_p1_p2);
-  d_->optimize_dist_k4_k5_k6 = config->get_value<bool>("optimize_dist_k4_k5_k6",
-                                                       d_->optimize_dist_k4_k5_k6);
-  typedef ceres::CameraIntrinsicShareType ccis_t;
-  d_->camera_intrinsic_share_type =
-      config->get_value<ccis_t>("camera_intrinsic_share_type",
-                                d_->camera_intrinsic_share_type);
+
+  // set the camera configuation options
+  d_->camera_options::set_configuration(config);
 }
 
 
