@@ -51,7 +51,7 @@ namespace algo {
 
 
 /// Abstract algorithm definition base for optimizing cameras
-class VITAL_EXPORT optimize_cameras
+class VITAL_ALGO_EXPORT optimize_cameras
   : public kwiver::vital::algorithm_def<optimize_cameras>
 {
 public:

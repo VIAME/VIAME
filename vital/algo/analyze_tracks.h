@@ -51,7 +51,7 @@ namespace vital {
 namespace algo {
 
 /// Abstract base class for writing out human readable track statistics.
-class VITAL_EXPORT analyze_tracks
+class VITAL_ALGO_EXPORT analyze_tracks
   : public kwiver::vital::algorithm_def<analyze_tracks>
 {
 public:

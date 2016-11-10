@@ -62,7 +62,7 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
  * This class is an sbstract base class for all algorithm
  * implementations.
  */
-class VITAL_EXPORT algorithm
+class VITAL_ALGO_EXPORT algorithm
 {
 public:
   virtual ~algorithm() VITAL_DEFAULT_DTOR;
@@ -268,7 +268,7 @@ protected:
  *  \sa algorithm_impl
  */
 template <typename Self>
-class VITAL_EXPORT algorithm_def
+class VITAL_ALGO_EXPORT algorithm_def
   : public algorithm
 {
 public:

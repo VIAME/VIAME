@@ -51,7 +51,7 @@ namespace algo {
  * @brief Image object detector base class/
  *
  */
-class VITAL_EXPORT detection_refiner
+class VITAL_ALGO_EXPORT detection_refiner
 : public algorithm_def<detection_refiner>
 {
 public:

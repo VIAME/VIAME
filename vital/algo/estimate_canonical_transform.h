@@ -61,7 +61,7 @@ namespace algo {
  *  then applying a canonical transform to P1 and separately a
  *  canonical transform to P2 should bring the data into the same coordinates.
  */
-class VITAL_EXPORT estimate_canonical_transform
+class VITAL_ALGO_EXPORT estimate_canonical_transform
   : public kwiver::vital::algorithm_def<estimate_canonical_transform>
 {
 public:

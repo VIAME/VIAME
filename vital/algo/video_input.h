@@ -121,7 +121,7 @@ namespace algo {
  * the name (or abbreviation) of the concrete algorithm followed by
  * the abbreviation of the capability.
  */
-class VITAL_EXPORT video_input
+class VITAL_ALGO_EXPORT video_input
   : public kwiver::vital::algorithm_def<video_input>
 {
 public:

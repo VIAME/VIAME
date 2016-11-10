@@ -46,7 +46,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for detecting feature points
-class VITAL_EXPORT detect_features
+class VITAL_ALGO_EXPORT detect_features
   : public kwiver::vital::algorithm_def<detect_features>
 {
 public:

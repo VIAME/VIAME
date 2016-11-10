@@ -52,7 +52,7 @@ namespace vital {
 namespace algo {
 
 /// \brief Abstract base class for feature set filter algorithms.
-class VITAL_EXPORT filter_features
+class VITAL_ALGO_EXPORT filter_features
   : public kwiver::vital::algorithm_def<filter_features>
 {
 public:

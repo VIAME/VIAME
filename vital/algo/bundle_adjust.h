@@ -50,7 +50,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for bundle adjustment using tracks
-class VITAL_EXPORT bundle_adjust
+class VITAL_ALGO_EXPORT bundle_adjust
   : public kwiver::vital::algorithm_def<bundle_adjust>
 {
 public:

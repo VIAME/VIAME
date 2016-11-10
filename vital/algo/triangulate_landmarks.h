@@ -50,7 +50,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for triangulating landmarks
-class VITAL_EXPORT triangulate_landmarks
+class VITAL_ALGO_EXPORT triangulate_landmarks
 : public kwiver::vital::algorithm_def<triangulate_landmarks>
 {
 public:
