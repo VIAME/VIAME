@@ -48,7 +48,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for extracting feature descriptors
-class VITAL_EXPORT extract_descriptors
+class VITAL_ALGO_EXPORT extract_descriptors
   : public kwiver::vital::algorithm_def<extract_descriptors>
 {
 public:

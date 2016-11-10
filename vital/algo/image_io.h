@@ -53,7 +53,7 @@ namespace algo {
  * This class represents an abstract interface for reading and writing
  * images.
  */
-class VITAL_EXPORT image_io
+class VITAL_ALGO_EXPORT image_io
   : public kwiver::vital::algorithm_def<image_io>
 {
 public:
