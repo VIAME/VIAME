@@ -76,10 +76,10 @@ CvRect convert(const kwiver::vital::bounding_box<T>& bbox )
 {
   // Note that CvRect has integer values. If T is a floating type. the
   // fractions are turncated.
-  return cvRect( bbox.min_x(),
-                 bbox.min_y(),
-                 bbox.width(),
-                 bbox.height() );
+  return cvRect( static_cast<int>(bbox.min_x()),
+                 static_cast<int>(bbox.min_y()),
+                 static_cast<int>(bbox.width()),
+                 static_cast<int>(bbox.height()));
 }
 
 

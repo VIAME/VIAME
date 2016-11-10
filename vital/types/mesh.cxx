@@ -162,7 +162,7 @@ mesh_face_array
 {
   mesh_face_array_base::append(other,ind_shift);
 
-  const unsigned int new_begin = faces_.size();
+  const unsigned int new_begin = static_cast<unsigned int>(faces_.size());
 
   if (other.regularity() == 0)
   {
@@ -242,11 +242,11 @@ mesh_half_edge_set
 
   unsigned int max_v = 0;
 
-  const unsigned int num_faces = face_list.size();
+  const unsigned int num_faces = static_cast<unsigned int>(face_list.size());
   for (unsigned int f=0; f<num_faces; ++f)
   {
     const std::vector<unsigned int>& verts = face_list[f];
-    const unsigned int num_verts = verts.size();
+    const unsigned int num_verts = static_cast<unsigned int>(verts.size());
     unsigned int first_e = mesh_invalid_idx; // first edge index
     unsigned int prev_e = mesh_invalid_idx; // previous edge index
     for (unsigned int i=0; i<num_verts; ++i)
@@ -268,7 +268,7 @@ mesh_half_edge_set
       unsigned int curr_e;
       if (m == edge_map.end())
       {
-        curr_e = half_edges_.size();
+        curr_e = static_cast<unsigned int>(half_edges_.size());
         edge_map.insert(std::pair<vert_pair, unsigned int>(vp, curr_e));
         half_edges_.push_back(mesh_half_edge(curr_e, mesh_invalid_idx, v, f));
         half_edges_.push_back(mesh_half_edge(curr_e+1, mesh_invalid_idx, nv, mesh_invalid_idx));

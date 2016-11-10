@@ -46,7 +46,6 @@ extern "C" {
 
 #if defined(_WIN32)
 
-#define WIN32_LEAN_AND_MEAN
 #if defined(_MSC_VER)
 #pragma warning(push, 3)
 #endif
