@@ -71,7 +71,25 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  using vital::algo::optimize_cameras::optimize;
+
+  /// Optimize camera parameters given sets of landmarks and tracks
+  /**
+   * We only optimize cameras that have associating tracks and landmarks in
+   * the given maps.  The default implementation collects the corresponding
+   * features and landmarks for each camera and calls the single camera
+   * optimize function.
+   *
+   * \throws invalid_value When one or more of the given pointer is Null.
+   *
+   * \param[in,out] cameras   Cameras to optimize.
+   * \param[in]     tracks    The tracks to use as constraints.
+   * \param[in]     landmarks The landmarks the cameras are viewing.
+   */
+  virtual void
+  optimize(kwiver::vital::camera_map_sptr & cameras,
+           kwiver::vital::track_set_sptr tracks,
+           kwiver::vital::landmark_map_sptr landmarks) const;
+
 
   /// Optimize a single camera given corresponding features and landmarks
   /**
