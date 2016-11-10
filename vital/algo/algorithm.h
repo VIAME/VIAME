@@ -37,7 +37,7 @@
 #define VITAL_ALGO_ALGORITHM_H_
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
+#include <vital/algo/vital_algo_export.h>
 
 #include <string>
 #include <vector>
