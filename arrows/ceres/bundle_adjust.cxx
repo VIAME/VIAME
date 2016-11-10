@@ -56,12 +56,14 @@ namespace ceres {
 
 /// Private implementation class
 class bundle_adjust::priv
-  : public camera_options
+  : public solver_options,
+    public camera_options
 {
 public:
   /// Constructor
   priv()
-  : camera_options(),
+  : solver_options(),
+    camera_options(),
     verbose(false),
     loss_function_type(TRIVIAL_LOSS),
     loss_function_scale(1.0),
@@ -70,7 +72,8 @@ public:
   }
 
   priv(const priv& other)
-  : camera_options(other),
+  : solver_options(other),
+    camera_options(other),
     verbose(other.verbose),
     loss_function_type(other.loss_function_type),
     loss_function_scale(other.loss_function_scale),
@@ -78,8 +81,6 @@ public:
   {
   }
 
-  /// the Ceres solver options
-  ::ceres::Solver::Options options;
   /// verbose output
   bool verbose;
   /// the robust loss function type to use
@@ -120,44 +121,19 @@ config_block_sptr
 bundle_adjust
 ::get_configuration() const
 {
-  ::ceres::Solver::Options& o = d_->options;
   // get base config from base class
   config_block_sptr config = vital::algo::bundle_adjust::get_configuration();
   config->set_value("verbose", d_->verbose,
                     "If true, write status messages to the terminal showing "
                     "optimization progress at each iteration");
-  config->set_value("num_threads", o.num_threads,
-                    "Number of threads to use");
-  config->set_value("num_linear_solver_threads", o.num_linear_solver_threads,
-                    "Number of threads to use in the linear solver");
-  config->set_value("max_num_iterations", o.max_num_iterations,
-                    "Maximum number of iteration of allow");
-  config->set_value("function_tolerance", o.function_tolerance,
-                    "Solver terminates if relative cost change is below this "
-                    "tolerance");
-  config->set_value("gradient_tolerance", o.gradient_tolerance,
-                    "Solver terminates if the maximum gradient is below this "
-                    "tolerance");
-  config->set_value("parameter_tolerance", o.parameter_tolerance,
-                    "Solver terminates if the relative change in parameters "
-                    "is below this tolerance");
-  config->set_value("linear_solver_type", o.linear_solver_type,
-                    "Linear solver to use."
-                    + ceres_options< ::ceres::LinearSolverType >());
-  config->set_value("preconditioner_type", o.preconditioner_type,
-                    "Preconditioner to use."
-                    + ceres_options< ::ceres::PreconditionerType >());
-  config->set_value("trust_region_strategy_type", o.trust_region_strategy_type,
-                    "Trust region step compution algorithm used by Ceres."
-                    + ceres_options< ::ceres::TrustRegionStrategyType >());
-  config->set_value("dogleg_type", o.dogleg_type,
-                    "Dogleg strategy to use."
-                    + ceres_options< ::ceres::DoglegType >());
   config->set_value("loss_function_type", d_->loss_function_type,
                     "Robust loss function type to use."
                     + ceres_options< ceres::LossFunctionType >());
   config->set_value("loss_function_scale", d_->loss_function_scale,
                     "Robust loss function scale factor.");
+
+  // get the solver options
+  d_->solver_options::get_configuration(config);
 
   // get the camera configuation options
   d_->camera_options::get_configuration(config);
@@ -182,36 +158,14 @@ bundle_adjust
   o.minimizer_progress_to_stdout = d_->verbose;
   o.logging_type = d_->verbose ? ::ceres::PER_MINIMIZER_ITERATION
                                : ::ceres::SILENT;
-  o.num_threads = config->get_value<int>("num_threads", o.num_threads);
-  o.num_linear_solver_threads
-      = config->get_value<int>("num_linear_solver_threads",
-                               o.num_linear_solver_threads);
-  o.max_num_iterations = config->get_value<int>("max_num_iterations",
-                                                o.max_num_iterations);
-  o.function_tolerance = config->get_value<double>("function_tolerance",
-                                                   o.function_tolerance);
-  o.gradient_tolerance = config->get_value<double>("gradient_tolerance",
-                                                   o.gradient_tolerance);
-  o.parameter_tolerance = config->get_value<double>("parameter_tolerance",
-                                                    o.parameter_tolerance);
-  typedef ::ceres::LinearSolverType cls_t;
-  o.linear_solver_type = config->get_value<cls_t>("linear_solver_type",
-                                                  o.linear_solver_type);
-  typedef ::ceres::PreconditionerType cpc_t;
-  o.preconditioner_type = config->get_value<cpc_t>("preconditioner_type",
-                                                   o.preconditioner_type);
-  typedef ::ceres::TrustRegionStrategyType trs_t;
-  o.trust_region_strategy_type
-      = config->get_value<trs_t>("trust_region_strategy_type",
-                                 o.trust_region_strategy_type);
-  typedef ::ceres::DoglegType cdl_t;
-  o.dogleg_type = config->get_value<cdl_t>("dogleg_type",
-                                           o.dogleg_type);
   typedef ceres::LossFunctionType clf_t;
   d_->loss_function_type = config->get_value<clf_t>("loss_function_type",
                                                     d_->loss_function_type);
   d_->loss_function_scale = config->get_value<double>("loss_function_scale",
                                                       d_->loss_function_scale);
+
+  // set the camera configuation options
+  d_->camera_options::set_configuration(config);
 
   // set the camera configuation options
   d_->camera_options::set_configuration(config);
