@@ -9,8 +9,8 @@ set( ceres_headers_public
   reprojection_error.h
   )
 set( ceres_headers_private
-  types.h
   options.h
+  types.h
   )
 
 kwiver_install_headers(
@@ -28,6 +28,7 @@ set( ceres_sources
   bundle_adjust.cxx
   optimize_cameras.cxx
   register_algorithms.cxx
+  reprojection_error.cxx
   types.cxx
   )
 
