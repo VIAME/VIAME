@@ -1,0 +1,26 @@
+KWIVER Release Notes for changes pending release approval by AFRL
+=================================================================
+
+This file documents release notes for changes made to KWIVER which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be incorporated into a public numbered
+release version, and the content of this file will be reset.
+
+
+Updates since last public release
+---------------------------------
+Arrows - Ceres
+
+ * Added a Ceres implementation of the optimize_cameras abstract algorithm.
+   This implmentation is very similar to the bundle_adjust algorithm but
+   does not modify the landmarks.
+
+ * Refactored common config options and helper functions between
+   optimize_cameras and bundle_adjust into new shared classes in options.h.
+   This makes it much easer to create a new Ceres solver algorihm and
+   reuse the same solver options or camera options.
+
+
+Fixes since last public release
+-------------------------------
+
