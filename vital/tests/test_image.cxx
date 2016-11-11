@@ -176,6 +176,22 @@ IMPLEMENT_TEST(copy_constructor)
   {
     TEST_ERROR("Copy constructed image does not match original");
   }
+
+  // copy an image_of from a base image
+  kwiver::vital::image_of<int> img_cpy2(img_cpy);
+  if (img.width()         != img_cpy2.width()  ||
+      img.height()        != img_cpy2.height() ||
+      img.depth()         != img_cpy2.depth()  ||
+      img.pixel_traits()  != img_cpy2.pixel_traits()  ||
+      img.w_step()        != img_cpy2.w_step() ||
+      img.h_step()        != img_cpy2.h_step() ||
+      img.d_step()        != img_cpy2.d_step() ||
+      img.first_pixel()   != img_cpy2.first_pixel() ||
+      img.memory()        != img_cpy2.memory() )
+  {
+    TEST_ERROR("Copy constructed image_of does not match original");
+  }
+
 }
 
 
