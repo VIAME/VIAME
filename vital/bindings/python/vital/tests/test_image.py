@@ -37,6 +37,7 @@ Test Python interface to vital::image
 import nose.tools
 
 from vital.types import Image
+import ctypes
 
 
 __author__ = 'paul.tunison@kitware.com'
@@ -50,9 +51,96 @@ class TestVitalImage (object):
     def test_new_sized(self):
         img = Image(720, 480)
 
+    def test_new_type(self):
+        # allocated a uint32_t image
+        img = Image(720, 480, 3, True, Image.PIXEL_UNSIGNED, 4)
+
+    def test_copy_from(self):
+        img = Image(720, 480, 3, True, Image.PIXEL_FLOAT, 4)
+        img2 = Image().copy_from(img)
+        nose.tools.assert_equal(img.equal_content(img2), True)
+
     def test_size(self):
         img = Image()
         nose.tools.assert_equal(img.size(), 0)
 
         img = Image(720, 480)
         nose.tools.assert_equal(img.size(), 720*480)
+
+    def test_getitem_uint8(self):
+        img = Image(720, 480)
+        nose.tools.assert_equal(img.pixel_type_name(), "uint8")
+        val1 = img[0,0]
+        val2 = img[0,0,0]
+        nose.tools.assert_equal(val1, val2)
+
+    def test_getitem_int32(self):
+        img = Image(720, 480, 3, True, Image.PIXEL_SIGNED, 4)
+        nose.tools.assert_equal(img.pixel_type_name(), "int32")
+        val1 = img[0,0]
+        val2 = img[0,0,0]
+        nose.tools.assert_equal(val1, val2)
+
+    def test_getitem_float(self):
+        img = Image(720, 480, 3, True, Image.PIXEL_FLOAT, 4)
+        nose.tools.assert_equal(img.pixel_type_name(), "float")
+        val1 = img[0,0]
+        val2 = img[0,0,0]
+        nose.tools.assert_equal(val1, val2)
+
+    def test_getitem_double(self):
+        img = Image(720, 480, 3, True, Image.PIXEL_FLOAT, 8)
+        nose.tools.assert_equal(img.pixel_type_name(), "double")
+        val1 = img[0,0]
+        val2 = img[0,0,0]
+        nose.tools.assert_equal(val1, val2)
+
+    def test_getitem_bool(self):
+        img = Image(720, 480, 1, True, Image.PIXEL_BOOL, 1)
+        nose.tools.assert_equal(img.pixel_type_name(), "bool")
+        val1 = img[0,0]
+        val2 = img[0,0,0]
+        nose.tools.assert_equal(val1, val2)
+
+
+    def test_pil_L(self):
+        # test uint8 image
+        img = Image(720, 480)
+        pil_img = img.get_pil_image()
+        img2 = Image.from_pil(pil_img)
+        nose.tools.assert_equal(img.equal_content(img2), True)
+
+    def test_pil_F(self):
+        # test float image
+        img = Image(720, 480, 1, True, Image.PIXEL_FLOAT, 4)
+        pil_img = img.get_pil_image()
+        img2 = Image.from_pil(pil_img)
+        nose.tools.assert_equal(img.equal_content(img2), True)
+
+    def test_pil_RGB(self):
+        # test RGB image
+        img = Image(720, 480, 3, True)
+        pil_img = img.get_pil_image()
+        img2 = Image.from_pil(pil_img)
+        nose.tools.assert_equal(img.equal_content(img2), True)
+
+    def test_pil_RGBA(self):
+        # test RGBA image
+        img = Image(720, 480, 4, True)
+        pil_img = img.get_pil_image()
+        img2 = Image.from_pil(pil_img)
+        nose.tools.assert_equal(img.equal_content(img2), True)
+
+    def test_pil_I(self):
+        # test int image
+        img = Image(720, 480, 1, True, Image.PIXEL_SIGNED, 4)
+        pil_img = img.get_pil_image()
+        img2 = Image.from_pil(pil_img)
+        nose.tools.assert_equal(img.equal_content(img2), True)
+
+    def test_pil_1(self):
+        # test bool image
+        img = Image(720, 480, 1, True, Image.PIXEL_BOOL, 1)
+        pil_img = img.get_pil_image()
+        img2 = Image.from_pil(pil_img)
+        nose.tools.assert_equal(img.equal_content(img2), True)

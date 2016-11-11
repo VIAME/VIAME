@@ -60,6 +60,9 @@ typedef int64_t frame_id_t;
 // -- concrete types --
 typedef double gsd_t;
 
+// a short name for unsigned char
+typedef unsigned char byte;
+
 } } // end namespace
 
 #endif // KWIVER_CORE_TYPES_H

@@ -53,6 +53,7 @@ set( public_headers
   token_type.h
   token_type_symtab.h
   token_type_sysenv.h
+  transform_image.h
   )
 
 # ----------------------
