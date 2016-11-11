@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #ifndef _TOKEN_EXPANDER_H_
 #define _TOKEN_EXPANDER_H_
 
+#include <vital/util/vital_util_export.h>
 #include <vital/logger/logger.h>
 
 #include <map>
@@ -89,7 +90,7 @@ public:
 };
 @endcode
  */
-class token_expander
+class VITAL_UTIL_EXPORT token_expander
 {
 public:
   token_expander();
@@ -160,4 +161,4 @@ private:
 
 } } // end namespace
 
-#endif /* _TOKEN_EXPANDER_H_ */
+#endif // _TOKEN_EXPANDER_H_

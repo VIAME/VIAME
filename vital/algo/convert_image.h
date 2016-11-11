@@ -44,7 +44,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for converting base image type
-class VITAL_EXPORT convert_image
+class VITAL_ALGO_EXPORT convert_image
   : public kwiver::vital::algorithm_def<convert_image>
 {
 public:

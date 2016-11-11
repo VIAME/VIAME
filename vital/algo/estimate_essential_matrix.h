@@ -52,7 +52,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for estimating an essential matrix from matching 2D points
-class VITAL_EXPORT estimate_essential_matrix
+class VITAL_ALGO_EXPORT estimate_essential_matrix
   : public kwiver::vital::algorithm_def<estimate_essential_matrix>
 {
 public:

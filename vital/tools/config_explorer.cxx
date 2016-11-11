@@ -44,6 +44,7 @@
 #include <vital/vital_foreach.h>
 #include <kwiversys/CommandLineArguments.hxx>
 
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -65,29 +66,29 @@ std::string opt_install_prefix;
 void
 print_help()
 {
-  std::cout << "This program assists in debugging config loading problems. It loads a configuration\n"
-            << "and displays the contents or displays the search path.\n"
+  std::cout << "This program assists in debugging config loading problems. It loads a \n"
+            << "configuration and displays the contents or displays the search path.\n"
             << "Additional paths can be specified in \"KWIVER_CONFIG_PATH\" environment variable\n"
             << "or on the command line with the -I or --path options.\n"
             << "\n"
             << "Options are:\n"
-            << "  --help           displays usage information\n"
+            << "  -h / --help      displays usage information\n"
             << "  --path name      add directory to config search path(can appear multiple times)\n"
-            << "  -Iname           add directory to coinfig search path(can appear multiple times)\n"
-            << "  -ds              generate detailed application based search path\n"
+            << "  -Iname           add directory to config search path(can appear multiple times)\n"
+            << "  -ds              generate detailed application-specific search paths\n"
             << "  -dc              generate detailed config contents output\n"
             << "  -a name          alternate application name\n"
             << "  -v version       optional application version string\n"
             << "  --prefix dir     optional non-standard install prefix directory\n"
             << "\n"
-            << "If -ds is specified, the detailed search path that applies to the application is displayed only\n"
-            << "otherwise, the config file is loaded.\n"
+            << "If -ds is specified, the detailed search paths that apply to the application are\n"
+            << "displayed only otherwise, the config file is loaded.\n"
             << "\n"
-            << "The option -dc only has effect when a config file is specified and causes a detailed\n"
-            << "output of the config entries.\n"
+            << "The option -dc only has effect when a config file is specified and causes a\n"
+            << "detailed output of the config entries.\n"
             << "\n"
-            << "If -I or --path are specified, then the config file is only searched for using the specified path.\n"
-            << "The application name based paths are not used.\n"
+            << "If -I or --path are specified, then the config file is only searched for using\n"
+            << "the specified path. The application name based paths are not used.\n"
   ;
 
   return;
@@ -118,6 +119,7 @@ main( int argc, char* argv[] )
   arg.Initialize( argc, argv );
   arg.StoreUnusedArguments( true );
 
+  arg.AddArgument( "-h",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
   arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
 
   // details
@@ -156,11 +158,11 @@ main( int argc, char* argv[] )
   if ( opt_detail_ds )
   {
     kwiver::vital::config_path_list_t search_path =
-      kwiver::vital::config_file_paths( opt_app_name,
+      kwiver::vital::application_config_file_paths( opt_app_name,
                                         opt_app_version,
                                         opt_install_prefix );
 
-    std::cout << "Configuration search path for\n"
+    std::cout << "Application specific configuration search paths for\n"
               << "       App name: " << opt_app_name << std::endl
               << "    App version: " << opt_app_version << std::endl
               << " Install Prefix: " << opt_install_prefix << std::endl

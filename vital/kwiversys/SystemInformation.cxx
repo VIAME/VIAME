@@ -1783,53 +1783,32 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
   size_t baseSize=strlen(base);
   fqdn=base;
 
-  struct ifaddrs *ifas;
-  struct ifaddrs *ifa;
-  ierr=getifaddrs(&ifas);
-  if (ierr)
+  struct addrinfo hints, *info, *p;
+  int gai_result;
+
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_CANONNAME;
+
+  if ((gai_result = getaddrinfo(base, "http", &hints, &info)) != 0)
     {
-    return -2;
+    return gai_result;
     }
 
-  for (ifa=ifas; ifa!=NULL; ifa=ifa->ifa_next)
+  for(p = info; p != NULL; p = p->ai_next)
     {
-    int fam = ifa->ifa_addr? ifa->ifa_addr->sa_family : -1;
-    if ((fam==AF_INET) || (fam==AF_INET6))
+    std::string candidate = p->ai_canonname;
+    if ((candidate.find(base)!=std::string::npos) && baseSize<candidate.size())
       {
-      char host[NI_MAXHOST]={'\0'};
-
-      const size_t addrlen
-        = (fam==AF_INET?sizeof(struct sockaddr_in):sizeof(struct sockaddr_in6));
-
-      ierr=getnameinfo(
-            ifa->ifa_addr,
-            static_cast<socklen_t>(addrlen),
-            host,
-            NI_MAXHOST,
-            NULL,
-            0,
-            NI_NAMEREQD);
-      if (ierr)
-        {
-        // don't report the failure now since we may succeed on another
-        // interface. If all attempts fail then return the failure code.
-        ierr=-3;
-        continue;
-        }
-
-      std::string candidate=host;
-      if ((candidate.find(base)!=std::string::npos) && baseSize<candidate.size())
-        {
-        // success, stop now.
-        ierr=0;
-        fqdn=candidate;
-        break;
-        }
+      // success, stop now.
+      fqdn=candidate;
+      freeaddrinfo(info);
+      return 0;
       }
     }
-  freeifaddrs(ifas);
-
-  return ierr;
+  freeaddrinfo(info);
+  return -3;
 #else
   /* TODO: Implement on more platforms.  */
   fqdn=this->GetHostname();

@@ -16,9 +16,7 @@ else ()
   set(path_sep ":")
 endif ()
 
-option(SPROKIT_USE_BUILD_CLUSTER_PATHS "Whether to use the build tree for the default cluster path" ${SPROKIT_USE_BUILD_TREE})
-mark_as_advanced(SPROKIT_USE_BUILD_CLUSTER_PATHS)
-if (SPROKIT_USE_BUILD_CLUSTER_PATHS)
+if (KWIVER_USE_BUILD_TREE)
   set(sprokit_default_cluster_paths
     "${sprokit_default_cluster_paths}${path_sep}${sprokit_source_dir}/src/tools/pipelines/clusters")
 endif ()

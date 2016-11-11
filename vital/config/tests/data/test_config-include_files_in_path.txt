@@ -1,0 +1,2 @@
+# Included files expected in search paths specified in KWIVER_CONFIG_PATH
+include test_config-include_files_in_path-include_example.txt

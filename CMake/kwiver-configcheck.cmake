@@ -104,11 +104,24 @@ try_compile( success
      -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
   OUTPUT_VARIABLE OUTPUT)
 
+set( VITAL_USE_ABI_DEMANGLE ${success} )
+
+###
+# See if constexpr is supported
+try_compile( success
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/configcheck/constexpr.cxx
+  CMAKE_FLAGS
+     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+  OUTPUT_VARIABLE OUTPUT)
+
+set( VITAL_USE_CPP_CONSTEXPR ${success} )
+
+###
 # use for debugging
 #message( "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}" )
 #message( "success: ${success}" )
 #message( "OUTPUT: ${OUTPUT}" )
 
-set( VITAL_USE_ABI_DEMANGLE ${success} )
 
 ###

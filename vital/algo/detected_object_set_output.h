@@ -60,7 +60,7 @@ namespace algo {
  * usually the file name, and an associated wet of detections.
  *
  */
-class VITAL_EXPORT detected_object_set_output
+class VITAL_ALGO_EXPORT detected_object_set_output
   : public kwiver::vital::algorithm_def<detected_object_set_output>
 {
 public:

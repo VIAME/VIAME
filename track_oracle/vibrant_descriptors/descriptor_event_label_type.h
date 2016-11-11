@@ -66,8 +66,8 @@ struct VIBRANT_DESCRIPTORS_EXPORT descriptor_event_label_type
   }
 };
 
-std::ostream& VIBRANT_DESCRIPTORS_EXPORT operator<<( std::ostream& os, const descriptor_event_label_type& d );
-std::istream& VIBRANT_DESCRIPTORS_EXPORT operator>>( std::istream& is, descriptor_event_label_type& d );
+VIBRANT_DESCRIPTORS_EXPORT std::ostream& operator<<( std::ostream& os, const descriptor_event_label_type& d );
+VIBRANT_DESCRIPTORS_EXPORT std::istream& operator>>( std::istream& is, descriptor_event_label_type& d );
 
 } // ...track_oracle
 } // ...kwiver

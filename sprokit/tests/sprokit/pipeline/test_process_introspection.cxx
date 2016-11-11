@@ -73,7 +73,7 @@ main()
 
   VITAL_FOREACH (sprokit::process::type_t const& type, types)
   {
-    //@note The adapter processes cause the tests to fail because they
+    //@todo The adapter processes cause the tests to fail because they
     // behave differently than other processes. This check handles the
     // current set or problems, it is not a universal solution.
     //
@@ -91,6 +91,9 @@ main()
       std::cout << "------------- testing process type: " << type << std::endl;
       test_process(type);
     }
+    //@todo Python process wrappers translate exceptions to
+    // RuntimeError, which causes the expected exception code to fail
+    // the test.
     catch (std::exception const& e)
     {
       TEST_ERROR("Unexpected exception when testing "

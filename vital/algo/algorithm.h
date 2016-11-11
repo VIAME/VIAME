@@ -37,7 +37,7 @@
 #define VITAL_ALGO_ALGORITHM_H_
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
+#include <vital/algo/vital_algo_export.h>
 
 #include <string>
 #include <vector>
@@ -62,7 +62,7 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
  * This class is an sbstract base class for all algorithm
  * implementations.
  */
-class VITAL_EXPORT algorithm
+class VITAL_ALGO_EXPORT algorithm
 {
 public:
   virtual ~algorithm() VITAL_DEFAULT_DTOR;
@@ -268,7 +268,7 @@ protected:
  *  \sa algorithm_impl
  */
 template <typename Self>
-class VITAL_EXPORT algorithm_def
+class VITAL_ALGO_EXPORT algorithm_def
   : public algorithm
 {
 public:

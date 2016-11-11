@@ -1,4 +1,5 @@
 // (‑●‑●)> released under the WTFPL v2 license, by Gregory Pakosz (@gpakosz)
+// https://github.com/gpakosz/whereami
 
 #ifndef WHEREAMI_H
 #define WHEREAMI_H
@@ -14,7 +15,7 @@ extern "C" {
 #define WAI_PREFIX(function) wai_##function
 #endif
 
-/*
+/**
  * Returns the path to the current executable.
  *
  * Usage:
@@ -25,7 +26,7 @@ extern "C" {
  *    path
  *  - add a terminal NUL character with `path[length] = '\0';`
  *
- * @param[out] destination buffer, optional
+ * @param out destination buffer, optional
  * @param capacity destination buffer capacity
  * @param dirname_length optional recipient for the length of the dirname part
  *   of the path.
@@ -36,7 +37,7 @@ extern "C" {
 WAI_FUNCSPEC
 int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length);
 
-/*
+/**
  * Returns the path to the current module
  *
  * Usage:
@@ -46,7 +47,7 @@ int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length);
  *  - call `wai_getModulePath(path, length, NULL)` again to retrieve the path
  *  - add a terminal NUL character with `path[length] = '\0';`
  *
- * @param[out] destination buffer, optional
+ * @param out destination buffer, optional
  * @param capacity destination buffer capacity
  * @param dirname_length optional recipient for the length of the dirname part
  *   of the path.

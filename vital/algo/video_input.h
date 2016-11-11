@@ -37,7 +37,6 @@
 #define VITAL_ALGO_VIDEO_INPUT_H_
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
 
 #include <vital/algorithm_capabilities.h>
 
@@ -121,7 +120,7 @@ namespace algo {
  * the name (or abbreviation) of the concrete algorithm followed by
  * the abbreviation of the capability.
  */
-class VITAL_EXPORT video_input
+class VITAL_ALGO_EXPORT video_input
   : public kwiver::vital::algorithm_def<video_input>
 {
 public:

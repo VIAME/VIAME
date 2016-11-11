@@ -9,8 +9,8 @@ include(CMakeDependentOption)
 
 ###
 # KWIVER version
-set(KWIVER_VERSION_MAJOR 0)
-set(KWIVER_VERSION_MINOR 1)
+set(KWIVER_VERSION_MAJOR 1)
+set(KWIVER_VERSION_MINOR 0)
 set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
@@ -175,7 +175,8 @@ set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
 mark_as_advanced( LIB_SUFFIX )
 
-
+###
+# Configure setup script.
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_SETUP_SCRIPT_FILE}
@@ -188,6 +189,32 @@ mark_as_advanced( KWIVER_INSTALL_SET_UP_SCRIPT )
 if( KWIVER_INSTALL_SET_UP_SCRIPT )
   install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
     DESTINATION ${CMAKE_INSTALL_PREFIX} )
+endif()
+
+###
+# Install the basic logger properties file.
+file( COPY log4cxx.properties
+  DESTINATION  "${KWIVER_BINARY_DIR}" )
+
+install( FILES log4cxx.properties
+  DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
+if ( KWIVER_ENABLE_LOG4CXX )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger.so\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
+endif()
+
+if (KWIVER_ENABLE_PYTHON)
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
+endif()
+
+if ( KWIVER_ENABLE_MATLAB )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
+endif()
+
+if ( fletch_ROOT )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH\n" )
 endif()
 
 add_subdirectory( vital )

@@ -47,7 +47,7 @@ kwiver_add_library( kwiver_algo_matlab
   )
 
 target_link_libraries( kwiver_algo_matlab
-  PUBLIC               vital
+  PUBLIC               vital_algo
                        ${Matlab_LIBRARIES}
                        kwiver_algo_ocv
                        kwiversys

@@ -11,16 +11,11 @@ set( vital_config_public_headers
   config_block_types.h
   config_block_io.h
   config_block_exception.h
+  token_type_config.h
 )
 
 set( vital_config_private_headers
   config_parser.h
-  token_expander.h
-  token_type_env.h
-  token_type.h
-  token_type_config.h
-  token_type_symtab.h
-  token_type_sysenv.h
   )
 
 set( vital_config_sources
@@ -28,12 +23,7 @@ set( vital_config_sources
   config_block_io.cxx
   config_block_exception.cxx
   config_parser.cxx
-  token_expander.cxx
-  token_type.cxx
   token_type_config.cxx
-  token_type_env.cxx
-  token_type_symtab.cxx
-  token_type_sysenv.cxx
 )
 
 kwiver_install_headers(
@@ -57,6 +47,7 @@ kwiver_add_library( vital_config
 target_link_libraries( vital_config
   PRIVATE              kwiversys
                        vital_logger
+                       vital_util
   )
 
 ###

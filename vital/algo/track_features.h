@@ -47,7 +47,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for tracking feature points
-class VITAL_EXPORT track_features
+class VITAL_ALGO_EXPORT track_features
   : public algorithm_def<track_features>
 {
 public:

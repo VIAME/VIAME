@@ -28,48 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _TOKEN_TYPE_ENV_H_
+#define _TOKEN_TYPE_ENV_H_
 
-#ifndef _TOKEN_TYPE_H_
-#define _TOKEN_TYPE_H_
+#include "token_type.h"
+#include <vital/util/vital_util_export.h>
 
-#include <string>
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------
-/** Abstract base class for token types.
+/** Virtual base class for token types.
  *
  *
  */
-class token_type
+class VITAL_UTIL_EXPORT token_type_env
+  : public token_type
 {
 public:
-  virtual ~token_type();
-
-  /** Return our token type name. This is used to retrieve the name of
-   * this token type when it is added to the token expander.
-   */
-  std::string const& token_type_name() const;
+  token_type_env();
+  virtual ~token_type_env();
 
 
   /** Lookup name in token type resolver.
-   * @param[in] name Name to look up
-   * @param[out] result Translated string
-   * @return TRUE if name found in table; false otherwise
    */
-  virtual bool lookup_entry (std::string const& name, std::string& result) = 0;
+  virtual bool lookup_entry (std::string const& name, std::string& result);
 
-
-protected:
-  token_type(std::string const& name);
-
-
-private:
-  std::string m_typeName;
-
-}; // end class token_type
+}; // end class token_type_env
 
 } } // end namespace
 
-#endif /* _TOKEN_TYPE_H_ */
+#endif /* _TOKEN_TYPE_ENV_H_ */
