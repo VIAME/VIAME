@@ -12,3 +12,4 @@ kwiver_discover_tests(core_epipolar_geometry            test_libraries test_epip
 kwiver_discover_tests(core_interpolate_camera           test_libraries test_interpolate_camera.cxx)
 
 kwiver_discover_tests(core_detected_object_io           test_libraries test_detected_object_io.cxx)
+kwiver_discover_tests(core_polygon                      test_libraries test_polygon.cxx)

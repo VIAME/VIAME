@@ -144,6 +144,7 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/polygon.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h

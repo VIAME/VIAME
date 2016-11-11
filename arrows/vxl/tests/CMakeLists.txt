@@ -17,8 +17,10 @@ kwiver_discover_tests(vxl_estimate_similarity          test_libraries test_estim
 kwiver_discover_tests(vxl_image                        test_libraries test_image.cxx)
 kwiver_discover_tests(vxl_optimize_cameras             test_libraries test_optimize_cameras.cxx)
 kwiver_discover_tests(vxl_triangulate_landmarks        test_libraries test_triangulate_landmarks.cxx)
+kwiver_discover_tests(vxl_polygon                      test_libraries test_polygon.cxx)
 
 # This test is really for an algorithm in core, but it's here
 # because the test depends on availablity of VXL sub-algorithms
 set(test_libraries     kwiver_algo_vxl kwiver_algo_core)
+
 kwiver_discover_tests(vxl_initialize_cameras_landmarks test_libraries test_initialize_cameras_landmarks.cxx)
