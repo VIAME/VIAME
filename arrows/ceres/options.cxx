@@ -269,6 +269,76 @@ camera_options
 }
 
 
+/// extract the extrinsic paramters from a camera into the parameter array
+void
+camera_options
+::extract_camera_extrinsics(const vital::camera_sptr camera, double* params) const
+{
+  vector_3d rot = camera->rotation().rodrigues();
+  vector_3d center = camera->center();
+  std::copy(rot.data(), rot.data()+3, params);
+  std::copy(center.data(), center.data()+3, params+3);
+}
+
+
+/// Update a camera object to use extrinsic parameters from an array
+void
+camera_options
+::update_camera_extrinsics(std::shared_ptr<vital::simple_camera> camera,
+                           double const* params) const
+{
+  camera->set_rotation(rotation_d(vector_3d(Eigen::Map<const vector_3d>(params))));
+  camera->set_center(Eigen::Map<const vector_3d>(&params[3]));
+}
+
+
+/// extract the paramters from camera intrinsics into the parameter array
+void
+camera_options
+::extract_camera_intrinsics(const vital::camera_intrinsics_sptr K,
+                            double* params) const
+{
+  params[0] = K->focal_length();
+  params[1] = K->principal_point().x();
+  params[2] = K->principal_point().y();
+  params[3] = K->aspect_ratio();
+  params[4] = K->skew();
+  const std::vector<double> d = K->dist_coeffs();
+  // copy the intersection of parameters provided in K
+  // and those that are supported by the requested model type
+  const unsigned int num_dp = std::min(num_distortion_params(this->lens_distortion_type),
+                                       static_cast<unsigned int>(d.size()));
+  if( num_dp > 0 )
+  {
+    std::copy(d.begin(), d.begin()+num_dp, &params[5]);
+  }
+}
+
+
+/// update the camera intrinsics from a parameter array
+void
+camera_options
+::update_camera_intrinsics(std::shared_ptr<vital::simple_camera_intrinsics> K,
+                           const double* params) const
+{
+  K->set_focal_length(params[0]);
+  vector_2d pp((Eigen::Map<const vector_2d>(&params[1])));
+  K->set_principal_point(pp);
+  K->set_aspect_ratio(params[3]);
+  K->set_skew(params[4]);
+
+  // distortion parameters
+  const unsigned int ndp = num_distortion_params(this->lens_distortion_type);
+  if( ndp > 0 )
+  {
+    Eigen::VectorXd dc(ndp);
+    std::copy(&params[5], &params[5]+ndp, dc.data());
+    K->set_dist_coeffs(dc);
+  }
+}
+
+
+
 } // end namespace ceres
 } // end namespace arrows
 } // end namespace kwiver

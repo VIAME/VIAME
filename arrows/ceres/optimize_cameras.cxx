@@ -223,11 +223,8 @@ optimize_cameras
   std::vector<double> intrinsic_params(5 + ndp, 0.0);
   VITAL_FOREACH(const map_camera_t::value_type& c, cams)
   {
-    vector_3d rot = c.second->rotation().rodrigues();
-    vector_3d center = c.second->center();
     std::vector<double> params(6);
-    std::copy(rot.data(), rot.data()+3, params.begin());
-    std::copy(center.data(), center.data()+3, params.begin()+3);
+    d_->extract_camera_extrinsics(c.second, &params[0]);
     camera_intrinsics_sptr K = c.second->intrinsics();
     camera_params[c.first] = params;
 
@@ -240,19 +237,7 @@ optimize_cameras
              && camera_intr_params.empty() )
         || camera_intr_map.count(K) == 0 )
     {
-      intrinsic_params[0] = K->focal_length();
-      intrinsic_params[1] = K->principal_point().x();
-      intrinsic_params[2] = K->principal_point().y();
-      intrinsic_params[3] = K->aspect_ratio();
-      intrinsic_params[4] = K->skew();
-      const std::vector<double> d = K->dist_coeffs();
-      // copy the intersection of parameters provided in K
-      // and those that are supported by the requested model type
-      unsigned int num_dp = std::min(ndp, static_cast<unsigned int>(d.size()));
-      if( num_dp > 0 )
-      {
-        std::copy(d.begin(), d.begin()+num_dp, &intrinsic_params[5]);
-      }
+      d_->extract_camera_intrinsics(K, &intrinsic_params[0]);
       // update the maps with the index of this new parameter vector
       camera_intr_map[K] = static_cast<unsigned int>(camera_intr_params.size());
       frame_to_intr_map[c.first] = static_cast<unsigned int>(camera_intr_params.size());
@@ -349,31 +334,22 @@ optimize_cameras
   std::vector<camera_intrinsics_sptr> updated_intr;
   VITAL_FOREACH(const std::vector<double>& cip, camera_intr_params)
   {
-    simple_camera_intrinsics* K = new simple_camera_intrinsics();
-    K->set_focal_length(cip[0]);
-    vector_2d pp((Eigen::Map<const vector_2d>(&cip[1])));
-    K->set_principal_point(pp);
-    K->set_aspect_ratio(cip[3]);
-    K->set_skew(cip[4]);
-    if( ndp > 0 )
-    {
-      Eigen::VectorXd dc(ndp);
-      std::copy(&cip[5], &cip[5]+ndp, dc.data());
-      K->set_dist_coeffs(dc);
-    }
+    auto K = std::make_shared<simple_camera_intrinsics>();
+    d_->update_camera_intrinsics(K, &cip[0]);
     updated_intr.push_back(camera_intrinsics_sptr(K));
   }
 
   // Update the cameras with the optimized values
   VITAL_FOREACH(const cam_param_map_t::value_type& cp, camera_params)
   {
-    vector_3d center = Eigen::Map<const vector_3d>(&cp.second[3]);
-    rotation_d rot(vector_3d(Eigen::Map<const vector_3d>(&cp.second[0])));
-
     // look-up updated intrinsics
     unsigned int intr_idx = frame_to_intr_map[cp.first];
     camera_intrinsics_sptr K = updated_intr[intr_idx];
-    cams[cp.first] = camera_sptr(new simple_camera(center, rot, K));
+
+    auto camera = std::make_shared<simple_camera>();
+    camera->set_intrinsics(K);
+    d_->update_camera_extrinsics(camera, &cp.second[0]);
+    cams[cp.first] = camera;
   }
 
   cameras = camera_map_sptr(new simple_camera_map(cams));

@@ -38,6 +38,7 @@
 
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>
+#include <vital/types/camera.h>
 #include <arrows/ceres/types.h>
 
 namespace kwiver {
@@ -89,6 +90,49 @@ public:
 
   /// set the member variables from the config block
   void set_configuration(vital::config_block_sptr config);
+
+  /// extract the extrinsic paramters from a camera into the parameter array
+  /**
+   *  \param [in]  camera The camera object to extract data from
+   *  \param [out] params and array of 6 doubles to populate with parameters
+   *
+   *  This function is the inverse of update_camera_extrinsics
+   */
+  void extract_camera_extrinsics(const vital::camera_sptr camera,
+                                 double* params) const;
+
+  /// Update a camera object to use extrinsic parameters from an array
+  /**
+   *  \param [out] camera The simple_camera instance to update
+   *  \param [in] params The array of 6 doubles to extract the data from
+   *
+   *  This function is the inverse of extract_camera_extrinsics
+   */
+  void update_camera_extrinsics(std::shared_ptr<vital::simple_camera> camera,
+                                double const* params) const;
+
+  /// extract the paramters from camera intrinsics into the parameter array
+  /**
+   *  \param [in]  K The camera intrinsics object to extract data from
+   *  \param [out] params and array of double to populate with parameters
+   *
+   *  \note the size of param is at least 5 but may be up to 12 depending
+   *  on the number of distortion parameters used.
+   *
+   *  This function is the inverse of update_camera_intrinsics
+   */
+  void extract_camera_intrinsics(const vital::camera_intrinsics_sptr K,
+                                 double* params) const;
+
+  /// update the camera intrinsics from a parameter array
+  /**
+   *  \param [out] K The simple_camera_intrinsics instance to update
+   *  \param [in] params The array of doubles to extract the data from
+   *
+   *  This function is the inverse of extract_camera_intrinsics
+   */
+  void update_camera_intrinsics(std::shared_ptr<vital::simple_camera_intrinsics> K,
+                                const double* params) const;
 
   /// enumerate the intrinsics held constant
   /**
