@@ -142,11 +142,28 @@ public:
    *  \param [out] int_params A vector of unique camera intrinsic parameter vectors
    *  \param [out] int_map    A map from frame number to index into \p int_params.
    *                          The mapping may be many-to-one for shared intrinsics.
+   *
+   *  This function is the inverse of update_camera_parameters
    */
   void extract_camera_parameters(vital::camera_map::map_camera_t const& cameras,
                                  std::map<vital::frame_id_t, std::vector<double> >& ext_params,
                                  std::vector<std::vector<double> >& int_params,
                                  std::map<vital::frame_id_t, unsigned int>& int_map) const;
+
+  /// construct a new map of camera objects using the extracted camera parameters
+  /**
+   *  \param [in] ext_params A map from frame number to vector of extrinsic parameters
+   *  \param [in] int_params A vector of unique camera intrinsic parameter vectors
+   *  \param [in] int_map    A map from frame number to index into \p int_params.
+   *                          The mapping may be many-to-one for shared intrinsics.
+   *  \returns A new camera map with camera objects built from the parameters
+   *
+   *  This function is the inverse of extract_camera_parameters
+   */
+  vital::camera_map_sptr
+  update_camera_parameters(std::map<vital::frame_id_t, std::vector<double> > const& ext_params,
+                           std::vector<std::vector<double> > const& int_params,
+                           std::map<vital::frame_id_t, unsigned int> const& int_map) const;
 
   /// enumerate the intrinsics held constant
   /**

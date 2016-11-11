@@ -310,32 +310,12 @@ bundle_adjust
     updated_lm->set_loc(Eigen::Map<const vector_3d>(&lmp.second[0]));
     lmi = updated_lm;
   }
-
-  // Update the camera intrinics with optimized values
-  std::vector<camera_intrinsics_sptr> updated_intr;
-  VITAL_FOREACH(const std::vector<double>& cip, camera_intr_params)
-  {
-    auto K = std::make_shared<simple_camera_intrinsics>();
-    d_->update_camera_intrinsics(K, &cip[0]);
-    updated_intr.push_back(camera_intrinsics_sptr(K));
-  }
+  landmarks = std::make_shared<simple_landmark_map>(lms);
 
   // Update the cameras with the optimized values
-  VITAL_FOREACH(const cam_param_map_t::value_type& cp, camera_params)
-  {
-    // look-up updated intrinsics
-    unsigned int intr_idx = frame_to_intr_map[cp.first];
-    camera_intrinsics_sptr K = updated_intr[intr_idx];
-
-    auto camera = std::make_shared<simple_camera>();
-    camera->set_intrinsics(K);
-    d_->update_camera_extrinsics(camera, &cp.second[0]);
-    cams[cp.first] = camera;
-  }
-
-
-  cameras = camera_map_sptr(new simple_camera_map(cams));
-  landmarks = landmark_map_sptr(new simple_landmark_map(lms));
+  cameras = d_->update_camera_parameters(camera_params,
+                                         camera_intr_params,
+                                         frame_to_intr_map);
 }
 
 } // end namespace ceres

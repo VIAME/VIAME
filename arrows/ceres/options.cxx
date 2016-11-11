@@ -389,8 +389,44 @@ camera_options
       int_map[c.first] = camera_intr_map[K];
     }
   }
-
 }
+
+
+/// construct a new map of camera objects using the extracted camera parameters
+camera_map_sptr
+camera_options
+::update_camera_parameters(std::map<frame_id_t, std::vector<double> > const& ext_params,
+                         std::vector<std::vector<double> > const& int_params,
+                         std::map<frame_id_t, unsigned int> const& int_map) const
+{
+  // Update the camera intrinics with optimized values
+  std::vector<camera_intrinsics_sptr> updated_intr;
+  VITAL_FOREACH(const std::vector<double>& cip, int_params)
+  {
+    auto K = std::make_shared<simple_camera_intrinsics>();
+    this->update_camera_intrinsics(K, &cip[0]);
+    updated_intr.push_back(camera_intrinsics_sptr(K));
+  }
+
+  // Update the cameras with the optimized values
+  typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
+  camera_map::map_camera_t cams;
+  VITAL_FOREACH(const cam_param_map_t::value_type& cp, ext_params)
+  {
+    // look-up updated intrinsics
+    auto map_itr = int_map.find(cp.first);
+    unsigned int intr_idx = map_itr->second;
+    camera_intrinsics_sptr K = updated_intr[intr_idx];
+
+    auto camera = std::make_shared<simple_camera>();
+    camera->set_intrinsics(K);
+    this->update_camera_extrinsics(camera, &cp.second[0]);
+    cams[cp.first] = camera;
+  }
+
+  return std::make_shared<simple_camera_map>(cams);
+}
+
 
 } // end namespace ceres
 } // end namespace arrows
