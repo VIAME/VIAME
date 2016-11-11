@@ -553,7 +553,8 @@ public:
     {
       throw image_type_mismatch_exception("kwiver::vital::image_of<T>::operator=(kwiver::vital::image)");
     }
-    return image::operator=(other);
+    image::operator=(other);
+    return *this;
   }
 
   /// Const access to the pointer to first image pixel
