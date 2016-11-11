@@ -169,12 +169,46 @@ struct cast_pixel
 };
 
 
-/// Static cast and image of one type to that of another type
+/// Static cast an image of one type to that of another type
 template <typename T1, typename T2>
 void cast_image( image_of<T1> const& img_in, image_of<T2>& img_out )
 {
   transform_image(img_in, img_out, cast_pixel<T1,T2>());
 }
+
+
+/// Static cast an image of unknown type to a known type
+template <typename T>
+void cast_image( image const& img_in, image_of<T>& img_out )
+{
+  if( img_in.pixel_traits() == image_pixel_traits_of<T>() )
+  {
+    // if the types are already the same then shallow copy
+    img_out = img_in;
+    return;
+  }
+#define TRY_TYPE(in_T)                                         \
+  if( img_in.pixel_traits() == image_pixel_traits_of<in_T>() ) \
+  {                                                            \
+    cast_image( image_of<in_T>(img_in), img_out );             \
+    return;                                                    \
+  }
+
+  TRY_TYPE(bool)
+  TRY_TYPE(uint8_t)
+  TRY_TYPE(int8_t)
+  TRY_TYPE(uint16_t)
+  TRY_TYPE(int16_t)
+  TRY_TYPE(uint32_t)
+  TRY_TYPE(int32_t)
+  TRY_TYPE(uint64_t)
+  TRY_TYPE(int64_t)
+  TRY_TYPE(float)
+  TRY_TYPE(double)
+#undef TRY_TYPE
+  throw image_type_mismatch_exception("kwiver::vital::cast_image() cannot cast unknown type");
+}
+
 
 } }   // end namespace vital
 

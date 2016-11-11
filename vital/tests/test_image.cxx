@@ -653,3 +653,38 @@ IMPLEMENT_TEST(transform_image)
   }
 
 }
+
+
+IMPLEMENT_TEST(cast_image_of)
+{
+  kwiver::vital::image_of<uint16_t> img1(50, 50, 3);
+  kwiver::vital::image_of<bool> img2;
+  cast_image(img1, img2);
+  if (img1.width()         != img2.width()  ||
+      img1.height()        != img2.height() ||
+      img1.depth()         != img2.depth()  ||
+      img1.w_step()        != img2.w_step() ||
+      img1.h_step()        != img2.h_step() ||
+      img1.d_step()        != img2.d_step() )
+  {
+    TEST_ERROR("Shape of cast image does not match original");
+  }
+}
+
+
+IMPLEMENT_TEST(cast_image)
+{
+  kwiver::vital::image_of<uint16_t> img_in(50, 50, 3);
+  kwiver::vital::image img1 = img_in;
+  kwiver::vital::image_of<bool> img2;
+  cast_image(img1, img2);
+  if (img1.width()         != img2.width()  ||
+      img1.height()        != img2.height() ||
+      img1.depth()         != img2.depth()  ||
+      img1.w_step()        != img2.w_step() ||
+      img1.h_step()        != img2.h_step() ||
+      img1.d_step()        != img2.d_step() )
+  {
+    TEST_ERROR("Shape of cast image does not match original");
+  }
+}
