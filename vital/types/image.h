@@ -537,10 +537,10 @@ public:
    * The new image will share the same memory as the old image
    * \param other The other image.
    */
-  explicit image_of( const image_of<T>& other )
+  explicit image_of( const image& other )
   : image(other)
   {
-    if ( other.pixel_traits != image_pixel_traits_of<T>() )
+    if ( other.pixel_traits() != image_pixel_traits_of<T>() )
     {
       throw image_type_mismatch_exception("kwiver::vital::image_of<T>(kwiver::vital::image)");
     }
