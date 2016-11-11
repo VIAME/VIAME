@@ -39,6 +39,7 @@
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>
 #include <vital/types/camera.h>
+#include <vital/types/camera_map.h>
 #include <arrows/ceres/types.h>
 
 namespace kwiver {
@@ -133,6 +134,19 @@ public:
    */
   void update_camera_intrinsics(std::shared_ptr<vital::simple_camera_intrinsics> K,
                                 const double* params) const;
+
+  /// extract the set of all unique intrinsic and extrinsic parameters from a camera map
+  /**
+   *  \param [in]  cameras    The map of frame numbers to cameras to extract parameters from
+   *  \param [out] ext_params A map from frame number to vector of extrinsic parameters
+   *  \param [out] int_params A vector of unique camera intrinsic parameter vectors
+   *  \param [out] int_map    A map from frame number to index into \p int_params.
+   *                          The mapping may be many-to-one for shared intrinsics.
+   */
+  void extract_camera_parameters(vital::camera_map::map_camera_t const& cameras,
+                                 std::map<vital::frame_id_t, std::vector<double> >& ext_params,
+                                 std::vector<std::vector<double> >& int_params,
+                                 std::map<vital::frame_id_t, unsigned int>& int_map) const;
 
   /// enumerate the intrinsics held constant
   /**

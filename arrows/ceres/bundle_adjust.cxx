@@ -216,56 +216,20 @@ bundle_adjust
     landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
   }
 
-  // Extract the camera parameters into a mutable map
-  //
+
+  // a map from frame number to extrinsic parameters
   typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
   cam_param_map_t camera_params;
-  // We need maps from both frame number and intrinsics_sptr to the
-  // index of the camera parameters.  This way we can vary how each
-  // frame maps to a set of intrinsic parameters based on config params.
-  typedef std::map<camera_intrinsics_sptr, unsigned int> cam_intrin_map_t;
-  cam_intrin_map_t camera_intr_map;
-  typedef std::map<frame_id_t, unsigned int> frame_to_intrin_map_t;
-  frame_to_intrin_map_t frame_to_intr_map;
   // vector of unique camera intrinsic parameters
   std::vector<std::vector<double> > camera_intr_params;
-  // number of lens distortion parameters in the selected model
-  const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  std::vector<double> intrinsic_params(5 + ndp, 0.0);
-  VITAL_FOREACH(const map_camera_t::value_type& c, cams)
-  {
-    std::vector<double> params(6);
-    d_->extract_camera_extrinsics(c.second, &params[0]);
-    camera_intrinsics_sptr K = c.second->intrinsics();
-    camera_params[c.first] = params;
+  // a map from frame number to index of unique camera intrinsics in camera_intr_params
+  std::map<frame_id_t, unsigned int> frame_to_intr_map;
 
-    // add a new set of intrisic parameter if one of the following:
-    // - we are forcing unique intrinsics for each camera
-    // - we are forcing common intrinsics and this is the first frame
-    // - we are auto detecting shared intrinisics and this is a new sptr
-    if( d_->camera_intrinsic_share_type == FORCE_UNIQUE_INTRINSICS
-        || ( d_->camera_intrinsic_share_type == FORCE_COMMON_INTRINSICS
-             && camera_intr_params.empty() )
-        || camera_intr_map.count(K) == 0 )
-    {
-      d_->extract_camera_intrinsics(K, &intrinsic_params[0]);
-      // update the maps with the index of this new parameter vector
-      camera_intr_map[K] = static_cast<unsigned int>(camera_intr_params.size());
-      frame_to_intr_map[c.first] = static_cast<unsigned int>(camera_intr_params.size());
-      // add the parameter vector
-      camera_intr_params.push_back(intrinsic_params);
-    }
-    else if( d_->camera_intrinsic_share_type == FORCE_COMMON_INTRINSICS )
-    {
-      // map to the first parameter vector
-      frame_to_intr_map[c.first] = 0;
-    }
-    else
-    {
-      // map to a previously seen parameter vector
-      frame_to_intr_map[c.first] = camera_intr_map[K];
-    }
-  }
+  // Extract the raw camera parameter into the provided maps
+  d_->extract_camera_parameters(cams,
+                                camera_params,
+                                camera_intr_params,
+                                frame_to_intr_map);
 
   // the Ceres solver problem
   ::ceres::Problem problem;
@@ -309,6 +273,8 @@ bundle_adjust
       loss_func_used = true;
     }
   }
+
+  const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
   VITAL_FOREACH(std::vector<double>& cip, camera_intr_params)
   {
     // apply the constraints

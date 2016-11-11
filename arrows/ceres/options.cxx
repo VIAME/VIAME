@@ -35,6 +35,8 @@
 
 #include "options.h"
 
+#include <vital/vital_foreach.h>
+
 using namespace kwiver::vital;
 
 
@@ -338,6 +340,57 @@ camera_options
 }
 
 
+/// extract the set of all unique intrinsic and extrinsic parameters from a camera map
+void
+camera_options
+::extract_camera_parameters(camera_map::map_camera_t const& cameras,
+                            std::map<frame_id_t, std::vector<double> >& ext_params,
+                            std::vector<std::vector<double> >& int_params,
+                            std::map<frame_id_t, unsigned int>& int_map) const
+{
+  // We need another map from intrinsics intstances to parameter index to
+  // detect when the same intrinsics are shared between cameras
+  std::map<camera_intrinsics_sptr, unsigned int> camera_intr_map;
+
+  // number of lens distortion parameters in the selected model
+  const unsigned int ndp = num_distortion_params(this->lens_distortion_type);
+  std::vector<double> intrinsic_params(5 + ndp, 0.0);
+  VITAL_FOREACH(const camera_map::map_camera_t::value_type& c, cameras)
+  {
+    std::vector<double> params(6);
+    this->extract_camera_extrinsics(c.second, &params[0]);
+    camera_intrinsics_sptr K = c.second->intrinsics();
+    ext_params[c.first] = params;
+
+    // add a new set of intrisic parameter if one of the following:
+    // - we are forcing unique intrinsics for each camera
+    // - we are forcing common intrinsics and this is the first frame
+    // - we are auto detecting shared intrinisics and this is a new sptr
+    if( this->camera_intrinsic_share_type == FORCE_UNIQUE_INTRINSICS
+        || ( this->camera_intrinsic_share_type == FORCE_COMMON_INTRINSICS
+             && int_params.empty() )
+        || camera_intr_map.count(K) == 0 )
+    {
+      this->extract_camera_intrinsics(K, &intrinsic_params[0]);
+      // update the maps with the index of this new parameter vector
+      camera_intr_map[K] = static_cast<unsigned int>(int_params.size());
+      int_map[c.first] = static_cast<unsigned int>(int_params.size());
+      // add the parameter vector
+      int_params.push_back(intrinsic_params);
+    }
+    else if( this->camera_intrinsic_share_type == FORCE_COMMON_INTRINSICS )
+    {
+      // map to the first parameter vector
+      int_map[c.first] = 0;
+    }
+    else
+    {
+      // map to a previously seen parameter vector
+      int_map[c.first] = camera_intr_map[K];
+    }
+  }
+
+}
 
 } // end namespace ceres
 } // end namespace arrows
