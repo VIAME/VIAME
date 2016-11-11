@@ -51,7 +51,7 @@ namespace algo {
  * @brief Image object detector base class/
  *
  */
-class VITAL_EXPORT image_object_detector
+class VITAL_ALGO_EXPORT image_object_detector
 : public algorithm_def<image_object_detector>
 {
 public:

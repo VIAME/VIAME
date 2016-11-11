@@ -51,23 +51,34 @@ namespace vital {
 /// Read in a configuration file, producing a \c config_block object
 /**
  * This method reads the specified config file and returns the
- * resulting config block. If a search path is supplied, any files
- * included by config files are resolved using that list if they do
- * not have an absolute path.
+ * resulting config block. Any files included by config files that are not in
+ * absolute form are resolved using search paths supplied in the environment
+ * variable \c KWIVER_CONFIG_PATH first, and then by using paths supplied in
+ * \c search_paths. If \c no_system_paths is set to \c true, then the contents
+ * of the \c KWIVER_CONFIG_PATH variable is not used, i.e. only the paths given
+ * in \c search_paths are used.
  *
  * \throws config_file_not_found_exception
  *    Thrown when the file could not be found on the file system.
  * \throws config_file_not_read_exception
  *    Thrown when the file could not be read or parsed for whatever reason.
  *
- * \param file_path   The path to the file to read in.
- * \param search_path An optional list of directories to use in locating included files.
+ * \param file_path
+ *   The path to the file to read in.
+ * \param search_path
+ *   An optional list of directories to use in locating included files.
+ * \param use_system_paths
+ *   If false, we do not use paths in the KWIVER_CONFIG_PATH environment
+ *   variable or current working directory for searching, otherwise those paths are
+ *   searched first.
  *
- * \return A \c config_block object representing the contents of the read-in file.
+ * \return A \c config_block object representing the contents of the read-in
+ *   file.
  */
 config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
   config_path_t const&      file_path,
-  config_path_list_t const& search_path = config_path_list_t() );
+  config_path_list_t const& search_paths = config_path_list_t(),
+  bool                      use_system_paths = true );
 
 
 // ------------------------------------------------------------------
@@ -82,13 +93,15 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * thrown. If the file is located and the \c merge parameter is \b
  * true (default value), then the remaining directories in the search
  * path are checked to see if additional versions of the file can be
- * found. If so, then the contents are merged, in the order found,
- * into the resulting config block. If the \c merge parameter is \b
- * false. then reading process stops after the first file is found.
+ * found. If so, then the contents are merged, with values in files earlier in
+ * the search order taking precedence, into the resulting config block. If the
+ * \c merge parameter is \b false. then reading process stops after the first
+ * file is found.
  *
  * A platform specific search path is constructed as follows:
  *
  * ## Windows Platform
+ * - .  (the current working directory
  * - ${KWIVER_CONFIG_PATH}          (if set)
  * - $<CSIDL_LOCAL_APPDATA>/<app-name>[/<app-version>]/config
  * - $<CSIDL_APPDATA>/<app-name>[/<app-version>]/config
@@ -98,6 +111,7 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * - <install-dir>/config
  *
  * ## OS/X Apple Platform
+ * - .  (the current working directory
  * - ${KWIVER_CONFIG_PATH}                                    (if set)
  * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
  * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
@@ -116,6 +130,7 @@ config_block_sptr VITAL_CONFIG_EXPORT read_config_file(
  * - <install-dir>/Resources/config
  *
  * ## Other Posix Platforms (e.g. Linux)
+ * - .  (the current working directory
  * - ${KWIVER_CONFIG_PATH}                                    (if set)
  * - ${XDG_CONFIG_HOME}/<app-name>[/<app-version>]/config     (if $XDG_CONFIG_HOME set)
  * - ${HOME}/.config/<app-name>[/<app-version>]/config        (if $HOME set)
@@ -208,8 +223,27 @@ void VITAL_CONFIG_EXPORT write_config_file( config_block_sptr const&  config,
 void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
                                        std::ostream&            str );
 
+// ------------------------------------------------------------------
+/// Get additional application configuration file paths
+/**
+ * This includes the KWIVER_CONFIG_PATH contents at the head of the returned
+ * list.
+ *
+ * \param application_name
+ *   The application name, used to build the list of standard locations to be
+ *   searched.
+ * \param application_version
+ *   The application version number, used to build the list of standard
+ *   locations to be searched.
+ * \param install_prefix
+ *   The prefix to which the application is installed (should be one directory
+ *   higher than the location of the executing binary).
+ *
+ * \return
+ *   List of additional application configuration search paths.
+ */
 config_path_list_t VITAL_CONFIG_EXPORT
-config_file_paths( std::string const& application_name,
+application_config_file_paths(std::string const& application_name,
                    std::string const& application_version,
                    config_path_t const& install_prefix );
 

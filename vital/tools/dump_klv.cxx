@@ -33,6 +33,7 @@
 /// This program reads a video and extracts all the KLV metadata.
 
 #include <iostream>
+#include <fstream>
 
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_io.h>
@@ -87,8 +88,10 @@ int main( int argc, char** argv )
   arg.StoreUnusedArguments( true );
 
   arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
+  arg.AddArgument( "-h",              argT::NO_ARGUMENT, &opt_help, "Display usage information" );
   arg.AddArgument( "--config",      argT::SPACE_ARGUMENT, &opt_config, "Configuration file for tool" );
   arg.AddArgument( "-c",            argT::SPACE_ARGUMENT, &opt_config, "Configuration file for tool" );
+  arg.AddArgument( "--output-config", argT::SPACE_ARGUMENT, &opt_out_config, "Dump configuration for tool" );
 
   if ( ! arg.Parse() )
   {
@@ -135,6 +138,20 @@ int main( int argc, char** argv )
 
   kwiver::vital::algo::video_input::set_nested_algo_configuration( "video_reader", config, video_reader );
   kwiver::vital::algo::video_input::get_nested_algo_configuration( "video_reader", config, video_reader );
+  // Check to see if we are to dump config
+  if ( ! opt_out_config.empty() )
+  {
+    std::ofstream fout( opt_out_config.c_str() );
+    if( ! fout )
+    {
+      std::cout << "Couldn't open \"" << opt_out_config << "\" for writing.\n";
+      return EXIT_FAILURE;
+    }
+
+    config->print( fout );
+    std::cout << "Wrote config to \"" << opt_out_config << "\". Exiting.\n";
+    return EXIT_SUCCESS;
+  }
 
   if( !kwiver::vital::algo::video_input::check_nested_algo_configuration( "video_reader", config ) )
   {

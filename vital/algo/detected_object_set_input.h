@@ -59,7 +59,7 @@ namespace algo {
  * with enough information to recreate a unique image identifier,
  * usually the file name, and an associated set of detections.
  */
-class VITAL_EXPORT detected_object_set_input
+class VITAL_ALGO_EXPORT detected_object_set_input
   : public kwiver::vital::algorithm_def<detected_object_set_input>
 {
 public:

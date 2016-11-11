@@ -19,6 +19,9 @@ set(vital_c_public_headers
   types/color.h
   types/covariance.h
   types/descriptor.h
+  types/detected_object.h
+  types/detected_object_type.h
+  types/detected_object_set.h
   types/eigen.h
   types/feature.h
   types/image.h
@@ -39,6 +42,9 @@ set(vital_c_private_headers
   helpers/camera_map.h
   helpers/config_block.h
   helpers/descriptor.h
+  helpers/detected_object.h
+  helpers/detected_object_type.h
+  helpers/detected_object_set.h
   helpers/image_container.h
   helpers/track.h
   helpers/track_set.h
@@ -64,6 +70,9 @@ set(vital_c_sources
   types/color.cxx
   types/covariance.cxx
   types/descriptor.cxx
+  types/detected_object.cxx
+  types/detected_object_type.cxx
+  types/detected_object_set.cxx
   types/eigen.cxx
   types/feature.cxx
   types/image.cxx
@@ -93,4 +102,5 @@ kwiver_add_library( vital_c
 target_link_libraries( vital_c
   PRIVATE     vital
               vital_apm
+              vital_algo
   )

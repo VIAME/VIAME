@@ -46,7 +46,7 @@ namespace algo {
 
 
 /// A base class for geographic conversions
-class VITAL_EXPORT geo_map
+class VITAL_ALGO_EXPORT geo_map
   : public kwiver::vital::algorithm_def<geo_map>
 {
 public:

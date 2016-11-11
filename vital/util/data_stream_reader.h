@@ -31,7 +31,7 @@
 #ifndef VITAL_UTIL_STREAM_DATA_READER_H
 #define VITAL_UTIL_STREAM_DATA_READER_H
 
-#include <vital/vital_export.h>
+#include <vital/util/vital_util_export.h>
 
 #include <vital/util/string_editor.h>
 
@@ -82,7 +82,7 @@ class string_editor;
   }
 \endcode
  */
-class VITAL_EXPORT data_stream_reader
+class VITAL_UTIL_EXPORT data_stream_reader
 {
 public:
 

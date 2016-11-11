@@ -56,7 +56,7 @@ namespace vital {
 namespace algo {
 
 /// Algorithm for estimating the similarity transform between two point sets
-class VITAL_EXPORT estimate_similarity_transform
+class VITAL_ALGO_EXPORT estimate_similarity_transform
   : public kwiver::vital::algorithm_def<estimate_similarity_transform>
 {
 public:

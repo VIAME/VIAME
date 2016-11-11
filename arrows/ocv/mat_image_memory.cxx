@@ -59,10 +59,11 @@ mat_image_memory
   u_( m.u )
 #endif
 {
-  assert(m.depth() == CV_8U);
-  assert(!m.allocator);
 #ifndef KWIVER_HAS_OPENCV_VER_3
-  CV_XADD(this->mat_refcount_, 1);
+  if ( this->mat_refcount_ )
+  {
+    CV_XADD(this->mat_refcount_, 1);
+  }
 #else
   if ( u_ )
   {

@@ -58,7 +58,7 @@ namespace algo {
  * feature tracks, which can transform each image back to the same coordinate
  * space derived from some initial refrerence image.
  */
-class VITAL_EXPORT compute_ref_homography
+class VITAL_ALGO_EXPORT compute_ref_homography
   : public kwiver::vital::algorithm_def<compute_ref_homography>
 {
 public:

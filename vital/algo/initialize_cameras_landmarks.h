@@ -50,7 +50,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for initialization of cameras and landmarks
-class VITAL_EXPORT initialize_cameras_landmarks
+class VITAL_ALGO_EXPORT initialize_cameras_landmarks
 : public kwiver::vital::algorithm_def<initialize_cameras_landmarks>
 {
 public:

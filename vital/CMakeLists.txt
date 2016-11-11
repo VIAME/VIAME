@@ -96,36 +96,6 @@ set( vital_public_headers
   algorithm_capabilities.h
   attribute_set.h
 
-  algo/algorithm.txx
-  algo/algorithm.h
-  algo/analyze_tracks.h
-  algo/bundle_adjust.h
-  algo/close_loops.h
-  algo/compute_ref_homography.h
-  algo/convert_image.h
-  algo/detect_features.h
-  algo/detected_object_set_input.h
-  algo/detected_object_set_output.h
-  algo/detection_refiner.h
-  algo/draw_tracks.h
-  algo/estimate_canonical_transform.h
-  algo/estimate_essential_matrix.h
-  algo/estimate_fundamental_matrix.h
-  algo/estimate_homography.h
-  algo/estimate_canonical_transform.h
-  algo/estimate_similarity_transform.h
-  algo/extract_descriptors.h
-  algo/filter_features.h
-  algo/geo_map.h
-  algo/image_filter.h
-  algo/image_object_detector.h
-  algo/image_io.h
-  algo/initialize_cameras_landmarks.h
-  algo/match_features.h
-  algo/optimize_cameras.h
-  algo/track_features.h
-  algo/triangulate_landmarks.h
-
   exceptions.h
   exceptions/algorithm.h
   exceptions/base.h
@@ -134,6 +104,7 @@ set( vital_public_headers
   exceptions/math.h
   exceptions/video.h
   exceptions/klv.h
+  exceptions/plugin.h
 
   io/camera_io.h
   io/camera_map_io.h
@@ -180,19 +151,6 @@ set( vital_public_headers
   types/vector.h
   types/uuid.h
 
-  util/any_converter.h
-  util/bounded_buffer.h
-  util/data_stream_reader.cxx
-  util/demangle.h
-  util/enumerate_matrix.h
-  util/enumerate_matrix.h
-  util/get_paths.h
-  util/string_editor.h
-  util/string_format.h
-  util/timer.h
-
-  plugin_loader/plugin_factory.h
-  plugin_loader/plugin_manager.h
 )
 
 # ----------------------
@@ -201,36 +159,6 @@ set( vital_sources
   algorithm_capabilities.cxx
   attribute_set.cxx
 
-  algo/algorithm.cxx
-  algo/analyze_tracks.cxx
-  algo/bundle_adjust.cxx
-  algo/close_loops.cxx
-  algo/compute_ref_homography.cxx
-  algo/convert_image.cxx
-  algo/detect_features.cxx
-  algo/detected_object_set_input.cxx
-  algo/detected_object_set_output.cxx
-  algo/detection_refiner.cxx
-  algo/draw_tracks.cxx
-  algo/estimate_canonical_transform.cxx
-  algo/estimate_essential_matrix.cxx
-  algo/estimate_fundamental_matrix.cxx
-  algo/estimate_homography.cxx
-  algo/estimate_similarity_transform.cxx
-  algo/estimate_canonical_transform.cxx
-  algo/extract_descriptors.cxx
-  algo/filter_features.cxx
-  algo/geo_map.cxx
-  algo/image_filter.cxx
-  algo/image_object_detector.cxx
-  algo/image_io.cxx
-  algo/initialize_cameras_landmarks.cxx
-  algo/match_features.cxx
-  algo/optimize_cameras.cxx
-  algo/track_features.cxx
-  algo/triangulate_landmarks.cxx
-  algo/video_input.cxx
-
   exceptions/algorithm.cxx
   exceptions/base.cxx
   exceptions/image.cxx
@@ -238,6 +166,7 @@ set( vital_sources
   exceptions/math.cxx
   exceptions/video.cxx
   exceptions/klv.cxx
+  exceptions/plugin.cxx
 
   io/camera_io.cxx
   io/camera_map_io.cxx
@@ -270,14 +199,6 @@ set( vital_sources
   types/track.cxx
   types/track_set.cxx
   types/uuid.cxx
-
-  util/data_stream_reader.cxx
-  util/demangle.cxx
-  util/get_paths.cxx
-  util/string_editor.cxx
-
-  plugin_loader/plugin_manager.cxx
-  plugin_loader/plugin_factory.cxx
 )
 
 kwiver_install_headers(
@@ -314,6 +235,7 @@ target_link_libraries( vital
   PRIVATE         kwiversys
   PUBLIC          vital_config
                   vital_logger
+                  vital_util
   )
 
 ###
@@ -355,6 +277,8 @@ target_link_libraries(vital_apm
                    vital_logger
   )
 
+###
+#
 set(VITAL_MODULE_PATHS "${vital_default_module_paths}"
   CACHE STRING "The extra default paths for module scanning. Separate paths with ';' character.")
 mark_as_advanced( VITAL_MODULE_PATHS )
@@ -376,7 +300,7 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(config_subdir "/$<CONFIGURATION>")
 endif()
 
-set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/arrows" )
+set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/modules" )
 
 #
 # This is all to get around the ';' as the path separator.  CMake will
@@ -386,7 +310,7 @@ set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/arrows" )
 ## The modules subdirectory is where the kwiver_add_module() macro generates its product
 ## Note that maptk has a different place where it installs plugins
 set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
-set( build_module_paths    "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/arrows" )
+set( build_module_paths    "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
 
 # assemble total search path
 set( vital_default_module_path ${install_module_paths} )
@@ -415,10 +339,13 @@ configure_file(
 
 ###
 #
+add_subdirectory( algo )
+add_subdirectory( util )
 add_subdirectory( bindings )
-add_subdirectory( logger )
 add_subdirectory( config )
 add_subdirectory( klv )
+add_subdirectory( logger )
+add_subdirectory( plugin_loader )
 add_subdirectory( video_metadata )
 
 if (KWIVER_ENABLE_TOOLS)
@@ -429,6 +356,4 @@ endif()
 # Add tests if enabled
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
-  add_subdirectory( util/tests )
-  add_subdirectory( klv/tests )
 endif()

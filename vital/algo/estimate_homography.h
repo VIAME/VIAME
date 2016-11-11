@@ -51,7 +51,7 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for estimating a homography from matching 2D points
-class VITAL_EXPORT estimate_homography
+class VITAL_ALGO_EXPORT estimate_homography
   : public kwiver::vital::algorithm_def<estimate_homography>
 {
 public:

@@ -37,7 +37,7 @@
 #define KWIVER_GET_PATHS_H
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
+#include <vital/util/vital_util_export.h>
 
 #include <string>
 
@@ -52,7 +52,7 @@ namespace vital{
  *
  * @return Directory name.
  */
-std::string VITAL_EXPORT get_executable_path();
+std::string VITAL_UTIL_EXPORT get_executable_path();
 
 /**
  * @brief Get path to the current module.
@@ -61,7 +61,7 @@ std::string VITAL_EXPORT get_executable_path();
  *
  * @return Directory name.
  */
-std::string VITAL_EXPORT get_module_path();
+std::string VITAL_UTIL_EXPORT get_module_path();
 
 } }
 

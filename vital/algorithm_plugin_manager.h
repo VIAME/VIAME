@@ -131,12 +131,12 @@ private:
   /// Private constructor
   /**
    * The singleton instance of this class should only be accessed via the
-   * ``instance()`` static method.
+   * instance() static method.
    */
   algorithm_plugin_manager();
 
   /// private deconstructor (singleton)
-  virtual ~algorithm_plugin_manager();
+  ~algorithm_plugin_manager();
 
   static algorithm_plugin_manager* s_instance;
 };

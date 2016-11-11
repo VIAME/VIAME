@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,38 +28,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _TOKEN_TYPE_SYSENV_H_
-#define _TOKEN_TYPE_SYSENV_H_
+/**
+ * \file
+ * \brief Implementation for plugin exceptions
+ */
 
-#include "token_type.h"
 
-#include <kwiversys/SystemInformation.hxx>
-
+#include "plugin.h"
 
 namespace kwiver {
 namespace vital {
 
-// ----------------------------------------------------------------
-/** System attributes resolver.
- *
- *
- */
-class token_type_sysenv
-  : public token_type
+// ------------------------------------------------------------------
+plugin_exception
+::plugin_exception() VITAL_NOTHROW
 {
-public:
-  token_type_sysenv();
-  virtual ~token_type_sysenv();
+}
 
-  /** Lookup name in token type resolver.
-   */
-  virtual bool lookup_entry (std::string const& name, std::string& result);
+plugin_exception
+::~plugin_exception() VITAL_NOTHROW
+{
+}
 
-  kwiversys::SystemInformation m_sysinfo;
 
-}; // end class token_type_sysenv
+// ------------------------------------------------------------------
+plugin_factory_not_found
+::plugin_factory_not_found( std::string const& msg) VITAL_NOTHROW
+{
+  m_what = msg;
+}
 
-} // end namespace
-} // end namespace
+plugin_factory_not_found
+::~plugin_factory_not_found() VITAL_NOTHROW
+{
+}
 
-#endif /* _TOKEN_TYPE_SYSENV_H_ */
+
+// ------------------------------------------------------------------
+plugin_factory_type_creation_error
+::plugin_factory_type_creation_error( std::string const& msg) VITAL_NOTHROW
+{
+  m_what = msg;
+}
+
+plugin_factory_type_creation_error
+::~plugin_factory_type_creation_error() VITAL_NOTHROW
+{
+}
+
+} } // end namespace
