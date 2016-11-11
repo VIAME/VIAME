@@ -309,6 +309,78 @@ optimize_cameras
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks) const
 {
+  // extract camera parameters to optimize
+  const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
+  std::vector<double> cam_intrinsic_params(5 + ndp, 0.0);
+  std::vector<double> cam_extrinsic_params(6);
+  d_->extract_camera_extrinsics(camera, &cam_extrinsic_params[0]);
+  camera_intrinsics_sptr K = camera->intrinsics();
+  d_->extract_camera_intrinsics(K, &cam_intrinsic_params[0]);
+
+  // extract the landmark parameters
+  std::vector<std::vector<double> > landmark_params;
+  VITAL_FOREACH(const landmark_sptr lm, landmarks)
+  {
+    vector_3d loc = lm->loc();
+    landmark_params.push_back(std::vector<double>(loc.data(), loc.data()+3));
+  }
+
+  // the Ceres solver problem
+  ::ceres::Problem problem;
+
+  // enumerate the intrinsics held constant
+  std::vector<int> constant_intrinsics = d_->enumerate_constant_intrinsics();
+
+  // Create the loss function to use
+  ::ceres::LossFunction* loss_func
+      = LossFunctionFactory(d_->loss_function_type,
+                            d_->loss_function_scale);
+
+  // Add the residuals for each relevant observation
+  for(unsigned int i=0; i<features.size(); ++i)
+  {
+    vector_2d pt = features[i]->loc();
+    problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
+                                              pt.x(), pt.y()),
+                             loss_func,
+                             &cam_intrinsic_params[0],
+                             &cam_extrinsic_params[0],
+                             &landmark_params[i][0]);
+
+    problem.SetParameterBlockConstant(&landmark_params[i][0]);
+  }
+
+  // set contraints on the camera intrinsics
+  if (constant_intrinsics.size() > 4 + ndp)
+  {
+    // set all parameters in the block constant
+    problem.SetParameterBlockConstant(&cam_intrinsic_params[0]);
+  }
+  else if (!constant_intrinsics.empty())
+  {
+    // set a subset of parameters in the block constant
+    problem.SetParameterization(&cam_intrinsic_params[0],
+        new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
+  }
+
+  // If the loss function was added to a residual block, ownership was
+  // transfered.  If not then we need to delete it.
+  if(loss_func && !features.empty())
+  {
+    delete loss_func;
+  }
+
+  ::ceres::Solver::Summary summary;
+  ::ceres::Solve(d_->options, &problem, &summary);
+  LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+
+  // update the camera from optimized parameter
+  auto new_K = std::make_shared<simple_camera_intrinsics>();
+  d_->update_camera_intrinsics(new_K, &cam_intrinsic_params[0]);
+  auto new_camera = std::make_shared<simple_camera>();
+  new_camera->set_intrinsics(new_K);
+  d_->update_camera_extrinsics(new_camera, &cam_extrinsic_params[0]);
+  camera = new_camera;
 }
 
 
