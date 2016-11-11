@@ -80,7 +80,7 @@ kwiver::vital::transform_image( mask_img, multiply_by( 5 ) );
  * \param op Unary function which takes a const byte& and returns a byte
  */
 template <typename T, typename OP>
-VITAL_EXPORT void transform_image( image_of<T>& img, OP op )
+void transform_image( image_of<T>& img, OP op )
 {
   // determine which order to traverse dimensions
   // [0] -> smalled distance between values
@@ -130,7 +130,7 @@ VITAL_EXPORT void transform_image( image_of<T>& img, OP op )
  * correct dimensions its memory will be reallocated to match the dimensions of the input image.
  */
 template <typename T1, typename T2, typename OP>
-VITAL_EXPORT void transform_image( image_of<T1> const& img_in, image_of<T2>& img_out, OP op )
+void transform_image( image_of<T1> const& img_in, image_of<T2>& img_out, OP op )
 {
   const unsigned width = img_in.width();
   const unsigned height = img_in.height();
@@ -171,7 +171,7 @@ struct cast_pixel
 
 /// Static cast and image of one type to that of another type
 template <typename T1, typename T2>
-VITAL_EXPORT void cast_image( image_of<T1> const& img_in, image_of<T2>& img_out )
+void cast_image( image_of<T1> const& img_in, image_of<T2>& img_out )
 {
   transform_image(img_in, img_out, cast_pixel<T1,T2>());
 }
