@@ -1647,7 +1647,7 @@ pipeline::priv
         break;
       default:
         continue;
-    }
+    } // end switch
 
     try
     {
@@ -1713,12 +1713,12 @@ pipeline::priv
     // Extract the "_edge:" subblock from the supplied config.
     // This supplies the default or most general config values.
     // The edge type config will be merged in to override defaults for this edge.
-    // Then the connection based congit will be merged to override.
+    // Then the connection based config will be merged to override.
     kwiver::vital::config_block_sptr edge_config = config->subblock(priv::config_edge);
 
     // Configure the edge based on its type.
     {
-      process::port_type_t const& down_type = down_info->type;
+      process::port_type_t const& down_type = down_info->type;  // data type on edge
       kwiver::vital::config_block_sptr const type_config = config->subblock(priv::config_edge_type);
       kwiver::vital::config_block_sptr const edge_type_config = type_config->subblock(down_type);
 
@@ -2015,8 +2015,7 @@ pipeline::priv
 
     if (!up_port_freq || !down_port_freq)
     {
-      /// \todo Issue a warning that the edge frequency cannot be validated.
-
+      LOG_WARN( m_logger, "Edge frequency cannot be validated." );
       continue;
     }
 
@@ -2236,6 +2235,7 @@ pipeline::priv::propagation_exception
   m_what = "<internal>";
 }
 
+// ------------------------------------------------------------------
 pipeline::priv::propagation_exception
 ::~propagation_exception() SPROKIT_NOTHROW
 {

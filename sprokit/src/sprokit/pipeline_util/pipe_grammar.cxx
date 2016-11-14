@@ -646,6 +646,7 @@ cluster_grammar<Iterator>
 {
 }
 
+// ==================================================================
 class printer
 {
   public:
