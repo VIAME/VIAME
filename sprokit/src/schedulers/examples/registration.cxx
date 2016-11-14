@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,18 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "registration.h"
-
-#include "sync_scheduler.h"
-#include "thread_per_process_scheduler.h"
 #include "thread_pool_scheduler.h"
 
 #include <sprokit/pipeline/scheduler_registry.h>
+#include <schedulers/examples/schedulers_examples_export.h>
 
 /**
  * \file examples/registration.cxx
  *
  * \brief Register schedulers for use.
  */
+extern "C"
+SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
 
 using namespace sprokit;
 
@@ -56,9 +55,8 @@ register_schedulers()
     return;
   }
 
-  registry->register_scheduler("sync", "Run the pipeline synchronously", create_scheduler<sync_scheduler>);
-  registry->register_scheduler("thread_per_process", "Run each process in its own thread", create_scheduler<thread_per_process_scheduler>);
-  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes", create_scheduler<thread_pool_scheduler>);
+  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes",
+                               create_scheduler<thread_pool_scheduler>);
 
   registry->mark_module_as_loaded(module_name);
 }

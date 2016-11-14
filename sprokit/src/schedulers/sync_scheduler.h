@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_SCHEDULERS_EXAMPLES_SYNC_SCHEDULER_H
-#define SPROKIT_SCHEDULERS_EXAMPLES_SYNC_SCHEDULER_H
+#ifndef SPROKIT_SCHEDULERS_SYNC_SCHEDULER_H
+#define SPROKIT_SCHEDULERS_SYNC_SCHEDULER_H
 
-#include "examples-config.h"
+#include <schedulers/schedulers_export.h>
 
 #include <sprokit/pipeline/scheduler.h>
 
@@ -53,47 +53,54 @@ namespace sprokit
  *
  * \scheduler Run the pipeline in one thread.
  */
-class SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT sync_scheduler
+class SCHEDULERS_NO_EXPORT sync_scheduler
   : public scheduler
 {
   public:
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the edge.
-     * \param pipe The pipeline to scheduler.
+     * \param pipe The pipeline to schedule.
+     * \param config Contains config for the scheduler
      */
     sync_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
+
     /**
      * \brief Destructor.
      */
     ~sync_scheduler();
+
   protected:
     /**
      * \brief Starts execution.
      */
     void _start();
+
     /**
      * \brief Waits until execution is finished.
      */
     void _wait();
+
     /**
      * \brief Pauses execution.
      */
     void _pause();
+
     /**
      * \brief Resumes execution.
      */
     void _resume();
+
     /**
      * \brief Stop execution of the pipeline.
      */
     void _stop();
+
   private:
     class priv;
     boost::scoped_ptr<priv> d;
 };
 
-}
+} // end namespace
 
-#endif // SPROKIT_SCHEDULERS_EXAMPLES_SYNC_SCHEDULER_H
+#endif // SPROKIT_SCHEDULERS_SYNC_SCHEDULER_H

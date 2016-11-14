@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,79 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_SCHEDULERS_EXAMPLES_EXAMPLES_CONFIG_H
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXAMPLES_CONFIG_H
+#ifndef SPROKIT_SCHEDULERS_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
+#define SPROKIT_SCHEDULERS_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
 
-#include <sprokit/config.h>
+#include <schedulers/schedulers_export.h>
+
+#include <sprokit/pipeline/scheduler.h>
+
+#include <boost/scoped_ptr.hpp>
 
 /**
- * \file examples-config.h
+ * \file thread_per_process_scheduler.h
  *
- * \brief Defines for symbol visibility in example schedulers.
+ * \brief Declaration of the thread-per-process scheduler.
  */
 
-#ifdef MAKE_SPROKIT_SCHEDULERS_EXAMPLES_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXPORT SPROKIT_IMPORT
-#endif
+namespace sprokit
+{
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT SPROKIT_NO_EXPORT
+/**
+ * \class thread_per_process_scheduler
+ *
+ * \brief A scheduler which runs each process in its own thread.
+ *
+ * \scheduler Run a thread for each process.
+ */
+class SCHEDULERS_NO_EXPORT thread_per_process_scheduler
+  : public scheduler
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param pipe The pipeline to scheduler.
+     * \param config Contains config for the scheduler.
+     */
+    thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
 
-/// Mark as deprecated.
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_SCHEDULERS_EXAMPLES_EXPORT
+    /**
+     * \brief Destructor.
+     */
+    ~thread_per_process_scheduler();
 
-#endif // SPROKIT_SCHEDULERS_EXAMPLES_EXAMPLES_CONFIG_H
+protected:
+    /**
+     * \brief Starts execution.
+     */
+    void _start();
+
+    /**
+     * \brief Waits until execution is finished.
+     */
+    void _wait();
+
+    /**
+     * \brief Pauses execution.
+     */
+    void _pause();
+
+    /**
+     * \brief Resumes execution.
+     */
+    void _resume();
+
+    /**
+     * \brief Stop execution of the pipeline.
+     */
+    void _stop();
+
+  private:
+    class priv;
+    boost::scoped_ptr<priv> d;
+};
+
+}
+
+#endif // SPROKIT_SCHEDULERS_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
