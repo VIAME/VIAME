@@ -222,15 +222,34 @@ bool
 camera_options
 ::optimize_intrinsics() const
 {
-  return optimize_focal_length
-      || optimize_aspect_ratio
-      || optimize_principal_point
-      || optimize_skew
-      || optimize_dist_k1
-      || optimize_dist_k2
-      || optimize_dist_k3
-      || optimize_dist_p1_p2
-      || optimize_dist_k4_k5_k6;
+  if( optimize_focal_length ||
+      optimize_aspect_ratio ||
+      optimize_principal_point ||
+      optimize_skew )
+  {
+    return true;
+  }
+  switch( lens_distortion_type )
+  {
+    case POLYNOMIAL_RADIAL_DISTORTION:
+      return optimize_dist_k1
+          || optimize_dist_k2
+          || optimize_dist_k3;
+    case POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION:
+      return optimize_dist_k1
+          || optimize_dist_k2
+          || optimize_dist_k3
+          || optimize_dist_p1_p2;
+    case RATIONAL_RADIAL_TANGENTIAL_DISTORTION:
+      return optimize_dist_k1
+          || optimize_dist_k2
+          || optimize_dist_k3
+          || optimize_dist_p1_p2
+          || optimize_dist_k4_k5_k6;
+    default:
+      break;
+  }
+  return false;
 }
 
 
