@@ -293,7 +293,10 @@ optimize_cameras
 
   ::ceres::Solver::Summary summary;
   ::ceres::Solve(d_->options, &problem, &summary);
-  LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+  if( d_->verbose )
+  {
+    LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+  }
 
   // Update the cameras with the optimized values
   d_->update_camera_parameters(cams, camera_params,
@@ -372,7 +375,10 @@ optimize_cameras
 
   ::ceres::Solver::Summary summary;
   ::ceres::Solve(d_->options, &problem, &summary);
-  LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+  if( d_->verbose )
+  {
+    LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+  }
 
   // update the cameras from optimized parameters
   // only create a new intrinsics object if the values were not held constant
