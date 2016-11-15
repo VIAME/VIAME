@@ -54,7 +54,6 @@
 << SPROKIT_CONFIG_FULL( "start", ""ro", "CONF", "multiplier:start1" ) //  :start[ro]{CONF} multiplier:start1
 << SPROKIT_CONFIG_FULL( "end", "ro", "CONF", "multiplier:end1" )      //  :end[ro]{CONF} multiplier:end1
 
-
 << SPROKIT_PROCESS( "gen_numbers2", "numbers" )  // process gen_numbers2
                                                  //  :: numbers
 << SPROKIT_CONFIG_FULL( "start", "ro", "CONF", "multiplier:start2" ) //  :start[ro]{CONF} multiplier:start2
