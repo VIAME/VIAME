@@ -54,6 +54,24 @@ main(int argc, char* argv[])
 }
 
 
+IMPLEMENT_TEST(clone)
+{
+  using namespace kwiver::vital;
+  vector_2d pp(300,400);
+  simple_camera_intrinsics K(1000, pp);
+  kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
+
+  auto cam2 = cam.clone();
+  TEST_EQUAL("Center should be the same object after clone",
+             cam.center(), cam2->center());
+  TEST_EQUAL("Rotation should be the same object after clone",
+             cam.rotation(), cam2->rotation());
+  TEST_EQUAL("Instrinics should be the same object after clone",
+             cam.intrinsics(), cam2->intrinsics());
+}
+
+
+
 IMPLEMENT_TEST(look_at)
 {
   using namespace kwiver::vital;
