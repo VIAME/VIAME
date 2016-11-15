@@ -70,8 +70,9 @@ class VITAL_EXPORT polygon
 public:
   typedef kwiver::vital::vector_2d point_t;
 
-  polygon() VITAL_DEFAULT_CTOR
-  virtual ~polygon() VITAL_DEFAULT_DTOR
+  polygon();
+  polygon( const std::vector< kwiver::vital::polygon::point_t >& dat);
+  ~polygon();
 
   /**
    * @brief Add point to end of polygon.
@@ -82,7 +83,7 @@ public:
    * @param x The X coordinate
    * @param y The Y coordinate
    */
-  virtual void push_back( double x, double y ) = 0;
+  void push_back( double x, double y );
 
   /**
    * @brief Add point to end of polygon.
@@ -92,7 +93,7 @@ public:
    *
    * @param pt The point to add to polygon.
    */
-  virtual void push_back( const point_t& pt ) = 0;
+  void push_back( const point_t& pt );
 
   /**
    * @brief Get number of vertices in polygon.
@@ -102,7 +103,7 @@ public:
    *
    *  @return Number of vertices/points.
    */
-  virtual size_t num_vertices() const = 0;
+  size_t num_vertices() const;
 
   /**
    * @brief Get list of vertices.
@@ -111,7 +112,7 @@ public:
    *
    * @return List of vertices.
    */
-  virtual std::vector< kwiver::vital::polygon::point_t > get_vertices() const = 0;
+  std::vector< kwiver::vital::polygon::point_t > get_vertices() const;
 
   /**
    * @brief Does this polygon contain the point.
@@ -125,7 +126,7 @@ public:
    *
    * @return \b true if the point is within the polygon.
    */
-  virtual bool contains( double x, double y ) = 0;
+  bool contains( double x, double y );
 
   /**
    * @brief Does this polygon contain the point.
@@ -138,7 +139,7 @@ public:
    *
    * @return \b true if the point is within the polygon.
    */
-  virtual bool contains( const point_t& pt ) = 0;
+  bool contains( const point_t& pt );
 
   /**
    * @brief Get Nth vertex in polygon.
@@ -152,7 +153,7 @@ public:
    *
    * @throws std::out_of_range exception
    */
-  virtual point_t at( size_t idx ) const = 0;
+  point_t at( size_t idx ) const;
 
   /**
    * @brief Get data in vital_polygon representation.
@@ -165,50 +166,16 @@ public:
    *
    * @return Managed pointer to a vital_polygon object.
    */
-  virtual vital_polygon_sptr get_polygon() = 0;
+  vital_polygon_sptr get_polygon();
 
+private:
+  std::vector< kwiver::vital::polygon::point_t > m_polygon;
 }; // end class polygon
 
 // Types for managing polygons
 typedef std::shared_ptr< polygon > polygon_sptr;
 typedef std::vector< polygon_sptr >  polygon_sptr_list;
 
-
-// ==================================================================
-/**
- * @brief Basic polygon implementation.
- *
- * This class represents a very basic polygon implementation that
- * implements the base class interface.
- *
- * This implementation of a polygon is considered the basic polygon
- * that can be converted from/to any of the other concrete
- * implementations.
- */
-class VITAL_EXPORT vital_polygon
-  : public polygon
-  , public std::enable_shared_from_this<vital_polygon>
-
-{
-public:
-  vital_polygon();
-  vital_polygon( const std::vector< kwiver::vital::polygon::point_t >& dat);
-  virtual ~vital_polygon();
-
-  virtual void push_back( double x, double y );
-  virtual void push_back( const kwiver::vital::polygon::point_t& pt );
-  virtual size_t num_vertices() const;
-  virtual bool contains( double x, double y );
-  virtual bool contains( const kwiver::vital::polygon::point_t& pt );
-  virtual kwiver::vital::polygon::point_t at( size_t idx ) const;
-  virtual std::vector< kwiver::vital::polygon::point_t > get_vertices() const;
-  virtual vital_polygon_sptr get_polygon();
-
-private:
-  std::vector< kwiver::vital::polygon::point_t > m_polygon;
-
-}; // end class polygon
-
 } } // end namespace
 
-#endif /* VITAL_TYPES_POLYGON_H */
+#endif // VITAL_TYPES_POLYGON_H

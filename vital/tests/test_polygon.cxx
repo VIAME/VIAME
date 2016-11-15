@@ -56,7 +56,7 @@ main(int argc, char* argv[])
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(default_constructor)
 {
-  kwiver::vital::vital_polygon p;
+  kwiver::vital::polygon p;
 
   if ( p.num_vertices() != 0 )
   {
@@ -76,7 +76,7 @@ IMPLEMENT_TEST(constructor_vec)
   vec.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
   vec.push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
 
-  kwiver::vital::vital_polygon p( vec );
+  kwiver::vital::polygon p( vec );
   if ( p.num_vertices() != 4 )
   {
     TEST_ERROR("The polygon has too few vertices");
@@ -87,7 +87,7 @@ IMPLEMENT_TEST(constructor_vec)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(constructor_point)
 {
-  kwiver::vital::vital_polygon p;
+  kwiver::vital::polygon p;
 
   //                                              X    Y
   p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
@@ -105,7 +105,7 @@ IMPLEMENT_TEST(constructor_point)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(api)
 {
-  kwiver::vital::vital_polygon p;
+  kwiver::vital::polygon p;
 
   //                                              X    Y
   p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );

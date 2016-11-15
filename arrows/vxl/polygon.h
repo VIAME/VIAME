@@ -30,72 +30,50 @@
 
 /**
  * \file
- * \brief vxl polygon interface
+ * \brief vxl polygon conversion interface
  */
 
 #ifndef KWIVER_ALGORITHM_VXL_POLYGON_H
 #define KWIVER_ALGORITHM_VXL_POLYGON_H
 
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
-
 #include <vital/types/polygon.h>
-
 #include <vgl/vgl_polygon.h>
+
+#include <memory>
 
 namespace kwiver {
 namespace arrows {
 namespace vxl {
 
-class polygon;
-typedef std::shared_ptr< polygon > polygon_sptr;
-
-// ----------------------------------------------------------------
 /**
- * @brief
+ * @brief Convert vital polygon to vxl polygon.
  *
+ * This method converts a vital polygon into a
+ * vgl_polygon. A new vgl_polygon is created and returned.
+ *
+ * @param poly Vital polygon
+ *
+ * @return Shared pointer to vgl_polygon.
  */
-class KWIVER_ALGO_VXL_EXPORT polygon
-  : public kwiver::vital::polygon
-{
-public:
-  // -- CONSTRUCTORS --
-  polygon();
-  explicit polygon( const vgl_polygon< double >& poly );
-  virtual ~polygon();
+KWIVER_ALGO_VXL_EXPORT
+std::shared_ptr< vgl_polygon< double > > vital_to_vxl( kwiver::vital::polygon_sptr poly );
 
-  virtual void push_back( double x, double y );
-  virtual void push_back( const point_t& pt );
-  virtual size_t num_vertices() const;
-  virtual std::vector< kwiver::vital::polygon::point_t > get_vertices() const;
-  virtual bool contains( double x, double y );
-  virtual bool contains( const point_t& pt );
-  virtual kwiver::vital::polygon::point_t at( size_t idx ) const;
-  virtual kwiver::vital::vital_polygon_sptr get_polygon();
-
-  // Allows access and modification to the implementation polygon.
-  vgl_polygon<double>& get_vgl_polygon() { return m_polygon; }
-
-  /**
-   * @brief Convert abstract polygon to vxl polygon.
-   *
-   * This static method down-casts/converts a generic polygon into a
-   * vxl::polygon.  If the generic polygon is really a vxl::polygon
-   * type, then a managed pointer of the correct type to the input
-   * object is returned. If the generic polygon is not a vxl::polygon
-   * then the data is converted to a vxl::polygon and a new object is
-   * returned.
-   *
-   * @param poly Abstract polygon
-   *
-   * @return Polygon of this type.
-   */
-  static kwiver::arrows::vxl::polygon_sptr get_vxl_polygon( kwiver::vital::polygon_sptr poly );
-
-private:
-  vgl_polygon< double > m_polygon;
-
-}; // end class vxl_polygon
+/**
+ * @brief Convert vgl_polygon to vital polygon.
+ *
+ * This method converts a vgl polygon into a vital polygon
+ * object. Only the first sheet of the vgl_polygon is converted.
+ *
+ * @param poly vgl_polygon
+ *
+ * @return shared pointer to new vital polygon
+ *
+ * @throws std::out_of_range if the input polygon does not have any sheets/contours.
+ */
+KWIVER_ALGO_VXL_EXPORT
+kwiver::vital::polygon_sptr vxl_to_vital( const vgl_polygon< double >& poly );
 
 } } } // end namespace
 
-#endif /* KWIVER_ALGORITHM_VXL_POLYGON_H */
+#endif // KWIVER_ALGORITHM_VXL_POLYGON_H

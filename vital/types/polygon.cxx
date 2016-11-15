@@ -42,13 +42,13 @@ namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
-vital_polygon::
-vital_polygon()
+polygon::
+polygon()
 { }
 
 
-vital_polygon::
-vital_polygon( const std::vector< point_t > &dat )
+polygon::
+polygon( const std::vector< point_t > &dat )
   : m_polygon( dat )
 {
 
@@ -56,15 +56,15 @@ vital_polygon( const std::vector< point_t > &dat )
 
 
 // ------------------------------------------------------------------
-vital_polygon::
-~vital_polygon()
+polygon::
+~polygon()
 { }
 
 
 
 // ------------------------------------------------------------------
 void
-vital_polygon::
+polygon::
 push_back( double x, double y )
 {
   m_polygon.push_back( point_t( x, y ) );
@@ -73,7 +73,7 @@ push_back( double x, double y )
 
 // ------------------------------------------------------------------
 void
-vital_polygon::
+polygon::
 push_back( const kwiver::vital::polygon::point_t& pt )
 {
   m_polygon.push_back( pt );
@@ -82,7 +82,7 @@ push_back( const kwiver::vital::polygon::point_t& pt )
 
 // ------------------------------------------------------------------
 size_t
-vital_polygon::
+polygon::
 num_vertices() const
 {
   return m_polygon.size();
@@ -91,7 +91,7 @@ num_vertices() const
 
 // ------------------------------------------------------------------
 bool
-vital_polygon::
+polygon::
 contains( double x, double y )
 {
   bool c = false;
@@ -124,7 +124,7 @@ contains( double x, double y )
 
 // ------------------------------------------------------------------
 bool
-vital_polygon::
+polygon::
 contains( const kwiver::vital::polygon::point_t& pt )
 {
   return contains( pt[0], pt[1] );
@@ -133,7 +133,7 @@ contains( const kwiver::vital::polygon::point_t& pt )
 
 // ------------------------------------------------------------------
 kwiver::vital::polygon::point_t
-vital_polygon::
+polygon::
 at( size_t idx ) const
 {
   if ( idx >= m_polygon.size() )
@@ -151,19 +151,10 @@ at( size_t idx ) const
 
 // ------------------------------------------------------------------
 std::vector< kwiver::vital::polygon::point_t >
-vital_polygon::
+polygon::
 get_vertices() const
 {
   return m_polygon;
-}
-
-
-// ------------------------------------------------------------------
-vital_polygon_sptr
-vital_polygon::
-get_polygon()
-{
-  return shared_from_this();
 }
 
 } }    // end namespace

@@ -54,100 +54,9 @@ main(int argc, char* argv[])
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(default_constructor)
-{
-  kwiver::arrows::vxl::polygon p;
-
-  if ( p.num_vertices() != 0 )
-  {
-    TEST_ERROR("The default polygon is not empty");
-  }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(constructor_vec)
-{
-  vgl_polygon<double>::sheet_t vec;
-
-  //                                   X    Y
-  vec.push_back( vgl_point_2d<double>( 10, 10 ) );
-  vec.push_back( vgl_point_2d<double>( 10, 50 ) );
-  vec.push_back( vgl_point_2d<double>( 50, 50 ) );
-  vec.push_back( vgl_point_2d<double>( 30, 30 ) );
-
-  vgl_polygon<double> vp( vec );
-  kwiver::arrows::vxl::polygon p( vp );
-
-  if ( p.num_vertices() != 4 )
-  {
-    TEST_ERROR("The polygon has too few vertices");
-  }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(constructor_point)
-{
-  kwiver::arrows::vxl::polygon p;
-
-  //                                              X    Y
-  p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 10, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
-
-  if ( p.num_vertices() != 4 )
-  {
-    TEST_ERROR("The polygon has too few vertices");
-  }
-
-  auto vp = p.get_polygon();
-
-  kwiver::arrows::vxl::polygon p2(p);
-  if ( p2.num_vertices() != 4 )
-  {
-    TEST_ERROR("The polygon has too few vertices");
-  }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(api)
-{
-  kwiver::arrows::vxl::polygon p;
-
-  //                                              X    Y
-  p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 10, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 50, 10 ) );
-
-  if ( ! p.contains( 30, 30 ) )
-  {
-    TEST_ERROR("The polygon does contain (30,30)");
-  }
-
-  if ( p.contains( 70, 70 ) )
-  {
-    TEST_ERROR("The polygon does not contain (70,70)");
-  }
-
-  auto pt = p.at(1);
-  if ( pt[0] != 10 || pt[1] != 50 )
-  {
-    TEST_ERROR("The polygon point 1 is not correct" );
-  }
-
-  auto vpoly = p.get_vgl_polygon();
-  vpoly.print( std::cout );
-}
-
-
-// ------------------------------------------------------------------
 IMPLEMENT_TEST(conversions)
 {
-  kwiver::vital::polygon_sptr p( new kwiver::vital::vital_polygon() );
+  auto p = std::make_shared< kwiver::vital::polygon >();
 
   //                                              X    Y
   p->push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
@@ -155,10 +64,10 @@ IMPLEMENT_TEST(conversions)
   p->push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
   p->push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
 
-  auto xpoly = kwiver::arrows::vxl::polygon::get_vxl_polygon( p );
+  auto xpoly = kwiver::arrows::vxl::vital_to_vxl( p );
   TEST_EQUAL( "Correct number of vertices, vxl", xpoly->num_vertices(), 4 );
 
   // Convert back to vital_polygon
-  auto vpoly =  xpoly->get_polygon();
+  auto vpoly =  kwiver::arrows::vxl::vxl_to_vital( *xpoly.get() );
   TEST_EQUAL( "Correct number of vertices, vital", vpoly->num_vertices(), 4 );
 }
