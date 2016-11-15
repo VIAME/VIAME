@@ -20,42 +20,42 @@ namespace track_oracle {
 
 // specialization for e.g. frame lists
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< frame_handle_list_type >& f );
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< track_handle_list_type >& f );
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::vector< unsigned int> >& f );
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::pair<unsigned int, unsigned int> >& f );
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::vector< double> >& f );
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::vector< std::vector<double> > >& f);
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::vector< std::string> >& f );
 
 template< >
-std::ostream& TRACK_ORACLE_EXPORT
+TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::set< std::string> >& f );
 
