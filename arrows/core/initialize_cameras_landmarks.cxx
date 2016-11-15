@@ -805,6 +805,48 @@ next_best_frame(const track_set_sptr tracks,
 }
 
 
+double
+estimate_gsd(const frame_id_t frame,
+             std::vector<track_sptr> const& tracks,
+             vital::landmark_map::map_landmark_t const& lms,
+             double& stdev_gsd)
+{
+  std::vector<vector_3d> pts_3d;
+  std::vector<vector_2d> pts_2d;
+  VITAL_FOREACH(track_sptr const& t, tracks)
+  {
+    auto const& lm_itr = lms.find(t->id());
+    if( lm_itr != lms.end() )
+    {
+      auto const& ts_itr = t->find(frame);
+      if (ts_itr != t->end())
+      {
+        pts_3d.push_back(lm_itr->second->loc());
+        pts_2d.push_back(ts_itr->feat->loc());
+      }
+    }
+  }
+  double mean_gsd = 0.0;
+  stdev_gsd = 0.0;
+  for(unsigned int i=1; i<pts_3d.size(); ++i)
+  {
+    for(unsigned int j=0; j<i; ++j)
+    {
+      const double gsd = (pts_3d[i] - pts_3d[j]).norm()
+                       / (pts_2d[i] - pts_2d[j]).norm();
+      mean_gsd += gsd;
+      stdev_gsd += gsd*gsd;
+    }
+  }
+  const double num_samples = (pts_3d.size() * (pts_3d.size() - 1))/ 2;
+  mean_gsd /= num_samples;
+  stdev_gsd /= num_samples;
+  stdev_gsd -= mean_gsd * mean_gsd;
+  stdev_gsd = std::sqrt(stdev_gsd);
+  return mean_gsd;
+}
+
+
 } // end anonymous namespace
 
 
@@ -939,6 +981,24 @@ initialize_cameras_landmarks
       }
     }
 
+    // test for a large scale change
+    double scale_change = 1.0;
+    if (flms.size() > 1)
+    {
+      double stdev_gsd_prev, stdev_gsd_next;
+      double gsd_prev = estimate_gsd(other_frame, trks, flms, stdev_gsd_prev);
+      double gsd_next = estimate_gsd(f, trks, flms, stdev_gsd_next);
+      scale_change = gsd_prev / gsd_next;
+      LOG_DEBUG(d_->m_logger, "GSD estimates: "<<gsd_prev<<" ("<<stdev_gsd_prev<<"), "
+                              <<gsd_next<<" ("<<stdev_gsd_next<<") ratio "
+                              <<scale_change);
+      // small scale changes are less likely to be zoom, so share intrinsics
+      if (scale_change < 1.5 && 1.0/scale_change < 1.5)
+      {
+        scale_change = 1.0;
+      }
+    }
+
     if( d_->init_from_last && d_->camera_optimizer && flms.size() > 3)
     {
       cams[f] = cams[other_frame]->clone();
@@ -950,6 +1010,16 @@ initialize_cameras_landmarks
     else
     {
       break;
+    }
+
+    if( scale_change != 1.0 )
+    {
+      // construct a new camera a new intrinsic model.
+      auto cam = cams[f];
+      auto K = std::make_shared<simple_camera_intrinsics>(*cam->intrinsics());
+      K->set_focal_length(K->get_focal_length() * scale_change);
+      cams[f] = std::make_shared<simple_camera>(cam->center(), cam->rotation(), K);
+      LOG_DEBUG(d_->m_logger, "Constructing new intrinsics");
     }
 
     // optionally optimize the new camera
