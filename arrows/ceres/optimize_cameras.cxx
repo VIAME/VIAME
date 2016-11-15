@@ -296,9 +296,9 @@ optimize_cameras
   LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
 
   // Update the cameras with the optimized values
-  cameras = d_->update_camera_parameters(camera_params,
-                                         camera_intr_params,
-                                         frame_to_intr_map);
+  d_->update_camera_parameters(cams, camera_params,
+                               camera_intr_params, frame_to_intr_map);
+  cameras = std::make_shared<simple_camera_map>(cams);
 }
 
 
@@ -374,11 +374,16 @@ optimize_cameras
   ::ceres::Solve(d_->options, &problem, &summary);
   LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
 
-  // update the camera from optimized parameter
-  auto new_K = std::make_shared<simple_camera_intrinsics>();
-  d_->update_camera_intrinsics(new_K, &cam_intrinsic_params[0]);
+  // update the cameras from optimized parameters
+  // only create a new intrinsics object if the values were not held constant
+  if ( d_->optimize_intrinsics() )
+  {
+    auto new_K = std::make_shared<simple_camera_intrinsics>();
+    d_->update_camera_intrinsics(new_K, &cam_intrinsic_params[0]);
+    K = new_K;
+  }
   auto new_camera = std::make_shared<simple_camera>();
-  new_camera->set_intrinsics(new_K);
+  new_camera->set_intrinsics(K);
   d_->update_camera_extrinsics(new_camera, &cam_extrinsic_params[0]);
   camera = new_camera;
 }

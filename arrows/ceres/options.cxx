@@ -217,6 +217,23 @@ camera_options
 }
 
 
+/// Return true if any options to optimize intrinsic parameters are set
+bool
+camera_options
+::optimize_intrinsics() const
+{
+  return optimize_focal_length
+      || optimize_aspect_ratio
+      || optimize_principal_point
+      || optimize_skew
+      || optimize_dist_k1
+      || optimize_dist_k2
+      || optimize_dist_k3
+      || optimize_dist_p1_p2
+      || optimize_dist_k4_k5_k6;
+}
+
+
 /// enumerate the intrinsics held constant
 std::vector<int>
 camera_options
@@ -392,39 +409,48 @@ camera_options
 }
 
 
-/// construct a new map of camera objects using the extracted camera parameters
-camera_map_sptr
+/// update the camera objects using the extracted camera parameters
+void
 camera_options
-::update_camera_parameters(std::map<frame_id_t, std::vector<double> > const& ext_params,
-                         std::vector<std::vector<double> > const& int_params,
-                         std::map<frame_id_t, unsigned int> const& int_map) const
+::update_camera_parameters(vital::camera_map::map_camera_t& cameras,
+                           std::map<frame_id_t, std::vector<double> > const& ext_params,
+                           std::vector<std::vector<double> > const& int_params,
+                           std::map<frame_id_t, unsigned int> const& int_map) const
 {
-  // Update the camera intrinics with optimized values
   std::vector<camera_intrinsics_sptr> updated_intr;
-  VITAL_FOREACH(const std::vector<double>& cip, int_params)
+  if( this->optimize_intrinsics() )
   {
-    auto K = std::make_shared<simple_camera_intrinsics>();
-    this->update_camera_intrinsics(K, &cip[0]);
-    updated_intr.push_back(camera_intrinsics_sptr(K));
+    // Update the camera intrinics with optimized values
+    VITAL_FOREACH(const std::vector<double>& cip, int_params)
+    {
+      auto K = std::make_shared<simple_camera_intrinsics>();
+      this->update_camera_intrinsics(K, &cip[0]);
+      updated_intr.push_back(camera_intrinsics_sptr(K));
+    }
   }
 
   // Update the cameras with the optimized values
   typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
-  camera_map::map_camera_t cams;
   VITAL_FOREACH(const cam_param_map_t::value_type& cp, ext_params)
   {
-    // look-up updated intrinsics
-    auto map_itr = int_map.find(cp.first);
-    unsigned int intr_idx = map_itr->second;
-    camera_intrinsics_sptr K = updated_intr[intr_idx];
-
-    auto camera = std::make_shared<simple_camera>();
-    camera->set_intrinsics(K);
-    this->update_camera_extrinsics(camera, &cp.second[0]);
-    cams[cp.first] = camera;
+    auto orig_cam = cameras[cp.first];
+    auto simp_cam = std::dynamic_pointer_cast<simple_camera>(orig_cam);
+    if( !simp_cam )
+    {
+      simp_cam = std::make_shared<simple_camera>();
+      cameras[cp.first] = simp_cam;
+    }
+    camera_intrinsics_sptr K = orig_cam->intrinsics();
+    if( this->optimize_intrinsics() )
+    {
+      // look-up updated intrinsics
+      auto map_itr = int_map.find(cp.first);
+      unsigned int intr_idx = map_itr->second;
+      K = updated_intr[intr_idx];
+    }
+    this->update_camera_extrinsics(simp_cam, &cp.second[0]);
+    simp_cam->set_intrinsics(K);
   }
-
-  return std::make_shared<simple_camera_map>(cams);
 }
 
 

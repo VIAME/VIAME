@@ -313,9 +313,9 @@ bundle_adjust
   landmarks = std::make_shared<simple_landmark_map>(lms);
 
   // Update the cameras with the optimized values
-  cameras = d_->update_camera_parameters(camera_params,
-                                         camera_intr_params,
-                                         frame_to_intr_map);
+  d_->update_camera_parameters(cams, camera_params,
+                               camera_intr_params, frame_to_intr_map);
+  cameras = std::make_shared<simple_camera_map>(cams);
 }
 
 } // end namespace ceres
