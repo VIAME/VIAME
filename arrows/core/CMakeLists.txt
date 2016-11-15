@@ -29,7 +29,6 @@ set( plugin_core_headers
   match_features_homography.h
   match_matrix.h
   metrics.h
-  polygon.h
   projected_track_set.h
   track_features_core.h
   transform.h
@@ -74,7 +73,6 @@ set( plugin_core_sources
   match_features_homography.cxx
   match_matrix.cxx
   metrics.cxx
-  polygon.cxx
   projected_track_set.cxx
   track_features_core.cxx
   transform.cxx

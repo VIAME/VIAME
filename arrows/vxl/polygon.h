@@ -38,7 +38,7 @@
 
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
-#include <arrows/core/polygon.h>
+#include <vital/types/polygon.h>
 
 #include <vgl/vgl_polygon.h>
 
@@ -65,43 +65,31 @@ public:
 
   virtual void push_back( double x, double y );
   virtual void push_back( const point_t& pt );
-  virtual size_t num_vertices() const { return m_polygon.num_vertices(); }
+  virtual size_t num_vertices() const;
+  virtual std::vector< kwiver::vital::polygon::point_t > get_vertices() const;
   virtual bool contains( double x, double y );
   virtual bool contains( const point_t& pt );
   virtual kwiver::vital::polygon::point_t at( size_t idx ) const;
+  virtual kwiver::vital::vital_polygon_sptr get_polygon();
 
   // Allows access and modification to the implementation polygon.
-  vgl_polygon<double>& get_polygon() { return m_polygon; }
-
-  /**
-   * @brief Convert abstract polygon to vital polygon.
-   *
-   * This static method converts a generic polygon into a
-   * core::polygon.  If the generic polygon is really a core::polygon
-   * type, then the input object is returned. If the generic polygon
-   * is not of this class then the data is converted to a
-   * core::polygon and a new object is returned..
-   *
-   * @param poly Abstract polygon
-   *
-   * @return Polygon of this type.
-   */
-  static kwiver::arrows::core::polygon_sptr vxl_to_vital( kwiver::vital::polygon_sptr poly );
+  vgl_polygon<double>& get_vgl_polygon() { return m_polygon; }
 
   /**
    * @brief Convert abstract polygon to vxl polygon.
    *
-   * This static method converts a generic polygon into a
+   * This static method down-casts/converts a generic polygon into a
    * vxl::polygon.  If the generic polygon is really a vxl::polygon
-   * type, then the input object is returned. If the generic polygon
-   * is not of this class then the data is converted to a vxl::polygon
-   * and a new object is returned.
+   * type, then a managed pointer of the correct type to the input
+   * object is returned. If the generic polygon is not a vxl::polygon
+   * then the data is converted to a vxl::polygon and a new object is
+   * returned.
    *
    * @param poly Abstract polygon
    *
    * @return Polygon of this type.
    */
-  static kwiver::arrows::vxl::polygon_sptr vital_to_vxl( kwiver::vital::polygon_sptr poly );
+  static kwiver::arrows::vxl::polygon_sptr get_vxl_polygon( kwiver::vital::polygon_sptr poly );
 
 private:
   vgl_polygon< double > m_polygon;

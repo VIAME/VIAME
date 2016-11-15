@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/core/polygon.h>
+#include <vital/types/polygon.h>
 
 #define TEST_ARGS ()
 
@@ -56,7 +56,7 @@ main(int argc, char* argv[])
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(default_constructor)
 {
-  kwiver::arrows::core::polygon p;
+  kwiver::vital::vital_polygon p;
 
   if ( p.num_vertices() != 0 )
   {
@@ -76,7 +76,7 @@ IMPLEMENT_TEST(constructor_vec)
   vec.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
   vec.push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
 
-  kwiver::arrows::core::polygon p( vec );
+  kwiver::vital::vital_polygon p( vec );
   if ( p.num_vertices() != 4 )
   {
     TEST_ERROR("The polygon has too few vertices");
@@ -87,7 +87,7 @@ IMPLEMENT_TEST(constructor_vec)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(constructor_point)
 {
-  kwiver::arrows::core::polygon p;
+  kwiver::vital::vital_polygon p;
 
   //                                              X    Y
   p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
@@ -105,7 +105,7 @@ IMPLEMENT_TEST(constructor_point)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(api)
 {
-  kwiver::arrows::core::polygon p;
+  kwiver::vital::vital_polygon p;
 
   //                                              X    Y
   p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
@@ -129,7 +129,7 @@ IMPLEMENT_TEST(api)
     TEST_ERROR("The polygon point 1 is not correct" );
   }
 
-  auto vec = p.get_polygon();
+  auto vec = p.get_vertices();
 
   // print vector
   const size_t limit = vec.size();

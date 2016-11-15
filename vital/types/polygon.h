@@ -45,6 +45,9 @@
 namespace kwiver {
 namespace vital {
 
+class vital_polygon;
+typedef std::shared_ptr<vital_polygon> vital_polygon_sptr;
+
 // ----------------------------------------------------------------
 /**
  * @brief Abstract base polygon class.
@@ -63,7 +66,6 @@ namespace vital {
  */
 
 class VITAL_EXPORT polygon
-  : public std::enable_shared_from_this<polygon>
 {
 public:
   typedef kwiver::vital::vector_2d point_t;
@@ -101,6 +103,15 @@ public:
    *  @return Number of vertices/points.
    */
   virtual size_t num_vertices() const = 0;
+
+  /**
+   * @brief Get list of vertices.
+   *
+   * This method returns the list of points that make up the polygon.
+   *
+   * @return List of vertices.
+   */
+  virtual std::vector< kwiver::vital::polygon::point_t > get_vertices() const = 0;
 
   /**
    * @brief Does this polygon contain the point.
@@ -143,11 +154,60 @@ public:
    */
   virtual point_t at( size_t idx ) const = 0;
 
+  /**
+   * @brief Get data in vital_polygon representation.
+   *
+   * This method returns a shared (managed) pointer to the
+   * vital_polygon representation of this abstract polygon. If the
+   * concrete representation is already a vital_polygon, then the
+   * pointer returned refers to this object. If it is of another type,
+   * then the pointer refers to a new object.
+   *
+   * @return Managed pointer to a vital_polygon object.
+   */
+  virtual vital_polygon_sptr get_polygon() = 0;
+
 }; // end class polygon
 
 // Types for managing polygons
 typedef std::shared_ptr< polygon > polygon_sptr;
 typedef std::vector< polygon_sptr >  polygon_sptr_list;
+
+
+// ==================================================================
+/**
+ * @brief Basic polygon implementation.
+ *
+ * This class represents a very basic polygon implementation that
+ * implements the base class interface.
+ *
+ * This implementation of a polygon is considered the basic polygon
+ * that can be converted from/to any of the other concrete
+ * implementations.
+ */
+class VITAL_EXPORT vital_polygon
+  : public polygon
+  , public std::enable_shared_from_this<vital_polygon>
+
+{
+public:
+  vital_polygon();
+  vital_polygon( const std::vector< kwiver::vital::polygon::point_t >& dat);
+  virtual ~vital_polygon();
+
+  virtual void push_back( double x, double y );
+  virtual void push_back( const kwiver::vital::polygon::point_t& pt );
+  virtual size_t num_vertices() const;
+  virtual bool contains( double x, double y );
+  virtual bool contains( const kwiver::vital::polygon::point_t& pt );
+  virtual kwiver::vital::polygon::point_t at( size_t idx ) const;
+  virtual std::vector< kwiver::vital::polygon::point_t > get_vertices() const;
+  virtual vital_polygon_sptr get_polygon();
+
+private:
+  std::vector< kwiver::vital::polygon::point_t > m_polygon;
+
+}; // end class polygon
 
 } } // end namespace
 

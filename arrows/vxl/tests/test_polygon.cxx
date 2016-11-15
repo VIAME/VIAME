@@ -139,7 +139,7 @@ IMPLEMENT_TEST(api)
     TEST_ERROR("The polygon point 1 is not correct" );
   }
 
-  auto vpoly = p.get_polygon();
+  auto vpoly = p.get_vgl_polygon();
   vpoly.print( std::cout );
 }
 
@@ -147,7 +147,7 @@ IMPLEMENT_TEST(api)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(conversions)
 {
-  kwiver::vital::polygon_sptr p( new kwiver::arrows::core::polygon() );
+  kwiver::vital::polygon_sptr p( new kwiver::vital::vital_polygon() );
 
   //                                              X    Y
   p->push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
@@ -155,11 +155,10 @@ IMPLEMENT_TEST(conversions)
   p->push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
   p->push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
 
-  auto vpoly = kwiver::arrows::vxl::polygon::vital_to_vxl( p );
-  TEST_EQUAL( "Correct number of vertices, vxl", vpoly->num_vertices(), 4 );
+  auto xpoly = kwiver::arrows::vxl::polygon::get_vxl_polygon( p );
+  TEST_EQUAL( "Correct number of vertices, vxl", xpoly->num_vertices(), 4 );
 
-  auto xpoly = kwiver::arrows::vxl::polygon::vxl_to_vital( p );
-  TEST_EQUAL( "Correct number of vertices, vital", xpoly->num_vertices(), 4 );
-
-
+  // Convert back to vital_polygon
+  auto vpoly =  xpoly->get_polygon();
+  TEST_EQUAL( "Correct number of vertices, vital", vpoly->num_vertices(), 4 );
 }

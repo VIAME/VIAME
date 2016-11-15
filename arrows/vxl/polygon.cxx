@@ -34,7 +34,6 @@
  */
 
 #include "polygon.h"
-#include <arrows/core/polygon.h>
 
 #include <stdexcept>
 #include <sstream>
@@ -93,6 +92,39 @@ contains( double x, double y )
 
 
 // ------------------------------------------------------------------
+size_t
+polygon::
+num_vertices() const
+{
+  return m_polygon.num_vertices();
+}
+
+
+// ------------------------------------------------------------------
+std::vector< kwiver::vital::polygon::point_t >
+polygon::
+get_vertices() const
+{
+  if ( m_polygon.num_sheets() < 1 )
+  {
+    throw std::out_of_range( "vgl_polygon does not any sheets. It is empty" );
+  }
+
+  const size_t limit = m_polygon.num_vertices();
+  std::vector< kwiver::vital::polygon::point_t > retval( limit );
+
+  const vgl_polygon<double>::sheet_t& sheet = m_polygon[0];
+  for ( size_t i = 0; i < limit; ++i )
+  {
+    auto pt = sheet[i];
+    retval.push_back( kwiver::vital::polygon::point_t( pt.x(), pt.y() ) );
+  } // end for
+
+  return retval;
+}
+
+
+// ------------------------------------------------------------------
 bool
 polygon::
 contains( const point_t& pt )
@@ -130,9 +162,28 @@ at( size_t idx ) const
 
 
 // ------------------------------------------------------------------
+kwiver::vital::vital_polygon_sptr
+polygon::
+get_polygon()
+{
+  // Convert vxl polygon to vital format
+  auto local_poly = new kwiver::vital::vital_polygon();
+
+  const size_t limit = m_polygon.num_vertices();
+  const vgl_polygon<double>::sheet_t& sheet = m_polygon[0];
+  for ( size_t i = 0; i < limit; ++i )
+  {
+    auto pt = sheet[i];
+    local_poly->push_back( pt.x(), pt.y() );
+  } // end for
+  return kwiver::vital::vital_polygon_sptr( local_poly );
+}
+
+
+// ------------------------------------------------------------------
 kwiver::arrows::vxl::polygon_sptr
 polygon::
-vital_to_vxl( kwiver::vital::polygon_sptr poly )
+get_vxl_polygon( kwiver::vital::polygon_sptr poly )
 {
   if ( dynamic_cast< kwiver::arrows::vxl::polygon* > ( poly.get() ) )
   {
@@ -149,31 +200,8 @@ vital_to_vxl( kwiver::vital::polygon_sptr poly )
     local_poly.push_back( pt[0], pt[1] );
   } // end for
 
+  // Create returned object
   return std::make_shared< kwiver::arrows::vxl::polygon > ( local_poly );
-}
-
-
-// ------------------------------------------------------------------
-kwiver::arrows::core::polygon_sptr
-polygon::
-vxl_to_vital( kwiver::vital::polygon_sptr poly )
-{
-  if ( dynamic_cast< kwiver::arrows::core::polygon* > ( poly.get() ) )
-  {
-    // Return derived class pointer with same usage count.
-    return std::dynamic_pointer_cast< kwiver::arrows::core::polygon >(poly);
-  }
-
-  // Convert vital type polygon to vital/core format
-  auto local_poly = std::make_shared< kwiver::arrows::core::polygon > ();
-  size_t limit = poly->num_vertices();
-  for ( size_t i = 0; i < limit; ++i )
-  {
-    auto pt = poly->at(i);
-    local_poly->push_back( pt[0], pt[1] );
-  } // end for
-
-  return local_poly;
 }
 
 } } }     // end namespace

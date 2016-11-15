@@ -196,6 +196,7 @@ set( vital_sources
   types/image.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/polygon.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
