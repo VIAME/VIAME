@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS__MATCH_FEATURES_FUNDMENTAL_MATRIX_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/filter_features.h>
 
@@ -62,7 +62,7 @@ namespace core {
  *  If a filter_features algorithm is provided, this will be run on the
  *  input features \b before running the matcher.
  */
-class KWIVER_ALGO_EXPORT match_features_fundamental_matrix
+class KWIVER_ALGO_CORE_EXPORT match_features_fundamental_matrix
   : public vital::algorithm_impl<match_features_fundamental_matrix, vital::algo::match_features>
 {
 public:

@@ -34,7 +34,7 @@ kwiver_install_headers(
   ${plugin_core_headers}
   )
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_core_export.h
   NOPATH   SUBDIR     arrows/core
   )
 
@@ -77,16 +77,16 @@ if(MSVC)
     )
 endif()
 
-kwiver_add_library( kwiver_algo
+kwiver_add_library( kwiver_algo_core
   ${plugin_core_headers}
   ${plugin_core_sources}
   )
 
-target_link_libraries( kwiver_algo
+target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   )
 
-algorithms_create_plugin( kwiver_algo
+algorithms_create_plugin( kwiver_algo_core
   algorithm_plugin_interface.cxx
   )
 

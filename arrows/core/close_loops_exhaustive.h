@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS__CLOSE_LOOPS_EXHAUSTIVE_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -56,7 +56,7 @@ namespace core {
 /**
  * This class attempts close loops with all previous (or as specified) frames
  */
-class KWIVER_ALGO_EXPORT close_loops_exhaustive
+class KWIVER_ALGO_CORE_EXPORT close_loops_exhaustive
   : public vital::algorithm_impl<close_loops_exhaustive, vital::algo::close_loops>
 {
 public:

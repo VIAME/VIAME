@@ -39,7 +39,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/track_set.h>
 #include <vital/types/camera_map.h>
@@ -56,7 +56,7 @@ namespace arrows {
  * \return track set generated via the projection
  */
 vital::track_set_sptr
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 projected_tracks(vital::landmark_map_sptr landmarks,
                  vital::camera_map_sptr cameras);
 

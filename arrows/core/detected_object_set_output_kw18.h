@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KW18_H
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/detected_object_set_output.h>
 
@@ -47,7 +47,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class KWIVER_ALGO_EXPORT detected_object_set_output_kw18
+class KWIVER_ALGO_CORE_EXPORT detected_object_set_output_kw18
   : public vital::algorithm_impl<detected_object_set_output_kw18, vital::algo::detected_object_set_output>
 {
 public:

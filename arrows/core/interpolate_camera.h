@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vector>
 #include <vital/types/camera.h>
@@ -57,7 +57,7 @@ namespace arrows {
  * \param B Camera to interpolate to.
  * \param f Decimal fraction in between A and B for the returned camera to represent.
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 vital::simple_camera
 interpolate_camera(vital::simple_camera const& A,
                    vital::simple_camera const& B, double f);
@@ -68,7 +68,7 @@ interpolate_camera(vital::simple_camera const& A,
  * \relatesalso interpolate_camera
  *
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 vital::camera_sptr
 interpolate_camera(vital::camera_sptr A,
                    vital::camera_sptr B, double f);
@@ -78,7 +78,7 @@ interpolate_camera(vital::camera_sptr A,
 /**
  * \c n must be >= 1.
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 void interpolated_cameras(vital::simple_camera const& A,
                           vital::simple_camera const& B,
                           size_t n,
