@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,8 @@ thread_per_process_scheduler
   }
 }
 
+
+// ------------------------------------------------------------------
 thread_per_process_scheduler
 ::~thread_per_process_scheduler()
 {
@@ -128,6 +130,8 @@ thread_per_process_scheduler
   d->process_threads->join_all();
 }
 
+
+// ------------------------------------------------------------------
 void
 thread_per_process_scheduler
 ::_pause()
@@ -135,6 +139,8 @@ thread_per_process_scheduler
   d->mut.lock();
 }
 
+
+// ------------------------------------------------------------------
 void
 thread_per_process_scheduler
 ::_resume()
@@ -142,6 +148,8 @@ thread_per_process_scheduler
   d->mut.unlock();
 }
 
+
+// ------------------------------------------------------------------
 void
 thread_per_process_scheduler
 ::_stop()
@@ -156,6 +164,8 @@ thread_per_process_scheduler::priv
 {
 }
 
+
+// ------------------------------------------------------------------
 thread_per_process_scheduler::priv
 ::~priv()
 {
@@ -180,14 +190,10 @@ thread_per_process_scheduler::priv
 
   while (!complete)
   {
-    // This locking will cause this thread to pause if the scheduler
-    // pause() method is called.
     shared_lock_t const lock(mut);
 
     (void)lock;
 
-    // This call allows an exception to be thrown (boost::thread_interrupted)
-    // Since this exception is not caught, it causes the thread to terminate.
     boost::this_thread::interruption_point();
 
     process->step();

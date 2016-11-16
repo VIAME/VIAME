@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,35 +28,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "thread_pool_scheduler.h"
-
-#include <sprokit/pipeline/scheduler_registry.h>
-#include <schedulers/examples/schedulers_examples_export.h>
-
 /**
- * \file examples/registration.cxx
- *
- * \brief Register schedulers for use.
+ * @file   check_provider.h
+ * @brief  Interface to check_provider class
  */
-extern "C"
-SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
 
-using namespace sprokit;
+#ifndef SPROKIT_PIPELINE_UTIL_CHECK_PROVIDER_H
+#define SPROKIT_PIPELINE_UTIL_CHECK_PROVIDER_H
 
-void
-register_schedulers()
+#include "bakery_base.h"
+
+#include <vital/config/config_block.h>
+
+#include <boost/variant.hpp>
+
+
+namespace sprokit {
+
+class check_provider
+  : public boost::static_visitor<bool>
 {
-  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("example_schedulers");
+  public:
+    check_provider(config_provider_t const& provider);
+    ~check_provider();
 
-  scheduler_registry_t const registry = scheduler_registry::self();
+    bool operator () (kwiver::vital::config_block_value_t const& value) const;
+    bool operator () (bakery_base::provider_request_t const& request) const;
+  private:
+    config_provider_t const m_provider;
+};
 
-  if (registry->is_module_loaded(module_name))
-  {
-    return;
-  }
 
-  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes",
-                               create_scheduler<thread_pool_scheduler>);
+} // end namespace sprokit
 
-  registry->mark_module_as_loaded(module_name);
-}
+#endif /* SPROKIT_PIPELINE_UTIL_CHECK_PROVIDER_H */

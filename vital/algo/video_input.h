@@ -37,6 +37,7 @@
 #define VITAL_ALGO_VIDEO_INPUT_H_
 
 #include <vital/vital_config.h>
+#include <vital/algo/vital_algo_export.h>
 
 #include <vital/algorithm_capabilities.h>
 

@@ -95,6 +95,7 @@ typedef std::vector<edge_datum_t> edge_data_t;
 /// A group of \link edge edges\endlink.
 typedef std::vector<edge_t> edges_t;
 
+// ------------------------------------------------------------------
 /**
  * \class edge edge.h <sprokit/pipeline/edge.h>
  *

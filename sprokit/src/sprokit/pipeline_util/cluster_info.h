@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,72 +28,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
-#define SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
-
-#include "examples-config.h"
-
-#include <sprokit/pipeline/scheduler.h>
-
-#include <boost/scoped_ptr.hpp>
-
 /**
- * \file thread_per_process_scheduler.h
- *
- * \brief Declaration of the thread-per-process scheduler.
+ * @file   cluster_info.h
+ * @brief  Interface to cluster info class.
  */
 
-namespace sprokit
-{
+#ifndef SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
+#define SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
 
+#include "pipeline_util-config.h"
+
+#include "pipe_declaration_types.h"
+#include <sprokit/pipeline/types.h>
+
+
+namespace sprokit {
+
+// ------------------------------------------------------------------
 /**
- * \class thread_per_process_scheduler
+ * \class cluster_info pipe_bakery.h <sprokit/pipeline_util/pipe_bakery.h>
  *
- * \brief A scheduler which runs each process in its own thread.
- *
- * \scheduler Run a thread for each process.
+ * \brief Information about a loaded cluster.
  */
-class SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT thread_per_process_scheduler
-  : public scheduler
+class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
 {
   public:
     /**
      * \brief Constructor.
      *
-     * \param config Contains config for the edge.
-     * \param pipe The pipeline to scheduler.
+     * \param type_ The type of the cluster.
+     * \param description_ A description of the cluster.
+     * \param ctor_ A function to create an instance of the cluster.
      */
-    thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
+    cluster_info(process::type_t const& type_,
+                 process_registry::description_t const& description_,
+                 process_ctor_t const& ctor_);
     /**
      * \brief Destructor.
      */
-    ~thread_per_process_scheduler();
-  protected:
-    /**
-     * \brief Starts execution.
-     */
-    void _start();
-    /**
-     * \brief Waits until execution is finished.
-     */
-    void _wait();
-    /**
-     * \brief Pauses execution.
-     */
-    void _pause();
-    /**
-     * \brief Resumes execution.
-     */
-    void _resume();
-    /**
-     * \brief Stop execution of the pipeline.
-     */
-    void _stop();
-  private:
-    class priv;
-    boost::scoped_ptr<priv> d;
+    ~cluster_info();
+
+    /// The type of the cluster.
+    process::type_t const type;
+
+    /// A description of the cluster.
+    process_registry::description_t const description;
+
+    /// A factory function to create an instance of the cluster.
+    process_ctor_t const ctor;
 };
 
-}
+/// A handle to information about a cluster.
+typedef boost::shared_ptr<cluster_info> cluster_info_t;
 
-#endif // SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
+} // end namespace sprokit
+
+#endif /* SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H */

@@ -209,12 +209,9 @@ function (sprokit_add_library name)
   sprokit_install(
     TARGETS       "${name}"
     ${exports}
-    ARCHIVE
-      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
-    LIBRARY
-      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
-    RUNTIME
-      DESTINATION "bin${library_subdir}${library_subdir_suffix}"
+    ARCHIVE      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
+    LIBRARY      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
+    RUNTIME      DESTINATION "bin${library_subdir}${library_subdir_suffix}"
     COMPONENT     "${component}")
 endfunction ()
 

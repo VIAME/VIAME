@@ -56,7 +56,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT stamp
-  : boost::equality_comparable<sprokit::stamp
+  : private boost::equality_comparable<sprokit::stamp
   , boost::less_than_comparable1<sprokit::stamp
   , boost::noncopyable
     > >

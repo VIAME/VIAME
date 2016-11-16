@@ -28,35 +28,79 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "thread_pool_scheduler.h"
+#ifndef SPROKIT_SCHEDULERS_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
+#define SPROKIT_SCHEDULERS_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H
 
-#include <sprokit/pipeline/scheduler_registry.h>
-#include <schedulers/examples/schedulers_examples_export.h>
+#include <schedulers/schedulers_export.h>
+
+#include <sprokit/pipeline/scheduler.h>
+
+#include <boost/scoped_ptr.hpp>
 
 /**
- * \file examples/registration.cxx
+ * \file thread_per_process_scheduler.h
  *
- * \brief Register schedulers for use.
+ * \brief Declaration of the thread-per-process scheduler.
  */
-extern "C"
-SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
 
-using namespace sprokit;
-
-void
-register_schedulers()
+namespace sprokit
 {
-  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("example_schedulers");
 
-  scheduler_registry_t const registry = scheduler_registry::self();
+/**
+ * \class thread_per_process_scheduler
+ *
+ * \brief A scheduler which runs each process in its own thread.
+ *
+ * \scheduler Run a thread for each process.
+ */
+class SCHEDULERS_NO_EXPORT thread_per_process_scheduler
+  : public scheduler
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param pipe The pipeline to scheduler.
+     * \param config Contains config for the scheduler.
+     */
+    thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
 
-  if (registry->is_module_loaded(module_name))
-  {
-    return;
-  }
+    /**
+     * \brief Destructor.
+     */
+    ~thread_per_process_scheduler();
 
-  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes",
-                               create_scheduler<thread_pool_scheduler>);
+protected:
+    /**
+     * \brief Starts execution.
+     */
+    void _start();
 
-  registry->mark_module_as_loaded(module_name);
+    /**
+     * \brief Waits until execution is finished.
+     */
+    void _wait();
+
+    /**
+     * \brief Pauses execution.
+     */
+    void _pause();
+
+    /**
+     * \brief Resumes execution.
+     */
+    void _resume();
+
+    /**
+     * \brief Stop execution of the pipeline.
+     */
+    void _stop();
+
+  private:
+    class priv;
+    boost::scoped_ptr<priv> d;
+};
+
 }
+
+#endif // SPROKIT_SCHEDULERS_SCHEDULERS_THREAD_PER_PROCESS_SCHEDULER_H

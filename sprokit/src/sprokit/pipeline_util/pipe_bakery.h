@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 
 #include "path.h"
 #include "pipe_declaration_types.h"
+
+#include "cluster_info.h"
 
 #include <sprokit/pipeline/types.h>
 
@@ -76,39 +78,6 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr, path_t con
  * \returns A pipeline baked from \p blocks.
  */
 SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
-
-/**
- * \class cluster_info pipe_bakery.h <sprokit/pipeline_util/pipe_bakery.h>
- *
- * \brief Information about a loaded cluster.
- */
-class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
-{
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param type_ The type of the cluster.
-     * \param description_ A description of the cluster.
-     * \param ctor_ A function to create an instance of the cluster.
-     */
-    cluster_info(process::type_t const& type_,
-                 process_registry::description_t const& description_,
-                 process_ctor_t const& ctor_);
-    /**
-     * \brief Destructor.
-     */
-    ~cluster_info();
-
-    /// The type of the cluster.
-    process::type_t const type;
-    /// A description of the cluster.
-    process_registry::description_t const description;
-    /// A function to create an instance of the cluster.
-    process_ctor_t const ctor;
-};
-/// A handle to information about a cluster.
-typedef boost::shared_ptr<cluster_info> cluster_info_t;
 
 /**
  * \brief Convert a cluster description file into a cluster.

@@ -28,35 +28,79 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "thread_pool_scheduler.h"
+#ifndef SPROKIT_SCHEDULERS_SYNC_SCHEDULER_H
+#define SPROKIT_SCHEDULERS_SYNC_SCHEDULER_H
 
-#include <sprokit/pipeline/scheduler_registry.h>
-#include <schedulers/examples/schedulers_examples_export.h>
+#include <schedulers/schedulers_export.h>
+
+#include <sprokit/pipeline/scheduler.h>
+
+#include <boost/scoped_ptr.hpp>
 
 /**
- * \file examples/registration.cxx
+ * \file sync_scheduler.h
  *
- * \brief Register schedulers for use.
+ * \brief Declaration of the synchronized scheduler.
  */
-extern "C"
-SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
 
-using namespace sprokit;
-
-void
-register_schedulers()
+namespace sprokit
 {
-  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("example_schedulers");
 
-  scheduler_registry_t const registry = scheduler_registry::self();
+/**
+ * \class sync_scheduler
+ *
+ * \brief A scheduler which runs the entire pipeline in one thread.
+ *
+ * \scheduler Run the pipeline in one thread.
+ */
+class SCHEDULERS_NO_EXPORT sync_scheduler
+  : public scheduler
+{
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param pipe The pipeline to schedule.
+     * \param config Contains config for the scheduler
+     */
+    sync_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
 
-  if (registry->is_module_loaded(module_name))
-  {
-    return;
-  }
+    /**
+     * \brief Destructor.
+     */
+    ~sync_scheduler();
 
-  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes",
-                               create_scheduler<thread_pool_scheduler>);
+  protected:
+    /**
+     * \brief Starts execution.
+     */
+    void _start();
 
-  registry->mark_module_as_loaded(module_name);
-}
+    /**
+     * \brief Waits until execution is finished.
+     */
+    void _wait();
+
+    /**
+     * \brief Pauses execution.
+     */
+    void _pause();
+
+    /**
+     * \brief Resumes execution.
+     */
+    void _resume();
+
+    /**
+     * \brief Stop execution of the pipeline.
+     */
+    void _stop();
+
+  private:
+    class priv;
+    boost::scoped_ptr<priv> d;
+};
+
+} // end namespace
+
+#endif // SPROKIT_SCHEDULERS_SYNC_SCHEDULER_H

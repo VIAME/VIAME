@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,35 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "thread_pool_scheduler.h"
-
-#include <sprokit/pipeline/scheduler_registry.h>
-#include <schedulers/examples/schedulers_examples_export.h>
-
 /**
- * \file examples/registration.cxx
- *
- * \brief Register schedulers for use.
+ * @file   provider_dereferencer.h
+ * @brief  Interface for provider_dereferencer class.
  */
-extern "C"
-SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
 
-using namespace sprokit;
+#ifndef SPROKIT_PIPELINE_UTIL_PROVIDER_DEREFERENCER_H
+#define SPROKIT_PIPELINE_UTIL_PROVIDER_DEREFERENCER_H
 
-void
-register_schedulers()
+#include "bakery_base.h"
+#include "providers.h"
+
+#include <vital/config/config_block.h>
+
+#include <boost/variant.hpp>
+
+#include <map>
+
+
+namespace sprokit {
+
+// ----------------------------------------------------------------
+/**
+ * @brief
+ *
+ */
+class provider_dereferencer
+  : public boost::static_visitor< bakery_base::config_reference_t >
 {
-  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("example_schedulers");
+public:
+  provider_dereferencer();
+  provider_dereferencer( kwiver::vital::config_block_sptr const conf );
+  ~provider_dereferencer();
 
-  scheduler_registry_t const registry = scheduler_registry::self();
+  bakery_base::config_reference_t operator()( kwiver::vital::config_block_value_t const& value ) const;
+  bakery_base::config_reference_t operator()( bakery_base::provider_request_t const& request ) const;
 
-  if (registry->is_module_loaded(module_name))
-  {
-    return;
-  }
 
-  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes",
-                               create_scheduler<thread_pool_scheduler>);
+private:
+  typedef std::map< config_provider_t, provider_t > provider_map_t;
+  provider_map_t m_providers;
+};
 
-  registry->mark_module_as_loaded(module_name);
-}
+} // end namespace sprokit
+
+#endif /* SPROKIT_PIPELINE_UTIL_PROVIDER_DEREFERENCER_H */

@@ -99,6 +99,8 @@ struct config_value_t
   config_key_t key;
   /// The value of the configuration.
   kwiver::vital::config_block_value_t value;
+
+  // Add source location
 };
 
 /// The type for a collection of configuration values.
@@ -130,6 +132,8 @@ struct process_pipe_block
   process::type_t type;
   /// Associated configuration values.
   config_values_t config_values;
+
+  // Add source location of "process" keyword
 };
 
 /**
@@ -143,6 +147,8 @@ struct connect_pipe_block
   process::port_addr_t from;
   /// The address of the downstream port.
   process::port_addr_t to;
+
+  // Add source location of "connect" keyword
 };
 
 /// A discriminating union over all available pipeline block types.
@@ -166,6 +172,8 @@ struct cluster_config_t
   kwiver::vital::config_block_description_t description;
   /// The configuration declaration.
   config_value_t config_value;
+
+  // Add source location
 };
 
 /**
@@ -181,6 +189,8 @@ struct cluster_input_t
   process::port_t from;
   /// The addresses of the mapped port.
   process::port_addrs_t targets;
+
+  // Add source location
 };
 
 /**
@@ -196,10 +206,13 @@ struct cluster_output_t
   process::port_addr_t from;
   /// The name of the cluster's output port.
   process::port_t to;
+
+  // Add source location
 };
 
 /// A variant over the possible blocks that may be contained within a cluster.
 typedef boost::variant<cluster_config_t, cluster_input_t, cluster_output_t> cluster_subblock_t;
+
 /// A type for a collection of cluster subblocks.
 typedef std::vector<cluster_subblock_t> cluster_subblocks_t;
 

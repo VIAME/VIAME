@@ -267,7 +267,7 @@ struct implementation_factory
 
     std::stringstream str;
     str << "Could not find factory where attr \"" << m_attr << "\" is \"" << value
-        << " for interface type \"" << type_name<I>()
+        << " for interface type \"" << typeid(I).name()
         << "\"";
 
     throw kwiver::vital::plugin_factory_not_found( str.str() );
