@@ -49,6 +49,12 @@ __LIBRARY_NAME_RE__ = re.compile(__LIBRARY_NAME_RE_BASE__ % __LIBRARY_NAME__)
 __LIBRARY_PATH_CACHE__ = None
 __LIBRARY_CACHE__ = None
 
+__TYPE_LIBRARY_NAME__ = "vital_type_converters"
+__TYPE_LIBRARY_NAME_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
+__TYPE_LIBRARY_NAME_RE__ = re.compile(__TYPE_LIBRARY_NAME_RE_BASE__ % __TYPE_LIBRARY_NAME__)
+__TYPE_LIBRARY_PATH_CACHE__ = None
+__TYPE_LIBRARY_CACHE__ = None
+
 
 def _system_library_dirs():
     """
@@ -137,6 +143,41 @@ def find_vital_library_path(use_cache=True):
     # No library found in any paths given at this point
     raise RuntimeError("Failed to find a valid '%s' library!"
                        % __LIBRARY_NAME__)
+
+
+def find_vital_type_converter_library_path(use_cache=True):
+    """
+    Discover the path to a vital type converter interface library
+    based on the directory structure this file is in, and then to
+    system directories in the LD_LIBRARY_PATH.
+
+    :param use_cache: Store and use the cached path, preventing redundant
+        searching (default = True).
+    :type use_cache: bool
+
+    :return: The string path to the VITAL type converter interface library
+    :rtype: str
+
+    """
+    global __TYPE_LIBRARY_PATH_CACHE__
+    if use_cache and __TYPE_LIBRARY_PATH_CACHE__:
+        return __TYPE_LIBRARY_PATH_CACHE__
+
+    # Otherwise, find the Vital type converter library
+    search_dirs = [os.path.dirname(os.path.abspath(__file__))]
+    # NOTE this is not cover all possible systems
+    search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
+
+    for d in search_dirs:
+        r = _search_up_directory(d, __TYPE_LIBRARY_NAME_RE__)
+        if r is not None:
+            if use_cache:
+                __TYPE_LIBRARY_PATH_CACHE__ = r
+            return r
+
+    # No library found in any paths given at this point
+    raise RuntimeError("Failed to find a valid '%s' library!"
+                       % __TYPE_LIBRARY_NAME__)
 
 
 def find_vital_library(use_cache=True):
