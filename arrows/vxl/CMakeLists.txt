@@ -60,7 +60,7 @@ kwiver_add_library( kwiver_algo_vxl
   )
 target_link_libraries( kwiver_algo_vxl
   PUBLIC               kwiver_algo_core
-                       vil vidl vgl
+                       vil vpgl vgl
   PRIVATE              vital_klv
                        vital_video_metadata
                        rrel rsdl
