@@ -24,7 +24,7 @@ kwiver_add_plugin( kwiver_matlab_processes
   SOURCES        ${sources}
                  ${private_headers}
   PRIVATE          sprokit_pipeline
-                   kwiver_algo
+                   kwiver_algo_core
                    kwiver_algo_matlab
                    kwiversys
                    vital vital_apm vital_logger vital_config

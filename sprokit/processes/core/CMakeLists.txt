@@ -50,7 +50,7 @@ kwiver_add_plugin( kwiver_processes
   SOURCES        ${sources}
                  ${private_headers}
   PRIVATE          sprokit_pipeline
-                   kwiver_algo
+                   kwiver_algo_core
                    kwiversys
                    vital vital_apm vital_logger vital_config
                  ${Boost_SYSTEM_LIBRARY}

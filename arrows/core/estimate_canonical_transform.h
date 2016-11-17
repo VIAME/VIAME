@@ -32,7 +32,7 @@
 #define KWIVER_ARROWS__ESTIMATE_CANONICAL_TRANSFORM_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/estimate_canonical_transform.h>
 
@@ -63,7 +63,7 @@ namespace core {
  *  toward the mean of the camera centers.  The scale is set to normalized the
  *  landmarks to unit standard deviation.
  */
-class KWIVER_ALGO_EXPORT estimate_canonical_transform
+class KWIVER_ALGO_CORE_EXPORT estimate_canonical_transform
   : public vital::algorithm_impl<estimate_canonical_transform,
                                  vital::algo::estimate_canonical_transform>
 {

@@ -44,7 +44,7 @@ kwiver_add_library( kwiver_algo_viscl
   )
 
 target_link_libraries( kwiver_algo_viscl
-  PUBLIC           kwiver_algo
+  PUBLIC           kwiver_algo_core
                    viscl_core viscl_tasks viscl_vxl
   )
 

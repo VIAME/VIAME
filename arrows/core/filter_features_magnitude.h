@@ -32,7 +32,7 @@
 #define KWIVER_ARROWS_CORE_FILTER_FEATURES_MAGNITUDE_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/filter_features.h>
 
@@ -48,7 +48,7 @@ namespace arrows {
 namespace core {
 
 /// \brief Algorithm that filters features based on feature magnitude
-class KWIVER_ALGO_EXPORT filter_features_magnitude
+class KWIVER_ALGO_CORE_EXPORT filter_features_magnitude
   : public vital::algorithm_impl<filter_features_magnitude, vital::algo::filter_features>
 {
 public:

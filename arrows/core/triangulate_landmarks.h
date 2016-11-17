@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/triangulate_landmarks.h>
 
@@ -49,7 +49,7 @@ namespace arrows {
 namespace core {
 
 /// A class for triangulating landmarks from tracks and cameras using Eigen
-class KWIVER_ALGO_EXPORT triangulate_landmarks
+class KWIVER_ALGO_CORE_EXPORT triangulate_landmarks
 : public vital::algorithm_impl<triangulate_landmarks,
                               vital::algo::triangulate_landmarks>
 {

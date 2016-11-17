@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/track_features.h>
@@ -56,7 +56,7 @@ namespace arrows {
 namespace core {
 
 /// A basic feature tracker
-class KWIVER_ALGO_EXPORT track_features_core
+class KWIVER_ALGO_CORE_EXPORT track_features_core
   : public vital::algorithm_impl<track_features_core, vital::algo::track_features>
 {
 public:
