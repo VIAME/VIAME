@@ -1803,14 +1803,6 @@ void
 process::priv
 ::connect_input_port(port_t const& port, edge_t const& edge)
 {
-  // This may seem really strange, but it happens during execption
-  // handling.
-  if ( &port == 0 )
-  {
-    LOG_ERROR( m_logger, "Port reference is NULL" );
-    return;
-  }
-
   if (!input_ports.count(port))
   {
     throw no_such_port_exception(name, port);
