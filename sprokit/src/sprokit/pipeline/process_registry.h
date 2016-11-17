@@ -65,6 +65,14 @@ typedef boost::function<process_t (kwiver::vital::config_block_sptr const& confi
  * sprokit::process_registry::self()) that contains all processes that
  * can be found.
  *
+ * @note Will need to keep this class, but modify purpose with new
+ * process loader. This class will provide a semantic layer over the
+ * plugin manager to handle processes only. For example create process
+ * will look through all implementations of sprokit::process type for
+ * the requested process name.
+ *
+ * The types() method will only return the process types from the plugin manager.
+ *
  * \ingroup registries
  */
 class SPROKIT_PIPELINE_EXPORT process_registry
@@ -72,6 +80,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
   public:
     /// The type for a description of the pipeline.
     typedef std::string description_t;
+
     /// The type of a module name.
     typedef std::string module_t;
 
@@ -125,6 +134,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      */
     description_t description(process::type_t const& type) const;
 
+    //+ module loaded management is handled by the plugin manager.
     /**
      * \brief Mark a module as loaded.
      *
@@ -141,6 +151,7 @@ class SPROKIT_PIPELINE_EXPORT process_registry
      */
     bool is_module_loaded(module_t const& module) const;
 
+    //+ not needed. use plugin manager singleton.
     /**
      * \brief Accessor to the registry.
      *
