@@ -131,6 +131,7 @@ public:
     global_ba_rate(1.5),
     interim_reproj_thresh(5.0),
     final_reproj_thresh(1.0),
+    zoom_scale_thresh(0.1),
     base_camera(),
     e_estimator(),
     camera_optimizer(),
@@ -150,6 +151,7 @@ public:
     global_ba_rate(other.global_ba_rate),
     interim_reproj_thresh(other.interim_reproj_thresh),
     final_reproj_thresh(other.final_reproj_thresh),
+    zoom_scale_thresh(other.zoom_scale_thresh),
     base_camera(other.base_camera),
     e_estimator(!other.e_estimator ? algo::estimate_essential_matrix_sptr()
                                    : other.e_estimator->clone()),
@@ -188,6 +190,7 @@ public:
   double global_ba_rate;
   double interim_reproj_thresh;
   double final_reproj_thresh;
+  double zoom_scale_thresh;
   vital::simple_camera base_camera;
   vital::algo::estimate_essential_matrix_sptr e_estimator;
   vital::algo::optimize_cameras_sptr camera_optimizer;
@@ -447,6 +450,12 @@ initialize_cameras_landmarks
   config->set_value("final_reproj_thresh", d_->interim_reproj_thresh,
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) after the final bundle adjustment.");
+
+  config->set_value("zoom_scale_thresh", d_->zoom_scale_thresh,
+                    "Threshold on image scale change used to detect a camera "
+                    "zoom. If the resolution on target changes by more than "
+                    "this fraction create a new camera intrinsics model.");
+
   config->set_value("base_camera:focal_length", K->focal_length(),
                     "focal length of the base camera model");
 
@@ -527,6 +536,10 @@ initialize_cameras_landmarks
   d_->final_reproj_thresh =
       config->get_value<double>("final_reproj_thresh",
                                 d_->final_reproj_thresh);
+
+  d_->zoom_scale_thresh =
+      config->get_value<double>("zoom_scale_thresh",
+                                d_->zoom_scale_thresh);
 
   vital::config_block_sptr bc = config->subblock("base_camera");
   simple_camera_intrinsics K2(bc->get_value<double>("focal_length",
@@ -993,7 +1006,8 @@ initialize_cameras_landmarks
                               <<gsd_next<<" ("<<stdev_gsd_next<<") ratio "
                               <<scale_change);
       // small scale changes are less likely to be zoom, so share intrinsics
-      if (scale_change < 1.5 && 1.0/scale_change < 1.5)
+      if (scale_change < 1.0 + d_->zoom_scale_thresh &&
+          1.0/scale_change < 1.0 + d_->zoom_scale_thresh)
       {
         scale_change = 1.0;
       }
