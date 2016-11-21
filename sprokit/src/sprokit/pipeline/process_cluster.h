@@ -47,8 +47,6 @@ namespace sprokit
 {
 
 /**
- * \class process_cluster process_cluster.h <sprokit/pipeline/process_cluster.h>
- *
  * \brief A pre-built collection of processes.
  *
  * This class represents a set of associated processes and their
@@ -71,18 +69,21 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \returns The processes in the cluster.
      */
     processes_t processes() const;
+
     /**
      * \brief Input mappings for the cluster.
      *
      * \returns The input mappings for the cluster.
      */
     connections_t input_mappings() const;
+
     /**
      * \brief Output mappings for the cluster.
      *
      * \returns The output mappings for the cluster.
      */
     connections_t output_mappings() const;
+
     /**
      * \brief Internal connections between processes in the cluster.
      *
@@ -92,6 +93,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
 
     /// A property which indicates that the process is a cluster of processes.
     static property_t const property_cluster;
+
   protected:
     /**
      * \brief Constructor.
@@ -101,6 +103,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \param config Contains configuration for the process.
      */
     process_cluster(kwiver::vital::config_block_sptr const& config);
+
     /**
      * \brief Destructor.
      */
@@ -118,6 +121,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
     void map_config(kwiver::vital::config_block_key_t const& key,
                     name_t const& name_,
                     kwiver::vital::config_block_key_t const& mapped_key);
+
     /**
      * \brief Add a process to the cluster.
      *
@@ -130,6 +134,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
     void add_process(name_t const& name_,
                      type_t const& type_,
                      kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config());
+
     /**
      * \brief Map a port to an input on the cluster.
      *
@@ -143,6 +148,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
     void map_input(port_t const& port,
                    name_t const& name_,
                    port_t const& mapped_port);
+
     /**
      * \brief Map a port to an output on the cluster.
      *
@@ -156,6 +162,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
     void map_output(port_t const& port,
                     name_t const& name_,
                     port_t const& mapped_port);
+
     /**
      * \brief Connect processes within the cluster.
      *
@@ -205,6 +212,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \returns Properties on the subclass.
      */
     virtual properties_t _properties() const;
+
   private:
     class SPROKIT_PIPELINE_NO_EXPORT priv;
     boost::scoped_ptr<priv> d;

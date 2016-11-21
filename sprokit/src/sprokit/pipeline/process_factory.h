@@ -33,13 +33,6 @@
  * @brief  Interface to sprokit process factory
  */
 
-// ------------------------------------------------------------------
-// sample code for process factory and cluster factory
-
-/*
-
-
- */
 #include <vital/vital_config.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <sprokit/pipeline/types.h>
@@ -58,7 +51,10 @@ typedef std::function< process_t( kwiver::vital::config_block_sptr const& config
   /**
  * \brief A template function to create a process.
  *
- * This is to help reduce the amount of code needed in registration functions.
+ * This function is the factory function for processes. This extra
+ * level of factory is needed so that the process_factory class can
+ * transparently support creating clusters in the same way as
+ * processes.
  *
  * \param conf The configuration to pass to the \ref process.
  *
@@ -68,7 +64,7 @@ template <typename T>
 process_t
 create_new_process(kwiver::vital::config_block_sptr const& conf)
 {
-  return std::make_shared<T>(conf);
+  return boost::make_shared<T>(conf);
 }
 
 
@@ -76,14 +72,15 @@ create_new_process(kwiver::vital::config_block_sptr const& conf)
 /**
  * @brief Factory class for sprokit processes
  *
- * This class represents a factory class for sprokit processes.  This
- * specialized factory creates a specific process and returns a shared
- * pointer to the base class to support polymorphic behaviour. It also
- * requires a single argument to the factory method.
+ * This class represents a factory class for sprokit processes and
+ * clusters.  This specialized factory creates a specific process and
+ * returns a shared pointer to the base class to support polymorphic
+ * behaviour. It also requires a single argument to the factory
+ * method. This works as a cluster factory because a cluster looks
+ * like a process once it is created.
  *
  * \tparam C Concrete process class type.
  */
-template< class C >
 class process_factory
 : public kwiver::vital::plugin_factory
 {
@@ -94,15 +91,17 @@ public:
    * This CTOR also takes a factory function so it can support
    * creating processes and clusters.
    *
+   * @param type Type name of the process
    * @param itype Type name of interface type.
    * @param factory The Factory function
    */
-  process_factory( process_factory_func_t factory )
+  process_factory( const std::string& type,
+                   const std::string& itype
+                   process_factory_func_t factory )
     : m_factory( factory )
   {
-    // Set concrete type of factory
-    this->add_attribute( CONCRETE_TYPE, typeid( C ).name() );
-    this->add_attribute( INTERFACE_TYPE, typeid( sprokit::process ).name() );
+    this->add_attribute( CONCRETE_TYPE, type);
+    this->add_attribute( INTERFACE_TYPE, itype );
   }
 
   virtual ~process_factory() VITAL_DEFAULT_DTOR
@@ -119,16 +118,56 @@ private:
 };
 
 
+/**
+ * \brief Create process of a specific type.
+ *
+ * \throws no_such_process_type_exception Thrown if the type is not known.
+ *
+ * \param type The type of \ref process to create.
+ * \param name The name of the \ref process to create.
+ * \param config The configuration to pass the \ref process.
+ *
+ * \returns A new process of type \p type.
+ */
+SPROKIT_PIPELINE_EXPORT
+process_t create_process(process::type_t const& type,
+                         process::name_t const& name,
+                         kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config()) const;
+
+
+/**
+ * \brief Mark a process as loaded.
+ *
+ * \param module The process to mark as loaded.
+ */
+SPROKIT_PIPELINE_EXPORT
+void mark_process_as_loaded(module_t const& module);
+
+
+/**
+ * \brief Query if a process has already been loaded.
+ *
+ * \param module The process to query.
+ *
+ * \returns True if the process has already been loaded, false otherwise.
+ */
+SPROKIT_PIPELINE_EXPORT
+bool is_process_loaded(module_t const& module) const;
+
+
 //
 // Convenience macro for adding processes
 //
-#define ADD_PROCESS( proc_type ) \
-  add_factory( new sprokit::process_factory< proc_type >( sprokit::create_new_process< proc_type > ) )
+#define ADD_PROCESS( proc_type )                                        \
+  add_factory( new sprokit::process_factory( typeid( proc_type ).name(), \
+                                             typeid( sprokit::process ).name(), \
+                                             sprokit::create_new_process< proc_type > ) )
+
 } // end namespace
 
 
 // ------------------------------------------------------------------
-#if 01 //+ for experimentation
+#if 0 //+ for experimentation
 // USAGE
 // in registration.cxx for processes,
 
@@ -138,30 +177,20 @@ SPROKIT_PROCESSES_EXAMPLES_EXPORT
 void
 register_factories( kwiver::vital::plugin_manager& vpm )
 {
-  //+ The module name is just a string. Do we need a specific semantic type for this? Maybe so.
-  // The process registry is the process specific layer over the plugin manager. It provides the
-  // legacy API for processes (e.g. create_process()
-  static process_registry::module_t const module_name = process_registry::module_t("example_processes");
+  static const auto module_name = kwiver::vital::plugin_manager::module_t( "example_processes" );
 
-  if ( vpm.is_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( module_name ) )
   {
     return;
   }
 
   // This could be wrapped in a larger macro/template
-  kwiver::vital::plugin_factory_handle_t fact = pm->ADD_PROCESS( any_source_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "any_source");
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which creates arbitrary data");
+  kwiver::vital::plugin_factory_handle_t fact = vpm.ADD_PROCESS( any_source_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "any_source" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which creates arbitrary data" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-/*
-  registry->register_process("any_source", "A process which creates arbitrary data", create_process<any_source_process>);
-  registry->register_process("const", "A process with the const flag", create_process<const_process>);
-  registry->register_process("const_number", "Outputs a constant number", create_process<const_number_process>);
-  registry->register_process("data_dependent", "A process with a data dependent type", create_process<data_dependent_process>);
-*/
-
-  vpm.mark_module_as_loaded( module_name );
+  sprokit::mark_process_moduleas_loaded( module_name );
 }
 
 #endif

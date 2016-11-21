@@ -8,14 +8,14 @@ set(pipeline_srcs
   pipeline.cxx
   pipeline_exception.cxx
   process.cxx
+  process_factory.cxx
   process_exception.cxx
   process_cluster.cxx
   process_cluster_exception.cxx
-  process_registry.cxx
   process_registry_exception.cxx
   scheduler.cxx
+  scheduler_factory.cxx
   scheduler_exception.cxx
-  scheduler_registry.cxx
   scheduler_registry_exception.cxx
   stamp.cxx
   types.cxx
@@ -31,14 +31,14 @@ set(pipeline_headers
   pipeline.h
   pipeline_exception.h
   process.h
+  process_factory.h
   process_exception.h
   process_cluster.h
   process_cluster_exception.h
-  process_registry.h
   process_registry_exception.h
   scheduler.h
+  scheduler_factory.h
   scheduler_exception.h
-  scheduler_registry.h
   scheduler_registry_exception.h
   stamp.h
   types.h

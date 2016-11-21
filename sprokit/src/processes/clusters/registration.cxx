@@ -28,7 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "registration.h"
+/**
+ * \file clusters/registration.cxx
+ *
+ * \brief Register processes for use.
+ */
+
+#include "clusters-config.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <processes/clusters/cluster-paths.h>
@@ -45,6 +51,7 @@
 #include <sprokit/pipeline/process_registry.h>
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/utils.h>
+#include <sprokit/pipeline/process_factory.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -52,11 +59,6 @@
 
 #include <algorithm>
 
-/**
- * \file clusters/registration.cxx
- *
- * \brief Register processes for use.
- */
 
 using namespace sprokit;
 
@@ -79,21 +81,24 @@ static bool is_separator(cluster_path_t::value_type ch);
 
 
 // ------------------------------------------------------------------
+extern "C"
+SPROKIT_PROCESSES_CLUSTERS_EXPORT
 void
-register_processes()
+register_factories( kwiver::vital::plugin_manager& vpm )
 {
-  static process_registry::module_t const module_name = process_registry::module_t("cluster_processes");
-  static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit:register_cluster" );
+  static autoconst module_name = process_registry::module_t("cluster_processes");
+  static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit.register_cluster" );
 
   process_registry_t const registry = process_registry::self();
 
-  if (registry->is_module_loaded(module_name))
+  // See if clusters have already been loaded
+  if (sprokit::is_process_module_loaded(module_name))
   {
     return;
   }
 
-  process::types_t const current_types = registry->types();
-  process::types_t new_types;
+//+ not used -   process::types_t const current_types = registry->types();
+//+ not used -   process::types_t new_types;
 
   typedef path_t include_path_t;
   typedef std::vector<include_path_t> include_paths_t;
@@ -154,11 +159,11 @@ register_processes()
       }
 
       // log loading file
-      LOG_DEBUG( logger, "Loading cluster from file: " << pstr.c_str() );
+      LOG_DEBUG( logger, "Loading cluster from file: " << pstr );
 
       if (ent.status().type() != boost::filesystem::regular_file)
       {
-        LOG_WARN( logger, "Found non-file loading clusters: " << pstr.c_str() );
+        LOG_WARN( logger, "Found non-file loading clusters: " << pstr );
         continue;
       }
 
@@ -170,12 +175,12 @@ register_processes()
       }
       catch (load_pipe_exception const& e)
       {
-        LOG_ERROR( logger, "Exception caught loading cluster: " << e.what() );
+        LOG_WARN( logger, "Exception caught loading cluster: " << e.what() );
         continue;
       }
       catch (pipe_bakery_exception const& e)
       {
-        LOG_ERROR( logger, "Exception caught loading cluster: " << e.what() );
+        LOG_WARN( logger, "Exception caught loading cluster: " << e.what() );
         continue;
       }
 
@@ -187,17 +192,21 @@ register_processes()
 
         try
         {
-          registry->register_process(type, description, ctor);
+          // Add cluster to process registry with a specific factory function
+          kwiver::vital::plugin_factory_handle_t fact =
+          vpm.add_factory( new sprokit::process_factory( type, typeid( sprokit::process ).name(), ctor ) );
+          fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
+          fact->add_attribute( "sprokit.cluster", pstr ); // indicate this is a cluster
         }
-        catch (process_type_already_exists_exception const& e)
+        catch (process_type_already_exists_exception const& e) //+ wrong type exception
         {
-          LOG_ERROR( logger, "Exception caught loading cluster: " << e.what() );
+          LOG_WARN( logger, "Exception caught loading cluster: " << e.what() );
         }
       }
     }
   }
 
-  registry->mark_module_as_loaded(module_name);
+  registry->mark_process_module_as_loaded( module_name );
 }
 
 
