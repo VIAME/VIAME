@@ -57,7 +57,7 @@
 
 /// Log a summary of registration results
 #define REGISTRATION_SUMMARY()                                          \
-  LOG_DEBUG( kwiver::vital::get_logger( "algorithms::algorithm_plugin_interface_macros" ), \
+  LOG_DEBUG( kwiver::vital::get_logger( "algorithms.algorithm_plugin_interface_macros" ), \
     "REGISTRATION_SUMMARY] Registered " << algorithms_api_registered_   \
     << " of " << algorithms_api_expected_ << " algorithms\n" \
     << "\t(@" << __FILE__ << ")" );
