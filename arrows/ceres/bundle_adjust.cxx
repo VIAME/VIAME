@@ -165,7 +165,7 @@ bundle_adjust
                                                       d_->loss_function_scale);
 
   // set the camera configuation options
-  d_->camera_options::set_configuration(config);
+  d_->solver_options::set_configuration(config);
 
   // set the camera configuation options
   d_->camera_options::set_configuration(config);
