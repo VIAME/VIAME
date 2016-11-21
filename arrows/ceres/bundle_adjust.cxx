@@ -305,12 +305,20 @@ bundle_adjust
     curr_cam++;
     cp_itr_t next_cam = curr_cam;
     next_cam++;
+    problem.AddResidualBlock(camera_limit_forward_motion::create(d_->camera_path_smoothness),
+                             NULL,
+                             &prev_cam->second[0],
+                             &curr_cam->second[0]);
     for(; next_cam != camera_params.end();
         prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
     {
-      problem.AddResidualBlock(create_smoothness_cost_func(d_->camera_path_smoothness),
+      problem.AddResidualBlock(camera_position_smoothness::create(d_->camera_path_smoothness),
                                loss_func,
                                &prev_cam->second[0],
+                               &curr_cam->second[0],
+                               &next_cam->second[0]);
+      problem.AddResidualBlock(camera_limit_forward_motion::create(d_->camera_path_smoothness),
+                               NULL,
                                &curr_cam->second[0],
                                &next_cam->second[0]);
     }

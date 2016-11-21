@@ -43,6 +43,7 @@
 #include <arrows/ceres/types.h>
 
 #include <ceres/ceres.h>
+#include <ceres/rotation.h>
 
 namespace kwiver {
 namespace arrows {
@@ -90,6 +91,73 @@ public:
   }
 
   double smoothness_;
+};
+
+
+/// Ceres camera limit forward motion functor
+/**
+ *  This class is to reglarize camera motion to minimize the amount of motion
+ *  in the camera looking direction.  This is useful with zoom lenses at long
+ *  focal lengths where distance and zoom are ambiguous.  Adding this
+ *  constraint allows the optimization to prefer fast zoom changes over fast
+ *  position change.
+ */
+class camera_limit_forward_motion
+{
+public:
+  /// Constructor
+  camera_limit_forward_motion(const double scale)
+      : scale_(scale) {}
+
+  /// Camera forward motion error functor for use in Ceres
+  /**
+   * \param [in] pose1: Camera pose data block at time 1
+   * \param [in] pose2: Camera pose data block at time 2
+   * \param [out] residuals
+   *
+   * Camera pose blocks contain 6 parameters:
+   *   3 for rotation(angle axis), 3 for center
+   */
+  template <typename T> bool operator()(const T* const pose1,
+                                        const T* const pose2,
+                                        T* residuals) const
+  {
+    // Apply external parameters (Pose)
+    const T* rotation1 = pose1;
+    const T* rotation2 = pose2;
+    const T* center1 = pose1 + 3;
+    const T* center2 = pose2 + 3;
+
+    T baseline[3];
+    baseline[0] = center2[0] - center1[0];
+    baseline[1] = center2[1] - center1[1];
+    baseline[2] = center2[2] - center1[2];
+
+    T rotated_baseline1[3];
+    T rotated_baseline2[3];
+    // Rotate the point according the camera rotation
+    ::ceres::AngleAxisRotatePoint(rotation1,
+                                  baseline,
+                                  rotated_baseline1);
+    ::ceres::AngleAxisRotatePoint(rotation2,
+                                  baseline,
+                                  rotated_baseline2);
+
+
+    residuals[0] = scale_ * rotated_baseline1[2] * rotated_baseline2[2];
+
+    return true;
+  }
+
+  /// Cost function factory
+  static ::ceres::CostFunction* create(const double s)
+  {
+    typedef camera_limit_forward_motion Self;
+    return new ::ceres::AutoDiffCostFunction<Self, 1, 6, 6>(new Self(s));
+  }
+
+  /// the magnitude of this constraint
+  double scale_;
 };
 
 
