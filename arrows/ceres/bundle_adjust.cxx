@@ -312,11 +312,15 @@ bundle_adjust
     for(; next_cam != camera_params.end();
         prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
     {
-      problem.AddResidualBlock(camera_position_smoothness::create(d_->camera_path_smoothness),
-                               loss_func,
-                               &prev_cam->second[0],
-                               &curr_cam->second[0],
-                               &next_cam->second[0]);
+      if(std::abs(prev_cam->first - curr_cam->first) == 1 &&
+         std::abs(curr_cam->first - next_cam->first) == 1 )
+      {
+        problem.AddResidualBlock(camera_position_smoothness::create(d_->camera_path_smoothness),
+                                 NULL,
+                                 &prev_cam->second[0],
+                                 &curr_cam->second[0],
+                                 &next_cam->second[0]);
+      }
       problem.AddResidualBlock(camera_limit_forward_motion::create(d_->camera_path_smoothness),
                                NULL,
                                &curr_cam->second[0],
