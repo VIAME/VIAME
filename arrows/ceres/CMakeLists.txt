@@ -4,10 +4,12 @@
 set( ceres_headers_public
   bundle_adjust.h
   lens_distortion.h
+  optimize_cameras.h
   register_algorithms.h
   reprojection_error.h
   )
 set( ceres_headers_private
+  options.h
   types.h
   )
 
@@ -22,8 +24,11 @@ kwiver_install_headers(
   )
 
 set( ceres_sources
+  options.cxx
   bundle_adjust.cxx
+  optimize_cameras.cxx
   register_algorithms.cxx
+  reprojection_error.cxx
   types.cxx
   )
 

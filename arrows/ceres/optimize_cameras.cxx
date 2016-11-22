@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,15 @@
  */
 
 /**
- * \file
- * \brief Implementation of Ceres bundle adjustment algorithm
- */
+* \file
+* \brief Header defining CERES algorithm implementation of camera optimization.
+*/
 
-#include "bundle_adjust.h"
-
-#include <iostream>
-#include <set>
-
-#include <vital/vital_foreach.h>
-
-#include <vital/logger/logger.h>
-#include <vital/io/eigen_io.h>
-#include <arrows/ceres/reprojection_error.h>
-#include <arrows/ceres/types.h>
+#include "optimize_cameras.h"
 #include <arrows/ceres/options.h>
+#include <arrows/ceres/reprojection_error.h>
+#include <vital/exceptions.h>
 
-#include <ceres/ceres.h>
 
 using namespace kwiver::vital;
 
@@ -54,30 +45,29 @@ namespace kwiver {
 namespace arrows {
 namespace ceres {
 
+
 /// Private implementation class
-class bundle_adjust::priv
+class optimize_cameras::priv
   : public solver_options,
     public camera_options
 {
 public:
   /// Constructor
   priv()
-  : solver_options(),
-    camera_options(),
+  : camera_options(),
     verbose(false),
     loss_function_type(TRIVIAL_LOSS),
     loss_function_scale(1.0),
-    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
+    m_logger( vital::get_logger( "arrows.ceres.optimize_cameras" ))
   {
   }
 
   priv(const priv& other)
-  : solver_options(other),
-    camera_options(other),
+  : camera_options(other),
     verbose(other.verbose),
     loss_function_type(other.loss_function_type),
     loss_function_scale(other.loss_function_scale),
-    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
+    m_logger( vital::get_logger( "arrows.ceres.optimize_cameras" ))
   {
   }
 
@@ -94,35 +84,35 @@ public:
 
 
 /// Constructor
-bundle_adjust
-::bundle_adjust()
+optimize_cameras
+::optimize_cameras()
 : d_(new priv)
 {
 }
 
 
 /// Copy Constructor
-bundle_adjust
-::bundle_adjust(const bundle_adjust& other)
+optimize_cameras
+::optimize_cameras(const optimize_cameras& other)
 : d_(new priv(*other.d_))
 {
 }
 
 
 /// Destructor
-bundle_adjust
-::~bundle_adjust()
+optimize_cameras
+::~optimize_cameras()
 {
 }
 
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 config_block_sptr
-bundle_adjust
+optimize_cameras
 ::get_configuration() const
 {
   // get base config from base class
-  config_block_sptr config = vital::algo::bundle_adjust::get_configuration();
+  config_block_sptr config = vital::algo::optimize_cameras::get_configuration();
   config->set_value("verbose", d_->verbose,
                     "If true, write status messages to the terminal showing "
                     "optimization progress at each iteration");
@@ -144,7 +134,7 @@ bundle_adjust
 
 /// Set this algorithm's properties via a config block
 void
-bundle_adjust
+optimize_cameras
 ::set_configuration(config_block_sptr in_config)
 {
   ::ceres::Solver::Options& o = d_->options;
@@ -174,7 +164,7 @@ bundle_adjust
 
 /// Check that the algorithm's currently configuration is valid
 bool
-bundle_adjust
+optimize_cameras
 ::check_configuration(config_block_sptr config) const
 {
   std::string msg;
@@ -187,17 +177,16 @@ bundle_adjust
 }
 
 
-/// Optimize the camera and landmark parameters given a set of tracks
+/// Optimize camera parameters given sets of landmarks and tracks
 void
-bundle_adjust
-::optimize(camera_map_sptr& cameras,
-           landmark_map_sptr& landmarks,
-           track_set_sptr tracks) const
+optimize_cameras
+::optimize(vital::camera_map_sptr & cameras,
+           vital::track_set_sptr tracks,
+           vital::landmark_map_sptr landmarks) const
 {
   if( !cameras || !landmarks || !tracks )
   {
-    // TODO throw an exception for missing input data
-    return;
+    throw vital::invalid_value("One or more input data pieces are Null!");
   }
   typedef camera_map::map_camera_t map_camera_t;
   typedef landmark_map::map_landmark_t map_landmark_t;
@@ -215,7 +204,6 @@ bundle_adjust
     vector_3d loc = lm.second->loc();
     landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
   }
-
 
   // a map from frame number to extrinsic parameters
   typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
@@ -290,6 +278,11 @@ bundle_adjust
           new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
     }
   }
+  // Set the landmarks constant
+  VITAL_FOREACH(lm_param_map_t::value_type& lmp, landmark_params)
+  {
+    problem.SetParameterBlockConstant(&lmp.second[0]);
+  }
 
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.
@@ -305,21 +298,102 @@ bundle_adjust
     LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
   }
 
-  // Update the landmarks with the optimized values
-  VITAL_FOREACH(const lm_param_map_t::value_type& lmp, landmark_params)
-  {
-    auto& lmi = lms[lmp.first];
-    auto updated_lm = std::make_shared<landmark_d>(*lmi);
-    updated_lm->set_loc(Eigen::Map<const vector_3d>(&lmp.second[0]));
-    lmi = updated_lm;
-  }
-  landmarks = std::make_shared<simple_landmark_map>(lms);
-
   // Update the cameras with the optimized values
   d_->update_camera_parameters(cams, camera_params,
                                camera_intr_params, frame_to_intr_map);
   cameras = std::make_shared<simple_camera_map>(cams);
 }
+
+
+/// Optimize a single camera given corresponding features and landmarks
+void
+optimize_cameras
+::optimize(vital::camera_sptr& camera,
+           const std::vector<vital::feature_sptr>& features,
+           const std::vector<vital::landmark_sptr>& landmarks) const
+{
+  // extract camera parameters to optimize
+  const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
+  std::vector<double> cam_intrinsic_params(5 + ndp, 0.0);
+  std::vector<double> cam_extrinsic_params(6);
+  d_->extract_camera_extrinsics(camera, &cam_extrinsic_params[0]);
+  camera_intrinsics_sptr K = camera->intrinsics();
+  d_->extract_camera_intrinsics(K, &cam_intrinsic_params[0]);
+
+  // extract the landmark parameters
+  std::vector<std::vector<double> > landmark_params;
+  VITAL_FOREACH(const landmark_sptr lm, landmarks)
+  {
+    vector_3d loc = lm->loc();
+    landmark_params.push_back(std::vector<double>(loc.data(), loc.data()+3));
+  }
+
+  // the Ceres solver problem
+  ::ceres::Problem problem;
+
+  // enumerate the intrinsics held constant
+  std::vector<int> constant_intrinsics = d_->enumerate_constant_intrinsics();
+
+  // Create the loss function to use
+  ::ceres::LossFunction* loss_func
+      = LossFunctionFactory(d_->loss_function_type,
+                            d_->loss_function_scale);
+
+  // Add the residuals for each relevant observation
+  for(unsigned int i=0; i<features.size(); ++i)
+  {
+    vector_2d pt = features[i]->loc();
+    problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
+                                              pt.x(), pt.y()),
+                             loss_func,
+                             &cam_intrinsic_params[0],
+                             &cam_extrinsic_params[0],
+                             &landmark_params[i][0]);
+
+    problem.SetParameterBlockConstant(&landmark_params[i][0]);
+  }
+
+  // set contraints on the camera intrinsics
+  if (constant_intrinsics.size() > 4 + ndp)
+  {
+    // set all parameters in the block constant
+    problem.SetParameterBlockConstant(&cam_intrinsic_params[0]);
+  }
+  else if (!constant_intrinsics.empty())
+  {
+    // set a subset of parameters in the block constant
+    problem.SetParameterization(&cam_intrinsic_params[0],
+        new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
+  }
+
+  // If the loss function was added to a residual block, ownership was
+  // transfered.  If not then we need to delete it.
+  if(loss_func && !features.empty())
+  {
+    delete loss_func;
+  }
+
+  ::ceres::Solver::Summary summary;
+  ::ceres::Solve(d_->options, &problem, &summary);
+  if( d_->verbose )
+  {
+    LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+  }
+
+  // update the cameras from optimized parameters
+  // only create a new intrinsics object if the values were not held constant
+  if ( d_->optimize_intrinsics() )
+  {
+    auto new_K = std::make_shared<simple_camera_intrinsics>();
+    d_->update_camera_intrinsics(new_K, &cam_intrinsic_params[0]);
+    K = new_K;
+  }
+  auto new_camera = std::make_shared<simple_camera>();
+  new_camera->set_intrinsics(K);
+  d_->update_camera_extrinsics(new_camera, &cam_extrinsic_params[0]);
+  camera = new_camera;
+}
+
 
 } // end namespace ceres
 } // end namespace arrows
