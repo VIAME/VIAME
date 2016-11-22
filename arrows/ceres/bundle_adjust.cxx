@@ -43,7 +43,6 @@
 #include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
 #include <arrows/ceres/reprojection_error.h>
-#include <arrows/ceres/camera_smoothness.h>
 #include <arrows/ceres/types.h>
 #include <arrows/ceres/options.h>
 
@@ -296,37 +295,10 @@ bundle_adjust
   }
 
   // Add camera path regularization residuals
-  if( d_->camera_path_smoothness > 0.0 &&
-      camera_params.size() >= 3 )
-  {
-    typedef cam_param_map_t::iterator cp_itr_t;
-    cp_itr_t prev_cam = camera_params.begin();
-    cp_itr_t curr_cam = prev_cam;
-    curr_cam++;
-    cp_itr_t next_cam = curr_cam;
-    next_cam++;
-    problem.AddResidualBlock(camera_limit_forward_motion::create(d_->camera_path_smoothness),
-                             NULL,
-                             &prev_cam->second[0],
-                             &curr_cam->second[0]);
-    for(; next_cam != camera_params.end();
-        prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
-    {
-      if(std::abs(prev_cam->first - curr_cam->first) == 1 &&
-         std::abs(curr_cam->first - next_cam->first) == 1 )
-      {
-        problem.AddResidualBlock(camera_position_smoothness::create(d_->camera_path_smoothness),
-                                 NULL,
-                                 &prev_cam->second[0],
-                                 &curr_cam->second[0],
-                                 &next_cam->second[0]);
-      }
-      problem.AddResidualBlock(camera_limit_forward_motion::create(d_->camera_path_smoothness),
-                               NULL,
-                               &curr_cam->second[0],
-                               &next_cam->second[0]);
-    }
-  }
+  d_->add_camera_path_smoothness_cost(problem, camera_params);
+
+  // Add camera path regularization residuals
+  d_->add_forward_motion_damping_cost(problem, camera_params);
 
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.

@@ -80,6 +80,9 @@ public:
 class camera_options
 {
 public:
+  /// typedef for camera parameter map
+  typedef std::map<vital::frame_id_t, std::vector<double> > cam_param_map_t;
+
   /// Constructor
   camera_options();
 
@@ -149,7 +152,7 @@ public:
    *  This function is the inverse of update_camera_parameters
    */
   void extract_camera_parameters(vital::camera_map::map_camera_t const& cameras,
-                                 std::map<vital::frame_id_t, std::vector<double> >& ext_params,
+                                 cam_param_map_t& ext_params,
                                  std::vector<std::vector<double> >& int_params,
                                  std::map<vital::frame_id_t, unsigned int>& int_map) const;
 
@@ -168,9 +171,17 @@ public:
    */
   void
   update_camera_parameters(vital::camera_map::map_camera_t& cameras,
-                           std::map<vital::frame_id_t, std::vector<double> > const& ext_params,
+                           cam_param_map_t const& ext_params,
                            std::vector<std::vector<double> > const& int_params,
                            std::map<vital::frame_id_t, unsigned int> const& int_map) const;
+
+  /// Add the camera path smoothness costs to the Ceres problem
+  void add_camera_path_smoothness_cost(::ceres::Problem& problem,
+                                       cam_param_map_t& ext_params) const;
+
+  /// Add the camera forward motion damping costs to the Ceres problem
+  void add_forward_motion_damping_cost(::ceres::Problem& problem,
+                                       cam_param_map_t& ext_params) const;
 
   /// enumerate the intrinsics held constant
   /**
@@ -215,8 +226,10 @@ public:
   bool optimize_dist_k4_k5_k6;
   /// the type of sharing of intrinsics between cameras to use
   CameraIntrinsicShareType camera_intrinsic_share_type;
-  /// the scale of the camera path smoothness regularization
+  /// the amount of the camera path smoothness regularization
   double camera_path_smoothness;
+  /// the scale of camera forward motion damping regularization
+  double camera_forward_motion_damping;
 };
 
 

@@ -161,13 +161,6 @@ public:
 };
 
 
-/// Factory to create Ceres cost functions for camera path smoothness
-::ceres::CostFunction*
-create_smoothness_cost_func(const double smoothness)
-{
-  return camera_position_smoothness::create(smoothness);
-}
-
 } // end namespace ceres
 } // end namespace arrows
 } // end namespace kwiver

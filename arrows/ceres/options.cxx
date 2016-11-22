@@ -36,6 +36,7 @@
 #include "options.h"
 
 #include <vital/vital_foreach.h>
+#include <arrows/ceres/camera_smoothness.h>
 
 using namespace kwiver::vital;
 
@@ -133,7 +134,8 @@ camera_options
     optimize_dist_p1_p2(false),
     optimize_dist_k4_k5_k6(false),
     camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS),
-    camera_path_smoothness(0.0)
+    camera_path_smoothness(0.0),
+    camera_forward_motion_damping(0.0)
 {
 }
 
@@ -151,7 +153,8 @@ camera_options
     optimize_dist_p1_p2(other.optimize_dist_p1_p2),
     optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
     camera_intrinsic_share_type(other.camera_intrinsic_share_type),
-    camera_path_smoothness(other.camera_path_smoothness)
+    camera_path_smoothness(other.camera_path_smoothness),
+    camera_forward_motion_damping(other.camera_forward_motion_damping)
 {
 }
 
@@ -196,6 +199,12 @@ camera_options
   config->set_value("camera_path_smoothness", this->camera_path_smoothness,
                     "Controls the amount a regularization to apply to the camera path. "
                     "If set to zero the path regularization is disabled.");
+  config->set_value("camera_forward_motion_damping", this->camera_forward_motion_damping,
+                    "Controls the amount a regularization to apply to limit camera "
+                    "forward motion.  This option is useful for zoom lenses at long "
+                    "distances.  It causes the algorithm to prefer focal length change "
+                    "over fast motion along the principal ray. "
+                    "If set to zero the regularization is disabled.");
 }
 
 
@@ -219,6 +228,7 @@ camera_options
   GET_VALUE(ceres::LensDistortionType, lens_distortion_type);
   GET_VALUE(ceres::CameraIntrinsicShareType, camera_intrinsic_share_type);
   GET_VALUE(double, camera_path_smoothness);
+  GET_VALUE(double, camera_forward_motion_damping);
 #undef GET_VALUE
 }
 
@@ -386,7 +396,7 @@ camera_options
 void
 camera_options
 ::extract_camera_parameters(camera_map::map_camera_t const& cameras,
-                            std::map<frame_id_t, std::vector<double> >& ext_params,
+                            cam_param_map_t& ext_params,
                             std::vector<std::vector<double> >& int_params,
                             std::map<frame_id_t, unsigned int>& int_map) const
 {
@@ -438,7 +448,7 @@ camera_options
 void
 camera_options
 ::update_camera_parameters(vital::camera_map::map_camera_t& cameras,
-                           std::map<frame_id_t, std::vector<double> > const& ext_params,
+                           cam_param_map_t const& ext_params,
                            std::vector<std::vector<double> > const& int_params,
                            std::map<frame_id_t, unsigned int> const& int_map) const
 {
@@ -478,6 +488,71 @@ camera_options
   }
 }
 
+
+/// Add the camera path smoothness costs to the Ceres problem
+void
+camera_options
+::add_camera_path_smoothness_cost(::ceres::Problem& problem,
+                                  cam_param_map_t& ext_params) const
+{
+  // Add camera path regularization residuals
+  if( this->camera_path_smoothness > 0.0 &&
+      ext_params.size() >= 3 )
+  {
+    ::ceres::CostFunction* smoothness_cost = NULL;
+    typedef cam_param_map_t::iterator cp_itr_t;
+    cp_itr_t prev_cam = ext_params.begin();
+    cp_itr_t curr_cam = prev_cam;
+    curr_cam++;
+    cp_itr_t next_cam = curr_cam;
+    next_cam++;
+    for(; next_cam != ext_params.end();
+        prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
+    {
+      if(std::abs(prev_cam->first - curr_cam->first) == 1 &&
+         std::abs(curr_cam->first - next_cam->first) == 1 )
+      {
+        if(!smoothness_cost)
+        {
+          smoothness_cost =
+            camera_position_smoothness::create(this->camera_path_smoothness);
+        }
+        problem.AddResidualBlock(smoothness_cost,
+                                 NULL,
+                                 &prev_cam->second[0],
+                                 &curr_cam->second[0],
+                                 &next_cam->second[0]);
+      }
+    }
+  }
+}
+
+
+/// Add the camera forward motion damping costs to the Ceres problem
+void
+camera_options
+::add_forward_motion_damping_cost(::ceres::Problem& problem,
+                                  cam_param_map_t& ext_params) const
+{
+  if( this->camera_forward_motion_damping > 0.0 &&
+      ext_params.size() >= 2 )
+  {
+    ::ceres::CostFunction* fwd_mo_cost =
+      camera_limit_forward_motion::create(this->camera_forward_motion_damping);
+    typedef cam_param_map_t::iterator cp_itr_t;
+    cp_itr_t prev_cam = ext_params.begin();
+    cp_itr_t curr_cam = prev_cam;
+    curr_cam++;
+    for(; curr_cam != ext_params.end();
+        prev_cam = curr_cam, curr_cam++)
+    {
+      problem.AddResidualBlock(fwd_mo_cost,
+                               NULL,
+                               &prev_cam->second[0],
+                               &curr_cam->second[0]);
+    }
+  }
+}
 
 } // end namespace ceres
 } // end namespace arrows
