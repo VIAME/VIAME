@@ -27,6 +27,12 @@ Arrows - Core
    plane vertically to place a configurable percentile of the landmarks above
    the ground.
 
+ * Added logic to compute changes in ground sample distance (GSD) as images are
+   added in the camera_landmark_initialization algorithm.  If GSD changes are
+   above a threshold then assume the camera intrinsics have changed and create
+   a new shared intrinsic model.  This allows for shared intrinsics when the
+   camera does not zoom but varying intrinsics when zoom is detected.
+
 Arrows - OpenCV
 
  * Updated the OpenCV image container functions to handle conversinos between
