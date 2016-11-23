@@ -28,10 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sprokit/pipeline/scheduler_registry.h>
+
 #include "sync_scheduler.h"
 #include "thread_per_process_scheduler.h"
 
-#include <sprokit/pipeline/scheduler_registry.h>
 #include <schedulers/schedulers_export.h>
 
 /**
@@ -42,23 +43,25 @@
 extern "C"
 SCHEDULERS_EXPORT void register_schedulers();
 
-using namespace sprokit;
-
 void
-register_schedulers()
+register_factories( kwiver::vital::plugin_manager& vpm )
 {
-  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("schedulers");
+  static auto const module_name = sprokit::scheduler_registry::module_t("schedulers");
 
-  scheduler_registry_t const registry = scheduler_registry::self();
-
-  if (registry->is_module_loaded(module_name))
+  if ( sprokit::is_scheduler_module_loaded( module_name ) )
   {
     return;
   }
 
-  registry->register_scheduler("sync", "Run the pipeline synchronously", create_scheduler<sync_scheduler>);
-  registry->register_scheduler("thread_per_process", "Run each process in its own thread",
-                               create_scheduler<thread_per_process_scheduler>);
+  auto fact = vpm.ADD_SCHEDULER( sprokit::sync_scheduler );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "sync" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Run the pipeline synchronously" );
 
-  registry->mark_module_as_loaded(module_name);
+  fact = vpm.ADD_SCHEDULER( sprokit::thread_per_process_scheduler );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "thread_per_process" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Run each process in its own thread" );
+
+  sprokit::mark_scheduler_module_as_loaded( module_name );
 }

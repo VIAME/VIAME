@@ -61,6 +61,9 @@ class SPROKIT_PIPELINE_EXPORT scheduler
   : boost::noncopyable
 {
   public:
+    /// The type of registry keys.
+    typedef std::string type_t;
+
     /**
      * \brief Destructor.
      */

@@ -190,6 +190,10 @@ plugin_loader
     } // end foreach
   }
 
+  //+ do we need to check to see if this is already in the list.
+  //+ What does already-exist mean. The same factory handle is already in the list?
+  //+ A factory with the same concrete name?
+  //+ some other attribute?
   // Add factory to rest of its family
   m_impl->m_plugin_map[interface_type].push_back( fact_handle );
 

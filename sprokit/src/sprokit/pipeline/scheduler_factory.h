@@ -33,9 +33,16 @@
  * @brief  Interface to sprokit scheduler factory
  */
 
+#ifndef SPROKIT_PIPELINE_SCHEDULER_FACTORY_H
+#define SPROKIT_PIPELINE_SCHEDULER_FACTORY_H
+
 #include <vital/vital_config.h>
+#include <vital/config/config_block.h>
 #include <vital/plugin_loader/plugin_manager.h>
-#include <sprokit/pipeline/types.h>
+
+#include <sprokit/pipeline/scheduler.h>
+
+#include <boost/make_shared.hpp>
 
 #include <functional>
 #include <memory>
@@ -93,12 +100,12 @@ public:
    * @param factory The Factory function
    */
   scheduler_factory( const std::string& type,
-                   const std::string& itype
-                   scheduler_factory_func_t factory )
-    : m_factory( factory )
+                     const std::string& itype,
+                     scheduler_factory_func_t factory )
+    : plugin_factory( itype )
+    , m_factory( factory )
   {
     this->add_attribute( CONCRETE_TYPE, type);
-    this->add_attribute( INTERFACE_TYPE, itype );
   }
 
   virtual ~scheduler_factory() VITAL_DEFAULT_DTOR
@@ -121,16 +128,17 @@ private:
  *
  * \throws no_such_scheduler_type_exception Thrown if the type is not known.
  *
- * \param type The name of the type of \ref scheduler to create.
+ * \param nameXs! The name of the type of \ref scheduler to create.
  * \param pipe The \ref pipeline to pass the \ref scheduler.
  * \param config The configuration to pass the \ref scheduler.
  *
  * \returns A new scheduler of type \p type.
  */
 SPROKIT_PIPELINE_EXPORT
-scheduler_t create_scheduler(type_t const& type,
-                             pipeline_t const& pipe,
-                             kwiver::vital::config_block_sptr const& config = kwiver::vital::config_block::empty_config());
+sprokit::scheduler_t
+create_scheduler( const sprokit::scheduler::type_t&      name,
+                  const sprokit::pipeline_t&             pipe,
+                  const kwiver::vital::config_block_sptr config);
 
 /**
  * \brief Mark a scheduler as loaded.
@@ -158,3 +166,5 @@ bool is_scheduler_moduleloaded(module_t const& module);
                                                typeid( sprokit::scheduler ).name(), \
                                                sprokit::create_new_scheduler< type > ) )
 } // end namespace
+
+#endif /* SPROKIT_PIPELINE_SCHEDULER_FACTORY_H */

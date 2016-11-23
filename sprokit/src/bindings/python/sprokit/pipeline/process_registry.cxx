@@ -134,6 +134,7 @@ BOOST_PYTHON_MODULE(process_registry)
     , "The base class of process clusters."
     , no_init);
 
+  //+ convert this to process_factory
   class_<sprokit::process_registry, sprokit::process_registry_t, boost::noncopyable>("ProcessRegistry"
     , "A registry of all known process types."
     , no_init)
@@ -151,10 +152,10 @@ BOOST_PYTHON_MODULE(process_registry)
     .def("description", &sprokit::process_registry::description
       , (arg("type"))
       , "The description for the given type.")
-    .def("is_module_loaded", &sprokit::process_registry::is_module_loaded
+    .def("is_module_loaded", &sprokit::is_process_module_loaded
       , (arg("module"))
       , "Returns True if the module has already been loaded, False otherwise.")
-    .def("mark_module_as_loaded", &sprokit::process_registry::mark_module_as_loaded
+    .def("mark_module_as_loaded", &sprokit::mark_process_module_as_loaded
       , (arg("module"))
       , "Marks a module as loaded.")
   ;

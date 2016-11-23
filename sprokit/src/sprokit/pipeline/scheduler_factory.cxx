@@ -31,53 +31,71 @@
 #include "scheduler_factory.h"
 #include "scheduler_registry_exception.h"
 
+#include <vital/logger/logger.h>
+
 namespace sprokit {
 
 // ------------------------------------------------------------------
-scheduler_t
-::create_scheduler(scheduler::type_t const& type,
-                   scheduler::name_t const& name,
-                   kwiver::vital::config_block_sptr const& config) const
+sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      name,
+                                       const sprokit::pipeline_t&             pipe,
+                                       const kwiver::vital::config_block_sptr config )
 {
-  if (!config)
+  if ( ! config )
   {
     throw null_scheduler_registry_config_exception();
   }
 
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact_list = pm.get_factories( typeid( sprokit::scheduler ).name() );
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > instrumentation_factory;
+  instrumentation_factory ifact;
 
-  auto const i = fact_list.find(type);
-
-  if (i == d->registry.end())
+  kwiver::vital::plugin_factory_handle_t a_fact;
+  try
   {
-    throw no_such_scheduler_type_exception(type);
+    a_fact = ifact.find_factory( name );
+  }
+  catch ( kwiver::vital::plugin_factory_not_found& e )
+  {
+    auto logger = kwiver::vital::get_logger( "sprokit.scheduler_factory" );
+    LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
+
+    throw no_such_scheduler_type_exception( name );
   }
 
-  return i->second.create_object(config);
+  sprokit::scheduler_factory* pf = dynamic_cast< sprokit::scheduler_factory* > ( a_fact.get() );
+  if (0 == pf)
+  {
+    // wrong type of factory returned
+    throw no_such_scheduler_type_exception( name );
+  }
+
+  return pf->create_object( pipe, config );
 }
 
 
 // ------------------------------------------------------------------
-void mark_scheduler_module_as_loaded( module_t const& module )
+void
+mark_scheduler_module_as_loaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   module_t mod = "scheduler.";
+
   mod += module;
-  vpm->mark_module_as_loaded( mod );
+  vpm.mark_module_as_loaded( mod );
 }
 
 
 // ------------------------------------------------------------------
-bool is_scheduler_moduleloaded( module_t const& module )
+bool
+is_scheduler_moduleloaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   module_t mod = "scheduler.";
+
   mod += module;
 
-  return vpm->is_module_loaded( mod );
+  return vpm.is_module_loaded( mod );
 }
 
 } // end namespace

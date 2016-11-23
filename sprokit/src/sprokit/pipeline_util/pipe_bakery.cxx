@@ -45,7 +45,7 @@
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 #include <boost/make_shared.hpp>
 #include <memory>

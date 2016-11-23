@@ -33,7 +33,7 @@
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
 #include <sprokit/pipeline/pipeline.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 #include <sprokit/python/util/pystream.h>
 #include <sprokit/python/util/python_gil.h>
@@ -143,13 +143,11 @@ register_cluster(sprokit::cluster_info_t const& info)
     throw std::runtime_error(reason);
   }
 
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
-
   sprokit::process::type_t const& type = info->type;
   sprokit::process_registry::description_t const& description = info->description;
   sprokit::process_ctor_t const& ctor = info->ctor;
 
-  reg->register_process(type, description, ctor);
+  sprokit::register_process(type, description, ctor);
 }
 
 sprokit::pipeline_t

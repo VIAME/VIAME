@@ -53,10 +53,11 @@ add_tool(pipeline_runner
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
-add_tool(processopedia
-  sprokit_tools
-  sprokit_pipeline
-  vital_config
-  ${Boost_FILESYSTEM_LIBRARY}
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+##++ functionality to move to plugin_explorer
+#add_tool(processopedia
+#  sprokit_tools
+#  sprokit_pipeline
+#  vital_config
+#  ${Boost_FILESYSTEM_LIBRARY}
+#  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+#  ${Boost_SYSTEM_LIBRARY})

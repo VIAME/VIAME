@@ -28,14 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "registration.h"
+#include <sprokit/pipeline/process_factory.h>
 
 #include "collate_process.h"
 #include "distribute_process.h"
 #include "pass_process.h"
 #include "sink_process.h"
-
-#include <sprokit/pipeline/process_registry.h>
 
 /**
  * \file flow/registration.cxx
@@ -43,24 +41,36 @@
  * \brief Register processes for use.
  */
 
-using namespace sprokit;
-
+extern "C"
+SPROKIT_PROCESSES_FLOW_EXPORT
 void
-register_processes()
+register_factories( kwiver::vital::plugin_manager& vpm )
 {
   static process_registry::module_t const module_name = process_registry::module_t("flow_processes");
 
   process_registry_t const registry = process_registry::self();
 
-  if (registry->is_module_loaded(module_name))
+  if (sprokit::is_process_loaded(module_name))
   {
     return;
   }
 
-  registry->register_process("collate", "Collates data from multiple worker processes", create_process<collate_process>);
-  registry->register_process("distribute", "Distributes data to multiple worker processes", create_process<distribute_process>);
-  registry->register_process("pass", "Pass a data stream through", create_process<pass_process>);
-  registry->register_process("sink", "Ignores incoming data", create_process<sink_process>);
+  fact = vpm.ADD_PROCESS( collate_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "collate" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Collates data from multiple worker processes" );
 
-  registry->mark_module_as_loaded(module_name);
+  fact = vpm.ADD_PROCESS( distribute_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "distribute" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Distributes data to multiple worker processes" );
+
+  fact = vpm.ADD_PROCESS( pass_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "pass" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Pass a data stream through" );
+
+  fact = vpm.ADD_PROCESS( sink_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "sink" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Ignores incoming data" );
+
+
+  sprokit::mark_process_moduleas_loaded(module_name);
 }

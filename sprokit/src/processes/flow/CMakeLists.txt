@@ -12,7 +12,6 @@ set(flow_private_headers
   distribute_process.h
   flow-config.h
   pass_process.h
-  registration.h
   sink_process.h)
 
 sprokit_private_header_group(${flow_private_headers})

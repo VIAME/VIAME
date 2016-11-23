@@ -65,6 +65,8 @@ class VITAL_VPM_EXPORT plugin_manager
   : private kwiver::vital::noncopyable
 {
 public:
+  typedef std::string module_t; // module name type
+
   static plugin_manager& instance();  // singleton interface
 
   /**
@@ -151,7 +153,7 @@ public:
    *
    * @return \b true if module has been loaded. \b false otherwise.
    */
-  bool is_module_loaded( std::string const& name) const;
+  bool is_module_loaded( module_t const& name) const;
 
   /**
    * @brief Mark module as loaded.
@@ -162,7 +164,7 @@ public:
    *
    * @param name Module to mark as loaded.
    */
-  void mark_module_as_loaded( std::string const& name );
+  void mark_module_as_loaded( module_t const& name );
 
   /**
    * @brief Get list of loaded modules
@@ -214,11 +216,12 @@ private:
  * implementation_factory_by_name.
  *
  *
- * \tparam I Interface type
+ * \tparam I Interface type that is created
  */
 template <typename I>
-struct implementation_factory
+class implementation_factory
 {
+public:
   /**
    * @brief CTOR
    *
@@ -235,6 +238,40 @@ struct implementation_factory
   { }
 
   /**
+   * @brief Find object factory based on attribute value.
+   *
+   * @param attr Attribute value string.
+   *
+   * @return Address of the factory object for the templated type with
+   * the specified attribute value.
+   *
+   * @throws kwiver::vital::plugin_factory_not_found
+   */
+  plugin_factory_handle_t find_factory( const std::string& value )
+  {
+    // Get singleton plugin manager
+    kwiver::vital::plugin_manager& pm = kwiver::vital::plugin_manager::instance();
+
+    auto fact_list = pm.get_factories( typeid( I ).name() );
+    // Scan fact_list for CONCRETE_TYPE
+    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+    {
+      std::string attr_val;
+      if ( a_fact->get_attribute( m_attr, attr_val ) && ( attr_val == value ) )
+      {
+        return a_fact;
+      }
+    } // end foreach
+
+    std::stringstream str;
+    str << "Could not find factory where attr \"" << m_attr << "\" is \"" << value
+        << " for interface type \"" << typeid(I).name()
+        << "\"";
+
+    throw kwiver::vital::plugin_factory_not_found( str.str() );
+  }
+
+  /**
    * @brief Create object based on attribute value.
    *
    * The list of factories which create the interface type I is
@@ -249,31 +286,18 @@ struct implementation_factory
    *
    * @throws kwiver::vital::plugin_factory_not_found
    */
-  I* create( std::string const& value )
+  I* create( const std::string& value )
   {
     // Get singleton plugin manager
     kwiver::vital::plugin_manager& pm = kwiver::vital::plugin_manager::instance();
 
-    auto fact_list = pm.get_factories( typeid( I ).name() );
-    // Scan fact_list for CONCRETE_TYPE
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
-    {
-      std::string attr_val;
-      if ( a_fact->get_attribute( m_attr, attr_val ) && ( attr_val == value ) )
-      {
-        return a_fact->create_object<I>();
-      }
-    }
-
-    std::stringstream str;
-    str << "Could not find factory where attr \"" << m_attr << "\" is \"" << value
-        << " for interface type \"" << typeid(I).name()
-        << "\"";
-
-    throw kwiver::vital::plugin_factory_not_found( str.str() );
+    plugin_factory_handle_t a_fact = this->find_factory( value );
+    return a_fact->create_object<I>();
   }
 
-  std::string m_attr;
+private:
+  // member data
+  std::string m_attr; // Name of the attribute
 };
 
 
@@ -287,7 +311,7 @@ struct implementation_factory
  * Example usage:
  * \code
 // create name for factory to create specific interface object.
-typedef implementation_factory_by_name< sprokit::process_instrumentation > instrumentation_factory;
+typedef kwiver::vital::implementation_factory_by_name< sprokit::process_instrumentation > instrumentation_factory;
 
 // instantiate factory when needed.
 instrumentation_factory ifact;
@@ -296,9 +320,10 @@ auto instr = ifact.create( provider );
  *
  */
 template <typename T>
-struct implementation_factory_by_name
+class implementation_factory_by_name
   : public implementation_factory< T >
 {
+public:
   implementation_factory_by_name()
     : implementation_factory<T>( "plugin-name" )
   { }

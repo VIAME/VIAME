@@ -66,13 +66,18 @@ class VITAL_VPM_EXPORT plugin_factory
 public:
   virtual ~plugin_factory();
 
-  // standard set of attributes
+  // This is the list of the global attributes that are available to
+  // all customers. Applications can use additional attributes that
+  // are specific to the application in the application wrapper for
+  // this plugin factory/manager. Do not add local scope attributes to
+  // this list.
   static const std::string INTERFACE_TYPE;
   static const std::string CONCRETE_TYPE;
   static const std::string PLUGIN_FILE_NAME;
   static const std::string PLUGIN_NAME;
   static const std::string PLUGIN_DESCRIPTION;
   static const std::string PLUGIN_VERSION;
+  static const std::string PLUGIN_MODULE_NAME; // logical module name
 
   /**
    * @brief Get attribute from factory

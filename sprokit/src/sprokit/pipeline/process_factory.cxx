@@ -31,56 +31,78 @@
 #include "process_factory.h"
 #include "process_registry_exception.h"
 
+#include <vital/logger/logger.h>
+
+#include <algorithm>
+
 namespace sprokit {
 
 // ------------------------------------------------------------------
-process_t
-::create_process(process::type_t const& type,
-                 process::name_t const& name,
-                 kwiver::vital::config_block_sptr const& config) const
+sprokit::process_t
+create_process( const sprokit::process::type_t&         type,
+                const sprokit::process::name_t&         name,
+                const kwiver::vital::config_block_sptr  config )
 {
-  if (!config)
+  if ( ! config )
   {
     throw null_process_registry_config_exception();
   }
 
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact_list = pm.get_factories( typeid( sprokit::process ).name() );
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > instrumentation_factory;
+  instrumentation_factory ifact;
 
-  auto const i = fact_list.find(type);
-
-  if (i == d->registry.end())
+  kwiver::vital::plugin_factory_handle_t a_fact;
+  try
   {
-    throw no_such_process_type_exception(type);
+    a_fact = ifact.find_factory( name );
+  }
+  catch ( kwiver::vital::plugin_factory_not_found& e )
+  {
+    auto logger = kwiver::vital::get_logger( "sprokit.process_factory" );
+    LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
+
+    throw no_such_process_type_exception( type );
   }
 
-  config->set_value(process::config_type, kwiver::vital::config_block_value_t(type));
-  config->set_value(process::config_name, kwiver::vital::config_block_value_t(name));
+  // Add these entries to the new process config so it will know how it is instantiated.
+  config->set_value( process::config_type, kwiver::vital::config_block_value_t( type ) );
+  config->set_value( process::config_name, kwiver::vital::config_block_value_t( name ) );
 
-  return i->second.create_object(config);
+  sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( a_fact.get() );
+  if (0 == pf)
+  {
+    // Wrong type of factory returned.
+    throw no_such_process_type_exception( type );
+  }
+
+  return pf->create_object( config );
 }
 
 
 // ------------------------------------------------------------------
-void mark_process_as_loaded(module_t const& module)
+void
+mark_process_as_loaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   module_t mod = "process.";
+
   mod += module;
-  vpm->mark_module_as_loaded( mod );
+  vpm.mark_module_as_loaded( mod );
 }
 
 
 // ------------------------------------------------------------------
-bool is_process_loaded(module_t const& module)
+bool
+is_process_loaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   module_t mod = "process.";
+
   mod += module;
 
-  return vpm->is_module_loaded( mod );
+  return vpm.is_module_loaded( mod );
 }
 
 } // end namespace

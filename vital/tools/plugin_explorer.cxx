@@ -36,9 +36,13 @@
 #include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/RegularExpression.hxx>
 
+#include <sprokit/pipeline/process_registry.h>
+
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
+#include <iterator>
 
 // Global options
 bool opt_config( false );
@@ -48,12 +52,15 @@ bool opt_path_list( false );
 bool opt_brief( false );
 bool opt_modules( false );
 bool opt_files( false );
+bool opt_hidden( false );
 std::vector< std::string > opt_path;
 std::string opt_fact_regex;
 
 
 bool opt_fact_filt( false ); // internal option for factory filtering
 kwiversys::RegularExpression fact_regex;
+
+static std::string const hidden_prefix = "_";
 
 
 // ------------------------------------------------------------------
@@ -75,6 +82,7 @@ struct print_functor
          && ( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION != key )
          && ( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME != key )
          && ( kwiver::vital::plugin_factory::PLUGIN_VERSION != key )
+         && ( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME != key )
       )
     {
       std::string value(val);
@@ -94,6 +102,19 @@ struct print_functor
 
 
 // ------------------------------------------------------------------
+std::string
+join( const std::vector< std::string >& vec, const char* delim )
+{
+  std::stringstream res;
+  std::copy( vec.begin(), vec.end(), std::ostream_iterator< std::string > ( res, delim ) );
+
+  return res.str();
+}
+
+
+// ------------------------------------------------------------------
+//+ Do we need to document and handle SPROKIT_MODULE_PATH and SPROKIT_CLUSTER_PATH?
+//+ this needs to be more like a man page, rather than a short summary
 void
 print_help()
 {
@@ -105,7 +126,7 @@ print_help()
             << "  --path           display plugin search path\n"
             << "  -Iname           also load plugins from this directory (can appear multiple times)\n"
             << "  --detail  -d     generate detailed listing\n"
-            << "  --fact  regex    display factories that match regexp\n"
+            << "  --fact  regex    display factories that match regexp\n" //+ which attribute is matched?
             << "  --brief          display factory name and description only\n"
             << "  --mod            display list of loaded modules\n"
             << "  --files          display list of files successfully opened to load plugins\n"
@@ -113,6 +134,119 @@ print_help()
 
   return;
 }
+
+
+// ------------------------------------------------------------------
+void
+display_process( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  // input is proc_type which is really proc name
+
+  std::string proc_type;
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
+
+  std::string descrip;
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+
+  if ( ! opt_detail )
+  {
+    std::cout << proc_type << ": " << descrip << std::endl;
+    return;
+  }
+
+  std::cout << "Process type: " << proc_type << std::endl
+            << " Description: " << descrip << std::endl;
+
+  // Create the process so we can inspect it.
+  sprokit::process_t const proc = sprokit::create_process( proc_type, sprokit::process::name_t() );
+
+  sprokit::process::properties_t const properties = proc->properties();
+  std::string const properties_str = join( properties, ", " );
+
+  std::cout << "  Properties: " << properties_str << std::endl
+            << "  Configuration:" << std::endl;
+
+  kwiver::vital::config_block_keys_t const keys = proc->available_config();
+
+  // Loop over all config block entries
+  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  {
+    if ( ! opt_hidden && ( key.find( hidden_prefix ) == 0 ) )
+    {
+      continue;
+    }
+
+    sprokit::process::conf_info_t const info = proc->config_info( key );
+
+    kwiver::vital::config_block_value_t const& def = info->def;
+    kwiver::vital::config_block_description_t const& conf_desc = info->description;
+    bool const& tunable = info->tunable;
+    char const* const tunable_str = tunable ? "yes" : "no";
+
+    std::cout << "    Name       : " << key << std::endl
+              << "    Default    : " << def << std::endl
+              << "    Description: " << conf_desc << std::endl
+              << "    Tunable    : " << tunable_str << std::endl
+              << std::endl;
+  }
+
+  std::cout << "  Input ports:" << std::endl;
+
+  sprokit::process::ports_t const iports = proc->input_ports();
+
+  // loop over all input ports
+  VITAL_FOREACH( sprokit::process::port_t const & port, iports )
+  {
+    if ( ! opt_hidden && ( key.find( hidden_prefix ) == 0 ) )
+    {
+      continue;
+    }
+
+    sprokit::process::port_info_t const info = proc->input_port_info( port );
+
+    sprokit::process::port_type_t const& type = info->type;
+    sprokit::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_description_t const& port_desc = info->description;
+
+    std::string const flags_str = join( flags, ", " );
+
+    std::cout << "    Name       : " << port << std::endl
+              << "    Type       : " << type << std::endl
+              << "    Flags      : " << flags_str << std::endl
+              << "    Description: " << port_desc << std::endl
+              << std::endl;
+  }
+
+  std::cout << "  Output ports:" << std::endl;
+
+  sprokit::process::ports_t const oports = proc->output_ports();
+
+  // Loop over all output ports
+  VITAL_FOREACH( sprokit::process::port_t const & port, oports )
+  {
+    if ( ! opt_hidden && ( key.find( hidden_prefix ) == 0 ) )
+    {
+      continue;
+    }
+
+    sprokit::process::port_info_t const info = proc->output_port_info( port );
+
+    sprokit::process::port_type_t const& type = info->type;
+    sprokit::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_description_t const& port_desc = info->description;
+
+    std::string const flags_str = join( flags, ", " );
+
+    std::cout << "    Name       : " << port << std::endl
+              << "    Type       : " << type << std::endl
+              << "    Flags      : " << flags_str << std::endl
+              << "    Description: " << port_desc << std::endl
+              << std::endl;
+  }
+
+  std::cout << std::endl
+            << std::endl;
+} // display_process
 
 
 // ------------------------------------------------------------------
@@ -147,10 +281,16 @@ main( int argc, char* argv[] )
   arg.AddArgument( "--config",      argT::NO_ARGUMENT, &opt_config, "Display configuration information needed by plugins" );
   arg.AddArgument( "--path",        argT::NO_ARGUMENT, &opt_path_list, "Display plugin search path" );
   arg.AddCallback( "-I",            argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  arg.AddArgument( "--fact",        argT::SPACE_ARGUMENT, &opt_fact_regex, "Filter factories based on regexp" );
+  arg.AddArgument( "--fact",        argT::SPACE_ARGUMENT, &opt_fact_regex, "Filter factories based on regexp" ); //+ better description
   arg.AddArgument( "--brief",       argT::NO_ARGUMENT, &opt_brief, "Brief display" );
   arg.AddArgument( "--files",       argT::NO_ARGUMENT, &opt_files, "Display list of loaded files" );
   arg.AddArgument( "--mod",         argT::NO_ARGUMENT, &opt_modules, "Display list of loaded modules" );
+
+  //+ add opttions for:
+  // schedulers only
+  // processes only, short and detailed
+  // show process hidden properties
+  // add regex to filter on specific attribute e.g. --filter attr regex
 
   if ( ! arg.Parse() )
   {
