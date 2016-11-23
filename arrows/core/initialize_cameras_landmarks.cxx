@@ -841,21 +841,30 @@ estimate_gsd(const frame_id_t frame,
   }
   double mean_gsd = 0.0;
   stdev_gsd = 0.0;
+  int num_samples = 0;
   for(unsigned int i=1; i<pts_3d.size(); ++i)
   {
     for(unsigned int j=0; j<i; ++j)
     {
-      const double gsd = (pts_3d[i] - pts_3d[j]).norm()
-                       / (pts_2d[i] - pts_2d[j]).norm();
-      mean_gsd += gsd;
-      stdev_gsd += gsd*gsd;
+      const double dist_3d = (pts_3d[i] - pts_3d[j]).norm();
+      const double dist_2d = (pts_2d[i] - pts_2d[j]).norm();
+      if( dist_2d > 0.0 )
+      {
+        const double gsd = dist_3d / dist_2d;
+        mean_gsd += gsd;
+        stdev_gsd += gsd*gsd;
+        ++num_samples;
+      }
     }
   }
-  const double num_samples = (pts_3d.size() * (pts_3d.size() - 1))/ 2;
-  mean_gsd /= num_samples;
-  stdev_gsd /= num_samples;
-  stdev_gsd -= mean_gsd * mean_gsd;
-  stdev_gsd = std::sqrt(stdev_gsd);
+  if( num_samples > 0 )
+  {
+    const double denom = static_cast<double>(num_samples);
+    mean_gsd /= denom;
+    stdev_gsd /= denom;
+    stdev_gsd -= mean_gsd * mean_gsd;
+    stdev_gsd = std::sqrt(stdev_gsd);
+  }
   return mean_gsd;
 }
 
