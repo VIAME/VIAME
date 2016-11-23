@@ -34,7 +34,7 @@
 
 // This is a little misuse of the exports mechanism, but there is no
 // other general purpose include that is set for always "building"
-#define kwiver_algo_EXPORTS
+#define kwiver_algo_core_EXPORTS
 
 #include <arrows/core/kwiver_algo_core_export.h>
 #include <arrows/algorithm_plugin_interface.h>
