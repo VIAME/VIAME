@@ -821,8 +821,7 @@ next_best_frame(const track_set_sptr tracks,
 double
 estimate_gsd(const frame_id_t frame,
              std::vector<track_sptr> const& tracks,
-             vital::landmark_map::map_landmark_t const& lms,
-             double& stdev_gsd)
+             vital::landmark_map::map_landmark_t const& lms)
 {
   std::vector<vector_3d> pts_3d;
   std::vector<vector_2d> pts_2d;
@@ -839,9 +838,7 @@ estimate_gsd(const frame_id_t frame,
       }
     }
   }
-  double mean_gsd = 0.0;
-  stdev_gsd = 0.0;
-  int num_samples = 0;
+  std::vector<double> gsds;
   for(unsigned int i=1; i<pts_3d.size(); ++i)
   {
     for(unsigned int j=0; j<i; ++j)
@@ -851,21 +848,17 @@ estimate_gsd(const frame_id_t frame,
       if( dist_2d > 0.0 )
       {
         const double gsd = dist_3d / dist_2d;
-        mean_gsd += gsd;
-        stdev_gsd += gsd*gsd;
-        ++num_samples;
+        gsds.push_back(gsd);
       }
     }
   }
-  if( num_samples > 0 )
+  if( gsds.size() == 0 )
   {
-    const double denom = static_cast<double>(num_samples);
-    mean_gsd /= denom;
-    stdev_gsd /= denom;
-    stdev_gsd -= mean_gsd * mean_gsd;
-    stdev_gsd = std::sqrt(stdev_gsd);
+    return 0.0;
   }
-  return mean_gsd;
+  // compute the median GSD
+  std::nth_element(gsds.begin(), gsds.begin() + gsds.size() / 2, gsds.end());
+  return gsds[gsds.size() / 2];
 }
 
 
@@ -1007,12 +1000,11 @@ initialize_cameras_landmarks
     double scale_change = 1.0;
     if (flms.size() > 1)
     {
-      double stdev_gsd_prev, stdev_gsd_next;
-      double gsd_prev = estimate_gsd(other_frame, trks, flms, stdev_gsd_prev);
-      double gsd_next = estimate_gsd(f, trks, flms, stdev_gsd_next);
+      double gsd_prev = estimate_gsd(other_frame, trks, flms);
+      double gsd_next = estimate_gsd(f, trks, flms);
       scale_change = gsd_prev / gsd_next;
-      LOG_DEBUG(d_->m_logger, "GSD estimates: "<<gsd_prev<<" ("<<stdev_gsd_prev<<"), "
-                              <<gsd_next<<" ("<<stdev_gsd_next<<") ratio "
+      LOG_DEBUG(d_->m_logger, "GSD estimates: "<<gsd_prev<<", "
+                              <<gsd_next<<" ratio "
                               <<scale_change);
       // small scale changes are less likely to be zoom, so share intrinsics
       if (scale_change < 1.0 + d_->zoom_scale_thresh &&
