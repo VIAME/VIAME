@@ -54,9 +54,6 @@ namespace sprokit {
 // returns: process_t - shared_ptr<process>
 typedef std::function< process_t( kwiver::vital::config_block_sptr const& config ) > process_factory_func_t;
 
-// Uses native sprokit::create_process<process-class> from process_registry.h:168
-// This will also work for creating clusters
-
   /**
  * \brief A template function to create a process.
  *
@@ -90,7 +87,7 @@ create_new_process(kwiver::vital::config_block_sptr const& conf)
  *
  * \tparam C Concrete process class type.
  */
-class process_factory
+class SPROKIT_PIPELINE_EXPORT process_factory
 : public kwiver::vital::plugin_factory
 {
 public:
@@ -111,6 +108,7 @@ public:
     , m_factory( factory )
   {
     this->add_attribute( CONCRETE_TYPE, type);
+    this->add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() );
   }
 
   virtual ~process_factory() VITAL_DEFAULT_DTOR
@@ -123,6 +121,8 @@ public:
   }
 
 private:
+  virtual void* create_object_i() { return 0; }
+
   process_factory_func_t m_factory;
 };
 
@@ -141,7 +141,7 @@ private:
 SPROKIT_PIPELINE_EXPORT
 sprokit::process_t create_process(const sprokit::process::type_t&        type,
                                   const sprokit::process::name_t&        name,
-                                  const kwiver::vital::config_block_sptr config);
+                                  const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config() );
 
 
 /**
@@ -150,7 +150,7 @@ sprokit::process_t create_process(const sprokit::process::type_t&        type,
  * \param module The process to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-void mark_process_as_loaded(const module_t& module);
+void mark_process_module_as_loaded(const module_t& module);
 
 
 /**
@@ -161,8 +161,15 @@ void mark_process_as_loaded(const module_t& module);
  * \returns True if the process has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-bool is_process_loaded(module_t const& module);
+bool is_process_module_loaded(module_t const& module);
 
+/**
+ * @brief Get list of all processes.
+ *
+ * @return List of all process implementation factories.
+ */
+SPROKIT_PIPELINE_EXPORT
+kwiver::vital::plugin_factory_vector_t const& get_process_list();
 
 //
 // Convenience macro for adding processes

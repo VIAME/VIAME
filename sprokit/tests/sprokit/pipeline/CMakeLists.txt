@@ -1,14 +1,10 @@
 project(sprokit_test_pipeline)
 
 set(test_libraries
-  vital_config
+  vital_config vital_vpm
   ${Boost_SYSTEM_LIBRARY}
-  sprokit_pipeline)
-
-##############################
-# Config tests
-##############################
-#+  sprokit_discover_tests(config test_libraries test_config.cxx)
+  sprokit_pipeline
+  )
 
 ##############################
 # Datum tests
@@ -39,7 +35,8 @@ function (sprokit_add_test_plugin name directory)
     ${ARGN})
   target_link_libraries("${name}"
     LINK_PRIVATE
-      sprokit_pipeline)
+    vital_vpm
+    sprokit_pipeline)
 
   set(output_dir
     "${CMAKE_CURRENT_BINARY_DIR}/${directory}")
@@ -63,8 +60,10 @@ endfunction ()
 
 sprokit_add_test_plugin(processes_test multiple_load
   processes_test.cxx)
+
 sprokit_add_test_plugin(schedulers_test multiple_load
   schedulers_test.cxx)
+
 sprokit_add_test_plugin(not_a_plugin not_a_plugin
   not_a_plugin.cxx)
 

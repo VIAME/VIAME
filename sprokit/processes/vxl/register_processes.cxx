@@ -40,7 +40,7 @@
  */
 extern "C"
 KWIVER_PROCESSES_VXL_EXPORT
-void register_factories( kwiver::vital::plugin_manager& vpm )
+void register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static const auto module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_vxl" );
 

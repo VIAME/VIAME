@@ -194,8 +194,8 @@ bake_cluster_blocks( cluster_blocks const& blocks )
   bakery_base::dereference_static_providers( configs );
 
   process::type_t const& type = bakery.m_type;
-  process_registry::description_t const& description = bakery.m_description;
-  process_ctor_t const ctor = cluster_creator( bakery );
+  process::description_t const& description = bakery.m_description;
+  process_factory_func_t const ctor = cluster_creator( bakery );
 
   cluster_info_t const info = boost::make_shared< cluster_info > ( type, description, ctor );
 

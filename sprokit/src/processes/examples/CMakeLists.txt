@@ -58,4 +58,6 @@ sprokit_add_plugin(processes_examples
 target_link_libraries(processes_examples
   PRIVATE        sprokit_pipeline
                  ${Boost_FILESYSTEM_LIBRARY}
-                 ${Boost_SYSTEM_LIBRARY})
+                 ${Boost_SYSTEM_LIBRARY}
+                 vital_vpm
+  )

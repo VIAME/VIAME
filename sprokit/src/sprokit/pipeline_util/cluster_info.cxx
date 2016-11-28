@@ -40,8 +40,8 @@ namespace sprokit {
 
 cluster_info
 ::cluster_info( process::type_t const&                  type_,
-                  process_registry::description_t const&  description_,
-                  process_ctor_t const&                   ctor_ )
+                  process::description_t const&  description_,
+                  process_factory_func_t const&  ctor_ )
   : type( type_ ),
   description( description_ ),
   ctor( ctor_ )

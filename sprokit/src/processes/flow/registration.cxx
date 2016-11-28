@@ -44,33 +44,38 @@
 extern "C"
 SPROKIT_PROCESSES_FLOW_EXPORT
 void
-register_factories( kwiver::vital::plugin_manager& vpm )
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static process_registry::module_t const module_name = process_registry::module_t("flow_processes");
+  static auto const module_name = kwiver::vital::plugin_manager::module_t("flow_processes");
 
-  process_registry_t const registry = process_registry::self();
-
-  if (sprokit::is_process_loaded(module_name))
+  if (sprokit::is_process_module_loaded( module_name ) )
   {
     return;
   }
 
-  fact = vpm.ADD_PROCESS( collate_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "collate" );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Collates data from multiple worker processes" );
+  auto fact = vpm.ADD_PROCESS( sprokit::collate_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "collate" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Collates data from multiple worker processes" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( distribute_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "distribute" );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Distributes data to multiple worker processes" );
+  fact = vpm.ADD_PROCESS( sprokit::distribute_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "distribute" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Distributes data to multiple worker processes" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( pass_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "pass" );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Pass a data stream through" );
+  fact = vpm.ADD_PROCESS( sprokit::pass_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "pass" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Pass a data stream through" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( sink_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "sink" );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Ignores incoming data" );
+  fact = vpm.ADD_PROCESS( sprokit::sink_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "sink" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Ignores incoming data" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-
-  sprokit::mark_process_moduleas_loaded(module_name);
+  sprokit::mark_process_module_as_loaded( module_name );
 }

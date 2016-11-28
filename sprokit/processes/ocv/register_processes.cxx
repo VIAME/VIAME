@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 // -- list processes to register --
 #include "image_viewer_process.h"
@@ -45,7 +45,7 @@
  */
 extern "C"
 KWIVER_PROCESSES_OCV_EXPORT
-register_factories( kwiver::vital::plugin_manager& vpm )
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static auto const module_name = sprokit::process_registry::module_t( "kwiver_processes_ocv" );
 

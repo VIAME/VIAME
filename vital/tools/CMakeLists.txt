@@ -16,6 +16,12 @@ target_link_libraries( algo_explorer
 
 ###
 #
+message( "sprokit_source_dir: ${sprokit_source_dir}" )
+##++ There is a problem here in that plugin_explorer needs sprokit includes
+##++ But they are not readily available. Generally speaking, vital shopuld not depend
+##++ on any other package.
+include_directories( ${sprokit_source_dir}/src )
+
 kwiver_add_executable( plugin_explorer
   plugin_explorer.cxx
   )
@@ -25,6 +31,8 @@ target_link_libraries( plugin_explorer
                  vital_vpm
                  vital_logger
                  kwiversys
+                 sprokit_tools
+                 sprokit_pipeline
   )
 
 ###

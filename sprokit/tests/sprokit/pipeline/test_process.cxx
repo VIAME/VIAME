@@ -863,12 +863,10 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
 sprokit::process_t
 create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr const& conf)
 {
-  static bool const modules_loaded = (sprokit::load_known_modules(), true);
-  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
-
+  static bool const modules_loaded = (kwiver::vital::plugin_manager::instance().load_plugins(), true);
   (void)modules_loaded;
 
-  return reg->create_process(type, name, conf);
+  return sprokit::create_process(type, name, conf);
 }
 
 sprokit::edge_t

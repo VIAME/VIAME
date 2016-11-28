@@ -87,7 +87,7 @@ mark_scheduler_module_as_loaded( module_t const& module )
 
 // ------------------------------------------------------------------
 bool
-is_scheduler_moduleloaded( module_t const& module )
+is_scheduler_module_loaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 

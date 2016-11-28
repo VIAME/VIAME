@@ -4,7 +4,6 @@ set(pipeline_srcs
   datum.cxx
   edge.cxx
   edge_exception.cxx
-  modules.cxx
   pipeline.cxx
   pipeline_exception.cxx
   process.cxx
@@ -26,7 +25,6 @@ set(pipeline_headers
   datum.h
   edge.h
   edge_exception.h
-  modules.h
   pipeline-config.h
   pipeline.h
   pipeline_exception.h
@@ -55,6 +53,7 @@ else ()
   set(destdir lib)
 endif ()
 
+##++ rework all the plugin loading path stuff. This should be exported and handled in the vital package.
 set(sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}/${libdir}/sprokit")
 set(module_output_path            "${sprokit_output_dir}/${destdir}/sprokit")
 
@@ -138,6 +137,7 @@ set_source_files_properties(scheduler.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${scheduler_build_options}")
 
+##++ Is this still true?
 # XXX: The core library must be build shared because the plugins will otherwise
 # each have their own instance of the registries and then nothing else can get
 # access to the loaded processes. Splitting out the registries into a separate
@@ -173,6 +173,9 @@ if(APPLE AND KWIVER_ENABLE_PYTHON)
 endif()
 
 add_dependencies(sprokit_pipeline     configure-version.h)
+
+##++ need a differente way of exporting paths to loadable modules
+# e.g. always in the same location, determined at a higher level.
 
 if (WIN32)
   add_dependencies(sprokit_pipeline   configure-module-paths.h)

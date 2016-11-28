@@ -56,11 +56,14 @@ sprokit_private_header_group(${clusters_private_headers})
 sprokit_add_plugin(processes_clusters
   MAKE_SPROKIT_PROCESSES_CLUSTERS_LIB
   ${clusters_srcs}
-  ${clusters_private_headers})
+  ${clusters_private_headers}
+  )
 target_link_libraries(processes_clusters
   PUBLIC              vital_logger
 
   PRIVATE             sprokit_pipeline_util
                       sprokit_pipeline
                       ${Boost_FILESYSTEM_LIBRARY}
-                      ${Boost_SYSTEM_LIBRARY})
+                      ${Boost_SYSTEM_LIBRARY}
+                      vital_vpm
+                      )

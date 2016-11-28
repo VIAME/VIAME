@@ -81,7 +81,7 @@ create_process( const sprokit::process::type_t&         type,
 
 // ------------------------------------------------------------------
 void
-mark_process_as_loaded( module_t const& module )
+mark_process_module_as_loaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
@@ -94,7 +94,7 @@ mark_process_as_loaded( module_t const& module )
 
 // ------------------------------------------------------------------
 bool
-is_process_loaded( module_t const& module )
+is_process_module_loaded( module_t const& module )
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
@@ -104,5 +104,14 @@ is_process_loaded( module_t const& module )
 
   return vpm.is_module_loaded( mod );
 }
+
+
+// ------------------------------------------------------------------
+kwiver::vital::plugin_factory_vector_t const& get_process_list()
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  return vpm.get_factories( typeid( sprokit::process ).name() );
+}
+
 
 } // end namespace

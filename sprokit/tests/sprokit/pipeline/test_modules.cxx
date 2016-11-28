@@ -31,16 +31,18 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <sprokit/pipeline/modules.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #define TEST_ARGS ()
 
 DECLARE_TEST_MAP();
+
 
 int
 main(int argc, char* argv[])
@@ -52,45 +54,51 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
+
 IMPLEMENT_TEST(load)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_plugins();
 }
+
 
 IMPLEMENT_TEST(multiple_load)
 {
-  sprokit::load_known_modules();
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_plugins();
+  vpm.load_plugins();
 }
+
 
 TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/multiple_load)
 IMPLEMENT_TEST(envvar)
 {
-  sprokit::load_known_modules();
-
-  sprokit::process_registry_t const preg = sprokit::process_registry::self();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_plugins();
 
   sprokit::process::type_t const proc_type = sprokit::process::type_t("test");
 
-  preg->create_process(proc_type, sprokit::process::name_t());
+  sprokit::create_process(proc_type, sprokit::process::name_t());
 
-  sprokit::scheduler_registry_t const sreg = sprokit::scheduler_registry::self();
-
-  sprokit::scheduler_registry::type_t const sched_type = sprokit::scheduler_registry::type_t("test");
+  sprokit::scheduler::type_t const sched_type = sprokit::scheduler::type_t("test");
 
   sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>();
 
-  sreg->create_scheduler(sched_type, pipeline);
+  sprokit::create_scheduler(sched_type, pipeline);
 }
+
 
 TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/not_a_plugin)
 IMPLEMENT_TEST(not_a_plugin)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_plugins();
 }
+
 
 TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@)
 IMPLEMENT_TEST(has_directory)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_plugins();
 }

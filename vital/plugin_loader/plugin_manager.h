@@ -105,6 +105,33 @@ public:
   std::vector< path_t > const& search_path() const;
 
   /**
+   * @brief Add factory to manager.
+   *
+   * This method adds the specified plugin factory to the plugin
+   * manager. This method is usually called from the plugin
+   * registration function in the loadable module to self-register all
+   * plugins in a module.
+   *
+   * Plugin factory objects are grouped under the interface type name,
+   * so all factories that create the same interface are together.
+   *
+   * @param fact Plugin factory object to register
+   *
+   * @return A pointer is returned to the added factory in case
+   * attributes need to be added to the factory.
+   *
+   * Example:
+   \code
+   void add_factories( plugin_loader* pm )
+   {
+     plugin_factory_handle_t fact = pm->add_factory( new foo_factory() );
+     fact->add_attribute( "file-type", "xml mit" );
+   }
+   \endcode
+   */
+  plugin_factory_handle_t add_factory( plugin_factory* fact );
+
+  /**
    * @brief Get list of factories for interface type.
    *
    * This method returns a list of pointer to factory methods that
@@ -170,7 +197,7 @@ public:
    * @brief Get list of loaded modules
    *
    * This call returns a map of loaded modules with the files they
-   * were defined.
+   * were defined in.
    *
    * @return Map of loaded modules.
    */

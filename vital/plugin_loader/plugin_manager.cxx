@@ -177,6 +177,14 @@ search_path() const
 
 
 // ------------------------------------------------------------------
+plugin_factory_handle_t plugin_manager::
+add_factory( plugin_factory* fact )
+{
+  return m_priv->m_loader->add_factory( fact );
+}
+
+
+// ------------------------------------------------------------------
 plugin_factory_vector_t const& plugin_manager::
 get_factories( std::string const& type_name )
 {

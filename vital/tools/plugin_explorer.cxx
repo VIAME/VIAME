@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,11 @@
 #include <vital/config/config_block.h>
 #include <vital/util/demangle.h>
 #include <vital/vital_foreach.h>
+
 #include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/RegularExpression.hxx>
 
-#include <sprokit/pipeline/process_registry.h>
+//+ #include <sprokit/pipeline/process_factory.h>
 
 #include <iostream>
 #include <vector>
@@ -53,15 +54,26 @@ bool opt_brief( false );
 bool opt_modules( false );
 bool opt_files( false );
 bool opt_hidden( false );
+bool opt_processes( false );
+bool opt_schedulers( false );
+bool opt_all( false );
+
 std::vector< std::string > opt_path;
+
+// Fields used for filtering attributes
+bool opt_attr_filter( false );
+std::string opt_filter_attr;    // attribute name
+std::string opt_filter_regex;   // regex for attr value to match.
+kwiversys::RegularExpression filter_regex;
+
+// internal option for factory filtering
+bool opt_fact_filt( false );
 std::string opt_fact_regex;
-
-
-bool opt_fact_filt( false ); // internal option for factory filtering
 kwiversys::RegularExpression fact_regex;
 
 static std::string const hidden_prefix = "_";
 
+//+ will need to add support for algorithms unless this is delegated to algo_explorer
 
 // ------------------------------------------------------------------
 /*
@@ -97,6 +109,7 @@ struct print_functor
     }
   }
 
+  // instance data
   std::ostream& m_str;
 };
 
@@ -110,6 +123,79 @@ join( const std::vector< std::string >& vec, const char* delim )
 
   return res.str();
 }
+
+
+// ------------------------------------------------------------------
+//
+// display full factory list
+//
+void
+display_factory( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  // See if this factory is selected
+  if ( opt_attr_filter )
+  {
+    std::string val;
+    if ( ! fact->get_attribute( opt_filter_attr, val ) )
+    {
+      // attribute has not been found.
+      return;
+    }
+
+    if ( ! filter_regex.find( val ) )
+    {
+      // The attr value does not match the regex.
+      return;
+    }
+
+  } // end attr filter
+
+  // Print the required fields first
+  std::string buf;
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf );
+
+  std::string version( "" );
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, version );
+
+  std::cout << "  Plugin name: " << buf;
+  if ( ! version.empty() )
+  {
+    std::cout << "      Version: " << version << std::endl;
+  }
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+  std::cout << "      Description: " << buf << std::endl;
+
+  if ( opt_brief )
+  {
+    return;
+  }
+
+  buf = "-- Not Set --";
+  if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
+  {
+    buf = kwiver::vital::demangle( buf );
+  }
+  std::cout << "      Creates concrete type: " << buf << std::endl;
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME, buf );
+  std::cout << "      Plugin loaded from file: " << buf << std::endl;
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, buf );
+  std::cout << "      Plugin module name: " << buf << std::endl;
+
+  if ( opt_detail )
+  {
+    // print all the rest of the attributes
+    print_functor pf( std::cout );
+    fact->for_each_attr( pf );
+  }
+} // display_factory
 
 
 // ------------------------------------------------------------------
@@ -142,13 +228,13 @@ display_process( kwiver::vital::plugin_factory_handle_t const fact )
 {
   // input is proc_type which is really proc name
 
-  std::string proc_type;
+  std::string proc_type = "-- Not Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
 
-  std::string descrip;
+  std::string descrip = "-- Not_Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
 
-  if ( ! opt_detail )
+  if ( opt_brief )
   {
     std::cout << proc_type << ": " << descrip << std::endl;
     return;
@@ -190,8 +276,7 @@ display_process( kwiver::vital::plugin_factory_handle_t const fact )
               << std::endl;
   }
 
-  std::cout << "  Input ports:" << std::endl;
-
+  std::cout << "  - Input ports:" << std::endl;
   sprokit::process::ports_t const iports = proc->input_ports();
 
   // loop over all input ports
@@ -217,8 +302,7 @@ display_process( kwiver::vital::plugin_factory_handle_t const fact )
               << std::endl;
   }
 
-  std::cout << "  Output ports:" << std::endl;
-
+  std::cout << "  - Output ports:" << std::endl;
   sprokit::process::ports_t const oports = proc->output_ports();
 
   // Loop over all output ports
@@ -244,9 +328,30 @@ display_process( kwiver::vital::plugin_factory_handle_t const fact )
               << std::endl;
   }
 
-  std::cout << std::endl
+  if ( opt_detail )
+  {
+    std::cout << std::endl;
+
+    // print all the rest of the attributes
+    print_functor pf( std::cout );
+    fact->for_each_attr( pf );
+  }
             << std::endl;
 } // display_process
+
+
+// ------------------------------------------------------------------
+void
+display_scheduler( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  std::string sched_type = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, sched_type );
+
+  std::string descrip = "-- Not_Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+
+  std::cout << sched_type << ": " << descrip << std::endl;
+}
 
 
 // ------------------------------------------------------------------
@@ -266,8 +371,6 @@ path_callback( const char*  argument,   // name of argument
 int
 main( int argc, char* argv[] )
 {
-  std::string plugin_name;
-
   kwiversys::CommandLineArguments arg;
 
   arg.Initialize( argc, argv );
@@ -275,22 +378,26 @@ main( int argc, char* argv[] )
 
   arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
   arg.AddArgument( "-h",            argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "--plugin-name", argT::SPACE_ARGUMENT, &plugin_name, "Optional name of single plugin to display." );
   arg.AddArgument( "--detail",      argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
   arg.AddArgument( "-d",            argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
   arg.AddArgument( "--config",      argT::NO_ARGUMENT, &opt_config, "Display configuration information needed by plugins" );
   arg.AddArgument( "--path",        argT::NO_ARGUMENT, &opt_path_list, "Display plugin search path" );
   arg.AddCallback( "-I",            argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  arg.AddArgument( "--fact",        argT::SPACE_ARGUMENT, &opt_fact_regex, "Filter factories based on regexp" ); //+ better description
+  arg.AddArgument( "--fact",        argT::SPACE_ARGUMENT, &opt_fact_regex, "Filter factories by interface type based on regexp" );
   arg.AddArgument( "--brief",       argT::NO_ARGUMENT, &opt_brief, "Brief display" );
   arg.AddArgument( "--files",       argT::NO_ARGUMENT, &opt_files, "Display list of loaded files" );
   arg.AddArgument( "--mod",         argT::NO_ARGUMENT, &opt_modules, "Display list of loaded modules" );
+  arg.AddArgument( "--proc",        argT::NO_ARGUMENT, &opt_processes, "Display list of sprokit processes" );
+  arg.AddArgument( "--sched",       argT::NO_ARGUMENT, &opt_schedulers, "Display list of sprokit schedulers" );
+  arg.AddArgument( "--hidden",      argT::NO_ARGUMENT, &opt_processes, "Display hidden properties for processes" );
+  arg.AddArgument( "--all",         argT::NO_ARGUMENT, &opt_all, "Display all factories" );
 
-  //+ add opttions for:
+  std::vector< std::string > filter_args;
+  arg.AddArgument( "--filter",      argT::MULTI_ARGUMENT, &filter_args, "Filter factories based on attribute value" );
+
+
+  //+ add options for:
   // schedulers only
-  // processes only, short and detailed
-  // show process hidden properties
-  // add regex to filter on specific attribute e.g. --filter attr regex
 
   if ( ! arg.Parse() )
   {
@@ -310,11 +417,39 @@ main( int argc, char* argv[] )
     opt_fact_filt = true;
     if ( ! fact_regex.compile( opt_fact_regex) )
     {
-      std::cerr << "Invalid regular expression \"" << opt_fact_regex << "\"" << std::endl;
+      std::cerr << "Invalid regular expression for factory filter \"" << opt_fact_regex << "\"" << std::endl;
       return 1;
     }
   }
 
+  // check for attribute based filtering
+  if ( filter_args.size() == 2 )
+  {
+    opt_attr_filter = true;
+    opt_filter_attr = filter_args[0];
+    opt_filter_regex = filter_args[1];
+
+    if ( ! filter_regex.compile( opt_filter_regex ) )
+    {
+      std::cerr << "Invalid regular expression for attribute filter \"" << opt_filter_regex << "\"" << std::endl;
+      return 1;
+    }
+  }
+  else
+  {
+    std::cerr << "Invalid attribute filtering specification. Two parameters are required." << std::endl;
+    return 1;
+  }
+
+  // ========
+  // Test for incompatible option sets.
+  if ( opt_fact_filt && opt_attr_filter )
+  {
+    std::cerr << "Only one of --fact and --filter allowed." << std::endl;
+    return 1;
+  }
+
+  // ========
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   VITAL_FOREACH( std::string const& path, opt_path )
@@ -346,114 +481,69 @@ main( int argc, char* argv[] )
     std::cout << std::endl;
   }
 
-  //
-  // display factory list
-  //
-  auto plugin_map = vpm.plugin_map();
-
-  std::cout << "\n---- Registered Factories\n";
-  VITAL_FOREACH( auto it, plugin_map )
+  if ( opt_processes )
   {
-    std::string ds = kwiver::vital::demangle( it.first );
-
-    // If regexp matching is enabled, and this does not match, skip it
-    if ( opt_fact_filt && ( ! fact_regex.find( ds ) ) )
+    std::cout << "---- Registered processes:\n";
+    auto fact_list = vpm.get_factories( typeid( sprokit::process ).name() );
+    VITAL_FOREACH( auto a_fact, fact_list )
     {
-      continue;
+      display_process( a_fact );
     }
+    std::cout << std::endl;
+  }
 
-    std::cout << "\nFactories that create type \"" << ds << "\"" << std::endl;
-
-    // Get vector of factories
-    kwiver::vital::plugin_factory_vector_t const & facts = it.second;
-
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
+  if (opt_schedulers )
+  {
+    std::cout << "---- Registered schedulers:\n";
+    auto fact_list = vpm.get_factories( typeid( sprokit::scheduler ).name() );
+    VITAL_FOREACH( auto a_fact, fact_list )
     {
-      // Print the required fields first
-      std::string buf;
-      buf = "-- Not Set --";
-      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf );
+      display_scheduler( a_fact );
+    }
+    std::cout << std::endl;
+  }
 
-      std::string version("");
-      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, version );
+  if ( opt_all )
+  {
+    auto plugin_map = vpm.plugin_map();
 
-      std::cout << "  Plugin name: " << buf;
-      if ( ! version.empty() )
-      {
-        std::cout << "      Version: " << version << std::endl;
-      }
+    std::cout << "\n---- All Registered Factories\n";
 
-      buf = "-- Not Set --";
-      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
-      std::cout << "      Description: " << buf << std::endl;
+    VITAL_FOREACH( auto it, plugin_map )
+    {
+      std::string ds = kwiver::vital::demangle( it.first );
 
-      if ( opt_brief )
+      // If regexp matching is enabled, and this does not match, skip it
+      if ( opt_fact_filt && ( ! fact_regex.find( ds ) ) )
       {
         continue;
       }
 
-      if ( opt_detail)
+      std::cout << "\nFactories that create type \"" << ds << "\"" << std::endl;
+
+      // Get vector of factories
+      kwiver::vital::plugin_factory_vector_t const& facts = it.second;
+      VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
       {
-        buf = "-- Not Set --";
-        if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
-        {
-          buf = kwiver::vital::demangle( buf );
-        }
-        std::cout << "      Creates concrete type: " << buf << std::endl;
-      }
-
-      if ( opt_detail )
-      {
-        buf = "-- Not Set --";
-        fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME, buf );
-        std::cout << "      Plugin loaded from file: " << buf << std::endl;
-
-        // print all the rest of the attributes
-        print_functor pf( std::cout );
-        fact->for_each_attr( pf );
-      }
-
-      // Need to check for specific well known factory types.
-      // 1) sprokit::process
-      // 2) sprokit::scheduler
-      // Have separate classes decode and format each factory type.
-      // Need a way to get options from these delegates and accept selected options,
-      //
-
-      //
-      // For processes, need to display:
-      // option for "hidden" config entries and ports
-      // Need to instantiate each process to get these details.
-      // 1) process config
-      // 2) input ports
-      // 3) output ports
-
-      //
-      // Schedulers
-      // This is not much different from the default plugin display.
-      // Name and description come from attributes.
-      // 1) name
-      // 2) description
-
-      //
-      // Code to format these data can be lifted from processopedia.
-      //
-
-    } // end foreach factory
-  } // end foreach interface type
+        display_factory( fact );
+      } // end factory
+    } // end interface type
+    std::cout << std::endl;
+  }
 
   //
   // list files is specified
   //
   if ( opt_files )
   {
-    std::vector< std::string > file_list = vpm.file_list();
+    const auto file_list = vpm.file_list();
 
     std::cout << "\n---- Files Successfully Opened" << std::endl;
     VITAL_FOREACH( std::string const& name, file_list )
     {
       std::cout << "  " << name << std::endl;
     } // end foreach
+    std::cout << std::endl;
   }
 
   return 0;

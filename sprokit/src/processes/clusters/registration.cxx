@@ -48,10 +48,9 @@
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/utils.h>
-#include <sprokit/pipeline/process_factory.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -84,21 +83,16 @@ static bool is_separator(cluster_path_t::value_type ch);
 extern "C"
 SPROKIT_PROCESSES_CLUSTERS_EXPORT
 void
-register_factories( kwiver::vital::plugin_manager& vpm )
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static autoconst module_name = process_registry::module_t("cluster_processes");
+  static auto const module_name = module_t("cluster_processes");
   static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit.register_cluster" );
-
-  process_registry_t const registry = process_registry::self();
 
   // See if clusters have already been loaded
   if (sprokit::is_process_module_loaded(module_name))
   {
     return;
   }
-
-//+ not used -   process::types_t const current_types = registry->types();
-//+ not used -   process::types_t new_types;
 
   typedef path_t include_path_t;
   typedef std::vector<include_path_t> include_paths_t;
@@ -187,8 +181,8 @@ register_factories( kwiver::vital::plugin_manager& vpm )
       if (info)
       {
         process::type_t const& type = info->type;
-        process_registry::description_t const& description = info->description;
-        process_ctor_t const& ctor = info->ctor;
+        std::string const& description = info->description;
+        process_factory_func_t const& ctor = info->ctor;
 
         try
         {
@@ -206,7 +200,7 @@ register_factories( kwiver::vital::plugin_manager& vpm )
     }
   }
 
-  registry->mark_process_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( module_name );
 }
 
 

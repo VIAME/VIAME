@@ -67,7 +67,7 @@ namespace sprokit {
 template <typename T>
 scheduler_t
 create_new_scheduler( pipeline_t const& pipe,
-                  kwiver::vital::config_block_sptr const& conf)
+                      kwiver::vital::config_block_sptr const& conf)
 {
   return boost::make_shared<T>(pipe, conf);
 }
@@ -85,7 +85,7 @@ create_new_scheduler( pipeline_t const& pipe,
  *
  * \tparam C Concrete scheduler class type.
  */
-class scheduler_factory
+class SPROKIT_PIPELINE_EXPORT scheduler_factory
 : public kwiver::vital::plugin_factory
 {
 public:
@@ -99,13 +99,14 @@ public:
    * @param itype Type name of interface type.
    * @param factory The Factory function
    */
-  scheduler_factory( const std::string& type,
-                     const std::string& itype,
+  scheduler_factory( const std::string&       type,
+                     const std::string&       itype,
                      scheduler_factory_func_t factory )
     : plugin_factory( itype )
     , m_factory( factory )
   {
     this->add_attribute( CONCRETE_TYPE, type);
+    this->add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() );
   }
 
   virtual ~scheduler_factory() VITAL_DEFAULT_DTOR
@@ -119,6 +120,8 @@ public:
   }
 
 private:
+  virtual void* create_object_i() { return 0; }
+
   scheduler_factory_func_t m_factory;
 };
 
@@ -138,7 +141,7 @@ SPROKIT_PIPELINE_EXPORT
 sprokit::scheduler_t
 create_scheduler( const sprokit::scheduler::type_t&      name,
                   const sprokit::pipeline_t&             pipe,
-                  const kwiver::vital::config_block_sptr config);
+                  const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
 
 /**
  * \brief Mark a scheduler as loaded.
@@ -156,7 +159,7 @@ void mark_scheduler_module_as_loaded(module_t const& module);
  * \returns True if the scheduler has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-bool is_scheduler_moduleloaded(module_t const& module);
+bool is_scheduler_module_loaded(module_t const& module);
 
 //
 // Convenience macro for adding schedulers

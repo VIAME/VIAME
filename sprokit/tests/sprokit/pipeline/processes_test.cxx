@@ -29,7 +29,7 @@
  */
 
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 #include <sprokit/config.h>
 
@@ -56,26 +56,23 @@ test_process
 {
 }
 
+// ------------------------------------------------------------------
 extern "C"
-{
-
-SPROKIT_EXPORT void register_processes();
-
-}
-
+SPROKIT_EXPORT
 void
-register_processes()
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static process_registry::module_t const module_name = process_registry::module_t("test_processes");
+  static auto const module_name = kwiver::vital::plugin_manager::module_t("test_processes");
 
-  process_registry_t const registry = process_registry::self();
-
-  if (registry->is_module_loaded(module_name))
+  if ( sprokit::is_process_module_loaded( module_name ) )
   {
     return;
   }
 
-  registry->register_process("test", "A test process", create_process<test_process>);
+  auto fact = vpm.ADD_PROCESS( test_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "test" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A test process" );
 
-  registry->mark_module_as_loaded(module_name);
+  sprokit::mark_process_module_as_loaded( module_name );
 }
