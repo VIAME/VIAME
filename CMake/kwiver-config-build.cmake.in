@@ -15,6 +15,10 @@ set(KWIVER_INCLUDE_DIRS
   "@KWIVER_BINARY_DIR@/sprokit/src"
   "@EIGEN3_INCLUDE_DIR@" )
 
+set(KWIVER_TEST_INCLUDE_DIRS
+  "@KWIVER_SOURCE_DIR@/tests"
+  )
+
 if (WIN32)
   set(KWIVER_LIBRARY_DIR    "@KWIVER_BINARY_DIR@/bin")
 else ()
