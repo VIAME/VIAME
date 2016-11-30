@@ -70,7 +70,7 @@ public:
            kwiver::vital::track_set_sptr tracks) const = 0;
 
   /// Typedef for the callback function signature
-  typedef std::function<void(kwiver::vital::camera_map_sptr,
+  typedef std::function<bool(kwiver::vital::camera_map_sptr,
                              kwiver::vital::landmark_map_sptr)> callback_t;
 
   /// Set a callback function to report intermediate progress

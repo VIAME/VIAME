@@ -65,8 +65,14 @@ public:
 
   ::ceres::CallbackReturnType operator() (const ::ceres::IterationSummary& summary)
   {
-    bap->trigger_callback();
-    return ::ceres::SOLVER_CONTINUE;
+    if( bap->trigger_callback() )
+    {
+      return ::ceres::SOLVER_CONTINUE;
+    }
+    else
+    {
+      return ::ceres::SOLVER_TERMINATE_SUCCESSFULLY;
+    }
   }
 
   bundle_adjust* bap;
@@ -388,7 +394,7 @@ bundle_adjust
 
 
 /// This function is called by a Ceres callback to trigger a kwiver callback
-void
+bool
 bundle_adjust
 ::trigger_callback()
 {
@@ -410,8 +416,9 @@ bundle_adjust
                                  d_->camera_intr_params, d_->frame_to_intr_map);
     camera_map_sptr cameras = std::make_shared<simple_camera_map>(d_->cams);
 
-    this->m_callback(cameras, landmarks);
+    return this->m_callback(cameras, landmarks);
   }
+  return true;
 }
 
 

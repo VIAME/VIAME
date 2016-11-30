@@ -1031,8 +1031,12 @@ initialize_cameras_landmarks
     }
     if(this->m_callback)
     {
-      this->m_callback(std::make_shared<simple_camera_map>(cams),
-                       std::make_shared<simple_landmark_map>(lms));
+      bool cont = this->m_callback(std::make_shared<simple_camera_map>(cams),
+                                   std::make_shared<simple_landmark_map>(lms));
+      if( !cont )
+      {
+        break;
+      }
     }
   }
 

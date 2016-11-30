@@ -86,7 +86,7 @@ public:
   virtual void set_callback(callback_t cb);
 
   /// This function is called by a Ceres callback to trigger a kwiver callback
-  void trigger_callback();
+  bool trigger_callback();
 
 private:
   /// private implementation class
