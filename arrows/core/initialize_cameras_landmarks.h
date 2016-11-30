@@ -87,10 +87,6 @@ public:
              vital::landmark_map_sptr& landmarks,
              vital::track_set_sptr tracks) const;
 
-  /// Typedef for the callback function signature
-  typedef std::function<void(kwiver::vital::camera_map_sptr,
-                             kwiver::vital::landmark_map_sptr)> callback_t;
-
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);
 
