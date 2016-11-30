@@ -47,6 +47,14 @@ bundle_adjust
   attach_logger( "bundle_adjust" );
 }
 
+/// Set a callback function to report intermediate progress
+void
+bundle_adjust
+::set_callback(callback_t cb)
+{
+  this->m_callback = cb;
+}
+
 } } }
 
 /// \cond DoxygenSuppress

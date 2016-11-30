@@ -48,6 +48,14 @@ initialize_cameras_landmarks
   attach_logger( "initialize_cameras_landmarks" );
 }
 
+/// Set a callback function to report intermediate progress
+void
+initialize_cameras_landmarks
+::set_callback(callback_t cb)
+{
+  this->m_callback = cb;
+}
+
 } } }
 
 /// \cond DoxygenSuppress

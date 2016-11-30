@@ -54,6 +54,25 @@ namespace kwiver {
 namespace arrows {
 namespace ceres {
 
+
+/// A class to register callbacks with Ceres
+class StateCallback
+  : public ::ceres::IterationCallback
+{
+public:
+  explicit StateCallback(bundle_adjust* b = NULL)
+    : bap(b) {}
+
+  ::ceres::CallbackReturnType operator() (const ::ceres::IterationSummary& summary)
+  {
+    bap->trigger_callback();
+    return ::ceres::SOLVER_CONTINUE;
+  }
+
+  bundle_adjust* bap;
+};
+
+
 /// Private implementation class
 class bundle_adjust::priv
   : public solver_options,
@@ -67,6 +86,7 @@ public:
     verbose(false),
     loss_function_type(TRIVIAL_LOSS),
     loss_function_scale(1.0),
+    ceres_callback(),
     m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
   {
   }
@@ -77,6 +97,7 @@ public:
     verbose(other.verbose),
     loss_function_type(other.loss_function_type),
     loss_function_scale(other.loss_function_scale),
+    ceres_callback(),
     m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
   {
   }
@@ -88,6 +109,22 @@ public:
   /// the scale of the loss function
   double loss_function_scale;
 
+
+  /// the input cameras to update in place
+  camera_map::map_camera_t cams;
+  /// the input landmarks to update in place
+  landmark_map::map_landmark_t lms;
+  /// a map from track id to landmark parameters
+  std::map<track_id_t, std::vector<double> > landmark_params;
+  /// a map from frame number to extrinsic parameters
+  std::map<frame_id_t, std::vector<double> > camera_params;
+  /// vector of unique camera intrinsic parameters
+  std::vector<std::vector<double> > camera_intr_params;
+  /// a map from frame number to index of unique camera intrinsics in camera_intr_params
+  std::map<frame_id_t, unsigned int> frame_to_intr_map;
+  /// the ceres callback class
+  StateCallback ceres_callback;
+
   /// Logger handle
   vital::logger_handle_t m_logger;
 };
@@ -98,6 +135,7 @@ bundle_adjust
 ::bundle_adjust()
 : d_(new priv)
 {
+  d_->ceres_callback.bap = this;
 }
 
 
@@ -106,6 +144,7 @@ bundle_adjust
 ::bundle_adjust(const bundle_adjust& other)
 : d_(new priv(*other.d_))
 {
+  d_->ceres_callback.bap = this;
 }
 
 
@@ -169,6 +208,17 @@ bundle_adjust
 
   // set the camera configuation options
   d_->camera_options::set_configuration(config);
+
+  if(this->m_callback)
+  {
+    o.callbacks.clear();
+    o.callbacks.push_back(&d_->ceres_callback);
+    o.update_state_every_iteration = true;
+  }
+  else
+  {
+    o.update_state_every_iteration = false;
+  }
 }
 
 
@@ -199,37 +249,32 @@ bundle_adjust
     // TODO throw an exception for missing input data
     return;
   }
-  typedef camera_map::map_camera_t map_camera_t;
-  typedef landmark_map::map_landmark_t map_landmark_t;
 
   // extract data from containers
-  map_camera_t cams = cameras->cameras();
-  map_landmark_t lms = landmarks->landmarks();
+  d_->cams = cameras->cameras();
+  d_->lms = landmarks->landmarks();
   std::vector<track_sptr> trks = tracks->tracks();
 
   // Extract the landmark locations into a mutable map
-  typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
-  lm_param_map_t landmark_params;
-  VITAL_FOREACH(const map_landmark_t::value_type& lm, lms)
+  d_->landmark_params.clear();
+  VITAL_FOREACH(const landmark_map::map_landmark_t::value_type& lm, d_->lms)
   {
     vector_3d loc = lm.second->loc();
-    landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
+    d_->landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
   }
 
-
-  // a map from frame number to extrinsic parameters
+  typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
   typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
-  cam_param_map_t camera_params;
-  // vector of unique camera intrinsic parameters
-  std::vector<std::vector<double> > camera_intr_params;
-  // a map from frame number to index of unique camera intrinsics in camera_intr_params
-  std::map<frame_id_t, unsigned int> frame_to_intr_map;
+
+  d_->camera_params.clear();
+  d_->camera_intr_params.clear();
+  d_->frame_to_intr_map.clear();
 
   // Extract the raw camera parameter into the provided maps
-  d_->extract_camera_parameters(cams,
-                                camera_params,
-                                camera_intr_params,
-                                frame_to_intr_map);
+  d_->extract_camera_parameters(d_->cams,
+                                d_->camera_params,
+                                d_->camera_intr_params,
+                                d_->frame_to_intr_map);
 
   // the Ceres solver problem
   ::ceres::Problem problem;
@@ -247,22 +292,22 @@ bundle_adjust
   VITAL_FOREACH(const track_sptr& t, trks)
   {
     const track_id_t id = t->id();
-    lm_param_map_t::iterator lm_itr = landmark_params.find(id);
+    lm_param_map_t::iterator lm_itr = d_->landmark_params.find(id);
     // skip this track if the landmark is not in the set to optimize
-    if( lm_itr == landmark_params.end() )
+    if( lm_itr == d_->landmark_params.end() )
     {
       continue;
     }
 
     for(track::history_const_itr ts = t->begin(); ts != t->end(); ++ts)
     {
-      cam_param_map_t::iterator cam_itr = camera_params.find(ts->frame_id);
-      if( cam_itr == camera_params.end() )
+      cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame_id);
+      if( cam_itr == d_->camera_params.end() )
       {
         continue;
       }
-      unsigned intr_idx = frame_to_intr_map[ts->frame_id];
-      double * intr_params_ptr = &camera_intr_params[intr_idx][0];
+      unsigned intr_idx = d_->frame_to_intr_map[ts->frame_id];
+      double * intr_params_ptr = &d_->camera_intr_params[intr_idx][0];
       vector_2d pt = ts->feat->loc();
       problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
                                                 pt.x(), pt.y()),
@@ -275,7 +320,7 @@ bundle_adjust
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  VITAL_FOREACH(std::vector<double>& cip, camera_intr_params)
+  VITAL_FOREACH(std::vector<double>& cip, d_->camera_intr_params)
   {
     // apply the constraints
     if (constant_intrinsics.size() > 4 + ndp)
@@ -306,20 +351,69 @@ bundle_adjust
   }
 
   // Update the landmarks with the optimized values
-  VITAL_FOREACH(const lm_param_map_t::value_type& lmp, landmark_params)
+  VITAL_FOREACH(const lm_param_map_t::value_type& lmp, d_->landmark_params)
   {
-    auto& lmi = lms[lmp.first];
+    auto& lmi = d_->lms[lmp.first];
     auto updated_lm = std::make_shared<landmark_d>(*lmi);
     updated_lm->set_loc(Eigen::Map<const vector_3d>(&lmp.second[0]));
     lmi = updated_lm;
   }
-  landmarks = std::make_shared<simple_landmark_map>(lms);
+  landmarks = std::make_shared<simple_landmark_map>(d_->lms);
 
   // Update the cameras with the optimized values
-  d_->update_camera_parameters(cams, camera_params,
-                               camera_intr_params, frame_to_intr_map);
-  cameras = std::make_shared<simple_camera_map>(cams);
+  d_->update_camera_parameters(d_->cams, d_->camera_params,
+                               d_->camera_intr_params, d_->frame_to_intr_map);
+  cameras = std::make_shared<simple_camera_map>(d_->cams);
 }
+
+
+/// Set a callback function to report intermediate progress
+void
+bundle_adjust
+::set_callback(callback_t cb)
+{
+  kwiver::vital::algo::bundle_adjust::set_callback(cb);
+  ::ceres::Solver::Options& o = d_->options;
+  if(this->m_callback)
+  {
+    o.callbacks.clear();
+    o.callbacks.push_back(&d_->ceres_callback);
+    o.update_state_every_iteration = true;
+  }
+  else
+  {
+    o.update_state_every_iteration = false;
+  }
+}
+
+
+/// This function is called by a Ceres callback to trigger a kwiver callback
+void
+bundle_adjust
+::trigger_callback()
+{
+  if(this->m_callback)
+  {
+    // Update the landmarks with the optimized values
+    typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
+    VITAL_FOREACH(const lm_param_map_t::value_type& lmp, d_->landmark_params)
+    {
+      auto& lmi = d_->lms[lmp.first];
+      auto updated_lm = std::make_shared<landmark_d>(*lmi);
+      updated_lm->set_loc(Eigen::Map<const vector_3d>(&lmp.second[0]));
+      lmi = updated_lm;
+    }
+    landmark_map_sptr landmarks = std::make_shared<simple_landmark_map>(d_->lms);
+
+    // Update the cameras with the optimized values
+    d_->update_camera_parameters(d_->cams, d_->camera_params,
+                                 d_->camera_intr_params, d_->frame_to_intr_map);
+    camera_map_sptr cameras = std::make_shared<simple_camera_map>(d_->cams);
+
+    this->m_callback(cameras, landmarks);
+  }
+}
+
 
 } // end namespace ceres
 } // end namespace arrows

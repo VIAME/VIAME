@@ -499,6 +499,10 @@ initialize_cameras_landmarks
   vital::algo::bundle_adjust
       ::set_nested_algo_configuration("bundle_adjuster",
                                       config, d_->bundle_adjuster);
+  if(d_->bundle_adjuster && this->m_callback)
+  {
+    d_->bundle_adjuster->set_callback(this->m_callback);
+  }
 
   d_->verbose = config->get_value<bool>("verbose",
                                         d_->verbose);
@@ -1025,6 +1029,11 @@ initialize_cameras_landmarks
 
       LOG_DEBUG(d_->m_logger, "frame "<<f<<" - num landmarks = "<< lms.size());
     }
+    if(this->m_callback)
+    {
+      this->m_callback(std::make_shared<simple_camera_map>(cams),
+                       std::make_shared<simple_landmark_map>(lms));
+    }
   }
 
   // try depth reversal at the end
@@ -1083,6 +1092,21 @@ initialize_cameras_landmarks
   }
   cameras = camera_map_sptr(new simple_camera_map(cams));
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
+}
+
+
+/// Set a callback function to report intermediate progress
+void
+initialize_cameras_landmarks
+::set_callback(callback_t cb)
+{
+  vital::algo::initialize_cameras_landmarks::set_callback(cb);
+  // pass callback on to bundle adjuster if available
+  if(d_->bundle_adjuster)
+  {
+    d_->bundle_adjuster->set_callback(cb);
+  }
+  std::cout << std::endl;
 }
 
 } // end namespace core
