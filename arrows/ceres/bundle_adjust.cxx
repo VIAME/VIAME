@@ -65,14 +65,9 @@ public:
 
   ::ceres::CallbackReturnType operator() (const ::ceres::IterationSummary& summary)
   {
-    if( bap->trigger_callback() )
-    {
-      return ::ceres::SOLVER_CONTINUE;
-    }
-    else
-    {
-      return ::ceres::SOLVER_TERMINATE_SUCCESSFULLY;
-    }
+    return ( bap && !bap->trigger_callback() )
+           ? ::ceres::SOLVER_TERMINATE_SUCCESSFULLY
+           : ::ceres::SOLVER_CONTINUE;
   }
 
   bundle_adjust* bap;
