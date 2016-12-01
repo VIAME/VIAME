@@ -95,7 +95,8 @@ Vital
 
  * Added callback registration to two abstract algorithms: bundle_adjust and
    initialize_cameras_landmarks.  Callbacks allow the algorithms to report
-   progress updates.
+   progress updates.  They also allow the receiver to terminate the algorithm
+   early.
 
 
 Fixes since last public release
