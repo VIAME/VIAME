@@ -1110,7 +1110,6 @@ initialize_cameras_landmarks
   {
     d_->bundle_adjuster->set_callback(cb);
   }
-  std::cout << std::endl;
 }
 
 } // end namespace core
