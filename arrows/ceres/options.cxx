@@ -398,7 +398,7 @@ camera_options
 ::extract_camera_parameters(camera_map::map_camera_t const& cameras,
                             cam_param_map_t& ext_params,
                             std::vector<std::vector<double> >& int_params,
-                            std::map<frame_id_t, unsigned int>& int_map) const
+                            cam_intrinsic_id_map_t& int_map) const
 {
   // We need another map from intrinsics intstances to parameter index to
   // detect when the same intrinsics are shared between cameras
@@ -450,7 +450,7 @@ camera_options
 ::update_camera_parameters(vital::camera_map::map_camera_t& cameras,
                            cam_param_map_t const& ext_params,
                            std::vector<std::vector<double> > const& int_params,
-                           std::map<frame_id_t, unsigned int> const& int_map) const
+                           cam_intrinsic_id_map_t const& int_map) const
 {
   std::vector<camera_intrinsics_sptr> updated_intr;
   if( this->optimize_intrinsics() )
@@ -532,7 +532,8 @@ camera_options
 void
 camera_options
 ::add_forward_motion_damping_cost(::ceres::Problem& problem,
-                                  cam_param_map_t& ext_params) const
+                                  cam_param_map_t& ext_params,
+                                  cam_intrinsic_id_map_t const& frame_to_intr_map) const
 {
   if( this->camera_forward_motion_damping > 0.0 &&
       ext_params.size() >= 2 )
@@ -546,10 +547,19 @@ camera_options
     for(; curr_cam != ext_params.end();
         prev_cam = curr_cam, curr_cam++)
     {
-      problem.AddResidualBlock(fwd_mo_cost,
-                               NULL,
-                               &prev_cam->second[0],
-                               &curr_cam->second[0]);
+      // add a forward motion residual only when the camera intrinsic models
+      // are not the same instance
+      auto prev_idx = frame_to_intr_map.find(prev_cam->first);
+      auto curr_idx = frame_to_intr_map.find(curr_cam->first);
+      if(prev_idx != frame_to_intr_map.end() &&
+         curr_idx != frame_to_intr_map.end() &&
+         prev_idx->second != curr_idx->second)
+      {
+        problem.AddResidualBlock(fwd_mo_cost,
+                                 NULL,
+                                 &prev_cam->second[0],
+                                 &curr_cam->second[0]);
+      }
     }
   }
 }

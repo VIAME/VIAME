@@ -288,7 +288,7 @@ optimize_cameras
   d_->add_camera_path_smoothness_cost(problem, camera_params);
 
   // Add camera path regularization residuals
-  d_->add_forward_motion_damping_cost(problem, camera_params);
+  d_->add_forward_motion_damping_cost(problem, camera_params, frame_to_intr_map);
 
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.
