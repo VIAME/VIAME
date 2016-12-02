@@ -444,7 +444,7 @@ initialize_cameras_landmarks
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) during intermediate processing steps.");
 
-  config->set_value("final_reproj_thresh", d_->interim_reproj_thresh,
+  config->set_value("final_reproj_thresh", d_->final_reproj_thresh,
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) after the final bundle adjustment.");
   config->set_value("base_camera:focal_length", K->focal_length(),
