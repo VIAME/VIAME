@@ -42,20 +42,18 @@ import ctypes
 
 from vital.types import ImageContainer
 from vital.types import TrackSet
-from vital.util import find_vital_type_converter_library
+from vital.util import find_vital_library
 
 __VITAL_CONVERTERS_LIB__ = None
 
 def _find_converter_lib():
     #
     # Load our supporting library
-    # TBD call     VITAL_LIB = find_vital_library()
-    # or similar to locate library.
+    #
+    # We are caching the lib interface here.
     global __VITAL_CONVERTERS_LIB__
     if not __VITAL_CONVERTERS_LIB__:
-        # lib_path = find_vital_library_path()
-        # lib_path = find_library_path("vital_type_converters")
-        lib_path = find_vital_type_converter_library.find_vital_library_path()
+        lib_path = find_vital_library.find_vital_type_converter_library_path()
 
         if not lib_path:
             raise RuntimeError( "Unable to locate 'vital_type_converters' support library")
@@ -65,7 +63,6 @@ def _find_converter_lib():
             raise RuntimeError("Unable to locate vital_type_converters")
 
     return __VITAL_CONVERTERS_LIB__
-
 
 
 def _convert_image_container_in(datum_ptr):
@@ -145,6 +142,6 @@ def _convert_track_set_handle(datum_ptr):
 Converters to do:
     feature_set
     descriptor_set
-
+    detected object classes
 
 """

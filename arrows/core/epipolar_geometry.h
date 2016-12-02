@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_CORE_EPIPOLAR_GEOMETRY_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/camera.h>
 #include <vital/types/essential_matrix.h>
@@ -57,7 +57,7 @@ namespace arrows {
  * \returns     a vector of booleans, one for each point pair, the value is
  *                true if this pair is an inlier to the fundamental matrix
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 std::vector<bool>
 mark_fm_inliers(vital::fundamental_matrix const& fm,
                 std::vector<vital::vector_2d> const& pts1,
@@ -80,7 +80,7 @@ mark_fm_inliers(vital::fundamental_matrix const& fm,
  * \returns     a camera containing the rotation and unit translation of the
  *                left camera assuming the right camera is the identity
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 kwiver::vital::simple_camera
 extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
                           const kwiver::vital::vector_2d& left_pt,
@@ -88,21 +88,21 @@ extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
 
 
 /// Compute the fundamental matrix from a pair of cameras
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 kwiver::vital::fundamental_matrix_sptr
 fundamental_matrix_from_cameras(kwiver::vital::camera const& right_cam,
                                 kwiver::vital::camera const& left_cam);
 
 
 /// Compute the essential matrix from a pair of cameras
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 kwiver::vital::essential_matrix_sptr
 essential_matrix_from_cameras(kwiver::vital::camera const& right_cam,
                               kwiver::vital::camera const& left_cam);
 
 
 /// Convert an essential matrix to a fundamental matrix
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 kwiver::vital::fundamental_matrix_sptr
 essential_matrix_to_fundamental(kwiver::vital::essential_matrix const& E,
                                 kwiver::vital::camera_intrinsics const& right_cal,

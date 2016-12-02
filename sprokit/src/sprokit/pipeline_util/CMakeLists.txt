@@ -1,14 +1,29 @@
+###
+#
 project(sprokit_pipeline_util)
 
 set(pipeline_util_srcs
+  bakery_base.cxx
+  check_provider.cxx
+  cluster_bakery.cxx
+  cluster_creator.cxx
+  cluster_info.cxx
+  cluster_splitter.cxx
+  config_provider_sorter.cxx
+  ensure_provided.cxx
   export_dot.cxx
   export_dot_exception.cxx
+  extract_literal_value.cxx
   load_pipe.cxx
   load_pipe_exception.cxx
+  loaded_cluster.cxx
   pipe_bakery.cxx
   pipe_bakery_exception.cxx
   pipe_grammar.cxx
-  providers.cxx)
+  provided_by_cluster.cxx
+  provider_dereferencer.cxx
+  providers.cxx
+  )
 
 set(pipeline_util_headers
   export_dot.h
@@ -20,10 +35,24 @@ set(pipeline_util_headers
   pipe_bakery_exception.h
   pipe_declaration_types.h
   pipe_grammar.h
-  pipeline_util-config.h)
+  pipeline_util-config.h
+  )
 
 set(pipeline_util_private_headers
-  providers.h)
+  bakery_base.h
+  check_provider.h
+  cluster_bakery.h
+  cluster_creator.h
+  cluster_info.h
+  cluster_splitter.h
+  config_provider_sorter.h
+  ensure_provided.h
+  extract_literal_value.h
+  loaded_cluster.h
+  provided_by_cluster.h
+  provider_dereferencer.h
+  providers.h
+  )
 
 if (WIN32)
   set(path_sep ";")
@@ -67,7 +96,8 @@ sprokit_private_header_group(${pipeline_util_private_headers})
 sprokit_add_library(sprokit_pipeline_util
   ${pipeline_util_srcs}
   ${pipeline_util_headers}
-  ${pipeline_util_private_headers})
+  ${pipeline_util_private_headers}
+  )
 
 
 target_link_libraries(sprokit_pipeline_util

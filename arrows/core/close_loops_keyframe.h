@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_CLOSE_LOOPS_KEYFRAME_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/close_loops.h>
 
@@ -51,7 +51,7 @@ namespace core {
 /**
  * This class attempts close loops with all previous (or as specified) frames
  */
-class KWIVER_ALGO_EXPORT close_loops_keyframe
+class KWIVER_ALGO_CORE_EXPORT close_loops_keyframe
   : public vital::algorithm_impl<close_loops_keyframe, vital::algo::close_loops>
 {
 public:

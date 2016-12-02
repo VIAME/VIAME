@@ -32,25 +32,16 @@
 
 #include <vital/config/config_block.h>
 
-#include <sprokit/tools/pipeline_builder.h>
+#include <arrows/ocv/image_container.h>
+
 #include <sprokit/pipeline/modules.h>
-#include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
 #include <sprokit/pipeline/pipeline.h>
-
-#include "supply_image.h"
-#include "accept_descriptor.h"
-#include "io_mgr.h"
-
-#include <iostream>
-#include <sstream>
-
-#include <cstdlib>
+#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/processes/kwiver_type_traits.h>
+#include <sprokit/processes/adapters/embedded_pipeline.h>
+#include <sprokit/tools/literal_pipeline.h>
 
 namespace kwiver {
-
-static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::config_block_key_t("_scheduler");
-
 
 // ==================================================================
 class SMQTK_Descriptor::priv
@@ -58,9 +49,7 @@ class SMQTK_Descriptor::priv
 public:
   priv() {}
 
-
   ~priv() {}
-
 };
 
 
@@ -83,7 +72,7 @@ std::vector< double >
 SMQTK_Descriptor::
 ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
 {
-  // 1) register input and processes with sprokit
+  // register processes with sprokit
   static sprokit::process_registry::module_t const module_name =
     sprokit::process_registry::module_t( "smqtk_processes" );
 
@@ -94,81 +83,45 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
     return std::vector< double >();
   }
 
-  // 2) Make image available for input.
-  kwiver::io_mgr::Instance()->SetImage( cv_img );
-
-  // 3) ...
-
-  // 4) locate python process and get it loaded
 
   sprokit::load_known_modules();
 
-  // 5) create pipeline description
+  // create pipeline description
   std::stringstream pipeline_desc;
-  pipeline_desc << "process input_endcap\n"
-                << "  :: supply_image\n"
-                << "process descriptor\n"
-                << "  :: ApplyDescriptor\n"
-		<< ":config_file " << config_file << "\n"
+  pipeline_desc << SPROKIT_PROCESS( "input_adapter",  "ia" )
+                << SPROKIT_PROCESS( "output_adapter", "oa" )
 
-                << "process output_endcap\n"
-                << "  :: accept_descriptor\n"
+                << SPROKIT_PROCESS( "process descriptor", "ApplyDescriptor" )
 
-                << "connect from input_endcap.image\n"
-                << "          to descriptor.image\n"
+                << SPROKIT_CONFIG( "config_file",  config_file )
 
-                << "connect from descriptor.vector\n"
-                << "          to output_endcap.d_vector\n"
+                << SPROKIT_CONNECT( "ia", "image",                "descriptor", "image" )
+                << SPROKIT_CONNECT( "descriptor", "vector",       "oa", "d_vector" )
     ;
 
-  // 7) create a pipeline
-  sprokit::pipeline_builder builder;
-  builder.load_pipeline( pipeline_desc );
-
-  // build pipeline
-  sprokit::pipeline_t const pipe = builder.pipeline();
-  if (!pipe)
-  {
-    std::cerr << "Error: Unable to bake pipeline" << std::endl;
-    return std::vector< double >();
-  }
-
-  // Get config from pipeline and force scheduler type
-  kwiver::vital::config_block_sptr conf = builder.config();
-
-  // perform setup operation on pipeline and get it ready to run
-  // This throws many exceptions
-  try
-  {
-    pipe->setup_pipeline();
-  }
-  catch( sprokit::pipeline_exception const& e)
-  {
-    std::cerr << "Error setting up pipeline: " << e.what() << std::endl;
-    return std::vector< double >();
-  }
-
-  sprokit::scheduler_registry::type_t const scheduler_type = "pythread_per_process";
-
-  kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
-                                              kwiver::vital::config_block::block_sep + scheduler_type);
-
-  sprokit::scheduler_registry_t reg = sprokit::scheduler_registry::self();
-
-  sprokit::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipe, scheduler_config);
-
-  if (!scheduler)
-  {
-    std::cerr << "Error: Unable to create scheduler" << std::endl;
-    return std::vector< double >();
-  }
+  // create a embedded pipeline
+  kwiver::embedded_pipeline ep( pipeline_desc );
 
   // Start pipeline and wait for it to finish
-  scheduler->start();
-  scheduler->wait();
+  ep.start();
 
-  // Extract pipeline results
-  kwiver::vital::double_vector_sptr d_ptr = kwiver::io_mgr::Instance()->GetDescriptor();
+  // Create dataset for input
+  auto ds = kwiver::adapter::adapter_data_set::create();
+
+  // Put OCV image in vital container
+  kwiver::vital::image_container_sptr img( new kwiver::arrows::ocv::image_container( cv_img ) );
+
+  ds->add_value( "image", img );
+  ep.send( ds );
+  ep.send_end_of_input(); // indicate end of input
+
+  // Get results from pipeline
+  auto rds = ep.receive();
+  auto ix = rds->find( "d_vector" );
+  auto d_ptr = ix->second->get_datum<kwiver::vital::double_vector_sptr>();
+
+  ep.wait();
+
   return *d_ptr.get(); // return by value
 }
 

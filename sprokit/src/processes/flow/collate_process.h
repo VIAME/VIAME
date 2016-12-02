@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file collate_process.h
+ *
+ * \brief Declaration of the collate process.
+ */
+
 #ifndef SPROKIT_PROCESSES_FLOW_COLLATE_PROCESS_H
 #define SPROKIT_PROCESSES_FLOW_COLLATE_PROCESS_H
 
@@ -37,50 +43,8 @@
 
 #include <boost/scoped_ptr.hpp>
 
-/**
- * \file collate_process.h
- *
- * \brief Declaration of the collate process.
- */
+namespace sprokit {
 
-namespace sprokit
-{
-
-/**
- * \class collate_process
- *
- * \brief A process for collating input data from multiple input edges.
- *
- * \note Edges for a \portvar{tag} may \em only be connected after the
- * \port{status/\portvar{tag}} is connected to. Before this connection happens,
- * the other ports to not exist and will cause errors. In short: The first
- * connection for any \portvar{tag} must be \port{status/\portvar{tag}}.
- *
- * \process Collate incoming data into a single stream.
- *
- * \iports
- *
- * \iport{status/\portvar{tag}} The status of the result \portvar{tag}.
- * \iport{coll/\portvar{tag}/\portvar{group}} A port to collate data for
- *                                            \portvar{tag} from. Data is
- *                                            collated from ports in
- *                                            ASCII-betical order.
- *
- * \oports
- *
- * \oport{res/\portvar{tag}} The collated result \portvar{tag}.
- *
- * \reqs
- *
- * \req Each input port \port{status/\portvar{tag}} must be connected.
- * \req Each \portvar{tag} must have at least two inputs to collate.
- * \req Each output port \port{res/\portvar{tag}} must be connected.
- *
- * \todo Add configuration to allow forcing a number of inputs for a result.
- * \todo Add configuration to allow same number of sources for all results.
- *
- * \ingroup process_flow
- */
 class SPROKIT_PROCESSES_FLOW_NO_EXPORT collate_process
   : public process
 {
@@ -129,6 +93,6 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT collate_process
     boost::scoped_ptr<priv> d;
 };
 
-}
+} // end namespace
 
 #endif // SPROKIT_PROCESSES_FLOW_COLLATE_PROCESS_H

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,58 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_IO_MGR_H
-#define _KWIVER_IO_MGR_H
-
-#include "smqtk_extract_export.h"
-#include <kwiver_type_traits.h>
-
-#include <opencv2/opencv.hpp>
-#include <vector>
-#include <memory>
-
-
-namespace kwiver {
-
-// -----------------------------------------------------------------
 /**
- * @brief Class to manage input and output from endcaps.
- *
- * This class is implemented as a singleton so that both endcaps and
- * the pipeline control method can share this class.
- *
- * Currently this class expecte to handle only one image. If more than
- * one image is needed, then some queueing will be needed.
+ * @file   ensure_provided.cxx
+ * @brief  Implementation for ensure_provided class.
  */
 
-class SMQTK_EXTRACT_EXPORT io_mgr
+#include "ensure_provided.h"
+#include "pipe_bakery_exception.h"
+
+
+namespace sprokit {
+
+// ------------------------------------------------------------------
+ensure_provided
+::ensure_provided()
 {
-public:
-  // -- CONSTRUCTORS --
-  io_mgr() { }
-  virtual ~io_mgr() { }
+}
 
-  //
-  static io_mgr* Instance();
 
-  // -- ACCESSORS --
-  cv::Mat const& GetImage() const { return m_image; }
-  kwiver::vital::double_vector_sptr GetDescriptor() const { return m_descriptor; }
+ensure_provided
+::~ensure_provided()
+{
+}
 
-  // -- MANIPULATORS --
-  void SetImage( cv::Mat const& img ) { m_image = img; }
-  void SetDescriptor( kwiver::vital::double_vector_sptr vec) { m_descriptor = vec; }
 
-private:
-  // input image
-  cv::Mat m_image;
+// ------------------------------------------------------------------
+kwiver::vital::config_block_value_t
+ensure_provided
+::operator () (kwiver::vital::config_block_value_t const& value) const
+{
+  return value;
+}
 
-  // output descriptor vector
-  kwiver::vital::double_vector_sptr m_descriptor;
 
-  static io_mgr* s_instance;
-}; // end class io_mgr
+// ------------------------------------------------------------------
+kwiver::vital::config_block_value_t
+ensure_provided
+::operator () (bakery_base::provider_request_t const& request) const
+{
+  config_provider_t const& provider = request.first;
+  kwiver::vital::config_block_value_t const& value = request.second;
 
-} // end namespace
+  throw unrecognized_provider_exception("(unknown)", provider, value);
+}
 
-#endif /* _KWIVER_IO_MGR_H */
+} // end namespace sprokit
