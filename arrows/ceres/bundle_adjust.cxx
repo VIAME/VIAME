@@ -244,6 +244,7 @@ bundle_adjust
   bool loss_func_used = false;
 
   // Add the residuals for each relevant observation
+  std::set<unsigned int> used_intrinsics;
   VITAL_FOREACH(const track_sptr& t, trks)
   {
     const track_id_t id = t->id();
@@ -263,6 +264,7 @@ bundle_adjust
       }
       unsigned intr_idx = frame_to_intr_map[ts->frame_id];
       double * intr_params_ptr = &camera_intr_params[intr_idx][0];
+      used_intrinsics.insert(intr_idx);
       vector_2d pt = ts->feat->loc();
       problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
                                                 pt.x(), pt.y()),
@@ -275,8 +277,9 @@ bundle_adjust
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  VITAL_FOREACH(std::vector<double>& cip, camera_intr_params)
+  VITAL_FOREACH(const unsigned int idx, used_intrinsics)
   {
+    std::vector<double>& cip = camera_intr_params[idx];
     // apply the constraints
     if (constant_intrinsics.size() > 4 + ndp)
     {
@@ -290,6 +293,12 @@ bundle_adjust
           new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
     }
   }
+
+  // Add camera path regularization residuals
+  d_->add_camera_path_smoothness_cost(problem, camera_params);
+
+  // Add camera path regularization residuals
+  d_->add_forward_motion_damping_cost(problem, camera_params, frame_to_intr_map);
 
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.

@@ -31,7 +31,7 @@
 #ifndef SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_POOL_SCHEDULER_H
 #define SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_POOL_SCHEDULER_H
 
-#include "examples-config.h"
+#include <schedulers/examples/schedulers_examples_export.h>
 
 #include <sprokit/pipeline/scheduler.h>
 
@@ -59,7 +59,7 @@ namespace sprokit
  *
  * \config{num_threads} The number of threads to run. A setting of \c 0 means "auto".
  */
-class SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
+class SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
   : public scheduler
 {
   public:
@@ -100,6 +100,6 @@ class SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
     boost::scoped_ptr<priv> d;
 };
 
-}
+} // end namespace
 
 #endif // SPROKIT_SCHEDULERS_EXAMPLES_SCHEDULERS_THREAD_POOL_SCHEDULER_H

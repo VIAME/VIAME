@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "io_mgr.h"
+/**
+ * @file   loaded_cluster.h
+ * @brief  Interface to loaded_cluster class.
+ */
 
-namespace kwiver {
+#ifndef SPROKIT_PIPELINE_UTIL_LOADED_CLUSTER_H
+#define SPROKIT_PIPELINE_UTIL_LOADED_CLUSTER_H
 
-  kwiver::io_mgr* kwiver::io_mgr::s_instance(0); // static instance pointer
+#include <sprokit/pipeline/process_cluster.h>
 
 
-io_mgr* io_mgr::Instance()
+namespace sprokit {
+
+// ----------------------------------------------------------------
+/**
+ * @brief Friendly process cluster.
+ *
+ * This class provides friend access to process_cluster by
+ * cluster_creator.
+ *
+ */
+class loaded_cluster
+  : public process_cluster
 {
-  if ( s_instance == 0 )
-  {
-    s_instance = new io_mgr;
-  }
+  public:
+    loaded_cluster(kwiver::vital::config_block_sptr const& config);
+    ~loaded_cluster();
 
-  return s_instance;
-}
+    friend class cluster_creator;
+};
+
+} // end namespace sprokit
 
 
-} // end namespace
+#endif /* SPROKIT_PIPELINE_UTIL_LOADED_CLUSTER_H */

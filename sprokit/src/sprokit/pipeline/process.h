@@ -183,7 +183,7 @@ class SPROKIT_PIPELINE_EXPORT process
          */
         ~port_info();
 
-        /// The type of the port.
+        /// The data type of the port.
         port_type_t const type;
         /// Flags for the port.
         port_flags_t const flags;
@@ -588,6 +588,10 @@ class SPROKIT_PIPELINE_EXPORT process
      * A shared port may be connected to exactly one mutable port, any
      * number of non-mutable ports, or nothing. Any other usage is a
      * data sharing violation and not allowed.
+     *
+     * The downstream processes all share the same instance of the
+     * port data. A change made from the mutable port is seen by all
+     * others.
      */
     static port_flag_t const flag_output_shared;
 
@@ -623,7 +627,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief A flag which indicates that the input will be modified.
      *
      * Marks that an input is modified within the process and that
-     * other receivers of the data may see the changes.
+     * other receivers of the data may see the changes if the data is
+     * not handled carefully.
      */
     static port_flag_t const flag_input_mutable;
 
@@ -1007,8 +1012,15 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Peek at an edge datum packet from a port.
      *
+     * This method returns the specified edge datum from the edge
+     * queue connected to the port. If no data is at the specified
+     * index, this call blocks until the data is available.
+     *
      * \param port The port to look at.
      * \param idx The element within the queue to look at.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     * \throws missing_connection_exception if port not connected.
      *
      * \returns The datum available on the port.
      */
@@ -1017,8 +1029,15 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Peek at a datum packet from a port.
      *
+     * This method returns the specified datum from the edge queue
+     * connected to the port. If no data is at the specified index,
+     * this call blocks until the data is available.
+     *
      * \param port The port to look at.
      * \param idx The element within the queue to look at.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     * \throws missing_connection_exception if port not connected.
      *
      * \returns The datum available on the port.
      */
@@ -1027,8 +1046,14 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Grab an edge datum packet from a port.
      *
+     * This method returns the top edge datum from the edge queue
+     * connected to this port. If no data is available from the port,
+     * this call blocks until data becomes available.
      *
      * \param port The port to get data from.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     * \throws missing_connection_exception if port not connected.
      *
      * \returns The datum available on the port.
      */
@@ -1037,10 +1062,17 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Grab a datum packet from a port.
      *
+     * This method returns the top datum from the edge queue connected
+     * to this port. If no data is available from the port, this call
+     * blocks until data becomes available.
+     *
      * The datum packet contains the port data and other metadata.
      * See \ref datum for details.
      *
      * \param port The port to get data from.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     * \throws missing_connection_exception if port not connected.
      *
      * \returns The datum available on the port.
      */
@@ -1053,6 +1085,9 @@ class SPROKIT_PIPELINE_EXPORT process
      * handling for static ports. This call will block until a datum is available.
      *
      * \param port The port to get data from.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     * \throws missing_connection_exception if port not connected.
      *
      * \returns The datum from the port.
      */

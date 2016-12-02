@@ -21,6 +21,13 @@ Arrows - Ceres
    This makes it much easer to create a new Ceres solver algorihm and
    reuse the same solver options or camera options.
 
+ * Added two forms of camera path regularization to the bundle_adjust and
+   optimize_cameras algorithms.  The first adds a cost that favors smooth
+   camera paths; the camera location at time t should be close to the
+   average of locations at t-1 and t+1.  The second adds cost for cameras
+   moving along the principal ray direction; this allows optimization to
+   favor focal length change (zoom) over forward motion.
+
 Arrows - Core
 
  * Added an option to the PCA canonical transform estimator to shift the ground
@@ -32,6 +39,12 @@ Arrows - Core
    above a threshold then assume the camera intrinsics have changed and create
    a new shared intrinsic model.  This allows for shared intrinsics when the
    camera does not zoom but varying intrinsics when zoom is detected.
+
+ * Changed the order of when Necker reversal correction is attempted in the
+   initialize_cameras_landmarks algorithm.  Previously it was attempted at the
+   end after adding all cameras, often too late.  Now it is attempted the
+   first time the ratio of reversed to non-reversed RMSE is within a threshold.
+   Necker revsersal is only attempted once.  It is either needed or not.
 
 Arrows - OpenCV
 

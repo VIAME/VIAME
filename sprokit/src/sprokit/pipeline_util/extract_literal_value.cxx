@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_SCHEDULERS_EXAMPLES_EXAMPLES_CONFIG_H
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXAMPLES_CONFIG_H
-
-#include <sprokit/config.h>
-
 /**
- * \file examples-config.h
- *
- * \brief Defines for symbol visibility in example schedulers.
+ * @file   extract_literal_value.cxx
+ * @brief  Implementation for extract_literal_value class.
  */
 
-#ifdef MAKE_SPROKIT_SCHEDULERS_EXAMPLES_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXPORT SPROKIT_IMPORT
-#endif
+#include "extract_literal_value.h"
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_SCHEDULERS_EXAMPLES_NO_EXPORT SPROKIT_NO_EXPORT
 
-/// Mark as deprecated.
-#define SPROKIT_SCHEDULERS_EXAMPLES_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_SCHEDULERS_EXAMPLES_EXPORT
+namespace sprokit {
 
-#endif // SPROKIT_SCHEDULERS_EXAMPLES_EXAMPLES_CONFIG_H
+// ------------------------------------------------------------------
+extract_literal_value
+::extract_literal_value()
+{
+}
+
+
+extract_literal_value
+::~extract_literal_value()
+{
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::config_block_value_t
+extract_literal_value
+::operator () (kwiver::vital::config_block_value_t const& value) const
+{
+  return value;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::config_block_value_t
+extract_literal_value
+::operator () (bakery_base::provider_request_t const& request) const
+{
+  kwiver::vital::config_block_value_t const& value = request.second;
+
+  return value;
+}
+
+} // end namespace sprokit

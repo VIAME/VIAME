@@ -447,7 +447,7 @@ initialize_cameras_landmarks
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) during intermediate processing steps.");
 
-  config->set_value("final_reproj_thresh", d_->interim_reproj_thresh,
+  config->set_value("final_reproj_thresh", d_->final_reproj_thresh,
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) after the final bundle adjustment.");
 
@@ -944,6 +944,8 @@ initialize_cameras_landmarks
 
   // keep track of the number of cameras needed for the next bundle adjustment
   size_t num_cams_for_next_ba = 2;
+  // keep track of if we've tried a Necker revseral, only do it once.
+  bool tried_necker_reverse = false;
   while( !new_frame_ids.empty() )
   {
     frame_id_t f;
@@ -1099,6 +1101,37 @@ initialize_cameras_landmarks
       LOG_INFO(d_->m_logger, "final reprojection RMSE: " << final_rmse);
       LOG_DEBUG(d_->m_logger, "updated focal length "
                               << cams.begin()->second->intrinsics()->focal_length());
+
+      if( !tried_necker_reverse && d_->reverse_ba_error_ratio > 0 )
+      {
+        // reverse cameras and optimize again
+        camera_map_sptr ba_cams2(new simple_camera_map(cams));
+        landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
+        necker_reverse(ba_cams2, ba_lms2);
+        d_->lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
+        init_rmse = kwiver::arrows::reprojection_rmse(ba_cams2->cameras(), ba_lms2->landmarks(), trks);
+        LOG_DEBUG(d_->m_logger, "Necker reversed initial reprojection RMSE: " << init_rmse);
+        if( init_rmse < final_rmse * d_->reverse_ba_error_ratio )
+        {
+          // Only try a Necker reversal once when we have enough data to
+          // support it. We will either decide to reverse or not.
+          // Either way we should not have to try this again.
+          tried_necker_reverse = true;
+          LOG_INFO(d_->m_logger, "Running Necker reversed bundle adjustment for comparison");
+          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks);
+          map_cam_t cams2 = ba_cams2->cameras();
+          map_landmark_t lms2 = ba_lms2->landmarks();
+          double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
+          LOG_DEBUG(d_->m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
+
+          if(final_rmse2 < final_rmse)
+          {
+            LOG_INFO(d_->m_logger, "Necker reversed solution is better");
+            cams = ba_cams2->cameras();
+            lms = ba_lms2->landmarks();
+          }
+        }
+      }
     }
 
     if(d_->verbose)
@@ -1128,33 +1161,6 @@ initialize_cameras_landmarks
     LOG_DEBUG(d_->m_logger, "final reprojection RMSE: " << final_rmse1);
     cams = ba_cams->cameras();
     lms = ba_lms->landmarks();
-
-    if( d_->reverse_ba_error_ratio > 0 )
-    {
-      // reverse cameras and optimize again
-      camera_map_sptr ba_cams2(new simple_camera_map(cams1));
-      landmark_map_sptr ba_lms2(new simple_landmark_map(lms1));
-      necker_reverse(ba_cams2, ba_lms2);
-      d_->lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
-      init_rmse = kwiver::arrows::reprojection_rmse(ba_cams2->cameras(), ba_lms2->landmarks(), trks);
-      LOG_DEBUG(d_->m_logger, "Necker reversed initial reprojection RMSE: " << init_rmse);
-      if( init_rmse < final_rmse1 * d_->reverse_ba_error_ratio )
-      {
-        LOG_INFO(d_->m_logger, "Running Necker reversed bundle adjustment for comparison");
-        d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks);
-        map_cam_t cams2 = ba_cams2->cameras();
-        map_landmark_t lms2 = ba_lms2->landmarks();
-        double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
-        LOG_DEBUG(d_->m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
-
-        if(final_rmse2 < final_rmse1)
-        {
-          LOG_INFO(d_->m_logger, "Necker reversed solution is better");
-          cams = ba_cams2->cameras();
-          lms = ba_lms2->landmarks();
-        }
-      }
-    }
 
     // if using bundle adjustment, remove landmarks with large error
     // after optimization

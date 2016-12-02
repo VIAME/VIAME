@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,47 +29,58 @@
  */
 
 /**
- * \file
- * \brief Image display process interface.
+ * @file   cluster_info.h
+ * @brief  Interface to cluster info class.
  */
 
-#ifndef _KWIVER_ACCEPT_DESCRIPTOR_H
-#define _KWIVER_ACCEPT_DESCRIPTOR_H
+#ifndef SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
+#define SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
 
-#include <sprokit/pipeline/process.h>
-#include "smqtk_extract_export.h"
+#include "pipeline_util-config.h"
 
-#include <memory>
+#include "pipe_declaration_types.h"
+#include <sprokit/pipeline/types.h>
 
-namespace kwiver {
 
-// ----------------------------------------------------------------
+namespace sprokit {
+
+// ------------------------------------------------------------------
 /**
- * @brief Display images
+ * \class cluster_info pipe_bakery.h <sprokit/pipeline_util/pipe_bakery.h>
  *
+ * \brief Information about a loaded cluster.
  */
-class SMQTK_EXTRACT_NO_EXPORT accept_descriptor
-  : public sprokit::process
+class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
 {
-public:
-  // -- CONSTRUCTORS --
-  accept_descriptor( kwiver::vital::config_block_sptr const& config );
-  virtual ~accept_descriptor();
+  public:
+    /**
+     * \brief Constructor.
+     *
+     * \param type_ The type of the cluster.
+     * \param description_ A description of the cluster.
+     * \param ctor_ A function to create an instance of the cluster.
+     */
+    cluster_info(process::type_t const& type_,
+                 process_registry::description_t const& description_,
+                 process_ctor_t const& ctor_);
+    /**
+     * \brief Destructor.
+     */
+    ~cluster_info();
 
-protected:
-  virtual void _configure();
-  virtual void _step();
+    /// The type of the cluster.
+    process::type_t const type;
 
-private:
-  void make_ports();
-  void make_config();
+    /// A description of the cluster.
+    process_registry::description_t const description;
 
+    /// A factory function to create an instance of the cluster.
+    process_ctor_t const ctor;
+};
 
-  class priv;
-  const std::unique_ptr<priv> d;
+/// A handle to information about a cluster.
+typedef boost::shared_ptr<cluster_info> cluster_info_t;
 
-}; // end class accept_descriptor
+} // end namespace sprokit
 
-} // end namespace
-
-#endif /* _KWIVER_ACCEPT_DESCRIPTOR_H */
+#endif /* SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H */

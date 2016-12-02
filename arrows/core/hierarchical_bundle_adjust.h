@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/bundle_adjust.h>
@@ -51,7 +51,7 @@ namespace arrows {
 namespace core {
 
 
-class KWIVER_ALGO_EXPORT hierarchical_bundle_adjust
+class KWIVER_ALGO_CORE_EXPORT hierarchical_bundle_adjust
   : public vital::algorithm_impl<hierarchical_bundle_adjust, vital::algo::bundle_adjust>
 {
 public:
