@@ -2,28 +2,26 @@ project(sprokit_schedulers_examples)
 
 set(examples_srcs
   registration.cxx
-  sync_scheduler.cxx
-  thread_per_process_scheduler.cxx
   thread_pool_scheduler.cxx)
 
 set(examples_private_headers
-  examples-config.h
-  registration.h
-  sync_scheduler.h
-  thread_per_process_scheduler.h
-  thread_pool_scheduler.h)
+  thread_pool_scheduler.h
+  ${CMAKE_CURRENT_BINARY_DIR}/schedulers_examples_export.h
+  )
+
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 sprokit_private_header_group(${examples_private_headers})
-sprokit_add_plugin(schedulers_examples
-  MAKE_SPROKIT_SCHEDULERS_EXAMPLES_LIB
-  ${examples_srcs}
-  ${examples_private_headers})
-target_link_libraries(schedulers_examples
-  PRIVATE             sprokit_pipeline
-                      vital_config
-                      ${Boost_CHRONO_LIBRARY}
-                      ${Boost_DATE_TIME_LIBRARY}
-                      ${Boost_THREAD_LIBRARY}
-                      ${Boost_SYSTEM_LIBRARY}
-                      ${CMAKE_THREAD_LIBS_INIT}
+
+kwiver_add_plugin( schedulers_examples
+  SOURCES        ${examples_srcs}
+                 ${examples_private_headers}
+  PRIVATE        sprokit_pipeline
+                 vital_config
+                 ${Boost_CHRONO_LIBRARY}
+                 ${Boost_DATE_TIME_LIBRARY}
+                 ${Boost_THREAD_LIBRARY}
+                 ${Boost_SYSTEM_LIBRARY}
+                 ${CMAKE_THREAD_LIBS_INIT}
+  SUBDIR         sprokit
   )

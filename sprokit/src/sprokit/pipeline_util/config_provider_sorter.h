@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_EXAMPLE_SUPPLY_IMAGE_H
-#define _KWIVER_EXAMPLE_SUPPLY_IMAGE_H
+/**
+ * @file   config_provider_sorter.h
+ * @brief  Interface to config_provider_sorter class.
+ */
 
-#include <sprokit/pipeline/process.h>
-#include "smqtk_extract_export.h"
+#ifndef SPROKIT_PIPELINE_UTIL_CONFIG_PROVIDER_SORTER_H
+#define SPROKIT_PIPELINE_UTIL_CONFIG_PROVIDER_SORTER_H
 
-#include <opencv2/opencv.hpp>
+#include "bakery_base.h"
 
-#include <memory>
+#include <vital/config/config_block.h>
 
-namespace kwiver {
+#include <boost/graph/directed_graph.hpp>
+#include <boost/variant.hpp>
+
+#include <map>
+#include <vector>
+
+
+namespace sprokit {
 
 // ----------------------------------------------------------------
 /**
- * @brief Supply Image
+ * @brief
  *
  */
-class SMQTK_EXTRACT_NO_EXPORT supply_image
-  : public sprokit::process
+class config_provider_sorter
+  : public boost::static_visitor<>
 {
-public:
-  // -- CONSTRUCTORS --
-  supply_image( kwiver::vital::config_block_sptr const& config );
-  virtual ~supply_image();
+  public:
+    config_provider_sorter();
+    ~config_provider_sorter();
 
-protected:
-  virtual void _configure();
-  virtual void _step();
+    void operator () (kwiver::vital::config_block_key_t const& key,
+                      kwiver::vital::config_block_value_t const& value) const;
+    void operator () (kwiver::vital::config_block_key_t const& key,
+                      bakery_base::provider_request_t const& request);
 
-private:
-  void make_ports();
-  void make_config();
+    kwiver::vital::config_block_keys_t sorted() const;
+  private:
+    class node_t
+    {
+      public:
+        node_t();
+        ~node_t();
 
+        bool deref;
+        kwiver::vital::config_block_key_t name;
+    };
 
-  class priv;
-  const std::unique_ptr<priv> d;
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, node_t> config_graph_t;
+    typedef boost::graph_traits<config_graph_t>::vertex_descriptor vertex_t;
+    typedef std::vector<vertex_t> vertices_t;
+    typedef std::map<kwiver::vital::config_block_key_t, vertex_t> vertex_map_t;
+    typedef vertex_map_t::value_type vertex_entry_t;
 
-}; // end class supply_image
+    vertex_map_t m_vertex_map;
+    config_graph_t m_graph;
+};
 
-} // end namespace
+} // end namespace sprokit
 
-#endif /* _KWIVER_EXAMPLE_SUPPLY_IMAGE_H */
+#endif /* SPROKIT_PIPELINE_UTIL_CONFIG_PROVIDER_SORTER_H */

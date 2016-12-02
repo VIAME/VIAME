@@ -34,9 +34,9 @@
 
 // This is a little misuse of the exports mechanism, but there is no
 // other general purpose include that is set for always "building"
-#define kwiver_algo_EXPORTS
+#define kwiver_algo_core_EXPORTS
 
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 #include <arrows/algorithm_plugin_interface.h>
 #include <vital/logger/logger.h>
 #include <vital/registrar.h>
@@ -51,7 +51,7 @@ extern "C"
 #endif
 
 // Always export this function
-int KWIVER_ALGO_EXPORT private_register_algo_impls( kwiver::vital::registrar &reg )
+int KWIVER_ALGO_CORE_EXPORT private_register_algo_impls( kwiver::vital::registrar &reg )
 {
   kwiver::vital::logger_handle_t m_logger( kwiver::vital::get_logger( "Implementation Registration" ));
   try

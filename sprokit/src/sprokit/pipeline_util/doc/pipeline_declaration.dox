@@ -245,6 +245,22 @@
  *        :static/port     value
  * </pre>
  *
+ * A process may request to have its instrumentation calls handled by an external provider. This
+ * is done by adding the _instrumentation block to the process config.
+ *
+ * <pre>
+ *   process my_process
+ *     :: my_process_type
+ *        :_instrumentation:type  foo
+ *        :_instrumentation:foo:file   output.dat
+ *        :_instrumentation:foo:buffering   optimal
+ * </pre>
+ *
+ * The type parameter specifies the instrumentation provider, "foo" in this case. If the
+ * special name "none" is specified, then no instrumentation provider is loaded. This is the same
+ * as not having the config block present. The remaining configuration items that start with
+ * "_instrumentation:<type>" are considered configuration data for the provider and are passed to the
+ * provider after it is loaded.
  *
  * \subsection connect_block Connect block
  *
@@ -320,7 +336,7 @@
  *
  * <pre>
  * config _pipeline:_edge
- *        :capacity 30
+ *        :capacity 30     # set default edge capacity
  * </pre>
  *
  * Currently the only attribute that can be configured is "capacity".
@@ -370,8 +386,24 @@
  * Both of these entries refer to the same edge, so in real life, you
  * would only need one.
  *
- * These different methods of configuring pipeline edges are applied in a
- * hierarchial manner to allow general defaults to be set, and overridden
- * using more specific edge attributes.
+ * These different methods of configuring pipeline edges are applied
+ * in a hierarchial manner to allow general defaults to be set, and
+ * overridden using more specific edge attributes. This order is
+ * default capacity, edge by type, then edge by connection.
  *
+ * \subsection scheduler_config Scheduler Config
+ *
+ * Normally the pipeline is run with a default scheduler that assigns
+ * one thread to each process. A different scheduler can be specified
+ * in the config file. Configuration parameters for the scheduler can
+ * be specified in this section also.
+ *
+ * <pre>
+ * config _scheduler
+ *      :type     thread_pool    # selects thread pool scheduler
+ *      :thread_pool:num_threads 1024  # scheduler specific value
+ * </pre>
+ *
+ * An application can override the configured scheduler setting with
+ * command line parameters.
  */

@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -58,7 +58,7 @@ namespace core {
  * principle that when a bad frame occurs, there is generally a lower
  * percentage of feature tracks.
  */
-class KWIVER_ALGO_EXPORT close_loops_bad_frames_only
+class KWIVER_ALGO_CORE_EXPORT close_loops_bad_frames_only
   : public vital::algorithm_impl<close_loops_bad_frames_only, vital::algo::close_loops>
 {
 public:

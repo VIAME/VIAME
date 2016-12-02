@@ -129,12 +129,18 @@ class SPROKIT_PIPELINE_EXPORT datum
     /**
      * \brief Query a datum for the type.
      *
+     * This method returns the sprokit type of the datum.
+     *
      * \returns The type of the datum.
      */
     type_t type() const;
 
     /**
      * \brief Query for the error that occurred.
+     *
+     * This method returns the error code that is associated with an
+     * error type datum. The error text is set by the CTOR when an
+     * error type datum is created.
      *
      * \returns The error that occurred.
      */

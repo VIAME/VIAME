@@ -46,6 +46,7 @@
 namespace sprokit
 {
 
+// ==================================================================
 class provider;
 /// Type to more easily handle providers.
 typedef boost::shared_ptr<provider> provider_t;
@@ -109,6 +110,8 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT config_provider
     kwiver::vital::config_block_sptr const m_config;
 };
 
+
+// ==================================================================
 /**
  * \class system_provider providers.h "providers.h"
  *
@@ -137,6 +140,8 @@ class SPROKIT_PIPELINE_UTIL_NO_EXPORT system_provider
     kwiver::vital::config_block_value_t operator () (kwiver::vital::config_block_value_t const& index) const;
 };
 
+
+// ==================================================================
 /**
  * \class environment_provider providers.h "providers.h"
  *

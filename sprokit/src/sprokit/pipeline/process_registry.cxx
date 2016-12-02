@@ -73,11 +73,13 @@ class process_registry::priv
 
 static process_registry_t reg_self = process_registry_t();
 
+// ------------------------------------------------------------------
 process_registry
 ::~process_registry()
 {
 }
 
+// ------------------------------------------------------------------
 void
 process_registry
 ::register_process(process::type_t const& type, description_t const& desc, process_ctor_t ctor)
@@ -97,6 +99,7 @@ process_registry
   d->registry[type] = priv::process_typeinfo_t(desc, ctor);
 }
 
+// ------------------------------------------------------------------
 process_t
 process_registry
 ::create_process(process::type_t const& type, process::name_t const& name,
@@ -107,19 +110,22 @@ process_registry
     throw null_process_registry_config_exception();
   }
 
-  priv::process_store_t::const_iterator const i = d->registry.find(type);
+  auto const i = d->registry.find(type);
 
   if (i == d->registry.end())
   {
     throw no_such_process_type_exception(type);
   }
 
+  // Set config entries for process type and instantiated name
   config->set_value(process::config_type, kwiver::vital::config_block_value_t(type));
   config->set_value(process::config_name, kwiver::vital::config_block_value_t(name));
 
+  // Call factory to instantiate process.
   return i->second.get<1>()(config);
 }
 
+// ------------------------------------------------------------------
 process::types_t
 process_registry
 ::types() const
@@ -136,6 +142,7 @@ process_registry
   return ts;
 }
 
+// ------------------------------------------------------------------
 process_registry::description_t
 process_registry
 ::description(process::type_t const& type) const
@@ -150,6 +157,7 @@ process_registry
   return i->second.get<0>();
 }
 
+// ------------------------------------------------------------------
 void
 process_registry
 ::mark_module_as_loaded(module_t const& module)
@@ -157,6 +165,7 @@ process_registry
   d->loaded_modules.insert(module);
 }
 
+// ------------------------------------------------------------------
 bool
 process_registry
 ::is_module_loaded(module_t const& module) const
@@ -164,6 +173,7 @@ process_registry
   return (0 != d->loaded_modules.count(module));
 }
 
+// ------------------------------------------------------------------
 process_registry_t
 process_registry
 ::self()
@@ -188,12 +198,14 @@ process_registry
   return reg_self;
 }
 
+// ------------------------------------------------------------------
 process_registry
 ::process_registry()
   : d(new priv)
 {
 }
 
+// ------------------------------------------------------------------
 process_registry::priv
 ::priv()
   : registry()
@@ -207,4 +219,4 @@ process_registry::priv
 {
 }
 
-}
+} // end namespace

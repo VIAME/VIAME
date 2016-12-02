@@ -4,6 +4,7 @@
 
 find_package(Doxygen)
 
+include(CMakeDependentOption)
 cmake_dependent_option(${CMAKE_PROJECT_NAME}_ENABLE_DOCS
   "Build KWIVER documentation via Doxygen." OFF
   DOXYGEN_FOUND OFF

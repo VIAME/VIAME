@@ -51,6 +51,14 @@ namespace sprokit
  *
  * \brief A pre-built collection of processes.
  *
+ * This class represents a set of associated processes and their
+ * interconnects. An object of this type is built from a cluster
+ * specification and when complete, behaves like a process.
+ *
+ * Clusters are built early in the loading process when the cluster
+ * definitions are loaded. They can also be specified in a regular
+ * pipeline description file.
+ *
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT process_cluster
@@ -107,7 +115,9 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \param name_ The process to map the configuration to.
      * \param mapped_key The key to map the configuration to.
      */
-    void map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key);
+    void map_config(kwiver::vital::config_block_key_t const& key,
+                    name_t const& name_,
+                    kwiver::vital::config_block_key_t const& mapped_key);
     /**
      * \brief Add a process to the cluster.
      *
@@ -130,7 +140,9 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \param name_ The name of the process to map the input to.
      * \param mapped_port The port on the process to map the input to.
      */
-    void map_input(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void map_input(port_t const& port,
+                   name_t const& name_,
+                   port_t const& mapped_port);
     /**
      * \brief Map a port to an output on the cluster.
      *
@@ -141,7 +153,9 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      * \param name_ The name of the process to map the output to.
      * \param mapped_port The port on the process to map the output to.
      */
-    void map_output(port_t const& port, name_t const& name_, port_t const& mapped_port);
+    void map_output(port_t const& port,
+                    name_t const& name_,
+                    port_t const& mapped_port);
     /**
      * \brief Connect processes within the cluster.
      *

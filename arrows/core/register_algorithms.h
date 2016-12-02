@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/registrar.h>
 
@@ -48,7 +48,7 @@ namespace arrows {
 namespace core {
 
 // Register core algorithms with the given or global registrar
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
 } // end namespace core

@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/track_set.h>
 #include <Eigen/Sparse>
@@ -64,7 +64,7 @@ namespace arrows {
  *                         frame ids in the track set.
  *  \return an NxN symmetric match matrix
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 Eigen::SparseMatrix<unsigned int>
 match_matrix(vital::track_set_sptr tracks,
              std::vector<vital::frame_id_t>& frames);
@@ -80,7 +80,7 @@ match_matrix(vital::track_set_sptr tracks,
  * is the match matrix entry at (i,j) for every frame i and j in the track.
  *
  */
-KWIVER_ALGO_EXPORT
+KWIVER_ALGO_CORE_EXPORT
 std::map<vital::track_id_t, double>
 match_matrix_track_importance(vital::track_set_sptr tracks,
                               std::vector<vital::frame_id_t> const& frames,

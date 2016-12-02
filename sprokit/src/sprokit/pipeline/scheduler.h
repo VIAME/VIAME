@@ -53,6 +53,8 @@ namespace sprokit
  *
  * \brief The base class for execution strategies on a \ref pipeline.
  *
+ * This class is the abstract base class for all schedulers.
+ *
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT scheduler
@@ -99,7 +101,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      * \brief Constructor.
      *
      * \param pipe The pipeline to run.
-     * \param config Contains configuration for the edge.
+     * \param config Contains configuration for the scheduler.
      */
     scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
 
