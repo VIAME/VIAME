@@ -27,6 +27,12 @@ Arrows - Core
    plane vertically to place a configurable percentile of the landmarks above
    the ground.
 
+ * Changed the order of when Necker reversal correction is attempted in the
+   initialize_cameras_landmarks algorithm.  Previously it was attempted at the
+   end after adding all cameras, often too late.  Now it is attempted the
+   first time the ratio of reversed to non-reversed RMSE is within a threshold.
+   Necker revsersal is only attempted once.  It is either needed or not.
+
 Arrows - OpenCV
 
  * Updated the OpenCV image container functions to handle conversinos between
