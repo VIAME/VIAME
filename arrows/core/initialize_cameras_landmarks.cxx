@@ -891,6 +891,14 @@ initialize_cameras_landmarks
 
   // keep track of the number of cameras needed for the next bundle adjustment
   size_t num_cams_for_next_ba = 2;
+  if( d_->global_ba_rate > 1.0 )
+  {
+    while( num_cams_for_next_ba < cams.size() )
+    {
+      num_cams_for_next_ba = static_cast<size_t>(std::ceil(d_->global_ba_rate * num_cams_for_next_ba));
+    }
+  }
+
   // keep track of if we've tried a Necker revseral, only do it once.
   bool tried_necker_reverse = false;
   while( !new_frame_ids.empty() )
@@ -996,7 +1004,7 @@ initialize_cameras_landmarks
       LOG_INFO(d_->m_logger, "Running Global Bundle Adjustment on "
                               << cams.size() << " cameras and "
                               << lms.size() << " landmarks");
-      num_cams_for_next_ba = static_cast<size_t>(d_->global_ba_rate * num_cams_for_next_ba);
+      num_cams_for_next_ba = static_cast<size_t>(std::ceil(d_->global_ba_rate * num_cams_for_next_ba));
       camera_map_sptr ba_cams(new simple_camera_map(cams));
       landmark_map_sptr ba_lms(new simple_landmark_map(lms));
       double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
