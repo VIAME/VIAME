@@ -131,6 +131,7 @@ public:
     global_ba_rate(1.5),
     interim_reproj_thresh(5.0),
     final_reproj_thresh(1.0),
+    zoom_scale_thresh(0.1),
     base_camera(),
     e_estimator(),
     camera_optimizer(),
@@ -150,6 +151,7 @@ public:
     global_ba_rate(other.global_ba_rate),
     interim_reproj_thresh(other.interim_reproj_thresh),
     final_reproj_thresh(other.final_reproj_thresh),
+    zoom_scale_thresh(other.zoom_scale_thresh),
     base_camera(other.base_camera),
     e_estimator(!other.e_estimator ? algo::estimate_essential_matrix_sptr()
                                    : other.e_estimator->clone()),
@@ -188,6 +190,7 @@ public:
   double global_ba_rate;
   double interim_reproj_thresh;
   double final_reproj_thresh;
+  double zoom_scale_thresh;
   vital::simple_camera base_camera;
   vital::algo::estimate_essential_matrix_sptr e_estimator;
   vital::algo::optimize_cameras_sptr camera_optimizer;
@@ -447,6 +450,12 @@ initialize_cameras_landmarks
   config->set_value("final_reproj_thresh", d_->final_reproj_thresh,
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) after the final bundle adjustment.");
+
+  config->set_value("zoom_scale_thresh", d_->zoom_scale_thresh,
+                    "Threshold on image scale change used to detect a camera "
+                    "zoom. If the resolution on target changes by more than "
+                    "this fraction create a new camera intrinsics model.");
+
   config->set_value("base_camera:focal_length", K->focal_length(),
                     "focal length of the base camera model");
 
@@ -527,6 +536,10 @@ initialize_cameras_landmarks
   d_->final_reproj_thresh =
       config->get_value<double>("final_reproj_thresh",
                                 d_->final_reproj_thresh);
+
+  d_->zoom_scale_thresh =
+      config->get_value<double>("zoom_scale_thresh",
+                                d_->zoom_scale_thresh);
 
   vital::config_block_sptr bc = config->subblock("base_camera");
   simple_camera_intrinsics K2(bc->get_value<double>("focal_length",
@@ -805,6 +818,50 @@ next_best_frame(const track_set_sptr tracks,
 }
 
 
+double
+estimate_gsd(const frame_id_t frame,
+             std::vector<track_sptr> const& tracks,
+             vital::landmark_map::map_landmark_t const& lms)
+{
+  std::vector<vector_3d> pts_3d;
+  std::vector<vector_2d> pts_2d;
+  VITAL_FOREACH(track_sptr const& t, tracks)
+  {
+    auto const& lm_itr = lms.find(t->id());
+    if( lm_itr != lms.end() )
+    {
+      auto const& ts_itr = t->find(frame);
+      if (ts_itr != t->end())
+      {
+        pts_3d.push_back(lm_itr->second->loc());
+        pts_2d.push_back(ts_itr->feat->loc());
+      }
+    }
+  }
+  std::vector<double> gsds;
+  for(unsigned int i=1; i<pts_3d.size(); ++i)
+  {
+    for(unsigned int j=0; j<i; ++j)
+    {
+      const double dist_3d = (pts_3d[i] - pts_3d[j]).norm();
+      const double dist_2d = (pts_2d[i] - pts_2d[j]).norm();
+      if( dist_2d > 0.0 )
+      {
+        const double gsd = dist_3d / dist_2d;
+        gsds.push_back(gsd);
+      }
+    }
+  }
+  if( gsds.size() == 0 )
+  {
+    return 0.0;
+  }
+  // compute the median GSD
+  std::nth_element(gsds.begin(), gsds.begin() + gsds.size() / 2, gsds.end());
+  return gsds[gsds.size() / 2];
+}
+
+
 } // end anonymous namespace
 
 
@@ -941,6 +998,24 @@ initialize_cameras_landmarks
       }
     }
 
+    // test for a large scale change
+    double scale_change = 1.0;
+    if (flms.size() > 1)
+    {
+      double gsd_prev = estimate_gsd(other_frame, trks, flms);
+      double gsd_next = estimate_gsd(f, trks, flms);
+      scale_change = gsd_prev / gsd_next;
+      LOG_DEBUG(d_->m_logger, "GSD estimates: "<<gsd_prev<<", "
+                              <<gsd_next<<" ratio "
+                              <<scale_change);
+      // small scale changes are less likely to be zoom, so share intrinsics
+      if (scale_change < 1.0 + d_->zoom_scale_thresh &&
+          1.0/scale_change < 1.0 + d_->zoom_scale_thresh)
+      {
+        scale_change = 1.0;
+      }
+    }
+
     if( d_->init_from_last && d_->camera_optimizer && flms.size() > 3)
     {
       cams[f] = cams[other_frame]->clone();
@@ -952,6 +1027,16 @@ initialize_cameras_landmarks
     else
     {
       break;
+    }
+
+    if( scale_change != 1.0 )
+    {
+      // construct a new camera a new intrinsic model.
+      auto cam = cams[f];
+      auto K = std::make_shared<simple_camera_intrinsics>(*cam->intrinsics());
+      K->set_focal_length(K->get_focal_length() * scale_change);
+      cams[f] = std::make_shared<simple_camera>(cam->center(), cam->rotation(), K);
+      LOG_DEBUG(d_->m_logger, "Constructing new intrinsics");
     }
 
     // optionally optimize the new camera

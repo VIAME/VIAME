@@ -34,6 +34,12 @@ Arrows - Core
    plane vertically to place a configurable percentile of the landmarks above
    the ground.
 
+ * Added logic to compute changes in ground sample distance (GSD) as images are
+   added in the camera_landmark_initialization algorithm.  If GSD changes are
+   above a threshold then assume the camera intrinsics have changed and create
+   a new shared intrinsic model.  This allows for shared intrinsics when the
+   camera does not zoom but varying intrinsics when zoom is detected.
+
  * Changed the order of when Necker reversal correction is attempted in the
    initialize_cameras_landmarks algorithm.  Previously it was attempted at the
    end after adding all cameras, often too late.  Now it is attempted the
