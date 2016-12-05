@@ -82,6 +82,12 @@ public:
            vital::landmark_map_sptr& landmarks,
            vital::track_set_sptr tracks) const;
 
+  /// Set a callback function to report intermediate progress
+  virtual void set_callback(callback_t cb);
+
+  /// This function is called by a Ceres callback to trigger a kwiver callback
+  bool trigger_callback();
+
 private:
   /// private implementation class
   class priv;
