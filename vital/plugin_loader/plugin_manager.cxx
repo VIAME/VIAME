@@ -233,7 +233,6 @@ mark_module_as_loaded( std::string const& name )
   m_priv->m_loader->mark_module_as_loaded( name );
 }
 
-
 // ------------------------------------------------------------------
 std::map< std::string, std::string > const& plugin_manager::
 module_map() const

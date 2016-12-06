@@ -110,7 +110,7 @@ is_process_module_loaded( module_t const& module )
 kwiver::vital::plugin_factory_vector_t const& get_process_list()
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  return vpm.get_factories( typeid( sprokit::process ).name() );
+  return vpm.get_factories<sprokit::process>();
 }
 
 

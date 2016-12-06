@@ -143,6 +143,12 @@ public:
    */
   plugin_factory_vector_t const& get_factories( std::string const& type_name );
 
+  template <class T>
+  plugin_factory_vector_t const& get_factories()
+  {
+    return get_factories (typeid( T ).name() );
+  }
+
   /**
    * @brief Get map of known plugins.
    *
