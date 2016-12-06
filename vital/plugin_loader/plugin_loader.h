@@ -147,6 +147,8 @@ public:
    * @return A pointer is returned to the added factory in case
    * attributes need to be added to the factory.
    *
+   * @throws plugin_already_exists - if the plugin signature already has a factory.
+   *
    * Example:
    \code
    void add_factories( plugin_loader* pm )
@@ -204,8 +206,8 @@ public:
    * @brief Get list of loaded modules.
    *
    * This method returns a map of modules that have been marked as
-   * loaded along with the name of the plugin file where the call was
-   * made.
+   * loaded by the mark_module_as_loaded() method along with the name
+   * of the plugin file where the call was made.
    *
    * @return Map of modules loaded and the source file.
    */

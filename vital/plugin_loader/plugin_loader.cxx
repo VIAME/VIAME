@@ -31,6 +31,7 @@
 #include "plugin_loader.h"
 #include "plugin_factory.h"
 
+#include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
 
 #include <sstream>
@@ -181,19 +182,16 @@ plugin_loader
 
       if ( (interface_type == interf) && (concrete_type == inst) )
       {
-        LOG_WARN( m_logger, "Factory for \"" << interface_type << "\" : \""
-                  << concrete_type << "\" already has been registered.  This factory from "
-                  << m_impl->m_current_filename << " will not be registered."
-          );
-        return fact_handle;
+        std::stringstream str;
+        str << "Factory for \"" << interface_type << "\" : \""
+            << concrete_type << "\" already has been registered.  This factory from "
+            << m_impl->m_current_filename << " will not be registered.";
+
+        throw plugin_already_exists( str.str() );
       }
     } // end foreach
   }
 
-  //+ do we need to check to see if this is already in the list.
-  //+ What does already-exist mean. The same factory handle is already in the list?
-  //+ A factory with the same concrete name?
-  //+ some other attribute?
   // Add factory to rest of its family
   m_impl->m_plugin_map[interface_type].push_back( fact_handle );
 
