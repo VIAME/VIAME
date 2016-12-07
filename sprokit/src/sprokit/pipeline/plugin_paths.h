@@ -31,9 +31,10 @@
 #ifndef SPROKIT_PIPELINE_PLUGIN_PATHS_H
 #define SPROKIT_PIPELINE_PLUGIN_PATHS_H
 
+#include "pipeline-config.h"
+
 #include <vector>
 #include <string>
-
 
 namespace sprokit {
 
@@ -49,6 +50,7 @@ namespace sprokit {
  *
  * @return List of directories where plugins may be found
  */
+SPROKIT_PIPELINE_EXPORT
 std::vector< std::string > plugin_paths();
 
 } // end namespace

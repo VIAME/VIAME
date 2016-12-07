@@ -82,11 +82,15 @@ public:
   /**
    * @brief Add an additional directories to search for plugins in.
    *
-   * This method adds the specified directory list to the end of
-   * the internal path used when loading plugins. This method can be called
-   * multiple times to add multiple directories.
+   * This method adds the specified directory list to the end of the
+   * internal path used when loading plugins. This method can be
+   * called multiple times to add multiple sets of directories. Each
+   * directory is separated from the next by the standard system path
+   * separator character.
    *
-   * Call the register_plugins() method to load plugins after you have
+   * Single directories can be added with this method.
+   *
+   * Call the load_plugins() method to load plugins after you have
    * added all additional directories.
    *
    * Directory paths that don't exist will simply be ignored.
@@ -96,13 +100,29 @@ public:
   void add_search_path(path_t const& dirpath);
 
   /**
+   * @brief Add an additional directories to search for plugins in.
+   *
+   * This method adds the specified directory list to the end of the
+   * internal path used when loading plugins. This method can be
+   * called multiple times to add multiple sets of directories.
+   *
+   * Call the load_plugins() method to load plugins after you have
+   * added all additional directories.
+   *
+   * Directory paths that don't exist will simply be ignored.
+   *
+   * \param dirpath Path to the directories to add to the plugin search path.
+   */
+  void add_search_path( path_list_t const& dirpath );
+
+  /**
    * @brief Get plugin manager search path
    *
    *  This method returns the search path used to load algorithms.
    *
    * @return vector of paths that are searched
    */
-  std::vector< path_t > const& search_path() const;
+  path_list_t const& search_path() const;
 
   /**
    * @brief Add factory to manager.

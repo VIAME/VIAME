@@ -6,6 +6,7 @@ set(pipeline_srcs
   edge_exception.cxx
   pipeline.cxx
   pipeline_exception.cxx
+  plugin_paths.cxx
   process.cxx
   process_factory.cxx
   process_exception.cxx
@@ -28,6 +29,7 @@ set(pipeline_headers
   pipeline-config.h
   pipeline.h
   pipeline_exception.h
+  plugin_paths.h
   process.h
   process_factory.h
   process_exception.h
@@ -76,7 +78,8 @@ endif ()
 set(SPROKIT_DEFAULT_MODULE_PATHS "${sprokit_default_module_paths}"
   CACHE STRING "The default paths to search for modules in" FORCE)
 set(sprokit_library_options
-  "DEFAULT_MODULE_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_MODULE_PATHS}\"")
+  "DEFAULT_MODULE_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_MODULE_PATHS}\""
+  "PATH_SEPARATOR_CHAR=\"${path_sep}\"" )
 
 set(module_build_options
   "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
@@ -102,7 +105,6 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(default ON)
 endif ()
 
-##? should this be KWIVER - no, it is a windows thing
 option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY
   "Whether to look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
@@ -111,7 +113,7 @@ if (SPROKIT_USE_CONFIGURATION_SUBDIRECTORY)
     USE_CONFIGURATION_SUBDIRECTORY)
 endif ()
 
-set_source_files_properties(modules.cxx
+set_source_files_properties(plugin_paths.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${module_build_options}")
 
@@ -138,11 +140,6 @@ set_source_files_properties(scheduler.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${scheduler_build_options}")
 
-##++ Is this still true?
-# XXX: The core library must be build shared because the plugins will otherwise
-# each have their own instance of the registries and then nothing else can get
-# access to the loaded processes. Splitting out the registries into a separate
-# library might be something for the future.
 sprokit_private_header_group(${pipeline_private_headers})
 
 sprokit_add_library(sprokit_pipeline SHARED
@@ -160,7 +157,7 @@ target_link_libraries(sprokit_pipeline
                       ${Boost_THREAD_LIBRARY}
                       ${CMAKE_DL_LIBS}
                       ${CMAKE_THREAD_LIBS_INIT}
-                      vital_vpm
+                      vital_vpm kwiversys
   )
 
 set_target_properties(sprokit_pipeline

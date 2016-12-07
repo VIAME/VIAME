@@ -109,7 +109,7 @@ plugin_manager::
 plugin_manager()
   : m_priv( new priv() )
 {
-  plugin_path_list_t search_paths;
+  path_list_t search_paths;
 
   // Add search paths
   // Craft default search paths. Order of elements in the path has
@@ -160,11 +160,19 @@ load_plugins()
 void plugin_manager::
 add_search_path( path_t const& dirpath )
 {
-  plugin_path_list_t path_list;
+  path_list_t path_list;
 
   ST::Split( dirpath, path_list, PATH_SEPARATOR_CHAR );
 
   m_priv->m_loader->add_search_path( path_list );
+}
+
+
+// ------------------------------------------------------------------
+void plugin_manager::
+add_search_path( path_list_t const& dirpath )
+{
+  m_priv->m_loader->add_search_path( dirpath );
 }
 
 

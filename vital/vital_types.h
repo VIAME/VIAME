@@ -39,7 +39,7 @@
 #define KWIVER_CORE_TYPES_H
 
 #include <string>
-
+#include <vector>
 #include <cstdint>
 
 namespace kwiver {
@@ -47,6 +47,7 @@ namespace vital {
 
 /// The type to be used for file and directory paths
 typedef std::string path_t;
+typedef std::vector< path_t > path_list_t;
 
 /// The type of a landmark ID number
 typedef int64_t landmark_id_t;

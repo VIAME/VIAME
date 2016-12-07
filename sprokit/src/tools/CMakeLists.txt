@@ -32,7 +32,7 @@ endfunction ()
 add_tool(pipe_config
   sprokit_tools
   sprokit_pipeline
-  vital_config
+  vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
@@ -40,7 +40,7 @@ add_tool(pipe_config
 add_tool(pipe_to_dot
   sprokit_tools
   sprokit_pipeline
-  vital_config
+  vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
@@ -48,16 +48,15 @@ add_tool(pipe_to_dot
 add_tool(pipeline_runner
   sprokit_tools
   sprokit_pipeline
-  vital_config
+  vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
-##++ functionality to move to plugin_explorer
-#add_tool(processopedia
-#  sprokit_tools
-#  sprokit_pipeline
-#  vital_config
-#  ${Boost_FILESYSTEM_LIBRARY}
-#  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-#  ${Boost_SYSTEM_LIBRARY})
+add_tool(processopedia
+  sprokit_tools
+  sprokit_pipeline
+  vital_config vital_vpm
+  ${Boost_FILESYSTEM_LIBRARY}
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_SYSTEM_LIBRARY})

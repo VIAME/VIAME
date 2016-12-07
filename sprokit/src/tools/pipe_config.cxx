@@ -44,6 +44,7 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline/plugin_paths.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -57,7 +58,6 @@
 #include <set>
 #include <stdexcept>
 #include <string>
-
 #include <cstdlib>
 
 // Description of this program and why I would want to use it
@@ -112,10 +112,15 @@ class config_printer
     process_set_t m_visited;
 };
 
+
+// ------------------------------------------------------------------
 int
 sprokit_tool_main(int argc, char const* argv[])
 {
-  sprokit::load_known_modules();
+  // Load all known modules
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.add_search_path( sprokit::plugin_paths() );
+  vpm.load_plugins();
 
   boost::program_options::options_description desc;
   desc

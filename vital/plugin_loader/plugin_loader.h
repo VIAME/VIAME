@@ -53,7 +53,6 @@ class plugin_factory;
 
 typedef std::shared_ptr< plugin_factory >         plugin_factory_handle_t;
 typedef std::vector< plugin_factory_handle_t >    plugin_factory_vector_t;
-typedef std::vector< path_t >                     plugin_path_list_t;
 typedef std::map< std::string, plugin_factory_vector_t > plugin_map_t;
 typedef std::map< std::string, path_t >           plugin_module_map_t;
 
@@ -108,7 +107,7 @@ public:
    *
    * \param dirpath Path to the directories to add to the plugin search path.
    */
-  void add_search_path( plugin_path_list_t const& dirpath );
+  void add_search_path( path_list_t const& dirpath );
 
   /**
    * @brief Get plugin manager search path
@@ -117,7 +116,7 @@ public:
    *
    * @return vector of paths that are searched
    */
-  plugin_path_list_t const& get_search_path() const;
+  path_list_t const& get_search_path() const;
 
   /**
    * @brief Get list of factories for interface type.

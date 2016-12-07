@@ -221,7 +221,7 @@ print_help()
   return;
 }
 
-
+#if 0
 // ------------------------------------------------------------------
 void
 display_process( kwiver::vital::plugin_factory_handle_t const fact )
@@ -352,6 +352,7 @@ display_scheduler( kwiver::vital::plugin_factory_handle_t const fact )
 
   std::cout << sched_type << ": " << descrip << std::endl;
 }
+#endif
 
 
 // ------------------------------------------------------------------
@@ -481,6 +482,7 @@ main( int argc, char* argv[] )
     std::cout << std::endl;
   }
 
+  #if 0
   if ( opt_processes )
   {
     std::cout << "---- Registered processes:\n";
@@ -502,6 +504,7 @@ main( int argc, char* argv[] )
     }
     std::cout << std::endl;
   }
+#endif
 
   if ( opt_all )
   {

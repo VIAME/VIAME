@@ -30,21 +30,44 @@
 
 #include "plugin_paths.h"
 
+#include <vital/util/tokenize.h>
+
+#include <kwiversys/SystemTools.hxx>
+
 namespace sprokit {
 
-static const std::string build_paths = "DEFAULT_MODULE_PATHS";
+namespace {  // anonymous
+
+static std::string const default_module_paths = std::string( DEFAULT_MODULE_PATHS );
+
+static char const* environment_variable_name( "SPROKIT_MODULE_PATH" );
+  // SPROKIT_PLUGIN_PATH
+  // SPROKIT_CLUSTER_PATH
+
+} // end namespace
 
 
+// ------------------------------------------------------------------
 std::vector< std::string >
 plugin_paths()
 {
   std::vector< std::string > ret_val;
 
-  // parse build_paths into ret_val
+  // Check env variable for path specification
+  const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
+  if ( 0 != env_ptr )
+  {
+    // LOG_DEBUG( m_priv->m_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
+    std::string const extra_module_dirs(env_ptr);
 
-  // Get path from environment and add that too.
+    // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
+    kwiver::vital::tokenize( extra_module_dirs, ret_val, PATH_SEPARATOR_CHAR, true );
+  }
 
-  // Verify order - probably env first, although there should be no overriding of modules.
+  // Add default paths
+  kwiver::vital::tokenize( default_module_paths, ret_val, PATH_SEPARATOR_CHAR, true );
+
+  return ret_val;
 }
 
 } // end namespace

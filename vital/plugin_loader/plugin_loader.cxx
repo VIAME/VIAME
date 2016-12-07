@@ -81,7 +81,7 @@ public:
   const std::string m_shared_lib_suffix;
 
   /// Paths in which to search for module libraries
-  plugin_path_list_t m_search_paths;
+  path_list_t m_search_paths;
 
   // Map from interface type name to vector of class loaders
   plugin_map_t m_plugin_map;
@@ -216,14 +216,14 @@ plugin_loader
 // ------------------------------------------------------------------
 void
 plugin_loader
-::add_search_path( plugin_path_list_t const& path)
+::add_search_path( path_list_t const& path)
 {
   m_impl->m_search_paths.insert(m_impl->m_search_paths.end(), path.begin(), path.end() );
 }
 
 
 // ------------------------------------------------------------------
-plugin_path_list_t const&
+path_list_t const&
 plugin_loader
 ::get_search_path() const
 {

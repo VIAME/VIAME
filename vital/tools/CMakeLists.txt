@@ -16,7 +16,6 @@ target_link_libraries( algo_explorer
 
 ###
 #
-message( "sprokit_source_dir: ${sprokit_source_dir}" )
 ##++ There is a problem here in that plugin_explorer needs sprokit includes
 ##++ But they are not readily available. Generally speaking, vital shopuld not depend
 ##++ on any other package.

@@ -37,12 +37,12 @@
 #include <sprokit/pipeline_util/path.h>
 
 #include <vital/config/config_block.h>
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline/plugin_paths.h>
 
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -109,7 +109,10 @@ sprokit_tool_main(int argc, char const* argv[])
       return EXIT_FAILURE;
     }
 
-    sprokit::load_known_modules();
+    // Load all known modules
+    kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+    vpm.add_search_path( sprokit::plugin_paths() );
+    vpm.load_plugins();
 
     sprokit::pipeline_builder builder;
 
@@ -131,11 +134,9 @@ sprokit_tool_main(int argc, char const* argv[])
     }
     else if (have_cluster_type)
     {
-      sprokit::process_registry_t const reg = sprokit::process_registry::self();
-
       sprokit::process::type_t const type = vm["cluster-type"].as<sprokit::process::type_t>();
 
-      sprokit::process_t const proc = reg->create_process(type, graph_name, conf);
+      sprokit::process_t const proc = sprokit::create_process(type, graph_name, conf);
       cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
       if (!cluster)
@@ -203,6 +204,8 @@ sprokit_tool_main(int argc, char const* argv[])
   return EXIT_SUCCESS;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 pipe_to_dot_cluster_options()
 {
@@ -216,6 +219,8 @@ pipe_to_dot_cluster_options()
   return desc;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 pipe_to_dot_pipeline_options()
 {
