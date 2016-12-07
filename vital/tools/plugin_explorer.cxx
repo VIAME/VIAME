@@ -53,9 +53,6 @@ bool opt_path_list( false );
 bool opt_brief( false );
 bool opt_modules( false );
 bool opt_files( false );
-bool opt_hidden( false );
-bool opt_processes( false );
-bool opt_schedulers( false );
 bool opt_all( false );
 
 std::vector< std::string > opt_path;
@@ -216,6 +213,7 @@ print_help()
             << "  --brief          display factory name and description only\n"
             << "  --mod            display list of loaded modules\n"
             << "  --files          display list of files successfully opened to load plugins\n"
+            << "  --all            display all factories\n"
   ;
 
   return;
@@ -388,9 +386,6 @@ main( int argc, char* argv[] )
   arg.AddArgument( "--brief",       argT::NO_ARGUMENT, &opt_brief, "Brief display" );
   arg.AddArgument( "--files",       argT::NO_ARGUMENT, &opt_files, "Display list of loaded files" );
   arg.AddArgument( "--mod",         argT::NO_ARGUMENT, &opt_modules, "Display list of loaded modules" );
-  arg.AddArgument( "--proc",        argT::NO_ARGUMENT, &opt_processes, "Display list of sprokit processes" );
-  arg.AddArgument( "--sched",       argT::NO_ARGUMENT, &opt_schedulers, "Display list of sprokit schedulers" );
-  arg.AddArgument( "--hidden",      argT::NO_ARGUMENT, &opt_processes, "Display hidden properties for processes" );
   arg.AddArgument( "--all",         argT::NO_ARGUMENT, &opt_all, "Display all factories" );
 
   std::vector< std::string > filter_args;
@@ -423,23 +418,26 @@ main( int argc, char* argv[] )
     }
   }
 
-  // check for attribute based filtering
-  if ( filter_args.size() == 2 )
+  if ( filter_args.size() > 0 )
   {
-    opt_attr_filter = true;
-    opt_filter_attr = filter_args[0];
-    opt_filter_regex = filter_args[1];
-
-    if ( ! filter_regex.compile( opt_filter_regex ) )
+    // check for attribute based filtering
+    if ( filter_args.size() == 2 )
     {
-      std::cerr << "Invalid regular expression for attribute filter \"" << opt_filter_regex << "\"" << std::endl;
+      opt_attr_filter = true;
+      opt_filter_attr = filter_args[0];
+      opt_filter_regex = filter_args[1];
+
+      if ( ! filter_regex.compile( opt_filter_regex ) )
+      {
+        std::cerr << "Invalid regular expression for attribute filter \"" << opt_filter_regex << "\"" << std::endl;
+        return 1;
+      }
+    }
+    else
+    {
+      std::cerr << "Invalid attribute filtering specification. Two parameters are required." << std::endl;
       return 1;
     }
-  }
-  else
-  {
-    std::cerr << "Invalid attribute filtering specification. Two parameters are required." << std::endl;
-    return 1;
   }
 
   // ========
@@ -457,6 +455,8 @@ main( int argc, char* argv[] )
   {
     vpm.add_search_path( path );
   }
+
+  vpm.load_plugins();
 
   if ( opt_path_list )
   {

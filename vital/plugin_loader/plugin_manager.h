@@ -318,7 +318,7 @@ public:
 
     std::stringstream str;
     str << "Could not find factory where attr \"" << m_attr << "\" is \"" << value
-        << " for interface type \"" << typeid(I).name()
+        << "\" for interface type \"" << typeid(I).name()
         << "\"";
 
     throw kwiver::vital::plugin_factory_not_found( str.str() );

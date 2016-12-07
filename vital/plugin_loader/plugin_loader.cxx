@@ -33,6 +33,7 @@
 
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
+#include <vital/util/demangle.h>
 
 #include <sstream>
 
@@ -162,8 +163,8 @@ plugin_loader
   {
     LOG_TRACE( m_logger, "add_factory_hook() declined to have this factory registered"
                << " from file \"" << m_impl->m_current_filename << "\""
-               << " for interface: \"" << interface_type
-               << "\" for derived type: \"" << concrete_type << "\""
+               << " for interface: \"" << demangle( interface_type )
+               << "\" for derived type: \"" << demangle( concrete_type ) << "\""
       );
     return fact_handle;
   }
@@ -182,9 +183,13 @@ plugin_loader
 
       if ( (interface_type == interf) && (concrete_type == inst) )
       {
+        std::string old_file;
+        fact->get_attribute( plugin_factory::PLUGIN_FILE_NAME, old_file );
+
         std::stringstream str;
-        str << "Factory for \"" << interface_type << "\" : \""
-            << concrete_type << "\" already has been registered.  This factory from "
+        str << "Factory for \"" << demangle( interface_type ) << "\" : \""
+            << demangle( concrete_type ) << "\" already has been registered by "
+            << old_file << ".  This factory from "
             << m_impl->m_current_filename << " will not be registered.";
 
         throw plugin_already_exists( str.str() );
@@ -196,9 +201,9 @@ plugin_loader
   m_impl->m_plugin_map[interface_type].push_back( fact_handle );
 
   LOG_TRACE( m_logger,
-             "Adding plugin to create interface: " << interface_type
-             << " from derived type: " << concrete_type
-             << " from file: " << m_impl->m_current_filename );
+             "Adding plugin to create interface: \"" << demangle( interface_type )
+             << "\" from derived type: \"" << demangle( concrete_type )
+             << "\" from file: " << m_impl->m_current_filename );
 
   return fact_handle;
 }

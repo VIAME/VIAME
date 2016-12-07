@@ -54,7 +54,7 @@ create_process( const sprokit::process::type_t&         type,
   kwiver::vital::plugin_factory_handle_t a_fact;
   try
   {
-    a_fact = ifact.find_factory( name );
+    a_fact = ifact.find_factory( type );
   }
   catch ( kwiver::vital::plugin_factory_not_found& e )
   {

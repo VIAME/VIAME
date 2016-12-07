@@ -107,7 +107,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Match extracted descriptors and detected features" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::matcher_process );
+  fact = vpm.ADD_PROCESS( kwiver::compute_homography_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_homography" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Compute a frame to frame homography based on tracks" );
@@ -150,7 +150,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Reads an image file given the file name." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_input_process );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_output_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_input" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
