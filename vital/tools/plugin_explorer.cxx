@@ -214,143 +214,11 @@ print_help()
             << "  --mod            display list of loaded modules\n"
             << "  --files          display list of files successfully opened to load plugins\n"
             << "  --all            display all factories\n"
+            << "  --filter attr regex Filter specified attr name value with regex\n"
   ;
 
   return;
 }
-
-#if 0
-// ------------------------------------------------------------------
-void
-display_process( kwiver::vital::plugin_factory_handle_t const fact )
-{
-  // input is proc_type which is really proc name
-
-  std::string proc_type = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
-
-  std::string descrip = "-- Not_Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
-
-  if ( opt_brief )
-  {
-    std::cout << proc_type << ": " << descrip << std::endl;
-    return;
-  }
-
-  std::cout << "Process type: " << proc_type << std::endl
-            << " Description: " << descrip << std::endl;
-
-  // Create the process so we can inspect it.
-  sprokit::process_t const proc = sprokit::create_process( proc_type, sprokit::process::name_t() );
-
-  sprokit::process::properties_t const properties = proc->properties();
-  std::string const properties_str = join( properties, ", " );
-
-  std::cout << "  Properties: " << properties_str << std::endl
-            << "  Configuration:" << std::endl;
-
-  kwiver::vital::config_block_keys_t const keys = proc->available_config();
-
-  // Loop over all config block entries
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
-  {
-    if ( ! opt_hidden && ( key.find( hidden_prefix ) == 0 ) )
-    {
-      continue;
-    }
-
-    sprokit::process::conf_info_t const info = proc->config_info( key );
-
-    kwiver::vital::config_block_value_t const& def = info->def;
-    kwiver::vital::config_block_description_t const& conf_desc = info->description;
-    bool const& tunable = info->tunable;
-    char const* const tunable_str = tunable ? "yes" : "no";
-
-    std::cout << "    Name       : " << key << std::endl
-              << "    Default    : " << def << std::endl
-              << "    Description: " << conf_desc << std::endl
-              << "    Tunable    : " << tunable_str << std::endl
-              << std::endl;
-  }
-
-  std::cout << "  - Input ports:" << std::endl;
-  sprokit::process::ports_t const iports = proc->input_ports();
-
-  // loop over all input ports
-  VITAL_FOREACH( sprokit::process::port_t const & port, iports )
-  {
-    if ( ! opt_hidden && ( key.find( hidden_prefix ) == 0 ) )
-    {
-      continue;
-    }
-
-    sprokit::process::port_info_t const info = proc->input_port_info( port );
-
-    sprokit::process::port_type_t const& type = info->type;
-    sprokit::process::port_flags_t const& flags = info->flags;
-    sprokit::process::port_description_t const& port_desc = info->description;
-
-    std::string const flags_str = join( flags, ", " );
-
-    std::cout << "    Name       : " << port << std::endl
-              << "    Type       : " << type << std::endl
-              << "    Flags      : " << flags_str << std::endl
-              << "    Description: " << port_desc << std::endl
-              << std::endl;
-  }
-
-  std::cout << "  - Output ports:" << std::endl;
-  sprokit::process::ports_t const oports = proc->output_ports();
-
-  // Loop over all output ports
-  VITAL_FOREACH( sprokit::process::port_t const & port, oports )
-  {
-    if ( ! opt_hidden && ( key.find( hidden_prefix ) == 0 ) )
-    {
-      continue;
-    }
-
-    sprokit::process::port_info_t const info = proc->output_port_info( port );
-
-    sprokit::process::port_type_t const& type = info->type;
-    sprokit::process::port_flags_t const& flags = info->flags;
-    sprokit::process::port_description_t const& port_desc = info->description;
-
-    std::string const flags_str = join( flags, ", " );
-
-    std::cout << "    Name       : " << port << std::endl
-              << "    Type       : " << type << std::endl
-              << "    Flags      : " << flags_str << std::endl
-              << "    Description: " << port_desc << std::endl
-              << std::endl;
-  }
-
-  if ( opt_detail )
-  {
-    std::cout << std::endl;
-
-    // print all the rest of the attributes
-    print_functor pf( std::cout );
-    fact->for_each_attr( pf );
-  }
-            << std::endl;
-} // display_process
-
-
-// ------------------------------------------------------------------
-void
-display_scheduler( kwiver::vital::plugin_factory_handle_t const fact )
-{
-  std::string sched_type = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, sched_type );
-
-  std::string descrip = "-- Not_Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
-
-  std::cout << sched_type << ": " << descrip << std::endl;
-}
-#endif
 
 
 // ------------------------------------------------------------------
@@ -481,30 +349,6 @@ main( int argc, char* argv[] )
     }
     std::cout << std::endl;
   }
-
-  #if 0
-  if ( opt_processes )
-  {
-    std::cout << "---- Registered processes:\n";
-    auto fact_list = vpm.get_factories( typeid( sprokit::process ).name() );
-    VITAL_FOREACH( auto a_fact, fact_list )
-    {
-      display_process( a_fact );
-    }
-    std::cout << std::endl;
-  }
-
-  if (opt_schedulers )
-  {
-    std::cout << "---- Registered schedulers:\n";
-    auto fact_list = vpm.get_factories( typeid( sprokit::scheduler ).name() );
-    VITAL_FOREACH( auto a_fact, fact_list )
-    {
-      display_scheduler( a_fact );
-    }
-    std::cout << std::endl;
-  }
-#endif
 
   if ( opt_all )
   {
