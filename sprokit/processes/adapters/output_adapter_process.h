@@ -36,7 +36,7 @@
 #ifndef KWIVER_OUTPUT_ADAPTER_PROCESS_H
 #define KWIVER_OUTPUT_ADAPTER_PROCESS_H
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
+#include <sprokit/processes/adapters/kwiver_processes_adapter_export.h>
 
 #include <sprokit/pipeline/process.h>
 
@@ -45,7 +45,7 @@
 namespace kwiver {
 
 // ----------------------------------------------------------------
-class KWIVER_ADAPTER_PROCESSES_NO_EXPORT output_adapter_process
+class KWIVER_PROCESSES_ADAPTER_NO_EXPORT output_adapter_process
   : public sprokit::process,
     public adapter::adapter_base
 {

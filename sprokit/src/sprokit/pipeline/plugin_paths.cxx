@@ -28,52 +28,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface to input adapter process.
- */
+#include "plugin_paths.h"
 
-#ifndef PROCESS_INPUT_ADAPTER_PROCESS_H
-#define PROCESS_INPUT_ADAPTER_PROCESS_H
+namespace sprokit {
 
-#include <sprokit/processes/adapters/kwiver_processes_adapter_export.h>
+static const std::string build_paths = "DEFAULT_MODULE_PATHS";
 
-#include <sprokit/pipeline/process.h>
 
-#include "adapter_base.h"
-
-namespace kwiver {
-
-// ----------------------------------------------------------------
-class KWIVER_PROCESSES_ADAPTER_NO_EXPORT input_adapter_process
-  : public sprokit::process,
-    public adapter::adapter_base
+std::vector< std::string >
+plugin_paths()
 {
-public:
-  // -- CONSTRUCTORS --
-  input_adapter_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~input_adapter_process();
+  std::vector< std::string > ret_val;
 
-  // Process interface
-  virtual void _step();
+  // parse build_paths into ret_val
 
-  /**
-   * @brief Return list of active ports.
-   *
-   * This method returns the list of currently active ports and
-   * associated port info items.
-   *
-   * @return List of port names and info.
-   */
-  adapter::ports_info_t get_ports();
+  // Get path from environment and add that too.
 
-private:
-
-  // This is used to intercept connections and make ports JIT
-  virtual sprokit::process::port_info_t _output_port_info( sprokit::process::port_t const& port);
-
-}; // end class input_adapter_process
+  // Verify order - probably env first, although there should be no overriding of modules.
+}
 
 } // end namespace
-
-#endif /* PROCESS_INPUT_ADAPTER_PROCESS_H */

@@ -28,15 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sprokit/processes/matlab/kwiver_processes_matlab_export.h>
 #include <sprokit/pipeline/process_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
 
 // -- list processes to register --
 #include "matlab_process.h"
-
-
-extern "C"
-KWIVER_MATLAB_PROCESSES_EXPORT void register_processes();
-
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -44,15 +41,16 @@ KWIVER_MATLAB_PROCESSES_EXPORT void register_processes();
  *
  */
 extern "C"
-KWIVER_PROCESSES_VXL_EXPORT
-void register_factories( kwiver::vital::plugin_manager& vpm )
+KWIVER_PROCESSES_MATLAB_EXPORT
+void register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static const auto module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_matlab" );
 
-  if ( sprokit::is_process_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
+
   // ----------------------------------------------------------------
   auto fact = vpm.ADD_PROCESS( kwiver::matlab::matlab_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "matlab_bridge" );
@@ -61,5 +59,5 @@ void register_factories( kwiver::vital::plugin_manager& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

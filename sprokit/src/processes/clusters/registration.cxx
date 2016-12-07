@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit.register_cluster" );
 
   // See if clusters have already been loaded
-  if (sprokit::is_process_module_loaded(module_name))
+  if (sprokit::is_process_module_loaded(vpm, module_name))
   {
     return;
   }
@@ -200,7 +200,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     }
   }
 
-  sprokit::mark_process_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }
 
 

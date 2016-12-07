@@ -28,8 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/processes/adapters/kwiver_processes_adapter_export.h>
+#include <sprokit/pipeline/process_factory.h>
+
+#include <vital/plugin_loader/plugin_loader.h>
 
 #include "input_adapter_process.h"
 #include "output_adapter_process.h"
@@ -41,14 +43,14 @@
  *
  */
 extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT
+KWIVER_PROCESSES_ADAPTER_EXPORT
 void
-register_factories( kwiver::vital::plugin_manager& vpm )
+register_factories( kwiver::vital::plugin_loader& vpm )
 
 {
-  static autoconst module_name = sprokit::process_registry::module_t( "kwiver_processes_adapters" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_adapters" );
 
-  if ( sprokit::is_process_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -71,5 +73,5 @@ register_factories( kwiver::vital::plugin_manager& vpm )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

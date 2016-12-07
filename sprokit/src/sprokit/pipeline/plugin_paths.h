@@ -28,52 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SPROKIT_PIPELINE_PLUGIN_PATHS_H
+#define SPROKIT_PIPELINE_PLUGIN_PATHS_H
+
+#include <vector>
+#include <string>
+
+
+namespace sprokit {
+
 /**
- * \file
- * \brief Interface to input adapter process.
+ * @brief Get list of sprokit specific plugin paths.
+ *
+ * This function returns a list of directories that are to be searched
+ * for sprokit plugins. These plugins may contain processes,
+ * schedulers, clusters, or other providers.
+ *
+ * The list is composed of compile time directories and those
+ * specified through the environment variable(s).
+ *
+ * @return List of directories where plugins may be found
  */
-
-#ifndef PROCESS_INPUT_ADAPTER_PROCESS_H
-#define PROCESS_INPUT_ADAPTER_PROCESS_H
-
-#include <sprokit/processes/adapters/kwiver_processes_adapter_export.h>
-
-#include <sprokit/pipeline/process.h>
-
-#include "adapter_base.h"
-
-namespace kwiver {
-
-// ----------------------------------------------------------------
-class KWIVER_PROCESSES_ADAPTER_NO_EXPORT input_adapter_process
-  : public sprokit::process,
-    public adapter::adapter_base
-{
-public:
-  // -- CONSTRUCTORS --
-  input_adapter_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~input_adapter_process();
-
-  // Process interface
-  virtual void _step();
-
-  /**
-   * @brief Return list of active ports.
-   *
-   * This method returns the list of currently active ports and
-   * associated port info items.
-   *
-   * @return List of port names and info.
-   */
-  adapter::ports_info_t get_ports();
-
-private:
-
-  // This is used to intercept connections and make ports JIT
-  virtual sprokit::process::port_info_t _output_port_info( sprokit::process::port_t const& port);
-
-}; // end class input_adapter_process
+std::vector< std::string > plugin_paths();
 
 } // end namespace
 
-#endif /* PROCESS_INPUT_ADAPTER_PROCESS_H */
+#endif // SPROKIT_PIPELINE_PLUGIN_PATHS_H

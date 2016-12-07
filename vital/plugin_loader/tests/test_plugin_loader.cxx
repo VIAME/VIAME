@@ -28,52 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface to input adapter process.
- */
+#include <test_common.h>
 
-#ifndef PROCESS_INPUT_ADAPTER_PROCESS_H
-#define PROCESS_INPUT_ADAPTER_PROCESS_H
 
-#include <sprokit/processes/adapters/kwiver_processes_adapter_export.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-#include <sprokit/pipeline/process.h>
 
-#include "adapter_base.h"
+#define TEST_ARGS ()
 
-namespace kwiver {
+DECLARE_TEST_MAP();
 
-// ----------------------------------------------------------------
-class KWIVER_PROCESSES_ADAPTER_NO_EXPORT input_adapter_process
-  : public sprokit::process,
-    public adapter::adapter_base
+int
+main(int argc, char* argv[])
 {
-public:
-  // -- CONSTRUCTORS --
-  input_adapter_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~input_adapter_process();
+  CHECK_ARGS(1);
 
-  // Process interface
-  virtual void _step();
+  testname_t const testname = argv[1];
 
-  /**
-   * @brief Return list of active ports.
-   *
-   * This method returns the list of currently active ports and
-   * associated port info items.
-   *
-   * @return List of port names and info.
-   */
-  adapter::ports_info_t get_ports();
+  RUN_TEST(testname);
+}
 
-private:
 
-  // This is used to intercept connections and make ports JIT
-  virtual sprokit::process::port_info_t _output_port_info( sprokit::process::port_t const& port);
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(module_marking)
+{
+  const auto module = kwiver::vital::plugin_manager::module_t("module");
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
-}; // end class input_adapter_process
+  if (vpm.is_module_loaded( module ))
+  {
+    TEST_ERROR("The module \'" << module
+               << "\' is already marked as loaded");
+  }
 
-} // end namespace
+  vpm.mark_module_as_loaded( module );
 
-#endif /* PROCESS_INPUT_ADAPTER_PROCESS_H */
+  if ( ! vpm.is_module_loaded( module ))
+  {
+    TEST_ERROR("The module \'" << module
+               << "\' is not marked as loaded");
+  }
+}
+
+// Tests to add
+//
+// - Load known file and test to see if contents are as expected.
+// - Test API
+//

@@ -47,7 +47,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static auto const module_name = kwiver::vital::plugin_manager::module_t("example_schedulers");
 
-  if ( sprokit::is_scheduler_module_loaded( module_name ) )
+  if ( sprokit::is_scheduler_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -58,5 +58,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Use a pool of threads to step processes" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  sprokit::mark_scheduler_module_as_loaded( module_name );
+  sprokit::mark_scheduler_module_as_loaded( vpm, module_name );
 }

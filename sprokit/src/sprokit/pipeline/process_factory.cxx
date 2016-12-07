@@ -81,28 +81,25 @@ create_process( const sprokit::process::type_t&         type,
 
 // ------------------------------------------------------------------
 void
-mark_process_module_as_loaded( module_t const& module )
+mark_process_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+                               module_t const& module )
 {
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
   module_t mod = "process.";
-
   mod += module;
-  vpm.mark_module_as_loaded( mod );
+
+  vpl.mark_module_as_loaded( mod );
 }
 
 
 // ------------------------------------------------------------------
 bool
-is_process_module_loaded( module_t const& module )
+is_process_module_loaded( kwiver::vital::plugin_loader& vpl,
+                          module_t const& module )
 {
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
   module_t mod = "process.";
-
   mod += module;
 
-  return vpm.is_module_loaded( mod );
+  return vpl.is_module_loaded( mod );
 }
 
 

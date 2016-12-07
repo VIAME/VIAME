@@ -89,6 +89,8 @@ class SPROKIT_PIPELINE_EXPORT scheduler_factory
 : public kwiver::vital::plugin_factory
 {
 public:
+  static scheduler::type_t const default_type;
+
   /**
    * @brief CTOR for factory object
    *
@@ -146,20 +148,24 @@ create_scheduler( const sprokit::scheduler::type_t&      name,
 /**
  * \brief Mark a scheduler as loaded.
  *
+ * \param vpl The loader object that is managing the list of loadable modules.
  * \param module The scheduler to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-void mark_scheduler_module_as_loaded(module_t const& module);
+void mark_scheduler_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+                                      module_t const& module );
 
 /**
  * \brief Query if a scheduler has already been loaded.
  *
+ * \param vpl The loader object that is managing the list of loadable modules.
  * \param module The scheduler to query.
  *
  * \returns True if the scheduler has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-bool is_scheduler_module_loaded(module_t const& module);
+bool is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
+                                 module_t const& module );
 
 //
 // Convenience macro for adding schedulers

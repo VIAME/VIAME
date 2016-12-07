@@ -81,6 +81,7 @@ set(sprokit_library_options
 set(module_build_options
   "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
 
+##++ maybe we don't need this?
 if (WIN32)
   sprokit_configure_file(module-paths.h
     "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
@@ -101,7 +102,7 @@ if (CMAKE_CONFIGURATION_TYPES)
   set(default ON)
 endif ()
 
-##? should this be KWIVER
+##? should this be KWIVER - no, it is a windows thing
 option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY
   "Whether to look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 

@@ -147,21 +147,25 @@ sprokit::process_t create_process(const sprokit::process::type_t&        type,
 /**
  * \brief Mark a process as loaded.
  *
+ * \param vpl The loader object that is managing the list of loadable modules.
  * \param module The process to mark as loaded.
  */
 SPROKIT_PIPELINE_EXPORT
-void mark_process_module_as_loaded(const module_t& module);
+  void mark_process_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+                                      const module_t& module );
 
 
 /**
  * \brief Query if a process has already been loaded.
  *
+ * \param vpl The loader object that is managing the list of loadable modules.
  * \param module The process to query.
  *
  * \returns True if the process has already been loaded, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT
-bool is_process_module_loaded(module_t const& module);
+  bool is_process_module_loaded( kwiver::vital::plugin_loader& vpl,
+                                 module_t const& module );
 
 /**
  * @brief Get list of all processes.
@@ -178,7 +182,6 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
   add_factory( new sprokit::process_factory( typeid( proc_type ).name(), \
                                              typeid( sprokit::process ).name(), \
                                              sprokit::create_new_process< proc_type > ) )
-
 } // end namespace
 
 #endif /* SPROKIT_PIPELINE_PROCESS_FACTORY_H */

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static auto const module_name = kwiver::vital::plugin_manager::module_t("test_processes");
 
-  if ( sprokit::is_process_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
@@ -74,5 +74,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A test process" );
 
-  sprokit::mark_process_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

@@ -35,6 +35,9 @@
 
 namespace sprokit {
 
+scheduler::type_t const scheduler_factory::default_type = scheduler::type_t("thread_per_process");
+
+
 // ------------------------------------------------------------------
 sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      name,
                                        const sprokit::pipeline_t&             pipe,
@@ -74,28 +77,25 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
 
 // ------------------------------------------------------------------
 void
-mark_scheduler_module_as_loaded( module_t const& module )
+mark_scheduler_module_as_loaded( kwiver::vital::plugin_loader& vpl,
+                                 module_t const& module )
 {
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
   module_t mod = "scheduler.";
-
   mod += module;
-  vpm.mark_module_as_loaded( mod );
+
+  vpl.mark_module_as_loaded( mod );
 }
 
 
 // ------------------------------------------------------------------
 bool
-is_scheduler_module_loaded( module_t const& module )
+is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
+                            module_t const& module )
 {
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
   module_t mod = "scheduler.";
-
   mod += module;
 
-  return vpm.is_module_loaded( mod );
+  return vpl.is_module_loaded( mod );
 }
 
 } // end namespace

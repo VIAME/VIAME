@@ -31,6 +31,8 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
@@ -130,7 +132,7 @@ IMPLEMENT_TEST( add_process )
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -172,7 +174,7 @@ IMPLEMENT_TEST( duplicate_name )
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -203,7 +205,7 @@ IMPLEMENT_TEST( map_config_after_process )
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -216,7 +218,7 @@ IMPLEMENT_TEST( map_config_after_process )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_no_exist )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
 
@@ -235,7 +237,7 @@ IMPLEMENT_TEST( map_config_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_read_only )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
@@ -272,7 +274,7 @@ IMPLEMENT_TEST( map_config_read_only )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_ignore_override )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
@@ -341,7 +343,7 @@ IMPLEMENT_TEST( map_input )
   sprokit::process::port_t const port = sprokit::process::port_t( "cluster_number" );
   sprokit::process::port_t const mapped_port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -406,7 +408,7 @@ IMPLEMENT_TEST( map_input_twice )
   sprokit::process::port_t const port2 = sprokit::process::port_t( "cluster_number2" );
   sprokit::process::port_t const mapped_port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -441,7 +443,7 @@ IMPLEMENT_TEST( map_input_port_no_exist )
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -467,7 +469,7 @@ IMPLEMENT_TEST( map_output )
   sprokit::process::port_t const port = sprokit::process::port_t( "cluster_number" );
   sprokit::process::port_t const mapped_port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -532,7 +534,7 @@ IMPLEMENT_TEST( map_output_twice )
   sprokit::process::port_t const port = sprokit::process::port_t( "cluster_number" );
   sprokit::process::port_t const mapped_port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name1, type );
   cluster->_add_process( name2, type );
@@ -568,7 +570,7 @@ IMPLEMENT_TEST( map_output_port_no_exist )
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name, type );
 
@@ -587,7 +589,7 @@ IMPLEMENT_TEST( connect )
   sprokit::process::type_t const type2 = sprokit::process::type_t( "print_number" );
   sprokit::process::port_t const port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name1, type1 );
   cluster->_add_process( name2, type2 );
@@ -653,7 +655,7 @@ IMPLEMENT_TEST( connect_upstream_no_exist )
   sprokit::process::type_t const type = sprokit::process::type_t( "print_number" );
   sprokit::process::port_t const port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name2, type );
 
@@ -675,7 +677,7 @@ IMPLEMENT_TEST( connect_upstream_port_no_exist )
   sprokit::process::port_t const port1 = sprokit::process::port_t( "no_such_port" );
   sprokit::process::port_t const port2 = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name1, type1 );
   cluster->_add_process( name2, type2 );
@@ -696,7 +698,7 @@ IMPLEMENT_TEST( connect_downstream_no_exist )
   sprokit::process::type_t const type = sprokit::process::type_t( "numbers" );
   sprokit::process::port_t const port = sprokit::process::port_t( "number" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name1, type );
 
@@ -718,7 +720,7 @@ IMPLEMENT_TEST( connect_downstream_port_no_exist )
   sprokit::process::port_t const port1 = sprokit::process::port_t( "number" );
   sprokit::process::port_t const port2 = sprokit::process::port_t( "no_such_port" );
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   cluster->_add_process( name1, type1 );
   cluster->_add_process( name2, type2 );
@@ -732,7 +734,7 @@ IMPLEMENT_TEST( connect_downstream_port_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
@@ -784,7 +786,7 @@ IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
@@ -837,7 +839,7 @@ IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_pass_extra )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
@@ -878,7 +880,7 @@ IMPLEMENT_TEST( reconfigure_pass_extra )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
@@ -923,7 +925,7 @@ IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( reconfigure_mapped_untunable )
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_plugins();
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 

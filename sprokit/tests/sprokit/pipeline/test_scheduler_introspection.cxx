@@ -32,8 +32,8 @@
 
 #include <vital/config/config_block.h>
 #include <vital/vital_foreach.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_registry.h>

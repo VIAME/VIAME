@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2013-2016 by Kitware, Inc. All Rights Reserved. Please refer to
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,7 +100,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 {
   static auto const module_name = kwiver::vital::plugin_manager::module_t("test_schedulers");
 
-  if (sprokit::is_scheduler_module_loaded( module_name ))
+  if (sprokit::is_scheduler_module_loaded( vpm, module_name ))
   {
     return;
   }
@@ -111,5 +111,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A test scheduler" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  sprokit::mark_scheduler_module_as_loaded(module_name);
+  sprokit::mark_scheduler_module_as_loaded( vpm, module_name );
 }
