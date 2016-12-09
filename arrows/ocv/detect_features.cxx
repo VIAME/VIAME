@@ -76,9 +76,9 @@ detect_features
     // hijacking memory of given mask image, but only telling the new image
     // object to consider the first channel. See vital::image documentation.
     vital::image i(s.memory(),
-                     static_cast< vital::image::byte* >(s.memory()->data()),
-                     s.width(),  s.height(), 1 /*depth*/,
-                     s.w_step(), s.h_step(), s.d_step());
+                   s.first_pixel(),
+                   s.width(),  s.height(), 1 /*depth*/,
+                   s.w_step(), s.h_step(), s.d_step(), s.pixel_traits());
     cv_mask = ocv::image_container::vital_to_ocv(i);
   }
 

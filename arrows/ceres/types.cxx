@@ -39,6 +39,73 @@
 #include <ceres/loss_function.h>
 
 
+
+using namespace kwiver::vital;
+
+
+#define CERES_ENUM_HELPERS(NS, ceres_type)                              \
+namespace kwiver {                                                      \
+namespace vital {                                                       \
+                                                                        \
+template<>                                                              \
+config_block_value_t                                                    \
+config_block_set_value_cast(NS::ceres_type const& value)                \
+{                                                                       \
+  return NS::ceres_type##ToString(value);                               \
+}                                                                       \
+                                                                        \
+template<>                                                              \
+NS::ceres_type                                                          \
+config_block_get_value_cast(config_block_value_t const& value)          \
+{                                                                       \
+  NS::ceres_type cet;                                                   \
+  if(!NS::StringTo##ceres_type(value, &cet))                            \
+  {                                                                     \
+    throw bad_config_block_cast(value);                                 \
+  }                                                                     \
+  return cet;                                                           \
+}                                                                       \
+                                                                        \
+}                                                                       \
+                                                                        \
+namespace arrows {                                                      \
+namespace ceres {                                                       \
+                                                                        \
+template<>                                                              \
+std::string                                                             \
+ceres_options< NS::ceres_type >()                                       \
+{                                                                       \
+  typedef NS::ceres_type T;                                             \
+  std::string options_str = "\nMust be one of the following options:";  \
+  std::string opt;                                                      \
+  for (unsigned i=0; i<20; ++i)                                         \
+  {                                                                     \
+    opt = NS::ceres_type##ToString(static_cast<T>(i));                  \
+    if (opt == "UNKNOWN")                                               \
+    {                                                                   \
+      break;                                                            \
+    }                                                                   \
+    options_str += "\n  - " + opt;                                      \
+  }                                                                     \
+  return options_str;                                                   \
+}                                                                       \
+                                                                        \
+}                                                                       \
+}                                                                       \
+}
+
+CERES_ENUM_HELPERS(::ceres, LinearSolverType)
+CERES_ENUM_HELPERS(::ceres, PreconditionerType)
+CERES_ENUM_HELPERS(::ceres, TrustRegionStrategyType)
+CERES_ENUM_HELPERS(::ceres, DoglegType)
+
+CERES_ENUM_HELPERS(kwiver::arrows::ceres, LossFunctionType)
+CERES_ENUM_HELPERS(kwiver::arrows::ceres, LensDistortionType)
+CERES_ENUM_HELPERS(kwiver::arrows::ceres, CameraIntrinsicShareType)
+
+#undef CERES_ENUM_HELPERS
+
+
 namespace kwiver {
 namespace arrows {
 namespace ceres {
