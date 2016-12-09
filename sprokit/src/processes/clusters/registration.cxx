@@ -36,9 +36,7 @@
 
 #include "clusters-config.h"
 
-#if defined(_WIN32) || defined(_WIN64)
 #include <processes/clusters/cluster-paths.h>
-#endif
 
 #include <vital/logger/logger.h>
 #include <vital/vital_foreach.h>
@@ -80,6 +78,11 @@ static bool is_separator(cluster_path_t::value_type ch);
 
 
 // ------------------------------------------------------------------
+/**
+ * \brief Cluster loader.
+ *
+ * This function loads and instantiates cluster processes.
+ */
 extern "C"
 SPROKIT_PROCESSES_CLUSTERS_EXPORT
 void
@@ -165,6 +168,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
       try
       {
+        // Compile cluster specification
         info = bake_cluster_from_file(path);
       }
       catch (load_pipe_exception const& e)
@@ -187,12 +191,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
         try
         {
           // Add cluster to process registry with a specific factory function
-          kwiver::vital::plugin_factory_handle_t fact =
-          vpm.add_factory( new sprokit::process_factory( type, typeid( sprokit::process ).name(), ctor ) );
+          auto fact = vpm.add_factory( new sprokit::process_factory( type, typeid( sprokit::process ).name(), ctor ) );
           fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
-          fact->add_attribute( "sprokit.cluster", pstr ); // indicate this is a cluster
+
+          // Indicate this is a cluster and add source file name
+          fact->add_attribute( "sprokit.cluster", pstr );
         }
-        catch (process_type_already_exists_exception const& e) //+ wrong type exception
+        catch (kwiver::vital::plugin_already_exists const& e)
         {
           LOG_WARN( logger, "Exception caught loading cluster: " << e.what() );
         }
@@ -208,12 +213,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 bool
 is_separator(cluster_path_t::value_type ch)
 {
-  cluster_path_t::value_type const separator =
-#if defined(_WIN32) || defined(_WIN64)
-    ';';
-#else
-    ':';
-#endif
-
+  cluster_path_t::value_type const separator = PATH_SEPARATOR_CHAR;
   return (ch == separator);
 }
