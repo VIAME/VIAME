@@ -78,6 +78,9 @@ public:
   bool m_all_loaded;            ///< set if modules are loaded
   std::unique_ptr< plugin_loader > m_loader;       ///< the real loader object
   kwiver::vital::logger_handle_t m_logger;
+
+  path_list_t m_search_paths;
+
 };
 
 
@@ -109,7 +112,6 @@ plugin_manager::
 plugin_manager()
   : m_priv( new priv() )
 {
-  path_list_t search_paths;
 
   // Add search paths
   // Craft default search paths. Order of elements in the path has
@@ -124,7 +126,7 @@ plugin_manager()
 
 
     // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
-    ST::Split( extra_module_dirs, search_paths, PATH_SEPARATOR_CHAR );
+    ST::Split( extra_module_dirs, m_priv->m_search_paths, PATH_SEPARATOR_CHAR );
   }
   else
   {
@@ -132,10 +134,10 @@ plugin_manager()
               "No additional paths on " << environment_variable_name );
   }
 
-  ST::Split( default_module_paths, search_paths, PATH_SEPARATOR_CHAR );
+  ST::Split( default_module_paths, m_priv->m_search_paths, PATH_SEPARATOR_CHAR );
 
   // Add paths to the real loader
-  m_priv->m_loader->add_search_path( search_paths );
+  m_priv->m_loader->add_search_path( m_priv->m_search_paths );
 }
 
 
@@ -225,6 +227,9 @@ reload_plugins()
 {
   m_priv->m_all_loaded = false;
   m_priv->m_loader.reset( new plugin_loader( register_function_name, shared_library_suffix ) );
+
+  // Add paths to the real loader
+  m_priv->m_loader->add_search_path( m_priv->m_search_paths );
 }
 
 // ------------------------------------------------------------------
