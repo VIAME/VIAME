@@ -50,7 +50,7 @@ extern "C"
 #define DECLARE_TYPED_OPERATIONS( T, S ) \
 \
 /** Opaque instance type */ \
-typedef struct {} vital_similarity_##S##_t; \
+typedef struct vital_similarity_##S##_s vital_similarity_##S##_t; \
 \
 /**
  * Create a new similarity instance

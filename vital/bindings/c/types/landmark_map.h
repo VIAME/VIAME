@@ -50,7 +50,7 @@ extern "C"
 
 
 /// vital::landmark_map Opaque structure
-typedef struct {} vital_landmark_map_t;
+typedef struct vital_landmark_map_s vital_landmark_map_t;
 
 
 /// Create a new simple landmark map from an array of landmarks

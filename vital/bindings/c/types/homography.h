@@ -47,7 +47,7 @@ extern "C"
 
 
 /// Opaque type structure
-typedef struct {} vital_homography_t;
+typedef struct vital_homography_s vital_homography_t;
 
 
 /// Destroy a homography instance

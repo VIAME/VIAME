@@ -52,9 +52,9 @@ extern "C"
 
 
 /// Opaque structure for vital::track::track_state instances
-typedef struct {} vital_track_state_t;
+typedef struct vital_track_state_s vital_track_state_t;
 /// Opaque structure for vital::track instances
-typedef struct {} vital_track_t;
+typedef struct vital_track_s vital_track_t;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Track State

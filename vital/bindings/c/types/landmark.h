@@ -49,7 +49,7 @@ extern "C"
 
 
 /// VITAL Landmark opaque structure
-typedef struct {} vital_landmark_t;
+typedef struct vital_landmark_s vital_landmark_t;
 
 
 // Type independent functions //////////////////////////////////////////////////
