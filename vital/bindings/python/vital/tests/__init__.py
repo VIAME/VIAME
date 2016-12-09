@@ -36,24 +36,8 @@ This module should not be installed and is only run-able from the Source/Build
 trees due to the required test data (which is of course not installed).
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
-
+import os
 
 # Absolute path to the tests data directory
-TEST_DATA_DIR = None
-
-
-def _initialize_test_statics():
-    global TEST_DATA_DIR
-    import os
-    TEST_DATA_DIR = os.path.abspath(
-        os.path.join(os.path.dirname(__file__),
-                     "..", "..", "..", "..", "tests", "data")
-    )
-    if not os.path.isdir(TEST_DATA_DIR):
-        raise RuntimeError("Could not find test data directory! (Assumed %s, "
-                           "for which there is actually no directory)"
-                           % TEST_DATA_DIR)
-
-_initialize_test_statics()
+TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             'data')

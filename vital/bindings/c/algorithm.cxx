@@ -62,7 +62,7 @@ SharedPointerCache< kwiver::vital::algorithm,
 
 char const*
 vital_algorithm_type_name( vital_algorithm_t *algo,
-                                           vital_error_handle_t *eh )
+                           vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::algorithm::type_name", eh,
@@ -75,7 +75,7 @@ vital_algorithm_type_name( vital_algorithm_t *algo,
 
 char const*
 vital_algorithm_impl_name( vital_algorithm_t const *algo,
-                                           vital_error_handle_t *eh )
+                           vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "C::algorithm::impl_name", eh,
@@ -130,5 +130,4 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
     );
   );
   return false;
-
 }

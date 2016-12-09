@@ -71,6 +71,31 @@ IMPLEMENT_TEST(clone)
 }
 
 
+IMPLEMENT_TEST(clone_look_at)
+{
+  using namespace kwiver::vital;
+  vector_2d pp(300,400);
+  simple_camera_intrinsics K(1000, pp);
+  vector_3d focus(0, 1, -2);
+
+  auto cam =
+    std::shared_ptr<camera>(
+      new simple_camera( vector_3d( 3, -4, 7 ), rotation_d(), K ) )
+      ->clone_look_at( focus );
+
+  vector_2d ifocus = cam->project(focus);
+  TEST_NEAR("clone_look_at focus projects to origin",
+            (ifocus-pp).norm(), 0.0, 1e-12);
+
+  vector_2d ifocus_up = cam->project(focus + vector_3d(0,0,2));
+  vector_2d tmp = ifocus_up - pp;
+  TEST_NEAR("clone_look_at vertical projects vertical",
+            tmp.x(), 0.0, 1e-12);
+  // "up" in image space is actually negative Y because the
+  // Y axis is inverted
+  TEST_EQUAL("clone_look_at up projects up", tmp.y() < 0.0, true);
+}
+
 
 IMPLEMENT_TEST(look_at)
 {
@@ -79,7 +104,7 @@ IMPLEMENT_TEST(look_at)
   simple_camera_intrinsics K(1000, pp);
   vector_3d focus(0, 1, -2);
   kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
-  cam.look_at(focus);
+  cam.look_at( focus );
 
   vector_2d ifocus = cam.project(focus);
   TEST_NEAR("look_at focus projects to origin",
@@ -102,7 +127,7 @@ IMPLEMENT_TEST(projection)
   simple_camera_intrinsics K(1000, pp);
   vector_3d focus(0, 1, -2);
   kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
-  cam.look_at(focus);
+  cam.look_at( focus );
 
   matrix_3x4d P(cam.as_matrix());
   vector_3d test_pt(1,2,3);

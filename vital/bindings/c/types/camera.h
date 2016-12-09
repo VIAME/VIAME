@@ -180,6 +180,24 @@ vital_camera_intrinsics_t*
 vital_camera_intrinsics( vital_camera_t const *cam, vital_error_handle_t *eh );
 
 
+/// Create a clone of this camera that is rotated to look at the given point
+/**
+ * The camera should also be rotated about its principal axis such that
+ * the vertical image direction is closest to \c up_direction in the world.
+ *
+ * \param stare_point the location at which the camera is oriented to point
+ * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
+ * \returns New camera instance that is the clone of the one given, but set to
+ *          look at the given point.
+ */
+VITAL_C_EXPORT
+vital_camera_t*
+vital_camera_clone_look_at( vital_camera_t const *cam,
+                            vital_eigen_matrix3x1d_t const *stare_point,
+                            vital_eigen_matrix3x1d_t const *up_direction,
+                            vital_error_handle_t *eh );
+
+
 /// Convert camera to a 3x4 homogeneous projection matrix instance
 /**
  * \note This matrix representation does not account for lens distortion

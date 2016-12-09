@@ -63,16 +63,15 @@ class RGBColor (VitalObject):
         return self._call_cfunc(
             'vital_rgb_color_new',
             [ctypes.c_ubyte, ctypes.c_ubyte, ctypes.c_ubyte],
+            [int(r), int(g), int(b)],
             self.c_ptr_type(),
-            int(r), int(g), int(b)
         )
 
     def _destroy(self):
         self._call_cfunc(
             "vital_rgb_color_destroy",
             [self.c_ptr_type()],
-            None,
-            self
+            [self],
         )
 
     def __getitem__(self, idx):
@@ -104,8 +103,8 @@ class RGBColor (VitalObject):
         return self._call_cfunc(
             'vital_rgb_color_r',
             [self.c_ptr_type()],
-            ctypes.c_ubyte,
-            self
+            [self],
+            ctypes.c_ubyte
         )
 
     @property
@@ -113,8 +112,8 @@ class RGBColor (VitalObject):
         return self._call_cfunc(
             'vital_rgb_color_g',
             [self.c_ptr_type()],
-            ctypes.c_ubyte,
-            self
+            [self],
+            ctypes.c_ubyte
         )
 
     @property
@@ -122,6 +121,6 @@ class RGBColor (VitalObject):
         return self._call_cfunc(
             'vital_rgb_color_b',
             [self.c_ptr_type()],
-            ctypes.c_ubyte,
-            self
+            [self],
+            ctypes.c_ubyte
         )

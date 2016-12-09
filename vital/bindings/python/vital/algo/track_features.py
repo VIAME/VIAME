@@ -33,9 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 VITAL track_features algorithm interface
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
-
 import ctypes
 
 from vital.types import ImageContainer, TrackSet
@@ -59,11 +56,23 @@ class TrackFeatures (VitalAlgorithm):
         The mask image must be of the same dimensions as the input image, other
         wise an exception is raised.
 
-        :param prev_tracks:
-        :param frame_num:
-        :param image:
-        :param mask:
-        :return:
+        :param prev_tracks: the tracks from previous tracking steps
+        :type prev_tracks: TrackSet
+
+        :param frame_num: the frame number of the current frame
+        :type frame_num: int
+
+        :param image: the image pixels for the current frame
+        :type image: ImageContainer
+
+        :param mask: Optional mask image that uses positive values to denote
+                     regions of the input image to consider for feature
+                     tracking. An empty sptr indicates no mask (default
+                     value).
+        :type mask: ImageContainer
+
+        :return: an updated set a tracks including the current frame
+        :rtype: TrackSet
 
         """
         tf_track_argtypes = [self.C_TYPE_PTR, TrackSet.C_TYPE_PTR,

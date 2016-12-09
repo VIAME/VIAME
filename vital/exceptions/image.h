@@ -43,7 +43,6 @@
 namespace kwiver {
 namespace vital {
 
-
 // ------------------------------------------------------------------
 /// Generic image exception
 class VITAL_EXPORT image_exception

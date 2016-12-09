@@ -57,6 +57,9 @@ public:
   /// Destructor
   virtual ~descriptor() VITAL_DEFAULT_DTOR
 
+  /// Access the type info of the underlying data (double or float)
+  virtual std::type_info const& data_type() const = 0;
+
   /// The number of elements of the underlying type
   virtual std::size_t size() const = 0;
 
@@ -90,6 +93,9 @@ class descriptor_array_of :
   public descriptor
 {
 public:
+  /// Access the type info of the underlying data (double or float)
+  virtual std::type_info const& data_type() const { return typeid( T ); }
+
   /// The number of bytes used to represent the data
   std::size_t num_bytes() const { return this->size() * sizeof( T ); }
 

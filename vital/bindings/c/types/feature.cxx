@@ -145,6 +145,20 @@ vital_feature_color( vital_feature_t *f, vital_error_handle_t *eh )
 }
 
 
+/// Get the name of the instance's data type
+char const*
+vital_feature_type_name( vital_feature_t const *f,
+                         vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_featur_type_name", eh,
+    auto f_sptr = vital_c::FEATURE_SPTR_CACHE.get( f );
+    return f_sptr->data_type().name();
+  );
+  return 0;
+}
+
+
 /// Define type-specific feature functions
 /**
  * \param T data type
@@ -302,25 +316,6 @@ vital_feature_##S##_set_color( vital_feature_t *f, \
     REINTERP_TYPE( vital::rgb_color, c, c_ptr ); \
     f_ptr->set_color( *c_ptr ); \
   ); \
-} \
-\
-/** Get the name of the instance's data type */ \
-char const* \
-vital_feature_##S##_type_name( vital_feature_t *f, \
-                               vital_error_handle_t *eh ) \
-{ \
-  STANDARD_CATCH( \
-    "vital_featur_" #S "_type_name", eh, \
-    auto f_sptr = vital_c::FEATURE_SPTR_CACHE.get( f ); \
-    TRY_DYNAMIC_CAST( vital::feature_<T>, f_sptr.get(), f_ptr ) \
-    { \
-      POPULATE_EH( eh, 1, "Failed dynamic cast to '" #S "' type for data " \
-                          "access." ); \
-      return 0; \
-    } \
-    return f_ptr->data_type().name(); \
-  ); \
-  return 0; \
 }
 
 

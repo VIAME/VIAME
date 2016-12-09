@@ -33,14 +33,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for the Python interface to VITAL class config_block.
 
 """
-# -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
+import nose.tools
+import os
 
 from vital import ConfigBlock
 from vital.exceptions.config_block import *
 from vital.exceptions.config_block_io import *
-
-import nose.tools
+from vital.tests import TEST_DATA_DIR
 
 
 # noinspection PyMethodMayBeStatic
@@ -191,14 +190,21 @@ class TestVitalConfigBlock (object):
         cb.set_value('a', '1')
         cb.mark_read_only('a')
         nose.tools.assert_equal(cb.get_value('a'), '1')
-        cb.set_value('a', '2')
+
+        nose.tools.assert_raises(
+            VitalConfigBlockReadOnlyException,
+            cb.set_value, 'a', '2'
+        )
         nose.tools.assert_equal(cb.get_value('a'), '1')
 
     def test_read_only_unset(self):
         cb = ConfigBlock()
         cb.set_value('a', '1')
         cb.mark_read_only('a')
-        cb.unset_value('a')
+        nose.tools.assert_raises(
+            VitalConfigBlockReadOnlyException,
+            cb.unset_value, 'a'
+        )
         nose.tools.assert_true(cb.has_value('a'))
         nose.tools.assert_equal(cb.get_value('a'), '1')
 
@@ -403,6 +409,39 @@ class TestVitalConfigBlock (object):
         nose.tools.assert_raises(VitalConfigBlockIoFileNotFoundException,
                                  ConfigBlock.from_file,
                                  'not-a-file.foobar')
+
+    def test_read_valid_file(self):
+        c = ConfigBlock.from_file(os.path.join(TEST_DATA_DIR,
+                                               'test_config-valid_file.txt'))
+
+        nose.tools.assert_equal(len(c.available_keys()), 25)
+
+        nose.tools.assert_equal(c.get_value('foo:bar'), 'baz')
+        nose.tools.assert_equal(c.get_value('foo:things'), 'stuff')
+        nose.tools.assert_equal(c.get_value('foo:sublevel:value'),
+                                            'cool things and stuff')
+        nose.tools.assert_equal(c.get_value('second_block:has'),
+                                'a value    with  spaces')
+        nose.tools.assert_equal(c.get_value('second_block:more'),
+                                'has a trailing comment')
+        # relativepath value, interpreted against dir containing config file
+        nose.tools.assert_equal(c.get_value('second_block:file'),
+                                os.path.join(TEST_DATA_DIR,
+                                             'options/test_Data.txt'))
+        nose.tools.assert_equal(c.get_value('global_var'), '3.14159')
+        nose.tools.assert_equal(c.get_value('global_var2'), '1.12')
+        # Test read-only marking syntax
+        nose.tools.assert_true(c.is_read_only('global_var'))
+        nose.tools.assert_false(c.is_read_only('global_var2'))
+        # Test variable reference parsing
+        nose.tools.assert_equal(c.get_value('home'),
+                                os.path.join(os.environ['HOME'], 'homer'))
+        nose.tools.assert_equal(c.get_value('config'), '3.14159')
+        nose.tools.assert_equal(c.get_value('config2'), 'baz')
+        nose.tools.assert_equal(c.get_value('local'), 'new value')
+        # another relativepath value
+        nose.tools.assert_equal(c.get_value('config_file'),
+                                os.path.join(TEST_DATA_DIR, 'inputs.txt'))
 
     def test_write_fail(self):
         cb = ConfigBlock()

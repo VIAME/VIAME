@@ -152,6 +152,8 @@ protected:
 typedef std::shared_ptr<estimate_similarity_transform> estimate_similarity_transform_sptr;
 
 
-} } } // end namespace
+} // end namespace algo
+} // end namespace vital
+} // end namespace kwiver
 
 #endif // VITAL_ALGO_ESTIMATE_SIMILARITY_TRANSFORM_H_

@@ -43,14 +43,24 @@ from .eigen import EigenArray
 from .image import Image
 from .image_container import ImageContainer
 from .rotation import Rotation
-from .track import Track
-from .track_set import TrackSet
 
-# Required EigenArray and RGBColor
+# Required EigenArray
+from .homography import Homography
+
+# Requires EigenArray and RGBColor
 from .feature import Feature
+
+# Requires EigenArray and Rotation
+from .similarity import Similarity
+
+# Requires Covariance
+from .landmark import Landmark
+from .landmark_map import LandmarkMap
+
+# Requires Descriptor, Feature
+from .track import TrackState, Track
+from .track_set import TrackSet
 
 # Requires CameraIntrinsics, Covariance, EigenArray, Rotation
 from .camera import Camera
-
-# Required Camera
 from .camera_map import CameraMap

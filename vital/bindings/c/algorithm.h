@@ -65,7 +65,7 @@ typedef struct vital_algorithm_s vital_algorithm_t;
  */
 VITAL_C_EXPORT
 char const* vital_algorithm_type_name( vital_algorithm_t *algo,
-                                           vital_error_handle_t *eh );
+                                       vital_error_handle_t *eh );
 
 
 // Return the name of this implementation
@@ -75,8 +75,8 @@ char const* vital_algorithm_type_name( vital_algorithm_t *algo,
  */
 VITAL_C_EXPORT
 char const*
-vital_algorithm_impl_name( vital_algorithm_t *algo,
-                                           vital_error_handle_t *eh );
+vital_algorithm_impl_name( vital_algorithm_t const *algo,
+                           vital_error_handle_t *eh );
 
 
 /// Get an algorithm implementation's configuration block
@@ -116,6 +116,7 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   /* ==================================================================== */    \
   /* Functions on types (static methods)                                  */    \
   /* -------------------------------------------------------------------- */    \
+                                                                                \
   /** Create new instance of a specific algorithm implementation.
    * Returns NULL if there is no implementation currently associated with the
    * name.
@@ -123,16 +124,19 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   VITAL_C_EXPORT                                                                \
   vital_algorithm_t*                                                            \
   vital_algorithm_##type##_create( char const *impl_name );                     \
-  /* Destroy an algorithm instance of this type */                              \
+                                                                                \
+  /** Destroy an algorithm instance of this type */                             \
   VITAL_C_EXPORT                                                                \
   void                                                                          \
   vital_algorithm_##type##_destroy( vital_algorithm_t *algo,                    \
                                     vital_error_handle_t *eh );                 \
+                                                                                \
   /** Get a list of registered implementation names for the given type */       \
   VITAL_C_EXPORT                                                                \
   void                                                                          \
   vital_algorithm_##type##_registered_names( unsigned int *length,              \
                                              char ***names );                   \
+                                                                                \
   /** Get the configuration for a named algorithm in the given config */        \
   /**
    * NULL may be given for \p algo, which will return a generic
@@ -141,9 +145,10 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   VITAL_C_EXPORT                                                                \
   void                                                                          \
   vital_algorithm_##type##_get_type_config( char const *name,                   \
-                                            vital_algorithm_t *algo,            \
-                                            vital_config_block_t *cb, \
+                                            vital_algorithm_t const *algo,      \
+                                            vital_config_block_t *cb,           \
                                             vital_error_handle_t *eh );         \
+                                                                                \
   /** Set algorithm properties based on a named configuration in the config */  \
   /**
    * This creates a new vital_algorithm_t instance if the given config block
@@ -157,27 +162,30 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   VITAL_C_EXPORT                                                                \
   void                                                                          \
   vital_algorithm_##type##_set_type_config( char const *name,                   \
-                                            vital_config_block_t *cb,           \
+                                            vital_config_block_t const *cb,           \
                                             vital_algorithm_t **algo,           \
                                             vital_error_handle_t *eh );         \
+                                                                                \
   /** Check the configuration with respect to this algorithm type */            \
   VITAL_C_EXPORT                                                                \
   bool                                                                          \
   vital_algorithm_##type##_check_type_config( char const *name,                 \
-                                              vital_config_block_t *cb,         \
+                                              vital_config_block_t const *cb,   \
                                               vital_error_handle_t *eh );       \
+                                                                                \
   /* ==================================================================== */    \
   /* Functions on algorithm instances                                     */    \
   /*                                                                      */    \
   /* These will error if the incorrect algorithm pointer was given.       */    \
   /* -------------------------------------------------------------------- */    \
+                                                                                \
   /* Clone the given algorithm instance */                                      \
   /**
    * If a NULL algorithm pointer is given, a null pointer is returned.
-   */ \
+   */                                                                           \
   VITAL_C_EXPORT                                                                \
   vital_algorithm_t*                                                            \
-  vital_algorithm_##type##_clone( vital_algorithm_t *algo, \
+  vital_algorithm_##type##_clone( vital_algorithm_t const *algo,                \
                                   vital_error_handle_t *eh );
   // TODO: description() method
 

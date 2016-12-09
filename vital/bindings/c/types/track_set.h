@@ -64,19 +64,8 @@ typedef struct vital_trackset_s vital_trackset_t;
  */
 VITAL_C_EXPORT
 vital_trackset_t*
-vital_trackset_new( size_t length, vital_track_t **tracks );
-
-
-/// Adopt existing track set from sptr
-/**
- *
- * \param sptr address of track set sptr
- *
- * \returns trackset opaque handle
- */
-VITAL_C_EXPORT
-vital_trackset_t*
-vital_trackset_from_sptr( void* sptr );
+vital_trackset_new( size_t length, vital_track_t **tracks,
+                    vital_error_handle_t *eh );
 
 
 /// Create a new track set as read from file
@@ -120,16 +109,97 @@ vital_trackset_destroy( vital_trackset_t *track_set,
 /// Get the size of the track set
 VITAL_C_EXPORT
 size_t
-vital_trackset_size( vital_trackset_t *track_set,
+vital_trackset_size( vital_trackset_t const *track_set,
                      vital_error_handle_t *eh );
 
 
 /// Write track set to the given filepath
 VITAL_C_EXPORT
 void
-vital_trackset_write_track_file( vital_trackset_t* ts,
+vital_trackset_write_track_file( vital_trackset_t const *ts,
                                  char const *filepath,
                                  vital_error_handle_t *eh );
+
+
+/// Get array of contained track references
+/**
+ * The number of elements returned is equal to the size of this set.
+ *
+ * \param track_set Track set instance to extract all tracks from
+ * \param eh Vital error handle instance
+ * \returns New array of new track reference pointers
+ */
+VITAL_C_EXPORT
+vital_track_t**
+vital_trackset_tracks( vital_trackset_t const *track_set,
+                       vital_error_handle_t *eh );
+
+
+/// Get the set of all frame IDs covered by contained tracks
+/**
+ * \param trackset the track set instance
+ * \param[out] length the number of frame IDs in the returned set
+ * \param eh Vital error handle instance
+ * \returns set of frame IDs as array
+ */
+VITAL_C_EXPORT
+int64_t*
+vital_trackset_all_frame_ids( vital_trackset_t const *trackset, size_t *length,
+                              vital_error_handle_t *eh );
+
+
+/// Get the set of all track IDs in the track set
+/**
+ * \param trackset the track set instance
+ * \param[out] length the number of track IDs in the returned set
+ * \param eh Vital error handle instance
+ * \returns set of track IDs as array
+ */
+VITAL_C_EXPORT
+int64_t*
+vital_trackset_all_track_ids( vital_trackset_t const *trackset, size_t *length,
+                              vital_error_handle_t *eh );
+
+
+/// Get the first (smallest) frame number containing tracks
+/**
+ * \param trackset the track set instance
+ * \param eh Vital error handle instance
+ * \returns first frame ID covered by contained tracks
+ */
+VITAL_C_EXPORT
+int64_t
+vital_trackset_first_frame( vital_trackset_t const *trackset,
+                            vital_error_handle_t *eh );
+
+
+/// Get the last (largest) frame number containing tracks
+/**
+ * \param trackset the track set instance
+ * \param eh Vital error handle instance
+ * \returns last frame ID covered by contained tracks
+ */
+VITAL_C_EXPORT
+int64_t
+vital_trackset_last_frame( vital_trackset_t const *trackset,
+                           vital_error_handle_t *eh );
+
+
+/// Get the track in this set with the specified id
+/**
+ * A null pointer will be returned if the track cannot be found.
+ *
+ * \param trackset the track set instance
+ * \param tid ID of the track to get
+ * \param eh Vital error handle instance
+ * \returns New reference to the contained track, or null if this set does not
+ *          contain a track by the specified ID.
+ */
+VITAL_C_EXPORT
+vital_track_t*
+vital_trackset_get_track( vital_trackset_t const *trackset, int64_t tid,
+                          vital_error_handle_t *eh );
+
 
 #ifdef __cplusplus
 }
