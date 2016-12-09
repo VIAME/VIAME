@@ -117,6 +117,37 @@ Vital
    progress updates.  They also allow the receiver to terminate the algorithm
    early.
 
+Vital Bindings
+
+ * Fixed bug in python ConfigBlock read-from-file.
+
+ * Added more C/Python bindings for vital::track class
+
+ * Added more C/Python bindings for vital::track_set class
+
+ * Added full C/Python bindings for vital::landmark class
+
+ * Added full C/Python bindings for vital::landmark_map class
+
+ * Added full C/Python bindings for vital::similarity class
+
+ * Added full C/Python bindings for vital::homography class
+
+ * Added C/Python interface for bindle_adjust algorithm definition
+
+ * Added C/Python interface for initialize_cameras_landmarks algorithm
+   definition
+
+ * Added C/Python interface for triangulate_landmarks algorithm definition
+
+ * Added C/Python interface for geo_map algorithm definition
+
+ * Added C/Python interface for estimate_similarity_transform algorithm
+   definition
+
+ * Added C/Python interface for estimate_canonical_transform algorithm
+   definition
+
 
 Fixes since last public release
 -------------------------------
