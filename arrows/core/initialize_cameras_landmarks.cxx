@@ -124,6 +124,7 @@ public:
   /// Constructor
   priv()
   : verbose(false),
+    continue_processing(true),
     init_from_last(false),
     retriangulate_all(false),
     reverse_ba_error_ratio(2.0),
@@ -144,6 +145,7 @@ public:
 
   priv(const priv& other)
   : verbose(other.verbose),
+    continue_processing(other.continue_processing),
     init_from_last(other.init_from_last),
     retriangulate_all(other.retriangulate_all),
     reverse_ba_error_ratio(other.reverse_ba_error_ratio),
@@ -182,7 +184,13 @@ public:
                           const vector_3d& Kt,
                           const vector_2d& pt2d) const;
 
+  /// Pass through this callback to another callback but cache the return value
+  bool pass_through_callback(callback_t cb,
+                             camera_map_sptr cams,
+                             landmark_map_sptr lms);
+
   bool verbose;
+  bool continue_processing;
   bool init_from_last;
   bool retriangulate_all;
   double reverse_ba_error_ratio;
@@ -380,6 +388,18 @@ initialize_cameras_landmarks::priv
 }
 
 
+/// Pass through this callback to another callback but cache the return value
+bool
+initialize_cameras_landmarks::priv
+::pass_through_callback(callback_t cb,
+                        camera_map_sptr cams,
+                        landmark_map_sptr lms)
+{
+  this->continue_processing = cb(cams, lms);
+  return this->continue_processing;
+}
+
+
 /// Constructor
 initialize_cameras_landmarks
 ::initialize_cameras_landmarks()
@@ -510,7 +530,12 @@ initialize_cameras_landmarks
                                       config, d_->bundle_adjuster);
   if(d_->bundle_adjuster && this->m_callback)
   {
-    d_->bundle_adjuster->set_callback(this->m_callback);
+    using std::placeholders::_1;
+    using std::placeholders::_2;
+    callback_t pcb =
+      std::bind(&initialize_cameras_landmarks::priv::pass_through_callback,
+                d_.get(), this->m_callback, _1, _2);
+    d_->bundle_adjuster->set_callback(pcb);
   }
 
   d_->verbose = config->get_value<bool>("verbose",
@@ -958,7 +983,8 @@ initialize_cameras_landmarks
 
   // keep track of if we've tried a Necker revseral, only do it once.
   bool tried_necker_reverse = false;
-  while( !new_frame_ids.empty() )
+  d_->continue_processing = true;
+  while( !new_frame_ids.empty() && d_->continue_processing )
   {
     frame_id_t f;
     if( cams.size() == 1 )
@@ -1098,6 +1124,10 @@ initialize_cameras_landmarks
       d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
       cams = ba_cams->cameras();
       lms = ba_lms->landmarks();
+      if (!d_->continue_processing)
+      {
+        break;
+      }
       // detect tracks/landmarks with large error and remove them
       std::set<track_id_t> to_remove = detect_bad_tracks(cams, lms, trks,
                                                          d_->interim_reproj_thresh);
@@ -1146,7 +1176,7 @@ initialize_cameras_landmarks
       }
     }
 
-    if(d_->verbose)
+    if( d_->verbose )
     {
       camera_map_sptr ba_cams(new simple_camera_map(cams));
       landmark_map_sptr ba_lms(new simple_landmark_map(lms));
@@ -1155,19 +1185,15 @@ initialize_cameras_landmarks
 
       LOG_DEBUG(d_->m_logger, "frame "<<f<<" - num landmarks = "<< lms.size());
     }
-    if(this->m_callback)
+    if( this->m_callback )
     {
-      bool cont = this->m_callback(std::make_shared<simple_camera_map>(cams),
-                                   std::make_shared<simple_landmark_map>(lms));
-      if( !cont )
-      {
-        break;
-      }
+      d_->continue_processing = this->m_callback(std::make_shared<simple_camera_map>(cams),
+                                                 std::make_shared<simple_landmark_map>(lms));
     }
   }
 
   // try depth reversal at the end
-  if( d_->bundle_adjuster )
+  if( d_->bundle_adjuster && d_->continue_processing )
   {
     LOG_INFO(d_->m_logger, "Running final bundle adjustment");
     camera_map_sptr ba_cams(new simple_camera_map(cams));
@@ -1207,7 +1233,12 @@ initialize_cameras_landmarks
   // pass callback on to bundle adjuster if available
   if(d_->bundle_adjuster)
   {
-    d_->bundle_adjuster->set_callback(cb);
+    using std::placeholders::_1;
+    using std::placeholders::_2;
+    callback_t pcb =
+      std::bind(&initialize_cameras_landmarks::priv::pass_through_callback,
+                d_.get(), cb, _1, _2);
+    d_->bundle_adjuster->set_callback(pcb);
   }
 }
 
