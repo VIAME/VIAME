@@ -42,7 +42,6 @@
 #include <sprokit/pipeline/process_cluster.h>
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/types.h>
-#include <sprokit/pipeline/plugin_paths.h>
 
 #include <boost/filesystem/fstream.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -111,7 +110,6 @@ sprokit_tool_main(int argc, char const* argv[])
 
     // Load all known modules
     kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-    vpm.add_search_path( sprokit::plugin_paths() );
     vpm.load_plugins();
 
     sprokit::pipeline_builder builder;

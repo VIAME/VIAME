@@ -38,6 +38,10 @@ define_property(GLOBAL PROPERTY kwiver_plugin_libraries
   BRIEF_DOCS "Generated plugin libraries"
   FULL_DOCS "List of generated shared plugin module libraries"
   )
+define_property(GLOBAL PROPERTY kwiver_plugin_path
+  BRIEF_DOCS "Plugin search path"
+  FULL_DOCS "List of directories to search ar run time for plugins"
+  )
 
 
 #+
@@ -253,7 +257,6 @@ endfunction()
 #
 # If the file name has a leading path component, it is appended to the
 # install path to allow installing of headers in subdirectories.
-#
 #-
 function(kwiver_install_headers)
   set(options NOPATH)
@@ -349,3 +352,39 @@ function( kwiver_add_plugin        name )
     )
 
 endfunction()
+
+
+####
+# This function adds the supplied paths to the default set of paths
+# searched at runtime for modules.
+#
+# Uses the global option KWIVER_USE_CONFIGURATION_SUBDIRECTORY
+# to control adding config specific directories to the path.
+#
+# Options are:
+# SUBDIR - subdirectory in lib where plugin will be installed.
+#
+function( kwiver_add_module_path    dir )
+    set_property(GLOBAL APPEND PROPERTY kwiver_plugin_path  "${dir}" )
+endfunction()
+
+
+
+####
+# This macro creates the module directory for the plugin loader based
+# on current system and other options. The resulting directory string
+# is placed in the "kwiver_module_path_result" variable. Note that the
+# result may be more than one path.
+#
+macro( kwiver_make_module_path    root subdir )
+  if (WIN32)
+    set(kwiver_module_path_result   "${root}/bin${subdir}" )
+
+    if(KWIVER_USE_CONFIGURATION_SUBDIRECTORY)
+      list( APPEND  kwiver_module_path_result   "${root}/bin/$<CONFIGURATION>${subdir}" )
+    endif()
+
+  else()  # Other Unix systems
+    set(kwiver_module_path_result  "${root}/lib${LIB_SUFFIX}/${subdir}" )
+  endif()
+endmacro()

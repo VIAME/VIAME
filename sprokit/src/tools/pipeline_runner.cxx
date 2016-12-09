@@ -40,7 +40,6 @@
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 #include <sprokit/pipeline/pipeline.h>
-#include <sprokit/pipeline/plugin_paths.h>
 
 #include <boost/program_options/variables_map.hpp>
 
@@ -63,7 +62,6 @@ sprokit_tool_main(int argc, char const* argv[])
 
     // Load all known modules
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.add_search_path( sprokit::plugin_paths() );
   vpm.load_plugins();
 
   sprokit::pipeline_builder const builder(vm, desc);

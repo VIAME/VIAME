@@ -6,7 +6,6 @@ set(pipeline_srcs
   edge_exception.cxx
   pipeline.cxx
   pipeline_exception.cxx
-  plugin_paths.cxx
   process.cxx
   process_factory.cxx
   process_exception.cxx
@@ -29,7 +28,6 @@ set(pipeline_headers
   pipeline-config.h
   pipeline.h
   pipeline_exception.h
-  plugin_paths.h
   process.h
   process_factory.h
   process_exception.h
@@ -47,76 +45,26 @@ set(pipeline_headers
 
 set(pipeline_private_headers)
 
-if (WIN32)
-  set(libdir bin)
-  set(destdir bin)
-else ()
-  set(libdir lib${LIB_SUFFIX})
-  set(destdir lib)
-endif ()
+## set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/sprokit" )
+## set( sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} sprokit )
+set( sprokit_default_module_paths ${kwiver_module_path_result} )
 
-##++ rework all the plugin loading path stuff. This should be exported and handled in the vital package.
-set(sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}/${libdir}/sprokit")
-set(module_output_path            "${sprokit_output_dir}/${destdir}/sprokit")
-
-if (WIN32)
-  set(path_sep ";")
-else ()
-  set(path_sep ":")
-endif ()
 
 if (KWIVER_USE_BUILD_TREE)
-  set(sprokit_default_module_paths "${sprokit_default_module_paths}${path_sep}${module_output_path}")
-endif ()
-
-set(path_prefix)
-
-if (WIN32)
-  set(path_prefix "L")
+  kwiver_make_module_path( ${sprokit_output_dir} sprokit )
+  list( INSERT sprokit_default_module_paths 0 "${kwiver_module_path_result}" )
 endif ()
 
 set(SPROKIT_DEFAULT_MODULE_PATHS "${sprokit_default_module_paths}"
   CACHE STRING "The default paths to search for modules in" FORCE)
-set(sprokit_library_options
-  "DEFAULT_MODULE_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_MODULE_PATHS}\""
-  "PATH_SEPARATOR_CHAR=\"${path_sep}\"" )
 
-set(module_build_options
-  "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
+# add all paths to the property
+foreach( p IN LISTS   SPROKIT_DEFAULT_MODULE_PATHS )
+  kwiver_add_module_path( ${p} )
+endforeach(p)
 
-##++ maybe we don't need this?
-if (WIN32)
-  sprokit_configure_file(module-paths.h
-    "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    SPROKIT_DEFAULT_MODULE_PATHS
-    path_prefix)
-
-  list(APPEND pipeline_private_headers
-    module-paths.h.in)
-else ()
-  list(APPEND module_build_options
-    ${sprokit_library_options})
-endif ()
-
-set(default OFF)
-
-if (CMAKE_CONFIGURATION_TYPES)
-  set(default ON)
-endif ()
-
-option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY
-  "Whether to look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
-
-if (SPROKIT_USE_CONFIGURATION_SUBDIRECTORY)
-  list(APPEND module_build_options
-    USE_CONFIGURATION_SUBDIRECTORY)
-endif ()
-
-set_source_files_properties(plugin_paths.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${module_build_options}")
-
+##
 set(utils_build_options)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/thread_naming.cmake")
@@ -174,10 +122,6 @@ add_dependencies(sprokit_pipeline     configure-version.h)
 
 ##++ need a differente way of exporting paths to loadable modules
 # e.g. always in the same location, determined at a higher level.
-
-if (WIN32)
-  add_dependencies(sprokit_pipeline   configure-module-paths.h)
-endif ()
 
 sprokit_install_headers(sprokit/pipeline ${pipeline_headers})
 
