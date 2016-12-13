@@ -81,6 +81,7 @@ public:
    */
   plugin_loader( std::string const& init_function,
     std::string const& shared_lib_suffix );
+
   virtual ~plugin_loader();
 
   /**
@@ -90,8 +91,22 @@ public:
    * currently active search path. This method is called after all
    * search paths have been added with the add_search_path() method.
    *
+   * @throws plugin_already_exists - if a duplicate plugin is detected
    */
   void load_plugins();
+
+  /**
+   * @brief Load plugins from list of directories.
+   *
+   * Load plugins from the specified list of directories. The
+   * directories are scanned immediately and all recognized plugins
+   * are loaded.
+   *
+   * @param dirpath List of directories to search.
+   *
+   * @throws plugin_already_exists - if a duplicate plugin is detected
+   */
+  void load_plugins( path_list_t const& dirpath );
 
   /**
    * @brief Add an additional directories to search for plugins in.

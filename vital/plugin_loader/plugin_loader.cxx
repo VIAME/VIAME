@@ -288,6 +288,19 @@ plugin_loader
 }
 
 
+// ------------------------------------------------------------------
+void
+plugin_loader
+::load_plugins( path_list_t const& dirpath )
+{
+  // Iterate over path and load modules
+  VITAL_FOREACH( auto const & module_dir, dirpath )
+  {
+    m_impl->look_in_directory( module_dir );
+  }
+}
+
+
 // ==================================================================
 /**
  * @brief Load all known modules.

@@ -160,6 +160,14 @@ load_all_plugins()
 
 // ------------------------------------------------------------------
 void plugin_manager::
+load_plugins( path_list_t const& dirpath )
+{
+    m_priv->m_loader->load_plugins( dirpath );
+}
+
+
+// ------------------------------------------------------------------
+void plugin_manager::
 add_search_path( path_t const& dirpath )
 {
   path_list_t path_list;
