@@ -70,7 +70,7 @@ IMPLEMENT_TEST(null_config)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(load_processes)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   auto factories =  kwiver::vital::plugin_manager::instance().get_factories<sprokit::process>();
 
@@ -157,7 +157,7 @@ IMPLEMENT_TEST(unknown_types)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(register_cluster)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::process::type_t const cluster_type = sprokit::process::type_t("orphan_cluster");
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();

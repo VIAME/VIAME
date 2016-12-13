@@ -313,7 +313,7 @@ IMPLEMENT_TEST(null_downstream_process)
 
 IMPLEMENT_TEST(set_upstream_process)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
@@ -330,7 +330,7 @@ IMPLEMENT_TEST(set_upstream_process)
 
 IMPLEMENT_TEST(set_downstream_process)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 

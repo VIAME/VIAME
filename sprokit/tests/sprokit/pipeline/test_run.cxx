@@ -621,7 +621,7 @@ sprokit::process_t
 create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.load_all_plugins();
 
   return sprokit::create_process(type, name, config);
 }

@@ -634,7 +634,7 @@ IMPLEMENT_TEST(pipeline_multiplier)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_blocks(blocks);
 
@@ -659,7 +659,7 @@ IMPLEMENT_TEST(cluster_multiplier)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
   const auto ctor = info->ctor;
@@ -744,7 +744,7 @@ IMPLEMENT_TEST(cluster_duplicate_input)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   EXPECT_EXCEPTION(sprokit::duplicate_cluster_input_port_exception,
                    sprokit::bake_cluster_blocks(blocks),
@@ -756,7 +756,7 @@ IMPLEMENT_TEST(cluster_duplicate_output)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   EXPECT_EXCEPTION(sprokit::duplicate_cluster_output_port_exception,
                    sprokit::bake_cluster_blocks(blocks),
@@ -770,7 +770,7 @@ IMPLEMENT_TEST(cluster_configuration_default)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
   const auto ctor = info->ctor;
@@ -788,7 +788,7 @@ IMPLEMENT_TEST(cluster_configuration_provide)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
   const auto ctor = info->ctor;
@@ -1137,7 +1137,7 @@ IMPLEMENT_TEST(cluster_override_mapped)
 
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
   const auto ctor = info->ctor;
@@ -1253,7 +1253,7 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
 sprokit::process_t
 create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config)
 {
-  static bool const modules_loaded = (kwiver::vital::plugin_manager::instance().load_plugins(), true);
+  static bool const modules_loaded = (kwiver::vital::plugin_manager::instance().load_all_plugins(), true);
 
   (void)modules_loaded;
 
@@ -1271,7 +1271,7 @@ setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t c
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
   const auto ctor = info->ctor;

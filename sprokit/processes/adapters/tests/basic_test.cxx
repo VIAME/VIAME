@@ -73,7 +73,7 @@ IMPLEMENT_TEST( basic_pipeline )
   kwiver::output_adapter output_ad;
 
   // load processes
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   // Use SPROKIT macros to create pipeline description
   std::stringstream pipeline_desc;

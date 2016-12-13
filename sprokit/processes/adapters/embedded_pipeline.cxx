@@ -150,7 +150,7 @@ embedded_pipeline
   , m_priv( new priv() )
 {
   // load processes
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   // create a pipeline
   sprokit::pipeline_builder builder;

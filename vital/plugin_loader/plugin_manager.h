@@ -76,8 +76,16 @@ public:
    * currently active search path. This method is called after all
    * search paths have been added with the add_search_path() method.
    *
+   * The first call to this method will load all known
+   * plugins. Subsequent calls will not load anything. If the plugins
+   * need to be reloaded, call the reload_plugins() method. if an
+   * additional directory list must be scanned after plugins are
+   * loaded, call load_plugins() with a list of directories to add
+   * more plugins to the manager.
+   *
+   * @throws plugin_already_exists - if a duplicate plugin is detected
    */
-  void load_plugins();
+  void load_all_plugins();
 
   /**
    * @brief Add an additional directories to search for plugins in.

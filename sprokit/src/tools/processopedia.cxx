@@ -78,7 +78,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
   // Load all known modules
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.load_all_plugins();
 
   if (vm.count("path"))
   {

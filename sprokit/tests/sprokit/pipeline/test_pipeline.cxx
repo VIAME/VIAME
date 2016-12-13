@@ -1946,7 +1946,7 @@ create_process( sprokit::process::type_t const&   type,
                 sprokit::process::name_t const&   name,
                 kwiver::vital::config_block_sptr  config )
 {
-  static bool const modules_loaded = ( kwiver::vital::plugin_manager::instance().load_plugins(), true );
+  static bool const modules_loaded = ( kwiver::vital::plugin_manager::instance().load_all_plugins(), true );
 
   (void)modules_loaded;
 

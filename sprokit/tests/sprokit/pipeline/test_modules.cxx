@@ -55,18 +55,20 @@ main(int argc, char* argv[])
 }
 
 
+//+ move all of these tests to VPM tests
 IMPLEMENT_TEST(load)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.load_all_plugins();
 }
 
 
+// Test loading plugins multiple times causes no problems.
 IMPLEMENT_TEST(multiple_load)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
-  vpm.load_plugins();
+  vpm.load_all_plugins();
+  vpm.load_all_plugins();
 }
 
 
@@ -74,9 +76,8 @@ TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/multip
 IMPLEMENT_TEST(envvar)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.reload_plugins();
 
-  sprokit::process::type_t const proc_type = sprokit::process::type_t("test");
 
   sprokit::create_process(proc_type, sprokit::process::name_t());
 
@@ -92,7 +93,7 @@ TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/not_a_
 IMPLEMENT_TEST(not_a_plugin)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.reload_plugins();
 }
 
 
@@ -100,5 +101,5 @@ TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@)
 IMPLEMENT_TEST(has_directory)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.reload_plugins();
 }

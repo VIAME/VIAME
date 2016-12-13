@@ -275,7 +275,7 @@ sprokit::scheduler_t
 create_minimal_scheduler()
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.load_plugins();
+  vpm.load_all_plugins();
 
   static const auto type = sprokit::process::type_t("orphan");
   static const auto name = sprokit::process::name_t("name");

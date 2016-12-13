@@ -51,7 +51,7 @@ main()
 
   try
   {
-    vpm.load_plugins();
+    vpm.load_all_plugins();
   }
   catch ( sprokit::process_type_already_exists_exception const& e )
   {

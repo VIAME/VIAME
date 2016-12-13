@@ -88,7 +88,7 @@ IMPLEMENT_TEST(null_pipeline)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(load_schedulers)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   auto factories =  kwiver::vital::plugin_manager::instance().get_factories<sprokit::scheduler>();
 

@@ -86,7 +86,7 @@ IMPLEMENT_TEST(pipeline_empty_name)
 {
   (void)pipe_file;
 
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::process::type_t const type = sprokit::process::type_t("orphan");
   sprokit::process_t const proc = sprokit::create_process(type, sprokit::process::name_t());
@@ -106,7 +106,7 @@ IMPLEMENT_TEST(pipeline_empty_name)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(simple_pipeline)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
@@ -119,7 +119,7 @@ IMPLEMENT_TEST(simple_pipeline)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(simple_pipeline_setup)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
@@ -132,7 +132,7 @@ IMPLEMENT_TEST(simple_pipeline_setup)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(simple_pipeline_cluster)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
@@ -160,7 +160,7 @@ IMPLEMENT_TEST(cluster_null)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_empty_name)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
   const auto conf = kwiver::vital::config_block::empty_config();
@@ -179,7 +179,7 @@ IMPLEMENT_TEST(cluster_empty_name)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_multiplier)
 {
-  kwiver::vital::plugin_manager::instance().load_plugins();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
   const auto conf = kwiver::vital::config_block::empty_config();

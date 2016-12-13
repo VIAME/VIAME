@@ -324,7 +324,7 @@ main( int argc, char* argv[] )
     vpm.add_search_path( path );
   }
 
-  vpm.load_plugins();
+  vpm.load_all_plugins();
 
   if ( opt_path_list )
   {

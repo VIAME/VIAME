@@ -148,7 +148,7 @@ plugin_manager::
 
 // ------------------------------------------------------------------
 void plugin_manager::
-load_plugins()
+load_all_plugins()
 {
   if ( ! m_priv->m_all_loaded )
   {
@@ -198,7 +198,7 @@ add_factory( plugin_factory* fact )
 plugin_factory_vector_t const& plugin_manager::
 get_factories( std::string const& type_name )
 {
-  load_plugins();
+  load_all_plugins();
   return m_priv->m_loader->get_factories( type_name );
 }
 
@@ -207,7 +207,7 @@ get_factories( std::string const& type_name )
 plugin_map_t const& plugin_manager::
 plugin_map()
 {
-  load_plugins();
+  load_all_plugins();
   return m_priv->m_loader->get_plugin_map();
 }
 
@@ -216,7 +216,7 @@ plugin_map()
 std::vector< std::string > plugin_manager::
 file_list()
 {
-  load_plugins();
+  load_all_plugins();
   return m_priv->m_loader->get_file_list();
 }
 
@@ -230,6 +230,8 @@ reload_plugins()
 
   // Add paths to the real loader
   m_priv->m_loader->add_search_path( m_priv->m_search_paths );
+
+  load_all_plugins();
 }
 
 // ------------------------------------------------------------------
