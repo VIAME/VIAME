@@ -45,6 +45,34 @@
 #include <sstream>
 #include <iterator>
 
+// -----------------------------------------------------------------
+/**
+ *
+ *
+ */
+class local_manager
+  : public kwiver::vital::plugin_manager
+{
+public:
+  local_manager() { }
+  virtual ~local_manager() { }
+
+  kwiver::vital::plugin_loader* loader() { return get_loader(); }
+
+
+
+protected:
+
+
+
+private:
+
+
+
+}; // end class local_manager
+
+
+
 // Global options
 bool opt_config( false );
 bool opt_detail( false );
@@ -199,11 +227,12 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 //+ Do we need to document and handle SPROKIT_MODULE_PATH and SPROKIT_CLUSTER_PATH?
 //+ this needs to be more like a man page, rather than a short summary
 void
-print_help()
+print_help( const std::string& name )
 {
   std::cout << "This program loads vital plugins and displays their data.\n"
             << "Additional paths can be specified in \"KWIVER_PLUGIN_PATH\" environment variable\n"
             << "\n"
+            << "Usage: " << name << "[options] [plugin-file}\n"
             << "Options are:\n"
             << "  --help           displays usage information\n"
             << "  --path           display plugin search path\n"
@@ -214,7 +243,7 @@ print_help()
             << "  --mod            display list of loaded modules\n"
             << "  --files          display list of files successfully opened to load plugins\n"
             << "  --all            display all factories\n"
-            << "  --filter attr regex Filter specified attr name value with regex\n"
+            << "  --fact attr regex Filter specified attr name value with regex\n"
   ;
 
   return;
@@ -241,6 +270,7 @@ main( int argc, char* argv[] )
   kwiversys::CommandLineArguments arg;
 
   arg.Initialize( argc, argv );
+  arg.StoreUnusedArguments( true );
   typedef kwiversys::CommandLineArguments argT;
 
   arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
@@ -271,7 +301,7 @@ main( int argc, char* argv[] )
 
   if ( opt_help )
   {
-    print_help();
+    print_help( argv[0] );
     exit( 0 );
   }
 
@@ -317,14 +347,33 @@ main( int argc, char* argv[] )
   }
 
   // ========
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  local_manager vpm;
 
-  VITAL_FOREACH( std::string const& path, opt_path )
+  char** newArgv = 0;
+  int newArgc = 0;
+  arg.GetUnusedArguments(&newArgc, &newArgv);
+
+  // Look for plugin file name from command line
+  if ( newArgc > 1 )
   {
-    vpm.add_search_path( path );
-  }
+    // Load file on command line
+    auto loader = vpm.loader();
 
-  vpm.load_all_plugins();
+    for ( int i = 1; i < newArgc; ++i )
+    {
+      loader->load_plugin( newArgv[i] );
+    }
+  }
+  else
+  {
+    // Load from supplied paths and build in paths.
+    VITAL_FOREACH( std::string const& path, opt_path )
+    {
+      vpm.add_search_path( path );
+    }
+
+    vpm.load_all_plugins();
+  }
 
   if ( opt_path_list )
   {
@@ -350,7 +399,8 @@ main( int argc, char* argv[] )
     std::cout << std::endl;
   }
 
-  if ( opt_all )
+  // Generate list of factories of any of these options are selected
+  if ( opt_all || opt_fact_filt || opt_detail || opt_brief || opt_attr_filter )
   {
     auto plugin_map = vpm.plugin_map();
 
