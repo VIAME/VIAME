@@ -21,6 +21,11 @@
 #     directory. This is necessary due to the way some systems use
 #     CMAKE_BUILD_TYPE as a directory in the output path.
 #
+#   library_subdir_suffix
+#     If set, the suffix will be appended to the subdirectory for the target.
+#     This is placed after the CMAKE_BUILD_TYPE subdirectory if necessary.
+#
+
 include(CMakeParseArguments)
 include (GenerateExportHeader)
 
@@ -171,9 +176,9 @@ function(kwiver_add_library     name)
 
   set_target_properties("${name}"
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}${library_subdir_suffix}"
     INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
     ${props}
     )
