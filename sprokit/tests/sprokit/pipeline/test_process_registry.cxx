@@ -137,7 +137,7 @@ IMPLEMENT_TEST(duplicate_types)
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   vpm.ADD_PROCESS( null_process );
 
-  EXPECT_EXCEPTION(kwiver::vital::plugin_already_exists, // sprokit::process_type_already_exists_exception,
+  EXPECT_EXCEPTION(kwiver::vital::plugin_already_exists,
                    vpm.ADD_PROCESS( null_process ),
                    "adding duplicate process type");
 }

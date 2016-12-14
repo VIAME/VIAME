@@ -728,7 +728,8 @@ IMPLEMENT_TEST(null_config)
   const auto proc_type = sprokit::process::type_t("null_config");
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.ADD_PROCESS( null_config_process );
+  auto fact = vpm.ADD_PROCESS( null_config_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
 
   const auto proc_name = sprokit::process::name_t(proc_type);
 
@@ -744,7 +745,9 @@ IMPLEMENT_TEST(null_input_port_info)
   const auto proc_type = sprokit::process::type_t("null_input_port");
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.ADD_PROCESS( null_input_info_process );
+
+  auto fact = vpm.ADD_PROCESS( null_input_info_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
 
   const auto proc_name = sprokit::process::name_t(proc_type);
 
@@ -760,7 +763,9 @@ IMPLEMENT_TEST(null_output_port_info)
   const auto proc_type = sprokit::process::type_t("null_output_port");
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.ADD_PROCESS( null_output_info_process );
+
+  auto fact = vpm.ADD_PROCESS( null_output_info_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
 
   const auto proc_name = sprokit::process::name_t(proc_type);
 
@@ -776,7 +781,9 @@ IMPLEMENT_TEST(null_conf_info)
   const auto proc_type = sprokit::process::type_t("null_conf");
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.ADD_PROCESS( null_conf_info_process );
+
+  auto fact = vpm.ADD_PROCESS( null_conf_info_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
 
   const auto proc_name = sprokit::process::name_t(proc_type);
 

@@ -161,9 +161,9 @@ IMPLEMENT_TEST(duplicate_types)
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   vpm.ADD_SCHEDULER( null_scheduler );
 
-  EXPECT_EXCEPTION(sprokit::scheduler_type_already_exists_exception,
-                   vpm.ADD_SCHEDULER( null_scheduler),
-                   "adding duplicate scheduler type");
+  EXPECT_EXCEPTION( kwiver::vital::plugin_already_exists,
+                    vpm.ADD_SCHEDULER( null_scheduler),
+                    "adding duplicate scheduler type");
 }
 
 

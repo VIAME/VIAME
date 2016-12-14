@@ -72,12 +72,14 @@ IMPLEMENT_TEST(multiple_load)
 }
 
 
-TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/multiple_load)
+//+ Not sure what this is trying to test
+TEST_PROPERTY(ENVIRONMENT, KWIVER_PLUGIN_PATH=@CMAKE_CURRENT_BINARY_DIR@/multiple_load)
 IMPLEMENT_TEST(envvar)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  vpm.reload_plugins();
+  vpm.load_all_plugins();
 
+  const auto proc_type = sprokit::process::type_t("test");
 
   sprokit::create_process(proc_type, sprokit::process::name_t());
 
@@ -89,7 +91,7 @@ IMPLEMENT_TEST(envvar)
 }
 
 
-TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@/not_a_plugin)
+TEST_PROPERTY(ENVIRONMENT, KWIVER_PLUGIN_PATH=@CMAKE_CURRENT_BINARY_DIR@/not_a_plugin)
 IMPLEMENT_TEST(not_a_plugin)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
@@ -97,7 +99,7 @@ IMPLEMENT_TEST(not_a_plugin)
 }
 
 
-TEST_PROPERTY(ENVIRONMENT, SPROKIT_MODULE_PATH=@CMAKE_CURRENT_BINARY_DIR@)
+TEST_PROPERTY(ENVIRONMENT, KWIVER_PLUGIN_PATH=@CMAKE_CURRENT_BINARY_DIR@)
 IMPLEMENT_TEST(has_directory)
 {
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
