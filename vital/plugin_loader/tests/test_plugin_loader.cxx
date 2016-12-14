@@ -74,4 +74,7 @@ IMPLEMENT_TEST(module_marking)
 //
 // - Load known file and test to see if contents are as expected.
 // - Test API
+
+// - test reload by loading a set of plugins, add one more plugin,
+// - test for that plugin(present), reload plugins, test for plugin(not there)
 //
