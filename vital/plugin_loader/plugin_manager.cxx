@@ -118,22 +118,9 @@ plugin_manager()
   // some effect on how modules are looked up.
 
   // Check env variable for path specification
-  const char * env_ptr = kwiversys::SystemTools::GetEnv( environment_variable_name );
-  if ( 0 != env_ptr )
-  {
-    LOG_DEBUG( m_priv->m_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
-    std::string const extra_module_dirs(env_ptr);
+  add_path_from_environment( environment_variable_name );
 
-
-    // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
-    ST::Split( extra_module_dirs, m_priv->m_search_paths, PATH_SEPARATOR_CHAR );
-  }
-  else
-  {
-    LOG_DEBUG( m_priv->m_logger,
-              "No additional paths on " << environment_variable_name );
-  }
-
+  // Add the built-in search path
   ST::Split( default_module_paths, m_priv->m_search_paths, PATH_SEPARATOR_CHAR );
 
   // Add paths to the real loader
@@ -187,6 +174,28 @@ add_search_path( path_list_t const& dirpath )
 
 
 // ------------------------------------------------------------------
+void plugin_manager::
+add_path_from_environment( std::string env_var)
+{
+  // Check env variable for path specification
+  const char * env_ptr = kwiversys::SystemTools::GetEnv( env_var );
+  if ( 0 != env_ptr )
+  {
+    LOG_DEBUG( m_priv->m_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
+    std::string const extra_module_dirs(env_ptr);
+
+    // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
+    ST::Split( extra_module_dirs, m_priv->m_search_paths, PATH_SEPARATOR_CHAR );
+  }
+  else
+  {
+    LOG_DEBUG( m_priv->m_logger,
+              "No additional paths on " << env_var );
+  }
+}
+
+
+// ------------------------------------------------------------------
 std::vector< path_t > const& plugin_manager::
 search_path() const
 {
@@ -206,7 +215,6 @@ add_factory( plugin_factory* fact )
 plugin_factory_vector_t const& plugin_manager::
 get_factories( std::string const& type_name )
 {
-  load_all_plugins();
   return m_priv->m_loader->get_factories( type_name );
 }
 
@@ -215,7 +223,6 @@ get_factories( std::string const& type_name )
 plugin_map_t const& plugin_manager::
 plugin_map()
 {
-  load_all_plugins();
   return m_priv->m_loader->get_plugin_map();
 }
 
@@ -224,7 +231,6 @@ plugin_map()
 std::vector< std::string > plugin_manager::
 file_list()
 {
-  load_all_plugins();
   return m_priv->m_loader->get_file_list();
 }
 
@@ -269,6 +275,15 @@ kwiver::vital::logger_handle_t plugin_manager::
 logger()
 {
   return m_priv->m_logger;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::plugin_loader*
+plugin_manager::
+get_loader()
+{
+  return m_priv->m_loader.get();
 }
 
 } } // end namespace kwiver

@@ -251,6 +251,16 @@ public:
   std::map< std::string, std::string > const& module_map() const;
 
   /**
+   * @brief Add path from environment variable name.
+   *
+   * This method ads the path from the environment variable to the end
+   * of the current search path.
+   *
+   * @param env_var Name of environment variable.
+   */
+  void add_path_from_environment( std::string env_var);
+
+  /**
    * @brief Get logger handle.
    *
    * This method returns the handle for the plugin manager
@@ -261,7 +271,9 @@ public:
    */
   kwiver::vital::logger_handle_t logger();
 
-private:
+protected:
+  kwiver::vital::plugin_loader* get_loader();
+
   plugin_manager();
   ~plugin_manager();
 

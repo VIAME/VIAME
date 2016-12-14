@@ -301,6 +301,15 @@ plugin_loader
 }
 
 
+// ------------------------------------------------------------------
+void
+plugin_loader
+::load_plugin( path_t const& file )
+{
+  m_impl->load_from_module( file );
+}
+
+
 // ==================================================================
 /**
  * @brief Load all known modules.

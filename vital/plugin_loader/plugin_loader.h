@@ -109,6 +109,15 @@ public:
   void load_plugins( path_list_t const& dirpath );
 
   /**
+   * @brief Load a single plugin file.
+   *
+   * This method loads a single plugin file.
+   *
+   * @param file Name of the file to load.
+   */
+  void load_plugin( path_t const& file );
+
+  /**
    * @brief Add an additional directories to search for plugins in.
    *
    * This method adds the specified directory list to the end of
