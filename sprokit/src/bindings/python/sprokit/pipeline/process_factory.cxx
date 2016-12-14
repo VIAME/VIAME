@@ -28,9 +28,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file process_factory.cxx
+ *
+ * \brief Python bindings for \link sprokit::process_factory\endlink.
+ */
+
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
@@ -41,25 +47,19 @@
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/wrapper.hpp>
-
-/**
- * \file process_registry.cxx
- *
- * \brief Python bindings for \link sprokit::process_registry\endlink.
- */
+#include <boost/python/def.hpp>
 
 using namespace boost::python;
 
-static void register_process(sprokit::process_registry_t reg,
-                             sprokit::process::type_t const& type,
-                             sprokit::process_registry::description_t const& desc,
-                             object obj);
+static void register_process( sprokit::process::type_t const& type,
+                              sprokit::process::description_t const& desc,
+                              object obj );
 
-BOOST_PYTHON_MODULE(process_registry)
+BOOST_PYTHON_MODULE(process_factory)
 {
-  class_<sprokit::process_registry::description_t>("ProcessDescription"
+  class_<sprokit::process::description_t>("ProcessDescription"
     , "The type for a description of a process type.");
-  class_<sprokit::process_registry::module_t>("ProcessModule"
+  class_<kwiver::vital::plugin_manager::module_t>("ProcessModule"
     , "The type for a process module name.");
 
   class_<sprokit::process, sprokit::process_t, boost::noncopyable>("Process"
@@ -125,6 +125,7 @@ BOOST_PYTHON_MODULE(process_registry)
     .def_readonly("flag_input_nodep", &sprokit::process::flag_input_nodep)
     .def_readonly("flag_required", &sprokit::process::flag_required)
   ;
+
   class_<sprokit::processes_t>("Processes"
     , "A collection of processes.")
     .def(vector_indexing_suite<sprokit::processes_t>())
@@ -134,30 +135,28 @@ BOOST_PYTHON_MODULE(process_registry)
     , "The base class of process clusters."
     , no_init);
 
+  def("is_process_module_loaded", &sprokit::is_process_module_loaded
+      , (arg("module"))
+      , "Returns True if the module has already been loaded, False otherwise.");
+
+  def("mark_process_module_as_loaded", &sprokit::mark_process_module_as_loaded
+      , (arg("module"))
+      , "Marks a module as loaded.");
+
+  def("add_process", &register_process
+      , (arg("type"), arg("description"), arg("ctor"))
+      , "Registers a function which creates a process of the given type.");
+
+  def("create_process", &sprokit::create_process
+      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
+      , "Creates a new process of the given type.");
+
+
+
   //+ convert this to process_factory
-  class_<sprokit::process_registry, sprokit::process_registry_t, boost::noncopyable>("ProcessRegistry"
+  class_<sprokit::process_factory, sprokit::process_factory, boost::noncopyable>("ProcessFactory"
     , "A registry of all known process types."
     , no_init)
-    .def("self", &sprokit::process_registry::self
-      , "Returns an instance of the process registry.")
-    .staticmethod("self")
-    .def("register_process", &register_process
-      , (arg("type"), arg("name"), arg("description"), arg("ctor"))
-      , "Registers a function which creates a process of the given type.")
-    .def("create_process", &sprokit::process_registry::create_process
-      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
-      , "Creates a new process of the given type.")
-    .def("types", &sprokit::process_registry::types
-      , "A list of known process types.")
-    .def("description", &sprokit::process_registry::description
-      , (arg("type"))
-      , "The description for the given type.")
-    .def("is_module_loaded", &sprokit::is_process_module_loaded
-      , (arg("module"))
-      , "Returns True if the module has already been loaded, False otherwise.")
-    .def("mark_module_as_loaded", &sprokit::mark_process_module_as_loaded
-      , (arg("module"))
-      , "Marks a module as loaded.")
   ;
 }
 
@@ -178,10 +177,9 @@ private:
 
 
 void
-register_process( sprokit::process_registry_t                     reg,
-                  sprokit::process::type_t const&                 type,
-                  sprokit::process_registry::description_t const& desc,
-                  object                                          obj )
+register_process( sprokit::process::type_t const&        type,
+                  sprokit::process::description_t const& desc,
+                  object                                 obj )
 {
   sprokit::python::python_gil const gil;
 
@@ -189,7 +187,15 @@ register_process( sprokit::process_registry_t                     reg,
 
   python_process_wrapper const wrap( obj );
 
-  reg->register_process( type, desc, wrap );
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  sprokit::process::type_t derived_type = "python::";
+  auto fact = vpm.add_factory( new sprokit::process_factory( derived_type + type, // derived type name string
+                                                             type, // name of the process
+                                                             wrap ) );
+
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc );
 }
 
 

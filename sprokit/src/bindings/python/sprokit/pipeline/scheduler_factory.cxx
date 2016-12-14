@@ -28,8 +28,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file scheduler_factory.cxx
+ *
+ * \brief Python bindings for \link sprokit::scheduler_factory\endlink.
+ */
+
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <sprokit/python/util/python_threading.h>
 #include <sprokit/python/util/python_gil.h>
@@ -39,31 +45,38 @@
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/wrapper.hpp>
-
-/**
- * \file scheduler_registry.cxx
- *
- * \brief Python bindings for \link sprokit::scheduler_registry\endlink.
- */
+#include <boost/python/def.hpp>
 
 using namespace boost::python;
 
-static void register_scheduler(sprokit::scheduler_registry_t reg,
-                               sprokit::scheduler_registry::type_t const& type,
-                               sprokit::scheduler_registry::description_t const& desc,
-                               object obj);
+static void register_scheduler( sprokit::scheduler::type_t const& type,
+                                sprokit::scheduler::description_t const& desc,
+                                object obj );
 
-BOOST_PYTHON_MODULE(scheduler_registry)
+BOOST_PYTHON_MODULE(scheduler_factory)
 {
-  class_<sprokit::scheduler_registry::type_t>("SchedulerType"
+  def("add_scheduler", &register_scheduler
+      , (arg("type"), arg("description"), arg("ctor"))
+      , "Registers a function which creates a scheduler of the given type.");
+
+  def("create_scheduler", &sprokit::create_scheduler
+      , (arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config())
+      , "Creates a new scheduler of the given type.");
+
+
+  def("is_scheduler module_loaded", &sprokit::is_scheduler_module_loaded
+      , (arg("module"))
+      , "Returns True if the module has already been loaded, False otherwise.");
+
+  def("mark_scheduler_module_as_loaded", &sprokit::mark_scheduler_module_as_loaded
+      , (arg("module"))
+      , "Marks a module as loaded.");
+
+
+  class_<sprokit::scheduler::type_t>("SchedulerType"
     , "The type for a type of scheduler.");
-  class_<sprokit::scheduler_registry::description_t>("SchedulerDescription"
-    , "The type for a description of a scheduler type.");
-  class_<sprokit::scheduler_registry::types_t>("SchedulerTypes"
-    , "A collection of scheduler types.")
-    .def(vector_indexing_suite<sprokit::scheduler_registry::types_t>())
-  ;
-  class_<sprokit::scheduler_registry::module_t>("SchedulerModule"
+
+  class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
     , "The type for a scheduler module name.");
 
   class_<sprokit::scheduler, sprokit::scheduler_t, boost::noncopyable>("Scheduler"
@@ -77,33 +90,23 @@ BOOST_PYTHON_MODULE(scheduler_registry)
       , "Stop the execution of the pipeline.")
   ;
 
-  class_<sprokit::scheduler_registry, sprokit::scheduler_registry_t, boost::noncopyable>("SchedulerRegistry"
+  class_<sprokit::scheduler_factory, sprokit::scheduler_factory, boost::noncopyable>("SchedulerFactory"
     , "A registry of all known scheduler types."
     , no_init)
-    .def("self", &sprokit::scheduler_registry::self
-      , "Returns an instance of the scheduler registry.")
-    .staticmethod("self")
-    .def("register_scheduler", &register_scheduler
-      , (arg("type"), arg("description"), arg("ctor"))
-      , "Registers a function which creates a scheduler of the given type.")
-    .def("create_scheduler", &sprokit::scheduler_registry::create_scheduler
-      , (arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config())
-      , "Creates a new scheduler of the given type.")
-    .def("types", &sprokit::scheduler_registry::types
+
+    /*
+    .def("types", &sprokit::scheduler_registry::types //+ fixme - part of plugin manager
       , "A list of known scheduler types.")
-    .def("description", &sprokit::scheduler_registry::description
+
+    .def("description", &sprokit::scheduler_registry::description //+ part of plugin manager
       , (arg("type"))
       , "The description for the given scheduler type.")
-    .def("is_module_loaded", &sprokit::scheduler_registry::is_module_loaded
-      , (arg("module"))
-      , "Returns True if the module has already been loaded, False otherwise.")
-    .def("mark_module_as_loaded", &sprokit::scheduler_registry::mark_module_as_loaded
-      , (arg("module"))
-      , "Marks a module as loaded.")
-    .def_readonly("default_type", &sprokit::scheduler_registry::default_type
+    */
+    .def_readonly("default_type", &sprokit::scheduler_factory::default_type
       , "The default scheduler type.")
   ;
 }
+
 
 class python_scheduler_wrapper
   : sprokit::python::python_threading
@@ -112,16 +115,18 @@ class python_scheduler_wrapper
     python_scheduler_wrapper(object obj);
     ~python_scheduler_wrapper();
 
-    sprokit::scheduler_t operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config);
+    sprokit::scheduler_t operator () (sprokit::pipeline_t const& pipeline,
+                                      kwiver::vital::config_block_sptr const& config);
   private:
     object const m_obj;
 };
 
+
+// ------------------------------------------------------------------
 void
-register_scheduler(sprokit::scheduler_registry_t reg,
-                  sprokit::scheduler_registry::type_t const& type,
-                  sprokit::scheduler_registry::description_t const& desc,
-                  object obj)
+register_scheduler( sprokit::scheduler::type_t const& type,
+                    sprokit::scheduler::description_t const& desc,
+                    object obj )
 {
   sprokit::python::python_gil const gil;
 
@@ -129,9 +134,19 @@ register_scheduler(sprokit::scheduler_registry_t reg,
 
   python_scheduler_wrapper const wrap(obj);
 
-  reg->register_scheduler(type, desc, wrap);
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  sprokit::scheduler::type_t derived_type = "python::";
+  auto fact = vpm.add_factory( new sprokit::scheduler_factory( derived_type + type, // derived type name string
+                                                               type, // name of the scheduler
+                                                               wrap ) );
+
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc );
 }
 
+
+// ------------------------------------------------------------------
 python_scheduler_wrapper
 ::python_scheduler_wrapper(object obj)
   : m_obj(obj)
@@ -143,6 +158,8 @@ python_scheduler_wrapper
 {
 }
 
+
+// ------------------------------------------------------------------
 sprokit::scheduler_t
 python_scheduler_wrapper
 ::operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config)
