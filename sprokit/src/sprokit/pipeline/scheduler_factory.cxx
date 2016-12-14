@@ -48,6 +48,11 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
     throw null_scheduler_registry_config_exception();
   }
 
+  if (!pipe)
+  {
+    throw null_scheduler_registry_pipeline_exception();
+  }
+
   typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > instrumentation_factory;
   instrumentation_factory ifact;
 
