@@ -184,6 +184,16 @@ public:
    */
   plugin_factory_vector_t const& get_factories( std::string const& type_name );
 
+  /**
+   * @brief Get list of factories for interface type.
+   *
+   * This method returns a list of pointer to factory methods that
+   * create objects of the desired interface type.
+   *
+   * @tparam T Type of the interface required
+   *
+   * @return Vector of factories. (vector may be empty)
+   */
   template <class T>
   plugin_factory_vector_t const& get_factories()
   {
@@ -404,6 +414,7 @@ instrumentation_factory ifact;
 auto instr = ifact.create( provider );
 \endcode
  *
+ * \throws plugin_factory_not_found
  */
 template <typename T>
 class implementation_factory_by_name
@@ -411,7 +422,7 @@ class implementation_factory_by_name
 {
 public:
   implementation_factory_by_name()
-    : implementation_factory<T>( "plugin-name" )
+    : implementation_factory<T>( kwiver::vital::plugin_factory::PLUGIN_NAME )
   { }
 };
 

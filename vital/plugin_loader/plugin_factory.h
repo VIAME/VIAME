@@ -79,6 +79,9 @@ public:
   static const std::string PLUGIN_VERSION;
   static const std::string PLUGIN_MODULE_NAME; // logical module name
   static const std::string PLUGIN_FACTORY_TYPE; // typename of factory class
+  static const std::string PLUGIN_AUTHOR;
+  static const std::string PLUGIN_ORGANIZATION;
+
 
   /**
    * @brief Get attribute from factory
