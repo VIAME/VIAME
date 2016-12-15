@@ -72,7 +72,6 @@ endmacro ()
 # It varys from system to system.
 #
 function ( _kwiver_python_site_package_dir    var_name)
-
   #
   # This is run many times and should produce the same result, which could be cached.
   # Think about it.
@@ -137,6 +136,7 @@ function (kwiver_add_python_library    name    modpath)
 endfunction ()
 
 ###
+# - internal implementation -
 #
 function (kwiver_add_python_module_int    path     modpath    module)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
@@ -183,6 +183,7 @@ function (kwiver_add_python_module_int    path     modpath    module)
     set(python_noarch TRUE)
 
     if (NOT WIN32)
+      # this looks recursive
       kwiver_add_python_module_int(
         "${path}"
         "${modpath}"
@@ -192,6 +193,17 @@ function (kwiver_add_python_module_int    path     modpath    module)
 endfunction ()
 
 ###
+# kwiver_add_python_module
+#
+#     Installs a pure-Python module into the 'modpath' and puts it into the
+#     correct place in the build tree so that it may be used with any built
+#     libraries in any build configuration.
+#
+# \param path Path to the python source
+#
+# \param modpath Python module path (e.g. kwiver/processes)
+#
+# \param module Python module name. This is the name used to import the code.
 #
 function (kwiver_add_python_module   path   modpath   module)
   kwiver_add_python_module_int("${path}"
@@ -200,6 +212,10 @@ function (kwiver_add_python_module   path   modpath   module)
 endfunction ()
 
 ###
+#   kwiver_create_python_init(modpath [module ...])
+#
+#     Creates an __init__.py package file which imports the modules in the
+#     arguments for the package.
 #
 function (kwiver_create_python_init    modpath)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
