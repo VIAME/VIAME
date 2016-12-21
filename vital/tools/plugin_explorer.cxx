@@ -38,8 +38,6 @@
 #include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/RegularExpression.hxx>
 
-//+ #include <sprokit/pipeline/process_factory.h>
-
 #include <iostream>
 #include <vector>
 #include <string>
@@ -56,7 +54,6 @@ class local_manager
 {
 public:
   local_manager() { }
-  virtual ~local_manager() { }
 
   kwiver::vital::plugin_loader* loader() { return get_loader(); }
 
@@ -83,6 +80,7 @@ bool opt_brief( false );
 bool opt_modules( false );
 bool opt_files( false );
 bool opt_all( false );
+bool opt_summary( false );
 
 std::vector< std::string > opt_path;
 
@@ -169,14 +167,14 @@ void display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
     std::cout << "      Version: " << version << std::endl;
   }
 
-  buf = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
-  std::cout << "      Description: " << buf << std::endl;
-
   if ( opt_brief )
   {
     return;
   }
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+  std::cout << "      Description: " << buf << std::endl;
 
   buf = "-- Not Set --";
   if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
@@ -325,6 +323,7 @@ print_help( const std::string& name )
             << "  --mod            display list of loaded modules\n"
             << "  --files          display list of files successfully opened to load plugins\n"
             << "  --all            display all factories\n"
+            << "  --summary        display summary of factories\n"
             << "  --fact attr regex Filter specified attr name value with regex\n"
   ;
 
@@ -367,6 +366,7 @@ main( int argc, char* argv[] )
   arg.AddArgument( "--files",       argT::NO_ARGUMENT, &opt_files, "Display list of loaded files" );
   arg.AddArgument( "--mod",         argT::NO_ARGUMENT, &opt_modules, "Display list of loaded modules" );
   arg.AddArgument( "--all",         argT::NO_ARGUMENT, &opt_all, "Display all factories" );
+  arg.AddArgument( "--summary",     argT::NO_ARGUMENT, &opt_summary, "Display summary of factories" );
 
   std::vector< std::string > filter_args;
   arg.AddArgument( "--filter",      argT::MULTI_ARGUMENT, &filter_args, "Filter factories based on attribute value" );
@@ -486,7 +486,7 @@ main( int argc, char* argv[] )
   {
     auto plugin_map = vpm.plugin_map();
 
-    std::cout << "\n---- All Registered Factories\n";
+    std::cout << "\n---- Registered Factories\n";
 
     VITAL_FOREACH( auto it, plugin_map )
     {
@@ -509,6 +509,33 @@ main( int argc, char* argv[] )
     } // end interface type
     std::cout << std::endl;
   }
+
+  //
+  // display summary
+  //
+  if (opt_summary )
+  {
+    std::cout << "\n----Summary of factories" << std::endl;
+    int count(0);
+
+    auto plugin_map = vpm.plugin_map();
+    std::cout << "    " << plugin_map.size() << " types of factories registered." << std::endl;
+
+    VITAL_FOREACH( auto it, plugin_map )
+    {
+      std::string ds = kwiver::vital::demangle( it.first );
+
+      // Get vector of factories
+      kwiver::vital::plugin_factory_vector_t const& facts = it.second;
+      count += facts.size();
+
+      std::cout << "        " << facts.size() << " factories that create \""
+                << ds << "\"" <<std::endl;
+    } // end interface type
+
+    std::cout << "    " << count << " total factories" << std::endl;
+  }
+
 
   //
   // list files is specified
