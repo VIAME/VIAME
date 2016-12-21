@@ -342,7 +342,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
-  fact = vpm.ADD_ALGORITHM( "ocv_SURF", kwiver::arrows::ocv::detect_features_SURF );
+  fact = vpm.ADD_ALGORITHM( "ocv_SURF", kwiver::arrows::ocv::extract_descriptors_SURF );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "OpenCV feature-point descriptor extraction via the SURF algorithm" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
