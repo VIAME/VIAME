@@ -63,6 +63,24 @@ algorithm
 
 
 // ------------------------------------------------------------------
+void
+algorithm
+::set_impl_name( const std::string& name )
+{
+  m_impl_name = name ;
+}
+
+
+// ------------------------------------------------------------------
+std::string
+algorithm
+::impl_name() const
+{
+  return m_impl_name;
+}
+
+
+// ------------------------------------------------------------------
 /// Get this alg's \link kwiver::vital::config_block configuration block \endlink
 config_block_sptr
 algorithm

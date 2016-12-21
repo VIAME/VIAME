@@ -63,9 +63,6 @@ public:
   /// Copy Constructor
   triangulate_landmarks(const triangulate_landmarks& other);
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "core"; }
-
   /// Get this alg's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algo's properties via a config block

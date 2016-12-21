@@ -62,9 +62,6 @@ public:
   /// Destructor
   virtual ~extract_descriptors_LUCID();
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_LUCID"; }
-
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block

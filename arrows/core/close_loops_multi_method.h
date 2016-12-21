@@ -68,9 +68,6 @@ public:
   /// Destructor
   virtual ~close_loops_multi_method() VITAL_DEFAULT_DTOR;
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "multi_method"; }
-
   /// Returns implementation description string
   virtual std::string description() const;
 

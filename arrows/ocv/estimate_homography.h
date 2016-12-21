@@ -52,9 +52,6 @@ class KWIVER_ALGO_OCV_EXPORT estimate_homography
   : public vital::algorithm_impl<estimate_homography, vital::algo::estimate_homography>
 {
 public:
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv"; }
-
   // No configuration yet for this class
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }

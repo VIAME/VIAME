@@ -56,9 +56,6 @@ public:
   /// Copy Constructor
   convert_image_bypass(const convert_image_bypass&);
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "bypass"; }
-
   /// Return descriptive string for this implementation
   virtual std::string description() const;
 

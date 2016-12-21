@@ -67,9 +67,6 @@ public:
   /// Destructor
   virtual ~close_loops_exhaustive() VITAL_NOTHROW;
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "exhaustive"; }
-
   /// Returns implementation description
   virtual std::string description() const;
 

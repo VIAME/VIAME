@@ -60,9 +60,6 @@ public:
   /// Destructor
   virtual ~match_features_bruteforce();
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_brute_force"; }
-
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block

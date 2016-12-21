@@ -79,7 +79,10 @@ kwiver::vital::algorithm_sptr create_algorithm( std::string const& algo_name,
         throw kwiver::vital::plugin_factory_not_found( str.str() );
       }
 
-      return pf->create_object();
+      // created algorithm
+      auto pa = pf->create_object();
+      pa->set_impl_name( impl_name );
+      return pa;
     }
   } // end foreach
 

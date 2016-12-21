@@ -55,9 +55,6 @@ public:
   detected_object_set_input_csv();
   virtual ~detected_object_set_input_csv();
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "csv"; }
-
   virtual void set_configuration(vital::config_block_sptr config);
   virtual bool check_configuration(vital::config_block_sptr config) const;
 

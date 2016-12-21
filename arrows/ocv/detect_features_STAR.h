@@ -62,13 +62,6 @@ public:
   /// Destructor
   virtual ~detect_features_STAR();
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_STAR"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature-point detection via the Star algorithm";
-  }
-
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block

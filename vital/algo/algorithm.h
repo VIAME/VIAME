@@ -75,59 +75,7 @@ public:
   // the algo header file.
 
   /// Return the name of this implementation
-  virtual std::string impl_name() const = 0;
-
-
-  //+ These should be relocated to the algorithm factory since they
-  //are related to creating algos, not running them
-
-  /// Return a vector of the impl_name of each registered implementation for type_name
-  /**
-   * \param type_name Type name of algorithm for which to find all implementation names
-   *
-   * \note If type_name is not specified or is an empty string, this function
-   *       will return the all registered algorithms of any type.  The returned
-   *       names will be of the form "type_name:impl_name".  If type_name is
-   *       specified, the results will be of the form "impl_name".
-   */
-//  static std::vector<std::string> registered_names(std::string const& type_name = "");
-  // This is available from the plugin manager
-  // auto list = vpm->get_factories<vital::algo::close_loops>();
-
-  /// Check the given type name against registered algorithms
-  /**
-   * \param type_name Type name of algorithm to validate
-   * \returns true if the given \c type_name describes at least one valid
-   *          registered algorithm, or false if not.
-   *
-   * \note This algorithm returns false for an valid abstract type name if there
-   *       are no concrete instances registered with the plugin manager
-   */
-//  static bool has_type_name(std::string const& type_name);
-  // This is available from VPM:
-  /*
-  // This queries by interface type.
-   auto list = vpm->get_factories<vital::algo::close_loops>();
-   if ( 0 == list.size() ) then interface type not there
-  // Can add additional method if a real boolean test is required.
-  */
-
-  /// Check the given type and implementation names against registered algorithms
-  /**
-   * \param type_name Type name of algorithm to validate
-   * \param impl_name Implementation name of algorithm to validate
-   * \returns true if the given \c type_name and \c impl_name describe a valid
-   *          registered algorithm, or false if not.
-   */
-//  static bool has_impl_name(std::string const& type_name,
-//                            std::string const& impl_name);
-  /*
-   typedef kwiver::vital::implementation_factory_by_name<vital::algo::close_loops> algo_factory;
-   algo_factory afact;
-   auto instr = afact.create( provider );
-   // Can add additional method if a real boolean test is required.
-  */
-
+  std::string impl_name() const;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   /**
@@ -234,7 +182,9 @@ public:
                                               std::string const& name,
                                               config_block_sptr config);
 
-protected:
+  void set_impl_name( const std::string& name );
+
+    protected:
   algorithm(); // CTOR
 
   /**
@@ -260,10 +210,10 @@ protected:
    */
   kwiver::vital::logger_handle_t m_logger;
 
+  std::string m_impl_name;
 };
 
 
-  //+ Don't need a clone function if we are using the factory object.
 // ------------------------------------------------------------------
 /// An intermediate templated base class for algorithm definition
 /**
@@ -403,34 +353,9 @@ class algorithm_impl
 {
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
-  typedef std::shared_ptr<BaseDef> base_sptr;
+  //+ typedef std::shared_ptr<BaseDef> base_sptr;
 
   virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
-
-  // /// Returns a clone of this algorithm as a generic algorithm pointer
-  // virtual algorithm_sptr base_clone() const
-  // {
-  //   return algorithm_sptr(new Self(static_cast<const Self&>(*this)));
-  // }
-
-  // /// Returns a clone of this algorithm as a pointer of the base definition type
-  // virtual base_sptr clone() const
-  // {
-  //   return base_sptr(new Self(static_cast<const Self&>(*this)));
-  // }
-
-  // /// Return an optional descriptive string for an implementation
-  // virtual std::string description() const
-  // {
-  //   return "";
-  // }
-
-  // /// Register this algorithm implementation under the BaseDef type definition
-  // static bool register_self(registrar &reg = vital::registrar::instance())
-  // {
-  //   return algorithm_def<BaseDef>::register_instance(reg, base_sptr(new Self));
-  // }
-
 };
 
 

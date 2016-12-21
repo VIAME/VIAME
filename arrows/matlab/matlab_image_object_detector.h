@@ -50,8 +50,6 @@ public:
   matlab_image_object_detector();
   virtual ~matlab_image_object_detector();
 
-  virtual std::string impl_name() const { return "matlab"; }
-
   virtual vital::config_block_sptr get_configuration() const;
   virtual void set_configuration(vital::config_block_sptr config);
   virtual bool check_configuration(vital::config_block_sptr config) const;
