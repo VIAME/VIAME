@@ -59,9 +59,6 @@ public:
   /// Constructor
   detect_features_STAR();
 
-  /// Copy Constructor
-  detect_features_STAR(detect_features_STAR const &other);
-
   /// Destructor
   virtual ~detect_features_STAR();
 

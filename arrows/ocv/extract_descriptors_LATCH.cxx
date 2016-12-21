@@ -56,13 +56,6 @@ public:
   {
   }
 
-  priv( priv const &other )
-    : bytes( other.bytes )
-    , rotation_invariance( other.rotation_invariance )
-    , half_ssd_size( other.half_ssd_size )
-  {
-  }
-
   cv::Ptr<cv::xfeatures2d::LATCH> create() const
   {
     return cv::xfeatures2d::LATCH::create( bytes, rotation_invariance,
@@ -115,15 +108,6 @@ public:
 extract_descriptors_LATCH
 ::extract_descriptors_LATCH()
   : p_( new priv )
-{
-  attach_logger( "arrows.ocv.LATCH" );
-  extractor = p_->create();
-}
-
-
-extract_descriptors_LATCH
-::extract_descriptors_LATCH(extract_descriptors_LATCH const &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger( "arrows.ocv.LATCH" );
   extractor = p_->create();

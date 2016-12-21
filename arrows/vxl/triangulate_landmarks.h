@@ -61,9 +61,6 @@ public:
   /// Destructor
   virtual ~triangulate_landmarks();
 
-  /// Copy Constructor
-  triangulate_landmarks(const triangulate_landmarks& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "vxl"; }
 

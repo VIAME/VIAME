@@ -59,14 +59,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv(priv const &other)
-     : threshold(other.threshold),
-       octaves(other.octaves),
-       pattern_scale(other.pattern_scale)
-  {
-  }
-
   /// Create new impl instance based on current parameters
   cv::Ptr<cv::BRISK> create() const
   {
@@ -131,15 +123,6 @@ detect_features_BRISK
 
 
 detect_features_BRISK
-::detect_features_BRISK(detect_features_BRISK const &other)
-  : p_( new priv( *other.p_ ) )
-{
-  attach_logger("arrows.ocv.BRISK");
-  detector = p_->create();
-}
-
-
-detect_features_BRISK
 ::~detect_features_BRISK()
 {
 }
@@ -177,15 +160,6 @@ detect_features_BRISK
 extract_descriptors_BRISK
 ::extract_descriptors_BRISK()
   : p_( new priv )
-{
-  attach_logger("arrows.ocv.BRISK");
-  extractor = p_->create();
-}
-
-
-extract_descriptors_BRISK
-::extract_descriptors_BRISK(extract_descriptors_BRISK const &other)
-   : p_( new priv( *other.p_ ) )
 {
   attach_logger("arrows.ocv.BRISK");
   extractor = p_->create();

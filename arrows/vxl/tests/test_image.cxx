@@ -34,8 +34,8 @@
  */
 
 #include <test_common.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/vxl/register_algorithms.h>
 #include <arrows/vxl/image_container.h>
 #include <arrows/vxl/image_io.h>
 
@@ -58,7 +58,7 @@ using namespace kwiver::vital;
 IMPLEMENT_TEST(factory)
 {
   using namespace kwiver::arrows;
-  vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   kwiver::vital::algo::image_io_sptr img_io = kwiver::vital::algo::image_io::create("vxl");
   if (!img_io)

@@ -162,12 +162,6 @@ matlab_detection_output()
 
 
 matlab_detection_output::
-matlab_detection_output( matlab_detection_output const& other)
-  : d( new priv( *other.d ) )
-{
-}
-
-matlab_detection_output::
 ~matlab_detection_output()
 {
 }

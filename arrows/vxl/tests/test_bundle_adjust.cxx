@@ -37,12 +37,11 @@
 #include <test_scene.h>
 
 #include <vital/vital_foreach.h>
-#include <vital/algorithm_plugin_manager.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/core/metrics.h>
 #include <arrows/core/projected_track_set.h>
 #include <arrows/vxl/bundle_adjust.h>
-#include <arrows/vxl/register_algorithms.h>
 
 #define TEST_ARGS ()
 
@@ -54,9 +53,7 @@ main(int argc, char* argv[])
   CHECK_ARGS(1);
 
   // VXL algorithm implementations
-  // Since we're only linking to the ARROWS-VXL library, there is no symbol
-  //    confliction.
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 

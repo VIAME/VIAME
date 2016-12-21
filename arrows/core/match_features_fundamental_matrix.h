@@ -69,9 +69,6 @@ public:
   /// Default Constructor
   match_features_fundamental_matrix();
 
-  /// Copy Constructor
-  match_features_fundamental_matrix(const match_features_fundamental_matrix&);
-
   /// Destructor
   virtual ~match_features_fundamental_matrix();
 

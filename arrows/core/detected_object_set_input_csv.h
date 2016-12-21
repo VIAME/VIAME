@@ -53,7 +53,6 @@ class KWIVER_ALGO_CORE_EXPORT detected_object_set_input_csv
 {
 public:
   detected_object_set_input_csv();
-  detected_object_set_input_csv( detected_object_set_input_csv const& other);
   virtual ~detected_object_set_input_csv();
 
   /// Return the name of this implementation

@@ -354,7 +354,7 @@ plugin_loader_impl
 
   // Iterate over search-path directories, attempting module load on elements
   // that end in the configured library suffix.
-  LOG_DEBUG( m_parent->m_logger, "Loading modules from directory: " << dir_path );
+  LOG_DEBUG( m_parent->m_logger, "Loading plugins from directory: " << dir_path );
 
   kwiversys::Directory dir;
   dir.Load( dir_path );

@@ -59,9 +59,6 @@ public:
   /// Destructor
   virtual ~image_io();
 
-  /// Copy Constructor
-  image_io(const image_io& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "vxl"; }
 

@@ -57,9 +57,6 @@ public:
   /// Constructor
   analyze_tracks();
 
-  /// Copy Constructor
-  analyze_tracks(const analyze_tracks& other);
-
   /// Destructor
   virtual ~analyze_tracks();
 

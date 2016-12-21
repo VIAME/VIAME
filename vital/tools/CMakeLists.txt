@@ -2,18 +2,6 @@
 # CMake file fot the vital tools
 #
 
-kwiver_add_executable( algo_explorer
-  algo_explorer.cxx
-  )
-
-target_link_libraries( algo_explorer
-  vital
-  vital_apm
-  vital_algo
-  vital_logger
-  kwiversys
-  )
-
 ###
 #
 ##++ There is a problem here in that plugin_explorer needs sprokit includes
@@ -43,7 +31,7 @@ kwiver_add_executable( dump_klv
 target_link_libraries( dump_klv
   PRIVATE     vital
               vital_config
-              vital_apm
+              vital_vpm
               vital_klv
               vital_algo
               vital_logger
@@ -59,7 +47,7 @@ kwiver_add_executable( config_explorer
 
 target_link_libraries( config_explorer
   PRIVATE      vital
-               vital_apm
+               vital_vpm
                vital_config
                vital_logger
                kwiversys

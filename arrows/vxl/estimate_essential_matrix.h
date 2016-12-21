@@ -62,9 +62,6 @@ public:
   /// Destructor
   virtual ~estimate_essential_matrix();
 
-  /// Copy Constructor
-  estimate_essential_matrix(const estimate_essential_matrix& other);
-
   /// Return the name of this implementation
   std::string impl_name() const { return "vxl"; }
 

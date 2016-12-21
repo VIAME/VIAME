@@ -138,19 +138,6 @@ public:
   {
   }
 
-  priv( const priv& other )
-  : enabled_( other.enabled_ ),
-    max_checkpoint_frames_( other.max_checkpoint_frames_ ),
-    checkpoint_percent_overlap_( other.checkpoint_percent_overlap_ ),
-    homography_filename_( other.homography_filename_ ),
-    ref_computer_( !other.ref_computer_ ? algo::compute_ref_homography_sptr()
-                                        : other.ref_computer_->clone() ),
-    matcher_( !other.matcher_ ? algo::match_features_sptr()
-                              : other.matcher_->clone() ),
-    m_logger( vital::get_logger( "arrows.vxl.close_loops_homography_guided" ))
-  {
-  }
-
   ~priv()
   {
   }
@@ -183,13 +170,6 @@ public:
 close_loops_homography_guided
 ::close_loops_homography_guided()
 : d_( new priv() )
-{
-}
-
-
-close_loops_homography_guided
-::close_loops_homography_guided( const close_loops_homography_guided& other )
-: d_( new priv( *other.d_ ) )
 {
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,9 @@
  * \brief Ceres algorithm registration implementation
  */
 
-#include "register_algorithms.h"
+#include <arrows/ceres/kwiver_algo_ceres_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-
-#include <arrows/algorithm_plugin_interface_macros.h>
 #include <arrows/ceres/bundle_adjust.h>
 
 
@@ -44,15 +43,29 @@ namespace kwiver {
 namespace arrows {
 namespace ceres {
 
-/// Register Ceres algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+extern "C"
+KWIVER_ALGO_CERES_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  REGISTRATION_INIT( reg );
+  static auto const module_name = std::string( "algorithms.ceres" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
-  REGISTER_TYPE( ceres::bundle_adjust );
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "ceres", kwiver::arrows::ceres::bundle_adjust );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Attempts short-term loop closure based on percentage of feature "
+                    "points tracked.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace ceres

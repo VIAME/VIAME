@@ -60,9 +60,6 @@ public:
   /// Destructor
   virtual ~bundle_adjust();
 
-  /// Copy Constructor
-  bundle_adjust(const bundle_adjust& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "vxl"; }
 

@@ -58,9 +58,6 @@ public:
   /// Destructor
   virtual ~estimate_fundamental_matrix();
 
-  /// Copy Constructor
-  estimate_fundamental_matrix(const estimate_fundamental_matrix& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "ocv"; }
 

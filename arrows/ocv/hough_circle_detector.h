@@ -44,7 +44,6 @@ class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
 {
 public:
   hough_circle_detector();
-  hough_circle_detector( const hough_circle_detector& other );
   virtual ~hough_circle_detector();
 
   virtual std::string impl_name() const { return "hough_circle_detector"; }

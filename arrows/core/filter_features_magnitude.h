@@ -58,9 +58,6 @@ public:
   /// Destructor
   virtual ~filter_features_magnitude();
 
-  /// Copy Constructor
-  filter_features_magnitude(const filter_features_magnitude& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "magnitude"; }
 

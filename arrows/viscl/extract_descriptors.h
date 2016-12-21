@@ -55,9 +55,6 @@ public:
   /// Destructor
   virtual ~extract_descriptors();
 
-  /// Copy Constructor
-  extract_descriptors(const extract_descriptors& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "viscl"; }
 

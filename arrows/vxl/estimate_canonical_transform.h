@@ -72,9 +72,6 @@ public:
   /// Destructor
   virtual ~estimate_canonical_transform();
 
-  /// Copy Constructor
-  estimate_canonical_transform(const estimate_canonical_transform& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "vxl_plane"; }
 

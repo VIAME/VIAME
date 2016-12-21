@@ -48,7 +48,6 @@ class KWIVER_ALGO_MATLAB_EXPORT matlab_image_object_detector
 {
 public:
   matlab_image_object_detector();
-  matlab_image_object_detector( const matlab_image_object_detector& other );
   virtual ~matlab_image_object_detector();
 
   virtual std::string impl_name() const { return "matlab"; }

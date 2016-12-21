@@ -48,7 +48,6 @@ class KWIVER_ALGO_MATLAB_EXPORT matlab_detection_output
 {
 public:
   matlab_detection_output();
-  matlab_detection_output( matlab_detection_output const& other);
   virtual ~matlab_detection_output();
 
   /// Return the name of this implementation

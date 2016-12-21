@@ -65,12 +65,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : precondition(other.precondition),
-    method(other.method)
-  {
-  }
-
   enum method_t {EST_7_POINT, EST_8_POINT};
 
   bool precondition;
@@ -86,20 +80,11 @@ estimate_fundamental_matrix
 }
 
 
-/// Copy Constructor
-estimate_fundamental_matrix
-::estimate_fundamental_matrix(const estimate_fundamental_matrix& other)
-: d_(new priv(*other.d_))
-{
-}
-
-
 /// Destructor
 estimate_fundamental_matrix
 ::~estimate_fundamental_matrix()
 {
 }
-
 
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink

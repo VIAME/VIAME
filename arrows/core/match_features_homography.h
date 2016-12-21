@@ -82,9 +82,6 @@ public:
   /// Default Constructor
   match_features_homography();
 
-  /// Copy Constructor
-  match_features_homography(const match_features_homography&);
-
   /// Destructor
   virtual ~match_features_homography();
 

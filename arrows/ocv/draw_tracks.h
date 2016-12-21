@@ -57,9 +57,6 @@ public:
   /// Constructor
   draw_tracks();
 
-  /// Copy Constructor
-  draw_tracks(const draw_tracks& other);
-
   /// Destructor
   virtual ~draw_tracks();
 

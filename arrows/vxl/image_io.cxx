@@ -65,14 +65,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : auto_stretch(other.auto_stretch),
-    manual_stretch(other.manual_stretch),
-    intensity_range(other.intensity_range),
-    m_logger(other.m_logger)
-  {
-  }
-
   bool auto_stretch;
   bool manual_stretch;
   vector_2d intensity_range;
@@ -85,14 +77,6 @@ public:
 image_io
 ::image_io()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-image_io
-::image_io(const image_io& other)
-: d_(new priv(*other.d_))
 {
 }
 

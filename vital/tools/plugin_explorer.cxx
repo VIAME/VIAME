@@ -33,6 +33,7 @@
 #include <vital/config/config_block.h>
 #include <vital/util/demangle.h>
 #include <vital/vital_foreach.h>
+#include <vital/algo/algorithm_factory.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
 #include <kwiversys/RegularExpression.hxx>
@@ -151,30 +152,8 @@ join( const std::vector< std::string >& vec, const char* delim )
 
 
 // ------------------------------------------------------------------
-//
-// display full factory list
-//
-void
-display_factory( kwiver::vital::plugin_factory_handle_t const fact )
+void display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
 {
-  // See if this factory is selected
-  if ( opt_attr_filter )
-  {
-    std::string val;
-    if ( ! fact->get_attribute( opt_filter_attr, val ) )
-    {
-      // attribute has not been found.
-      return;
-    }
-
-    if ( ! filter_regex.find( val ) )
-    {
-      // The attr value does not match the regex.
-      return;
-    }
-
-  } // end attr filter
-
   // Print the required fields first
   std::string buf;
 
@@ -220,7 +199,110 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
     print_functor pf( std::cout );
     fact->for_each_attr( pf );
   }
-} // display_factory
+}
+
+
+// ------------------------------------------------------------------
+//
+// display full factory
+//
+void
+display_factory( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  // See if this factory is selected
+  if ( opt_attr_filter )
+  {
+    std::string val;
+    if ( ! fact->get_attribute( opt_filter_attr, val ) )
+    {
+      // attribute has not been found.
+      return;
+    }
+
+    if ( ! filter_regex.find( val ) )
+    {
+      // The attr value does not match the regex.
+      return;
+    }
+
+  } // end attr filter
+
+
+  display_attributes( fact );
+}
+
+
+// ------------------------------------------------------------------
+void print_config( kwiver::vital::config_block_sptr const config )
+{
+  kwiver::vital::config_block_keys_t all_keys = config->available_values();
+  std::string indent( "    " );
+
+  std::cout << indent << "Configuration block contents\n";
+
+  VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
+  {
+    kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+    std::cout << std::endl
+              << indent << "\"" << key << "\" = \"" << val << "\"\n";
+
+    kwiver::vital::config_block_description_t descr = config->get_description( key );
+    std::cout << indent << "Description: " << descr << std::endl;
+  }
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Display detailed information about an algorithm.
+ *
+ * @param fact Pointer to algorithm factory.
+ */
+void display_algorithm( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  kwiver::vital::algorithm_factory* pf = dynamic_cast< kwiver::vital::algorithm_factory* > ( fact.get() );
+  if (0 == pf)
+  {
+    // Wrong type of factory returned.
+    std::cout << "Factory for algorithm could not be converted to algorithm_factory type.";
+    return;
+  }
+
+  kwiver::vital::algorithm_sptr ptr = pf->create_object();
+  std::string type = "-- not set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::INTERFACE_TYPE, type );
+
+  std::string impl = "-- not set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
+
+  std::cout << "\n---------------------\n"
+            << "Detailed info on type \"" << type << "\" implementation \"" << impl << "\""
+            << std::endl;
+
+  // should this be enabled with the detail option?
+  display_attributes( fact );
+
+  if ( opt_config )
+  {
+    // Get configuration
+    auto config = ptr->get_configuration();
+
+    auto all_keys = config->available_values();
+    std::string indent( "    " );
+
+    std::cout << indent << "Configuration block contents" << std::endl;
+
+    VITAL_FOREACH( auto  key, all_keys )
+    {
+      auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+      std::cout << std::endl
+                << indent << "\"" << key << "\" = \"" << val << "\"\n";
+
+      kwiver::vital::config_block_description_t descr = config->get_description( key );
+      std::cout << indent << "Description: " << descr << std::endl;
+    }
+  }
+}
 
 
 // ------------------------------------------------------------------

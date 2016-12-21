@@ -45,6 +45,7 @@
 
 #include <vital/algo/estimate_homography.h>
 #include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
 
 #include <Eigen/LU>
 
@@ -151,22 +152,6 @@ public:
     frames_since_reset( 0 ),
     allow_ref_frame_regression( true ),
     min_ref_frame( 0 ),
-    m_logger( vital::get_logger( "compute_ref_homography_core" ))
-  {
-  }
-
-  priv( const priv& other )
-  : use_backproject_error( other.use_backproject_error ),
-    backproject_threshold_sqr( other.backproject_threshold_sqr ),
-    forget_track_threshold( other.forget_track_threshold ),
-    min_track_length( other.min_track_length ),
-    inlier_scale( other.inlier_scale ),
-    minimum_inliers( other.minimum_inliers ),
-    h_estimator( !other.h_estimator ? algo::estimate_homography_sptr()
-                                    : other.h_estimator->clone() ),
-    frames_since_reset( other.frames_since_reset ),
-    allow_ref_frame_regression( other.allow_ref_frame_regression ),
-    min_ref_frame( other.min_ref_frame ),
     m_logger( vital::get_logger( "compute_ref_homography_core" ))
   {
   }
@@ -302,13 +287,6 @@ public:
 compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
-{
-}
-
-
-compute_ref_homography_core
-::compute_ref_homography_core( const compute_ref_homography_core& other )
-: d_( new priv( *other.d_ ) )
 {
 }
 

@@ -65,9 +65,6 @@ public:
   /// Default Constructor
   close_loops_multi_method();
 
-  /// Copy Constructor
-  close_loops_multi_method(const close_loops_multi_method&);
-
   /// Destructor
   virtual ~close_loops_multi_method() VITAL_DEFAULT_DTOR;
 

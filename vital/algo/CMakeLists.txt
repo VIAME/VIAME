@@ -9,6 +9,7 @@
 set( public_headers
 
   algorithm.h
+  algorithm_factory.h
   analyze_tracks.h
   bundle_adjust.h
   close_loops.h
@@ -41,6 +42,7 @@ set( public_headers
 set( sources
 
   algorithm.cxx
+  algorithm_factory.cxx
   analyze_tracks.cxx
   bundle_adjust.cxx
   close_loops.cxx
@@ -94,4 +96,5 @@ target_link_libraries( vital_algo
   PUBLIC          vital
                   vital_config
                   vital_logger
+                  vital_vpm
   )

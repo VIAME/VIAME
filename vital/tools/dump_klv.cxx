@@ -39,7 +39,6 @@
 #include <vital/config/config_block_io.h>
 #include <vital/exceptions.h>
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/algo/video_input.h>
 #include <vital/vital_foreach.h>
 
@@ -47,6 +46,7 @@
 #include <vital/klv/klv_parse.h>
 #include <vital/video_metadata/video_metadata.h>
 #include <vital/video_metadata/convert_metadata.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
 
@@ -125,8 +125,7 @@ int main( int argc, char** argv )
   arg.DeleteRemainingArguments(newArgc, &newArgv);
 
   // register the algorithm implementations
-  kwiver::vital::algorithm_plugin_manager::instance().register_plugins();
-
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::algo::video_input_sptr video_reader;
   kwiver::vital::config_block_sptr config = default_config();
 

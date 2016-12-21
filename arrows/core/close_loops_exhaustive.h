@@ -64,9 +64,6 @@ public:
   /// Default Constructor
   close_loops_exhaustive();
 
-  /// Copy Constructor
-  close_loops_exhaustive(const close_loops_exhaustive&);
-
   /// Destructor
   virtual ~close_loops_exhaustive() VITAL_NOTHROW;
 

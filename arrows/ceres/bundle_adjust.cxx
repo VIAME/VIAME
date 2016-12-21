@@ -159,25 +159,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : verbose(other.verbose),
-    loss_function_type(other.loss_function_type),
-    loss_function_scale(other.loss_function_scale),
-    optimize_focal_length(other.optimize_focal_length),
-    optimize_aspect_ratio(other.optimize_aspect_ratio),
-    optimize_principal_point(other.optimize_principal_point),
-    optimize_skew(other.optimize_skew),
-    lens_distortion_type(other.lens_distortion_type),
-    optimize_dist_k1(other.optimize_dist_k1),
-    optimize_dist_k2(other.optimize_dist_k2),
-    optimize_dist_k3(other.optimize_dist_k3),
-    optimize_dist_p1_p2(other.optimize_dist_p1_p2),
-    optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
-    camera_intrinsic_share_type(other.camera_intrinsic_share_type),
-    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
-  {
-  }
-
   /// the Ceres solver options
   ::ceres::Solver::Options options;
   /// verbose output
@@ -218,14 +199,6 @@ public:
 bundle_adjust
 ::bundle_adjust()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-bundle_adjust
-::bundle_adjust(const bundle_adjust& other)
-: d_(new priv(*other.d_))
 {
 }
 

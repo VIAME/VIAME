@@ -60,9 +60,6 @@ public:
   vidl_ffmpeg_video_input();
   virtual ~vidl_ffmpeg_video_input();
 
-  /// copy constructor
-  vidl_ffmpeg_video_input( vidl_ffmpeg_video_input const& other );
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "vxl"; }
 

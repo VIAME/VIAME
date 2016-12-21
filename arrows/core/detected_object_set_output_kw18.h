@@ -52,7 +52,6 @@ class KWIVER_ALGO_CORE_EXPORT detected_object_set_output_kw18
 {
 public:
   detected_object_set_output_kw18();
-  detected_object_set_output_kw18( detected_object_set_output_kw18 const& other);
   virtual ~detected_object_set_output_kw18();
 
   /// Return the name of this implementation

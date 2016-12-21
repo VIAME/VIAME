@@ -59,9 +59,6 @@ public:
   /// Default Constructor
   close_loops_keyframe();
 
-  /// Copy Constructor
-  close_loops_keyframe(const close_loops_keyframe&);
-
   /// Destructor
   virtual ~close_loops_keyframe() VITAL_NOTHROW;
 

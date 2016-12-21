@@ -51,12 +51,6 @@ public:
   {
   }
 
-  /// Copy constructor
-  priv( priv const &other )
-    : p( other.p )
-  {
-  }
-
   /// Create new algorithm based on current parameter values
   cv::Ptr<cv::SimpleBlobDetector> create() const
   {
@@ -159,15 +153,6 @@ public:
 detect_features_simple_blob
 ::detect_features_simple_blob()
   : p_( new priv )
-{
-  attach_logger( "arrows.ocv.simple_blob_detector" );
-  detector = p_->create();
-}
-
-
-detect_features_simple_blob
-::detect_features_simple_blob(const detect_features_simple_blob &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger( "arrows.ocv.simple_blob_detector" );
   detector = p_->create();

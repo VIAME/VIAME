@@ -58,8 +58,6 @@ public:
 
   /// Constructor
   hierarchical_bundle_adjust();
-  /// Copy constructor
-  hierarchical_bundle_adjust(hierarchical_bundle_adjust const& other);
   /// Destructor
   virtual ~hierarchical_bundle_adjust() VITAL_NOTHROW;
 

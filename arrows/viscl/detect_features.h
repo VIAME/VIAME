@@ -54,9 +54,6 @@ public:
   /// Destructor
   virtual ~detect_features();
 
-  /// Copy Constructor
-  detect_features(const detect_features& other);
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "viscl"; }
 
