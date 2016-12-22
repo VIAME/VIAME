@@ -57,9 +57,13 @@ namespace kwiver {
 
 //                 (config-key, value-type, default-value, description )
 create_config_trait( video_filename, std::string, "", "Name of video file." );
-create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds" );
+create_config_trait( frame_time, double, "0.03333333",
+                     "Inter frame time in seconds. "
+                     "If the input video stream does not supply frame times, "
+                     "this value is used to create a default timestamp. "
+                     "If the video stream has frame times, then those are used." );
 
-  //----------------------------------------------------------------
+//----------------------------------------------------------------
 // Private implementation class
 class video_input_process::priv
 {
@@ -77,12 +81,14 @@ public:
   kwiver::vital::timestamp::frame_t       m_frame_number;
   kwiver::vital::timestamp::time_t        m_frame_time;
 
+  kwiver::vital::video_metadata_vector    m_last_metadata;
+
 }; // end priv class
 
 
 // ================================================================
 
-  video_input_process
+video_input_process
 ::video_input_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new video_input_process::priv )
@@ -182,8 +188,27 @@ void video_input_process
       ts.set_time_usec( d->m_frame_time );
     }
 
-    // If this reader/video does not have any metadata, we will just return an empty vector.
+    // If this reader/video does not have any metadata, we will just
+    // return an empty vector.  That is all handled by the algorithm
+    // implementation.
     kwiver::vital::video_metadata_vector metadata = d->m_video_reader->frame_metadata();
+
+    // Since we want to try to always return valid metadata for this
+    // frame - if the returned metadata is empty, then use the last
+    // one we received.  The requirement is to always provide the best
+    // metadata for a frame. Since metadata appears less frequently
+    // than the frames, the metadata returned can be a little old, but
+    // it is still the best we have.
+    if ( metadata.empty() )
+    {
+      // The saved one could be empty, but it is the bewt we have.
+      metadata = d->m_last_metadata;
+    }
+    else
+    {
+      // Now that we have new metadata save it in case we need it later.
+      d->m_last_metadata = metadata;
+    }
 
     push_to_port_using_trait( timestamp, ts );
     push_to_port_using_trait( image, frame );
