@@ -60,8 +60,8 @@ typedef std::vector< plugin_factory_handle_t >    plugin_factory_vector_t;
  *
  */
 class VITAL_VPM_EXPORT plugin_factory
-  : public std::enable_shared_from_this< plugin_factory >,
-    private kwiver::vital::noncopyable
+  : public std::enable_shared_from_this< plugin_factory >
+  , private kwiver::vital::noncopyable
 {
 public:
   virtual ~plugin_factory();

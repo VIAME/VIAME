@@ -122,8 +122,6 @@ public:
   }
 
 private:
-  virtual void* create_object_i() { return 0; }
-
   scheduler_factory_func_t m_factory;
 };
 
