@@ -46,6 +46,7 @@
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
 #include <vital/types/uuid.h>
+#include <vital/video_metadata/video_metadata.h>
 
 #include "trait_utils.h"
 
@@ -85,6 +86,7 @@ create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
+create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video_metadata_vector );
 create_type_trait( uuid, "kwiver:video_uuid", kwiver::vital::uuid );
 
 
@@ -106,6 +108,7 @@ create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image t
 create_port_trait( image_file_name, image_file_name, "Name of an image file. "
                    "The file name may contain leading path components." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
-create_port_trait( uuid, uuid, "UUID    value." );
+create_port_trait( video_metadata, video_metadata, "Video metadata vector for a frame." );
+create_port_trait( uuid, uuid, "UUID value." );
 
-#endif /* KWIVER_VITAL_TYPE_TRAITS_H */
+#endif // KWIVER_VITAL_TYPE_TRAITS_H
