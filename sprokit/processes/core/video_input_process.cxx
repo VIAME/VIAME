@@ -57,7 +57,7 @@ namespace kwiver {
 
 //                 (config-key, value-type, default-value, description )
 create_config_trait( video_filename, std::string, "", "Name of video file." );
-create_config_trait( frame_time, double, "0.3333333",
+create_config_trait( frame_time, double, "0.03333333",
                      "Inter frame time in seconds. "
                      "If the input video stream does not supply frame times, "
                      "this value is used to create a default timestamp. "
