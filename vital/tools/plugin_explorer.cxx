@@ -43,6 +43,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <memory>
 
 // -----------------------------------------------------------------
 /**
@@ -429,7 +430,8 @@ main( int argc, char* argv[] )
   }
 
   // ========
-  local_manager vpm;
+  // auto vpm = std::make_shared<local_manager>();
+  auto vpm = new local_manager();
 
   char** newArgv = 0;
   int newArgc = 0;
@@ -439,7 +441,7 @@ main( int argc, char* argv[] )
   if ( newArgc > 1 )
   {
     // Load file on command line
-    auto loader = vpm.loader();
+    auto loader = vpm->loader();
 
     for ( int i = 1; i < newArgc; ++i )
     {
@@ -451,10 +453,10 @@ main( int argc, char* argv[] )
     // Load from supplied paths and build in paths.
     VITAL_FOREACH( std::string const& path, opt_path )
     {
-      vpm.add_search_path( path );
+      vpm->add_search_path( path );
     }
 
-    vpm.load_all_plugins();
+    vpm->load_all_plugins();
   }
 
   if ( opt_path_list )
@@ -462,7 +464,7 @@ main( int argc, char* argv[] )
     std::cout << "---- Plugin search path\n";
 
     std::string path_string;
-    std::vector< kwiver::vital::path_t > const search_path( vpm.search_path() );
+    std::vector< kwiver::vital::path_t > const search_path( vpm->search_path() );
     VITAL_FOREACH( auto module_dir, search_path )
     {
       std::cout << "    " << module_dir << std::endl;
@@ -473,7 +475,7 @@ main( int argc, char* argv[] )
   if ( opt_modules )
   {
     std::cout << "---- Registered module names:\n";
-    auto module_list = vpm.module_map();
+    auto module_list = vpm->module_map();
     VITAL_FOREACH( auto const name, module_list )
     {
       std::cout << "   " << name.first << "  loaded from: " << name.second << std::endl;
@@ -484,7 +486,7 @@ main( int argc, char* argv[] )
   // Generate list of factories of any of these options are selected
   if ( opt_all || opt_fact_filt || opt_detail || opt_brief || opt_attr_filter )
   {
-    auto plugin_map = vpm.plugin_map();
+    auto plugin_map = vpm->plugin_map();
 
     std::cout << "\n---- Registered Factories\n";
 
@@ -518,7 +520,7 @@ main( int argc, char* argv[] )
     std::cout << "\n----Summary of factories" << std::endl;
     int count(0);
 
-    auto plugin_map = vpm.plugin_map();
+    auto plugin_map = vpm->plugin_map();
     std::cout << "    " << plugin_map.size() << " types of factories registered." << std::endl;
 
     VITAL_FOREACH( auto it, plugin_map )
@@ -542,7 +544,7 @@ main( int argc, char* argv[] )
   //
   if ( opt_files )
   {
-    const auto file_list = vpm.file_list();
+    const auto file_list = vpm->file_list();
 
     std::cout << "\n---- Files Successfully Opened" << std::endl;
     VITAL_FOREACH( std::string const& name, file_list )
