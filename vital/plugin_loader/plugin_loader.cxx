@@ -69,7 +69,15 @@ public:
     , m_shared_lib_suffix( shared_lib_suffix )
   { }
 
-  ~plugin_loader_impl() { }
+  ~plugin_loader_impl()
+  {
+    VITAL_FOREACH( auto entry, m_library_map )
+    {
+      DL::CloseLibrary( entry.second );
+    }
+
+    m_library_map.clear();
+  }
 
   void load_known_modules();
   void look_in_directory( std::string const& directory);
@@ -117,12 +125,7 @@ plugin_loader
 
 plugin_loader
 ::~plugin_loader()
-{
-  VITAL_FOREACH( auto entry, m_impl->m_library_map )
-  {
-    DL::CloseLibrary( entry.second );
-  }
-}
+{ }
 
 
 // ------------------------------------------------------------------
