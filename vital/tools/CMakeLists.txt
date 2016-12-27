@@ -18,9 +18,46 @@ target_link_libraries( plugin_explorer
                  vital_vpm
                  vital_logger
                  kwiversys
+                 explorer_plugin
                  sprokit_tools
                  sprokit_pipeline
   )
+
+
+set( public_headers
+  explorer_plugin.h
+  )
+
+kwiver_install_headers(
+         ${CMAKE_CURRENT_BINARY_DIR}/explorer_plugin_export.h
+         ${public_headers}
+  SUBDIR vital/tools   # is this the best place?
+  )
+
+kwiver_add_library( explorer_plugin
+  ${CMAKE_CURRENT_BINARY_DIR}/explorer_plugin_export.h
+  ${public_headers}
+  explorer_context.cxx
+  )
+
+target_link_libraries( explorer_plugin
+  PUBLIC   vital
+  PRIVATE  kwiversys
+           vital_util
+  )
+
+###
+#     plugins for plugin explorer
+# this should move to vital/algo/CMakeLists.txt
+kwiver_add_plugin( algo_explorer_plugin
+  SOURCES  algo_explorer_plugin.cxx
+  PRIVATE  vital
+           vital_vpm
+           vital_config
+           vital_algo
+           explorer_plugin )
+
+
 
 ###
 #
