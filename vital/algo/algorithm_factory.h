@@ -66,7 +66,7 @@ public:
     : plugin_factory( algo ) // interface type
   {
     this->add_attribute( PLUGIN_NAME, impl )
-      .add_attribute( "algorithm", algo ); // marker for algorithms
+      .add_attribute( PLUGIN_CATEGORY, "algorithm" );
   }
 
   virtual ~algorithm_factory() VITAL_DEFAULT_DTOR

@@ -107,8 +107,9 @@ public:
     : plugin_factory( itype )
     , m_factory( factory )
   {
-    this->add_attribute( CONCRETE_TYPE, type);
-    this->add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() );
+    this->add_attribute( CONCRETE_TYPE, type)
+      .add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() )
+      .add_attribute( PLUGIN_CATEGORY, "scheduler" );
   }
 
   virtual ~scheduler_factory() VITAL_DEFAULT_DTOR
