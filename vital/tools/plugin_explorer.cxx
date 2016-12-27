@@ -366,22 +366,24 @@ main( int argc, char* argv[] )
   G_context.m_args.StoreUnusedArguments( true );
   typedef kwiversys::CommandLineArguments argT;
 
-  G_context.m_args.AddArgument( "--help",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
-  G_context.m_args.AddArgument( "-h",            argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
-  G_context.m_args.AddArgument( "--detail",      argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
-  G_context.m_args.AddArgument( "-d",            argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
-  G_context.m_args.AddArgument( "--config",      argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
-  G_context.m_args.AddArgument( "--path",        argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
-  G_context.m_args.AddCallback( "-I",            argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--fact",        argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
-  G_context.m_args.AddArgument( "--brief",       argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
-  G_context.m_args.AddArgument( "--files",       argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
-  G_context.m_args.AddArgument( "--mod",         argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
-  G_context.m_args.AddArgument( "--all",         argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
+  G_context.m_args.AddArgument( "--help",    argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
+  G_context.m_args.AddArgument( "-h",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
+  G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
+  G_context.m_args.AddArgument( "-d",        argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
+  G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
+  G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
+  G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
+  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
+  G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
+  G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
+  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
 
   std::vector< std::string > filter_args;
-  G_context.m_args.AddArgument( "--filter",      argT::MULTI_ARGUMENT, &filter_args, "Filter factories based on attribute value" );
-  G_context.m_args.AddArgument( "--summary",     argT::NO_ARGUMENT, &G_context.opt_summary, "Display summary of factories" );
+  G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args, "Filter factories based on attribute value" );
+  G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary, "Display summary of factories" );
+
+  // --raw or --attrs will skip the context specific plugin stuff
 
   //+ add options for:
   // schedulers only
@@ -495,6 +497,13 @@ main( int argc, char* argv[] )
     }
     pe_out() << std::endl;
   }
+
+  //+ test for program personalities
+  // - processopedia
+  //      select category == process
+  //      -or- just extract the list of processes from the vpm
+  // - algo_explorer
+  //+ TBD
 
   // Generate list of factories of any of these options are selected
   if ( G_context.opt_all
