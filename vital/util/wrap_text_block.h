@@ -1,4 +1,5 @@
 /*ckwg +29
+
  * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
@@ -28,45 +29,68 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdarg.h>  // For va_start, etc.
-#include <memory>    // For std::unique_ptr
+#ifndef VITAL_UTIL_WRAP_TEXT_BLOCK_H
+#define VITAL_UTIL_WRAP_TEXT_BLOCK_H
+
+#include <vital/util/vital_util_export.h>
+
+#include <string>
 
 namespace kwiver {
 namespace vital {
 
+// ----------------------------------------------------------------
 /**
- * @brief Printf style formatting for std::string
+ * @brief Format long text into wrapped text block.
  *
- * @param fmt_str Formatting string using embedded printf format specifiers.
- *
- * @return Formatted string.
+ * This class formats a long text string into a more compact text block.
  */
-inline std::string
-string_format( const std::string fmt_str, ... )
+class VITAL_UTIL_EXPORT wrap_text_block
 {
-  int final_n, n = ( (int)fmt_str.size() ) * 2; /* Reserve two times as much as the length of the fmt_str */
-  std::string str;
-  std::unique_ptr< char[] > formatted;
-  va_list ap;
+public:
+  wrap_text_block();
+  virtual ~wrap_text_block();
 
-  while ( 1 )
-  {
-    formatted.reset( new char[n] );   /* Wrap the plain char array into the unique_ptr */
-    strcpy( &formatted[0], fmt_str.c_str() );
-    va_start( ap, fmt_str );
-    final_n = vsnprintf( &formatted[0], n, fmt_str.c_str(), ap );
-    va_end( ap );
-    if ( ( final_n < 0 ) || ( final_n >= n ) )
-    {
-      n += abs( final_n - n + 1 );
-    }
-    else
-    {
-      break;
-    }
-  }
+  /**
+   * @brief Set leading indent string.
+   *
+   * This method sets the indent string that is prepended to each
+   * output line. This string can be a comment marker or a set of
+   * blanks to indent the output.
+   *
+   * @param indent String to prepend to each output line.
+   */
+  void set_indent_string( const std::string& indent );
 
-  return std::string( formatted.get() );
-}
+  /**
+   * @brief Set output line length.
+   *
+   * This method sets the length on the output line.
+   *
+   * @param len Length of the output line.
+   */
+  void set_line_length( size_t len );
+
+  /**
+   * @brief Wrap text string.
+   *
+   * This method wraps the input string to the specified line
+   * length. Existing newline characters are retained so user
+   * specified line breaks are preserved. Multiple spaces are retained
+   * to preserve user formatting.
+   *
+   * @param text The text to be wrapped
+   *
+   * @return Wrapped string.
+   */
+  virtual std::string wrap_text( const std::string& text );
+
+private:
+  std::string m_indent;
+  size_t m_line_length;
+
+}; // end class wrap_text_block
 
 } } // end namespace
+
+#endif // VITAL_UTIL_WRAP_TEXT_BLOCK_H
