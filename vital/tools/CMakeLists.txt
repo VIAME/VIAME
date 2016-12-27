@@ -47,19 +47,6 @@ target_link_libraries( explorer_plugin
   )
 
 ###
-#     plugins for plugin explorer
-# this should move to vital/algo/CMakeLists.txt
-kwiver_add_plugin( algo_explorer_plugin
-  SOURCES  algo_explorer_plugin.cxx
-  PRIVATE  vital
-           vital_vpm
-           vital_config
-           vital_algo
-           explorer_plugin )
-
-
-
-###
 #
 kwiver_add_executable( dump_klv
   dump_klv.cxx

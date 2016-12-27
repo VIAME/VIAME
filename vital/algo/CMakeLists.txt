@@ -98,3 +98,14 @@ target_link_libraries( vital_algo
                   vital_logger
                   vital_vpm
   )
+
+###
+#     plugins for plugin explorer
+kwiver_add_plugin( algo_explorer_plugin
+  SUBDIR   modules
+  SOURCES  algo_explorer_plugin.cxx
+  PRIVATE  vital
+           vital_vpm
+           vital_config
+           vital_algo
+           explorer_plugin )
