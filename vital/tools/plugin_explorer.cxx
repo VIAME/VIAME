@@ -59,7 +59,7 @@ TODO
 
 - expand help text to be more like a man page.
 - handle processopedia and algo_explorer personalities.
-
+- add --process flag to list only processes -or- --process name
  */
 
 typedef kwiversys::SystemTools ST;
@@ -548,7 +548,7 @@ main( int argc, char* argv[] )
   // - processopedia
   //      select category == process
   //      -or- just extract the list of processes from the vpm
-  //      Needs to displat processes and schedulers
+  //      Needs to display processes and schedulers
   //
   // - algo_explorer
   //+ TBD

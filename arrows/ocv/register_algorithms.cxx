@@ -204,7 +204,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "ocv_bruteforce", kwiver::arrows::ocv::match_features_bruteforce );
+  fact = vpm.ADD_ALGORITHM( "ocv_brute_force", kwiver::arrows::ocv::match_features_bruteforce );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -213,7 +213,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "ocv_flannbased", kwiver::arrows::ocv::match_features_flannbased );
+  fact = vpm.ADD_ALGORITHM( "ocv_flann_based", kwiver::arrows::ocv::match_features_flannbased );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
