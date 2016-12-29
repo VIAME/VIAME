@@ -72,8 +72,10 @@ public:
    * This method returns the active set of command line
    * options. Category_Explorer plugins can add any needed command
    * line arguments to this set.
+   *
+   * @return Pointer to command line args object.
    */
-  kwiversys::CommandLineArguments& command_line_args();
+  kwiversys::CommandLineArguments* command_line_args();
 
   /**
    * @brief Wrap long text to line length.

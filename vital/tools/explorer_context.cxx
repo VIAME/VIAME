@@ -58,11 +58,11 @@ output_stream() const
 
 
 // ------------------------------------------------------------------
-kwiversys::CommandLineArguments&
+kwiversys::CommandLineArguments*
 explorer_context::
 command_line_args()
 {
-  return p->m_args;
+  return &p->m_args;
 }
 
 

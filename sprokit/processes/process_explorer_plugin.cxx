@@ -105,10 +105,12 @@ initialize( explorer_context* context )
   // Add plugin specific command line option.
   auto cla = m_context->command_line_args();
 
-  cla.AddArgument( "--hidden",
-                   kwiversys::CommandLineArguments::NO_ARGUMENT,
-                   &this->opt_hidden,
-                   "Display hidden properties and ports" );
+  // The problem here is that the address of these strings are copied
+  // into a control block. This is a problem since they are on the stack. ???
+  cla->AddArgument( "--hidden",
+                    kwiversys::CommandLineArguments::NO_ARGUMENT,
+                    &this->opt_hidden,
+                    "Display hidden properties and ports" );
 
   return true;
 }
@@ -224,9 +226,8 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                 << std::endl;
 } // process_explorer::explore
 
-
-
 } } // end namespace
+
 
 // ==================================================================
 extern "C"
