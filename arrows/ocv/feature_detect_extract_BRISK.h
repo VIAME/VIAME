@@ -58,18 +58,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_BRISK
 public:
   /// Constructor
   detect_features_BRISK();
-  /// Copy Constructor
-  detect_features_BRISK(detect_features_BRISK const &other);
+
   /// Destructor
   virtual ~detect_features_BRISK();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_BRISK"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV BRISK feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -92,18 +83,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_BRISK
 public:
   /// Constructor
   extract_descriptors_BRISK();
-  /// Copy Constructor
-  extract_descriptors_BRISK(extract_descriptors_BRISK const &other);
+
   /// Destructor
   virtual ~extract_descriptors_BRISK();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_BRISK"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV BRISK feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

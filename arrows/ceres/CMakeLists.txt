@@ -4,7 +4,6 @@
 set( ceres_headers_public
   bundle_adjust.h
   lens_distortion.h
-  register_algorithms.h
   reprojection_error.h
   )
 set( ceres_headers_private
@@ -23,7 +22,6 @@ kwiver_install_headers(
 
 set( ceres_sources
   bundle_adjust.cxx
-  register_algorithms.cxx
   types.cxx
   )
 
@@ -43,7 +41,7 @@ if(NOT CERES_USES_MINIGLOG)
 endif()
 
 algorithms_create_plugin( kwiver_algo_ceres
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

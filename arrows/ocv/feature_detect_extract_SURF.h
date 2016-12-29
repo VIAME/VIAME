@@ -61,18 +61,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_SURF
 public:
   /// Constructor
   detect_features_SURF();
-  /// Copy Constructor
-  detect_features_SURF(detect_features_SURF const &other);
+
   /// Destructor
   virtual ~detect_features_SURF();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_SURF"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV SURF feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -95,18 +86,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_SURF
 public:
   /// Constructor
   extract_descriptors_SURF();
-  /// Copy Constructor
-  extract_descriptors_SURF(extract_descriptors_SURF const &other);
+
   /// Destructor
   virtual ~extract_descriptors_SURF();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_SURF"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV SURF feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

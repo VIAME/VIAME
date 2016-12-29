@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,11 +50,6 @@ public:
   {
   }
 
-  /// Copy constructor
-  priv(const priv& other)
-  {
-  }
-
   viscl::brief<10> brief;
 };
 
@@ -63,14 +58,6 @@ public:
 extract_descriptors
 ::extract_descriptors()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-extract_descriptors
-::extract_descriptors(const extract_descriptors& other)
-: d_(new priv(*other.d_))
 {
 }
 

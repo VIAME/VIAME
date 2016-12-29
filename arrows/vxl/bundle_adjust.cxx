@@ -70,19 +70,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : verbose(other.verbose),
-    use_m_estimator(other.use_m_estimator),
-    m_estimator_scale(other.m_estimator_scale),
-    estimate_focal_length(other.estimate_focal_length),
-    normalize_data(other.normalize_data),
-    max_iterations(other.max_iterations),
-    x_tolerance(other.x_tolerance),
-    g_tolerance(other.g_tolerance),
-    m_logger( vital::get_logger( "arrows.vxl.bundle_adjust" ))
-  {
-  }
-
   /// the vxl sparse bundle adjustor
   vpgl_bundle_adjust ba;
   // vpgl_bundle_adjust does not currently allow accessors for parameters,
@@ -104,14 +91,6 @@ public:
 bundle_adjust
 ::bundle_adjust()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-bundle_adjust
-::bundle_adjust(const bundle_adjust& other)
-: d_(new priv(*other.d_))
 {
 }
 

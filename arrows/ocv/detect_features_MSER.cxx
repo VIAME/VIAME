@@ -61,23 +61,6 @@ public:
     #endif
   }
 
-  /// Copy Constructor
-  priv( priv const &other )
-    : delta( other.delta ),
-      min_area( other.min_area ),
-      max_area( other.max_area ),
-      max_variation( other.max_variation ),
-      min_diversity( other.min_diversity ),
-      max_evolution( other.max_evolution ),
-      area_threshold( other.area_threshold ),
-      min_margin( other.min_margin ),
-      edge_blur_size( other.edge_blur_size )
-  {
-    #ifdef KWIVER_HAS_OPENCV_VER_3
-    pass2only = other.pass2only;
-    #endif
-  }
-
   cv::Ptr<cv::MSER> create() const {
 #ifndef KWIVER_HAS_OPENCV_VER_3
     // 2.4.x version constructor
@@ -182,15 +165,6 @@ public:
 detect_features_MSER
 ::detect_features_MSER()
   : p_( new priv )
-{
-  attach_logger("arrows.ocv.detect_features_FAST");
-  detector = p_->create();
-}
-
-
-detect_features_MSER
-::detect_features_MSER(detect_features_MSER const &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger("arrows.ocv.detect_features_FAST");
   detector = p_->create();

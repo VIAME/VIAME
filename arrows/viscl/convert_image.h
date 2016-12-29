@@ -50,12 +50,6 @@ public:
   /// Default Constructor
   convert_image();
 
-  /// Copy Constructor
-  convert_image(const convert_image &);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "viscl"; }
-
   /// Image convert to viscl underlying type
   /**
    * \param [in] img image to be converted

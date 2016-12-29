@@ -55,12 +55,6 @@ public:
   /// Destructor
   virtual ~extract_descriptors();
 
-  /// Copy Constructor
-  extract_descriptors(const extract_descriptors& other);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "viscl"; }
-
   // No configuration for this class yet TODO: eventually descriptor size
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }
   virtual bool check_configuration(vital::config_block_sptr /*config*/) const { return true; }

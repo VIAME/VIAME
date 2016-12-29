@@ -69,7 +69,8 @@ public:
     , m_shared_lib_suffix( shared_lib_suffix )
   { }
 
-  ~plugin_loader_impl() { }
+  ~plugin_loader_impl()
+  { }
 
   void load_known_modules();
   void look_in_directory( std::string const& directory);
@@ -117,12 +118,7 @@ plugin_loader
 
 plugin_loader
 ::~plugin_loader()
-{
-  VITAL_FOREACH( auto entry, m_impl->m_library_map )
-  {
-    DL::CloseLibrary( entry.second );
-  }
-}
+{ }
 
 
 // ------------------------------------------------------------------
@@ -354,7 +350,7 @@ plugin_loader_impl
 
   // Iterate over search-path directories, attempting module load on elements
   // that end in the configured library suffix.
-  LOG_DEBUG( m_parent->m_logger, "Loading modules from directory: " << dir_path );
+  LOG_DEBUG( m_parent->m_logger, "Loading plugins from directory: " << dir_path );
 
   kwiversys::Directory dir;
   dir.Load( dir_path );

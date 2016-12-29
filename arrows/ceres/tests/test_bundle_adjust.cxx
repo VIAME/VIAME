@@ -37,11 +37,10 @@
 #include <test_scene.h>
 
 #include <vital/vital_foreach.h>
-#include <vital/algorithm_plugin_manager.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/core/metrics.h>
 #include <arrows/ceres/bundle_adjust.h>
-#include <arrows/ceres/register_algorithms.h>
 #include <arrows/core/projected_track_set.h>
 
 using namespace kwiver::vital;
@@ -56,8 +55,7 @@ main(int argc, char* argv[])
   CHECK_ARGS(1);
 
   // Register ceres algorithm implementations
-  kwiver::arrows::ceres::register_algorithms();
-
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
   testname_t const testname = argv[1];
 
   RUN_TEST(testname);

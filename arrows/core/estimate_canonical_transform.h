@@ -77,9 +77,6 @@ public:
   /// Copy Constructor
   estimate_canonical_transform(const estimate_canonical_transform& other);
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "core_pca"; }
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block

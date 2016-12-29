@@ -62,9 +62,6 @@ add_custom_target( all-plugins )
 function(algorithms_create_plugin    base_lib)
   message( STATUS "Building plugin \"${base_lib}\"" )
 
-  # Configure template cxx source file
-  set(shell_source "${KWIVER_CMAKE_DIR}/templates/cxx/plugin_shell.cxx")
-
   # Make a plugin from the supplied files. The name here is largely
   # irrelevant since they are discovered at run time.
   set( plugin_name   "${base_lib}_plugin" )
@@ -75,17 +72,11 @@ function(algorithms_create_plugin    base_lib)
   set(no_export_header ON)
 
   kwiver_add_plugin( ${plugin_name}
-    SOURCES  ${shell_source} ${ARGN}
+    SOURCES  ${ARGN}
     # Not adding link to known base library because if the base_lib isn't
     # linking against it, its either doing something really complex or doing
     # something wrong (most likely the wrong).
     PRIVATE  ${base_lib}
-    )
-
-  # used by plugin shell
-  target_compile_definitions( ${plugin_name}
-    PRIVATE
-    "KWIVER_PLUGIN_LIB_NAME=\"${base_lib}\""
     )
 
   set_target_properties( ${plugin_name}

@@ -59,14 +59,8 @@ public:
   /// Default Constructor
   close_loops_keyframe();
 
-  /// Copy Constructor
-  close_loops_keyframe(const close_loops_keyframe&);
-
   /// Destructor
   virtual ~close_loops_keyframe() VITAL_NOTHROW;
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "keyframe"; }
 
   /// Returns implementation description
   virtual std::string description() const;

@@ -206,12 +206,6 @@ matlab_image_object_detector()
 { }
 
 
-matlab_image_object_detector::
-matlab_image_object_detector( const matlab_image_object_detector& other)
-  : d( new priv( *other.d ) )
-{ }
-
-
  matlab_image_object_detector::
 ~matlab_image_object_detector()
 { }

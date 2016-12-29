@@ -88,7 +88,6 @@ endif()
 # These headers are installed
 #
 set( vital_public_headers
-  registrar.h
   vital_types.h
   vital_foreach.h
   noncopyable.h
@@ -156,7 +155,6 @@ set( vital_public_headers
 
 # ----------------------
 set( vital_sources
-  registrar.cxx
   algorithm_capabilities.cxx
   attribute_set.cxx
 
@@ -245,38 +243,6 @@ target_link_libraries( vital
 # This has to happen after plugin creation so as to be able to statically link
 # in plugin libraries when building static.
 #
-set(vital_apm_headers
-  algorithm_plugin_manager.h
-  )
-set(vital_apm_sources
-  algorithm_plugin_manager.cxx
-  )
-set(vital_apm_headers_private
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_apm_export.h
-  )
-
-kwiver_add_library(vital_apm
-  ${vital_apm_headers}
-  ${vital_apm_headers_private}
-  ${vital_apm_sources}
-  )
-
-kwiver_install_headers(
-  ${vital_apm_headers}
-  SUBDIR      vital
-  )
-
-kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_apm_export.h
-  SUBDIR      vital
-  NOPATH
-  )
-
-target_link_libraries(vital_apm
-  PRIVATE          kwiversys
-                   vital
-                   vital_logger
-  )
 
 ###
 #
@@ -305,7 +271,7 @@ set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
   kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
-  list( INSERT vital_default_module_path 0 " ${kwiver_module_path_result}" )
+  set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
 set(KWIVER_DEFAULT_MODULE_PATHS "${vital_default_module_path}"

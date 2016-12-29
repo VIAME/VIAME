@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,12 +52,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv(const priv& other) : max_kpts(other.max_kpts),
-                            thresh(other.thresh), sigma(other.sigma)
-  {
-  }
-
   viscl::hessian detector;
   unsigned int max_kpts;
   float thresh;
@@ -69,14 +63,6 @@ public:
 detect_features
 ::detect_features()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-detect_features
-::detect_features(const detect_features& other)
-: d_(new priv(*other.d_))
 {
 }
 

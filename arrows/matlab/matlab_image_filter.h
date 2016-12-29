@@ -48,10 +48,7 @@ class KWIVER_ALGO_MATLAB_EXPORT matlab_image_filter
 {
 public:
   matlab_image_filter();
-  matlab_image_filter( const matlab_image_filter& other );
   virtual ~matlab_image_filter();
-
-  virtual std::string impl_name() const { return "matlab"; }
 
   virtual vital::config_block_sptr get_configuration() const;
   virtual void set_configuration(vital::config_block_sptr config);

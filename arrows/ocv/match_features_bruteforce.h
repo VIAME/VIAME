@@ -56,17 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT match_features_bruteforce
 public:
   /// Constructor
   match_features_bruteforce();
-  /// Copy Constructor
-  match_features_bruteforce(match_features_bruteforce const &other);
+
   /// Destructor
   virtual ~match_features_bruteforce();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_brute_force"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV brute-force feature matching algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

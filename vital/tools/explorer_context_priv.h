@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,39 +28,69 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief algorithm regstrar class imlementations
- */
+#ifndef VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+#define VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
 
-#include "registrar.h"
-
+#include <vital/util/wrap_text_block.h>
+#include <functional>
 
 namespace kwiver {
 namespace vital {
 
-registrar
-::registrar()
-  : m_logger( kwiver::vital::get_logger( "vital.registrar" ) )
+class kwiver::vital::explorer_context::priv
 {
-}
+public:
+  priv();
+  ~priv();
+
+  // Collected command line args
+  kwiversys::CommandLineArguments m_args;
+
+  // Global options
+  bool opt_config;
+  bool opt_detail;
+  bool opt_help;
+  bool opt_path_list;
+  bool opt_brief;
+  bool opt_modules;
+  bool opt_files;
+  bool opt_all;
+  bool opt_summary;
+  bool opt_attrs;
+
+  std::ostream* m_out_stream;
+
+  std::vector< std::string > opt_path;
+
+  // Used to wrap large text blocks
+  kwiver::vital::wrap_text_block m_wtb;
+
+  // Fields used for filtering attributes
+  bool opt_attr_filter;
+  std::string opt_filter_attr;    // attribute name
+  std::string opt_filter_regex;   // regex for attr value to match.
+
+  // internal option for factory filtering
+  bool opt_fact_filt;
+  std::string opt_fact_regex;
+
+  std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
+};
 
 
-registrar& registrar
-::instance()
+// ==================================================================
+class context_factory
+  : public explorer_context
 {
-  static registrar instance_ = registrar();
+public:
+  // -- CONSTRUCTORS --
+  context_factory(kwiver::vital::explorer_context::priv* pp)
+    : explorer_context( pp )
+  { }
 
-  return instance_;
-}
-
-
-void
-registrar
-::debug_msg( std::string msg ) const
-{
-  LOG_DEBUG( m_logger, msg );
-}
+}; // end class context_factory
 
 
-} } //end vital namespace
+} } // end namespace
+
+#endif // VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H

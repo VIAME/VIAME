@@ -100,12 +100,6 @@ detected_object_set_input_csv()
 
 
 detected_object_set_input_csv::
-detected_object_set_input_csv( detected_object_set_input_csv const& other)
-  : d( new priv( *other.d ) )
-{
-}
-
-detected_object_set_input_csv::
 ~detected_object_set_input_csv()
 {
 }

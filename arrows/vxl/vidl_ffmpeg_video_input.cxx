@@ -364,21 +364,6 @@ vidl_ffmpeg_video_input
 }
 
 
-/// copy constructor
-vidl_ffmpeg_video_input
-::vidl_ffmpeg_video_input( vidl_ffmpeg_video_input const& other )
-  : d( new priv() )
-{
-  attach_logger( "video_input" ); // get appropriate logger
-  d->d_logger = this->m_logger;
-
-  // Copy configuration values only
-  d->c_time_scan_frame_limit   = other.d->c_time_scan_frame_limit;
-  d->c_start_at_frame          = other.d->c_start_at_frame;
-  d->c_stop_after_frame        = other.d->c_stop_after_frame;
-}
-
-
 vidl_ffmpeg_video_input
 ::~vidl_ffmpeg_video_input()
 {

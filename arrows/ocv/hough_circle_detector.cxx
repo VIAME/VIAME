@@ -82,12 +82,6 @@ hough_circle_detector()
 { }
 
 
-hough_circle_detector::
-hough_circle_detector( const hough_circle_detector& other)
-  : d( new priv( *other.d ) )
-{ }
-
-
  hough_circle_detector::
 ~hough_circle_detector()
 { }

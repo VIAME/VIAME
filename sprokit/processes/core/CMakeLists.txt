@@ -52,7 +52,7 @@ kwiver_add_plugin( kwiver_processes
   PRIVATE          sprokit_pipeline
                    kwiver_algo_core
                    kwiversys
-                   vital vital_apm vital_vpm vital_logger vital_config
+                   vital vital_vpm vital_logger vital_config
                  ${Boost_SYSTEM_LIBRARY}
                  ${Boost_FILESYSTEM_LIBRARY}
 )

@@ -53,6 +53,7 @@ set( public_headers
   token_type.h
   token_type_symtab.h
   token_type_sysenv.h
+  wrap_text_block.h
   )
 
 # ----------------------
@@ -69,6 +70,7 @@ set( sources
   token_type_env.cxx
   token_type_symtab.cxx
   token_type_sysenv.cxx
+  wrap_text_block.cxx
   )
 
 kwiver_install_headers(

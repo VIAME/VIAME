@@ -57,17 +57,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_MSER
 public:
   /// Constructor
   detect_features_MSER();
-  /// Copy Constructor
-  detect_features_MSER(detect_features_MSER const &other);
+
   /// Destructor
   virtual ~detect_features_MSER();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_MSER"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature detection via the MSER algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

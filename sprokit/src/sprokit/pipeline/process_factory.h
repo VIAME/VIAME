@@ -70,6 +70,7 @@ template <typename T>
 process_t
 create_new_process(kwiver::vital::config_block_sptr const& conf)
 {
+  // Note boost pointer
   return boost::make_shared<T>(conf);
 }
 
@@ -103,26 +104,13 @@ public:
    */
   process_factory( const std::string& type,
                    const std::string& itype,
-                   process_factory_func_t factory )
-    : plugin_factory( itype )
-    , m_factory( factory )
-  {
-    this->add_attribute( CONCRETE_TYPE, type);
-    this->add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() );
-  }
+                   process_factory_func_t factory );
 
-  virtual ~process_factory() VITAL_DEFAULT_DTOR
+  virtual ~process_factory();
 
-  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config)
-  {
-    // Call sprokit factory function. Need to use this factory
-    // function approach to handle clusters transparently.
-    return m_factory( config );
-  }
+  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
 
 private:
-  virtual void* create_object_i() { return 0; }
-
   process_factory_func_t m_factory;
 };
 

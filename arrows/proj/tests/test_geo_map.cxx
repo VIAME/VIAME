@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/proj/register_algorithms.h>
+#include <vital/plugin_loader/plugin_manager.h>
 #include <arrows/proj/geo_map.h>
 
 // test_common.h required things
@@ -49,22 +49,25 @@ static const double deg_epsilon = 0.0000001;
 int main(int argc, char** argv)
 {
   CHECK_ARGS(1);
+
   testname_t const testname = argv[1];
+
+
   RUN_TEST(testname);
 }
 
 
 IMPLEMENT_TEST(factory)
 {
-  using namespace kwiver::arrows;
-  proj::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   kwiver::vital::algo::geo_map_sptr gmap = kwiver::vital::algo::geo_map::create("proj");
   if (!gmap)
   {
     TEST_ERROR("Unable to create geo_map algorithm of type proj");
   }
   kwiver::vital::algo::geo_map* gmap_ptr = gmap.get();
-  if (typeid(*gmap_ptr) != typeid(proj::geo_map))
+  if (typeid(*gmap_ptr) != typeid(kwiver::arrows::proj::geo_map))
   {
     TEST_ERROR("Factory method did not construct the correct type");
   }

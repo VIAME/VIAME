@@ -2,7 +2,7 @@ project(kwiver_core_tests)
 
 include(kwiver-test-setup)
 
-set( test_libraries vital vital_apm vital_algo )
+set( test_libraries vital vital_vpm vital_algo )
 
 ##############################
 # Core tests

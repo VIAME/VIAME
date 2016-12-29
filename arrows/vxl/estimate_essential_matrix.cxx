@@ -63,12 +63,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : verbose(other.verbose),
-    num_ransac_samples(other.num_ransac_samples)
-  {
-  }
-
   bool verbose;
   unsigned num_ransac_samples;
 };
@@ -78,14 +72,6 @@ public:
 estimate_essential_matrix
 ::estimate_essential_matrix()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-estimate_essential_matrix
-::estimate_essential_matrix(const estimate_essential_matrix& other)
-: d_(new priv(*other.d_))
 {
 }
 

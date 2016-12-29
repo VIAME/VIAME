@@ -38,6 +38,35 @@
 namespace sprokit {
 
 // ------------------------------------------------------------------
+process_factory::
+process_factory( const std::string& type,
+                 const std::string& itype,
+                 process_factory_func_t factory )
+  : plugin_factory( itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "process" );
+}
+
+process_factory::
+~process_factory()
+{ }
+
+
+// ------------------------------------------------------------------
+sprokit::process_t
+process_factory::
+create_object(kwiver::vital::config_block_sptr const& config)
+{
+  // Call sprokit factory function. Need to use this factory
+  // function approach to handle clusters transparently.
+  return m_factory( config );
+}
+
+
+// ------------------------------------------------------------------
 sprokit::process_t
 create_process( const sprokit::process::type_t&         type,
                 const sprokit::process::name_t&         name,
@@ -48,8 +77,8 @@ create_process( const sprokit::process::type_t&         type,
     throw null_process_registry_config_exception();
   }
 
-  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > instrumentation_factory;
-  instrumentation_factory ifact;
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
+  proc_factory ifact;
 
   kwiver::vital::plugin_factory_handle_t a_fact;
   try

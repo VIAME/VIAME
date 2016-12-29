@@ -100,7 +100,9 @@ public:
    *
    * Load plugins from the specified list of directories. The
    * directories are scanned immediately and all recognized plugins
-   * are loaded.
+   * are loaded. The internal accumulated search path is not used for
+   * this method. This is useful for adding plugins after the search
+   * path has been processed.
    *
    * @param dirpath List of directories to search.
    *

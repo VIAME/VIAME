@@ -30,7 +30,6 @@
 
 #include "image_object_detector_process.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/algo/image_object_detector.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
@@ -61,8 +60,6 @@ image_object_detector_process( kwiver::vital::config_block_sptr const& config )
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
-  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
 
   make_ports();
   make_config();

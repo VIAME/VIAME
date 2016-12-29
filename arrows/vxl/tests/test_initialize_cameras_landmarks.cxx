@@ -33,14 +33,13 @@
 #include <test_scene.h>
 
 #include <vital/types/similarity.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/transform.h>
-#include <arrows/core/register_algorithms.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 
-#include <arrows/vxl/register_algorithms.h>
 #include <arrows/vxl/estimate_essential_matrix.h>
 #include <arrows/vxl/estimate_similarity_transform.h>
 
@@ -55,9 +54,7 @@ int
 main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
-
-  kwiver::arrows::core::register_algorithms();
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 

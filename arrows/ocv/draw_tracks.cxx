@@ -96,12 +96,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv( const priv& other )
-  {
-    *this = other;
-  }
-
   /// Destructor
   ~priv()
   {
@@ -130,14 +124,6 @@ public:
 draw_tracks
 ::draw_tracks()
 : d_( new priv )
-{
-}
-
-
-/// Copy constructor
-draw_tracks
-::draw_tracks( const draw_tracks& other )
-: d_( new priv( *other.d_ ) )
 {
 }
 

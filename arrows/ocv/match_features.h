@@ -62,10 +62,10 @@ class KWIVER_ALGO_OCV_EXPORT match_features
 public:
   /// Match one set of features and corresponding descriptors to another
   /**
-   * \param [in] feat1 the first set of features to match
-   * \param [in] desc1 the descriptors corresponding to \a feat1
-   * \param [in] feat2 the second set fof features to match
-   * \param [in] desc2 the descriptors corresponding to \a feat2
+   * \param feat1 the first set of features to match
+   * \param desc1 the descriptors corresponding to \a feat1
+   * \param feat2 the second set fof features to match
+   * \param desc2 the descriptors corresponding to \a feat2
    * \returns a set of matching indices from \a feat1 to \a feat2
    */
   virtual vital::match_set_sptr

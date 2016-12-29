@@ -67,14 +67,6 @@ public:
   {
   }
 
-  priv(const priv& other) :
-    scale_thresh(other.scale_thresh),
-    angle_thresh(other.angle_thresh),
-    radius_thresh(other.radius_thresh),
-    m_logger( vital::get_logger( "arrows.vxl.match_features_constrained" ) )
-  {
-  }
-
   /// Compute the minimum angle between two angles in degrees
   inline static
   double angle_dist(double a1, double a2)
@@ -168,14 +160,6 @@ public:
 match_features_constrained
 ::match_features_constrained()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-match_features_constrained
-::match_features_constrained(const match_features_constrained& other)
-: d_(new priv(*other.d_))
 {
 }
 

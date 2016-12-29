@@ -33,9 +33,8 @@
  * \brief Register VXL algorithms implementation
  */
 
-#include "register_algorithms.h"
-
-#include <arrows/algorithm_plugin_interface_macros.h>
+#include <arrows/vxl/kwiver_algo_vxl_export.h>
+#include <vital/algo/algorithm_factory.h>
 
 #include <arrows/vxl/bundle_adjust.h>
 #include <arrows/vxl/close_loops_homography_guided.h>
@@ -55,26 +54,127 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
-/// Register VXL algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+  extern "C"
+KWIVER_ALGO_VXL_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  REGISTRATION_INIT( reg );
+  static auto const module_name = std::string( "algorithms.vxl" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
-  REGISTER_TYPE( vxl::bundle_adjust );
-  REGISTER_TYPE( vxl::close_loops_homography_guided );
-  REGISTER_TYPE( vxl::estimate_canonical_transform );
-  REGISTER_TYPE( vxl::estimate_essential_matrix );
-  REGISTER_TYPE( vxl::estimate_fundamental_matrix );
-  REGISTER_TYPE( vxl::estimate_homography );
-  REGISTER_TYPE( vxl::estimate_similarity_transform );
-  REGISTER_TYPE( vxl::image_io );
-  REGISTER_TYPE( vxl::optimize_cameras );
-  REGISTER_TYPE( vxl::triangulate_landmarks );
-  REGISTER_TYPE( vxl::match_features_constrained );
-  REGISTER_TYPE( vxl::vidl_ffmpeg_video_input );
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::bundle_adjust );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+
+  fact = vpm.ADD_ALGORITHM( "vxl_homography_guided", kwiver::arrows::vxl::close_loops_homography_guided );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl_plane", kwiver::arrows::vxl::estimate_canonical_transform );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_essential_matrix );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_fundamental_matrix );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_homography );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_similarity_transform );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::image_io );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::optimize_cameras );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::triangulate_landmarks );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl_constrained", kwiver::arrows::vxl::match_features_constrained );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::vidl_ffmpeg_video_input );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace vxl

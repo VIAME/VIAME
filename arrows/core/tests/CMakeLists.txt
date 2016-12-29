@@ -2,7 +2,7 @@ project(arrows_test_core)
 
 include(kwiver-test-setup)
 
-set( test_libraries    kwiver_algo_core vital vital_apm )
+set( test_libraries    kwiver_algo_core vital vital_vpm )
 
 ##############################
 # Algorithms core plugin tests

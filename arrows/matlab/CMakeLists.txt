@@ -8,8 +8,6 @@ set( sources
   matlab_image_object_detector.cxx
   matlab_image_filter.cxx
   matlab_detection_output.cxx
-
-  register_algorithms.cxx
   )
 
 set( public_headers
@@ -24,7 +22,6 @@ set( public_headers
 )
 
 set( private_headers
-  register_algorithms.h
   )
 
 include_directories( "${Matlab_INCLUDE_DIRS}" )
@@ -54,7 +51,7 @@ target_link_libraries( kwiver_algo_matlab
   )
 
 algorithms_create_plugin( kwiver_algo_matlab
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

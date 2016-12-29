@@ -50,14 +50,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv( priv const &other )
-    : norm_type( other.norm_type ),
-      cross_check( other.cross_check ),
-      matcher( new cv::BFMatcher(norm_type, cross_check) )
-  {
-  }
-
   // Can't currently update parameters on BF implementation, so no update
   // function. Will need to create a new instance on each parameter update.
 
@@ -122,16 +114,6 @@ bool check_norm_enum_value(int norm_type)
 match_features_bruteforce
 ::match_features_bruteforce()
   : p_( new priv )
-{
-  std::stringstream ss;
-  ss << type_name() << "." << impl_name();
-  attach_logger( ss.str() );
-}
-
-
-match_features_bruteforce
-::match_features_bruteforce(match_features_bruteforce const &other)
-  : p_( new priv( *other.p_ ) )
 {
   std::stringstream ss;
   ss << type_name() << "." << impl_name();
