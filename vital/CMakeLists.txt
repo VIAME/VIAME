@@ -271,7 +271,7 @@ set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
   kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
-  list( INSERT vital_default_module_path 0 " ${kwiver_module_path_result}" )
+  set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
 set(KWIVER_DEFAULT_MODULE_PATHS "${vital_default_module_path}"

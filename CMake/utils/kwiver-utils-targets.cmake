@@ -322,7 +322,7 @@ endfunction()
 # SOURCES - list of source files needed to create the plugin.
 # PUBLIC - list of libraries the plugin will publically link against.
 # PRIVATE - list of libraries the plugin will privately link against.
-# SUBDIR - subdirectory in lib where plugin will be installed.
+# SUBDIR - subdirectory in "lib" where plugin will be installed.
 #
 function( kwiver_add_plugin        name )
   set(options)
@@ -392,4 +392,5 @@ macro( kwiver_make_module_path    root subdir )
   else()  # Other Unix systems
     set(kwiver_module_path_result  "${root}/lib${LIB_SUFFIX}/${subdir}" )
   endif()
+
 endmacro()
