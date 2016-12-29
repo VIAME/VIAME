@@ -276,11 +276,22 @@ void print_config( kwiver::vital::config_block_sptr const config )
  */
 void load_explorer_plugins( const std::string& path )
 {
+  LOG_DEBUG( G_logger, "Loading explorer plugins from: " << path );
+
   // need a dedicated loader to just load the explorer_context files.
   kwiver::vital::plugin_loader pl( "register_explorer_plugin", SHARED_LIB_SUFFIX );
 
   kwiver::vital::path_list_t pathl;
-  pathl.push_back( path );
+  const std::string& default_module_paths( DEFAULT_MODULE_PATHS );
+
+  ST::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
+
+  // Add our subdirectory to each path element
+  VITAL_FOREACH( std::string& p, pathl )
+  {
+    // This subdirectory must match what is specified in the build system.
+    p.append( "/plugin_explorer" );
+  }
 
   pl.load_plugins( pathl );
 

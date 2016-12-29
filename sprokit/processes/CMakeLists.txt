@@ -41,7 +41,7 @@ kwiver_install_headers(
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( process_explorer_plugin
-  SUBDIR   modules
+  SUBDIR   modules/plugin_explorer
   SOURCES  process_explorer_plugin.cxx
   PRIVATE  vital
            vital_vpm
