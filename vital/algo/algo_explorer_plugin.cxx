@@ -93,7 +93,6 @@ algo_explorer::
     return;
   }
 
-  kwiver::vital::algorithm_sptr ptr = pf->create_object();
   std::string type = "-- not set --";
   fact->get_attribute( kwiver::vital::plugin_factory::INTERFACE_TYPE, type );
 
@@ -101,13 +100,16 @@ algo_explorer::
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
 
   m_context->output_stream()  << "\n---------------------\n"
-                              << "Detailed info on type \"" << type << "\" implementation \"" << impl << "\""
+                              << "Info on algorithm type \"" << type
+                              << "\" implementation \"" << impl << "\""
                               << std::endl;
 
   m_context->display_attr( fact );
 
   if ( m_context->if_config() )
   {
+    kwiver::vital::algorithm_sptr ptr = pf->create_object();
+
     // Get configuration
     auto config = ptr->get_configuration();
 
