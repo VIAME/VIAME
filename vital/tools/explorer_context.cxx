@@ -105,6 +105,7 @@ priv()
  opt_files = false;
  opt_all = false;
  opt_summary = false;
+ opt_attrs = false;
 
  opt_attr_filter = false;
  opt_fact_filt = false;

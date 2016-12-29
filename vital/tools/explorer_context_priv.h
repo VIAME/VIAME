@@ -56,6 +56,7 @@ public:
   bool opt_files;
   bool opt_all;
   bool opt_summary;
+  bool opt_attrs;
 
   std::ostream* m_out_stream;
 

@@ -83,7 +83,9 @@ void
 algo_explorer::
   explore( const kwiver::vital::plugin_factory_handle_t fact )
 {
-// downcast to correct factory type.
+  std::string indent( "    " );
+
+  // downcast to correct factory type.
   kwiver::vital::algorithm_factory* pf = dynamic_cast< kwiver::vital::algorithm_factory* > ( fact.get() );
 
   if ( 0 == pf )
@@ -99,10 +101,13 @@ algo_explorer::
   std::string impl = "-- not set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
 
-  m_context->output_stream()  << "\n---------------------\n"
-                              << "Info on algorithm type \"" << type
-                              << "\" implementation \"" << impl << "\""
-                              << std::endl;
+  std::string descrip = "-- Not_Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+  descrip = m_context->wrap_text( descrip );
+
+ m_context->output_stream()  << "---------------------\n"
+                             << "Info on algorithm type \"" << type << "\" implementation \"" << impl << "\""
+                             << std::endl;
 
   m_context->display_attr( fact );
 
@@ -114,16 +119,14 @@ algo_explorer::
     auto config = ptr->get_configuration();
 
     auto all_keys = config->available_values();
-    std::string indent( "    " );
 
-    m_context->output_stream() << indent << "Configuration block contents" << std::endl;
+    m_context->output_stream() << indent << "-- Configuration --" << std::endl;
 
     VITAL_FOREACH( auto  key, all_keys )
     {
       auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
 
-      m_context->output_stream()  << std::endl
-                                  << indent << "\"" << key << "\" = \"" << val << "\"\n";
+      m_context->output_stream() << indent << "\"" << key << "\" = \"" << val << "\"\n";
 
       kwiver::vital::config_block_description_t descr = config->get_description( key );
       m_context->output_stream() << indent << "Description: " << m_context->wrap_text( descr ) << std::endl;

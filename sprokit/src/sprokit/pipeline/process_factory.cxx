@@ -77,8 +77,8 @@ create_process( const sprokit::process::type_t&         type,
     throw null_process_registry_config_exception();
   }
 
-  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > instrumentation_factory;
-  instrumentation_factory ifact;
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
+  proc_factory ifact;
 
   kwiver::vital::plugin_factory_handle_t a_fact;
   try

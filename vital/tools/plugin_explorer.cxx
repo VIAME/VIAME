@@ -39,6 +39,7 @@
 #include <vital/util/demangle.h>
 #include <vital/util/wrap_text_block.h>
 #include <vital/vital_foreach.h>
+#include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include <kwiversys/RegularExpression.hxx>
@@ -51,6 +52,17 @@
 #include <iterator>
 #include <memory>
 #include <map>
+
+
+/*
+TODO
+
+- expand help text to be more like a man page.
+- handle processopedia and algo_explorer personalities.
+
+ */
+
+typedef kwiversys::SystemTools ST;
 
 // -----------------------------------------------------------------
 /**
@@ -75,6 +87,8 @@ static void display_attributes( kwiver::vital::plugin_factory_handle_t const fac
 static kwiver::vital::explorer_context::priv G_context;
 static kwiver::vital::explorer_context* G_explorer_context;
 
+static kwiver::vital::logger_handle_t G_logger;
+
 static kwiversys::RegularExpression filter_regex;
 static kwiversys::RegularExpression fact_regex;
 
@@ -95,6 +109,7 @@ inline std::ostream& pe_out()
 {
   return *G_context.m_out_stream;
 }
+
 
 // ------------------------------------------------------------------
 /*
@@ -190,7 +205,7 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
 
   buf = "-- Not Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
-  pe_out() << "      Description: " << G_context.m_wtb.wrap_text( buf ) << std::endl;
+  pe_out() << "      Description: " << G_context.m_wtb.wrap_text( buf );
 
   buf = "-- Not Set --";
   if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
@@ -213,6 +228,8 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
     print_functor pf( pe_out() );
     fact->for_each_attr( pf );
   }
+
+  pe_out() << std::endl;
 }
 
 
@@ -246,22 +263,24 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 }
 
 
+//+ Move this into the context class so it is available to all plugins.
+//+ Don't forget to wrap the description text.
 // ------------------------------------------------------------------
 void print_config( kwiver::vital::config_block_sptr const config )
 {
   kwiver::vital::config_block_keys_t all_keys = config->available_values();
   std::string indent( "    " );
 
-  std::cout << indent << "Configuration block contents\n";
+  pe_out() << indent << "Configuration block contents\n";
 
   VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
   {
     kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t > ( key );
-    std::cout << std::endl
-              << indent << "\"" << key << "\" = \"" << val << "\"\n";
+    pe_out() << std::endl
+             << indent << "\"" << key << "\" = \"" << val << "\"\n";
 
     kwiver::vital::config_block_description_t descr = config->get_description( key );
-    std::cout << indent << "Description: " << descr << std::endl;
+    pe_out() << indent << "Description: " << descr << std::endl;
   }
 }
 
@@ -308,17 +327,16 @@ void load_explorer_plugins( const std::string& path )
         if ( cat_ex->initialize( G_explorer_context ) )
         {
           category_map[name] = cat_ex;
-          std::cout << "Adding category handler for: " << name << std::endl; //+ temp - maybe log?
+          LOG_DEBUG( G_logger, "Adding category handler for: " << name );
         }
         else
         {
-          std::cout << "Category handler for :" << name
-                    << " did not initialize." << std::endl;
+          LOG_DEBUG( G_logger, "Category handler for :" << name << " did not initialize." );
         }
       }
       else
       {
-        //+ LOG ERROR - could not create plugin
+        LOG_WARN( G_logger, "Could not create explorer plugin \"" << name << "\"" );
       }
     }
   }
@@ -350,6 +368,7 @@ int
 main( int argc, char* argv[] )
 {
   // Initialize shared storage
+  G_logger = kwiver::vital::get_logger( "plugin_explorer" );
   G_context.m_out_stream = &std::cout; // could use a string stream
   G_context.display_attr = display_attributes; // set display function pointer
 
@@ -391,16 +410,24 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
 
   std::vector< std::string > filter_args;
-  G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args, "Filter factories based on attribute value" );
+  G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
+                                "Filter factories based on attribute name and value. Only two fields must follow: <attr-name> <attr-value>" );
+
   G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary, "Display summary of factories" );
 
-  // --raw or --attrs will skip the context specific plugin stuff
+  G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
+                                "Display raw attributes for factories without calling any category specific plugins" );
+
 
   //+ add options for:
   // schedulers only
 
-  // Load all of our plugins
-  load_explorer_plugins( kwiversys::SystemTools::GetFilenamePath( argv[0] ) );
+  // Save some time by not loading the plugins if we know we will not
+  // be using them.
+  if ( ! G_context.opt_attrs )
+  {
+    load_explorer_plugins( DEFAULT_MODULE_PATHS );
+  }
 
   if ( ! G_context.m_args.Parse() )
   {
@@ -410,7 +437,12 @@ main( int argc, char* argv[] )
 
   if ( G_context.opt_help )
   {
-    pe_out() << G_context.m_args.GetHelp() << std::endl;
+    pe_out() << "Usage: " << argv[0] << "[options] [file-names]\n"
+             << "\nThis tool displays the attributes of plugins. The optional file-names specify plugins to explore.\n"
+             << "If these are specified, only these files will be loaded. If no optional files are specified, then \n"
+             << "The search path is traversed, loading all recognizable plugins.\n"
+
+             << G_context.m_args.GetHelp() << std::endl;
     exit( 0 );
   }
 
@@ -457,7 +489,9 @@ main( int argc, char* argv[] )
 
   // ========
   // auto vpm = std::make_shared<local_manager>();
-  auto vpm = new local_manager();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+
+    new local_manager();
 
   char** newArgv = 0;
   int newArgc = 0;
@@ -467,7 +501,8 @@ main( int argc, char* argv[] )
   if ( newArgc > 1 )
   {
     // Load file on command line
-    auto loader = vpm->loader();
+    local_manager* ll = dynamic_cast< local_manager* >(&vpm);
+    auto loader = ll->loader();
 
     for ( int i = 1; i < newArgc; ++i )
     {
@@ -479,10 +514,10 @@ main( int argc, char* argv[] )
     // Load from supplied paths and build in paths.
     VITAL_FOREACH( std::string const& path, G_context.opt_path )
     {
-      vpm->add_search_path( path );
+      vpm.add_search_path( path );
     }
 
-    vpm->load_all_plugins();
+    vpm.load_all_plugins();
   }
 
   if ( G_context.opt_path_list )
@@ -490,7 +525,7 @@ main( int argc, char* argv[] )
     pe_out() << "---- Plugin search path\n";
 
     std::string path_string;
-    std::vector< kwiver::vital::path_t > const search_path( vpm->search_path() );
+    std::vector< kwiver::vital::path_t > const search_path( vpm.search_path() );
     VITAL_FOREACH( auto module_dir, search_path )
     {
       pe_out() << "    " << module_dir << std::endl;
@@ -501,7 +536,7 @@ main( int argc, char* argv[] )
   if ( G_context.opt_modules )
   {
     pe_out() << "---- Registered module names:\n";
-    auto module_list = vpm->module_map();
+    auto module_list = vpm.module_map();
     VITAL_FOREACH( auto const name, module_list )
     {
       pe_out() << "   " << name.first << "  loaded from: " << name.second << std::endl;
@@ -513,6 +548,8 @@ main( int argc, char* argv[] )
   // - processopedia
   //      select category == process
   //      -or- just extract the list of processes from the vpm
+  //      Needs to displat processes and schedulers
+  //
   // - algo_explorer
   //+ TBD
 
@@ -523,7 +560,7 @@ main( int argc, char* argv[] )
        || G_context.opt_brief
        || G_context.opt_attr_filter )
   {
-    auto plugin_map = vpm->plugin_map();
+    auto plugin_map = vpm.plugin_map();
 
     pe_out() << "\n---- All Registered Factories\n";
 
@@ -545,7 +582,7 @@ main( int argc, char* argv[] )
       {
         // See if there is a category handler for this plugin
         std::string category;
-        if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category ) )
+        if ( ! G_context.opt_attrs && fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category ) )
         {
           if ( category_map.count( category ) )
           {
@@ -558,7 +595,7 @@ main( int argc, char* argv[] )
         // Default display for factory
         display_factory( fact );
 
-      } // end factory
+      } // end foreach factory
     } // end interface type
     pe_out() << std::endl;
   }
@@ -568,11 +605,11 @@ main( int argc, char* argv[] )
   //
   if (G_context.opt_summary )
   {
-    std::cout << "\n----Summary of factories" << std::endl;
+    pe_out() << "\n----Summary of factories" << std::endl;
     int count(0);
 
-    auto plugin_map = vpm->plugin_map();
-    std::cout << "    " << plugin_map.size() << " types of factories registered." << std::endl;
+    auto plugin_map = vpm.plugin_map();
+    pe_out() << "    " << plugin_map.size() << " types of factories registered." << std::endl;
 
     VITAL_FOREACH( auto it, plugin_map )
     {
@@ -582,11 +619,11 @@ main( int argc, char* argv[] )
       kwiver::vital::plugin_factory_vector_t const& facts = it.second;
       count += facts.size();
 
-      std::cout << "        " << facts.size() << " factories that create \""
-                << ds << "\"" <<std::endl;
+      pe_out() << "        " << facts.size() << " factories that create \""
+               << ds << "\"" <<std::endl;
     } // end interface type
 
-    std::cout << "    " << count << " total factories" << std::endl;
+    pe_out() << "    " << count << " total factories" << std::endl;
   }
 
 
@@ -595,7 +632,7 @@ main( int argc, char* argv[] )
   //
   if ( G_context.opt_files )
   {
-    const auto file_list = vpm->file_list();
+    const auto file_list = vpm.file_list();
 
     pe_out() << "\n---- Files Successfully Opened" << std::endl;
     VITAL_FOREACH( std::string const& name, file_list )

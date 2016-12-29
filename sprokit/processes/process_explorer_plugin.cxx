@@ -127,23 +127,27 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   std::string descrip = "-- Not_Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+  descrip = m_context->wrap_text( descrip );
 
   if ( ! m_context->if_detail() )
   {
-    out_stream() << proc_type << ": " << descrip << std::endl;
+    out_stream() << "  " << proc_type << ": " << descrip << std::endl;
     return;
   }
 
-  out_stream()  << "Process type: " << proc_type << std::endl
+  out_stream()  << "---------------------\n"
+                << "  Process type: " << proc_type << std::endl
                 << "  Description: " << descrip << std::endl;
 
-  sprokit::process_t const proc = sprokit::create_process( proc_type, sprokit::process::name_t() );
+  sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( fact.get() );
+
+  sprokit::process_t const proc = pf->create_object( kwiver::vital::config_block::empty_config() );
 
   sprokit::process::properties_t const properties = proc->properties();
   std::string const properties_str = join( properties, ", " );
 
-  out_stream()  << "  Properties: " << properties_str << std::endl
-                << "  Configuration:" << std::endl;
+  out_stream()  << "    Properties: " << properties_str << std::endl
+                << "    -- Configuration --" << std::endl;
 
   kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
@@ -222,8 +226,8 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                   << std::endl;
   }   // end foreach
 
-  out_stream()  << std::endl
-                << std::endl;
+  out_stream()  << std::endl;
+
 } // process_explorer::explore
 
 } } // end namespace
