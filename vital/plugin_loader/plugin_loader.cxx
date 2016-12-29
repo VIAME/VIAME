@@ -70,14 +70,7 @@ public:
   { }
 
   ~plugin_loader_impl()
-  {
-    VITAL_FOREACH( auto entry, m_library_map )
-    {
-      DL::CloseLibrary( entry.second );
-    }
-
-    m_library_map.clear();
-  }
+  { }
 
   void load_known_modules();
   void look_in_directory( std::string const& directory);
