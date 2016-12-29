@@ -49,6 +49,7 @@
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
 #include "stabilize_image_process.h"
+#include "video_input_process.h"
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -59,7 +60,6 @@ extern "C"
 KWIVER_PROCESSES_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
-
 {
   static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_core" );
 
@@ -164,6 +164,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Writes detected object sets to an output file. All detections are written to the same file." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::video_input_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "video_input" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Reads video files and produces sequential images with metadata per frame." )
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
