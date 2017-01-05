@@ -79,6 +79,11 @@ public:
     , m_weight_file( other.m_weight_file )
     , m_thresh( other.m_thresh )
     , m_hier_thresh( other.m_hier_thresh )
+    , m_names( other.m_names )
+    , m_net( other.m_net )
+    , m_l( other.m_l )
+    , m_boxes( other.m_boxes )
+    , m_probs( other.m_probs )
       //+ other stuff
     , m_logger( kwiver::vital::get_logger( "arrows.darknet.darknet_detector" ) )
   { }
