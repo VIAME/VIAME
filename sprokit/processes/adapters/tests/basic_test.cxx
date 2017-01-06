@@ -68,6 +68,7 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
+
 IMPLEMENT_TEST( basic_pipeline )
 {
   kwiver::input_adapter input_ad;
@@ -192,6 +193,7 @@ IMPLEMENT_TEST( basic_pipeline )
   scheduler->wait();
 }
 
+
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( embedded_pipeline )
 {
@@ -206,7 +208,8 @@ IMPLEMENT_TEST( embedded_pipeline )
     ;
 
   // create embedded pipeline
-  kwiver::embedded_pipeline ep( pipeline_desc );
+  kwiver::embedded_pipeline ep;
+  ep.build_pipeline( pipeline_desc );
 
   // Query adapters for ports
   auto input_list = ep.input_port_names();
@@ -230,7 +233,7 @@ IMPLEMENT_TEST( embedded_pipeline )
   // Start pipeline
   ep.start();
 
-    // Feed data to input adapter
+  // Feed data to input adapter
   for ( int i = 0; i < 10; ++i)
   {
     auto ds = kwiver::adapter::adapter_data_set::create();
@@ -269,4 +272,63 @@ IMPLEMENT_TEST( embedded_pipeline )
     }
   } // end while
 
+}
+
+
+// ==================================================================
+class src_ep
+  : public kwiver::embedded_pipeline
+{
+public:
+  src_ep() { }
+  virtual ~src_ep() { }
+
+protected:
+  virtual bool connect_input_adapter() { return true; }
+};
+
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( embedded_pipeline_source )
+{
+  // Use SPROKIT macros to create pipeline description
+  std::stringstream pipeline_desc;
+  pipeline_desc << SPROKIT_PROCESS( "numbers",  "num" )
+                << SPROKIT_PROCESS( "output_adapter", "oa" )
+
+                << SPROKIT_CONNECT( "num", "number", "oa", "int" )
+    ;
+
+  // create embedded pipeline
+  src_ep ep;
+  ep.build_pipeline( pipeline_desc );
+
+  // Start pipeline
+  ep.start();
+
+  int expected(0);
+
+  while( true )
+  {
+    auto ods = ep.receive(); // blocks
+
+    // check for end of data marker
+    if ( ods->is_end_of_data() )
+    {
+      TEST_EQUAL( "at_end() set correctly", ep.at_end(), true );
+      break;
+    }
+
+    int val = ods->get_port_data<int>( "int" );
+
+    if ( val != expected++ )
+    {
+      std::stringstream str;
+      str << "Unexpected value from pipeline. Expected " << expected
+          << " got " << val;
+      TEST_ERROR( str.str() );
+    }
+
+  } // end while
 }
