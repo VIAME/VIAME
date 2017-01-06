@@ -87,7 +87,8 @@ namespace kwiver {
     ;
 
   // create embedded pipeline
-  kwiver::embedded_pipeline ep( pipeline_desc );
+  kwiver::embedded_pipeline ep;
+  ep.build_pipeline( pipeline_desc );
 
   // Query adapters for ports
   auto input_list = ep.input_port_names();
