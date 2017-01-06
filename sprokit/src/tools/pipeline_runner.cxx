@@ -76,13 +76,20 @@ sprokit_tool_main(int argc, char const* argv[])
 
   pipe->setup_pipeline();
 
-  sprokit::scheduler_registry::type_t scheduler_type = sprokit::scheduler_registry::default_type;
+  sprokit::scheduler_registry::type_t scheduler_type;
 
   if (vm.count("scheduler"))
   {
     scheduler_type = vm["scheduler"].as<sprokit::scheduler_registry::type_t>();
   }
+  else
+  {
+    scheduler_type = conf->get_value(
+        scheduler_block + kwiver::vital::config_block::block_sep + "type",  // key string
+        sprokit::scheduler_registry::default_type ); // default value
+  }
 
+  // Get scheduler sub block based on selected scheduler type
   kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
                                               kwiver::vital::config_block::block_sep + scheduler_type);
 

@@ -149,3 +149,107 @@ IMPLEMENT_TEST(new)
                    dat->get_datum<std::string>(),
                    "retrieving an int as a string");
 }
+
+IMPLEMENT_TEST(equality)
+{
+  sprokit::datum_t const empty1 = sprokit::datum::empty_datum();
+  sprokit::datum_t const empty2 = sprokit::datum::empty_datum();
+  sprokit::datum_t const flush1 = sprokit::datum::flush_datum();
+  sprokit::datum_t const flush2 = sprokit::datum::flush_datum();
+  sprokit::datum_t const complete1 = sprokit::datum::complete_datum();
+  sprokit::datum_t const complete2 = sprokit::datum::complete_datum();
+
+  sprokit::datum::error_t const errora = sprokit::datum::error_t("An error");
+  sprokit::datum::error_t const errorb = sprokit::datum::error_t("Another error");
+
+  sprokit::datum_t const error1a = sprokit::datum::error_datum(errora);
+  sprokit::datum_t const error2a = sprokit::datum::error_datum(errora);
+  sprokit::datum_t const error1b = sprokit::datum::error_datum(errorb);
+  sprokit::datum_t const error2b = sprokit::datum::error_datum(errorb);
+
+  boost::any const dummy1 = boost::any();
+  boost::any const dummy2 = boost::any();
+  boost::any const in_value1 = boost::any(1);
+  boost::any const in_value2 = boost::any(2);
+  sprokit::datum_t const value_dummy1 = sprokit::datum::new_datum(dummy1);
+  sprokit::datum_t const value_dummy2 = sprokit::datum::new_datum(dummy2);
+  sprokit::datum_t const value1 = sprokit::datum::new_datum(in_value1);
+  sprokit::datum_t const value2a = sprokit::datum::new_datum(in_value2);
+  sprokit::datum_t const value2b = sprokit::datum::new_datum(in_value2);
+
+#define test_equality(a, b, type, desc)   \
+  do                                      \
+  {                                       \
+    if (*a != *b)                         \
+    {                                     \
+      TEST_ERROR("Expected a datum with " \
+                 "type " type " to be "   \
+                 "equal: " desc);         \
+    }                                     \
+  } while (false)
+
+#define test_self_equality(a, type) \
+  test_equality(a, a, type, "self comparison")
+
+  test_self_equality(empty1, "empty");
+  test_equality(empty1, empty2, "empty", "all empty data are equivalent");
+
+  test_self_equality(flush1, "flush");
+  test_equality(flush1, flush2, "flush", "all flush data are equivalent");
+
+  test_self_equality(complete1, "complete");
+  test_equality(complete1, complete2, "complete", "all complete data are equivalent");
+
+  test_self_equality(error1a, "error");
+  test_equality(error1a, error2a, "error", "all error data with the same error string are equivalent");
+
+  test_self_equality(error1b, "error");
+  test_equality(error1b, error2b, "error", "all error data with the same error string are equivalent");
+
+  test_self_equality(value_dummy1, "data");
+  test_equality(value_dummy1, value_dummy2, "data", "empty internal data");
+
+  test_self_equality(value1, "data");
+  /// \todo Is this possible?
+  //test_equality(value2a, value2b, "data", "same internal data value");
+
+#undef test_self_equality
+#undef test_equality
+
+#define test_inequality(a, b, atype, btype, desc) \
+  do                                              \
+  {                                               \
+    if (*a == *b)                                 \
+    {                                             \
+      TEST_ERROR("Expected a datum with type "    \
+                 atype " to be unequal to a "     \
+                 "with type " btype ": " desc);   \
+    }                                             \
+  } while (false)
+
+  test_inequality(empty1, flush1, "empty", "flush", "different types");
+  test_inequality(empty1, complete1, "empty", "complete", "different types");
+  test_inequality(empty1, error1a, "empty", "error", "different types");
+  test_inequality(empty1, error1b, "empty", "error", "different types");
+  test_inequality(empty1, value_dummy1, "empty", "data", "different types");
+  test_inequality(empty1, value1, "empty", "data", "different types");
+
+  test_inequality(flush1, complete1, "flush", "complete", "different types");
+  test_inequality(flush1, error1a, "flush", "error", "different types");
+  test_inequality(flush1, error1b, "flush", "error", "different types");
+  test_inequality(flush1, value_dummy1, "flush", "data", "different types");
+  test_inequality(flush1, value1, "flush", "data", "different types");
+
+  test_inequality(complete1, error1a, "complete", "error", "different types");
+  test_inequality(complete1, error1b, "complete", "error", "different types");
+  test_inequality(complete1, value_dummy1, "complete", "data", "different types");
+  test_inequality(complete1, value1, "complete", "data", "different types");
+
+  test_inequality(error1a, error1b, "error", "error", "different error strings");
+  test_inequality(error1a, value_dummy1, "error", "data", "different types");
+  test_inequality(error1a, value1, "error", "data", "different types");
+
+  test_inequality(value_dummy1, value1, "data", "data", "different internal data");
+
+#undef test_inequality
+}

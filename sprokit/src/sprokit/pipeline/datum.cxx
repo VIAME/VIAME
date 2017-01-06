@@ -38,15 +38,17 @@
  * \brief Implementation of a piece of \link sprokit::datum data\endlink in the pipeline.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
+// ------------------------------------------------------------------
 datum_t
 datum::new_datum(boost::any const& dat)
 {
   return datum_t(new datum(dat));
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 datum
 ::empty_datum()
@@ -54,6 +56,8 @@ datum
   return datum_t(new datum(empty));
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 datum
 ::flush_datum()
@@ -61,6 +65,8 @@ datum
   return datum_t(new datum(flush));
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 datum
 ::complete_datum()
@@ -68,6 +74,8 @@ datum
   return datum_t(new datum(complete));
 }
 
+
+// ------------------------------------------------------------------
 datum_t
 datum
 ::error_datum(error_t const& error)
@@ -75,6 +83,8 @@ datum
   return datum_t(new datum(error));
 }
 
+
+// ------------------------------------------------------------------
 datum::type_t
 datum
 ::type() const
@@ -82,6 +92,8 @@ datum
   return m_type;
 }
 
+
+// ------------------------------------------------------------------
 datum::error_t
 datum
 ::get_error() const
@@ -89,6 +101,53 @@ datum
   return m_error;
 }
 
+static bool any_equal(boost::any const& a, boost::any const& b);
+
+
+// ------------------------------------------------------------------
+bool
+datum
+::operator == (datum const& dat) const
+{
+  if (this == &dat)
+  {
+    return true;
+  }
+
+  if (m_type != dat.m_type)
+  {
+    return false;
+  }
+
+  bool ret = false;
+
+  switch (m_type)
+  {
+    case data:
+      ret = any_equal(m_datum, dat.m_datum);
+      break;
+
+    case empty:
+    case flush:
+    case complete:
+      ret = true;
+      break;
+
+    case error:
+      ret = (m_error == dat.m_error);
+      break;
+
+    case invalid:
+    default:
+      ret = false;
+      break;
+  }
+
+  return ret;
+}
+
+
+// ------------------------------------------------------------------
 datum
 ::datum(type_t ty)
   : m_type(ty)
@@ -97,6 +156,8 @@ datum
 {
 }
 
+
+// ------------------------------------------------------------------
 datum
 ::datum(error_t const& err)
   : m_type(error)
@@ -105,6 +166,8 @@ datum
 {
 }
 
+
+// ------------------------------------------------------------------
 datum
 ::datum(boost::any const& dat)
   : m_type(data)
@@ -113,21 +176,31 @@ datum
 {
 }
 
+
+// ------------------------------------------------------------------
 datum_exception
 ::datum_exception() SPROKIT_NOTHROW
   : pipeline_exception()
 {
 }
 
+
 datum_exception
 ::~datum_exception() SPROKIT_NOTHROW
 {
 }
 
+
 static char const* string_for_type(datum::type_t type);
 
+
+// ------------------------------------------------------------------
 bad_datum_cast_exception
-::bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) SPROKIT_NOTHROW
+::bad_datum_cast_exception(std::string const& requested_typeid,
+                           std::string const& typeid_,
+                           datum::type_t const& type,
+                           datum::error_t const& error,
+                           char const* reason) SPROKIT_NOTHROW
   : datum_exception()
   , m_requested_typeid(requested_typeid)
   , m_typeid(typeid_)
@@ -162,11 +235,34 @@ bad_datum_cast_exception
   m_what = sstr.str();
 }
 
+
+// ------------------------------------------------------------------
 bad_datum_cast_exception
 ::~bad_datum_cast_exception() SPROKIT_NOTHROW
 {
 }
 
+
+// ------------------------------------------------------------------
+bool
+any_equal(boost::any const& a, boost::any const& b)
+{
+  if (a.empty() && b.empty())
+  {
+    return true;
+  }
+
+  if (a.type() != b.type())
+  {
+    return false;
+  }
+
+  // Be safe.
+  return false;
+}
+
+
+// ------------------------------------------------------------------
 char const*
 string_for_type(datum::type_t type)
 {
