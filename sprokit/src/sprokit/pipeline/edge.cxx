@@ -212,7 +212,9 @@ edge
 ::push_datum(edge_datum_t const& datum)
 {
   // If non blocking, set duration to zero for no delay
-  if ( ! d->blocking )
+  // If the datum is a control element, then we always want to block.
+  // We can lose data but not control messages.
+  if ( ! d->blocking && ( datum.datum->type() == datum::data ) )
   {
     d->push( datum, duration_t( 0 ) );
   }
