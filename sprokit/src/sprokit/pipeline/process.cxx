@@ -608,6 +608,9 @@ process
     port_flags_t(),
     port_description_t("Outputs the heartbeat stamp with an empty datum."),
     port_frequency_t(1));
+
+  // Set default logger name
+  attach_logger( kwiver::vital::get_logger( std::string( "process." ) + name() ) );
 }
 
 
@@ -1618,7 +1621,7 @@ process
     kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
     LOG_DEBUG(d->m_logger, "Reconfiguring process \"" << name() << "\": "  << key << " = " << value );
     d->conf->set_value(key, value);
-  }
+  } // end foreach
 
   // Prevent stepping while reconfiguring a process.
   priv::unique_lock_t const lock(d->reconfigure_mut);

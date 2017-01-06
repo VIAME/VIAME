@@ -730,6 +730,10 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Subclass property query method.
      *
+     * This method returns the set of properties of this subclass. If
+     * this method is not overridden, the default property set contains
+     * \ref property_no_reentrancy.
+     *
      * \returns Properties on the subclass.
      */
     virtual properties_t _properties() const;
@@ -738,7 +742,12 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Attach a logger to process.
      *
      * Attach a logger to this process to use as processes default
-     * logger. This logger can be accessed via the logger() method.
+     * logger. A new logger is usually attached to give this logger a
+     * meaningful name. The default name for a process logger is
+     * "process.<process-name>", where the name is supplied by the
+     * name() method.
+     *
+     * This logger can be accessed via the logger() method.
      *
      * \param logger New logger for process to use
      *

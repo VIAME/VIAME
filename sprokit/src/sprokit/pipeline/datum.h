@@ -36,6 +36,7 @@
 #include "types.h"
 
 #include <boost/any.hpp>
+#include <boost/operators.hpp>
 
 #include <string>
 
@@ -45,8 +46,7 @@
  * \brief Header for a piece of \link sprokit::datum data\endlink in the pipeline.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class datum datum.h <sprokit/pipeline/datum.h>
@@ -56,6 +56,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT datum
+  : boost::equality_comparable<sprokit::datum>
 {
   public:
     /// Information about an error that occurred within a process.
@@ -90,6 +91,7 @@ class SPROKIT_PIPELINE_EXPORT datum
      * \returns A new datum containing a result.
      */
     static datum_t new_datum(boost::any const& dat);
+
     /**
      * \brief Create a datum with the #data type.
      *
@@ -99,24 +101,28 @@ class SPROKIT_PIPELINE_EXPORT datum
      */
     template <typename T>
     static datum_t new_datum(T const& dat);
+
     /**
      * \brief Create a datum with the #empty type.
      *
      * \returns A new datum which indicates that a result could not be computed.
      */
     static datum_t empty_datum();
+
     /**
      * \brief Create a datum with the #flush type.
      *
      * \returns A new datum which indicates that the current data stream is complete.
      */
     static datum_t flush_datum();
+
     /**
      * \brief Create a datum with the #complete type.
      *
      * \returns A new datum which indicates that the calculation of results is complete.
      */
     static datum_t complete_datum();
+
     /**
      * \brief Create a datum with the #error type.
      *
@@ -155,6 +161,19 @@ class SPROKIT_PIPELINE_EXPORT datum
      */
     template <typename T>
     T get_datum() const;
+
+    /**
+     * \brief Compare two data for equality.
+     *
+     * \note This returns false for two data packets which point to the same
+     * internal data since \c boost::any does not give access to it without
+     * knowing the type.
+     *
+     * \param dat The datum to compare to.
+     *
+     * \returns True if \p dat and \c *this definitely have the same value, false otherwise.
+     */
+    bool operator == (datum const& dat) const;
   private:
     SPROKIT_PIPELINE_NO_EXPORT datum(type_t ty);
     SPROKIT_PIPELINE_NO_EXPORT datum(error_t const& err);
