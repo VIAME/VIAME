@@ -1,7 +1,7 @@
 # ================================================================
 config dirs
-   :dnd /disk2/projects/KWIVER/kwgitlab/source/sprokit/pipelines/examples/darknet_detector/
-   :dns /home/linus/packages/darknet/source/
+   :dnd /.../kwiver/source/sprokit/pipelines/examples/darknet_detector/
+   :dns /.../darknet/source/
 
 # ================================================================
 process input
