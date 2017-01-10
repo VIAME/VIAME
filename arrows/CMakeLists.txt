@@ -38,3 +38,8 @@ endif()
 if (KWIVER_ENABLE_MATLAB)
   add_subdirectory( matlab )
 endif()
+
+# if darknet is enabled
+if (KWIVER_ENABLE_DARKNET)
+  add_subdirectory( darknet )
+endif()

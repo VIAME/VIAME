@@ -186,20 +186,24 @@ void image_file_reader_process
 {
   std::string file = grab_from_port_using_trait( image_file_name );
 
-  // Resolve against specified path
-  std::string resolved_file = kwiversys::SystemTools::FindFile( file, d->m_config_path, true );
-  if ( resolved_file.empty() )
+  std::string resolved_file = file;
+  if ( ! kwiversys::SystemTools::FileExists( file ) )
   {
-    switch (d->m_config_error_mode)
+    // Resolve against specified path
+    std::string resolved_file = kwiversys::SystemTools::FindFile( file, d->m_config_path, true );
+    if ( resolved_file.empty() )
     {
-    case priv::ERROR_SKIP:
-      LOG_WARN( logger(), "Input file \"" << file << "\" could not be found. Ignoring input." );
-      return;
+      switch (d->m_config_error_mode)
+      {
+      case priv::ERROR_SKIP:
+        LOG_WARN( logger(), "Input file \"" << file << "\" could not be found. Ignoring input." );
+        return;
 
-    case priv::ERROR_ABORT:
-    default:
-      throw kwiver::vital::file_not_found_exception( file, "" );
-    } // end switch
+      case priv::ERROR_ABORT:
+      default:
+        throw kwiver::vital::file_not_found_exception( file, "could not locate file in path" );
+      } // end switch
+    }
   }
 
   LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );

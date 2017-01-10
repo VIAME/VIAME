@@ -39,7 +39,6 @@
 namespace kwiver {
 namespace vital {
 
-
 // ------------------------------------------------------------------
 io_exception
 ::io_exception() VITAL_NOTHROW
@@ -136,7 +135,7 @@ file_not_found_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Could not find file at location \'" << file_path.c_str() << "\': "
+  sstr  << "Could not find file at location \'" << file_path << "\': "
         << reason;
   m_what = sstr.str();
 }
@@ -154,7 +153,7 @@ file_not_read_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Failed to read from file \'" << file_path.c_str() << "\': "
+  sstr  << "Failed to read from file \'" << file_path << "\': "
         << reason;
   m_what = sstr.str();
 }
@@ -172,7 +171,7 @@ file_write_exception
 {
   std::ostringstream sstr;
 
-  sstr  << "Failed to write to file \'" << file_path.c_str() << "\': "
+  sstr  << "Failed to write to file \'" << file_path << "\': "
         << reason;
   m_what = sstr.str();
 }
@@ -183,6 +182,4 @@ file_write_exception
 {
 }
 
-
-}
-}   // end vital namespace
+} }   // end vital namespace
