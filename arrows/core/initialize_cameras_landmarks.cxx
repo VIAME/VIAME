@@ -1163,7 +1163,7 @@ initialize_cameras_landmarks
     }
   }
 
-  // try depth reversal at the end
+  // Run a final bundle adjustment
   if( d_->bundle_adjuster && d_->continue_processing )
   {
     LOG_INFO(d_->m_logger, "Running final bundle adjustment");
@@ -1177,17 +1177,20 @@ initialize_cameras_landmarks
     map_landmark_t lms1 = ba_lms->landmarks();
     double final_rmse1 = kwiver::arrows::reprojection_rmse(cams1, lms1, trks);
     LOG_DEBUG(d_->m_logger, "final reprojection RMSE: " << final_rmse1);
+    double final_med_err = kwiver::arrows::reprojection_median_error(cams1, lms1, trks);
+    LOG_DEBUG(d_->m_logger, "final reprojection Median Error: " << final_med_err);
     cams = ba_cams->cameras();
     lms = ba_lms->landmarks();
 
     // if using bundle adjustment, remove landmarks with large error
     // after optimization
+    const double outlier_thresh = final_med_err * d_->final_reproj_thresh;
     std::set<track_id_t> to_remove = detect_bad_tracks(cams, lms, trks,
-                                                       d_->final_reproj_thresh);
+                                                       outlier_thresh);
     LOG_INFO(d_->m_logger, "removing "<<to_remove.size()
                            << "/" << lms.size()
                            << " landmarks with RMSE > "
-                           << d_->final_reproj_thresh);
+                           << outlier_thresh);
     remove_landmarks(to_remove, lms);
   }
   cameras = camera_map_sptr(new simple_camera_map(cams));
