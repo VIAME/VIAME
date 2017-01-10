@@ -100,7 +100,8 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
     ;
 
   // create a embedded pipeline
-  kwiver::embedded_pipeline ep( pipeline_desc );
+  kwiver::embedded_pipeline ep;
+  ep.build_pipeline( pipeline_desc );
 
   // Start pipeline and wait for it to finish
   ep.start();

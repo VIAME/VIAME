@@ -87,7 +87,8 @@ namespace kwiver {
     ;
 
   // create embedded pipeline
-  kwiver::embedded_pipeline ep( pipeline_desc );
+  kwiver::embedded_pipeline ep;
+  ep.build_pipeline( pipeline_desc );
 
   // Query adapters for ports
   auto input_list = ep.input_port_names();
@@ -129,10 +130,19 @@ public:
   /**
    * @brief Create embedded pipeline from description in stream.
    *
+   */
+  embedded_pipeline();
+  virtual ~embedded_pipeline();
+
+  /**
+   * @brief Build the embedded pipeline.
+   *
+   * This method creates the pipeline based on the contents of the
+   * supplied stream.
+   *
    * @param istr Input stream containing the pipeline description.
    */
-  embedded_pipeline( std::istream& istr );
-  virtual ~embedded_pipeline();
+  void build_pipeline( std::istream& istr );
 
   /**
    * @brief Send data set to input adapter.
@@ -277,7 +287,45 @@ public:
    */
   sprokit::process::ports_t output_port_names() const;
 
+  /**
+   * @brief Report if input adapter is connected.
+   *
+   * This method
+   *
+   * @return \b true if input adapter is connected.
+   */
+  bool input_adapter_connected() const;
+
+  /**
+   * @brief Report if output adapter is connected.
+   *
+   * This method
+   *
+   * @return \b true if output adapter is connected.
+   */
+  bool output_adapter_connected() const;
+
 protected:
+  /**
+   * @brief Connect to input adapter.
+   *
+   * This method connects the external data path to the input
+   * process. Derived classes can override this method if different
+   * input handling is needed, such as letting the pipeline supply the
+   * data source process.
+   */
+  virtual bool connect_input_adapter();
+
+  /**
+   * @brief Connect to output adapter.
+   *
+   * This method connects the external data path to the output
+   * process. Derived classes can override this method if different
+   * output handling is needed, such as letting the pipeline supply
+   * the data sink process.
+   */
+  virtual bool connect_output_adapter();
+
   kwiver::vital::logger_handle_t m_logger;
 
 private:

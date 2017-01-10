@@ -55,9 +55,21 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
+/**
+ * @brief Create a process.
+ *
+ * This function creates a process from the registry.
+ *
+ * @param type Process type.
+ * @param name Process name.
+ * @param conf Config for process.
+ *
+ * @return Pointer to new process.
+ */
 static sprokit::process_t create_process(sprokit::process::type_t const& type,
                                          sprokit::process::name_t const& name = sprokit::process::name_t(),
                                          kwiver::vital::config_block_sptr const& conf = kwiver::vital::config_block::empty_config());
+
 static sprokit::edge_t create_edge();
 
 
@@ -120,7 +132,7 @@ class null_conf_info_process
 };
 
 
-// ------------------------------------------------------------------
+// ==================================================================
 IMPLEMENT_TEST(null_input_edge)
 {
   const auto proc_type = sprokit::process::type_t("orphan");
@@ -948,9 +960,11 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
 }
 
 
-// ------------------------------------------------------------------
+// ==================================================================
 sprokit::process_t
-create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr const& conf)
+create_process(sprokit::process::type_t const& type,
+               sprokit::process::name_t const& name,
+               kwiver::vital::config_block_sptr const& conf)
 {
   static bool const modules_loaded = (kwiver::vital::plugin_manager::instance().load_all_plugins(), true);
   (void)modules_loaded;
@@ -958,6 +972,8 @@ create_process(sprokit::process::type_t const& type, sprokit::process::name_t co
   return sprokit::create_process(type, name, conf);
 }
 
+
+// ------------------------------------------------------------------
 sprokit::edge_t
 create_edge()
 {
@@ -967,17 +983,23 @@ create_edge()
   return edge;
 }
 
+
+// ------------------------------------------------------------------
 null_config_process
 ::null_config_process(kwiver::vital::config_block_sptr const& /*config*/)
   : sprokit::process(kwiver::vital::config_block_sptr())
 {
 }
 
+
+// ------------------------------------------------------------------
 null_config_process
 ::~null_config_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 null_input_info_process
 ::null_input_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
@@ -992,6 +1014,8 @@ null_input_info_process
 {
 }
 
+
+// ------------------------------------------------------------------
 null_output_info_process
 ::null_output_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
@@ -1001,11 +1025,15 @@ null_output_info_process
   declare_output_port(port, port_info_t());
 }
 
+
+// ------------------------------------------------------------------
 null_output_info_process
 ::~null_output_info_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 null_conf_info_process
 ::null_conf_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
@@ -1015,11 +1043,15 @@ null_conf_info_process
   declare_configuration_key(key, conf_info_t());
 }
 
+
+// ------------------------------------------------------------------
 null_conf_info_process
 ::~null_conf_info_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 remove_ports_process
 ::remove_ports_process(port_type_t const& port_type)
   : sprokit::process(kwiver::vital::config_block::empty_config())
@@ -1028,11 +1060,15 @@ remove_ports_process
   create_output_port(output_port, port_type);
 }
 
+
+// ------------------------------------------------------------------
 remove_ports_process
 ::~remove_ports_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::create_input_port(port_t const& port, port_type_t const& port_type)
@@ -1044,6 +1080,8 @@ remove_ports_process
     port_description_t("input port"));
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::create_output_port(port_t const& port, port_type_t const& port_type)
@@ -1055,6 +1093,8 @@ remove_ports_process
     port_description_t("output port"));
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::_remove_input_port(port_t const& port)
@@ -1062,6 +1102,8 @@ remove_ports_process
   remove_input_port(port);
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::_remove_output_port(port_t const& port)

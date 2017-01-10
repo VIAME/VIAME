@@ -111,8 +111,13 @@ class pipeline::priv
     typedef std::map<process::port_addr_t, bool> shared_port_map_t;
 
     // Steps for checking a connection.
-    port_type_status check_connection_types(process::connection_t const& connection, process::port_type_t const& up_type, process::port_type_t const& down_type);
-    bool check_connection_flags(process::connection_t const& connection, process::port_flags_t const& up_flags, process::port_flags_t const& down_flags);
+    port_type_status check_connection_types(process::connection_t const& connection,
+                                            process::port_type_t const& up_type,
+                                            process::port_type_t const& down_type);
+
+    bool check_connection_flags(process::connection_t const& connection,
+                                process::port_flags_t const& up_flags,
+                                process::port_flags_t const& down_flags);
 
     // Steps for setting up the pipeline.
     void check_for_processes() const;
@@ -184,7 +189,9 @@ class pipeline::priv
         process::port_type_t const m_type;
         bool const m_push_upstream;
     };
+
   private:
+  static kwiver::vital::config_block_key_t const config_non_blocking;
     static kwiver::vital::config_block_key_t const config_edge;
     static kwiver::vital::config_block_key_t const config_edge_type;
     static kwiver::vital::config_block_key_t const config_edge_conn;
@@ -192,10 +199,14 @@ class pipeline::priv
     static kwiver::vital::config_block_key_t const downstream_subblock;
 };
 
-kwiver::vital::config_block_key_t const pipeline::priv::config_edge = kwiver::vital::config_block_key_t("_edge");
-kwiver::vital::config_block_key_t const pipeline::priv::config_edge_type = kwiver::vital::config_block_key_t("_edge_by_type");
-kwiver::vital::config_block_key_t const pipeline::priv::config_edge_conn = kwiver::vital::config_block_key_t("_edge_by_conn");
-kwiver::vital::config_block_key_t const pipeline::priv::upstream_subblock = kwiver::vital::config_block_key_t("up");
+// Process property
+kwiver::vital::config_block_key_t const pipeline::priv::config_non_blocking = kwiver::vital::config_block_key_t("_non_blocking");
+
+// Pipeline properties
+kwiver::vital::config_block_key_t const pipeline::priv::config_edge         = kwiver::vital::config_block_key_t("_edge");
+kwiver::vital::config_block_key_t const pipeline::priv::config_edge_type    = kwiver::vital::config_block_key_t("_edge_by_type");
+kwiver::vital::config_block_key_t const pipeline::priv::config_edge_conn    = kwiver::vital::config_block_key_t("_edge_by_conn");
+kwiver::vital::config_block_key_t const pipeline::priv::upstream_subblock   = kwiver::vital::config_block_key_t("up");
 kwiver::vital::config_block_key_t const pipeline::priv::downstream_subblock = kwiver::vital::config_block_key_t("down");
 
 
@@ -391,14 +402,15 @@ pipeline
 
   switch (d->check_connection_types(connection, up_type, down_type))
   {
-    case priv::type_deferred:
-      return;
-    case priv::type_mismatch:
-      throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
-                                               downstream_name, downstream_port, down_type);
-    case priv::type_compatible:
-    default:
-      break;
+  case priv::type_deferred:
+    return;
+
+  case priv::type_mismatch:
+    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
+                                             downstream_name, downstream_port, down_type);
+  case priv::type_compatible:
+  default:
+    break;
   }
 
   d->connections.push_back(connection);
@@ -1632,6 +1644,7 @@ pipeline::priv
         type = down_type;
 
         break;
+
       case push_downstream:
         if (!down_proc->set_input_port_type(downstream_port, up_type))
         {
@@ -1645,6 +1658,7 @@ pipeline::priv
         type = up_type;
 
         break;
+
       default:
         continue;
     } // end switch
@@ -1716,21 +1730,24 @@ pipeline::priv
     // Then the connection based config will be merged to override.
     kwiver::vital::config_block_sptr edge_config = config->subblock(priv::config_edge);
 
-    // Configure the edge based on its type.
+    // Configure the edge based on its type. (_edge_by_type)
     {
       process::port_type_t const& down_type = down_info->type;  // data type on edge
       kwiver::vital::config_block_sptr const type_config = config->subblock(priv::config_edge_type);
       kwiver::vital::config_block_sptr const edge_type_config = type_config->subblock(down_type);
 
       edge_config->merge_config(edge_type_config);
+
+      if ( IS_TRACE_ENABLED( m_logger ) )
+      {
+        std::stringstream msg;
+        msg << "-- Edge type config for type \"" << down_type << "\" :\n";
+        edge_type_config->print( msg );
+        LOG_TRACE( m_logger, msg.str() );
+      }
     }
 
-    // Configure the edge based on what it is mapped to.
-    {
-      /// \todo Remember mappings.
-    }
-
-    // Configure the edge based on the connected ports.
+    // Configure the edge based on the connected ports. (_edge_by_conn)
     {
       kwiver::vital::config_block_sptr const conn_config = config->subblock(priv::config_edge_conn);
       kwiver::vital::config_block_sptr const up_config =
@@ -1743,14 +1760,52 @@ pipeline::priv
 
       edge_config->merge_config(up_config);
       edge_config->merge_config(down_config);
+
+      if ( IS_TRACE_ENABLED( m_logger ) )
+      {
+        std::stringstream msg;
+        msg << "-- Up_config for \""
+            << upstream_name + kwiver::vital::config_block::block_sep
+             + upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port
+            << "\" :\n";
+        up_config->print(msg);
+        msg << "\n-- Down_config for \""
+            << downstream_name + kwiver::vital::config_block::block_sep
+             + downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port
+            << "\" :\n";
+        down_config->print(msg);
+        LOG_TRACE( m_logger, msg.str() );
+      }
+
     }
 
     // Configure the edge.
     {
+      // Check to see if this port has _nodep flag set (for backward edge.)
+      // Pass that value to the edge through the config.
       bool const has_nodep = (0 != down_flags.count(process::flag_input_nodep));
 
       edge_config->set_value(edge::config_dependency, (has_nodep ? "false" : "true"));
       edge_config->mark_read_only(edge::config_dependency);
+    }
+
+    // Process non_blocking processes
+    {
+      // Check the config of the down stream process to see if the
+      // process is marked as non_blocking. If it is non_blocking,
+      // then set the input edge property to be non-blocking and force
+      // the capacity.
+      //
+      // Since we are looking at the process property for
+      // non_blocking, all input edges for this process will be
+      // configured the same.
+      const auto proc_config = down_proc->get_config();
+      if ( proc_config->has_value( config_non_blocking ) )
+      {
+        const size_t capacity = proc_config->get_value<size_t>( config_non_blocking );
+        edge_config->set_value( edge::config_capacity, capacity );
+        edge_config->set_value( edge::config_blocking, false );
+      }
     }
 
     if ( IS_DEBUG_ENABLED( m_logger ) )
@@ -1764,6 +1819,7 @@ pipeline::priv
                  downstream_port << "\n" << msg.str() );
     }
 
+    // Create a new edge
     edge_t const e = boost::make_shared<edge>(edge_config);
 
     edge_map[i] = e;
@@ -2013,7 +2069,7 @@ pipeline::priv
     process::port_info_t const down_info = down_proc->input_port_info(downstream_port);
     process::port_frequency_t const& down_port_freq = down_info->frequency;
 
-    if (!up_port_freq || !down_port_freq)
+    if ( ! up_port_freq ||  ! down_port_freq)
     {
       LOG_WARN( m_logger, "Edge frequency cannot be validated." );
       continue;
@@ -2234,6 +2290,7 @@ pipeline::priv::propagation_exception
 {
   m_what = "<internal>";
 }
+
 
 // ------------------------------------------------------------------
 pipeline::priv::propagation_exception

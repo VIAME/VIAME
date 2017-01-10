@@ -51,7 +51,7 @@
 
 << SPROKIT_PROCESS( "gen_numbers1", "numbers" ) // process gen_numbers1
                                                 //  :: numbers
-<< SPROKIT_CONFIG_FULL( "start", ""ro", "CONF", "multiplier:start1" ) //  :start[ro]{CONF} multiplier:start1
+<< SPROKIT_CONFIG_FULL( "start", "ro", "CONF", "multiplier:start1" ) //  :start[ro]{CONF} multiplier:start1
 << SPROKIT_CONFIG_FULL( "end", "ro", "CONF", "multiplier:end1" )      //  :end[ro]{CONF} multiplier:end1
 
 << SPROKIT_PROCESS( "gen_numbers2", "numbers" )  // process gen_numbers2
@@ -72,6 +72,7 @@
                                                                          //        to   multiply.factor2
 << SPROKIT_CONNECT( "multiply", "product",     "print", "number" )       // connect from multiply.product
                                                                          //        to   print.number
+    ;
  * \endcode
  */
 
