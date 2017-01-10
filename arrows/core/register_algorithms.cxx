@@ -44,6 +44,7 @@
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/estimate_canonical_transform.h>
 #include <arrows/core/filter_features_magnitude.h>
+#include <arrows/core/filter_tracks.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
@@ -72,6 +73,7 @@ int register_algorithms(vital::registrar &reg)
     REGISTER_TYPE( core::convert_image_bypass );
     REGISTER_TYPE( core::estimate_canonical_transform );
     REGISTER_TYPE( core::filter_features_magnitude );
+    REGISTER_TYPE( core::filter_tracks );
     REGISTER_TYPE( core::hierarchical_bundle_adjust );
     REGISTER_TYPE( core::initialize_cameras_landmarks );
     REGISTER_TYPE( core::match_features_fundamental_matrix );
