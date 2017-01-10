@@ -40,10 +40,15 @@
 
 #include <string>
 
+#ifdef DARKNET_USE_GPU
+#define GPU
+#include <cuda_runtime.h>
+#endif
 
 // darknet includes
 extern "C" {
 
+#include "cuda.h"
 #include "network.h"
 #include "region_layer.h"
 #include "cost_layer.h"
@@ -67,6 +72,7 @@ public:
   priv()
     : m_thresh( 0.24 )
     , m_hier_thresh( 0.5 )
+    , m_gpu_index( -1 )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -102,6 +108,7 @@ public:
 
   float m_thresh;
   float m_hier_thresh;
+  int m_gpu_index;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -118,7 +125,10 @@ public:
 darknet_detector::
 darknet_detector()
   : d( new priv() )
-{ }
+{
+  // set darknet global GPU index
+  gpu_index = d->m_gpu_index;
+ }
 
 
 darknet_detector::
@@ -145,6 +155,8 @@ get_configuration() const
   config->set_value( "class_names", d->m_class_names, "Name of file that contains the class names." );
   config->set_value( "thresh", d->m_thresh, "Threshold value." );
   config->set_value( "hier_thresh", d->m_hier_thresh, "Hier threshold value." );
+  config->set_value( "gpu_index", d->m_gpu_index, "GPU index. Only used when darknet "
+		     "is compiled with GPU support." );
 
   return config;
 }
@@ -166,9 +178,17 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_class_names = config->get_value< std::string > ( "class_names" );
   this->d->m_thresh      = config->get_value< float > ( "thresh" );
   this->d->m_hier_thresh = config->get_value< float > ( "hier_thresh" );
+  this->d->m_gpu_index   = config->get_value< int > ( "gpu_index" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
+
+#ifdef DARKNET_USE_GPU
+  if ( d->m_gpu_index >= 0 )
+  {
+    cuda_set_device( d->m_gpu_index );
+  }
+#endif
 
   // Open file and return 'list' of labels
   d->m_names = get_labels( const_cast< char* >(d->m_class_names.c_str() ) );
@@ -184,7 +204,6 @@ set_configuration( vital::config_block_sptr config_in )
   // This assumes that there are no other users of random number
   // generator in this application.
   srand( 2222222 );
-
 } // darknet_detector::set_configuration
 
 
@@ -241,18 +260,14 @@ detect( vital::image_container_sptr image_data ) const
   // show_image( sized, "sized version" );
 
   layer l = d->m_net.layers[d->m_net.n - 1];     /* last network layer (output?) */
-
   const size_t l_size = l.w * l.h * l.n;
 
-  //+ do these need to be cleared each time?
   d->m_boxes = (box*) calloc( l_size, sizeof( box ) );
   d->m_probs = (float**) calloc( l_size, sizeof( float* ) ); // allocate vector of pointers
-
   for ( size_t j = 0; j < l_size; ++j )
   {
     d->m_probs[j] = (float*) calloc( l.classes + 1, sizeof( float*) );
   }
-  //+ end of allocation question
 
   /* pointer the image data */
   float* X = sized.data;

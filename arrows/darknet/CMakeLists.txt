@@ -13,6 +13,13 @@ set( sources
   darknet_detector.cxx
   )
 
+# if darknet was built with the GPU support
+if (DARKNET_USE_GPU)
+  find_package(CUDA QUIET REQUIRED)
+  include_directories( ${CUDA_TOOLKIT_ROOT_DIR}/include )
+  add_definitions( -DDARKNET_USE_GPU )  # needed by darknet includes
+endif()
+
 kwiver_install_headers(
   SUBDIR     arrows/darknet
   ${headers}
