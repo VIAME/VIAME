@@ -33,8 +33,8 @@
  * \brief Interface to output adapter.
  */
 
-#ifndef KWIVER_NPUT_ADAPTER_H
-#define KWIVER_NPUT_ADAPTER_H
+#ifndef KWIVER_OUTPUT_ADAPTER_H
+#define KWIVER_OUTPUT_ADAPTER_H
 
 #include <sprokit/processes/adapters/kwiver_adapter_export.h>
 
@@ -121,4 +121,4 @@ private:
 
 } // end namespace
 
-#endif // KWIVER_NPUT_ADAPTER_H
+#endif // KWIVER_OUTPUT_ADAPTER_H
