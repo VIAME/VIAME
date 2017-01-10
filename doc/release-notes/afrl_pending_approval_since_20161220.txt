@@ -1,0 +1,24 @@
+KWIVER Release Notes for changes pending release approval by AFRL
+=================================================================
+
+This file documents release notes for changes made to KWIVER which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be incorporated into a public numbered
+release version, and the content of this file will be reset.
+
+
+Updates since last public release
+---------------------------------
+
+Arrows - Core
+
+ * Added a core implementation of "filter_tracks" which applies filters based
+   on track length or based on importance of the track in covering a match matrix.
+
+Vital
+
+ * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
+
+
+Fixes since last public release
+-------------------------------
