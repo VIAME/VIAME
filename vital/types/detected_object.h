@@ -91,6 +91,13 @@ public:
   virtual ~detected_object() VITAL_DEFAULT_DTOR
 
   /**
+   * @brief Create a deep copy of this object.
+   *
+   * @return Managed copy of this object.
+   */
+  detected_object_sptr clone() const;
+
+  /**
    * @brief Get bounding box from this detection.
    *
    * The bounding box for this detection is returned. This box is in
@@ -223,7 +230,7 @@ public:
 private:
   std::shared_ptr< bounding_box_d > m_bounding_box;
   double m_confidence;
-  image_container_sptr m_image;
+  image_container_sptr m_mask_image;
 
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;

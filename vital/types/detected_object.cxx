@@ -51,6 +51,24 @@ detected_object::detected_object( const bounding_box_d& bbox,
 
 
 // ------------------------------------------------------------------
+detected_object_sptr
+detected_object::
+clone() const
+{
+  auto new_obj = std::make_shared<kwiver::vital::detected_object>(
+    *this->m_bounding_box,
+    this->m_confidence,
+    std::make_shared<detected_object_type>( *this->m_type ) );
+
+  new_obj->m_mask_image = this->m_mask_image; // being cheap - not copying image mask
+  new_obj->m_index = this->m_index;
+  new_obj->m_detector_name = this->m_detector_name;
+
+  return new_obj;
+}
+
+
+// ------------------------------------------------------------------
 bounding_box_d
 detected_object::
 bounding_box() const
@@ -91,7 +109,7 @@ image_container_sptr
 detected_object::
 mask()
 {
-  return m_image;
+  return m_mask_image;
 }
 
 
@@ -100,7 +118,7 @@ void
 detected_object::
 set_mask( image_container_sptr m )
 {
-  m_image = m;
+  m_mask_image = m;
 }
 
 
