@@ -56,6 +56,74 @@ bool track_in_set( track_sptr trk_ptr, std::set<track_id_t>* set_ptr )
 {
   return set_ptr->find( trk_ptr->id() ) != set_ptr->end();
 }
+
+
+typedef std::vector<std::pair<track_sptr, track_sptr> > track_pairs;
+
+/// A helper funtion to identify matching tracks across frames
+class track_matcher
+{
+public:
+  /// Constructor
+  track_matcher(vital::algo::match_features_sptr m,
+                track_set_sptr at,
+                std::vector<track_sptr> const& ct,
+                feature_set_sptr cf,
+                descriptor_set_sptr cd)
+    : matcher(m)
+    , all_tracks(at)
+    , current_tracks(ct)
+    , current_features(cf)
+    , current_descriptors(cd)
+  {}
+
+  /// Compute matching track pairs for pending merge
+  track_pairs
+  match( frame_id_t target_frame )
+  {
+    // extract the subset of tracks on the target frame
+    track_set_sptr tgt_trks = all_tracks->active_tracks(target_frame);
+    // extract the set of features on the target frame
+    feature_set_sptr target_features = tgt_trks->frame_features(target_frame);
+    // extract the set of descriptor on the target frame
+    descriptor_set_sptr target_descriptors = tgt_trks->frame_descriptors(target_frame);
+
+    // run the matcher algorithm between the target and current frames
+    match_set_sptr mset = matcher->match(target_features, target_descriptors,
+                                         current_features, current_descriptors);
+
+    // populate matched track pairs
+    std::vector<vital::track_sptr> target_tracks = tgt_trks->tracks();
+    std::vector<vital::match> matches = mset->matches();
+
+    track_pairs track_matches;
+    for( unsigned i = 0; i < matches.size(); i++ )
+    {
+      unsigned tgt_idx = matches[i].first;
+      unsigned cur_idx = matches[i].second;
+      track_matches.push_back(std::make_pair(target_tracks[ tgt_idx ],
+                                             current_tracks[ cur_idx ]));
+    }
+
+    return track_matches;
+  }
+
+private:
+  // the feature matcher instance
+  vital::algo::match_features_sptr matcher;
+
+  // the set of all tracks to match between
+  track_set_sptr all_tracks;
+
+  // the extracted subset of tracks for the current frame
+  std::vector<track_sptr> current_tracks;
+
+  // the extracted features from the tracks on the current frame
+  feature_set_sptr current_features;
+
+  // the extracted descriptors from the tracks on the current frame
+  descriptor_set_sptr current_descriptors;
+};
 }
 
 
@@ -84,62 +152,49 @@ public:
   }
 
   /// Stich the current frame to the specified target frame number
-  track_set_sptr
-  stitch( frame_id_t target_frame,
-          track_set_sptr input,
-          frame_id_t current_frame,
-          std::vector<track_sptr>& current_tracks,
-          feature_set_sptr current_features,
-          descriptor_set_sptr current_descriptors,
-          int& num_matched, int& num_linked) const
+  int merge_tracks( track_pairs const& matches,
+                    track_set_sptr& all_tracks,
+                    std::map<track_sptr, track_sptr>& track_replacement ) const
   {
-    num_matched = num_linked = 0;
-    // extract the subset of tracks on the target frame
-    track_set_sptr tgt_trks = input->active_tracks(target_frame);
-    // extract the set of features on the target frame
-    feature_set_sptr target_features = tgt_trks->frame_features(target_frame);
-    // extract the set of descriptor on the target frame
-    descriptor_set_sptr target_descriptors = tgt_trks->frame_descriptors(target_frame);
-
-    // run the matcher algorithm between the target and current frames
-    match_set_sptr mset = this->matcher->match(target_features, target_descriptors,
-                                               current_features, current_descriptors);
-
-    num_matched = static_cast<int>(mset->size());
-    if( num_matched < this->match_req )
-    {
-      return input;
-    }
-
-    // modify track history
-    std::vector<vital::track_sptr> target_tracks = tgt_trks->tracks();
-    std::vector<vital::match> matches = mset->matches();
     std::set<vital::track_id_t> to_remove;
 
-    for( unsigned i = 0; i < matches.size(); i++ )
+    // merge the tracks
+    VITAL_FOREACH( auto match, matches )
     {
-      unsigned tgt_idx = matches[i].first;
-      unsigned cur_idx = matches[i].second;
-      if( target_tracks[ tgt_idx ]->append( *current_tracks[ cur_idx ] ) )
+      track_sptr t1 = match.first;
+      track_sptr t2 = match.second;
+      // if t2 has already been merged, look-up the new merged track
+      auto itr = track_replacement.find(t2);
+      if (itr != track_replacement.end())
       {
-        to_remove.insert( current_tracks[ cur_idx ]->id() );
-        current_tracks[ cur_idx ] = target_tracks[ tgt_idx ];
+        t2 = itr->second;
+      }
+      if( t1->append( *t2 ) )
+      {
+        // mark this track id for later removal
+        to_remove.insert( t2->id() );
+        // update the look up table for merged track replacement
+        track_replacement[ match.second ] = t1;
+        if( t2 != match.second )
+        {
+          track_replacement[ t2 ] = t1;
+        }
       }
     }
 
+    // remove tracks which have been merged
     if( !to_remove.empty() )
     {
-      num_linked = static_cast<int>(to_remove.size());
-      std::vector<track_sptr> all_tracks = input->tracks();
-      all_tracks.erase(
-        std::remove_if( all_tracks.begin(), all_tracks.end(),
+      std::vector<track_sptr> at = all_tracks->tracks();
+      at.erase(
+        std::remove_if( at.begin(), at.end(),
                         std::bind( track_in_set, std::placeholders::_1, &to_remove ) ),
-        all_tracks.end()
+        at.end()
       );
       // recreate the track set with the new filtered tracks
-      input = std::make_shared<simple_track_set>( all_tracks );
+      all_tracks = std::make_shared<simple_track_set>( at );
     }
-    return input;
+    return static_cast<int>(to_remove.size());
   }
 
   /// number of feature matches required for acceptance
@@ -311,6 +366,9 @@ close_loops_keyframe
   vital::feature_set_sptr current_features =
       current_set->frame_features( frame_number );
 
+  track_matcher tmatcher(d_->matcher, input, current_tracks,
+                         current_features, current_descriptors);
+
   // Initialize frame_matches to the number of tracks already matched
   // between the current and previous frames.  This matching was done outside
   // of loop closure as part of the standard frame-to-frame tracking
@@ -335,12 +393,17 @@ close_loops_keyframe
     ++kitr;
   }
 
+  std::map<track_sptr, track_sptr> track_replacement;
   // stitch with all frames within a neighborhood of the current frame
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
-    input = d_->stitch(f, input, frame_number, current_tracks,
-                       current_features, current_descriptors,
-                       num_matched, num_linked);
+    track_pairs matches = tmatcher.match(f);
+    num_matched = static_cast<int>(matches.size());
+    num_linked = 0;
+    if( num_matched >= d_->match_req )
+    {
+      num_linked = d_->merge_tracks(matches, input, track_replacement);
+    }
     // accumulate matches to help assign keyframes later
     d_->frame_matches[frame_number] += num_matched;
 
@@ -374,9 +437,13 @@ close_loops_keyframe
     {
       continue;
     }
-    input = d_->stitch(*kitr, input, frame_number, current_tracks,
-                       current_features, current_descriptors,
-                       num_matched, num_linked);
+    track_pairs matches = tmatcher.match(*kitr);
+    num_matched = static_cast<int>(matches.size());
+    num_linked = 0;
+    if( num_matched >= d_->match_req )
+    {
+      num_linked = d_->merge_tracks(matches, input, track_replacement);
+    }
     LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to keyframe "<< *kitr
                            << " has "<< num_matched << " matches and "
                            << num_linked << " joined tracks");
