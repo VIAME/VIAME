@@ -93,5 +93,17 @@ video_config_exception
 }
 
 
+// ------------------------------------------------------------------
+video_runtime_exception
+::video_runtime_exception( std::string const& msg) VITAL_NOTHROW
+{
+  m_what = "Video runtime exception: " + msg;
+}
+
+
+video_runtime_exception
+::~video_runtime_exception() VITAL_NOTHROW
+{
+}
 
 } } // end namespace
