@@ -51,6 +51,10 @@
  * as well as the <tt>-</tt> and <tt>_</tt> characters. Values may also have
  * flags set as well as be filled in by providers.
  *
+ * Configuration items can have their values replaced or modified by subsequent
+ * configuration statements, unless the read-only flag is specified (see below).
+ *
+ *
  * \subsection configuration_flags Configuration flags
  *
  * Configuration keys may have flags set on them. Currently the only understood
@@ -91,7 +95,7 @@
  *
  * Configuration keys may also be fetched from providers. When using a provider,
  * the value is passed as an argument to the provider which then replaces the
- * value. The currently understood providers include:
+ * value. The currently supported providers include:
  *
  * \cprov{CONF} Replaces the value with another value. The argument for this
  *              provider is the full path of the key to look up.
@@ -227,6 +231,25 @@
  *        :some_param     some_value
  * </pre>
  *
+ * A process can be declared as non-blocking which indicates that
+ * input data is to be dropped if the input port queues are full. This
+ * is useful for real-time processing where a process is the bottleneck.
+ *
+ * The non-blocking behaviour is a process attribute that is specified
+ * in the pipeline file. The syntax for this configuration option is as follows:
+ *
+ * <pre>
+ *   process blocking_process
+ *     :: awesome_process
+ *      :_non_blocking 2
+ * </pre>
+ *
+ * The special "_non_blocking" configuration entry specifies the
+ * capacity of all incoming edges to the process. When the edges are
+ * full, the input data is dropped. The input edge size is set to two
+ * entries in the above example. This capacity specification overrides
+ * all other edge capacity controls.
+ *
  * When a port is declared as static, the value at this port may also be
  * supplied via the configuration. This is done by using the special static
  * before the port name. The syntax for specifying static values is
@@ -328,7 +351,7 @@
  * <pre>
  * </pre>
  *
- * \subsection edge_config Edge Config
+ * \subsection edge_config Edge Configuration
  *
  * Pipeline edges are configured in a hierarchical manner. First there is
  * the _pipeline:_edge config block which establishes the basic
@@ -400,10 +423,32 @@
  *
  * <pre>
  * config _scheduler
- *      :type     thread_pool    # selects thread pool scheduler
- *      :thread_pool:num_threads 1024  # scheduler specific value
+ *    :type <scheduler-type>
  * </pre>
  *
- * An application can override the configured scheduler setting with
- * command line parameters.
+ * Available scheduler types are:
+ * - sync - Runs the pipeline synchronously in one thread.
+ * - thread_per_process - Runs the pipeline using one thread per process.
+ * - pythread_per_process - Runs the pipeline using one thread per process and supports processes written in python.
+ * - thread_pool - Runs pipeline with a limited number of threads.
+ *
+ * The pythread_per_process is the only scheduler that supports processes written python.
+ *
+ * Scheduler specific configuration entries are in a sub-block named as the scheduler.
+ * Currently these schedulers do not have any configuration parameters, but when they do,
+ * they would be configured as shown in the following example.
+ *
+ * \par Example
+ *
+ * <pre>
+ * config _scheduler
+ *    :type thread_per_process
+ *
+ * # Configuration for thread_per_process scheduler
+ *    :thread_per_process:foo   bar
+ *
+ * # Configuration for sync scheduler
+ *    :sync:foos   bars
+ * </pre>
+ *
  */

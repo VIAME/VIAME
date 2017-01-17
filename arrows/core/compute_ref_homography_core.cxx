@@ -150,8 +150,7 @@ public:
     minimum_inliers( 4 ),
     frames_since_reset( 0 ),
     allow_ref_frame_regression( true ),
-    min_ref_frame( 0 ),
-    m_logger( vital::get_logger( "compute_ref_homography_core" ))
+    min_ref_frame( 0 )
   {
   }
 
@@ -166,8 +165,7 @@ public:
                                     : other.h_estimator->clone() ),
     frames_since_reset( other.frames_since_reset ),
     allow_ref_frame_regression( other.allow_ref_frame_regression ),
-    min_ref_frame( other.min_ref_frame ),
-    m_logger( vital::get_logger( "compute_ref_homography_core" ))
+    min_ref_frame( other.min_ref_frame )
   {
   }
 
@@ -303,6 +301,8 @@ compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
 {
+  attach_logger( "compute_ref_homography_core" );
+  d_->m_logger = this->m_logger;
 }
 
 
@@ -310,6 +310,8 @@ compute_ref_homography_core
 ::compute_ref_homography_core( const compute_ref_homography_core& other )
 : d_( new priv( *other.d_ ) )
 {
+  attach_logger( "compute_ref_homography_core" );
+  d_->m_logger = this->m_logger;
 }
 
 
