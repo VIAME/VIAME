@@ -103,4 +103,13 @@ reset_line_number( int num )
   m_line_count = num;
 }
 
+
+// ------------------------------------------------------------------
+void
+data_stream_reader::
+add_editor( string_edit_operation* op )
+{
+  m_string_editor.add( op );
+}
+
 } }   // end namespace
