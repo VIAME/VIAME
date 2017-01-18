@@ -1,8 +1,6 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_core_headers
-  register_algorithms.h
-
   close_loops_bad_frames_only.h
   close_loops_exhaustive.h
   close_loops_keyframe.h

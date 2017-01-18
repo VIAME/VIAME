@@ -43,6 +43,7 @@
 #include <vital/bindings/c/helpers/c_utils.h>
 
 #include <vital/algo/algorithm.h>
+#include <vital/algo/algorithm_factory.h>
 #include <vital/exceptions/algorithm.h>
 
 #include <vital/bindings/c/algorithm.h>
@@ -197,33 +198,6 @@ public:
     );                                                                  \
     return false;                                                       \
   }                                                                     \
-  /* ==================================================================== */ \
-  /* Functions on algorithm instances                                     */ \
-  /* -------------------------------------------------------------------- */ \
-  /* Clone the given algorithm instance */                              \
-  vital_algorithm_t* vital_algorithm_##type##_clone( vital_algorithm_t *algo, \
-                                                     vital_error_handle_t *eh ) \
-  {                                                                     \
-    STANDARD_CATCH(                                                     \
-      "C::algorithm::" #type "::clone", eh,                             \
-      if( algo )                                                        \
-      {                                                                 \
-        kwiver::vital::algo::type##_sptr new_sptr =                     \
-          std::dynamic_pointer_cast<kwiver::vital::algo::type>(       \
-            kwiver::vital_c::ALGORITHM_##type##_SPTR_CACHE.get( algo )->clone()); \
-        if( new_sptr )                                                  \
-        {                                                               \
-          kwiver::vital_c::ALGORITHM_SPTR_CACHE.store( new_sptr );      \
-          kwiver::vital_c::ALGORITHM_##type##_SPTR_CACHE.store( new_sptr ); \
-          return reinterpret_cast<vital_algorithm_t*>(new_sptr.get());  \
-        }                                                               \
-        else                                                            \
-        {                                                               \
-          throw "Failed to clone instance of type '" #type "'";         \
-        }                                                               \
-      }                                                                 \
-    );                                                                  \
-    return 0;                                                           \
-  }
+
 
 #endif // VITAL_C_HELPERS_ALGORITHM_H_
