@@ -393,16 +393,33 @@ close_loops_keyframe
     ++kitr;
   }
 
+  std::map<vital::frame_id_t, track_pairs> all_matches;
+  // stitch with all frames within a neighborhood of the current frame
+  for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
+  {
+    all_matches[f] = tmatcher.match(f);
+  }
+  // stitch with all previous keyframes
+  for(auto kitr = d_->keyframes.rbegin(); kitr != d_->keyframes.rend(); ++kitr)
+  {
+    // if this frame was already matched above then skip it
+    if(*kitr >= last_frame)
+    {
+      continue;
+    }
+    all_matches[*kitr] = tmatcher.match(*kitr);
+  }
+
+
   std::map<track_sptr, track_sptr> track_replacement;
   // stitch with all frames within a neighborhood of the current frame
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
-    track_pairs matches = tmatcher.match(f);
-    num_matched = static_cast<int>(matches.size());
+    num_matched = static_cast<int>(all_matches[f].size());
     num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = d_->merge_tracks(matches, input, track_replacement);
+      num_linked = d_->merge_tracks(all_matches[f], input, track_replacement);
     }
     // accumulate matches to help assign keyframes later
     d_->frame_matches[frame_number] += num_matched;
@@ -437,12 +454,11 @@ close_loops_keyframe
     {
       continue;
     }
-    track_pairs matches = tmatcher.match(*kitr);
-    num_matched = static_cast<int>(matches.size());
+    num_matched = static_cast<int>(all_matches[*kitr].size());
     num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = d_->merge_tracks(matches, input, track_replacement);
+      num_linked = d_->merge_tracks(all_matches[*kitr], input, track_replacement);
     }
     LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to keyframe "<< *kitr
                            << " has "<< num_matched << " matches and "
