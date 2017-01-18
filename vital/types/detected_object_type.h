@@ -177,6 +177,16 @@ public:
   std::vector< std::string > class_names( double threshold = INVALID_SCORE ) const;
 
   /**
+   * @brief Get number of class names on this object.
+   *
+   * This method returns the number of class names that are in this
+   * object type.
+   *
+   * @return Number of registered class names.
+   */
+  size_t size() const;
+
+  /**
    * @brief Get list of all class_names in use.
    *
    * This method returns an ordered vector of all class_name strings.
