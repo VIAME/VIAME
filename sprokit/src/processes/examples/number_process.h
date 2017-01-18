@@ -35,7 +35,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 
 /**
  * \file number_process.h
@@ -95,7 +95,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT number_process
     void _step();
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

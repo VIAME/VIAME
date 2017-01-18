@@ -80,6 +80,27 @@ detected_object_set( detected_object::vector_t const& objs )
 
 
 // ------------------------------------------------------------------
+detected_object_set_sptr
+detected_object_set::
+clone() const
+{
+  auto new_obj = std::make_shared<detected_object_set>();
+
+  const auto det_list = const_cast< detected_object_set* >(this)->select();
+  VITAL_FOREACH( const auto det, det_list)
+  {
+    // copy detection
+    new_obj->add( det->clone() );
+  }
+
+  // duplicate attributes
+  new_obj->m_attrs = this->m_attrs->clone();
+
+  return new_obj;
+}
+
+
+// ------------------------------------------------------------------
 void
 detected_object_set::
 add( detected_object_sptr object )
@@ -130,9 +151,9 @@ select( double threshold )
 
 
 // ------------------------------------------------------------------
-const detected_object::vector_t
+detected_object::vector_t
 detected_object_set::
-select( const std::string& class_name, double threshold ) const
+select( const std::string& class_name, double threshold )
 {
   // Intermediate sortable data structure
   std::vector< std::pair< double, detected_object_sptr > > data;

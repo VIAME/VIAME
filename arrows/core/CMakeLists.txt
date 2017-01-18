@@ -1,6 +1,8 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_core_headers
+  register_algorithms.h
+
   close_loops_bad_frames_only.h
   close_loops_exhaustive.h
   close_loops_keyframe.h
@@ -24,10 +26,14 @@ set( plugin_core_headers
 
   epipolar_geometry.h
   interpolate_camera.h
+  match_features_homography.h
   match_matrix.h
   metrics.h
   projected_track_set.h
+  track_features_core.h
+  transform.h
   triangulate.h
+  triangulate_landmarks.h
   )
 kwiver_install_headers(
   SUBDIR     arrows/core
@@ -39,6 +45,8 @@ kwiver_install_headers(
   )
 
 set( plugin_core_sources
+  register_algorithms.cxx
+
   close_loops_bad_frames_only.cxx
   close_loops_exhaustive.cxx
   close_loops_keyframe.cxx
@@ -62,10 +70,14 @@ set( plugin_core_sources
 
   epipolar_geometry.cxx
   interpolate_camera.cxx
+  match_features_homography.cxx
   match_matrix.cxx
   metrics.cxx
   projected_track_set.cxx
+  track_features_core.cxx
+  transform.cxx
   triangulate.cxx
+  triangulate_landmarks.cxx
   )
 
 # Address MSVC fatal error C1128:

@@ -98,6 +98,18 @@ public:
                         const std::vector< double >& scores );
 
   /**
+   * @brief Determine if class-name is present.
+   *
+   * This method determines if the specified class name is present in
+   * this object.
+   *
+   * @param class_name Class name to test.
+   *
+   * @return \b true if class name is present.
+   */
+  bool has_class_name( const std::string& class_name ) const;
+
+  /**
    * @brief Get score for specific class_name.
    *
    * This method returns the score for the specified class_name.  If
@@ -165,14 +177,14 @@ public:
    * @brief Get list of class_names for this detection.
    *
    * This method returns a vector of class_names that apply to this
-   * detection. The names are ordered by increasing score. If an
+   * detection. The names are ordered by decreasing score. If an
    * optional threshold value is supplied, then names with a score
-   * less than that value are included in the returned list.
+   * not less than that value are included in the returned list.
    *
    * @param threshold If a value is supplied, labels with a score
    *                  below this value are omitted from the returned list.
    *
-   * @return Ordered list of class_names.
+   * @return Ordered list of class_names. Note that the list may be empty.
    */
   std::vector< std::string > class_names( double threshold = INVALID_SCORE ) const;
 

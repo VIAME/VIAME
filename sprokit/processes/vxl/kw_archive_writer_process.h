@@ -40,7 +40,7 @@ namespace kwiver
 {
 
 /*!
- * \class kw_archive_index_writer
+ * \class kw_archive_writer_process
  *
  * \brief KW archive writer process
  *
