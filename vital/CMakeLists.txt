@@ -124,6 +124,8 @@ set( vital_public_headers
   types/detected_object_set.h
   types/detected_object_type.h
   types/essential_matrix.h
+  types/detected_object.h
+  types/detected_object_set.h
   types/feature.h
   types/feature_set.h
   types/fundamental_matrix.h

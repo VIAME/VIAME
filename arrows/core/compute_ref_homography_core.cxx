@@ -151,8 +151,7 @@ public:
     minimum_inliers( 4 ),
     frames_since_reset( 0 ),
     allow_ref_frame_regression( true ),
-    min_ref_frame( 0 ),
-    m_logger( vital::get_logger( "compute_ref_homography_core" ))
+    min_ref_frame( 0 )
   {
   }
 
@@ -288,6 +287,8 @@ compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
 {
+  attach_logger( "compute_ref_homography_core" );
+  d_->m_logger = this->m_logger;
 }
 
 

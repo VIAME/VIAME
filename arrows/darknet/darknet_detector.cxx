@@ -332,20 +332,25 @@ detect( vital::image_container_sptr image_data ) const
 
     kwiver::vital::bounding_box_d bbox( left, top, right, bot);
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+    bool has_name(false);
 
     // Iterate over all classes and collect all names over the threshold
     for ( int class_idx = 0; class_idx < l.classes; ++class_idx )
     {
       const float prob = d->m_probs[i][class_idx];
-      if ( prob > d->m_thresh )
+      if ( prob >= d->m_thresh )
       {
         const std::string class_name( d->m_names[class_idx] );
         dot->set_score( class_name, prob );
-      } // end for classes
+        has_name = true;
+      }
+    } // end for loop over classes
 
+    if ( has_name )
+    {
       detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
-    } // end for loop
-  }
+    }
+  } // end loop over detections
 
   // Free allocated memory
   free_image(im);

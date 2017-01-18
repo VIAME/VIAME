@@ -174,7 +174,7 @@ output_adapter_process
   // The grab call is blocking, so it will wait until data is there.
   VITAL_FOREACH( auto const p, m_active_ports )
   {
-    LOG_TRACE( logger(), "Getting data from port " << p );
+    LOG_TRACE( logger(), "Getting data from port \"" << p <<"\"" );
 
     auto dtm = this->grab_datum_from_port( p );
     data_set->add_datum( p, dtm );

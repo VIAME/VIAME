@@ -33,8 +33,6 @@
 
 #include <sprokit/config.h>
 
-#include <boost/make_shared.hpp>
-
 using namespace sprokit;
 
 class SPROKIT_NO_EXPORT test_process

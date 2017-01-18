@@ -66,6 +66,7 @@ target_link_libraries( kwiver_algo_vxl
                        vidl
                        vgl_algo
                        vpgl_algo
+                       kwiversys
   )
 
 algorithms_create_plugin( kwiver_algo_vxl
