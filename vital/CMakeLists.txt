@@ -238,13 +238,6 @@ target_link_libraries( vital
   )
 
 ###
-# Build plugin management library
-#
-# This has to happen after plugin creation so as to be able to statically link
-# in plugin libraries when building static.
-#
-
-###
 #
 # This option adds another directory to the path by appending the configuration type to
 # existing directories.
@@ -255,7 +248,7 @@ if (CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
-  "Whether to look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
+  "Look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
 if (WIN32)
   set(path_sep ";")

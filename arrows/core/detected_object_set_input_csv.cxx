@@ -55,7 +55,7 @@ namespace core {
 /// - 5: BR-x
 /// - 6: BR-y
 /// - 7: confidence
-/// 8,9  : class-name   score  (this pair may be omitted or may repeat any number of times)
+/// - 8,9  : class-name   score  (this pair may be omitted or may repeat any number of times)
 ///
 
 // ------------------------------------------------------------------
