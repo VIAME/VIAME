@@ -15,6 +15,10 @@ Arrows - Core
  * Added a core implementation of "filter_tracks" which applies filters based
    on track length or based on importance of the track in covering a match matrix.
 
+ * Added multi-threaded operation to close_loops_keyframe and
+   close_loops_exhaustive algorithms.  Currently this spawns one thread for each
+   frame to be matched.  In the future it should use a thread pool.
+
 Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
