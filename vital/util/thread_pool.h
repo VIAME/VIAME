@@ -68,7 +68,7 @@ class VITAL_UTIL_EXPORT thread_pool
 {
 public:
   /// Constructor - create a thread pool with some number of threads
-  thread_pool(size_t num_threads);
+  thread_pool(size_t num_threads = std::thread::hardware_concurrency());
 
   /// Destructor - joins all threads
   ~thread_pool();
