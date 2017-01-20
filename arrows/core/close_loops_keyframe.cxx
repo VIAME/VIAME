@@ -36,15 +36,13 @@
 #include "close_loops_keyframe.h"
 #include "merge_tracks.h"
 
-#include <functional>
-#include <future>
 #include <set>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <vital/exceptions/algorithm.h>
 #include <vital/algo/match_features.h>
+#include <vital/util/thread_pool.h>
 
 
 namespace kwiver {
@@ -275,16 +273,14 @@ close_loops_keyframe
     ++kitr;
   }
 
-  // start a thread to run matching for each frame of interest
-  typedef std::packaged_task<track_pairs_t(frame_id_t)> match_task_t;
-  std::vector<std::thread> threads;
+  // access the thread pool
+  vital::thread_pool& pool = vital::thread_pool::instance();
+
   std::map<vital::frame_id_t, std::future<track_pairs_t> > all_matches;
   // stitch with all frames within a neighborhood of the current frame
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
-    match_task_t task(match_func);
-    all_matches[f] = task.get_future();
-    threads.push_back(std::thread(std::move(task), f));
+    all_matches[f] = pool.enqueue(match_func, f);
   }
   // stitch with all previous keyframes
   for(auto kitr = d_->keyframes.rbegin(); kitr != d_->keyframes.rend(); ++kitr)
@@ -294,9 +290,7 @@ close_loops_keyframe
     {
       continue;
     }
-    match_task_t task(match_func);
-    all_matches[*kitr] = task.get_future();
-    threads.push_back(std::thread(std::move(task), *kitr));
+    all_matches[*kitr] = pool.enqueue(match_func, *kitr);
   }
 
 
@@ -373,10 +367,6 @@ close_loops_keyframe
   // merging with another track
   input = remove_replaced_tracks(input, track_replacement);
 
-  VITAL_FOREACH(auto& t, threads)
-  {
-    t.join();
-  }
 
   // keep track of frames that matched no keyframes
   if (max_keyframe_matched < d_->match_req)

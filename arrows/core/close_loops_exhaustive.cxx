@@ -37,14 +37,12 @@
 #include "merge_tracks.h"
 
 #include <algorithm>
-#include <functional>
-#include <future>
 #include <set>
-#include <thread>
 #include <vector>
 
 #include <vital/exceptions/algorithm.h>
 #include <vital/algo/match_features.h>
+#include <vital/util/thread_pool.h>
 
 
 namespace kwiver {
@@ -202,19 +200,17 @@ close_loops_exhaustive
                         current_features, current_descriptors, f);
   };
 
-  // start a thread to run matching for each frame of interest
-  typedef std::packaged_task<track_pairs_t(frame_id_t)> match_task_t;
-  std::vector<std::thread> threads;
+  // access the thread pool
+  vital::thread_pool& pool = vital::thread_pool::instance();
+
   std::map<vital::frame_id_t, std::future<track_pairs_t> > all_matches;
-  // stitch with all frames within a neighborhood of the current frame
+  // enqueue a task to run matching for each frame within a neighborhood
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
-    match_task_t task(match_func);
-    all_matches[f] = task.get_future();
-    threads.push_back(std::thread(std::move(task), f));
+    all_matches[f] = pool.enqueue(match_func, f);
   }
 
-
+  // retrieve match results and stitch frames together
   track_map_t track_replacement;
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
@@ -234,11 +230,6 @@ close_loops_exhaustive
   // remove all tracks from 'input' that have now been replaced by
   // merging with another track
   input = remove_replaced_tracks(input, track_replacement);
-
-  VITAL_FOREACH(auto& t, threads)
-  {
-    t.join();
-  }
 
   return input;
 }
