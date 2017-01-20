@@ -47,6 +47,7 @@ set( public_headers
 
   data_stream_reader.h
   string_editor.h
+  thread_pool.h
   token_expander.h
   token_expand_editor.h
   token_type_env.h
@@ -64,6 +65,7 @@ set( sources
 
   data_stream_reader.cxx
   string_editor.cxx
+  thread_pool.cxx
   token_expander.cxx
   token_expand_editor.cxx
   token_type.cxx
