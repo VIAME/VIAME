@@ -79,12 +79,13 @@ similarity_< T >
 
 /// Convert to a 4x4 matrix
 template < typename T >
+Eigen::Matrix< T, 4, 4 >
 similarity_< T >
-::operator Eigen::Matrix< T, 4, 4 > () const
+::matrix() const
 {
   Eigen::Matrix< T, 4, 4 > mat = Eigen::Matrix< T, 4, 4 >::Zero();
   mat( 3, 3 ) = 1;
-  mat.template block< 3, 3 > ( 0, 0 ) = this->scale_ * Eigen::Matrix< T, 3, 3 > ( this->rot_ );
+  mat.template block< 3, 3 > ( 0, 0 ) = this->scale_ * this->rot_.matrix();
   mat.template block< 3, 1 > ( 0, 3 ) = this->trans_;
   return mat;
 }

@@ -55,7 +55,7 @@ camera
 ::as_matrix() const
 {
   matrix_3x4d P;
-  matrix_3x3d R( this->rotation() );
+  matrix_3x3d R( this->rotation().matrix() );
   matrix_3x3d K( this->intrinsics()->as_matrix() );
   vector_3d t( this->translation() );
   P.block< 3, 3 > ( 0, 0 ) = R;
@@ -96,7 +96,7 @@ operator<<( std::ostream& s, const camera& c )
     d[0] = 0.0;
   }
   s << setprecision( 12 ) << c.intrinsics()->as_matrix() << "\n\n"
-    << setprecision( 12 ) << matrix_3x3d( c.rotation() ) << "\n\n"
+    << setprecision( 12 ) << c.rotation().matrix() << "\n\n"
     << setprecision( 12 ) << c.translation().transpose() << "\n\n"
     << setprecision( 12 ) << d.transpose() << "\n";
   return s;
