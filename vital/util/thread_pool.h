@@ -41,6 +41,7 @@
 #ifndef KWIVER_VITAL_THREAD_POOL_H_
 #define KWIVER_VITAL_THREAD_POOL_H_
 
+#include <vital/noncopyable.h>
 #include <vital/vital_foreach.h>
 #include <vital/util/vital_util_export.h>
 
@@ -65,13 +66,14 @@ namespace vital {
  *  referring to the future value to be computed by the task.
  */
 class VITAL_UTIL_EXPORT thread_pool
+  : private kwiver::vital::noncopyable
 {
 public:
-  /// Constructor - create a thread pool with some number of threads
-  thread_pool(size_t num_threads = std::thread::hardware_concurrency());
-
-  /// Destructor - joins all threads
-  ~thread_pool();
+  /// Access the singleton instance of this class
+  /**
+   * \returns The reference to the singleton instance.
+   */
+  static thread_pool& instance();
 
   /// Returns the number of worker threads
   size_t size() const;
@@ -82,6 +84,12 @@ public:
     -> std::future<typename std::result_of<F(Args...)>::type>;
 
 private:
+
+   /// Constructor - create a thread pool with some number of threads
+  thread_pool(size_t num_threads = std::thread::hardware_concurrency());
+
+  /// Destructor - joins all threads
+  ~thread_pool();
 
   /// This function is executed in each thread to endlessly process tasks
   void thread_worker_loop();

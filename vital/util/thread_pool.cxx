@@ -45,6 +45,16 @@ namespace kwiver {
 namespace vital {
 
 
+/// Access the singleton instance of this class
+thread_pool& thread_pool::instance()
+{
+  static thread_pool instance;
+
+  return instance;
+}
+
+
+
 // Constructor - spawns the requested number for worker threads
 thread_pool::thread_pool(size_t num_threads)
   : stop(false)
