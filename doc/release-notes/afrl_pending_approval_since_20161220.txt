@@ -16,8 +16,8 @@ Arrows - Core
    on track length or based on importance of the track in covering a match matrix.
 
  * Added multi-threaded operation to close_loops_keyframe and
-   close_loops_exhaustive algorithms.  Currently this spawns one thread for each
-   frame to be matched.  In the future it should use a thread pool.
+   close_loops_exhaustive algorithms.  Frame matching tasks are added to the
+   thread pool.
 
 Vital
 
