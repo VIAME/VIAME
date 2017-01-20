@@ -73,6 +73,9 @@ public:
   /// Destructor - joins all threads
   ~thread_pool();
 
+  /// Returns the number of worker threads
+  size_t size() const;
+
   /// Enqueue an arbitrary function as a task to run
   template<class F, class... Args>
   auto enqueue(F&& f, Args&&... args)

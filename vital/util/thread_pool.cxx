@@ -71,6 +71,13 @@ thread_pool::~thread_pool()
 }
 
 
+/// Returns the number of worker threads
+size_t thread_pool::size() const
+{
+  return workers.size();
+}
+
+
 /// This function is executed in each thread to endlessly process tasks
 void thread_pool::thread_worker_loop()
 {
