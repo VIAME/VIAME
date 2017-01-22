@@ -101,6 +101,13 @@ set(VIAME_ARGS_fletch
   -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
   )
 
+if( VIAME_ENABLE_VXL )
+  set(VIAME_ARGS_VXL
+    ${VIAME_ARGS_VXL}
+    -DVXL_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VXL-build
+    )
+endif()
+
 if( VIAME_ENABLE_OPENCV )
   set(VIAME_ARGS_fletch
     ${VIAME_ARGS_fletch}
