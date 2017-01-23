@@ -31,6 +31,7 @@ ExternalProject_Add(kwiver
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    ${VIAME_ARGS_VXL}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
 
