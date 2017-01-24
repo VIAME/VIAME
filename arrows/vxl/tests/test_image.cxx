@@ -121,7 +121,7 @@ void
 populate_vil_image(vil_image_view<T>& img, T minv, T maxv)
 {
   const double range = static_cast<double>(maxv) - static_cast<double>(minv);
-  const double offset = - minv;
+  const double offset = - static_cast<double>(minv);
   for( unsigned int p=0; p<img.nplanes(); ++p )
   {
     for( unsigned int j=0; j<img.nj(); ++j )
@@ -155,7 +155,7 @@ void
 populate_vital_image(kwiver::vital::image& img, T minv, T maxv)
 {
   const double range = static_cast<double>(maxv) - static_cast<double>(minv);
-  const double offset = - minv;
+  const double offset = - static_cast<double>(minv);
   for( unsigned int p=0; p<img.depth(); ++p )
   {
     for( unsigned int j=0; j<img.height(); ++j )

@@ -295,7 +295,7 @@ IMPLEMENT_TEST(is_contiguous)
   img = kwiver::vital::image_of<byte>(mem,
                                       reinterpret_cast<byte*>(mem->data()) + 2 * w * h,
                                       w, h, d,
-                                      1, w, -w*h);
+                                      1, w, -static_cast<ptrdiff_t>(w*h));
   TEST_EQUAL("Images with negative steps should be non-contiguous",
              img.is_contiguous(), false);
 }
