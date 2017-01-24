@@ -131,7 +131,7 @@ struct image_pixel_traits_helper<true, false, true>
  * enum value by type.
  */
 template <typename T>
-struct VITAL_EXPORT image_pixel_traits_of : public image_pixel_traits
+struct image_pixel_traits_of : public image_pixel_traits
 {
   const static image_pixel_traits::pixel_type static_type =
     image_pixel_traits_helper<std::numeric_limits<T>::is_specialized,
@@ -143,7 +143,7 @@ struct VITAL_EXPORT image_pixel_traits_of : public image_pixel_traits
 
 /// Specialization of image_pixel_traits_of for bool
 template <>
-struct VITAL_EXPORT image_pixel_traits_of<bool> : public image_pixel_traits
+struct image_pixel_traits_of<bool> : public image_pixel_traits
 {
   const static image_pixel_traits::pixel_type static_type = image_pixel_traits::BOOL;
   image_pixel_traits_of<bool>()
@@ -158,7 +158,7 @@ struct VITAL_EXPORT image_pixel_traits_of<bool> : public image_pixel_traits
  * image_pixel_traits properties (pixel_type and num_bytes) to a concrete type
  */
 template <image_pixel_traits::pixel_type T, size_t S>
-struct VITAL_EXPORT image_pixel_from_traits
+struct image_pixel_from_traits
 { typedef void * type; };
 
 #define image_pixel_from_traits_macro( T ) \
@@ -472,7 +472,7 @@ protected:
  * effectively a view on an image.
  */
 template <typename T>
-class VITAL_EXPORT image_of : public image
+class image_of : public image
 {
 public:
   /// Default Constructor
