@@ -169,6 +169,14 @@ struct cast_pixel
 };
 
 
+/// Specialization of cast_pixel for bool to avoid compiler warnings
+template <typename T1>
+struct cast_pixel<T1, bool>
+{
+  bool operator () (T1 const& v) const { return v != T1(0); }
+};
+
+
 /// Static cast an image of one type to that of another type
 template <typename T1, typename T2>
 void cast_image( image_of<T1> const& img_in, image_of<T2>& img_out )
