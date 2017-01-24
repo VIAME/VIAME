@@ -165,17 +165,18 @@ struct image_pixel_from_traits
 template <> struct VITAL_EXPORT \
 image_pixel_from_traits<image_pixel_traits_of<T>::static_type, sizeof(T)> { typedef T type; }
 
-image_pixel_from_traits_macro( unsigned char );
-image_pixel_from_traits_macro( char );
-image_pixel_from_traits_macro( unsigned short );
-image_pixel_from_traits_macro( short );
-image_pixel_from_traits_macro( unsigned int );
-image_pixel_from_traits_macro( int );
-image_pixel_from_traits_macro( unsigned long );
-image_pixel_from_traits_macro( long );
+image_pixel_from_traits_macro( uint8_t );
+image_pixel_from_traits_macro( int8_t );
+image_pixel_from_traits_macro( uint16_t );
+image_pixel_from_traits_macro( int16_t );
+image_pixel_from_traits_macro( uint32_t );
+image_pixel_from_traits_macro( int32_t );
+image_pixel_from_traits_macro( uint64_t );
+image_pixel_from_traits_macro( int64_t );
 image_pixel_from_traits_macro( float );
 image_pixel_from_traits_macro( double );
 image_pixel_from_traits_macro( bool );
+
 #undef image_pixel_from_traits_macro
 
 
