@@ -85,9 +85,9 @@ populate_ocv_image(cv::Mat& img, T minv, T maxv)
   const unsigned num_c = img.channels();
   for( unsigned int p=0; p<num_c; ++p )
   {
-    for( unsigned int j=0; j<img.rows; ++j )
+    for( unsigned int j=0; j<static_cast<unsigned int>(img.rows); ++j )
     {
-      for( unsigned int i=0; i<img.cols; ++i )
+      for( unsigned int i=0; i<static_cast<unsigned int>(img.cols); ++i )
       {
         const double pi = 3.14159265358979323846;
         double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;

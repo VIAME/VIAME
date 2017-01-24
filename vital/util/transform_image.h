@@ -132,9 +132,9 @@ void transform_image( image_of<T>& img, OP op )
 template <typename T1, typename T2, typename OP>
 void transform_image( image_of<T1> const& img_in, image_of<T2>& img_out, OP op )
 {
-  const unsigned width = img_in.width();
-  const unsigned height = img_in.height();
-  const unsigned depth = img_in.depth();
+  const unsigned width = static_cast<unsigned int>(img_in.width());
+  const unsigned height = static_cast<unsigned int>(img_in.height());
+  const unsigned depth = static_cast<unsigned int>(img_in.depth());
 
   // make sure the output image has the same size as the input image
   img_out.set_size(width, height, depth);
