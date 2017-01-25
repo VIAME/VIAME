@@ -82,7 +82,7 @@ image_container
 #ifndef KWIVER_HAS_OPENCV_VER_3
   if ( !img.refcount )
 #else
-  if ( !out.u )
+  if ( !img.u )
 #endif
   {
     memory = std::make_shared<mat_image_memory>(img);
