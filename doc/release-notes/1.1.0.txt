@@ -1,14 +1,12 @@
-KWIVER Release Notes for changes pending release approval by AFRL
-=================================================================
+KWIVER v1.1.0 Release Notes
+===========================
 
-This file documents release notes for changes made to KWIVER which require
-public release approval from AFRL.  After approval, the changes and
-corresponding notes below will be incorporated into a public numbered
-release version, and the content of this file will be reset.
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.0.0 release.
 
 
-Updates since last public release
----------------------------------
+Updates since v1.0.0
+--------------------
 
 Arrows - Ceres
 
@@ -69,7 +67,7 @@ Arrows - VXL
    memory layouts.
 
  * Generalized the vxl::image_io algorithm to read and write images with
-   different pixel formats (bool, uint8, uint16, float, etc.).  Added a 
+   different pixel formats (bool, uint8, uint16, float, etc.).  Added a
    "force_byte" option to always load or save as uint8 regardless of the
    underlying data type.  Generalized the range stretching options to apply
    to and from types other than uint8.  Range stretch now applies to save
@@ -149,8 +147,8 @@ Vital Bindings
    definition
 
 
-Fixes since last public release
--------------------------------
+Fixes since v1.0.0
+------------------
 
 Arrows - OpenCV
 
