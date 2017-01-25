@@ -35,6 +35,8 @@
 
 #include "hough_circle_detector.h"
 
+#include <vector>
+
 #include <arrows/ocv/image_container.h>
 
 #include <opencv2/core/core.hpp>
@@ -169,7 +171,7 @@ detect( vital::image_container_sptr image_data) const
   // Reduce the noise so we avoid false circle detection
   cv::GaussianBlur( src_gray, src_gray, cv::Size( 9, 9 ), 2, 2 );
 
-  cv::vector< cv::Vec3f > circles;
+  std::vector< cv::Vec3f > circles;
 
   // Apply the Hough Transform to find the circles
   cv::HoughCircles( src_gray, // i: source image
