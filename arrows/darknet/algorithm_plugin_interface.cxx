@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,80 +30,15 @@
 
 /**
  * \file
- * \brief Implementation for image exceptions
+ * \brief Darknet plugin algorithm registration plugin interface impl
  */
 
-#include "video.h"
+#include <arrows/darknet/register_algorithms.h>
+#include <arrows/algorithm_plugin_interface.h>
+#include <vital/registrar.h>
 
-namespace kwiver {
-namespace vital {
 
-
-// ------------------------------------------------------------------
-video_exception
-::video_exception() VITAL_NOTHROW
+int register_algo_impls(kwiver::vital::registrar &reg)
 {
-  m_what = "Yo, Yo, we have a Vide-o exception";
+  return kwiver::arrows::darknet::register_algorithms( reg );
 }
-
-video_exception
-::~video_exception() VITAL_NOTHROW
-{
-}
-
-// ------------------------------------------------------------------
-video_input_timeout_exception
-::video_input_timeout_exception() VITAL_NOTHROW
-{
-  m_what = "End of video exception";
-}
-
-
-video_input_timeout_exception
-::~video_input_timeout_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_stream_exception
-::video_stream_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video stream exception:" + msg;
-}
-
-
-video_stream_exception
-::~video_stream_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_config_exception
-::video_config_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video config exception:" + msg;
-}
-
-
-video_config_exception
-::~video_config_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_runtime_exception
-::video_runtime_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video runtime exception: " + msg;
-}
-
-
-video_runtime_exception
-::~video_runtime_exception() VITAL_NOTHROW
-{
-}
-
-} } // end namespace

@@ -67,6 +67,23 @@ attribute_set::
 
 
 // ------------------------------------------------------------------
+attribute_set_sptr
+attribute_set::
+clone() const
+{
+  auto new_obj = std::make_shared< attribute_set >();
+  auto it( this->m_attr_map.begin() );
+  const auto eit( this->m_attr_map.end() );
+  for ( ; it != eit; ++it)
+  {
+    new_obj->add( it->first, *it->second );
+  }
+
+  return new_obj;
+}
+
+
+// ------------------------------------------------------------------
 void
 attribute_set::
 add( const std::string& name, const kwiver::vital::any& val )

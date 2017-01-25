@@ -53,7 +53,9 @@ namespace sprokit
  *
  * \brief The base class for execution strategies on a \ref pipeline.
  *
- * This class is the abstract base class for all schedulers.
+ * This class is the abstract base class for all pipeline
+ * schedulers. All concrete schedulers must be derived from this
+ * interface.
  *
  * \ingroup base_classes
  */

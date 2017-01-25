@@ -54,9 +54,25 @@ main(int argc, char* argv[])
   RUN_TEST(testname);
 }
 
-static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name = sprokit::process::name_t(), kwiver::vital::config_block_sptr const& conf = kwiver::vital::config_block::empty_config());
+/**
+ * @brief Create a process.
+ *
+ * This function creates a process from the registry.
+ *
+ * @param type Process type.
+ * @param name Process name.
+ * @param conf Config for process.
+ *
+ * @return Pointer to new process.
+ */
+static sprokit::process_t create_process(sprokit::process::type_t const& type,
+                                         sprokit::process::name_t const& name = sprokit::process::name_t(),
+                                         kwiver::vital::config_block_sptr const& conf = kwiver::vital::config_block::empty_config());
+
 static sprokit::edge_t create_edge();
 
+
+// ------------------------------------------------------------------
 class remove_ports_process
   : public sprokit::process
 {
@@ -74,6 +90,8 @@ class remove_ports_process
     static port_type_t const output_port;
 };
 
+
+// ------------------------------------------------------------------
 class null_config_process
   : public sprokit::process
 {
@@ -82,6 +100,8 @@ class null_config_process
     ~null_config_process();
 };
 
+
+// ------------------------------------------------------------------
 class null_input_info_process
   : public sprokit::process
 {
@@ -90,6 +110,8 @@ class null_input_info_process
     ~null_input_info_process();
 };
 
+
+// ------------------------------------------------------------------
 class null_output_info_process
   : public sprokit::process
 {
@@ -98,6 +120,8 @@ class null_output_info_process
     ~null_output_info_process();
 };
 
+
+// ------------------------------------------------------------------
 class null_conf_info_process
   : public sprokit::process
 {
@@ -106,6 +130,8 @@ class null_conf_info_process
     ~null_conf_info_process();
 };
 
+
+// ==================================================================
 IMPLEMENT_TEST(null_input_edge)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -119,6 +145,8 @@ IMPLEMENT_TEST(null_input_edge)
                    "connecting a NULL edge to an input port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(null_output_edge)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -132,6 +160,8 @@ IMPLEMENT_TEST(null_output_edge)
                    "connecting a NULL edge to an output port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(connect_after_init)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -153,6 +183,8 @@ IMPLEMENT_TEST(connect_after_init)
                    "connecting an input edge after initialization");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(configure_twice)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -166,6 +198,8 @@ IMPLEMENT_TEST(configure_twice)
                    "reconfiguring a process");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(reinit)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -180,6 +214,8 @@ IMPLEMENT_TEST(reinit)
                    "reinitializing a process");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(reset)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -199,6 +235,8 @@ IMPLEMENT_TEST(reset)
   process->init();
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(step_before_configure)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -210,6 +248,8 @@ IMPLEMENT_TEST(step_before_configure)
                    "stepping before configuring");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(step_before_init)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("orphan");
@@ -223,6 +263,8 @@ IMPLEMENT_TEST(step_before_init)
                    "stepping before initialization");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_static_input_type)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("multiplication");
@@ -237,6 +279,8 @@ IMPLEMENT_TEST(set_static_input_type)
                    "setting the type of a non-dependent input port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_static_output_type)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("multiplication");
@@ -251,6 +295,8 @@ IMPLEMENT_TEST(set_static_output_type)
                    "setting the type of a non-dependent output port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_input_type_duplicate)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
@@ -275,6 +321,8 @@ IMPLEMENT_TEST(set_input_type_duplicate)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_output_type_duplicate)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
@@ -299,6 +347,8 @@ IMPLEMENT_TEST(set_output_type_duplicate)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_input_type_after_init)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
@@ -316,6 +366,8 @@ IMPLEMENT_TEST(set_input_type_after_init)
                    "setting an input port type after initialization");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_output_type_after_init)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("flow_dependent");
@@ -333,6 +385,8 @@ IMPLEMENT_TEST(set_output_type_after_init)
                    "setting an output port type after initialization");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_tagged_flow_dependent_port)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
@@ -383,6 +437,8 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
@@ -419,6 +475,8 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade_any)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
@@ -448,6 +506,8 @@ IMPLEMENT_TEST(set_tagged_flow_dependent_port_cascade_any)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(add_input_port_after_type_pin)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("collate");
@@ -483,6 +543,8 @@ IMPLEMENT_TEST(add_input_port_after_type_pin)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(add_output_port_after_type_pin)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("distribute");
@@ -518,6 +580,8 @@ IMPLEMENT_TEST(add_output_port_after_type_pin)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_untagged_flow_dependent_port)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tagged_flow_dependent");
@@ -570,6 +634,8 @@ IMPLEMENT_TEST(set_untagged_flow_dependent_port)
 sprokit::process::port_type_t const remove_ports_process::input_port = sprokit::process::port_type_t("input");
 sprokit::process::port_type_t const remove_ports_process::output_port = sprokit::process::port_type_t("output");
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(remove_input_port)
 {
   sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
@@ -582,6 +648,8 @@ IMPLEMENT_TEST(remove_input_port)
                    "after removing an input port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(remove_output_port)
 {
   sprokit::process::port_type_t const type = sprokit::process::port_type_t("type");
@@ -594,6 +662,8 @@ IMPLEMENT_TEST(remove_output_port)
                    "after removing an output port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(remove_non_exist_input_port)
 {
   sprokit::process::port_t const port = sprokit::process::port_t("port");
@@ -605,6 +675,8 @@ IMPLEMENT_TEST(remove_non_exist_input_port)
                    "after removing a non-existent input port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(remove_non_exist_output_port)
 {
   sprokit::process::port_t const port = sprokit::process::port_t("port");
@@ -616,6 +688,8 @@ IMPLEMENT_TEST(remove_non_exist_output_port)
                    "after removing a non-existent output port");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
 {
   sprokit::process::port_t const port = sprokit::process::port_t("port");
@@ -637,6 +711,8 @@ IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(remove_tagged_flow_dependent_port)
 {
   sprokit::process::port_type_t const flow_type = sprokit::process::type_flow_dependent + sprokit::process::port_type_t("tag");
@@ -655,6 +731,8 @@ IMPLEMENT_TEST(remove_tagged_flow_dependent_port)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(null_config)
 {
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -670,6 +748,8 @@ IMPLEMENT_TEST(null_config)
                    "passing NULL as the configuration for a process");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(null_input_port_info)
 {
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -685,6 +765,8 @@ IMPLEMENT_TEST(null_input_port_info)
                    "passing NULL as an input port info structure");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(null_output_port_info)
 {
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -700,6 +782,8 @@ IMPLEMENT_TEST(null_output_port_info)
                    "passing NULL as an output port info structure");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(null_conf_info)
 {
   sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -715,6 +799,8 @@ IMPLEMENT_TEST(null_conf_info)
                    "passing NULL as an configuration info structure");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(tunable_config)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tunable");
@@ -741,6 +827,8 @@ IMPLEMENT_TEST(tunable_config)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(tunable_config_read_only)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("tunable");
@@ -764,6 +852,8 @@ IMPLEMENT_TEST(tunable_config_read_only)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(reconfigure_tunable)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
@@ -795,6 +885,8 @@ IMPLEMENT_TEST(reconfigure_tunable)
   pipeline->reconfigure(new_conf);
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(reconfigure_non_tunable)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
@@ -828,6 +920,8 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
   pipeline->reconfigure(new_conf);
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(reconfigure_extra_parameters)
 {
   sprokit::process::type_t const proc_type = sprokit::process::type_t("expect");
@@ -860,8 +954,12 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
   pipeline->reconfigure(new_conf);
 }
 
+
+// ==================================================================
 sprokit::process_t
-create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr const& conf)
+create_process(sprokit::process::type_t const& type,
+               sprokit::process::name_t const& name,
+               kwiver::vital::config_block_sptr const& conf)
 {
   static bool const modules_loaded = (sprokit::load_known_modules(), true);
   static sprokit::process_registry_t const reg = sprokit::process_registry::self();
@@ -871,6 +969,8 @@ create_process(sprokit::process::type_t const& type, sprokit::process::name_t co
   return reg->create_process(type, name, conf);
 }
 
+
+// ------------------------------------------------------------------
 sprokit::edge_t
 create_edge()
 {
@@ -880,17 +980,23 @@ create_edge()
   return edge;
 }
 
+
+// ------------------------------------------------------------------
 null_config_process
 ::null_config_process(kwiver::vital::config_block_sptr const& /*config*/)
   : sprokit::process(kwiver::vital::config_block_sptr())
 {
 }
 
+
+// ------------------------------------------------------------------
 null_config_process
 ::~null_config_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 null_input_info_process
 ::null_input_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
@@ -905,6 +1011,8 @@ null_input_info_process
 {
 }
 
+
+// ------------------------------------------------------------------
 null_output_info_process
 ::null_output_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
@@ -914,11 +1022,15 @@ null_output_info_process
   declare_output_port(port, port_info_t());
 }
 
+
+// ------------------------------------------------------------------
 null_output_info_process
 ::~null_output_info_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 null_conf_info_process
 ::null_conf_info_process(kwiver::vital::config_block_sptr const& config)
   : sprokit::process(config)
@@ -928,11 +1040,15 @@ null_conf_info_process
   declare_configuration_key(key, conf_info_t());
 }
 
+
+// ------------------------------------------------------------------
 null_conf_info_process
 ::~null_conf_info_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 remove_ports_process
 ::remove_ports_process(port_type_t const& port_type)
   : sprokit::process(kwiver::vital::config_block::empty_config())
@@ -941,11 +1057,15 @@ remove_ports_process
   create_output_port(output_port, port_type);
 }
 
+
+// ------------------------------------------------------------------
 remove_ports_process
 ::~remove_ports_process()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::create_input_port(port_t const& port, port_type_t const& port_type)
@@ -957,6 +1077,8 @@ remove_ports_process
     port_description_t("input port"));
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::create_output_port(port_t const& port, port_type_t const& port_type)
@@ -968,6 +1090,8 @@ remove_ports_process
     port_description_t("output port"));
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::_remove_input_port(port_t const& port)
@@ -975,6 +1099,8 @@ remove_ports_process
   remove_input_port(port);
 }
 
+
+// ------------------------------------------------------------------
 void
 remove_ports_process
 ::_remove_output_port(port_t const& port)

@@ -71,9 +71,11 @@ class embedded_pipeline::priv
 public:
   // -- CONSTRUCTORS --
   priv()
-    : m_logger( kwiver::vital::get_logger( "embedded_pipeline" )),
-      m_at_end( false ),
-      m_pipeline_started( false )
+    : m_logger( kwiver::vital::get_logger( "embedded_pipeline" ))
+    , m_at_end( false )
+    , m_pipeline_started( false )
+    , m_input_adapter_connected( false )
+    , m_output_adapter_connected (false )
   {
   }
 
@@ -93,44 +95,15 @@ public:
     }
   }
 
-
-// ------------------------------------------------------------------
-bool connect_adapters()
-{
-  auto names = m_pipeline->process_names();
-  bool input_connected( false );
-  bool output_connected( false );
-
-  VITAL_FOREACH( auto n, names )
-  {
-    auto proc = m_pipeline->process_by_name( n );
-    if ( proc->type() == "input_adapter" )
-    {
-      m_input_adapter.connect( proc->name(), m_pipeline );
-      input_connected = true;
-      break;
-    }
-  }
-
-  VITAL_FOREACH( auto n, names )
-  {
-    auto proc = m_pipeline->process_by_name( n );
-    if (proc->type() == "output_adapter" )
-    {
-      m_output_adapter.connect( proc->name(), m_pipeline );
-      output_connected = true;
-      break;
-    }
-  }
-
-  return (input_connected && output_connected);
-}
-
+  bool connect_input_adapter();
+  bool connect_output_adapter();
 
 //---------------------------
   vital::logger_handle_t m_logger;
   bool m_at_end;
   bool m_pipeline_started;
+  bool m_input_adapter_connected;
+  bool m_output_adapter_connected;
 
   kwiver::input_adapter m_input_adapter;
   kwiver::output_adapter m_output_adapter;
@@ -145,13 +118,27 @@ bool connect_adapters()
 
 // ==================================================================
 embedded_pipeline
-::embedded_pipeline( std::istream& istr )
+::embedded_pipeline()
   : m_logger( kwiver::vital::get_logger( "sprokit.embedded_pipeline" ) )
   , m_priv( new priv() )
 {
   // load processes
   sprokit::load_known_modules();
 
+}
+
+
+embedded_pipeline
+::~embedded_pipeline()
+{
+}
+
+
+// ------------------------------------------------------------------
+void
+embedded_pipeline
+::build_pipeline( std::istream& istr )
+{
   // create a pipeline
   sprokit::pipeline_builder builder;
   builder.load_pipeline( istr );
@@ -178,9 +165,9 @@ embedded_pipeline
     throw std::runtime_error( str.str() );
   }
 
-  if ( ! m_priv->connect_adapters() )
+  if ( ! connect_input_adapter() || ! connect_output_adapter() )
   {
-    throw std::runtime_error( "Unable to connect to input and output adapter processes");
+    throw std::runtime_error( "Unable to connect to input and/or output adapter processes");
   }
 
   //
@@ -208,17 +195,16 @@ embedded_pipeline
 }
 
 
-embedded_pipeline
-::~embedded_pipeline()
-{
-}
-
-
 // ------------------------------------------------------------------
 void
 embedded_pipeline
 ::send( kwiver::adapter::adapter_data_set_t ads )
 {
+  if ( ! input_adapter_connected() )
+  {
+    throw std::runtime_error( "Input adapter not connected." );
+  }
+
   m_priv->m_input_adapter.send( ads );
 }
 
@@ -228,6 +214,11 @@ void
 embedded_pipeline
 ::send_end_of_input()
 {
+  if ( ! input_adapter_connected() )
+  {
+    throw std::runtime_error( "Input adapter not connected." );
+  }
+
   auto ds = kwiver::adapter::adapter_data_set::create( kwiver::adapter::adapter_data_set::end_of_input );
   this->send( ds );
 }
@@ -238,6 +229,11 @@ embedded_pipeline
 embedded_pipeline
 ::receive()
 {
+  if ( ! output_adapter_connected() )
+  {
+    throw std::runtime_error( "Output adapter not connected." );
+  }
+
   if ( m_priv->m_at_end )
   {
     LOG_ERROR( m_logger, "receive() called after end_of_data processed. "
@@ -255,6 +251,11 @@ bool
 embedded_pipeline
 ::full() const
 {
+  if ( ! input_adapter_connected() )
+  {
+    throw std::runtime_error( "Input adapter not connected." );
+  }
+
   return m_priv->m_input_adapter.full();
 }
 
@@ -264,6 +265,11 @@ bool
 embedded_pipeline
 ::empty() const
 {
+  if ( ! output_adapter_connected() )
+  {
+    throw std::runtime_error( "Output adapter not connected." );
+  }
+
   return m_priv->m_output_adapter.empty();
 }
 
@@ -300,6 +306,11 @@ sprokit::process::ports_t
 embedded_pipeline
 ::input_port_names() const
 {
+  if ( ! input_adapter_connected() )
+  {
+    throw std::runtime_error( "Input adapter not connected." );
+  }
+
   return m_priv->m_input_adapter.port_list();
 }
 
@@ -309,7 +320,89 @@ sprokit::process::ports_t
 embedded_pipeline
 ::output_port_names() const
 {
+  if ( ! output_adapter_connected() )
+  {
+    throw std::runtime_error( "Output adapter not connected." );
+  }
+
   return m_priv->m_output_adapter.port_list();
 }
+
+
+// ------------------------------------------------------------------
+bool
+embedded_pipeline
+::connect_input_adapter()
+{
+  return m_priv->connect_input_adapter();
+}
+
+
+// ------------------------------------------------------------------
+bool
+embedded_pipeline
+::connect_output_adapter()
+{
+  return m_priv->connect_output_adapter();
+}
+
+
+// ------------------------------------------------------------------
+bool
+embedded_pipeline
+::input_adapter_connected() const
+{
+  return m_priv->m_input_adapter_connected;
+}
+
+
+// ------------------------------------------------------------------
+bool
+embedded_pipeline
+::output_adapter_connected() const
+{
+  return m_priv->m_output_adapter_connected;
+}
+
+
+// ==================================================================
+bool
+embedded_pipeline::priv::
+connect_input_adapter()
+{
+  auto names = m_pipeline->process_names();
+  VITAL_FOREACH( auto n, names )
+  {
+    auto proc = m_pipeline->process_by_name( n );
+    if ( proc->type() == "input_adapter" )
+    {
+      m_input_adapter.connect( proc->name(), m_pipeline );
+      m_input_adapter_connected = true;
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// ------------------------------------------------------------------
+bool
+embedded_pipeline::priv::
+connect_output_adapter()
+{
+  auto names = m_pipeline->process_names();
+  VITAL_FOREACH( auto n, names )
+  {
+    auto proc = m_pipeline->process_by_name( n );
+    if (proc->type() == "output_adapter" )
+    {
+      m_output_adapter.connect( proc->name(), m_pipeline );
+      m_output_adapter_connected = true;
+      return true;
+    }
+  }
+  return false;
+}
+
 
 } // end namespace kwiver

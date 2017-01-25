@@ -6,7 +6,11 @@ if (KWIVER_ENABLE_SPROKIT OR KWIVER_ENABLE_TRACK_ORACLE)
     set(Boost_WIN_MODULES chrono)
   endif()
 
-  find_package(Boost 1.55 REQUIRED
+if (NOT DEFINED KWIVER_BOOST_VERSION)
+	set(KWIVER_BOOST_VERSION 1.54)
+endif()
+
+find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
     COMPONENTS
       chrono
       date_time

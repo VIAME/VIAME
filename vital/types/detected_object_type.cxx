@@ -102,6 +102,16 @@ detected_object_type( const std::vector< std::string >& class_names,
 
 
 // ------------------------------------------------------------------
+bool
+detected_object_type::
+has_class_name( const std::string& class_name ) const
+{
+  const std::string* str_ptr = find_string( class_name );
+  return ( 0 != m_classes.count( str_ptr ) );
+}
+
+
+// ------------------------------------------------------------------
 double
 detected_object_type::
 score( const std::string& class_name ) const
@@ -189,15 +199,29 @@ class_names( double threshold ) const
   // sort map by value descending order
   std::sort( items.begin(), items.end(), more_second< const std::string*, double > () );
 
-  std::vector< std::string > list( items.size() );
+  std::vector< std::string > list;
 
   const size_t limit( items.size() );
   for ( size_t i = 0; i < limit; i++ )
   {
-    list[i] = *(items[i].first);
+    if ( items[i].second < threshold )
+    {
+      break;
+    }
+
+    list.push_back( *(items[i].first) );
   }
 
   return list;
+}
+
+
+// ------------------------------------------------------------------
+size_t
+detected_object_type::
+size() const
+{
+  return m_classes.size();
 }
 
 

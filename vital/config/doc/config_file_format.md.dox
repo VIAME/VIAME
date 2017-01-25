@@ -132,8 +132,8 @@ different users and systems.
 
 The solution is to specify the location of these external files
 relative to the configuration file and use the *relativepath* modifier
-construct a full, absolute path at run time by prepending the con
-figuration file directory path to the value.
+construct a full, absolute path at run time by prepending the
+configuration file directory path to the value.
 
 ```
 relativepath data_file = ../data/online_dat.dat
@@ -253,7 +253,11 @@ This macro provider gives access to previously defined configuration entries. Fo
 ```
 foo:bar = baz
 ```
-makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file.
+makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
+as shown below.
+```
+value = mode-$CONFIG{foo:bar}ify
+```
 
 ### SYSENV Macro Provider
 

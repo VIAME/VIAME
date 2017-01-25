@@ -71,7 +71,7 @@ create_config_trait( path, std::string, "",
                      "Path to search for image file. The format is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
 
-create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds. "
+create_config_trait( frame_time, double, "0.03333333", "Inter frame time in seconds. "
                      "The generated timestamps will have the specified number of seconds in the generated "
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
@@ -175,11 +175,15 @@ void frame_list_process
   // verify and get file names in a list
   for ( std::string line; stream_reader.getline( line ); /* null */ )
   {
-    // Resolve against specified path
-    std::string resolved_file = kwiversys::SystemTools::FindFile( line, d->m_config_path, true );
-    if ( resolved_file.empty() )
+    std::string resolved_file = line;
+    if ( ! kwiversys::SystemTools::FileExists( line ) )
     {
-      throw kwiver::vital::file_not_found_exception( line, "" );
+      // Resolve against specified path
+      resolved_file = kwiversys::SystemTools::FindFile( line, d->m_config_path, true );
+      if ( resolved_file.empty() )
+      {
+        throw kwiver::vital::file_not_found_exception( line, "could not locate file in path" );
+      }
     }
 
     d->m_files.push_back( resolved_file );

@@ -68,7 +68,7 @@ kwiver::vital::config_block_sptr blk = input_config->get_config();
 \endcode
  *
  */
-class config_parser
+class VITAL_CONFIG_EXPORT config_parser
   : private kwiver::vital::noncopyable
 {
 public:

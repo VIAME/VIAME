@@ -84,6 +84,15 @@ public:
   detected_object_set( detected_object::vector_t const& objs );
 
   /**
+   * @brief Create deep copy.
+   *
+   * This method creates a deep copy of this object.
+   *
+   * @return Managed copy of this object.
+   */
+  detected_object_set_sptr clone () const;
+
+  /**
    * @brief Add detection to set.
    *
    * This method adds a new detection to this set.
@@ -107,7 +116,12 @@ public:
    * This method returns a vector of detections ordered by confidence
    * value, high to low. If the optional threshold is specified, then
    * all detections from the set that are less than the threshold are
-   * not in the selected set.
+   * not in the selected set. Note that the selected set may be empty.
+   *
+   * The returned vector refers to the actual detections in the set,
+   * so if you make changes to the selected set, you are also changing
+   * the object in the set. If you want a clean set of detections,
+   * call clone() first.
    *
    * @param threshold Select all detections with confidence not less
    *                  than this value. If this parameter is omitted,
@@ -121,8 +135,13 @@ public:
    * @brief Select detections based on class_name
    *
    * This method returns a vector of detections that have the
-   * specified class_name. These detections are ordered by
-   * descending score for the name.
+   * specified class_name. These detections are ordered by descending
+   * score for the name. Note that the selected set may be empty.
+   *
+   * The returned vector refers to the actual detections in the set,
+   * so if you make changes to the selected set, you are also changing
+   * the object in the set. If you want a clean set of detections,
+   * call clone() first.
    *
    * @param class_name class name
    * @param threshold Select all detections with confidence not less
@@ -131,8 +150,8 @@ public:
    *
    * @return List of detections.
    */
-  const detected_object::vector_t select( const std::string& class_name,
-                                          double             threshold = detected_object_type::INVALID_SCORE ) const;
+  detected_object::vector_t select( const std::string& class_name,
+                                    double             threshold = detected_object_type::INVALID_SCORE );
 
   /**
    * @brief Get attributes set.

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,80 +30,27 @@
 
 /**
  * \file
- * \brief Implementation for image exceptions
+ * \brief OpenCV algorithm registration function
  */
 
-#include "video.h"
+#ifndef KWIVER_ARROWS_DARKNET_REGISTER_ALGORITHMS_H_
+#define KWIVER_ARROWS_DARKNET_REGISTER_ALGORITHMS_H_
+
+
+#include <vital/vital_config.h>
+#include <arrows/darknet/kwiver_algo_darknet_export.h>
+
+#include <vital/registrar.h>
+
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
+namespace darknet {
 
+/// Register DARKNET algorithm implementations with the given or global registrar
+KWIVER_ALGO_DARKNET_EXPORT
+int register_algorithms( vital::registrar &reg = vital::registrar::instance() );
 
-// ------------------------------------------------------------------
-video_exception
-::video_exception() VITAL_NOTHROW
-{
-  m_what = "Yo, Yo, we have a Vide-o exception";
-}
+} } } // end namespace kwiver
 
-video_exception
-::~video_exception() VITAL_NOTHROW
-{
-}
-
-// ------------------------------------------------------------------
-video_input_timeout_exception
-::video_input_timeout_exception() VITAL_NOTHROW
-{
-  m_what = "End of video exception";
-}
-
-
-video_input_timeout_exception
-::~video_input_timeout_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_stream_exception
-::video_stream_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video stream exception:" + msg;
-}
-
-
-video_stream_exception
-::~video_stream_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_config_exception
-::video_config_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video config exception:" + msg;
-}
-
-
-video_config_exception
-::~video_config_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_runtime_exception
-::video_runtime_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video runtime exception: " + msg;
-}
-
-
-video_runtime_exception
-::~video_runtime_exception() VITAL_NOTHROW
-{
-}
-
-} } // end namespace
+#endif // KWIVER_ARROWS_DARKNET_REGISTER_ALGORITHMS_H_

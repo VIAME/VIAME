@@ -96,8 +96,8 @@ public:
 // ------------------------------------------------------------------
 /// Video config error.
 /*
- * This exception is thrown when there is exceptional condition while
- * processing the configuration for a  video.
+ * This exception is thrown when there is exceptional condition is
+ * found in the configuration.
  */
 class VITAL_EXPORT video_config_exception
   : public video_exception
@@ -110,6 +110,22 @@ public:
   virtual ~video_config_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
+/// Video runtime error.
+/*
+ * This exception is thrown when there is exceptional condition while
+ * processing the a video.
+ */
+class VITAL_EXPORT video_runtime_exception
+  : public video_exception
+{
+public:
+  /// Constructor
+  video_runtime_exception( std::string const& msg ) VITAL_NOTHROW;
+
+  /// Destructor
+  virtual ~video_runtime_exception() VITAL_NOTHROW;
+};
 
 } } // end namespace
 

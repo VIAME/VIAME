@@ -26,7 +26,9 @@
 #     a dependency on the configure-${name} to ensure that it is complete
 #     before another target.
 
+if ( NOT TARGET configure)
 add_custom_target(configure ALL)
+endif()
 
 function (int_sprokit_configure_file name source dest)
   file(WRITE "${configure_script}"

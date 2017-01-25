@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,82 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation for image exceptions
- */
+#ifndef KWIVER_ARROWS_DARKENT_DETECTOR
+#define KWIVER_ARROWS_DARKENT_DETECTOR
 
-#include "video.h"
+
+#include <arrows/darknet/kwiver_algo_darknet_export.h>
+
+#include <vital/vital_config.h>
+
+#include <vital/algo/image_object_detector.h>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
+namespace darknet {
 
-
-// ------------------------------------------------------------------
-video_exception
-::video_exception() VITAL_NOTHROW
+// ----------------------------------------------------------------
+/**
+ * @brief
+ *
+ */
+class KWIVER_ALGO_DARKNET_EXPORT darknet_detector
+  : public vital::algorithm_impl<darknet_detector, vital::algo::image_object_detector>
 {
-  m_what = "Yo, Yo, we have a Vide-o exception";
-}
+public:
 
-video_exception
-::~video_exception() VITAL_NOTHROW
-{
-}
+  darknet_detector();
+  darknet_detector(darknet_detector const& frd);
 
-// ------------------------------------------------------------------
-video_input_timeout_exception
-::video_input_timeout_exception() VITAL_NOTHROW
-{
-  m_what = "End of video exception";
-}
+  virtual ~darknet_detector();
 
+  virtual std::string impl_name() const { return "darknet_detector"; }
 
-video_input_timeout_exception
-::~video_input_timeout_exception() VITAL_NOTHROW
-{
-}
+  virtual vital::config_block_sptr get_configuration() const;
 
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-// ------------------------------------------------------------------
-video_stream_exception
-::video_stream_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video stream exception:" + msg;
-}
+  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data ) const;
 
+private:
 
-video_stream_exception
-::~video_stream_exception() VITAL_NOTHROW
-{
-}
+  class priv;
+  const std::unique_ptr<priv> d;
+};
 
+} } }
 
-// ------------------------------------------------------------------
-video_config_exception
-::video_config_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video config exception:" + msg;
-}
-
-
-video_config_exception
-::~video_config_exception() VITAL_NOTHROW
-{
-}
-
-
-// ------------------------------------------------------------------
-video_runtime_exception
-::video_runtime_exception( std::string const& msg) VITAL_NOTHROW
-{
-  m_what = "Video runtime exception: " + msg;
-}
-
-
-video_runtime_exception
-::~video_runtime_exception() VITAL_NOTHROW
-{
-}
-
-} } // end namespace
+#endif /* KWIVER_ARROWS_DARKENT_DETECTOR */

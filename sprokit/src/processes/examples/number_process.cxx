@@ -34,7 +34,7 @@
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/process_exception.h>
 
-#include <boost/cstdint.hpp>
+#include <stdint.h>
 
 #include <string>
 
