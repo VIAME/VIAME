@@ -70,17 +70,6 @@ void
 detected_object_set_output
 ::open( std::string const& filename )
 {
-    // Make sure that the given file path exists and is a file.
-  if ( ! kwiversys::SystemTools::FileExists( filename ) )
-  {
-    throw path_not_exists(filename);
-  }
-
-  if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
-  {
-    throw path_not_a_file(filename);
-  }
-
   // try to open the file
   std::ostream* file( new std::ofstream( filename ) );
   if ( ! file )
