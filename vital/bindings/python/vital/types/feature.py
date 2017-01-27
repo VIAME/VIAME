@@ -35,8 +35,9 @@ vital::feature class interface
 """
 import ctypes
 
-from vital.exceptions.base import VitalDynamicCastException
-from vital.util import VitalObject
+import numpy
+
+from vital.util import VitalObject, TYPE_NAME_MAP
 from vital.types import (
     Covariance,
     EigenArray,
@@ -60,14 +61,20 @@ class Feature (VitalObject):
         :param from_cptr: An existing feature instance to wrap.
 
         """
-        self._datatype = ctype
-        # noinspection PyProtectedMember
-        self._tchar = ctype._type_
+        if from_cptr is None:
+            self._datatype = ctype
+            # noinspection PyProtectedMember
+            self._tchar = ctype._type_
+
         super(Feature, self).__init__(from_cptr, loc, mag, scale, angle,
                                       rgb_color)
 
-        # Test type integrity if given an explicit c-ptr (get type-name)
-        # TODO
+        # When constructing from an existing C-ptr, select datatype/tchar based
+        # on self.type_name value
+        if from_cptr is not None:
+            self._datatype = TYPE_NAME_MAP[self.type_name]
+            # noinspection PyProtectedMember
+            self._tchar = self._datatype._type_
 
     def _new(self, loc, mag, scale, angle, rgb_color):
         loc = EigenArray.from_iterable(loc, target_ctype=self._datatype,
@@ -83,22 +90,41 @@ class Feature (VitalObject):
                 self._datatype, self._datatype, self._datatype,
                 RGBColor.c_ptr_type()
             ],
-            self.C_TYPE_PTR,
-            loc, mag, scale, angle, rgb_color
+            [loc, mag, scale, angle, rgb_color],
+            self.C_TYPE_PTR
         )
 
     def _destroy(self):
         self._call_cfunc(
-            'vital_feature_destroy', [self.C_TYPE_PTR], None, self
+            'vital_feature_destroy', [self.C_TYPE_PTR], [self]
         )
+
+    def __eq__(self, other):
+        if isinstance(other, Feature):
+            return (
+                numpy.array_equal(self.location, other.location) and
+                self.magnitude == other.magnitude and
+                self.scale == other.scale and
+                self.angle == other.angle and
+                self.covariance == other.covariance and
+                self.color == other.color
+            )
+        return False
+
+    def __ne__(self, other):
+        return not (self == other)
 
     @property
     def type_name(self):
+        """
+        :return: Get the data type flag.
+        :rtype: str
+        """
         return self._call_cfunc(
-            'vital_feature_{}_type_name'.format(self._tchar),
+            'vital_feature_type_name',
             [self.C_TYPE_PTR],
-            ctypes.c_char_p,
-            self
+            [self],
+            ctypes.c_char_p
         )
 
     @property
@@ -107,8 +133,8 @@ class Feature (VitalObject):
         cptr = self._call_cfunc(
             'vital_feature_loc',
             [self.C_TYPE_PTR],
+            [self],
             EigenArray.c_ptr_type(2),
-            self
         )
         return EigenArray(2, from_cptr=cptr)
 
@@ -122,8 +148,7 @@ class Feature (VitalObject):
         self._call_cfunc(
             'vital_feature_{}_set_loc'.format(self._tchar),
             [self.C_TYPE_PTR, loc.C_TYPE_PTR],
-            None,
-            self, loc
+            [self, loc],
         )
 
     @property
@@ -131,8 +156,8 @@ class Feature (VitalObject):
         return self._call_cfunc(
             'vital_feature_magnitude',
             [self.C_TYPE_PTR],
+            [self],
             ctypes.c_double,
-            self
         )
 
     @magnitude.setter
@@ -140,8 +165,7 @@ class Feature (VitalObject):
         self._call_cfunc(
             'vital_feature_{}_set_magnitude'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
-            None,
-            self, mag
+            [self, mag],
         )
 
     @property
@@ -149,8 +173,8 @@ class Feature (VitalObject):
         return self._call_cfunc(
             'vital_feature_scale',
             [self.C_TYPE_PTR],
+            [self],
             ctypes.c_double,
-            self
         )
 
     @scale.setter
@@ -158,8 +182,8 @@ class Feature (VitalObject):
         self._call_cfunc(
             'vital_feature_{}_set_scale'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
+            [self, scale],
             None,
-            self, scale
         )
 
     @property
@@ -167,8 +191,8 @@ class Feature (VitalObject):
         return self._call_cfunc(
             'vital_feature_angle',
             [self.C_TYPE_PTR],
+            [self],
             ctypes.c_double,
-            self
         )
 
     @angle.setter
@@ -176,8 +200,7 @@ class Feature (VitalObject):
         self._call_cfunc(
             'vital_feature_{}_set_angle'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
-            None,
-            self, angle
+            [self, angle],
         )
 
     @property
@@ -185,8 +208,8 @@ class Feature (VitalObject):
         cptr = self._call_cfunc(
             "vital_feature_covar",
             [self.C_TYPE_PTR],
+            [self],
             Covariance.c_ptr_type(2, ctypes.c_double),
-            self
         )
         return Covariance(2, ctypes.c_double, from_cptr=cptr)
 
@@ -199,8 +222,7 @@ class Feature (VitalObject):
         self._call_cfunc(
             "vital_feature_{}_set_covar".format(self._tchar),
             [self.C_TYPE_PTR, Covariance.c_ptr_type(2, self._datatype)],
-            None,
-            self, covar
+            [self, covar],
         )
 
     @property
@@ -208,8 +230,8 @@ class Feature (VitalObject):
         cptr = self._call_cfunc(
             "vital_feature_color",
             [self.C_TYPE_PTR],
+            [self],
             RGBColor.c_ptr_type(),
-            self
         )
         return RGBColor(from_cptr=cptr)
 
@@ -218,6 +240,5 @@ class Feature (VitalObject):
         self._call_cfunc(
             'vital_feature_{}_set_color'.format(self._tchar),
             [self.C_TYPE_PTR, RGBColor.c_ptr_type()],
-            None,
-            self, c
+            [self, c],
         )

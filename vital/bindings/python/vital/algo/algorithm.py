@@ -114,7 +114,7 @@ class VitalAlgorithm (VitalObject):
 
         :return: New instance of derived type initialized to the given
             implementation.
-        :rtype: cls
+        :rtype: VitalAlgorithm
 
         """
         algo_create = cls.VITAL_LIB['vital_algorithm_%s_create'
@@ -185,12 +185,11 @@ class VitalAlgorithm (VitalObject):
         Destroy internal instance
         """
         if self._inst_ptr:
-            algo_destroy = self.VITAL_LIB["vital_algorithm_%s_destroy"
-                                          % self.type_name()]
-            algo_destroy.argtypes = [self.C_TYPE_PTR,
-                                     VitalErrorHandle.C_TYPE_PTR]
-            with VitalErrorHandle() as eh:
-                algo_destroy(self, eh)
+            self._call_cfunc(
+                'vital_algorithm_%s_destroy' % self.type_name(),
+                [self.C_TYPE_PTR],
+                [self]
+            )
 
     def impl_name(self):
         """
@@ -199,12 +198,11 @@ class VitalAlgorithm (VitalObject):
         :rtype: str
         """
         if self._inst_ptr:
-            algo_impl_name = self.VITAL_LIB.vital_algorithm_impl_name_cstr
-            algo_impl_name.argtypes = [self.C_TYPE_PTR,
-                                       VitalErrorHandle.C_TYPE_PTR]
-            algo_impl_name.restype = ctypes.c_char_p
-            with VitalErrorHandle() as eh:
-                return algo_impl_name(self, eh)
+            return self._call_cfunc(
+                'vital_algorithm_impl_name',
+                [self.C_TYPE_PTR], [self],
+                ctypes.c_char_p
+            )
         else:
             return None
 
@@ -216,13 +214,13 @@ class VitalAlgorithm (VitalObject):
         :return: A new copy of this algorithm
         :rtype: VitalAlgorithm
         """
-        algo_clone = self.VITAL_LIB['vital_algorithm_%s_clone'
-                                    % self.type_name()]
-        algo_clone.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        algo_clone.restype = self.C_TYPE_PTR
-        with VitalErrorHandle() as eh:
-            return self.__class__(name=(new_name or self.name),
-                                  from_cptr=algo_clone(self, eh))
+        clone_cptr = self._call_cfunc(
+            'vital_algorithm_%s_clone' % self.type_name(),
+            [self.C_TYPE_PTR], [self],
+            self.C_TYPE_PTR
+        )
+        return self.__class__(name=(new_name or self.name),
+                              from_cptr=clone_cptr)
 
     def get_config(self, cb=None):
         """
@@ -241,18 +239,15 @@ class VitalAlgorithm (VitalObject):
         :rtype: vital.ConfigBlock
 
         """
-        algo_gtc = self.VITAL_LIB['vital_algorithm_%s_get_type_config'
-                                  % self.type_name()]
-        algo_gtc.argtypes = [ctypes.c_char_p, self.C_TYPE_PTR,
-                             ConfigBlock.C_TYPE_PTR,
-                             VitalErrorHandle.C_TYPE_PTR]
-        algo_gtc.restype = ConfigBlock.C_TYPE_PTR
-
         if cb is None:
             cb = ConfigBlock()
 
-        with VitalErrorHandle() as eh:
-            algo_gtc(self.name, self, cb, eh)
+        self._call_cfunc(
+            'vital_algorithm_%s_get_type_config' % self.type_name(),
+            [ctypes.c_char_p, self.C_TYPE_PTR, ConfigBlock.c_ptr_type()],
+            [self.name, self, cb],
+            ConfigBlock.c_ptr_type()
+        )
 
         return cb
 
@@ -274,13 +269,11 @@ class VitalAlgorithm (VitalObject):
         :type cb: ConfigBlock
 
         """
-        algo_stc = self.VITAL_LIB['vital_algorithm_%s_set_type_config'
-                                  % self.type_name()]
-        algo_stc.argtypes = [ctypes.c_char_p, ConfigBlock.C_TYPE_PTR,
-                             ctypes.POINTER(self.C_TYPE_PTR),
-                             VitalErrorHandle.C_TYPE_PTR]
-        with VitalErrorHandle() as eh:
-            algo_stc(self.name, cb, ctypes.byref(self.c_pointer), eh)
+        self._call_cfunc(
+            'vital_algorithm_%s_set_type_config' % self.type_name(),
+            [ctypes.c_char_p, ConfigBlock.C_TYPE_PTR, ctypes.POINTER(self.C_TYPE_PTR)],
+            [self.name, cb, ctypes.byref(self.c_pointer)]
+        )
 
     def check_config(self, cb):
         """
@@ -294,11 +287,9 @@ class VitalAlgorithm (VitalObject):
         :rtype: bool
 
         """
-        algo_ctc = self.VITAL_LIB['vital_algorithm_%s_check_type_config'
-                                  % self.type_name()]
-        algo_ctc.argtypes = [ctypes.c_char_p,
-                             ConfigBlock.C_TYPE_PTR,
-                             VitalErrorHandle.C_TYPE_PTR]
-        algo_ctc.restype = ctypes.c_bool
-        with VitalErrorHandle() as eh:
-            return algo_ctc(self.name, cb, eh)
+        return self._call_cfunc(
+            'vital_algorithm_%s_check_type_config' % self.type_name(),
+            [ctypes.c_char_p, ConfigBlock.c_ptr_type()],
+            [self.name, cb],
+            ctypes.c_bool
+        )

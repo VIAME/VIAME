@@ -35,12 +35,24 @@
 
 #include "image_container.h"
 
+#include <vital/exceptions/image.h>
 #include <arrows/vxl/vil_image_memory.h>
+#include <vxl_config.h>
+#include <vil/vil_new.h>
 
 
 namespace kwiver {
 namespace arrows {
 namespace vxl {
+
+
+/// Constructor - from a vil_image_view_base
+image_container
+::image_container(const vil_image_view_base& d)
+: data_(vil_new_image_view_base_sptr(d))
+{
+}
+
 
 /// Constructor - convert base image container to vil
 image_container
@@ -72,67 +84,155 @@ image_container
   {
     return 0;
   }
-  return data_.memory_chunk()->size();
+  switch (vil_pixel_format_component_format(data_->pixel_format()))
+  {
+#define CONVERT_CASE( F ) \
+    case F: \
+    { \
+      typedef vil_pixel_format_type_of<F >::component_type pix_t; \
+      vil_image_view<pix_t> img(data_); \
+      return img.memory_chunk()->size(); \
+    }
+    CONVERT_CASE( VIL_PIXEL_FORMAT_BYTE)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_SBYTE)
+#if VXL_HAS_INT_64
+    CONVERT_CASE( VIL_PIXEL_FORMAT_UINT_64)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_INT_64)
+#endif
+    CONVERT_CASE( VIL_PIXEL_FORMAT_UINT_32)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_INT_32)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_UINT_16)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_INT_16)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_FLOAT)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_DOUBLE)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_BOOL)
+#undef CONVERT_CASE
+    default:
+      return 0;
+  }
+  return 0;
 }
 
 
 /// Convert a VXL vil_image_view to a VITAL image
 vital::image
 image_container
-::vxl_to_vital(const vil_image_view<vxl_byte>& img)
+::vxl_to_vital(const vil_image_view_base& img)
 {
-  vil_memory_chunk_sptr chunk = img.memory_chunk();
-  vital::image_memory_sptr memory;
-
-  // prevent nested wrappers when converting back and forth.
-  // if this vil_image_view is already wrapping VITAL data,
-  // then extract the underlying VITAL data instead of wrapping
-  if( image_memory_chunk* vital_chunk =
-        dynamic_cast<image_memory_chunk*>(chunk.ptr()) )
+  switch (vil_pixel_format_component_format(img.pixel_format()))
   {
-    // extract the existing VITAL memory from the vil wrapper
-    memory = vital_chunk->memory();
+#define CONVERT_CASE( F ) \
+    case F: \
+    { \
+      typedef vil_pixel_format_type_of<F >::component_type pix_t; \
+      vil_image_view<pix_t> img_t(img); \
+      vital::image_memory_sptr memory = vxl::vxl_to_vital(img_t.memory_chunk()); \
+      return vital::image_of<pix_t>(memory, img_t.top_left_ptr(), \
+                                    img_t.ni(), img_t.nj(), img_t.nplanes(), \
+                                    img_t.istep(), img_t.jstep(), img_t.planestep()); \
+    }
+    CONVERT_CASE( VIL_PIXEL_FORMAT_BYTE)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_SBYTE)
+#if VXL_HAS_INT_64
+    CONVERT_CASE( VIL_PIXEL_FORMAT_UINT_64)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_INT_64)
+#endif
+    CONVERT_CASE( VIL_PIXEL_FORMAT_UINT_32)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_INT_32)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_UINT_16)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_INT_16)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_FLOAT)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_DOUBLE)
+    CONVERT_CASE( VIL_PIXEL_FORMAT_BOOL)
+#undef CONVERT_CASE
+    default:
+      throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_container::vxl_to_vital(const vil_image_view_base&)");
   }
-  else
-  {
-    // create a VITAL wrapper around the vil memory chunk
-    memory = vital::image_memory_sptr(new vil_image_memory(chunk));
-  }
+  return vital::image();
+}
 
-  return vital::image(memory, img.top_left_ptr(),
-               img.ni(), img.nj(), img.nplanes(),
-               img.istep(), img.jstep(), img.planestep());
+
+namespace
+{
+
+template <typename T>
+inline
+vil_image_view_base_sptr
+make_vil_image_view(const vital::image& img)
+{
+  vil_memory_chunk_sptr chunk = vital_to_vxl(img.memory());
+  return new vil_image_view<T>(chunk, reinterpret_cast<const T*>(img.first_pixel()),
+                              static_cast<unsigned int>(img.width()),
+                              static_cast<unsigned int>(img.height()),
+                              static_cast<unsigned int>(img.depth()),
+                              img.w_step(), img.h_step(), img.d_step());
+}
+
 }
 
 
 /// Convert a VITAL image to a VXL vil_image_view
-vil_image_view<vxl_byte>
+vil_image_view_base_sptr
 image_container
 ::vital_to_vxl(const vital::image& img)
 {
-  vital::image_memory_sptr memory = img.memory();
-  vil_memory_chunk_sptr chunk;
-
-  // prevent nested wrappers when converting back and forth.
-  // if this VITAL image is already wrapping vil data,
-  // then extract the underlying vil data instead of wrapping
-  if( vil_image_memory* vil_memory =
-        dynamic_cast<vil_image_memory*>(memory.get()) )
+  const vital::image_pixel_traits& pt = img.pixel_traits();
+  switch (pt.num_bytes)
   {
-    // extract the existing vil_memory_chunk from the VITAL wrapper
-    chunk = vil_memory->memory_chunk();
-  }
-  else
-  {
-    // create a vil wrapper around the VITAL memory
-    chunk = new image_memory_chunk(memory);
-  }
+    case 1:
+      switch (pt.type)
+      {
+        case vital::image_pixel_traits::BOOL:
+          return make_vil_image_view<bool>(img);
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_byte>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_sbyte>(img);
+        default:
+          break;
+      }
 
-  return vil_image_view<vxl_byte>(chunk, img.first_pixel(),
-                                  static_cast<unsigned int>(img.width()),
-                                  static_cast<unsigned int>(img.height()),
-                                  static_cast<unsigned int>(img.depth()),
-                                  img.w_step(), img.h_step(), img.d_step());
+    case 2:
+      switch (pt.type)
+      {
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_uint_16>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_int_16>(img);
+        default:
+          break;
+      }
+
+    case 4:
+      switch (pt.type)
+      {
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_uint_32>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_int_32>(img);
+        case vital::image_pixel_traits::FLOAT:
+          return make_vil_image_view<float>(img);
+        default:
+          break;
+      }
+
+    case 8:
+      switch (pt.type)
+      {
+#if VXL_HAS_INT_64
+        case vital::image_pixel_traits::UNSIGNED:
+          return make_vil_image_view<vxl_uint_64>(img);
+        case vital::image_pixel_traits::SIGNED:
+          return make_vil_image_view<vxl_int_64>(img);
+#endif
+        case vital::image_pixel_traits::FLOAT:
+          return make_vil_image_view<double>(img);
+        default:
+          break;
+      }
+  }
+  throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_container::vital_to_vxl(const image&)");
+  return vil_image_view_base_sptr();
 }
 
 } // end namespace vxl

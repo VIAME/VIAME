@@ -43,7 +43,6 @@
 namespace kwiver {
 namespace vital {
 
-
 // ------------------------------------------------------------------
 /// Generic image exception
 class VITAL_EXPORT image_exception
@@ -54,6 +53,28 @@ public:
   image_exception() VITAL_NOTHROW;
   /// Destructor
   virtual ~image_exception() VITAL_NOTHROW;
+};
+
+
+// ------------------------------------------------------------------
+/// Exception for image type mismatch
+/**
+ * For when image type equality must be asserted.
+ */
+class VITAL_EXPORT image_type_mismatch_exception
+  : public image_exception
+{
+public:
+  /// Constructor
+  /**
+   * \param message     Description of circumstances surrounding error.
+   */
+  image_type_mismatch_exception(std::string message) VITAL_NOTHROW;
+  /// Destructor
+  virtual ~image_type_mismatch_exception() VITAL_NOTHROW;
+
+  /// Given error message string
+  std::string m_message;
 };
 
 

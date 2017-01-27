@@ -89,15 +89,13 @@ class CameraIntrinsics (VitalObject):
         ]
         ci_new.restype = self.C_TYPE_PTR
         # Make "vectors"
-        pp = EigenArray(2)
-        pp.T[:] = principle_point
+        pp = EigenArray.from_iterable(principle_point, target_shape=(2, 1))
         dc = EigenArray(len(dist_coeffs), dynamic_rows=True)
         if len(dist_coeffs):
             dc.T[:] = dist_coeffs
 
         with VitalErrorHandle() as eh:
-            return ci_new(focal_length, pp, aspect_ratio, skew, dc,
-                                    eh)
+            return ci_new(focal_length, pp, aspect_ratio, skew, dc, eh)
 
     def _destroy(self):
         ci_dtor = self.VITAL_LIB['vital_camera_intrinsics_destroy']

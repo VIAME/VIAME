@@ -214,6 +214,27 @@ vital_camera_intrinsics( vital_camera_t const *cam, vital_error_handle_t *eh )
 }
 
 
+/// Create a clone of this camera that is rotated to look at the given point
+vital_camera_t*
+vital_camera_clone_look_at( vital_camera_t const *cam,
+                            vital_eigen_matrix3x1d_t const *stare_point,
+                            vital_eigen_matrix3x1d_t const *up_direction,
+                            vital_error_handle_t *eh )
+{
+  typedef Eigen::Matrix<double, 3, 1> matrix_t;
+  STANDARD_CATCH(
+    "vital_camera_clone_look_at", eh,
+    auto cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
+    REINTERP_TYPE( matrix_t const, stare_point, sp_ptr );
+    REINTERP_TYPE( matrix_t const, up_direction, ud_ptr );
+    auto cam_la = cam_sptr->clone_look_at( *sp_ptr, *ud_ptr );
+    vital_c::CAMERA_SPTR_CACHE.store( cam_la );
+    return reinterpret_cast< vital_camera_t* >( cam_la.get() );
+  );
+  return NULL;
+}
+
+
 /// Convert camera to a 3x4 homogeneous projection matrix
 vital_eigen_matrix3x4d_t*
 vital_camera_as_matrix( vital_camera_t const *cam, vital_error_handle_t *eh )

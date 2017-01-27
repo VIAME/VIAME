@@ -87,6 +87,9 @@ public:
              vital::landmark_map_sptr& landmarks,
              vital::track_set_sptr tracks) const;
 
+  /// Set a callback function to report intermediate progress
+  virtual void set_callback(callback_t cb);
+
 private:
   /// private implementation class
   class priv;

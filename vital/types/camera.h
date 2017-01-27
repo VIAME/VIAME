@@ -88,6 +88,15 @@ public:
   /// Accessor for the intrinsics
   virtual camera_intrinsics_sptr intrinsics() const = 0;
 
+  /// Create a clone of this camera that is rotated to look at the given point
+  /**
+   * \param stare_point the location at which the camera is oriented to point
+   * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
+   * \returns New clone, but set to look at the given point.
+   */
+  virtual camera_sptr clone_look_at( const vector_3d &stare_point,
+                                     const vector_3d &up_direction = vector_3d::UnitZ() ) const = 0;
+
   /// Convert to a 3x4 homogeneous projection matrix
   /**
    *  \note This matrix representation does not account for lens distortion
@@ -189,6 +198,17 @@ public:
   virtual camera_intrinsics_sptr intrinsics() const
   { return intrinsics_; }
 
+  /// Create a clone of this camera that is rotated to look at the given point
+  /**
+   * This implementation creates a clone and call look_at on it.
+   *
+   * \param stare_point the location at which the camera is oriented to point
+   * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
+   * \returns New clone, but set to look at the given point.
+   */
+  virtual camera_sptr clone_look_at( const vector_3d &stare_point,
+                                     const vector_3d &up_direction ) const;
+
   /// Accessor for the camera center of projection using underlying data type
   const vector_3d& get_center() const { return center_; }
 
@@ -228,11 +248,12 @@ public:
   /**
    * The camera should also be rotated about its principal axis such that
    * the vertical image direction is closest to \c up_direction in the world.
-   * \param [in] stare_point the location at which the camera is oriented to point
-   * \param [in] up_direction the vector which is "up" in the world (defaults to Z-axis)
+   *
+   * \param stare_point the location at which the camera is oriented to point
+   * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    */
-  void look_at( const vector_3d& stare_point,
-                const vector_3d& up_direction = vector_3d::UnitZ() );
+  void look_at( const vector_3d &stare_point,
+                const vector_3d &up_direction = vector_3d::UnitZ() );
 
 protected:
   /// The camera center of project

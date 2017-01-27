@@ -52,13 +52,129 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
+namespace
+{
+
+/// Helper function to convert images based on configuration
+template <typename inP, typename outP>
+void
+convert_image_helper(const vil_image_view<inP>& src,
+                     vil_image_view<outP>& dest,
+                     bool force_byte, bool auto_stretch,
+                     bool manual_stretch, vector_2d intensity_range)
+{
+  vil_image_view<double> temp;
+  // The maximum value is extended by almost one such that dest_maxv still truncates
+  // to the outP maximimum value after casting.  The purpose for this is to more evenly
+  // distribute the values across the dynamic range.
+  const double almost_one = 1 - 1e-6;
+  double dest_minv = static_cast<double>(std::numeric_limits<outP>::min());
+  double dest_maxv = static_cast<double>(std::numeric_limits<outP>::max()) + almost_one;
+  if( !std::numeric_limits<outP>::is_integer )
+  {
+    dest_minv = outP(0);
+    dest_maxv = outP(1);
+  }
+  if( auto_stretch )
+  {
+    vil_convert_stretch_range(src, temp, dest_minv, dest_maxv);
+    vil_convert_cast(temp, dest);
+  }
+  else if( manual_stretch )
+  {
+    inP minv = static_cast<inP>(intensity_range[0]);
+    inP maxv = static_cast<inP>(intensity_range[1]);
+    vil_convert_stretch_range_limited(src, temp, minv, maxv, dest_minv, dest_maxv);
+    vil_convert_cast(temp, dest);
+  }
+  else
+  {
+    vil_convert_cast(src, dest);
+  }
+}
+
+
+/// Helper function to convert images based on configuration - specialized for byte output
+template <typename inP>
+void
+convert_image_helper(const vil_image_view<inP>& src,
+                     vil_image_view<vxl_byte>& dest,
+                     bool force_byte, bool auto_stretch,
+                     bool manual_stretch, vector_2d intensity_range)
+{
+  if( auto_stretch )
+  {
+    vil_convert_stretch_range(src, dest);
+  }
+  else if( manual_stretch )
+  {
+    inP minv = static_cast<inP>(intensity_range[0]);
+    inP maxv = static_cast<inP>(intensity_range[1]);
+    vil_convert_stretch_range_limited(src, dest, minv, maxv);
+  }
+  else
+  {
+    vil_convert_cast(src, dest);
+  }
+}
+
+
+/// Helper function to convert images based on configuration - specialization for bool
+template <typename outP>
+void
+convert_image_helper(const vil_image_view<bool>& src,
+                     vil_image_view<outP>& dest,
+                     bool force_byte, bool auto_stretch,
+                     bool manual_stretch, vector_2d intensity_range)
+{
+  // special case for bool because manual stretching limits do not
+  // make sense and trigger compiler warnings on some platforms.
+  if( auto_stretch || manual_stretch )
+  {
+    vil_convert_stretch_range(src, dest);
+  }
+  else
+  {
+    vil_convert_cast(src, dest);
+  }
+}
+
+
+/// Helper function to convert images based on configuration - resolve specialization ambiguity
+void
+convert_image_helper(const vil_image_view<bool>& src,
+                     vil_image_view<vxl_byte>& dest,
+                     bool force_byte, bool auto_stretch,
+                     bool manual_stretch, vector_2d intensity_range)
+{
+  convert_image_helper<vxl_byte>(src, dest, force_byte, auto_stretch, manual_stretch, intensity_range);
+}
+
+
+/// Helper function to convert images based on configuration - specialization for bool/bool
+void
+convert_image_helper(const vil_image_view<bool>& src,
+                     vil_image_view<bool>& dest,
+                     bool force_byte, bool auto_stretch,
+                     bool manual_stretch, vector_2d intensity_range)
+{
+  // special case for bool because stretch does not make sense for bool to bool conversion
+  dest = src;
+}
+
+
+}
+
+
+
 /// Private implementation class
 class image_io::priv
 {
 public:
   /// Constructor
   priv()
-  : auto_stretch(false),
+  : force_byte(false),
+    auto_stretch(false),
     manual_stretch(false),
     intensity_range(0, 255),
     m_logger( vital::get_logger( "arrows.vxl.image_io" ) )
@@ -66,19 +182,33 @@ public:
   }
 
   priv(const priv& other)
-  : auto_stretch(other.auto_stretch),
+  : force_byte(other.force_byte),
+    auto_stretch(other.auto_stretch),
     manual_stretch(other.manual_stretch),
     intensity_range(other.intensity_range),
     m_logger(other.m_logger)
   {
   }
 
+  template <typename inP, typename outP>
+  void convert_image(const vil_image_view<inP>& src,
+                     vil_image_view<outP>& dest)
+  {
+    convert_image_helper(src, dest,
+                         this->force_byte,
+                         this->auto_stretch,
+                         this->manual_stretch,
+                         this->intensity_range);
+  }
+
+  bool force_byte;
   bool auto_stretch;
   bool manual_stretch;
   vector_2d intensity_range;
 
   vital::logger_handle_t m_logger;
 };
+
 
 
 /// Constructor
@@ -113,11 +243,22 @@ image_io
   // get base config from base class
   vital::config_block_sptr config = vital::algo::image_io::get_configuration();
 
+  config->set_value("force_byte", d_->force_byte,
+                    "When loading, convert the loaded data into a byte "
+                    "(unsigned char) image regardless of the source data type. "
+                    "Stretch the dynamic range according to the stretch options "
+                    "before converting. When saving, convert to a byte image "
+                    "before writing out the image");
+
   config->set_value("auto_stretch", d_->auto_stretch,
                     "Dynamically stretch the range of the input data such that "
                     "the minimum and maximum pixel values in the data map to "
-                    "0 and 255 in the byte image.  Warning, this can result in "
-                    "brightness and constrast varying between images.");
+                    "the minimum and maximum support values for that pixel "
+                    "type, or 0.0 and 1.0 for floating point types.  If using "
+                    "the force_byte option value map between 0 and 255. "
+                    "Warning, this can result in brightness and constrast "
+                    "varying between images.");
+
   config->set_value("manual_stretch", d_->manual_stretch,
                     "Manually stretch the range of the input data by "
                     "specifying the minimum and maximum values of the data "
@@ -143,6 +284,8 @@ image_io
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
+  d_->force_byte = config->get_value<bool>("force_byte",
+                                           d_->force_byte);
   d_->auto_stretch = config->get_value<bool>("auto_stretch",
                                               d_->auto_stretch);
   d_->manual_stretch = config->get_value<bool>("manual_stretch",
@@ -189,47 +332,30 @@ image_io
   LOG_DEBUG( d_->m_logger, "Loading image from file: " << filename );
 
   vil_image_resource_sptr img_rsc = vil_load_image_resource(filename.c_str());
-  vil_image_view<vxl_byte> img;
 
 #define DO_CASE(T)                                                     \
   case T:                                                              \
     {                                                                  \
       typedef vil_pixel_format_type_of<T >::component_type pix_t;      \
       vil_image_view<pix_t> img_pix_t = img_rsc->get_view();           \
-      if( d_->auto_stretch )                                           \
+      if( d_->force_byte )                                             \
       {                                                                \
-        vil_convert_stretch_range(img_pix_t, img);                     \
-      }                                                                \
-      else if( d_->manual_stretch )                                    \
-      {                                                                \
-        pix_t minv = static_cast<pix_t>(d_->intensity_range[0]);       \
-        pix_t maxv = static_cast<pix_t>(d_->intensity_range[1]);       \
-        vil_convert_stretch_range_limited(img_pix_t, img, minv, maxv); \
+        vil_image_view<vxl_byte> img;                                  \
+        d_->convert_image(img_pix_t, img);                             \
+        return image_container_sptr(new vxl::image_container(img));    \
       }                                                                \
       else                                                             \
       {                                                                \
-        vil_convert_cast(img_pix_t, img);                              \
+        vil_image_view<pix_t> img;                                     \
+        d_->convert_image(img_pix_t, img);                             \
+        return image_container_sptr(new vxl::image_container(img));    \
       }                                                                \
     }                                                                  \
     break;                                                             \
 
   switch (img_rsc->pixel_format())
   {
-    // special case for bool because manual stretching limits do not
-    // make sense and trigger compiler warnings on some platforms.
-    case VIL_PIXEL_FORMAT_BOOL:
-      {
-        vil_image_view<bool> img_bool = img_rsc->get_view();
-        if( d_->auto_stretch || d_->manual_stretch )
-        {
-          vil_convert_stretch_range(img_bool, img);
-        }
-        else
-        {
-          vil_convert_cast(img_bool, img);
-        }
-      }
-      break;
+    DO_CASE(VIL_PIXEL_FORMAT_BOOL);
     DO_CASE(VIL_PIXEL_FORMAT_BYTE);
     DO_CASE(VIL_PIXEL_FORMAT_SBYTE);
     DO_CASE(VIL_PIXEL_FORMAT_UINT_16);
@@ -240,27 +366,31 @@ image_io
     DO_CASE(VIL_PIXEL_FORMAT_INT_64);
     DO_CASE(VIL_PIXEL_FORMAT_FLOAT);
     DO_CASE(VIL_PIXEL_FORMAT_DOUBLE);
+#undef DO_CASE
 
   default:
     if( d_->auto_stretch )
     {
       // automatically stretch to fill the byte range using the
       // minimum and maximum pixel values
+      vil_image_view<vxl_byte> img;
       img = vil_convert_stretch_range(vxl_byte(), img_rsc->get_view());
+      return image_container_sptr(new vxl::image_container(img));
     }
     else if( d_->manual_stretch )
     {
       LOG_ERROR( d_->m_logger, "Unable to manually stretch pixel type: "
                 << img_rsc->pixel_format());
-      throw image_exception();
+      throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_io::load_()");
     }
     else
     {
+      vil_image_view<vxl_byte> img;
       img = vil_convert_cast(vxl_byte(), img_rsc->get_view());
+      return image_container_sptr(new vxl::image_container(img));
     }
   }
-#undef DO_CASE
-  return image_container_sptr(new vxl::image_container(img));
+  return image_container_sptr();
 }
 
 
@@ -270,8 +400,70 @@ image_io
 ::save_(const std::string& filename,
        image_container_sptr data) const
 {
-  vil_save(vxl::image_container::vital_to_vxl(data->get_image()),
-           filename.c_str());
+  vil_image_view_base_sptr view =
+    vxl::image_container::vital_to_vxl(data->get_image());
+
+#define DO_CASE(T)                                                     \
+  case T:                                                              \
+    {                                                                  \
+      typedef vil_pixel_format_type_of<T >::component_type pix_t;      \
+      vil_image_view<pix_t> img_pix_t = view;                          \
+      if( d_->force_byte )                                             \
+      {                                                                \
+        vil_image_view<vxl_byte> img;                                  \
+        d_->convert_image(img_pix_t, img);                             \
+        vil_save(img, filename.c_str());                               \
+        return;                                                        \
+      }                                                                \
+      else                                                             \
+      {                                                                \
+        vil_image_view<pix_t> img;                                     \
+        d_->convert_image(img_pix_t, img);                             \
+        vil_save(img, filename.c_str());                               \
+        return;                                                        \
+      }                                                                \
+    }                                                                  \
+    break;                                                             \
+
+  switch (view->pixel_format())
+  {
+    DO_CASE(VIL_PIXEL_FORMAT_BOOL);
+    DO_CASE(VIL_PIXEL_FORMAT_BYTE);
+    DO_CASE(VIL_PIXEL_FORMAT_SBYTE);
+    DO_CASE(VIL_PIXEL_FORMAT_UINT_16);
+    DO_CASE(VIL_PIXEL_FORMAT_INT_16);
+    DO_CASE(VIL_PIXEL_FORMAT_UINT_32);
+    DO_CASE(VIL_PIXEL_FORMAT_INT_32);
+    DO_CASE(VIL_PIXEL_FORMAT_UINT_64);
+    DO_CASE(VIL_PIXEL_FORMAT_INT_64);
+    DO_CASE(VIL_PIXEL_FORMAT_FLOAT);
+    DO_CASE(VIL_PIXEL_FORMAT_DOUBLE);
+#undef DO_CASE
+
+  default:
+    if( d_->auto_stretch )
+    {
+      // automatically stretch to fill the byte range using the
+      // minimum and maximum pixel values
+      vil_image_view<vxl_byte> img;
+      img = vil_convert_stretch_range(vxl_byte(), view);
+      vil_save(img, filename.c_str());
+      return;
+    }
+    else if( d_->manual_stretch )
+    {
+      LOG_ERROR( d_->m_logger, "Unable to manually stretch pixel type: "
+                << view->pixel_format());
+      throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_io::save_()");
+    }
+    else
+    {
+      vil_image_view<vxl_byte> img;
+      img = vil_convert_cast(vxl_byte(), view);
+      vil_save(img, filename.c_str());
+      return;
+    }
+  }
 }
 
 } // end namespace vxl

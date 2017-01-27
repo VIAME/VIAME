@@ -51,9 +51,8 @@ kwiver_add_executable( config_explorer
   )
 
 target_link_libraries( config_explorer
-  PRIVATE      vital
-               vital_apm
-               vital_config
-               vital_logger
-               kwiversys
+  PRIVATE     vital
+              vital_config
+              vital_logger
+              kwiversys
   )

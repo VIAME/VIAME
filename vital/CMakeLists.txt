@@ -153,7 +153,6 @@ set( vital_public_headers
   types/vector.h
   types/uuid.h
 
-
 )
 
 # ----------------------

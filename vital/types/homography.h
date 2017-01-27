@@ -69,6 +69,9 @@ public:
   /// Destructor
   virtual ~homography() VITAL_DEFAULT_DTOR
 
+  /// Access the type info of the underlying data
+  virtual std::type_info const& data_type() const = 0;
+
   /// Create a clone of this homography object, returning as smart pointer
   /**
    * \return A new deep clone of this homography transformation.
@@ -101,7 +104,6 @@ public:
 
   /// Map a 2D double-type point using this homography
   /**
-   * \tparam T Point vector data type
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
@@ -157,6 +159,9 @@ public:
 
   // ---- Abstract method definitions ----
 
+  /// Access the type info of the underlying data
+  virtual std::type_info const& data_type() const { return typeid( T ); }
+
   /// Create a clone of ourself as a shared pointer
   /**
    * \return A new clone of this homography transformation.
@@ -190,7 +195,6 @@ public:
 
   /// Map a 2D double-type point using this homography
   /**
-   * \tparam T Point vector data type
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
@@ -218,11 +222,12 @@ public:
 
   /// Custom multiplication operator that multiplies the underlying matrices
   /**
+   * \tparam T Homography data type
    * \param rhs Right-hand-side operand homography.
    * \return New homography object whose transform is the result of
    *         \p this * \p rhs.
    */
-  virtual homography_< T > operator*( homography_< T > const& rhs );
+  virtual homography_< T > operator*( homography_< T > const& rhs ) const;
 
 
 protected:

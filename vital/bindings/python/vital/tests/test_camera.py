@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Camera interface class.
 
 """
+import ctypes
 import math
 import unittest
 
@@ -182,3 +183,39 @@ class TestVitalCamera (unittest.TestCase):
         print "Custom camera string:\n%s" % cam_s
         print "Custom newcam string:\n%s" % cam2.as_string()
         nose.tools.assert_equal(cam, cam2)
+
+    def test_clone_look_at(self):
+        pp = EigenArray.from_iterable([300, 400])
+        k = CameraIntrinsics(1000, pp)
+        focus = EigenArray.from_iterable([0, 1, -2])
+
+        base = Camera([3, -4, 7], Rotation(), k)
+        cam = base.clone_look_at(focus)
+        nose.tools.assert_not_equal(base, cam)
+
+        ifocus = cam.project(focus)
+        nose.tools.assert_almost_equal(numpy.linalg.norm(ifocus - pp, 2),
+                                       0., 12)
+
+        ifocus_up = cam.project(focus + EigenArray.from_iterable([0, 0, 2]))
+        tmp = ifocus_up - pp
+        nose.tools.assert_almost_equal(tmp[0], 0., 12)
+        nose.tools.assert_true(tmp[1] < 0.)
+
+    def test_clone(self):
+        # clone should have the same values as original but be a different
+        # memory address.
+        R = Rotation()
+        K = CameraIntrinsics(1000, (640, 480))
+
+        c1 = Camera((0, 3, 5), R, K)
+        c2 = c1.clone()
+
+        # Different mem address
+        nose.tools.assert_not_equal(
+            ctypes.addressof(c1.c_pointer.contents),
+            ctypes.addressof(c2.c_pointer.contents)
+        )
+        numpy.testing.assert_equal(c1.center, c2.center)
+        nose.tools.assert_equal(c1.rotation, c2.rotation)
+        nose.tools.assert_equal(c1.intrinsics, c2.intrinsics)

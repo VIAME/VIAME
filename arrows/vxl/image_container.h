@@ -59,8 +59,11 @@ class KWIVER_ALGO_VXL_EXPORT image_container
 {
 public:
 
-  /// Constructor - from a vil_image_view
-  explicit image_container(const vil_image_view<vxl_byte>& d)
+  /// Constructor - from a vil_image_view_base
+  explicit image_container(const vil_image_view_base& d);
+
+  /// Constructor - from a vil_image_view_base_sptr
+  explicit image_container(const vil_image_view_base_sptr d)
   : data_(d) {}
 
   /// Constructor - convert vital image to vil
@@ -82,29 +85,29 @@ public:
   virtual size_t size() const;
 
   /// The width of the image in pixels
-  virtual size_t width() const { return data_.ni(); }
+  virtual size_t width() const { return data_->ni(); }
 
   /// The height of the image in pixels
-  virtual size_t height() const { return data_.nj(); }
+  virtual size_t height() const { return data_->nj(); }
 
   /// The depth (or number of channels) of the image
-  virtual size_t depth() const { return data_.nplanes(); }
+  virtual size_t depth() const { return data_->nplanes(); }
 
   /// Get an in-memory image class to access the data
-  virtual vital::image get_image() const { return vxl_to_vital(data_); }
+  virtual vital::image get_image() const { return vxl_to_vital(*data_); }
 
   /// Get image data in this container.
-  vil_image_view<vxl_byte> get_vil_image_view() const { return data_; }
+  vil_image_view_base_sptr get_vil_image_view() const { return data_; }
 
   /// Convert a VXL vil_image_view to a VITAL image
-  static vital::image vxl_to_vital(const vil_image_view<vxl_byte>& img);
+  static vital::image vxl_to_vital(const vil_image_view_base& img);
 
   /// Convert a VITAL image to a VXL vil_image_view
-  static vil_image_view<vxl_byte> vital_to_vxl(const vital::image& img);
+  static vil_image_view_base_sptr vital_to_vxl(const vital::image& img);
 
 protected:
   /// image data
-  vil_image_view<vxl_byte> data_;
+  vil_image_view_base_sptr data_;
 };
 
 

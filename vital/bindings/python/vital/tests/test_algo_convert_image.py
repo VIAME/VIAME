@@ -58,10 +58,6 @@ class TestVitalAlgoConvertImage (object):
     is an algorithm with a core implementation.
     """
 
-    @classmethod
-    def setup_class(cls):
-        apm.register_plugins()
-
     def test_from_c_ptr_null(self):
         ci = ConvertImage(
             name='ci',
