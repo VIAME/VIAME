@@ -84,7 +84,7 @@ class Camera (VitalObject):
         Create a new camera instance.
 
         :param center: Optional center to initialize to. Default is (0, 0, 0).
-        :type center: EigenArray
+        :type center: EigenArray |
 
         :param rotation: Optional rotation to initialize to. Otherwise the
             identity rotation is used.
@@ -135,6 +135,32 @@ class Camera (VitalObject):
 
             with VitalErrorHandle() as eh:
                 cam_del(self, eh)
+
+    def __eq__(self, other):
+        if isinstance(other, Camera):
+            return (
+                numpy.allclose(self.center, other.center) and
+                numpy.allclose(self.translation, other.translation) and
+                self.covariance == other.covariance and
+                self.rotation == other.rotation and
+                self.intrinsics == other.intrinsics
+            )
+        return False
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def clone(self):
+        """
+        :return: Return a new instance that is the clone of this one.
+        :rtype: Camera
+        """
+        cptr = self._call_cfunc(
+            'vital_camera_clone',
+            [self.C_TYPE_PTR], [self],
+            self.C_TYPE_PTR
+        )
+        return Camera(from_cptr=cptr)
 
     @property
     def center(self):
@@ -200,20 +226,6 @@ class Camera (VitalObject):
         with VitalErrorHandle() as eh:
             c_ptr = cam_int(self, eh)
         return CameraIntrinsics(from_cptr=c_ptr)
-
-    def __eq__(self, other):
-        if isinstance(other, Camera):
-            return (
-                numpy.allclose(self.center, other.center) and
-                numpy.allclose(self.translation, other.translation) and
-                self.covariance == other.covariance and
-                self.rotation == other.rotation and
-                self.intrinsics == other.intrinsics
-            )
-        return False
-
-    def __ne__(self, other):
-        return not (self == other)
 
     def as_matrix(self):
         """
@@ -305,3 +317,35 @@ class Camera (VitalObject):
         cam_depth.restype = ctypes.c_double
         with VitalErrorHandle() as eh:
             return cam_depth(self, point, eh)
+
+    def clone_look_at(self, stare_point, up_direction=(0, 0, 1)):
+        """
+        Create a clone of this camera that is rotated to look at the given point
+
+        The camera should also be rotated about its principal axis such that
+        the vertical image direction is closest to \c up_direction in the world.
+
+        :param stare_point: the location at which the camera is oriented to
+            point
+        :type stare_point: collections.Iterable | numpy.ndarray | EigenArray
+
+        :param up_direction: the vector which is "up" in the world (defaults to
+            Z-axis)
+        :type up_direction: collections.Iterable | numpy.ndarray | EigenArray
+
+        :return: New camera instance that is the clone of the one given, but set
+            to look at the given point.
+        :rtype: Camera
+
+        """
+        stare_point = EigenArray.from_iterable(stare_point, target_shape=(3, 1))
+        up_direction = EigenArray.from_iterable(up_direction,
+                                                target_shape=(3, 1))
+        cptr = self._call_cfunc(
+            'vital_camera_clone_look_at',
+            [self.C_TYPE_PTR, EigenArray.c_ptr_type(3),
+             EigenArray.c_ptr_type(3)],
+            [self, stare_point, up_direction],
+            self.C_TYPE_PTR
+        )
+        return Camera(from_cptr=cptr)

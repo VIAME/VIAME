@@ -176,7 +176,6 @@ klv_0104::klv_0104()
   m_key_to_tag[klv_uds_key( 0x060e2b3401010101UL, 0x0701100102000000UL )] = ANGLE_TO_NORTH;
   m_key_to_tag[klv_uds_key( 0x060e2b3401010101UL, 0x0701100103000000UL )] = OBLIQUITY_ANGLE;
 
-
   //UNKNOWN is the last entry of the enum and thus the number of tags
   m_traitsvec.resize( UNKNOWN );
 

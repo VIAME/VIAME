@@ -47,3 +47,8 @@ class VitalConfigBlockException (VitalBaseException):
 class VitalConfigBlockNoSuchValueException (VitalConfigBlockException):
     """ For when a value is value is requested but does not exist """
     pass
+
+
+class VitalConfigBlockReadOnlyException (VitalConfigBlockException):
+    """ For when a value is set but is marked as read-only """
+    pass

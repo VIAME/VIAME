@@ -46,9 +46,9 @@ namespace vital_c {
 
 /// Cache for saving shared pointer references for pointers in use
 extern
-SharedPointerCache< vital::track, vital_track_t >
-  TRACK_SPTR_CACHE;
+SharedPointerCache< vital::track, vital_track_t > TRACK_SPTR_CACHE;
 
-} }
+}
+}
 
 #endif // VITAL_C_HELPERS_TRACK_H_

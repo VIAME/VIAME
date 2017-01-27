@@ -70,6 +70,9 @@ public:
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const = 0;
 
+  /// Access the type info of the underlying data (double or float)
+  virtual std::type_info const& data_type() const = 0;
+
   /// Accessor for the world coordinates
   virtual vector_3d loc() const = 0;
   /// Accessor for the landmark scale
@@ -116,7 +119,9 @@ public:
   { return landmark_sptr( new landmark_< T > ( *this ) ); }
 
   /// Access statically available type of underlying data (double or float)
-  static std::type_info const& data_type() { return typeid( T ); }
+  static std::type_info const& static_data_type() { return typeid( T ); }
+
+  virtual std::type_info const& data_type() const { return typeid(T); }
 
   /// Accessor for the world coordinates using underlying data type
   Eigen::Matrix< T, 3, 1 > const& get_loc() const { return loc_; }

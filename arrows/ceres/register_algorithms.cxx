@@ -38,6 +38,7 @@
 
 #include <arrows/algorithm_plugin_interface_macros.h>
 #include <arrows/ceres/bundle_adjust.h>
+#include <arrows/ceres/optimize_cameras.h>
 
 
 namespace kwiver {
@@ -50,6 +51,7 @@ int register_algorithms( vital::registrar &reg )
   REGISTRATION_INIT( reg );
 
   REGISTER_TYPE( ceres::bundle_adjust );
+  REGISTER_TYPE( ceres::optimize_cameras );
 
   REGISTRATION_SUMMARY();
   return REGISTRATION_FAILURES();

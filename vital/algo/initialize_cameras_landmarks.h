@@ -44,6 +44,7 @@
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 
+#include <functional>
 
 namespace kwiver {
 namespace vital {
@@ -72,9 +73,18 @@ public:
              kwiver::vital::landmark_map_sptr& landmarks,
              kwiver::vital::track_set_sptr tracks) const = 0;
 
+  /// Typedef for the callback function signature
+  typedef std::function<bool(kwiver::vital::camera_map_sptr,
+                             kwiver::vital::landmark_map_sptr)> callback_t;
+
+  /// Set a callback function to report intermediate progress
+  virtual void set_callback(callback_t cb);
+
 protected:
   initialize_cameras_landmarks();
 
+  /// The callback function
+  callback_t m_callback;
 };
 
 

@@ -131,7 +131,10 @@ def find_vital_library_path(use_cache=True):
     # Otherwise, find the Vital C library
     search_dirs = [os.path.dirname(os.path.abspath(__file__))]
     # NOTE this is not cover all possible systems
-    search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
+    if 'LD_LIBRARY_PATH' in os.environ:
+        search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
+    if 'DYLD_LIBRARY_PATH' in os.environ:
+        search_dirs.extend(os.environ['DYLD_LIBRARY_PATH'].split(_system_path_separator()))
 
     for d in search_dirs:
         r = _search_up_directory(d, __LIBRARY_NAME_RE__)

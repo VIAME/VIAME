@@ -64,18 +64,19 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
  * some other purpose, it should be copied/duplicated before re-using an error
  * handle.
  */
-#define POPULATE_EH(eh_ptr, ec, msg)                                    \
-  do                                                                    \
-  {                                                                     \
-    vital_error_handle_t *PEH_eh_ptr_cast =                             \
-      reinterpret_cast<vital_error_handle_t*>(eh_ptr);                  \
-    if( PEH_eh_ptr_cast != NULL )                                       \
-    {                                                                   \
-      PEH_eh_ptr_cast->error_code = ec;                                 \
-      free(PEH_eh_ptr_cast->message); /* Does nothing if already null */ \
-      PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * (strlen(msg)+1)); \
-      strcpy(PEH_eh_ptr_cast->message, msg);                            \
-    }                                                                   \
+#define POPULATE_EH(eh_ptr, ec, msg)                                                \
+  do                                                                                \
+  {                                                                                 \
+    vital_error_handle_t *PEH_eh_ptr_cast =                                         \
+        reinterpret_cast<vital_error_handle_t*>(eh_ptr);                            \
+    if( PEH_eh_ptr_cast != NULL )                                                   \
+    {                                                                               \
+      PEH_eh_ptr_cast->error_code = ec;                                             \
+      free(PEH_eh_ptr_cast->message); /* Does nothing if already null */            \
+      /* +1 for null terminator */                                                  \
+      PEH_eh_ptr_cast->message = (char*)malloc(sizeof(char) * (strlen(msg) + 1) );  \
+      strcpy(PEH_eh_ptr_cast->message, msg);                                        \
+    }                                                                               \
   } while(0)
 
 
@@ -87,8 +88,8 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
  *
  * Assuming \c eh_ptr points to an initialized vital_error_handle_t instance.
  * An arbitrary catch sets a -1 error code and assigns to the message field
-   * the same thing that is printed to logging statement.
-   */
+ * the same thing that is printed to logging statement.
+ */
 #define STANDARD_CATCH(log_prefix, eh_ptr, code)                \
     do                                                          \
     {                                                           \
@@ -100,20 +101,17 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
       {                                                         \
         std::ostringstream ss;                                  \
         ss << "Caught exception in C interface: " << e.what();  \
-        LOG_DEBUG( m_logger,  log_prefix << ss.str() );         \
         POPULATE_EH( eh_ptr, -1, ss.str().c_str() );            \
       }                                                         \
       catch( char const* e )                                    \
       {                                                         \
         std::ostringstream ss;                                  \
         ss << "Caught error message: " << e;                    \
-        LOG_DEBUG( m_logger, log_prefix << ss.str() );          \
         POPULATE_EH( eh_ptr, -1, ss.str().c_str() );            \
       }                                                         \
       catch(...)                                                \
       {                                                         \
         std::string msg("Caught other exception");              \
-        LOG_DEBUG( m_logger, log_prefix << msg );               \
         POPULATE_EH( eh_ptr, -1, msg.c_str() );                 \
       }                                                         \
     } while( 0 )

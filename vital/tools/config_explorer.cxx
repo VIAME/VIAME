@@ -120,20 +120,20 @@ main( int argc, char* argv[] )
   arg.StoreUnusedArguments( true );
 
   arg.AddArgument( "-h",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
+  arg.AddArgument( "--help",    argT::NO_ARGUMENT, &opt_help, "Display usage information" );
 
   // details
-  arg.AddArgument( "-ds",            argT::NO_ARGUMENT, &opt_detail_ds, "Display detailed application search path" );
-  arg.AddArgument( "-dc",            argT::NO_ARGUMENT, &opt_detail_dc, "Display detailed config contents" );
+  arg.AddArgument( "-ds",       argT::NO_ARGUMENT, &opt_detail_ds, "Display detailed application search path" );
+  arg.AddArgument( "-dc",       argT::NO_ARGUMENT, &opt_detail_dc, "Display detailed config contents" );
 
   // manual search path
-  arg.AddCallback( "--path",        argT::SPACE_ARGUMENT, path_callback, 0, "Add directory to config search path" );
-  arg.AddCallback( "-I",            argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to config search path" );
+  arg.AddCallback( "--path",    argT::SPACE_ARGUMENT, path_callback, 0, "Add directory to config search path" );
+  arg.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to config search path" );
 
   // auto search path generation
-  arg.AddArgument( "-a",            argT::SPACE_ARGUMENT, &opt_app_name, "Application name" );
-  arg.AddArgument( "-v",            argT::SPACE_ARGUMENT, &opt_app_version, "Application version string" );
-  arg.AddArgument( "--prefix",      argT::SPACE_ARGUMENT, &opt_install_prefix,
+  arg.AddArgument( "-a",        argT::SPACE_ARGUMENT, &opt_app_name, "Application name" );
+  arg.AddArgument( "-v",        argT::SPACE_ARGUMENT, &opt_app_version, "Application version string" );
+  arg.AddArgument( "--prefix",  argT::SPACE_ARGUMENT, &opt_install_prefix,
                    "Non-standard installation prefix. (e.g. /opt/kitware)" );
 
   if ( ! arg.Parse() )
@@ -159,8 +159,8 @@ main( int argc, char* argv[] )
   {
     kwiver::vital::config_path_list_t search_path =
       kwiver::vital::application_config_file_paths( opt_app_name,
-                                        opt_app_version,
-                                        opt_install_prefix );
+                                                    opt_app_version,
+                                                    opt_install_prefix );
 
     std::cout << "Application specific configuration search paths for\n"
               << "       App name: " << opt_app_name << std::endl
