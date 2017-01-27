@@ -87,7 +87,7 @@ namespace kwiver
 class kw_archive_writer_process::priv
 {
 public:
-  priv();
+  priv(kw_archive_writer_process* parent);
   ~priv();
 
   void write_frame_data(vsl_b_ostream& stream,
@@ -104,6 +104,7 @@ public:
   static sprokit::process::port_t const port_corner_points;
   static sprokit::process::port_t const port_gsd;
 
+  kw_archive_writer_process* m_parent;
 
   // Configuration values
   std::string m_output_directory;
@@ -132,7 +133,7 @@ public:
 kw_archive_writer_process
 ::kw_archive_writer_process( kwiver::vital::config_block_sptr const& config )
   : process(config),
-    d( new kw_archive_writer_process::priv )
+    d( new kw_archive_writer_process::priv( this ) )
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
@@ -358,8 +359,16 @@ priv_t
   vxl_int_64 frame_num = static_cast< vxl_int_64 > ( time.get_frame() );
   vxl_int_64 ref_frame_num = static_cast< vxl_int_64 > ( s2r_homog.to_id() );
 
+  // Validate expected image type
+  auto trait = img.pixel_traits();
+  if ( trait.type != kwiver::vital::image_pixel_traits::UNSIGNED || trait.num_bytes != 1 )
+  {
+    LOG_ERROR( m_parent->logger(), "Input image type is not of unsigned char pixel type" );
+    return;
+  }
+
   // convert image in place
-  vil_image_view < vxl_byte > image( img.first_pixel(),
+  vil_image_view < vxl_byte > image( static_cast< const vxl_byte* >( img.first_pixel() ),
                                      img.width(), // n_i
                                      img.height(), // n_j
                                      img.depth(), // n_planes
@@ -427,13 +436,13 @@ priv_t
   vsl_b_write( stream, ref_frame_num );
   vsl_b_write( stream, static_cast< vxl_int_64 > ( image.ni() ) );
   vsl_b_write( stream, static_cast< vxl_int_64 > ( image.nj() ) );
-
 }
 
 // ================================================================
 kw_archive_writer_process::priv
-::priv()
-  : m_index_stream(0),
+::priv(kw_archive_writer_process* parent)
+  : m_parent( parent ),
+    m_index_stream(0),
     m_meta_stream(0),
     m_meta_bstream(0),
     m_data_stream(0),
