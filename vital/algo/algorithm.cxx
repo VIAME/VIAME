@@ -203,14 +203,14 @@ algorithm
     }
     else
     {
-      LOG_DEBUG( logger, "Could not find implementation \"" << iname
-                 << "\" for \"" << type_name <<"\"." );
+      LOG_WARN( logger, "Could not find implementation \"" << iname
+                << "\" for \"" << // TODO: ype_name <<"\"." );
     }
   }
   else
   {
-    LOG_DEBUG( logger, "Config item \"" << type_key
-               << "\" not found for \"" << type_name << "\"." );
+    LOG_WARN( logger, "Config item \"" << type_key
+              << "\" not found for \"" << type_name << "\"." );
   }
 }
 
