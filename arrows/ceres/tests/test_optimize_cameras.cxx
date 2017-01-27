@@ -217,7 +217,6 @@ IMPLEMENT_TEST(noisy_cameras)
   matrix_3x3d zero_mat = matrix_3x3d::Zero();
   ostringstream ss;
 
-  double ep = 2e-10;
   VITAL_FOREACH(camera_map::map_camera_t::value_type const& p,
                 working_cam_map->cameras())
   {
@@ -229,7 +228,7 @@ IMPLEMENT_TEST(noisy_cameras)
     //cerr << "frm[" << p.first << "]\t:: center delta     :: " << c_c << endl;
     ss.str("");
     ss << "frm[" << p.first << "] center delta check";
-    TEST_NEAR(ss.str(), c_c, zero_3d_vec, ep);
+    TEST_NEAR(ss.str(), c_c, zero_3d_vec, 1e-8);
 
     // difference in camera rotation
     rotation_d a_r = p.second->rotation(),
@@ -238,7 +237,7 @@ IMPLEMENT_TEST(noisy_cameras)
     //cerr << "frm[" << p.first << "]\t:: quaternion delta :: " << c_r << endl;
     ss.str("");
     ss << "frm[" << p.first << "] quaternion delta check";
-    TEST_NEAR(ss.str(), c_r, zero_3d_vec, ep);
+    TEST_NEAR(ss.str(), c_r, zero_3d_vec, 1e-8);
 
     // difference in camera intrinsics
     camera_intrinsics_sptr a_k = p.second->intrinsics(),
@@ -247,6 +246,6 @@ IMPLEMENT_TEST(noisy_cameras)
     //cerr << "frm[" << p.first << "]\t:: intrinsics delta :: " << c_k << endl;
     ss.str("");
     ss << "frm[" << p.first << "] intrinsics";
-    TEST_NEAR(ss.str(), c_k, zero_mat, 1e-6);
+    TEST_NEAR(ss.str(), c_k, zero_mat, 1e-5);
   }
 }
