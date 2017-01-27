@@ -73,6 +73,13 @@ Arrows - VXL
    to and from types other than uint8.  Range stretch now applies to save
    as well as load
 
+Arrows - Darknet
+
+ * Added image_object_detector implementation using darkent
+   implementation of you only look once (YOLO), state-of-the-art,
+   real-time object detection system.
+
+
 Vital
 
  * Generalized the vital::image class to store pixel types other than bytes.
@@ -114,6 +121,30 @@ Vital
    initialize_cameras_landmarks.  Callbacks allow the algorithms to report
    progress updates.  They also allow the receiver to terminate the algorithm
    early.
+
+ * Added deep copy support to detected object sets and contained
+   classes. These class are detected_object_Set, detected_object and
+   attribute_set.
+
+Sprokit
+
+ * Added sprokit port operations that have timeout. Allows process to
+   limit how long it will wait for data to be provided or
+   accepted. This option is available on a port by port basis based on
+   which method is used.
+
+ * Added non-blocking option for processes. This option causes data
+   supplied to input ports of a process to be dropped if the input
+   edge buffers are full. This operates on a per-process basis so that
+   all input edges have the same capacity, and when an edge is full,
+   all inputs are dropped.
+
+ * Modified embedded pipeline to handle applications where there are
+   source and/or sink processes in the pipeline. Initially, the
+   application had to handle sourcing and sinking the data through
+   adapter processes. The change makes the required input/output
+   adapter processes to be optional.
+
 
 Vital Bindings
 
