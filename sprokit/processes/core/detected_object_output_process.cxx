@@ -50,7 +50,8 @@ namespace kwiver {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "", "Name of the detection set file to write." );
-create_config_trait( writer, std::string , "", "Algorithm type to use as the writer." );
+create_config_trait( writer, std::string , "", "Block name for algorithm parameters. "
+                     "e.g. writer:type would be used to specify the algorithm type." );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -102,17 +103,19 @@ void detected_object_output_process
 
   // Get algo conrig entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+
+  // validate configuration
+  if ( ! algo::detected_object_set_output::check_nested_algo_configuration( "writer", algo_config ) )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+  }
+
+  // instantiate image reader and converter based on config type
   algo::detected_object_set_output::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
   if ( ! d->m_writer )
   {
     throw sprokit::invalid_configuration_exception( name(),
              "Unable to create writer." );
-  }
-
-  // instantiate image reader and converter based on config type
-  if ( ! algo::detected_object_set_output::check_nested_algo_configuration( "writer", algo_config ) )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 }
 
