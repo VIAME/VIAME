@@ -72,7 +72,7 @@ similarity_< T >
   // factor scale out of sr
   sr /= this->scale_;
   this->rot_ = rotation_< T > ( sr );
-  assert( ( Eigen::Matrix< T, 3, 3 > ( this->rot_ ) - sr ).norm() < 1e-4 );
+  assert( ( this->rot_.matrix() - sr ).norm() < 1e-4 );
   this->trans_ = M.template block< 3, 1 > ( 0, 3 );
 }
 
