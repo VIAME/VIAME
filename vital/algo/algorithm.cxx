@@ -204,7 +204,7 @@ algorithm
     else
     {
       LOG_WARN( logger, "Could not find implementation \"" << iname
-                << "\" for \"" << // TODO: ype_name <<"\"." );
+                << "\" for \"" << type_name << "\"." );
     }
   }
   else
