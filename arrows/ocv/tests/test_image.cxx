@@ -155,11 +155,11 @@ run_ocv_conversion_tests(const cv::Mat& img, const std::string& type_str)
   TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct pixel type",
              vimg.pixel_traits().type, image_pixel_traits_of<T>::static_type);
   TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct number of planes",
-             vimg.depth(), img.channels());
+             vimg.depth(), static_cast< size_t >(img.channels()));
   TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct width",
-             vimg.height(), img.rows);
+             vimg.height(), static_cast< size_t >(img.rows));
   TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the correct height",
-             vimg.width(), img.cols);
+             vimg.width(), static_cast< size_t >(img.cols));
   TEST_EQUAL("OpenCV image conversion of type "+type_str+" has the same memory",
              vimg.first_pixel() == img.data, true);
   bool equal_data = true;
@@ -222,11 +222,11 @@ run_vital_conversion_tests(const kwiver::vital::image_of<T>& img,
   TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct pixel format",
              ocv_img.type()%8, cv::Mat_<T>(1,1).type()%8);
   TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct number of planes",
-             ocv_img.channels(), img.depth());
+             static_cast< size_t >(ocv_img.channels()), img.depth());
   TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct width",
-             ocv_img.rows, img.height());
+             static_cast< size_t >(ocv_img.rows), img.height());
   TEST_EQUAL("Vital image conversion of type "+type_str+" has the correct height",
-             ocv_img.cols, img.width());
+             static_cast< size_t >(ocv_img.cols), img.width());
   if( !requires_copy )
   {
     TEST_EQUAL("Vital image conversion of type "+type_str+" has the same memory",
