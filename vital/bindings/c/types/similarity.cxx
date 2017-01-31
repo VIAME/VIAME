@@ -213,7 +213,7 @@ vital_similarity_##S##_to_matrix4x4( vital_similarity_##S##_t const *s, \
     "vital_similarity_" #S "", eh, \
     REINTERP_TYPE( vital::similarity_<T> const, s, s_ptr ); \
     return reinterpret_cast< vital_eigen_matrix4x4##S##_t* >( \
-      new matrix_t( *s_ptr ) \
+      new matrix_t( s_ptr->matrix() ) \
     ); \
   ); \
   return NULL; \

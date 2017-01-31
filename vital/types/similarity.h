@@ -90,7 +90,7 @@ public:
   explicit similarity_< T > ( const Eigen::Matrix< T, 4, 4 > &mat );
 
   /// Convert to a 4x4 matrix
-  operator Eigen::Matrix< T, 4, 4 > () const;
+  Eigen::Matrix< T, 4, 4 > matrix() const;
 
   /// Return scale factor
   const T& scale() const { return scale_; }

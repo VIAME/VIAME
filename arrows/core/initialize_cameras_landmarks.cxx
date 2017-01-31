@@ -273,9 +273,9 @@ initialize_cameras_landmarks::priv
   cam.set_intrinsics(cal_left);
 
   // compute the scale from existing landmark locations (if available)
-  matrix_3x3d prev_R(prev_cam->rotation());
+  matrix_3x3d prev_R(prev_cam->rotation().matrix());
   vector_3d prev_t = prev_cam->translation();
-  matrix_3x3d R = matrix_3x3d(cam.get_rotation());
+  matrix_3x3d R = cam.get_rotation().matrix();
   vector_3d t = cam.translation();
   std::vector<double> scales;
   scales.reserve(num_inliers);

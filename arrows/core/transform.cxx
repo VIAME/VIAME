@@ -74,8 +74,8 @@ vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
 {
   // TODO trasform covariance parameters directly
   // instead of converting to matrix form and back
-  Eigen::Matrix<T,3,3> C(covar);
-  Eigen::Matrix<T,3,3> sR(xform.rotation());
+  Eigen::Matrix<T,3,3> C(covar.matrix());
+  Eigen::Matrix<T,3,3> sR(xform.rotation().matrix());
   sR /= xform.scale();
   C = sR * C * sR.transpose();
   return vital::covariance_<3,T>(C);
@@ -198,7 +198,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
     // extract the camera center
     const vital::vector_3d cc = flipped->center();
     // extract the camera principal axis
-    vital::vector_3d pa = vital::matrix_3x3d(flipped->rotation()).row(2);
+    vital::vector_3d pa = flipped->rotation().matrix().row(2);
     // compute the distance from cc along pa until intersection with
     // the mirroring plane of the points
     const double dist = (lc - cc).dot(axis) / pa.dot(axis);

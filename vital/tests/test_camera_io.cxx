@@ -73,7 +73,7 @@ IMPLEMENT_TEST(KRTD_format_read)
   expected_rotation << 1, 0, 0,
                        0, 1, 0,
                        0, 0, 1;
-  Eigen::Matrix<double,3,3> R( read_camera->rotation() );
+  Eigen::Matrix<double,3,3> R( read_camera->rotation().matrix() );
   std::cerr << "Read in R: " << R << std::endl;
   TEST_EQUAL( "read camera rotation",
               R.isApprox( expected_rotation ), true );
