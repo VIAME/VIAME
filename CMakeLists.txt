@@ -115,6 +115,9 @@ include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
+# include vital third party private headers
+include_directories("${KWIVER_SOURCE_DIR}/vital/3rd_party")
+
 # kwiversys includes are generated in the binary directory
 include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
 
