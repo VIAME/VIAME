@@ -75,7 +75,6 @@ public:
    */
   interface_ref_t get_interface_queue();
 
-
   /**
    * @brief Get list of connected ports.
    *
