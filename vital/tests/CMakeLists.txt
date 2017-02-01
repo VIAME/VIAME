@@ -25,6 +25,7 @@ kwiver_discover_tests(core_vector             test_libraries test_vector.cxx)
 kwiver_discover_tests(core_bounding_box       test_libraries test_bounding_box.cxx)
 kwiver_discover_tests(core_vital_uuid         test_libraries test_uuid.cxx)
 kwiver_discover_tests(core_attribute_set      test_libraries test_attribute_set.cxx)
+kwiver_discover_tests(core_polygon            test_libraries test_polygon.cxx)
 
 ## kwiver_discover_tests(core_algo               test_libraries test_algo.cxx)
 
