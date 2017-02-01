@@ -4,7 +4,6 @@
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-
 kwiver_add_library( SMQTK_Descriptor
   SMQTK_Descriptor.h       SMQTK_Descriptor.cxx
   )

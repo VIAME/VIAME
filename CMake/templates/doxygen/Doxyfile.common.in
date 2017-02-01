@@ -36,6 +36,7 @@ MULTILINE_CPP_IS_BRIEF = NO
 INHERIT_DOCS           = YES
 SEPARATE_MEMBER_PAGES  = NO
 TAB_SIZE               = 8
+
 ALIASES                = tt{1}="<tt>\1</tt>"
 ALIASES               += port{1}="\tt{\1}"
 ALIASES               += key{1}="\tt{\1}"

@@ -57,7 +57,6 @@ namespace adapter {
  *
  * This class contains all common code to support the input and output
  * adapter classes. It is not designed to be polymorphic base class.
- *
  */
 class adapter_base
 {
