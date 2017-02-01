@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,21 @@ vital_trackset_new( size_t length, vital_track_t **tracks,
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
     return reinterpret_cast< vital_trackset_t* > ( ts_sptr.get() );
     );
+  return 0;
+}
+
+
+/// Adopt existing track set from sptr
+vital_trackset_t*
+vital_trackset_from_sptr( void* sptr )
+{
+  STANDARD_CATCH(
+    "C::track_set::from_sptr", NULL,
+
+    kwiver::vital::track_set_sptr ts_sptr = *reinterpret_cast< kwiver::vital::track_set_sptr* >(sptr);
+    kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast<vital_trackset_t*>( ts_sptr.get() );
+  );
   return 0;
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,18 @@ VITAL_C_EXPORT
 vital_trackset_t*
 vital_trackset_new( size_t length, vital_track_t **tracks,
                     vital_error_handle_t *eh );
+
+
+/// Adopt existing track set from sptr
+/**
+ *
+ * \param sptr address of track set sptr
+ *
+ * \returns trackset opaque handle
+ */
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_trackset_from_sptr( void* sptr );
 
 
 /// Create a new track set as read from file
