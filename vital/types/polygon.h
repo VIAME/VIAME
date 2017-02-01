@@ -155,19 +155,6 @@ public:
    */
   point_t at( size_t idx ) const;
 
-  /**
-   * @brief Get data in vital_polygon representation.
-   *
-   * This method returns a shared (managed) pointer to the
-   * vital_polygon representation of this abstract polygon. If the
-   * concrete representation is already a vital_polygon, then the
-   * pointer returned refers to this object. If it is of another type,
-   * then the pointer refers to a new object.
-   *
-   * @return Managed pointer to a vital_polygon object.
-   */
-  vital_polygon_sptr get_polygon();
-
 private:
   std::vector< kwiver::vital::polygon::point_t > m_polygon;
 }; // end class polygon

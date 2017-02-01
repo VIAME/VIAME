@@ -37,6 +37,8 @@
 
 #include <arrows/vxl/polygon.h>
 
+#include <sstream>
+
 #define TEST_ARGS ()
 
 DECLARE_TEST_MAP();
@@ -70,4 +72,18 @@ IMPLEMENT_TEST(conversions)
   // Convert back to vital_polygon
   auto vpoly =  kwiver::arrows::vxl::vxl_to_vital( *xpoly.get() );
   TEST_EQUAL( "Correct number of vertices, vital", vpoly->num_vertices(), 4 );
+
+
+  auto x_sheet = xpoly->operator[](0);
+  auto v_vert = vpoly->get_vertices();
+
+  for ( size_t i = 0; i < xpoly->num_vertices(); ++i )
+  {
+    if ( ( x_sheet[i].x() != v_vert[i](0) ) || ( x_sheet[i].y() != v_vert[i](1) )  )
+    {
+      std::stringstream str;
+      str << "Vertex " << i << " test failed. Values are not equal.";
+      TEST_ERROR( str.str() );
+    }
+  }
 }
