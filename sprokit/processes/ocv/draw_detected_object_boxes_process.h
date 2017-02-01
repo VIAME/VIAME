@@ -28,8 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_PROCESSES_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
-#define ARROWS_PROCESSES_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
+/**
+ * \file
+ * \brief Interface to draw_detected_object_boxes_process
+ */
+
+#ifndef _KWIVER_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
+#define _KWIVER_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_ocv_export.h"
@@ -43,7 +48,6 @@ namespace kwiver {
  * @brief Process to draw detected object boxes on an image.
  *
  */
-
 class KWIVER_PROCESSES_OCV_NO_EXPORT draw_detected_object_boxes_process
   : public sprokit::process
 {
@@ -68,4 +72,4 @@ private:
 
 } // end namespace
 
-#endif // ARROWS_PROCESSES_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H
+#endif // _KWIVER_DRAW_DETECTED_OBJECT_BOXES_PROCESS_H

@@ -51,6 +51,7 @@
 #include <vidl/vidl_convert.h>
 
 #include <kwiversys/SystemTools.hxx>
+
 #include <mutex>
 #include <memory>
 #include <vector>
@@ -507,6 +508,7 @@ vidl_ffmpeg_video_input
   throw kwiver::vital::video_config_exception( "vidl ffmpeg support is not available from VXL. "
                                                "Rebuild VXL with ffmpeg support." );
 #endif
+
   this->close(); // close video stream and reset internal state
 
   d->video_path = video_name;
@@ -515,6 +517,7 @@ vidl_ffmpeg_video_input
   // avcodec_open2 which is called by open is not thread safe so we need to lock.
   {
     std::lock_guard< std::mutex > lock( d->s_open_mutex );
+
     if ( ! kwiversys::SystemTools::FileExists( video_name ) )
     {
       // Throw exception

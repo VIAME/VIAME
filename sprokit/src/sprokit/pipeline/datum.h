@@ -174,6 +174,7 @@ class SPROKIT_PIPELINE_EXPORT datum
      * \returns True if \p dat and \c *this definitely have the same value, false otherwise.
      */
     bool operator == (datum const& dat) const;
+
   private:
     SPROKIT_PIPELINE_NO_EXPORT datum(type_t ty);
     SPROKIT_PIPELINE_NO_EXPORT datum(error_t const& err);
