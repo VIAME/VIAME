@@ -61,7 +61,7 @@ void
 convert_image_helper(const vil_image_view<inP>& src,
                      vil_image_view<outP>& dest,
                      bool force_byte, bool auto_stretch,
-                     bool manual_stretch, vector_2d intensity_range)
+                     bool manual_stretch, const vector_2d& intensity_range)
 {
   vil_image_view<double> temp;
   // The maximum value is extended by almost one such that dest_maxv still truncates
@@ -100,7 +100,7 @@ void
 convert_image_helper(const vil_image_view<inP>& src,
                      vil_image_view<vxl_byte>& dest,
                      bool force_byte, bool auto_stretch,
-                     bool manual_stretch, vector_2d intensity_range)
+                     bool manual_stretch, const vector_2d& intensity_range)
 {
   if( auto_stretch )
   {
@@ -125,7 +125,7 @@ void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<outP>& dest,
                      bool force_byte, bool auto_stretch,
-                     bool manual_stretch, vector_2d intensity_range)
+                     bool manual_stretch, const vector_2d& intensity_range)
 {
   // special case for bool because manual stretching limits do not
   // make sense and trigger compiler warnings on some platforms.
@@ -145,7 +145,7 @@ void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<vxl_byte>& dest,
                      bool force_byte, bool auto_stretch,
-                     bool manual_stretch, vector_2d intensity_range)
+                     bool manual_stretch, const vector_2d& intensity_range)
 {
   convert_image_helper<vxl_byte>(src, dest, force_byte, auto_stretch, manual_stretch, intensity_range);
 }
@@ -156,7 +156,7 @@ void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<bool>& dest,
                      bool force_byte, bool auto_stretch,
-                     bool manual_stretch, vector_2d intensity_range)
+                     bool manual_stretch, const vector_2d& intensity_range)
 {
   // special case for bool because stretch does not make sense for bool to bool conversion
   dest = src;
