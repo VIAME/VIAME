@@ -25,6 +25,9 @@ set(pipeline_util_srcs
   provided_by_cluster.cxx
   provider_dereferencer.cxx
   providers.cxx
+
+  token.cxx
+  lex_processor.cxx
   )
 
 set(pipeline_util_headers
@@ -57,6 +60,9 @@ set(pipeline_util_private_headers
   provided_by_cluster.h
   provider_dereferencer.h
   providers.h
+
+  token.h
+  lex_processor.h
   )
 
 if (WIN32)
