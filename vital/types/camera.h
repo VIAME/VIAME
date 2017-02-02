@@ -264,6 +264,8 @@ protected:
   rotation_d orientation_;
   /// The camera intrinics
   camera_intrinsics_sptr intrinsics_;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

@@ -206,6 +206,8 @@ public:
   vital::algo::bundle_adjust_sptr bundle_adjuster;
   /// Logger handle
   vital::logger_handle_t m_logger;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 
