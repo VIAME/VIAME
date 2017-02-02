@@ -41,6 +41,7 @@
 #include <vital/types/vector.h>
 
 #include <memory>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
