@@ -232,6 +232,8 @@ protected:
   double skew_;
   /// Lens distortion coefficients
   vector_t dist_coeffs_;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 
