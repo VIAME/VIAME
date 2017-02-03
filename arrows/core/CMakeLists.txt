@@ -19,6 +19,7 @@ set( plugin_core_headers
   filter_tracks.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
+  image_list_reader.h
   match_features_fundamental_matrix.h
   match_features_homography.h
   track_features_core.h
@@ -64,6 +65,7 @@ set( plugin_core_sources
   filter_tracks.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
+  image_list_reader.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   track_features_core.cxx
@@ -98,6 +100,7 @@ kwiver_add_library( kwiver_algo_core
 
 target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
+  PRIVATE              kwiversys
   )
 
 algorithms_create_plugin( kwiver_algo_core
