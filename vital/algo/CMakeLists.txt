@@ -26,6 +26,7 @@ set( public_headers
   estimate_similarity_transform.h
   extract_descriptors.h
   filter_features.h
+  filter_tracks.h
   geo_map.h
   image_filter.h
   image_io.h
@@ -58,6 +59,7 @@ set( sources
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
   filter_features.cxx
+  filter_tracks.cxx
   geo_map.cxx
   image_filter.cxx
   image_io.cxx

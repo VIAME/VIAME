@@ -15,6 +15,7 @@ set( plugin_core_headers
   detected_object_set_output_csv.h
   estimate_canonical_transform.h
   filter_features_magnitude.h
+  filter_tracks.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
   match_features_fundamental_matrix.h
@@ -59,6 +60,7 @@ set( plugin_core_sources
   detected_object_set_output_csv.cxx
   estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
+  filter_tracks.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
   match_features_fundamental_matrix.cxx
