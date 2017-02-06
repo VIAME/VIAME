@@ -100,10 +100,6 @@ feature_descriptor_io
   {
     throw invalid_value("both features and descriptor are Null");
   }
-  if (feat && desc && feat->size() != desc->size())
-  {
-    throw invalid_value("feature and descriptor sets are not the same size");
-  }
 
   this->save_(filename, feat, desc);
 }
