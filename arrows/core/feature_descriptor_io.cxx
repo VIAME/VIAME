@@ -208,7 +208,7 @@ feature_descriptor_io
   }
 
   cereal::size_type num_feat = 0;
-  ar( num_feat );
+  ar( cereal::make_size_tag(num_feat) );
   if( num_feat > 0 )
   {
     uint8_t precision;
