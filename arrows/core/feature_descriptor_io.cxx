@@ -229,6 +229,10 @@ feature_descriptor_io
         }
     }
   }
+  else
+  {
+    feat = feature_set_sptr();
+  }
 }
 
 
