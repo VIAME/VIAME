@@ -217,8 +217,10 @@ feature_descriptor_io
     {
       case 32:
         feat = read_features<Archive_t, float>(ar, num_feat);
+        break;
       case 64:
         feat = read_features<Archive_t, double>(ar, num_feat);
+        break;
       default:
         {
           std::stringstream ss;
