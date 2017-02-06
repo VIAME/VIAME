@@ -130,6 +130,11 @@ ins_data_reader
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
                      "Number of frames to supply. If set to zero then supply all frames after start frame." );
 
+  config->set_value( "frame_time", d->c_frame_time, "Inter frame time in seconds. "
+                     "The generated timestamps will have the specified number of seconds in the generated "
+                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
+                     "video stream application.");
+
   return config;
 }
 

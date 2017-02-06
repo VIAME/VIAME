@@ -60,7 +60,7 @@ public:
   ins_data_reader( ins_data_reader const& other );
 
   /// Return the name of this implementation
-  virtual std::string impl_name() const { return "image_list"; }
+  virtual std::string impl_name() const { return "ins_data_reader"; }
 
   virtual std::string description() const
   {
@@ -84,8 +84,9 @@ public:
   /**
    * @brief Open a list of images.
    *
-   * This method opens the file that contains the list of images. Each
-   * image verified to exist at this time.
+   * This method opens the file that contains the list of images. The
+   * individual image names are used to find the associated metadata
+   * file in the directory supplied via the configuration.
    *
    * @param list_name Name of file that contains list of images.
    */
