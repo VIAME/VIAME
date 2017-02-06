@@ -163,6 +163,17 @@ public:
   const T* data() const { return data_; }
 
 
+  /// Serialization of the class data
+  template<class Archive>
+  void serialize(Archive & archive)
+  {
+    T* d = data_;
+    for( unsigned i=0; i<data_size; ++i, ++d)
+    {
+      archive( *d );
+    }
+  }
+
 protected:
   /// Convert from matrix to vector indices
   unsigned int vector_index( unsigned int i, unsigned int j ) const

@@ -50,18 +50,27 @@ struct rgb_color
   rgb_color() : r(255), g(255), b(255) {}
 
   /// Constructor
-  rgb_color(unsigned char const &cr,
-            unsigned char const &cg,
-            unsigned char const &cb)
+  rgb_color(uint8_t const &cr,
+            uint8_t const &cg,
+            uint8_t const &cb)
     : r(cr), g(cg), b(cb) {}
 
   /// Copy Constructor
   rgb_color( rgb_color const &c )
     : r(c.r), g(c.g), b(c.b) {}
 
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
+
+  /// Serialization of the class data
+  template<class Archive>
+  void serialize(Archive & archive)
+  {
+    archive( r, g, b );
+  }
+
+
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
 };
 
 
@@ -102,9 +111,9 @@ operator>>( std::istream& s, rgb_color& c )
 {
   int rv = 255, gv = 255, bv = 255;
   s >> rv >> gv >> bv;
-  c.r = static_cast<unsigned char>( rv );
-  c.g = static_cast<unsigned char>( gv );
-  c.b = static_cast<unsigned char>( bv );
+  c.r = static_cast<uint8_t>( rv );
+  c.g = static_cast<uint8_t>( gv );
+  c.b = static_cast<uint8_t>( bv );
   return s;
 }
 

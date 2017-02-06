@@ -42,6 +42,7 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/io/eigen_io.h>
 
 #include <iostream>
 #include <typeinfo>
@@ -169,9 +170,15 @@ public:
   /// Set the covariance matrix of the feature
   void set_covar( covariance_< 2, T > const& covar ) { covar_ = covar; }
 
-  // Set the RGB color of the landmark
+  /// Set the RGB color of the landmark
   void set_color( rgb_color const& color ) { color_ = color; }
 
+  /// Serialization of the class data
+  template<class Archive>
+  void serialize(Archive & archive)
+  {
+    archive( loc_, magnitude_, scale_, angle_, covar_, color_ );
+  }
 
 protected:
   /// location of feature
