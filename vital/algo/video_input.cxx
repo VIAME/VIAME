@@ -44,6 +44,7 @@ namespace algo {
 const algorithm_capabilities::capability_name_t video_input::HAS_EOV( "has-eov" );
 const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_NUMBERS( "has-frame-numbers" );
 const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_TIME( "has-frame-time" );
+const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_DATA( "has-frame-data" );
 const algorithm_capabilities::capability_name_t video_input::HAS_ABSOLUTE_FRAME_TIME( "has-abs-frame-time" );
 const algorithm_capabilities::capability_name_t video_input::HAS_METADATA( "has-metadata" );
 const algorithm_capabilities::capability_name_t video_input::HAS_TIMEOUT( "has-timeout" );

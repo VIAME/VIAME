@@ -95,6 +95,11 @@ namespace algo {
  *     available in the time stamp for that frame. If the frame time
  *     is not supplied, then the timestamp will hot have the time set.
  *
+ * HAS_FRAME_DATA - This capability is set to true if the video source
+ *     supplies frame images. It may seem strange for a video input
+ *     algorithm to not supply image data, but happens with a reader
+ *     that only supplies the metadata.
+ *
  * HAS_ABSOLUTE_FRAME_TIME - This capability is set to true if the
  *     video source supplies an absolute, rather than relative frame
  *     time. This capability is not set if an absolute frame time can
@@ -131,6 +136,7 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_EOV;         // has end of video indication
   static const algorithm_capabilities::capability_name_t HAS_FRAME_NUMBERS;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_TIME;
+  static const algorithm_capabilities::capability_name_t HAS_FRAME_DATA;
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;

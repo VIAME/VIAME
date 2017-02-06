@@ -90,6 +90,7 @@ image_list_reader
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
   set_capability( vital::algo::video_input::HAS_FRAME_TIME, true );
+  set_capability( vital::algo::video_input::HAS_FRAME_DATA, true );
 
   set_capability( vital::algo::video_input::HAS_METADATA, false );
   set_capability( vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false );
