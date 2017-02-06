@@ -30,7 +30,6 @@
 
 #include "image_list_reader.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/image_container.h>
@@ -42,6 +41,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <string>
 #include <vector>
 #include <stdint.h>
 #include <fstream>
@@ -57,7 +57,6 @@ public:
     : c_start_at_frame( 0 )
     , c_stop_after_frame( 0 )
     , c_frame_time( 0.03333 )
-    , d_at_eov( false )
   { }
 
   // Configuration values
@@ -67,8 +66,6 @@ public:
   float c_frame_time;
 
   // local state
-  bool d_at_eov;
-
   std::vector < kwiver::vital::path_t > m_files;
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
   kwiver::vital::timestamp::frame_t m_frame_number;
@@ -136,12 +133,15 @@ image_list_reader
                      "video stream application.");
 
   config->set_value( "path", "",
-                     "Path to search for image file. The format is the same as the standard "
+                     "Path to search for image file. "
+                     "If a file name is not absolute, this list of directories is scanned to find the file. "
+                     "The current directory '.' is automatically appended to the end of the path. "
+                     "The format of this path is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
 
   config->set_value( "image_reader", "",
                      "Config block that configures the image reader. image_reader:type specifies the "
-                     "implementation type. Other configuration items may be needed depending on the implementation.");
+                     "implementation type. Other configuration items may be needed, depending on the implementation.");
 
   return config;
 }
@@ -153,9 +153,7 @@ image_list_reader
 ::set_configuration( vital::config_block_sptr in_config )
 {
   vital::config_block_sptr config = this->get_configuration();
-  {
-    config->merge_config(in_config);
-  }
+  config->merge_config(in_config);
 
   d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
     "start_at_frame", d->c_start_at_frame );
@@ -188,11 +186,7 @@ image_list_reader
 ::check_configuration( vital::config_block_sptr config ) const
 {
   // Check the reader configuration.
-  if ( ! vital::algo::image_io::check_nested_algo_configuration( "image_reader", config ) )
-  {
-    return false;
-  }
-  return true;
+  return vital::algo::image_io::check_nested_algo_configuration( "image_reader", config );
 }
 
 
@@ -205,8 +199,6 @@ image_list_reader
   std::ifstream ifs( list_name.c_str() );
   if ( ! ifs )
   {
-    std::stringstream msg;
-    msg <<  "Could not open image list \"" << list_name << "\"";
     throw kwiver::vital::invalid_file( list_name, "Could not open file" );
   }
 

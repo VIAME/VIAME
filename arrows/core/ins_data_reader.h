@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_IMAGE_LIST_READER_H
-#define ARROWS_CORE_IMAGE_LIST_READER_H
+#ifndef ARROWS_CORE_INS_DATA_READER_H
+#define ARROWS_CORE_INS_DATA_READER_H
 
 #include <vital/algo/video_input.h>
 
@@ -39,31 +39,36 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Video input using list of images.
+/// Metadata reader using ins/pos format files.
 // ----------------------------------------------------------------
 /**
- * This class implements a video input algorithm using a list of
- * images to simulate a video. Only the images are returned. This
- * algorithm produces no metadata.
+ * This class implements a video input algorithm that returns only metadata.
+ *
+ * The algorithm takes configuration for a directory full of images
+ * and an associated directory name for the metadata files. These
+ * metadata files have the same base name as the image files.
  */
-class KWIVER_ALGO_CORE_EXPORT image_list_reader
-  : public vital::algorithm_impl < image_list_reader, vital::algo::video_input >
+class KWIVER_ALGO_CORE_EXPORT ins_data_reader
+  : public vital::algorithm_impl < ins_data_reader, vital::algo::video_input >
 {
 public:
   /// Constructor
-  image_list_reader();
-  virtual ~image_list_reader();
+  ins_data_reader();
+  virtual ~ins_data_reader();
 
   /// copy constructor
-  image_list_reader( image_list_reader const& other );
+  ins_data_reader( ins_data_reader const& other );
 
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "image_list"; }
 
   virtual std::string description() const
   {
-    return "Read a list of images from a list of file names and presents them in the same way as reading a video. "
-      "The actual algorithm to read an image is specified in the \"image_reader\" config block. "
+    return "Read image metadata in AFRL ins format. "
+      "The algorithm takes configuration for a directory full of images "
+      "and an associated directory name for the metadata files. These "
+      "metadata files have the same base name as the image files. "
+      "Each metadata file is associated with the image file."
       ;
   }
 
@@ -104,4 +109,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_IMAGE_LIST_READER_H */
+#endif /* ARROWS_CORE_INS_DATA_READER_H */

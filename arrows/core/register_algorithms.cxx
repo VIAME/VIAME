@@ -48,6 +48,8 @@
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/core/ins_data_reader.h>
+#include <arrows/core/image_list_reader.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/track_features_core.h>
@@ -177,6 +179,30 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact = vpm.ADD_ALGORITHM( "core", kwiver::arrows::core::initialize_cameras_landmarks );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Run SfM to iteratively estimate new cameras and landmarks using feature tracks." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "pos_list", kwiver::arrows::core::ins_data_reader );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Read image metadata in AFRL POS format. "
+                       "The algorithm takes configuration for a directory full of images "
+                       "and an associated directory name for the metadata files. These "
+                       "metadata files have the same base name as the image files. "
+                       "Each metadata file is associated with the image file." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "image_list", kwiver::arrows::core::image_list_reader );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Read a list of images from a list of file names and presents them in the same way "
+                       "as reading a video.  The actual algorithm to read an image is specified in the "
+                       "\"image_reader\" config block.  Read an image list as a video stream." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
