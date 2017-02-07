@@ -162,6 +162,26 @@ public:
   /// Access the underlying data
   const T* data() const { return data_; }
 
+  /// Equality operator
+  bool operator==( covariance_< N, T > const& other ) const
+  {
+    const T* d1 = data_;
+    const T* d2 = other.data_;
+    for( unsigned i=0; i<data_size; ++i, ++d1, ++d2 )
+    {
+      if(*d1 != *d2)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Inequality operator
+  bool operator!=( covariance_< N, T > const& other ) const
+  {
+    return ! operator==(other);
+  }
 
   /// Serialization of the class data
   template<class Archive>

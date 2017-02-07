@@ -78,6 +78,24 @@ public:
   virtual covariance_2d covar() const = 0;
   /// Accessor for the RGB color
   virtual rgb_color color() const = 0;
+
+  /// Equality operator
+  bool operator==( feature const& other ) const
+  {
+    return this->data_type() == other.data_type() &&
+           this->loc() == other.loc() &&
+           this->scale() == other.scale() &&
+           this->magnitude() == other.magnitude() &&
+           this->angle() == other.angle() &&
+           this->color() == other.color() &&
+           this->covar() == other.covar();
+  }
+
+  /// Inequality operator
+  bool operator!=( feature const& other ) const
+  {
+    return ! operator==(other);
+  }
 };
 
 /// Shared pointer for base feature type
