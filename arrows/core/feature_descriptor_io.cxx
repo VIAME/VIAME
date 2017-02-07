@@ -191,6 +191,12 @@ save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
     {
       throw vital::invalid_data("not able to write a Null descriptor");
     }
+    if( d->size() != dim )
+    {
+      throw vital::invalid_data(std::string("descriptor dimension is not ")
+                                + "consistent, should be " + std::to_string(dim)
+                                + ", is " + std::to_string(d->size()));
+    }
     if( auto dt = std::dynamic_pointer_cast<descriptor_array_of<T> >(d) )
     {
       const T* data = dt->raw_data();
