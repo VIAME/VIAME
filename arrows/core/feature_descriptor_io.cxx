@@ -166,6 +166,7 @@ vital::feature_set_sptr
 read_features(Archive & ar, size_t num_feat)
 {
   std::vector<feature_sptr> features;
+  features.reserve(num_feat);
   for( size_t i=0; i<num_feat; ++i )
   {
     auto f = std::make_shared<feature_<T> >();
@@ -173,6 +174,117 @@ read_features(Archive & ar, size_t num_feat)
     features.push_back(f);
   }
   return std::make_shared<vital::simple_feature_set>(features);
+}
+
+
+// Helper function to serialized a vector of descriptors of known type
+template <typename Archive, typename T>
+void
+save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
+{
+  // dimensionality of each descriptor
+  cereal::size_type dim = descriptors[0]->size();
+  ar( cereal::make_size_tag( dim ) );
+  VITAL_FOREACH( const descriptor_sptr d, descriptors )
+  {
+    if( !d )
+    {
+      throw vital::invalid_data("not able to write a Null descriptor");
+    }
+    if( auto dt = std::dynamic_pointer_cast<descriptor_array_of<T> >(d) )
+    {
+      const T* data = dt->raw_data();
+      for(unsigned i=0; i<dim; ++i, ++data)
+      {
+        ar( *data );
+      }
+    }
+    else
+    {
+      throw vital::invalid_data(std::string("saving descriptors of type ")
+                                + typeid(T).name() + " but received type "
+                                + dt->data_type().name());
+    }
+  }
+}
+
+
+// Helper function to unserialized a vector of N descriptors of known type
+template <typename Archive, typename T>
+vital::descriptor_set_sptr
+read_descriptors(Archive & ar, size_t num_desc)
+{
+  // dimensionality of each descriptor
+  cereal::size_type dim;
+  ar( cereal::make_size_tag( dim ) );
+
+  std::vector<descriptor_sptr> descriptors;
+  descriptors.reserve(num_desc);
+  for( size_t i=0; i<num_desc; ++i )
+  {
+    std::shared_ptr<descriptor_array_of<T> > d;
+    // allocate fixed vectors for common dimensions
+    switch( dim )
+    {
+      case 128:
+        d = std::make_shared<descriptor_fixed<T,128> >();
+        break;
+      case 64:
+        d = std::make_shared<descriptor_fixed<T,64> >();
+        break;
+      default:
+        d = std::make_shared<descriptor_dynamic<T> >(dim);
+    }
+    T* data = d->raw_data();
+    for(unsigned i=0; i<dim; ++i, ++data)
+    {
+      ar( *data );
+    }
+    descriptors.push_back(d);
+  }
+  return std::make_shared<vital::simple_descriptor_set>(descriptors);
+}
+
+
+
+
+// compute base 2 log of integers at compile time
+constexpr size_t log2(size_t n)
+{
+  return ( (n<2) ? 0 : 1+log2(n/2));
+}
+
+// compute a unique byte code for built-in types
+template <typename T>
+struct type_traits
+{
+  constexpr static uint8_t code =
+    (std::numeric_limits<T>::is_integer << 5) +
+    (std::numeric_limits<T>::is_signed << 4) +
+    log2(sizeof(T));
+};
+
+uint8_t code_from_typeid(std::type_info const& tid)
+{
+#define CODE_TYPE(T) \
+  if(tid == typeid(T))           \
+  {                              \
+    return type_traits<T>::code; \
+  }
+
+  CODE_TYPE(uint8_t);
+  CODE_TYPE(int8_t);
+  CODE_TYPE(uint16_t);
+  CODE_TYPE(int16_t);
+  CODE_TYPE(uint32_t);
+  CODE_TYPE(int32_t);
+  CODE_TYPE(uint64_t);
+  CODE_TYPE(int64_t);
+  CODE_TYPE(float);
+  CODE_TYPE(double);
+
+#undef CODE_TYPE
+  return 0;
 }
 
 }
@@ -186,52 +298,85 @@ feature_descriptor_io
 {
   // open input file
   std::ifstream ifile( filename.c_str(), std::ios::binary);
-  typedef cereal::PortableBinaryInputArchive Archive_t;
-  Archive_t ar( ifile );
 
   // read "magic numbers" to validate this file as a KWIVER feature descriptor file
-  int8_t file_id[4] = {0};
-  ar( file_id[0], file_id[1], file_id[2], file_id[3] );
-  if (std::strncmp(reinterpret_cast<char *>(file_id), "KWFD", 4) != 0)
+  char file_id[5] = {0};
+  ifile.read(file_id, 4);
+  if (std::strncmp(file_id, "KWFD", 4) != 0)
   {
     throw vital::invalid_data("Does not look like a KWIVER feature/descriptor file: "
                               + filename);
   }
+
+  typedef cereal::PortableBinaryInputArchive Archive_t;
+  Archive_t ar( ifile );
+
   // file format version
   uint16_t version;
   ar( version );
   if( version != 1 )
   {
-    std::stringstream ss;
-    ss << "Unknown file format version " << static_cast<int32_t>(version);
-    throw vital::invalid_data( ss.str() );
+    throw vital::invalid_data( "Unknown file format version: "
+                               + std::to_string(version) );
   }
 
   cereal::size_type num_feat = 0;
   ar( cereal::make_size_tag(num_feat) );
   if( num_feat > 0 )
   {
-    uint8_t precision;
-    ar( precision );
-    switch( precision )
+    uint8_t type_code;
+    ar( type_code );
+    switch( type_code )
     {
-      case 32:
+      case type_traits<float>::code:
         feat = read_features<Archive_t, float>(ar, num_feat);
         break;
-      case 64:
+      case type_traits<double>::code:
         feat = read_features<Archive_t, double>(ar, num_feat);
         break;
       default:
-        {
-          std::stringstream ss;
-          ss << "unknown feature precision: " << static_cast<int32_t>(precision);
-          throw vital::invalid_data("unknown feature precision: ");
-        }
+        throw vital::invalid_data("unknown feature type code: "
+                                  + std::to_string(type_code));
     }
   }
   else
   {
     feat = feature_set_sptr();
+  }
+
+  cereal::size_type num_desc = 0;
+  ar( cereal::make_size_tag(num_desc) );
+  if( num_desc > 0 )
+  {
+    uint8_t type_code;
+    ar( type_code );
+    switch( type_code )
+    {
+#define DO_CASE(T)                                           \
+      case type_traits<T>::code:                             \
+        desc = read_descriptors<Archive_t, T>(ar, num_desc); \
+        break
+
+      DO_CASE(uint8_t);
+      DO_CASE(int8_t);
+      DO_CASE(uint16_t);
+      DO_CASE(int16_t);
+      DO_CASE(uint32_t);
+      DO_CASE(int32_t);
+      DO_CASE(uint64_t);
+      DO_CASE(int64_t);
+      DO_CASE(float);
+      DO_CASE(double);
+#undef DO_CASE
+
+      default:
+        throw vital::invalid_data("unknown descriptor type code: "
+                                  + std::to_string(type_code));
+    }
+  }
+  else
+  {
+    desc = descriptor_set_sptr();
   }
 }
 
@@ -253,12 +398,12 @@ feature_descriptor_io
 
   // open output file
   std::ofstream ofile( filename.c_str(), std::ios::binary);
+  // write "magic numbers" to identify this file as a KWIVER feature descriptor file
+  ofile.write("KWFD", 4);
+
   typedef cereal::PortableBinaryOutputArchive Archive_t;
   Archive_t ar( ofile );
 
-  // write "magic numbers" to identify this file as a KWIVER feature descriptor file
-  const int8_t file_id[] = "KWFD";
-  ar( file_id[0], file_id[1], file_id[2], file_id[3] );
   // file format version
   uint16_t version = 1;
   ar( version );
@@ -268,26 +413,14 @@ feature_descriptor_io
     std::vector<feature_sptr> features = feat->features();
 
     ar( cereal::make_size_tag( static_cast<cereal::size_type>(features.size()) ) ); // number of elements
-    uint8_t precision;
-    if( features[0]->data_type() == typeid(float) )
+    uint8_t type_code = code_from_typeid(features[0]->data_type());
+    ar( type_code );
+    switch( type_code )
     {
-      precision = 32;
-    }
-    else if( features[0]->data_type() == typeid(double) )
-    {
-      precision = 64;
-    }
-    else
-    {
-      throw vital::invalid_data("features must be float or double");
-    }
-    ar( precision );
-    switch( precision )
-    {
-      case 32:
+      case type_traits<float>::code:
         save_features<Archive_t, float>(ar, features);
         break;
-      case 64:
+      case type_traits<double>::code:
         save_features<Archive_t, double>(ar, features);
         break;
       default:
@@ -299,8 +432,41 @@ feature_descriptor_io
     ar( cereal::make_size_tag( static_cast<cereal::size_type>(0) ) ); // number of elements
   }
 
-  //std::vector<descriptor_sptr> descriptors = desc->descriptors();
-  //const descriptor_sptr d = descriptors[i];
+  if( desc && desc->size() > 0 )
+  {
+    std::vector<descriptor_sptr> descriptors = desc->descriptors();
+
+    ar( cereal::make_size_tag( static_cast<cereal::size_type>(descriptors.size()) ) ); // number of elements
+    uint8_t type_code = code_from_typeid(descriptors[0]->data_type());
+    ar( type_code );
+    switch( type_code )
+    {
+#define DO_CASE(T)                                       \
+      case type_traits<T>::code:                         \
+        save_descriptors<Archive_t, T>(ar, descriptors); \
+        break
+
+      DO_CASE(uint8_t);
+      DO_CASE(int8_t);
+      DO_CASE(uint16_t);
+      DO_CASE(int16_t);
+      DO_CASE(uint32_t);
+      DO_CASE(int32_t);
+      DO_CASE(uint64_t);
+      DO_CASE(int64_t);
+      DO_CASE(float);
+      DO_CASE(double);
+#undef DO_CASE
+
+      default:
+        throw vital::invalid_data(std::string("descriptor type not supported: ")
+                                  + descriptors[0]->data_type().name());
+    }
+  }
+  else
+  {
+    ar( cereal::make_size_tag( static_cast<cereal::size_type>(0) ) ); // number of elements
+  }
 }
 
 } // end namespace core
