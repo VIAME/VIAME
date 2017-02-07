@@ -209,7 +209,7 @@ save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
     {
       throw vital::invalid_data(std::string("saving descriptors of type ")
                                 + typeid(T).name() + " but received type "
-                                + dt->data_type().name());
+                                + d->data_type().name());
     }
   }
 }
