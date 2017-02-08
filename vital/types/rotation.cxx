@@ -118,8 +118,9 @@ rotation_< T >
 
 /// Convert to a 3x3 matrix
 template < typename T >
+Eigen::Matrix< T, 3, 3 >
 rotation_< T >
-::operator Eigen::Matrix< T, 3, 3 > () const
+::matrix() const
 {
   return q_.toRotationMatrix();
 }
@@ -192,7 +193,7 @@ void
 rotation_< T >
 ::get_yaw_pitch_roll( T& yaw, T& pitch, T& roll ) const
 {
-  Eigen::Matrix< T, 3, 3 > rotM( *this );
+  Eigen::Matrix< T, 3, 3 > rotM( this->matrix() );
   T cos_p = T( std::sqrt( double( rotM( 1, 2 ) * rotM( 1, 2 ) ) + rotM( 2, 2 ) * rotM( 2, 2 ) ) );
 
   yaw   = T( std::atan2( double( rotM( 0, 0 ) ), double( rotM( 0, 1 ) ) ) );

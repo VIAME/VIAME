@@ -165,7 +165,7 @@ vital_rotation_##S##_to_matrix( vital_rotation_##S##_t *rot,            \
   STANDARD_CATCH(                                                       \
     "vital_rotation_" #S ".to_matrix", eh,                              \
     REINTERP_TYPE( rotation_t, rot, rot_ptr );                          \
-    matrix_t mat = (*rot_ptr);                                          \
+    matrix_t mat = rot_ptr->matrix();                                   \
     return reinterpret_cast< vital_eigen_matrix3x3##S##_t* >(           \
       new matrix_t( mat )                                               \
     );                                                                  \

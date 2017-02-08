@@ -90,7 +90,7 @@ public:
   explicit similarity_< T > ( const Eigen::Matrix< T, 4, 4 > &mat );
 
   /// Convert to a 4x4 matrix
-  operator Eigen::Matrix< T, 4, 4 > () const;
+  Eigen::Matrix< T, 4, 4 > matrix() const;
 
   /// Return scale factor
   const T& scale() const { return scale_; }
@@ -110,7 +110,6 @@ public:
     return similarity_< T > ( inv_scale, inv_rot, -inv_scale * ( inv_rot * trans_ ) );
   }
 
-
   /// Compose two similarities
   /**
    * \param rhs other similarity to compose with.
@@ -120,7 +119,7 @@ public:
   /// Transform a vector
   /**
    * \note for a large number of vectors, it is more efficient to
-   *       create a transform matrix and use matrix multiplcation
+   *       create a transform matrix and use matrix multiplication
    * \param rhs vector to transform.
    */
   Eigen::Matrix< T, 3, 1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
@@ -138,7 +137,6 @@ public:
   {
     return ! ( *this == rhs );
   }
-
 
 protected:
   /// scale factor

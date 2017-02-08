@@ -97,7 +97,7 @@ public:
   explicit rotation_< T > ( const Eigen::Matrix< T, 3, 3 > &rot );
 
   /// Convert to a 3x3 matrix
-  operator Eigen::Matrix< T, 3, 3 > () const;
+  Eigen::Matrix< T, 3, 3 > matrix() const;
 
   /// Returns the axis of rotation
   /**

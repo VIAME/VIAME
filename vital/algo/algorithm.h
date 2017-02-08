@@ -153,7 +153,7 @@ public:
    * \c type_name
    *
    * \param[in] type_name           The type name of the nested algorithm.
-   * \param[in] name                An identifying name for the nested algorithm.
+   * \param[in] name                Config block name for the nested algorithm.
    * \param[in] config              The \c config_block instance from which we will
    *                                draw configuration needed for the nested
    *                                algorithm instance.
@@ -280,7 +280,7 @@ public:
    * an invalid value relative to the registered names for this
    * \c algorithm_def.
    *
-   * \param[in] name              An identifying name for the nested algorithm.
+   * \param[in] name              Config block name for the nested algorithm.
    * \param[in] config            The \c config_block instance from which we will
    *                              draw configuration needed for the nested
    *                              algorithm instance.

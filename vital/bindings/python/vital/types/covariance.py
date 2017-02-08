@@ -84,9 +84,11 @@ class Covariance (VitalObject):
             of size N, we initialize the covariance matrix based on this matrix
             (averages off diagonal elements to enforce symmetry). Input matrix
             data is copied, not shared.
-        :param from_cptr: Existing C opaque instance pointer to use, preventing new
-            instance construction. This should of course be a valid pointer to
-            an instance.
+        :param from_cptr: Existing C opaque instance pointer to use, preventing
+            new instance construction. This should of course be a valid pointer
+            to an instance. The ``N`` and ``c_type`` parameters still need to be
+            aligned with the pointer being used in order to properly construct
+            the wrapper.
 
         """
         # Initialize C type and pointer + function map

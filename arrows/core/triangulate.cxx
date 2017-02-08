@@ -58,7 +58,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
   {
     // the camera
     const vital::simple_camera& cam = cameras[i];
-    const matrix_3x3 R(vital::matrix_3x3d(cam.get_rotation()).cast<T>());
+    const matrix_3x3 R(cam.get_rotation().matrix().cast<T>());
     const vector_3 t(cam.translation().cast<T>());
     // the point in normalized coordinates
     const vital::vector_2d p2d = points[i].template cast<double>();
@@ -94,7 +94,7 @@ triangulate_homog(const std::vector<vital::simple_camera >& cameras,
   {
     // the camera
     const vital::simple_camera& cam = cameras[i];
-    const matrix_3x3 R(vital::matrix_3x3d(cam.get_rotation()).cast<T>());
+    const matrix_3x3 R(cam.get_rotation().matrix().cast<T>());
     const vector_3 t(cam.translation().cast<T>());
     // the point in normalized coordinates
     const vital::vector_2d p2d = points[i].template cast<double>();

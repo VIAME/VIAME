@@ -63,7 +63,7 @@ IMPLEMENT_TEST(convert_matrix)
 {
   using namespace kwiver::vital;
   similarity_d sim;
-  matrix_4x4d S(sim);
+  matrix_4x4d S(sim.matrix());
   matrix_4x4d I = matrix_4x4d().setIdentity();
   std::cout << S << I << std::endl;
 
@@ -74,9 +74,9 @@ IMPLEMENT_TEST(convert_matrix)
 
   similarity_d sim1(2.4, rotation_d(vector_3d(0.1, -1.5, 2.0)),
                     vector_3d(1,-2,5));
-  matrix_4x4d mat1(sim1);
+  matrix_4x4d mat1(sim1.matrix());
   similarity_d sim2(mat1);
-  matrix_4x4d mat2(sim2);
+  matrix_4x4d mat2(sim2.matrix());
   std::cout << "sim1: "<< sim1 <<std::endl;
   std::cout << "sim2: "<< sim2 <<std::endl;
   TEST_NEAR("Convert similarity to matrix and back",
@@ -94,8 +94,8 @@ IMPLEMENT_TEST(compose)
   similarity_d sim2(0.75, rotation_d(vector_3d(-0.5, -0.5, 1.0)),
                     vector_3d(4,6.5,8));
 
-  matrix_4x4d sim_comp_sim = sim1 * sim2;
-  matrix_4x4d mat_comp_sim = matrix_4x4d(sim1) * matrix_4x4d(sim2);
+  matrix_4x4d sim_comp_sim = (sim1 * sim2).matrix();
+  matrix_4x4d mat_comp_sim = sim1.matrix() * sim2.matrix();
   std::cout << "similarity composition: "<<sim_comp_sim<<std::endl;
   std::cout << "matrix composition: "<<mat_comp_sim<<std::endl;
 

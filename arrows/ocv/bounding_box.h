@@ -39,7 +39,11 @@
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/types/bounding_box.h>
-#include <opencv2/core/types_c.h>            // OCV rect
+#ifndef KWIVER_HAS_OPENCV_VER_3
+#include <opencv2/core/types_c.h>      // OCV rect
+#else
+#include <opencv2/core.hpp>            // OCV rect
+#endif
 
 
 namespace kwiver {

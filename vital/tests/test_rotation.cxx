@@ -82,7 +82,7 @@ IMPLEMENT_TEST(default_constructor)
 IMPLEMENT_TEST(convert_matrix)
 {
   kwiver::vital::rotation_d rot;
-  kwiver::vital::matrix_3x3d R = kwiver::vital::matrix_3x3d(rot);
+  kwiver::vital::matrix_3x3d R = rot.matrix();
   kwiver::vital::matrix_3x3d I = kwiver::vital::matrix_3x3d().setIdentity();
   std::cout << R << I << std::endl;
 
@@ -148,7 +148,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
 
   {
     rotation_d rot(yaw, pitch, roll);
-    std::cout <<"(xxx) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(xxx) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(xxx) Yaw angle", y, yaw, 1e-14);
@@ -157,7 +157,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(0, pitch, roll);
-    std::cout <<"(0xx) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(0xx) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(0xx) Yaw angle", y, 0, 1e-14);
@@ -166,7 +166,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(yaw, 0, roll);
-    std::cout <<"(x0x) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(x0x) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(x0x) Yaw angle", y, yaw, 1e-14);
@@ -175,7 +175,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(yaw, pitch, 0);
-    std::cout <<"(xx0) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(xx0) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(xx0) Yaw angle", y, yaw, 1e-14);
@@ -184,7 +184,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(0, 0, roll);
-    std::cout <<"(00x) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(00x) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(00x) Yaw angle", y, 0, 1e-14);
@@ -193,7 +193,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(0, pitch, 0);
-    std::cout <<"(0x0) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(0x0) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(0x0) Yaw angle", y, 0, 1e-14);
@@ -202,7 +202,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(yaw, 0, 0);
-    std::cout <<"(x00) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(x00) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(x00) Yaw angle", y, yaw, 1e-14);
@@ -211,7 +211,7 @@ IMPLEMENT_TEST(convert_yaw_pitch_roll)
   }
   {
     rotation_d rot(0, 0, 0);
-    std::cout <<"(000) rotation mat:\n"<<matrix_3x3d(rot)<<std::endl;
+    std::cout <<"(000) rotation mat:\n"<<rot.matrix()<<std::endl;
     rot.get_yaw_pitch_roll(y, p, r);
 
     TEST_NEAR("(000) Yaw angle", y, 0, 1e-14);
@@ -228,8 +228,8 @@ IMPLEMENT_TEST(compose)
   rotation_d rot1(vector_3d(0.1, -1.5, 2.0));
   rotation_d rot2(vector_3d(-0.5, -0.5, 1.0));
 
-  matrix_3x3d quat_comp_rot = rot1 * rot2;
-  matrix_3x3d mat_comp_rot = matrix_3x3d(rot1) * matrix_3x3d(rot2);
+  matrix_3x3d quat_comp_rot = (rot1 * rot2).matrix();
+  matrix_3x3d mat_comp_rot = rot1.matrix() * rot2.matrix();
   std::cout << "quaternion composition: "<<quat_comp_rot<<std::endl;
   std::cout << "matrix composition: "<<mat_comp_rot<<std::endl;
 

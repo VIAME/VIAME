@@ -36,6 +36,7 @@
 #include <test_common.h>
 
 #include <vital/types/image.h>
+#include <vital/util/transform_image.h>
 
 #define TEST_ARGS ()
 
@@ -48,13 +49,13 @@ namespace // anonymous
 
   // For use in the transform_image function
 
-  static kwiver::vital::image::byte val_zero_op( kwiver::vital::image::byte const & /*b*/ )
+  static kwiver::vital::byte val_zero_op( kwiver::vital::byte const & /*b*/ )
   {
     return 0;
   }
 
-  static kwiver::vital::image::byte val_incr_op_i = 0;
-  static kwiver::vital::image::byte val_incr_op( kwiver::vital::image::byte const &b )
+  static kwiver::vital::byte val_incr_op_i = 0;
+  static kwiver::vital::byte val_incr_op( kwiver::vital::byte const &b )
   {
     return val_incr_op_i++;
   }
@@ -84,6 +85,11 @@ IMPLEMENT_TEST(default_constructor)
   {
     TEST_ERROR("The default image is not empty");
   }
+  const kwiver::vital::image_pixel_traits& pt = img.pixel_traits();
+  if (pt.num_bytes != 1 || pt.type != kwiver::vital::image_pixel_traits::UNSIGNED)
+  {
+    TEST_ERROR("Default image constructor should use unsigned char pixel traits");
+  }
 }
 
 
@@ -96,6 +102,11 @@ IMPLEMENT_TEST(constructor)
         img.depth() != 1 )
     {
       TEST_ERROR("Constructed image does not have correct dimensions");
+    }
+
+    if (img.pixel_traits().num_bytes != 1)
+    {
+      TEST_ERROR("Constructed image was expected to have one byte per pixel");
     }
 
     if (img.size() != 200*300)
@@ -112,36 +123,126 @@ IMPLEMENT_TEST(constructor)
       TEST_ERROR("Constructed image does not have correct dimensions");
     }
 
+    if (img.pixel_traits().num_bytes != 1)
+    {
+      TEST_ERROR("Constructed image was expected to have one byte per pixel");
+    }
+
     if (img.size() != 200*300*3)
     {
       TEST_ERROR("Constructor did not allocate correct amount of memory");
     }
   }
+  {
+    kwiver::vital::image_of<double> img(200,300,3);
+    if (img.width() != 200  ||
+        img.height() != 300 ||
+        img.depth() != 3 )
+    {
+      TEST_ERROR("Constructed image does not have correct dimensions");
+    }
+
+    if (img.pixel_traits().num_bytes != sizeof(double))
+    {
+      TEST_ERROR("Constructed image was expected to have sizeof(double) bytes per pixel");
+    }
+    if (img.pixel_traits().type != kwiver::vital::image_pixel_traits::FLOAT)
+    {
+      TEST_ERROR("Constructed double image was expected to have FLOAT type");
+    }
+
+    if (img.size() != 200*300*3*sizeof(double))
+    {
+      TEST_ERROR("Constructor did not allocate correct amount of memory");
+    }
+  }
+
 }
 
 
 IMPLEMENT_TEST(copy_constructor)
 {
-  kwiver::vital::image img(100,75,2);
+  kwiver::vital::image_of<int> img(100,75,2);
   kwiver::vital::image img_cpy(img);
-  if (img.width()  != img_cpy.width()  ||
-      img.height() != img_cpy.height() ||
-      img.depth()  != img_cpy.depth()  ||
-      img.w_step() != img_cpy.w_step() ||
-      img.h_step() != img_cpy.h_step() ||
-      img.d_step() != img_cpy.d_step() ||
-      img.first_pixel() != img_cpy.first_pixel() ||
-      img.memory() != img_cpy.memory() )
+  if (img.width()         != img_cpy.width()  ||
+      img.height()        != img_cpy.height() ||
+      img.depth()         != img_cpy.depth()  ||
+      img.pixel_traits()  != img_cpy.pixel_traits()  ||
+      img.w_step()        != img_cpy.w_step() ||
+      img.h_step()        != img_cpy.h_step() ||
+      img.d_step()        != img_cpy.d_step() ||
+      img.first_pixel()   != reinterpret_cast<const int*>(img_cpy.first_pixel()) ||
+      img.memory()        != img_cpy.memory() )
   {
     TEST_ERROR("Copy constructed image does not match original");
   }
+
+  // copy an image_of from a base image
+  kwiver::vital::image_of<int> img_cpy2(img_cpy);
+  if (img.width()         != img_cpy2.width()  ||
+      img.height()        != img_cpy2.height() ||
+      img.depth()         != img_cpy2.depth()  ||
+      img.pixel_traits()  != img_cpy2.pixel_traits()  ||
+      img.w_step()        != img_cpy2.w_step() ||
+      img.h_step()        != img_cpy2.h_step() ||
+      img.d_step()        != img_cpy2.d_step() ||
+      img.first_pixel()   != img_cpy2.first_pixel() ||
+      img.memory()        != img_cpy2.memory() )
+  {
+    TEST_ERROR("Copy constructed image_of does not match original");
+  }
+
+  EXPECT_EXCEPTION( kwiver::vital::image_type_mismatch_exception,
+                    kwiver::vital::image_of<float> img_cpy3(img_cpy),
+                    "Copying an image of the incorrect type");
+}
+
+
+IMPLEMENT_TEST(assignment_operator)
+{
+  kwiver::vital::image_of<float> img(100,75,2);
+  kwiver::vital::image img_cpy;
+  img_cpy = img;
+  if (img.width()         != img_cpy.width()  ||
+      img.height()        != img_cpy.height() ||
+      img.depth()         != img_cpy.depth()  ||
+      img.pixel_traits()  != img_cpy.pixel_traits()  ||
+      img.w_step()        != img_cpy.w_step() ||
+      img.h_step()        != img_cpy.h_step() ||
+      img.d_step()        != img_cpy.d_step() ||
+      img.first_pixel()   != reinterpret_cast<const float*>(img_cpy.first_pixel()) ||
+      img.memory()        != img_cpy.memory() )
+  {
+    TEST_ERROR("Assigned image does not match original");
+  }
+
+  // copy an image_of from a base image
+  kwiver::vital::image_of<float> img_cpy2;
+  img_cpy2 = img_cpy;
+  if (img.width()         != img_cpy2.width()  ||
+      img.height()        != img_cpy2.height() ||
+      img.depth()         != img_cpy2.depth()  ||
+      img.pixel_traits()  != img_cpy2.pixel_traits()  ||
+      img.w_step()        != img_cpy2.w_step() ||
+      img.h_step()        != img_cpy2.h_step() ||
+      img.d_step()        != img_cpy2.d_step() ||
+      img.first_pixel()   != img_cpy2.first_pixel() ||
+      img.memory()        != img_cpy2.memory() )
+  {
+    TEST_ERROR("Assigned image_of does not match original");
+  }
+
+  kwiver::vital::image_of<int> img_cpy3;
+  EXPECT_EXCEPTION( kwiver::vital::image_type_mismatch_exception,
+                    img_cpy3 = img_cpy,
+                    "Assigning an image of the incorrect type");
 }
 
 
 IMPLEMENT_TEST(set_size)
 {
   kwiver::vital::image img(10, 20, 4);
-  unsigned char* data = img.first_pixel();
+  void* data = img.first_pixel();
   img.set_size(10, 20, 4);
   if( img.first_pixel() != data )
   {
@@ -162,6 +263,44 @@ IMPLEMENT_TEST(set_size)
 }
 
 
+IMPLEMENT_TEST(is_contiguous)
+{
+  unsigned w=100, h=200, d=3;
+  kwiver::vital::image img;
+  TEST_EQUAL("Empty image is not considered contiguous",
+             img.is_contiguous(), false);
+
+  img = kwiver::vital::image(w,h,d);
+  TEST_EQUAL("Basic constructor should produce contiguous image",
+             img.is_contiguous(), true);
+
+  img = kwiver::vital::image(w, h, d, true);
+  TEST_EQUAL("Interleaved image is contiguous",
+             img.is_contiguous(), true);
+
+  // a view using every other row of a larger image
+  auto mem = std::make_shared<kwiver::vital::image_memory>(w*h*d*2);
+  img = kwiver::vital::image(mem, mem->data(), w, h, d,
+                             1, 2*w, 2*w*h);
+  TEST_EQUAL("View of image skipping rows should be non-contiguous",
+             img.is_contiguous(), false);
+
+  img = kwiver::vital::image(mem, mem->data(), w, h, d,
+                             d, 2*w*d, 1);
+  TEST_EQUAL("View of interleaved image skipping rows should be non-contiguous",
+             img.is_contiguous(), false);
+
+  // an image with negative depth steps
+  typedef kwiver::vital::byte byte;
+  img = kwiver::vital::image_of<byte>(mem,
+                                      reinterpret_cast<byte*>(mem->data()) + 2 * w * h,
+                                      w, h, d,
+                                      1, w, -static_cast<ptrdiff_t>(w*h));
+  TEST_EQUAL("Images with negative steps should be non-contiguous",
+             img.is_contiguous(), false);
+}
+
+
 IMPLEMENT_TEST(copy_from)
 {
   unsigned w=100, h=200, d=3;
@@ -172,7 +311,7 @@ IMPLEMENT_TEST(copy_from)
     {
       for(unsigned i=0; i<w; ++i)
       {
-        img1(i,j,k)  = static_cast<unsigned char>((w*h*k + w*j + i) % 255);
+        img1.at<unsigned char>(i,j,k)  = static_cast<unsigned char>((w*h*k + w*j + i) % 255);
       }
     }
   }
@@ -188,11 +327,11 @@ IMPLEMENT_TEST(copy_from)
     TEST_ERROR("Deep copied images should have the same content");
   }
 
-  kwiver::vital::image img3(200, 400, 3);
+  kwiver::vital::image_of<unsigned char> img3(200, 400, 3);
   // create a view into the center of img3
-  kwiver::vital::image img4(img3.memory(), img3.first_pixel()+50*200 + 50,
-                    w, h, d,
-                    1, 200, 200*400);
+  kwiver::vital::image_of<unsigned char> img4(img3.memory(), img3.first_pixel()+50*200 + 50,
+                                              w, h, d,
+                                              1, 200, 200*400);
   // copy data into the view
   unsigned char * data = img4.first_pixel();
   img4.copy_from(img1);
@@ -210,7 +349,7 @@ IMPLEMENT_TEST(copy_from)
 IMPLEMENT_TEST(equal_content)
 {
   unsigned w=100, h=200, d=3;
-  kwiver::vital::image img1(w,h,d), img2(w,h,d,true);
+  kwiver::vital::image_of<unsigned char> img1(w,h,d), img2(w,h,d,true);
   if(img1.memory() == img2.memory())
   {
     TEST_ERROR("Test images should not have the same memory");
@@ -240,11 +379,12 @@ IMPLEMENT_TEST(transform_image)
 {
   // Testing that the transform image traverses pixels in memory order
   unsigned w=3, h=3, d=3;
-  kwiver::vital::image img;
+  typedef kwiver::vital::byte byte;
+  kwiver::vital::image_of<byte> img;
 
   // an image with traditional stepping ( w < h < d )
   {
-    img = kwiver::vital::image( w, h, d , false );
+    img = kwiver::vital::image_of<byte>( w, h, d , false );
 
     // Zeroing image data
     kwiver::vital::transform_image( img, val_zero_op );
@@ -310,7 +450,7 @@ IMPLEMENT_TEST(transform_image)
 
   // an interleaved image ( d < w < h )
   {
-    img = kwiver::vital::image( w, h, d, true );
+    img = kwiver::vital::image_of<byte>( w, h, d, true );
 
     kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "interleaved-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
@@ -378,9 +518,9 @@ IMPLEMENT_TEST(transform_image)
               dStep = h,
               wStep = d*h;
     kwiver::vital::image_memory weird_img_mem( wStep * hStep * dStep );
-    img = kwiver::vital::image( (kwiver::vital::image::byte*)weird_img_mem.data(),
-                        w, h, d,
-                        wStep, hStep, dStep );
+    img = kwiver::vital::image_of<byte>( (kwiver::vital::byte*)weird_img_mem.data(),
+                                         w, h, d,
+                                         wStep, hStep, dStep );
 
     kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "weird-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
@@ -448,9 +588,9 @@ IMPLEMENT_TEST(transform_image)
               hStep = w * wStep + 11,
               dStep = h * hStep * 3;
     kwiver::vital::image_memory non_con_img_mem( wStep * hStep * dStep );
-    img = kwiver::vital::image( (kwiver::vital::image::byte*)non_con_img_mem.data(),
-                        w, h, d,
-                        wStep, hStep, dStep );
+    img = kwiver::vital::image_of<byte>( (kwiver::vital::byte*)non_con_img_mem.data(),
+                                          w, h, d,
+                                          wStep, hStep, dStep );
 
     kwiver::vital::transform_image( img, val_zero_op );
     TEST_EQUAL( "non-contiguous-zero (0,0,0)", (unsigned)img(0,0,0), 0 );
@@ -512,4 +652,39 @@ IMPLEMENT_TEST(transform_image)
     TEST_EQUAL( "non-contiguous (2,2,2)", (unsigned)img(2,2,2), 26 );
   }
 
+}
+
+
+IMPLEMENT_TEST(cast_image_of)
+{
+  kwiver::vital::image_of<uint16_t> img1(50, 50, 3);
+  kwiver::vital::image_of<bool> img2;
+  cast_image(img1, img2);
+  if (img1.width()         != img2.width()  ||
+      img1.height()        != img2.height() ||
+      img1.depth()         != img2.depth()  ||
+      img1.w_step()        != img2.w_step() ||
+      img1.h_step()        != img2.h_step() ||
+      img1.d_step()        != img2.d_step() )
+  {
+    TEST_ERROR("Shape of cast image does not match original");
+  }
+}
+
+
+IMPLEMENT_TEST(cast_image)
+{
+  kwiver::vital::image_of<uint16_t> img_in(50, 50, 3);
+  kwiver::vital::image img1 = img_in;
+  kwiver::vital::image_of<bool> img2;
+  cast_image(img1, img2);
+  if (img1.width()         != img2.width()  ||
+      img1.height()        != img2.height() ||
+      img1.depth()         != img2.depth()  ||
+      img1.w_step()        != img2.w_step() ||
+      img1.h_step()        != img2.h_step() ||
+      img1.d_step()        != img2.d_step() )
+  {
+    TEST_ERROR("Shape of cast image does not match original");
+  }
 }

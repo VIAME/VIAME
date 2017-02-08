@@ -60,52 +60,57 @@ typedef struct vital_config_block_s vital_config_block_t;
  * Pointer returned is cached, and the same pointer is returned every call.
  */
 VITAL_C_EXPORT
-char const* vital_config_block_block_sep();
+char const*
+vital_config_block_block_sep();
 
 /// The magic group for global parameters
 /**
  * Pointer returned is cached, and the same pointer is returned every call.
  */
 VITAL_C_EXPORT
-char const* vital_config_block_global_value();
+char const*
+vital_config_block_global_value();
 
 
 /// Create a new, empty \p config_block object
 /**
- * \return Opaque poitner to an empty config_block with the default name, or 0
+ * \return Opaque pointer to an empty config_block with the default name, or 0
  *         if construction failed.
  */
 VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_new();
+vital_config_block_t*
+vital_config_block_new();
 
 /// Create a new, empty \p config_block object with a name
 /**
- * \param name String name for the construted config block.
- * \return Opaque poitner to an empty config_block with the default name, or 0
+ * \param name String name for the constructed config block.
+ * \return Opaque pointer to an empty config_block with the default name, or 0
  *         if construction failed.
  */
 VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_new_named( char const *name );
+vital_config_block_t*
+vital_config_block_new_named( char const *name );
 
 /// Destroy a config block object
 /**
- * If the provided config_block pointer was invalid, this returns 0 signifying
- * nothing was actually destroied.
- *
  * \param cb Opaque pointer to config_block instance.
- * \return 1 if the given config_block was destroyed, else 0 if it was not.
+ * \param eh Vital error handle instance
  */
 VITAL_C_EXPORT
-void vital_config_block_destroy( vital_config_block_t *cb,
-                                 vital_error_handle_t *eh );
+void
+vital_config_block_destroy( vital_config_block_t *cb,
+                            vital_error_handle_t *eh );
 
 /// Get the name of the \p config_block instance
 /**
  * \param cb Opaque pointer to config_block instance.
+ * \param eh Vital error handle instance
  * \return String name of the given config_block.
  */
 VITAL_C_EXPORT
-char const* vital_config_block_get_name( vital_config_block_t *cb );
+char const*
+vital_config_block_get_name( vital_config_block_t *cb,
+                             vital_error_handle_t *eh );
 
 /// Get a subblock from the configuration.
 /**
@@ -114,11 +119,14 @@ char const* vital_config_block_get_name( vital_config_block_t *cb );
  *
  * \param cb Opaque pointer to the config_block instance
  * \param key The name of the sub-configuration to retrieve.
+ * \param eh Vital error handle instance
  * \return Pointer to a new config_block instance with copies of values.
  */
 VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_subblock( vital_config_block_t *cb,
-                                                   char const *key );
+vital_config_block_t*
+vital_config_block_subblock( vital_config_block_t *cb,
+                             char const *key,
+                             vital_error_handle_t *eh );
 
 /// Get a subblock view into the configuration.
 /**
@@ -127,19 +135,24 @@ vital_config_block_t* vital_config_block_subblock( vital_config_block_t *cb,
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The name of the sub-configuration to retrieve.
+ * \param eh Vital error handle instance
  * \return A subblock which linkes to \p *cb.
  */
 VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_subblock_view( vital_config_block_t *cb,
-                                                        char const *key );
+vital_config_block_t*
+vital_config_block_subblock_view( vital_config_block_t *cb,
+                                  char const *key,
+                                  vital_error_handle_t *eh );
 
 /// Get the string value for a key
 /**
- * This may fail if the key given doesn't exist, populating \c eh.
+ * This may fail if the key given doesn't exist, populating \c eh with error
+ * code 1.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The index of the configuration value to retrieve.
- * \return The string value stored within the configuration.
+ * \return A new copy of the string value stored within the configuration. This
+ *   should be free'd when done with the return value.
  */
 VITAL_C_EXPORT
 char const*
@@ -149,16 +162,18 @@ vital_config_block_get_value( vital_config_block_t *cb,
 
 /// Get the boolean value for a key
 /**
- * This may fail if the key given doesn't exist, returning a null char*.
+ * This may fail if the key given doesn't exist, populating \c eh with error
+ * code 1.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The index of the configuration value to retrieve.
  * \return The boolean value stored within the configuration.
  */
 VITAL_C_EXPORT
-bool vital_config_block_get_value_bool( vital_config_block_t *cb,
-                                        char const *key,
-                                        vital_error_handle_t *eh );
+bool
+vital_config_block_get_value_bool( vital_config_block_t *cb,
+                                   char const *key,
+                                   vital_error_handle_t *eh );
 
 /// Get the string value for a key if it exists, else the default
 /**
@@ -166,12 +181,14 @@ bool vital_config_block_get_value_bool( vital_config_block_t *cb,
  * \param key The index of the configuration value to retrieve.
  * \param deflt A default value to return if the given key does not have an
  *              associated value.
- * \return the \p char* value stored within the configuration.
+ * \return A new copy of the string value stored within the configuration,
+ *   otherwise a copy of \c deflt is returned. This should be free'd when done
+ *   with the return value.
  */
 VITAL_C_EXPORT
 char const*
 vital_config_block_get_value_default( vital_config_block_t *cb,
-                                                      char const *key,
+                                      char const *key,
                                       char const *deflt,
                                       vital_error_handle_t *eh );
 
@@ -184,22 +201,25 @@ vital_config_block_get_value_default( vital_config_block_t *cb,
  * \return the bool value stored within the configuration.
  */
 VITAL_C_EXPORT
-bool vital_config_block_get_value_default_bool( vital_config_block_t *cb,
-                                                char const *key,
-                                                bool deflt,
-                                                vital_error_handle_t *eh );
+bool
+vital_config_block_get_value_default_bool( vital_config_block_t *cb,
+                                           char const *key,
+                                           bool deflt,
+                                           vital_error_handle_t *eh );
 
 /// Get the description associated to a value
 /**
  * If the provided key exists but has no description associated with it, an
  * empty string is returned.
  *
- * If the key provided does not exist, the error handle is populated.
+ * This may fail if the key given doesn't exist, populating \c eh with error
+ * code 1.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The name of the parameter to get the description of.
- * \returns The string description of the give key or NULL if the key was not
- *          found.
+ * \returns A copy of the string description of the give key or NULL if the key
+ *   was not found. When not NULL, this should be free'd when done with the
+ *   return value.
  */
 VITAL_C_EXPORT
 char const*
@@ -209,66 +229,83 @@ vital_config_block_get_description( vital_config_block_t *cb,
 
 /// Set a string value within the configuration.
 /**
- * If the provided key has been marked read-only, nothing is set and 1 is
- * returned.
- *
- * \param cb Opaque pointer to a config_block instance.
- * \param key The index of the configuration value to set.
- * \param value The value to set for the \p key.
- * \return 1 if set was successful, 0 if it was not.
- */
-VITAL_C_EXPORT
-void vital_config_block_set_value( vital_config_block_t *cb,
-                                   char const *key,
-                                   char const *value );
-
-/// Set a string value with an associated description
-/**
- * If the provided key is marked read-only, nothing is set.
+ * If the key is marked read only, the error handle is populated with error code
+ * 1.
  *
  * If this key already exists, has a description and no new description
  * was passed with this \c set_value call, the previous description is
  * retained. We assume that the previous description is still valid and
- * this a value overwrite. If it is intended for the description to also
- * be overwritted, an \c unset_value call should be performed on the key
+ * this is a value overwrite. If it is intended for the description to also
+ * be overwritten, an \c unset_value call should be performed on the key
  * first, and then this \c set_value call.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The index of the configuration value to set.
  * \param value The value to set for the \p key.
- * \param descr Description of the key. If this is set, we will override
- *              any existing description for the given key. If a
- *              description for the given key already exists and nothing
- *              was provided for this parameter, the existing description
- *              is maintained.
+ * \param eh Vital error handle instance
  */
 VITAL_C_EXPORT
-void vital_config_block_set_value_descr( vital_config_block_t *cb,
-                                         char const *key,
-                                         char const *value,
-                                         char const *description );
+void
+vital_config_block_set_value( vital_config_block_t *cb,
+                              char const *key,
+                              char const *value,
+                              vital_error_handle_t *eh );
 
-/// Remove a key/value pair from the configuration.
+/// Set a string value with an associated description
 /**
- * If the provided key is marked as read-only, nothing is unset.
+ * If the key is marked read only, the error handle is populated with error code
+ * 1.
+ *
+ * If this key already exists, has a description and no new description
+ * was passed with this \c set_value call, the previous description is
+ * retained. We assume that the previous description is still valid and
+ * this is a value overwrite.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The index of the configuration value to set.
+ * \param value The value to set for the \p key.
+ * \param descr Description of the key, overriding any existing description for
+ *   the given key.
+ * \param eh Vital error handle instance
  */
 VITAL_C_EXPORT
-void vital_config_block_unset_value( vital_config_block_t *cb,
-                                     char const *key );
+void
+vital_config_block_set_value_descr( vital_config_block_t *cb,
+                                    char const *key,
+                                    char const *value,
+                                    char const *description,
+                                    vital_error_handle_t *eh );
+
+/// Remove a key/value pair from the configuration.
+/**
+ * If the provided key is marked as read-only, the error handle is given code 1.
+ * If the requested key does not exist, the error handle is given code 2.
+ *
+ * \param cb Opaque pointer to a config_block instance.
+ * \param key The index of the configuration value to set.
+ * \param eh Vital error handle instance
+ */
+VITAL_C_EXPORT
+void
+vital_config_block_unset_value( vital_config_block_t *cb,
+                                char const *key,
+                                vital_error_handle_t *eh );
 
 /// Query if a value is read-only
 /**
+ * If the requested key does not exist, \c false is returned.
+ *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The key to check.
+ * \param eh Vital error handle instance
  * \returns True if the \p key has been marked as read-only, and false
  *          otherwise.
  */
 VITAL_C_EXPORT
-bool vital_config_block_is_read_only( vital_config_block_t *cb,
-                                      char const *key );
+bool
+vital_config_block_is_read_only( vital_config_block_t *cb,
+                                 char const *key,
+                                 vital_error_handle_t *eh );
 
 /// Mark the given key as read-only
 /**
@@ -277,36 +314,47 @@ bool vital_config_block_is_read_only( vital_config_block_t *cb,
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param key The key to mark as read-only.
+ * \param eh Vital error handle instance
  */
 VITAL_C_EXPORT
-void vital_config_block_mark_read_only( vital_config_block_t *cb,
-                                        char const *key );
+void
+vital_config_block_mark_read_only( vital_config_block_t *cb,
+                                   char const *key,
+                                   vital_error_handle_t *eh );
 
 /// Merge the values in \p other into the current config \p cb.
 /**
- * A partial merger will occur if the merger would attempt overwriting a key
- * marked as read-only.
+ * If the entry in this config is marked as
+ * read-only, error code 1 is set in the handler and the merge operation is left
+ * partially complete. If an entry in the specified config block is marked as
+ * read-only, that attribute is *not* copied to this block.
  *
  * \note Any values currently set within \c *this will be overwritten if
- *       conficts occur.
+ *       conflicts occur.
  *
  * \param cb Opaque pointer to a config_block instance.
  * \param other Opaque pointer to a config_block instance whose key/value
  *              pairs are to be merged into \p cb.
+ * \param eh Vital error handle instance
  */
 VITAL_C_EXPORT
-void vital_config_block_merge_config( vital_config_block_t *cb,
-                                      vital_config_block_t *other );
+void
+vital_config_block_merge_config( vital_config_block_t *cb,
+                                 vital_config_block_t *other,
+                                 vital_error_handle_t *eh );
 
 /// Check if a value exists for the given key
 /**
  * \param cb Opaque pointer to a config_block instance.
  * \param key The index of the configuration value to check.
- * \return 1 if \p cb has a value for the given \p key, else 0.
+ * \param eh Vital error handle instance
+ * \return true if \p cb has a value for the given \p key, else false.
  */
 VITAL_C_EXPORT
-bool vital_config_block_has_value( vital_config_block_t *cb,
-                                   char const *key );
+bool
+vital_config_block_has_value( vital_config_block_t *cb,
+                              char const *key,
+                              vital_error_handle_t *eh );
 
 /// Return the values available in the configuration.
 /**
@@ -317,11 +365,14 @@ bool vital_config_block_has_value( vital_config_block_t *cb,
  * \param[in] cb Opaque pointer to a config_block instance.
  * \param[out] length The number of available keys in \p cb.
  * \param[out] keys Pointer to an array of char* strings.
+ * \param eh Vital error handle instance
  */
 VITAL_C_EXPORT
-void vital_config_block_available_values( vital_config_block_t *cb,
-                                          unsigned int *length,
-                                          char ***keys );
+void
+vital_config_block_available_values( vital_config_block_t *cb,
+                                     unsigned int *length,
+                                     char ***keys,
+                                     vital_error_handle_t *eh );
 
 
 /// Read in a configuration file, producing a config_block object
@@ -341,8 +392,9 @@ void vital_config_block_available_values( vital_config_block_t *cb,
  * \return A an object representing the contents of the read-in file.
  */
 VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_file_read( char const *filepath,
-                                                    vital_error_handle_t *eh );
+vital_config_block_t*
+vital_config_block_file_read( char const *filepath,
+                              vital_error_handle_t *eh );
 
 
 /// Read in a configuration file from standard locations, producing a config_block object
@@ -379,7 +431,8 @@ vital_config_block_t* vital_config_block_file_read( char const *filepath,
  * \return A object representing the contents of the read-in file.
  */
 VITAL_C_EXPORT
-vital_config_block_t* vital_config_block_file_read_from_standard_location(
+vital_config_block_t*
+vital_config_block_file_read_from_standard_location(
   char const*           name,
   char const*           application_name,
   char const*           application_version,
@@ -404,9 +457,10 @@ vital_config_block_t* vital_config_block_file_read_from_standard_location(
  *  (-1) Some other exception occurred
  */
 VITAL_C_EXPORT
-void vital_config_block_file_write( vital_config_block_t *cb,
-                                    char const *filepath,
-                                    vital_error_handle_t *eh );
+void
+vital_config_block_file_write( vital_config_block_t *cb,
+                               char const *filepath,
+                               vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus

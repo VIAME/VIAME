@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Implementation of draw_detected_object_boxes_process
+ */
+
 #include "draw_detected_object_boxes_process.h"
 
 #include <vital/vital_types.h>

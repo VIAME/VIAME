@@ -54,8 +54,9 @@ namespace kwiver {
 namespace vital_c {
 
 // Defined in ../c/algorithm.cxx
-  extern SharedPointerCache< kwiver::vital::algorithm,
-                           vital_algorithm_t > ALGORITHM_SPTR_CACHE;
+extern
+SharedPointerCache< kwiver::vital::algorithm, vital_algorithm_t >
+  ALGORITHM_SPTR_CACHE;
 
 
 class invalid_algorithm_pointer
@@ -68,7 +69,8 @@ public:
   }
 };
 
-} } // end namespace
+} // end namespace vital_c
+} // end namespace kwiver
 
 
 /// Macro companion to DECLARE_COMMON_ALGO_API, providing type implementations
@@ -78,10 +80,13 @@ public:
     namespace vital_c {                                                 \
       SharedPointerCache< kwiver::vital::algo::type, vital_algorithm_t > \
         ALGORITHM_##type##_SPTR_CACHE( #type );                         \
-   } }                                                                     \
+  }                                                                     \
+  }                                                                     \
+                                                                        \
   /* ==================================================================== */ \
   /* Functions on types (static methods)                                  */ \
   /* -------------------------------------------------------------------- */ \
+                                                                        \
   /* Create new instance of a specific algorithm implementation */      \
   vital_algorithm_t* vital_algorithm_##type##_create( char const *impl_name ) \
   {                                                                     \
@@ -98,6 +103,7 @@ public:
     );                                                                  \
     return 0;                                                           \
   }                                                                     \
+                                                                        \
   /* Destroy an algorithm instance of this type */                      \
   void vital_algorithm_##type##_destroy( vital_algorithm_t *algo,       \
                                          vital_error_handle_t *eh )     \
@@ -108,6 +114,7 @@ public:
       kwiver::vital_c::ALGORITHM_##type##_SPTR_CACHE.erase( algo );     \
     );                                                                  \
   }                                                                     \
+                                                                        \
   /* Get a list of registered implementation names for this algorithm type */ \
   void vital_algorithm_##type##_registered_names( unsigned int *length, \
                                                   char ***names )       \
@@ -119,10 +126,11 @@ public:
       kwiver::vital_c::make_string_list( name_list, *length, *names );  \
     );                                                                  \
   }                                                                     \
+                                                                        \
   /** Get the configuration for a named algorithm in the given config */ \
   void                                                                  \
   vital_algorithm_##type##_get_type_config( char const *name,           \
-                                            vital_algorithm_t *algo,    \
+                                            vital_algorithm_t const *algo, \
                                             vital_config_block_t *cb,   \
                                             vital_error_handle_t *eh )  \
   {                                                                     \
@@ -147,10 +155,11 @@ public:
       );                                                                \
     );                                                                  \
   }                                                                     \
+                                                                        \
   /** Set algorithm properties based on a named configuration in the config */ \
   void                                                                  \
   vital_algorithm_##type##_set_type_config( char const *name,           \
-                                            vital_config_block_t *cb,   \
+                                            vital_config_block_t const *cb, \
                                             vital_algorithm_t **algo,   \
                                             vital_error_handle_t *eh )  \
   {                                                                     \
@@ -167,9 +176,8 @@ public:
         kwiver::vital_c::CONFIG_BLOCK_SPTR_CACHE.get( cb ),             \
         algo_sptr                                                       \
       );                                                                \
-      /* If underlying pointer changed, destroy the old instance and register \
-       * the new one.                                                   \
-       */                                                               \
+      /* If underlying pointer changed, destroy the old instance and register */ \
+      /* the new one.  */                                               \
       if( orig_ptr != algo_sptr.get() )                                 \
       {                                                                 \
         if( orig_ptr )                                                  \
@@ -197,7 +205,6 @@ public:
       );                                                                \
     );                                                                  \
     return false;                                                       \
-  }                                                                     \
-
+  }
 
 #endif // VITAL_C_HELPERS_ALGORITHM_H_

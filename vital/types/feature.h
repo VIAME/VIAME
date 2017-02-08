@@ -186,6 +186,8 @@ protected:
   covariance_< 2, T > covar_;
   /// RGB color of feature
   rgb_color color_;
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

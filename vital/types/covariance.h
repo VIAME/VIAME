@@ -127,7 +127,7 @@ public:
 
 
   /// Extract a full matrix
-  operator Eigen::Matrix< T, N, N > () const
+  Eigen::Matrix< T, N, N > matrix() const
   {
     Eigen::Matrix< T, N, N > mat;
     unsigned int n = 0;

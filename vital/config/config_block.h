@@ -195,12 +195,11 @@ public:
    *
    * If this key already exists, has a description and no new description
    * was passed with this \c set_value call, the previous description is
-   * retained. We assume that the previous description is still valid and
-   * this a value overwrite. If it is intended for the description to also
-   * be overwritten, an \c unset_value call should be performed on the key
-   * first, and then this \c set_value call.
+   * retained (we assume that the previous description is still valid and
+   * this is just a value overwrite).
    *
-   * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
+   * \throws set_on_read_only_value_exception Thrown if \p key is marked as
+   *   read-only.
    *
    * \postconds
    * \postcond{<code>this->get_value<value_t>(key) == value</code>}
@@ -208,11 +207,10 @@ public:
    *
    * \param key The index of the configuration value to set.
    * \param value The value to set for the \p key.
-   * \param descr Description of the key. If this is set, we will override
-   *              any existing description for the given key. If a
-   *              description for the given key already exists and nothing
-   *              was provided for this parameter, the existing description
-   *              is maintained.
+   * \param descr Description of the key. If this is set, we will override any
+   *   existing description for the given key. If a description for the given
+   *   key already exists and nothing was provided for this parameter, the
+   *   existing description is maintained.
    */
   template < typename T >
   void set_value( config_block_key_t const&         key,
@@ -223,12 +221,11 @@ public:
   /**
    * The specified value is set for the specified key.
    *
-   * If this key already exists, has a description and no new description
-   * was passed with this \c set_value call, the previous description is
-   * retained. We assume that the previous description is still valid and
-   * this a value overwrite. If it is intended for the description to also
-   * be overwritten, an \c unset_value call should be performed on the key
-   * first, and then this \c set_value call.
+   * If this key already exists and has a description, the previous description
+   * is retained (we assume that the previous description is still valid and
+   * this a value overwrite). If it is intended for the description to also
+   * be overwritten, the other \c set_value function that has a parameter for
+   * description setting should be used.
    *
    * \throws set_on_read_only_value_exception Thrown if \p key is marked as read-only.
    *
@@ -241,7 +238,7 @@ public:
    */
   template < typename T >
   void set_value( config_block_key_t const& key,
-                  T const& value);
+                  T const&                  value);
 
   /// Remove a value from the configuration.
   /**

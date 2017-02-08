@@ -113,11 +113,11 @@ IMPLEMENT_TEST(matrix_properties)
     R2_extracted *= -1.0;
   }
 
-  if(!is_almost(matrix_3x3d(rot), R1_extracted, 1e-14) &&
-     !is_almost(matrix_3x3d(rot), R2_extracted, 1e-14) )
+  if(!is_almost(rot.matrix(), R1_extracted, 1e-14) &&
+     !is_almost(rot.matrix(), R2_extracted, 1e-14) )
   {
     TEST_ERROR("extracted rotation should match input or twisted pair\n"
-               "input:\n" << matrix_3x3d(rot) << "\n"
+               "input:\n" << rot.matrix() << "\n"
                "got (v1):\n" << R1_extracted << "\n"
                "got (v2):\n" << R2_extracted << "\n");
   }
@@ -142,7 +142,7 @@ IMPLEMENT_TEST(twisted_pair)
   rotation_d rot_t_180( LOCAL_PI,
                        t.normalized().eval());
   TEST_NEAR("twisted pair rotation should be 180 degree rotation around t",
-            matrix_3x3d(R2), matrix_3x3d(rot_t_180 * R1), epsilon);
+            R2.matrix(), (rot_t_180 * R1).matrix(), epsilon);
 
   essential_matrix_d em1(R1, t1), em2(R1, t2), em3(R2, t1), em4(R2, t2);
   matrix_3x3d M1(em1.matrix()), M2(em2.matrix()),

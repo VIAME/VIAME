@@ -1,0 +1,200 @@
+KWIVER v1.1.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.0.0 release.
+
+
+Updates since v1.0.0
+--------------------
+
+Arrows - Ceres
+
+ * Added a Ceres implementation of the optimize_cameras abstract algorithm.
+   This implmentation is very similar to the bundle_adjust algorithm but
+   does not modify the landmarks.
+
+ * Refactored common config options and helper functions between
+   optimize_cameras and bundle_adjust into new shared classes in options.h.
+   This makes it much easer to create a new Ceres solver algorihm and
+   reuse the same solver options or camera options.
+
+ * Implemented callbacks for the Ceres bundle_adjust to emit the state of
+   the optimization after each iteration if a callback is registered.
+
+ * Added two forms of camera path regularization to the bundle_adjust and
+   optimize_cameras algorithms.  The first adds a cost that favors smooth
+   camera paths; the camera location at time t should be close to the
+   average of locations at t-1 and t+1.  The second adds cost for cameras
+   moving along the principal ray direction; this allows optimization to
+   favor focal length change (zoom) over forward motion.
+
+Arrows - Core
+
+ * Added an option to the PCA canonical transform estimator to shift the ground
+   plane vertically to place a configurable percentile of the landmarks above
+   the ground.
+
+ * Implemented callbacks for the core initialize_cameras_landmarks algorithm
+   to emit the set of cameras and landmarks after each camera is added if a
+   callback is registered.
+
+ * Added logic to compute changes in ground sample distance (GSD) as images are
+   added in the camera_landmark_initialization algorithm.  If GSD changes are
+   above a threshold then assume the camera intrinsics have changed and create
+   a new shared intrinsic model.  This allows for shared intrinsics when the
+   camera does not zoom but varying intrinsics when zoom is detected.
+
+ * Changed the order of when Necker reversal correction is attempted in the
+   initialize_cameras_landmarks algorithm.  Previously it was attempted at the
+   end after adding all cameras, often too late.  Now it is attempted the
+   first time the ratio of reversed to non-reversed RMSE is within a threshold.
+   Necker revsersal is only attempted once.  It is either needed or not.
+
+Arrows - OpenCV
+
+ * Updated the OpenCV image container functions to handle conversinos between
+   vital::image and cv::Mat for all supported pixel types and memory layouts.
+
+ * Updated the ocv::image_io algorithm to load images of various pixel types
+   and to explicitly apply BGR to RGB conversions instead of hiding those
+   color conversions elsewhere (see fixes below).
+
+Arrows - VXL
+
+ * Updated the VXL image container functions to handle conversions between
+   vital::image and vil_image_view_base_sptr for all supported pixel types and
+   memory layouts.
+
+ * Generalized the vxl::image_io algorithm to read and write images with
+   different pixel formats (bool, uint8, uint16, float, etc.).  Added a
+   "force_byte" option to always load or save as uint8 regardless of the
+   underlying data type.  Generalized the range stretching options to apply
+   to and from types other than uint8.  Range stretch now applies to save
+   as well as load
+
+Arrows - Darknet
+
+ * Added image_object_detector implementation using darkent
+   implementation of you only look once (YOLO), state-of-the-art,
+   real-time object detection system.
+
+
+Vital
+
+ * Generalized the vital::image class to store pixel types other than bytes.
+   A new image_pixel_traits struct is used to hold the number of bytes per pixel
+   and an enum describing how to interpret the pixel (signed, unsigned, float,
+   etc.).  A new derived class image_of<T> allows convenience construction and
+   interface with images where pixel type T is known at compile time.
+
+ * Added an is_contiguous() member function on vital::image to check if the
+   data is laid out in contiguous memory.
+
+ * Moved the transform_image function to vital/util/transform_image.h, a new
+   header, and generalized it to use any pixel type.  Switched to a template
+   argument for the function parameter to allow passing in functors.
+
+ * Added a second transform_image function to transforms one image into another
+   image, not in-place like the previous function.  This version can transform
+   one image into another with a differnt pixel type.
+
+ * Added a cast_image function which uses the transform_image function to
+   apply a static cast between image types.
+
+ * Expanded unit tests to evaluate different pixel data types and test the
+   is_contiguous member function.
+
+ * Added a vital::image_type_mismatch_exception to throw in cases where
+   the pixel data type does not match what is expected.
+
+ * Updated the C bindings for vital::image to support pixel types.  Added
+   get_pixel2 and get_pixel3 variants for the most common data types.
+   Added a bindings for is_contiguous and equal_content.
+
+ * Updated the Python bindings for vital::image to support pixel types.
+   Added bindings for get_pixel2 and get_pixel3 variants, is_contiguous,
+   equal_content, and others.  Updated the conversion to PIL to work with
+   different pixel types.
+
+ * Added callback registration to two abstract algorithms: bundle_adjust and
+   initialize_cameras_landmarks.  Callbacks allow the algorithms to report
+   progress updates.  They also allow the receiver to terminate the algorithm
+   early.
+
+ * Added deep copy support to detected object sets and contained
+   classes. These class are detected_object_Set, detected_object and
+   attribute_set.
+
+Sprokit
+
+ * Added sprokit port operations that have timeout. Allows process to
+   limit how long it will wait for data to be provided or
+   accepted. This option is available on a port by port basis based on
+   which method is used.
+
+ * Added non-blocking option for processes. This option causes data
+   supplied to input ports of a process to be dropped if the input
+   edge buffers are full. This operates on a per-process basis so that
+   all input edges have the same capacity, and when an edge is full,
+   all inputs are dropped.
+
+ * Modified embedded pipeline to handle applications where there are
+   source and/or sink processes in the pipeline. Initially, the
+   application had to handle sourcing and sinking the data through
+   adapter processes. The change makes the required input/output
+   adapter processes to be optional.
+
+
+Vital Bindings
+
+ * Fixed bug in python ConfigBlock read-from-file.
+
+ * Added more C/Python bindings for vital::track class
+
+ * Added more C/Python bindings for vital::track_set class
+
+ * Added full C/Python bindings for vital::landmark class
+
+ * Added full C/Python bindings for vital::landmark_map class
+
+ * Added full C/Python bindings for vital::similarity class
+
+ * Added full C/Python bindings for vital::homography class
+
+ * Added C/Python interface for bindle_adjust algorithm definition
+
+ * Added C/Python interface for initialize_cameras_landmarks algorithm
+   definition
+
+ * Added C/Python interface for triangulate_landmarks algorithm definition
+
+ * Added C/Python interface for geo_map algorithm definition
+
+ * Added C/Python interface for estimate_similarity_transform algorithm
+   definition
+
+ * Added C/Python interface for estimate_canonical_transform algorithm
+   definition
+
+
+Fixes since v1.0.0
+------------------
+
+Arrows - OpenCV
+
+ * Fixed a potential crash when wrapping a cv::Mat into a mat_image_memory
+   object.  If the cv::Mat did not own its data and had no reference counter
+   the mat_image_memory would still try to increment it (OpenCV 2.4.X only).
+
+ * Reverted a previous workaround to the OpenCV BGR vs RGB issue that was
+   reversing the color channels during every cv::Mat to vital::image conversion
+   This was error prone and missed some corner cases.  The conversion will
+   be made explictly elsewhere when needed.
+
+Vital
+
+ * The C binding vital_image_new_from_data contained a weird hack that
+   convert BGR to RGB and copied data instead of simply calling the
+   corresponding C++ code.  This has been removed.  Another solution
+   should be found if this causes problems elsewhere.

@@ -86,6 +86,7 @@ operator!()
   return ! m_in_stream.good();
 }
 
+
 // ------------------------------------------------------------------
 size_t
 data_stream_reader::

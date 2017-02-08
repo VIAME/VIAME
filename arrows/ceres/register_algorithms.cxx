@@ -37,6 +37,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/ceres/bundle_adjust.h>
+#include <arrows/ceres/optimize_cameras.h>
 
 
 namespace kwiver {
@@ -62,7 +63,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
-
 
   vpm.mark_module_as_loaded( module_name );
 }

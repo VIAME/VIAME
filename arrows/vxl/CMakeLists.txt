@@ -17,6 +17,7 @@ set(vxl_headers_public
   image_io.h
   match_features_constrained.h
   optimize_cameras.h
+  polygon.h
   triangulate_landmarks.h
   vil_image_memory.h
   vidl_ffmpeg_video_input.h
@@ -47,6 +48,7 @@ set(vxl_sources
   image_io.cxx
   match_features_constrained.cxx
   optimize_cameras.cxx
+  polygon.cxx
   triangulate_landmarks.cxx
   vil_image_memory.cxx
   vidl_ffmpeg_video_input.cxx

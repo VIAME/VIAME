@@ -150,7 +150,7 @@ vital_covariance_##N##S##_to_matrix( vital_covariance_##N##S##_t *cov,          
   STANDARD_CATCH(                                                                    \
     "vital_covariance_" #N #S ".to_matrix", eh,                                      \
     REINTERP_TYPE( cov_t, cov, cov_ptr );                                            \
-    matrix_t *m = new matrix_t( (*cov_ptr) );                                        \
+    matrix_t *m = new matrix_t( cov_ptr->matrix() );                                 \
     return reinterpret_cast<vital_eigen_matrix##N##x##N##S##_t*>( m );               \
   );                                                                                 \
   return 0;                                                                          \

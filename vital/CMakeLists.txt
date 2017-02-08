@@ -143,6 +143,7 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/polygon.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
@@ -151,7 +152,6 @@ set( vital_public_headers
   types/track_set.h
   types/vector.h
   types/uuid.h
-
 
 )
 
@@ -194,6 +194,7 @@ set( vital_sources
   types/image.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/polygon.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx

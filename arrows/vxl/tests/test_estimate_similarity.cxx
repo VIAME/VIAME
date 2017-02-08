@@ -133,10 +133,10 @@ IMPLEMENT_TEST(reprojection_100pts)
 
   cerr << "Original Transform : " << m_sim << endl
        << "Estimated Transform: " << e_sim << endl
-       << "Euclidian norm     : " << (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm() << endl;
+       << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
   TEST_NEAR("Crafted and estimated similarity transforms match",
-            (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm(),
+            (m_sim.matrix() - e_sim.matrix()).norm(),
             0.0, 1e-12);
 
   cerr << "Constructing crafted similarity transformation WITH ZERO TRANSLATION" << endl;
@@ -156,10 +156,10 @@ IMPLEMENT_TEST(reprojection_100pts)
 
   cerr << "Original Transform : " << m_sim << endl
        << "Estimated Transform: " << e_sim << endl
-       << "Euclidian norm     : " << (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm() << endl;
+       << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
   TEST_NEAR("Crafted and estimated similarity transforms match",
-            (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm(),
+            (m_sim.matrix() - e_sim.matrix()).norm(),
             0.0, 1e-12);
 }
 
@@ -200,10 +200,10 @@ IMPLEMENT_TEST(reprojection_4pts)
 
   cerr << "Original Transform : " << m_sim << endl
        << "Estimated Transform: " << e_sim << endl
-       << "Euclidian norm     : " << (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm() << endl;
+       << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
   TEST_NEAR("Crafted and estimated similarity transforms match",
-            (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm(),
+            (m_sim.matrix() - e_sim.matrix()).norm(),
             0.0, 1e-12);
 }
 
@@ -244,10 +244,10 @@ IMPLEMENT_TEST(reprojection_3pts)
 
   cerr << "Original Transform : " << m_sim << endl
        << "Estimated Transform: " << e_sim << endl
-       << "Euclidian norm     : " << (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm() << endl;
+       << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
   TEST_NEAR("Crafted and estimated similarity transforms match",
-            (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm(),
+            (m_sim.matrix() - e_sim.matrix()).norm(),
             0.0, 1e-12);
 }
 
@@ -286,9 +286,9 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
 
   cerr << "Original Transform : " << m_sim << endl
        << "Estimated Transform: " << e_sim << endl
-       << "Euclidian norm     : " << (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm() << endl;
+       << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
   TEST_NEAR("Crafted and estimated similarity transforms match",
-            (matrix_4x4d(m_sim) - matrix_4x4d(e_sim)).norm(),
+            (m_sim.matrix() - e_sim.matrix()).norm(),
             0.0, 0.01);
 }

@@ -36,6 +36,8 @@
 
 #include "track_set.h"
 
+#include <limits>
+
 #include <vital/vital_foreach.h>
 
 namespace kwiver {
@@ -110,6 +112,8 @@ track_set
     }
   }
 
+  // If there was no frame intersection, then last_frame is not modified, and
+  // we are returning the default of 0.
   return last_frame;
 }
 
@@ -119,18 +123,27 @@ frame_id_t
 track_set
 ::first_frame() const
 {
-  frame_id_t first_frame = 0;
+  frame_id_t first_frame = std::numeric_limits<frame_id_t>::max();
   const std::vector<track_sptr> all_tracks = this->tracks();
+  bool intersects_frame = false;
 
   VITAL_FOREACH( track_sptr t, all_tracks)
   {
     if( t->first_frame() < first_frame )
     {
+      intersects_frame = true;
       first_frame = t->first_frame();
     }
   }
 
-  return first_frame;
+  if( intersects_frame )
+  {
+    return first_frame;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 

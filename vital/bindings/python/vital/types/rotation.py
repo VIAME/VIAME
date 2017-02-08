@@ -50,7 +50,7 @@ from vital.util import (
 class Rotation (VitalObject):
 
     # Override C opaque pointer type to ones that are dependent on size and type
-    TYPE_CACHE = OpaqueTypeCache("Covariance_")
+    TYPE_CACHE = OpaqueTypeCache("Rotation_")
     C_TYPE = TYPE_CACHE.new_type_getter()
     C_TYPE_PTR = TYPE_CACHE.new_ptr_getter()
 
@@ -335,6 +335,19 @@ class Rotation (VitalObject):
         return r_list
 
     def __init__(self, c_type=ctypes.c_double, from_cptr=None):
+        """
+        Initialize an identity rotation.
+
+        :param c_type: Underlying C data type to use. Double is used by default.
+        :type c_type: ctypes._SimpleCData
+
+        :param from_cptr: Existing C opaque instance pointer to use, preventing
+            new instance construction. This should of course be a valid pointer
+            to an instance. The ``ctype`` parameter must still be provided if
+            the default is not accurate.
+        :type from_cptr: ctypes._Pointer
+
+        """
         # Initialize C type and pointer + function map
         # noinspection PyProtectedMember
         self._spec = self._gen_spec(c_type)

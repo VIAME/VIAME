@@ -192,7 +192,7 @@ essential_matrix_<T>
   t_cross << T(0), -trans_[2], trans_[1],
              trans_[2], T(0), -trans_[0],
             -trans_[1], trans_[0], T(0);
-  return t_cross * matrix_t(rot_);
+  return t_cross * matrix_t(rot_.matrix());
 }
 
 /// Compute the twisted pair rotation from the rotation and translation

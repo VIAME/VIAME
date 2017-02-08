@@ -118,6 +118,18 @@ vital_descriptor_as_doubles( vital_descriptor_t const *d,
                              vital_error_handle_t *eh );
 
 
+/// Get the name of the descriptor instance's data type
+/**
+ * \param d Descriptor instance
+ * \param eh Vital error handle instance
+ * \return String name of the instance's data type
+ */
+VITAL_C_EXPORT
+char const*
+vital_descriptor_type_name( vital_descriptor_t const *d,
+                            vital_error_handle_t *eh );
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Type-specific functions (and constructors)
 

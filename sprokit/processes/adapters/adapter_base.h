@@ -57,7 +57,6 @@ namespace adapter {
  *
  * This class contains all common code to support the input and output
  * adapter classes. It is not designed to be polymorphic base class.
- *
  */
 class adapter_base
 {
@@ -75,7 +74,6 @@ public:
    * @return Pointer to interface queue.
    */
   interface_ref_t get_interface_queue();
-
 
   /**
    * @brief Get list of connected ports.

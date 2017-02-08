@@ -46,7 +46,8 @@ void make_string_list( std::vector<std::string> const &list,
   strings = (char**)malloc( sizeof(char*) * length );
   for( unsigned int i = 0; i < length; i++ )
   {
-    strings[i] = (char*)malloc(sizeof(char) * (list[i].length()+1));
+    // +1 for null terminal
+    strings[i] = (char*)malloc( sizeof(char) * (list[i].length() + 1) );
     std::strcpy( strings[i], list[i].c_str() );
   }
 }

@@ -55,7 +55,7 @@ camera
 ::as_matrix() const
 {
   matrix_3x4d P;
-  matrix_3x3d R( this->rotation() );
+  matrix_3x3d R( this->rotation().matrix() );
   matrix_3x3d K( this->intrinsics()->as_matrix() );
   vector_3d t( this->translation() );
   P.block< 3, 3 > ( 0, 0 ) = R;
@@ -96,7 +96,7 @@ operator<<( std::ostream& s, const camera& c )
     d[0] = 0.0;
   }
   s << setprecision( 12 ) << c.intrinsics()->as_matrix() << "\n\n"
-    << setprecision( 12 ) << matrix_3x3d( c.rotation() ) << "\n\n"
+    << setprecision( 12 ) << c.rotation().matrix() << "\n\n"
     << setprecision( 12 ) << c.translation().transpose() << "\n\n"
     << setprecision( 12 ) << d.transpose() << "\n";
   return s;
@@ -106,8 +106,8 @@ operator<<( std::ostream& s, const camera& c )
 /// Rotate the camera about its center such that it looks at the given point.
 void
 simple_camera
-::look_at( const vector_3d& stare_point,
-           const vector_3d& up_direction )
+::look_at( const vector_3d &stare_point,
+           const vector_3d &up_direction )
 {
   // a unit vector in the up direction
   const vector_3d up = up_direction.normalized();
@@ -122,7 +122,9 @@ simple_camera
   // nearly parallel and the up direction is poorly defined.
   if ( x_mag < 1e-4 )
   {
-    LOG_WARN( m_logger,  "camera_::look_at up_direction nearly parallel with the look direction" );
+    LOG_WARN( m_logger,
+              "simple_camera::look_at up_direction nearly parallel with the "
+              "look direction" );
   }
 
   x /= x_mag;
@@ -134,6 +136,19 @@ simple_camera
     z.x(), z.y(), z.z();
 
   this->set_rotation( rotation_d ( R ) );
+}
+
+
+/// Create a clone of this camera that is rotated to look at the given point
+camera_sptr
+simple_camera
+::clone_look_at( const vector_3d &stare_point,
+                 const vector_3d &up_direction = vector_3d::UnitZ() ) const
+{
+  camera_sptr c_sptr = this->clone();
+  dynamic_cast<simple_camera *>(c_sptr.get())->look_at( stare_point,
+                                                        up_direction );
+  return c_sptr;
 }
 
 
@@ -159,6 +174,7 @@ operator>>( std::istream& s, simple_camera& k )
   {
     d(i) =  dValues[i];
   }
+
   // a single 0 in d is used as a place holder,
   // if a single 0 was loaded then clear d
   if ( ( d.rows() == 1 ) && ( d[0] ==  0.0 ) )

@@ -82,6 +82,7 @@ number_process
     priv::config_start,
     priv::default_start,
     kwiver::vital::config_block_description_t("The value to start counting at."));
+
   declare_configuration_key(
     priv::config_end,
     priv::default_end,

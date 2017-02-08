@@ -191,6 +191,7 @@ output_adapter_process
   return;
 }
 
+
 // ================================================================
 output_adapter_process::priv
 ::priv()

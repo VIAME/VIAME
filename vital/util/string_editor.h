@@ -97,7 +97,6 @@ public:
    */
   void add( string_edit_operation* op );
 
-
   /**
    * @brief Apply editors to the string.
    *
@@ -109,7 +108,6 @@ public:
    * @return \b true if the line has been edited. \b false if the line has been absorbed.
    */
   bool edit( std::string& str );
-
 
 private:
   std::vector< std::shared_ptr< string_edit_operation > > m_editor_list;
