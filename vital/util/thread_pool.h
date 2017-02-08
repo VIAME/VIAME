@@ -45,15 +45,10 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/vital_util_export.h>
 
-#include <condition_variable>
 #include <functional>
 #include <future>
 #include <memory>
-#include <mutex>
-#include <queue>
-#include <stdexcept>
-#include <thread>
-#include <vector>
+
 
 namespace kwiver {
 namespace vital {
@@ -85,29 +80,18 @@ public:
 
 private:
 
-   /// Constructor - create a thread pool with some number of threads
-  thread_pool(size_t num_threads = std::thread::hardware_concurrency());
+   /// Constructor - private for signleton
+  thread_pool();
 
-  /// Destructor - joins all threads
-  ~thread_pool();
+  /// Destructor
+  ~thread_pool() VITAL_DEFAULT_DTOR
 
-  /// This function is executed in each thread to endlessly process tasks
-  void thread_worker_loop();
+  /// Enqueue a void function in the thread pool
+  void enqueue_task(std::function<void()> task);
 
-  /// The task queue
-  std::queue< std::function<void()> > tasks;
-
-  /// The collection of threads in the pool
-  std::vector<std::thread> workers;
-
-  /// Mutex to synchronize access to the queue
-  std::mutex queue_mutex;
-
-  /// Condition variable to allow threads to wait for tasks
-  std::condition_variable condition;
-
-  /// Flag to indicate that the processing loop should terminate
-  bool stop;
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
 };
 
 
@@ -127,20 +111,8 @@ auto thread_pool::enqueue(F&& f, Args&&... args)
   // get a future to the function result to return to the caller
   std::future<return_type> res = task->get_future();
 
-  // add the task to the queue as long as it still running
-  {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    // don't allow enqueueing after stopping the pool
-    if(stop)
-    {
-      throw std::runtime_error("enqueue on stopped thread_pool");
-    }
-
-    // add the task to the queue using a lambda function to ignore return type
-    tasks.emplace([task](){ (*task)(); });
-  }
-  // notify one worker to start processing
-  condition.notify_one();
+  // add the task to the queue using a lambda function to ignore return type
+  this->enqueue_task([task](){ (*task)(); });
 
   return res;
 }

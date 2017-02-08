@@ -41,55 +41,72 @@
 
 #include "thread_pool.h"
 
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <stdexcept>
+#include <thread>
+#include <vector>
+
+
 namespace kwiver {
 namespace vital {
 
 
-/// Access the singleton instance of this class
-thread_pool& thread_pool::instance()
+/// Private implementation class
+class thread_pool::priv
 {
-  static thread_pool instance;
-
-  return instance;
-}
-
-
-
-// Constructor - spawns the requested number for worker threads
-thread_pool::thread_pool(size_t num_threads)
-  : stop(false)
-{
-  for(size_t i=0; i<num_threads; ++i)
+public:
+  /// Constructor
+  priv(size_t num_threads=std::thread::hardware_concurrency())
+    : stop(false)
   {
-    workers.emplace_back([this] { thread_worker_loop(); });
+    for(size_t i=0; i<num_threads; ++i)
+    {
+      workers.emplace_back([this] { thread_worker_loop(); });
+    }
   }
-}
 
-
-/// Destructor - joins all threads
-thread_pool::~thread_pool()
-{
+  /// Destructor
+  ~priv()
   {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    stop = true;
+    {
+      std::unique_lock<std::mutex> lock(queue_mutex);
+      stop = true;
+    }
+    condition.notify_all();
+    VITAL_FOREACH(std::thread &worker, workers)
+    {
+      worker.join();
+    }
   }
-  condition.notify_all();
-  VITAL_FOREACH(std::thread &worker, workers)
-  {
-    worker.join();
-  }
-}
+
+  /// This function is executed in each thread to endlessly process tasks
+  void thread_worker_loop();
+
+  /// Enqueue a void() task
+  void enqueue_task(std::function<void()> func);
 
 
-/// Returns the number of worker threads
-size_t thread_pool::size() const
-{
-  return workers.size();
-}
+  /// The task queue
+  std::queue< std::function<void()> > tasks;
+
+  /// The collection of threads in the pool
+  std::vector<std::thread> workers;
+
+  /// Mutex to synchronize access to the queue
+  std::mutex queue_mutex;
+
+  /// Condition variable to allow threads to wait for tasks
+  std::condition_variable condition;
+
+  /// Flag to indicate that the processing loop should terminate
+  bool stop;
+};
 
 
 /// This function is executed in each thread to endlessly process tasks
-void thread_pool::thread_worker_loop()
+void thread_pool::priv::thread_worker_loop()
 {
   // loop forever
   for(;;)
@@ -108,6 +125,56 @@ void thread_pool::thread_worker_loop()
 
     task();
   }
+}
+
+
+/// Enqueue a void function in the thread pool
+void thread_pool::priv::enqueue_task(std::function<void()> func)
+{
+  // add the task to the queue as long as it still running
+  {
+    std::unique_lock<std::mutex> lock(queue_mutex);
+    // don't allow enqueueing after stopping the pool
+    if(stop)
+    {
+      throw std::runtime_error("enqueue on stopped thread_pool");
+    }
+
+    // add the task to the queue
+    tasks.emplace(func);
+  }
+  // notify one worker to start processing
+  condition.notify_one();
+}
+
+
+/// Access the singleton instance of this class
+thread_pool& thread_pool::instance()
+{
+  static thread_pool instance;
+
+  return instance;
+}
+
+
+// Constructor
+thread_pool::thread_pool()
+  : d_(new priv)
+{
+}
+
+
+/// Returns the number of worker threads
+size_t thread_pool::size() const
+{
+  return d_->workers.size();
+}
+
+
+/// Enqueue a void function in the thread pool
+void thread_pool::enqueue_task(std::function<void()> task)
+{
+  d_->enqueue_task(task);
 }
 
 } }   // end namespace

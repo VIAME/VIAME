@@ -34,6 +34,9 @@
  */
 
 #include <test_common.h>
+
+#include <vector>
+
 #include <vital/util/thread_pool.h>
 
 #define TEST_ARGS ()
