@@ -55,10 +55,26 @@ namespace vital {
 
 /// A thread pool class to distribute tasks across a fixed pool of threads
 /**
- *  This class spawns a fixed number of thread, each of which runs in an
+ *  This class spawns a fixed number of threads, each of which runs in an
  *  endless loop pulling tasks off of a queue and executing them.  When tasks
  *  are added to the queue the enqueue function returns an std::future
  *  referring to the future value to be computed by the task.
+ *
+ *  Here is an example of how to use it.
+ *  \code
+
+    // functions to call, lambdas here, but could also be declared functions
+    auto my_func1 = [] (int x) { return static_cast<double>(x) + 2.0; }
+    auto my_func2 = [] (float x, unsigned y) { return x + y; }
+
+    // enqueue function calls (non-blocking)
+    std::future<double> val1 = thread_pool::instance().enqueue( my_func1, 10 );
+    std::future<float> val2 = thread_pool::instance().enqueue( my_func2, 2.1, 3 );
+
+    // get the results (blocks until each task is running)
+    std::cout << "results " << val1.get() << ", " << val2.get() << std::endl;
+
+ *  \endcode
  */
 class VITAL_UTIL_EXPORT thread_pool
   : private kwiver::vital::noncopyable
