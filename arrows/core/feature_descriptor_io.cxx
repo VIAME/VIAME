@@ -55,18 +55,18 @@ class feature_descriptor_io::priv
 public:
   /// Constructor
   priv()
-  : write_binary(false),
+  : write_float_features(false),
     m_logger( vital::get_logger( "arrows.vxl.feature_descriptor_io" ) )
   {
   }
 
   priv(const priv& other)
-  : write_binary(other.write_binary),
+  : write_float_features(other.write_float_features),
     m_logger(other.m_logger)
   {
   }
 
-  bool write_binary;
+  bool write_float_features;
 
   vital::logger_handle_t m_logger;
 };
@@ -105,8 +105,9 @@ feature_descriptor_io
   // get base config from base class
   vital::config_block_sptr config = vital::algo::feature_descriptor_io::get_configuration();
 
-  config->set_value("write_binary", d_->write_binary,
-                    "Write the output data in binary format");
+  config->set_value("write_float_features", d_->write_float_features,
+                    "Convert features to use single precision floats "
+                    "instead of doubles when writing to save space");
 
   return config;
 }
@@ -122,8 +123,8 @@ feature_descriptor_io
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d_->write_binary = config->get_value<bool>("write_binary",
-                                             d_->write_binary);
+  d_->write_float_features = config->get_value<bool>("write_float_features",
+                                                     d_->write_float_features);
 }
 
 
@@ -420,6 +421,11 @@ feature_descriptor_io
 
     ar( cereal::make_size_tag( static_cast<cereal::size_type>(features.size()) ) ); // number of elements
     uint8_t type_code = code_from_typeid(features[0]->data_type());
+    // if requested, force the output format to use floats instead of doubles
+    if(d_->write_float_features)
+    {
+      type_code = type_traits<float>::code;
+    }
     ar( type_code );
     switch( type_code )
     {
