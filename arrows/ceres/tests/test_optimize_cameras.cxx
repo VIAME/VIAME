@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 #include <vital/types/landmark_map.h>
 #include <vital/types/track_set.h>
 #include <vital/exceptions.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/core/projected_track_set.h>
 #include <arrows/ceres/optimize_cameras.h>
@@ -52,7 +53,8 @@ DECLARE_TEST_MAP();
 int main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
-  kwiver::arrows::ceres::optimize_cameras::register_self();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   testname_t const testname = argv[1];
   RUN_TEST(testname);
 }

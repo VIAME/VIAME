@@ -58,16 +58,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // add factory               implementation-name       type-to-create
   auto fact = vpm.ADD_ALGORITHM( "ceres", kwiver::arrows::ceres::bundle_adjust );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Uses Ceres Solver to bundle adjust camera and landmark parameters.")
+                       "Uses Ceres Solver to bundle adjust camera and landmark parameters.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "ceres", kwiver::arrows::ceres::optimize_camera );
+  fact = vpm.ADD_ALGORITHM( "ceres", kwiver::arrows::ceres::optimize_cameras );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Uses Ceres Solver to optimize camera parameters" );
+                       "Uses Ceres Solver to optimize camera parameters" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

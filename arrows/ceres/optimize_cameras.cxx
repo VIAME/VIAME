@@ -37,6 +37,7 @@
 #include <arrows/ceres/options.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <vital/exceptions.h>
+#include <vital/vital_foreach.h>
 
 
 using namespace kwiver::vital;
