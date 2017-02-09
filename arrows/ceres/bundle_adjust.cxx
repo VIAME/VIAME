@@ -92,8 +92,6 @@ public:
   {
   }
 
-  /// the Ceres solver options
-  ::ceres::Solver::Options options;
   /// verbose output
   bool verbose;
   /// the robust loss function type to use
@@ -131,18 +129,6 @@ bundle_adjust
 }
 
 
-<<<<<<< HEAD
-=======
-/// Copy Constructor
-bundle_adjust
-::bundle_adjust(const bundle_adjust& other)
-: d_(new priv(*other.d_))
-{
-  d_->ceres_callback.bap = this;
-}
-
-
->>>>>>> master
 /// Destructor
 bundle_adjust
 ::~bundle_adjust()
