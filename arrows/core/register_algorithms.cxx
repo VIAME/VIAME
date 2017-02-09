@@ -64,7 +64,7 @@ KWIVER_ALGO_CORE_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "algorithms.core" );
+  static auto const module_name = std::string( "arrows.core" );
   if (vpm.is_module_loaded( module_name ) )
   {
     return;

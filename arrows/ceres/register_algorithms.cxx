@@ -49,7 +49,7 @@ KWIVER_ALGO_CERES_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "algorithms.ceres" );
+  static auto const module_name = std::string( "arrows.ceres" );
   if (vpm.is_module_loaded( module_name ) )
   {
     return;

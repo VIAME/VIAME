@@ -59,7 +59,7 @@ KWIVER_ALGO_VXL_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "algorithms.vxl" );
+  static auto const module_name = std::string( "arrows.vxl" );
   if (vpm.is_module_loaded( module_name ) )
   {
     return;
