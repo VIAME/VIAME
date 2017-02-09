@@ -275,7 +275,7 @@ detect_features_ORB
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_configuration(c, m_logger);
+  return p_->check_configuration(c, logger());
 }
 
 
@@ -325,7 +325,7 @@ extract_descriptors_ORB
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_configuration(c, m_logger);
+  return p_->check_configuration(c, logger());
 }
 
 

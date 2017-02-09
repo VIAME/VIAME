@@ -363,7 +363,7 @@ vidl_ffmpeg_video_input
   : d( new priv() )
 {
   attach_logger( "video_input" ); // get appropriate logger
-  d->d_logger = this->m_logger;
+  d->d_logger = this->logger();
 }
 
 
@@ -466,7 +466,7 @@ vidl_ffmpeg_video_input
 
   if ( ! valid_src )
   {
-    LOG_ERROR( m_logger, "time source must be a comma separated list of one or more "
+    LOG_ERROR( logger(), "time source must be a comma separated list of one or more "
                "of the following strings: \"none\", \"misp\", \"klv0601\", \"klv0104\"" );
     retcode = false;
   }
@@ -476,7 +476,7 @@ vidl_ffmpeg_video_input
   //  zero indicates not set, otherwise must be 1 or greater
   if (frame < 0 )
   {
-    LOG_ERROR( m_logger, "start_at_frame must be greater than 0" );
+    LOG_ERROR( logger(), "start_at_frame must be greater than 0" );
     retcode = false;
   }
 
@@ -554,7 +554,7 @@ vidl_ffmpeg_video_input
 
   if ( ! time_found )
   {
-    LOG_ERROR( m_logger, "Failed to initialize the timestamp for: " << d->video_path );
+    LOG_ERROR( logger(), "Failed to initialize the timestamp for: " << d->video_path );
     throw kwiver::vital::video_stream_exception( "could not initialize timestamp" );
   }
 

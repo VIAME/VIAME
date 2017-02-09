@@ -163,7 +163,7 @@ match_features_flannbased
   unsigned k = config->get_value<unsigned>("cross_check_k");
   if( k == 0 )
   {
-    m_logger->log_error("Cross-check K value must be greater than 0.");
+    logger()->log_error("Cross-check K value must be greater than 0.");
     valid = false;
   }
 

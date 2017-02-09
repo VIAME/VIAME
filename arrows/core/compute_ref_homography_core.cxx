@@ -288,7 +288,7 @@ compute_ref_homography_core
 : d_( new priv() )
 {
   attach_logger( "compute_ref_homography_core" );
-  d_->m_logger = this->m_logger;
+  d_->m_logger = this->logger();
 }
 
 

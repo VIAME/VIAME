@@ -197,7 +197,7 @@ detect_features_FAST
 {
   vital::config_block_sptr config = get_configuration();
   config->merge_config(in_config);
-  return p_->check_config( config, m_logger );
+  return p_->check_config( config, logger() );
 }
 
 

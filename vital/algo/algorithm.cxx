@@ -67,7 +67,16 @@ void
 algorithm
 ::set_impl_name( const std::string& name )
 {
-  m_impl_name = name ;
+  m_impl_name = name;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::logger_handle_t
+algorithm
+::logger() const
+{
+  return m_logger;
 }
 
 

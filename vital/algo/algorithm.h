@@ -69,11 +69,6 @@ public:
   /// Return the name of the base algorithm
   virtual std::string type_name() const = 0;
 
-  //+ Since this is known by the factory, it can be set into this algo
-  // at create time and retrieved from a member variable rather than
-  // having this constant appear two times (in ADD_ALGORITHM(), and in
-  // the algo header file.
-
   /// Return the name of this implementation
   std::string impl_name() const;
 
@@ -183,8 +178,9 @@ public:
                                               config_block_sptr config);
 
   void set_impl_name( const std::string& name );
+  kwiver::vital::logger_handle_t logger() const;
 
-    protected:
+protected:
   algorithm(); // CTOR
 
   /**
@@ -203,6 +199,7 @@ public:
    */
   void attach_logger( std::string const& name );
 
+private:
   /**
    * \brief Logger handle.
    *
@@ -248,9 +245,6 @@ public:
 
   /// Return the name of this algorithm.
   virtual std::string type_name() const { return Self::static_type_name(); }
-
-
-  //+ The type_name and algo_name could be set by the factory when this object is created.
 
   /// Helper function for properly getting a nested algorithm's configuration
   /**
@@ -353,7 +347,6 @@ class algorithm_impl
 {
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
-  //+ typedef std::shared_ptr<BaseDef> base_sptr;
 
   virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
 };

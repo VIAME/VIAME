@@ -178,7 +178,7 @@ match_features_bruteforce
     std::stringstream ss;
     ss << "Incorrect norm type enum value given: '" << norm_type << "'. "
        << "Valid values are: " << str_list_enum_values();
-    m_logger->log_error( ss.str() );
+    logger()->log_error( ss.str() );
     valid = false;
   }
 
