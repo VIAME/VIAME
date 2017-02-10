@@ -3,7 +3,7 @@
 
 if( VIAME_ENABLE_OPENCV )
 
-  find_package( OpenCV 2.4.6 REQUIRED )
+  find_package( OpenCV REQUIRED )
   include_directories( SYSTEM ${OpenCV_INCLUDE_DIRS} )
 
   find_package( Eigen3 REQUIRED )
@@ -15,7 +15,7 @@ if( VIAME_ENABLE_OPENCV )
 
   target_link_libraries( detector1
     PRIVATE    vital
-               kwiver_algo
+               vital_algo
                kwiver_algo_ocv
                ${OpenCV_LIBS}
     )
@@ -28,7 +28,7 @@ if( VIAME_ENABLE_OPENCV )
   target_link_libraries( detector3
     PRIVATE    vital
                vital_apm
-               kwiver_algo
+               vital_algo
                kwiver_algo_ocv
                ${OpenCV_LIBS}
     )

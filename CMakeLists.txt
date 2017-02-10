@@ -137,7 +137,7 @@ if( IS_DIRECTORY ${fletch_DIR} )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
-  find_package( OpenCV 2.4.6 REQUIRED )
+  find_package( OpenCV REQUIRED )
 endif()
 
 include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
