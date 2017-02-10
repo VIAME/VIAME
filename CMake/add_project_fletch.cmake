@@ -13,12 +13,13 @@ if( VIAME_ENABLE_PYTHON )
   FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
 endif()
 
-if( ( WIN32 OR APPLE ) AND VIAME_ENABLE_VXL )
+if( VIAME_ENABLE_VXL )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_ZLib:BOOL=ON
     -Dfletch_ENABLE_libjpeg-turbo:BOOL=ON
     -Dfletch_ENABLE_libtiff:BOOL=ON
+    -Dfletch_ENABLE_PNG:BOOL=ON
   )
 endif()
 
@@ -33,14 +34,8 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_VTK:BOOL=ON
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
+    -Dfletch_ENABLE_PNG:BOOL=ON
   )
-
-  if( WIN32 OR APPLE )
-    set( fletch_DEP_FLAGS
-      ${fletch_DEP_FLAGS}
-      -Dfletch_ENABLE_PNG:BOOL=ON
-    )
-  endif()
 endif()
 
 ExternalProject_Add(fletch
