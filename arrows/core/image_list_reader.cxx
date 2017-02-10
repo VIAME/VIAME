@@ -54,7 +54,7 @@ class image_list_reader::priv
 {
 public:
   priv()
-    : c_start_at_frame( 0 )
+    : c_start_at_frame( 1 )
     , c_stop_after_frame( 0 )
     , c_frame_time( 0.03333 )
   { }
@@ -68,6 +68,7 @@ public:
   // local state
   std::vector < kwiver::vital::path_t > m_files;
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
+  std::vector < kwiver::vital::path_t >::const_iterator m_end; // end marker for iterator
   kwiver::vital::timestamp::frame_t m_frame_number;
   kwiver::vital::timestamp::time_t m_frame_time;
   kwiver::vital::image_container_sptr m_image;
@@ -105,6 +106,7 @@ image_list_reader
 // ------------------------------------------------------------------
 image_list_reader
 ::image_list_reader( image_list_reader const& other )
+  : d( new image_list_reader::priv() )
 {
   // copy CTOR
 
@@ -202,13 +204,20 @@ image_list_reader
     throw kwiver::vital::invalid_file( list_name, "Could not open file" );
   }
 
+  // Add directory that contains the list file to the path
+  std::string list_path = kwiversys::SystemTools::GetFilenamePath( list_name );
+  if ( ! list_path.empty() )
+  {
+    d->c_search_path.push_back( list_path );
+  }
+
   kwiver::vital::data_stream_reader stream_reader( ifs );
 
   // verify and get file names in a list
   for ( std::string line; stream_reader.getline( line ); /* null */ )
   {
     std::string resolved_file = line;
-    if ( ! kwiversys::SystemTools::FileExists( line ) )
+    if ( ! kwiversys::SystemTools::FileExists( resolved_file ) )
     {
       // Resolve against specified path
       resolved_file = kwiversys::SystemTools::FindFile( line, d->c_search_path, true );
@@ -223,6 +232,22 @@ image_list_reader
 
   d->m_current_file = d->m_files.begin();
   d->m_frame_number = 1;
+
+  if ( d->c_start_at_frame > 1 )
+  {
+    d->m_current_file +=  d->c_start_at_frame - 1;
+    d->m_frame_number +=  d->c_start_at_frame - 1;
+  }
+
+  d->m_end = d->m_files.end(); // set default end marker
+
+  if ( d->c_stop_after_frame > 0 )
+  {
+    if ( ( d->m_frame_number + d->c_stop_after_frame ) < d->m_files.size() )
+    {
+      d->m_end = d->m_current_file + d->c_stop_after_frame;
+    }
+  }
 }
 
 
@@ -240,7 +265,7 @@ bool
 image_list_reader
 ::end_of_video() const
 {
-  return ( d->m_current_file == d->m_files.end() );
+  return ( d->m_current_file == d->m_end );
 }
 
 
@@ -262,7 +287,7 @@ image_list_reader
 {
   // returns timestamp
   // does not support timeout
-  if ( d->m_current_file == d->m_files.end() )
+  if ( d->m_current_file == d->m_end )
   {
     return false;
   }

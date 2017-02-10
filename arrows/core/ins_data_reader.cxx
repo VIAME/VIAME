@@ -54,7 +54,7 @@ class ins_data_reader::priv
 {
 public:
   priv()
-    : c_start_at_frame( 0 )
+    : c_start_at_frame( 1 )
     , c_stop_after_frame( 0 )
     , c_frame_time( 0.03333 )
     , d_at_eov( false )
@@ -72,6 +72,7 @@ public:
 
   std::vector < kwiver::vital::path_t > d_metadata_files;
   std::vector < kwiver::vital::path_t >::const_iterator d_current_file;
+  std::vector < kwiver::vital::path_t >::const_iterator d_end;
   kwiver::vital::timestamp::frame_t d_frame_number;
   kwiver::vital::timestamp::time_t d_frame_time;
 
@@ -107,7 +108,7 @@ ins_data_reader
 // ------------------------------------------------------------------
 ins_data_reader
 ::ins_data_reader( ins_data_reader const& other )
-  : d( new ins_data_reader::priv )
+  : d( new ins_data_reader::priv() )
 {
   // copy CTOR
 
@@ -187,7 +188,7 @@ ins_data_reader
   {
     // Get base name from file
     std::string resolved_file = d->c_meta_directory;
-    resolved_file += "/" + kwiversys::SystemTools::GetFilenameWithoutExtension( line ) + "POS";
+    resolved_file += "/" + kwiversys::SystemTools::GetFilenameWithoutExtension( line ) + ".txt";
     if ( ! kwiversys::SystemTools::FileExists( resolved_file ) )
     {
       LOG_DEBUG( m_logger, "Could not find file " << resolved_file
@@ -200,6 +201,22 @@ ins_data_reader
 
   d->d_current_file = d->d_metadata_files.begin();
   d->d_frame_number = 1;
+
+  if ( d->c_start_at_frame > 1 )
+  {
+    d->d_current_file +=  d->c_start_at_frame - 1;
+    d->d_frame_number +=  d->c_start_at_frame - 1;
+  }
+
+  d->d_end = d->d_metadata_files.end(); // set default end marker
+
+  if ( d->c_stop_after_frame > 0 )
+  {
+    if ( ( d->d_frame_number + d->c_stop_after_frame ) < d->d_metadata_files.size() )
+    {
+      d->d_end = d->d_current_file + d->c_stop_after_frame;
+    }
+  }
 }
 
 
@@ -242,75 +259,81 @@ ins_data_reader
     return false;
   }
 
-  if ( d->d_current_file == d->d_metadata_files.end() )
+  if ( d->d_current_file == d->d_end )
   {
     d->d_at_eov = true;
     return false;
   }
 
-  // Open next file in the list
-  std::ifstream in_stream( *d->d_current_file );
-  if ( ! in_stream )
+  // reset current metadata packet.
+  d->d_metadata = 0;
+
+  if ( ! d->d_current_file->empty() )
   {
-    // should never happen since the file was pre-verified
-    throw kwiver::vital::file_not_found_exception( *d->d_current_file, "could not locate file" );
+    // Open next file in the list
+    std::ifstream in_stream( *d->d_current_file );
+    if ( ! in_stream )
+    {
+      // should never happen since the file was pre-verified
+      throw kwiver::vital::file_not_found_exception( *d->d_current_file, "could not locate file" );
+    }
+
+    std::string line;
+    getline( in_stream, line );
+
+    // Tokenize the string
+    std::vector< std::string > tokens;
+    kwiver::vital::tokenize( line, tokens, ",", true );
+
+    unsigned int base = 0;
+
+    // some POS files do not have the source name
+    if ( ( tokens.size() < 14 ) || ( tokens.size() > 15 ) )
+    {
+      std::ostringstream ss;
+      ss  << "Too few fields found in file "
+          << *d->d_current_file
+          << "  (discovered " << tokens.size() << " field(s), expected "
+          << "14 or 15).";
+      throw vital::invalid_data( ss.str() );
+    }
+
+    // make a new metadata container.
+    d->d_metadata = std::make_shared<kwiver::vital::video_metadata>();
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_METADATA_ORIGIN, std::string( "POS-file") ) );
+
+    if ( tokens.size() == 15 )
+    {
+      base = 1;
+      d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, tokens[0] ) );
+    }
+    else
+    {
+      // Set name to "MAPTK"
+      d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, std::string( "MAPTK" ) ) );
+    }
+
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE, tokens[base + 0] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE, tokens[ base + 1] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE, tokens[base + 2] ) );
+
+    kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), std::stod( tokens[ base + 4 ] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_LOCATION, latlon ) );
+
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, tokens[base + 5] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_SEC, tokens[base + 6] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_WEEK, tokens[base + 7] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_NORTHING_VEL, tokens[base + 8] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_EASTING_VEL, tokens[base + 9] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_UP_VEL, tokens[base + 10] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMU_STATUS, tokens[base + 11] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_LOCAL_ADJ, tokens[base + 12] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_DST_FLAGS, tokens[base + 13] ) );
+
+    // Return timestamp
+    ts = kwiver::vital::timestamp( d->d_frame_time, d->d_frame_number );
+    d->d_metadata->set_timestamp( ts );
   }
-
-  std::string line;
-  getline( in_stream, line );
-
-  // Tokenize the string
-  std::vector< std::string > tokens;
-  kwiver::vital::tokenize( line, tokens, ",", true );
-
-  unsigned int base = 0;
-
-  // some POS files do not have the source name
-  if ( ( tokens.size() < 14 ) || ( tokens.size() > 15 ) )
-  {
-    std::ostringstream ss;
-    ss  << "Too few fields found in file "
-        << *d->d_current_file
-        << "  (discovered " << tokens.size() << " field(s), expected "
-        << "14 or 15).";
-    throw vital::invalid_data( ss.str() );
-  }
-
-  // make a new metadata container.
-  d->d_metadata = std::make_shared<kwiver::vital::video_metadata>();
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_METADATA_ORIGIN, std::string( "POS-file") ) );
-
-  if ( tokens.size() == 15 )
-  {
-    base = 1;
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, tokens[0] ) );
-  }
-  else
-  {
-    // Set name to "MAPTK"
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, std::string( "MAPTK" ) ) );
-  }
-
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE, tokens[base + 0] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE, tokens[ base + 1] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE, tokens[base + 2] ) );
-
-  kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), std::stod( tokens[ base + 4 ] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_LOCATION, latlon ) );
-
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, tokens[base + 5] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_SEC, tokens[base + 6] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_WEEK, tokens[base + 7] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_NORTHING_VEL, tokens[base + 8] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_EASTING_VEL, tokens[base + 9] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_UP_VEL, tokens[base + 10] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMU_STATUS, tokens[base + 11] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_LOCAL_ADJ, tokens[base + 12] ) );
-  d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_DST_FLAGS, tokens[base + 13] ) );
-
-  // Return timestamp
-  ts = kwiver::vital::timestamp( d->d_frame_time, d->d_frame_number );
-  d->d_metadata->set_timestamp( ts );
 
   // update timestamp
   ++d->d_frame_number;
