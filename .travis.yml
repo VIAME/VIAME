@@ -4,9 +4,19 @@
 sudo: false
 
 language: cpp
-compiler:
-  - gcc
-  - clang
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+      env: COMPILER=g++-4.8
+    - compiler: clang
+      env: COMPILER=clang++-3.4
 
 cache:
   directories:
@@ -28,7 +38,8 @@ script:
   - export PATH=$HOME/deps/bin:$PATH
   - mkdir build
   - cd build
-  - cmake -DKWIVER_ENABLE_ARROWS=ON
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER
+          -DKWIVER_ENABLE_ARROWS=ON
           -DKWIVER_ENABLE_CERES=ON
           -DKWIVER_ENABLE_C_BINDINGS=ON
           -DKWIVER_ENABLE_DOCS=OFF
