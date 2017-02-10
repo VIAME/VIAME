@@ -33,6 +33,7 @@
 // -- list processes to register --
 #include "compute_homography_process.h"
 #include "detect_features_process.h"
+#include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
 #include "draw_tracks_process.h"
@@ -136,6 +137,11 @@ void register_processes()
   registry->register_process(
     "video_input", "Reads video files and produces sequential images with metadata per frame.",
     sprokit::create_process< kwiver::video_input_process > );
+
+  registry->register_process(
+    "detected_object_filter",
+    "Filters detected object sets based on selected filter algorithm.",
+    sprokit::create_process< kwiver::detected_object_filter_process > );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -
