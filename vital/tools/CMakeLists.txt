@@ -4,11 +4,6 @@
 
 ###
 #
-##++ There is a problem here in that plugin_explorer needs sprokit includes
-##++ But they are not readily available. Generally speaking, vital shopuld not depend
-##++ on any other package.
-include_directories( ${sprokit_source_dir}/src )
-
 kwiver_add_executable( plugin_explorer
   plugin_explorer.cxx
   )
@@ -19,8 +14,6 @@ target_link_libraries( plugin_explorer
                  vital_logger
                  kwiversys
                  explorer_plugin
-                 sprokit_tools
-                 sprokit_pipeline
   )
 
 
@@ -28,6 +21,7 @@ set( public_headers
   explorer_plugin.h
   )
 
+# public headers for explorer
 kwiver_install_headers(
          ${CMAKE_CURRENT_BINARY_DIR}/explorer_plugin_export.h
          ${public_headers}
