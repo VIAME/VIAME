@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ class VITAL_UTIL_EXPORT source_location
 public:
   source_location();
   source_location( std::shared_ptr< std::string > f, int l );
+  source_location( const source_location& other );
   virtual ~source_location();
 
   virtual std::ostream& format( std::ostream& str ) const;

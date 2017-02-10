@@ -803,6 +803,59 @@ IMPLEMENT_TEST(merge_config)
 
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST(difference_config)
+{
+  kwiver::vital::config_block_sptr const configa = kwiver::vital::config_block::empty_config();
+  kwiver::vital::config_block_sptr const configb = kwiver::vital::config_block::empty_config();
+
+  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
+  kwiver::vital::config_block_key_t const keyc = kwiver::vital::config_block_key_t("keyc");
+
+  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
+  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
+  kwiver::vital::config_block_value_t const valuec = kwiver::vital::config_block_value_t("valuec");
+
+  auto filename = std::make_shared<std::string>(__FILE__);
+  configa->set_value(keya, valuea);
+  configa->set_location(keya, filename, __LINE__);
+
+  configa->set_value(keyb, valueb);
+  configa->set_location(keyb, filename, __LINE__);
+
+  configb->set_value(keyb, valueb);
+  configa->set_location(keyb, filename, __LINE__);
+
+  configb->set_value(keyc, valuec);
+  configa->set_location(keyb, filename, __LINE__);
+
+  auto diff_config = configa->difference_config(configb);
+  // should be (a - b) = keya
+  if ( ! diff_config->has_value( keya ) )
+  {
+    TEST_ERROR( "keya not present in diff" );
+  }
+
+  if ( diff_config->has_value( keyb ) )
+  {
+    TEST_ERROR( "keyb present in diff" );
+  }
+
+  diff_config = configb->difference_config(configa);
+  // should be (b - a) = keyb
+  if ( ! diff_config->has_value( keyb ) )
+  {
+    TEST_ERROR( "keyb not present in diff" );
+  }
+
+  if ( diff_config->has_value( keya ) )
+  {
+    TEST_ERROR( "keya present in diff" );
+  }
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_value_description)
 {
   using namespace kwiver::vital;

@@ -251,12 +251,33 @@ config_block
 
   VITAL_FOREACH( config_block_key_t const & key, keys )
   {
-    config_block_value_t const& val = conf->get_value< config_block_value_t > ( key );
-    config_block_description_t const& descr = conf->get_description( key );
-
-    i_set_value( key, val, descr );
-  }
+    this->copy_entry( key, conf );
+  } // end for
 }
+
+
+// ------------------------------------------------------------------
+config_block_sptr
+config_block
+::difference_config( const config_block_sptr other )
+{
+  auto ret_block = empty_config();
+
+  // determine which entries are in this but not in other
+  // Iterate over this. If not in other, then add to output.
+  config_block_keys_t const keys = this->available_values();
+
+  VITAL_FOREACH( config_block_key_t const & key, keys )
+  {
+    if ( ! other->has_value( key ) )
+    {
+      ret_block->copy_entry( key, config_block_sptr(this) );
+    }
+  } // end for
+
+  return ret_block;
+}
+
 
 
 // ------------------------------------------------------------------
@@ -391,6 +412,26 @@ config_block
     {
       m_descr_store[key] = descr;
     }
+  }
+}
+
+
+// ------------------------------------------------------------------
+void
+config_block
+::copy_entry( const config_block_key_t& key,
+              const config_block_sptr from )
+{
+  config_block_value_t const& val = from->get_value< config_block_value_t > ( key );
+  config_block_description_t const& descr = from->get_description( key );
+
+  this->i_set_value( key, val, descr );
+
+  // Copy location if there is one.
+  auto i = m_def_store.find( key );
+  if ( i != m_def_store.end() )
+  {
+    this->m_def_store[key] = i->second;
   }
 }
 
