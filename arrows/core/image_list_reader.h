@@ -45,6 +45,15 @@ namespace core {
  * This class implements a video input algorithm using a list of
  * images to simulate a video. Only the images are returned. This
  * algorithm produces no metadata.
+ *
+ * Example config:
+ *   # select reader type
+ *   image_reader:type = vxl
+ *
+ *   # set parameters for list reader options
+ *   # Note these parameters control the list reader not the image_reader
+ *   start_at_frame = 2
+ *   stop_after_frame = 2
  */
 class KWIVER_ALGO_CORE_EXPORT image_list_reader
   : public vital::algorithm_impl < image_list_reader, vital::algo::video_input >
@@ -63,7 +72,7 @@ public:
   virtual std::string description() const
   {
     return "Read a list of images from a list of file names and presents them in the same way as reading a video. "
-      "The actual algorithm to read an image is specified in the \"image_reader\" config block. "
+      "The actual algorithm to read an image is specified in the \"image_reader\" config block."
       ;
   }
 
