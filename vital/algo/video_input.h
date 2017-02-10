@@ -258,7 +258,7 @@ public:
    * Metadata typically occurs less frequently than video frames, so
    * if you call next_frame() and frame_metadata() together while
    * processing a video, there may be times where no metadata is
-   * returned.
+   * returned. In this case an empty metadata vector will be returned.
    *
    * Also note that the metadata collection contains a timestamp that
    * can be used to determine where the metadata fits in the video
