@@ -42,7 +42,6 @@
 #define KWIVER_VITAL_THREAD_POOL_H_
 
 #include <vital/noncopyable.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/vital_util_export.h>
 
 #include <functional>
@@ -87,12 +86,32 @@ public:
   static thread_pool& instance();
 
   /// Returns the number of worker threads
-  size_t size() const;
+  size_t num_threads() const;
 
   /// Enqueue an arbitrary function as a task to run
   template<class F, class... Args>
   auto enqueue(F&& f, Args&&... args)
     -> std::future<typename std::result_of<F(Args...)>::type>;
+
+
+  /// A base class for thread pool backend implementations
+  class VITAL_UTIL_EXPORT backend
+    : private kwiver::vital::noncopyable
+  {
+  public:
+    /// Constructor
+    backend()  VITAL_DEFAULT_CTOR
+
+    /// Destructor
+    virtual ~backend() VITAL_DEFAULT_DTOR
+
+    /// Returns the number of worker threads
+    virtual size_t num_threads() const = 0;
+
+    /// Enqueue a void() task
+    virtual void enqueue_task(std::function<void()> func) = 0;
+  };
+
 
 private:
 

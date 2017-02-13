@@ -59,7 +59,7 @@ IMPLEMENT_TEST(number_of_threads)
   using namespace kwiver::vital;
 
   TEST_EQUAL( "Num thread == num CPU cores",
-              thread_pool::instance().size(),
+              thread_pool::instance().num_threads(),
               std::thread::hardware_concurrency());
 }
 
