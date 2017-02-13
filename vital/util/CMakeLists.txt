@@ -60,6 +60,7 @@ set( public_headers
 # ----------------------
 set( private_headers
   thread_pool_builtin_backend.h
+  thread_pool_gcd_backend.h
   thread_pool_sync_backend.h
   )
 

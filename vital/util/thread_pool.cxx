@@ -42,6 +42,7 @@
 #include "thread_pool.h"
 
 #include <vital/util/thread_pool_builtin_backend.h>
+#include <vital/util/thread_pool_gcd_backend.h>
 #include <vital/util/thread_pool_sync_backend.h>
 #include <vital/logger/logger.h>
 
@@ -59,6 +60,9 @@ public:
     : logger( kwiver::vital::get_logger( "vital.thread_pool" ) )
   {
     available_backends = {
+#if __APPLE__
+      thread_pool_gcd_backend::static_name(),
+#endif
       thread_pool_builtin_backend::static_name(),
       thread_pool_sync_backend::static_name()
     };
@@ -118,20 +122,24 @@ thread_pool::available_backends() const
 /// Set the backend
 void thread_pool::set_backend(std::string const& backend_name)
 {
-  if(backend_name == thread_pool_builtin_backend::static_name())
-  {
-    d_->backend.release();
-    d_->backend.reset( new thread_pool_builtin_backend() );
-  }
-  else if(backend_name == thread_pool_sync_backend::static_name())
-  {
-    d_->backend.release();
-    d_->backend.reset( new thread_pool_sync_backend() );
-  }
+#define TRY_BACKEND(T)                  \
+  if(backend_name == T::static_name())  \
+  {                                     \
+    d_->backend.release();              \
+    d_->backend.reset( new T() );       \
+  }                                     \
   else
+
+#if __APPLE__
+  TRY_BACKEND( thread_pool_gcd_backend )
+#endif
+  TRY_BACKEND( thread_pool_builtin_backend )
+  TRY_BACKEND( thread_pool_sync_backend )
+  // final "else" case
   {
     LOG_ERROR( d_->logger, "Unknown thread pool backend: " << backend_name );
   }
+#undef TRY_BACKEND
 }
 
 
