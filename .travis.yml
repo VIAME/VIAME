@@ -4,9 +4,17 @@
 sudo: false
 
 language: cpp
-compiler:
-  - gcc
-  - clang
+
+matrix:
+  include:
+    - compiler: gcc
+      env:
+        - C_COMPILER=gcc-4.8
+        - CXX_COMPILER=g++-4.8
+    - compiler: clang
+      env: # default clang is version 3.4
+        - C_COMPILER=clang
+        - CXX_COMPILER=clang++
 
 cache:
   directories:
@@ -17,7 +25,10 @@ before_script:
 
 addons:
   apt:
+    sources:
+    - ubuntu-toolchain-r-test
     packages:
+    - g++-4.8
     - libproj-dev
     - libgl1-mesa-dev
     - libxt-dev
@@ -28,7 +39,9 @@ script:
   - export PATH=$HOME/deps/bin:$PATH
   - mkdir build
   - cd build
-  - cmake -DKWIVER_ENABLE_ARROWS=ON
+  - cmake -DCMAKE_C_COMPILER=$C_COMPILER
+          -DCMAKE_CXX_COMPILER=$CXX_COMPILER
+          -DKWIVER_ENABLE_ARROWS=ON
           -DKWIVER_ENABLE_CERES=ON
           -DKWIVER_ENABLE_C_BINDINGS=ON
           -DKWIVER_ENABLE_DOCS=OFF

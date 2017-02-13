@@ -15,6 +15,7 @@ set( public_headers
   close_loops.h
   compute_ref_homography.h
   convert_image.h
+  detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
   detect_features.h
@@ -48,6 +49,7 @@ set( sources
   close_loops.cxx
   compute_ref_homography.cxx
   convert_image.cxx
+  detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
   detect_features.cxx

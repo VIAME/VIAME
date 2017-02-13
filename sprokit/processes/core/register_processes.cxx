@@ -36,6 +36,7 @@
 // -- list processes to register --
 #include "compute_homography_process.h"
 #include "detect_features_process.h"
+#include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
 #include "draw_tracks_process.h"
@@ -171,6 +172,11 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Reads video files and produces sequential images with metadata per frame." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  registry->register_process(
+    "detected_object_filter",
+    "Filters detected object sets based on selected filter algorithm.",
+    sprokit::create_process< kwiver::detected_object_filter_process > );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -
