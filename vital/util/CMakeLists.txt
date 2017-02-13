@@ -58,6 +58,12 @@ set( public_headers
   )
 
 # ----------------------
+set( private_headers
+  thread_pool_builtin_backend.h
+  thread_pool_sync_backend.h
+  )
+
+# ----------------------
 set( sources
   get_paths.cxx
   demangle.cxx
@@ -90,6 +96,7 @@ kwiver_install_headers(
 
 kwiver_add_library( vital_util
   ${public_headers}
+  ${private_headers}
   ${sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h

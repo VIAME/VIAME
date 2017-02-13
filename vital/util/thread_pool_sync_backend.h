@@ -30,67 +30,37 @@
 
 /**
  * \file
- * \brief Implementation of a thread pool
- *
- * This design is modeled after an implementation by Jakob Progsch and
- * Vaclav Zeman found here:
- *
- * https://github.com/progschj/ThreadPool
+ * \brief Implementation of a thread pool backend that runs jobs synchronously
  */
 
+#ifndef KWIVER_VITAL_THREAD_POOL_SYNC_BACKEND_H_
+#define KWIVER_VITAL_THREAD_POOL_SYNC_BACKEND_H_
 
-#include "thread_pool.h"
-
-#include <vital/util/thread_pool_builtin_backend.h>
-#include <vital/util/thread_pool_sync_backend.h>
+#include <vital/util/thread_pool.h>
 
 
 namespace kwiver {
 namespace vital {
 
-
-/// Private implementation class
-class thread_pool::priv
+/// A thread pool backend that runs jobs synchronously (e.g. no threads)
+class thread_pool_sync_backend
+  : public thread_pool::backend
 {
 public:
-
-  priv()
+  /// Enqueue a void() task
+  void enqueue_task(std::function<void()> func)
   {
-    //backend.reset( new thread_pool_builtin_backend() );
-    backend.reset( new thread_pool_sync_backend() );
+    func();
   }
 
-  std::unique_ptr<thread_pool::backend> backend;
+  /// Returns the number of worker threads
+  size_t num_threads() const
+  {
+    return 0;
+  }
 };
 
 
-/// Access the singleton instance of this class
-thread_pool& thread_pool::instance()
-{
-  static thread_pool instance;
-
-  return instance;
-}
-
-
-// Constructor
-thread_pool::thread_pool()
-  : d_(new priv)
-{
-}
-
-
-/// Returns the number of worker threads
-size_t thread_pool::num_threads() const
-{
-  return d_->backend->num_threads();;
-}
-
-
-/// Enqueue a void function in the thread pool
-void thread_pool::enqueue_task(std::function<void()> task)
-{
-  d_->backend->enqueue_task(task);
-}
-
 } }   // end namespace
+
+#endif // KWIVER_VITAL_THREAD_POOL_SYNC_BACKEND_H_
