@@ -54,8 +54,11 @@ namespace vital {
 
 /// A thread pool class to distribute tasks across a fixed pool of threads
 /**
- *  This class spawns a fixed number of threads, each of which runs in an
- *  endless loop pulling tasks off of a queue and executing them.  When tasks
+ *  This class provides an interface for an application wide thread pool that
+ *  uses a fixed number of threads, each of which executes tasks from a task
+ *  queue.  The scheduling and load balancing is dependent on the chosen
+ *  backend implementation.  Several backends are available depending on
+ *  platform and availability of third-party packages.  When tasks
  *  are added to the queue the enqueue function returns an std::future
  *  referring to the future value to be computed by the task.
  *
