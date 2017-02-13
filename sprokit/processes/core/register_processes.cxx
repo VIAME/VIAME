@@ -166,17 +166,19 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        "Writes detected object sets to an output file. All detections are written to the same file." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_filter_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_filter" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Filters sets of detected objects using the detected_object_filter algorithm." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
   fact = vpm.ADD_PROCESS( kwiver::video_input_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "video_input" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Reads video files and produces sequential images with metadata per frame." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  registry->register_process(
-    "detected_object_filter",
-    "Filters detected object sets based on selected filter algorithm.",
-    sprokit::create_process< kwiver::detected_object_filter_process > );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -
