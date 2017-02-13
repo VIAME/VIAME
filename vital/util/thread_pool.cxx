@@ -43,6 +43,7 @@
 
 #include <vital/util/thread_pool_builtin_backend.h>
 #include <vital/util/thread_pool_sync_backend.h>
+#include <vital/logger/logger.h>
 
 
 namespace kwiver {
@@ -55,12 +56,23 @@ class thread_pool::priv
 public:
 
   priv()
+    : logger( kwiver::vital::get_logger( "vital.thread_pool" ) )
   {
-    //backend.reset( new thread_pool_builtin_backend() );
-    backend.reset( new thread_pool_sync_backend() );
+    available_backends = {
+      thread_pool_builtin_backend::static_name(),
+      thread_pool_sync_backend::static_name()
+    };
+    backend.reset( new thread_pool_builtin_backend() );
   }
 
+  // logger handle
+  logger_handle_t logger;
+
+  // a pointer to the active backend
   std::unique_ptr<thread_pool::backend> backend;
+
+  // a vector of names of the available backends
+  std::vector<std::string> available_backends;
 };
 
 
@@ -84,6 +96,34 @@ thread_pool::thread_pool()
 size_t thread_pool::num_threads() const
 {
   return d_->backend->num_threads();;
+}
+
+
+/// Return the names of the available backends
+std::vector<std::string>
+thread_pool::available_backends() const
+{
+  return d_->available_backends;
+}
+
+
+/// Set the backend
+void thread_pool::set_backend(std::string const& backend_name)
+{
+  if(backend_name == thread_pool_builtin_backend::static_name())
+  {
+    d_->backend.release();
+    d_->backend.reset( new thread_pool_builtin_backend() );
+  }
+  else if(backend_name == thread_pool_sync_backend::static_name())
+  {
+    d_->backend.release();
+    d_->backend.reset( new thread_pool_sync_backend() );
+  }
+  else
+  {
+    LOG_ERROR( d_->logger, "Unknown thread pool backend: " << backend_name );
+  }
 }
 
 

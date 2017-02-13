@@ -93,6 +93,12 @@ public:
   /// Returns the number of worker threads
   size_t num_threads() const { return workers.size(); }
 
+  /// Returns the name of this backend
+  static std::string const& static_name() { return "Built-in"; }
+
+  /// Returns the name of this backend
+  virtual std::string const& name() const { return static_name(); }
+
   /// The task queue
   std::queue< std::function<void()> > tasks;
 

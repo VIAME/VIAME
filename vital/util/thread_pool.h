@@ -47,6 +47,8 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <string>
+#include <vector>
 
 
 namespace kwiver {
@@ -91,6 +93,17 @@ public:
   /// Returns the number of worker threads
   size_t num_threads() const;
 
+  /// Return the names of the available backends
+  std::vector<std::string> available_backends() const;
+
+  /// Set the backend
+  /**
+   * Destroys the current backend and replaces it with a new
+   * one of the specified type.  The \p backend_name must match
+   * one of the names provided by available_backend().
+   */
+  void set_backend(std::string const& backend_name);
+
   /// Enqueue an arbitrary function as a task to run
   template<class F, class... Args>
   auto enqueue(F&& f, Args&&... args)
@@ -110,6 +123,9 @@ public:
 
     /// Returns the number of worker threads
     virtual size_t num_threads() const = 0;
+
+    /// Returns the name of this backend
+    virtual std::string const& name() const = 0;
 
     /// Enqueue a void() task
     virtual void enqueue_task(std::function<void()> func) = 0;

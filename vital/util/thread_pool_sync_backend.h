@@ -58,6 +58,18 @@ public:
   {
     return 0;
   }
+
+  /// Returns the name of this backend
+  static std::string const& static_name()
+  {
+    return "Sync";
+  }
+
+  /// Returns the name of this backend
+  std::string const& name() const
+  {
+    return static_name();
+  }
 };
 
 
