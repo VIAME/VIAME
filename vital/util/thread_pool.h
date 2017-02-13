@@ -93,6 +93,9 @@ public:
   /// Returns the number of worker threads
   size_t num_threads() const;
 
+  /// Return the name of the active backend
+  std::string const& active_backend() const;
+
   /// Return the names of the available backends
   std::vector<std::string> available_backends() const;
 

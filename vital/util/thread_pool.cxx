@@ -99,6 +99,14 @@ size_t thread_pool::num_threads() const
 }
 
 
+/// Return the name of the active backend
+std::string const&
+thread_pool::active_backend() const
+{
+  return d_->backend->name();
+}
+
+
 /// Return the names of the available backends
 std::vector<std::string>
 thread_pool::available_backends() const
