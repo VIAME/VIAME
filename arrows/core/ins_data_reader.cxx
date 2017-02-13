@@ -136,6 +136,8 @@ ins_data_reader
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
 
+  config->set_value( "metadata_directory", d->c_meta_directory, "Name of directory containing metadata files." );
+
   return config;
 }
 
@@ -157,6 +159,9 @@ ins_data_reader
   // get frame time
   d->c_frame_time = config->get_value<float>(
     "frame_time", d->c_frame_time );
+
+  d->c_meta_directory = config->get_value<std::string>(
+    "metadata_directory", d->c_meta_directory );
 }
 
 
@@ -184,7 +189,8 @@ ins_data_reader
   kwiver::vital::data_stream_reader stream_reader( ifs );
 
   // verify and get file names in a list
-  for ( std::string line; stream_reader.getline( line ); /* null */ )
+  std::string line;
+  while ( stream_reader.getline( line ) )
   {
     // Get base name from file
     std::string resolved_file = d->c_meta_directory;
@@ -313,27 +319,27 @@ ins_data_reader
       d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, std::string( "MAPTK" ) ) );
     }
 
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE, tokens[base + 0] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE, tokens[ base + 1] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE, tokens[base + 2] ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE, std::stod( tokens[base + 0] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE, std::stod( tokens[ base + 1] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE, std::stod( tokens[base + 2] ) ) );
 
     kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), std::stod( tokens[ base + 4 ] ) );
     d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_LOCATION, latlon ) );
 
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, tokens[base + 5] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_SEC, tokens[base + 6] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_WEEK, tokens[base + 7] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_NORTHING_VEL, tokens[base + 8] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_EASTING_VEL, tokens[base + 9] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_UP_VEL, tokens[base + 10] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMU_STATUS, tokens[base + 11] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_LOCAL_ADJ, tokens[base + 12] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_DST_FLAGS, tokens[base + 13] ) );
-
-    // Return timestamp
-    ts = kwiver::vital::timestamp( d->d_frame_time, d->d_frame_number );
-    d->d_metadata->set_timestamp( ts );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, std::stod( tokens[base + 5] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_SEC, std::stod( tokens[base + 6] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_WEEK, std::stoi( tokens[base + 7] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_NORTHING_VEL, std::stod( tokens[base + 8] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_EASTING_VEL, std::stod( tokens[base + 9] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_UP_VEL, std::stod( tokens[base + 10] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMU_STATUS, std::stoi( tokens[base + 11] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_LOCAL_ADJ, std::stoi( tokens[base + 12] ) ) );
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_DST_FLAGS, std::stoi( tokens[base + 13] ) ) );
   }
+
+  // Return timestamp
+  ts = kwiver::vital::timestamp( d->d_frame_time, d->d_frame_number );
+  d->d_metadata->set_timestamp( ts );
 
   // update timestamp
   ++d->d_frame_number;
