@@ -167,7 +167,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::vidl_ffmpeg_video_input );
+  fact = vpm.ADD_ALGORITHM( "vidl_ffmpeg", kwiver::arrows::vxl::vidl_ffmpeg_video_input );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Use VXL (vidl with FFMPEG) to read video files as a sequence of images." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )

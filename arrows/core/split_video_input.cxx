@@ -162,6 +162,17 @@ split_video_input
   d->c_frame_time = config->get_value<float>(
     "frame_time", d->c_frame_time );
 
+  // duplicate these config values so they are passed to the nested algorithms
+  config->set_value( "image_reader:start_at_frame", d->c_start_at_frame);
+  config->set_value( "metadata_reader:start_at_frame", d->c_start_at_frame);
+
+  config->set_value( "image_reader:stop_after_frame", d->c_stop_after_frame);
+  config->set_value( "metadata_reader:stop_after_frame", d->c_stop_after_frame);
+
+  config->set_value( "image_reader:frame_time", d->c_frame_time);
+  config->set_value( "metadata_reader:frame_time", d->c_frame_time);
+
+
   // Setup actual reader algorithm
   vital::algo::video_input::set_nested_algo_configuration( "image_reader", config, d->d_image_reader);
   if ( ! d->d_image_reader )
