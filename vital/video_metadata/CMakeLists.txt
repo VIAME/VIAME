@@ -12,6 +12,7 @@ set( sources
 
 set( public_headers
   video_metadata.h
+  video_metadata_map.h
   video_metadata_traits.h
   video_metadata_tags.h
   convert_metadata.h
