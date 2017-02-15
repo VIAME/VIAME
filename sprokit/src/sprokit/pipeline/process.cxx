@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,11 @@
 
 #include "process.h"
 #include "process_exception.h"
+#include "process_instrumentation.h"
 
 #include "stamp.h"
 
+#include <vital/plugin_loader/plugin_manager.h>
 #include <vital/vital_foreach.h>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -54,13 +56,23 @@
  * \brief Implementation of the base class for \link sprokit::process processes\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
+
+namespace { // anonymous
+
+typedef kwiver::vital::implementation_factory_by_name< sprokit::process_instrumentation > instrumentation_factory;
+
+} // anonymous
+
+static kwiver::vital::config_block_key_t const instrumentation_block_key = kwiver::vital::config_block_key_t("_instrumentation");
+static kwiver::vital::config_block_key_t const instrumentation_type_key = kwiver::vital::config_block_key_t(instrumentation_block_key
+                       + kwiver::vital::config_block::block_sep + "type" );
 
 process::property_t const process::property_no_threads = property_t("_no_thread");
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
 process::property_t const process::property_unsync_input = property_t("_unsync_input");
 process::property_t const process::property_unsync_output = property_t("_unsync_output");
+process::property_t const process::property_instrumented = property_t("_instrumented");
 
 process::port_t const process::port_heartbeat = port_t("_heartbeat");
 
@@ -233,6 +245,7 @@ class process::priv
     mutex_t reconfigure_mut;
 
     kwiver::vital::logger_handle_t m_logger;
+    std::unique_ptr< sprokit::process_instrumentation > m_proc_instrumentation; // instrumentation provider
 
     static kwiver::vital::config_block_value_t const default_name;
 };
@@ -594,6 +607,7 @@ process
     config_name,
     kwiver::vital::config_block_value_t(),
     kwiver::vital::config_block_description_t("The name of the process."));
+
   declare_configuration_key(
     config_type,
     kwiver::vital::config_block_value_t(),
@@ -608,6 +622,26 @@ process
     port_flags_t(),
     port_description_t("Outputs the heartbeat stamp with an empty datum."),
     port_frequency_t(1));
+
+  // Test to see if instrumentation is enabled
+  if ( d->conf->has_value( instrumentation_type_key ))
+  {
+    std::string instr_prov = d->conf->get_value< std::string >( instrumentation_type_key );
+
+    if (instr_prov != "none" )
+    {
+      // Get instrumentation interface
+      kwiver::vital::config_block_sptr instr_block = config->subblock_view( instrumentation_block_key
+                                    + kwiver::vital::config_block::block_sep + instr_prov );
+
+      instrumentation_factory ifact;
+      d->m_proc_instrumentation.reset( ifact.create( instr_prov ) );
+      d->m_proc_instrumentation->set_process( *this );
+
+      kwiver::vital::config_block_sptr prov_block = instr_block->subblock_view( instr_prov );
+      d->m_proc_instrumentation->configure( instr_block );
+    }
+  }
 
   // Set default logger name
   attach_logger( kwiver::vital::get_logger( std::string( "process." ) + name() ) );
@@ -1742,6 +1776,41 @@ process::logger() const
 {
   return d->m_logger;
 }
+
+
+// ------------------------------------------------------------------
+// Instrumentation implementation
+#define INSTR(N)                                                        \
+void process::start_ ## N ## _processing( std::string const& data )     \
+{                                                                       \
+  if (d->m_proc_instrumentation)                                        \
+  {                                                                     \
+    d->m_proc_instrumentation->start_ ## N ## _processing( data );      \
+  }                                                                     \
+}                                                                       \
+                                                                        \
+void process::start_ ## N ##_processing()                               \
+{                                                                       \
+  if (d->m_proc_instrumentation)                                        \
+  {                                                                     \
+    d->m_proc_instrumentation->start_ ## N ## _processing( "" );        \
+  }                                                                     \
+}                                                                       \
+                                                                        \
+void process::stop_ ## N ## _processing()                               \
+{                                                                       \
+  if (d->m_proc_instrumentation)                                        \
+  {                                                                     \
+    d->m_proc_instrumentation->stop_ ## N ## _processing();             \
+  }                                                                     \
+}
+
+INSTR( init )
+INSTR( reset )
+INSTR( flush )
+INSTR( step )
+INSTR( configure )
+INSTR( reconfigure )
 
 
 // ==================================================================
