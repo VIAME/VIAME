@@ -163,7 +163,7 @@ detect_features_MSD
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_config( c, m_logger );
+  return p_->check_config( c, logger() );
 }
 
 
