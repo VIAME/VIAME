@@ -106,7 +106,7 @@ if( VIAME_ENABLE_SCALLOP_TK )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
-  include( add_project_vibrant )
+  include( add_project_burnout )
   include( add_project_vivia )
 endif()
 

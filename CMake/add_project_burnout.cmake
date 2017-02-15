@@ -7,11 +7,11 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} vibrant )
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} burnout)
 
-set( VIBRANT_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x" )
+set( BURNOUT_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x" )
 
-ExternalProject_Add(vibrant
+ExternalProject_Add(burnout
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/burn-out
@@ -32,20 +32,20 @@ ExternalProject_Add(vibrant
     -DBoost_LIBRARY_DIR_DEBUG:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib
     -DBoost_LIBRARY_DIR_RELEASE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib
 
-    -DCMAKE_CXX_FLAGS:STRING=${VIBRANT_CXX_FLAGS}
+    -DCMAKE_CXX_FLAGS:STRING=${BURNOUT_CXX_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(vibrant forcebuild
+ExternalProject_Add_Step(burnout forcebuild
   COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/vibrant-stamp/vibrant-build
+    -E remove ${VIAME_BUILD_PREFIX}/src/burnout-stamp/burnout-build
   COMMENT "Removing build stamp file for build update (forcebuild)."
   DEPENDEES configure
   DEPENDERS build
   ALWAYS 1
   )
 
-set(VIAME_ARGS_vibrant
-  -Dvibrant_DIR:PATH=${VIAME_BUILD_PREFIX}/src/vibrant-build
+set(VIAME_ARGS_burnout
+  -Dburnout_DIR:PATH=${VIAME_BUILD_PREFIX}/src/burnout-build
   )

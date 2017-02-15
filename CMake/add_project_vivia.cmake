@@ -22,7 +22,7 @@ else()
 endif()
 
 ExternalProject_Add(vivia
-  DEPENDS fletch vibrant
+  DEPENDS fletch burnout
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/vivia
   CMAKE_GENERATOR ${gen}
@@ -50,7 +50,7 @@ ExternalProject_Add(vivia
     -DVVQS_ENABLE_FAKE_BACKEND:BOOL=OFF
     -DVISGUI_DISABLE_FIXUP_BUNDLE:BOOL=${VIVIA_DISABLE_FIXUP}
 
-    -Dvidtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/vibrant-build
+    -Dvidtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/burnout-build
     -DLIBJSON_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include/json
     -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_QMAKE_EXE}
 
