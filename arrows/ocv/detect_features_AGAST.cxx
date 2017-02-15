@@ -155,6 +155,15 @@ public:
 
 
 detect_features_AGAST
+::detect_features_AGAST()
+  : p_( new priv )
+{
+  attach_logger( "arrows.ocv.AGAST" );
+  detector = p_->create();
+}
+
+
+detect_features_AGAST
 ::~detect_features_AGAST()
 {
 }
