@@ -82,6 +82,11 @@ if( WIN32 AND VIAME_ENABLE_CAFFE )
     please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
+if( VIAME_ENABLE_OPENCV )
+  set( VIAME_OPENCV_VERSION 2.4.11 CACHE STRING "Version of OpenCV to use" )
+  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.11 3.1.0 )
+endif()
+
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
 
