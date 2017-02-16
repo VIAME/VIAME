@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -300,7 +300,7 @@ process_config()
       {
         // parse error - log something
         m_config_error = true;
-        LOG_ERROR( m_parent->m_logger, "Error parsing custom color specification \"" << cs << "\"" );
+        LOG_ERROR( m_parent->logger(), "Error parsing custom color specification \"" << cs << "\"" );
 
         return;
       }
@@ -331,7 +331,7 @@ process_config()
       {
         // parse error - log something
         m_config_error = true;
-        LOG_ERROR( m_parent->m_logger, "Error parsing custom color specification \""
+        LOG_ERROR( m_parent->logger(), "Error parsing custom color specification \""
                    << m_tmp_def_color << "\"" );
         return;
       }
