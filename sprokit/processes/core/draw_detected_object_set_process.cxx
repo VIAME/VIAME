@@ -33,8 +33,6 @@
 
 #include <vital/algo/draw_detected_object_set.h>
 
-#include <vital/algorithm_plugin_manager.h>
-
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 
@@ -66,8 +64,6 @@ draw_detected_object_set_process
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
-  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
 
   make_ports();
   make_config();
