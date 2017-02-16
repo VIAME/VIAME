@@ -62,14 +62,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-    : match_req(other.match_req),
-      num_look_back(other.num_look_back),
-      matcher(!other.matcher ? algo::match_features_sptr() : other.matcher->clone()),
-      m_logger( vital::get_logger( "arrows.core.close_loops_exhaustive" ))
-  {
-  }
-
   /// number of feature matches required for acceptance
   size_t match_req;
 
@@ -88,14 +80,6 @@ public:
 close_loops_exhaustive
 ::close_loops_exhaustive()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-close_loops_exhaustive
-::close_loops_exhaustive(const close_loops_exhaustive& other)
-: d_(new priv(*other.d_))
 {
 }
 

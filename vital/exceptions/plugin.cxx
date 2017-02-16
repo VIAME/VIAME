@@ -76,4 +76,17 @@ plugin_factory_type_creation_error
 {
 }
 
+
+// ------------------------------------------------------------------
+plugin_already_exists
+::plugin_already_exists( std::string const& msg) VITAL_NOTHROW
+{
+  m_what = msg;
+}
+
+plugin_already_exists
+::~plugin_already_exists() VITAL_NOTHROW
+{
+}
+
 } } // end namespace

@@ -55,6 +55,7 @@ script:
           -DKWIVER_ENABLE_TRACK_ORACLE=OFF
           -DKWIVER_ENABLE_VISCL=OFF
           -DKWIVER_ENABLE_VXL=ON
+          -DKWIVER_USE_BUILD_TREE=ON
           ../
   - make -j2
   - ctest

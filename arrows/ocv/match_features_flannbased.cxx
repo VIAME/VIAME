@@ -51,14 +51,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv( priv const &other )
-    : cross_check( other.cross_check ),
-      cross_check_k( other.cross_check_k ),
-      matcher( new cv::FlannBasedMatcher )
-  {
-  }
-
   // Can't currently update parameters on BF implementation, so no update
   // function. Will need to create a new instance on each parameter update.
 
@@ -126,16 +118,6 @@ match_features_flannbased
 
 
 match_features_flannbased
-::match_features_flannbased(match_features_flannbased const &other)
-  : p_( new priv( *other.p_ ) )
-{
-  std::stringstream ss;
-  ss << type_name() << "." << impl_name();
-  attach_logger( ss.str() );
-}
-
-
-match_features_flannbased
 ::~match_features_flannbased()
 {
 }
@@ -181,7 +163,7 @@ match_features_flannbased
   unsigned k = config->get_value<unsigned>("cross_check_k");
   if( k == 0 )
   {
-    m_logger->log_error("Cross-check K value must be greater than 0.");
+    logger()->log_error("Cross-check K value must be greater than 0.");
     valid = false;
   }
 

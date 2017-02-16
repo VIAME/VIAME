@@ -63,15 +63,6 @@ public:
   {
   }
 
-  priv( priv const &other )
-    : max_size( other.max_size )
-    , response_threshold( other.response_threshold )
-    , line_threshold_projected( other.line_threshold_projected )
-    , line_threshold_binarized( other.line_threshold_binarized )
-    , suppress_nonmax_size( other.suppress_nonmax_size )
-  {
-  }
-
   cv::Ptr<cv_STAR_t> create() const
   {
 #ifndef KWIVER_HAS_OPENCV_VER_3
@@ -127,15 +118,6 @@ public:
 detect_features_STAR
 ::detect_features_STAR()
   : p_( new priv )
-{
-  attach_logger( "arrows.ocv.star" );
-  detector = p_->create();
-}
-
-
-detect_features_STAR
-::detect_features_STAR(detect_features_STAR const &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger( "arrows.ocv.star" );
   detector = p_->create();

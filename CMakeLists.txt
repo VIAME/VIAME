@@ -220,8 +220,6 @@ if ( fletch_ROOT )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH\n" )
 endif()
 
-add_subdirectory( vital )
-
 if (KWIVER_ENABLE_TRACK_ORACLE)
   add_subdirectory( track_oracle )
 endif()
@@ -234,6 +232,9 @@ if (KWIVER_ENABLE_SPROKIT)
   add_subdirectory(sprokit)
 endif()
 
+###
+# include as the last subdir
+add_subdirectory( vital )
 
 ##############################################################
 # Marking source root for documentation generation

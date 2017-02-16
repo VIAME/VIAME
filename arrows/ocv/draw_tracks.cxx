@@ -91,15 +91,8 @@ public:
     swap_comparison_set( false ),
     write_images_to_disk( true ),
     pattern( "feature_tracks_%05d.png" ),
-    cur_frame_id( 0 ),
-    m_logger( kwiver::vital::get_logger( "arrows.ocv.draw_tracks" ) )
+    cur_frame_id( 0 )
   {
-  }
-
-  /// Copy Constructor
-  priv( const priv& other )
-  {
-    *this = other;
   }
 
   /// Destructor
@@ -121,8 +114,6 @@ public:
   /// Internal variables
   std::deque< cv::Mat > buffer; // managed as a circular buffer
   frame_id_t cur_frame_id;
-
-  kwiver::vital::logger_handle_t m_logger;
 };
 
 
@@ -130,14 +121,6 @@ public:
 draw_tracks
 ::draw_tracks()
 : d_( new priv )
-{
-}
-
-
-/// Copy constructor
-draw_tracks
-::draw_tracks( const draw_tracks& other )
-: d_( new priv( *other.d_ ) )
 {
 }
 
@@ -340,7 +323,7 @@ draw_tracks
   // Validate inputs
   if( image_data.empty() )
   {
-    LOG_ERROR(m_logger, "valid imagery must be provided");
+    LOG_ERROR(logger(), "valid imagery must be provided");
     return image_container_sptr();
   }
 
@@ -495,7 +478,7 @@ draw_tracks
     int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), fid );
     if (num_bytes < 0) // format conversion error
     {
-      LOG_WARN( m_logger, "Could not format output file name: \"" <<  d_->pattern
+      LOG_WARN( logger(), "Could not format output file name: \"" <<  d_->pattern
                 << "\". Disabling writing to disk." );
 
       // The safest thing is to disable writing since we have no idea

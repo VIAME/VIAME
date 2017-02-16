@@ -53,7 +53,6 @@ class plugin_factory;
 
 typedef std::shared_ptr< plugin_factory >         plugin_factory_handle_t;
 typedef std::vector< plugin_factory_handle_t >    plugin_factory_vector_t;
-typedef std::vector< path_t >                     plugin_path_list_t;
 typedef std::map< std::string, plugin_factory_vector_t > plugin_map_t;
 typedef std::map< std::string, path_t >           plugin_module_map_t;
 
@@ -82,6 +81,7 @@ public:
    */
   plugin_loader( std::string const& init_function,
     std::string const& shared_lib_suffix );
+
   virtual ~plugin_loader();
 
   /**
@@ -91,8 +91,33 @@ public:
    * currently active search path. This method is called after all
    * search paths have been added with the add_search_path() method.
    *
+   * @throws plugin_already_exists - if a duplicate plugin is detected
    */
   void load_plugins();
+
+  /**
+   * @brief Load plugins from list of directories.
+   *
+   * Load plugins from the specified list of directories. The
+   * directories are scanned immediately and all recognized plugins
+   * are loaded. The internal accumulated search path is not used for
+   * this method. This is useful for adding plugins after the search
+   * path has been processed.
+   *
+   * @param dirpath List of directories to search.
+   *
+   * @throws plugin_already_exists - if a duplicate plugin is detected
+   */
+  void load_plugins( path_list_t const& dirpath );
+
+  /**
+   * @brief Load a single plugin file.
+   *
+   * This method loads a single plugin file.
+   *
+   * @param file Name of the file to load.
+   */
+  void load_plugin( path_t const& file );
 
   /**
    * @brief Add an additional directories to search for plugins in.
@@ -108,7 +133,7 @@ public:
    *
    * \param dirpath Path to the directories to add to the plugin search path.
    */
-  void add_search_path( plugin_path_list_t const& dirpath );
+  void add_search_path( path_list_t const& dirpath );
 
   /**
    * @brief Get plugin manager search path
@@ -117,7 +142,7 @@ public:
    *
    * @return vector of paths that are searched
    */
-  plugin_path_list_t const& get_search_path() const;
+  path_list_t const& get_search_path() const;
 
   /**
    * @brief Get list of factories for interface type.
@@ -146,6 +171,8 @@ public:
    *
    * @return A pointer is returned to the added factory in case
    * attributes need to be added to the factory.
+   *
+   * @throws plugin_already_exists - if the plugin signature already has a factory.
    *
    * Example:
    \code
@@ -204,8 +231,8 @@ public:
    * @brief Get list of loaded modules.
    *
    * This method returns a map of modules that have been marked as
-   * loaded along with the name of the plugin file where the call was
-   * made.
+   * loaded by the mark_module_as_loaded() method along with the name
+   * of the plugin file where the call was made.
    *
    * @return Map of modules loaded and the source file.
    */

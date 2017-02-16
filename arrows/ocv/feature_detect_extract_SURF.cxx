@@ -74,16 +74,6 @@ public:
   {
   }
 
-  // Copy Constructor
-  priv( priv const &other )
-    : hessian_threshold( other.hessian_threshold )
-    , n_octaves( other.n_octaves )
-    , n_octave_layers( other.n_octave_layers )
-    , extended( other.extended )
-    , upright( other.upright )
-  {
-  }
-
   // Create new algorithm instance from current parameters
   cv::Ptr<cv_SURF_t> create() const
   {
@@ -179,15 +169,6 @@ detect_features_SURF
 
 
 detect_features_SURF
-::detect_features_SURF(detect_features_SURF const &other)
-  : p_( new priv( *other.p_ ) )
-{
-  attach_logger("arrows.ocv.SURF");
-  detector = p_->create();
-}
-
-
-detect_features_SURF
 ::~detect_features_SURF()
 {
 }
@@ -230,15 +211,6 @@ detect_features_SURF
 extract_descriptors_SURF
 ::extract_descriptors_SURF()
   : p_( new priv )
-{
-  attach_logger("arrows.ocv.SURF");
-  extractor = p_->create();
-}
-
-
-extract_descriptors_SURF
-::extract_descriptors_SURF(extract_descriptors_SURF const &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger("arrows.ocv.SURF");
   extractor = p_->create();

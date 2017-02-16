@@ -36,7 +36,9 @@ target_link_libraries(python-sprokit.pipeline-modules
                       sprokit_python_util
                       ${${boost_python_library_var}}
                       ${Boost_SYSTEM_LIBRARY}
-                      ${PYTHON_LIBRARIES})
+                      ${PYTHON_LIBRARIES}
+                      vital_vpm
+  )
 
 _sprokit_add_python_library(pipeline
   sprokit/pipeline
@@ -65,14 +67,16 @@ target_link_libraries(python-sprokit.pipeline-process_cluster
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
-_sprokit_add_python_library(process_registry
+_sprokit_add_python_library(process_factory
   sprokit/pipeline
-  process_registry.cxx)
-target_link_libraries(python-sprokit.pipeline-process_registry
+  process_factory.cxx)
+target_link_libraries(python-sprokit.pipeline-process_factory
   PRIVATE             sprokit_pipeline
                       sprokit_python_util
                       ${${boost_python_library_var}}
-                      ${PYTHON_LIBRARIES})
+                      ${PYTHON_LIBRARIES}
+                      vital_vpm
+    )
 
 _sprokit_add_python_library(scheduler
   sprokit/pipeline
@@ -83,14 +87,16 @@ target_link_libraries(python-sprokit.pipeline-scheduler
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
-_sprokit_add_python_library(scheduler_registry
+_sprokit_add_python_library(scheduler_factory
   sprokit/pipeline
-  scheduler_registry.cxx)
-target_link_libraries(python-sprokit.pipeline-scheduler_registry
+  scheduler_factory.cxx)
+target_link_libraries(python-sprokit.pipeline-scheduler_factory
   PRIVATE             sprokit_pipeline
                       sprokit_python_util
                       ${${boost_python_library_var}}
-                      ${PYTHON_LIBRARIES})
+                      ${PYTHON_LIBRARIES}
+                      vital_vpm
+  )
 
 _sprokit_add_python_library(stamp
   sprokit/pipeline

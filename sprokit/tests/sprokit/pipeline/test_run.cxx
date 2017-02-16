@@ -31,12 +31,13 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <sprokit/pipeline/modules.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
@@ -44,11 +45,12 @@
 
 #include <fstream>
 
-#define TEST_ARGS (sprokit::scheduler_registry::type_t const& scheduler_type)
+#define TEST_ARGS (sprokit::scheduler::type_t const& scheduler_type)
 
 DECLARE_TEST_MAP();
 
 static std::string const test_sep = "-";
+
 
 int
 main(int argc, char* argv[])
@@ -67,13 +69,17 @@ main(int argc, char* argv[])
   }
 
   testname_t const testname = full_testname.substr(0, sep_pos);
-  sprokit::scheduler_registry::type_t const scheduler_type = full_testname.substr(sep_pos + test_sep.length());
+  sprokit::scheduler::type_t const scheduler_type = full_testname.substr(sep_pos + test_sep.length());
 
   RUN_TEST(testname, scheduler_type);
 }
 
-static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
+
+static sprokit::process_t create_process(sprokit::process::type_t const& type,
+                                         sprokit::process::name_t const& name,
+                                         kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
 static sprokit::pipeline_t create_pipeline();
+
 
 IMPLEMENT_TEST(simple_pipeline)
 {
@@ -122,9 +128,7 @@ IMPLEMENT_TEST(simple_pipeline)
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -164,6 +168,7 @@ IMPLEMENT_TEST(simple_pipeline)
     TEST_ERROR("Not at end of file");
   }
 }
+
 
 IMPLEMENT_TEST(pysimple_pipeline)
 {
@@ -212,9 +217,7 @@ IMPLEMENT_TEST(pysimple_pipeline)
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -254,6 +257,7 @@ IMPLEMENT_TEST(pysimple_pipeline)
     TEST_ERROR("Not at end of file");
   }
 }
+
 
 IMPLEMENT_TEST(multiplier_pipeline)
 {
@@ -328,9 +332,7 @@ IMPLEMENT_TEST(multiplier_pipeline)
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -371,6 +373,7 @@ IMPLEMENT_TEST(multiplier_pipeline)
     TEST_ERROR("Not at end of file");
   }
 }
+
 
 IMPLEMENT_TEST(multiplier_cluster_pipeline)
 {
@@ -438,9 +441,7 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -480,6 +481,7 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
     TEST_ERROR("Not at end of file");
   }
 }
+
 
 IMPLEMENT_TEST(frequency_pipeline)
 {
@@ -559,26 +561,17 @@ IMPLEMENT_TEST(frequency_pipeline)
     sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
     sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
 
-    pipeline->connect(proc_nameu, port_nameu,
-                      proc_namefaa, port_namefi);
-    pipeline->connect(proc_namefaa, port_namefo,
-                      proc_namefbb, port_namefi);
-    pipeline->connect(proc_nameu, port_nameu,
-                      proc_namefab, port_namefi);
-    pipeline->connect(proc_namefab, port_namefo,
-                      proc_namefba, port_namefi);
-    pipeline->connect(proc_namefbb, port_namefo,
-                      proc_named, port_namedi1);
-    pipeline->connect(proc_namefba, port_namefo,
-                      proc_named, port_namedi2);
-    pipeline->connect(proc_named, port_namedo,
-                      proc_namet, port_namet);
+    pipeline->connect(proc_nameu, port_nameu,                      proc_namefaa, port_namefi);
+    pipeline->connect(proc_namefaa, port_namefo,                   proc_namefbb, port_namefi);
+    pipeline->connect(proc_nameu, port_nameu,                      proc_namefab, port_namefi);
+    pipeline->connect(proc_namefab, port_namefo,                   proc_namefba, port_namefi);
+    pipeline->connect(proc_namefbb, port_namefo,                   proc_named, port_namedi1);
+    pipeline->connect(proc_namefba, port_namefo,                   proc_named, port_namedi2);
+    pipeline->connect(proc_named, port_namedo,                     proc_namet, port_namet);
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_t const scheduler = reg->create_scheduler(scheduler_type, pipeline);
+    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -623,16 +616,16 @@ IMPLEMENT_TEST(frequency_pipeline)
   }
 }
 
+
 sprokit::process_t
 create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config)
 {
-  static bool const modules_loaded = (sprokit::load_known_modules(), true);
-  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
 
-  (void)modules_loaded;
-
-  return reg->create_process(type, name, config);
+  return sprokit::create_process(type, name, config);
 }
+
 
 sprokit::pipeline_t
 create_pipeline()

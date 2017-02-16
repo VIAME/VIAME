@@ -91,14 +91,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv( priv const &other )
-    : threshold( other.threshold ),
-      nonmax_suppression( other.nonmax_suppression ),
-      type( other.type )
-  {
-  }
-
   /// Create algorithm instance
   cv::Ptr<cv::AgastFeatureDetector> create() const
   {
@@ -172,15 +164,6 @@ detect_features_AGAST
 
 
 detect_features_AGAST
-::detect_features_AGAST(const detect_features_AGAST &other)
-  : p_( new priv( *other.p_ ) )
-{
- attach_logger( "arrows.ocv.AGAST" );
-  detector = p_->create();
-}
-
-
-detect_features_AGAST
 ::~detect_features_AGAST()
 {
 }
@@ -213,7 +196,7 @@ detect_features_AGAST
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_config( c, m_logger );
+  return p_->check_config( c, logger() );
 }
 
 

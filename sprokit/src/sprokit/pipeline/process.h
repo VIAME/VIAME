@@ -102,6 +102,8 @@ class SPROKIT_PIPELINE_EXPORT process
   public:
     /// The type for the type of a process.
     typedef std::string type_t;
+    /// Process description
+    typedef std::string description_t;
     /// A group of types.
     typedef std::vector<type_t> types_t;
     /// The type for the name of a process.

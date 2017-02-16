@@ -60,14 +60,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : inlier_scale(other.inlier_scale),
-    min_required_inlier_count(other.min_required_inlier_count),
-    min_required_inlier_percent(other.min_required_inlier_percent),
-    m_logger( vital::get_logger( "arrows.core.match_features_homography" ))
-  {
-  }
-
   // the scale of inlier points
   double inlier_scale;
 
@@ -85,22 +77,6 @@ public:
 match_features_homography
 ::match_features_homography()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-match_features_homography
-::match_features_homography(const match_features_homography& other)
-: d_(new priv(*other.d_)),
-  matcher1_(!other.matcher1_ ? algo::match_features_sptr()
-                             : other.matcher1_->clone()),
-  matcher2_(!other.matcher2_ ? algo::match_features_sptr()
-                             : other.matcher2_->clone()),
-  h_estimator_(!other.h_estimator_ ? algo::estimate_homography_sptr()
-                                   : other.h_estimator_->clone()),
-  feature_filter_(!other.feature_filter_ ? algo::filter_features_sptr()
-                                         : other.feature_filter_->clone())
 {
 }
 

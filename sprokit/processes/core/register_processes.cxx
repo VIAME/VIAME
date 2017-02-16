@@ -28,7 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/processes/core/kwiver_processes_export.h>
+
+#include <sprokit/pipeline/process_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
 
 // -- list processes to register --
 #include "compute_homography_process.h"
@@ -49,7 +52,6 @@
 #include "stabilize_image_process.h"
 #include "video_input_process.h"
 
-
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
  *
@@ -57,93 +59,128 @@
  */
 extern "C"
 KWIVER_PROCESSES_EXPORT
-void register_processes()
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_core" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_core" );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
   // ----------------------------------------------------------------
-  registry->register_process(
-    "frame_list_input",
-    "Reads a list of image file names and generates stream "
-    "of images and associated time stamps",
-    sprokit::create_process< kwiver::frame_list_process > );
+  auto fact = vpm.ADD_PROCESS( kwiver::frame_list_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "frame_list_input" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Reads a list of image file names and generates stream of images and associated time stamps" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "stabilize_image", "Generate current-to-reference image homographies",
-    sprokit::create_process< kwiver::stabilize_image_process > );
+  fact = vpm.ADD_PROCESS( kwiver::stabilize_image_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "stabilize_image" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Generate current-to-reference image homographies" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "detect_features", "Detect features in an image that will be used for stabilization",
-    sprokit::create_process< kwiver::detect_features_process > );
+  fact = vpm.ADD_PROCESS( kwiver::detect_features_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Detect features in an image that will be used for stabilization" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "detection_refiner", "Refines detections for a given frame",
-    sprokit::create_process< kwiver::detection_refiner_process > );
+  fact = vpm.ADD_PROCESS( kwiver::detection_refiner_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detection_refiner" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Refines detections for a given frame" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "extract_descriptors", "Extract descriptors from detected features",
-    sprokit::create_process< kwiver::extract_descriptors_process > );
+  fact = vpm.ADD_PROCESS( kwiver::extract_descriptors_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "extract_descriptors" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Extract descriptors from detected features" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "feature_matcher", "Match extracted descriptors and detected features",
-    sprokit::create_process< kwiver::matcher_process > );
+  fact = vpm.ADD_PROCESS( kwiver::matcher_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_matcher" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Match extracted descriptors and detected features" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "compute_homography", "Compute a frame to frame homography based on tracks",
-    sprokit::create_process< kwiver::compute_homography_process > );
+  fact = vpm.ADD_PROCESS( kwiver::compute_homography_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_homography" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Compute a frame to frame homography based on tracks" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "draw_tracks", "Draw feature tracks on image",
-    sprokit::create_process< kwiver::draw_tracks_process > );
+  fact = vpm.ADD_PROCESS( kwiver::draw_tracks_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_tracks" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Draw feature tracks on image" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "read_d_vector", "Read vector of doubles",
-    sprokit::create_process< kwiver::read_descriptor_process > );
+  fact = vpm.ADD_PROCESS( kwiver::read_descriptor_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_d_vector" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Read vector of doubles" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "image_object_detector", "Apply selected image object detector algorithm to incoming images.",
-    sprokit::create_process< kwiver::image_object_detector_process > );
+  fact = vpm.ADD_PROCESS( kwiver::image_object_detector_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_object_detector" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Apply selected image object detector algorithm to incoming images." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "image_filter", "Apply selected image filter algorithm to incoming images.",
-    sprokit::create_process< kwiver::image_filter_process > );
+  fact = vpm.ADD_PROCESS( kwiver::image_filter_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_filter" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Apply selected image filter algorithm to incoming images." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "image_writer", "Write image to disk.",
-    sprokit::create_process< kwiver::image_writer_process > );
+  fact = vpm.ADD_PROCESS( kwiver::image_writer_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_writer" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Write image to disk." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "image_file_reader", "Reads an image file given the file name.",
-    sprokit::create_process< kwiver::image_file_reader_process > );
+  fact = vpm.ADD_PROCESS( kwiver::image_file_reader_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_file_reader" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Reads an image file given the file name." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "detected_object_input", "Reads detected object sets from an input file. "
-    "Detections read from the input file are grouped into sets for each image and individually returned.",
-    sprokit::create_process< kwiver::detected_object_input_process > );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_output_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_input" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Reads detected object sets from an input file. "
+                       "Detections read from the input file are grouped into sets for each image and individually returned." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "detected_object_output", "Writes detected object sets to an output file. "
-    "All detections are written to the same file.",
-    sprokit::create_process< kwiver::detected_object_output_process > );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_input_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_output" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Writes detected object sets to an output file. All detections are written to the same file." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "video_input", "Reads video files and produces sequential images with metadata per frame.",
-    sprokit::create_process< kwiver::video_input_process > );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_filter_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_filter" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Filters sets of detected objects using the detected_object_filter algorithm." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "detected_object_filter",
-    "Filters detected object sets based on selected filter algorithm.",
-    sprokit::create_process< kwiver::detected_object_filter_process > );
+  fact = vpm.ADD_PROCESS( kwiver::video_input_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "video_input" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Reads video files and produces sequential images with metadata per frame." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
-}
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
+} // register_processes

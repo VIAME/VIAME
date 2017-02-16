@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2015 by Kitware, Inc.
+ * Copyright 2012-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,11 @@
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process_cluster.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <boost/lexical_cast.hpp>
 
@@ -73,15 +72,17 @@ main(int argc, char* argv[])
   RUN_TEST(testname, pipe_file);
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -91,15 +92,17 @@ IMPLEMENT_TEST(config_block)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_notalnum)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("my_block:my-key");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("my_block:my-key");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -108,9 +111,9 @@ IMPLEMENT_TEST(config_block_notalnum)
                "Received: " << myvalue);
   }
 
-  kwiver::vital::config_block_key_t const myotherkey = kwiver::vital::config_block_key_t("my-block:my_key");
-  kwiver::vital::config_block_value_t const myothervalue = conf->get_value<kwiver::vital::config_block_value_t>(myotherkey);
-  kwiver::vital::config_block_value_t const otherexpected = kwiver::vital::config_block_value_t("myothervalue");
+  const auto myotherkey = kwiver::vital::config_block_key_t("my-block:my_key");
+  const auto myothervalue = conf->get_value<kwiver::vital::config_block_value_t>(myotherkey);
+  const auto otherexpected = kwiver::vital::config_block_value_t("myothervalue");
 
   if (myothervalue != otherexpected)
   {
@@ -120,15 +123,17 @@ IMPLEMENT_TEST(config_block_notalnum)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_value_spaces)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("my value with spaces");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("my value with spaces");
 
   if (myvalue != expected)
   {
@@ -137,9 +142,9 @@ IMPLEMENT_TEST(config_value_spaces)
                "Received: " << myvalue);
   }
 
-  kwiver::vital::config_block_key_t const mytabkey = kwiver::vital::config_block_key_t("myblock:mytabs");
-  kwiver::vital::config_block_value_t const mytabvalue = conf->get_value<kwiver::vital::config_block_value_t>(mytabkey);
-  kwiver::vital::config_block_value_t const tabexpected = kwiver::vital::config_block_value_t("my	value	with	tabs");
+  const auto mytabkey = kwiver::vital::config_block_key_t("myblock:mytabs");
+  const auto mytabvalue = conf->get_value<kwiver::vital::config_block_value_t>(mytabkey);
+  const auto tabexpected = kwiver::vital::config_block_value_t("my	value	with	tabs");
 
   if (mytabvalue != tabexpected)
   {
@@ -149,15 +154,17 @@ IMPLEMENT_TEST(config_value_spaces)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_overrides)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myothervalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myothervalue");
 
   if (myvalue != expected)
   {
@@ -167,13 +174,15 @@ IMPLEMENT_TEST(config_overrides)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_read_only)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const config = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const rokey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto rokey = kwiver::vital::config_block_key_t("myblock:mykey");
 
   if (!config->is_read_only(rokey))
   {
@@ -181,6 +190,8 @@ IMPLEMENT_TEST(config_read_only)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_not_a_flag)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -190,6 +201,8 @@ IMPLEMENT_TEST(config_not_a_flag)
                    "using an unknown flag");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_read_only_override)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -199,15 +212,17 @@ IMPLEMENT_TEST(config_read_only_override)
                    "setting a read-only value");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -217,15 +232,17 @@ IMPLEMENT_TEST(config_append)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_ro)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -240,15 +257,17 @@ IMPLEMENT_TEST(config_append_ro)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_provided)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -258,15 +277,17 @@ IMPLEMENT_TEST(config_append_provided)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_provided_ro)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -281,15 +302,17 @@ IMPLEMENT_TEST(config_append_provided_ro)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_comma)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue,othervalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue,othervalue");
 
   if (myvalue != expected)
   {
@@ -299,15 +322,17 @@ IMPLEMENT_TEST(config_append_comma)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_comma_empty)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("othervalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("othervalue");
 
   if (myvalue != expected)
   {
@@ -317,15 +342,17 @@ IMPLEMENT_TEST(config_append_comma_empty)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_space)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue othervalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue othervalue");
 
   if (myvalue != expected)
   {
@@ -335,15 +362,17 @@ IMPLEMENT_TEST(config_append_space)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_space_empty)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("othervalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("othervalue");
 
   if (myvalue != expected)
   {
@@ -353,16 +382,18 @@ IMPLEMENT_TEST(config_append_space_empty)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_path)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
   sprokit::path_t const expected_path = sprokit::path_t("myvalue") / sprokit::path_t("othervalue");
-  kwiver::vital::config_block_value_t const expected = expected_path.string<kwiver::vital::config_block_value_t>();
+  const auto expected = expected_path.string<kwiver::vital::config_block_value_t>();
 
   if (myvalue != expected)
   {
@@ -372,16 +403,18 @@ IMPLEMENT_TEST(config_append_path)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_path_empty)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
   sprokit::path_t const expected_path = sprokit::path_t(".") / sprokit::path_t("othervalue");
-  kwiver::vital::config_block_value_t const expected = expected_path.string<kwiver::vital::config_block_value_t>();
+  const auto expected = expected_path.string<kwiver::vital::config_block_value_t>();
 
   if (myvalue != expected)
   {
@@ -391,6 +424,8 @@ IMPLEMENT_TEST(config_append_path_empty)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_flag_mismatch_ac)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -400,6 +435,8 @@ IMPLEMENT_TEST(config_append_flag_mismatch_ac)
                    "a configuration value has mismatch configuration flags");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_flag_mismatch_ap)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -409,6 +446,8 @@ IMPLEMENT_TEST(config_append_flag_mismatch_ap)
                    "a configuration value has mismatch configuration flags");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_flag_mismatch_cp)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -418,6 +457,8 @@ IMPLEMENT_TEST(config_append_flag_mismatch_cp)
                    "a configuration value has mismatch configuration flags");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_flag_mismatch_all)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -427,15 +468,17 @@ IMPLEMENT_TEST(config_append_flag_mismatch_all)
                    "a configuration value has mismatch configuration flags");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_dotted_key)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:dotted.key");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("value");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:dotted.key");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("value");
 
   if (myvalue != expected)
   {
@@ -445,15 +488,17 @@ IMPLEMENT_TEST(config_dotted_key)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_dotted_nested_key)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:dotted:nested.key:subkey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("value");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:dotted:nested.key:subkey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("value");
 
   if (myvalue != expected)
   {
@@ -463,15 +508,17 @@ IMPLEMENT_TEST(config_dotted_nested_key)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_provider_conf)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myotherblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myotherblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -481,15 +528,17 @@ IMPLEMENT_TEST(config_provider_conf)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_provider_conf_dep)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myotherblock:mykey");
-  kwiver::vital::config_block_value_t const myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("myvalue");
+  const auto mykey = kwiver::vital::config_block_key_t("myotherblock:mykey");
+  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("myvalue");
 
   if (myvalue != expected)
   {
@@ -498,8 +547,8 @@ IMPLEMENT_TEST(config_provider_conf_dep)
                "Received: " << myvalue);
   }
 
-  kwiver::vital::config_block_key_t const mymidkey = kwiver::vital::config_block_key_t("mymidblock:mykey");
-  kwiver::vital::config_block_value_t const mymidvalue = conf->get_value<kwiver::vital::config_block_value_t>(mymidkey);
+  const auto mymidkey = kwiver::vital::config_block_key_t("mymidblock:mykey");
+  const auto mymidvalue = conf->get_value<kwiver::vital::config_block_value_t>(mymidkey);
 
   if (mymidvalue != expected)
   {
@@ -509,6 +558,8 @@ IMPLEMENT_TEST(config_provider_conf_dep)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_provider_conf_circular_dep)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -518,6 +569,8 @@ IMPLEMENT_TEST(config_provider_conf_circular_dep)
                    "circular configuration provides exist");
 }
 
+
+// ------------------------------------------------------------------
 TEST_PROPERTY(ENVIRONMENT, TEST_ENV=expected)
 IMPLEMENT_TEST(config_provider_env)
 {
@@ -525,9 +578,9 @@ IMPLEMENT_TEST(config_provider_env)
 
   kwiver::vital::config_block_sptr const config = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const mykey = kwiver::vital::config_block_key_t("myblock:myenv");
-  kwiver::vital::config_block_value_t const value = config->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::config_block_value_t const expected = kwiver::vital::config_block_value_t("expected");
+  const auto mykey = kwiver::vital::config_block_key_t("myblock:myenv");
+  const auto value = config->get_value<kwiver::vital::config_block_value_t>(mykey);
+  const auto expected = kwiver::vital::config_block_value_t("expected");
 
   if (value != expected)
   {
@@ -537,13 +590,15 @@ IMPLEMENT_TEST(config_provider_env)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_provider_read_only)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
   kwiver::vital::config_block_sptr const config = sprokit::extract_configuration(blocks);
 
-  kwiver::vital::config_block_key_t const rokey = kwiver::vital::config_block_key_t("myblock:mykey");
+  const auto rokey = kwiver::vital::config_block_key_t("myblock:mykey");
 
   if (!config->is_read_only(rokey))
   {
@@ -551,6 +606,8 @@ IMPLEMENT_TEST(config_provider_read_only)
   }
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_provider_read_only_override)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -560,6 +617,8 @@ IMPLEMENT_TEST(config_provider_read_only_override)
                    "setting a read-only provided value");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_provider_unprovided)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -569,11 +628,13 @@ IMPLEMENT_TEST(config_provider_unprovided)
                    "using an unknown provider");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(pipeline_multiplier)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_blocks(blocks);
 
@@ -592,17 +653,17 @@ IMPLEMENT_TEST(pipeline_multiplier)
   /// \todo Verify the connections are done properly.
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_multiplier)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
-
-  sprokit::process_ctor_t const ctor = info->ctor;
-
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  const auto ctor = info->ctor;
+  const auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value("factor", boost::lexical_cast<kwiver::vital::config_block_value_t>(30));
 
@@ -683,7 +744,7 @@ IMPLEMENT_TEST(cluster_duplicate_input)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   EXPECT_EXCEPTION(sprokit::duplicate_cluster_input_port_exception,
                    sprokit::bake_cluster_blocks(blocks),
@@ -695,7 +756,7 @@ IMPLEMENT_TEST(cluster_duplicate_output)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   EXPECT_EXCEPTION(sprokit::duplicate_cluster_output_port_exception,
                    sprokit::bake_cluster_blocks(blocks),
@@ -709,13 +770,11 @@ IMPLEMENT_TEST(cluster_configuration_default)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
-
-  sprokit::process_ctor_t const ctor = info->ctor;
-
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  const auto ctor = info->ctor;
+  const auto config = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const cluster = ctor(config);
 
@@ -729,13 +788,11 @@ IMPLEMENT_TEST(cluster_configuration_provide)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
-
-  sprokit::process_ctor_t const ctor = info->ctor;
-
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  const auto ctor = info->ctor;
+  const auto config = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const cluster = ctor(config);
 
@@ -769,10 +826,9 @@ IMPLEMENT_TEST(cluster_map_config)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("expected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("expected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
@@ -798,10 +854,9 @@ IMPLEMENT_TEST(cluster_map_config_tunable)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("expected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("expected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
@@ -830,15 +885,14 @@ DONT_IMPLEMENT_TEST(cluster_map_config_redirect)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("expected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("expected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -848,6 +902,7 @@ DONT_IMPLEMENT_TEST(cluster_map_config_redirect)
 
   pipeline->reconfigure(new_conf);
 }
+
 
 // ------------------------------------------------------------------
 DONT_IMPLEMENT_TEST(cluster_map_config_modified)
@@ -868,15 +923,14 @@ DONT_IMPLEMENT_TEST(cluster_map_config_modified)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("expected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("expected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -906,15 +960,14 @@ IMPLEMENT_TEST(cluster_map_config_not_read_only)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("unexpected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("unexpected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -942,15 +995,14 @@ IMPLEMENT_TEST(cluster_map_config_only_provided)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("unexpected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("unexpected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -979,15 +1031,14 @@ IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("unexpected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("unexpected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -1018,15 +1069,14 @@ IMPLEMENT_TEST(cluster_map_config_to_non_process)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("expected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto key = kwiver::vital::config_block_key_t("tunable");
+  const auto tuned_value = kwiver::vital::config_block_key_t("expected");
 
   new_conf->set_value(cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value);
 
   sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -1054,11 +1104,10 @@ IMPLEMENT_TEST(cluster_map_config_not_from_cluster)
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
 
-  kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
-
-  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const new_key = kwiver::vital::config_block_key_t("new_key");
-  kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_key_t("expected");
+  const auto new_conf = kwiver::vital::config_block::empty_config();
+  const auto proc_name = sprokit::process::name_t("expect");
+  const auto new_key = kwiver::vital::config_block_key_t("new_key");
+  const auto tuned_value = kwiver::vital::config_block_key_t("expected");
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
@@ -1072,13 +1121,12 @@ IMPLEMENT_TEST(cluster_override_mapped)
 {
   sprokit::process::name_t const cluster_name = sprokit::process::name_t("cluster");
 
-  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
+  const auto conf = kwiver::vital::config_block::empty_config();
+  const auto proc_name = sprokit::process::name_t("expect");
+  const auto key = kwiver::vital::config_block_key_t("tunable");
 
-  sprokit::process::name_t const proc_name = sprokit::process::name_t("expect");
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("tunable");
-
-  kwiver::vital::config_block_key_t const full_key = proc_name + kwiver::vital::config_block::block_sep + key;
-  kwiver::vital::config_block_value_t const value = kwiver::vital::config_block_value_t("unexpected");
+  const auto full_key = proc_name + kwiver::vital::config_block::block_sep + key;
+  const auto value = kwiver::vital::config_block_value_t("unexpected");
 
   // The problem here is that the expect:tunable parameter is meant to be mapped
   // with the map_config call within the cluster. Due to the implementation,
@@ -1089,18 +1137,19 @@ IMPLEMENT_TEST(cluster_override_mapped)
 
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
-
-  sprokit::process_ctor_t const ctor = info->ctor;
+  const auto ctor = info->ctor;
 
   EXPECT_EXCEPTION(kwiver::vital::set_on_read_only_value_exception,
                    ctor(conf),
                    "manually setting a parameter which is mapped in a cluster");
 }
 
-static sprokit::process_t create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
+static sprokit::process_t create_process(sprokit::process::type_t const& type,
+                                         sprokit::process::name_t const& name,
+                                         kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config());
 static sprokit::pipeline_t create_pipeline();
 
 // ------------------------------------------------------------------
@@ -1118,21 +1167,21 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
   int32_t const end_value = 20;
 
   {
-    kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
+    const auto configu = kwiver::vital::config_block::empty_config();
 
-    kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
-    kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
+    const auto start_key = kwiver::vital::config_block_key_t("start");
+    const auto end_key = kwiver::vital::config_block_key_t("end");
 
-    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
-    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
+    const auto start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    const auto end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
 
-    kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
+    const auto configt = kwiver::vital::config_block::empty_config();
 
-    kwiver::vital::config_block_key_t const output_key = kwiver::vital::config_block_key_t("output");
-    kwiver::vital::config_block_value_t const output_value = kwiver::vital::config_block_value_t(path);
+    const auto output_key = kwiver::vital::config_block_key_t("output");
+    const auto output_value = kwiver::vital::config_block_value_t(path);
 
     configt->set_value(output_key, output_value);
 
@@ -1145,10 +1194,10 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
     pipeline->add_process(cluster);
     pipeline->add_process(processt);
 
-    sprokit::process::port_t const port_nameu = sprokit::process::port_t("number");
-    sprokit::process::port_t const port_namedi = sprokit::process::port_t("factor");
-    sprokit::process::port_t const port_namedo = sprokit::process::port_t("product");
-    sprokit::process::port_t const port_namet = sprokit::process::port_t("number");
+    const auto port_nameu = sprokit::process::port_t("number");
+    const auto port_namedi = sprokit::process::port_t("factor");
+    const auto port_namedo = sprokit::process::port_t("product");
+    const auto port_namet = sprokit::process::port_t("number");
 
     pipeline->connect(proc_nameu, port_nameu,
                       proc_named, port_namedi);
@@ -1157,9 +1206,7 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_registry_t const reg = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_t const scheduler = reg->create_scheduler(sprokit::scheduler_registry::default_type, pipeline);
+    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(sprokit::scheduler_factory::default_type, pipeline);
 
     scheduler->start();
     scheduler->wait();
@@ -1206,12 +1253,11 @@ test_cluster(sprokit::process_t const& cluster, std::string const& path)
 sprokit::process_t
 create_process(sprokit::process::type_t const& type, sprokit::process::name_t const& name, kwiver::vital::config_block_sptr config)
 {
-  static bool const modules_loaded = (sprokit::load_known_modules(), true);
-  static sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  static bool const modules_loaded = (kwiver::vital::plugin_manager::instance().load_all_plugins(), true);
 
   (void)modules_loaded;
 
-  return reg->create_process(type, name, config);
+  return sprokit::create_process(type, name, config);
 }
 
 sprokit::pipeline_t
@@ -1225,13 +1271,11 @@ setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t c
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks(blocks);
-
-  sprokit::process_ctor_t const ctor = info->ctor;
-
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  const auto ctor = info->ctor;
+  const auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value(sprokit::process::config_name, name);
 

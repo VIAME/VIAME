@@ -55,17 +55,6 @@ public:
 #endif
   }
 
-  /// Copy Constructor
-  priv( const priv &other )
-    : threshold( other.threshold ),
-      nonmaxSuppression( other.nonmaxSuppression )
-  {
-#ifdef KWIVER_HAS_OPENCV_VER_3
-    // Also update neighborhood type if we're using a 3.x version
-    neighborhood_type = other.neighborhood_type;
-#endif
-  }
-
   /// Create a new FAST detector instance with the current parameter values
   cv::Ptr<cv::FastFeatureDetector> create() const
   {
@@ -168,16 +157,6 @@ detect_features_FAST
 }
 
 
-/// Copy Constructor
-detect_features_FAST
-::detect_features_FAST(const detect_features_FAST &other)
-  : p_(new priv(*other.p_))
-{
-  attach_logger("arrows.ocv.detect_features_FAST");
-  detector = p_->create();
-}
-
-
 /// Destructor
 detect_features_FAST
 ::~detect_features_FAST()
@@ -218,7 +197,7 @@ detect_features_FAST
 {
   vital::config_block_sptr config = get_configuration();
   config->merge_config(in_config);
-  return p_->check_config( config, m_logger );
+  return p_->check_config( config, logger() );
 }
 
 

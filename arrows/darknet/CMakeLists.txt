@@ -3,13 +3,9 @@
 
 set( headers
   darknet_detector.h
-
-  register_algorithms.h
 )
 
 set( sources
-  register_algorithms.cxx
-
   darknet_detector.cxx
   )
 
@@ -44,7 +40,7 @@ target_link_libraries( kwiver_algo_darknet
   )
 
 algorithms_create_plugin( kwiver_algo_darknet
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

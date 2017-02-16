@@ -51,9 +51,6 @@ class KWIVER_ALGO_OCV_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv"; }
-
   // No configuration for this class yet
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }

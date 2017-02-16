@@ -1,8 +1,6 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_core_headers
-  register_algorithms.h
-
   class_probablity_filter.h
   close_loops_bad_frames_only.h
   close_loops_exhaustive.h
@@ -20,7 +18,6 @@ set( plugin_core_headers
   initialize_cameras_landmarks.h
   match_features_fundamental_matrix.h
   match_features_homography.h
-  register_algorithms.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
@@ -46,8 +43,6 @@ kwiver_install_headers(
   )
 
 set( plugin_core_sources
-  register_algorithms.cxx
-
   class_probablity_filter.cxx
   close_loops_bad_frames_only.cxx
   close_loops_exhaustive.cxx
@@ -65,7 +60,6 @@ set( plugin_core_sources
   initialize_cameras_landmarks.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
-  register_algorithms.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
@@ -101,7 +95,7 @@ target_link_libraries( kwiver_algo_core
   )
 
 algorithms_create_plugin( kwiver_algo_core
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

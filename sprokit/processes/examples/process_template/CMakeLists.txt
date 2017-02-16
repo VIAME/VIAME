@@ -41,7 +41,7 @@ kwiver_add_plugin( template_processes
   SOURCES        ${sources}
                  ${private_headers}
   PRIVATE          sprokit_pipeline
-                   vital vital_apm vital_logger vital_config
+                   vital vital_vpm vital_logger vital_config
                    kwiver_algo_ocv
                    kwiversys
  )

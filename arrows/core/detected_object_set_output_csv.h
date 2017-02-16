@@ -52,11 +52,7 @@ class KWIVER_ALGO_CORE_EXPORT detected_object_set_output_csv
 {
 public:
   detected_object_set_output_csv();
-  detected_object_set_output_csv( detected_object_set_output_csv const& other);
   virtual ~detected_object_set_output_csv();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "csv"; }
 
   virtual void set_configuration(vital::config_block_sptr config);
   virtual bool check_configuration(vital::config_block_sptr config) const;

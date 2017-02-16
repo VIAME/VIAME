@@ -28,15 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/adapters/kwiver_adapter_processes_export.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/processes/adapters/kwiver_processes_adapter_export.h>
+#include <sprokit/pipeline/process_factory.h>
+
+#include <vital/plugin_loader/plugin_loader.h>
 
 #include "input_adapter_process.h"
 #include "output_adapter_process.h"
-
-// -- list processes to register --
-extern "C"
-KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
 
 
 // ----------------------------------------------------------------
@@ -44,32 +42,36 @@ KWIVER_ADAPTER_PROCESSES_EXPORT void register_processes();
  *
  *
  */
-void register_processes()
+extern "C"
+KWIVER_PROCESSES_ADAPTER_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
+
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_adapters" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_adapters" );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
   // ----------------------------------------------------------------
-  registry->register_process(
-    "input_adapter",
-    "Source process for pipeline. Pushes data items into pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::input_adapter_process > );
+  auto fact = vpm.ADD_PROCESS( kwiver::input_adapter_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "input_adapter" )
+    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                        "Source process for pipeline. Pushes data items into pipeline ports. "
+                        "Ports are dynamically created as needed based on connections specified in the pipeline file." )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
 
-  registry->register_process(
-    "output_adapter",
-    "Sink process for pipeline. Accepts data items from pipeline ports. "
-    "Ports are dynamically created as needed based on connections specified in the pipeline file.",
-    sprokit::create_process< kwiver::output_adapter_process > );
-
+  fact = vpm.ADD_PROCESS( kwiver::output_adapter_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,  "output_adapter" )
+    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                        "Sink process for pipeline. Accepts data items from pipeline ports. "
+                        "Ports are dynamically created as needed based on connections specified in the pipeline file." )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

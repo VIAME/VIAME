@@ -60,21 +60,8 @@ public:
   /// Constructor
   extract_descriptors_BRIEF();
 
-  /// Copy Constructor
-  /**
-   * \param other The other BRIEF descriptor extractor to copy
-   */
-  extract_descriptors_BRIEF(extract_descriptors_BRIEF const &other);
-
   /// Destructor
   virtual ~extract_descriptors_BRIEF();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_BRIEF"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature-point descriptor extraction via the BRIEF algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

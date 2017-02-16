@@ -73,14 +73,8 @@ public:
   /// Default Constructor
   compute_ref_homography_core();
 
-  /// Copy Constructor
-  compute_ref_homography_core( const compute_ref_homography_core& );
-
   /// Default Destructor
   virtual ~compute_ref_homography_core();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "core"; }
 
   /// Return implementation description string
   virtual std::string description() const;

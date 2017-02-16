@@ -65,15 +65,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv(priv const &other)
-    : bytes( other.bytes )
-#ifdef KWIVER_HAS_OPENCV_VER_3
-    , use_orientation( other.use_orientation )
-#endif
-  {
-  }
-
   /// Create new algorithm instance using current parameter values
   cv::Ptr<cv_BRIEF_t> create() const
   {
@@ -146,16 +137,6 @@ extract_descriptors_BRIEF
 }
 
 
-/// Copy Constructor
-extract_descriptors_BRIEF
-::extract_descriptors_BRIEF(extract_descriptors_BRIEF const &other)
-  : p_( new priv(*other.p_) )
-{
-  attach_logger("arrows.ocv.BRIEF");
-  extractor = p_->create();
-}
-
-
 /// Destructor
 extract_descriptors_BRIEF
 ::~extract_descriptors_BRIEF()
@@ -196,7 +177,7 @@ extract_descriptors_BRIEF
 {
   vital::config_block_sptr config = get_configuration();
   config->merge_config(in_config);
-  return p_->check_config( config, m_logger );
+  return p_->check_config( config, logger() );
 }
 
 

@@ -37,6 +37,7 @@
 
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
+#include <vital/algo/algorithm_factory.h>
 
 #include <sstream>
 #include <algorithm>
@@ -62,78 +63,39 @@ algorithm
 
 
 // ------------------------------------------------------------------
+void
+algorithm
+::set_impl_name( const std::string& name )
+{
+  m_impl_name = name;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::logger_handle_t
+algorithm
+::logger() const
+{
+  return m_logger;
+}
+
+
+// ------------------------------------------------------------------
+std::string
+algorithm
+::impl_name() const
+{
+  return m_impl_name;
+}
+
+
+// ------------------------------------------------------------------
 /// Get this alg's \link kwiver::vital::config_block configuration block \endlink
 config_block_sptr
 algorithm
 ::get_configuration() const
 {
   return config_block::empty_config( this->type_name() );
-}
-
-
-// ------------------------------------------------------------------
-algorithm_sptr
-algorithm
-::create( const std::string&  type_name,
-          const std::string&  impl_name )
-{
-  std::string qualified_name = type_name + ":" + impl_name;
-  algorithm_sptr inst = registrar::instance().find< algorithm > ( qualified_name );
-
-  if ( ! inst )
-  {
-    return inst;
-  }
-  return inst->base_clone();
-}
-
-
-// ------------------------------------------------------------------
-std::vector< std::string >
-algorithm
-::registered_names( const std::string& type_name )
-{
-  if ( type_name == "" )
-  {
-    return registrar::instance().registered_names< algorithm > ();
-  }
-
-  std::vector< std::string > type_reg_names;
-  const std::string prefix = type_name + ":";
-  VITAL_FOREACH( std::string qual_name,
-        registrar::instance().registered_names< algorithm > () )
-  {
-    // if prefix is a prefix of qual_name, add it to the vector
-    if ( ( qual_name.length() >= prefix.length() ) &&
-         std::equal( prefix.begin(), prefix.end(), qual_name.begin() ) )
-    {
-      type_reg_names.push_back( qual_name.substr( prefix.length() ) );
-    }
-  }
-  return type_reg_names;
-}
-
-
-// ------------------------------------------------------------------
-bool
-algorithm
-::has_type_name( const std::string& type_name )
-{
-  std::vector< std::string > valid_names = algorithm::registered_names( type_name );
-
-  return ! valid_names.empty();
-}
-
-
-// ------------------------------------------------------------------
-bool
-algorithm
-::has_impl_name( const std::string& type_name,
-                 const std::string& impl_name )
-{
-  std::vector< std::string > valid_names = algorithm::registered_names( type_name );
-
-  return std::find( valid_names.begin(), valid_names.end(), impl_name ) != valid_names.end();
 }
 
 
@@ -149,14 +111,22 @@ algorithm
   config_block_description_t type_comment =
     "Algorithm to use for '" + name + "'.\n"
     "Must be one of the following options:";
-  std::string tmp_d;
 
-  VITAL_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
+  // Get list of factories for the algo_name
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  auto fact_list = vpm.get_factories( type_name );
+
+  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
   {
+    std::string reg_name;
+    if ( ! a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )
+    {
+      continue;
+    }
+
     type_comment += "\n\t- " + reg_name;
-    std::string qualified_name = type_name + ":" + reg_name;
-    tmp_d = registrar::instance().find< algorithm > ( qualified_name )->description();
-    if ( tmp_d != "" )
+    std::string tmp_d;
+    if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, tmp_d ) )
     {
       type_comment += " :: " + tmp_d;
     }
@@ -167,6 +137,7 @@ algorithm
     config->set_value( name + config_block::block_sep + "type",
                        nested_algo->impl_name(),
                        type_comment );
+
     config->subblock_view( name + config_block::block_sep + nested_algo->impl_name() )
       ->merge_config( nested_algo->get_configuration() );
   }
@@ -193,10 +164,10 @@ algorithm
 
   if ( config->has_value( type_key ) )
   {
-   const std::string iname = config->get_value< std::string > ( type_key );
-    if ( algorithm::has_impl_name( type_name, iname ) )
+    const std::string iname = config->get_value< std::string > ( type_key );
+    if ( has_algorithm_impl_name( type_name, iname ) )
     {
-      nested_algo = algorithm::create( type_name, iname );
+      nested_algo = create_algorithm( type_name, iname );;
       nested_algo->set_configuration(
         config->subblock_view( name + config_block::block_sep + iname )
                                     );
@@ -232,15 +203,25 @@ algorithm
   }
 
   const std::string iname = config->get_value< std::string > ( type_key );
-  if ( ! algorithm::has_impl_name( type_name, iname ) )
+  if ( ! has_algorithm_impl_name( type_name, iname ) )
   {
     std::stringstream msg;
     msg << "Configuration Failure: invalid option\n"
         << "   " << type_key << " = " << iname << "\n"
         << "   valid options are";
-    VITAL_FOREACH( std::string reg_name, algorithm::registered_names( type_name ) )
+
+    // Get list of factories for the algo_name
+    kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+    auto fact_list = vpm.get_factories( type_name );
+
+    // Find the one that provides the impl_name
+    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
     {
-      msg << "\n      " << reg_name;
+      std::string reg_name;
+      if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )
+      {
+        msg << "\n      " << reg_name;
+      }
     }
 
     LOG_WARN( logger, msg.str() );
@@ -249,16 +230,26 @@ algorithm
 
   // retursively check the configuration of the sub-algorithm
   const std::string qualified_name = type_name + ":" + iname;
-  if ( ! registrar::instance().find< algorithm > ( qualified_name )->check_configuration(
-         config->subblock_view( name + config_block::block_sep + iname ) ) )
+
+  // Need a real algorithm object to check with
+
+  // if ( ! registrar::instance().find< algorithm > ( qualified_name )->check_configuration(
+  //        config->subblock_view( name + config_block::block_sep + iname ) ) )
+  try
   {
-    LOG_WARN( logger,  "Configuration Failure Backtrace: "
-              << name + config_block::block_sep + iname );
-    return false;
+    if ( ! create_algorithm( type_name, iname )->check_configuration(
+      config->subblock_view( name + config_block::block_sep + iname ) ) )
+    {
+      LOG_WARN( logger,  "Configuration Failure Backtrace: "
+                << name + config_block::block_sep + iname );
+      return false;
+    }
+  }
+  catch ( const kwiver::vital::plugin_factory_not_found& e )
+  {
+    LOG_WARN( logger, e.what() );
   }
   return true;
 }
 
-
-}
-}     // end namespace
+} }     // end namespace

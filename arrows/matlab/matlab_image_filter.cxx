@@ -199,12 +199,6 @@ matlab_image_filter()
 { }
 
 
-matlab_image_filter::
-matlab_image_filter( const matlab_image_filter& other)
-  : d( new priv( *other.d ) )
-{ }
-
-
  matlab_image_filter::
 ~matlab_image_filter()
 { }

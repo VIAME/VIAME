@@ -23,6 +23,6 @@ kwiver_add_plugin( kwiver_processes_vxl
                 ${private_headers}
   PRIVATE         sprokit_pipeline
                   kwiver_algo_core kwiver_algo_vxl
-                  vital vital_apm vital_logger vital_config
+                  vital vital_vpm vital_logger vital_config
                   vsl vul vnl_algo vnl_io vnl vil_io vil
 )

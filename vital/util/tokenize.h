@@ -36,6 +36,8 @@
 #ifndef VITAL_TOKENIZE_H
 #define VITAL_TOKENIZE_H
 
+#include <string>
+
 namespace kwiver {
 namespace vital {
 

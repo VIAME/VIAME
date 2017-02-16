@@ -36,7 +36,8 @@
 #include <test_common.h>
 #include <test_random_point.h>
 
-#include <arrows/vxl/register_algorithms.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <arrows/vxl/estimate_homography.h>
 
 using namespace kwiver::vital;
@@ -61,7 +62,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
 
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 

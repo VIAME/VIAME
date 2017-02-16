@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,130 +34,129 @@
 #include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/edge.h>
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_exception.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/types.h>
 
 #include <boost/make_shared.hpp>
 
-static void test_process(sprokit::process::type_t const& type);
+static void test_process( sprokit::process::type_t const& type );
 
 int
 main()
 {
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+
   try
   {
-    sprokit::load_known_modules();
+    vpm.load_all_plugins();
   }
-  catch (sprokit::process_type_already_exists_exception const& e)
+  catch ( sprokit::process_type_already_exists_exception const& e )
   {
-    TEST_ERROR("Duplicate process names: " << e.what());
+    // probably won't happen unless we specifically check for it.
+    TEST_ERROR( "Duplicate process names: " << e.what() );
   }
-  catch (sprokit::pipeline_exception const& e)
+  catch ( sprokit::pipeline_exception const& e )
   {
-    TEST_ERROR("Failed to load modules: " << e.what());
+    TEST_ERROR( "Failed to load modules: " << e.what() );
   }
-  catch (std::exception const& e)
+  catch ( std::exception const& e )
   {
-    TEST_ERROR("Unexpected exception when loading modules: " << e.what());
+    TEST_ERROR( "Unexpected exception when loading modules: " << e.what() );
 
     return EXIT_FAILURE;
   }
 
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  const auto& proc_list = sprokit::get_process_list();
 
-  sprokit::process::types_t const types = reg->types();
+  // This would be the place to test for duplicate process names
+  //+ Check attribute kwiver::vital::plugin_factory::PLUGIN_NAME for duplicates
+  // within the list
 
-  VITAL_FOREACH (sprokit::process::type_t const& type, types)
+  VITAL_FOREACH( const auto fact, proc_list )
   {
-    //@todo The adapter processes cause the tests to fail because they
-    // behave differently than other processes. This check handles the
-    // current set or problems, it is not a universal solution.
-    //
-    // A better approach is to add an indication in the metadata to
-    // indicate a process is suitable for use in tests. There are
-    // processes that have undesirable side effects that should not be
-    // used here.
-    if (type.find( "adapter" ) != std::string::npos)
+    // Test to see if this process does not work well with this test.
+    std::string attrib;
+    if ( fact->get_attribute( "no-test", attrib ) && ( attrib == "introspect" ) )
     {
+      continue;
+    }
+
+    sprokit::process::type_t type;
+    if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type ) )
+    {
+      TEST_ERROR( "Factory for this process has no registered name" );
       continue;
     }
 
     try
     {
       std::cout << "------------- testing process type: " << type << std::endl;
-      test_process(type);
+      test_process( type );
     }
     //@todo Python process wrappers translate exceptions to
     // RuntimeError, which causes the expected exception code to fail
     // the test.
-    catch (std::exception const& e)
+    catch ( std::exception const& e )
     {
-      TEST_ERROR("Unexpected exception when testing "
-                 "type \'" << type << "\': " << e.what());
+      TEST_ERROR( "Unexpected exception when testing "
+                  "type \'" << type << "\': " << e.what() );
     }
-  }
+  } // end foreach
 
   return EXIT_SUCCESS;
-}
+} // main
 
-static void test_process_properties(sprokit::process_t const process);
-static void test_process_configuration(sprokit::process_t const process);
-static void test_process_input_ports(sprokit::process_t const process);
-static void test_process_output_ports(sprokit::process_t const process);
 
-static void test_process_invalid_configuration(sprokit::process_t const process);
-static void test_process_invalid_input_port(sprokit::process_t const process);
-static void test_process_invalid_output_port(sprokit::process_t const process);
+static void test_process_properties( sprokit::process_t const process );
+static void test_process_configuration( sprokit::process_t const process );
+static void test_process_input_ports( sprokit::process_t const process );
+static void test_process_output_ports( sprokit::process_t const process );
+
+static void test_process_invalid_configuration( sprokit::process_t const process );
+static void test_process_invalid_input_port( sprokit::process_t const process );
+static void test_process_invalid_output_port( sprokit::process_t const process );
 
 void
-test_process(sprokit::process::type_t const& type)
+test_process( sprokit::process::type_t const& type )
 {
-  static sprokit::process::name_t const expected_name = sprokit::process::name_t("expected_name");
+  static auto const expected_name = sprokit::process::name_t( "expected_name" );
+  sprokit::process_t const process = sprokit::create_process( type, expected_name );
 
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
-
-  if (reg->description(type).empty())
+  if ( ! process )
   {
-    TEST_ERROR("The description is empty");
-  }
-
-  sprokit::process_t const process = reg->create_process(type, expected_name);
-
-  if (!process)
-  {
-    TEST_ERROR("Received NULL process (" << type << ")");
+    TEST_ERROR( "Received NULL process (" << type << ")" );
 
     return;
   }
 
-  if (process->name() != expected_name)
+  if ( process->name() != expected_name )
   {
-    TEST_ERROR("Name (" << process->name() << ") "
-               "does not match expected name: " << expected_name);
+    TEST_ERROR( "Name (" << process->name() << ") "
+                                               "does not match expected name: " << expected_name );
   }
 
-  if (process->type() != type)
+  if ( process->type() != type )
   {
-    TEST_ERROR("Type (" << process->type() << ") "
-               "does not match registry type: " << type);
+    TEST_ERROR( "Type (" << process->type() << ") "
+                                               "does not match registry type: " << type );
   }
 
-  test_process_properties(process);
-  test_process_configuration(process);
-  test_process_input_ports(process);
-  test_process_output_ports(process);
+  test_process_properties( process );
+  test_process_configuration( process );
+  test_process_input_ports( process );
+  test_process_output_ports( process );
 
-  test_process_invalid_configuration(process);
-  test_process_invalid_input_port(process);
-  test_process_invalid_output_port(process);
+  test_process_invalid_configuration( process );
+  test_process_invalid_input_port( process );
+  test_process_invalid_output_port( process );
 }
 
+
 void
-test_process_properties(sprokit::process_t const process)
+test_process_properties( sprokit::process_t const process )
 {
   sprokit::process::properties_t const consts = process->properties();
 
@@ -166,205 +165,211 @@ test_process_properties(sprokit::process_t const process)
   /// \todo Test for conflicting properties.
 }
 
+
 void
-test_process_configuration(sprokit::process_t const process)
+test_process_configuration( sprokit::process_t const process )
 {
   kwiver::vital::config_block_keys_t const keys = process->available_config();
 
-  VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
+  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
   {
     try
     {
-      process->config_info(key);
+      process->config_info( key );
     }
-    catch (sprokit::unknown_configuration_value_exception const& e)
+    catch ( sprokit::unknown_configuration_value_exception const& e )
     {
-      TEST_ERROR("Failed to get a default for "
-                 << process->type() << kwiver::vital::config_block::block_sep << key
-                 << ": " << e.what());
+      TEST_ERROR( "Failed to get a default for "
+                  << process->type() << kwiver::vital::config_block::block_sep << key
+                  << ": " << e.what() );
     }
-    catch (std::exception const& e)
+    catch ( std::exception const& e )
     {
-      TEST_ERROR("Unexpected exception when querying for default "
-                 "(" << process->type() << kwiver::vital::config_block::block_sep
-                 << key << "): " << e.what());
+      TEST_ERROR( "Unexpected exception when querying for default "
+                  "(" << process->type() << kwiver::vital::config_block::block_sep
+                      << key << "): " << e.what() );
     }
   }
 }
 
+
 void
-test_process_input_ports(sprokit::process_t const process)
+test_process_input_ports( sprokit::process_t const process )
 {
   static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::process::ports_t const ports = process->input_ports();
 
-  VITAL_FOREACH (sprokit::process::port_t const& port, ports)
+  VITAL_FOREACH( sprokit::process::port_t const & port, ports )
   {
     sprokit::process::port_info_t info;
 
     try
     {
-      info = process->input_port_info(port);
+      info = process->input_port_info( port );
     }
-    catch (sprokit::no_such_port_exception const& e)
+    catch ( sprokit::no_such_port_exception const& e )
     {
-      TEST_ERROR("Failed to get a info for input port "
-                 << process->type() << "." << port << ": " << e.what());
+      TEST_ERROR( "Failed to get a info for input port "
+                  << process->type() << "." << port << ": " << e.what() );
     }
-    catch (std::exception const& e)
+    catch ( std::exception const& e )
     {
-      TEST_ERROR("Unexpected exception when querying for input port info "
-                 "(" << process->type() << "." << port << "): " << e.what());
+      TEST_ERROR( "Unexpected exception when querying for input port info "
+                  "(" << process->type() << "." << port << "): " << e.what() );
     }
 
     sprokit::process::port_flags_t const& flags = info->flags;
 
-    bool const is_const = (0 != flags.count(sprokit::process::flag_output_const));
+    bool const is_const = ( 0 != flags.count( sprokit::process::flag_output_const ) );
 
-    if (is_const)
+    if ( is_const )
     {
-      TEST_ERROR("Const flag on input port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "Const flag on input port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
-    bool const is_shared = (0 != flags.count(sprokit::process::flag_output_shared));
+    bool const is_shared = ( 0 != flags.count( sprokit::process::flag_output_shared ) );
 
-    if (is_shared)
+    if ( is_shared )
     {
-      TEST_ERROR("Shared flag on input port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "Shared flag on input port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
     sprokit::process::port_type_t const& type = info->type;
 
-    bool const is_data_dependent = (type == sprokit::process::type_data_dependent);
+    bool const is_data_dependent = ( type == sprokit::process::type_data_dependent );
 
-    if (is_data_dependent)
+    if ( is_data_dependent )
     {
-      TEST_ERROR("Data-dependent input port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "Data-dependent input port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
     sprokit::process::port_description_t const& description = info->description;
 
-    if (description.empty())
+    if ( description.empty() )
     {
-      TEST_ERROR("Description empty on input port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "Description empty on input port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge = boost::make_shared<sprokit::edge>(config);
+    sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
 
-    process->connect_input_port(port, edge);
+    process->connect_input_port( port, edge );
 
-    EXPECT_EXCEPTION(sprokit::port_reconnect_exception,
-                     process->connect_input_port(port, edge),
-                     "connecting to an input port a second time");
+    EXPECT_EXCEPTION( sprokit::port_reconnect_exception,
+                      process->connect_input_port( port, edge ),
+                      "connecting to an input port a second time" );
   }
-}
+} // test_process_input_ports
+
 
 void
-test_process_output_ports(sprokit::process_t const process)
+test_process_output_ports( sprokit::process_t const process )
 {
   static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   sprokit::process::ports_t const ports = process->output_ports();
 
-  VITAL_FOREACH (sprokit::process::port_t const& port, ports)
+  VITAL_FOREACH( sprokit::process::port_t const & port, ports )
   {
     sprokit::process::port_info_t info;
 
     try
     {
-      info = process->output_port_info(port);
+      info = process->output_port_info( port );
     }
-    catch (sprokit::no_such_port_exception const& e)
+    catch ( sprokit::no_such_port_exception const& e )
     {
-      TEST_ERROR("Failed to get a info for output port "
-                 << process->type() << "." << port << ": " << e.what());
+      TEST_ERROR( "Failed to get a info for output port "
+                  << process->type() << "." << port << ": " << e.what() );
     }
-    catch (std::exception const& e)
+    catch ( std::exception const& e )
     {
-      TEST_ERROR("Unexpected exception when querying for output port info "
-                 "(" << process->type() << "." << port << "): " << e.what());
+      TEST_ERROR( "Unexpected exception when querying for output port info "
+                  "(" << process->type() << "." << port << "): " << e.what() );
     }
 
     sprokit::process::port_flags_t const& flags = info->flags;
 
-    bool const is_mutable = (0 != flags.count(sprokit::process::flag_input_mutable));
+    bool const is_mutable = ( 0 != flags.count( sprokit::process::flag_input_mutable ) );
 
-    if (is_mutable)
+    if ( is_mutable )
     {
-      TEST_ERROR("Mutable flag on output port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "Mutable flag on output port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
-    bool const is_nodep = (0 != flags.count(sprokit::process::flag_input_nodep));
+    bool const is_nodep = ( 0 != flags.count( sprokit::process::flag_input_nodep ) );
 
-    if (is_nodep)
+    if ( is_nodep )
     {
-      TEST_ERROR("No dependency flag on output port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "No dependency flag on output port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
     sprokit::process::port_description_t const& description = info->description;
 
-    if (description.empty())
+    if ( description.empty() )
     {
-      TEST_ERROR("Description empty on output port "
-                 "(" << process->type() << "." << port << ")");
+      TEST_ERROR( "Description empty on output port "
+                  "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge1 = boost::make_shared<sprokit::edge>(config);
-    sprokit::edge_t edge2 = boost::make_shared<sprokit::edge>(config);
+    sprokit::edge_t edge1 = boost::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge2 = boost::make_shared< sprokit::edge > ( config );
 
-    process->connect_output_port(port, edge1);
-    process->connect_output_port(port, edge2);
+    process->connect_output_port( port, edge1 );
+    process->connect_output_port( port, edge2 );
   }
-}
+} // test_process_output_ports
+
 
 void
-test_process_invalid_configuration(sprokit::process_t const process)
+test_process_invalid_configuration( sprokit::process_t const process )
 {
-  kwiver::vital::config_block_key_t const non_existent_config = kwiver::vital::config_block_key_t("does_not_exist");
+  kwiver::vital::config_block_key_t const non_existent_config = kwiver::vital::config_block_key_t( "does_not_exist" );
 
-  EXPECT_EXCEPTION(sprokit::unknown_configuration_value_exception,
-                   process->config_info(non_existent_config),
-                   "requesting the information for a non-existent config");
+  EXPECT_EXCEPTION( sprokit::unknown_configuration_value_exception,
+                    process->config_info( non_existent_config ),
+                    "requesting the information for a non-existent config" );
 }
 
+
 void
-test_process_invalid_input_port(sprokit::process_t const process)
+test_process_invalid_input_port( sprokit::process_t const process )
 {
-  static sprokit::process::port_t const non_existent_port = sprokit::process::port_t("does_not_exist");
+  static sprokit::process::port_t const non_existent_port = sprokit::process::port_t( "does_not_exist" );
   static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
-                   process->input_port_info(non_existent_port),
-                   "requesting the info for a non-existent input port");
+  EXPECT_EXCEPTION( sprokit::no_such_port_exception,
+                    process->input_port_info( non_existent_port ),
+                    "requesting the info for a non-existent input port" );
 
-  sprokit::edge_t edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
 
-  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
-                   process->connect_input_port(non_existent_port, edge),
-                   "requesting a connection to a non-existent input port");
+  EXPECT_EXCEPTION( sprokit::no_such_port_exception,
+                    process->connect_input_port( non_existent_port, edge ),
+                    "requesting a connection to a non-existent input port" );
 }
 
+
 void
-test_process_invalid_output_port(sprokit::process_t const process)
+test_process_invalid_output_port( sprokit::process_t const process )
 {
-  static sprokit::process::port_t const non_existent_port = sprokit::process::port_t("does_not_exist");
+  static sprokit::process::port_t const non_existent_port = sprokit::process::port_t( "does_not_exist" );
   static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
   // Output ports.
-  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
-                   process->output_port_info(non_existent_port),
-                   "requesting the info for a non-existent output port");
+  EXPECT_EXCEPTION( sprokit::no_such_port_exception,
+                    process->output_port_info( non_existent_port ),
+                    "requesting the info for a non-existent output port" );
 
-  sprokit::edge_t edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
 
-  EXPECT_EXCEPTION(sprokit::no_such_port_exception,
-                   process->connect_output_port(non_existent_port, edge),
-                   "requesting a connection to a non-existent output port");
+  EXPECT_EXCEPTION( sprokit::no_such_port_exception,
+                    process->connect_output_port( non_existent_port, edge ),
+                    "requesting a connection to a non-existent output port" );
 }

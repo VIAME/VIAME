@@ -55,9 +55,6 @@ public:
   /// Default Constructor
   geo_map() {}
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "proj"; }
-
   // No configuration for this class yet
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }

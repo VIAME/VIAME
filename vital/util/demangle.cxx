@@ -55,7 +55,7 @@ std::string demangle( char const* sym )
 
 #if VITAL_USE_ABI_DEMANGLE
 
-  std::string tname;
+  std::string tname( sym );
   int status;
   char* demangled_name = abi::__cxa_demangle(sym, NULL, NULL, &status);
 

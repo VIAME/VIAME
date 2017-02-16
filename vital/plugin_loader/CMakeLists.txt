@@ -41,3 +41,9 @@ target_link_libraries(vital_vpm
   PRIVATE             vital_logger
                       kwiversys
   )
+
+###
+# Add tests if enbled
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()

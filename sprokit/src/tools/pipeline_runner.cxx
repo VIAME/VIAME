@@ -28,25 +28,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vital/config/config_block.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <vital/config/config_block.h>
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 #include <sprokit/pipeline/pipeline.h>
 
 #include <boost/program_options/variables_map.hpp>
 
 #include <iostream>
-
 #include <cstdlib>
 
-static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::config_block_key_t("_scheduler");
+static const auto scheduler_block = kwiver::vital::config_block_key_t("_scheduler");
 
 int
 sprokit_tool_main(int argc, char const* argv[])
@@ -60,7 +60,9 @@ sprokit_tool_main(int argc, char const* argv[])
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc, "");
 
-  sprokit::load_known_modules();
+    // Load all known modules
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
 
   sprokit::pipeline_builder const builder(vm, desc);
 
@@ -76,26 +78,24 @@ sprokit_tool_main(int argc, char const* argv[])
 
   pipe->setup_pipeline();
 
-  sprokit::scheduler_registry::type_t scheduler_type;
+  auto scheduler_type = sprokit::scheduler_factory::default_type;
 
   if (vm.count("scheduler"))
   {
-    scheduler_type = vm["scheduler"].as<sprokit::scheduler_registry::type_t>();
+    scheduler_type = vm["scheduler"].as<sprokit::scheduler::type_t>();
   }
   else
   {
     scheduler_type = conf->get_value(
         scheduler_block + kwiver::vital::config_block::block_sep + "type",  // key string
-        sprokit::scheduler_registry::default_type ); // default value
+        sprokit::scheduler_factory::default_type ); // default value
   }
 
   // Get scheduler sub block based on selected scheduler type
   kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
                                               kwiver::vital::config_block::block_sep + scheduler_type);
 
-  sprokit::scheduler_registry_t reg = sprokit::scheduler_registry::self();
-
-  sprokit::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipe, scheduler_config);
+  sprokit::scheduler_t scheduler = sprokit::create_scheduler(scheduler_type, pipe, scheduler_config);
 
   if (!scheduler)
   {
