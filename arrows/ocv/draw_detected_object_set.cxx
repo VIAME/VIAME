@@ -385,16 +385,23 @@ get_configuration() const
 
   config->set_value( "threshold", d->m_threshold, "min threshold for output (float). "
                      "Detections with confidence values below this value are not drawn." );
-  config->set_value( "alpha_blend_prob", d->m_do_alpha, "If true, those who are less likely will be more transparent." );
-  config->set_value( "default_line_thickness", d->m_default_params.thickness, "The default line thickness for a class, in pixels." );
-  config->set_value( "default_color", "0 0 255", "The default color for a class (RGB)." );
+  config->set_value( "alpha_blend_prob", d->m_do_alpha,
+                     "If true, those who are less likely will be more transparent." );
+  config->set_value( "default_line_thickness", d->m_default_params.thickness,
+                     "The default line thickness for a class, in pixels." );
+  config->set_value( "default_color", "0 0 255",
+                     "The default color for a class (RGB)." );
   config->set_value( "custom_class_color", "",
-                     "List of class/thickness/color seperated by semicolon. For example: person/3/255 0 0;car/2/0 255 0. "
+                     "List of class/thickness/color seperated by semicolon. "
+                     "For example: person/3/255 0 0;car/2/0 255 0. "
                      "Color is in RGB.");
 
-  config->set_value( "select_classes", "*ALL*", "List of classes to display, separated by a semicolon. For example: person;car;clam" );
-  config->set_value( "text_scale", d->m_text_scale, "Scaling for the text label. " );
-  config->set_value( "text_thickness", d->m_text_thickness, "Thickness for text" );
+  config->set_value( "select_classes", "*ALL*",
+                     "List of classes to display, separated by a semicolon. For example: person;car;clam" );
+  config->set_value( "text_scale", d->m_text_scale, "Scaling for the text label. "
+                     "Font scale factor that is multiplied by the font-specific base size." );
+  config->set_value( "text_thickness", d->m_text_thickness,
+                     "Thickness of the lines used to draw a text." );
 
   config->set_value( "clip_box_to_image", d->m_clip_box_to_image,
                      "If this option is set to true, the bounding box is clipped to the image bounds." );
@@ -429,6 +436,8 @@ bool
 draw_detected_object_set::
 check_configuration(vital::config_block_sptr config) const
 {
+  // This can be called before the config is "set". A more robust way
+  // of determining validity should be used.
   return d->m_config_error;
 }
 

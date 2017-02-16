@@ -56,8 +56,11 @@ public:
   /// Return the name of this algorithm.
   static std::string static_type_name() { return "draw_detected_object_set"; }
 
-  /// Draw detected object boxes om image.
+  /// Draw detected object boxes on Image.
   /**
+   * This method draws the detections on a copy of the image. The
+   * input image is unmodified. The actual boxes that are drawn are
+   * controlled by the configuration for the implementation.
    *
    * @param detected_set Set of detected objects
    * @param image Boxes are drawn in this image
