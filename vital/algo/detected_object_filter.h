@@ -35,6 +35,7 @@
 #ifndef VITAL_ALGO_DETECTED_OBJECT_FILTER_H_
 #define VITAL_ALGO_DETECTED_OBJECT_FILTER_H_
 
+#include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 #include <vital/types/detected_object_set.h>
@@ -53,8 +54,8 @@ namespace algo {
  * input set. It all depends on the actual implementation. In any
  * case, the input detection set shall be unmodified.
  */
-class VITAL_EXPORT detected_object_filter
-: public algorithm_def<detected_object_filter>
+class VITAL_ALGO_EXPORT detected_object_filter
+  : public algorithm_def<detected_object_filter>
 {
 public:
   /// Return the name of this algorithm
