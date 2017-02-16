@@ -88,18 +88,13 @@ set_source_files_properties(scheduler.cxx
   COMPILE_DEFINITIONS "${scheduler_build_options}")
 
 ###
-set(edge_build_options)
-
-set(SPROKIT_DEFAULT_EDGE_CAPACITY "10"
+set(SPROKIT_DEFAULT_EDGE_CAPACITY "40"
   CACHE STRING "The default capacity for pipeline edges" )
 mark_as_advanced( SPROKIT_DEFAULT_EDGE_CAPACITY )
 
-list(APPEND edge_build_options        "SPROKIT_DEFAULT_EDGE_CAPACITY=${SPROKIT_DEFAULT_EDGE_CAPACITY}" )
-
 set_source_files_properties(edge.cxx
   PROPERTIES
-  COMPILE_DEFINITIONS "${edge_build_options}")
-
+  COMPILE_DEFINITIONS "SPROKIT_DEFAULT_EDGE_CAPACITY=${SPROKIT_DEFAULT_EDGE_CAPACITY}" )
 
 sprokit_private_header_group(${pipeline_private_headers})
 
