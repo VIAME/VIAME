@@ -159,6 +159,11 @@ Sprokit
  * Removed process and cluster loaders. Updated process registry files
    to use the new process loader approach.
 
+ * Added CMake option to specify the default edge capacity at compile
+   time. The old default was for unlimited edge capacity which does
+   not work well for large data sets. The edge capacity can also be
+   set in the pipeline file, but this option provides a system wide
+   default.
 
 Vital Bindings
 
