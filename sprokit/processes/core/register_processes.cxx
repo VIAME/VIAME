@@ -181,11 +181,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        "Reads video files and produces sequential images with metadata per frame." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process(
-    "draw_detected_object_set",
-    "Draws border around detected objects in the set using the selected algorithm.",
-    sprokit::create_process< kwiver::draw_detected_object_set_process > );
-
+  fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_set_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_detected_object_set" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Draws border around detected objects in the set using the selected algorithm." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

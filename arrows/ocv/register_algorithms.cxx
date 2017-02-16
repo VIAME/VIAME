@@ -132,6 +132,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::draw_detected_object_set );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Draw bounding box around detected objects on supplied image." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
   // OCV Algorithm based class wrappers
   fact = vpm.ADD_ALGORITHM( "ocv_BRISK", kwiver::arrows::ocv::detect_features_BRISK );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
