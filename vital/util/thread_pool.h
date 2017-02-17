@@ -94,7 +94,7 @@ public:
   size_t num_threads() const;
 
   /// Return the name of the active backend
-  std::string const& active_backend() const;
+  const char* active_backend() const;
 
   /// Return the names of the available backends
   std::vector<std::string> available_backends() const;
@@ -128,7 +128,7 @@ public:
     virtual size_t num_threads() const = 0;
 
     /// Returns the name of this backend
-    virtual std::string const& name() const = 0;
+    virtual const char* name() const = 0;
 
     /// Enqueue a void() task
     virtual void enqueue_task(std::function<void()> func) = 0;

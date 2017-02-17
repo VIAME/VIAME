@@ -51,6 +51,8 @@ class thread_pool_gcd_backend
   : public thread_pool::backend
 {
 public:
+  /// The name of this backend
+  static constexpr const char* static_name = "Apple GCD";
 
   /// Enqueue a void() task
   void enqueue_task(std::function<void()> func)
@@ -75,15 +77,9 @@ public:
   }
 
   /// Returns the name of this backend
-  static std::string const& static_name()
+  virtual const char* name() const
   {
-    return "Apple GCD";
-  }
-
-  /// Returns the name of this backend
-  std::string const& name() const
-  {
-    return static_name();
+    return static_name;
   }
 
 };

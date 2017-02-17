@@ -47,6 +47,9 @@ class thread_pool_sync_backend
   : public thread_pool::backend
 {
 public:
+  /// The name of this backend
+  static constexpr const char* static_name = "Sync";
+
   /// Enqueue a void() task
   void enqueue_task(std::function<void()> func)
   {
@@ -60,15 +63,9 @@ public:
   }
 
   /// Returns the name of this backend
-  static std::string const& static_name()
+  virtual const char* name() const
   {
-    return "Sync";
-  }
-
-  /// Returns the name of this backend
-  std::string const& name() const
-  {
-    return static_name();
+    return static_name;
   }
 };
 

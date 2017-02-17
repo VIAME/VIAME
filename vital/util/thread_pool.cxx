@@ -61,10 +61,10 @@ public:
   {
     available_backends = {
 #if __APPLE__
-      thread_pool_gcd_backend::static_name(),
+      thread_pool_gcd_backend::static_name,
 #endif
-      thread_pool_builtin_backend::static_name(),
-      thread_pool_sync_backend::static_name()
+      thread_pool_builtin_backend::static_name,
+      thread_pool_sync_backend::static_name
     };
     backend.reset( new thread_pool_builtin_backend() );
   }
@@ -104,7 +104,7 @@ size_t thread_pool::num_threads() const
 
 
 /// Return the name of the active backend
-std::string const&
+const char*
 thread_pool::active_backend() const
 {
   return d_->backend->name();
@@ -123,7 +123,7 @@ thread_pool::available_backends() const
 void thread_pool::set_backend(std::string const& backend_name)
 {
 #define TRY_BACKEND(T)                  \
-  if(backend_name == T::static_name())  \
+  if(backend_name == T::static_name)    \
   {                                     \
     d_->backend.release();              \
     d_->backend.reset( new T() );       \

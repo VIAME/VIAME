@@ -84,6 +84,9 @@ public:
     }
   }
 
+  /// The name of this backend
+  static constexpr const char* static_name = "Built-in";
+
   /// This function is executed in each thread to endlessly process tasks
   void thread_worker_loop();
 
@@ -94,10 +97,7 @@ public:
   size_t num_threads() const { return workers.size(); }
 
   /// Returns the name of this backend
-  static std::string const& static_name() { return "Built-in"; }
-
-  /// Returns the name of this backend
-  virtual std::string const& name() const { return static_name(); }
+  virtual const char* name() const { return static_name; }
 
   /// The task queue
   std::queue< std::function<void()> > tasks;
