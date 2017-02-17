@@ -88,6 +88,7 @@ class SPROKIT_PIPELINE_EXPORT stamp
      * \returns True if \p st and \c *this have the same value, false otherwise.
      */
     bool operator == (stamp const& st) const;
+
     /**
      * \brief Compare two stamps for an order.
      *
@@ -96,6 +97,7 @@ class SPROKIT_PIPELINE_EXPORT stamp
      * \returns True if \p st has a higher value than \c *this, false otherwise.
      */
     bool operator <  (stamp const& st) const;
+
   private:
     typedef uint64_t index_t;
 
