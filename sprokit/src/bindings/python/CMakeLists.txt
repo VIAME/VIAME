@@ -1,11 +1,13 @@
+#
+#
+#
+
 project(sprokit_python)
 
-set(boost_python_library
-  python)
+set(boost_python_library     python)
 
 if (KWIVER_ENABLE_PYTHON3)
-  set(boost_python_library
-    python3)
+  set(boost_python_library    python3)
 endif ()
 
 string(TOUPPER ${boost_python_library} boost_python_library_upper)
@@ -22,6 +24,8 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 sprokit_use_python_fixes()
 
+###
+#
 function (_sprokit_add_python_library name modpath)
   _sprokit_create_safe_modpath(${modpath} safe_modpath)
 
@@ -31,6 +35,8 @@ function (_sprokit_add_python_library name modpath)
   sprokit_require_python_fixes(python-${safe_modpath}-${name})
 endfunction ()
 
+###
+#
 set(copyright_header
 "#ckwg +28
 # Copyright 2015 by Kitware, Inc.

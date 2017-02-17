@@ -33,7 +33,7 @@
 #include "pipeline_exception.h"
 #include "process_cluster_exception.h"
 #include "process_exception.h"
-#include "process_registry.h"
+#include "process_factory.h"
 
 #include <vital/logger/logger.h>
 #include <vital/vital_foreach.h>
@@ -54,6 +54,7 @@ namespace sprokit
 
 process::property_t const process_cluster::property_cluster = process::property_t("_cluster");
 
+// ==================================================================
 class process_cluster::priv
 {
   public:
@@ -76,6 +77,8 @@ class process_cluster::priv
     kwiver::vital::logger_handle_t m_logger;
 };
 
+
+// ==================================================================
 processes_t
 process_cluster
 ::processes() const
@@ -92,6 +95,8 @@ process_cluster
   return procs;
 }
 
+
+// ------------------------------------------------------------------
 process::connections_t
 process_cluster
 ::input_mappings() const
@@ -99,6 +104,8 @@ process_cluster
   return d->input_mappings;
 }
 
+
+// ------------------------------------------------------------------
 process::connections_t
 process_cluster
 ::output_mappings() const
@@ -106,6 +113,8 @@ process_cluster
   return d->output_mappings;
 }
 
+
+// ------------------------------------------------------------------
 process::connections_t
 process_cluster
 ::internal_connections() const
@@ -113,6 +122,8 @@ process_cluster
   return d->internal_connections;
 }
 
+
+// ------------------------------------------------------------------
 process_cluster
 ::process_cluster(kwiver::vital::config_block_sptr const& config)
   : process(config)
@@ -120,6 +131,8 @@ process_cluster
 {
 }
 
+
+// ------------------------------------------------------------------
 process_cluster
 ::~process_cluster()
 {
@@ -127,6 +140,8 @@ process_cluster
 
 static process::name_t convert_name(process::name_t const& cluster_name, process::name_t const& process_name);
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key)
@@ -142,6 +157,8 @@ process_cluster
   d->config_map[name_].push_back(mapping);
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& conf)
@@ -202,14 +219,15 @@ process_cluster
     new_conf->mark_read_only(key);
   }
 
-  process_registry_t const reg = process_registry::self();
   name_t const real_name = convert_name(name(), name_);
 
-  process_t const proc = reg->create_process(type_, real_name, new_conf);
+  process_t const proc = create_process(type_, real_name, new_conf);
 
   d->processes[name_] = proc;
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::map_input(port_t const& port, name_t const& name_, port_t const& mapped_port)
@@ -248,6 +266,8 @@ process_cluster
   d->input_mappings.push_back(connection);
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::map_output(port_t const& port, name_t const& name_, port_t const& mapped_port)
@@ -286,6 +306,8 @@ process_cluster
   d->output_mappings.push_back(connection);
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::connect(name_t const& upstream_name, port_t const& upstream_port,
@@ -319,24 +341,32 @@ process_cluster
   d->internal_connections.push_back(connection);
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::_configure()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::_init()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::_reset()
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::_step()
@@ -344,6 +374,8 @@ process_cluster
   throw process_exception();
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster
 ::_reconfigure(kwiver::vital::config_block_sptr const& conf)
@@ -387,6 +419,8 @@ process_cluster
   process::_reconfigure(conf);
 }
 
+
+// ------------------------------------------------------------------
 process::properties_t
 process_cluster
 ::_properties() const
@@ -398,6 +432,8 @@ process_cluster
   return base_properties;
 }
 
+
+// ==================================================================
 process_cluster::priv
 ::priv()
   : config_map()
@@ -409,11 +445,15 @@ process_cluster::priv
 {
 }
 
+
+// ------------------------------------------------------------------
 process_cluster::priv
 ::~priv()
 {
 }
 
+
+// ------------------------------------------------------------------
 bool
 process_cluster::priv
 ::has_name(name_t const& name) const
@@ -421,6 +461,8 @@ process_cluster::priv
   return (0 != processes.count(name));
 }
 
+
+// ------------------------------------------------------------------
 void
 process_cluster::priv
 ::ensure_name(name_t const& name) const
@@ -431,6 +473,8 @@ process_cluster::priv
   }
 }
 
+
+// ------------------------------------------------------------------
 process::name_t
 convert_name(process::name_t const& cluster_name, process::name_t const& process_name)
 {
@@ -441,4 +485,4 @@ convert_name(process::name_t const& cluster_name, process::name_t const& process
   return full_name;
 }
 
-}
+} // end namespace

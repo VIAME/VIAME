@@ -92,17 +92,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : solver_options(other),
-    camera_options(other),
-    verbose(other.verbose),
-    loss_function_type(other.loss_function_type),
-    loss_function_scale(other.loss_function_scale),
-    ceres_callback(),
-    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
-  {
-  }
-
   /// verbose output
   bool verbose;
   /// the robust loss function type to use
@@ -135,15 +124,6 @@ public:
 bundle_adjust
 ::bundle_adjust()
 : d_(new priv)
-{
-  d_->ceres_callback.bap = this;
-}
-
-
-/// Copy Constructor
-bundle_adjust
-::bundle_adjust(const bundle_adjust& other)
-: d_(new priv(*other.d_))
 {
   d_->ceres_callback.bap = this;
 }

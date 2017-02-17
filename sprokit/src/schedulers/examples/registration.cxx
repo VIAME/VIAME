@@ -28,35 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "thread_pool_scheduler.h"
-
-#include <sprokit/pipeline/scheduler_registry.h>
-#include <schedulers/examples/schedulers_examples_export.h>
-
 /**
  * \file examples/registration.cxx
  *
  * \brief Register schedulers for use.
  */
+
+#include "thread_pool_scheduler.h"
+
+#include <sprokit/pipeline/scheduler_factory.h>
+#include <schedulers/examples/schedulers_examples_export.h>
+
+
 extern "C"
-SCHEDULERS_EXAMPLES_EXPORT void register_schedulers();
-
-using namespace sprokit;
-
+SCHEDULERS_EXAMPLES_EXPORT
 void
-register_schedulers()
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static scheduler_registry::module_t const module_name = scheduler_registry::module_t("example_schedulers");
+  static auto const module_name = kwiver::vital::plugin_manager::module_t("example_schedulers");
 
-  scheduler_registry_t const registry = scheduler_registry::self();
-
-  if (registry->is_module_loaded(module_name))
+  if ( sprokit::is_scheduler_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  registry->register_scheduler("thread_pool", "Use a pool of threads to step processes",
-                               create_scheduler<thread_pool_scheduler>);
+  auto fact = vpm.ADD_SCHEDULER( sprokit::thread_pool_scheduler );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "thread_pool" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Use a pool of threads to step processes" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->mark_module_as_loaded(module_name);
+  sprokit::mark_scheduler_module_as_loaded( vpm, module_name );
 }

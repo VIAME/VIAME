@@ -24,12 +24,12 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 ###
 # make processes plugin
-kwiver_add_plugin( kwiver_adapter_processes
+kwiver_add_plugin( kwiver_processes_adapter
   SUBDIR          sprokit
   SOURCES         ${proc_sources}
                   ${private_headers}
   PRIVATE         sprokit_pipeline
-                  vital vital_logger vital_config
+                  vital vital_vpm vital_logger vital_config
 )
 
 ###
@@ -62,8 +62,8 @@ kwiver_add_library( kwiver_adapter
   )
 
 target_link_libraries( kwiver_adapter
+  PUBLIC           vital vital_vpm vital_logger
   PRIVATE          sprokit_pipeline sprokit_tools
-  PUBLIC           vital vital_logger
   )
 
 kwiver_install_headers( ${public_headers}

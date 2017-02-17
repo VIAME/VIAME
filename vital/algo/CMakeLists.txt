@@ -9,11 +9,13 @@
 set( public_headers
 
   algorithm.h
+  algorithm_factory.h
   analyze_tracks.h
   bundle_adjust.h
   close_loops.h
   compute_ref_homography.h
   convert_image.h
+  detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
   detect_features.h
@@ -43,11 +45,13 @@ set( public_headers
 set( sources
 
   algorithm.cxx
+  algorithm_factory.cxx
   analyze_tracks.cxx
   bundle_adjust.cxx
   close_loops.cxx
   compute_ref_homography.cxx
   convert_image.cxx
+  detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
   detect_features.cxx
@@ -98,4 +102,16 @@ target_link_libraries( vital_algo
   PUBLIC          vital
                   vital_config
                   vital_logger
+                  vital_vpm
   )
+
+###
+#     plugins for plugin explorer
+kwiver_add_plugin( algo_explorer_plugin
+  SUBDIR   modules/plugin_explorer
+  SOURCES  algo_explorer_plugin.cxx
+  PRIVATE  vital
+           vital_vpm
+           vital_config
+           vital_algo
+           explorer_plugin )

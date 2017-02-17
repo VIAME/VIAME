@@ -43,6 +43,7 @@ VITAL_UTIL_EXPORT std::string demangle( char const* name );
 VITAL_UTIL_EXPORT std::string demangle( std::string const& name );
 
 /**
+ * @brief Demangle type name from a specific type.
  *
  * Usage:
 \code
@@ -52,8 +53,8 @@ std::cout << type_name( foo_ptr ) << std::endl;
 \endcode
  */
 template <class T>
-std::string type_name(const T& t) {
-
+std::string type_name(const T& t)
+{
     return demangle( typeid(t).name() );
 }
 

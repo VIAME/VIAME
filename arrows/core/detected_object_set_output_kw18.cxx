@@ -29,6 +29,7 @@
  */
 
 #include "detected_object_set_output_kw18.h"
+#include <vital/vital_foreach.h>
 
 #include <time.h>
 
@@ -80,12 +81,6 @@ detected_object_set_output_kw18()
 {
 }
 
-
-detected_object_set_output_kw18::
-detected_object_set_output_kw18( detected_object_set_output_kw18 const& other)
-  : d(new priv(*other.d))
-{
-}
 
 detected_object_set_output_kw18::
 ~detected_object_set_output_kw18()

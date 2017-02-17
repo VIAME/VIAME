@@ -47,7 +47,7 @@
 #     variable).
 
 if ( NOT TARGET python)
-add_custom_target(python)
+  add_custom_target(python)
 endif()
 
 source_group("Python Files"  REGULAR_EXPRESSION ".*\\.py\\.in$")

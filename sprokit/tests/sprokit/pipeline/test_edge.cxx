@@ -31,11 +31,12 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/edge_exception.h>
-#include <sprokit/pipeline/modules.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/stamp.h>
 
 #include <boost/chrono/chrono_io.hpp>
@@ -377,12 +378,11 @@ IMPLEMENT_TEST(null_downstream_process)
 
 IMPLEMENT_TEST(set_upstream_process)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
   sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  sprokit::process_t const process = reg->create_process(proc_type, sprokit::process::name_t());
+  sprokit::process_t const process = sprokit::create_process(proc_type, sprokit::process::name_t());
 
   sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
 
@@ -395,12 +395,11 @@ IMPLEMENT_TEST(set_upstream_process)
 
 IMPLEMENT_TEST(set_downstream_process)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
   sprokit::process::type_t const proc_type = sprokit::process::type_t("numbers");
 
-  sprokit::process_t const process = reg->create_process(proc_type, sprokit::process::name_t());
+  sprokit::process_t const process = sprokit::create_process(proc_type, sprokit::process::name_t());
 
   sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
 

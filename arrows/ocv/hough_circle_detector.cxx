@@ -84,12 +84,6 @@ hough_circle_detector()
 { }
 
 
-hough_circle_detector::
-hough_circle_detector( const hough_circle_detector& other)
-  : d( new priv( *other.d ) )
-{ }
-
-
  hough_circle_detector::
 ~hough_circle_detector()
 { }
@@ -184,7 +178,7 @@ detect( vital::image_container_sptr image_data) const
                     d->m_min_radius, // i: min radius
                     d->m_max_radius ); // i: max radius
 
-  LOG_DEBUG( m_logger, "Detected " << circles.size() << " objects." );
+  LOG_DEBUG( logger(), "Detected " << circles.size() << " objects." );
 
   // process results
   for ( size_t i = 0; i < circles.size(); ++i )

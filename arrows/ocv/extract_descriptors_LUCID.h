@@ -58,17 +58,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_LUCID
 public:
   /// Constructor
   extract_descriptors_LUCID();
-  /// Copy Constructor
-  extract_descriptors_LUCID( extract_descriptors_LUCID const &other );
+
   /// Destructor
   virtual ~extract_descriptors_LUCID();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_LUCID"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature-point descriptor extraction via the LUCID algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

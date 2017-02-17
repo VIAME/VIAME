@@ -2,7 +2,7 @@ project(arrows_test_ocv)
 
 include(kwiver-test-setup)
 
-set(test_libraries      vital vital_apm kwiver_algo_ocv )
+set(test_libraries      vital vital_vpm kwiver_algo_ocv )
 
 ##############################
 # Algorithms OpenCV tests

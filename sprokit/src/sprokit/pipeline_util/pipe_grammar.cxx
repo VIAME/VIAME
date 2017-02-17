@@ -114,7 +114,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
   sprokit::cluster_pipe_block,
   (sprokit::process::type_t, type)
-  (sprokit::process_registry::description_t, description)
+  (sprokit::process::description_t, description)
   (sprokit::cluster_subblocks_t, subblocks)
 )
 

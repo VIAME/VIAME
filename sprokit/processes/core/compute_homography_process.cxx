@@ -30,7 +30,6 @@
 
 #include "compute_homography_process.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
@@ -76,7 +75,7 @@ compute_homography_process
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
+
   make_ports();
   make_config();
 }

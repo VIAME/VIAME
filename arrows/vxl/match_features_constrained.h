@@ -72,12 +72,6 @@ public:
   /// Destructor
   virtual ~match_features_constrained();
 
-  /// Copy Constructor
-  match_features_constrained(const match_features_constrained& other);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "vxl_constrained"; }
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block

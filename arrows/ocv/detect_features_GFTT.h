@@ -58,18 +58,8 @@ public:
   /// Constructor
   detect_features_GFTT();
 
-  /// Copy constructor
-  detect_features_GFTT(const detect_features_GFTT &other);
-
   /// Destructor
   virtual ~detect_features_GFTT();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_GFTT"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature detection via the GFTT algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

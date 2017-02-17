@@ -1,5 +1,5 @@
 #ckwg +28
-# Copyright 2012 by Kitware, Inc.
+# Copyright 2012-2016 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,13 @@ from sprokit.schedulers.examples import pythread_per_process_scheduler
 
 
 def __sprokit_register__():
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import scheduler_factory
 
     module_name = 'python:schedulers.examples'
 
-    reg = scheduler_registry.SchedulerRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if reg.is_scheduler_module_loaded(module_name):
         return
 
-    reg.register_scheduler('pythread_per_process', 'Run each process in its own Python thread', pythread_per_process_scheduler.PyThreadPerProcessScheduler)
+    register_scheduler('pythread_per_process', 'Run each process in its own Python thread', pythread_per_process_scheduler.PyThreadPerProcessScheduler)
 
-    reg.mark_module_as_loaded(module_name)
+    mark_scheduler_module_as_loaded(module_name)

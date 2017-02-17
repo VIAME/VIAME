@@ -58,18 +58,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_ORB
 public:
   /// Constructor
   detect_features_ORB();
-  /// Copy Constructor
-  detect_features_ORB(detect_features_ORB const &other);
+
   /// Destructor
   virtual ~detect_features_ORB();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_ORB"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV ORB feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -92,18 +83,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_ORB
 public:
   /// Constructor
   extract_descriptors_ORB();
-  /// Copy Constructor
-  extract_descriptors_ORB(extract_descriptors_ORB const &other);
+
   /// Destructor
   virtual ~extract_descriptors_ORB();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_ORB"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV ORB feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

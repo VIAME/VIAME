@@ -33,14 +33,13 @@
  * \brief OpenCV algorithm registration implementation
  */
 
-#include "register_algorithms.h"
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#include <vital/algo/algorithm_factory.h>
 
 #include <opencv2/opencv_modules.hpp>
 #ifdef HAVE_OPENCV_NONFREE
 #include <opencv2/nonfree/nonfree.hpp>
 #endif
-
-#include <arrows/algorithm_plugin_interface_macros.h>
 
 #include <arrows/ocv/analyze_tracks.h>
 #include <arrows/ocv/detect_features_AGAST.h>
@@ -71,84 +70,288 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// Register OCV algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+extern "C"
+KWIVER_ALGO_OCV_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
+  static auto const module_name = std::string( "arrows.ocv" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
+
 #if defined(HAVE_OPENCV_NONFREE)
   cv::initModule_nonfree();
 #endif
 
-  REGISTRATION_INIT( reg );
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::analyze_tracks );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Use OpenCV to analyze statistics of feature tracks." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTER_TYPE( ocv::analyze_tracks );
-  REGISTER_TYPE( ocv::draw_tracks );
-  REGISTER_TYPE( ocv::estimate_fundamental_matrix );
-  REGISTER_TYPE( ocv::estimate_homography );
-  REGISTER_TYPE( ocv::image_io );
+
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::draw_tracks );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Use OpenCV to draw tracked features on the images." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::estimate_fundamental_matrix );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Use OpenCV to estimate a fundimental matrix from feature matches." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::estimate_homography );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Use OpenCV to estimate a homography from feature matches." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::image_io );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Read and write image using OpenCV." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
 
   // OCV Algorithm based class wrappers
-  REGISTER_TYPE( ocv::detect_features_BRISK );
-  REGISTER_TYPE( ocv::detect_features_FAST );
-  REGISTER_TYPE( ocv::detect_features_GFTT );
-  REGISTER_TYPE( ocv::detect_features_MSER );
-  REGISTER_TYPE( ocv::detect_features_ORB );
-  REGISTER_TYPE( ocv::detect_features_simple_blob );
+  fact = vpm.ADD_ALGORITHM( "ocv_BRISK", kwiver::arrows::ocv::detect_features_BRISK );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the BRISK algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTER_TYPE( ocv::extract_descriptors_BRISK );
-  REGISTER_TYPE( ocv::extract_descriptors_ORB );
 
-  REGISTER_TYPE( ocv::match_features_bruteforce );
-  REGISTER_TYPE( ocv::match_features_flannbased );
+  fact = vpm.ADD_ALGORITHM( "ocv_FAST", kwiver::arrows::ocv::detect_features_FAST );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the FAST algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTER_TYPE( ocv::hough_circle_detector );
+
+  fact = vpm.ADD_ALGORITHM( "ocv_GFTT", kwiver::arrows::ocv::detect_features_GFTT );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the GFTT algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_MSER", kwiver::arrows::ocv::detect_features_MSER );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the MSER algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_ORB", kwiver::arrows::ocv::detect_features_ORB );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the ORB algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_simple_blob", kwiver::arrows::ocv::detect_features_simple_blob );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the simple_blob algorithm." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_BRISK", kwiver::arrows::ocv::extract_descriptors_BRISK );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the BRISK algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_ORB", kwiver::arrows::ocv::extract_descriptors_ORB );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the ORB algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_brute_force", kwiver::arrows::ocv::match_features_bruteforce );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "OpenCV feature matcher using brute force matching (exhaustive search)." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_flann_based", kwiver::arrows::ocv::match_features_flannbased );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature matcher using FLANN (Approximate Nearest Neighbors).")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "hough_circle_detector", kwiver::arrows::ocv::hough_circle_detector );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
 
   // Conditional algorithms
   // Source ``KWIVER_OCV_HAS_*`` symbol definitions can be found in the header
   //  files of the algorithms referred to.
 #ifdef KWIVER_OCV_HAS_AGAST
-  REGISTER_TYPE( ocv::detect_features_AGAST );
+  fact = vpm.ADD_ALGORITHM( "ocv_AGAST", kwiver::arrows::ocv::detect_features_AGAST );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the AGAST algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_BRIEF
-  REGISTER_TYPE( ocv::extract_descriptors_BRIEF );
+  fact = vpm.ADD_ALGORITHM( "ocv_BRIEF", kwiver::arrows::ocv::extract_descriptors_BRIEF );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the BRIEF algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_DAISY
-  REGISTER_TYPE( ocv::extract_descriptors_DAISY );
+  fact = vpm.ADD_ALGORITHM( "ocv_DAISY", kwiver::arrows::ocv::extract_descriptors_DAISY );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the DAISY algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_FREAK
-  REGISTER_TYPE( ocv::extract_descriptors_FREAK );
+  fact = vpm.ADD_ALGORITHM( "ocv_FREAK", kwiver::arrows::ocv::extract_descriptors_FREAK );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the FREAK algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_LATCH
-  REGISTER_TYPE( ocv::extract_descriptors_LATCH );
+  fact = vpm.ADD_ALGORITHM( "ocv_LATCH", kwiver::arrows::ocv::extract_descriptors_LATCH );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the LATCH algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_LUCID
-  REGISTER_TYPE( ocv::extract_descriptors_LUCID );
+  fact = vpm.ADD_ALGORITHM( "ocv_LUCID", kwiver::arrows::ocv::extract_descriptors_LUCID);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the LUCID algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_MSD
-  REGISTER_TYPE( ocv::detect_features_MSD );
+  fact = vpm.ADD_ALGORITHM( "ocv_MSD", kwiver::arrows::ocv::detect_features_MSD );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the MSD algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_SIFT
-  REGISTER_TYPE( ocv::detect_features_SIFT );
-  REGISTER_TYPE( ocv::extract_descriptors_SIFT );
+  fact = vpm.ADD_ALGORITHM( "ocv_SIFT", kwiver::arrows::ocv::detect_features_SIFT );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the SIFT algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "ocv_SIFT", kwiver::arrows::ocv::extract_descriptors_SIFT );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the SIFT algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_STAR
-  REGISTER_TYPE( ocv::detect_features_STAR );
+  fact = vpm.ADD_ALGORITHM( "ocv_STAR", kwiver::arrows::ocv::detect_features_STAR );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the STAR algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
 #ifdef KWIVER_OCV_HAS_SURF
-  REGISTER_TYPE( ocv::detect_features_SURF );
-  REGISTER_TYPE( ocv::extract_descriptors_SURF );
+  fact = vpm.ADD_ALGORITHM( "ocv_SURF", kwiver::arrows::ocv::detect_features_SURF );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature detection via the SURF algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "ocv_SURF", kwiver::arrows::ocv::extract_descriptors_SURF );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "OpenCV feature-point descriptor extraction via the SURF algorithm" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 #endif
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace ocv

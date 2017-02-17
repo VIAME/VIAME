@@ -4,18 +4,17 @@ set(pipeline_srcs
   datum.cxx
   edge.cxx
   edge_exception.cxx
-  modules.cxx
   pipeline.cxx
   pipeline_exception.cxx
   process.cxx
+  process_factory.cxx
   process_exception.cxx
   process_cluster.cxx
   process_cluster_exception.cxx
-  process_registry.cxx
   process_registry_exception.cxx
   scheduler.cxx
+  scheduler_factory.cxx
   scheduler_exception.cxx
-  scheduler_registry.cxx
   scheduler_registry_exception.cxx
   stamp.cxx
   types.cxx
@@ -26,19 +25,18 @@ set(pipeline_headers
   datum.h
   edge.h
   edge_exception.h
-  modules.h
   pipeline-config.h
   pipeline.h
   pipeline_exception.h
   process.h
+  process_factory.h
   process_exception.h
   process_cluster.h
   process_cluster_exception.h
-  process_registry.h
   process_registry_exception.h
   scheduler.h
+  scheduler_factory.h
   scheduler_exception.h
-  scheduler_registry.h
   scheduler_registry_exception.h
   stamp.h
   types.h
@@ -47,74 +45,26 @@ set(pipeline_headers
 
 set(pipeline_private_headers)
 
-if (WIN32)
-  set(libdir bin)
-  set(destdir bin)
-else ()
-  set(libdir lib${LIB_SUFFIX})
-  set(destdir lib)
-endif ()
+## set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/sprokit" )
+## set( sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} sprokit )
+set( sprokit_default_module_paths ${kwiver_module_path_result} )
 
-set(sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}/${libdir}/sprokit")
-set(module_output_path            "${sprokit_output_dir}/${destdir}/sprokit")
-
-if (WIN32)
-  set(path_sep ";")
-else ()
-  set(path_sep ":")
-endif ()
 
 if (KWIVER_USE_BUILD_TREE)
-  set(sprokit_default_module_paths "${sprokit_default_module_paths}${path_sep}${module_output_path}")
-endif ()
-
-set(path_prefix)
-
-if (WIN32)
-  set(path_prefix "L")
+  kwiver_make_module_path( ${sprokit_output_dir} sprokit )
+  list( INSERT sprokit_default_module_paths 0 "${kwiver_module_path_result}" )
 endif ()
 
 set(SPROKIT_DEFAULT_MODULE_PATHS "${sprokit_default_module_paths}"
   CACHE STRING "The default paths to search for modules in" FORCE)
-set(sprokit_library_options
-  "DEFAULT_MODULE_PATHS=${path_prefix}\"${SPROKIT_DEFAULT_MODULE_PATHS}\"")
 
-set(module_build_options
-  "LIBRARY_SUFFIX=\"${CMAKE_SHARED_MODULE_SUFFIX}\"")
+# add all paths to the property
+foreach( p IN LISTS   SPROKIT_DEFAULT_MODULE_PATHS )
+  kwiver_add_module_path( ${p} )
+endforeach(p)
 
-if (WIN32)
-  sprokit_configure_file(module-paths.h
-    "${CMAKE_CURRENT_SOURCE_DIR}/module-paths.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/module-paths.h"
-    SPROKIT_DEFAULT_MODULE_PATHS
-    path_prefix)
-
-  list(APPEND pipeline_private_headers
-    module-paths.h.in)
-else ()
-  list(APPEND module_build_options
-    ${sprokit_library_options})
-endif ()
-
-set(default OFF)
-
-if (CMAKE_CONFIGURATION_TYPES)
-  set(default ON)
-endif ()
-
-##? should this be KWIVER
-option(SPROKIT_USE_CONFIGURATION_SUBDIRECTORY
-  "Whether to look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
-
-if (SPROKIT_USE_CONFIGURATION_SUBDIRECTORY)
-  list(APPEND module_build_options
-    USE_CONFIGURATION_SUBDIRECTORY)
-endif ()
-
-set_source_files_properties(modules.cxx
-  PROPERTIES
-    COMPILE_DEFINITIONS "${module_build_options}")
-
+##
 set(utils_build_options)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/thread_naming.cmake")
@@ -138,10 +88,6 @@ set_source_files_properties(scheduler.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${scheduler_build_options}")
 
-# XXX: The core library must be build shared because the plugins will otherwise
-# each have their own instance of the registries and then nothing else can get
-# access to the loaded processes. Splitting out the registries into a separate
-# library might be something for the future.
 sprokit_private_header_group(${pipeline_private_headers})
 
 sprokit_add_library(sprokit_pipeline SHARED
@@ -152,13 +98,15 @@ sprokit_add_library(sprokit_pipeline SHARED
 target_link_libraries(sprokit_pipeline
   PUBLIC              vital_config
                       vital_logger
-                    ${Boost_CHRONO_LIBRARY}
-                    ${Boost_SYSTEM_LIBRARY}
-  PRIVATE           ${Boost_DATE_TIME_LIBRARY}
-                    ${Boost_FILESYSTEM_LIBRARY}
-                    ${Boost_THREAD_LIBRARY}
-                    ${CMAKE_DL_LIBS}
-                    ${CMAKE_THREAD_LIBS_INIT})
+                      ${Boost_CHRONO_LIBRARY}
+                      ${Boost_SYSTEM_LIBRARY}
+  PRIVATE             ${Boost_FILESYSTEM_LIBRARY}
+                      ${Boost_DATE_TIME_LIBRARY}
+                      ${Boost_THREAD_LIBRARY}
+                      ${CMAKE_DL_LIBS}
+                      ${CMAKE_THREAD_LIBS_INIT}
+                      vital_vpm kwiversys
+  )
 
 set_target_properties(sprokit_pipeline
   PROPERTIES
@@ -172,9 +120,8 @@ endif()
 
 add_dependencies(sprokit_pipeline     configure-version.h)
 
-if (WIN32)
-  add_dependencies(sprokit_pipeline   configure-module-paths.h)
-endif ()
+##++ need a differente way of exporting paths to loadable modules
+# e.g. always in the same location, determined at a higher level.
 
 sprokit_install_headers(sprokit/pipeline ${pipeline_headers})
 

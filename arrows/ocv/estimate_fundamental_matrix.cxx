@@ -57,12 +57,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-    : confidence_threshold(other.confidence_threshold),
-      m_logger( vital::get_logger( "arrows.ocv.estimate_fundamental_matrix" ))
-  {
-  }
-
   double confidence_threshold;
 
   /// Logger handle
@@ -74,14 +68,6 @@ public:
 estimate_fundamental_matrix
 ::estimate_fundamental_matrix()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-estimate_fundamental_matrix
-::estimate_fundamental_matrix(const estimate_fundamental_matrix& other)
-: d_(new priv(*other.d_))
 {
 }
 

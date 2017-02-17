@@ -35,7 +35,6 @@
 
 #include "detected_object_output_process.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
 #include <vital/algo/detected_object_set_output.h>
@@ -77,7 +76,7 @@ detected_object_output_process
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) );
-  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
+
   make_ports();
   make_config();
 }

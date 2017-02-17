@@ -76,19 +76,6 @@ close_loops_multi_method
 }
 
 
-close_loops_multi_method
-::close_loops_multi_method(const close_loops_multi_method& other)
-: count_( other.count_ ),
-  methods_( other.methods_.size() )
-{
-  for( unsigned int i=0; i< other.methods_.size(); ++i )
-  {
-    methods_[i] = !other.methods_[i] ? algo::close_loops_sptr()
-                                     : other.methods_[i]->clone();
-  }
-}
-
-
 /// Returns implementation description string
 std::string
 close_loops_multi_method

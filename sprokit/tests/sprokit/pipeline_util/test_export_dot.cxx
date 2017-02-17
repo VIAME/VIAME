@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,11 +36,10 @@
 #include <sprokit/pipeline_util/pipe_bakery.h>
 
 #include <vital/config/config_block.h>
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/pipeline_exception.h>
 
 #include <boost/make_shared.hpp>
@@ -66,6 +65,8 @@ main(int argc, char* argv[])
   RUN_TEST(testname, pipe_file);
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(pipeline_null)
 {
   (void)pipe_file;
@@ -79,16 +80,16 @@ IMPLEMENT_TEST(pipeline_null)
                    "exporting a NULL pipeline to dot");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(pipeline_empty_name)
 {
   (void)pipe_file;
 
-  sprokit::load_known_modules();
-
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::process::type_t const type = sprokit::process::type_t("orphan");
-  sprokit::process_t const proc = reg->create_process(type, sprokit::process::name_t());
+  sprokit::process_t const proc = sprokit::create_process(type, sprokit::process::name_t());
 
   sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
@@ -101,9 +102,11 @@ IMPLEMENT_TEST(pipeline_empty_name)
                    "exporting a pipeline with an empty name to dot");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(simple_pipeline)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
@@ -112,9 +115,11 @@ IMPLEMENT_TEST(simple_pipeline)
   sprokit::export_dot(sstr, pipeline, "(unnamed)");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(simple_pipeline_setup)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
@@ -123,9 +128,11 @@ IMPLEMENT_TEST(simple_pipeline_setup)
   sprokit::export_dot(sstr, pipeline, "(unnamed)");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(simple_pipeline_cluster)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
 
@@ -134,6 +141,8 @@ IMPLEMENT_TEST(simple_pipeline_cluster)
   sprokit::export_dot(sstr, pipeline, "(unnamed)");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_null)
 {
   (void)pipe_file;
@@ -147,12 +156,14 @@ IMPLEMENT_TEST(cluster_null)
                    "exporting a NULL cluster to dot");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_empty_name)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
-  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
+  const auto conf = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const proc = info->ctor(conf);
   sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
@@ -164,12 +175,14 @@ IMPLEMENT_TEST(cluster_empty_name)
                    "exporting a cluster with an empty name to dot");
 }
 
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_multiplier)
 {
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
-  kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
+  const auto conf = kwiver::vital::config_block::empty_config();
   sprokit::process::name_t const name = sprokit::process::name_t("name");
 
   conf->set_value(sprokit::process::config_name, name);

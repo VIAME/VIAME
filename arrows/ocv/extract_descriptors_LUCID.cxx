@@ -55,12 +55,6 @@ public:
   {
   }
 
-  priv( priv const &other )
-    : lucid_kernel( other.lucid_kernel )
-    , blur_kernel( other.blur_kernel )
-  {
-  }
-
   cv::Ptr<cv::xfeatures2d::LUCID> create() const
   {
     return cv::xfeatures2d::LUCID::create( lucid_kernel, blur_kernel );
@@ -91,15 +85,6 @@ public:
 extract_descriptors_LUCID
 ::extract_descriptors_LUCID()
   : p_( new priv )
-{
-  attach_logger( "arrows.ocv.LUCID" );
-  extractor = p_->create();
-}
-
-
-extract_descriptors_LUCID
-::extract_descriptors_LUCID(extract_descriptors_LUCID const &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger( "arrows.ocv.LUCID" );
   extractor = p_->create();

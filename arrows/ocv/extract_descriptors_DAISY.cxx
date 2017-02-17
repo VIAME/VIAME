@@ -89,17 +89,6 @@ public:
   {
   }
 
-  priv( priv const &other )
-    : radius( other.radius )
-    , q_radius( other.q_radius )
-    , q_theta( other.q_theta )
-    , q_hist( other.q_hist )
-    , norm( other.norm )
-    , interpolation( other.interpolation )
-    , use_orientation( other.use_orientation )
-  {
-  }
-
   cv::Ptr<cv::xfeatures2d::DAISY> create() const
   {
     // TODO: Allow custom homography matrix?
@@ -174,15 +163,6 @@ extract_descriptors_DAISY
 
 
 extract_descriptors_DAISY
-::extract_descriptors_DAISY(extract_descriptors_DAISY const &other)
-  : p_( new priv( *other.p_ ) )
-{
-  attach_logger( "arrows.ocv.DAISY" );
-  extractor = p_->create();
-}
-
-
-extract_descriptors_DAISY
 ::~extract_descriptors_DAISY()
 {
 }
@@ -213,7 +193,7 @@ extract_descriptors_DAISY
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_config( c, m_logger );
+  return p_->check_config( c, logger() );
 }
 
 

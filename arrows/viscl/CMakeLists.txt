@@ -12,7 +12,6 @@ set( viscl_headers_public
   image_container.h
   match_features.h
   match_set.h
-  register_algorithms.h
   utils.h
   )
 kwiver_install_headers(
@@ -34,7 +33,6 @@ set( viscl_sources
   image_container.cxx
   match_features.cxx
   match_set.cxx
-  register_algorithms.cxx
   utils.cxx
   )
 
@@ -49,7 +47,7 @@ target_link_libraries( kwiver_algo_viscl
   )
 
 algorithms_create_plugin( kwiver_algo_viscl
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

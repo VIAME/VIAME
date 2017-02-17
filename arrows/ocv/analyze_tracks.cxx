@@ -62,12 +62,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv(const priv& other)
-  {
-    *this = other;
-  }
-
   /// Destructor
   ~priv()
   {
@@ -84,14 +78,6 @@ public:
 analyze_tracks
 ::analyze_tracks()
 : d_(new priv)
-{
-}
-
-
-/// Copy constructor
-analyze_tracks
-::analyze_tracks(const analyze_tracks& other)
-: d_(new priv(*other.d_))
 {
 }
 

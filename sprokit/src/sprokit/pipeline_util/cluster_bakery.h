@@ -80,7 +80,7 @@ public:
   typedef boost::optional< cluster_component_info_t > opt_cluster_component_info_t;
 
   process::type_t m_type;
-  process_registry::description_t m_description;
+  process::description_t m_description;
   opt_cluster_component_info_t m_cluster;
 };
 

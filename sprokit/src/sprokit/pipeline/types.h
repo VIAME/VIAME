@@ -52,17 +52,10 @@ namespace sprokit
 
 /**
  * \defgroup base_classes Base classes for the pipeline.
- * \defgroup registries Registries of different types of pipeline objects.
  * \defgroup exceptions Exceptions thrown within the pipeline.
  */
-//class config_block;
-
-/// Shared pointer for the \c config_block class
-//typedef boost::shared_ptr< config_block > config_T;
-
-
-class config;
-//typedef boost::shared_ptr<config> config_t;
+/// The type of a module name.
+typedef std::string module_t;
 
 class datum;
 /// A typedef used to handle \link datum edge data\endlink.
@@ -84,17 +77,9 @@ class process_cluster;
 /// A typedef used to handle \link process_cluster process clusters\endlink.
 typedef boost::shared_ptr<process_cluster> process_cluster_t;
 
-class process_registry;
-/// A typedef used to handle \link process_registry process registries\endlink.
-typedef boost::shared_ptr<process_registry> process_registry_t;
-
 class scheduler;
 /// A typedef used to handle \link scheduler schedulers\endlink.
 typedef boost::shared_ptr<scheduler> scheduler_t;
-
-class scheduler_registry;
-/// A typedef used to handle \link scheduler_registry scheduler registries\endlink.
-typedef boost::shared_ptr<scheduler_registry> scheduler_registry_t;
 
 class stamp;
 /// A typedef used to handle \link stamp stamps\endlink.

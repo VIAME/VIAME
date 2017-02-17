@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,87 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "explorer_plugin.h"
+#include "explorer_context_priv.h"
+
+#include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
+
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/config/config_block.h>
 #include <vital/util/demangle.h>
+#include <vital/util/wrap_text_block.h>
 #include <vital/vital_foreach.h>
-#include <kwiversys/CommandLineArguments.hxx>
+#include <vital/logger/logger.h>
+#include <vital/algo/algorithm_factory.h>
+
 #include <kwiversys/RegularExpression.hxx>
+#include <kwiversys/SystemTools.hxx>
 
 #include <iostream>
 #include <vector>
 #include <string>
-
-// Global options
-bool opt_config( false );
-bool opt_detail( false );
-bool opt_help( false );
-bool opt_path_list( false );
-bool opt_brief( false );
-bool opt_modules( false );
-bool opt_files( false );
-std::vector< std::string > opt_path;
-std::string opt_fact_regex;
+#include <sstream>
+#include <iterator>
+#include <memory>
+#include <map>
 
 
-bool opt_fact_filt( false ); // internal option for factory filtering
-kwiversys::RegularExpression fact_regex;
+/*
+TODO
+
+- expand help text to be more like a man page.
+- handle processopedia and algo_explorer personalities.
+- add --process flag to list only processes -or- --process name
+ */
+
+typedef kwiversys::SystemTools ST;
+
+// -----------------------------------------------------------------
+/**
+ *
+ *
+ */
+class local_manager
+  : public kwiver::vital::plugin_manager
+{
+public:
+  local_manager() { }
+
+  kwiver::vital::plugin_loader* loader() { return get_loader(); }
+
+}; // end class local_manager
+
+// -- forward definitions --
+static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
+
+//==================================================================
+// Define global program data
+static kwiver::vital::explorer_context::priv G_context;
+static kwiver::vital::explorer_context* G_explorer_context;
+
+static kwiver::vital::logger_handle_t G_logger;
+
+static kwiversys::RegularExpression filter_regex;
+static kwiversys::RegularExpression fact_regex;
+
+// This program can have different personalities depending on the name
+// of the executable.  This is to emulate the useful behaviour of
+// older dedicated programs.
+enum { prog_default, prog_processopedia, prog_alog_explorer };
+static int program_personality( prog_default );
+
+static std::map< const std::string, kwiver::vital::category_explorer *> category_map;
+
+// ==================================================================
+
+static std::string const hidden_prefix = "_";
+
+// Accessor for output stream.
+inline std::ostream& pe_out()
+{
+  return *G_context.m_out_stream;
+}
 
 
 // ------------------------------------------------------------------
@@ -75,6 +130,7 @@ struct print_functor
          && ( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION != key )
          && ( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME != key )
          && ( kwiver::vital::plugin_factory::PLUGIN_VERSION != key )
+         && ( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME != key )
       )
     {
       std::string value(val);
@@ -89,29 +145,201 @@ struct print_functor
     }
   }
 
+  // instance data
   std::ostream& m_str;
 };
 
 
 // ------------------------------------------------------------------
-void
-print_help()
+std::string
+join( const std::vector< std::string >& vec, const char* delim )
 {
-  std::cout << "This program loads vital plugins and displays their data.\n"
-            << "Additional paths can be specified in \"KWIVER_PLUGIN_PATH\" environment variable\n"
-            << "\n"
-            << "Options are:\n"
-            << "  --help           displays usage information\n"
-            << "  --path           display plugin search path\n"
-            << "  -Iname           also load plugins from this directory (can appear multiple times)\n"
-            << "  --detail  -d     generate detailed listing\n"
-            << "  --fact  regex    display factories that match regexp\n"
-            << "  --brief          display factory name and description only\n"
-            << "  --mod            display list of loaded modules\n"
-            << "  --files          display list of files successfully opened to load plugins\n"
-  ;
+  std::stringstream res;
+  std::copy( vec.begin(), vec.end(), std::ostream_iterator< std::string > ( res, delim ) );
 
-  return;
+  return res.str();
+}
+
+
+// ------------------------------------------------------------------
+void
+display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  // See if this factory is selected
+  if ( G_context.opt_attr_filter )
+  {
+    std::string val;
+    if ( ! fact->get_attribute( G_context.opt_filter_attr, val ) )
+    {
+      // attribute has not been found.
+      return;
+    }
+
+    if ( ! filter_regex.find( val ) )
+    {
+      // The attr value does not match the regex.
+      return;
+    }
+
+  } // end attr filter
+
+  // Print the required fields first
+  std::string buf;
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf );
+
+  std::string version( "" );
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, version );
+
+  pe_out() << "  Plugin name: " << buf;
+  if ( ! version.empty() )
+  {
+    pe_out() << "      Version: " << version << std::endl;
+  }
+
+  if ( G_context.opt_brief )
+  {
+    return;
+  }
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+  pe_out() << "      Description: " << G_context.m_wtb.wrap_text( buf );
+
+  buf = "-- Not Set --";
+  if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
+  {
+    buf = kwiver::vital::demangle( buf );
+  }
+  pe_out() << "      Creates concrete type: " << buf << std::endl;
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME, buf );
+  pe_out() << "      Plugin loaded from file: " << buf << std::endl;
+
+  buf = "-- Not Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, buf );
+  pe_out() << "      Plugin module name: " << buf << std::endl;
+
+  if ( G_context.opt_detail )
+  {
+    // print all the rest of the attributes
+    print_functor pf( pe_out() );
+    fact->for_each_attr( pf );
+  }
+
+  pe_out() << std::endl;
+}
+
+
+// ------------------------------------------------------------------
+//
+// display full factory
+//
+void
+display_factory( kwiver::vital::plugin_factory_handle_t const fact )
+{
+  // See if this factory is selected
+  if ( G_context.opt_attr_filter )
+  {
+    std::string val;
+    if ( ! fact->get_attribute( G_context.opt_filter_attr, val ) )
+    {
+      // attribute has not been found.
+      return;
+    }
+
+    if ( ! filter_regex.find( val ) )
+    {
+      // The attr value does not match the regex.
+      return;
+    }
+
+  } // end attr filter
+
+
+  display_attributes( fact );
+}
+
+
+//+ Move this into the context class so it is available to all plugins.
+//+ Don't forget to wrap the description text.
+// ------------------------------------------------------------------
+void print_config( kwiver::vital::config_block_sptr const config )
+{
+  kwiver::vital::config_block_keys_t all_keys = config->available_values();
+  std::string indent( "    " );
+
+  pe_out() << indent << "Configuration block contents\n";
+
+  VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
+  {
+    kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+    pe_out() << std::endl
+             << indent << "\"" << key << "\" = \"" << val << "\"\n";
+
+    kwiver::vital::config_block_description_t descr = config->get_description( key );
+    pe_out() << indent << "Description: " << descr << std::endl;
+  }
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Load plugin explorer plugins
+ *
+ * Since these plugins are part of the tool, they are loaded separately.
+ *
+ * @param path Directory of where to look for these plugins.
+ */
+void load_explorer_plugins( const std::string& path )
+{
+  LOG_DEBUG( G_logger, "Loading explorer plugins from: " << path );
+
+  // need a dedicated loader to just load the explorer_context files.
+  kwiver::vital::plugin_loader pl( "register_explorer_plugin", SHARED_LIB_SUFFIX );
+
+  kwiver::vital::path_list_t pathl;
+  const std::string& default_module_paths( DEFAULT_MODULE_PATHS );
+
+  ST::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
+
+  // Add our subdirectory to each path element
+  VITAL_FOREACH( std::string& p, pathl )
+  {
+    // This subdirectory must match what is specified in the build system.
+    p.append( "/plugin_explorer" );
+  }
+
+  pl.load_plugins( pathl );
+
+  auto fact_list = pl.get_factories( typeid( kwiver::vital::category_explorer ).name() );
+
+  VITAL_FOREACH( auto fact, fact_list )
+  {
+    std::string name;
+    if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
+    {
+      auto cat_ex = fact->create_object<kwiver::vital::category_explorer>();
+      if ( cat_ex )
+      {
+        if ( cat_ex->initialize( G_explorer_context ) )
+        {
+          category_map[name] = cat_ex;
+          LOG_DEBUG( G_logger, "Adding category handler for: " << name );
+        }
+        else
+        {
+          LOG_DEBUG( G_logger, "Category handler for :" << name << " did not initialize." );
+        }
+      }
+      else
+      {
+        LOG_WARN( G_logger, "Could not create explorer plugin \"" << name << "\"" );
+      }
+    }
+  }
 }
 
 
@@ -123,197 +351,295 @@ path_callback( const char*  argument,   // name of argument
 {
   const std::string p( value );
 
-  opt_path.push_back( p );
+  G_context.opt_path.push_back( p );
   return 1;   // return true for OK
 }
 
 
-// ------------------------------------------------------------------
+// ==================================================================
+/*                   _
+ *   _ __ ___   __ _(_)_ __
+ *  | '_ ` _ \ / _` | | '_ \
+ *  | | | | | | (_| | | | | |
+ *  |_| |_| |_|\__,_|_|_| |_|
+ *
+ */
 int
 main( int argc, char* argv[] )
 {
-  std::string plugin_name;
+  // Initialize shared storage
+  G_logger = kwiver::vital::get_logger( "plugin_explorer" );
+  G_context.m_out_stream = &std::cout; // could use a string stream
+  G_context.display_attr = display_attributes; // set display function pointer
 
-  kwiversys::CommandLineArguments arg;
+  G_explorer_context = new kwiver::vital::context_factory( &G_context );
 
-  arg.Initialize( argc, argv );
+  {
+    const std::string prog_name( argv[0] );
+
+    // Check to see if we are running under a sanctioned alias
+    if ( prog_name.find( "processopedia" ) )
+    {
+      program_personality = prog_processopedia;
+    }
+    else if ( prog_name.find( "algo_explorer" ) )
+    {
+      program_personality = prog_alog_explorer;
+    }
+  }
+
+  // Set formatting string for description formatting
+  G_context.m_wtb.set_indent_string( "      " );
+
+  // set up the command line args
+  G_context.m_args.Initialize( argc, argv );
+  G_context.m_args.StoreUnusedArguments( true );
   typedef kwiversys::CommandLineArguments argT;
 
-  arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "-h",            argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "--plugin-name", argT::SPACE_ARGUMENT, &plugin_name, "Optional name of single plugin to display." );
-  arg.AddArgument( "--detail",      argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
-  arg.AddArgument( "-d",            argT::NO_ARGUMENT, &opt_detail, "Display detailed information about plugins" );
-  arg.AddArgument( "--config",      argT::NO_ARGUMENT, &opt_config, "Display configuration information needed by plugins" );
-  arg.AddArgument( "--path",        argT::NO_ARGUMENT, &opt_path_list, "Display plugin search path" );
-  arg.AddCallback( "-I",            argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  arg.AddArgument( "--fact",        argT::SPACE_ARGUMENT, &opt_fact_regex, "Filter factories based on regexp" );
-  arg.AddArgument( "--brief",       argT::NO_ARGUMENT, &opt_brief, "Brief display" );
-  arg.AddArgument( "--files",       argT::NO_ARGUMENT, &opt_files, "Display list of loaded files" );
-  arg.AddArgument( "--mod",         argT::NO_ARGUMENT, &opt_modules, "Display list of loaded modules" );
+  G_context.m_args.AddArgument( "--help",    argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
+  G_context.m_args.AddArgument( "-h",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
+  G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
+  G_context.m_args.AddArgument( "-d",        argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
+  G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
+  G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
+  G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
+  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
+  G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
+  G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
+  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
 
-  if ( ! arg.Parse() )
+  std::vector< std::string > filter_args;
+  G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
+                                "Filter factories based on attribute name and value. Only two fields must follow: <attr-name> <attr-value>" );
+
+  G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary, "Display summary of factories" );
+
+  G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
+                                "Display raw attributes for factories without calling any category specific plugins" );
+
+
+  //+ add options for:
+  // schedulers only
+
+  // Save some time by not loading the plugins if we know we will not
+  // be using them.
+  if ( ! G_context.opt_attrs )
+  {
+    load_explorer_plugins( DEFAULT_MODULE_PATHS );
+  }
+
+  if ( ! G_context.m_args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
     exit( 0 );
   }
 
-  if ( opt_help )
+  if ( G_context.opt_help )
   {
-    print_help();
+    pe_out() << "Usage: " << argv[0] << "[options] [file-names]\n"
+             << "\nThis tool displays the attributes of plugins. The optional file-names specify plugins to explore.\n"
+             << "If these are specified, only these files will be loaded. If no optional files are specified, then \n"
+             << "The search path is traversed, loading all recognizable plugins.\n"
+
+             << G_context.m_args.GetHelp() << std::endl;
     exit( 0 );
   }
 
   // If a factory filtering regex specified, then compile it.
-  if ( ! opt_fact_regex.empty() )
+  if ( ! G_context.opt_fact_regex.empty() )
   {
-    opt_fact_filt = true;
-    if ( ! fact_regex.compile( opt_fact_regex) )
+    G_context.opt_fact_filt = true;
+    if ( ! fact_regex.compile( G_context.opt_fact_regex) )
     {
-      std::cerr << "Invalid regular expression \"" << opt_fact_regex << "\"" << std::endl;
+      std::cerr << "Invalid regular expression for factory filter \"" << G_context.opt_fact_regex << "\"" << std::endl;
       return 1;
     }
   }
 
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
-  VITAL_FOREACH( std::string const& path, opt_path )
+  if ( filter_args.size() > 0 )
   {
-    vpm.add_search_path( path );
+    // check for attribute based filtering
+    if ( filter_args.size() == 2 )
+    {
+      G_context.opt_attr_filter = true;
+      G_context.opt_filter_attr = filter_args[0];
+      G_context.opt_filter_regex = filter_args[1];
+
+      if ( ! filter_regex.compile( G_context.opt_filter_regex ) )
+      {
+        std::cerr << "Invalid regular expression for attribute filter \"" << G_context.opt_filter_regex << "\"" << std::endl;
+        return 1;
+      }
+    }
+    else
+    {
+      std::cerr << "Invalid attribute filtering specification. Two parameters are required." << std::endl;
+      return 1;
+    }
   }
 
-  if ( opt_path_list )
+  // ========
+  // Test for incompatible option sets.
+  if ( G_context.opt_fact_filt && G_context.opt_attr_filter )
   {
-    std::cout << "---- Plugin search path\n";
+    std::cerr << "Only one of --fact and --filter allowed." << std::endl;
+    return 1;
+  }
+
+  // ========
+  // auto vpm = std::make_shared<local_manager>();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+
+    new local_manager();
+
+  char** newArgv = 0;
+  int newArgc = 0;
+  G_context.m_args.GetUnusedArguments(&newArgc, &newArgv);
+
+  // Look for plugin file name from command line
+  if ( newArgc > 1 )
+  {
+    // Load file on command line
+    local_manager* ll = dynamic_cast< local_manager* >(&vpm);
+    auto loader = ll->loader();
+
+    for ( int i = 1; i < newArgc; ++i )
+    {
+      loader->load_plugin( newArgv[i] );
+    }
+  }
+  else
+  {
+    // Load from supplied paths and build in paths.
+    VITAL_FOREACH( std::string const& path, G_context.opt_path )
+    {
+      vpm.add_search_path( path );
+    }
+
+    vpm.load_all_plugins();
+  }
+
+  if ( G_context.opt_path_list )
+  {
+    pe_out() << "---- Plugin search path\n";
 
     std::string path_string;
     std::vector< kwiver::vital::path_t > const search_path( vpm.search_path() );
     VITAL_FOREACH( auto module_dir, search_path )
     {
-      std::cout << "    " << module_dir << std::endl;
+      pe_out() << "    " << module_dir << std::endl;
     }
-    std::cout << std::endl;
+    pe_out() << std::endl;
   }
 
-  if ( opt_modules )
+  if ( G_context.opt_modules )
   {
-    std::cout << "---- Registered module names:\n";
+    pe_out() << "---- Registered module names:\n";
     auto module_list = vpm.module_map();
     VITAL_FOREACH( auto const name, module_list )
     {
-      std::cout << "   " << name.first << "  loaded from: " << name.second << std::endl;
+      pe_out() << "   " << name.first << "  loaded from: " << name.second << std::endl;
     }
-    std::cout << std::endl;
+    pe_out() << std::endl;
   }
 
+  //+ test for program personalities
+  // - processopedia
+  //      select category == process
+  //      -or- just extract the list of processes from the vpm
+  //      Needs to display processes and schedulers
   //
-  // display factory list
-  //
-  auto plugin_map = vpm.plugin_map();
+  // - algo_explorer
+  //+ TBD
 
-  std::cout << "\n---- Registered Factories\n";
-  VITAL_FOREACH( auto it, plugin_map )
+  // Generate list of factories of any of these options are selected
+  if ( G_context.opt_all
+       || G_context.opt_fact_filt
+       || G_context.opt_detail
+       || G_context.opt_brief
+       || G_context.opt_attr_filter )
   {
-    std::string ds = kwiver::vital::demangle( it.first );
+    auto plugin_map = vpm.plugin_map();
 
-    // If regexp matching is enabled, and this does not match, skip it
-    if ( opt_fact_filt && ( ! fact_regex.find( ds ) ) )
+    pe_out() << "\n---- All Registered Factories\n";
+
+    VITAL_FOREACH( auto it, plugin_map )
     {
-      continue;
-    }
+      std::string ds = kwiver::vital::demangle( it.first );
 
-    std::cout << "\nFactories that create type \"" << ds << "\"" << std::endl;
-
-    // Get vector of factories
-    kwiver::vital::plugin_factory_vector_t const & facts = it.second;
-
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
-    {
-      // Print the required fields first
-      std::string buf;
-      buf = "-- Not Set --";
-      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf );
-
-      std::string version("");
-      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, version );
-
-      std::cout << "  Plugin name: " << buf;
-      if ( ! version.empty() )
-      {
-        std::cout << "      Version: " << version << std::endl;
-      }
-
-      buf = "-- Not Set --";
-      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
-      std::cout << "      Description: " << buf << std::endl;
-
-      if ( opt_brief )
+      // If regexp matching is enabled, and this does not match, skip it
+      if ( G_context.opt_fact_filt && ( ! fact_regex.find( ds ) ) )
       {
         continue;
       }
 
-      if ( opt_detail)
+      pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
+
+      // Get vector of factories
+      kwiver::vital::plugin_factory_vector_t const& facts = it.second;
+      VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
       {
-        buf = "-- Not Set --";
-        if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
+        // See if there is a category handler for this plugin
+        std::string category;
+        if ( ! G_context.opt_attrs && fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category ) )
         {
-          buf = kwiver::vital::demangle( buf );
+          if ( category_map.count( category ) )
+          {
+            auto cat_handler = category_map[category];
+            cat_handler->explore( fact );
+            continue;
+          }
         }
-        std::cout << "      Creates concrete type: " << buf << std::endl;
-      }
 
-      if ( opt_detail )
-      {
-        buf = "-- Not Set --";
-        fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME, buf );
-        std::cout << "      Plugin loaded from file: " << buf << std::endl;
+        // Default display for factory
+        display_factory( fact );
 
-        // print all the rest of the attributes
-        print_functor pf( std::cout );
-        fact->for_each_attr( pf );
-      }
-
-      // Need to check for specific well known factory types.
-      // 1) sprokit::process
-      // 2) sprokit::scheduler
-      // Have separate classes decode and format each factory type.
-      // Need a way to get options from these delegates and accept selected options,
-      //
-
-      //
-      // For processes, need to display:
-      // option for "hidden" config entries and ports
-      // Need to instantiate each process to get these details.
-      // 1) process config
-      // 2) input ports
-      // 3) output ports
-
-      //
-      // Schedulers
-      // This is not much different from the default plugin display.
-      // Name and description come from attributes.
-      // 1) name
-      // 2) description
-
-      //
-      // Code to format these data can be lifted from processopedia.
-      //
-
-    } // end foreach factory
-  } // end foreach interface type
+      } // end foreach factory
+    } // end interface type
+    pe_out() << std::endl;
+  }
 
   //
-  // list files is specified
+  // display summary
   //
-  if ( opt_files )
+  if (G_context.opt_summary )
   {
-    std::vector< std::string > file_list = vpm.file_list();
+    pe_out() << "\n----Summary of factories" << std::endl;
+    int count(0);
 
-    std::cout << "\n---- Files Successfully Opened" << std::endl;
+    auto plugin_map = vpm.plugin_map();
+    pe_out() << "    " << plugin_map.size() << " types of factories registered." << std::endl;
+
+    VITAL_FOREACH( auto it, plugin_map )
+    {
+      std::string ds = kwiver::vital::demangle( it.first );
+
+      // Get vector of factories
+      kwiver::vital::plugin_factory_vector_t const& facts = it.second;
+      count += facts.size();
+
+      pe_out() << "        " << facts.size() << " factories that create \""
+               << ds << "\"" <<std::endl;
+    } // end interface type
+
+    pe_out() << "    " << count << " total factories" << std::endl;
+  }
+
+
+  //
+  // list files loaded if specified
+  //
+  if ( G_context.opt_files )
+  {
+    const auto file_list = vpm.file_list();
+
+    pe_out() << "\n---- Files Successfully Opened" << std::endl;
     VITAL_FOREACH( std::string const& name, file_list )
     {
-      std::cout << "  " << name << std::endl;
+      pe_out() << "  " << name << std::endl;
     } // end foreach
+    pe_out() << std::endl;
   }
 
   return 0;

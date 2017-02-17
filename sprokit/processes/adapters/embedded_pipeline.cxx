@@ -38,13 +38,13 @@
 #include <vital/config/config_block.h>
 #include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/tools/pipeline_builder.h>
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <sprokit/processes/adapters/input_adapter.h>
 #include <sprokit/processes/adapters/input_adapter_process.h>
@@ -123,7 +123,7 @@ embedded_pipeline
   , m_priv( new priv() )
 {
   // load processes
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
 }
 
@@ -174,19 +174,18 @@ embedded_pipeline
   // Setup scheduler
   //
   // Determine if new scheduler type has been specified in the config
-  sprokit::scheduler_registry::type_t scheduler_type =
+  sprokit::scheduler::type_t scheduler_type =
     m_priv->m_pipe_config->get_value(
       scheduler_block + kwiver::vital::config_block::block_sep + "type",  // key string
-      sprokit::scheduler_registry::default_type ); // default value
+      sprokit::scheduler_factory::default_type ); // default value
 
   // Get config sub block based on selected scheduler type from the main config
   m_priv->m_scheduler_config = m_priv->m_pipe_config->subblock(scheduler_block +
-                                              kwiver::vital::config_block::block_sep + scheduler_type);
+                          kwiver::vital::config_block::block_sep + scheduler_type);
 
-  sprokit::scheduler_registry_t reg = sprokit::scheduler_registry::self();
-  m_priv->m_scheduler = reg->create_scheduler(scheduler_type,
-                                              m_priv->m_pipeline,
-                                              m_priv->m_scheduler_config);
+  m_priv->m_scheduler = sprokit::create_scheduler(scheduler_type,
+                                                  m_priv->m_pipeline,
+                                                  m_priv->m_scheduler_config);
 
   if ( ! m_priv->m_scheduler)
   {

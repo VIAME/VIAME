@@ -62,18 +62,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : inlier_scale(other.inlier_scale),
-    min_required_inlier_count(other.min_required_inlier_count),
-    min_required_inlier_percent(other.min_required_inlier_percent),
-    matcher_(!other.matcher_ ? algo::match_features_sptr()
-                             : other.matcher_->clone()),
-    f_estimator_(!other.f_estimator_ ? algo::estimate_fundamental_matrix_sptr()
-                                   : other.f_estimator_->clone()),
-    m_logger( vital::get_logger( "arrows.core.match_features_fundamental_matrix" ))
-  {
-  }
-
   // the scale of inlier points
   double inlier_scale;
 
@@ -98,14 +86,6 @@ public:
 match_features_fundamental_matrix
 ::match_features_fundamental_matrix()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-match_features_fundamental_matrix
-::match_features_fundamental_matrix(const match_features_fundamental_matrix& other)
-: d_(new priv(*other.d_))
 {
 }
 

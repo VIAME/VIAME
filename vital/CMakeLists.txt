@@ -88,7 +88,6 @@ endif()
 # These headers are installed
 #
 set( vital_public_headers
-  registrar.h
   vital_types.h
   vital_foreach.h
   noncopyable.h
@@ -158,7 +157,6 @@ set( vital_public_headers
 
 # ----------------------
 set( vital_sources
-  registrar.cxx
   algorithm_capabilities.cxx
   attribute_set.cxx
 
@@ -243,93 +241,53 @@ target_link_libraries( vital
   )
 
 ###
-# Build plugin management library
 #
-# This has to happen after plugin creation so as to be able to statically link
-# in plugin libraries when building static.
-#
-set(vital_apm_headers
-  algorithm_plugin_manager.h
-  )
-set(vital_apm_sources
-  algorithm_plugin_manager.cxx
-  )
-set(vital_apm_headers_private
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_apm_export.h
-  )
+# This option adds another directory to the path by appending the configuration type to
+# existing directories.
+set(default OFF)
 
-kwiver_add_library(vital_apm
-  ${vital_apm_headers}
-  ${vital_apm_headers_private}
-  ${vital_apm_sources}
-  )
+if (CMAKE_CONFIGURATION_TYPES)
+  set(default ON)
+endif ()
 
-kwiver_install_headers(
-  ${vital_apm_headers}
-  SUBDIR      vital
-  )
+option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
+  "Look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
-kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_apm_export.h
-  SUBDIR      vital
-  NOPATH
-  )
-
-target_link_libraries(vital_apm
-  PRIVATE          kwiversys
-                   vital
-                   vital_logger
-  )
-
-###
-#
-set(VITAL_MODULE_PATHS "${vital_default_module_paths}"
-  CACHE STRING "The extra default paths for module scanning. Separate paths with ';' character.")
-mark_as_advanced( VITAL_MODULE_PATHS )
-
-# Configuring/Adding compile definitions to target
-# (so we can use generator expressions)
-if (WIN32)  # Windows puts DLLs in bin/CONFIG/
-  set(shared_lib_dir "/bin")
-  set(lib_dir_suffix)
+if (WIN32)
   set(path_sep ";")
 else()  # Other Unix systems
-  set(shared_lib_dir "/lib")
-  set(lib_dir_suffix "${LIB_SUFFIX}")
   set(path_sep ":")
 endif()
 
+# Build a default set of plugin path dirs
+# Provide that list as the default value for the path option.
 
-if (CMAKE_CONFIGURATION_TYPES)
-  set(config_subdir "/$<CONFIGURATION>")
-endif()
-
-set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/modules" )
-
-#
-# This is all to get around the ';' as the path separator.  CMake will
-# split it into two elements when we want it to be ignored.
-#
-
-## The modules subdirectory is where the kwiver_add_module() macro generates its product
-## Note that maptk has a different place where it installs plugins
-set( install_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
-set( build_module_paths    "${KWIVER_BINARY_DIR}${shared_lib_dir}${config_subdir}/modules" )
-
-# assemble total search path
-set( vital_default_module_path ${install_module_paths} )
-
-# convert CMake list to path specification
-foreach( p IN LISTS VITAL_MODULE_PATH )
-  set( vital_default_module_path ${vital_default_module_path}${path_sep}${p} )
-endforeach(p)
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} modules )
+set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
-  set( vital_default_module_path ${vital_default_module_path}${path_sep}${build_module_paths})
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
+  set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
-# used by APM
-set( VITAL_DEFAULT_MODULE_PATH ${vital_default_module_path} CACHE STRING "Search path for loading algorithms" FORCE )
+set(KWIVER_DEFAULT_MODULE_PATHS "${vital_default_module_path}"
+  CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE)
+mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
+
+# add all paths to the property
+foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
+  kwiver_add_module_path( ${p} )
+endforeach(p)
+
+# need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
+# formulate the default module path
+get_property(plugin_path GLOBAL PROPERTY kwiver_plugin_path)
+
+# convert list to path string using the system specific path separator
+# TODO: The following has a leading ':' that should not be there
+foreach( p IN LISTS plugin_path )
+  set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
+endforeach(p)
 
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"

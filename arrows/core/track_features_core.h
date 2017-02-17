@@ -64,12 +64,6 @@ public:
   /// Default Constructor
   track_features_core();
 
-  /// Copy Constructor
-  track_features_core(const track_features_core&);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "core"; }
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
    * This base virtual function implementation returns an empty configuration
