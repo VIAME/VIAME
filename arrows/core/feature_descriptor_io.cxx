@@ -37,6 +37,7 @@
 
 #include <fstream>
 
+#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 #include <cereal/archives/portable_binary.hpp>
@@ -60,12 +61,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : write_float_features(other.write_float_features),
-    m_logger(other.m_logger)
-  {
-  }
-
   bool write_float_features;
 
   vital::logger_handle_t m_logger;
@@ -77,14 +72,6 @@ public:
 feature_descriptor_io
 ::feature_descriptor_io()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-feature_descriptor_io
-::feature_descriptor_io(const feature_descriptor_io& other)
-: d_(new priv(*other.d_))
 {
 }
 

@@ -35,6 +35,7 @@
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/match_matrix.h>
 
+#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <algorithm>
@@ -58,13 +59,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-    : min_track_length(other.min_track_length),
-      min_mm_importance(other.min_mm_importance),
-      m_logger( vital::get_logger( "arrows.core.filter_tracks" ))
-  {
-  }
-
   unsigned int min_track_length;
   double min_mm_importance;
   vital::logger_handle_t m_logger;
@@ -75,14 +69,6 @@ public:
 filter_tracks
 ::filter_tracks()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-filter_tracks
-::filter_tracks(const filter_tracks& other)
-: d_(new priv(*other.d_))
 {
 }
 

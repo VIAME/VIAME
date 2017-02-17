@@ -59,12 +59,6 @@ public:
   /// Destructor
   virtual ~feature_descriptor_io();
 
-  /// Copy Constructor
-  feature_descriptor_io(const feature_descriptor_io& other);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "core"; }
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
