@@ -89,7 +89,7 @@ set_source_files_properties(scheduler.cxx
 
 ###
 set(SPROKIT_DEFAULT_EDGE_CAPACITY "40"
-  CACHE STRING "The default capacity for pipeline edges" )
+  CACHE STRING "The default capacity for pipeline edges. O is unlmited buffering." )
 mark_as_advanced( SPROKIT_DEFAULT_EDGE_CAPACITY )
 
 set_source_files_properties(edge.cxx
