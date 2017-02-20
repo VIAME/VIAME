@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,7 @@
  * \brief Header for \link sprokit::process processes\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /// A group of processes.
 typedef std::vector<process_t> processes_t;
@@ -523,6 +522,8 @@ class SPROKIT_PIPELINE_EXPORT process
     static property_t const property_unsync_input;
     /// A property which indicates that the output of the process is not synchronized.
     static property_t const property_unsync_output;
+    /// Indicates that the process supports instrumentation call
+    static property_t const property_instrumented;
 
     /// The name of the heartbeat port.
     static port_t const port_heartbeat;
@@ -654,6 +655,7 @@ class SPROKIT_PIPELINE_EXPORT process
 
 
   protected:
+
     /**
      * \brief Constructor.
      *
@@ -1221,6 +1223,54 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns Information about the data given.
      */
     static data_info_t edge_data_info(edge_data_t const& data);
+
+//@{
+    /**
+     * \brief Process instrumentation interface.
+     *
+     * These calls are available to the process writer to self
+     * instrument the process implementation. Unfortunately there is
+     * no way to put this instrumentation in the interface since a
+     * process is responsible for getting inputs and pushing outputs.
+     *
+     * The start call is used to indicate the beginning of substantial processing.
+     * The end call is used to indicate the end of substantial processing.
+     *
+     * Instrumentation is enabled by supplying the following config
+     * entries in the pipeline definition file for each process that
+     * is to be instrumented.
+     *
+     * process process_type
+     *   :: my_proc
+     *     : _instrumentation:type  none   # default value. disabled
+     *     : _instrumentation:type  RightTrack  # enables RightTrack instrumentation for this process
+     *     : _instrumentation:RightTrack:foo   value    # instrumentation provider specific config.
+     *
+     */
+    void start_init_processing( std::string const& data );
+    void start_init_processing();
+    void stop_init_processing();
+
+    void start_reset_processing( std::string const& data );
+    void start_reset_processing();
+    void stop_reset_processing( );
+
+    void start_flush_processing( std::string const& data );
+    void start_flush_processing();
+    void stop_flush_processing( );
+
+    void start_step_processing( std::string const& data );
+    void start_step_processing();
+    void stop_step_processing( );
+
+    void start_configure_processing( std::string const& data );
+    void start_configure_processing();
+    void stop_configure_processing( );
+
+    void start_reconfigure_processing( std::string const& data );
+    void start_reconfigure_processing();
+    void stop_reconfigure_processing( );
+//@}
 
   private:
     kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;

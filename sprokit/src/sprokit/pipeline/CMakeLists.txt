@@ -8,6 +8,7 @@ set(pipeline_srcs
   pipeline_exception.cxx
   process.cxx
   process_factory.cxx
+  process_instrumentation.cxx
   process_exception.cxx
   process_cluster.cxx
   process_cluster_exception.cxx
@@ -19,7 +20,8 @@ set(pipeline_srcs
   stamp.cxx
   types.cxx
   utils.cxx
-  version.cxx)
+  version.cxx
+  )
 
 set(pipeline_headers
   datum.h
@@ -30,6 +32,7 @@ set(pipeline_headers
   pipeline_exception.h
   process.h
   process_factory.h
+  process_instrumentation.h
   process_exception.h
   process_cluster.h
   process_cluster_exception.h
@@ -41,7 +44,8 @@ set(pipeline_headers
   stamp.h
   types.h
   utils.h
-  version.h)
+  version.h
+  )
 
 set(pipeline_private_headers)
 
