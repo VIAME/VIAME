@@ -51,7 +51,7 @@ class VITAL_ALGO_EXPORT dynamic_configuration :
     public kwiver::vital::algorithm_def< dynamic_configuration >
 {
 public:
-  static std::string static_type_name() { return "dynamic_configuration:"; }
+  static std::string static_type_name() { return "dynamic_configuration"; }
 
   virtual void set_configuration( config_block_sptr config ) = 0;
   virtual bool check_configuration( config_block_sptr config ) const = 0;

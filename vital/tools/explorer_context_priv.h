@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ public:
   bool opt_modules;
   bool opt_files;
   bool opt_all;
+  bool opt_algo;
   bool opt_summary;
   bool opt_attrs;
 

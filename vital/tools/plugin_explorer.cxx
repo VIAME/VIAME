@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -195,8 +195,10 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   pe_out() << "  Plugin name: " << buf;
   if ( ! version.empty() )
   {
-    pe_out() << "      Version: " << version << std::endl;
+    pe_out() << "      Version: " << version;
   }
+
+  pe_out()  << std::endl;
 
   if ( G_context.opt_brief )
   {
@@ -408,6 +410,7 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
   G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
+  G_context.m_args.AddArgument( "--algorithms", argT::NO_ARGUMENT, &G_context.opt_algo, "Display all algorithms" );
 
   std::vector< std::string > filter_args;
   G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
@@ -553,12 +556,62 @@ main( int argc, char* argv[] )
   // - algo_explorer
   //+ TBD
 
+  // ------------------------------------------------------------------
+  // See if just algo's are selected
+  if ( G_context.opt_algo )
+  {
+    auto plugin_map = vpm.plugin_map();
+
+    pe_out() << "\n---- All Algorithm Factories\n";
+
+    kwiver::vital::category_explorer* cat_handler(0);
+    if ( category_map.count( "algorithm" ) )
+    {
+      cat_handler = category_map["algorithm"];
+    }
+
+    VITAL_FOREACH( auto it, plugin_map )
+    {
+      std::string ds = kwiver::vital::demangle( it.first );
+
+      kwiver::vital::plugin_factory_vector_t const& facts = it.second;
+      kwiver::vital::plugin_factory_handle_t const afact = facts[0];
+
+      // We assume that all factories that support an interface all have the same category.
+      std::string category;
+      if ( ! afact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category )
+           || category != "algorithm" )
+      {
+        continue;
+      }
+
+      pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
+
+      // Get vector of factories
+      VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
+      {
+        if ( cat_handler )
+        {
+          cat_handler->explore( fact );
+          continue;
+        }
+
+        // Default display for factory
+        display_factory( fact );
+
+      } // end foreach factory
+    } // end interface type
+
+    pe_out() << std::endl;
+  }
+
+  // ------------------------------------------------------------------
   // Generate list of factories of any of these options are selected
-  if ( G_context.opt_all
-       || G_context.opt_fact_filt
-       || G_context.opt_detail
-       || G_context.opt_brief
-       || G_context.opt_attr_filter )
+  else if ( G_context.opt_all
+            || G_context.opt_fact_filt
+            || G_context.opt_detail
+            || G_context.opt_brief
+            || G_context.opt_attr_filter )
   {
     auto plugin_map = vpm.plugin_map();
 
@@ -597,8 +650,10 @@ main( int argc, char* argv[] )
 
       } // end foreach factory
     } // end interface type
+
     pe_out() << std::endl;
   }
+
 
   //
   // display summary
