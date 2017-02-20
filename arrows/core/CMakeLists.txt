@@ -12,6 +12,7 @@ set( plugin_core_headers
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
   detected_object_set_output_csv.h
+  dynamic_config_none.h
   estimate_canonical_transform.h
   filter_features_magnitude.h
   hierarchical_bundle_adjust.h
@@ -54,6 +55,7 @@ set( plugin_core_sources
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx
   detected_object_set_output_csv.cxx
+  dynamic_config_none.cxx
   estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
   hierarchical_bundle_adjust.cxx

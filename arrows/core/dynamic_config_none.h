@@ -28,51 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DYNAMIC_CONFIGURATION_H
-#define DYNAMIC_CONFIGURATION_H
+/**
+ * \file
+ * \brief Header defining the interface to dynamic_config_none
+ */
 
+#ifndef ARROWS_CORE_DYNAMIC_CONFIG_NONE_H
+#define ARROWS_CORE_DYNAMIC_CONFIG_NONE_H
 
-#include <vital/algo/algorithm.h>
+#include <arrows/core/kwiver_algo_core_export.h>
+
+#include <vital/algo/dynamic_configuration.h>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace core {
 
-
-/// Abstract algorithm for getting dynamic configuration values from
-/// an external source.
-/**
- * This class represents an interface to an external source of
- * configuration values. A typical application would be an external
- * U.I. control that is desired to control the performance of an
- * algorithm by varying some of its configuration values.
- */
-class VITAL_ALGO_EXPORT dynamic_configuration :
-    public kwiver::vital::algorithm_def< dynamic_configuration >
+/// A class for bypassing image conversion
+class KWIVER_ALGO_CORE_EXPORT dynamic_config_none
+  : public vital::algorithm_impl<dynamic_config_none, vital::algo::dynamic_configuration>
 {
 public:
-  static std::string static_type_name() { return "dynamic_configuration:"; }
+  /// default constructor
+  dynamic_config_none();
 
-  virtual void set_configuration( config_block_sptr config ) = 0;
-  virtual bool check_configuration( config_block_sptr config ) const = 0;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Return dynamic configuration values
   /**
-   * This method returns dynamic configuration values. a valid config
+   * This method returns dynamic configuration values. A valid config
    * block is returned even if there are not values being returned.
    */
-  virtual config_block_sptr get_dynamic_configuration() = 0;
-
-
-protected:
-  dynamic_configuration();
+  virtual kwiver::vital::config_block_sptr get_dynamic_configuration();
 };
 
-/// Shared pointer for generic dynamic_configuration definition type.
-typedef std::shared_ptr< dynamic_configuration > dynamic_configuration_sptr;
+} } } // end namespace
 
-}
-}
-}     // end namespace
-
-#endif // DYNAMIC_CONFIGURATION_H
+#endif /* ARROWS_CORE_DYNAMIC_CONFIG_NONE_H */
