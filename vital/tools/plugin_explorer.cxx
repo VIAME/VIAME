@@ -59,7 +59,7 @@ TODO
 
 - expand help text to be more like a man page.
 - handle processopedia and algo_explorer personalities.
-- add --process flag to list only processes -or- --process name
+- make it easy to display one factory (e.g. process)
  */
 
 typedef kwiversys::SystemTools ST;
@@ -565,16 +565,13 @@ main( int argc, char* argv[] )
   if ( newArgc > 1 )
   {
     // Load file on command line
-    local_manager* ll = dynamic_cast< local_manager* >(&vpm);
+    local_manager* ll = new(&vpm) local_manager;
     auto loader = ll->loader();
 
     for ( int i = 1; i < newArgc; ++i )
     {
-      // Skip unhandled command line options
-      if (newArgv[i][0] != '-')
-      {
-        loader->load_plugin( newArgv[i] );
-      }
+      // Will fail if not the correct type of file
+      loader->load_plugin( newArgv[i] );
     }
   }
   else
