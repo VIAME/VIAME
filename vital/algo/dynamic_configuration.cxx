@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,70 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
-#define VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
-
-#include <vital/util/wrap_text_block.h>
-#include <functional>
+#include <vital/algo/dynamic_configuration.h>
+#include <vital/algo/algorithm.txx>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-class kwiver::vital::explorer_context::priv
+dynamic_configuration
+::dynamic_configuration()
 {
-public:
-  priv();
-  ~priv();
+  attach_logger( "dynamic_configuration" );
+}
 
-  // Collected command line args
-  kwiversys::CommandLineArguments m_args;
+} } }
 
-  // Global options
-  bool opt_config;
-  bool opt_detail;
-  bool opt_help;
-  bool opt_path_list;
-  bool opt_brief;
-  bool opt_modules;
-  bool opt_files;
-  bool opt_all;
-  bool opt_algo;
-  bool opt_summary;
-  bool opt_attrs;
-
-  std::ostream* m_out_stream;
-
-  std::vector< std::string > opt_path;
-
-  // Used to wrap large text blocks
-  kwiver::vital::wrap_text_block m_wtb;
-
-  // Fields used for filtering attributes
-  bool opt_attr_filter;
-  std::string opt_filter_attr;    // attribute name
-  std::string opt_filter_regex;   // regex for attr value to match.
-
-  // internal option for factory filtering
-  bool opt_fact_filt;
-  std::string opt_fact_regex;
-
-  std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
-};
-
-
-// ==================================================================
-class context_factory
-  : public explorer_context
-{
-public:
-  // -- CONSTRUCTORS --
-  context_factory(kwiver::vital::explorer_context::priv* pp)
-    : explorer_context( pp )
-  { }
-
-}; // end class context_factory
-
-
-} } // end namespace
-
-#endif // VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::dynamic_configuration);
+/// \endcond

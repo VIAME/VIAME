@@ -55,6 +55,9 @@ Arrows - Core
    first time the ratio of reversed to non-reversed RMSE is within a threshold.
    Necker revsersal is only attempted once.  It is either needed or not.
 
+ * Added default version of dynamic_configuration which always returns
+   an empty config block.
+
 Arrows - OpenCV
 
  * Updated the OpenCV image container functions to handle conversinos between
@@ -130,7 +133,7 @@ Vital
    early.
 
  * Added deep copy support to detected object sets and contained
-   classes. These class are detected_object_Set, detected_object and
+   classes. These class are detected_object_set, detected_object and
    attribute_set.
 
  * Added unified module loader to handle algorithms, processes,
@@ -141,6 +144,15 @@ Vital
  * Added abstract algorithm for draw_detected_object_set. This
    provides an interface for drawing the outlines for detected
    objects.
+
+ * Added abstract algorithm to support dynamic configuration
+   values. An implementation of this intrerface would provide updated
+   config values at run time. The use case for this algorithm is
+   situations where an external real-time control (e.g. a GUI control)
+   is used to vary an algorithm configuration value and the algorithm
+   is to respond in real-time. A typical parameter that could be
+   varied in this manner would be a threshold or a scaling value.
+
 
 Sprokit
 

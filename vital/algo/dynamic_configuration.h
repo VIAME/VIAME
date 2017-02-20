@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,70 +28,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
-#define VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+#ifndef DYNAMIC_CONFIGURATION_H
+#define DYNAMIC_CONFIGURATION_H
 
-#include <vital/util/wrap_text_block.h>
-#include <functional>
+
+#include <vital/algo/algorithm.h>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-class kwiver::vital::explorer_context::priv
+
+/// Abstract algorithm for getting dynamic configuration values from
+/// an external source.
+/**
+ * This class represents an interface to an external source of
+ * configuration values. A typical application would be an external
+ * U.I. control that is desired to control the performance of an
+ * algorithm by varying some of its configuration values.
+ */
+class VITAL_ALGO_EXPORT dynamic_configuration :
+    public kwiver::vital::algorithm_def< dynamic_configuration >
 {
 public:
-  priv();
-  ~priv();
+  static std::string static_type_name() { return "dynamic_configuration"; }
 
-  // Collected command line args
-  kwiversys::CommandLineArguments m_args;
+  virtual void set_configuration( config_block_sptr config ) = 0;
+  virtual bool check_configuration( config_block_sptr config ) const = 0;
 
-  // Global options
-  bool opt_config;
-  bool opt_detail;
-  bool opt_help;
-  bool opt_path_list;
-  bool opt_brief;
-  bool opt_modules;
-  bool opt_files;
-  bool opt_all;
-  bool opt_algo;
-  bool opt_summary;
-  bool opt_attrs;
+  /// Return dynamic configuration values
+  /**
+   * This method returns dynamic configuration values. a valid config
+   * block is returned even if there are not values being returned.
+   */
+  virtual config_block_sptr get_dynamic_configuration() = 0;
 
-  std::ostream* m_out_stream;
 
-  std::vector< std::string > opt_path;
-
-  // Used to wrap large text blocks
-  kwiver::vital::wrap_text_block m_wtb;
-
-  // Fields used for filtering attributes
-  bool opt_attr_filter;
-  std::string opt_filter_attr;    // attribute name
-  std::string opt_filter_regex;   // regex for attr value to match.
-
-  // internal option for factory filtering
-  bool opt_fact_filt;
-  std::string opt_fact_regex;
-
-  std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
+protected:
+  dynamic_configuration();
 };
 
+/// Shared pointer for generic dynamic_configuration definition type.
+typedef std::shared_ptr< dynamic_configuration > dynamic_configuration_sptr;
 
-// ==================================================================
-class context_factory
-  : public explorer_context
-{
-public:
-  // -- CONSTRUCTORS --
-  context_factory(kwiver::vital::explorer_context::priv* pp)
-    : explorer_context( pp )
-  { }
+}
+}
+}     // end namespace
 
-}; // end class context_factory
-
-
-} } // end namespace
-
-#endif // VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+#endif // DYNAMIC_CONFIGURATION_H
