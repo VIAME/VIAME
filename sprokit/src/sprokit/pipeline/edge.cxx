@@ -51,8 +51,15 @@
  * \brief Implementation of the \link sprokit::edge edge\endlink class.
  */
 
+// Check to see if there is an external specification for default edge
+// capacity
+#if !defined SPROKIT_DEFAULT_EDGE_CAPACITY
+#  define SPROKIT_DEFAULT_EDGE_CAPACITY 10 // default size
+#endif
+
 namespace sprokit {
 
+// ------------------------------------------------------------------
 edge_datum_t
 ::edge_datum_t()
   : datum()
@@ -60,6 +67,8 @@ edge_datum_t
 {
 }
 
+
+// ------------------------------------------------------------------
 edge_datum_t
 ::edge_datum_t(datum_t const& datum_, stamp_t const& stamp_)
   : datum(datum_)
@@ -67,14 +76,19 @@ edge_datum_t
 {
 }
 
+
+// ------------------------------------------------------------------
 edge_datum_t
 ::~edge_datum_t()
 {
 }
 
+
 template <typename T>
 static bool pointers_equal(T const& a, T const& b);
 
+
+// ------------------------------------------------------------------
 bool
 edge_datum_t
 ::operator == (edge_datum_t const& rhs) const
@@ -140,7 +154,7 @@ edge
   }
 
   bool const depends    = config->get_value<bool>(config_dependency, true);
-  size_t const capacity = config->get_value<size_t>(config_capacity, 0);
+  size_t const capacity = config->get_value<size_t>(config_capacity, SPROKIT_DEFAULT_EDGE_CAPACITY );
   bool const blocking   = config->get_value<bool>(config_blocking, true);
 
   d.reset(new priv(depends, capacity, blocking));
@@ -152,6 +166,8 @@ edge
   }
 }
 
+
+// ------------------------------------------------------------------
 edge
 ::~edge()
 {
@@ -390,6 +406,7 @@ edge::priv
 }
 
 
+// ------------------------------------------------------------------
 edge::priv
 ::~priv()
 {
