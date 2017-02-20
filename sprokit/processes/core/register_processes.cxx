@@ -39,6 +39,7 @@
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
+#include "draw_detected_object_set_process.h"
 #include "draw_tracks_process.h"
 #include "detection_refiner_process.h"
 #include "extract_descriptors_process.h"
@@ -180,6 +181,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        "Reads video files and produces sequential images with metadata per frame." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
+  fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_set_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_detected_object_set" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Draws border around detected objects in the set using the selected algorithm." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

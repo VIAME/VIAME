@@ -64,6 +64,8 @@ Arrows - OpenCV
    and to explicitly apply BGR to RGB conversions instead of hiding those
    color conversions elsewhere (see fixes below).
 
+ * Added implementation for draw_detected_object_set.
+
 Arrows - VXL
 
  * Updated the VXL image container functions to handle conversions between
@@ -136,6 +138,9 @@ Vital
    expanded to better handle the different plugin types and streamline
    its use as a reference source.
 
+ * Added abstract algorithm for draw_detected_object_set. This
+   provides an interface for drawing the outlines for detected
+   objects.
 
 Sprokit
 
@@ -159,6 +164,7 @@ Sprokit
  * Removed process and cluster loaders. Updated process registry files
    to use the new process loader approach.
 
+ * Added process to wrap draw_detected_object_set algorithm.
 
 Vital Bindings
 

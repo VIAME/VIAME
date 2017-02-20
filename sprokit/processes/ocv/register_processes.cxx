@@ -60,7 +60,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Display input image and delay" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-
   fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_boxes_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,  "draw_detected_object_boxes" );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );

@@ -78,6 +78,7 @@ public:
 }; // end class hough_circle_detector::priv
 
 
+  // ==================================================================
 hough_circle_detector::
 hough_circle_detector()
   : d( new priv )
