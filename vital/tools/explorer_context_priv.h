@@ -56,6 +56,8 @@ public:
   bool opt_files;
   bool opt_all;
   bool opt_algo;
+  bool opt_process;
+  bool opt_scheduler;
   bool opt_summary;
   bool opt_attrs;
 
