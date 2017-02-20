@@ -101,6 +101,7 @@ target_link_libraries( vital_algo
                   vital_vpm
   )
 
+if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( algo_explorer_plugin
@@ -111,3 +112,4 @@ kwiver_add_plugin( algo_explorer_plugin
            vital_config
            vital_algo
            explorer_plugin )
+endif()
