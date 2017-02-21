@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,7 @@ class VIAME_@TEMPLATE_LIB@_EXPORT @template@_detector :
 {
 public:
   @template@_detector();
-  @template@_detector( const @template@_detector& other );
   virtual ~@template@_detector();
-
-  // Set the name of this detector which will appear in any pipeline files
-  virtual std::string impl_name() const { return "@template@_detector"; }
 
   // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;

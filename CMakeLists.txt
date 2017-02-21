@@ -90,125 +90,125 @@ include( common_macros )
 ##
 if( VIAME_BUILD_DEPENDENCIES )
 
-# Include for CMake external project add command
-include( ExternalProject )
+  # Include for CMake external project add command
+  include( ExternalProject )
 
-# Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
-include( common_args )
+  # Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
+  include( common_args )
 
-# Hard VIAME requirements
-include( add_project_fletch )
-include( add_project_kwiver )
+  # Hard VIAME requirements
+  include( add_project_fletch )
+  include( add_project_kwiver )
 
-# Optional requirements
-if( VIAME_ENABLE_SCALLOP_TK )
-  include( add_project_scallop_tk )
-endif()
+  # Optional requirements
+  if( VIAME_ENABLE_SCALLOP_TK )
+    include( add_project_scallop_tk )
+  endif()
 
-if( VIAME_ENABLE_VIVIA )
-  include( add_project_vibrant )
-  include( add_project_vivia )
-endif()
+  if( VIAME_ENABLE_VIVIA )
+    include( add_project_vibrant )
+    include( add_project_vivia )
+  endif()
 
-if( VIAME_ENABLE_KWANT )
-  include( add_project_kwant )
-endif()
+  if( VIAME_ENABLE_KWANT )
+    include( add_project_kwant )
+  endif()
 
-if( VIAME_ENABLE_FASTER_RCNN )
-  include( add_project_faster_rcnn )
-endif()
+  if( VIAME_ENABLE_FASTER_RCNN )
+    include( add_project_faster_rcnn )
+  endif()
 
-# Viame plugins
-include( add_project_viame )
+  # Viame plugins
+  include( add_project_viame )
 
 else()
 
-###
-# Look for and use Fletch to find dependencies
-##
-find_package( kwiver REQUIRED )
-include_directories( ${KWIVER_INCLUDE_DIRS} )
-link_directories( ${KWIVER_LIBRARY_DIR} )
-list( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
+  ###
+  # Look for and use Fletch to find dependencies
+  ##
+  find_package( kwiver REQUIRED )
+  include_directories( ${KWIVER_INCLUDE_DIRS} )
+  link_directories( ${KWIVER_LIBRARY_DIR} )
+  list( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
 
-if( IS_DIRECTORY ${fletch_DIR} )
-  find_package( fletch NO_MODULE )
-  list( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
-endif()
+  if( IS_DIRECTORY ${fletch_DIR} )
+    find_package( fletch NO_MODULE )
+    list( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
+  endif()
 
-if( VIAME_ENABLE_OPENCV )
-  find_package( OpenCV 2.4.6 REQUIRED )
-endif()
+  if( VIAME_ENABLE_OPENCV )
+    find_package( OpenCV 2.4.6 REQUIRED )
+  endif()
 
-include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
+  include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
 
-###
-# KWIVER CMake config
-##
-include( kwiver-utils )
+  ###
+  # KWIVER CMake config
+  ##
+  include( kwiver-utils )
 
-##
-# System specific compiler flags
-include( viame-flags )
+  ##
+  # System specific compiler flags
+  include( viame-flags )
 
-##
-# Build system hack for visual system, will be removed
-include( windows-ksys-hack )
+  ##
+  # Build system hack for visual system, will be removed
+  include( windows-ksys-hack )
 
-##
-# check compiler support
-include( kwiver-configcheck )
+  ##
+  # check compiler support
+  include( kwiver-configcheck )
 
-# set the name for our package exports
-set( kwiver_export_name      viame_exports )
+  # set the name for our package exports
+  set( kwiver_export_name      viame_exports )
 
-###
-# build submodules
+  ###
+  # build submodules
 
-###
-# add subdirs
-##
-add_subdirectory( plugins )
-add_subdirectory( pipelines )
-add_subdirectory( examples )
+  ###
+  # add subdirs
+  ##
+  add_subdirectory( plugins )
+  add_subdirectory( pipelines )
+  add_subdirectory( examples )
 
-###
-# Configure setup scripts
-##
-include( setup_viame_paths )
+  ###
+  # Configure setup scripts
+  ##
+  include( setup_viame_paths )
 
-if( WIN32 )
-  set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
-  set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
-  set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
+  if( WIN32 )
+    set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
+    set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
+    set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
 
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
-    ${VIAME_PIPELINE_RUNNER_SCRIPT}
-  )
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/CMake/processopedia.bat.in
-    ${VIAME_PROCESSOPEDIA_SCRIPT}
-  )
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/CMake/plugin_explorer.bat.in
-    ${VIAME_PLUGIN_EXPLORER_SCRIPT}
-  )
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
+      ${VIAME_PIPELINE_RUNNER_SCRIPT}
+      )
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/CMake/processopedia.bat.in
+      ${VIAME_PROCESSOPEDIA_SCRIPT}
+      )
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/CMake/plugin_explorer.bat.in
+      ${VIAME_PLUGIN_EXPLORER_SCRIPT}
+      )
 
-  install( PROGRAMS      ${VIAME_PIPELINE_RUNNER_SCRIPT}
-                         ${VIAME_PROCESSOPEDIA_SCRIPT}
-					     ${VIAME_PLUGIN_EXPLORER_SCRIPT}
-           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-else()
-  set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
+    install( PROGRAMS      ${VIAME_PIPELINE_RUNNER_SCRIPT}
+      ${VIAME_PROCESSOPEDIA_SCRIPT}
+      ${VIAME_PLUGIN_EXPLORER_SCRIPT}
+      DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+  else()
+    set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
-  configure_file(
-    ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
-    ${VIAME_SETUP_SCRIPT_FILE}
-  )
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
+      ${VIAME_SETUP_SCRIPT_FILE}
+      )
 
-  install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
-           DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-endif()
-  
+    install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
+      DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+  endif()
+
 endif()

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,10 +44,7 @@ class VIAME_FASTER_RCNN_EXPORT faster_rcnn_detector :
 public:
 
   faster_rcnn_detector();
-  faster_rcnn_detector( faster_rcnn_detector const& frd );
   virtual ~faster_rcnn_detector();
-
-  virtual std::string impl_name() const { return "faster_rcnn_detector"; }
 
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 

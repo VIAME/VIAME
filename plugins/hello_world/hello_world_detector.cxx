@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,12 +57,6 @@ hello_world_detector()
 
 
 hello_world_detector::
-  hello_world_detector( const hello_world_detector& other )
-  : d( new priv( *other.d ) )
-{}
-
-
-hello_world_detector::
   ~hello_world_detector()
 {}
 
@@ -111,7 +105,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
 
-  LOG_INFO( m_logger, "Text: " << d->m_text );
+  LOG_INFO( logger(), "Text: " << d->m_text );
 
   return detected_set;
 }

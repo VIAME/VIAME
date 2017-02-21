@@ -16,8 +16,6 @@ set( plugin_headers
 
 set( plugin_sources
   faster_rcnn_detector.cxx
-
-  register_algorithms.h    register_algorithms.cxx
   )
 
 kwiver_install_headers(
@@ -42,5 +40,5 @@ target_link_libraries( viame_faster_rcnn
   )
 
 algorithms_create_plugin( viame_faster_rcnn
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )

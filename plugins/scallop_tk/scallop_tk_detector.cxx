@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@
 
 #include <ScallopTK/Pipelines/CoreDetector.h>
 
+#include <vital/vital_foreach.h>
+
 namespace viame {
 
 using namespace ScallopTK;
@@ -62,12 +64,6 @@ public:
 scallop_tk_detector::
 scallop_tk_detector()
   : d( new priv )
-{}
-
-
-scallop_tk_detector::
-  scallop_tk_detector( const scallop_tk_detector& other )
-  : d( new priv( *other.d ) )
 {}
 
 
@@ -123,7 +119,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 
   auto det_list = d->m_detector->processFrame( src );
 
-  LOG_DEBUG( m_logger, "Detected " << det_list.size() << " objects." );
+  LOG_DEBUG( logger(), "Detected " << det_list.size() << " objects." );
 
   // process results
   VITAL_FOREACH( auto det, det_list )
