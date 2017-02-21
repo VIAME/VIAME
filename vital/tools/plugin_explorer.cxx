@@ -609,15 +609,6 @@ main( int argc, char* argv[] )
     pe_out() << std::endl;
   }
 
-  //+ test for program personalities
-  // - processopedia
-  //      select category == process
-  //      -or- just extract the list of processes from the vpm
-  //      Needs to display processes and schedulers
-  //
-  // - algo_explorer
-  //+ TBD
-
   // ------------------------------------------------------------------
   // See if just algo's are selected
   if ( G_context.opt_algo )
