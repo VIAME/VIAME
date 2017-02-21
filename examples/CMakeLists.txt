@@ -3,7 +3,7 @@
 
 if( VIAME_ENABLE_OPENCV )
 
-  find_package( OpenCV 2.4.6 REQUIRED )
+  find_package( OpenCV REQUIRED )
   include_directories( SYSTEM ${OpenCV_INCLUDE_DIRS} )
 
   find_package( Eigen3 REQUIRED )
