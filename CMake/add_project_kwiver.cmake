@@ -9,6 +9,8 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
+set( VIAME_KWIVER_DEPS fletch )
+
 if( VIAME_ENABLE_MATLAB )
   FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
 endif()
@@ -23,8 +25,12 @@ if( MSVC AND MSVC_VERSION EQUAL 1900 )
   set( VIAME_ENABLE_SPROKIT OFF )
 endif()
 
+if( VIAME_ENABLE_YOLO )
+  set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} darknet )
+endif()
+
 ExternalProject_Add(kwiver
-  DEPENDS fletch
+  DEPENDS ${VIAME_KWIVER_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/kwiver
   CMAKE_GENERATOR ${gen}
