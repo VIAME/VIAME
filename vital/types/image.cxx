@@ -317,7 +317,7 @@ image
     width_ = 0;
     height_ = 0;
     depth_ = 0;
-    data_ = NULL;
+    data_.reset();
     first_pixel_ = NULL;
   }
   set_size( other.width_, other.height_, other.depth_ );
