@@ -37,8 +37,8 @@ option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
 ##
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugins"      OFF )
 option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugins"    OFF )
-option( VIAME_ENABLE_YOLO           "Enable YOLO plugins"           OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
+option( VIAME_ENABLE_YOLO           "Enable YOLO plugins"           OFF )
 
 ###
 # Other misc options
@@ -108,9 +108,16 @@ include( common_args )
 
 # Hard VIAME requirements
 include( add_project_fletch )
+
+# Add optional YOLO build
+if( VIAME_ENABLE_YOLO )
+  include( add_project_darknet )
+endif()
+
+# Add core (required) kwiver requirement
 include( add_project_kwiver )
 
-# Optional requirements
+# Add other optional libraries
 if( VIAME_ENABLE_SCALLOP_TK )
   include( add_project_scallop_tk )
 endif()
@@ -126,10 +133,6 @@ endif()
 
 if( VIAME_ENABLE_FASTER_RCNN )
   include( add_project_faster_rcnn )
-endif()
-
-if( VIAME_ENABLE_YOLO )
-  include( add_project_darknet )
 endif()
 
 # Viame plugins
