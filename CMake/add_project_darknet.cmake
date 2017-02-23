@@ -21,6 +21,12 @@ else()
   set( DARKNET_USE_CUDNN OFF )
 endif()
 
+if( WIN32 )
+  set( DARKNET_BUILD_SHARED OFF )
+else()
+  set( DARKNET_BUILD_SHARED ON )
+endif()
+
 ExternalProject_Add(darknet
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -29,6 +35,7 @@ ExternalProject_Add(darknet
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    -DBUILD_SHARED_LIBS:BOOL=${DARKNET_BUILD_SHARED}
     -DINSTALL_HEADER_FILES:BOOL=ON
     -DUSE_GPU:BOOL=${DARKNET_USE_GPU}
     -DUSE_CUDNN:BOOL=${DARKNET_USE_CUDNN}
