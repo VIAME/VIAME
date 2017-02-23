@@ -21,7 +21,7 @@ set( VIAME_BUILD_INSTALL_PREFIX  "${CMAKE_BINARY_DIR}/install" )
 set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
 
 ###
-# Add plugin enable flags
+# Add core plugin enable flags
 ##
 option( VIAME_ENABLE_VXL            "Enable VXL plugins"            OFF )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
@@ -31,8 +31,13 @@ option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
+
+###
+# Add algorithmic plugin enable flags
+##
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugins"      OFF )
 option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugins"    OFF )
+option( VIAME_ENABLE_YOLO           "Enable YOLO plugins"           OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 
 ###
@@ -121,6 +126,10 @@ endif()
 
 if( VIAME_ENABLE_FASTER_RCNN )
   include( add_project_faster_rcnn )
+endif()
+
+if( VIAME_ENABLE_YOLO )
+  include( add_project_darknet )
 endif()
 
 # Viame plugins
@@ -215,5 +224,5 @@ else()
   install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
            DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 endif()
-  
+
 endif()
