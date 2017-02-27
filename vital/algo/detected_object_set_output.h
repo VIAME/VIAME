@@ -115,10 +115,13 @@ protected:
   detected_object_set_output();
 
   std::ostream& stream();
+  std::string const& filename();
 
 private:
   std::ostream* m_stream;
   bool m_stream_owned;
+
+  std::string m_filename;
 };
 
 
