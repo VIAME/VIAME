@@ -76,6 +76,11 @@ public:
   // Class label names for every output class
   std::vector< std::string > m_labels;
 
+  // IDs for layers
+  std::string m_roi_str;
+  std::string m_cls_str;
+  std::string m_bbox_str;
+
   // Size properties
   double m_target_size;
   double m_max_size;
@@ -106,7 +111,10 @@ public:
 
   // ===============================================================================================
   priv()
-  : m_target_size( 500 ),
+  : m_roi_str( "rois" ),
+    m_cls_str( "cls_prob" ),
+    m_bbox_str( "bbox_pred" ),
+    m_target_size( 500 ),
     m_max_size( 1000 ),
     m_pixel_means( 127.5, 127.5, 127.5 ),
     m_net(),
@@ -124,6 +132,9 @@ public:
   : m_prototxt_file( other.m_prototxt_file ),
     m_class_file( other.m_class_file ),
     m_caffe_model( other.m_caffe_model ),
+    m_roi_str( other.m_roi_str ),
+    m_cls_str( other.m_cls_str ),
+    m_bbox_str( other.m_bbox_str ),
     m_target_size( other.m_target_size ),
     m_max_size( other.m_max_size ),
     m_pixel_means( other.m_pixel_means ),
@@ -168,6 +179,9 @@ get_configuration() const
   config->set_value( "class_file", d->m_class_file, "File with class names for every output bin" );
   config->set_value( "prototxt", d->m_prototxt_file, "Points to the caffe prototxt file" );
   config->set_value( "caffe_model", d->m_caffe_model, "The file that contains the model weights" );
+  config->set_value( "roi_layer_str", d->m_roi_str, "ROI layer string ID to use output from" );
+  config->set_value( "cls_layer_str", d->m_cls_str, "CLS layer string ID to use output from" );
+  config->set_value( "bbox_layer_str", d->m_bbox_str, "BBOX layer string ID to use output from" );
   config->set_value( "target_size", this->d->m_target_size, "Target size" );
   config->set_value( "max_size", this->d->m_max_size, "Max target size" );
   config->set_value( "pixel_mean", vital::vector_3d( this->d->m_pixel_means[0], this->d->m_pixel_means[1],
@@ -215,6 +229,9 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_class_file = config->get_value< std::string >( "class_file" );
   this->d->m_prototxt_file = config->get_value< std::string >( "prototxt" );
   this->d->m_caffe_model = config->get_value< std::string >( "caffe_model" );
+  this->d->m_roi_str = config->get_value< std::string >( "roi_layer_str" );
+  this->d->m_cls_str = config->get_value< std::string >( "cls_layer_str" );
+  this->d->m_bbox_str = config->get_value< std::string >( "bbox_layer_str" );
   this->d->m_use_gpu = config->get_value< bool >( "use_gpu" );
   this->d->m_gpu_id = config->get_value< bool >( "gpu_id" );
   this->d->m_use_box_deltas = config->get_value< bool >( "use_box_deltas" );
@@ -248,6 +265,7 @@ set_configuration( vital::config_block_sptr config_in )
     labels.push_back( trim( line ) );
   }
 
+  this->d->m_labels = labels;
   this->d->m_target_size = config->get_value< double >( "target_size" );
 
   vital::vector_3d tmp = config->get_value< vital::vector_3d >( "pixel_mean" );
@@ -274,21 +292,21 @@ check_configuration( vital::config_block_sptr config ) const
     }
   }
 
-  std::string classes = config->get_value<std::string>( "classes" );
+  std::string classfile = config->get_value<std::string>( "class_file" );
   std::string prototxt = config->get_value<std::string>( "prototxt" );
   std::string caffemodel = config->get_value<std::string>( "caffe_model" );
 
   // check for any missing file name
-  if( classes.empty() || prototxt.empty() || caffemodel.empty() )
+  if( classfile.empty() || prototxt.empty() || caffemodel.empty() )
   {
      return false;
   }
 
   bool success( true );
 
-  if( !kwiversys::SystemTools::FileExists( classes ) )
+  if( !kwiversys::SystemTools::FileExists( classfile ) )
   {
-    LOG_ERROR( d->m_logger, "classes file \"" << classes << "\" not found." );
+    LOG_ERROR( d->m_logger, "class file \"" << classfile << "\" not found." );
     success = false;
   }
 
@@ -388,9 +406,9 @@ detect( vital::image_container_sptr image_data ) const
     this->d->m_net->Forward( input_layers );
 
     // Get output regions and values
-    boost::shared_ptr< Blob< float > > rois = this->d->m_net->blob_by_name( "rois" );
-    boost::shared_ptr< Blob< float > > probs = this->d->m_net->blob_by_name( "cls_prob" );
-    boost::shared_ptr< Blob< float > > rois_deltas = this->d->m_net->blob_by_name( "bbox_pred" );
+    boost::shared_ptr< Blob< float > > rois = this->d->m_net->blob_by_name( d->m_roi_str );
+    boost::shared_ptr< Blob< float > > probs = this->d->m_net->blob_by_name( d->m_cls_str );
+    boost::shared_ptr< Blob< float > > rois_deltas = this->d->m_net->blob_by_name( d->m_bbox_str );
 
     const unsigned int roi_dim = rois->count() / rois->num();
 
