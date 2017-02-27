@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #include "detected_object_set_output_kw18.h"
 #include <vital/vital_foreach.h>
 
+#include <fstream>
 #include <time.h>
 
 namespace kwiver {
@@ -61,6 +62,7 @@ public:
     , m_logger( kwiver::vital::get_logger( "detected_object_set_output_kw18" ) )
     , m_first( true )
     , m_frame_number( 1 )
+    , m_tot_writer( NULL )
   { }
 
   ~priv() { }
@@ -71,6 +73,7 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
+  std::ofstream* m_tot_writer;
 };
 
 
@@ -85,6 +88,10 @@ detected_object_set_output_kw18()
 detected_object_set_output_kw18::
 ~detected_object_set_output_kw18()
 {
+  if( d->m_tot_writer && d->m_tot_writer->is_open() )
+  {
+    d->m_tot_writer->close();
+  }
 }
 
 
@@ -122,13 +129,13 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     const std::string atime( cp );
 
     // Write file header(s)
-    stream() << "# 1:Track-id [-1_for_detections] "
-             << "2:Track-length [-1_for_detections] "
-             << "3:Frame-number  [-1_for_detections] "
-             << "4:Tracking-plane-loc(x) [-1_for_detections] "
-             << "5:Tracking-plane-loc(y) [-1_for_detections] "
-             << "6:velocity(x) [-1_for_detections] "
-             << "7:velocity(y) [-1_for_detections] "
+    stream() << "# 1:Track-id "
+             << "2:Track-length "
+             << "3:Frame-number "
+             << "4:Tracking-plane-loc(x) "
+             << "5:Tracking-plane-loc(y) "
+             << "6:velocity(x) "
+             << "7:velocity(y) "
 
              << "8:Image-loc(x)"
              << " 9:Image-loc(y)"
@@ -154,6 +161,8 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
              << std::endl;
 
     d->m_first = false;
+    d->m_tot_writer = new std::ofstream( filename() + ".txt" );
+    
   } // end first
 
   // Get detections from set
@@ -164,13 +173,16 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     double ilx = ( bbox.min_x() + bbox.max_x() ) / 2.0;
     double ily = ( bbox.min_y() + bbox.max_y() ) / 2.0;
 
-    stream() << "-1 "               // 1: track id
-             << "-1 "               // 2: track length
-             << d->m_frame_number   // 3: frame number / set number
-             << " -1 "              // 4: tracking plane x
-             << " -1 "              // 5: tracking plane y
-             << "-1 "               // 6: velocity x
-             << "-1 "               // 7: velocity y
+    static int counter = 0;
+    const int id = counter++;
+
+    stream() << id                  // 1: track id
+             << " 1 "               // 2: track length
+             << d->m_frame_number-1 // 3: frame number / set number
+             << " 0 "               // 4: tracking plane x
+             << " 0 "               // 5: tracking plane y
+             << "0 "                // 6: velocity x
+             << "0 "                // 7: velocity y
              << ilx << " "          // 8: image location x
              << ily << " "          // 9: image location y
              << bbox.min_x() << " " // 10: TL-x
@@ -178,12 +190,43 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
              << bbox.max_x() << " " // 12: BR-x
              << bbox.max_y() << " " // 13: BR-y
              << bbox.area() << " "  // 14: area
-             << "-1 "               // 15: world-loc x
-             << "-1 "               // 16: world-loc y
-             << "-1 "               // 17: world-loc z
-             << "0 "                // 18 timestamp
+             << "0 "                // 15: world-loc x
+             << "0 "                // 16: world-loc y
+             << "0 "                // 17: world-loc z
+             << "0 "                // 18: timestamp
              << det->confidence()   // 19: confidence
              << std::endl;
+
+    vital::detected_object_type_sptr clf = det->type();
+
+    double f = 0.0, s = 0.0, o = 0.0;
+
+    if( clf->has_class_name( "scallop" ) )
+    {
+      s = clf->score( "scallop" );
+    }
+    if( clf->has_class_name( "LIVE_SCALLOP" ) )
+    {
+      s = clf->score( "LIVE_SCALLOP" );
+    }
+    if( clf->has_class_name( "fish" ) )
+    {
+      f = clf->score( "fish" );
+    }
+    if( clf->has_class_name( "background" ) )
+    {
+      f = clf->score( "background" );
+    }
+    else
+    {
+      o = 1.0 - f - s;
+    }
+
+    (*d->m_tot_writer) << id        // 1: track id
+                       << " " << f  // 2: fish prob
+                       << " " << s  // 3: scallop prob
+                       << " " << o  // 4: other prob
+                       << std::endl;
   } // end foreach
 
   // Put each set on a new frame
