@@ -29,15 +29,20 @@
  */
 
 #include "detected_object_set_output_kw18.h"
-#include <vital/vital_foreach.h>
 
+#include <vital/vital_foreach.h>
+#include <vital/util/tokenize.h>
+
+#include <vector>
 #include <fstream>
 #include <time.h>
+
+#include <boost/scoped_ptr.hpp>
+#include <boost/atomic.hpp>
 
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 /// This format should only be used for tracks.
 ///
@@ -48,8 +53,8 @@ namespace core {
 /// \li Column(s) 6-7: Velocity(x,y)
 /// \li Column(s) 8-9: Image-loc(x,y)
 /// \li Column(s) 10-13: Img-bbox(TL_x,TL_y,BR_x,BR_y) (location of top-left & bottom-right vertices)
-/// \li Column(s) 14: Area
-/// \li Column(s) 15-17: World-loc(x,y,z) (longitude, latitude, 0 - when available)
+/// \li Column(s) 14: Area (0 - when not available)
+/// \li Column(s) 15-17: World-loc(x,y,z) (longitude, latitude, 0 - when not available)
 /// \li Column(s) 18: Timesetamp(-1 if not available)
 /// \li Column(s) 19: Track-confidence(-1_when_not_available)
 
@@ -62,10 +67,11 @@ public:
     , m_logger( kwiver::vital::get_logger( "detected_object_set_output_kw18" ) )
     , m_first( true )
     , m_frame_number( 1 )
+    , m_write_tot( false )
     , m_tot_writer( NULL )
-  { }
+  {}
 
-  ~priv() { }
+  ~priv() {}
 
   void read_all();
 
@@ -73,7 +79,10 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
-  std::ofstream* m_tot_writer;
+  bool m_write_tot;
+  boost::scoped_ptr< std::ofstream > m_tot_writer;
+  std::string m_tot_field1_ids, m_tot_field2_ids;
+  std::vector< std::string > m_parsed_tot_ids1, m_parsed_tot_ids2;
 };
 
 
@@ -98,15 +107,54 @@ detected_object_set_output_kw18::
 // ------------------------------------------------------------------
 void
 detected_object_set_output_kw18::
-set_configuration(vital::config_block_sptr config)
-{ }
+set_configuration( vital::config_block_sptr config )
+{
+  d->m_write_tot = config->get_value<bool>( "write_tot" , d->m_write_tot );
+
+  d->m_tot_field1_ids = config->get_value<std::string>( "tot_field1_ids" , d->m_tot_field1_ids );
+  d->m_tot_field2_ids = config->get_value<std::string>( "tot_field2_ids" , d->m_tot_field2_ids );
+
+  vital::tokenize( d->m_tot_field1_ids, d->m_parsed_tot_ids1, ",;", true );
+  vital::tokenize( d->m_tot_field2_ids, d->m_parsed_tot_ids2, ",;", true );
+}
+
+
+// ------------------------------------------------------------------
+vital::config_block_sptr
+detected_object_set_output_kw18::
+get_configuration() const
+{
+  // get base config from base class
+  kwiver::vital::config_block_sptr config = algorithm::get_configuration();
+
+  // Class parameters
+  config->set_value( "write_tot", d->m_write_tot,
+                     "Write a file in the vpView TOT format alongside "
+                     "the computed tracks." );
+  config->set_value( "tot_field1_ids", d->m_tot_field1_ids,
+                     "Comma seperated list of ids used for TOT field 1." );
+  config->set_value( "tot_field2_ids", d->m_tot_field2_ids,
+                     "Comma seperated list of ids used for TOT field 2." );
+
+  return config;
+}
 
 
 // ------------------------------------------------------------------
 bool
 detected_object_set_output_kw18::
-check_configuration(vital::config_block_sptr config) const
+check_configuration( vital::config_block_sptr config ) const
 {
+  if( d->m_write_tot && d->m_tot_field1_ids.empty() )
+  {
+    return false;
+  }
+
+  if( d->m_write_tot && d->m_tot_field2_ids.empty() )
+  {
+    return false;
+  }
+
   return true;
 }
 
@@ -161,8 +209,14 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
              << std::endl;
 
     d->m_first = false;
-    d->m_tot_writer = new std::ofstream( filename() + ".txt" );
-    
+
+    if( d->m_write_tot )
+    {
+      std::size_t ext_ind = filename().find_last_of( "." );
+      std::string tot_fn = filename().substr( 0, ext_ind ) + ".txt";
+
+      d->m_tot_writer.reset( new std::ofstream( tot_fn ) );
+    }
   } // end first
 
   // Get detections from set
@@ -173,8 +227,8 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     double ilx = ( bbox.min_x() + bbox.max_x() ) / 2.0;
     double ily = ( bbox.min_y() + bbox.max_y() ) / 2.0;
 
-    static int counter = 0;
-    const int id = counter++;
+    static boost::atomic<unsigned> id_counter( 0 );
+    const unsigned id = id_counter++;
 
     stream() << id                  // 1: track id
              << " 1 "               // 2: track length
@@ -193,40 +247,37 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
              << "0 "                // 15: world-loc x
              << "0 "                // 16: world-loc y
              << "0 "                // 17: world-loc z
-             << "0 "                // 18: timestamp
+             << "-1"                // 18: timestamp
              << det->confidence()   // 19: confidence
              << std::endl;
 
-    vital::detected_object_type_sptr clf = det->type();
+    // optionally write tot to corresponding file
+    if( d->m_write_tot )
+    {
+      vital::detected_object_type_sptr clf = det->type();
 
-    double f = 0.0, s = 0.0, o = 0.0;
+      double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
-    if( clf->has_class_name( "scallop" ) )
-    {
-      s = clf->score( "scallop" );
-    }
-    if( clf->has_class_name( "LIVE_SCALLOP" ) )
-    {
-      s = clf->score( "LIVE_SCALLOP" );
-    }
-    if( clf->has_class_name( "fish" ) )
-    {
-      f = clf->score( "fish" );
-    }
-    if( clf->has_class_name( "background" ) )
-    {
-      f = clf->score( "background" );
-    }
-    else
-    {
-      o = 1.0 - f - s;
-    }
+      VITAL_FOREACH( const std::string id, d->m_parsed_tot_ids1 )
+      {
+        if( clf->has_class_name( id ) )
+        {
+          f1 = std::max( f1, clf->score( id ) );
+        }
+      }
+      VITAL_FOREACH( const std::string id, d->m_parsed_tot_ids2 )
+      {
+        if( clf->has_class_name( id ) )
+        {
+          f2 = std::max( f2, clf->score( id ) );
+        }
+      }
 
-    (*d->m_tot_writer) << id        // 1: track id
-                       << " " << f  // 2: fish prob
-                       << " " << s  // 3: scallop prob
-                       << " " << o  // 4: other prob
-                       << std::endl;
+      f3 = 1.0 - f2 - f1;
+
+      (*d->m_tot_writer) << id << " " << f1 << " " << f2 << " " << f3 << std::endl;
+
+    } // end write_tot
   } // end foreach
 
   // Put each set on a new frame
