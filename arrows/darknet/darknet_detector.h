@@ -53,11 +53,7 @@ class KWIVER_ALGO_DARKNET_EXPORT darknet_detector
 public:
 
   darknet_detector();
-  darknet_detector(darknet_detector const& frd);
-
   virtual ~darknet_detector();
-
-  virtual std::string impl_name() const { return "darknet_detector"; }
 
   virtual vital::config_block_sptr get_configuration() const;
 
