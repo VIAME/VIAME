@@ -106,8 +106,11 @@ detected_object_set_output_kw18::
 // ------------------------------------------------------------------
 void
 detected_object_set_output_kw18::
-set_configuration( vital::config_block_sptr config )
+set_configuration( vital::config_block_sptr config_in )
 {
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config( config_in );
+
   d->m_write_tot = config->get_value<bool>( "write_tot" , d->m_write_tot );
 
   d->m_tot_field1_ids = config->get_value<std::string>( "tot_field1_ids" , d->m_tot_field1_ids );
