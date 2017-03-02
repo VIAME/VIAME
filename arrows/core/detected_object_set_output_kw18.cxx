@@ -33,12 +33,12 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
+#include <atomic>
+#include <memory>
 #include <vector>
 #include <fstream>
 #include <time.h>
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/atomic.hpp>
 
 namespace kwiver {
 namespace arrows {
@@ -68,7 +68,6 @@ public:
     , m_first( true )
     , m_frame_number( 1 )
     , m_write_tot( false )
-    , m_tot_writer( NULL )
   {}
 
   ~priv() {}
@@ -80,7 +79,7 @@ public:
   bool m_first;
   int m_frame_number;
   bool m_write_tot;
-  boost::scoped_ptr< std::ofstream > m_tot_writer;
+  std::unique_ptr< std::ofstream > m_tot_writer;
   std::string m_tot_field1_ids, m_tot_field2_ids;
   std::vector< std::string > m_parsed_tot_ids1, m_parsed_tot_ids2;
 };
@@ -227,7 +226,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     double ilx = ( bbox.min_x() + bbox.max_x() ) / 2.0;
     double ily = ( bbox.min_y() + bbox.max_y() ) / 2.0;
 
-    static boost::atomic<unsigned> id_counter( 0 );
+    static std::atomic<unsigned> id_counter( 0 );
     const unsigned id = id_counter++;
 
     stream() << id                  // 1: track id
