@@ -77,6 +77,8 @@ public:
   bool opt_fact_filt;
   std::string opt_fact_regex;
 
+  std::string opt_load_module;
+
   std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
 };
 

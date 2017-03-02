@@ -59,7 +59,10 @@ TODO
 
 - expand help text to be more like a man page.
 - handle processopedia and algo_explorer personalities.
-- make it easy to display one factory (e.g. process)
+
+- make it easy to display one factory (e.g. process) Maybe add flag
+  for finding impl type by regexp.
+
  */
 
 typedef kwiversys::SystemTools ST;
@@ -461,7 +464,7 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
   G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
   G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
@@ -479,6 +482,9 @@ main( int argc, char* argv[] )
 
   G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
                                 "Display raw attributes for factories without calling any category specific plugins" );
+
+    G_context.m_args.AddArgument( "--load", argT::SPACE_ARGUMENT, &G_context.opt_load_module,
+                                  "Load only specified plugin file for inspection." );
 
   // Save some time by not loading the plugins if we know we will not
   // be using them.
@@ -562,17 +568,13 @@ main( int argc, char* argv[] )
   G_context.m_args.GetUnusedArguments(&newArgc, &newArgv);
 
   // Look for plugin file name from command line
-  if ( newArgc > 1 )
+  if ( ! G_context.opt_load_module.empty() )
   {
     // Load file on command line
     local_manager* ll = new(&vpm) local_manager;
     auto loader = ll->loader();
 
-    for ( int i = 1; i < newArgc; ++i )
-    {
-      // Will fail if not the correct type of file
-      loader->load_plugin( newArgv[i] );
-    }
+    loader->load_plugin( G_context.opt_load_module );
   }
   else
   {
