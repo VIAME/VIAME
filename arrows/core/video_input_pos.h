@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_INS_DATA_READER_H
-#define ARROWS_CORE_INS_DATA_READER_H
+#ifndef ARROWS_CORE_VIDEO_INPUT_POS_H
+#define ARROWS_CORE_VIDEO_INPUT_POS_H
 
 #include <vital/algo/video_input.h>
 
@@ -48,16 +48,16 @@ namespace core {
  * and an associated directory name for the metadata files. These
  * metadata files have the same base name as the image files.
  */
-class KWIVER_ALGO_CORE_EXPORT ins_data_reader
-  : public vital::algorithm_impl < ins_data_reader, vital::algo::video_input >
+class KWIVER_ALGO_CORE_EXPORT video_input_pos
+  : public vital::algorithm_impl < video_input_pos, vital::algo::video_input >
 {
 public:
   /// Constructor
-  ins_data_reader();
-  virtual ~ins_data_reader();
+  video_input_pos();
+  virtual ~video_input_pos();
 
   /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ins_data_reader"; }
+  virtual std::string impl_name() const { return "video_input_pos"; }
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -97,4 +97,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_INS_DATA_READER_H */
+#endif /* ARROWS_CORE_VIDEO_INPUT_POS_H */

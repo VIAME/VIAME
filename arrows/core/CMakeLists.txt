@@ -19,7 +19,6 @@ set( plugin_core_headers
   filter_tracks.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
-  ins_data_reader.h
   image_list_reader.h
   match_features_fundamental_matrix.h
   match_features_homography.h
@@ -27,6 +26,7 @@ set( plugin_core_headers
   track_features_core.h
   transform.h
   triangulate_landmarks.h
+  video_input_pos.h
 
   epipolar_geometry.h
   interpolate_camera.h
@@ -67,7 +67,6 @@ set( plugin_core_sources
   filter_tracks.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
-  ins_data_reader.cxx
   image_list_reader.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
@@ -75,6 +74,7 @@ set( plugin_core_sources
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
+  video_input_pos.cxx
 
   epipolar_geometry.cxx
   interpolate_camera.cxx

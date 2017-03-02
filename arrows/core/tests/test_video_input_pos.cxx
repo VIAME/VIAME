@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/core/ins_data_reader.h>
+#include <arrows/core/video_input_pos.h>
 #include <arrows/core/register_algorithms.h>
 
 #include <memory>
@@ -69,7 +69,7 @@ IMPLEMENT_TEST(read_list)
   auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "metadata_directory", data_dir + "/metadata" );
 
-  kwiver::arrows::core::ins_data_reader ilr;
+  kwiver::arrows::core::video_input_pos ilr;
 
   ilr.check_configuration( config );
   ilr.set_configuration( config );

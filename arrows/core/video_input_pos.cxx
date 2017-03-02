@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "ins_data_reader.h"
+#include "video_input_pos.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -50,7 +50,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class ins_data_reader::priv
+class video_input_pos::priv
 {
 public:
   priv()
@@ -81,11 +81,11 @@ public:
 
 
 // ------------------------------------------------------------------
-ins_data_reader
-::ins_data_reader()
-  : d( new ins_data_reader::priv )
+video_input_pos
+::video_input_pos()
+  : d( new video_input_pos::priv )
 {
-  attach_logger( "ins_data_reader" );
+  attach_logger( "video_input_pos" );
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
@@ -99,15 +99,15 @@ ins_data_reader
 
 
 // ------------------------------------------------------------------
-ins_data_reader
-::~ins_data_reader()
+video_input_pos
+::~video_input_pos()
 {
 }
 
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
-ins_data_reader
+video_input_pos
 ::get_configuration() const
 {
   // get base config from base class
@@ -133,7 +133,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 void
-ins_data_reader
+video_input_pos
 ::set_configuration( vital::config_block_sptr in_config )
 {
   vital::config_block_sptr config = this->get_configuration();
@@ -156,7 +156,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 bool
-ins_data_reader
+video_input_pos
 ::check_configuration( vital::config_block_sptr config ) const
 {
   return true;
@@ -165,7 +165,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 void
-ins_data_reader
+video_input_pos
 ::open( std::string image_list_name )
 {
   // open file and read lines
@@ -217,7 +217,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 void
-ins_data_reader
+video_input_pos
 ::close()
 {
 }
@@ -225,7 +225,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 bool
-ins_data_reader
+video_input_pos
 ::end_of_video() const
 {
   return d->d_at_eov;
@@ -234,7 +234,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 bool
-ins_data_reader
+video_input_pos
 ::good() const
 {
   // This could use a more nuanced approach
@@ -244,7 +244,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 bool
-ins_data_reader
+video_input_pos
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               uint32_t                  timeout ) // not supported
 {
@@ -336,12 +336,12 @@ ins_data_reader
   d->d_frame_time += d->c_frame_time;
 
   return true;
-} // ins_data_reader::next_frame
+} // video_input_pos::next_frame
 
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
-ins_data_reader
+video_input_pos
 ::frame_image()
 {
   // Could return a blank image, but we do not know a good size;
@@ -351,7 +351,7 @@ ins_data_reader
 
 // ------------------------------------------------------------------
 kwiver::vital::video_metadata_vector
-ins_data_reader
+video_input_pos
 ::frame_metadata()
 {
   kwiver::vital::video_metadata_vector vect;

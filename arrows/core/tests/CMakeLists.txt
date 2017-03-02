@@ -14,4 +14,4 @@ kwiver_discover_tests(core_interpolate_camera           test_libraries test_inte
 kwiver_discover_tests(core_detected_object_io           test_libraries test_detected_object_io.cxx)
 kwiver_discover_tests(core_dynamic_configuration        test_libraries test_dynamic_config.cxx)
 
-## kwiver_discover_tests(core_ins_data_reader              test_libraries test_ins_data_reader.cxx  "${kwiver_test_data_directory}" )
+## kwiver_discover_tests(core_video_input_pos              test_libraries test_video_input_pos.cxx  "${kwiver_test_data_directory}" )
