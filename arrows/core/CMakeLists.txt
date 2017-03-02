@@ -22,11 +22,11 @@ set( plugin_core_headers
   image_list_reader.h
   match_features_fundamental_matrix.h
   match_features_homography.h
-  split_video_input.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
   video_input_pos.h
+  video_input_split.h
 
   epipolar_geometry.h
   interpolate_camera.h
@@ -70,11 +70,11 @@ set( plugin_core_sources
   image_list_reader.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
-  split_video_input.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
   video_input_pos.cxx
+  video_input_split.cxx
 
   epipolar_geometry.cxx
   interpolate_camera.cxx

@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_SPLIT_VIDEO_INPUT_H
-#define ARROWS_CORE_SPLIT_VIDEO_INPUT_H
+#ifndef ARROWS_CORE_VIDEO_INPUT_SPLIT_H
+#define ARROWS_CORE_VIDEO_INPUT_SPLIT_H
 
 #include <vital/algo/video_input.h>
 
@@ -48,16 +48,16 @@ namespace core {
  * and an associated directory name for the metadata files. These
  * metadata files have the same base name as the image files.
  */
-class KWIVER_ALGO_CORE_EXPORT split_video_input
-  : public vital::algorithm_impl < split_video_input, vital::algo::video_input >
+class KWIVER_ALGO_CORE_EXPORT video_input_split
+  : public vital::algorithm_impl < video_input_split, vital::algo::video_input >
 {
 public:
   /// Constructor
-  split_video_input();
-  virtual ~split_video_input();
+  video_input_split();
+  virtual ~video_input_split();
 
   /// Return the name of this implementation
-  virtual std::string impl_name() const { return "split_video_input"; }
+  virtual std::string impl_name() const { return "video_input_split"; }
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -96,4 +96,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_SPLIT_VIDEO_INPUT_H */
+#endif /* ARROWS_CORE_VIDEO_INPUT_SPLIT_H */

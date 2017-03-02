@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/core/split_video_input.h>
+#include <arrows/core/video_input_split.h>
 
 #include <iostream>
 #include <sstream>

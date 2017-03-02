@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "split_video_input.h"
+#include "video_input_split.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -51,7 +51,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class split_video_input::priv
+class video_input_split::priv
 {
 public:
   priv()
@@ -86,24 +86,24 @@ public:
 
 
 // ------------------------------------------------------------------
-split_video_input
-::split_video_input()
-  : d( new split_video_input::priv )
+video_input_split
+::video_input_split()
+  : d( new video_input_split::priv )
 {
-  attach_logger( "split_video_input" );
+  attach_logger( "video_input_split" );
 }
 
 
 // ------------------------------------------------------------------
-split_video_input
-::~split_video_input()
+video_input_split
+::~video_input_split()
 {
 }
 
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
-split_video_input
+video_input_split
 ::get_configuration() const
 {
   // get base config from base class
@@ -135,7 +135,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 void
-split_video_input
+video_input_split
 ::set_configuration( vital::config_block_sptr in_config )
 {
   vital::config_block_sptr config = this->get_configuration();
@@ -181,7 +181,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 bool
-split_video_input
+video_input_split
 ::check_configuration( vital::config_block_sptr config ) const
 {
   // Check the image reader configuration.
@@ -196,7 +196,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 void
-split_video_input
+video_input_split
 ::open( std::string name )
 {
   // open file and read lines
@@ -208,7 +208,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 void
-split_video_input
+video_input_split
 ::close()
 {
 }
@@ -216,7 +216,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 bool
-split_video_input
+video_input_split
 ::end_of_video() const
 {
   return d->d_at_eov;
@@ -225,7 +225,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 bool
-split_video_input
+video_input_split
 ::good() const
 {
   // This could use a more nuanced approach
@@ -235,7 +235,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 bool
-split_video_input
+video_input_split
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               uint32_t                  timeout ) // not supported
 {
@@ -258,12 +258,12 @@ split_video_input
   }
 
   return image_stat && meta_stat;;
-} // split_video_input::next_frame
+} // video_input_split::next_frame
 
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
-split_video_input
+video_input_split
 ::frame_image()
 {
   return d->d_image_reader->frame_image();
@@ -272,7 +272,7 @@ split_video_input
 
 // ------------------------------------------------------------------
 kwiver::vital::video_metadata_vector
-split_video_input
+video_input_split
 ::frame_metadata()
 {
   return d->d_metadata_reader->frame_metadata();
