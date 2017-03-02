@@ -39,6 +39,7 @@
 #include <opencv2/core/core.hpp>
 
 #include <string>
+#include <sstream>
 
 #ifdef DARKNET_USE_GPU
 #define GPU
@@ -78,21 +79,6 @@ public:
     , m_probs( 0 )
   { }
 
-  // copy CTOR
-  priv(const priv& other_obj)
-    : m_net_config( other_obj.m_net_config )
-    , m_weight_file( other_obj.m_weight_file )
-    , m_class_names( other_obj.m_class_names )
-    , m_thresh( other_obj.m_thresh )
-    , m_hier_thresh( other_obj.m_hier_thresh )
-    , m_names( other_obj.m_names )
-    , m_net( other_obj.m_net )
-    , m_boxes( other_obj.m_boxes )
-    , m_probs( other_obj.m_probs )
-      //+ other stuff
-    , m_logger( kwiver::vital::get_logger( "arrows.darknet.darknet_detector" ) )
-  { }
-
   ~priv()
   {
     free(m_names);
@@ -116,8 +102,6 @@ public:
 
   box *m_boxes;                   /* detection boxes */
   float **m_probs;                /*  */
-
-  kwiver::vital::logger_handle_t m_logger;
 };
 
 
@@ -129,12 +113,6 @@ darknet_detector()
   // set darknet global GPU index
   gpu_index = d->m_gpu_index;
  }
-
-
-darknet_detector::
-darknet_detector( darknet_detector const& frd )
-  : d( new priv( *frd.d ) )
-{ }
 
 
 darknet_detector::
@@ -220,23 +198,27 @@ check_configuration( vital::config_block_sptr config ) const
 
   if ( net_config.empty() )
   {
-    LOG_ERROR( d->m_logger, "Required net config file not specified" );
+    std::stringstream str;
+    config->print( str );
+    LOG_ERROR( logger(), "Required net config file not specified. Configuration is as follows:\n" << str.str() );
     success = false;
   }
   else if ( ! kwiversys::SystemTools::FileExists( net_config ) )
   {
-    LOG_ERROR( d->m_logger, "net config file \"" << net_config << "\" not found." );
+    LOG_ERROR( logger(), "net config file \"" << net_config << "\" not found." );
     success = false;
   }
 
   if ( class_file.empty() )
   {
-    LOG_ERROR( d->m_logger, "Required class name list file not specified" );
+    std::stringstream str;
+    config->print( str );
+    LOG_ERROR( logger(), "Required class name list file not specified, Configuration is as follows:\n" << str.str() );
     success = false;
   }
   else if ( ! kwiversys::SystemTools::FileExists( class_file ) )
   {
-    LOG_ERROR( d->m_logger, "net config file \"" << class_file << "\" not found." );
+    LOG_ERROR( logger(), "class names file \"" << class_file << "\" not found." );
     success = false;
   }
 
@@ -297,7 +279,7 @@ detect( vital::image_container_sptr image_data ) const
   }
   else
   {
-    LOG_ERROR( d->m_logger, "Internal error - nms == 0" );
+    LOG_ERROR( logger(), "Internal error - nms == 0" );
   }
 
   // -- extract detections and convert to our format --
