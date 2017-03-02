@@ -49,7 +49,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "darknet_detector", kwiver::arrows::darknet::darknet_detector );
+  auto fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Image object detector using darknet" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
