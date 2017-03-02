@@ -197,7 +197,7 @@ ins_data_reader
     resolved_file += "/" + kwiversys::SystemTools::GetFilenameWithoutExtension( line ) + ".txt";
     if ( ! kwiversys::SystemTools::FileExists( resolved_file ) )
     {
-      LOG_DEBUG( m_logger, "Could not find file " << resolved_file
+      LOG_DEBUG( logger(), "Could not find file " << resolved_file
                  <<". This frame will not have any metadata." );
       resolved_file.clear(); // indicate that the metadata file could not be found
     }

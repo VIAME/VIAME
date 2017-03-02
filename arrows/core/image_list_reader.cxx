@@ -295,7 +295,7 @@ image_list_reader
   // still have an image to read
   std::string a_file = *d->m_current_file;
 
-  LOG_DEBUG( m_logger, "reading image from file \"" << a_file << "\"" );
+  LOG_DEBUG( logger(), "reading image from file \"" << a_file << "\"" );
 
   // read image file
   //
