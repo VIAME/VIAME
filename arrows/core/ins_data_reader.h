@@ -56,21 +56,8 @@ public:
   ins_data_reader();
   virtual ~ins_data_reader();
 
-  /// copy constructor
-  ins_data_reader( ins_data_reader const& other );
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "ins_data_reader"; }
-
-  virtual std::string description() const
-  {
-    return "Read image metadata in AFRL ins format. "
-      "The algorithm takes configuration for a directory full of images "
-      "and an associated directory name for the metadata files. These "
-      "metadata files have the same base name as the image files. "
-      "Each metadata file is associated with the image file."
-      ;
-  }
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

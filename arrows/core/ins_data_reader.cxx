@@ -106,17 +106,6 @@ ins_data_reader
 
 
 // ------------------------------------------------------------------
-ins_data_reader
-::ins_data_reader( ins_data_reader const& other )
-  : d( new ins_data_reader::priv() )
-{
-  // copy CTOR
-
-  // TBD
-}
-
-
-// ------------------------------------------------------------------
 vital::config_block_sptr
 ins_data_reader
 ::get_configuration() const

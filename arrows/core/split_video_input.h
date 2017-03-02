@@ -56,18 +56,8 @@ public:
   split_video_input();
   virtual ~split_video_input();
 
-  /// copy constructor
-  split_video_input( split_video_input const& other );
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "split_video_input"; }
-
-  virtual std::string description() const
-  {
-    return "Coordinate two video readers. One reader supplies the image/data stream. "
-      "The other reader supplies the metadata stream."
-      ;
-  }
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

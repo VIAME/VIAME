@@ -104,17 +104,6 @@ image_list_reader
 
 
 // ------------------------------------------------------------------
-image_list_reader
-::image_list_reader( image_list_reader const& other )
-  : d( new image_list_reader::priv() )
-{
-  // copy CTOR
-
-  // TBD
-}
-
-
-// ------------------------------------------------------------------
 vital::config_block_sptr
 image_list_reader
 ::get_configuration() const

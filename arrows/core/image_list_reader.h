@@ -63,18 +63,8 @@ public:
   image_list_reader();
   virtual ~image_list_reader();
 
-  /// copy constructor
-  image_list_reader( image_list_reader const& other );
-
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "image_list"; }
-
-  virtual std::string description() const
-  {
-    return "Read a list of images from a list of file names and presents them in the same way as reading a video. "
-      "The actual algorithm to read an image is specified in the \"image_reader\" config block."
-      ;
-  }
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

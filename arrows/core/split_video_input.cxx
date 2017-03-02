@@ -102,17 +102,6 @@ split_video_input
 
 
 // ------------------------------------------------------------------
-split_video_input
-::split_video_input( split_video_input const& other )
-  : d( new split_video_input::priv )
-{
-  // copy CTOR
-
-  // TBD
-}
-
-
-// ------------------------------------------------------------------
 vital::config_block_sptr
 split_video_input
 ::get_configuration() const
