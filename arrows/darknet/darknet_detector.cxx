@@ -316,21 +316,24 @@ detect( vital::image_container_sptr image_data ) const
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
     bool has_name(false);
 
-    // Iterate over all classes and collect all names over the threshold
+    // Iterate over all classes and collect all names over the threshold, and max score
+    double conf = 0.0;
+
     for ( int class_idx = 0; class_idx < l.classes; ++class_idx )
     {
-      const float prob = d->m_probs[i][class_idx];
+      const double prob = static_cast< double >( d->m_probs[i][class_idx] );
       if ( prob >= d->m_thresh )
       {
         const std::string class_name( d->m_names[class_idx] );
         dot->set_score( class_name, prob );
+        conf = std::max( conf, prob );
         has_name = true;
       }
     } // end for loop over classes
 
     if ( has_name )
     {
-      detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+      detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot ) );
     }
   } // end loop over detections
 
