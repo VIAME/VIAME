@@ -65,17 +65,4 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   vpm.mark_module_as_loaded( module_name );
 }
 
-
-
-// Register core algorithms with the given or global registrar
-int register_algorithms( kwiver::vital::registrar &reg )
-{
-  REGISTRATION_INIT( reg );
-
-  REGISTER_TYPE( viame::faster_rcnn_detector );
-
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
-}
-
 } // end namespace viame

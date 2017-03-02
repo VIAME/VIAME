@@ -1,0 +1,151 @@
+# Multi-Detector CNN Pipeline
+#
+# Runs multiple CNN-based object detectors in the VIAME framework:
+#
+#    (a) Faster R-CNN
+#    (b) YOLOv1
+#    (c) YOLOv2
+#    (d) Scallop-TK
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+# ====================== INPUT FRAME LIST ========================
+process input
+  :: frame_list_input
+  :image_list_file     input_list.txt
+  :frame_time          .03333
+  :image_reader:type   ocv
+
+# ======================== FASTER R-CNN ==========================
+process faster_rcnn
+ :: image_object_detector
+  :detector:type    faster_rcnn_detector
+
+  # Network config, weights, and names
+  :detector:faster_rcnn_detector:prototxt    models/frcnn.prototxt
+  :detector:faster_rcnn_detector:caffe_model models/frcnn.caffemodel
+  :detector:faster_rcnn_detector:class_file  models/names_alt.lbl
+
+  # Other settings
+  :detector:faster_rcnn_detector:use_gpu     true
+  :detector:faster_rcnn_detector:chip_image  false
+  :detector:faster_rcnn_detector:chip_width  544
+  :detector:faster_rcnn_detector:chip_height 544
+  :detector:faster_rcnn_detector:stride      500
+  :detector:faster_rcnn_detector:target_size 900
+
+  # Output layers to use for BBOX formulation
+  :detector:faster_rcnn_detector:roi_layer_str   rois
+  :detector:faster_rcnn_detector:cls_layer_str   cls_prob
+  :detector:faster_rcnn_detector:bbox_layer_str  bbox_pred_b
+
+process faster_rcnn_filter
+  :: detected_object_filter
+  :filter:type   class_probablity_filter
+  :filter:class_probablity_filter:threshold        0.001
+  :filter:class_probablity_filter:keep_all_classes false
+  :filter:class_probablity_filter:keep_classes     fish;scallop
+
+process faster_rcnn_writer
+  :: detected_object_output
+  :file_name     output/faster_rcnn_detections.kw18
+  :writer:type   kw18
+
+connect from input.image
+        to   faster_rcnn.image
+
+connect from faster_rcnn.detected_object_set
+        to   faster_rcnn_filter.detected_object_set
+
+connect from faster_rcnn_filter.detected_object_set
+        to   faster_rcnn_writer.detected_object_set
+
+connect from input.image_file_name
+        to   faster_rcnn_writer.image_file_name
+
+# ========================== YOLO v1 =============================
+
+#process yolo_v1
+#  :: image_object_detector
+#  :detector:type    darknet_detector
+
+#  # Network config, weights, and names
+#  :detector:darknet_detector:net_config   models/model1.cfg
+#  :detector:darknet_detector:weight_file  models/model1_v1.weights
+#  :detector:darknet_detector:class_names  models/names.lbl
+
+#  # Detector parameters
+#  :detector:darknet_detector:thresh       0.100
+#  :detector:darknet_detector:hier_thresh  0.001
+#  :detector:darknet_detector:gpu_index    0
+
+#process yolo_v1_writer
+#  :: detected_object_output
+#  :file_name     output/yolo_v1_detections.kw18
+#  :writer:type   kw18
+
+#connect from input.image
+#        to   yolo_v1.image
+
+#connect from yolo_v1.detected_object_set
+#        to   yolo_v1_writer.detected_object_set
+
+#connect from input.image_file_name
+#        to   yolo_v1_writer.image_file_name
+
+# =========================== YOLO v2 ============================
+
+process yolo_v2
+  :: image_object_detector
+  :detector:type    darknet_detector
+
+  # Network config, weights, and names
+  :detector:darknet_detector:net_config   models/model2.cfg
+  :detector:darknet_detector:weight_file  models/model2.weights
+  :detector:darknet_detector:class_names  models/names.lbl
+
+  # Detector parameters
+  :detector:darknet_detector:thresh       0.100
+  :detector:darknet_detector:hier_thresh  0.001
+  :detector:darknet_detector:gpu_index    0
+
+process yolo_v2_writer
+  :: detected_object_output
+  :file_name     output/yolo_v2_detections.kw18
+  :writer:type   kw18
+
+connect from input.image
+        to   yolo_v2.image
+
+connect from yolo_v2.detected_object_set
+        to   yolo_v2_writer.detected_object_set
+
+connect from input.image_file_name
+        to   yolo_v2_writer.image_file_name
+        
+# ========================== Scallop-TK ==========================
+
+process scallop_tk
+  :: image_object_detector
+  :detector:type    scallop_tk_detector
+  :detector:scallop_tk_detector:config_file models/SYSTEM_SETTINGS
+
+process scallop_tk_writer
+  :: detected_object_output
+  :file_name     output/scallop_tk_detections.kw18
+  :writer:type   kw18
+
+connect from input.image
+        to   scallop_tk.image
+
+connect from scallop_tk.detected_object_set
+        to   scallop_tk_writer.detected_object_set
+
+connect from input.image_file_name
+        to   scallop_tk_writer.image_file_name
+
+# -- end of file --
