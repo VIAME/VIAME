@@ -59,7 +59,10 @@ TODO
 
 - expand help text to be more like a man page.
 - handle processopedia and algo_explorer personalities.
-- add --process flag to list only processes -or- --process name
+
+- make it easy to display one factory (e.g. process) Maybe add flag
+  for finding impl type by regexp.
+
  */
 
 typedef kwiversys::SystemTools ST;
@@ -81,6 +84,8 @@ public:
 
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
+static void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category );
+
 
 //==================================================================
 // Define global program data
@@ -265,6 +270,58 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 }
 
 
+// ------------------------------------------------------------------
+void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category )
+{
+  pe_out() << "\n---- All " << category << " Factories\n";
+
+  kwiver::vital::category_explorer* cat_handler(0);
+  if ( category_map.count( category ) )
+  {
+    cat_handler = category_map[category];
+  }
+
+  VITAL_FOREACH( auto it, plugin_map )
+  {
+    std::string ds = kwiver::vital::demangle( it.first );
+
+    kwiver::vital::plugin_factory_vector_t const& facts = it.second;
+    if (facts.size() == 0)
+    {
+      continue;
+    }
+
+    kwiver::vital::plugin_factory_handle_t const afact = facts[0];
+
+    // We assume that all factories that support an interface all have the same category.
+    std::string cat;
+    if ( ! afact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, cat )
+         || cat != category )
+    {
+      continue;
+    }
+
+    pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
+
+    // Get vector of factories
+    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
+    {
+      if ( cat_handler )
+      {
+        cat_handler->explore( fact );
+        continue;
+      }
+
+      // Default display for factory
+      display_factory( fact );
+
+    } // end foreach factory
+  } // end interface type
+
+  pe_out() << std::endl;
+}
+
+
 //+ Move this into the context class so it is available to all plugins.
 //+ Don't forget to wrap the description text.
 // ------------------------------------------------------------------
@@ -380,13 +437,15 @@ main( int argc, char* argv[] )
     const std::string prog_name( argv[0] );
 
     // Check to see if we are running under a sanctioned alias
-    if ( prog_name.find( "processopedia" ) )
+    if ( prog_name.find( "processopedia" ) != std::string::npos )
     {
       program_personality = prog_processopedia;
+      G_context.opt_process = true;
     }
-    else if ( prog_name.find( "algo_explorer" ) )
+    else if ( prog_name.find( "algo_explorer" ) != std::string::npos )
     {
       program_personality = prog_alog_explorer;
+      G_context.opt_algo = true;
     }
   }
 
@@ -405,25 +464,27 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
   G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
   G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
   G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
-  G_context.m_args.AddArgument( "--algorithms", argT::NO_ARGUMENT, &G_context.opt_algo, "Display all algorithms" );
+  G_context.m_args.AddArgument( "--algorithm", argT::NO_ARGUMENT, &G_context.opt_algo, "Display all algorithms" );
+  G_context.m_args.AddArgument( "--process",   argT::NO_ARGUMENT, &G_context.opt_process, "Display all algorithms" );
+  G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Display all algorithms" );
 
   std::vector< std::string > filter_args;
   G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
-                                "Filter factories based on attribute name and value. Only two fields must follow: <attr-name> <attr-value>" );
+                                "Filter factories based on attribute name and value. "
+                                "Only two fields must follow: <attr-name> <attr-value>" );
 
   G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary, "Display summary of factories" );
 
   G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
                                 "Display raw attributes for factories without calling any category specific plugins" );
 
-
-  //+ add options for:
-  // schedulers only
+    G_context.m_args.AddArgument( "--load", argT::SPACE_ARGUMENT, &G_context.opt_load_module,
+                                  "Load only specified plugin file for inspection." );
 
   // Save some time by not loading the plugins if we know we will not
   // be using them.
@@ -432,6 +493,13 @@ main( int argc, char* argv[] )
     load_explorer_plugins( DEFAULT_MODULE_PATHS );
   }
 
+  // See if there are no args specified. If so, then default to full listing
+  if ( argc == 1 )
+  {
+    G_context.opt_all = true;
+  }
+
+  // Parse args
   if ( ! G_context.m_args.Parse() )
   {
     std::cerr << "Problem parsing arguments" << std::endl;
@@ -490,27 +558,23 @@ main( int argc, char* argv[] )
     return 1;
   }
 
-  // ========
-  // auto vpm = std::make_shared<local_manager>();
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  //+ test for one of --algorithm or --process allowed
 
-    new local_manager();
+  // ========
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   char** newArgv = 0;
   int newArgc = 0;
   G_context.m_args.GetUnusedArguments(&newArgc, &newArgv);
 
   // Look for plugin file name from command line
-  if ( newArgc > 1 )
+  if ( ! G_context.opt_load_module.empty() )
   {
     // Load file on command line
-    local_manager* ll = dynamic_cast< local_manager* >(&vpm);
+    local_manager* ll = new(&vpm) local_manager;
     auto loader = ll->loader();
 
-    for ( int i = 1; i < newArgc; ++i )
-    {
-      loader->load_plugin( newArgv[i] );
-    }
+    loader->load_plugin( G_context.opt_load_module );
   }
   else
   {
@@ -547,62 +611,24 @@ main( int argc, char* argv[] )
     pe_out() << std::endl;
   }
 
-  //+ test for program personalities
-  // - processopedia
-  //      select category == process
-  //      -or- just extract the list of processes from the vpm
-  //      Needs to display processes and schedulers
-  //
-  // - algo_explorer
-  //+ TBD
-
   // ------------------------------------------------------------------
   // See if just algo's are selected
   if ( G_context.opt_algo )
   {
     auto plugin_map = vpm.plugin_map();
+    display_by_category( plugin_map, "algorithm" );
+  }
 
-    pe_out() << "\n---- All Algorithm Factories\n";
+  else if ( G_context.opt_process )
+  {
+    auto plugin_map = vpm.plugin_map();
+    display_by_category( plugin_map, "process" );
+  }
 
-    kwiver::vital::category_explorer* cat_handler(0);
-    if ( category_map.count( "algorithm" ) )
-    {
-      cat_handler = category_map["algorithm"];
-    }
-
-    VITAL_FOREACH( auto it, plugin_map )
-    {
-      std::string ds = kwiver::vital::demangle( it.first );
-
-      kwiver::vital::plugin_factory_vector_t const& facts = it.second;
-      kwiver::vital::plugin_factory_handle_t const afact = facts[0];
-
-      // We assume that all factories that support an interface all have the same category.
-      std::string category;
-      if ( ! afact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category )
-           || category != "algorithm" )
-      {
-        continue;
-      }
-
-      pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
-
-      // Get vector of factories
-      VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
-      {
-        if ( cat_handler )
-        {
-          cat_handler->explore( fact );
-          continue;
-        }
-
-        // Default display for factory
-        display_factory( fact );
-
-      } // end foreach factory
-    } // end interface type
-
-    pe_out() << std::endl;
+  else if ( G_context.opt_scheduler )
+  {
+    auto plugin_map = vpm.plugin_map();
+    display_by_category( plugin_map, "scheduler" );
   }
 
   // ------------------------------------------------------------------
