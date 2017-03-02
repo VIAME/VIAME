@@ -36,8 +36,8 @@
 #include <test_common.h>
 
 #include <arrows/core/image_list_reader.h>
-#include <arrows/vxl/register_algorithms.h>
 #include <vital/vital_foreach.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
@@ -52,7 +52,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(2);
 
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
   kwiver::vital::path_t data_dir( argv[2] );
