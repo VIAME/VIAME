@@ -13,3 +13,4 @@ kwiver_discover_tests(core_feature_descriptor_io        test_libraries test_feat
 kwiver_discover_tests(core_interpolate_camera           test_libraries test_interpolate_camera.cxx)
 
 kwiver_discover_tests(core_detected_object_io           test_libraries test_detected_object_io.cxx)
+kwiver_discover_tests(core_dynamic_configuration        test_libraries test_dynamic_config.cxx)

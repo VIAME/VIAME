@@ -56,6 +56,7 @@
 #include <arrows/core/detected_object_set_output_kw18.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
+#include <arrows/core/dynamic_config_none.h>
 
 namespace kwiver {
 namespace arrows {
@@ -218,9 +219,19 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
+  fact = vpm.ADD_ALGORITHM( "none", kwiver::arrows::core::dynamic_config_none );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Null implementation of dynamic_configuration.\n\n"
+                       "This algorithm always returns an empty configuration block.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
   fact = vpm.ADD_ALGORITHM( "kw18", kwiver::arrows::core::detected_object_set_input_kw18 );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Detected object set reader using kw18 format.\n"
+                       "Detected object set reader using kw18 format.\n\n"
                        "  - Column(s) 1: Track-id\n"
                        "  - Column(s) 2: Track-length (# of detections)\n"
                        "  - Column(s) 3: Frame-number (-1 if not available)\n"
@@ -240,7 +251,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_ALGORITHM( "kw18", kwiver::arrows::core::detected_object_set_output_kw18 );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Detected object set writer using kw18 format.\n"
+                       "Detected object set writer using kw18 format.\n\n"
                        "  - Column(s) 1: Track-id\n"
                        "  - Column(s) 2: Track-length (# of detections)\n"
                        "  - Column(s) 3: Frame-number (-1 if not available)\n"
@@ -260,7 +271,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_ALGORITHM( "csv", kwiver::arrows::core::detected_object_set_input_csv );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Detected object set reader using CSV format.\n"
+                       "Detected object set reader using CSV format.\n\n"
                        " - 1: frame number\n"
                        " - 2: file name\n"
                        " - 3: TL-x\n"
@@ -278,7 +289,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_ALGORITHM( "csv", kwiver::arrows::core::detected_object_set_output_csv );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Detected object set reader using CSV format.\n"
+                       "Detected object set reader using CSV format.\n\n"
                        " - 1: frame number\n"
                        " - 2: file name\n"
                        " - 3: TL-x\n"

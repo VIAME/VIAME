@@ -66,6 +66,7 @@ CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Proces
 OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
 MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
 
+option( KWIVER_ENABLE_EXTRAS "Enable extras content" OFF )
 
 ## TODO: How should pytgon and c lib interact?
 OPTION( KWIVER_ENABLE_C_BINDINGS     "Enable C bindings libraries" OFF)
@@ -230,6 +231,10 @@ endif()
 
 if (KWIVER_ENABLE_SPROKIT)
   add_subdirectory(sprokit)
+endif()
+
+if (KWIVER_ENABLE_EXTRAS)
+  add_subdirectory(extras)
 endif()
 
 ###

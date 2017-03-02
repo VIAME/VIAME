@@ -232,9 +232,6 @@ algorithm
   const std::string qualified_name = type_name + ":" + iname;
 
   // Need a real algorithm object to check with
-
-  // if ( ! registrar::instance().find< algorithm > ( qualified_name )->check_configuration(
-  //        config->subblock_view( name + config_block::block_sep + iname ) ) )
   try
   {
     if ( ! create_algorithm( type_name, iname )->check_configuration(

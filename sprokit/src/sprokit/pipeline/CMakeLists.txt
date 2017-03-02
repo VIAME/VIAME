@@ -8,6 +8,7 @@ set(pipeline_srcs
   pipeline_exception.cxx
   process.cxx
   process_factory.cxx
+  process_instrumentation.cxx
   process_exception.cxx
   process_cluster.cxx
   process_cluster_exception.cxx
@@ -19,7 +20,8 @@ set(pipeline_srcs
   stamp.cxx
   types.cxx
   utils.cxx
-  version.cxx)
+  version.cxx
+  )
 
 set(pipeline_headers
   datum.h
@@ -30,6 +32,7 @@ set(pipeline_headers
   pipeline_exception.h
   process.h
   process_factory.h
+  process_instrumentation.h
   process_exception.h
   process_cluster.h
   process_cluster_exception.h
@@ -41,7 +44,8 @@ set(pipeline_headers
   stamp.h
   types.h
   utils.h
-  version.h)
+  version.h
+  )
 
 set(pipeline_private_headers)
 
@@ -69,24 +73,32 @@ set(utils_build_options)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/thread_naming.cmake")
 
-list(APPEND utils_build_options
-  ${thread_naming_defines})
+list(APPEND utils_build_options       ${thread_naming_defines})
 
 set_source_files_properties(utils.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${utils_build_options}")
 
+###
 set(scheduler_build_options)
 
 # XXX(Boost): 1.50.0
 if (Boost_VERSION LESS 105000)
-  list(APPEND scheduler_build_options
-    BOOST_NO_HAVE_REVERSE_LOCK)
+  list(APPEND scheduler_build_options        BOOST_NO_HAVE_REVERSE_LOCK)
 endif ()
 
 set_source_files_properties(scheduler.cxx
   PROPERTIES
-    COMPILE_DEFINITIONS "${scheduler_build_options}")
+  COMPILE_DEFINITIONS "${scheduler_build_options}")
+
+###
+set(SPROKIT_DEFAULT_EDGE_CAPACITY "40"
+  CACHE STRING "The default capacity for pipeline edges. O is unlmited buffering." )
+mark_as_advanced( SPROKIT_DEFAULT_EDGE_CAPACITY )
+
+set_source_files_properties(edge.cxx
+  PROPERTIES
+  COMPILE_DEFINITIONS "SPROKIT_DEFAULT_EDGE_CAPACITY=${SPROKIT_DEFAULT_EDGE_CAPACITY}" )
 
 sprokit_private_header_group(${pipeline_private_headers})
 

@@ -105,9 +105,15 @@ algo_explorer::
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
   descrip = m_context->wrap_text( descrip );
 
- m_context->output_stream()  << "---------------------\n"
-                             << "Info on algorithm type \"" << type << "\" implementation \"" << impl << "\""
-                             << std::endl;
+  if ( m_context->if_brief() )
+  {
+    m_context->output_stream() << indent << type << ":" << impl << std::endl;
+    return;
+  }
+
+  m_context->output_stream()  << "---------------------\n"
+                              << "Info on algorithm type \"" << type << "\" implementation \"" << impl << "\""
+                              << std::endl;
 
   m_context->display_attr( fact );
 

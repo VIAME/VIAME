@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,70 +28,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
-#define VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+/**
+ * \file
+ * \brief Implementation for process instrumentation.
+ */
 
-#include <vital/util/wrap_text_block.h>
-#include <functional>
+#include "process_instrumentation.h"
 
-namespace kwiver {
-namespace vital {
+namespace sprokit {
 
-class kwiver::vital::explorer_context::priv
+process_instrumentation::
+process_instrumentation()
+  : m_process( 0 )
+{ }
+
+
+process_instrumentation::
+~process_instrumentation()
+{ }
+
+
+void
+process_instrumentation::
+set_process( sprokit::process const& proc )
 {
-public:
-  priv();
-  ~priv();
-
-  // Collected command line args
-  kwiversys::CommandLineArguments m_args;
-
-  // Global options
-  bool opt_config;
-  bool opt_detail;
-  bool opt_help;
-  bool opt_path_list;
-  bool opt_brief;
-  bool opt_modules;
-  bool opt_files;
-  bool opt_all;
-  bool opt_algo;
-  bool opt_summary;
-  bool opt_attrs;
-
-  std::ostream* m_out_stream;
-
-  std::vector< std::string > opt_path;
-
-  // Used to wrap large text blocks
-  kwiver::vital::wrap_text_block m_wtb;
-
-  // Fields used for filtering attributes
-  bool opt_attr_filter;
-  std::string opt_filter_attr;    // attribute name
-  std::string opt_filter_regex;   // regex for attr value to match.
-
-  // internal option for factory filtering
-  bool opt_fact_filt;
-  std::string opt_fact_regex;
-
-  std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
-};
+  m_process = &proc;
+}
 
 
-// ==================================================================
-class context_factory
-  : public explorer_context
-{
-public:
-  // -- CONSTRUCTORS --
-  context_factory(kwiver::vital::explorer_context::priv* pp)
-    : explorer_context( pp )
-  { }
+void
+process_instrumentation::
+configure( kwiver::vital::config_block_sptr const config )
+{ }
 
-}; // end class context_factory
-
-
-} } // end namespace
-
-#endif // VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+} // end namespace sprokit

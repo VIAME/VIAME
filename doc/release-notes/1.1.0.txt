@@ -55,6 +55,9 @@ Arrows - Core
    first time the ratio of reversed to non-reversed RMSE is within a threshold.
    Necker revsersal is only attempted once.  It is either needed or not.
 
+ * Added default version of dynamic_configuration which always returns
+   an empty config block.
+
 Arrows - OpenCV
 
  * Updated the OpenCV image container functions to handle conversinos between
@@ -63,6 +66,8 @@ Arrows - OpenCV
  * Updated the ocv::image_io algorithm to load images of various pixel types
    and to explicitly apply BGR to RGB conversions instead of hiding those
    color conversions elsewhere (see fixes below).
+
+ * Added implementation for draw_detected_object_set.
 
 Arrows - VXL
 
@@ -128,13 +133,25 @@ Vital
    early.
 
  * Added deep copy support to detected object sets and contained
-   classes. These class are detected_object_Set, detected_object and
+   classes. These class are detected_object_set, detected_object and
    attribute_set.
 
  * Added unified module loader to handle algorithms, processes,
    clusters, and ad-hoc modules. The plugin_explorer tool has been
    expanded to better handle the different plugin types and streamline
    its use as a reference source.
+
+ * Added abstract algorithm for draw_detected_object_set. This
+   provides an interface for drawing the outlines for detected
+   objects.
+
+ * Added abstract algorithm to support dynamic configuration
+   values. An implementation of this intrerface would provide updated
+   config values at run time. The use case for this algorithm is
+   situations where an external real-time control (e.g. a GUI control)
+   is used to vary an algorithm configuration value and the algorithm
+   is to respond in real-time. A typical parameter that could be
+   varied in this manner would be a threshold or a scaling value.
 
 
 Sprokit
@@ -158,6 +175,14 @@ Sprokit
 
  * Removed process and cluster loaders. Updated process registry files
    to use the new process loader approach.
+
+ * Added CMake option to specify the default edge capacity at compile
+   time. The old default was for unlimited edge capacity which does
+   not work well for large data sets. The edge capacity can also be
+   set in the pipeline file, but this option provides a system wide
+   default.
+
+ * Added process to wrap draw_detected_object_set algorithm.
 
 
 Vital Bindings

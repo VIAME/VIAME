@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of Pass-through convert_image
- */
-
-#include "convert_image_bypass.h"
+#include <vital/algo/algorithm.txx>
+#include <vital/algo/draw_detected_object_set.h>
 
 namespace kwiver {
-namespace arrows {
-namespace core {
+namespace vital {
+namespace algo {
 
-/// Default Constructor
-convert_image_bypass
-::convert_image_bypass()
+draw_detected_object_set
+::draw_detected_object_set()
 {
-
+  attach_logger( "draw_detected_object_set" );
 }
 
-/// Default image converter ( does nothing )
-vital::image_container_sptr
-convert_image_bypass
-::convert(vital::image_container_sptr img) const
-{
-  return img;
-}
+} } }
 
-} // end namespace core
-} // end namespace arrows
-} // end namespace kwiver
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::draw_detected_object_set);

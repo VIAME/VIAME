@@ -38,6 +38,7 @@ kwiver_install_headers(
   SUBDIR sprokit/processes
   )
 
+if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( process_explorer_plugin
@@ -50,3 +51,4 @@ kwiver_add_plugin( process_explorer_plugin
            kwiversys
            sprokit_pipeline
            explorer_plugin )
+endif()

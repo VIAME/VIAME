@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,70 +28,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
-#define VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+/**
+ * \file
+ * \brief Header for draw_detected_object_set
+ */
 
-#include <vital/util/wrap_text_block.h>
-#include <functional>
+#ifndef VITAL_ALGO_DRAW_DETECTED_OBJECT_SET_H
+#define VITAL_ALGO_DRAW_DETECTED_OBJECT_SET_H
+
+#include <vital/vital_config.h>
+
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
+#include <vital/types/detected_object_set.h>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-class kwiver::vital::explorer_context::priv
+/// An abstract base class for algorithms which draw tracks on top of
+/// images in various ways, for analyzing results.
+class VITAL_EXPORT draw_detected_object_set
+  : public kwiver::vital::algorithm_def<draw_detected_object_set>
 {
 public:
-  priv();
-  ~priv();
 
-  // Collected command line args
-  kwiversys::CommandLineArguments m_args;
+  /// Return the name of this algorithm.
+  static std::string static_type_name() { return "draw_detected_object_set"; }
 
-  // Global options
-  bool opt_config;
-  bool opt_detail;
-  bool opt_help;
-  bool opt_path_list;
-  bool opt_brief;
-  bool opt_modules;
-  bool opt_files;
-  bool opt_all;
-  bool opt_algo;
-  bool opt_summary;
-  bool opt_attrs;
+  /// Draw detected object boxes on Image.
+  /**
+   * This method draws the detections on a copy of the image. The
+   * input image is unmodified. The actual boxes that are drawn are
+   * controlled by the configuration for the implementation.
+   *
+   * @param detected_set Set of detected objects
+   * @param image Boxes are drawn in this image
+   *
+   * @return Image with boxes and other annotations added.
+   */
+  virtual kwiver::vital::image_container_sptr
+    draw( kwiver::vital::detected_object_set_sptr detected_set,
+          kwiver::vital::image_container_sptr image ) = 0;
 
-  std::ostream* m_out_stream;
+protected:
+  draw_detected_object_set();
 
-  std::vector< std::string > opt_path;
-
-  // Used to wrap large text blocks
-  kwiver::vital::wrap_text_block m_wtb;
-
-  // Fields used for filtering attributes
-  bool opt_attr_filter;
-  std::string opt_filter_attr;    // attribute name
-  std::string opt_filter_regex;   // regex for attr value to match.
-
-  // internal option for factory filtering
-  bool opt_fact_filt;
-  std::string opt_fact_regex;
-
-  std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
 };
 
+/// A smart pointer to a draw_tracks instance.
+typedef std::shared_ptr<draw_detected_object_set> draw_detected_object_set_sptr;
 
-// ==================================================================
-class context_factory
-  : public explorer_context
-{
-public:
-  // -- CONSTRUCTORS --
-  context_factory(kwiver::vital::explorer_context::priv* pp)
-    : explorer_context( pp )
-  { }
+} } } // end namespace
 
-}; // end class context_factory
-
-
-} } // end namespace
-
-#endif // VITAL_TOOLS_EXPLORER_CONTEXT_PRIV_H
+#endif // VITAL_ALGO_DRAW_DETECTED_OBJECT_SET_H

@@ -15,12 +15,14 @@ set( public_headers
   close_loops.h
   compute_ref_homography.h
   convert_image.h
+  detect_features.h
   detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
-  detect_features.h
   detection_refiner.h
+  draw_detected_object_set.h
   draw_tracks.h
+  dynamic_configuration.h
   estimate_canonical_transform.h
   estimate_essential_matrix.h
   estimate_fundamental_matrix.h
@@ -51,12 +53,14 @@ set( sources
   close_loops.cxx
   compute_ref_homography.cxx
   convert_image.cxx
+  detect_features.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
-  detect_features.cxx
   detection_refiner.cxx
+  draw_detected_object_set.cxx
   draw_tracks.cxx
+  dynamic_configuration.cxx
   estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
@@ -105,6 +109,7 @@ target_link_libraries( vital_algo
                   vital_vpm
   )
 
+if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( algo_explorer_plugin
@@ -115,3 +120,4 @@ kwiver_add_plugin( algo_explorer_plugin
            vital_config
            vital_algo
            explorer_plugin )
+endif()

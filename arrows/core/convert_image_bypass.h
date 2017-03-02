@@ -53,12 +53,6 @@ public:
    /// Default Constructor
   convert_image_bypass();
 
-  /// Copy Constructor
-  convert_image_bypass(const convert_image_bypass&);
-
-  /// Return descriptive string for this implementation
-  virtual std::string description() const;
-
   /// Default image converter ( does nothing )
   /**
    * \param [in] img image to be converted
