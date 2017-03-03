@@ -232,7 +232,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "hough_circle_detector", kwiver::arrows::ocv::hough_circle_detector );
+  fact = vpm.ADD_ALGORITHM( "hough_circle", kwiver::arrows::ocv::hough_circle_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
