@@ -38,6 +38,14 @@ if( VIAME_ENABLE_VIVIA )
   )
 endif()
 
+if( VIAME_ENABLE_KWANT )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_TinyXML:BOOL=ON
+    -Dfletch_ENABLE_libjson:BOOL=ON
+  )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
