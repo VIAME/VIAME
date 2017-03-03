@@ -152,7 +152,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Reads an image file given the file name." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_intput_process );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_input_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_input" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
