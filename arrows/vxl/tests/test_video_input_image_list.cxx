@@ -35,7 +35,7 @@
 
 #include <test_common.h>
 
-#include <arrows/core/image_list_reader.h>
+#include <arrows/core/video_input_image_list.h>
 #include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -70,18 +70,18 @@ IMPLEMENT_TEST(read_list)
   auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "image_reader:type", "vxl" );
 
-  kwiver::arrows::core::image_list_reader ilr;
+  kwiver::arrows::core::video_input_image_list viil;
 
-  ilr.check_configuration( config );
-  ilr.set_configuration( config );
+  viil.check_configuration( config );
+  viil.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/image_list.txt";
-  ilr.open( list_file );
+  viil.open( list_file );
 
   kwiver::vital::timestamp ts;
   int expected_frame(1);
 
-  while ( ilr.next_frame( ts ) )
+  while ( viil.next_frame( ts ) )
   {
     TEST_EQUAL( "Returned expected frame", ts.get_frame(), expected_frame );
     ++expected_frame;
@@ -96,12 +96,12 @@ IMPLEMENT_TEST(test_capabilities)
   auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "image_reader:type", "vxl" );
 
-  kwiver::arrows::core::image_list_reader ilr;
+  kwiver::arrows::core::video_input_image_list viil;
 
-  ilr.check_configuration( config );
-  ilr.set_configuration( config );
+  viil.check_configuration( config );
+  viil.set_configuration( config );
 
-  auto cap = ilr.get_implementation_capabilities();
+  auto cap = viil.get_implementation_capabilities();
   auto cap_list = cap.capability_list();
 
   VITAL_FOREACH( auto one, cap_list )
@@ -121,22 +121,22 @@ IMPLEMENT_TEST(read_list_subset)
   // Select the actual image reader
   config->set_value( "image_reader:type", "vxl" );
 
-  // Specify frame range to image_list_reader
+  // Specify frame range to video_input_image_list
   config->set_value( "start_at_frame", "2" );
   config->set_value( "stop_after_frame", "2" );
 
-  kwiver::arrows::core::image_list_reader ilr;
+  kwiver::arrows::core::video_input_image_list viil;
 
-  ilr.check_configuration( config );
-  ilr.set_configuration( config );
+  viil.check_configuration( config );
+  viil.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/image_list.txt";
-  ilr.open( list_file );
+  viil.open( list_file );
 
   kwiver::vital::timestamp ts;
   int expected_frame(2);
 
-  while ( ilr.next_frame( ts ) )
+  while ( viil.next_frame( ts ) )
   {
     TEST_EQUAL( "Returned expected frame", ts.get_frame(), expected_frame );
     ++expected_frame;

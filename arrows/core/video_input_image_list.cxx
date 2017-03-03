@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "image_list_reader.h"
+#include "video_input_image_list.h"
 
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
@@ -50,7 +50,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class image_list_reader::priv
+class video_input_image_list::priv
 {
 public:
   priv()
@@ -79,11 +79,11 @@ public:
 
 
 // ------------------------------------------------------------------
-image_list_reader
-::image_list_reader()
-  : d( new image_list_reader::priv )
+video_input_image_list
+::video_input_image_list()
+  : d( new video_input_image_list::priv )
 {
-  attach_logger( "image_list_reader" );
+  attach_logger( "video_input_image_list" );
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
@@ -97,15 +97,15 @@ image_list_reader
 
 
 // ------------------------------------------------------------------
-image_list_reader
-::~image_list_reader()
+video_input_image_list
+::~video_input_image_list()
 {
 }
 
 
 // ------------------------------------------------------------------
 vital::config_block_sptr
-image_list_reader
+video_input_image_list
 ::get_configuration() const
 {
   // get base config from base class
@@ -140,7 +140,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 void
-image_list_reader
+video_input_image_list
 ::set_configuration( vital::config_block_sptr in_config )
 {
   vital::config_block_sptr config = this->get_configuration();
@@ -173,7 +173,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 bool
-image_list_reader
+video_input_image_list
 ::check_configuration( vital::config_block_sptr config ) const
 {
   // Check the reader configuration.
@@ -183,7 +183,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 void
-image_list_reader
+video_input_image_list
 ::open( std::string list_name )
 {
   // open file and read lines
@@ -242,7 +242,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 void
-image_list_reader
+video_input_image_list
 ::close()
 {
   // Nothing to do here
@@ -251,7 +251,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 bool
-image_list_reader
+video_input_image_list
 ::end_of_video() const
 {
   return ( d->m_current_file == d->m_end );
@@ -260,7 +260,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 bool
-image_list_reader
+video_input_image_list
 ::good() const
 {
   // This could use a more nuanced approach
@@ -270,7 +270,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 bool
-image_list_reader
+video_input_image_list
 ::next_frame( kwiver::vital::timestamp& ts,
               uint32_t                  timeout )
 {
@@ -317,7 +317,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
-image_list_reader
+video_input_image_list
 ::frame_image()
 {
   return d->m_image;
@@ -326,7 +326,7 @@ image_list_reader
 
 // ------------------------------------------------------------------
 kwiver::vital::video_metadata_vector
-image_list_reader
+video_input_image_list
 ::frame_metadata()
 {
   // There is no metadata available at this time.  Capability shows

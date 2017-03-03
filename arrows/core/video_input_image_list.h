@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_IMAGE_LIST_READER_H
-#define ARROWS_CORE_IMAGE_LIST_READER_H
+#ifndef ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H
+#define ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H
 
 #include <vital/algo/video_input.h>
 
@@ -55,13 +55,13 @@ namespace core {
  *   start_at_frame = 2
  *   stop_after_frame = 2
  */
-class KWIVER_ALGO_CORE_EXPORT image_list_reader
-  : public vital::algorithm_impl < image_list_reader, vital::algo::video_input >
+class KWIVER_ALGO_CORE_EXPORT video_input_image_list
+  : public vital::algorithm_impl < video_input_image_list, vital::algo::video_input >
 {
 public:
   /// Constructor
-  image_list_reader();
-  virtual ~image_list_reader();
+  video_input_image_list();
+  virtual ~video_input_image_list();
 
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "image_list"; }
@@ -103,4 +103,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_IMAGE_LIST_READER_H */
+#endif /* ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H */
