@@ -38,8 +38,6 @@
 #include <vital/algo/detected_object_filter.h>
 #include <vital/types/image_container.h>
 
-#include <opencv2/core/core.hpp>
-
 #include <utility>
 #include <set>
 
