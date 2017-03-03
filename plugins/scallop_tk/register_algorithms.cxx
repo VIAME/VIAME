@@ -51,8 +51,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "habcam",             viame::scallop_tk_detector );
+  // add factory              implementation-name                 type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "scallop_tk",             viame::scallop_tk_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Uses scallop_tk to detect scallops.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )

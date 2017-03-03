@@ -53,7 +53,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "hello_world_detector", viame::hello_world_detector );
+  auto fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Hello world detector.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )

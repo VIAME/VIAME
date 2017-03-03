@@ -52,7 +52,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "faster_rcnn_detector", viame::faster_rcnn_detector );
+  auto fact = vpm.ADD_ALGORITHM( "faster_rcnn", viame::faster_rcnn_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Faster RCNN Detector")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
