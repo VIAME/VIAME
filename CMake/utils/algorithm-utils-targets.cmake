@@ -69,7 +69,6 @@ function(algorithms_create_plugin    base_lib)
   # create module library given generated source, linked to given library
   set(library_subdir /modules)
   set(no_version ON)
-  set(no_export_header ON)
 
   kwiver_add_plugin( ${plugin_name}
     SOURCES  ${ARGN}

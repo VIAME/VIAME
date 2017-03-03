@@ -33,18 +33,17 @@
  * \brief PROJ algorithm registration implementation
  */
 
-#include <arrows/proj/kwiver_algo_proj_export.h>
+#include <arrows/proj/kwiver_algo_proj_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/proj/geo_map.h>
-
 
 namespace kwiver {
 namespace arrows {
 namespace proj {
 
 extern "C"
-KWIVER_ALGO_PROJ_EXPORT
+KWIVER_ALGO_PROJ_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
