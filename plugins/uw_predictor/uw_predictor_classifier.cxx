@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <vital/vital_foreach.h>
+
 #include "util.h"
 #include "classHierarchy.h"
 #include "SpeciesIDLib.h"
@@ -64,12 +66,6 @@ public:
 uw_predictor_classifier::
 uw_predictor_classifier()
   : d( new priv )
-{}
-
-
-uw_predictor_classifier::
-  uw_predictor_classifier( const uw_predictor_classifier& other )
-  : d( new priv( *other.d ) )
 {}
 
 

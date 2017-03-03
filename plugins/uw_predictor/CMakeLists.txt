@@ -6,7 +6,6 @@ find_package( OpenCV REQUIRED )
 set( plugin_headers
   classHierarchy.h
 #  highgui.h
-  register_algorithms.h
 #  util.h
 #  cv.h
   uw_predictor_classifier.h
@@ -19,10 +18,7 @@ set( plugin_headers
   )
 
 set( plugin_sources
-  algorithm_plugin_interface.cxx
-  register_algorithms.cxx
   uw_predictor_classifier.cxx
-
   classHierarchy.cpp
   FGObject.cpp
   SpeciesIDLib.cpp
@@ -30,8 +26,6 @@ set( plugin_sources
   FGExtraction.cpp
   parameters.cpp
   util.cpp
-
-  register_algorithms.h    register_algorithms.cxx
   )
 
 kwiver_install_headers(
@@ -55,5 +49,5 @@ target_link_libraries( viame_uw_predictor
   )
 
 algorithms_create_plugin( viame_uw_predictor
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )

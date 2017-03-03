@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,37 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include "hello_world_detector.h"
-#include "register_algorithms.h"
+#include <plugins/hello_world/viame_hello_world_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <arrows/algorithm_plugin_interface.h>
-#include <arrows/algorithm_plugin_interface_macros.h>
-#include <vital/registrar.h>
+#include "hello_world_detector.h"
+
 
 namespace viame {
 
-// Register core algorithms with the given or global registrar
-int register_algorithms( kwiver::vital::registrar &reg )
+extern "C"
+VIAME_HELLO_WORLD_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  REGISTRATION_INIT( reg );
+  static auto const module_name = std::string( "viame.hello_world" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
-  REGISTER_TYPE( viame::hello_world_detector );
+  // add factory                  implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_detector );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Hello world detector.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+
+  // - - - - - - -
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace viame

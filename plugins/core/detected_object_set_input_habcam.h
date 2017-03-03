@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,11 +51,7 @@ class VIAME_CORE_EXPORT detected_object_set_input_habcam
 {
 public:
   detected_object_set_input_habcam();
-  detected_object_set_input_habcam( detected_object_set_input_habcam const& other);
   virtual ~detected_object_set_input_habcam();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "habcam"; }
 
   virtual void set_configuration(kwiver::vital::config_block_sptr config);
   virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;

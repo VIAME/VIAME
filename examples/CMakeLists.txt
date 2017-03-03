@@ -15,7 +15,7 @@ if( VIAME_ENABLE_OPENCV )
 
   target_link_libraries( detector1
     PRIVATE    vital
-               vital_algo
+               kwiver_algo_core
                kwiver_algo_ocv
                ${OpenCV_LIBS}
     )
@@ -27,8 +27,8 @@ if( VIAME_ENABLE_OPENCV )
 
   target_link_libraries( detector3
     PRIVATE    vital
-               vital_apm
-               vital_algo
+               vital_vpm
+               kwiver_algo_core
                kwiver_algo_ocv
                ${OpenCV_LIBS}
     )

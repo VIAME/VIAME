@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,7 @@ class VIAME_SCALLOP_TK_EXPORT scallop_tk_detector :
 {
 public:
   scallop_tk_detector();
-  scallop_tk_detector( const scallop_tk_detector& other );
   virtual ~scallop_tk_detector();
-
-  // Set the name of this detector which will appear in any pipeline files
-  virtual std::string impl_name() const { return "scallop_tk_detector"; }
 
   // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;

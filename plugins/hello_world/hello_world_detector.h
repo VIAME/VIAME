@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,11 +43,7 @@ class VIAME_HELLO_WORLD_EXPORT hello_world_detector :
 {
 public:
   hello_world_detector();
-  hello_world_detector( const hello_world_detector& other );
   virtual ~hello_world_detector();
-
-  // Set the name of this detector which will appear in any pipeline files
-  virtual std::string impl_name() const { return "hello_world_detector"; }
 
   // Get the current configuration (parameters) for this detector
   virtual kwiver::vital::config_block_sptr get_configuration() const;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,6 @@ class detected_object_set_input_habcam::priv
 public:
   priv( detected_object_set_input_habcam* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_input_habcam" ) )
     , m_first( true )
     , m_delim( " " )
     , m_point_dilation( 50 )
@@ -80,7 +79,6 @@ public:
 
   // -- initialized data --
   detected_object_set_input_habcam* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
 
   // -- config data --
@@ -104,12 +102,6 @@ detected_object_set_input_habcam()
 {
 }
 
-
-detected_object_set_input_habcam::
-detected_object_set_input_habcam( detected_object_set_input_habcam const& other)
-  : d(new priv(*other.d))
-{
-}
 
 detected_object_set_input_habcam::
 ~detected_object_set_input_habcam()
@@ -268,7 +260,7 @@ add_detection()
     else
     {
       // invalid line format
-      LOG_WARN( m_logger, "Invalid line format for boundingBox annotation" );
+      LOG_WARN( m_parent->logger(), "Invalid line format for boundingBox annotation" );
       return;
     }
   }
@@ -295,7 +287,7 @@ add_detection()
     else
     {
       // invalid line format
-      LOG_WARN( m_logger, "Invalid line format for boundingBox annotation" );
+      LOG_WARN( m_parent->logger(), "Invalid line format for boundingBox annotation" );
       return;
     }
 
@@ -314,14 +306,14 @@ add_detection()
     else
     {
       // invalid line format
-      LOG_WARN( m_logger, "Invalid line format for point annotation" );
+      LOG_WARN( m_parent->logger(), "Invalid line format for point annotation" );
       return;
     }
   }
   else
   {
     // Unknown annotation type
-    LOG_WARN( m_logger, "Unknown annotation type \"" << m_input_buffer[3] << "\"" );
+    LOG_WARN( m_parent->logger(), "Unknown annotation type \"" << m_input_buffer[3] << "\"" );
     return;
   }
 

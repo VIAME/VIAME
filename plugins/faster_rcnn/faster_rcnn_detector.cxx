@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,51 +102,26 @@ public:
   unsigned int m_chip_height;
   unsigned int m_stride;
 
-  // Logger class
-  vital::logger_handle_t m_logger;
-
   // Helper functions
   std::pair< cv::Mat, double > format_image( cv::Mat const& input_image ) const;
   std::vector< Blob<float>* > set_up_inputs( std::pair<cv::Mat, double> const& pair ) const;
 
   // ===============================================================================================
   priv()
-  : m_roi_str( "rois" ),
-    m_cls_str( "cls_prob" ),
-    m_bbox_str( "bbox_pred" ),
-    m_target_size( 100 ),
-    m_max_size( 1000 ),
-    m_pixel_means( 102.9801, 115.9465, 122.7717 ),
-    m_net(),
-    m_use_gpu( false ),
-    m_gpu_id( 0 ),
-    m_use_box_deltas( true ),
-    m_chip_image( false ),
-    m_chip_width( 450 ),
-    m_chip_height( 400 ),
-    m_stride( 375 ),
-    m_logger( vital::get_logger( "vital.algorithm" ) )
-  {}
-
-  priv( priv const& other )
-  : m_prototxt_file( other.m_prototxt_file ),
-    m_class_file( other.m_class_file ),
-    m_caffe_model( other.m_caffe_model ),
-    m_roi_str( other.m_roi_str ),
-    m_cls_str( other.m_cls_str ),
-    m_bbox_str( other.m_bbox_str ),
-    m_target_size( other.m_target_size ),
-    m_max_size( other.m_max_size ),
-    m_pixel_means( other.m_pixel_means ),
-    m_net( other.m_net ),
-    m_use_gpu( other.m_use_gpu ),
-    m_gpu_id( other.m_gpu_id ),
-    m_use_box_deltas( other.m_use_box_deltas ),
-    m_chip_image( other.m_chip_image ),
-    m_chip_width( other.m_chip_width ),
-    m_chip_height( other.m_chip_height ),
-    m_stride( other.m_stride ),
-    m_logger( other.m_logger )
+    : m_roi_str( "rois" ),
+      m_cls_str( "cls_prob" ),
+      m_bbox_str( "bbox_pred" ),
+      m_target_size( 100 ),
+      m_max_size( 1000 ),
+      m_pixel_means( 102.9801, 115.9465, 122.7717 ),
+      m_net(),
+      m_use_gpu( false ),
+      m_gpu_id( 0 ),
+      m_use_box_deltas( true ),
+      m_chip_image( false ),
+      m_chip_width( 450 ),
+      m_chip_height( 400 ),
+      m_stride( 375 )
   {}
 
   ~priv()
@@ -154,19 +129,17 @@ public:
 
 };
 
+
 faster_rcnn_detector::faster_rcnn_detector()
 : d( new priv() )
 {
 }
 
-faster_rcnn_detector::faster_rcnn_detector( faster_rcnn_detector const& frd )
-: d( new priv( *frd.d ) )
-{
-}
 
 faster_rcnn_detector::~faster_rcnn_detector()
 {
 }
+
 
 // ---------------------------------------------------------------------------------------------------
 vital::config_block_sptr
@@ -306,19 +279,19 @@ check_configuration( vital::config_block_sptr config ) const
 
   if( !kwiversys::SystemTools::FileExists( classfile ) )
   {
-    LOG_ERROR( d->m_logger, "class file \"" << classfile << "\" not found." );
+    LOG_ERROR( this->logger(), "classes file \"" << classfile << "\" not found." );
     success = false;
   }
 
   if( !kwiversys::SystemTools::FileExists( prototxt ) )
   {
-    LOG_ERROR( d->m_logger, "prototxt file \"" << prototxt << "\" not found." );
+    LOG_ERROR( this->logger(), "prototxt file \"" << prototxt << "\" not found." );
     success = false;
   }
 
   if( !kwiversys::SystemTools::FileExists( caffemodel ) )
   {
-    LOG_ERROR( d->m_logger, "caffe_model file \"" << caffemodel << "\" not found." );
+    LOG_ERROR( this->logger(), "caffe_model file \"" << caffemodel << "\" not found." );
     success = false;
   }
 
@@ -414,7 +387,7 @@ detect( vital::image_container_sptr image_data ) const
 
     if( roi_dim != 5 )
     {
-      LOG_ERROR( d->m_logger, "Unexpected ROI dimension received" );
+      LOG_ERROR( this->logger(), "Unexpected ROI dimension received" );
       return detected_set;
     }
 
@@ -422,7 +395,7 @@ detect( vital::image_container_sptr image_data ) const
 
     if( rois->num() != probs->num() )
     {
-      LOG_ERROR( d->m_logger, "ROI and probability dimension mismatch" );
+      LOG_ERROR( this->logger(), "ROI and probability dimension mismatch" );
       return detected_set;
     }
 

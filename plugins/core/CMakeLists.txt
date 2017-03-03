@@ -6,8 +6,6 @@ set( plugin_headers
 
 set( plugin_sources
   detected_object_set_input_habcam.cxx
-
-  register_algorithms.h    register_algorithms.cxx
   )
 
 kwiver_install_headers(
@@ -30,7 +28,7 @@ target_link_libraries( viame_core
   )
 
 algorithms_create_plugin( viame_core
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

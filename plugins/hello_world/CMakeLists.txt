@@ -7,8 +7,6 @@ set( plugin_headers
 
 set( plugin_sources
   hello_world_detector.cxx
-
-  register_algorithms.h    register_algorithms.cxx
   )
 
 kwiver_install_headers(
@@ -31,5 +29,5 @@ target_link_libraries( viame_hello_world
   )
 
 algorithms_create_plugin( viame_hello_world
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )

@@ -15,8 +15,6 @@ set( plugin_headers
 
 set( plugin_sources
   scallop_tk_detector.cxx
-
-  register_algorithms.h    register_algorithms.cxx
   )
 
 kwiver_install_headers(
@@ -41,5 +39,5 @@ target_link_libraries( viame_scallop_tk
   )
 
 algorithms_create_plugin( viame_scallop_tk
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )

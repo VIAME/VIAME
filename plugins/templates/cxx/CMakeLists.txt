@@ -7,8 +7,6 @@ set( plugin_headers
 
 set( plugin_sources
   @template@_detector.cxx
-
-  register_algorithms.h    register_algorithms.cxx
   )
 
 kwiver_install_headers(
@@ -31,5 +29,5 @@ target_link_libraries( viame_@template_lib@
   )
 
 algorithms_create_plugin( viame_@template_lib@
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
