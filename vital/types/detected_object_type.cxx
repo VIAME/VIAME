@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,8 +106,7 @@ bool
 detected_object_type::
 has_class_name( const std::string& class_name ) const
 {
-  const std::string* str_ptr = find_string( class_name );
-  return ( 0 != m_classes.count( str_ptr ) );
+  return find_string( class_name, false ) != NULL;
 }
 
 
@@ -232,7 +231,8 @@ size() const
  * This method resolves the supplied string to a pointer to the
  * canonical version in the master set. This is needed because the
  * class_names in this class refer to these strings by address, so we
- * need an address to look up in the map.
+ * need an address to look up in the map. If the string is not found,
+ * there's the option to either return no string or an exception.
  *
  * @param str String to resolve
  *
@@ -240,15 +240,23 @@ size() const
  */
 const std::string*
 detected_object_type::
-find_string( const std::string& str ) const
+find_string( const std::string& str, bool exception ) const
 {
   auto it = s_master_name_set.find( str );
   if ( it == s_master_name_set.end() )
   {
     // Name not associated with any object
-    std::stringstream sstr;
-    sstr << "Class name \"" << str << "\" is not associated with any object";
-    throw std::runtime_error( sstr.str() );
+    if( exception )
+    {
+      std::stringstream sstr;
+      sstr << "Class name \"" << str << "\" is not associated with any object";
+
+      throw std::runtime_error( sstr.str() );
+    }
+    else
+    {
+      return NULL;
+    }
   }
 
   return &(*it);
