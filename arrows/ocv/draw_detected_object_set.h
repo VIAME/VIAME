@@ -50,7 +50,7 @@ namespace ocv {
 
 /// An abstract base class for algorithms which draw tracks on top of
 /// images in various ways, for analyzing results.
-class VITAL_EXPORT draw_detected_object_set
+class KWIVER_ALGO_OCV_EXPORT draw_detected_object_set
   : public vital::algorithm_impl< draw_detected_object_set, vital::algo::draw_detected_object_set>
 {
 public:

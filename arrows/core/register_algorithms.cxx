@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/core/kwiver_algo_core_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/core/class_probablity_filter.h>
@@ -62,7 +62,7 @@ namespace arrows {
 namespace core {
 
 extern "C"
-KWIVER_ALGO_CORE_EXPORT
+KWIVER_ALGO_CORE_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
