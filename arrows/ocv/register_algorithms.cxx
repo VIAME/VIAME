@@ -33,7 +33,7 @@
  * \brief OpenCV algorithm registration implementation
  */
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#include <arrows/ocv/kwiver_algo_ocv_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include <opencv2/opencv_modules.hpp>
@@ -72,7 +72,7 @@ namespace arrows {
 namespace ocv {
 
 extern "C"
-KWIVER_ALGO_OCV_EXPORT
+KWIVER_ALGO_OCV_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
