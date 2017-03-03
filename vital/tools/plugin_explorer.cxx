@@ -96,6 +96,7 @@ static kwiver::vital::logger_handle_t G_logger;
 
 static kwiversys::RegularExpression filter_regex;
 static kwiversys::RegularExpression fact_regex;
+static kwiversys::RegularExpression type_regex;
 
 // This program can have different personalities depending on the name
 // of the executable.  This is to emulate the useful behaviour of
@@ -198,6 +199,13 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, version );
 
   pe_out() << "  Plugin name: " << buf;
+
+  if ( G_context.opt_brief )
+  {
+    pe_out()  << std::endl;
+    return;
+  }
+
   if ( ! version.empty() )
   {
     pe_out() << "      Version: " << version;
@@ -205,14 +213,14 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
 
   pe_out()  << std::endl;
 
-  if ( G_context.opt_brief )
-  {
-    return;
-  }
-
   buf = "-- Not Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
   pe_out() << "      Description: " << G_context.m_wtb.wrap_text( buf );
+
+  if ( ! G_context.opt_detail )
+  {
+    return;
+  }
 
   buf = "-- Not Set --";
   if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
@@ -229,7 +237,7 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, buf );
   pe_out() << "      Plugin module name: " << buf << std::endl;
 
-  if ( G_context.opt_detail )
+  if ( G_context.opt_attrs )
   {
     // print all the rest of the attributes
     print_functor pf( pe_out() );
@@ -464,8 +472,12 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
   G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
+                                "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--type", argT::SPACE_ARGUMENT, &G_context.opt_type_regex,
+                                "Filter factories by instance name based on regexp" );
   G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
+  G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
   G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
@@ -528,6 +540,17 @@ main( int argc, char* argv[] )
     }
   }
 
+  // If a instance type filtering regex specified, then compile it.
+  if ( ! G_context.opt_type_regex.empty() )
+  {
+    G_context.opt_type_filt = true;
+    if ( ! type_regex.compile( G_context.opt_type_regex) )
+    {
+      std::cerr << "Invalid regular expression for instance type filter \"" << G_context.opt_type_regex << "\"" << std::endl;
+      return 1;
+    }
+  }
+
   if ( filter_args.size() > 0 )
   {
     // check for attribute based filtering
@@ -559,6 +582,7 @@ main( int argc, char* argv[] )
   }
 
   //+ test for one of --algorithm or --process allowed
+  //+ test for one of --factory or --type (is this desired?)
 
   // ========
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
@@ -635,6 +659,7 @@ main( int argc, char* argv[] )
   // Generate list of factories of any of these options are selected
   else if ( G_context.opt_all
             || G_context.opt_fact_filt
+            || G_context.opt_type_filt
             || G_context.opt_detail
             || G_context.opt_brief
             || G_context.opt_attr_filter )
@@ -646,6 +671,7 @@ main( int argc, char* argv[] )
     VITAL_FOREACH( auto it, plugin_map )
     {
       std::string ds = kwiver::vital::demangle( it.first );
+      bool first_fact( true );
 
       // If regexp matching is enabled, and this does not match, skip it
       if ( G_context.opt_fact_filt && ( ! fact_regex.find( ds ) ) )
@@ -653,12 +679,21 @@ main( int argc, char* argv[] )
         continue;
       }
 
-      pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
-
       // Get vector of factories
       kwiver::vital::plugin_factory_vector_t const& facts = it.second;
       VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
       {
+        // If regexp matching is enabled, and this does not match, skip it
+        if ( G_context.opt_type_filt )
+        {
+          std::string type_name = "-- Not Set --";
+          if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type_name )
+               || ( ! type_regex.find( type_name ) ) )
+          {
+            continue;
+          }
+        }
+
         // See if there is a category handler for this plugin
         std::string category;
         if ( ! G_context.opt_attrs && fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category ) )
@@ -669,6 +704,12 @@ main( int argc, char* argv[] )
             cat_handler->explore( fact );
             continue;
           }
+        }
+
+        if ( first_fact )
+        {
+          pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
+          first_fact = false;
         }
 
         // Default display for factory
