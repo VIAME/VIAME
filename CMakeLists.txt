@@ -69,7 +69,7 @@ if( VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
 endif()
 
-if( VIAME_ENABLE_VIVIA )
+if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
 
