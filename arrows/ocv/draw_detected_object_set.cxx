@@ -364,14 +364,6 @@ draw_detected_object_set()
 
 
 draw_detected_object_set::
-draw_detected_object_set(const draw_detected_object_set& other)
-  : d( new priv( *other.d ) )
-{
-  d->m_parent = this;
-}
-
-
-draw_detected_object_set::
 ~draw_detected_object_set()
 { }
 
