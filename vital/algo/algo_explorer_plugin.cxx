@@ -107,7 +107,8 @@ algo_explorer::
 
   if ( m_context->if_brief() )
   {
-    m_context->output_stream() << indent << type << ":" << impl << std::endl;
+    m_context->output_stream() << indent << "Algorithm type: "
+                               << type << "   Implementation: " << impl << std::endl;
     return;
   }
 
