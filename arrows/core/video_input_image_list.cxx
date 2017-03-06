@@ -292,16 +292,6 @@ video_input_image_list
   // we are going to pass it downstream using the sptr.
   d->m_image = d->m_image_reader->load( a_file );
 
-  // --- debug
-#if defined DEBUG
-  cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( d->m_image->get_image() );
-  namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
-  imshow( "Display window", image );                   // Show our image inside it.
-
-  waitKey(0);                 // Wait for a keystroke in the window
-#endif
-  // -- end debug
-
   // Return timestamp
   ts = kwiver::vital::timestamp( d->m_frame_time, d->m_frame_number );
 
