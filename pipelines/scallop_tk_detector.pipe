@@ -8,8 +8,8 @@ process input
 # =============================================================================
 process detector
   :: image_object_detector
-  :detector:type                              scallop_tk_detector
-  :detector:scallop_tk_detector:config_file   config_location
+  :detector:type                     scallop_tk
+  :detector:scallop_tk:config_file   config_location
 
 # =============================================================================
 process draw
@@ -19,14 +19,14 @@ process draw
 # =============================================================================
 #process writer
 #  :: detected_object_set_output
-#  :detector:type                              csv
+#  :detector:type                    csv
 
 # =============================================================================
 process disp
   :: view_image
-  :annotate_image         true
-  :pause_time             0  # 1.0
-  :title                  NOAA images
+  :annotate_image      true
+  :pause_time          0  # 1.0
+  :title               NOAA images
 
 # =============================================================================
 # global pipeline config

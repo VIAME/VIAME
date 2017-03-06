@@ -2,7 +2,7 @@
 # Application level pipelines
 ##
 set( VIAME_PIPELINES
-     hello_world_detector.pipe )
+     hello_world.pipe )
 
 if( VIAME_ENABLE_SCALLOP_TK )
   set( VIAME_PIPELINES

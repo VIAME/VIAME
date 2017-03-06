@@ -23,25 +23,25 @@ process input
 # ======================== FASTER R-CNN ==========================
 process faster_rcnn
  :: image_object_detector
-  :detector:type    faster_rcnn_detector
+  :detector:type    faster_rcnn
 
   # Network config, weights, and names
-  :detector:faster_rcnn_detector:prototxt    models/frcnn.prototxt
-  :detector:faster_rcnn_detector:caffe_model models/frcnn.caffemodel
-  :detector:faster_rcnn_detector:class_file  models/names_alt.lbl
+  :detector:faster_rcnn:prototxt    models/frcnn.prototxt
+  :detector:faster_rcnn:caffe_model models/frcnn.caffemodel
+  :detector:faster_rcnn:class_file  models/names_alt.lbl
 
   # Other settings
-  :detector:faster_rcnn_detector:use_gpu     true
-  :detector:faster_rcnn_detector:chip_image  false
-  :detector:faster_rcnn_detector:chip_width  544
-  :detector:faster_rcnn_detector:chip_height 544
-  :detector:faster_rcnn_detector:stride      500
-  :detector:faster_rcnn_detector:target_size 900
+  :detector:faster_rcnn:use_gpu     true
+  :detector:faster_rcnn:chip_image  false
+  :detector:faster_rcnn:chip_width  544
+  :detector:faster_rcnn:chip_height 544
+  :detector:faster_rcnn:stride      500
+  :detector:faster_rcnn:target_size 900
 
   # Output layers to use for BBOX formulation
-  :detector:faster_rcnn_detector:roi_layer_str   rois
-  :detector:faster_rcnn_detector:cls_layer_str   cls_prob
-  :detector:faster_rcnn_detector:bbox_layer_str  bbox_pred_b
+  :detector:faster_rcnn:roi_layer_str   rois
+  :detector:faster_rcnn:cls_layer_str   cls_prob
+  :detector:faster_rcnn:bbox_layer_str  bbox_pred_b
 
 process faster_rcnn_filter
   :: detected_object_filter
@@ -71,17 +71,17 @@ connect from input.image_file_name
 
 #process yolo_v1
 #  :: image_object_detector
-#  :detector:type    darknet_detector
+#  :detector:type    darknet
 
 #  # Network config, weights, and names
-#  :detector:darknet_detector:net_config   models/model1.cfg
-#  :detector:darknet_detector:weight_file  models/model1_v1.weights
-#  :detector:darknet_detector:class_names  models/names.lbl
+#  :detector:darknet:net_config   models/model1.cfg
+#  :detector:darknet:weight_file  models/model1_v1.weights
+#  :detector:darknet:class_names  models/names.lbl
 
 #  # Detector parameters
-#  :detector:darknet_detector:thresh       0.100
-#  :detector:darknet_detector:hier_thresh  0.001
-#  :detector:darknet_detector:gpu_index    0
+#  :detector:darknet:thresh       0.100
+#  :detector:darknet:hier_thresh  0.001
+#  :detector:darknet:gpu_index    0
 
 #process yolo_v1_writer
 #  :: detected_object_output
@@ -101,17 +101,17 @@ connect from input.image_file_name
 
 process yolo_v2
   :: image_object_detector
-  :detector:type    darknet_detector
+  :detector:type    darknet
 
   # Network config, weights, and names
-  :detector:darknet_detector:net_config   models/model2.cfg
-  :detector:darknet_detector:weight_file  models/model2.weights
-  :detector:darknet_detector:class_names  models/names.lbl
+  :detector:darknet:net_config   models/model2.cfg
+  :detector:darknet:weight_file  models/model2.weights
+  :detector:darknet:class_names  models/names.lbl
 
   # Detector parameters
-  :detector:darknet_detector:thresh       0.100
-  :detector:darknet_detector:hier_thresh  0.001
-  :detector:darknet_detector:gpu_index    0
+  :detector:darknet:thresh       0.100
+  :detector:darknet:hier_thresh  0.001
+  :detector:darknet:gpu_index    0
 
 process yolo_v2_writer
   :: detected_object_output
@@ -131,8 +131,8 @@ connect from input.image_file_name
 
 process scallop_tk
   :: image_object_detector
-  :detector:type    scallop_tk_detector
-  :detector:scallop_tk_detector:config_file models/SYSTEM_SETTINGS
+  :detector:type    scallop_tk
+  :detector:scallop_tk:config_file models/SYSTEM_SETTINGS
 
 process scallop_tk_writer
   :: detected_object_output
