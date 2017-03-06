@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/@template_dir@/viame_@template_lib@_export.h>
+#include <plugins/@template_dir@/viame_@template_lib@_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "@template@_detector.h"
@@ -41,7 +41,7 @@
 namespace viame {
 
 extern "C"
-VIAME_@TEMPLATE_LIB@_EXPORT
+VIAME_@TEMPLATE_LIB@_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

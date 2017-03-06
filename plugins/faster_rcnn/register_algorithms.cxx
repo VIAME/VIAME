@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/faster_rcnn/viame_faster_rcnn_export.h>
+#include <plugins/faster_rcnn/viame_faster_rcnn_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "faster_rcnn_detector.h"
@@ -41,7 +41,7 @@
 namespace viame {
 
 extern "C"
-VIAME_FASTER_RCNN_EXPORT
+VIAME_FASTER_RCNN_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

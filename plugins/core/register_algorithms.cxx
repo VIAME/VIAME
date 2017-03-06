@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/core/viame_core_export.h>
+#include <plugins/core/viame_core_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "detected_object_set_input_habcam.h"
@@ -41,7 +41,7 @@
 namespace viame {
 
 extern "C"
-VIAME_CORE_EXPORT
+VIAME_CORE_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

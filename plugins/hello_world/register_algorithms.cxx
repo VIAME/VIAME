@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <plugins/hello_world/viame_hello_world_export.h>
+#include <plugins/hello_world/viame_hello_world_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "hello_world_detector.h"
@@ -42,7 +42,7 @@
 namespace viame {
 
 extern "C"
-VIAME_HELLO_WORLD_EXPORT
+VIAME_HELLO_WORLD_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
