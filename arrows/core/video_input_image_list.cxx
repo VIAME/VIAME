@@ -163,11 +163,6 @@ video_input_image_list
 
   // Setup actual reader algorithm
   vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, d->m_image_reader);
-  if ( ! d->m_image_reader )
-  {
-    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
-          "unable to create image_reader." );
-  }
 }
 
 
@@ -191,6 +186,11 @@ video_input_image_list
   if ( ! ifs )
   {
     throw kwiver::vital::invalid_file( list_name, "Could not open file" );
+  }
+  if ( ! d->m_image_reader )
+  {
+    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
+          "invalid image_reader." );
   }
 
   // Add directory that contains the list file to the path
