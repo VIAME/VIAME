@@ -41,7 +41,7 @@ class kwiver::vital::explorer_context::priv
 {
 public:
   priv();
-  ~priv();
+  virtual ~priv();
 
   // Collected command line args
   kwiversys::CommandLineArguments m_args;
