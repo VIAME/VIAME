@@ -24,6 +24,7 @@ set( plugin_core_headers
   track_features_core.h
   transform.h
   triangulate_landmarks.h
+  video_input_filter.h
   video_input_image_list.h
   video_input_pos.h
   video_input_split.h
@@ -72,6 +73,7 @@ set( plugin_core_sources
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
+  video_input_filter.cxx
   video_input_image_list.cxx
   video_input_pos.cxx
   video_input_split.cxx
