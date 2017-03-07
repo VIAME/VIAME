@@ -315,7 +315,10 @@ video_input_pos
     kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), std::stod( tokens[ base + 4 ] ) );
     d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_LOCATION, latlon ) );
 
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, std::stod( tokens[base + 5] ) ) );
+    // altitude is in feet in a POS file and needs to be converted to meters
+    constexpr double feet2meters = 0.3048;
+    const double altitude = std::stod( tokens[base + 5] ) * feet2meters;
+    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, altitude ) );
     d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_SEC, std::stod( tokens[base + 6] ) ) );
     d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_WEEK, std::stoi( tokens[base + 7] ) ) );
     d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_NORTHING_VEL, std::stod( tokens[base + 8] ) ) );
