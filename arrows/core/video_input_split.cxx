@@ -31,21 +31,8 @@
 #include "video_input_split.h"
 
 #include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
 #include <vital/exceptions.h>
-#include <vital/util/data_stream_reader.h>
-#include <vital/util/tokenize.h>
-#include <vital/types/geo_lat_lon.h>
-#include <vital/algo/image_io.h>
 
-#include <vital/video_metadata/video_metadata.h>
-#include <vital/video_metadata/video_metadata_traits.h>
-
-#include <kwiversys/SystemTools.hxx>
-
-#include <vector>
-#include <stdint.h>
-#include <fstream>
 
 namespace kwiver {
 namespace arrows {
@@ -55,32 +42,15 @@ class video_input_split::priv
 {
 public:
   priv()
-    : c_start_at_frame( 0 )
-    , c_stop_after_frame( 0 )
-    , c_frame_time( 0.03333 )
-    , d_at_eov( false )
+  : d_at_eov( false )
   { }
-
-  // Configuration values
-  unsigned int c_start_at_frame;
-  unsigned int c_stop_after_frame;
-  float c_frame_time;
-  std::string c_image_reader;
-  std::string c_metadata_reader;
 
   // local state
   bool d_at_eov;
 
-  std::vector < kwiver::vital::path_t > d_metadata_files;
-  std::vector < kwiver::vital::path_t >::const_iterator d_current_file;
-  kwiver::vital::timestamp::frame_t d_frame_number;
-  kwiver::vital::timestamp::time_t d_frame_time;
-
-  vital::video_metadata_sptr d_metadata;
-
   // processing classes
-  vital::algo::video_input_sptr d_image_reader;
-  vital::algo::video_input_sptr d_metadata_reader;
+  vital::algo::video_input_sptr d_image_source;
+  vital::algo::video_input_sptr d_metadata_source;
 
 };
 
@@ -109,25 +79,11 @@ video_input_split
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
-  config->set_value( "start_at_frame", d->c_start_at_frame,
-                     "Frame number (from 1) to start processing video input. "
-                     "If set to zero, start at the beginning of the video." );
+  vital::algo::video_input::
+    get_nested_algo_configuration( "image_source", config, d->d_image_source );
 
-  config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "Number of frames to supply. If set to zero then supply all frames after start frame." );
-
-  config->set_value( "frame_time", d->c_frame_time, "Inter frame time in seconds. "
-                     "The generated timestamps will have the specified number of seconds in the generated "
-                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
-                     "video stream application.");
-
-  config->set_value( "image_reader", "",
-                     "Config block that configures the image reader. image_reader:type specifies the "
-                     "implementation type. Other configuration items may be needed, depending on the implementation.");
-
-  config->set_value( "metadata_reader", "",
-                     "Config block that configures the metadata reader. metadata_reader:type specifies the "
-                     "implementation type. Other configuration items may be needed, depending on the implementation.");
+  vital::algo::video_input::
+    get_nested_algo_configuration( "metadata_source", config, d->d_metadata_source );
 
   return config;
 }
@@ -141,41 +97,11 @@ video_input_split
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
-    "start_at_frame", d->c_start_at_frame );
+  vital::algo::video_input::
+    get_nested_algo_configuration( "image_source", config, d->d_image_source );
 
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
-    "stop_after_frame", d->c_stop_after_frame );
-
-  // get frame time
-  d->c_frame_time = config->get_value<float>(
-    "frame_time", d->c_frame_time );
-
-  // duplicate these config values so they are passed to the nested algorithms
-  config->set_value( "image_reader:start_at_frame", d->c_start_at_frame);
-  config->set_value( "metadata_reader:start_at_frame", d->c_start_at_frame);
-
-  config->set_value( "image_reader:stop_after_frame", d->c_stop_after_frame);
-  config->set_value( "metadata_reader:stop_after_frame", d->c_stop_after_frame);
-
-  config->set_value( "image_reader:frame_time", d->c_frame_time);
-  config->set_value( "metadata_reader:frame_time", d->c_frame_time);
-
-
-  // Setup actual reader algorithm
-  vital::algo::video_input::set_nested_algo_configuration( "image_reader", config, d->d_image_reader);
-  if ( ! d->d_image_reader )
-  {
-    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
-          "unable to create image_reader." );
-  }
-
-  vital::algo::video_input::set_nested_algo_configuration( "metadata_reader", config, d->d_metadata_reader);
-  if ( ! d->d_metadata_reader )
-  {
-    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
-          "unable to create metadata_reader." );
-  }
+  vital::algo::video_input::
+    get_nested_algo_configuration( "metadata_source", config, d->d_metadata_source );
 }
 
 
@@ -185,10 +111,12 @@ video_input_split
 ::check_configuration( vital::config_block_sptr config ) const
 {
   // Check the image reader configuration.
-  bool image_stat = vital::algo::image_io::check_nested_algo_configuration( "image_reader", config );
+  bool image_stat = vital::algo::video_input::
+    check_nested_algo_configuration( "image_source", config );
 
   // Check the metadata reader configuration.
-  bool meta_stat = vital::algo::image_io::check_nested_algo_configuration( "metadata_reader", config );
+  bool meta_stat = vital::algo::video_input::
+    check_nested_algo_configuration( "metadata_source", config );
 
   return image_stat && meta_stat;
 }
@@ -199,10 +127,13 @@ void
 video_input_split
 ::open( std::string name )
 {
-  // open file and read lines
-
-  //+ how to initialize two readers with one name???
-
+  if ( ! d->d_image_source || ! d->d_metadata_source )
+  {
+    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
+          "invalid nested video_input algorithm(s)" );
+  }
+  d->d_image_source->open( name );
+  d->d_metadata_source->open( name );
 }
 
 
@@ -211,6 +142,14 @@ void
 video_input_split
 ::close()
 {
+  if( d->d_image_source )
+  {
+    d->d_image_source->close();
+  }
+  if( d->d_metadata_source )
+  {
+    d->d_metadata_source->close();
+  }
 }
 
 
@@ -219,7 +158,8 @@ bool
 video_input_split
 ::end_of_video() const
 {
-  return d->d_at_eov;
+  return (!d->d_image_source || d->d_image_source->end_of_video()) ||
+         (!d->d_metadata_source || d->d_metadata_source->end_of_video());
 }
 
 
@@ -228,8 +168,8 @@ bool
 video_input_split
 ::good() const
 {
-  // This could use a more nuanced approach
-  return true;
+  return (d->d_image_source && d->d_image_source->good()) &&
+         (d->d_metadata_source && d->d_metadata_source->good());
 }
 
 
@@ -246,10 +186,10 @@ video_input_split
   }
 
   kwiver::vital::timestamp image_ts;
-  bool image_stat = d->d_image_reader->next_frame( image_ts, timeout );
+  bool image_stat = d->d_image_source->next_frame( image_ts, timeout );
 
   kwiver::vital::timestamp metadata_ts;
-  bool meta_stat = d->d_metadata_reader->next_frame( metadata_ts, timeout );
+  bool meta_stat = d->d_metadata_source->next_frame( metadata_ts, timeout );
 
   // Both timestamps should be the same
   if (image_ts != metadata_ts )
@@ -266,7 +206,7 @@ kwiver::vital::image_container_sptr
 video_input_split
 ::frame_image()
 {
-  return d->d_image_reader->frame_image();
+  return d->d_image_source->frame_image();
 }
 
 
@@ -275,7 +215,7 @@ kwiver::vital::video_metadata_vector
 video_input_split
 ::frame_metadata()
 {
-  return d->d_metadata_reader->frame_metadata();
+  return d->d_metadata_source->frame_metadata();
 }
 
 } } }     // end namespace

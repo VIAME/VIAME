@@ -39,14 +39,11 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Metadata reader using ins/pos format files.
+/// Video input that pulls image and metadata inputs from different sources.
 // ----------------------------------------------------------------
 /**
- * This class implements a video input algorithm that returns only metadata.
- *
- * The algorithm takes configuration for a directory full of images
- * and an associated directory name for the metadata files. These
- * metadata files have the same base name as the image files.
+ * This class implements a video input algorithm that holds two other video
+ * input algorithms and pulls imagery from one and metadata from the other.
  */
 class KWIVER_ALGO_CORE_EXPORT video_input_split
   : public vital::algorithm_impl < video_input_split, vital::algo::video_input >
@@ -65,14 +62,6 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /**
-   * @brief Open a list of images.
-   *
-   * This method opens the file that contains the list of images. Each
-   * image verified to exist at this time.
-   *
-   * @param list_name Name of file that contains list of images.
-   */
   virtual void open( std::string name );
   virtual void close();
 
