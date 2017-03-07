@@ -79,6 +79,11 @@ video_metadata_exception
     virtual std::string as_string() const { return "--Unknown metadata item--"; }
     virtual double as_double() const { return 0; }
     virtual double as_uint64() const { return 0; }
+    virtual std::ostream& print_value(std::ostream& os) const
+    {
+      os << this->as_string();
+      return os;
+    }
 
   }; // end class unknown_metadata_item
 
