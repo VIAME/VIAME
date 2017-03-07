@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2017 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -15,6 +15,17 @@
 
 namespace kwiver {
 namespace track_oracle {
+
+struct TRACK_KW18_EXPORT kw18_reader_opts: public file_format_reader_opts_base
+{
+  bool kw19_hack;  // if true, set per-frame "relevancy" from the 19th column of a kw18
+
+  kw18_reader_opts& set_kw19_hack( bool b ) { this->kw19_hack = b; return *this; }
+
+  virtual kw18_reader_opts& reset() { set_kw19_hack( false ); return *this; }
+  kw18_reader_opts() { reset(); }
+  kw18_reader_opts& operator=( const file_format_reader_opts_base& rhs );
+};
 
 class TRACK_KW18_EXPORT file_format_kw18: public file_format_base
 {
@@ -32,6 +43,9 @@ public:
 
   // return a dynamically-allocated instance of the schema
   virtual track_base_impl* schema_instance() const { return new track_kw18_type(); }
+
+  // return the options for the kw18 format
+  kw18_reader_opts& options() { return this->opts; }
 
   // Inspect the file and return true if it is of this format
   virtual bool inspect_file( const std::string& fn ) const;
@@ -55,6 +69,7 @@ public:
 private:
   mutable std::string current_filename;
   bool internal_stream_read( std::istream& is, size_t file_size, track_handle_list_type& tracks) const;
+  kw18_reader_opts opts;
 
 };
 
