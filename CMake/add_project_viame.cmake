@@ -1,4 +1,4 @@
-# viame External Project
+# VIAME Internal Project
 #
 # Required symbols are:
 #   VIAME_BUILD_PREFIX - where packages are built
