@@ -304,8 +304,8 @@ video_input_pos
     }
     else
     {
-      // Set name to "MAPTK"
-      d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, std::string( "MAPTK" ) ) );
+      // Set name to "KWIVER"
+      d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, std::string( "KWIVER" ) ) );
     }
 
     d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE, std::stod( tokens[base + 0] ) ) );
