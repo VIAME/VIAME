@@ -158,19 +158,28 @@ write_pos_file( video_metadata const& md,
   }
 
   // lambda function to retrive metadata value or fallback to default
-  auto print_default = [&md] (vital_metadata_tag const& tag, std::string const& dflt)
+  auto print_default = [&md] (std::ostream& os,
+                              vital_metadata_tag const& tag,
+                              std::string const& dflt) -> std::ostream&
   {
-    return md.has( tag ) ? md.find( tag ).as_string() : dflt;
+    if ( md.has(tag) )
+    {
+      md.find(tag).print_value(os);
+    }
+    else
+    {
+      os << dflt;
+    }
+    return os;
   };
 
   // open output file and write the POS data
   std::ofstream ofile( file_path.c_str() );
   ofile.precision( 12 );
-  ofile << print_default( VITAL_META_IMAGE_SOURCE_SENSOR, "KWIVER" ) << ", ";
-  ofile << print_default( VITAL_META_SENSOR_YAW_ANGLE,    "0" ) << ", ";
-  ofile << print_default( VITAL_META_SENSOR_PITCH_ANGLE,  "0" ) << ", ";
-  ofile << print_default( VITAL_META_SENSOR_ROLL_ANGLE,   "0" ) << ", ";
-  ofile << print_default( VITAL_META_SENSOR_LOCATION,     "0, 0" ) << ", ";
+  print_default( ofile, VITAL_META_IMAGE_SOURCE_SENSOR, "KWIVER" ) << ", ";
+  print_default( ofile, VITAL_META_SENSOR_YAW_ANGLE,    "0" ) << ", ";
+  print_default( ofile, VITAL_META_SENSOR_PITCH_ANGLE,  "0" ) << ", ";
+  print_default( ofile, VITAL_META_SENSOR_ROLL_ANGLE,   "0" ) << ", ";
 
   //kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), s
 
@@ -182,14 +191,14 @@ write_pos_file( video_metadata const& md,
     altitude = md.find( VITAL_META_SENSOR_ALTITUDE ).as_double() / feet2meters;
   }
   ofile << altitude << ", ";
-  ofile << print_default( VITAL_META_GPS_SEC,       "0" ) << ", ";
-  ofile << print_default( VITAL_META_GPS_WEEK,      "0" ) << ", ";
-  ofile << print_default( VITAL_META_NORTHING_VEL,  "0" ) << ", ";
-  ofile << print_default( VITAL_META_EASTING_VEL,   "0" ) << ", ";
-  ofile << print_default( VITAL_META_UP_VEL,        "0" ) << ", ";
-  ofile << print_default( VITAL_META_IMU_STATUS,    "-1" ) << ", ";
-  ofile << print_default( VITAL_META_LOCAL_ADJ,     "0" ) << ", ";
-  ofile << print_default( VITAL_META_DST_FLAGS,     "0" );
+  print_default( ofile, VITAL_META_GPS_SEC,       "0" ) << ", ";
+  print_default( ofile, VITAL_META_GPS_WEEK,      "0" ) << ", ";
+  print_default( ofile, VITAL_META_NORTHING_VEL,  "0" ) << ", ";
+  print_default( ofile, VITAL_META_EASTING_VEL,   "0" ) << ", ";
+  print_default( ofile, VITAL_META_UP_VEL,        "0" ) << ", ";
+  print_default( ofile, VITAL_META_IMU_STATUS,    "-1" ) << ", ";
+  print_default( ofile, VITAL_META_LOCAL_ADJ,     "0" ) << ", ";
+  print_default( ofile, VITAL_META_DST_FLAGS,     "0" );
  
   ofile.close();
 }
