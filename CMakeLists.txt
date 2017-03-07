@@ -305,6 +305,7 @@ kwiver_configure_file(kwiver-install-config
   KWIVER_INCLUDE_DIRS
   KWIVER_LIBRARY_DIRS
   LIB_SUFFIX
+  KWIVER_VERSION
   )
 
 kwiver_install(
