@@ -78,7 +78,6 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF)
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
@@ -87,10 +86,18 @@ if( VIAME_ENABLE_PYTHON )
 
   if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
       ( NOT PYTHON_VERSION_MAJOR EQUAL "2" OR NOT PYTHON_VERSION_MINOR EQUAL "7" ) )
-    message( FATAL_ERROR "Only python2.7.* is currently supported, please point  \
+    message( FATAL_ERROR "Only Python2.7.* is currently supported, please point  \
       your PYTHON_EXECUTABLE, PYTHON_LIBRARY and PYTHON_INCLUDE_DIR to a  \
-      python2.7.* install, or set VIAME_DISABLE_PYTHON_CHECK to ignore this \
+      Python2.7.* install, or set VIAME_DISABLE_PYTHON_CHECK to ignore this \
       message and build with other versions at your own peril." )
+  endif()
+
+  if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
+      NOT PYTHONLIBS_VERSION_STRING VERSION_LESS "3.0.0" )
+    message( FATAL_ERROR "It appears your pipeline executable and headers point \
+      to different versions of Python. Only Python2.7.* is currently supported, \
+      please point your PYTHON_LIBRARY and PYTHON_INCLUDE_DIR to a Python2.7.* \
+      install, or set VIAME_DISABLE_PYTHON_CHECK to ignore this message." )
   endif()
 endif()
 
