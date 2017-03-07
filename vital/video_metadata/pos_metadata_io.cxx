@@ -181,7 +181,16 @@ write_pos_file( video_metadata const& md,
   print_default( ofile, VITAL_META_SENSOR_PITCH_ANGLE,  "0" ) << ", ";
   print_default( ofile, VITAL_META_SENSOR_ROLL_ANGLE,   "0" ) << ", ";
 
-  //kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), s
+  if ( md.has( VITAL_META_SENSOR_LOCATION ) )
+  {
+    kwiver::vital::geo_lat_lon latlon;
+    md.find( VITAL_META_SENSOR_LOCATION ).data( latlon );
+    ofile << latlon.latitude() << ", " << latlon.longitude() << ", ";
+  }
+  else
+  {
+    ofile << "0, 0, ";
+  }
 
   // altitude is in feet in a POS file and needs to be converted to feet
   constexpr double feet2meters = 0.3048;
