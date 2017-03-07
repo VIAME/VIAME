@@ -33,7 +33,6 @@
 
 #include <vital/vital_config.h>
 
-
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
