@@ -38,7 +38,7 @@
 #include <vital/types/geo_lat_lon.h>
 
 #include <vital/video_metadata/video_metadata.h>
-#include <vital/video_metadata/video_metadata_traits.h>
+#include <vital/video_metadata/pos_metadata_io.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -274,67 +274,7 @@ video_input_pos
   if ( ! d->d_current_file->empty() )
   {
     // Open next file in the list
-    std::ifstream in_stream( *d->d_current_file );
-    if ( ! in_stream )
-    {
-      // should never happen since the file was pre-verified
-      throw kwiver::vital::file_not_found_exception( *d->d_current_file, "could not locate file" );
-    }
-
-    std::string line;
-    getline( in_stream, line );
-
-    // Tokenize the string
-    std::vector< std::string > tokens;
-    kwiver::vital::tokenize( line, tokens, ",", true );
-
-    unsigned int base = 0;
-
-    // some POS files do not have the source name
-    if ( ( tokens.size() < 14 ) || ( tokens.size() > 15 ) )
-    {
-      std::ostringstream ss;
-      ss  << "Too few fields found in file "
-          << *d->d_current_file
-          << "  (discovered " << tokens.size() << " field(s), expected "
-          << "14 or 15).";
-      throw vital::invalid_data( ss.str() );
-    }
-
-    // make a new metadata container.
-    d->d_metadata = std::make_shared<kwiver::vital::video_metadata>();
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_METADATA_ORIGIN, std::string( "POS-file") ) );
-
-    if ( tokens.size() == 15 )
-    {
-      base = 1;
-      d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, tokens[0] ) );
-    }
-    else
-    {
-      // Set name to "KWIVER"
-      d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_SOURCE_SENSOR, std::string( "KWIVER" ) ) );
-    }
-
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_YAW_ANGLE, std::stod( tokens[base + 0] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_PITCH_ANGLE, std::stod( tokens[ base + 1] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ROLL_ANGLE, std::stod( tokens[base + 2] ) ) );
-
-    kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), std::stod( tokens[ base + 4 ] ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_LOCATION, latlon ) );
-
-    // altitude is in feet in a POS file and needs to be converted to meters
-    constexpr double feet2meters = 0.3048;
-    const double altitude = std::stod( tokens[base + 5] ) * feet2meters;
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_SENSOR_ALTITUDE, altitude ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_SEC, std::stod( tokens[base + 6] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_GPS_WEEK, std::stoi( tokens[base + 7] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_NORTHING_VEL, std::stod( tokens[base + 8] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_EASTING_VEL, std::stod( tokens[base + 9] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_UP_VEL, std::stod( tokens[base + 10] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMU_STATUS, std::stoi( tokens[base + 11] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_LOCAL_ADJ, std::stoi( tokens[base + 12] ) ) );
-    d->d_metadata->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_DST_FLAGS, std::stoi( tokens[base + 13] ) ) );
+    d->d_metadata = vital::read_pos_file( *d->d_current_file );
   }
 
   // Return timestamp
