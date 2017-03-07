@@ -111,6 +111,11 @@ if( WIN32 AND VIAME_ENABLE_YOLO )
     please build YOLO externally using the YOLO windows branch, if desired." )
 endif()
 
+if( WIN32 AND VIAME_ENABLE_KWANT )
+  message( FATAL_ERROR "Internal KWANT build on windows not currently supported, \
+    but it will be soon. Please disable for now." )
+endif()
+
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 2.4.11 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.11 3.1.0 )
