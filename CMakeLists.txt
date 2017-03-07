@@ -78,13 +78,30 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  find_package( PythonLibs )
+
+  option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF)
+  mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
+
+  find_package( PythonLibs REQUIRED )
   find_package( PythonInterp REQUIRED )
+
+  if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
+      ( NOT PYTHON_VERSION_MAJOR EQUAL "2" OR NOT PYTHON_VERSION_MINOR EQUAL "7" ) )
+    message( FATAL_ERROR "Only python2.7.* is currently supported, please point  \
+      your PYTHON_EXECUTABLE, PYTHON_LIBRARY and PYTHON_INCLUDE_DIR to a  \
+      python2.7.* install, or set VIAME_DISABLE_PYTHON_CHECK to ignore this \
+      message and build with other versions at your own peril." )
+  endif()
 endif()
 
 if( WIN32 AND VIAME_ENABLE_CAFFE )
   message( FATAL_ERROR "Internal Caffe build on windows not currently supported, \
     please build Caffe externally using the Caffe windows branch, if desired." )
+endif()
+
+if( WIN32 AND VIAME_ENABLE_YOLO )
+  message( FATAL_ERROR "Internal YOLO build on windows not currently supported, \
+    please build YOLO externally using the YOLO windows branch, if desired." )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
