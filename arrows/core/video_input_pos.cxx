@@ -56,6 +56,7 @@ public:
   priv()
     : c_start_at_frame( 1 )
     , c_stop_after_frame( 0 )
+    , c_meta_extension( ".pos" )
     , c_frame_time( 0.03333 )
     , d_at_eov( false )
   { }
@@ -64,6 +65,7 @@ public:
   unsigned int c_start_at_frame;
   unsigned int c_stop_after_frame;
   std::string c_meta_directory;
+  std::string c_meta_extension;
   std::string c_image_list_file;
   float c_frame_time;
 
@@ -127,6 +129,8 @@ video_input_pos
 
   config->set_value( "metadata_directory", d->c_meta_directory, "Name of directory containing metadata files." );
 
+  config->set_value( "metadata_extension", d->c_meta_extension, "File extension of metadata files." );
+
   return config;
 }
 
@@ -151,6 +155,9 @@ video_input_pos
 
   d->c_meta_directory = config->get_value<std::string>(
     "metadata_directory", d->c_meta_directory );
+
+  d->c_meta_extension = config->get_value<std::string>(
+    "metadata_extension", d->c_meta_extension );
 }
 
 
@@ -183,7 +190,8 @@ video_input_pos
   {
     // Get base name from file
     std::string resolved_file = d->c_meta_directory;
-    resolved_file += "/" + kwiversys::SystemTools::GetFilenameWithoutExtension( line ) + ".txt";
+    resolved_file += "/" + kwiversys::SystemTools::GetFilenameWithoutExtension( line )
+                     + d->c_meta_extension;
     if ( ! kwiversys::SystemTools::FileExists( resolved_file ) )
     {
       LOG_DEBUG( logger(), "Could not find file " << resolved_file
