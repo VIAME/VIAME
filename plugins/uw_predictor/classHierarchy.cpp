@@ -11,6 +11,7 @@
 #include <map>
 
 #include "classHierarchy.h"
+#include "snprintf.h"
 
 //********** class classHierarchyNode ********************************************
 

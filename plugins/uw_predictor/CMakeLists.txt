@@ -15,6 +15,7 @@ set( plugin_headers
   FGObject.h
   featureExtraction.h
   parameters.h
+  snprintf.h
   )
 
 set( plugin_sources

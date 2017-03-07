@@ -3,6 +3,9 @@
 
 #include <iostream>
 #include <vector>
+
+#include "snprintf.h"
+
 using namespace std;
 
 // preprocessors
