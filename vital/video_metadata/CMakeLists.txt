@@ -46,3 +46,9 @@ kwiver_install_headers(
   NOPATH
   SUBDIR      vital/video_metadata
   )
+
+###
+# Add tests if enabled
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()
