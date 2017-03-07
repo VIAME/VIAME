@@ -375,7 +375,7 @@ public:
    *
    * @return \b true if tag is in metadata collection, \b false otherwise.
    */
-  bool has( vital_metadata_tag tag ); // needs not-found return value
+  bool has( vital_metadata_tag tag ) const; // needs not-found return value
 
 
   /// Find metadata entry for specified tag.
@@ -388,7 +388,7 @@ public:
    *
    * @return metadata item object for tag.
    */
-  metadata_item const& find( vital_metadata_tag tag );
+  metadata_item const& find( vital_metadata_tag tag ) const;
 
 
   /// Get starting iterator for collection of metadata items.
