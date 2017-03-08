@@ -116,8 +116,8 @@ CALL( SECURITY_LOCAL_MD_SET,       "Security Local Metadata Set",     std::strin
 CALL( 0601_WEAPON_LOAD,            "Weapon Load",                     uint64_t) \
 CALL( 0601_WEAPON_FIRED,           "Weapon Fired",                    uint64_t) \
 CALL( AVERAGE_GSD,                 "Average GSD value",               double) \
-CALL( GPS_SEC,                     "GSP seconds",                     double ) \
-CALL( GPS_WEEK,                    "GSP week",                        int ) \
+CALL( GPS_SEC,                     "GPS seconds",                     double ) \
+CALL( GPS_WEEK,                    "GPS week",                        int ) \
 CALL( NORTHING_VEL,                "Northing velocity",               double ) \
 CALL( EASTING_VEL,                 "Easting velocity",                double ) \
 CALL( UP_VEL,                      "UP velocity",                     double ) \
