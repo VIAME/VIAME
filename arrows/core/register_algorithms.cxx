@@ -52,6 +52,7 @@
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/triangulate_landmarks.h>
+#include <arrows/core/video_input_filter.h>
 #include <arrows/core/video_input_image_list.h>
 #include <arrows/core/video_input_pos.h>
 #include <arrows/core/video_input_split.h>
@@ -216,6 +217,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact = vpm.ADD_ALGORITHM( "core", kwiver::arrows::core::triangulate_landmarks );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Triangulate landmarks from tracks and cameras using a simple least squares solver." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "filter", kwiver::arrows::core::video_input_filter );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "A video input that calls another video input and filters the output on "
+                       "frame range and other parameters." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
