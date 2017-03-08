@@ -49,11 +49,6 @@ namespace core {
  * Example config:
  *   # select reader type
  *   image_reader:type = vxl
- *
- *   # set parameters for list reader options
- *   # Note these parameters control the list reader not the image_reader
- *   start_at_frame = 2
- *   stop_after_frame = 2
  */
 class KWIVER_ALGO_CORE_EXPORT video_input_image_list
   : public vital::algorithm_impl < video_input_image_list, vital::algo::video_input >

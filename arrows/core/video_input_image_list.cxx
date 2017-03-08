@@ -53,17 +53,10 @@ namespace core {
 class video_input_image_list::priv
 {
 public:
-  priv()
-    : c_start_at_frame( 1 )
-    , c_stop_after_frame( 0 )
-    , c_frame_time( 0.03333 )
-  { }
+  priv() {}
 
   // Configuration values
-  unsigned int c_start_at_frame;
-  unsigned int c_stop_after_frame;
   std::vector< std::string > c_search_path;
-  float c_frame_time;
 
   // local state
   std::vector < kwiver::vital::path_t > m_files;
@@ -87,9 +80,9 @@ video_input_image_list
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
-  set_capability( vital::algo::video_input::HAS_FRAME_TIME, true );
   set_capability( vital::algo::video_input::HAS_FRAME_DATA, true );
 
+  set_capability( vital::algo::video_input::HAS_FRAME_TIME, false );
   set_capability( vital::algo::video_input::HAS_METADATA, false );
   set_capability( vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false );
   set_capability( vital::algo::video_input::HAS_TIMEOUT, false );
@@ -111,18 +104,6 @@ video_input_image_list
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
-  config->set_value( "start_at_frame", d->c_start_at_frame,
-                     "Frame number (from 1) to start processing video input. "
-                     "If set to zero, start at the beginning of the video." );
-
-  config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "Number of frames to supply. If set to zero then supply all frames after start frame." );
-
-  config->set_value( "frame_time", d->c_frame_time, "Inter frame time in seconds. "
-                     "The generated timestamps will have the specified number of seconds in the generated "
-                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
-                     "video stream application.");
-
   config->set_value( "path", "",
                      "Path to search for image file. "
                      "If a file name is not absolute, this list of directories is scanned to find the file. "
@@ -130,9 +111,8 @@ video_input_image_list
                      "The format of this path is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
 
-  config->set_value( "image_reader", "",
-                     "Config block that configures the image reader. image_reader:type specifies the "
-                     "implementation type. Other configuration items may be needed, depending on the implementation.");
+  vital::algo::image_io::
+    get_nested_algo_configuration( "image_reader", config, d->m_image_reader );
 
   return config;
 }
@@ -146,23 +126,14 @@ video_input_image_list
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
-    "start_at_frame", d->c_start_at_frame );
-
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
-    "stop_after_frame", d->c_stop_after_frame );
-
   // Extract string and create vector of directories
   std::string path = config->get_value<std::string>( "path", "" );
   kwiver::vital::tokenize( path, d->c_search_path, ":", true );
   d->c_search_path.push_back( "." ); // add current directory
 
-  // get frame time
-  d->c_frame_time = config->get_value<float>(
-    "frame_time", d->c_frame_time );
-
   // Setup actual reader algorithm
-  vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, d->m_image_reader);
+  vital::algo::image_io::
+    set_nested_algo_configuration( "image_reader", config, d->m_image_reader );
 }
 
 
@@ -172,7 +143,8 @@ video_input_image_list
 ::check_configuration( vital::config_block_sptr config ) const
 {
   // Check the reader configuration.
-  return vital::algo::image_io::check_nested_algo_configuration( "image_reader", config );
+  return vital::algo::image_io::
+    check_nested_algo_configuration( "image_reader", config );
 }
 
 
@@ -181,6 +153,8 @@ void
 video_input_image_list
 ::open( std::string list_name )
 {
+  typedef kwiversys::SystemTools ST;
+
   // open file and read lines
   std::ifstream ifs( list_name.c_str() );
   if ( ! ifs )
@@ -194,7 +168,7 @@ video_input_image_list
   }
 
   // Add directory that contains the list file to the path
-  std::string list_path = kwiversys::SystemTools::GetFilenamePath( list_name );
+  std::string list_path = ST::GetFilenamePath( list_name );
   if ( ! list_path.empty() )
   {
     d->c_search_path.push_back( list_path );
@@ -203,40 +177,51 @@ video_input_image_list
   kwiver::vital::data_stream_reader stream_reader( ifs );
 
   // verify and get file names in a list
-  for ( std::string line; stream_reader.getline( line ); /* null */ )
+  std::string data_dir = "";
+  std::string line;
+  // Read the first line and determine to file location
+  if ( stream_reader.getline( line ) )
   {
     std::string resolved_file = line;
-    if ( ! kwiversys::SystemTools::FileExists( resolved_file ) )
+    if ( ! ST::FileExists( resolved_file ) )
     {
       // Resolve against specified path
-      resolved_file = kwiversys::SystemTools::FindFile( line, d->c_search_path, true );
+      resolved_file = ST::FindFile( line, d->c_search_path, true );
       if ( resolved_file.empty() )
       {
-        throw kwiver::vital::file_not_found_exception( line, "could not locate file in path" );
+        throw kwiver::vital::
+          file_not_found_exception( line, "could not locate file in path" );
+      }
+      if( ST::StringEndsWith( resolved_file.c_str(), line.c_str() ) )
+      {
+        // extract the prefix added to get the full path
+        data_dir = resolved_file.substr(0, resolved_file.size() - line.size() );
+      }
+    }
+    d->m_files.push_back( resolved_file );
+  }
+  // Read the rest of the file and validate paths
+  // Only check the same data_dir used to resolve the first frame
+  while ( stream_reader.getline( line ) )
+  {
+    std::string resolved_file = line;
+    if ( ! ST::FileExists( resolved_file ) )
+    {
+      resolved_file = data_dir + line;
+      if ( ! ST::FileExists( resolved_file ) )
+      {
+        throw kwiver::vital::
+          file_not_found_exception( line,
+              "could not locate file relative to \"" + data_dir + "\"" );
       }
     }
 
     d->m_files.push_back( resolved_file );
-  } // end for
+  } // end while
 
   d->m_current_file = d->m_files.begin();
   d->m_frame_number = 1;
-
-  if ( d->c_start_at_frame > 1 )
-  {
-    d->m_current_file +=  d->c_start_at_frame - 1;
-    d->m_frame_number +=  d->c_start_at_frame - 1;
-  }
-
   d->m_end = d->m_files.end(); // set default end marker
-
-  if ( d->c_stop_after_frame > 0 )
-  {
-    if ( ( d->m_frame_number + d->c_stop_after_frame ) < d->m_files.size() )
-    {
-      d->m_end = d->m_current_file + d->c_stop_after_frame;
-    }
-  }
 }
 
 
@@ -281,23 +266,15 @@ video_input_image_list
     return false;
   }
 
-  // still have an image to read
-  std::string a_file = *d->m_current_file;
-
-  LOG_DEBUG( logger(), "reading image from file \"" << a_file << "\"" );
-
-  // read image file
-  //
-  // This call returns a *new* image container. This is good since
-  // we are going to pass it downstream using the sptr.
-  d->m_image = d->m_image_reader->load( a_file );
+  // clear the last loaded image
+  d->m_image = nullptr;
 
   // Return timestamp
-  ts = kwiver::vital::timestamp( d->m_frame_time, d->m_frame_number );
+  ts = kwiver::vital::timestamp();
+  ts.set_frame( d->m_frame_number );
 
   // update timestamp
   ++d->m_frame_number;
-  d->m_frame_time += d->c_frame_time;
 
   ++d->m_current_file;
 
@@ -310,6 +287,16 @@ kwiver::vital::image_container_sptr
 video_input_image_list
 ::frame_image()
 {
+  if ( !d->m_image && !this->end_of_video() )
+  {
+    LOG_DEBUG( logger(), "reading image from file \"" << *d->m_current_file << "\"" );
+
+    // read image file
+    //
+    // This call returns a *new* image container. This is good since
+    // we are going to pass it downstream using the sptr.
+    d->m_image = d->m_image_reader->load( *d->m_current_file );
+  }
   return d->m_image;
 }
 
