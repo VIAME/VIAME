@@ -36,7 +36,7 @@
 #include <test_common.h>
 
 #include <arrows/core/video_input_pos.h>
-#include <arrows/core/register_algorithms.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
@@ -51,7 +51,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(2);
 
-  kwiver::arrows::core::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
   kwiver::vital::path_t data_dir( argv[2] );
@@ -62,35 +62,47 @@ main(int argc, char* argv[])
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(create)
+{
+  algo::video_input_sptr vi = algo::video_input::create("pos");
+  if (!vi)
+  {
+    TEST_ERROR("Unable to create core::video_input_pos by name");
+  }
+}
+
+
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(read_list)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
-  config->set_value( "metadata_directory", data_dir + "/metadata" );
+  config->set_value( "metadata_directory", data_dir + "/pos" );
 
-  kwiver::arrows::core::video_input_pos ilr;
+  kwiver::arrows::core::video_input_pos vip;
 
-  ilr.check_configuration( config );
-  ilr.set_configuration( config );
+  vip.check_configuration( config );
+  vip.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/image_list.txt";
-  ilr.open( list_file );
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  vip.open( list_file );
 
   kwiver::vital::timestamp ts;
-  int expected_frame(1);
 
-  while ( ilr.next_frame( ts ) )
+  int num_frames = 0;
+  while ( vip.next_frame( ts ) )
   {
-    TEST_EQUAL( "Returned expected frame", ts.get_frame(), expected_frame );
-    ++expected_frame;
-
-    auto md = ilr.frame_metadata();
+    auto md = vip.frame_metadata();
 
     if (md.size() > 0)
     {
       std::cout << "-----------------------------------\n" << std::endl;
       kwiver::vital::print_metadata( std::cout, *md[0] );
     }
+    ++num_frames;
+    TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
   }
+  TEST_EQUAL( "Number of frames read", num_frames, 5 );
 }
