@@ -39,7 +39,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Metadata reader using ins/pos format files.
+/// Metadata reader using the AFRL POS file format.
 // ----------------------------------------------------------------
 /**
  * This class implements a video input algorithm that returns only metadata.

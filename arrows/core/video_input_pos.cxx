@@ -34,17 +34,14 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
-#include <vital/util/tokenize.h>
-#include <vital/types/geo_lat_lon.h>
 
 #include <vital/video_metadata/video_metadata.h>
 #include <vital/video_metadata/pos_metadata_io.h>
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <vector>
-#include <stdint.h>
 #include <fstream>
+
 
 namespace kwiver {
 namespace arrows {
@@ -54,20 +51,14 @@ class video_input_pos::priv
 {
 public:
   priv()
-    : c_start_at_frame( 1 )
-    , c_stop_after_frame( 0 )
-    , c_meta_extension( ".pos" )
-    , c_frame_time( 0.03333 )
+    : c_meta_extension( ".pos" )
     , d_at_eov( false )
   { }
 
   // Configuration values
-  unsigned int c_start_at_frame;
-  unsigned int c_stop_after_frame;
   std::string c_meta_directory;
   std::string c_meta_extension;
   std::string c_image_list_file;
-  float c_frame_time;
 
   // local state
   bool d_at_eov;
@@ -76,7 +67,6 @@ public:
   std::vector < kwiver::vital::path_t >::const_iterator d_current_file;
   std::vector < kwiver::vital::path_t >::const_iterator d_end;
   kwiver::vital::timestamp::frame_t d_frame_number;
-  kwiver::vital::timestamp::time_t d_frame_time;
 
   vital::video_metadata_sptr d_metadata;
 };
@@ -115,21 +105,11 @@ video_input_pos
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
-  config->set_value( "start_at_frame", d->c_start_at_frame,
-                     "Frame number (from 1) to start processing video input. "
-                     "If set to zero, start at the beginning of the video." );
+  config->set_value( "metadata_directory", d->c_meta_directory,
+                     "Name of directory containing metadata files." );
 
-  config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "Number of frames to supply. If set to zero then supply all frames after start frame." );
-
-  config->set_value( "frame_time", d->c_frame_time, "Inter frame time in seconds. "
-                     "The generated timestamps will have the specified number of seconds in the generated "
-                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
-                     "video stream application.");
-
-  config->set_value( "metadata_directory", d->c_meta_directory, "Name of directory containing metadata files." );
-
-  config->set_value( "metadata_extension", d->c_meta_extension, "File extension of metadata files." );
+  config->set_value( "metadata_extension", d->c_meta_extension,
+                     "File extension of metadata files." );
 
   return config;
 }
@@ -142,16 +122,6 @@ video_input_pos
 {
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
-
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
-    "start_at_frame", d->c_start_at_frame );
-
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
-    "stop_after_frame", d->c_stop_after_frame );
-
-  // get frame time
-  d->c_frame_time = config->get_value<float>(
-    "frame_time", d->c_frame_time );
 
   d->c_meta_directory = config->get_value<std::string>(
     "metadata_directory", d->c_meta_directory );
@@ -175,6 +145,8 @@ void
 video_input_pos
 ::open( std::string image_list_name )
 {
+  typedef kwiversys::SystemTools ST;
+
   // open file and read lines
   std::ifstream ifs( image_list_name.c_str() );
   if ( ! ifs )
@@ -190,9 +162,9 @@ video_input_pos
   {
     // Get base name from file
     std::string resolved_file = d->c_meta_directory;
-    resolved_file += "/" + kwiversys::SystemTools::GetFilenameWithoutExtension( line )
+    resolved_file += "/" + ST::GetFilenameWithoutLastExtension( line )
                      + d->c_meta_extension;
-    if ( ! kwiversys::SystemTools::FileExists( resolved_file ) )
+    if ( ! ST::FileExists( resolved_file ) )
     {
       LOG_DEBUG( logger(), "Could not find file " << resolved_file
                  <<". This frame will not have any metadata." );
@@ -200,26 +172,12 @@ video_input_pos
     }
 
     d->d_metadata_files.push_back( resolved_file );
-  } // end for
+  } // end while
 
   d->d_current_file = d->d_metadata_files.begin();
   d->d_frame_number = 1;
 
-  if ( d->c_start_at_frame > 1 )
-  {
-    d->d_current_file +=  d->c_start_at_frame - 1;
-    d->d_frame_number +=  d->c_start_at_frame - 1;
-  }
-
   d->d_end = d->d_metadata_files.end(); // set default end marker
-
-  if ( d->c_stop_after_frame > 0 )
-  {
-    if ( ( d->d_frame_number + d->c_stop_after_frame ) < d->d_metadata_files.size() )
-    {
-      d->d_end = d->d_current_file + d->c_stop_after_frame;
-    }
-  }
 }
 
 
@@ -269,7 +227,7 @@ video_input_pos
   }
 
   // reset current metadata packet.
-  d->d_metadata = 0;
+  d->d_metadata = nullptr;
 
   if ( ! d->d_current_file->empty() )
   {
@@ -278,16 +236,23 @@ video_input_pos
   }
 
   // Return timestamp
-  ts = kwiver::vital::timestamp( d->d_frame_time, d->d_frame_number );
+  ts = kwiver::vital::timestamp();
+  ts.set_frame( d->d_frame_number );
+  if ( d->d_metadata && d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
+  {
+    double gps_sec = d->d_metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+    // TODO: also use gps_week and convert to UTC to get abosolute time
+    // or subtract off first frame time to get time relative to start
+    ts.set_time_seconds( gps_sec );
+  }
   d->d_metadata->set_timestamp( ts );
 
   // update timestamp
   ++d->d_frame_number;
   ++d->d_current_file;
-  d->d_frame_time += d->c_frame_time;
 
   return true;
-} // video_input_pos::next_frame
+}
 
 
 // ------------------------------------------------------------------
