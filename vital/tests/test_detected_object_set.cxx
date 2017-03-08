@@ -144,3 +144,29 @@ IMPLEMENT_TEST(object_creation)
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 3", score, 0.07 );
 }
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(set_copy)
+{
+  kwiver::vital::detected_object_set do_set;
+
+  kwiver::vital::bounding_box_d bb1( 10, 20, 30, 40 );
+
+  const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
+  double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
+
+  auto dot = create_dot( n, s );
+
+  auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
+  do_set.add( detection );
+
+  auto do_set2 =  do_set.clone();
+  TEST_EQUAL( "(1) set size one", do_set2->size(), 1 );
+
+  auto attr_set = std::make_shared< kwiver::vital::attribute_set >();
+  do_set.set_attributes( attr_set );
+
+  do_set2 = do_set.clone();
+  TEST_EQUAL( "(2) set size one", do_set2->size(), 1 );
+}
