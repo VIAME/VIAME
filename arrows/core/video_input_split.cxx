@@ -42,11 +42,11 @@ class video_input_split::priv
 {
 public:
   priv()
-  : d_at_eov( false )
+  : d_has_timeout( false )
   { }
 
   // local state
-  bool d_at_eov;
+  bool d_has_timeout;
 
   // processing classes
   vital::algo::video_input_sptr d_image_source;
@@ -134,6 +134,30 @@ video_input_split
   }
   d->d_image_source->open( name );
   d->d_metadata_source->open( name );
+
+  auto const& is_caps = d->d_image_source->get_implementation_capabilities();
+  auto const& ms_caps = d->d_metadata_source->get_implementation_capabilities();
+
+  typedef vital::algo::video_input vi;
+
+  // pass through and combine capabilities
+  set_capability( vi::HAS_EOV,
+                  is_caps.capability( vi::HAS_EOV) ||
+                  ms_caps.capability( vi::HAS_EOV) );
+  set_capability( vi::HAS_FRAME_NUMBERS,
+                  is_caps.capability( vi::HAS_FRAME_NUMBERS ) ||
+                  ms_caps.capability( vi::HAS_FRAME_NUMBERS ) );
+  set_capability( vi::HAS_FRAME_DATA,
+                  is_caps.capability( vi::HAS_FRAME_DATA ) );
+  set_capability( vi::HAS_FRAME_TIME,
+                  ms_caps.capability( vi::HAS_FRAME_TIME ) );
+  set_capability( vi::HAS_METADATA,
+                  ms_caps.capability( vi::HAS_METADATA ) );
+  set_capability( vi::HAS_ABSOLUTE_FRAME_TIME,
+                  ms_caps.capability( vi::HAS_ABSOLUTE_FRAME_TIME ) );
+  d->d_has_timeout = ms_caps.capability( vi::HAS_TIMEOUT ) &&
+                     is_caps.capability( vi::HAS_TIMEOUT );
+  set_capability( vi::HAS_TIMEOUT, d->d_has_timeout );
 }
 
 
@@ -177,12 +201,18 @@ video_input_split
 bool
 video_input_split
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
-              uint32_t                  timeout ) // not supported
+              uint32_t                  timeout )
 {
   // Check for at end of data
-  if ( d->d_at_eov )
+  if ( this->end_of_video() )
   {
     return false;
+  }
+  // if timeout is not supported by both sources
+  // then do not pass a time out value to either
+  if ( ! d->d_has_timeout )
+  {
+    timeout = 0;
   }
 
   kwiver::vital::timestamp image_ts;
