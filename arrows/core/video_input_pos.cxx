@@ -52,7 +52,6 @@ class video_input_pos::priv
 public:
   priv()
     : c_meta_extension( ".pos" )
-    , d_at_eov( false )
   { }
 
   // Configuration values
@@ -61,11 +60,8 @@ public:
   std::string c_image_list_file;
 
   // local state
-  bool d_at_eov;
-
   std::vector < kwiver::vital::path_t > d_metadata_files;
   std::vector < kwiver::vital::path_t >::const_iterator d_current_file;
-  std::vector < kwiver::vital::path_t >::const_iterator d_end;
   kwiver::vital::timestamp::frame_t d_frame_number;
 
   vital::video_metadata_sptr d_metadata;
@@ -175,9 +171,7 @@ video_input_pos
   } // end while
 
   d->d_current_file = d->d_metadata_files.begin();
-  d->d_frame_number = 1;
-
-  d->d_end = d->d_metadata_files.end(); // set default end marker
+  d->d_frame_number = 0;
 }
 
 
@@ -194,7 +188,7 @@ bool
 video_input_pos
 ::end_of_video() const
 {
-  return d->d_at_eov;
+  return  d->d_current_file == d->d_metadata_files.end();
 }
 
 
@@ -203,8 +197,7 @@ bool
 video_input_pos
 ::good() const
 {
-  // This could use a more nuanced approach
-  return true;
+  return d->d_frame_number > 0 && ! this->end_of_video();
 }
 
 
@@ -214,20 +207,28 @@ video_input_pos
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               uint32_t                  timeout ) // not supported
 {
-  // Check for at end of data
-  if ( d->d_at_eov )
-  {
-    return false;
-  }
-
-  if ( d->d_current_file == d->d_end )
-  {
-    d->d_at_eov = true;
-    return false;
-  }
-
-  // reset current metadata packet.
+  // reset current metadata packet and timestamp
   d->d_metadata = nullptr;
+  ts = kwiver::vital::timestamp();
+
+  // Check for at end of video
+  if ( this->end_of_video() )
+  {
+    return false;
+  }
+
+  // do not increment the iterator on the first call to next_frame()
+  if ( d->d_frame_number > 0 )
+  {
+    ++d->d_current_file;
+  }
+  ++d->d_frame_number;
+
+  // Check for at end of video
+  if ( this->end_of_video() )
+  {
+    return false;
+  }
 
   if ( ! d->d_current_file->empty() )
   {
@@ -236,7 +237,6 @@ video_input_pos
   }
 
   // Return timestamp
-  ts = kwiver::vital::timestamp();
   ts.set_frame( d->d_frame_number );
   if ( d->d_metadata && d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
   {
@@ -247,10 +247,6 @@ video_input_pos
   }
   d->d_metadata->set_timestamp( ts );
 
-  // update timestamp
-  ++d->d_frame_number;
-  ++d->d_current_file;
-
   return true;
 }
 
@@ -260,8 +256,7 @@ kwiver::vital::image_container_sptr
 video_input_pos
 ::frame_image()
 {
-  // Could return a blank image, but we do not know a good size;
-  return 0;
+  return nullptr;
 }
 
 

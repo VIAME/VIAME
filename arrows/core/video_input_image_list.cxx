@@ -61,9 +61,7 @@ public:
   // local state
   std::vector < kwiver::vital::path_t > m_files;
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
-  std::vector < kwiver::vital::path_t >::const_iterator m_end; // end marker for iterator
   kwiver::vital::timestamp::frame_t m_frame_number;
-  kwiver::vital::timestamp::time_t m_frame_time;
   kwiver::vital::image_container_sptr m_image;
 
   // processing classes
@@ -220,8 +218,7 @@ video_input_image_list
   } // end while
 
   d->m_current_file = d->m_files.begin();
-  d->m_frame_number = 1;
-  d->m_end = d->m_files.end(); // set default end marker
+  d->m_frame_number = 0;
 }
 
 
@@ -239,7 +236,7 @@ bool
 video_input_image_list
 ::end_of_video() const
 {
-  return ( d->m_current_file == d->m_end );
+  return ( d->m_current_file == d->m_files.end() );
 }
 
 
@@ -248,8 +245,7 @@ bool
 video_input_image_list
 ::good() const
 {
-  // This could use a more nuanced approach
-  return true;
+  return d->m_frame_number > 0 && ! this->end_of_video();
 }
 
 
@@ -261,7 +257,7 @@ video_input_image_list
 {
   // returns timestamp
   // does not support timeout
-  if ( d->m_current_file == d->m_end )
+  if ( this->end_of_video() )
   {
     return false;
   }
@@ -271,14 +267,19 @@ video_input_image_list
 
   // Return timestamp
   ts = kwiver::vital::timestamp();
-  ts.set_frame( d->m_frame_number );
 
-  // update timestamp
+  // If this is the first call to next_frame() then
+  // do not increment the file iteration.
+  // next_frame() must be called once before accessing the first frame.
+  if ( d->m_frame_number > 0 )
+  {
+    ts.set_frame( d->m_frame_number );
+    ++d->m_current_file;
+  }
+
   ++d->m_frame_number;
 
-  ++d->m_current_file;
-
-  return true;
+  return ! this->end_of_video();
 }
 
 
@@ -287,7 +288,7 @@ kwiver::vital::image_container_sptr
 video_input_image_list
 ::frame_image()
 {
-  if ( !d->m_image && !this->end_of_video() )
+  if ( !d->m_image && this->good() )
   {
     LOG_DEBUG( logger(), "reading image from file \"" << *d->m_current_file << "\"" );
 
