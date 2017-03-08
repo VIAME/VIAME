@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,6 +158,10 @@ public:
    *
    * \param video_name Identifier of the video stream.
    *
+   * \note Once a video is opened, it starts in an invalid state
+   * (i.e. before the first frame of video). You must call \c next_frame()
+   * to step to the first frame of video before calling \c frame_image().
+   *
    * \throws exception if open failed
    */
   virtual void open( std::string video_name ) = 0;
@@ -190,8 +194,11 @@ public:
    * \brief Check whether state of video stream is good.
    *
    * This method checks the current state of the video stream to see
-   * if it is good. The definition of \a good depends on the concrete
-   * implementation.
+   * if it is good. A stream is good if it refers to a valid frame
+   * such that calls to \c frame_image() and \c frame_metadata()
+   * are expected to return meaningful data.  After calling \c open()
+   * the initial video state is not good until the first call to
+   * \c next_frame().
    *
    * \return \b true if video stream is good, \b false if not good.
    */
