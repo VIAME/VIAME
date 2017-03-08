@@ -152,6 +152,29 @@ video_input_filter
   }
   d->d_video_input->open( name );
   d->d_at_eov = false;
+
+  auto const& vi_caps = d->d_video_input->get_implementation_capabilities();
+
+  typedef vital::algo::video_input vi;
+
+  // pass through capabilities, modified as needed
+  set_capability( vi::HAS_EOV,
+                  vi_caps.capability( vi::HAS_EOV) ||
+                  d->c_stop_after_frame > 0 );
+  set_capability( vi::HAS_FRAME_NUMBERS,
+                  vi_caps.capability( vi::HAS_FRAME_NUMBERS ) );
+  set_capability( vi::HAS_FRAME_DATA,
+                  vi_caps.capability( vi::HAS_FRAME_DATA ) );
+  set_capability( vi::HAS_FRAME_TIME,
+                  vi_caps.capability( vi::HAS_FRAME_TIME ) ||
+                  d->c_frame_rate > 0 );
+  set_capability( vi::HAS_METADATA,
+                  vi_caps.capability( vi::HAS_METADATA ) );
+  set_capability( vi::HAS_ABSOLUTE_FRAME_TIME,
+                  vi_caps.capability( vi::HAS_ABSOLUTE_FRAME_TIME ) );
+  set_capability( vi::HAS_TIMEOUT,
+                  vi_caps.capability( vi::HAS_TIMEOUT ) );
+
 }
 
 
