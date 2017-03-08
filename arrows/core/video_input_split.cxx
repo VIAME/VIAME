@@ -221,13 +221,34 @@ video_input_split
   kwiver::vital::timestamp metadata_ts;
   bool meta_stat = d->d_metadata_source->next_frame( metadata_ts, timeout );
 
-  // Both timestamps should be the same
-  if (image_ts != metadata_ts )
+  if( !image_stat || !meta_stat )
   {
-    // throw something.
+    return false;
   }
 
-  return image_stat && meta_stat;;
+  // Both timestamps should be the same
+  ts = metadata_ts;
+  if (image_ts != metadata_ts )
+  {
+    if ( image_ts.get_frame() == metadata_ts.get_frame() )
+    {
+      if ( image_ts.has_valid_time() && ! metadata_ts.has_valid_time() )
+      {
+        ts.set_time_usec( image_ts.get_time_usec() );
+      }
+      else if ( image_ts.has_valid_time() && metadata_ts.has_valid_time() )
+      {
+        LOG_WARN( logger(), "Timestamps from image and metadata sources have different time" );
+      }
+    }
+    else
+    {
+      // throw something?
+      LOG_WARN( logger(), "Timestamps from image and metadata sources are out of sync" );
+    }
+  }
+
+  return true;
 } // video_input_split::next_frame
 
 
