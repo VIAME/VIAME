@@ -121,6 +121,14 @@ if( VIAME_ENABLE_OPENCV )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.11 3.1.0 )
 endif()
 
+# Set default windows configuration mode to be 'Release'
+if( MSVC )
+  set( CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "This specifies what \
+    build types (configurations) will be available for selection within \
+	Visual Studio. Options are: Release, RelWithDebInfo, Debug etc. in a \
+	semi-colon seperated list." )
+endif()
+
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
 
