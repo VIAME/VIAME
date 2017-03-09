@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,60 +30,79 @@
 
 /**
  * \file
- * \brief video_input algorithm definition instantiation
+ * \brief test reading video from a list of images.
  */
 
-#include <vital/algo/video_input.h>
-#include <vital/algo/algorithm.txx>
+#include <test_common.h>
 
-namespace kwiver {
-namespace vital {
-namespace algo {
+#include <arrows/core/video_input_pos.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-// ------------------------------------------------------------------
-const algorithm_capabilities::capability_name_t video_input::HAS_EOV( "has-eov" );
-const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_NUMBERS( "has-frame-numbers" );
-const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_TIME( "has-frame-time" );
-const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_DATA( "has-frame-data" );
-const algorithm_capabilities::capability_name_t video_input::HAS_ABSOLUTE_FRAME_TIME( "has-abs-frame-time" );
-const algorithm_capabilities::capability_name_t video_input::HAS_METADATA( "has-metadata" );
-const algorithm_capabilities::capability_name_t video_input::HAS_TIMEOUT( "has-timeout" );
+#include <memory>
+#include <string>
+#include <iostream>
 
+#define TEST_ARGS ( kwiver::vital::path_t data_dir )
 
-// ------------------------------------------------------------------
-video_input
-::video_input()
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
-  attach_logger( "video_input" );
+  CHECK_ARGS(2);
+
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
+  testname_t const testname = argv[1];
+  kwiver::vital::path_t data_dir( argv[2] );
+
+  RUN_TEST(testname, data_dir);
 }
 
-
-video_input
-::~video_input()
-{
-}
-
-
-// ------------------------------------------------------------------
-algorithm_capabilities const&
-video_input
-::get_implementation_capabilities() const
-{
-  return m_capabilities;
-}
+namespace algo = kwiver::vital::algo;
+namespace kac = kwiver::arrows::core;
 
 
 // ------------------------------------------------------------------
-void
-video_input
-::set_capability( algorithm_capabilities::capability_name_t const& name, bool val )
+IMPLEMENT_TEST(create)
 {
-  m_capabilities.set_capability( name, val );
+  algo::video_input_sptr vi = algo::video_input::create("pos");
+  if (!vi)
+  {
+    TEST_ERROR("Unable to create core::video_input_pos by name");
+  }
 }
 
 
-} } } // end namespace
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(read_list)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
 
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::video_input);
-/// \endcond
+  kwiver::arrows::core::video_input_pos vip;
+
+  vip.check_configuration( config );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  vip.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  int num_frames = 0;
+  while ( vip.next_frame( ts ) )
+  {
+    auto md = vip.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
+    ++num_frames;
+    TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
+  }
+  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+}
