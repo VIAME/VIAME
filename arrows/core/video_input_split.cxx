@@ -92,16 +92,13 @@ video_input_split
 // ------------------------------------------------------------------
 void
 video_input_split
-::set_configuration( vital::config_block_sptr in_config )
+::set_configuration( vital::config_block_sptr config )
 {
-  vital::config_block_sptr config = this->get_configuration();
-  config->merge_config(in_config);
+  vital::algo::video_input::
+    set_nested_algo_configuration( "image_source", config, d->d_image_source );
 
   vital::algo::video_input::
-    get_nested_algo_configuration( "image_source", config, d->d_image_source );
-
-  vital::algo::video_input::
-    get_nested_algo_configuration( "metadata_source", config, d->d_metadata_source );
+    set_nested_algo_configuration( "metadata_source", config, d->d_metadata_source );
 }
 
 
