@@ -35,10 +35,10 @@
 
 #include <test_common.h>
 
+#include "dummy_image_io.h"
+
 #include <arrows/core/video_input_image_list.h>
-#include <vital/algo/image_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/algo/algorithm_factory.h>
 
 #include <memory>
 #include <string>
@@ -65,43 +65,6 @@ namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
 
-/// A dummy image_io algorithm that only checks for valid paths
-class image_io_dummy
-  : public kwiver::vital::algorithm_impl<image_io_dummy, kwiver::vital::algo::image_io>
-{
-public:
-  /// Constructor
-  image_io_dummy() {}
-
-  /// Destructor
-  virtual ~image_io_dummy() {}
-
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config) {}
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const { return true; }
-
-
-private:
-  /// Implementation specific load functionality.
-  virtual kwiver::vital::image_container_sptr
-  load_(const std::string& filename) const
-  {
-    LOG_DEBUG( logger(), "image_io_dummy::load_() got file: " << filename );
-    return kwiver::vital::image_container_sptr();
-  }
-
-  /// Implementation specific save functionality.
-  virtual void
-  save_(const std::string& filename,
-        kwiver::vital::image_container_sptr data) const
-  {
-    LOG_DEBUG( logger(), "image_io_dummy::save_() got file: " << filename );
-  }
-};
-
-
-
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(create)
 {
@@ -116,16 +79,8 @@ IMPLEMENT_TEST(create)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(read_list)
 {
-  // register the dummy image_io defined above
-  auto& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact = vpm.ADD_ALGORITHM( "dummy", image_io_dummy );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "A dummy implementation of an image_io algorithm for testing" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "test" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
 
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
