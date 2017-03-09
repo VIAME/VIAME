@@ -24,4 +24,3 @@ kwiver_discover_tests(vxl_polygon                      test_libraries test_polyg
 set(test_libraries     kwiver_algo_vxl kwiver_algo_core)
 
 kwiver_discover_tests(vxl_initialize_cameras_landmarks test_libraries test_initialize_cameras_landmarks.cxx)
-kwiver_discover_tests(vxl_video_input_image_list       test_libraries test_video_input_image_list.cxx  "${kwiver_test_data_directory}" )

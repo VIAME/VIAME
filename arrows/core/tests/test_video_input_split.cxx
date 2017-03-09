@@ -77,11 +77,9 @@ IMPLEMENT_TEST(create)
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(read_list)
+kwiver::vital::config_block_sptr
+make_config(std::string const& data_dir)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "image_source:type", "image_list" );
@@ -89,6 +87,19 @@ IMPLEMENT_TEST(read_list)
 
   config->set_value( "metadata_source:type", "pos" );
   config->set_value( "metadata_source:pos:metadata_directory", data_dir + "/pos");
+
+  return config;
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(read_list)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
+  // make config block
+  auto config = make_config(data_dir);
 
   kwiver::arrows::core::video_input_split vis;
 
@@ -116,4 +127,33 @@ IMPLEMENT_TEST(read_list)
     TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
   }
   TEST_EQUAL( "Number of frames read", num_frames, 5 );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(test_capabilities)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
+  // make config block
+  auto config = make_config(data_dir);
+
+  kwiver::arrows::core::video_input_split vis;
+
+  vis.check_configuration( config );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  vis.open( list_file );
+
+  auto cap = vis.get_implementation_capabilities();
+  auto cap_list = cap.capability_list();
+
+  VITAL_FOREACH( auto one, cap_list )
+  {
+    std::cout << one << " -- "
+              << ( cap.capability( one ) ? "true" : "false" )
+              << std::endl;
+  }
 }
