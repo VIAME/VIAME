@@ -55,10 +55,14 @@ detected_object_sptr
 detected_object::
 clone() const
 {
+  detected_object_type_sptr new_type;
+  if (this->m_type )
+  {
+    new_type = std::make_shared<detected_object_type>( *this->m_type );
+  }
+
   auto new_obj = std::make_shared<kwiver::vital::detected_object>(
-    *this->m_bounding_box,
-    this->m_confidence,
-    std::make_shared<detected_object_type>( *this->m_type ) );
+    *this->m_bounding_box, this->m_confidence, new_type );
 
   new_obj->m_mask_image = this->m_mask_image; // being cheap - not copying image mask
   new_obj->m_index = this->m_index;
