@@ -273,11 +273,11 @@ video_input_image_list
   // next_frame() must be called once before accessing the first frame.
   if ( d->m_frame_number > 0 )
   {
-    ts.set_frame( d->m_frame_number );
     ++d->m_current_file;
   }
 
   ++d->m_frame_number;
+  ts.set_frame( d->m_frame_number );
 
   return ! this->end_of_video();
 }
