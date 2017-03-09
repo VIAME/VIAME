@@ -30,17 +30,19 @@
 
 /**
  * \file
- * \brief test reading images and metadata
+ * \brief test reading images and metadata with video_input_split
  */
 
 #include <test_common.h>
 
-#include <arrows/core/video_input_split.h>
+#include "dummy_image_io.h"
 
-#include <iostream>
-#include <sstream>
+#include <arrows/core/video_input_split.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <memory>
 #include <string>
+#include <iostream>
 
 #define TEST_ARGS ( kwiver::vital::path_t data_dir )
 
@@ -49,7 +51,9 @@ DECLARE_TEST_MAP();
 int
 main(int argc, char* argv[])
 {
-  CHECK_ARGS(1);
+  CHECK_ARGS(2);
+
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
   kwiver::vital::path_t data_dir( argv[2] );
@@ -60,21 +64,56 @@ main(int argc, char* argv[])
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
+
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(read_metadata)
+IMPLEMENT_TEST(create)
 {
+  algo::video_input_sptr vi = algo::video_input::create("split");
+  if (!vi)
+  {
+    TEST_ERROR("Unable to create core::video_input_split by name");
+  }
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(read_list)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "image_source:type", "image_list" );
+  config->set_value( "image_source:image_list:image_reader:type", "dummy" );
 
-  config->set_value( "image_reader:type", "image_list" );
-  config->set_value( "image_reader:image_reader:type", "vxl" );
+  config->set_value( "metadata_source:type", "pos" );
+  config->set_value( "metadata_source:pos:metadata_directory", data_dir + "/pos");
 
-  config->set_value( "metadata_reader:type", "ins_data_reader" );
-  config->set_value( "metadata_reader:ins_data_reader:metadata_directory", data_dir );
+  kwiver::arrows::core::video_input_split vis;
 
-  config->set_value( "start_at_frame", "2" );
-  config->set_value( "stop_after_frame", "2" );
+  TEST_EQUAL("Check configuration", vis.check_configuration( config ), true);
+  vis.set_configuration( config );
 
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  vis.open( list_file );
 
+  kwiver::vital::timestamp ts;
 
+  int num_frames = 0;
+  while ( vis.next_frame( ts ) )
+  {
+    auto img = vis.frame_image();
+    auto md = vis.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
+
+    ++num_frames;
+    TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
+  }
+  TEST_EQUAL( "Number of frames read", num_frames, 5 );
 }
