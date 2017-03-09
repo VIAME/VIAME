@@ -141,7 +141,7 @@ score( const std::string& class_name ) const
 // ------------------------------------------------------------------
 void
 detected_object_type::
-  get_most_likely( std::string& max_name, double& max_score ) const
+get_most_likely( std::string& max_name, double& max_score ) const
 {
   if ( m_classes.empty() )
   {
