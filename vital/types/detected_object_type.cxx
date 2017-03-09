@@ -111,9 +111,8 @@ has_class_name( const std::string& class_name ) const
     const std::string* str_ptr = find_string( class_name );
     return ( 0 != m_classes.count( str_ptr ) );
   }
-  catch ( std::runtime_error& e )
-  {
-  }
+  catch ( ... ) {}
+
   return false;
 }
 
@@ -239,12 +238,13 @@ size() const
  * This method resolves the supplied string to a pointer to the
  * canonical version in the master set. This is needed because the
  * class_names in this class refer to these strings by address, so we
- * need an address to look up in the map. If the string is not found,
- * there's the option to either return no string or an exception.
+ * need an address to look up in the map.
  *
  * @param str String to resolve
  *
  * @return Address of string in master list.
+ *
+ * @throws std::runtime_error if the string is not in the global set.
  */
 const std::string*
 detected_object_type::
