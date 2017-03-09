@@ -122,11 +122,16 @@ if( VIAME_ENABLE_OPENCV )
 endif()
 
 # Set default windows configuration mode to be 'Release'
-if( MSVC )
+set( VIAME_FIRST_CONFIGURATION TRUE CACHE BOOL "Has this project been configured." )
+mark_as_advanced( VIAME_FIRST_CONFIGURATION )
+
+if( MSVC AND VIAME_FIRST_CONFIGURATION )
   set( CMAKE_CONFIGURATION_TYPES "Release" CACHE STRING "This specifies what \
     build types (configurations) will be available for selection within \
 	Visual Studio. Options are: Release, RelWithDebInfo, Debug etc. in a \
-	semi-colon seperated list." )
+	semi-colon seperated list." FORCE )
+
+  set( VIAME_FIRST_CONFIGURATION FALSE CACHE BOOL "Project has been configured." FORCE )
 endif()
 
 # Include internal common CMake macros used across all CMakeLists.txt
