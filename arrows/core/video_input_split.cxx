@@ -124,10 +124,15 @@ void
 video_input_split
 ::open( std::string name )
 {
-  if ( ! d->d_image_source || ! d->d_metadata_source )
+  if ( ! d->d_image_source )
   {
     throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
-          "invalid nested video_input algorithm(s)" );
+          "invalid video_input algorithm for image source" );
+  }
+  if ( ! d->d_metadata_source )
+  {
+    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
+          "invalid video_input algorithm for metadata source" );
   }
   d->d_image_source->open( name );
   d->d_metadata_source->open( name );
