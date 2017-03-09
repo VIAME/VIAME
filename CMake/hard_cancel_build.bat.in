@@ -1,0 +1,11 @@
+@echo off
+echo Killing MSBuild.exe
+for /L %%i in (1,1,2) do (
+   Taskkill /IM MSBuild.exe /F
+   timeout 1
+)
+echo Killing CL.exe
+for /L %%i in (1,1,5) do (
+   Taskkill /IM cl.exe /F
+   timeout 1
+)

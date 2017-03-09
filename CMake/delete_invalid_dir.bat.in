@@ -1,0 +1,4 @@
+mkdir empty_dir
+robocopy empty_dir to_delete /s /mir
+rmdir empty_dir
+rmdir to_delete
