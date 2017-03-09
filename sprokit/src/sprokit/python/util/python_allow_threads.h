@@ -35,7 +35,7 @@
 
 #include <boost/noncopyable.hpp>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 /**
  * \file python_allow_threads.h

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,61 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SPROKIT_PYTHON_UTIL_PYTHON_H
+#define SPROKIT_PYTHON_UTIL_PYTHON_H
 
-#include <boost/python/import.hpp>
+#if defined(_MSC_VER) && defined(_DEBUG)
+  // Include these low level headers before undefing _DEBUG. Otherwise when doing
+  // a debug build against a release build of python the compiler will end up
+  // including these low level headers without DEBUG enabled, causing it to try
+  // and link release versions of this low level C api.
+  #include <basetsd.h>
+  #include <assert.h>
+  #include <ctype.h>
+  #include <errno.h>
+  #include <io.h>
+  #include <math.h>
+  #include <sal.h>
+  #include <stdarg.h>
+  #include <stddef.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <string.h>
+  #include <sys/stat.h>
+  #include <time.h>
+  #include <wchar.h>
+  #undef _DEBUG
+  #include <Python.h>
+  #define _DEBUG
+#else
+  #include <Python.h>
+#endif
 
-#include "registration.h"
-
-#include <sprokit/pipeline/utils.h>
-
-#include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python_gil.h>
-#include <sprokit/python/util/python.h>
-
-using namespace boost::python;
-
-static sprokit::envvar_name_t const python_suppress_envvar = sprokit::envvar_name_t("SPROKIT_NO_PYTHON_MODULES");
-
-static void load();
-static bool is_suppressed();
-
-void
-register_processes()
-{
-  if (is_suppressed())
-  {
-    return;
-  }
-
-  Py_Initialize();
-
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
-  SPROKIT_PYTHON_IGNORE_EXCEPTION(load())
-}
-
-void
-load()
-{
-  object const modules = import("sprokit.modules.modules");
-  object const loader = modules.attr("load_python_modules");
-
-  loader();
-}
-
-bool
-is_suppressed()
-{
-  sprokit::envvar_value_t const python_suppress = sprokit::get_envvar(python_suppress_envvar);
-
-  bool suppress_python_modules = false;
-
-  if (python_suppress)
-  {
-    suppress_python_modules = true;
-  }
-
-  return suppress_python_modules;
-}
+#endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H

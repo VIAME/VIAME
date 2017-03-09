@@ -40,7 +40,7 @@
 #include <boost/python/to_python_converter.hpp>
 #include <boost/optional.hpp>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 /**
  * \file python_convert_optional.h

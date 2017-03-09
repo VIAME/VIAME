@@ -13,6 +13,7 @@ set(python_util_headers
   python_convert_optional.h
   python_exceptions.h
   python_gil.h
+  python.h
   python_threading.h
   python_wrap_const_shared_ptr.h
   set_indexing_suite.h
