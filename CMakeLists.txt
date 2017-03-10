@@ -233,7 +233,6 @@ else()
   # add subdirs
   ##
   add_subdirectory( plugins )
-  add_subdirectory( pipelines )
   add_subdirectory( examples )
 
   ###
