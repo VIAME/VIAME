@@ -1,36 +1,16 @@
 ###
 # VIAME examples
+##
 
-if( VIAME_ENABLE_OPENCV )
+option( VIAME_INSTALL_EXAMPLES  "Install existing VIAME examples"     ON )
+option( VIAME_DOWNLOAD_MODELS   "Download example detection models"  OFF )
 
-  find_package( OpenCV REQUIRED )
-  include_directories( SYSTEM ${OpenCV_INCLUDE_DIRS} )
+if( VIAME_INSTALL_EXAMPLES )
 
-  find_package( Eigen3 REQUIRED )
-  include_directories( ${EIGEN3_INCLUDE_DIR} )
-
-  ###
-  # Add first detector example
-  add_executable( detector1       detector1.cxx )
-
-  target_link_libraries( detector1
-    PRIVATE    vital
-               kwiver_algo_core
-               kwiver_algo_ocv
-               ${OpenCV_LIBS}
-    )
-
-
-  ###
-  # Add first detector example
-  add_executable( detector3       detector3.cxx )
-
-  target_link_libraries( detector3
-    PRIVATE    vital
-               vital_vpm
-               kwiver_algo_core
-               kwiver_algo_ocv
-               ${OpenCV_LIBS}
-    )
+  add_subdirectory( detection_file_conversions )
+  add_subdirectory( detector_model_training )
+  add_subdirectory( detector_pipelines )
+  add_subdirectory( hello_world_pipeline )
+  add_subdirectory( using_detectors_in_cxx_code )
 
 endif()
