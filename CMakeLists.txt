@@ -116,6 +116,11 @@ if( WIN32 AND VIAME_ENABLE_KWANT )
     but it will be soon. Please disable for now." )
 endif()
 
+if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
+  message( FATAL_ERROR "Cannot build in Debug on Windows with Python enabled, \
+    build in RelWithDebInfo or Release until fixed." )
+endif()
+
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_OPENCV_VERSION 2.4.11 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.11 3.1.0 )
