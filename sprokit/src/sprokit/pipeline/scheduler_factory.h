@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,6 @@
 
 #include <sprokit/pipeline/scheduler.h>
 
-#include <boost/make_shared.hpp>
-
 #include <functional>
 #include <memory>
 
@@ -69,7 +67,7 @@ scheduler_t
 create_new_scheduler( pipeline_t const& pipe,
                       kwiver::vital::config_block_sptr const& conf)
 {
-  return boost::make_shared<T>(pipe, conf);
+  return std::make_shared<T>(pipe, conf);
 }
 
 

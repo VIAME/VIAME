@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ class SPROKIT_NO_EXPORT CLASS_NAME(name)               \
     void _step();                                    \
   private:                                           \
     class priv;                                      \
-    boost::scoped_ptr<priv> d;                       \
+    std::unique_ptr<priv> d;                       \
 }
 
 #endif // SPROKIT_PROCESSES_HELPER_FUNCTIONS_FUNCTION_PROCESS_H

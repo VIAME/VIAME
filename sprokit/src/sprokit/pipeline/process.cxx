@@ -44,11 +44,10 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/optional.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include <map>
 #include <utility>
+#include <memory>
 
 /**
  * \file process.cxx
@@ -1025,7 +1024,7 @@ process
                      port_description_t const& description_,
                      port_frequency_t const& frequency_)
 {
-  declare_input_port(port, boost::make_shared<port_info>(
+  declare_input_port(port, std::make_shared<port_info>(
     type_,
     flags_,
     description_,
@@ -1089,7 +1088,7 @@ process
                       port_description_t const& description_,
                       port_frequency_t const& frequency_)
 {
-  declare_output_port(port, boost::make_shared<port_info>(
+  declare_output_port(port, std::make_shared<port_info>(
     type_,
     flags_,
     description_,
@@ -1259,7 +1258,7 @@ process
                             kwiver::vital::config_block_description_t const& description_,
                             bool tunable_)
 {
-  declare_configuration_key(key, boost::make_shared<conf_info>(
+  declare_configuration_key(key, std::make_shared<conf_info>(
     def_,
     description_,
     tunable_));
@@ -1545,7 +1544,7 @@ process
     }
   }
 
-  return boost::make_shared<data_info>(in_sync, max_type);
+  return std::make_shared<data_info>(in_sync, max_type);
 }
 
 

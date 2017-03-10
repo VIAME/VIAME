@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@
 
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 
 #include <map>
@@ -49,6 +48,7 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <memory>
 
 /// \todo Implement a depth option to suppress recursion into too many clusters.
 /// \todo Improve the color scheme.
@@ -216,7 +216,7 @@ export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string con
     throw null_cluster_export_dot_exception();
   }
 
-  pipeline_t const pipe = boost::make_shared<pipeline>();
+  pipeline_t const pipe = std::make_shared<pipeline>();
 
   pipe->add_process(cluster);
 

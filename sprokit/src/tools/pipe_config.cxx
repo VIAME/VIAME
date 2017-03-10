@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -254,7 +254,7 @@ config_printer
     }
 
     sprokit::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
-    sprokit::process_t const proc = boost::static_pointer_cast<sprokit::process>(cluster);
+    sprokit::process_t const proc = std::static_pointer_cast<sprokit::process>(cluster);
 
     static std::string const kind = "cluster";
 
@@ -296,7 +296,7 @@ config_printer
       {
         sprokit::process_cluster_t const cluster = m_pipe->cluster_by_name(name);
 
-        proc = boost::static_pointer_cast<sprokit::process>(cluster);
+        proc = std::static_pointer_cast<sprokit::process>(cluster);
       }
       catch (sprokit::no_such_process_exception const& /*e*/)
       {

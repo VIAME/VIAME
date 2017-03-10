@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,6 @@
 #include "types.h"
 
 #include <vital/noncopyable.h>
-
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file pipeline.h
@@ -491,7 +489,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     SPROKIT_PIPELINE_NO_EXPORT void stop();
 
     class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

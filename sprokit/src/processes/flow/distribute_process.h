@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,6 @@
 #include "flow-config.h"
 
 #include <sprokit/pipeline/process.h>
-
-#include <boost/scoped_ptr.hpp>
 
 namespace sprokit {
 
@@ -90,7 +88,7 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT distribute_process
     port_info_t _output_port_info(port_t const& port);
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }
