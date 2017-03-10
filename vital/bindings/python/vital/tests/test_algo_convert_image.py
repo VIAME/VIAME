@@ -34,7 +34,6 @@ Tests for vital::algo::convert_image and general algorithm tests
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 

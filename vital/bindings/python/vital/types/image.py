@@ -34,7 +34,6 @@ Interface to VITAL image class.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 from vital.util import VitalObject

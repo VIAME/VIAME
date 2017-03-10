@@ -137,7 +137,7 @@ public:
   /// Rotate a vector
   /**
    * \note for a large number of vectors, it is more efficient to
-   *       create a rotation matrix and use matrix multiplcation
+   *       create a rotation matrix and use matrix multiplication
    * \param rhs right-hand side vector to operate against
    */
   Eigen::Matrix< T, 3, 1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
@@ -155,7 +155,7 @@ public:
   }
 
 protected:
-  /// rotatation stored internally as a quaternion vector
+  /// rotation stored internally as a quaternion vector
   Eigen::Quaternion< T > q_;
 };
 

@@ -45,9 +45,6 @@ from vital.util import (
 from vital.util.VitalObject import OpaqueTypeCache
 
 
-__author__ = 'paul.tunison@kitware.com'
-
-
 if ctypes.sizeof(ctypes.c_void_p) == 4:
     c_ptrdiff_t = ctypes.c_int32
 elif ctypes.sizeof(ctypes.c_void_p) == 8:

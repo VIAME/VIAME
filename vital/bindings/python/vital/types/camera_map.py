@@ -34,7 +34,6 @@ Interface to vital::camera_map class.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 

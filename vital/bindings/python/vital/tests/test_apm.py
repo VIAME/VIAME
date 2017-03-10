@@ -34,7 +34,6 @@ Tests for vital::algorithm_plugin_manager interface
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 from vital import apm
 

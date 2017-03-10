@@ -34,7 +34,6 @@ VITAL convert_image algorithm interface
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 from vital.types import ImageContainer
 from vital.algo import VitalAlgorithm
