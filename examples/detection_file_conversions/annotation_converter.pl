@@ -23,23 +23,43 @@ my $last_index = 0;
 my $point_delta = 50;
 
 my %species_table = (
-    185 => "Live Scallop",
-    197 => "Live Scallop",
-    207 => "Live Scallop",
-    211 => "Live Scallop",
-    515 => "Live Scallop",
-    912 => "Live Scallop",
-    919 => "Live Scallop",
-    920 => "Live Scallop",
-    188 => "Dead Scallop",
-    403 => "Sand-eel",
-    524 => "Skate",
-    533 => "Fish",
-    1003 => "Fish",
-    1001 => "Fish",
-    158 => "Crab",
-    258 => "Crab"
-    );
+    158 => "waved whelk"
+    185 => "live sea scallop",
+    188 => "dead sea scallop",
+    196 => "sea scallop clapper",
+    197 => "live sea scallop width",
+    207 => "probable live sea scallop",
+    210 => "sea scallop clapper width",
+    211 => "probable dead sea scallop",
+    212 => "probable dead sea scallop width",
+    235 => "squid",
+    254 => "American Lobster",
+    258 => "jonah or rock crab",
+    334 => "probably didemnum",
+    355 => "monkfish",
+    381 => "convict worm",
+    403 => "unidentified fish",
+    515 => "live sea scallop inexact",
+    517 => "sea scallop clapper inexact",
+    524 => "unidentified skate",
+    525 => "swimming sea scallop inexact",
+    527 => "unidentified fish (less than half)",
+    533 => "unidentified skate (less than half)",
+    534 => "probable scallop-like rock",
+    900 => "dead sea scallop inexact",
+    909 => "probable dead sea scallop inexact",
+    912 => "probable live sea scallop inexact",
+    915 => "probable swimming sea scallop",
+    916 => "probable swimming sea scallop inexact",
+    919 => "swimming sea scallop",
+    920 => "swimming sea scallop width",
+   1001 => "unidentified roundfish",
+   1002 => "unidentified roundfish (less than half)",
+   1003 => "unidentified flatfish",
+   1004 => "unidentified flatfish (less than half)",
+   1091 => "dust cloud",
+  );
+
 
 # ------------------------------------------------------------------
 while (<>)
