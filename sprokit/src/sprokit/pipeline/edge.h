@@ -34,10 +34,11 @@
 #include "pipeline-config.h"
 
 #include <vital/config/config_block.h>
+#include <vital/noncopyable.h>
+
 #include "types.h"
 
 #include <boost/chrono/system_clocks.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/operators.hpp>
 #include <boost/optional.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -109,7 +110,7 @@ typedef std::vector< edge_t > edges_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT edge
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
 public:
   /**

@@ -101,7 +101,7 @@ static object cluster_from_process(sprokit::process_t const& process);
 
 BOOST_PYTHON_MODULE(process_cluster)
 {
-  class_<wrap_process_cluster, boost::noncopyable>("PythonProcessCluster"
+  class_<wrap_process_cluster, kwiver::vital::noncopyable>("PythonProcessCluster"
     , "The base class for Python process clusters."
     , no_init)
     .def(init<kwiver::vital::config_block_sptr>())

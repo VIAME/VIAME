@@ -35,8 +35,8 @@
 
 #include "types.h"
 #include <vital/config/config_block.h>
+#include <vital/noncopyable.h>
 
-#include <boost/noncopyable.hpp>
 #include <boost/scoped_ptr.hpp>
 
 /**
@@ -60,7 +60,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT scheduler
-  : boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /// The type of registry keys.

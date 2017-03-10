@@ -39,16 +39,16 @@
 
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
+#include <vital/noncopyable.h>
 
 #include <boost/cstdint.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/rational.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+#include <memory>
 
 /**
  * \file process.h
@@ -96,7 +96,7 @@ typedef std::vector<process_t> processes_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT process
-  : boost::noncopyable
+  : kwiver::vital::noncopyable
 {
   public:
     /// The type for the type of a process.
@@ -194,7 +194,7 @@ class SPROKIT_PIPELINE_EXPORT process
         port_frequency_t const frequency;
     };
     /// Type for information about a port.
-    typedef boost::shared_ptr<port_info const> port_info_t;
+    typedef std::shared_ptr<port_info const> port_info_t;
 
     /**
      * \class conf_info process.h <sprokit/pipeline/process.h>
@@ -227,7 +227,7 @@ class SPROKIT_PIPELINE_EXPORT process
         bool const tunable;
     };
     /// Type for information about a configuration parameter.
-    typedef boost::shared_ptr<conf_info const> conf_info_t;
+    typedef std::shared_ptr<conf_info const> conf_info_t;
 
     /**
      * \class data_info process.h <sprokit/pipeline/process.h>
@@ -259,7 +259,7 @@ class SPROKIT_PIPELINE_EXPORT process
         datum::type_t const max_status;
     };
     /// Type for information about a set of data.
-    typedef boost::shared_ptr<data_info const> data_info_t;
+    typedef std::shared_ptr<data_info const> data_info_t;
 
     /**
      * \brief Data checking levels. All levels include lower levels.

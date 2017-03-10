@@ -33,7 +33,7 @@
 
 #include "util-config.h"
 
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 #include <Python.h>
 
@@ -55,7 +55,7 @@ namespace python
  * \brief Grabs the Python GIL and uses RAII to ensure it is released.
  */
 class SPROKIT_PYTHON_UTIL_EXPORT python_gil
-  : boost::noncopyable
+  : kwiver::vital::noncopyable
 {
   public:
     /**

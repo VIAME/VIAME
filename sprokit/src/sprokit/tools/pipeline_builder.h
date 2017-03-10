@@ -38,9 +38,10 @@
 
 #include <sprokit/pipeline/types.h>
 
+#include <vital/noncopyable.h>
+
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
-#include <boost/noncopyable.hpp>
 
 #include <istream>
 #include <string>
@@ -61,7 +62,7 @@ namespace sprokit
  * the pipeline which is ready to process.
  */
 class SPROKIT_TOOLS_EXPORT pipeline_builder
-  : boost::noncopyable
+  : kwiver::vital::noncopyable
 {
 public:
   /**
