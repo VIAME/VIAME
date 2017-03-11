@@ -1,3 +1,5 @@
 project(sprokit_python_schedulers)
 
-add_subdirectory(examples)
+if( NOT WIN32 )
+  add_subdirectory(examples)
+endif()

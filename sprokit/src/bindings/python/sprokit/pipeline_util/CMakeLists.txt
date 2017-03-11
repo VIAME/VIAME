@@ -1,5 +1,7 @@
 project(sprokit_python_sprokit_pipeline_util)
 
+if( NOT WIN32 )
+
 _sprokit_add_python_library(bake
   sprokit/pipeline_util
   bake.cxx)
@@ -43,3 +45,5 @@ sprokit_create_python_init(sprokit/pipeline_util)
 #  bake
 #  export_
 #  load)
+
+endif()
