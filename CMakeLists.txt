@@ -106,11 +106,6 @@ if( WIN32 AND VIAME_ENABLE_CAFFE )
     please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
-if( WIN32 AND VIAME_ENABLE_YOLO )
-  message( FATAL_ERROR "Internal YOLO build on windows not currently supported, \
-    please build YOLO externally using the YOLO windows branch, if desired." )
-endif()
-
 if( WIN32 AND VIAME_ENABLE_KWANT )
   message( FATAL_ERROR "Internal KWANT build on windows not currently supported, \
     but it will be soon. Please disable for now." )
