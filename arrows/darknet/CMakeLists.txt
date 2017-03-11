@@ -16,6 +16,12 @@ if (DARKNET_USE_GPU)
   add_definitions( -DDARKNET_USE_GPU )  # needed by darknet includes
 endif()
 
+# Visual Studio fix until project has better exports
+if (WIN32)
+  include_directories( SYSTEM ${darknet_INCLUDE_DIR}/../3rdparty/include )
+  add_definitions( -D_TIMESPEC_DEFINED )
+endif()
+
 kwiver_install_headers(
   SUBDIR     arrows/darknet
   ${headers}
