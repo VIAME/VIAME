@@ -9,6 +9,12 @@ set( sources
   darknet_detector.cxx
   )
 
+set( darknet_linked_libs
+  ${darknet_LIBRARIES}
+  kwiversys
+  ${OpenCV_LIBS}
+  kwiver_algo_ocv )
+
 # if darknet was built with the GPU support
 if (DARKNET_USE_GPU)
   find_package(CUDA QUIET REQUIRED)
@@ -20,6 +26,7 @@ endif()
 if (WIN32)
   include_directories( SYSTEM ${darknet_INCLUDE_DIR}/../3rdparty/include )
   add_definitions( -D_TIMESPEC_DEFINED )
+  set( darknet_linked_libs ${darknet_linked_libs} pthreadVC2 )
 endif()
 
 kwiver_install_headers(
@@ -39,10 +46,7 @@ kwiver_add_library( kwiver_algo_darknet
 
 target_link_libraries( kwiver_algo_darknet
   PUBLIC               vital_algo
-  PRIVATE              ${darknet_LIBRARIES}
-                       kwiversys
-                       ${OpenCV_LIBS}
-                       kwiver_algo_ocv
+  PRIVATE              ${darknet_linked_libs}
   )
 
 algorithms_create_plugin( kwiver_algo_darknet
