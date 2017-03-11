@@ -134,6 +134,10 @@ if( MSVC AND VIAME_FIRST_CONFIGURATION )
   set( VIAME_FIRST_CONFIGURATION FALSE CACHE BOOL "Project has been configured." FORCE )
 endif()
 
+if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "16.00" )
+  message( FATAL_ERROR "You must use at least MSVC version 13 or greater" )
+endif()
+
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
 
