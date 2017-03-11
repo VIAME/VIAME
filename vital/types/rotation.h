@@ -68,7 +68,13 @@ public:
   explicit rotation_< T > ( const rotation_< U > &other )
   : q_( static_cast< Eigen::Quaternion< T > > ( other.quaternion() ) ) { }
 
-  /// Constructor - from a 4D quaternion vector (w,i,j,k)
+  /// Constructor - from a 4D quaternion vector (x,y,z,w)
+  /**
+   * Note that the constructor for an Eigen:Quaternion from four scalars assumes
+   * the order (w,x,y,z). However, internally it is stored in the following 
+   * order (x,y,z,w). Likewise, the constructor for an Eigen:Quaternion from an
+   * array assumes the order (x,y,z,w).
+   */
   explicit rotation_< T > ( const Eigen::Matrix< T, 4, 1 > &quaternion )
   : q_( quaternion ) { }
 
@@ -86,7 +92,17 @@ public:
   /// Constructor - from rotation angle and axis
   rotation_< T > ( T angle, const Eigen::Matrix< T, 3, 1 > &axis );
 
-  /// Constructor - from yaw, pitch, and roll
+  /// Constructor - from yaw, pitch, and roll (radians)
+  /**
+   * This constructor is intended for use with yaw, pitch, and roll (in radians)
+   * output from an inertial navigation system, specifying the orientation of a 
+   * moving coordinate system relative to an east/north/up (ENU) coordinate 
+   * system. When all three angles are zero, the coordinate system's x, y, and 
+   * z axes align with north, east, and down respectively.  Non-zero yaw, pitch, 
+   * and roll define a sequence of intrinsic rotations around the z, y, and then 
+   * x axes respectively.  The resulting rotation object takes a vector in ENU
+   * and rotates it into the moving coordinate system.
+   */
   rotation_< T > ( const T &yaw, const T &pitch, const T &roll );
 
   /// Constructor - from a matrix
@@ -122,7 +138,7 @@ public:
   /// Return the rotation as a Rodrigues vector
   Eigen::Matrix< T, 3, 1 > rodrigues() const;
 
-  /// Convert to yaw, pitch, and roll
+  /// Convert to yaw, pitch, and roll (radians)
   void get_yaw_pitch_roll( T& yaw, T& pitch, T& roll ) const;
 
   /// Compute the inverse rotation
@@ -193,7 +209,7 @@ rotation_< T >
 interpolate_rotation( rotation_< T > const& A, rotation_< T > const& B, T f );
 
 
-/// Generate N evenly interpolated rotations inbetween \c A and \c B.
+/// Generate N evenly interpolated rotations in between \c A and \c B.
 /**
  * \c n must be >= 1.
  *
