@@ -45,3 +45,6 @@ install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/detector_pipelines )
 install( DIRECTORY   models
          DESTINATION examples/detector_pipelines )
+install( FILES       output/example_detections.kw18
+                     output/example_tot_scores.txt
+         DESTINATION examples/detector_pipelines/output )
