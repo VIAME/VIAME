@@ -43,12 +43,12 @@ process yolo_v2_kw18_writer
   :writer:kw18:tot_field1_ids    fish
   :writer:kw18:tot_field2_ids    scallop
 
-process yolo_v2_csv_writer
-  :: detected_object_output
-
-  # Type of file to output
-  :file_name     output/yolo_v2_detections.csv
-  :writer:type   csv
+#process yolo_v2_csv_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name     output/yolo_v2_detections.csv
+#  :writer:type   csv
 
 connect from input.image
         to   yolo_v2.image
@@ -57,12 +57,12 @@ connect from yolo_v2.detected_object_set
         to   yolo_v2_kw18_writer.detected_object_set
 
 connect from input.image_file_name
-        to   yolo_v2_ke18_writer.image_file_name
+        to   yolo_v2_kw18_writer.image_file_name
 
-connect from yolo_v2.detected_object_set
-        to   yolo_v2_csv_writer.detected_object_set
+#connect from yolo_v2.detected_object_set
+#        to   yolo_v2_csv_writer.detected_object_set
 
-connect from input.image_file_name
-        to   yolo_v2_csv_writer.image_file_name
+#connect from input.image_file_name
+#        to   yolo_v2_csv_writer.image_file_name
 
 # -- end of file --

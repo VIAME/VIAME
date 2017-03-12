@@ -17,7 +17,16 @@ if( VIAME_ENABLE_YOLO )
       ${VIAME_DOWNLOAD_DIR}/yolo_models_v0.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
-  
+
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_yolo.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_yolo.sh )
+  endif()
 endif()
 
 if( VIAME_ENABLE_SCALLOP_TK )
