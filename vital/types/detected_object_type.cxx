@@ -106,7 +106,14 @@ bool
 detected_object_type::
 has_class_name( const std::string& class_name ) const
 {
-  return find_string( class_name, false ) != NULL;
+  try
+  {
+    const std::string* str_ptr = find_string( class_name );
+    return ( 0 != m_classes.count( str_ptr ) );
+  }
+  catch ( ... ) {}
+
+  return false;
 }
 
 
@@ -133,7 +140,7 @@ score( const std::string& class_name ) const
 // ------------------------------------------------------------------
 void
 detected_object_type::
-  get_most_likely( std::string& max_name, double& max_score ) const
+get_most_likely( std::string& max_name, double& max_score ) const
 {
   if ( m_classes.empty() )
   {
@@ -231,32 +238,25 @@ size() const
  * This method resolves the supplied string to a pointer to the
  * canonical version in the master set. This is needed because the
  * class_names in this class refer to these strings by address, so we
- * need an address to look up in the map. If the string is not found,
- * there's the option to either return no string or an exception.
+ * need an address to look up in the map.
  *
  * @param str String to resolve
  *
  * @return Address of string in master list.
+ *
+ * @throws std::runtime_error if the string is not in the global set.
  */
 const std::string*
 detected_object_type::
-find_string( const std::string& str, bool exception ) const
+find_string( const std::string& str ) const
 {
   auto it = s_master_name_set.find( str );
   if ( it == s_master_name_set.end() )
   {
     // Name not associated with any object
-    if( exception )
-    {
-      std::stringstream sstr;
-      sstr << "Class name \"" << str << "\" is not associated with any object";
-
-      throw std::runtime_error( sstr.str() );
-    }
-    else
-    {
-      return NULL;
-    }
+    std::stringstream sstr;
+    sstr << "Class name \"" << str << "\" is not associated with any object";
+    throw std::runtime_error( sstr.str() );
   }
 
   return &(*it);
