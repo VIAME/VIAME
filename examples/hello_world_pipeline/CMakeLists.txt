@@ -2,7 +2,8 @@
 # Application level pipelines
 ##
 set( HELLO_WORLD_EX_SOURCE
-     hello_world_detector.pipe )
+     hello_world_detector.pipe
+     input_list.txt )
 
 if( WIN32 )
   set( HELLO_WORLD_EX_SOURCE
