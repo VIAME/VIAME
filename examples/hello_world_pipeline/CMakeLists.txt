@@ -7,11 +7,11 @@ set( HELLO_WORLD_EX_SOURCE
 if( WIN32 )
   set( HELLO_WORLD_EX_SOURCE
        ${HELLO_WORLD_EX_SOURCE}
-       run_pipeline.bat )
+       run_example.bat )
 else()
   set( HELLO_WORLD_EX_SOURCE
        ${HELLO_WORLD_EX_SOURCE}
-       run_pipeline.sh )
+       run_example.sh )
 endif()
 
 ###
