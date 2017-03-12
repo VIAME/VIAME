@@ -19,6 +19,12 @@ else()
   )
 endif()
 
+if( VIAME_ENABLE_CUDA )
+  set( SCALLOP_TK_CPU_ONLY OFF )
+else()
+  set( SCALLOP_TK_CPU_ONLY ON )
+endif()
+
 ExternalProject_Add(scallop_tk
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -32,7 +38,7 @@ ExternalProject_Add(scallop_tk
     -DBUILD_TOOLS:BOOL=ON
     -DBUILD_TESTS:BOOL=OFF
     -DENABLE_CAFFE:BOOL=${VIAME_ENABLE_CAFFE}
-    -DCAFFE_CPU_ONLY:BOOL=${VIAME_DISABLE_GPU_SUPPORT}
+    -DCAFFE_CPU_ONLY:BOOL=${SCALLOP_TK_CPU_ONLY}
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 

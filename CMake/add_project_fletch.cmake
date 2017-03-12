@@ -52,6 +52,41 @@ if( VIAME_ENABLE_KWANT )
   )
 endif()
 
+if( VIAME_ENABLE_CUDA )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_DISABLE_GPU_SUPPORT:BOOL=OFF
+  )
+  if( VIAME_ENABLE_CUDA )
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -Dfletch_DISABLE_CUDNN_SUPPORT:BOOL=OFF
+    )
+  else()
+    set( fletch_DEP_FLAGS
+     ${fletch_DEP_FLAGS}
+      -Dfletch_DISABLE_CUDNN_SUPPORT:BOOL=ON
+    )
+  endif()
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_DISABLE_GPU_SUPPORT:BOOL=ON
+  )
+endif()
+
+if( VIAME_ENABLE_FFMPEG )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_DISABLE_FFMPEG_SUPPORT:BOOL=OFF
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_DISABLE_FFMPEG_SUPPORT:BOOL=ON
+  )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -65,11 +100,6 @@ ExternalProject_Add(fletch
     # KWIVER Dependencies, Always On
     -Dfletch_ENABLE_Boost:BOOL=TRUE
     -Dfletch_ENABLE_Eigen:BOOL=TRUE
-
-    # System Related Options
-    -Dfletch_DISABLE_GPU_SUPPORT:BOOL=${VIAME_DISABLE_GPU_SUPPORT}
-    -Dfletch_DISABLE_CUDNN_SUPPORT:BOOL=${VIAME_DISABLE_CUDNN_SUPPORT}
-    -Dfletch_DISABLE_FFMPEG_SUPPORT:BOOL=${VIAME_DISABLE_FFMPEG_SUPPORT}
 
     # Optional Dependencies
     ${fletch_DEP_FLAGS}

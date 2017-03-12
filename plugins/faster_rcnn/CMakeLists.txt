@@ -3,7 +3,7 @@
 
 find_package( Caffe REQUIRED )
 
-if( VIAME_DISABLE_GPU_SUPPORT )
+if( NOT VIAME_ENABLE_CUDA )
   add_definitions( -DCPU_ONLY )
 endif()
 

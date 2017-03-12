@@ -130,6 +130,23 @@ Known Issues
 
 **Issue:**
 
+When compiling with CUDA turned on:
+
+nvcc fatal   : Visual Studio configuration file 'vcvars64.bat' could not be found for
+installation at 'Microsoft Visual Studio XX.0\VC\bin\x86_amd64/../../..' or similar
+
+**Solution:**
+
+Express/Community versions of visual studio don't ship with a file called vcvars64.bat
+You can add one manually be placing a bat file called 'vcvars64.bat' in folder
+'Microsoft Visual Studio XX.0\VC\bin\amd64' for your version of visual studio. This
+file should contain just a single line:
+
+CALL setenv /x64
+
+
+**Issue:**
+
 On VS2013 with Python enabled: error LNK1104: cannot open file 'python27_d.lib'
 
 **Solution:**

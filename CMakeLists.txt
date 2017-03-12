@@ -28,13 +28,15 @@ option( VIAME_INSTALL_EXAMPLES    "Install existing VIAME examples"     ON )
 option( VIAME_DOWNLOAD_MODELS     "Download example detection models"   ON )
 
 ###
-# Add core plugin enable flags
+# GPU and FFMPEG utilization flags used across projects
 ##
-option( VIAME_ENABLE_VXL            "Enable VXL plugins"            OFF )
-option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
-option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         OFF )
-option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
-option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
+option( VIAME_ENABLE_CUDA           "Enable CUDA-Dependent Code"    OFF )
+option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   OFF )
+option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  OFF )
+
+###
+# Add core utilities enable flags
+##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
@@ -42,18 +44,15 @@ option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
 ###
 # Add algorithmic plugin enable flags
 ##
-option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugins"      OFF )
-option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugins"    OFF )
+option( VIAME_ENABLE_VXL            "Enable VXL plugins"            OFF )
+option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         OFF )
+option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
+option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
+option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
+option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
+option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
-option( VIAME_ENABLE_YOLO           "Enable YOLO plugins"           OFF )
-
-###
-# Other misc options
-##
-option( VIAME_DISABLE_GPU_SUPPORT     "Force the disabling of all GPU support"  OFF )
-option( VIAME_DISABLE_FFMPEG_SUPPORT  "Force the disabling of FFMPEG support"   OFF )
-option( VIAME_DISABLE_CUDNN_SUPPORT   "Force the disabling of cuDNN support"    OFF )
-mark_as_advanced( VIAME_DISABLE_CUDNN_SUPPORT )
+option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  OFF )
 
 ###
 # Add external package build instructions
@@ -106,6 +105,14 @@ if( VIAME_ENABLE_PYTHON )
       please point your PYTHON_LIBRARY and PYTHON_INCLUDE_DIR to a Python2.7.* \
       install, or set VIAME_DISABLE_PYTHON_CHECK to ignore this message." )
   endif()
+endif()
+
+if( VIAME_ENABLE_CUDA )
+  find_package( CUDA QUIET REQUIRED )
+endif()
+
+if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
+  message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_CAFFE )
