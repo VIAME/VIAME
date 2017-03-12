@@ -9,8 +9,31 @@ function( FormatPassdowns _str _varResult )
   set( ${_varResult} ${_tmpResult} PARENT_SCOPE )
 endfunction()
 
-function( DownloadFile URL OutputLoc MD5 )
-  file( DOWNLOAD ${URL} ${OutputLoc} EXPECTED_MD5 ${MD5} )
+function( DownloadFile _URL _OutputLoc _MD5 )
+  message( STATUS "Downloading data file from ${_URL}" )
+  file( DOWNLOAD ${_URL} ${_OutputLoc} EXPECTED_MD5 ${_MD5} )
+endfunction()
+
+function( DownloadAndExtract _URL _MD5 _DL_LOC _EXT_LOC )
+  DownloadFile( ${_URL} ${_DL_LOC} ${_MD5} )
+  message( STATUS "Extracting data file from ${_URL}" )
+  execute_process(
+    COMMAND ${CMAKE_COMMAND} -E tar xzf ${_DL_LOC}
+    WORKING_DIRECTORY ${_EXT_LOC} )
+endfunction()
+
+function( DownloadExtractAndInstall _URL _MD5 _DL_LOC _EXT_LOC _INT_LOC )
+  DownloadAndExtract( ${_URL} ${_MD5} ${_DL_LOC} ${_EXT_LOC} )
+  foreach( _file ${ARGN} )
+    if( NOT EXISTS "${_EXT_LOC}/${_file}" )
+      message( FATAL_ERROR "${_EXT_LOC}/${_file} does not exist" )
+    endif()
+    if( IS_DIRECTORY "${_EXT_LOC}/${_file}"  )
+      install( DIRECTORY ${ARGN} DESTINATION ${_INT_LOC} )
+    else()
+      install( FILES ${ARGN} DESTINATION ${_INT_LOC} )
+    endif()
+  endforeach()
 endfunction()
 
 function( RenameSubstr _fnRegex _inStr _outStr )
@@ -33,3 +56,5 @@ endfunction()
 function( RemoveDir _inDir )
   file( REMOVE_RECURSE ${_inDir} )
 endfunction()
+
+

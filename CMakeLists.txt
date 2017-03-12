@@ -19,6 +19,13 @@ set( VIAME_BUILD_PREFIX          "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_BUILD_INSTALL_PREFIX  "${CMAKE_BINARY_DIR}/install" )
 
 set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
+set( VIAME_DOWNLOAD_DIR          "${VIAME_PACKAGES_DIR}/downloads" )
+
+###
+# Flags relating to examples
+##
+option( VIAME_INSTALL_EXAMPLES    "Install existing VIAME examples"     ON )
+option( VIAME_DOWNLOAD_MODELS     "Download example detection models"   ON )
 
 ###
 # Add core plugin enable flags
