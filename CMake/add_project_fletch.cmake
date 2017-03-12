@@ -36,6 +36,12 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_libkml:BOOL=ON
     -Dfletch_ENABLE_PNG:BOOL=ON
   )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=OFF
+    -Dfletch_ENABLE_VTK:BOOL=OFF
+  )
 endif()
 
 if( VIAME_ENABLE_KWANT )
