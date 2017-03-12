@@ -9,3 +9,5 @@ score_tracks \
   --hadwav \
   --computed-tracks detections.kw18 \
   --truth-tracks groundtruth.kw18 --fn2ts
+
+pause
