@@ -45,6 +45,14 @@ struct descending_confidence
 {
   bool operator()( detected_object_sptr const& a, detected_object_sptr const& b ) const
   {
+    if( a && !b )
+    {
+      return true;
+    }
+    else if( !a )
+    {
+      return false;
+    }
     return a->confidence() > b->confidence();
   }
 };
@@ -130,22 +138,17 @@ select( double threshold )
 {
   // The main list can get out of order if somebody updates the
   // confidence value of a detection directly
-
-  ///@todo Find a way of determining if the list needs sorting or is
-  ///already sorted.
-  std::sort( m_detected_objects.begin(), m_detected_objects.end(),
-             descending_confidence() );
-
   detected_object::vector_t vect;
 
   VITAL_FOREACH( auto i, m_detected_objects )
   {
-    if ( i->confidence() >= threshold )
+    if ( i && i->confidence() >= threshold )
     {
       vect.push_back( i );
     }
   }
 
+  std::sort( vect.begin(), vect.end(), descending_confidence() );
   return vect;
 }
 
