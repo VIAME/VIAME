@@ -56,4 +56,5 @@ install( DIRECTORY   models
          DESTINATION examples/detector_pipelines )
 install( FILES       output/example_detections.kw18
                      output/example_tot_scores.txt
+                     output/yolo_v2_detections.prj
          DESTINATION examples/detector_pipelines/output )
