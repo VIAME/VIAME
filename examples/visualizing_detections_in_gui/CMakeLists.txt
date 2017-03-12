@@ -12,11 +12,11 @@ set( example_files
 if( WIN32 )
   set( example_files
        ${example_files}
-       run_example.bat )
+       run_vpview.bat )
 else()
   set( example_files
        ${example_files}
-       run_example.sh )
+       run_vpview.sh )
 endif()
 
 install( FILES       ${example_files}
