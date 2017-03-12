@@ -141,7 +141,7 @@ if( MSVC AND VIAME_FIRST_CONFIGURATION )
   set( VIAME_FIRST_CONFIGURATION FALSE CACHE BOOL "Project has been configured." FORCE )
 endif()
 
-if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "16.00" )
+if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.00" )
   message( FATAL_ERROR "You must use at least MSVC version 13 or greater" )
 endif()
 
