@@ -15,6 +15,10 @@ else()
   set( DARKNET_BUILD_SHARED ON )
 endif()
 
+if( VIAME_ENABLE_CUDA )
+  FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
+endif()
+
 ExternalProject_Add(darknet
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -23,6 +27,7 @@ ExternalProject_Add(darknet
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    ${VIAME_ARGS_CUDA}
     -DBUILD_SHARED_LIBS:BOOL=${DARKNET_BUILD_SHARED}
     -DINSTALL_HEADER_FILES:BOOL=ON
     -DUSE_GPU:BOOL=${VIAME_ENABLE_CUDA}

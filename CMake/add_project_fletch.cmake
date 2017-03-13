@@ -13,6 +13,10 @@ if( VIAME_ENABLE_PYTHON )
   FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
 endif()
 
+if( VIAME_ENABLE_CUDA )
+  FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
+endif()
+
 if( VIAME_ENABLE_VXL )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -94,6 +98,7 @@ ExternalProject_Add(fletch
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_PYTHON_FLAGS}
+    ${VIAME_CUDA_FLAGS}
 
     -DBUILD_SHARED_LIBS:BOOL=ON
 
