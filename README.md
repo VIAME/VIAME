@@ -66,9 +66,9 @@ And a number of flags which control which system utilities and optimizations are
 
 | Flag                         | Description                                                                                 |
 |------------------------------|---------------------------------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (enables in Caffe, OpenCV, etc...)    |
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (enables it in OpenCV, etc...)        |
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces (tools for video annotation and detection viewing)   |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces (tools for annotation and detection viewing)         |
 | VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools (can evaluate detections or tracks)       |
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
 | VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
