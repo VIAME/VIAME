@@ -49,6 +49,7 @@ LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cm
 # ================================================================
 # project global includes
 include_directories("${KWIVER_SOURCE_DIR}")
+include_directories("${KWIVER_SOURCE_DIR}/sprokit/src")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
