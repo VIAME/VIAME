@@ -9,8 +9,8 @@ different system components is currently the KWIVER library, which can connect
 C/C++, python, and matlab nodes together in a graph-like pipeline architecture.
 For more information about KWIVER's capabilities, please
 see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
-processing system is a number of standalone utilties for model training,
-detection visualization, and detector evaluation (scoring).
+processing system are a number of standalone utilties for model training,
+output detection visualization, and detector evaluation (scoring).
 
 
 Quick Build Instructions
@@ -27,13 +27,13 @@ run the following commands:
 
 	cd /path/to/viame/source/directory && git submodule update --init --recursive
 
-Then, create a build directory and run the following `cmake` command (or alternatively
+Next, create a build directory and run the following `cmake` command (or alternatively
 use the cmake GUI):
 
 	cmake -DCMAKE_BUILD_TYPE:STRING=Release /path/to/viame/source/directory
 
 Once your `cmake` command has completed, you can configure any build flags you want
-using 'ccmake' or the GUI, and then build with the following command:
+using 'ccmake' or the cmake GUI, and then build with the following command:
 
 	make -j8
 
@@ -70,11 +70,14 @@ There are several optional arguments to viame, such as:
 Quick Run Instructions
 ----------------------
 
-One way to test the system is to see if you can run a pipelined application.
-There are some environment variables that need to be set up before you can run,
-which are all in the install/setup_viame.sh script.
+All final compiled binaries are placed in the [build_directory]/install directory.
+One way to test the system is to see if you can run the examples in the install/examples
+folder, for example, the pipelined object detectors. There are some environment variables
+that need to be set up before you can run on Linux or Mac, which are all in the
+install/setup_viame.sh script. This script is sourced in all of the example run
+scripts, and similar paths are added in the generated windows .bat scripts.
 
-A good initial test is to run the install/bin/plugin_explorer program. It
+Another good initial test is to run the install/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
@@ -110,7 +113,6 @@ etc...
 
 etc...
 
-
 The modules loaded list represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm
 list shows each concrete algorithm that could be loaded. Check the log messages
@@ -124,36 +126,17 @@ the image_object_detector interface and it is a hough_circle_detector.
 Algorithms can be instantiated in any program and use a configuration based
 approach to select which concrete implementation to instantiate.
 
-The next thing to check is to verify the process loading environment by running
-VIAME/install/bin/processopedia. This program will search for and load sprokit
-processes.
-
-The output should appear as follows (omitting the log messages):
-
-* collate: Collates data from multiple worker processes
-* compute_homography: Compute a frame to frame homography based on tracks
-* detect_features: Detect features in an image that will be used for stabilization
-* distribute: Distributes data to multiple worker processes
-* draw_detected_object_boxes: Draw detected object boxes on images.
-* draw_tracks: Draw feature tracks on image
-* extract_descriptors: Extract descriptors from detected features
-* feature_matcher: Match extracted descriptors and detected features
-
-etc...
-
-We will be using the image_object_detector process type in a pipeline to apply a
-detector to a stream of images. This process wraps the image_object_detector 
-algorithm interface in a process. The process can be configured to instantiate
-any available detector implementation.
-
 For a simple pipeline test, go to -
 
-$ cd VIAME/source/packages/kwiver/sprokit/pipelines/examples/hough_detector
+$ cd [build_directory]/install/examples/detector_pipelines/
 
-In that directory, run the following command (or look at run_pipe.sh)
+In that directory, run one of the detector pipelines (which ENABLE_FLAGS you
+enabled will control which detector pipelines you can run). They can be
+run via one of the scripts placed in the directory, or via:
 
-$ pipeline_runner -p hough_detector.pipe
+'pipeline_runner -p [pipeline].pipe'
 
-The results should be an image displayed with a box around each can end.
+Output detections can then be viewed in the GUI, e.g., see:
 
-This is a good check of the underlying components.
+ examples/visualizing_detections_in_gui
+
