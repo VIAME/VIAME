@@ -10,27 +10,28 @@ C/C++, python, and matlab nodes together in a graph-like pipeline architecture.
 For more information about KWIVER's capabilities, please
 see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
 processing system are a number of standalone utilties for model training,
-output detection visualization, and detector evaluation (scoring).
+output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
 
 
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](doc/install_guide.rst).
+More in-depth build instructions can be found [here](doc/build_and_install_guide.rst)
+and with additional tips [here](doc/build_tips_n_tricks.md).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build viame as a super-build
 requires [Git](https://git-scm.com/) and [CMake](https://cmake.org/). First,
 run the following commands:
 
-	git clone https://github.com/Kitware/VIAME.git /path/to/viame/source/directory
+	git clone https://github.com/Kitware/VIAME.git [source-directory]
 
-	cd /path/to/viame/source/directory && git submodule update --init --recursive
+	cd [source-directory] && git submodule update --init --recursive
 
 Next, create a build directory and run the following `cmake` command (or alternatively
 use the cmake GUI):
 
-	cmake -DCMAKE_BUILD_TYPE:STRING=Release /path/to/viame/source/directory
+	cmake -DCMAKE_BUILD_TYPE:STRING=Release [source-directory]
 
 Once your `cmake` command has completed, you can configure any build flags you want
 using 'ccmake' or the cmake GUI, and then build with the following command:
@@ -41,41 +42,50 @@ Or alternatively by building it in Visual Studio or your compiler of choice on w
 Currently VS2013 thru VS2017 is supported. If using CUDA, version 8.0 is desired,
 along with Python 2.7. Other versions have yet to be tested extensively.
 
-There are several optional arguments to viame, such as:
+There are several optional arguments to viame which control which plugins get built, such as:
 
 <center>
 
-| Flag                         | Description                                             |
-|------------------------------|---------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes                |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                      |
-| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes                  |
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes   |
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes  |
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes             |
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes  |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces                  |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools       |
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin          |
-| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin         |
-| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin            |
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                        |
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects   |
-| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies |
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules                 |
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with examples      |
+| Flag                         | Description                                                           |
+|------------------------------|-----------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (image filters, simple GUIs) |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (input readers, image filters)     |
+| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, FRCNN dep) |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes                           |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                        |
+| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                       |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                          |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                      |
+
+</center>
+
+And a number of flags which control which system utilities and optimizations are built, e.g.:
+
+<center>
+
+| Flag                         | Description                                                           |
+|------------------------------|-----------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes                 |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces                                |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools                     |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (put in install)|
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies               |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules                               |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with examples                    |
 
 </center>
 
 Quick Run Instructions
 ----------------------
 
-All final compiled binaries are placed in the [build_directory]/install directory.
-One way to test the system is to see if you can run the examples in the install/examples
+All final compiled binaries are placed in the [build-directory]/install directory.
+One way to test the system is to see if you can run the examples in the [build-directory]/install/examples
 folder, for example, the pipelined object detectors. There are some environment variables
 that need to be set up before you can run on Linux or Mac, which are all in the
 install/setup_viame.sh script. This script is sourced in all of the example run
-scripts, and similar paths are added in the generated windows .bat scripts.
+scripts, and similar paths are added in the generated windows .bat example scripts.
 
 Another good initial test is to run the install/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
@@ -83,7 +93,7 @@ algorithms. The output should look as follows:
 
 ---- Algorithm search path
 
-/disk2/projects/NOAA/VIAME/build/install/lib/modules:
+[build-directory]/install/lib/modules:
 
 ---- Registered module names:
 
@@ -128,15 +138,28 @@ approach to select which concrete implementation to instantiate.
 
 For a simple pipeline test, go to -
 
-$ cd [build_directory]/install/examples/detector_pipelines/
+$ cd [build-directory]/install/examples/hello_world_pipeline/
 
-In that directory, run one of the detector pipelines (which ENABLE_FLAGS you
+or
+
+$ cd [build-directory]/install/examples/detector_pipelines/
+
+In those directories, run one of the detector pipelines (which ENABLE_FLAGS you
 enabled will control which detector pipelines you can run). They can be
 run via one of the scripts placed in the directory, or via:
 
-'pipeline_runner -p [pipeline].pipe'
+'pipeline_runner -p [pipeline-file].pipe'
 
 Output detections can then be viewed in the GUI, e.g., see:
 
- examples/visualizing_detections_in_gui
+[build-directory]/install/examples/visualizing_detections_in_gui/
+
+Additional Documentation
+------------------------
+
+[Build and Install Guide](doc/build_and_install_guide.rst) [Tips and Tricks](doc/build_tips_n_tricks.md)
+[Running Detectors](doc/detector_introduction.rst) [Examples](examples/detector_pipelines)
+[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) [Examples](plugins)
+[Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) [Examples](examples/visualizing_detections_in_gui)
+[Scoring and Evaluation of Detectors](doc/vpview_gui_introduction.md) [Examples](examples/visualizing_detections_in_gui)
 
