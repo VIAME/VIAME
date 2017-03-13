@@ -208,7 +208,7 @@ public:
   static std::vector < std::string > all_class_names();
 
 private:
-  const std::string* find_string( const std::string& str, bool exception = true ) const;
+  const std::string* find_string( const std::string& str ) const;
 
   /**
    * Set of possible classes for this object.
