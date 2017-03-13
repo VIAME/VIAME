@@ -36,6 +36,7 @@
 #include <vital/util/data_stream_reader.h>
 
 #include <vital/video_metadata/video_metadata.h>
+#include <vital/video_metadata/video_metadata_traits.h>
 #include <vital/video_metadata/pos_metadata_io.h>
 
 #include <kwiversys/SystemTools.hxx>
@@ -60,8 +61,9 @@ public:
   std::string c_image_list_file;
 
   // local state
-  std::vector < kwiver::vital::path_t > d_metadata_files;
-  std::vector < kwiver::vital::path_t >::const_iterator d_current_file;
+  typedef std::pair < vital::path_t, vital::path_t > path_pair_t;
+  std::vector < path_pair_t > d_img_md_files;
+  std::vector < path_pair_t >::const_iterator d_current_files;
   kwiver::vital::timestamp::frame_t d_frame_number;
 
   vital::video_metadata_sptr d_metadata;
@@ -167,10 +169,10 @@ video_input_pos
       resolved_file.clear(); // indicate that the metadata file could not be found
     }
 
-    d->d_metadata_files.push_back( resolved_file );
+    d->d_img_md_files.push_back( std::make_pair(line, resolved_file) );
   } // end while
 
-  d->d_current_file = d->d_metadata_files.begin();
+  d->d_current_files = d->d_img_md_files.begin();
   d->d_frame_number = 0;
 }
 
@@ -188,7 +190,7 @@ bool
 video_input_pos
 ::end_of_video() const
 {
-  return  d->d_current_file == d->d_metadata_files.end();
+  return  d->d_current_files == d->d_img_md_files.end();
 }
 
 
@@ -220,7 +222,7 @@ video_input_pos
   // do not increment the iterator on the first call to next_frame()
   if ( d->d_frame_number > 0 )
   {
-    ++d->d_current_file;
+    ++d->d_current_files;
   }
   ++d->d_frame_number;
 
@@ -230,10 +232,17 @@ video_input_pos
     return false;
   }
 
-  if ( ! d->d_current_file->empty() )
+  if ( ! d->d_current_files->second.empty() )
   {
     // Open next file in the list
-    d->d_metadata = vital::read_pos_file( *d->d_current_file );
+    d->d_metadata = vital::read_pos_file( d->d_current_files->second );
+  }
+
+  // Include the path to the image
+  if ( d->d_metadata )
+  {
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+                                           d->d_current_files->first ) );
   }
 
   // Return timestamp
