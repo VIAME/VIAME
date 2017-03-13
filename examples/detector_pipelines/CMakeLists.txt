@@ -35,6 +35,12 @@ if( VIAME_ENABLE_SCALLOP_TK )
        scallop_tk_detector.pipe )
 endif()
 
+if( VIAME_ENABLE_OPENCV )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       hough_detector.pipe )
+endif()
+
 if( VIAME_ENABLE_SCALLOP_TK AND VIAME_ENABLE_YOLO AND VIAME_ENABLE_FASTER_RCNN )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
