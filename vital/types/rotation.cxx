@@ -187,7 +187,7 @@ rotation_< T >
 }
 
 
-/// Convert to yaw, pitch, and roll (radians))
+/// Convert to yaw, pitch, and roll (radians)
 template < typename T >
 void
 rotation_< T >
