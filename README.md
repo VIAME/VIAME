@@ -157,6 +157,8 @@ Output detections can then be viewed in the GUI, e.g., see:
 Additional Documentation
 ------------------------
 
+| Topic                                                                    |  Examples                                                  |
+|--------------------------------------------------------------------------|------------------------------------------------------------|
 | [Build and Install Guide](doc/build_and_install_guide.rst)               |  [Tips and Tricks](doc/build_tips_n_tricks.md)             |
 | [Running Detectors](doc/detector_introduction.rst)                       |  [Examples](examples/detector_pipelines)                   |
 | [How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md)           |  [Examples](plugins)                                       |
