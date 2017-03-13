@@ -99,7 +99,14 @@ IMPLEMENT_TEST(read_list)
   int num_frames = 0;
   while ( viil.next_frame( ts ) )
   {
-    auto md = viil.frame_image();
+    auto img = viil.frame_image();
+    auto md = viil.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
 
     ++num_frames;
     TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );

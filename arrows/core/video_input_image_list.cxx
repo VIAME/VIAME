@@ -38,6 +38,7 @@
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/util/tokenize.h>
+#include <vital/video_metadata/video_metadata_traits.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -79,9 +80,9 @@ video_input_image_list
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
   set_capability( vital::algo::video_input::HAS_FRAME_DATA, true );
+  set_capability( vital::algo::video_input::HAS_METADATA, true );
 
   set_capability( vital::algo::video_input::HAS_FRAME_TIME, false );
-  set_capability( vital::algo::video_input::HAS_METADATA, false );
   set_capability( vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false );
   set_capability( vital::algo::video_input::HAS_TIMEOUT, false );
 }
@@ -307,10 +308,12 @@ kwiver::vital::video_metadata_vector
 video_input_image_list
 ::frame_metadata()
 {
-  // There is no metadata available at this time.  Capability shows
-  // that there are no metadata, so this should not be called.  Return
-  // empty vector.
-  return kwiver::vital::video_metadata_vector();
+  // For now, the only metadata is the filename of the image
+  auto md = std::make_shared<vital::video_metadata>();
+  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+                              *d->m_current_file ) );
+  vital::video_metadata_vector mdv(1, md);
+  return mdv;
 }
 
 } } }     // end namespace
