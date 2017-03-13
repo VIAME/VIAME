@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,12 +108,7 @@ void
 detected_object_set::
 add( detected_object_sptr object )
 {
-  // keep list ordered
-  m_detected_objects.insert (
-      std::upper_bound( m_detected_objects.begin(), m_detected_objects.end(),
-                        object, descending_confidence() ),
-      object
-    );
+  m_detected_objects.push_back( object );
 }
 
 
@@ -129,15 +124,10 @@ size() const
 // ------------------------------------------------------------------
 detected_object::vector_t
 detected_object_set::
-select( double threshold )
+select( double threshold ) const
 {
   // The main list can get out of order if somebody updates the
   // confidence value of a detection directly
-
-  ///@todo Find a way of determining if the list needs sorting or is
-  ///already sorted.
-  std::sort( m_detected_objects.begin(), m_detected_objects.end(),
-             descending_confidence() );
 
   detected_object::vector_t vect;
 
@@ -149,6 +139,8 @@ select( double threshold )
     }
   }
 
+  std::sort( vect.begin(), vect.end(), descending_confidence() );
+
   return vect;
 }
 
@@ -156,7 +148,7 @@ select( double threshold )
 // ------------------------------------------------------------------
 detected_object::vector_t
 detected_object_set::
-select( const std::string& class_name, double threshold )
+select( const std::string& class_name, double threshold )const
 {
   // Intermediate sortable data structure
   std::vector< std::pair< double, detected_object_sptr > > data;
@@ -210,7 +202,7 @@ select( const std::string& class_name, double threshold )
 // ------------------------------------------------------------------
 kwiver::vital::attribute_set_sptr
 detected_object_set::
-attributes()
+attributes() const
 {
   return m_attrs;
 }
