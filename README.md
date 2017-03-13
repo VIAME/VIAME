@@ -66,14 +66,14 @@ And a number of flags which control which system utilities and optimizations are
 
 | Flag                         | Description                                                                                 |
 |------------------------------|---------------------------------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (turns it on for Caffe, YOLO, etc...) |
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (enables in Caffe, OpenCV, etc...)    |
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
 | VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces (tools for video annotation and detection viewing)   |
 | VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools (can evaluate detections or tracks)       |
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
 | VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
 | VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the above examples and training new models        |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
 
 </center>
 
@@ -157,7 +157,7 @@ Output detections can then be viewed in the GUI, e.g., see:
 Additional Documentation
 ------------------------
 
-| Topic                                                                    |  Examples                                                  |
+| Topic                                                                    |  Extras                                                   |
 |--------------------------------------------------------------------------|------------------------------------------------------------|
 | [Build and Install Guide](doc/build_and_install_guide.rst)               |  [Tips and Tricks](doc/build_tips_n_tricks.md)             |
 | [Running Detectors](doc/detector_introduction.rst)                       |  [Examples](examples/detector_pipelines)                   |

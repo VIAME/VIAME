@@ -1,5 +1,5 @@
-Title: Implementing object detectors in KWIVER - a tutorial
-
+Running a detector in CXX code
+------------------------------
 
 We will be using a Hough circle detector as an and example of what the
 mechanics of implementing a VIAME detector using the KWIVER framework.
@@ -420,3 +420,5 @@ the detector, followed by the process that composites the detections
 and the image. The last process displays the annotated image.
 The connections section specify how the inputs and outputs of these
 processes are connected.
+
+This pipeline can then be run using the 'pipeline_runner' app
