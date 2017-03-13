@@ -27,6 +27,14 @@ if (WIN32)
   include_directories( SYSTEM ${darknet_INCLUDE_DIR}/../3rdparty/include )
   add_definitions( -D_TIMESPEC_DEFINED )
   set( darknet_linked_libs ${darknet_linked_libs} pthreadVC2 )
+  if (KWIVER_ENABLE_CUDA)
+    set( darknet_linked_libs
+         ${darknet_linked_libs}
+         ${CUDA_CUDA_LIBRARY}
+         ${CUDA_LIBRARIES}
+         ${CUDA_CUBLAS_LIBRARIES}
+         ${CUDA_curand_LIBRARY} )
+  endif()
 endif()
 
 kwiver_install_headers(
