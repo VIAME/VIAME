@@ -7,11 +7,9 @@ source ../../setup_viame.sh
 
 # Run score tracks on data for singular metrics
 
-score_tracks \
-  --hadwav --fn2ts \       # Scoring options, use frames not timestamps
-  --computed-tracks detections.kw18 \  # Computed tracks
-  --truth-tracks groundtruth.kw18 \  # Groundtruth (annotated) tracks
-  > score_tracks_output.txt   # Output file
+score_tracks --hadwav \
+  --computed-tracks detections.kw18 \
+  --truth-tracks groundtruth.kw18 --fn2ts > score_tracks_output.txt
 
 # Generate ROC
 
