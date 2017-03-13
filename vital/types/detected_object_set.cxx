@@ -108,6 +108,11 @@ void
 detected_object_set::
 add( detected_object_sptr object )
 {
+  if ( ! object )
+  {
+    throw std::runtime_error( "Passing null pointer to detected_object_set::add()" );
+  }
+
   m_detected_objects.push_back( object );
 }
 
