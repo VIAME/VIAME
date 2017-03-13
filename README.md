@@ -31,6 +31,8 @@ run the following commands:
 Next, create a build directory and run the following `cmake` command (or alternatively
 use the cmake GUI):
 
+  mkdir [build-directory] && cd [build-directory]
+
 	cmake -DCMAKE_BUILD_TYPE:STRING=Release [source-directory]
 
 Once your `cmake` command has completed, you can configure any build flags you want
@@ -40,7 +42,10 @@ using 'ccmake' or the cmake GUI, and then build with the following command:
 
 Or alternatively by building it in Visual Studio or your compiler of choice on windows.
 Currently VS2013 thru VS2017 is supported. If using CUDA, version 8.0 is desired,
-along with Python 2.7. Other versions have yet to be tested extensively.
+along with Python 2.7. Other versions have yet to be tested extensively. The '-j8' tells
+the build to run multi-threaded using 8 threads, this is useful for a faster build though
+if you get an error it can be difficult to know where it was, in which case running just
+'make' might be more helpful.
 
 There are several optional arguments to viame which control which plugins get built, such as:
 
