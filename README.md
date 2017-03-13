@@ -46,17 +46,17 @@ There are several optional arguments to viame which control which plugins get bu
 
 <center>
 
-| Flag                         | Description                                                           |
-|------------------------------|-----------------------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (image filters, simple GUIs) |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (input readers, image filters)     |
-| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, FRCNN dep) |
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes                           |
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                |
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                        |
-| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                       |
-| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                          |
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                      |
+| Flag                         | Description                                                                           |
+|------------------------------|---------------------------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, image filters, simple GUIs)  |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
+| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, required FRCNN dependency) |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes                                           |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
+| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                                       |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
 
 </center>
 
@@ -64,16 +64,16 @@ And a number of flags which control which system utilities and optimizations are
 
 <center>
 
-| Flag                         | Description                                                           |
-|------------------------------|-----------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes                 |
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces                                |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools                     |
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (put in install)|
-| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies               |
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules                               |
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with examples                    |
+| Flag                         | Description                                                                                   |
+|------------------------------|-----------------------------------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (this turns in on for Caffe, CV, etc..) |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                        |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces (tools for video annotation and detection viewing)     |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools (can evaluate detections or tracks)         |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (put in install tree in share folder)   |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                    |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                            |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the above examples and training new models          |
 
 </center>
 
@@ -158,8 +158,16 @@ Additional Documentation
 ------------------------
 
 [Build and Install Guide](doc/build_and_install_guide.rst) [Tips and Tricks](doc/build_tips_n_tricks.md)
+
+
 [Running Detectors](doc/detector_introduction.rst) [Examples](examples/detector_pipelines)
+
+
 [How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) [Examples](plugins)
+
+
 [Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) [Examples](examples/visualizing_detections_in_gui)
+
+
 [Scoring and Evaluation of Detectors](doc/vpview_gui_introduction.md) [Examples](examples/visualizing_detections_in_gui)
 
