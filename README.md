@@ -8,7 +8,9 @@ majorly targeting marine species analytics. The core infrastructure connecting
 different system components is currently the KWIVER library, which can connect
 C/C++, python, and matlab nodes together in a graph-like pipeline architecture.
 For more information about KWIVER's capabilities, please
-see [here](https://github.com/Kitware/kwiver/).
+see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
+processing system is a number of standalone utilties for model training,
+detection visualization, and detector evaluation (scoring).
 
 
 Quick Build Instructions
@@ -18,8 +20,8 @@ More in-depth build instructions can be found [here](doc/install_guide.rst).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build viame as a super-build
-requires [Git](https://git-scm.com/) and [CMake](https://cmake.org/). Run the
-following commands:
+requires [Git](https://git-scm.com/) and [CMake](https://cmake.org/). First,
+run the following commands:
 
 	git clone https://github.com/Kitware/VIAME.git /path/to/viame/source/directory
 
@@ -30,30 +32,38 @@ use the cmake GUI):
 
 	cmake -DCMAKE_BUILD_TYPE:STRING=Release /path/to/viame/source/directory
 
-Once your `cmake` command has completed, you can build with the following
-command if on linux:
+Once your `cmake` command has completed, you can configure any build flags you want
+using 'ccmake' or the GUI, and then build with the following command:
 
 	make -j8
 
-Or alternatively by building it in visual studio or your compiler of choice on windows.
-Currently only VS2013 is supported.
+Or alternatively by building it in Visual Studio or your compiler of choice on windows.
+Currently VS2013 thru VS2017 is supported. If using CUDA, version 8.0 is desired,
+along with Python 2.7. Other versions have yet to be tested extensively.
 
-There are currently several optional arguments to viame, such as:
+There are several optional arguments to viame, such as:
 
 <center>
 
-| Flag                         | Description                                       |
-|------------------------------|---------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes          |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                |
-| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes            |
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes       |
-| VIAME_ENABLE_MATLAB          | Turns on support for using matlab processes       |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs                                 |
-| VIAME_ENABLE_SCALLOP_TK      | Builds ScallopTK based plugin                     |
-| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based plugin                   |
-| VIAME_DISABLE_GPU_SUPPORT    | Builds all VIAME processes without GPU support    |
-| VIAME_DISABLE_FFMPEG_SUPPORT | Builds all VIAME processes without FFMPEG support |
+| Flag                         | Description                                             |
+|------------------------------|---------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes                |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes                      |
+| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes                  |
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes   |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes  |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes             |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes  |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces                  |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools       |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin          |
+| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin         |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin            |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                        |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects   |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules                 |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with examples      |
 
 </center>
 
