@@ -31,7 +31,7 @@ run the following commands:
 Next, create a build directory and run the following `cmake` command (or alternatively
 use the cmake GUI):
 
-  mkdir [build-directory] && cd [build-directory]
+	mkdir [build-directory] && cd [build-directory]
 
 	cmake -DCMAKE_BUILD_TYPE:STRING=Release [source-directory]
 
