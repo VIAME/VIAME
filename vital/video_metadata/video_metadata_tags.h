@@ -63,6 +63,7 @@ CALL( PLATFORM_DESIGNATION,        "Platform Designation",            std::strin
 CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::string) \
 CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
 CALL( IMAGE_FILENAME,              "Image Filename",                  std::string) \
+CALL( VIDEO_FILENAME,              "Video Filename",                  std::string) \
 CALL( SENSOR_LOCATION,             "Sensor Location Lat/Lon",         geo_lat_lon) \
 CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
