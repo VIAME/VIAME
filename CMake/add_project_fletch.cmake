@@ -38,9 +38,14 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_VTK:BOOL=ON
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
-    -Dfletch_ENABLE_libxml2:BOOL=ON
     -Dfletch_ENABLE_PNG:BOOL=ON
   )
+  if( NOT WIN32 )
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -Dfletch_ENABLE_libxml2:BOOL=ON
+    )
+  endif()
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
