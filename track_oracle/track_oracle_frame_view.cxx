@@ -51,8 +51,8 @@ track_oracle_frame_view
   // only delete if we're in our parent track
   track_handle_type p( this->parent_track_view.get_cursor() );
   frame_handle_list_type frames = track_oracle_core::get_frames( p );
-  unsigned n = frames.size();
-  unsigned found_index = 0;
+  size_t n = frames.size();
+  size_t found_index = 0;
   bool found = false;
   for (unsigned i=0; ( ! found ) && (i<n); ++i)
   {
@@ -75,7 +75,7 @@ track_oracle_frame_view
   }
   else
   {
-    for (unsigned i=found_index; i<n-1; ++i)
+    for (size_t i=found_index; i<n-1; ++i)
     {
       frames[i] = frames[i+1];
     }
