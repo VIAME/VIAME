@@ -46,11 +46,11 @@ if __name__ == "__main__":
     fig = plt.figure()
     xscale_arg = 'log' if args.logx else 'linear'
     rocplot = plt.subplot(1, 1, 1, xscale=xscale_arg)
-    rocplot.set_title( args.title, fontsize=20 ) if args.title else None
-    plt.xlabel(args.xlabel, fontsize=20)
-    plt.ylabel(args.ylabel, fontsize=20)
-    plt.xticks(fontsize=15)
-    plt.yticks(fontsize=15)
+    rocplot.set_title( args.title ) if args.title else None
+    plt.xlabel( args.xlabel )
+    plt.ylabel( args.ylabel )
+    plt.xticks()
+    plt.yticks()
 
     user_titles = args.key.split(',') if args.key else None
     i = 0
@@ -81,7 +81,7 @@ if __name__ == "__main__":
             rocplot.set_xlim(xmin,xmax)
 
     if not args.nokey:
-        plt.legend( loc=args.keyloc, fontsize=15 )
+        plt.legend( loc=args.keyloc )
 
     if args.writeimage:
         plt.savefig(args.writeimage)
