@@ -31,7 +31,7 @@ class track_field_host;
 template< typename T > class track_field_functor;
 
 template<typename T> class track_field;
-template<typename T> std::ostream& TRACK_ORACLE_EXPORT operator<<( std::ostream& os, const track_field<T>& f);
+template<typename T> TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const track_field<T>& f);
 
 template< typename T >
 class TRACK_ORACLE_EXPORT track_field: public track_field_base

@@ -22,7 +22,7 @@ namespace track_oracle {
 
 class TRACK_ORACLE_EXPORT track_base_impl
 {
-  friend std::ostream& operator<<( std::ostream& os, track_base_impl& track );
+  friend TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, track_base_impl& track );
 
 protected:
   track_oracle_row_view Track;

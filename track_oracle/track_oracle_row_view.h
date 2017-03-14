@@ -23,7 +23,7 @@ namespace track_oracle {
 
 class TRACK_ORACLE_EXPORT track_oracle_row_view: public track_field_host
 {
-  friend std::ostream& operator<<( std::ostream& os, const track_oracle_row_view& r );
+  friend TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const track_oracle_row_view& r );
 private:
   std::vector< track_field_base* > field_list;
   std::vector< bool > this_owns_ptr;
@@ -56,8 +56,6 @@ public:
   track_field_base* clone_field_from_element( const element_descriptor& e ) const;
 
 };
-
-TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const track_oracle_row_view& r );
 
 } // ...track_oracle
 } // ...kwiver

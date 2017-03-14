@@ -30,7 +30,7 @@ namespace track_oracle {
 template <typename T>
 class TRACK_ORACLE_EXPORT track_field_io_proxy
 {
-  template <typename Tio > friend std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<Tio>& iop );
+  template <typename Tio > TRACK_ORACLE_EXPORT friend std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<Tio>& iop );
 public:
   track_field_io_proxy( kwiver_io_base<T>* p, const T& v ):
     io_ptr(p), val(v)
