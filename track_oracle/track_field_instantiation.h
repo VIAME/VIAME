@@ -29,8 +29,9 @@
   template kwiver::track_oracle::field_handle_type kwiver::track_oracle::track_field<T>::lookup_or_create_element_store( const std::string & ); \
   template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io() const; \
   template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io( const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
-  template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io_fmt( const kwiver::track_oracle::track_field<T>::Type& ) const; \
-  template std::ostream& kwiver::track_oracle::operator<< <kwiver::track_oracle::track_field<T>::Type> ( std::ostream&, const kwiver::track_oracle::track_field_io_proxy<kwiver::track_oracle::track_field<T>::Type>& );
+  template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io_fmt( const kwiver::track_oracle::track_field<T>::Type& ) const;
+// seems to cause errors building track_oracle project win64
+// template std::ostream& kwiver::track_oracle::operator<< <kwiver::track_oracle::track_field<T>::Type> ( std::ostream&, const kwiver::track_oracle::track_field_io_proxy<kwiver::track_oracle::track_field<T>::Type>& );
 
 #define TRACK_FIELD_INSTANCES_GENERAL_DEBUG(T) \
   template kwiver::track_oracle::track_field<T>::track_field( const kwiver::track_oracle::track_field<T>& );     \
@@ -51,8 +52,9 @@
   template kwiver::track_oracle::field_handle_type kwiver::track_oracle::track_field<T>::lookup_or_create_element_store( const std::string & ); \
   template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io() const; \
   template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io( const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
-  template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io_fmt( const kwiver::track_oracle::track_field<T>::Type& ) const; \
-  template std::ostream& kwiver::track_oracle::operator<< <kwiver::track_oracle::track_field<T>::Type> ( std::ostream&, const kwiver::track_oracle::track_field_io_proxy<kwiver::track_oracle::track_field<T>::Type>& );
+  template kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io_fmt( const kwiver::track_oracle::track_field<T>::Type& ) const;
+// seems to cause problems building track_oracle project on win64
+// template std::ostream& kwiver::track_oracle::operator<< <kwiver::track_oracle::track_field<T>::Type> ( std::ostream&, const kwiver::track_oracle::track_field_io_proxy<kwiver::track_oracle::track_field<T>::Type>& );
 
 
 #define TRACK_FIELD_INSTANCES_DATA_TERM_SPECIAL_OUTPUT(T) \
