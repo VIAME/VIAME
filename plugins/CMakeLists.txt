@@ -18,7 +18,6 @@ if( VIAME_ENABLE_FASTER_RCNN )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
-  add_subdirectory( matlab_ex )
   add_subdirectory( camtrawl )
 endif()
 
