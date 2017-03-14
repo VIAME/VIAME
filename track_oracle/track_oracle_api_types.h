@@ -117,6 +117,19 @@ typedef std::vector< size_t > csv_header_index_type;
 typedef std::map< field_handle_type, csv_header_index_type > csv_handler_map_type;
 typedef std::map< field_handle_type, csv_header_index_type >::const_iterator csv_handler_map_cit;
 
+namespace dt {
+
+struct TRACK_ORACLE_EXPORT context
+{
+  std::string name;
+  std::string description;
+  field_handle_type fh;
+  context( const std::string& n, const std::string& d )
+    : name(n), description(d), fh( INVALID_FIELD_HANDLE )
+  {}
+};
+
+} // ...dt
 } // ...track_oracle
 } // ...kwiver
 

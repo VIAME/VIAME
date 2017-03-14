@@ -45,26 +45,7 @@
 #include <track_oracle/track_oracle_api_types.h>
 #include <track_oracle/data_terms/data_term_tmp_utils.h>
 #include <track_oracle/kwiver_io_base.h>
-
-namespace kwiver {
-namespace track_oracle {
-
-namespace dt {
-
-struct DATA_TERMS_EXPORT context
-{
-  std::string name;
-  std::string description;
-  field_handle_type fh;
-  context( const std::string& n, const std::string& d )
-    : name(n), description(d), fh( INVALID_FIELD_HANDLE )
-  {}
-};
-
-} // ...dt
-
-} // ...track_oracle
-} // ...kwiver
+#include <track_oracle/track_oracle_api_types.h>
 
 #define DECL_DT(NAME, TYPE, DESC )         \
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE>    \

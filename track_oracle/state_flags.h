@@ -44,7 +44,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <track_oracle/data_terms/data_terms_common.h>
+#include <track_oracle/track_oracle_api_types.h>
 #include <track_oracle/kwiver_io_base.h>
 
 class TiXmlElement;
