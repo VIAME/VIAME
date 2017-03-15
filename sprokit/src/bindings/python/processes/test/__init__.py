@@ -1,5 +1,5 @@
 #ckwg +28
-# Copyright 2012 by Kitware, Inc.
+# Copyright 2012-2016 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,14 @@ from sprokit.processes.test import examples
 
 
 def __sprokit_register__():
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
 
     module_name = 'python:test.examples'
 
-    reg = process_registry.ProcessRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if is_process_module_loaded(module_name):
         return
 
-    reg.register_process('test_python_process', 'A test Python process', examples.TestPythonProcess)
-    reg.register_process('pyprint_number', 'A Python process which prints numbers', examples.PythonPrintNumberProcess)
+    register_process('test_python_process', 'A test Python process', examples.TestPythonProcess)
+    register_process('pyprint_number', 'A Python process which prints numbers', examples.PythonPrintNumberProcess)
 
-    reg.mark_module_as_loaded(module_name)
+    mark_process_module_as_loaded(module_name)

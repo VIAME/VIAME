@@ -33,7 +33,7 @@
 #include <vital/config/config_block.h>
 
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 #include <sprokit/processes/adapters/output_adapter.h>
 #include <sprokit/processes/adapters/output_adapter_process.h>
@@ -110,9 +110,13 @@ main(int argc, char* argv[])
   //
   // Register local process(es)
   //
-  sprokit::process_registry_t const registry = sprokit::process_registry::self();
-  registry->register_process("test_non_blocking", "A test process", sprokit::create_process<test_non_blocking>);
 
+  auto& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
+
+  // Register local process
+  auto fact = vpm.ADD_PROCESS( test_non_blocking );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "test_non_blocking" );
 
   RUN_TEST(testname);
 }

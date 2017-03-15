@@ -200,6 +200,14 @@ public:
    */
   bool has_string() const;
 
+
+  /// Print the value of this item to an output stream
+  /**
+   * This method is has the advantage over \c as_string() that it allow
+   * control over string formatting (e.g. precision of floats).
+   */
+  virtual std::ostream& print_value(std::ostream& os) const = 0;
+
 protected:
   std::string m_name;
   kwiver::vital::any m_data;
@@ -264,6 +272,14 @@ public:
 
     ss << var;
     return ss.str();
+  }
+
+  /// Print the value of this item to an output stream
+  std::ostream& print_value(std::ostream& os) const
+  {
+    TYPE var = kwiver::vital::any_cast< TYPE > ( m_data );
+    os << var;
+    return os;
   }
 
 }; // end class typed_metadata
@@ -375,7 +391,7 @@ public:
    *
    * @return \b true if tag is in metadata collection, \b false otherwise.
    */
-  bool has( vital_metadata_tag tag ); // needs not-found return value
+  bool has( vital_metadata_tag tag ) const; // needs not-found return value
 
 
   /// Find metadata entry for specified tag.
@@ -388,7 +404,7 @@ public:
    *
    * @return metadata item object for tag.
    */
-  metadata_item const& find( vital_metadata_tag tag );
+  metadata_item const& find( vital_metadata_tag tag ) const;
 
 
   /// Get starting iterator for collection of metadata items.

@@ -65,13 +65,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-    : top_fraction(other.top_fraction),
-      min_features(other.min_features),
-      m_logger( vital::get_logger( "arrows.core.filter_features_magnitude" ))
-  {
-  }
-
   feature_set_sptr
   filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
   {
@@ -127,14 +120,6 @@ public:
 filter_features_magnitude
 ::filter_features_magnitude()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-filter_features_magnitude
-::filter_features_magnitude(const filter_features_magnitude& other)
-: d_(new priv(*other.d_))
 {
 }
 

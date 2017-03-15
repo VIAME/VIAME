@@ -2,20 +2,36 @@
 
 find_package(PythonLibs)
 find_package(PythonInterp REQUIRED)
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
-  RESULT_VARIABLE proc_success
-  OUTPUT_VARIABLE python_site_packages
-  )
 
-if(NOT ${proc_success} EQUAL 0)
-  message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
-else()
-  string(STRIP "${python_site_packages}" python_site_packages)
-  message(STATUS "Python site-packages to install into: ${python_site_packages}")
-endif()
+set( copyright_header
+" #ckwg 29
+ # Copyright 2016 by Kitware, Inc.
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions are met:
+ #
+ #  * Redistributions of source code must retain the above copyright notice,
+ #    this list of conditions and the following disclaimer.
+ #
+ #  * Redistributions in binary form must reproduce the above copyright notice,
+ #    this list of conditions and the following disclaimer in the documentation
+ #    and/or other materials provided with the distribution.
+ #
+ #  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ #    to endorse or promote products derived from this software without specific
+ #    prior written permission.
+ #
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"
+ # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ # ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ # ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ # SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+)
 
-# this command in inadvertently installing the input file also.
-kwiver_install( DIRECTORY      vital
-  DESTINATION                  ${python_site_packages}
-  )
+add_subdirectory( vital )

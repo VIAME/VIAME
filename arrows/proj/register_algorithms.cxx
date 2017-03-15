@@ -33,9 +33,9 @@
  * \brief PROJ algorithm registration implementation
  */
 
-#include "register_algorithms.h"
+#include <arrows/proj/kwiver_algo_proj_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <arrows/algorithm_plugin_interface_macros.h>
 #include <arrows/proj/geo_map.h>
 
 
@@ -43,15 +43,28 @@ namespace kwiver {
 namespace arrows {
 namespace proj {
 
-/// Register PROJ algorithm implementations with the given or global registrar
-int register_algorithms( vital::registrar &reg )
+extern "C"
+KWIVER_ALGO_PROJ_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  REGISTRATION_INIT( reg );
+  static auto const module_name = std::string( "arrows.proj" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
-  REGISTER_TYPE( proj::geo_map );
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "proj", kwiver::arrows::proj::geo_map );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Map geographic coordinates between UTM and latitude/longitude using PROJ4." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  REGISTRATION_SUMMARY();
-  return REGISTRATION_FAILURES();
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
 } // end namespace proj

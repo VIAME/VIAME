@@ -1,46 +1,42 @@
 //++ add project specific copyright/license header
 
 
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 // -- list processes to register --
 #include "template_process.h"
 //++ list additional processes here
-
-
-extern "C"   //++ This needs to have 'C' linkage so the loader can find it.
-TEMPLATE_PROCESSES_EXPORT
-void register_processes();
-
 
 // ----------------------------------------------------------------
 /** \brief Regsiter processes
  *
  *
  */
-void register_processes()
+extern "C"   //++ This needs to have 'C' linkage so the loader can find it.
+TEMPLATE_PROCESSES_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "template_processes" ); //++ <- replace with real name of module
-
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
+  static const auto module_name = kwiver::vital::plugin_manager::module_t( "template_processes" ); //++ <- replace with real name of module
 
   // Check to see if module is already loaded. If so, then don't do again.
-  if ( registry->is_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
   // ----------------------------------------------------------------
 
-  registry->register_process(
-    "template",    //++ name of process type as used in pipeline config file. Does *not* contain the word "process"
-    "Description of process. Make as long as necessary to fully explain what the process does "
-    "and how to use it. Explain specific algorithms used, etc.",
-    sprokit::create_process< group_ns::template_process > );
+  auto fact = vpm.ADD_PROCESS( group_ns::template_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "template" ) //+ use your process name
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Description of process. Make as long as necessary to fully explain what the process does "
+                    "and how to use it. Explain specific algorithms used, etc." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   //++ Add more additional processes here.
 
 // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

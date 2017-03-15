@@ -74,12 +74,6 @@ detected_object_set_output_csv()
 
 
 detected_object_set_output_csv::
-detected_object_set_output_csv( detected_object_set_output_csv const& other)
-  : d( new priv( *other.d ) )
-{
-}
-
-detected_object_set_output_csv::
 ~detected_object_set_output_csv()
 {
 }

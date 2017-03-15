@@ -62,18 +62,11 @@ public:
   /// Constructor
   detect_features_MSD();
 
-  /// Copy constructor
-  detect_features_MSD(const detect_features_MSD &other);
-
   /// Destructor
   virtual ~detect_features_MSD();
 
   /// Return the name of this implementation
   virtual std::string impl_name() const { return "ocv_MSD"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature detection via the MSD algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

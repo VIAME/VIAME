@@ -33,12 +33,13 @@
 #include <test_scene.h>
 #include <test_random_point.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/epipolar_geometry.h>
 
 #include <arrows/ocv/estimate_fundamental_matrix.h>
-#include <arrows/ocv/register_algorithms.h>
 
 #include <Eigen/LU>
 
@@ -52,7 +53,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
 
-  kwiver::arrows::ocv::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 

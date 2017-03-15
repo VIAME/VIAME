@@ -46,21 +46,6 @@ convert_image_bypass
 
 }
 
-/// Copy Constructor
-convert_image_bypass
-::convert_image_bypass(const convert_image_bypass& other)
-{
-
-}
-
-/// Return descriptive string for this implementation
-std::string
-convert_image_bypass
-::description() const
-{
-  return "Performs no conversion and returns the given image container";
-}
-
 /// Default image converter ( does nothing )
 vital::image_container_sptr
 convert_image_bypass

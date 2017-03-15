@@ -9,22 +9,27 @@
 set( public_headers
 
   algorithm.h
+  algorithm_factory.h
   analyze_tracks.h
   bundle_adjust.h
   close_loops.h
   compute_ref_homography.h
   convert_image.h
+  detect_features.h
+  detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
-  detect_features.h
   detection_refiner.h
+  draw_detected_object_set.h
   draw_tracks.h
+  dynamic_configuration.h
   estimate_canonical_transform.h
   estimate_essential_matrix.h
   estimate_fundamental_matrix.h
   estimate_homography.h
   estimate_similarity_transform.h
   extract_descriptors.h
+  feature_descriptor_io.h
   filter_features.h
   filter_tracks.h
   geo_map.h
@@ -42,22 +47,27 @@ set( public_headers
 set( sources
 
   algorithm.cxx
+  algorithm_factory.cxx
   analyze_tracks.cxx
   bundle_adjust.cxx
   close_loops.cxx
   compute_ref_homography.cxx
   convert_image.cxx
+  detect_features.cxx
+  detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
-  detect_features.cxx
   detection_refiner.cxx
+  draw_detected_object_set.cxx
   draw_tracks.cxx
+  dynamic_configuration.cxx
   estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
+  feature_descriptor_io.cxx
   filter_features.cxx
   filter_tracks.cxx
   geo_map.cxx
@@ -96,4 +106,18 @@ target_link_libraries( vital_algo
   PUBLIC          vital
                   vital_config
                   vital_logger
+                  vital_vpm
   )
+
+if (KWIVER_ENABLE_TOOLS)
+###
+#     plugins for plugin explorer
+kwiver_add_plugin( algo_explorer_plugin
+  SUBDIR   modules/plugin_explorer
+  SOURCES  algo_explorer_plugin.cxx
+  PRIVATE  vital
+           vital_vpm
+           vital_config
+           vital_algo
+           explorer_plugin )
+endif()

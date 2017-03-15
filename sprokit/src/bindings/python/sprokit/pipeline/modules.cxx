@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/modules.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
@@ -41,8 +41,19 @@
 
 using namespace boost::python;
 
+namespace sprokit {
+
+//@todo Alternative is to provide C bindings for the plugin manager.
+
+void load_known_modules()
+{
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+}
+
 BOOST_PYTHON_MODULE(modules)
 {
   def("load_known_modules", &sprokit::load_known_modules
     , "Loads sprokit modules to populate the process and scheduler registries.");
 }
+
+} // end namespace sprokit

@@ -66,16 +66,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-    : match_req(other.match_req),
-      search_bandwidth(other.search_bandwidth),
-      min_keyframe_misses(other.min_keyframe_misses),
-      stop_after_match(other.stop_after_match),
-      matcher(!other.matcher ? algo::match_features_sptr() : other.matcher->clone()),
-      m_logger( vital::get_logger( "arrows.core.close_loops_keyframe" ))
-  {
-  }
-
   /// number of feature matches required for acceptance
   int match_req;
 
@@ -109,14 +99,6 @@ public:
 close_loops_keyframe
 ::close_loops_keyframe()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-close_loops_keyframe
-::close_loops_keyframe(const close_loops_keyframe& other)
-: d_(new priv(*other.d_))
 {
 }
 

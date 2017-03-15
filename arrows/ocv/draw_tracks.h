@@ -57,14 +57,8 @@ public:
   /// Constructor
   draw_tracks();
 
-  /// Copy Constructor
-  draw_tracks(const draw_tracks& other);
-
   /// Destructor
   virtual ~draw_tracks();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv"; }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

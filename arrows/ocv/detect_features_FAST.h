@@ -57,18 +57,8 @@ public:
   /// Constructor
   detect_features_FAST();
 
-  /// Copy constructor
-  detect_features_FAST(const detect_features_FAST &other);
-
   /// Destructor
   virtual ~detect_features_FAST();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_FAST"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature detection via the FAST algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

@@ -54,12 +54,6 @@ public:
   /// Destructor
   virtual ~detect_features();
 
-  /// Copy Constructor
-  detect_features(const detect_features& other);
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "viscl"; }
-
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
 

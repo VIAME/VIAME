@@ -73,9 +73,6 @@ public:
   /// Destructor
   virtual ~close_loops_homography_guided();
 
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "vxl_homography_guided"; }
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
    * This base virtual function implementation returns an empty configuration

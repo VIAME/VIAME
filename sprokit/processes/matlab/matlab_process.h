@@ -38,7 +38,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include "kwiver_matlab_processes_export.h"
+#include "kwiver_processes_matlab_export.h"
 
 #include <memory>
 
@@ -50,7 +50,7 @@ namespace matlab {
  * @brief brief description
  *
  */
-class KWIVER_MATLAB_PROCESSES_NO_EXPORT matlab_process
+class KWIVER_PROCESSES_MATLAB_NO_EXPORT matlab_process
   : public sprokit::process
 {
 public:
@@ -60,7 +60,6 @@ public:
 protected:
   virtual void _configure();
   virtual void _step();
-
   virtual void _init();
 
 private:

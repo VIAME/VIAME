@@ -30,7 +30,6 @@
 
 #include "stabilize_image_process.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
@@ -80,7 +79,7 @@ stabilize_image_process
     d( new stabilize_image_process::priv )
 {
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
+
   make_ports();
   make_config();
 }

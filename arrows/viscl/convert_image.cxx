@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,6 @@ namespace vcl {
 /// Default Constructor
 convert_image
 ::convert_image()
-{
-
-}
-
-/// Copy Constructor
-convert_image
-::convert_image(const convert_image &)
 {
 
 }

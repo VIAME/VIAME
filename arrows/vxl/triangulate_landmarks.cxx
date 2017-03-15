@@ -59,11 +59,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : m_logger( vital::get_logger( "arrows.vxl.triangulate_landmarks" ))
-  {
-  }
-
   /// parameters - none yet
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -74,14 +69,6 @@ public:
 triangulate_landmarks
 ::triangulate_landmarks()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-triangulate_landmarks
-::triangulate_landmarks(const triangulate_landmarks& other)
-: d_(new priv(*other.d_))
 {
 }
 

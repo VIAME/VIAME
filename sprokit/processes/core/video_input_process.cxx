@@ -30,7 +30,6 @@
 
 #include "video_input_process.h"
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/vital_types.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/image_container.h>
@@ -95,8 +94,6 @@ video_input_process
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
-  kwiver::vital::algorithm_plugin_manager::load_plugins_once();
 
   make_ports();
   make_config();
@@ -171,6 +168,13 @@ void video_input_process
     //
     // Sometimes the video source can not determine either the frame
     // number or frame time or both.
+    if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
+    {
+      throw sprokit::invalid_configuration_exception( name(),
+            "Video reader selected does not supply image data." );
+    }
+
+
     if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
     {
       d->m_frame_number = ts.get_frame();

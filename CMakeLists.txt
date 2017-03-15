@@ -66,6 +66,7 @@ CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Proces
 OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
 MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
 
+option( KWIVER_ENABLE_EXTRAS "Enable extras content" OFF )
 
 ## TODO: How should pytgon and c lib interact?
 OPTION( KWIVER_ENABLE_C_BINDINGS     "Enable C bindings libraries" OFF)
@@ -114,6 +115,9 @@ endif()
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_BINARY_DIR}")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
+# include vital internal headers for private use only
+include_directories("${KWIVER_SOURCE_DIR}/vital/internal")
 
 # kwiversys includes are generated in the binary directory
 include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
@@ -217,8 +221,6 @@ if ( fletch_ROOT )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${fletch_ROOT}/lib:$LD_LIBRARY_PATH\n" )
 endif()
 
-add_subdirectory( vital )
-
 if (KWIVER_ENABLE_TRACK_ORACLE)
   add_subdirectory( track_oracle )
 endif()
@@ -231,6 +233,13 @@ if (KWIVER_ENABLE_SPROKIT)
   add_subdirectory(sprokit)
 endif()
 
+if (KWIVER_ENABLE_EXTRAS)
+  add_subdirectory(extras)
+endif()
+
+###
+# include as the last subdir
+add_subdirectory( vital )
 
 ##############################################################
 # Marking source root for documentation generation

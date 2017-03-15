@@ -41,12 +41,10 @@
 
 #include "thread_pool.h"
 
-#include <condition_variable>
-#include <mutex>
-#include <queue>
-#include <stdexcept>
-#include <thread>
-#include <vector>
+#include <vital/util/thread_pool_builtin_backend.h>
+#include <vital/util/thread_pool_gcd_backend.h>
+#include <vital/util/thread_pool_sync_backend.h>
+#include <vital/logger/logger.h>
 
 
 namespace kwiver {
@@ -57,95 +55,29 @@ namespace vital {
 class thread_pool::priv
 {
 public:
-  /// Constructor
-  priv(size_t num_threads=std::thread::hardware_concurrency())
-    : stop(false)
+
+  priv()
+    : logger( kwiver::vital::get_logger( "vital.thread_pool" ) )
   {
-    for(size_t i=0; i<num_threads; ++i)
-    {
-      workers.emplace_back([this] { thread_worker_loop(); });
-    }
+    available_backends = {
+#if __APPLE__
+      thread_pool_gcd_backend::static_name,
+#endif
+      thread_pool_builtin_backend::static_name,
+      thread_pool_sync_backend::static_name
+    };
+    backend.reset( new thread_pool_builtin_backend() );
   }
 
-  /// Destructor
-  ~priv()
-  {
-    {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      stop = true;
-    }
-    condition.notify_all();
-    VITAL_FOREACH(std::thread &worker, workers)
-    {
-      worker.join();
-    }
-  }
+  // logger handle
+  logger_handle_t logger;
 
-  /// This function is executed in each thread to endlessly process tasks
-  void thread_worker_loop();
+  // a pointer to the active backend
+  std::unique_ptr<thread_pool::backend> backend;
 
-  /// Enqueue a void() task
-  void enqueue_task(std::function<void()> func);
-
-
-  /// The task queue
-  std::queue< std::function<void()> > tasks;
-
-  /// The collection of threads in the pool
-  std::vector<std::thread> workers;
-
-  /// Mutex to synchronize access to the queue
-  std::mutex queue_mutex;
-
-  /// Condition variable to allow threads to wait for tasks
-  std::condition_variable condition;
-
-  /// Flag to indicate that the processing loop should terminate
-  bool stop;
+  // a vector of names of the available backends
+  std::vector<std::string> available_backends;
 };
-
-
-/// This function is executed in each thread to endlessly process tasks
-void thread_pool::priv::thread_worker_loop()
-{
-  // loop forever
-  for(;;)
-  {
-    std::function<void()> task;
-
-    {
-      std::unique_lock<std::mutex> lock(this->queue_mutex);
-      this->condition.wait(lock,
-        [this]{ return this->stop || !this->tasks.empty(); });
-      if(this->stop && this->tasks.empty())
-        return;
-      task = std::move(this->tasks.front());
-      this->tasks.pop();
-    }
-
-    task();
-  }
-}
-
-
-/// Enqueue a void function in the thread pool
-void thread_pool::priv::enqueue_task(std::function<void()> func)
-{
-  // add the task to the queue as long as it still running
-  {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    // don't allow enqueueing after stopping the pool
-    if(stop)
-    {
-      throw std::runtime_error("enqueue on stopped thread_pool");
-    }
-
-    // add the task to the queue
-    tasks.emplace(func);
-  }
-  // notify one worker to start processing
-  condition.notify_one();
-}
 
 
 /// Access the singleton instance of this class
@@ -165,16 +97,56 @@ thread_pool::thread_pool()
 
 
 /// Returns the number of worker threads
-size_t thread_pool::size() const
+size_t thread_pool::num_threads() const
 {
-  return d_->workers.size();
+  return d_->backend->num_threads();;
+}
+
+
+/// Return the name of the active backend
+const char*
+thread_pool::active_backend() const
+{
+  return d_->backend->name();
+}
+
+
+/// Return the names of the available backends
+std::vector<std::string>
+thread_pool::available_backends() const
+{
+  return d_->available_backends;
+}
+
+
+/// Set the backend
+void thread_pool::set_backend(std::string const& backend_name)
+{
+#define TRY_BACKEND(T)                  \
+  if(backend_name == T::static_name)    \
+  {                                     \
+    d_->backend.release();              \
+    d_->backend.reset( new T() );       \
+  }                                     \
+  else
+
+#if __APPLE__
+  TRY_BACKEND( thread_pool_gcd_backend )
+#endif
+  TRY_BACKEND( thread_pool_builtin_backend )
+  TRY_BACKEND( thread_pool_sync_backend )
+  // final "else" case
+  {
+    LOG_ERROR( d_->logger, "Unknown thread pool backend: " << backend_name );
+  }
+#undef TRY_BACKEND
 }
 
 
 /// Enqueue a void function in the thread pool
 void thread_pool::enqueue_task(std::function<void()> task)
 {
-  d_->enqueue_task(task);
+  d_->backend->enqueue_task(task);
 }
 
 } }   // end namespace

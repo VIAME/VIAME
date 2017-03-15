@@ -34,8 +34,8 @@
  */
 
 #include <test_common.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/ocv/register_algorithms.h>
 #include <arrows/ocv/image_container.h>
 #include <arrows/ocv/image_io.h>
 
@@ -58,7 +58,9 @@ using namespace kwiver::vital;
 IMPLEMENT_TEST(factory)
 {
   using namespace kwiver::arrows;
-  ocv::register_algorithms();
+
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   algo::image_io_sptr img_io = kwiver::vital::algo::image_io::create("ocv");
   if (!img_io)
   {

@@ -74,16 +74,6 @@ public:
   {
   }
 
-  // Copy Constructor
-  priv( priv const &other )
-    : n_features( other.n_features )
-    , n_octave_layers( other.n_octave_layers )
-    , contrast_threshold( other.contrast_threshold )
-    , edge_threshold( other.edge_threshold )
-    , sigma( other.sigma )
-  {
-  }
-
   // Create new algorithm instance from current parameters
   cv::Ptr<cv_SIFT_t> create() const
   {
@@ -182,15 +172,6 @@ detect_features_SIFT
 
 
 detect_features_SIFT
-::detect_features_SIFT(detect_features_SIFT const &other)
-  : p_( new priv( *other.p_ ) )
-{
-  attach_logger("arrows.ocv.SIFT");
-  detector = p_->create();
-}
-
-
-detect_features_SIFT
 ::~detect_features_SIFT()
 {
 }
@@ -234,15 +215,6 @@ detect_features_SIFT
 extract_descriptors_SIFT
 ::extract_descriptors_SIFT()
   : p_( new priv )
-{
-  attach_logger("arrows.ocv.SIFT");
-  extractor = p_->create();
-}
-
-
-extract_descriptors_SIFT
-::extract_descriptors_SIFT(extract_descriptors_SIFT const &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger("arrows.ocv.SIFT");
   extractor = p_->create();

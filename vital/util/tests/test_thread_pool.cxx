@@ -59,12 +59,12 @@ IMPLEMENT_TEST(number_of_threads)
   using namespace kwiver::vital;
 
   TEST_EQUAL( "Num thread == num CPU cores",
-              thread_pool::instance().size(),
+              thread_pool::instance().num_threads(),
               std::thread::hardware_concurrency());
 }
 
 
-IMPLEMENT_TEST(run_jobs)
+void run_jobs_impl()
 {
   using namespace kwiver::vital;
 
@@ -89,4 +89,19 @@ IMPLEMENT_TEST(run_jobs)
     TEST_EQUAL( "threaded value "+std::to_string(i), futures[i].get(), func(i) );
   }
 
+}
+
+
+IMPLEMENT_TEST(run_jobs)
+{
+  using namespace kwiver::vital;
+  VITAL_FOREACH( std::string const& backend,
+                 thread_pool::instance().available_backends() )
+  {
+    std::cout << "Testing with thread pool backend: " << backend << std::endl;
+    thread_pool::instance().set_backend(backend);
+    TEST_EQUAL( "Backend set correctly",
+                thread_pool::instance().active_backend(), backend );
+    run_jobs_impl();
+  }
 }

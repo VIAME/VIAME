@@ -143,30 +143,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : verbose(other.verbose),
-    continue_processing(other.continue_processing),
-    init_from_last(other.init_from_last),
-    retriangulate_all(other.retriangulate_all),
-    reverse_ba_error_ratio(other.reverse_ba_error_ratio),
-    next_frame_max_distance(other.next_frame_max_distance),
-    global_ba_rate(other.global_ba_rate),
-    interim_reproj_thresh(other.interim_reproj_thresh),
-    final_reproj_thresh(other.final_reproj_thresh),
-    zoom_scale_thresh(other.zoom_scale_thresh),
-    base_camera(other.base_camera),
-    e_estimator(!other.e_estimator ? algo::estimate_essential_matrix_sptr()
-                                   : other.e_estimator->clone()),
-    camera_optimizer(!other.camera_optimizer ? algo::optimize_cameras_sptr()
-                                             : other.camera_optimizer->clone()),
-    lm_triangulator(!other.lm_triangulator ? algo::triangulate_landmarks_sptr()
-                                           : other.lm_triangulator->clone()),
-    bundle_adjuster(!other.bundle_adjuster ? algo::bundle_adjust_sptr()
-                                           : other.bundle_adjuster->clone()),
-    m_logger( vital::get_logger( "arrows.core.initialize_cameras_landmarks" ))
-  {
-  }
-
   /// Construct and initialized camera for \a frame
   camera_sptr init_camera(frame_id_t frame, frame_id_t last_frame,
                           const camera_map::map_camera_t& cams,
@@ -406,14 +382,6 @@ initialize_cameras_landmarks::priv
 initialize_cameras_landmarks
 ::initialize_cameras_landmarks()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-initialize_cameras_landmarks
-::initialize_cameras_landmarks(const initialize_cameras_landmarks& other)
-: d_(new priv(*other.d_))
 {
 }
 

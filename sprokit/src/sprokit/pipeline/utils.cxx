@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -144,7 +144,7 @@ name_thread(thread_name_t const& name)
 envvar_value_t
 get_envvar(envvar_name_t const& name)
 {
-  kwiver::vital::logger_handle_t m_logger(kwiver::vital::get_logger("sprokit:pipeline_utilities"));
+  kwiver::vital::logger_handle_t m_logger(kwiver::vital::get_logger("sprokit.pipeline_utilities"));
 
   envvar_value_t value;
 

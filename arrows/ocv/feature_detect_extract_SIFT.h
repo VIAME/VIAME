@@ -61,18 +61,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_SIFT
 public:
   /// Constructor
   detect_features_SIFT();
-  /// Copy Constructor
-  detect_features_SIFT(detect_features_SIFT const &other);
+
   /// Destructor
   virtual ~detect_features_SIFT();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_SIFT"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV SIFT feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -95,18 +86,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_SIFT
 public:
   /// Constructor
   extract_descriptors_SIFT();
-  /// Copy Constructor
-  extract_descriptors_SIFT(extract_descriptors_SIFT const &other);
+
   /// Destructor
   virtual ~extract_descriptors_SIFT();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_SIFT"; }
-  /// Returns an optional descriptive string for an implementation
-  virtual std::string description() const
-  {
-    return "OpenCV SIFT feature detector and extractor implementation";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

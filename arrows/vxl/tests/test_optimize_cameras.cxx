@@ -35,6 +35,8 @@
 #include <test_math.h>
 #include <test_scene.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/track_set.h>
@@ -52,7 +54,9 @@ DECLARE_TEST_MAP();
 int main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
-  kwiver::arrows::vxl::optimize_cameras::register_self();
+
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   testname_t const testname = argv[1];
   RUN_TEST(testname);
 }

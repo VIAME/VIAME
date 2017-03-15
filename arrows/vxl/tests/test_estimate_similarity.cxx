@@ -34,12 +34,13 @@
 #include <test_common.h>
 #include <test_random_point.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <vital/exceptions.h>
 #include <vital/types/rotation.h>
 #include <vital/types/similarity.h>
 #include <vital/types/vector.h>
 
-#include <arrows/vxl/register_algorithms.h>
 #include <arrows/vxl/estimate_similarity_transform.h>
 
 #include <vital/vital_foreach.h>
@@ -51,7 +52,7 @@ DECLARE_TEST_MAP();
 int main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
   testname_t const testname = argv[1];
   RUN_TEST(testname);
 }

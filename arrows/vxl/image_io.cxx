@@ -181,15 +181,6 @@ public:
   {
   }
 
-  priv(const priv& other)
-  : force_byte(other.force_byte),
-    auto_stretch(other.auto_stretch),
-    manual_stretch(other.manual_stretch),
-    intensity_range(other.intensity_range),
-    m_logger(other.m_logger)
-  {
-  }
-
   template <typename inP, typename outP>
   void convert_image(const vil_image_view<inP>& src,
                      vil_image_view<outP>& dest)
@@ -217,14 +208,6 @@ public:
 image_io
 ::image_io()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-image_io
-::image_io(const image_io& other)
-: d_(new priv(*other.d_))
 {
 }
 

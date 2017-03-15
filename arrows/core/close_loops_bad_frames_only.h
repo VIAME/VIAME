@@ -66,14 +66,8 @@ public:
   /// Default Constructor
   close_loops_bad_frames_only();
 
-  /// Copy Constructor
-  close_loops_bad_frames_only(const close_loops_bad_frames_only&);
-
   /// Destructor
   virtual ~close_loops_bad_frames_only() VITAL_DEFAULT_DTOR;
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "bad_frames_only"; }
 
   /// Returns implementation description
   virtual std::string description() const;

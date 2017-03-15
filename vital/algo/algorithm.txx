@@ -43,94 +43,48 @@
 #include <sstream>
 #include <typeinfo>
 
+#include <vital/algo/algorithm_factory.h>
 #include <vital/exceptions/algorithm.h>
-#include <vital/registrar.h>
 
 namespace kwiver {
 namespace vital {
 
-/// Register instances of this algorithm with a given registrar
-template < typename Self >
-bool
-algorithm_def< Self >
-::register_instance( registrar& reg, std::shared_ptr< Self > inst )
-{
-  logger_handle_t log = get_logger( "algorithm.register_instance" );
-  if ( ! inst )
-  {
-    LOG_DEBUG( log, "shared pointer does not point to anything" );
-    return false;
-  }
-  LOG_DEBUG( log,
-             "Registering algo implementation '" << inst->impl_name()
-             << "' for def type '" << inst->type_name() << "'" );
-
-  std::string qualified_name = inst->type_name() + ":" + inst->impl_name();
-  return reg.register_item< algorithm > ( qualified_name, inst ) &&
-         reg.register_item< Self > ( inst->impl_name(), inst );
-}
-
-
+// ------------------------------------------------------------------
 /// Factory method to make an instance of this algorithm by impl_name
 template < typename Self >
 std::shared_ptr< Self >
 algorithm_def< Self >
 ::create( const std::string& impl_name )
 {
-  std::shared_ptr< Self > inst = registrar::instance().find< Self > ( impl_name );
-
-  if ( ! inst )
-  {
-    return inst;
-  }
-
-  return std::dynamic_pointer_cast< Self > ( inst->clone() );
+  return std::dynamic_pointer_cast< Self > ( create_algorithm( Self::static_type_name(), impl_name ) );
 }
 
 
+// ------------------------------------------------------------------
 /// Return a vector of the impl_name of each registered implementation
 template < typename Self >
 std::vector< std::string >
 algorithm_def< Self >
 ::registered_names()
 {
-  return registrar::instance().registered_names< Self > ();
-}
+  std::vector< std::string > names;
 
+  auto fact_list = kwiver::vital::plugin_manager::instance().get_factories( Self::static_type_name() );
 
-/// Check the given name against registered implementation names
-template < typename Self >
-bool
-algorithm_def< Self >
-::has_impl_name( std::string const& impl_name )
-{
-  std::vector< std::string > valid_names = algorithm_def< Self >::registered_names();
-
-  return std::find( valid_names.begin(), valid_names.end(), impl_name ) != valid_names.end();
-}
-
-
-/// Return a \c config_block for all registered implementations
-template < typename Self >
-kwiver::vital::config_block_sptr
-algorithm_def< Self >
-::get_impl_configurations()
-{
-  kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config();
-
-  VITAL_FOREACH( auto const& impl_name, algorithm_def< Self >::registered_names() )
+  VITAL_FOREACH( auto fact, fact_list )
   {
-    // create a clone of the impl in order to get access to its configuration,
-    // merging it with the main config_block under a subblock that is the name
-    // of the impl.
-    config->subblock_view( impl_name )
-      ->merge_config( registrar::instance().find< Self >( impl_name )->get_configuration() );
+    std::string attr_val;
+    if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val ) )
+    {
+      names.push_back( attr_val );
+    }
   }
 
-  return config;
+  return names;
 }
 
 
+// ------------------------------------------------------------------
 /// Helper function for properly getting a nested algorithm's configuration
 template < typename Self >
 void
@@ -144,6 +98,7 @@ algorithm_def< Self >
 }
 
 
+// ------------------------------------------------------------------
 /// Helper macro for properly setting a nested algorithm's configuration
 template < typename Self >
 void
@@ -161,6 +116,7 @@ algorithm_def< Self >
 }
 
 
+// ------------------------------------------------------------------
 /// Helper macro for checking that basic nested algorithm configuration is valid
 template < typename Self >
 bool

@@ -82,6 +82,20 @@ public:
   virtual ~plugin_factory_type_creation_error() VITAL_NOTHROW;
 };
 
+
+// ------------------------------------------------------------------
+/// Plugin already registered
+class VITAL_EXPORT plugin_already_exists
+  : public plugin_exception
+{
+public:
+  /// Constructor
+  plugin_already_exists( std::string const& msg) VITAL_NOTHROW;
+
+  /// Destructor
+  virtual ~plugin_already_exists() VITAL_NOTHROW;
+};
+
 } } // end namespace
 
 #endif /* VITAL_CORE_EXCEPTION_PLUGIN_H */

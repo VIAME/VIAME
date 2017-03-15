@@ -28,9 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/algorithm_plugin_manager.h>
 #include <vital/algo/algorithm.h>
-#include <vital/registrar.h>
+#include <vital/algo/algorithm_factory.h>
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
 #include <vital/vital_foreach.h>
@@ -80,7 +79,7 @@ detailed_algo()
     kwiver::vital::tokenize( name, token, ":" );
 
     // create instance type_name : impl_name
-    kwiver::vital::algorithm_sptr ptr = kwiver::vital::algorithm::create( token[0], token[1] );
+    kwiver::vital::algorithm_sptr ptr = kwiver::vital::create_algorithm( token[0], token[1] );
 
     std::cout << "\n---------------------"
               << "\nDetailed info on type \"" << token[0] << "\" implementation \"" << token[1] << "\""
@@ -163,32 +162,21 @@ main( int argc, char* argv[] )
     exit( 0 );
   }
 
-  kwiver::vital::algorithm_plugin_manager& apm = kwiver::vital::algorithm_plugin_manager::instance();
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
   VITAL_FOREACH( std::string const& path, opt_path )
   {
-    apm.add_search_path( path );
+    vpm.add_search_path( path );
   }
 
   // locate all plugins
-  apm.register_plugins( plugin_name );
+  vpm.load_all_plugins();
 
-  std::string path_string;
-  auto search_path( apm.get_search_path() );
+  std::cout << "---- Algorithm search path" << std::endl;
+  auto search_path( vpm.search_path() );
   VITAL_FOREACH( auto module_dir, search_path )
   {
-    path_string += module_dir + ":";
-  }
-
-  std::cout << "---- Algorithm search path\n"
-            << path_string << std::endl
-            << std::endl;
-
-  std::cout << "---- Registered module names:\n";
-  std::vector< std::string > module_list = apm.registered_module_names();
-  VITAL_FOREACH( std::string const& name, module_list )
-  {
-    std::cout << "   " << name << std::endl;
+    std::cout << "    " << module_dir << std::endl;
   }
 
   std::cout << "\n---- registered algorithms (type_name:impl_name)\n";

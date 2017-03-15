@@ -30,8 +30,10 @@
 
 #include <test_common.h>
 #include <test_scene.h>
+
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <arrows/core/tests/test_triangulate_landmarks.h>
-#include <arrows/vxl/register_algorithms.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 
 
@@ -44,7 +46,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
 
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 
