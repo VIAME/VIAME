@@ -2,8 +2,6 @@
 # Python support
 #
 
-## kwiver_create_python_plugin_init(vital/types)
-
 # Add python modules
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera.py
   vital/types
