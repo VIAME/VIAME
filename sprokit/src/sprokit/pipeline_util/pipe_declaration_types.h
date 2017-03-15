@@ -34,7 +34,6 @@
 #include <vital/config/config_block.h>
 
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
 
 #include <boost/optional.hpp>
 #include <boost/variant.hpp>
@@ -226,7 +225,7 @@ struct cluster_pipe_block
   /// The type of the cluster.
   process::type_t type;
   /// The description of the cluster.
-  process_registry::description_t description;
+  process::description_t description;
   /// Subblocks of the cluster.
   cluster_subblocks_t subblocks;
 };

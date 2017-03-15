@@ -32,11 +32,12 @@
 #include <test_math.h>
 #include <test_scene.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/epipolar_geometry.h>
 #include <arrows/vxl/estimate_fundamental_matrix.h>
-#include <arrows/vxl/register_algorithms.h>
 
 #include <Eigen/LU>
 
@@ -50,7 +51,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
 
-  kwiver::arrows::vxl::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 

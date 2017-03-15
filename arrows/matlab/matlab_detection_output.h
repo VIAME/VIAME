@@ -48,11 +48,7 @@ class KWIVER_ALGO_MATLAB_EXPORT matlab_detection_output
 {
 public:
   matlab_detection_output();
-  matlab_detection_output( matlab_detection_output const& other);
   virtual ~matlab_detection_output();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "matlab"; }
 
   virtual vital::config_block_sptr get_configuration() const;
   virtual void set_configuration(vital::config_block_sptr config);

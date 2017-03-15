@@ -36,6 +36,7 @@
 #include "estimate_canonical_transform.h"
 
 #include <vital/logger/logger.h>
+#include <vital/vital_foreach.h>
 
 #include <algorithm>
 
@@ -69,20 +70,6 @@ public:
       irls_max_iterations(15),
       irls_iterations_for_scale(2),
       irls_conv_tolerance(1e-4),
-      m_logger( vital::get_logger( "arrows.vxl.estimate_canonical_transform" ))
-  {
-  }
-
-  priv(const priv& other)
-    : estimate_scale(other.estimate_scale),
-      trace_level(other.trace_level),
-      rrel_method(other.rrel_method),
-      desired_prob_good(other.desired_prob_good),
-      max_outlier_frac(other.max_outlier_frac),
-      prior_inlier_scale(other.prior_inlier_scale),
-      irls_max_iterations(other.irls_max_iterations),
-      irls_iterations_for_scale(other.irls_iterations_for_scale),
-      irls_conv_tolerance(other.irls_conv_tolerance),
       m_logger( vital::get_logger( "arrows.vxl.estimate_canonical_transform" ))
   {
   }
@@ -197,14 +184,6 @@ public:
 estimate_canonical_transform
 ::estimate_canonical_transform()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-estimate_canonical_transform
-::estimate_canonical_transform(const estimate_canonical_transform& other)
-: d_(new priv(*other.d_))
 {
 }
 

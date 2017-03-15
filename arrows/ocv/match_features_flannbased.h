@@ -56,17 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT match_features_flannbased
 public:
   /// Constructor
   match_features_flannbased();
-  /// Copy Constructor
-  match_features_flannbased(match_features_flannbased const &other);
+
   /// Destructor
   virtual ~match_features_flannbased();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_flann_based"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV flann-based feature matching algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

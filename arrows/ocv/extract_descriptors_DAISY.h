@@ -58,17 +58,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_DAISY
 public:
   /// Constructor
   extract_descriptors_DAISY();
-  /// Copy Constructor
-  extract_descriptors_DAISY( extract_descriptors_DAISY const &other );
+
   /// Destructor
   virtual ~extract_descriptors_DAISY();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_DAISY"; }
-  /// Returns a descriptive string for this implementation
-  virtual std::string description() const {
-    return "OpenCV feature-point descriptor extraction via the DAISY algorithm";
-  }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

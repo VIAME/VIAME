@@ -121,19 +121,6 @@ public:
 
   ~priv() { }
 
-  priv(priv const& other)
-    : initial_sub_sample(other.initial_sub_sample)
-    , interpolation_rate(other.interpolation_rate)
-    , sba(!other.sba ? algo::bundle_adjust_sptr()
-                     : other.sba->clone())
-    , camera_optimizer(!other.camera_optimizer ? algo::optimize_cameras_sptr()
-                                               : other.camera_optimizer->clone())
-    , lm_triangulator(!other.lm_triangulator ? algo::triangulate_landmarks_sptr()
-                                             : other.lm_triangulator->clone())
-    , m_logger( vital::get_logger( "arrows.core.hierarchical_bundle_adjust" ))
-  {
-  }
-
   unsigned int initial_sub_sample;
   unsigned int interpolation_rate;
   bool rmse_reporting_enabled;
@@ -151,14 +138,6 @@ hierarchical_bundle_adjust
 ::hierarchical_bundle_adjust()
   : d_(new priv)
 { }
-
-
-/// Copy constructor
-hierarchical_bundle_adjust
-::hierarchical_bundle_adjust(hierarchical_bundle_adjust const& other)
-  : d_(new priv(*other.d_))
-{
-}
 
 
 /// Destructor

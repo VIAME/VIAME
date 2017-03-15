@@ -39,6 +39,12 @@ const std::string plugin_factory::PLUGIN_FILE_NAME( "plugin-file-name" );
 const std::string plugin_factory::PLUGIN_NAME( "plugin-name" );
 const std::string plugin_factory::PLUGIN_DESCRIPTION( "plugin-descrip" );
 const std::string plugin_factory::PLUGIN_VERSION( "plugin-version" );
+const std::string plugin_factory::PLUGIN_MODULE_NAME( "plugin-version-name" );
+const std::string plugin_factory::PLUGIN_FACTORY_TYPE( "plugin-factory-type" );
+const std::string plugin_factory::PLUGIN_AUTHOR( "plugin-author" );
+const std::string plugin_factory::PLUGIN_ORGANIZATION( "plugin-organization" );
+const std::string plugin_factory::PLUGIN_LICENSE( "plugin-license" );
+const std::string plugin_factory::PLUGIN_CATEGORY( "plugin-category" );
 
 
 // ------------------------------------------------------------------

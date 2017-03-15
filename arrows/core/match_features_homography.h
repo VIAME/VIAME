@@ -82,14 +82,8 @@ public:
   /// Default Constructor
   match_features_homography();
 
-  /// Copy Constructor
-  match_features_homography(const match_features_homography&);
-
   /// Destructor
   virtual ~match_features_homography();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "homography_guided"; }
 
   /// Get this alg's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

@@ -62,15 +62,6 @@ public:
   {
   }
 
-  /// Copy constructor
-  priv( priv const &other )
-      : orientation_normalized( other.orientation_normalized ),
-        scale_normalized( other.scale_normalized ),
-        pattern_scale( other.pattern_scale ),
-        n_octaves( other.n_octaves )
-  {
-  }
-
   /// Create new cv::Ptr algo instance
   cv::Ptr<cv_FREAK_t> create() const
   {
@@ -130,16 +121,6 @@ public:
 extract_descriptors_FREAK
 ::extract_descriptors_FREAK()
     : p_( new priv )
-{
-  attach_logger("arrows.ocv.FREAK");
-  extractor = p_->create();
-}
-
-
-/// Copy Constructor
-extract_descriptors_FREAK
-::extract_descriptors_FREAK(extract_descriptors_FREAK const &other)
-: p_( new priv(*other.p_) )
 {
   attach_logger("arrows.ocv.FREAK");
   extractor = p_->create();

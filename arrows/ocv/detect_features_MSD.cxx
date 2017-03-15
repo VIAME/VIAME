@@ -64,20 +64,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv( priv const &other )
-    : patch_radius( other.patch_radius )
-    , search_area_radius( other.search_area_radius )
-    , nms_radius( other.nms_radius )
-    , nms_scale_radius( other.nms_scale_radius )
-    , th_saliency( other.th_saliency )
-    , knn( other.knn )
-    , scale_factor( other.scale_factor )
-    , n_scales( other.n_scales )
-    , compute_orientation( other.compute_orientation )
-  {
-  }
-
   /// Create algorithm instance
   cv::Ptr<cv::xfeatures2d::MSDDetector> create() const
   {
@@ -145,15 +131,6 @@ detect_features_MSD
 
 
 detect_features_MSD
-::detect_features_MSD(const detect_features_MSD &other)
-  : p_( new priv( *other.p_ ) )
-{
-  attach_logger( "arrows.ocv.MSD" );
-  detector = p_->create();
-}
-
-
-detect_features_MSD
 ::~detect_features_MSD()
 {
 }
@@ -186,7 +163,7 @@ detect_features_MSD
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_config( c, m_logger );
+  return p_->check_config( c, logger() );
 }
 
 

@@ -18,7 +18,6 @@ set(vxl_headers_public
   match_features_constrained.h
   optimize_cameras.h
   polygon.h
-  register_algorithms.h
   triangulate_landmarks.h
   vil_image_memory.h
   vidl_ffmpeg_video_input.h
@@ -50,7 +49,6 @@ set(vxl_sources
   match_features_constrained.cxx
   optimize_cameras.cxx
   polygon.cxx
-  register_algorithms.cxx
   triangulate_landmarks.cxx
   vil_image_memory.cxx
   vidl_ffmpeg_video_input.cxx
@@ -74,7 +72,7 @@ target_link_libraries( kwiver_algo_vxl
   )
 
 algorithms_create_plugin( kwiver_algo_vxl
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

@@ -64,22 +64,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv(priv const &other)
-     : n_features( other.n_features )
-     , scale_factor( other.scale_factor )
-     , n_levels( other.n_levels )
-     , edge_threshold( other.edge_threshold )
-     , first_level( other.first_level )
-     , wta_k( other.wta_k )
-     , score_type( other.score_type )
-     , patch_size( other.patch_size )
-#ifdef KWIVER_HAS_OPENCV_VER_3
-     , fast_threshold( other.fast_threshold )
-#endif
-  {
-  }
-
   /// Create new impl instance based on current parameters
   cv::Ptr<cv::ORB> create() const
   {
@@ -255,15 +239,6 @@ detect_features_ORB
 
 
 detect_features_ORB
-::detect_features_ORB(detect_features_ORB const &other)
-   : p_( new priv( *other.p_ ) )
-{
-  attach_logger("arrows.ocv.ORB");
-  detector = p_->create();
-}
-
-
-detect_features_ORB
 ::~detect_features_ORB()
 {
 }
@@ -300,22 +275,13 @@ detect_features_ORB
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_configuration(c, m_logger);
+  return p_->check_configuration(c, logger());
 }
 
 
 extract_descriptors_ORB
 ::extract_descriptors_ORB()
    : p_( new priv )
-{
-  attach_logger("arrows.ocv.ORB");
-  extractor = p_->create();
-}
-
-
-extract_descriptors_ORB
-::extract_descriptors_ORB(extract_descriptors_ORB const &other)
-   : p_( new priv( *other.p_ ) )
 {
   attach_logger("arrows.ocv.ORB");
   extractor = p_->create();
@@ -359,7 +325,7 @@ extract_descriptors_ORB
 {
   config_block_sptr c = get_configuration();
   c->merge_config( config );
-  return p_->check_configuration(c, m_logger);
+  return p_->check_configuration(c, logger());
 }
 
 

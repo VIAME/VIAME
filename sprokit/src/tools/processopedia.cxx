@@ -34,11 +34,10 @@
 #include <vital/config/config_block.h>
 #include <vital/vital_foreach.h>
 
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/process.h>
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/process_registry_exception.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -77,13 +76,17 @@ sprokit_tool_main(int argc, char const* argv[])
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc,
     program_description );
 
+  // Load all known modules
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
+
   if (vm.count("path"))
   {
-    sprokit::module_paths_t paths = sprokit::get_module_load_path();
-
+    //+ sprokit::module_paths_t paths = sprokit::get_module_load_path();
+    auto const& paths = vpm.search_path();
     std::cout << "Modules will be loaded from the following directories, in order:\n";
 
-    VITAL_FOREACH (sprokit::module_path_t const& module_dir, paths)
+    VITAL_FOREACH ( const auto& module_dir, paths)
     {
       std::cout << "    " << module_dir << std::endl;
     }
@@ -91,43 +94,36 @@ sprokit_tool_main(int argc, char const* argv[])
     return EXIT_SUCCESS;
   }
 
-  // Load all known modules
-  sprokit::load_known_modules();
-
   if (vm.count("sched"))
   {
-    sprokit::scheduler_registry_t const sched = sprokit::scheduler_registry::self();
-
-    sprokit::scheduler_registry::types_t types = sched->types();
+    kwiver::vital::plugin_factory_vector_t const& sched_fact = vpm.get_factories<sprokit::scheduler>();
 
     std::cout << "\nScheduler registry" << std::endl;
 
-    VITAL_FOREACH (sprokit::scheduler_registry::type_t const& sched_type, types)
+    VITAL_FOREACH (const auto & fact, sched_fact)
     {
-      std::cout << "    " << sched_type << ": " << sched->description( sched_type ) << std::endl;
-    }
+        std::string sched_type = "-- Not Set --";
+        fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, sched_type );
+
+        std::string descrip = "-- Not_Set --";
+        fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+
+        std::cout << sched_type << ": " << descrip << std::endl;
+    } // end foreach
 
     return EXIT_SUCCESS;
   }
 
-  sprokit::process_registry_t const reg = sprokit::process_registry::self();
-
-  sprokit::process::types_t types;
-
-  if (vm.count("type"))
-  {
-    types = vm["type"].as<sprokit::process::types_t>();
-  }
-  else
-  {
-    types = reg->types();
-  }
+  kwiver::vital::plugin_factory_vector_t const& process_fact = vpm.get_factories<sprokit::process>();
 
   if (vm.count("list"))
   {
-    VITAL_FOREACH (sprokit::process::type_t const& type, types)
+    VITAL_FOREACH (const auto& fact, process_fact)
     {
-      std::cout << type << std::endl;
+      std::string proc_type = "-- Not Set --";
+      fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
+
+      std::cout << proc_type << std::endl;
     }
 
     return EXIT_SUCCESS;
@@ -135,42 +131,40 @@ sprokit_tool_main(int argc, char const* argv[])
 
   bool const hidden = (0 != vm.count("hidden"));
 
-  VITAL_FOREACH (sprokit::process::type_t const& proc_type, types)
+  // VITAL_FOREACH (sprokit::process::type_t const& proc_type, types)
+  VITAL_FOREACH (const auto & fact, process_fact)
   {
-    try
-    {
-      if (!vm.count("detail"))
-      {
-        std::cout << proc_type << ": " << reg->description(proc_type) << std::endl;
+    std::string proc_type = "-- Not Set --";
+    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
 
-        continue;
-      }
+    std::string descrip = "-- Not_Set --";
+    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
 
-      std::cout << "Process type: " << proc_type << std::endl;
-      std::cout << "  Description: " << reg->description(proc_type) << std::endl;
-    }
-    catch (sprokit::no_such_process_type_exception const& e)
+    if ( ! vm.count("detail"))
     {
-      std::cerr << "Error: " << e.what() << std::endl;
+      std::cout << proc_type << ": " << descrip << std::endl;
 
       continue;
     }
 
-    sprokit::process_t const proc = reg->create_process(proc_type, sprokit::process::name_t());
+    std::cout << "Process type: " << proc_type << std::endl
+              << "  Description: " << descrip << std::endl;
+
+    sprokit::process_t const proc = sprokit::create_process(proc_type, sprokit::process::name_t());
 
     sprokit::process::properties_t const properties = proc->properties();
     std::string const properties_str = boost::join(properties, ", ");
 
     std::cout << "  Properties: " << properties_str << std::endl;
-
     std::cout << "  Configuration:" << std::endl;
 
     kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
     VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
     {
-      if (!hidden && boost::starts_with(key, hidden_prefix))
+      if ( ! hidden && ( key.substr(0, hidden_prefix.size()) == hidden_prefix ))
       {
+        // skip hidden items
         continue;
       }
 
@@ -181,11 +175,11 @@ sprokit_tool_main(int argc, char const* argv[])
       bool const& tunable = info->tunable;
       char const* const tunable_str = tunable ? "yes" : "no";
 
-      std::cout << "    Name       : " << key << std::endl;
-      std::cout << "    Default    : " << def << std::endl;
-      std::cout << "    Description: " << conf_desc << std::endl;
-      std::cout << "    Tunable    : " << tunable_str << std::endl;
-      std::cout << std::endl;
+      std::cout << "    Name       : " << key << std::endl
+                << "    Default    : " << def << std::endl
+                << "    Description: " << conf_desc << std::endl
+                << "    Tunable    : " << tunable_str << std::endl
+                << std::endl;
     }
 
     std::cout << "  Input ports:" << std::endl;
@@ -194,8 +188,9 @@ sprokit_tool_main(int argc, char const* argv[])
 
     VITAL_FOREACH (sprokit::process::port_t const& port, iports)
     {
-      if (!hidden && boost::starts_with(port, hidden_prefix))
+      if ( ! hidden && ( port.substr(0, hidden_prefix.size()) == hidden_prefix ))
       {
+        // skip hidden item
         continue;
       }
 
@@ -207,11 +202,11 @@ sprokit_tool_main(int argc, char const* argv[])
 
       std::string const flags_str = boost::join(flags, ", ");
 
-      std::cout << "    Name       : " << port << std::endl;
-      std::cout << "    Type       : " << type << std::endl;
-      std::cout << "    Flags      : " << flags_str << std::endl;
-      std::cout << "    Description: " << port_desc << std::endl;
-      std::cout << std::endl;
+      std::cout << "    Name       : " << port << std::endl
+                << "    Type       : " << type << std::endl
+                << "    Flags      : " << flags_str << std::endl
+                << "    Description: " << port_desc << std::endl
+                << std::endl;
     }
 
     std::cout << "  Output ports:" << std::endl;
@@ -233,15 +228,15 @@ sprokit_tool_main(int argc, char const* argv[])
 
       std::string const flags_str = boost::join(flags, ", ");
 
-      std::cout << "    Name       : " << port << std::endl;
-      std::cout << "    Type       : " << type << std::endl;
-      std::cout << "    Flags      : " << flags_str << std::endl;
-      std::cout << "    Description: " << port_desc << std::endl;
-      std::cout << std::endl;
+      std::cout << "    Name       : " << port << std::endl
+                << "    Type       : " << type << std::endl
+                << "    Flags      : " << flags_str << std::endl
+                << "    Description: " << port_desc << std::endl
+                << std::endl;
     }
 
-    std::cout << std::endl;
-    std::cout << std::endl;
+    std::cout << std::endl
+              << std::endl;
   }
 
   return EXIT_SUCCESS;
@@ -253,7 +248,6 @@ processopedia_options()
   boost::program_options::options_description desc;
 
   desc.add_options()
-    ("type,t", boost::program_options::value<sprokit::process::types_t>()->value_name("TYPE"), "type to describe")
     ("list,l", "simply list types")
     ("hidden,H", "show hidden properties")
     ("detail,d", "output detailed information")

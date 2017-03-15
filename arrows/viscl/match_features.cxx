@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,11 +53,6 @@ public:
   {
   }
 
-  // Copy Constructor
-  priv(const priv& other) : search_radius(other.search_radius)
-  {
-  }
-
   viscl::track_descr_match matcher;
   unsigned int search_radius;
 };
@@ -67,14 +62,6 @@ public:
 match_features
 ::match_features()
 : d_(new priv)
-{
-}
-
-
-/// Copy Constructor
-match_features
-::match_features(const match_features& other)
-: d_(new priv(*other.d_))
 {
 }
 

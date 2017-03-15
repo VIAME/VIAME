@@ -30,7 +30,7 @@
 
 #include "multiplier_cluster.h"
 
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/pipeline/process_factory.h>
 
 /**
  * \file multiplier_cluster.cxx

@@ -34,6 +34,13 @@
 namespace kwiver {
 namespace vital {
 
+/**
+ * @brief Printf style formatting for std::string
+ *
+ * @param fmt_str Formatting string using embedded printf format specifiers.
+ *
+ * @return Formatted string.
+ */
 inline std::string
 string_format( const std::string fmt_str, ... )
 {

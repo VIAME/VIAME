@@ -2,7 +2,6 @@
 
 set(vital_c_public_headers
   algorithm.h
-  algorithm_plugin_manager.h
 
   common.h
   config_block.h
@@ -65,7 +64,6 @@ set(vital_c_private_headers
 
 set(vital_c_sources
   algorithm.cxx
-  algorithm_plugin_manager.cxx
   common.cxx
   config_block.cxx
   error_handle.cxx
@@ -124,6 +122,6 @@ kwiver_add_library( vital_c
 
 target_link_libraries( vital_c
   PRIVATE     vital
-              vital_apm
+              vital_vpm
               vital_algo
   )

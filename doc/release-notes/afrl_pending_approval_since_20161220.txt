@@ -15,12 +15,34 @@ Arrows - Core
  * Added a core implementation of "filter_tracks" which applies filters based
    on track length or based on importance of the track in covering a match matrix.
 
+ * Added a video_input algorithm for image lists that treats a sequence of
+   images files like a video, using an image_io algorithm to load each frame.
+
+ * Added a video_input algorithm for POS files that produces a metadata-only
+   stream out of POS files associated with a list of images.  Each image file
+   name is matched to a POS file with the same basename in a specified metadata
+   directory.
+
+ * Added a video_input algorithm that splits imagery and metadata between two
+   other video_input sources.  For example this implementation can combine the
+   images from an image_list video_input and metadata from a POS video_input.
+
+ * Added a video_input filter algorithm that reads data from another
+   video_input instance and reduces the frame range or adjusts frame timing.
+
 Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
 
  * Added a singleton thread pool class in vital/utils to distribute tasks over
    a fixed number of threads.
+
+ * Added new methods "read_pos_file" and "write_pos_file" in the video_metadata
+   library to read AFRL POS files directly into a video_metadata structure and
+   write POS files from a video_metadata structure.
+
+ * Added new video_metadata tags corresponding to fields that are required for
+   POS files.
 
 
 Fixes since last public release

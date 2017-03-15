@@ -41,7 +41,6 @@ set(examples_private_headers
   orphan_cluster.h
   orphan_process.h
   print_number_process.h
-  registration.h
   shared_process.h
   skip_process.h
   tagged_flow_dependent_process.h
@@ -59,4 +58,6 @@ sprokit_add_plugin(processes_examples
 target_link_libraries(processes_examples
   PRIVATE        sprokit_pipeline
                  ${Boost_FILESYSTEM_LIBRARY}
-                 ${Boost_SYSTEM_LIBRARY})
+                 ${Boost_SYSTEM_LIBRARY}
+                 vital_vpm
+  )

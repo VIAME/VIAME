@@ -38,17 +38,14 @@
 #include "config_parser.h"
 
 #include <vital/logger/logger.h>
-
-#include <vital/util/tokenize.h>
-
 #include <vital/vital_foreach.h>
+#include <vital/util/wrap_text_block.h>
 
 #include <kwiversys/SystemTools.hxx>
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <list>
 
 #if defined(_WIN32)
 #include <shlobj.h>
@@ -106,68 +103,18 @@ application_paths( config_path_list_t const& paths,
 void
 write_cb_comment( std::ostream& ofile, config_block_description_t const& comment )
 {
-  typedef config_block_description_t cbd_t;
-  size_t line_width = 80;
-  cbd_t comment_token = cbd_t( "#" );
+  kwiver::vital::wrap_text_block wtb;
+  wtb.set_indent_string( "# " );
+  wtb.set_line_length( 80 );
 
   // Add a leading new-line to separate comment block from previous config
   // entry.
   ofile << "\n";
 
-  // preserve manually specified new-lines in the comment string, adding a
-  // trailing new-line
-  std::list< cbd_t > blocks;
-  tokenize( comment, blocks, "\n" );
-  while ( blocks.size() > 0 )
-  {
-    cbd_t cur_block = blocks.front();
-    blocks.pop_front();
+  const auto formatted = wtb.wrap_text( comment );
+  ofile << formatted;
+}
 
-    // Comment lines always start with the comment token
-    cbd_t line_buffer = comment_token;
-
-    // Counter of additional spaces to place in front of the next non-empty
-    // word added to the line buffer. There is always at least one space
-    // between words.
-    size_t spaces = 1;
-
-    std::list< cbd_t > words;
-    // Not using token-compress in case there is purposeful use of multiple
-    // adjacent spaces, like in bullited lists. This, however, leaves open
-    // the appearance of empty-string words in the loop, which are handled.
-    tokenize( cur_block, words );
-    while ( words.size() > 0 )
-    {
-      cbd_t cur_word = words.front();
-      words.pop_front();
-
-      // word is an empty string, meaning an intentional space was encountered.
-      if ( cur_word.size() == 0 )
-      {
-        ++spaces;
-      }
-      else
-      {
-        if ( ( line_buffer.size() + spaces + cur_word.size() ) > line_width )
-        {
-          ofile << line_buffer << "\n";
-          line_buffer = comment_token;
-          // On a line split, it makes sense to me that leading spaces are
-          // treated as trailing white-space, which should not be output.
-          spaces = 1;
-        }
-        line_buffer += std::string( spaces, ' ' ) + cur_word;
-        spaces = 1;
-      }
-    }
-
-    // flush remaining contents of line buffer if there is anything
-    if ( line_buffer.size() > 0 )
-    {
-      ofile << line_buffer << "\n";
-    }
-  }
-} // write_cb_comment
 
 // ------------------------------------------------------------------
 /// Add paths in the KWIVER_CONFIG_PATH env variable to the given path vector

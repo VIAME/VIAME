@@ -40,7 +40,7 @@
 
 #include <vital/config/config_block.h>
 #include <sprokit/pipeline/pipeline.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -262,7 +262,7 @@ pipeline_run_options()
   boost::program_options::options_description desc("Run options");
 
   desc.add_options()
-    ("scheduler,S", boost::program_options::value<sprokit::scheduler_registry::type_t>()->value_name("TYPE"), "scheduler type")
+    ("scheduler,S", boost::program_options::value<sprokit::scheduler::type_t>()->value_name("TYPE"), "scheduler type")
   ;
 
   return desc;

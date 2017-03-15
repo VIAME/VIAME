@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,11 @@
 #include <vital/logger/logger.h>
 #include <vital/vital_types.h>
 #include <vital/vital_foreach.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/ocv/detect_features.h>
 #include <arrows/ocv/extract_descriptors.h>
 #include <arrows/ocv/match_features.h>
-#include <arrows/ocv/register_algorithms.h>
 
 // Get headers of optional algos for ``MAPTK_OCV_HAS_*`` defines
 #include <arrows/ocv/detect_features_AGAST.h>
@@ -72,7 +72,7 @@ main(int argc, char* argv[])
 {
   CHECK_ARGS(1);
 
-  kwiver::arrows::ocv::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   testname_t const testname = argv[1];
 

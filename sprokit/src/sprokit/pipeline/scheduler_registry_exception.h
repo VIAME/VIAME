@@ -28,22 +28,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
-#define SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
-
-#include "pipeline-config.h"
-
-#include "scheduler_registry.h"
-#include "types.h"
-
 /**
  * \file scheduler_registry_exception.h
  *
  * \brief Header for exceptions used within the \link sprokit::scheduler_registry scheduler registry\endlink.
  */
 
-namespace sprokit
-{
+#ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
+#define SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
+
+#include "pipeline-config.h"
+
+#include "pipeline_exception.h"
+#include "scheduler.h"
+#include "types.h"
+
+namespace sprokit {
 
 /**
  * \class scheduler_registry_exception scheduler_registry_exception.h <sprokit/pipeline/scheduler_registry_exception.h>
@@ -55,15 +55,15 @@ namespace sprokit
 class SPROKIT_PIPELINE_EXPORT scheduler_registry_exception
   : public pipeline_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     */
-    scheduler_registry_exception() throw();
-    /**
-     * \brief Destructor.
-     */
-    virtual ~scheduler_registry_exception() throw();
+public:
+  /**
+   * \brief Constructor.
+   */
+  scheduler_registry_exception() throw ( );
+  /**
+   * \brief Destructor.
+   */
+  virtual ~scheduler_registry_exception() throw ( );
 };
 
 /**
@@ -76,20 +76,20 @@ class SPROKIT_PIPELINE_EXPORT scheduler_registry_exception
 class SPROKIT_PIPELINE_EXPORT null_scheduler_ctor_exception
   : public scheduler_registry_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param type The type the ctor is for.
-     */
-    null_scheduler_ctor_exception(scheduler_registry::type_t const& type) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~null_scheduler_ctor_exception() throw();
+public:
+  /**
+   * \brief Constructor.
+   *
+   * \param type The type the ctor is for.
+   */
+  null_scheduler_ctor_exception( sprokit::scheduler::type_t const& type ) throw ( );
+  /**
+   * \brief Destructor.
+   */
+  ~null_scheduler_ctor_exception() throw ( );
 
-    /// The type that was passed a \c NULL constructor.
-    scheduler_registry::type_t const m_type;
+  /// The type that was passed a \c NULL constructor.
+  sprokit::scheduler::type_t const m_type;
 };
 
 /**
@@ -102,15 +102,15 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_ctor_exception
 class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_config_exception
   : public scheduler_registry_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     */
-    null_scheduler_registry_config_exception() throw();
-    /**
-     * \brief Destructor.
-     */
-    ~null_scheduler_registry_config_exception() throw();
+public:
+  /**
+   * \brief Constructor.
+   */
+  null_scheduler_registry_config_exception() throw ( );
+  /**
+   * \brief Destructor.
+   */
+  ~null_scheduler_registry_config_exception() throw ( );
 };
 
 /**
@@ -123,15 +123,15 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_config_exception
 class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_pipeline_exception
   : public scheduler_registry_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     */
-    null_scheduler_registry_pipeline_exception() throw();
-    /**
-     * \brief Destructor.
-     */
-    ~null_scheduler_registry_pipeline_exception() throw();
+public:
+  /**
+   * \brief Constructor.
+   */
+  null_scheduler_registry_pipeline_exception() throw ( );
+  /**
+   * \brief Destructor.
+   */
+  ~null_scheduler_registry_pipeline_exception() throw ( );
 };
 
 /**
@@ -144,20 +144,20 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_registry_pipeline_exception
 class SPROKIT_PIPELINE_EXPORT no_such_scheduler_type_exception
   : public scheduler_registry_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param type The type requested.
-     */
-    no_such_scheduler_type_exception(scheduler_registry::type_t const& type) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~no_such_scheduler_type_exception() throw();
+public:
+  /**
+   * \brief Constructor.
+   *
+   * \param type The type requested.
+   */
+  no_such_scheduler_type_exception( sprokit::scheduler::type_t const& type ) throw ( );
+  /**
+   * \brief Destructor.
+   */
+  ~no_such_scheduler_type_exception() throw ( );
 
-    /// The type that was requested from the \link scheduler_registry scheduler registry\endlink.
-    scheduler_registry::type_t const m_type;
+  /// The type that was requested from the \link scheduler_registry scheduler registry\endlink.
+  sprokit::scheduler::type_t const m_type;
 };
 
 /**
@@ -170,20 +170,20 @@ class SPROKIT_PIPELINE_EXPORT no_such_scheduler_type_exception
 class SPROKIT_PIPELINE_EXPORT scheduler_type_already_exists_exception
   : public scheduler_registry_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param type The type requested.
-     */
-    scheduler_type_already_exists_exception(scheduler_registry::type_t const& type) throw();
-    /**
-     * \brief Destructor.
-     */
-    ~scheduler_type_already_exists_exception() throw();
+public:
+  /**
+   * \brief Constructor.
+   *
+   * \param type The type requested.
+   */
+  scheduler_type_already_exists_exception( sprokit::scheduler::type_t const& type ) throw ( );
+  /**
+   * \brief Destructor.
+   */
+  ~scheduler_type_already_exists_exception() throw ( );
 
-    /// The type that was requested from the \link scheduler_registry scheduler registry\endlink.
-    scheduler_registry::type_t const m_type;
+  /// The type that was requested from the \link scheduler_registry scheduler registry\endlink.
+  sprokit::scheduler::type_t const m_type;
 };
 
 }

@@ -18,6 +18,7 @@ kwiver_add_plugin( schedulers_examples
                  ${examples_private_headers}
   PRIVATE        sprokit_pipeline
                  vital_config
+                 vital_vpm
                  ${Boost_CHRONO_LIBRARY}
                  ${Boost_DATE_TIME_LIBRARY}
                  ${Boost_THREAD_LIBRARY}

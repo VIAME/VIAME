@@ -23,7 +23,7 @@ define_property(GLOBAL PROPERTY kwiver_modules_enabled
 # enabled.
 #
 # The intended purpose for modules is ... (what is a module? How does
-# it differ from a library?)
+# it differ from a library?) Would this be like adding arrows? or arrows/core?
 #
 #
 function(kwiver_add_module name directory)

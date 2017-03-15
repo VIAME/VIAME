@@ -69,14 +69,8 @@ public:
   /// Default Constructor
   match_features_fundamental_matrix();
 
-  /// Copy Constructor
-  match_features_fundamental_matrix(const match_features_fundamental_matrix&);
-
   /// Destructor
   virtual ~match_features_fundamental_matrix();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "fundamental_matrix_guided"; }
 
   /// Get this alg's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

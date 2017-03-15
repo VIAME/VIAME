@@ -28,51 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/process_registry.h>
+#include <sprokit/processes/ocv/kwiver_processes_ocv_export.h>
+#include <sprokit/pipeline/process_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
 
 // -- list processes to register --
 #include "image_viewer_process.h"
 #include "draw_detected_object_boxes_process.h"
 
-
-extern "C"
-KWIVER_PROCESSES_OCV_EXPORT void register_processes();
-
-
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
  *
- *
  */
-void register_processes()
+extern "C"
+KWIVER_PROCESSES_OCV_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "kwiver_processes_ocv" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_ocv" );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
   // ----------------------------------------------------------------
 
-  registry->register_process(
-    "image_viewer", "Display input image and delay",
-    sprokit::create_process< kwiver::image_viewer_process > );
+  auto fact = vpm.ADD_PROCESS( kwiver::image_viewer_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "image_viewer" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Display input image and delay" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  registry->register_process( //+ support for legacy process name. Will be
-    "view_image", "Display input image and delay. Legacy process and will be removed in a future release. "
-    "Convert to use \"image_viewer\" before it is too late.",
-    sprokit::create_process< kwiver::image_viewer_process > );
-
-  registry->register_process(
-    "draw_detected_object_boxes",
-    "Draw detected object boxes on images.",
-    sprokit::create_process< kwiver::draw_detected_object_boxes_process > );
-
+  fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_boxes_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,  "draw_detected_object_boxes" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Draw detected object boxes on images." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
 // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

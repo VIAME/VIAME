@@ -21,6 +21,11 @@
 #     directory. This is necessary due to the way some systems use
 #     CMAKE_BUILD_TYPE as a directory in the output path.
 #
+#   library_subdir_suffix
+#     If set, the suffix will be appended to the subdirectory for the target.
+#     This is placed after the CMAKE_BUILD_TYPE subdirectory if necessary.
+#
+
 include(CMakeParseArguments)
 include (GenerateExportHeader)
 
@@ -37,6 +42,10 @@ define_property(GLOBAL PROPERTY kwiver_libraries
 define_property(GLOBAL PROPERTY kwiver_plugin_libraries
   BRIEF_DOCS "Generated plugin libraries"
   FULL_DOCS "List of generated shared plugin module libraries"
+  )
+define_property(GLOBAL PROPERTY kwiver_plugin_path
+  BRIEF_DOCS "Plugin search path"
+  FULL_DOCS "List of directories to search ar run time for plugins"
   )
 
 
@@ -167,9 +176,9 @@ function(kwiver_add_library     name)
 
   set_target_properties("${name}"
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}${library_subdir_suffix}"
     INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
     ${props}
     )
@@ -253,7 +262,6 @@ endfunction()
 #
 # If the file name has a leading path component, it is appended to the
 # install path to allow installing of headers in subdirectories.
-#
 #-
 function(kwiver_install_headers)
   set(options NOPATH)
@@ -314,7 +322,7 @@ endfunction()
 # SOURCES - list of source files needed to create the plugin.
 # PUBLIC - list of libraries the plugin will publically link against.
 # PRIVATE - list of libraries the plugin will privately link against.
-# SUBDIR - subdirectory in lib where plugin will be installed.
+# SUBDIR - subdirectory in "lib" where plugin will be installed.
 #
 function( kwiver_add_plugin        name )
   set(options)
@@ -349,3 +357,40 @@ function( kwiver_add_plugin        name )
     )
 
 endfunction()
+
+
+####
+# This function adds the supplied paths to the default set of paths
+# searched at runtime for modules.
+#
+# Uses the global option KWIVER_USE_CONFIGURATION_SUBDIRECTORY
+# to control adding config specific directories to the path.
+#
+# Options are:
+# SUBDIR - subdirectory in lib where plugin will be installed.
+#
+function( kwiver_add_module_path    dir )
+    set_property(GLOBAL APPEND PROPERTY kwiver_plugin_path  "${dir}" )
+endfunction()
+
+
+
+####
+# This macro creates the module directory for the plugin loader based
+# on current system and other options. The resulting directory string
+# is placed in the "kwiver_module_path_result" variable. Note that the
+# result may be more than one path.
+#
+macro( kwiver_make_module_path    root subdir )
+  if (WIN32)
+    set(kwiver_module_path_result   "${root}/bin${subdir}" )
+
+    if(KWIVER_USE_CONFIGURATION_SUBDIRECTORY)
+      list( APPEND  kwiver_module_path_result   "${root}/bin/$<CONFIGURATION>${subdir}" )
+    endif()
+
+  else()  # Other Unix systems
+    set(kwiver_module_path_result  "${root}/lib${LIB_SUFFIX}/${subdir}" )
+  endif()
+
+endmacro()

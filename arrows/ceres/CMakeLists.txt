@@ -5,7 +5,6 @@ set( ceres_headers_public
   bundle_adjust.h
   lens_distortion.h
   optimize_cameras.h
-  register_algorithms.h
   reprojection_error.h
   camera_smoothness.h
   )
@@ -28,7 +27,6 @@ set( ceres_sources
   options.cxx
   bundle_adjust.cxx
   optimize_cameras.cxx
-  register_algorithms.cxx
   reprojection_error.cxx
   types.cxx
   )
@@ -49,7 +47,7 @@ if(NOT CERES_USES_MINIGLOG)
 endif()
 
 algorithms_create_plugin( kwiver_algo_ceres
-  algorithm_plugin_interface.cxx
+  register_algorithms.cxx
   )
 
 if (KWIVER_ENABLE_TESTS)

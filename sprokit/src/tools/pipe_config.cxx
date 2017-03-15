@@ -39,7 +39,6 @@
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
 #include <sprokit/pipeline/process.h>
@@ -58,7 +57,6 @@
 #include <set>
 #include <stdexcept>
 #include <string>
-
 #include <cstdlib>
 
 // Description of this program and why I would want to use it
@@ -113,10 +111,14 @@ class config_printer
     process_set_t m_visited;
 };
 
+
+// ------------------------------------------------------------------
 int
 sprokit_tool_main(int argc, char const* argv[])
 {
-  sprokit::load_known_modules();
+  // Load all known modules
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
 
   boost::program_options::options_description desc;
   desc

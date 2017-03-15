@@ -35,8 +35,8 @@
 
 #include <test_common.h>
 #include <test_random_point.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/ocv/register_algorithms.h>
 #include <arrows/ocv/estimate_homography.h>
 
 #include <opencv2/core/core.hpp>
@@ -65,7 +65,7 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
-  kwiver::arrows::ocv::register_algorithms();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   RUN_TEST(testname);
 }

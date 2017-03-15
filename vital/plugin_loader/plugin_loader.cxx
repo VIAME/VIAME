@@ -31,7 +31,9 @@
 #include "plugin_loader.h"
 #include "plugin_factory.h"
 
+#include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
+#include <vital/util/demangle.h>
 
 #include <sstream>
 
@@ -67,7 +69,8 @@ public:
     , m_shared_lib_suffix( shared_lib_suffix )
   { }
 
-  ~plugin_loader_impl() { }
+  ~plugin_loader_impl()
+  { }
 
   void load_known_modules();
   void look_in_directory( std::string const& directory);
@@ -80,7 +83,7 @@ public:
   const std::string m_shared_lib_suffix;
 
   /// Paths in which to search for module libraries
-  plugin_path_list_t m_search_paths;
+  path_list_t m_search_paths;
 
   // Map from interface type name to vector of class loaders
   plugin_map_t m_plugin_map;
@@ -115,12 +118,7 @@ plugin_loader
 
 plugin_loader
 ::~plugin_loader()
-{
-  VITAL_FOREACH( auto entry, m_impl->m_library_map )
-  {
-    DL::CloseLibrary( entry.second );
-  }
-}
+{ }
 
 
 // ------------------------------------------------------------------
@@ -161,8 +159,8 @@ plugin_loader
   {
     LOG_TRACE( m_logger, "add_factory_hook() declined to have this factory registered"
                << " from file \"" << m_impl->m_current_filename << "\""
-               << " for interface: \"" << interface_type
-               << "\" for derived type: \"" << concrete_type << "\""
+               << " for interface: \"" << demangle( interface_type )
+               << "\" for derived type: \"" << demangle( concrete_type ) << "\""
       );
     return fact_handle;
   }
@@ -181,11 +179,16 @@ plugin_loader
 
       if ( (interface_type == interf) && (concrete_type == inst) )
       {
-        LOG_WARN( m_logger, "Factory for \"" << interface_type << "\" : \""
-                  << concrete_type << "\" already has been registered.  This factory from "
-                  << m_impl->m_current_filename << " will not be registered."
-          );
-        return fact_handle;
+        std::string old_file;
+        fact->get_attribute( plugin_factory::PLUGIN_FILE_NAME, old_file );
+
+        std::stringstream str;
+        str << "Factory for \"" << demangle( interface_type ) << "\" : \""
+            << demangle( concrete_type ) << "\" already has been registered by "
+            << old_file << ".  This factory from "
+            << m_impl->m_current_filename << " will not be registered.";
+
+        throw plugin_already_exists( str.str() );
       }
     } // end foreach
   }
@@ -194,9 +197,9 @@ plugin_loader
   m_impl->m_plugin_map[interface_type].push_back( fact_handle );
 
   LOG_TRACE( m_logger,
-             "Adding plugin to create interface: " << interface_type
-             << " from derived type: " << concrete_type
-             << " from file: " << m_impl->m_current_filename );
+             "Adding plugin to create interface: \"" << demangle( interface_type )
+             << "\" from derived type: \"" << demangle( concrete_type )
+             << "\" from file: " << m_impl->m_current_filename );
 
   return fact_handle;
 }
@@ -214,14 +217,14 @@ plugin_loader
 // ------------------------------------------------------------------
 void
 plugin_loader
-::add_search_path( plugin_path_list_t const& path)
+::add_search_path( path_list_t const& path)
 {
   m_impl->m_search_paths.insert(m_impl->m_search_paths.end(), path.begin(), path.end() );
 }
 
 
 // ------------------------------------------------------------------
-plugin_path_list_t const&
+path_list_t const&
 plugin_loader
 ::get_search_path() const
 {
@@ -281,6 +284,28 @@ plugin_loader
 }
 
 
+// ------------------------------------------------------------------
+void
+plugin_loader
+::load_plugins( path_list_t const& dirpath )
+{
+  // Iterate over path and load modules
+  VITAL_FOREACH( auto const & module_dir, dirpath )
+  {
+    m_impl->look_in_directory( module_dir );
+  }
+}
+
+
+// ------------------------------------------------------------------
+void
+plugin_loader
+::load_plugin( path_t const& file )
+{
+  m_impl->load_from_module( file );
+}
+
+
 // ==================================================================
 /**
  * @brief Load all known modules.
@@ -325,7 +350,7 @@ plugin_loader_impl
 
   // Iterate over search-path directories, attempting module load on elements
   // that end in the configured library suffix.
-  LOG_DEBUG( m_parent->m_logger, "Loading modules from directory: " << dir_path );
+  LOG_DEBUG( m_parent->m_logger, "Loading plugins from directory: " << dir_path );
 
   kwiversys::Directory dir;
   dir.Load( dir_path );

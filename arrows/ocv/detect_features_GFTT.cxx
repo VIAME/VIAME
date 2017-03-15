@@ -56,17 +56,6 @@ public:
   {
   }
 
-  /// Copy Constructor
-  priv( const priv &other )
-    : max_corners( other.max_corners ),
-      quality_level( other.quality_level ),
-      min_distance( other.min_distance ),
-      block_size( other.block_size ),
-      use_harris_detector( other.use_harris_detector ),
-      k( other.k )
-  {
-  }
-
   /// Create a new GFTT detector instance with the current parameter values
   cv::Ptr<cv::GFTTDetector> create() const
   {
@@ -133,15 +122,6 @@ public:
 detect_features_GFTT
 ::detect_features_GFTT()
   : p_( new priv )
-{
-  attach_logger( "arrows.ocv.GFTT" );
-  detector = p_->create();
-}
-
-
-detect_features_GFTT
-::detect_features_GFTT(const detect_features_GFTT &other)
-  : p_( new priv( *other.p_ ) )
 {
   attach_logger( "arrows.ocv.GFTT" );
   detector = p_->create();

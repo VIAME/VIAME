@@ -35,11 +35,10 @@
 
 #include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/literal_pipeline.h>
-#include <sprokit/pipeline/modules.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/scheduler.h>
-#include <sprokit/pipeline/scheduler_registry.h>
+#include <sprokit/pipeline/scheduler_factory.h>
 
 #include <sprokit/processes/adapters/input_adapter.h>
 #include <sprokit/processes/adapters/input_adapter_process.h>
@@ -75,7 +74,7 @@ IMPLEMENT_TEST( basic_pipeline )
   kwiver::output_adapter output_ad;
 
   // load processes
-  sprokit::load_known_modules();
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   // Use SPROKIT macros to create pipeline description
   std::stringstream pipeline_desc;
@@ -135,12 +134,11 @@ IMPLEMENT_TEST( basic_pipeline )
     std::cout << "    " << port << "\n";
   }
 
-  sprokit::scheduler_registry::type_t scheduler_type = sprokit::scheduler_registry::default_type;
+  sprokit::scheduler::type_t scheduler_type = sprokit::scheduler_factory::default_type;
   kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
                                               kwiver::vital::config_block::block_sep + scheduler_type);
 
-  sprokit::scheduler_registry_t reg = sprokit::scheduler_registry::self();
-  sprokit::scheduler_t scheduler = reg->create_scheduler(scheduler_type, pipe, scheduler_config);
+  sprokit::scheduler_t scheduler = sprokit::create_scheduler(scheduler_type, pipe, scheduler_config);
 
   if (!scheduler)
   {

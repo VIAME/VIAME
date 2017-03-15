@@ -1,0 +1,5 @@
+images/dummy_frame_000.jpg
+images/dummy_frame_001.jpg
+images/dummy_frame_002.jpg
+images/dummy_frame_003.jpg
+images/dummy_frame_004.jpg

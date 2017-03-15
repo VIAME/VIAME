@@ -107,12 +107,6 @@ detected_object_set_input_kw18()
 
 
 detected_object_set_input_kw18::
-detected_object_set_input_kw18( detected_object_set_input_kw18 const& other)
-  : d(new priv(*other.d))
-{
-}
-
-detected_object_set_input_kw18::
 ~detected_object_set_input_kw18()
 {
 }
