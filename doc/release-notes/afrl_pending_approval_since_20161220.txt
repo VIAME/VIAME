@@ -34,6 +34,9 @@ Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
 
+ * Added a singleton thread pool class in vital/utils to distribute tasks over
+   a fixed number of threads.
+
  * Added new methods "read_pos_file" and "write_pos_file" in the video_metadata
    library to read AFRL POS files directly into a video_metadata structure and
    write POS files from a video_metadata structure.
