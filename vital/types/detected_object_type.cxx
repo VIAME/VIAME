@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,8 +106,14 @@ bool
 detected_object_type::
 has_class_name( const std::string& class_name ) const
 {
-  const std::string* str_ptr = find_string( class_name );
-  return ( 0 != m_classes.count( str_ptr ) );
+  try
+  {
+    const std::string* str_ptr = find_string( class_name );
+    return ( 0 != m_classes.count( str_ptr ) );
+  }
+  catch ( ... ) {}
+
+  return false;
 }
 
 
@@ -134,7 +140,7 @@ score( const std::string& class_name ) const
 // ------------------------------------------------------------------
 void
 detected_object_type::
-  get_most_likely( std::string& max_name, double& max_score ) const
+get_most_likely( std::string& max_name, double& max_score ) const
 {
   if ( m_classes.empty() )
   {
@@ -237,6 +243,8 @@ size() const
  * @param str String to resolve
  *
  * @return Address of string in master list.
+ *
+ * @throws std::runtime_error if the string is not in the global set.
  */
 const std::string*
 detected_object_type::

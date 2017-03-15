@@ -124,7 +124,7 @@ IMPLEMENT_TEST(object_creation)
   TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
   TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
 
-  list_1 =do_set. select( "clam" );
+  list_1 = do_set.select( "clam" );
 
   TEST_EQUAL( "size of list", list_1.size(), 4 );
 
@@ -143,4 +143,108 @@ IMPLEMENT_TEST(object_creation)
   dot = list_1[3]->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 3", score, 0.07 );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(set_copy)
+{
+  kwiver::vital::detected_object_set do_set;
+
+  kwiver::vital::bounding_box_d bb1( 10, 20, 30, 40 );
+
+  const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
+  double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
+
+  auto dot = create_dot( n, s );
+
+  auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
+  do_set.add( detection );
+
+  TEST_EQUAL( "set size one", do_set.size(), 1 );
+
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, dot  );
+  do_set.add( detection );
+
+  double s1[] = {   .0065,      .006,       .005,    .775,     .605,     0 };
+  dot = create_dot( n, s1 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, dot  );
+  do_set.add( detection );
+
+  double s2[] = {   .0065,      .006,       .005,    .605,     .775,     0 };
+  dot = create_dot( n, s2 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, dot  );
+  do_set.add( detection );
+
+  double s3[] = {   .5065,      .006,       .005,    .775,     .605,     0 };
+  dot = create_dot( n, s3 );
+  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, dot  );
+  do_set.add( detection );
+
+  auto do_set_clone = do_set.clone();
+
+  // get whole list sorted by confidence
+  auto list_1 = do_set_clone->select();
+
+  TEST_EQUAL( "size of list", list_1.size(), 5 );
+
+  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
+  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
+  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
+  TEST_EQUAL( "expected confidence 3", list_1[3]->confidence(), 0.70 );
+  TEST_EQUAL( "expected confidence 4", list_1[4]->confidence(), 0.65 );
+
+  list_1 = do_set_clone->select( 0.75 );
+
+  TEST_EQUAL( "size of list", list_1.size(), 3 );
+
+  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
+  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
+  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
+
+  list_1 =do_set_clone->select( "clam" );
+
+  TEST_EQUAL( "size of list", list_1.size(), 4 );
+
+  dot = list_1[0]->type();
+  double score = dot->score( "clam" );
+  TEST_EQUAL( "expected score 0", score, 0.775 );
+
+  dot = list_1[1]->type();
+  score = dot->score( "clam" );
+  TEST_EQUAL( "expected score 1", score, 0.775 );
+
+  dot = list_1[2]->type();
+  score = dot->score( "clam" );
+  TEST_EQUAL( "expected score 2", score, 0.605 );
+
+  dot = list_1[3]->type();
+  score = dot->score( "clam" );
+  TEST_EQUAL( "expected score 3", score, 0.07 );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(clone_2)
+{
+  kwiver::vital::detected_object_set do_set;
+
+  kwiver::vital::bounding_box_d bb1( 10, 20, 30, 40 );
+
+  const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
+  double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
+
+  auto dot = create_dot( n, s );
+
+  auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
+  do_set.add( detection );
+
+  auto do_set2 =  do_set.clone();
+  TEST_EQUAL( "(1) set size one", do_set2->size(), 1 );
+
+  auto attr_set = std::make_shared< kwiver::vital::attribute_set >();
+  do_set.set_attributes( attr_set );
+
+  do_set2 = do_set.clone();
+  TEST_EQUAL( "(2) set size one", do_set2->size(), 1 );
 }

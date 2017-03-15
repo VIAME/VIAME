@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/tools/explorer_plugin_export.h>
+#include <vital/algo/algo_explorer_plugin_export.h>
 
 #include <vital/tools/explorer_plugin.h>
 #include <vital/algo/algorithm_factory.h>
@@ -107,7 +107,8 @@ algo_explorer::
 
   if ( m_context->if_brief() )
   {
-    m_context->output_stream() << indent << type << ":" << impl << std::endl;
+    m_context->output_stream() << indent << "Algorithm type: "
+                               << type << "   Implementation: " << impl << std::endl;
     return;
   }
 
@@ -145,7 +146,7 @@ algo_explorer::
 
 // ==================================================================
 extern "C"
-EXPLORER_PLUGIN_EXPORT
+ALGO_EXPLORER_PLUGIN_EXPORT
 void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
 {
   auto fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::algo_explorer );

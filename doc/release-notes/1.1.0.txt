@@ -184,6 +184,8 @@ Sprokit
 
  * Added process to wrap draw_detected_object_set algorithm.
 
+ * Added detected_object_set input and output processes and algorithms.
+
 
 Vital Bindings
 
@@ -219,6 +221,11 @@ Vital Bindings
 
 Fixes since v1.0.0
 ------------------
+
+Arrows
+
+ * Fixed plugin export shmbols and include files to fix Windows build
+   issues. Generate separete include files for plugin stubs.
 
 Arrows - OpenCV
 

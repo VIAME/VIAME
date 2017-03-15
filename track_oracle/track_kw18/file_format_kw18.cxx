@@ -73,29 +73,65 @@ struct kw18_line_parser
   double bb_c1_x, bb_c1_y, bb_c2_x, bb_c2_y; // fields 9, 10, 11, 12
   double area, world_x, world_y, world_z; // fields 13, 14, 15, 16
   double timestamp; // field 17
+  double kw19; // field 18; not always present
+
+  bool read_19_columns;
+
+  explicit kw18_line_parser( const kwiver::track_oracle::kw18_reader_opts& opts )
+  {
+    this->read_19_columns = opts.kw19_hack;
+  }
 
   bool parse( const string& s )
   {
-    return (sscanf( s.c_str(),
-                        "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
-                        &this->dbl_track_id,
-                        &this->dbl_n_frames,
-                        &this->dbl_frame_num,
-                        &this->loc_x,
-                        &this->loc_y,
-                        &this->vel_x,
-                        &this->vel_y,
-                        &this->obj_loc_x,
-                        &this->obj_loc_y,
-                        &this->bb_c1_x,
-                        &this->bb_c1_y,
-                        &this->bb_c2_x,
-                        &this->bb_c2_y,
-                        &this->area,
-                        &this->world_x,
-                        &this->world_y,
-                        &this->world_z,
-                        &this->timestamp ) == 18 );
+    if ( ! this->read_19_columns )
+    {
+      this->kw19 = 0.0;
+      return (sscanf( s.c_str(),
+                      "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                      &this->dbl_track_id,
+                      &this->dbl_n_frames,
+                      &this->dbl_frame_num,
+                      &this->loc_x,
+                      &this->loc_y,
+                      &this->vel_x,
+                      &this->vel_y,
+                      &this->obj_loc_x,
+                      &this->obj_loc_y,
+                      &this->bb_c1_x,
+                      &this->bb_c1_y,
+                      &this->bb_c2_x,
+                      &this->bb_c2_y,
+                      &this->area,
+                      &this->world_x,
+                      &this->world_y,
+                      &this->world_z,
+                      &this->timestamp ) == 18 );
+    }
+    else
+    {
+      return (sscanf( s.c_str(),
+                      "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                      &this->dbl_track_id,
+                      &this->dbl_n_frames,
+                      &this->dbl_frame_num,
+                      &this->loc_x,
+                      &this->loc_y,
+                      &this->vel_x,
+                      &this->vel_y,
+                      &this->obj_loc_x,
+                      &this->obj_loc_y,
+                      &this->bb_c1_x,
+                      &this->bb_c1_y,
+                      &this->bb_c2_x,
+                      &this->bb_c2_y,
+                      &this->area,
+                      &this->world_x,
+                      &this->world_y,
+                      &this->world_z,
+                      &this->timestamp,
+                      &this->kw19 ) == 19 );
+    }
   }
 };
 
@@ -139,6 +175,22 @@ logged_output( const ::kwiver::track_oracle::track_field< T >& tf,
 namespace kwiver {
 namespace track_oracle {
 
+kw18_reader_opts&
+kw18_reader_opts
+::operator=( const file_format_reader_opts_base& rhs_base )
+{
+  const kw18_reader_opts* rhs = dynamic_cast< const kw18_reader_opts*>( &rhs_base );
+  if (rhs)
+  {
+    this->set_kw19_hack( rhs->kw19_hack );
+  }
+  else
+  {
+    LOG_ERROR( main_logger, "Assigned non-kw18 options structure to kw18 opts; slicing" );
+  }
+  return *this;
+}
+
 bool
 file_format_kw18
 ::inspect_file( const string& fn ) const
@@ -154,7 +206,7 @@ file_format_kw18
   // return true because the reader will also accept an empty file
   if ( ! get_next_nonblank_line( is, line )) return true;
 
-  kw18_line_parser p;
+  kw18_line_parser p( this->opts );
   return p.parse( line );
 }
 
@@ -191,7 +243,8 @@ file_format_kw18
 {
   track_kw18_type kw18;
   string tmp;
-  kw18_line_parser p;
+  kw18_line_parser p( this->opts );
+  track_field< double > relevancy( "relevancy" );
 
   bool current_external_id_valid = false;
   unsigned current_external_id = 0;
@@ -266,6 +319,12 @@ file_format_kw18
     kw18[ current_frame ].world_y() = p.world_y;
     kw18[ current_frame ].world_z() = p.world_z;
     kw18[ current_frame ].world_location() = vgl_point_3d<double>( p.world_x, p.world_y, p.world_z );
+
+    // kw19 hacks
+    if (this->opts.kw19_hack)
+    {
+      relevancy( tracks.back().row ) = p.kw19;
+    }
 
   } // ... while non-blank lines exist
   return true;

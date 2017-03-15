@@ -8,13 +8,13 @@ process input
 # ================================================================
 process detector
   :: image_object_detector
-  :detector:type    hough_circle_detector
-  :detector:hough_circle_detector:dp            1
-  :detector:hough_circle_detector:min_dist      100
-  :detector:hough_circle_detector:param1        200
-  :detector:hough_circle_detector:param2        100
-  :detector:hough_circle_detector:min_radius    0
-  :detector:hough_circle_detector:max_radius    0
+  :detector:type                       hough_circle
+  :detector:hough_circle:dp            1
+  :detector:hough_circle:min_dist      100
+  :detector:hough_circle:param1        200
+  :detector:hough_circle:param2        100
+  :detector:hough_circle:min_radius    0
+  :detector:hough_circle:max_radius    0
 
 # ================================================================
 process draw

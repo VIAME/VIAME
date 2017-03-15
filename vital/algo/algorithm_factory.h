@@ -88,7 +88,7 @@ private:
 
 // -----------------------------------------------------------------
 template <class IMPL>
-class VITAL_ALGO_EXPORT algorithm_factory_0
+class algorithm_factory_0
   : public algorithm_factory
 {
 public:

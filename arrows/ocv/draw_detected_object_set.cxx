@@ -214,12 +214,12 @@ public:
    * @param image_data The image to draw on.
    * @param input_set List of detections to draw.
    *
-   * @return Updated image.
+   * @return New image with boxes drawn.
    */
   vital::image_container_sptr draw_detections( vital::image_container_sptr      image_data,
                                                vital::detected_object_set_sptr  in_set ) const
   {
-    cv::Mat image = arrows::ocv::image_container::vital_to_ocv( image_data->get_image() ).clone();
+    cv::Mat image = image_container_to_ocv_matrix( *image_data ).clone();
     auto det_list = in_set->select( );
 
     VITAL_FOREACH( auto det, det_list )
@@ -253,6 +253,7 @@ public:
           continue;
         }
 
+        LOG_TRACE( m_parent->logger(), "Drawing box for class: " << n << "   score: " << score );
         draw_box( image, det, n, score, text_only, count );
         text_only = true; // skip box on all subsequent calls
       }
@@ -363,14 +364,6 @@ draw_detected_object_set()
 
 
 draw_detected_object_set::
-draw_detected_object_set(const draw_detected_object_set& other)
-  : d( new priv( *other.d ) )
-{
-  d->m_parent = this;
-}
-
-
-draw_detected_object_set::
 ~draw_detected_object_set()
 { }
 
@@ -414,8 +407,14 @@ get_configuration() const
 // ------------------------------------------------------------------
 void
 draw_detected_object_set::
-set_configuration(vital::config_block_sptr config)
+set_configuration(vital::config_block_sptr config_in)
 {
+  // Starting with our generated config_block to ensure that assumed values are present
+  // An alternative is to check for key presence before performing a get_value() call.
+  vital::config_block_sptr config = this->get_configuration();
+
+  config->merge_config( config_in );
+
   d->m_do_alpha                 = config->get_value< bool >( "alpha_blend_prob" );
   d->m_clip_box_to_image        = config->get_value< bool >( "clip_box_to_image" );
   d->m_tmp_custom               = config->get_value< std::string >( "custom_class_color" );
@@ -438,7 +437,7 @@ check_configuration(vital::config_block_sptr config) const
 {
   // This can be called before the config is "set". A more robust way
   // of determining validity should be used.
-  return d->m_config_error;
+  return ! d->m_config_error;
 }
 
 
@@ -448,7 +447,7 @@ draw_detected_object_set::
 draw( kwiver::vital::detected_object_set_sptr detected_set,
       kwiver::vital::image_container_sptr image )
 {
-  vital::image_container_sptr result = d->draw_detections( image, detected_set );
+  auto result = d->draw_detections( image, detected_set );
   return result;
 }
 

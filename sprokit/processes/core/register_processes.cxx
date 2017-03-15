@@ -152,7 +152,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Reads an image file given the file name." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_output_process );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_input_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_input" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -160,7 +160,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        "Detections read from the input file are grouped into sets for each image and individually returned." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_input_process );
+  fact = vpm.ADD_PROCESS( kwiver::detected_object_output_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_output" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

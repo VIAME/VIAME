@@ -79,6 +79,7 @@ detected_object_set_output
 
   m_stream = file;
   m_stream_owned = true;
+  m_filename = filename;
 }
 
 
@@ -113,5 +114,15 @@ detected_object_set_output
 {
   return *m_stream;
 }
+
+
+// ------------------------------------------------------------------
+std::string const&
+detected_object_set_output
+::filename()
+{
+  return m_filename;
+}
+
 
 } } } // end namespace

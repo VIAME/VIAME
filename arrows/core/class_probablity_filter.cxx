@@ -98,15 +98,13 @@ class_probablity_filter::set_configuration( vital::config_block_sptr config_in )
 
   std::string list = config->get_value< std::string > ( "keep_classes" );
   std::string parsed;
-  {
-    std::stringstream ss( list );
+  std::stringstream ss( list );
 
-    while ( std::getline( ss, parsed, ';' ) )
+  while ( std::getline( ss, parsed, ';' ) )
+  {
+    if ( ! parsed.empty() )
     {
-      if ( ! parsed.empty() )
-      {
-        m_keep_classes.insert( parsed );
-      }
+      m_keep_classes.insert( parsed );
     }
   }
 }
@@ -153,6 +151,7 @@ class_probablity_filter::filter( const vital::detected_object_set_sptr input_set
       {
         // insert class-name/score into DOT
         out_dot->set_score( a_name, input_dot->score( a_name ) );
+        LOG_TRACE( logger(), "Selecting class: " << a_name << "  score: " << input_dot->score( a_name ) );
         det_selected = true;
       }
     } // end foreach class-name

@@ -270,6 +270,7 @@ IMPLEMENT_TEST( embedded_pipeline )
     }
   } // end while
 
+  ep.wait();
 }
 
 
@@ -329,4 +330,6 @@ IMPLEMENT_TEST( embedded_pipeline_source )
     }
 
   } // end while
+
+  ep.wait();
 }

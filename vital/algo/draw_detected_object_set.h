@@ -48,7 +48,7 @@ namespace algo {
 
 /// An abstract base class for algorithms which draw tracks on top of
 /// images in various ways, for analyzing results.
-class VITAL_EXPORT draw_detected_object_set
+class VITAL_ALGO_EXPORT draw_detected_object_set
   : public kwiver::vital::algorithm_def<draw_detected_object_set>
 {
 public:

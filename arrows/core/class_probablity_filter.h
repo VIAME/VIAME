@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@
 #include <vital/algo/detected_object_filter.h>
 #include <vital/types/image_container.h>
 
-#include <opencv2/core/core.hpp>
-
 #include <utility>
 #include <set>
 
@@ -70,23 +68,7 @@ class KWIVER_ALGO_CORE_EXPORT class_probablity_filter
 public:
 
   class_probablity_filter();
-
-  virtual ~class_probablity_filter() { }
-
-  virtual std::string impl_name() const { return "class_probablity_filter"; }
-
-  virtual std::string description() const
-  {
-    return "Filters detections based on class probability.\n\n"
-      "This algorithm filters out items that are less than the threshold. "
-      "The following steps are applied to each input detected object set.\n\n"
-      "1) Select all class names with scores greater than threshold.\n\n"
-      "2) Create a new detected_object_type object with all selected class "
-      "names from step 1. The class name can be selected individually "
-      "or with the keep_all_classes option.\n\n"
-      "3) The input detection_set is cloned and the detected_object_type "
-      "from step 2 is attached.";
-  }
+  virtual ~class_probablity_filter() VITAL_DEFAULT_DTOR
 
   virtual vital::config_block_sptr get_configuration() const;
 
