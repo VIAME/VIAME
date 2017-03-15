@@ -123,7 +123,7 @@ void vital_detected_object_set_confidence( vital_detected_object_t * obj,
 }
 
 
-vital_detected_object_type_t* vital_detected_object_type( vital_detected_object_t * obj )
+vital_detected_object_type_t* vital_detected_object_get_type( vital_detected_object_t * obj )
 {
   STANDARD_CATCH(
     "C::detected_object::object_type", 0,
