@@ -7,7 +7,7 @@ majorly targeting marine species analytics. The core infrastructure connecting
 different system components is currently the KWIVER library, which can connect
 C/C++, python, and matlab nodes together in a graph-like pipeline architecture.
 For more information about KWIVER's capabilities, please
-see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
+see <a href="https://github.com/Kitware/kwiver/">here</a>. Alongside the pipelined image
 processing system are a number of standalone utilties for model training,
 output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
 
