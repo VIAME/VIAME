@@ -119,7 +119,7 @@ algorithms. The output should look as follows:
 \-\-\-\- Algorithm search path  
 
 Factories that create type "image_object_detector"  
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
 Info on algorithm type "image_object_detector" implementation "darknet"  
   Plugin name: darknet      Version: 1.0  
       Description:        Image object detector using darknet  
@@ -128,7 +128,7 @@ Info on algorithm type "image_object_detector" implementation "darknet"
       Plugin module name: arrows.darknet  
   
 Factories that create type "track_features"  
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
 Info on algorithm type "track_features" implementation "core"  
   Plugin name: core      Version: 1.0  
       Description:        Track features from frame to frame using feature detection, matching, and  
@@ -138,7 +138,7 @@ Info on algorithm type "track_features" implementation "core"
       Plugin module name: arrows.core  
   
 Factories that create type "video_input"  
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
 Info on algorithm type "video_input" implementation "vxl"  
   Plugin name: vxl      Version: 1.0  
       Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.  
