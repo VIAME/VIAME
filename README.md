@@ -25,8 +25,8 @@ Quick Build Instructions
 ------------------------
 
 More in-depth build instructions can be found [here](doc/build_and_install_guide.rst),
-with additional tips [here](doc/build_and_install_guide.rst#tips-label), and common issues
-[here](doc/build_and_install_guide.rst#Known Issues).
+with additional tips [here](doc/build_and_install_guide.rst#build-tips-n-tricks), and common issues
+[here](doc/build_and_install_guide.rst#known-issues).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build viame as a super-build
