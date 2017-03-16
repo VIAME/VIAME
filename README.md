@@ -14,8 +14,8 @@ output detection visualization, and detector/tracker evaluation (a.k.a. scoring)
 
 <p align="center">
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="450" height="300">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="450" height="300">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="430" height="284">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="430" height="284">
 </nobr>
 </p>
 
