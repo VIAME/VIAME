@@ -247,14 +247,17 @@ video_input_pos
 
   // Return timestamp
   ts.set_frame( d->d_frame_number );
-  if ( d->d_metadata && d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
+  if ( d->d_metadata )
   {
-    double gps_sec = d->d_metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
-    // TODO: also use gps_week and convert to UTC to get abosolute time
-    // or subtract off first frame time to get time relative to start
-    ts.set_time_seconds( gps_sec );
+    if ( d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
+    {
+      double gps_sec = d->d_metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+      // TODO: also use gps_week and convert to UTC to get abosolute time
+      // or subtract off first frame time to get time relative to start
+      ts.set_time_seconds( gps_sec );
+    }
+    d->d_metadata->set_timestamp( ts );
   }
-  d->d_metadata->set_timestamp( ts );
 
   return true;
 }
