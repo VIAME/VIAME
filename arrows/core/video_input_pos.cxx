@@ -52,8 +52,11 @@ class video_input_pos::priv
 {
 public:
   priv()
-    : c_meta_extension( ".pos" )
-  { }
+  : c_meta_extension( ".pos" )
+  , d_current_files( d_img_md_files.end() )
+  , d_frame_number( 0 )
+  , d_metadata( nullptr )
+  {}
 
   // Configuration values
   std::string c_meta_directory;

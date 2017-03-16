@@ -54,7 +54,11 @@ namespace core {
 class video_input_image_list::priv
 {
 public:
-  priv() {}
+  priv()
+  : m_current_file( m_files.end() )
+  , m_frame_number( 0 )
+  , m_image( nullptr )
+  {}
 
   // Configuration values
   std::vector< std::string > c_search_path;
