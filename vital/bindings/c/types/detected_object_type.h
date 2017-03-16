@@ -43,6 +43,8 @@ extern "C"
 
 #include <vital/bindings/c/vital_c_export.h>
 
+#include <stddef.h>
+
 /// VITAL Image opaque structure
 typedef struct vital_detected_object_type_s vital_detected_object_type_t;
 

@@ -40,6 +40,8 @@
 #include <vital/bindings/c/types/bounding_box.h>
 #include <vital/bindings/c/types/detected_object_type.h>
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C"
 {
