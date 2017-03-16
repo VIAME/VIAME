@@ -1,6 +1,6 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
-
+<br>
 VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
 majorly targeting marine species analytics. The core infrastructure connecting
@@ -10,7 +10,6 @@ For more information about KWIVER's capabilities, please
 see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
 processing system are a number of standalone utilties for model training,
 output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
-
 <p align="center">
 <br>
 <nobr>
@@ -18,6 +17,7 @@ output detection visualization, and detector/tracker evaluation (a.k.a. scoring)
 <img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="430" height="284">
 </nobr>
 </p>
+<br>
 
 Quick Build Instructions
 ------------------------
