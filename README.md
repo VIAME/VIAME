@@ -1,6 +1,5 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
-=====
 
 VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
