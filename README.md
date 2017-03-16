@@ -184,9 +184,17 @@ Additional Documentation
 ------------------------
 
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_tips_n_tricks.md)
+
+
 [Running Detectors](doc/detector_introduction.rst) > > > [Examples](examples/detector_pipelines)
+
+
 [How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins)
+
+
 [Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+
+
 [Scoring and Evaluation of Detectors](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
