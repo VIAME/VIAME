@@ -24,8 +24,9 @@ output detection visualization, and detector/tracker evaluation (a.k.a. scoring)
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](doc/build_and_install_guide.rst)
-and with additional tips [here](doc/build_tips_n_tricks.md).
+More in-depth build instructions can be found [here](doc/build_and_install_guide.rst),
+with additional tips [here](doc/build_tips_n_tricks.md#tips-label), and common issues
+[here](doc/build_tips_n_tricks.md#Known Issues).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build viame as a super-build
@@ -111,7 +112,7 @@ that need to be set up before you can run on Linux or Mac, which are all in the
 install/setup_viame.sh script. This script is sourced in all of the example run
 scripts, and similar paths are added in the generated windows .bat example scripts.
 
-Another good initial test is to run the install/bin/plugin_explorer program. It
+Another good initial test is to run the [install-directory]/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
