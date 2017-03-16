@@ -12,8 +12,8 @@ see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
 processing system are a number of standalone utilties for model training,
 output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
 
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="Drawing" style="width: 200px;"/>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="Drawing" style="width: 200px;"/>
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="Drawing" style="width: 100px;"/>
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="Drawing" style="width: 100px;"/>
 
 ![Pipeline Image]( =100x100) ![Pipeline Image](http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png =100x100)
 
