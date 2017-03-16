@@ -106,3 +106,46 @@ IMPLEMENT_TEST(read_list)
   }
   TEST_EQUAL( "Number of frames read", num_frames, 5 );
 }
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(is_good)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
+
+  kwiver::arrows::core::video_input_pos vip;
+
+  vip.check_configuration( config );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::timestamp ts;
+
+  TEST_EQUAL( "Video state is not \"good\" before open", vip.good(), false );
+
+  // open the video
+  vip.open( list_file );
+  TEST_EQUAL( "Video state is not \"good\" after open but before first frame",
+              vip.good(), false );
+
+  // step one frame
+  vip.next_frame( ts );
+  TEST_EQUAL( "Video state is \"good\" on first frame", vip.good(), true );
+
+  // close the video
+  vip.close();
+  TEST_EQUAL( "Video state is not \"good\" after close", vip.good(), false );
+
+  // Reopen the video
+  vip.open( list_file );
+
+  int num_frames = 0;
+  while ( vip.next_frame( ts ) )
+  {
+    ++num_frames;
+    TEST_EQUAL( "Video state is \"good\" on frame" << ts.get_frame(),
+                vip.good(), true );
+  }
+  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+}
