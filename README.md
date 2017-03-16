@@ -183,7 +183,7 @@ Output detections can then be viewed in the GUI, e.g., see:
 Additional Documentation
 ------------------------
 
-[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#build-tips-n-tricks)
+[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
 [Running Detectors](doc/detector_introduction.rst) > > > [Examples](examples/detector_pipelines)
