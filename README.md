@@ -13,7 +13,10 @@ processing system are a number of standalone utilties for model training,
 output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
 
 <p align="center">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="400" height="266"><img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="400" height="266"></center>
+<nobr>
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="400" height="266">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="400" height="266">
+</nobr>
 </p>
 
 Quick Build Instructions
