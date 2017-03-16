@@ -50,7 +50,7 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 
 	make -j8
 
-Or alternatively by building it in Visual Studio or your compiler of choice on windows.
+Or alternatively by building it in Visual Studio or your compiler of choice on Windows.
 Currently VS2013 thru VS2017 is supported. If using CUDA, version 8.0 is desired,
 along with Python 2.7. Other versions have yet to be tested extensively. The '-j8' tells
 the build to run multi-threaded using 8 threads, this is useful for a faster build though
@@ -183,7 +183,7 @@ Output detections can then be viewed in the GUI, e.g., see:
 Additional Documentation
 ------------------------
 
-[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_tips_n_tricks.md)
+[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#build-tips-n-tricks)
 
 
 [Running Detectors](doc/detector_introduction.rst) > > > [Examples](examples/detector_pipelines)
