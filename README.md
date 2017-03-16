@@ -57,13 +57,14 @@ if you get an error it can be difficult to know where it was, in which case runn
 
 There are several optional arguments to viame which control which plugins get built, such as:
 
+
 <center>
 
 | Flag                         | Description                                                                           |
 |------------------------------|---------------------------------------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, filters, simple GUIs)        |
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                 |
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
-| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, required FRCNN dependency) |
+| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, FRCNN dependency)          |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes                                           |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
@@ -73,22 +74,25 @@ There are several optional arguments to viame which control which plugins get bu
 
 </center>
 
+
 And a number of flags which control which system utilities and optimizations are built, e.g.:
+
 
 <center>
 
 | Flag                         | Description                                                                                 |
 |------------------------------|---------------------------------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (enables it in OpenCV, etc...)        |
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Caffe, etc...)               |
 | VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA Graphical User Interfaces (tools for annotation and detection viewing)         |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation tools (can evaluate detections or tracks)       |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                     |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                 |
 | VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
 | VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
 | VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
 | VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
 
 </center>
+
 
 Quick Run Instructions
 ----------------------
