@@ -113,3 +113,50 @@ IMPLEMENT_TEST(read_list)
   }
   TEST_EQUAL( "Number of frames read", num_frames, 5 );
 }
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(is_good)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "image_reader:type", "dummy" );
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  viil.check_configuration( config );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::timestamp ts;
+
+  TEST_EQUAL( "Video state is not \"good\" before open", viil.good(), false );
+
+  // open the video
+  viil.open( list_file );
+  TEST_EQUAL( "Video state is not \"good\" after open but before first frame",
+              viil.good(), false );
+
+  // step one frame
+  viil.next_frame( ts );
+  TEST_EQUAL( "Video state is \"good\" on first frame", viil.good(), true );
+
+  // close the video
+  viil.close();
+  TEST_EQUAL( "Video state is not \"good\" after close", viil.good(), false );
+
+  // Reopen the video
+  viil.open( list_file );
+
+  int num_frames = 0;
+  while ( viil.next_frame( ts ) )
+  {
+    ++num_frames;
+    TEST_EQUAL( "Video state is \"good\" on frame" << ts.get_frame(),
+                viil.good(), true );
+  }
+  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+}

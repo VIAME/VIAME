@@ -52,8 +52,11 @@ class video_input_pos::priv
 {
 public:
   priv()
-    : c_meta_extension( ".pos" )
-  { }
+  : c_meta_extension( ".pos" )
+  , d_current_files( d_img_md_files.end() )
+  , d_frame_number( 0 )
+  , d_metadata( nullptr )
+  {}
 
   // Configuration values
   std::string c_meta_directory;
@@ -145,6 +148,9 @@ video_input_pos
 {
   typedef kwiversys::SystemTools ST;
 
+  // close the video in case already open
+  this->close();
+
   // open file and read lines
   std::ifstream ifs( image_list_name.c_str() );
   if ( ! ifs )
@@ -182,6 +188,10 @@ void
 video_input_pos
 ::close()
 {
+  d->d_img_md_files.clear();
+  d->d_current_files = d->d_img_md_files.end();
+  d->d_frame_number = 0;
+  d->d_metadata = nullptr;
 }
 
 

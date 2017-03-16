@@ -54,7 +54,11 @@ namespace core {
 class video_input_image_list::priv
 {
 public:
-  priv() {}
+  priv()
+  : m_current_file( m_files.end() )
+  , m_frame_number( 0 )
+  , m_image( nullptr )
+  {}
 
   // Configuration values
   std::vector< std::string > c_search_path;
@@ -154,6 +158,9 @@ video_input_image_list
 {
   typedef kwiversys::SystemTools ST;
 
+  // close the video in case already open
+  this->close();
+
   // open file and read lines
   std::ifstream ifs( list_name.c_str() );
   if ( ! ifs )
@@ -228,7 +235,10 @@ void
 video_input_image_list
 ::close()
 {
-  // Nothing to do here
+  d->m_files.clear();
+  d->m_current_file = d->m_files.end();
+  d->m_frame_number = 0;
+  d->m_image = nullptr;
 }
 
 
@@ -308,6 +318,10 @@ kwiver::vital::video_metadata_vector
 video_input_image_list
 ::frame_metadata()
 {
+  if ( ! this->good() )
+  {
+    return vital::video_metadata_vector();
+  }
   // For now, the only metadata is the filename of the image
   auto md = std::make_shared<vital::video_metadata>();
   md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
