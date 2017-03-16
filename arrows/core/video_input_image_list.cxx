@@ -318,6 +318,10 @@ kwiver::vital::video_metadata_vector
 video_input_image_list
 ::frame_metadata()
 {
+  if ( ! this->good() )
+  {
+    return vital::video_metadata_vector();
+  }
   // For now, the only metadata is the filename of the image
   auto md = std::make_shared<vital::video_metadata>();
   md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
