@@ -869,7 +869,8 @@ void
 initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
-             track_set_sptr tracks) const
+             track_set_sptr tracks,
+             video_metadata_map_sptr metadata) const
 {
   if( !tracks )
   {
@@ -1055,7 +1056,7 @@ initialize_cameras_landmarks
       camera_map_sptr opt_cams(new simple_camera_map(opt_cam_map));
       landmark_map_sptr landmarks(new simple_landmark_map(flms));
       track_set_sptr tracks(new simple_track_set(trks));
-      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks);
+      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, metadata);
       cams[f] = opt_cams->cameras()[f];
     }
 
@@ -1091,7 +1092,7 @@ initialize_cameras_landmarks
       double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       LOG_INFO(d_->m_logger, "initial reprojection RMSE: " << init_rmse);
 
-      d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
+      d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
       cams = ba_cams->cameras();
       lms = ba_lms->landmarks();
       if (!d_->continue_processing)
@@ -1130,7 +1131,7 @@ initialize_cameras_landmarks
           // Either way we should not have to try this again.
           tried_necker_reverse = true;
           LOG_INFO(d_->m_logger, "Running Necker reversed bundle adjustment for comparison");
-          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks);
+          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, metadata);
           map_cam_t cams2 = ba_cams2->cameras();
           map_landmark_t lms2 = ba_lms2->landmarks();
           double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
@@ -1171,7 +1172,7 @@ initialize_cameras_landmarks
     double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
     LOG_DEBUG(d_->m_logger, "initial reprojection RMSE: " << init_rmse);
 
-    d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
+    d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
     map_cam_t cams1 = ba_cams->cameras();
     map_landmark_t lms1 = ba_lms->landmarks();
     double final_rmse1 = kwiver::arrows::reprojection_rmse(cams1, lms1, trks);

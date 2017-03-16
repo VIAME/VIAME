@@ -223,7 +223,8 @@ void
 bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
-           track_set_sptr tracks) const
+           track_set_sptr tracks,
+           video_metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
   {

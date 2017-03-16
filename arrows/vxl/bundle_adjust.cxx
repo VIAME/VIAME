@@ -197,12 +197,18 @@ void
 bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
-           track_set_sptr tracks) const
+           track_set_sptr tracks,
+           video_metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
   {
     // TODO throw an exception for missing input data
     return;
+  }
+  if( metadata && metadata->size() > 0 )
+  {
+    LOG_WARN( d_->m_logger, "metadata is provided but will be ignored "
+                            "by this algorithm");
   }
   typedef vxl::camera_map::map_vcam_t map_vcam_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;
