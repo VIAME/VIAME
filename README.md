@@ -170,7 +170,6 @@ Output detections can then be viewed in the GUI, e.g., see:
 Additional Documentation
 ------------------------
 
-<p align="center">
 | Topic                                                                    |  Extras                                                   |
 |--------------------------------------------------------------------------|------------------------------------------------------------|
 | [Build and Install Guide](doc/build_and_install_guide.rst)               |  [Tips and Tricks](doc/build_tips_n_tricks.md)             |
@@ -178,7 +177,6 @@ Additional Documentation
 | [How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md)           |  [Examples](plugins)                                       |
 | [Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) |  [Examples](examples/visualizing_detections_in_gui)   |
 | [Scoring and Evaluation of Detectors](doc/vpview_gui_introduction.md)     |  [Examples](examples/visualizing_detections_in_gui)       |
-</p>
 
 
 
