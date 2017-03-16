@@ -158,6 +158,9 @@ video_input_image_list
 {
   typedef kwiversys::SystemTools ST;
 
+  // close the video in case already open
+  this->close();
+
   // open file and read lines
   std::ifstream ifs( list_name.c_str() );
   if ( ! ifs )
@@ -232,7 +235,10 @@ void
 video_input_image_list
 ::close()
 {
-  // Nothing to do here
+  d->m_files.clear();
+  d->m_current_file = d->m_files.end();
+  d->m_frame_number = 0;
+  d->m_image = nullptr;
 }
 
 
