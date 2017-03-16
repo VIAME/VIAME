@@ -116,38 +116,38 @@ Another good initial test is to run the [install-directory]/bin/plugin_explorer 
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
-\-\-\-\- Algorithm search path
+\-\-\-\- Algorithm search path  
 
-Factories that create type "image_object_detector"
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-Info on algorithm type "image_object_detector" implementation "darknet"
-  Plugin name: darknet      Version: 1.0
-      Description:        Image object detector using darknet
-      Creates concrete type: kwiver::arrows::darknet::darknet_detector
-      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so
-      Plugin module name: arrows.darknet
-
-Factories that create type "track_features"
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-Info on algorithm type "track_features" implementation "core"
-  Plugin name: core      Version: 1.0
-      Description:        Track features from frame to frame using feature detection, matching, and
-       loop closure.
-      Creates concrete type: kwiver::arrows::core::track_features_core
-      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so
-      Plugin module name: arrows.core
-
-Factories that create type "video_input"
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-Info on algorithm type "video_input" implementation "vxl"
-  Plugin name: vxl      Version: 1.0
-      Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.
-      Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input
-      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so
-      Plugin module name: arrows.vxl
-
-etc...
-
+Factories that create type "image_object_detector"  
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
+Info on algorithm type "image_object_detector" implementation "darknet"  
+  Plugin name: darknet      Version: 1.0  
+      Description:        Image object detector using darknet  
+      Creates concrete type: kwiver::arrows::darknet::darknet_detector  
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so  
+      Plugin module name: arrows.darknet  
+  
+Factories that create type "track_features"  
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
+Info on algorithm type "track_features" implementation "core"  
+  Plugin name: core      Version: 1.0  
+      Description:        Track features from frame to frame using feature detection, matching, and  
+       loop closure.  
+      Creates concrete type: kwiver::arrows::core::track_features_core  
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so  
+      Plugin module name: arrows.core  
+  
+Factories that create type "video_input"  
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
+Info on algorithm type "video_input" implementation "vxl"  
+  Plugin name: vxl      Version: 1.0  
+      Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.  
+      Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input  
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so  
+      Plugin module name: arrows.vxl  
+  
+etc...  
+  
 The plugin loaded line represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm
 list shows each concrete algorithm that could be loaded and declared in pipeline files.
