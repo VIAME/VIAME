@@ -53,6 +53,7 @@ option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  OFF )
+option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
 
 ###
 # Add external package build instructions
@@ -77,6 +78,10 @@ endif()
 
 if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
+endif()
+
+if( VIAME_ENABLE_VIVIA )
+  set( VIAME_ENABLE_BURNOUT ON CACHE BOOL "Burn-Out required for other projects" FORCE )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
@@ -182,8 +187,11 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_scallop_tk )
   endif()
 
-  if( VIAME_ENABLE_VIVIA )
+  if( VIAME_ENABLE_BURNOUT )
     include( add_project_burnout )
+  endif()
+
+  if( VIAME_ENABLE_VIVIA )
     include( add_project_vivia )
   endif()
 
