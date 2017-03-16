@@ -29,15 +29,16 @@ and with additional tips [here](doc/build_tips_n_tricks.md).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build viame as a super-build
-requires [Git](https://git-scm.com/) and [CMake](https://cmake.org/). First,
-run the following commands:
+requires [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
+If using the command line, run the following commands, only replacing [source-directory] and
+[build-directory] with locations of your choice:
 
 	git clone https://github.com/Kitware/VIAME.git [source-directory]
 
 	cd [source-directory] && git submodule update --init --recursive
 
 Next, create a build directory and run the following `cmake` command (or alternatively
-use the cmake GUI):
+use the cmake GUI if you are not using the command line interface):
 
 	mkdir [build-directory] && cd [build-directory]
 
@@ -70,8 +71,9 @@ as OpenCV) then the dependency flag will be forced to on.
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes                                           |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
-| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                                       |
 | VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
+| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                                       |
+| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
 
 </center>
@@ -99,8 +101,11 @@ And a number of flags which control which system utilities and optimizations are
 Quick Run Instructions
 ----------------------
 
-All final compiled binaries are placed in the [build-directory]/install directory.
-One way to test the system is to see if you can run the examples in the [build-directory]/install/examples
+If building from the source, all final compiled binaries are placed in the [build-directory]/install
+directory, which is the same as the root directory in the pre-built binaries. This will hereby be
+refered to as the [install-directory].
+
+One way to test the system is to see if you can run the examples in the [install-directory]/examples
 folder, for example, the pipelined object detectors. There are some environment variables
 that need to be set up before you can run on Linux or Mac, which are all in the
 install/setup_viame.sh script. This script is sourced in all of the example run
@@ -112,7 +117,7 @@ algorithms. The output should look as follows:
 
 ---- Algorithm search path
 
-[build-directory]/install/lib/modules:
+[install-directory]/lib/modules:
 
 ---- Registered module names:
 
@@ -157,21 +162,22 @@ approach to select which concrete implementation to instantiate.
 
 For a simple pipeline test, go to -
 
-$ cd [build-directory]/install/examples/hello_world_pipeline/
+$ cd [install-directory]/examples/hello_world_pipeline/
 
 or
 
-$ cd [build-directory]/install/examples/detector_pipelines/
+$ cd [install-directory]/examples/detector_pipelines/
 
-In those directories, run one of the detector pipelines (which ENABLE_FLAGS you
-enabled will control which detector pipelines you can run). They can be
-run via one of the scripts placed in the directory, or via:
+In those directories, run one of the detector pipelines. Which ENABLE_FLAGS you
+enabled will control which detector pipelines you can run, and only pipeline files
+with all required dependencies enabled will show up in the install tree.
+They can be run via one of the scripts placed in the directory, or via:
 
 'pipeline_runner -p [pipeline-file].pipe'
 
 Output detections can then be viewed in the GUI, e.g., see:
 
-[build-directory]/install/examples/visualizing_detections_in_gui/
+[install-directory]/examples/visualizing_detections_in_gui/
 
 Additional Documentation
 ------------------------
