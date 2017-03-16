@@ -118,40 +118,40 @@ algorithms. The output should look as follows:
 
 ---- Algorithm search path
 
-[install-directory]/lib/modules:
+Factories that create type "image_object_detector"
+---------------------
+Info on algorithm type "image_object_detector" implementation "darknet"
+  Plugin name: darknet      Version: 1.0
+      Description:        Image object detector using darknet
+      Creates concrete type: kwiver::arrows::darknet::darknet_detector
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so
+      Plugin module name: arrows.darknet
 
----- Registered module names:
+Factories that create type "track_features"
+---------------------
+Info on algorithm type "track_features" implementation "core"
+  Plugin name: core      Version: 1.0
+      Description:        Track features from frame to frame using feature detection, matching, and
+       loop closure.
+      Creates concrete type: kwiver::arrows::core::track_features_core
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so
+      Plugin module name: arrows.core
 
-*  kwiver_algo_matlab_plugin
-*  kwiver_algo_ocv_plugin
-*  kwiver_algo_plugin
-*  kwiver_algo_vxl_plugin
-*  viame_scallop_tk_plugin
+Factories that create type "video_input"
+---------------------
+Info on algorithm type "video_input" implementation "vxl"
+  Plugin name: vxl      Version: 1.0
+      Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.
+      Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so
+      Plugin module name: arrows.vxl
 
 etc...
 
-
----- registered algorithms (type_name:impl_name)
-
-*  analyze_tracks:ocv
-*  bundle_adjust:hierarchical
-*  bundle_adjust:vxl
-*  close_loops:bad_frames_only
-*  close_loops:exhaustive
-*  close_loops:keyframe
-*  close_loops:multi_method
-*  close_loops:vxl_homography_guided
-*  compute_ref_homography:core
-*  convert_image:bypass
-*  detect_features:ocv_BRISK
-*  detect_features:ocv_FAST
-
-etc...
-
-The modules loaded list represents the shared objects that have been detected
+The plugin loaded line represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm
-list shows each concrete algorithm that could be loaded. Check the log messages
-to see if there are any libraries that could not be located.
+list shows each concrete algorithm that could be loaded and declared in pipeline files.
+Check the log messages to see if there are any libraries that could not be located.
 
 Each algorithm listed consists of two names. The first name is the type of
 algorithm and the second is the actual implementation type. For example the
