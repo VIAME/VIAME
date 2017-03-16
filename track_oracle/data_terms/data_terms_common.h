@@ -38,14 +38,15 @@
 ///
 ///
 
+#include <string>
+#include <track_oracle/data_terms/data_term_tmp_utils.h>
+
 #include <vital/vital_config.h>
 #include <track_oracle/data_terms/data_terms_export.h>
 
-#include <string>
-#include <track_oracle/track_oracle_api_types.h>
-#include <track_oracle/data_terms/data_term_tmp_utils.h>
-#include <track_oracle/kwiver_io_base.h>
-#include <track_oracle/track_oracle_api_types.h>
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/kwiver_io_base.h>
+#include <track_oracle/core/track_oracle_api_types.h>
 
 #define DECL_DT(NAME, TYPE, DESC )         \
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE>    \

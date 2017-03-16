@@ -10,7 +10,7 @@
 
 #include <tinyxml.h>
 
-#include <track_oracle/kwiver_io_helpers.h>
+#include <track_oracle/core/kwiver_io_helpers.h>
 #include <track_oracle/aries_interface/aries_interface.h>
 
 #include <vital/logger/logger.h>
@@ -56,7 +56,8 @@ namespace dt {
 
 namespace tracking {
 
-  DEF_DT( external_id );
+  context external_id::c( "external_id", "an external_id");
+  //  DEF_DT( external_id );
   DEF_DT( timestamp_usecs );
   DEF_DT( frame_number );
   DEF_DT( fg_mask_area );
