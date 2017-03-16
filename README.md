@@ -198,6 +198,9 @@ Additional Documentation
 [Scoring and Evaluation of Detectors](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
+[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes/examples)
+
+
 
 
 
