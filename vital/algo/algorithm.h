@@ -70,7 +70,7 @@ public:
   virtual std::string type_name() const = 0;
 
   /// Return the name of this implementation
-  std::string impl_name() const;
+  virtual std::string impl_name() const VITAL_FINAL;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   /**

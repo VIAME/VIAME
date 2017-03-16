@@ -129,15 +129,20 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
   descrip = m_context->wrap_text( descrip );
 
-  if ( ! m_context->if_detail() )
+  if ( m_context->if_brief() )
   {
-    out_stream() << "  " << proc_type << ": " << descrip << std::endl;
+    out_stream() << "    Process type: " << proc_type << "   " << descrip << std::endl;
     return;
   }
 
   out_stream()  << "---------------------\n"
                 << "  Process type: " << proc_type << std::endl
                 << "  Description: " << descrip << std::endl;
+
+  if ( ! m_context->if_detail() )
+  {
+    return;
+  }
 
   sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( fact.get() );
 
@@ -146,32 +151,36 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   sprokit::process::properties_t const properties = proc->properties();
   std::string const properties_str = join( properties, ", " );
 
-  out_stream()  << "    Properties: " << properties_str << std::endl
-                << "    -- Configuration --" << std::endl;
+  out_stream()  << "    Properties: " << properties_str << std::endl;
 
-  kwiver::vital::config_block_keys_t const keys = proc->available_config();
-
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  if ( m_context->if_config() )
   {
-    if ( ! opt_hidden && ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+    out_stream() << "    -- Configuration --" << std::endl;
+
+    kwiver::vital::config_block_keys_t const keys = proc->available_config();
+
+    VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
     {
-      // skip hidden items
-      continue;
+      if ( ! opt_hidden && ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+      {
+        // skip hidden items
+        continue;
+      }
+
+      sprokit::process::conf_info_t const info = proc->config_info( key );
+
+      kwiver::vital::config_block_value_t const& def = info->def;
+      kwiver::vital::config_block_description_t const& conf_desc = info->description;
+      bool const& tunable = info->tunable;
+      char const* const tunable_str = tunable ? "yes" : "no";
+
+      out_stream()  << "    Name       : " << key << std::endl
+                    << "    Default    : " << def << std::endl
+                    << "    Description: " << conf_desc << std::endl
+                    << "    Tunable    : " << tunable_str << std::endl
+                    << std::endl;
     }
-
-    sprokit::process::conf_info_t const info = proc->config_info( key );
-
-    kwiver::vital::config_block_value_t const& def = info->def;
-    kwiver::vital::config_block_description_t const& conf_desc = info->description;
-    bool const& tunable = info->tunable;
-    char const* const tunable_str = tunable ? "yes" : "no";
-
-    out_stream()  << "    Name       : " << key << std::endl
-                  << "    Default    : " << def << std::endl
-                  << "    Description: " << conf_desc << std::endl
-                  << "    Tunable    : " << tunable_str << std::endl
-                  << std::endl;
-  }
+  } // end config
 
   out_stream() << "  Input ports:" << std::endl;
 
