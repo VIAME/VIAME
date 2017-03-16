@@ -55,7 +55,9 @@ the build to run multi-threaded using 8 threads, this is useful for a faster bui
 if you get an error it can be difficult to know where it was, in which case running just
 'make' might be more helpful.
 
-There are several optional arguments to viame which control which plugins get built, such as:
+There are several optional arguments to viame which control which plugins get built, such
+as those listed below. If a plugin is enabled that depends on another dependency (such
+as OpenCV) then the dependency flag will be forced to on.
 
 
 <center>
