@@ -10,6 +10,7 @@ For more information about KWIVER's capabilities, please
 see [here](https://github.com/Kitware/kwiver/). Alongside the pipelined image
 processing system are a number of standalone utilties for model training,
 output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
+<br>
 <p align="center">
 <br>
 <nobr>
