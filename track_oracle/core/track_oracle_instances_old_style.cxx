@@ -15,6 +15,11 @@
 
 #include <vital/types/timestamp.h>
 
+#include <vital/vital_config.h>
+#include <track_oracle/core/track_oracle_export.h>
+#define TRACK_FIELD_EXPORT TRACK_ORACLE_EXPORT
+#define KWIVER_IO_EXPORT TRACK_ORACLE_EXPORT
+
 #include <track_oracle/core/track_oracle_instantiation.h>
 #include <track_oracle/core/track_field_instantiation.h>
 #include <track_oracle/core/track_field_functor_instantiation.h>
@@ -98,3 +103,5 @@ KWIVER_IO_BASE_INSTANCES(std::pair<unsigned MACRO_COMMA unsigned>);
 #else
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT_COMMA(std::pair<unsigned, unsigned>);
 #endif
+#undef KWIVER_IO_EXPORT
+#undef TRACK_FIELD_EXPORT

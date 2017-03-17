@@ -7,16 +7,13 @@
 #ifndef INCL_TRACK_FIELD_FUNCTOR_H
 #define INCL_TRACK_FIELD_FUNCTOR_H
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 #include <track_oracle/core/track_oracle_api_types.h>
 
 namespace kwiver {
 namespace track_oracle {
 
 template< typename T >
-class TRACK_ORACLE_EXPORT track_field_functor
+class track_field_functor
 {
 public:
 

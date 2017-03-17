@@ -7,9 +7,6 @@
 #ifndef INCL_TRACK_BASE_H
 #define INCL_TRACK_BASE_H
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 #include <track_oracle/core/track_base_impl.h>
 
 namespace kwiver {
@@ -17,7 +14,7 @@ namespace track_oracle {
 
 template <typename client_derived_from_track_base_type,
           typename track_base_type = track_base_impl >
-class TRACK_ORACLE_EXPORT track_base: public track_base_type
+class track_base: public track_base_type
 {
 public:
 

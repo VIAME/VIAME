@@ -9,7 +9,7 @@
 namespace kwiver {
 namespace track_oracle {
 
-template< typename T > TRACK_ORACLE_EXPORT
+template< typename T >
 std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<T>& iop )
 {
   return iop.io_ptr->to_stream( os, iop.val );

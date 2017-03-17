@@ -6,12 +6,13 @@
 
 #include <track_oracle/data_terms/data_terms.h>
 #include <track_oracle/core/state_flags.h>
-/*
-#include <track_oracle/core/track_oracle_instantiation.h>
+
+#include <vital/vital_config.h>
+#include <track_oracle/data_terms/data_terms_export.h>
+#define TRACK_FIELD_EXPORT DATA_TERMS_EXPORT
+#define KWIVER_IO_EXPORT DATA_TERMS_EXPORT
+
 #include <track_oracle/core/track_field_instantiation.h>
-#include <track_oracle/core/track_field_functor_instantiation.h>
-#include <track_oracle/core/track_oracle_row_view_instantiation.h>
-#include <track_oracle/core/element_store_instantiation.h>
 #include <track_oracle/core/kwiver_io_base_instantiation.h>
 
 #define TRACK_ORACLE_INSTANTIATE_DATA_TERM(T) \
@@ -19,6 +20,7 @@
   KWIVER_IO_BASE_INSTANCES(T)
 
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::utility::state_flags);
+
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::external_id );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::timestamp_usecs );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::frame_number );
@@ -50,4 +52,5 @@ TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::virat::descripto
 
 template std::ostream& ::kwiver::track_oracle::operator<<(std::ostream& os, const kwiver::track_oracle::track_field_io_proxy< vgl_box_2d<double> > & );
 
-*/
+#undef KWIVER_IO_EXPORT
+#undef TRACK_FIELD_EXPORT

@@ -7,6 +7,7 @@
 #include "state_flags.h"
 
 #include <string>
+#include <sstream>
 
 #include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string.hpp>
@@ -27,6 +28,7 @@ using std::make_pair;
 using std::runtime_error;
 using std::ostream;
 using std::istream;
+using std::istringstream;
 
 namespace kwiver {
 namespace track_oracle {
@@ -278,6 +280,76 @@ istream& operator>>( istream& is, state_flag_type& t )
   }
   return is;
 }
+
+template <>
+std::ostream&
+kwiver_io_base<state_flag_type>::to_stream( std::ostream& os, const state_flag_type& t ) const
+{
+  os << t;
+  return os;
+}
+
+template <>
+bool
+kwiver_io_base<state_flag_type>::from_str( const std::string& s, state_flag_type& t ) const
+{
+  istringstream iss( s );
+  return static_cast<bool>(iss >> t );
+}
+
+template <>
+bool
+kwiver_io_base<state_flag_type>
+::read_xml( const TiXmlElement* e, state_flag_type& val ) const
+{
+  if (! e->GetText()) return false;
+  return this->from_str( e->GetText(), val );
+}
+
+template <>
+void
+kwiver_io_base<state_flag_type>
+::write_xml( ostream& os, const string& indent, const state_flag_type& val ) const
+{
+  os << indent << "<" << this->name << "> ";
+  this->to_stream( os, val );
+  os << " </" << this->name << ">\n";
+}
+
+template<>
+vector< string>
+kwiver_io_base<state_flag_type>
+::csv_headers() const
+{
+  vector< string > h;
+  h.push_back( this->name );
+  return h;
+}
+
+template<>
+bool
+kwiver_io_base<state_flag_type>
+::from_csv( const map< string, string >& header_value_map, state_flag_type& val ) const
+{
+  const vector< string >& csv_h = this->csv_headers();
+  string s("");
+  for (size_t i=0; i<csv_h.size(); ++i)
+  {
+    map< string, string >::const_iterator p = header_value_map.find( csv_h[i] );
+    if ( p == header_value_map.end() ) return false;
+    s += p->second + " ";
+  }
+  return this->from_str( s, val );
+}
+
+template<>
+ostream&
+kwiver_io_base<state_flag_type>
+::to_csv( ostream& os, const state_flag_type& val ) const
+{
+  return this->to_stream( os, val );
+}
+
 
 dt::context dt::utility::state_flags::c( dt::utility::state_flags::get_context_name(),
                                          dt::utility::state_flags::get_context_description() );

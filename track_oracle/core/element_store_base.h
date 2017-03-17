@@ -16,9 +16,6 @@
 /// (3) Provides the XML output prototype
 /// (4) Provides the kwiver i/o interface
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 #include <track_oracle/core/track_oracle_api_types.h>
 #include <track_oracle/core/element_descriptor.h>
 
@@ -27,7 +24,7 @@ class  TiXmlElement;
 namespace kwiver {
 namespace track_oracle {
 
-class TRACK_ORACLE_EXPORT element_store_base
+class element_store_base
 {
 public:
 

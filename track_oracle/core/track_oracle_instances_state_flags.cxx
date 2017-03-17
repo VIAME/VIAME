@@ -8,5 +8,3 @@
 #include <track_oracle/core/kwiver_io_base_instantiation.h>
 
 KWIVER_IO_BASE_INSTANCES( kwiver::track_oracle::dt::utility::state_flags );
-
-

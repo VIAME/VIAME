@@ -55,7 +55,6 @@ set( track_oracle_sources
   schema_algorithm.cxx
   state_flags.cxx
   track_oracle_instances_old_style.cxx
-  track_oracle_instances_state_flags.cxx
   )
 
 if (KWIVER_ENABLE_TRACK_MGRS)

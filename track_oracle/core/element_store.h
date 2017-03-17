@@ -11,9 +11,6 @@
 /// the type-aware storage for the element.
 ///
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 #include <map>
 
 #include <track_oracle/core/track_oracle_api_types.h>
@@ -27,7 +24,7 @@ namespace kwiver {
 namespace track_oracle {
 
 template< typename T >
-class TRACK_ORACLE_EXPORT element_store: public element_store_base
+class element_store: public element_store_base
 {
 public:
   explicit element_store( const element_descriptor& e );

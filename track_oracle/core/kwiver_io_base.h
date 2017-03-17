@@ -34,9 +34,6 @@
 ///
 ///
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -50,7 +47,7 @@ namespace kwiver {
 namespace track_oracle {
 
 template< typename T >
-class TRACK_ORACLE_EXPORT kwiver_io_base
+class kwiver_io_base
 {
 public:
   typedef typename data_term_traits< is_data_term< T >::value, T >::Type Type;

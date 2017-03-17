@@ -56,8 +56,7 @@ namespace dt {
 
 namespace tracking {
 
-  context external_id::c( "external_id", "an external_id");
-  //  DEF_DT( external_id );
+  DEF_DT( external_id );
   DEF_DT( timestamp_usecs );
   DEF_DT( frame_number );
   DEF_DT( fg_mask_area );

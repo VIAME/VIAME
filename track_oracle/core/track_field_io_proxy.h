@@ -7,9 +7,6 @@
 #ifndef INCL_TRACK_FIELD_IO_PROXY_H
 #define INCL_TRACK_FIELD_IO_PROXY_H
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 ///
 /// This is a trampoline class to facilitate I/O from
 /// track_fields. (Currently, just output.)
@@ -28,9 +25,9 @@ namespace kwiver {
 namespace track_oracle {
 
 template <typename T>
-class TRACK_ORACLE_EXPORT track_field_io_proxy
+class track_field_io_proxy
 {
-  template <typename Tio > TRACK_ORACLE_EXPORT friend std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<Tio>& iop );
+  template <typename Tio > friend std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<Tio>& iop );
 public:
   track_field_io_proxy( kwiver_io_base<T>* p, const T& v ):
     io_ptr(p), val(v)
@@ -41,8 +38,7 @@ private:
   T val;
 };
 
-template < typename Tio > TRACK_ORACLE_EXPORT
-std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<Tio>& iop );
+template < typename Tio > std::ostream& operator<<( std::ostream& os, const track_field_io_proxy<Tio>& iop );
 
 } // ...track_oracle
 } // ...kwiver

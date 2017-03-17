@@ -29,12 +29,14 @@
 //
 
 
-#include <track_oracle/element_descriptor.h>
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
-#include <track_oracle/track_oracle_core.h>
-#include <track_oracle/schema_algorithm.h>
-#include <track_oracle/track_field_functor.h>
+#include <vital/vital_config.h>
+#include <track_oracle/core/track_oracle_export.h>
+#include <track_oracle/core/element_descriptor.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
+#include <track_oracle/core/track_oracle_core.h>
+#include <track_oracle/core/schema_algorithm.h>
+#include <track_oracle/core/track_field_functor.h>
 #include <track_oracle/data_terms/data_terms.h>
 
 #include <vital/logger/logger.h>

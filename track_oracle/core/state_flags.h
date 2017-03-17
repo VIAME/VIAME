@@ -66,6 +66,17 @@ private:
 TRACK_ORACLE_EXPORT std::ostream& operator<<( std::ostream& os, const state_flag_type& t );
 TRACK_ORACLE_EXPORT std::istream& operator>>( std::istream& os, state_flag_type& t );
 
+// not sure why the TMP in kwiver_io_base.txx isn't picking these up automatically
+// ...I guess because we want kwiver_io on the state_flag_type, but the data
+// term is 'state_flags'; the state_flag_type won't pass the is-data-term test.
+
+template <> TRACK_ORACLE_EXPORT std::ostream& kwiver_io_base<state_flag_type>::to_stream( std::ostream& os, const state_flag_type& t ) const;
+template <> TRACK_ORACLE_EXPORT bool kwiver_io_base<state_flag_type>::from_str( const std::string& s, state_flag_type& t ) const;
+template <> TRACK_ORACLE_EXPORT bool kwiver_io_base<state_flag_type>::read_xml( const TiXmlElement* e, state_flag_type& val ) const;
+template <> TRACK_ORACLE_EXPORT void kwiver_io_base<state_flag_type>::write_xml( std::ostream& os, const std::string& indent, const state_flag_type& val ) const;
+template <> TRACK_ORACLE_EXPORT std::vector< std::string > kwiver_io_base<state_flag_type>::csv_headers() const;
+template <> TRACK_ORACLE_EXPORT bool kwiver_io_base<state_flag_type>::from_csv( const std::map< std::string, std::string >& header_value_map, state_flag_type& val ) const;
+template <> TRACK_ORACLE_EXPORT std::ostream& kwiver_io_base<state_flag_type>::to_csv( std::ostream& os, const state_flag_type& val ) const;
 
 namespace dt {
 namespace utility {

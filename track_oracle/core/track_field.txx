@@ -13,6 +13,7 @@
 #include <track_oracle/core/element_store.h>
 #include <track_oracle/core/track_field_output_specializations.h>
 #include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/track_field_functor.h>
 
 using std::make_pair;
 using std::ostream;
