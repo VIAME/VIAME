@@ -5,8 +5,7 @@
 set( example_files
   plotroc.py
   detections.kw18
-  groundtruth.kw18
-  README.md )
+  groundtruth.kw18 )
 
 if( VIAME_ENABLE_KWANT )
   if( WIN32 )
