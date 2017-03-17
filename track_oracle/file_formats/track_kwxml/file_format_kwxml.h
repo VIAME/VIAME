@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_KWXML_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_kwxml/track_kwxml_export.h>
+#include <track_oracle/file_formats/track_kwxml/track_kwxml_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_kwxml/track_kwxml.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_kwxml/track_kwxml.h>
 
 namespace kwiver {
 namespace track_oracle {

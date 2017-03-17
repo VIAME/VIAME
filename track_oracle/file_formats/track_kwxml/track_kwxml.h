@@ -8,10 +8,10 @@
 #define INCL_TRACK_KWXML_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_kwxml/track_kwxml_export.h>
+#include <track_oracle/file_formats/track_kwxml/track_kwxml_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 #include <track_oracle/data_terms/data_terms.h>
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_point_2d.h>
