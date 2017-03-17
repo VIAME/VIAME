@@ -8,14 +8,14 @@
 #define INCL_FILE_FORMAT_SCHEMA_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_oracle_format_base_export.h>
+#include <track_oracle/file_formats/track_oracle_format_base_export.h>
 
 
 #include <vector>
 #include <string>
-#include <track_oracle/track_oracle_api_types.h>
-#include <track_oracle/file_format_type.h>
-#include <track_oracle/track_base.h>
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/file_formats/file_format_type.h>
 
 namespace kwiver {
 namespace track_oracle {

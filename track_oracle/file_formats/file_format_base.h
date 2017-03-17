@@ -41,15 +41,15 @@
 ///
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_oracle_format_base_export.h>
+#include <track_oracle/file_formats/track_oracle_format_base_export.h>
 
 #include <string>
 #include <vector>
 #include <map>
-#include <track_oracle/track_oracle_api_types.h>
-#include <track_oracle/element_descriptor.h>
-#include <track_oracle/file_format_type.h>
-#include <track_oracle/track_base_impl.h>
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/element_descriptor.h>
+#include <track_oracle/core/track_base_impl.h>
+#include <track_oracle/file_formats/file_format_type.h>
 
 namespace kwiver {
 namespace track_oracle {

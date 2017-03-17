@@ -7,9 +7,9 @@
 #include "file_format_type.h"
 
 #include <ostream>
-#include <track_oracle/track_oracle_api_types.h>
-#include <track_oracle/element_store.h>
-#include <track_oracle/file_format_manager.h>
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/element_store.h>
+#include <track_oracle/file_formats/file_format_manager.h>
 
 using std::map;
 using std::ostream;

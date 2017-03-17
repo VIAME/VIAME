@@ -10,7 +10,7 @@
 #include <vul/vul_reg_exp.h>
 #include <vul/vul_string.h>
 
-#include <track_oracle/schema_algorithm.h>
+#include <track_oracle/core/schema_algorithm.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );

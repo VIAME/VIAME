@@ -8,7 +8,7 @@
 #define INCL_FILE_FORMAT_TYPE_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_oracle_format_base_export.h>
+#include <track_oracle/file_formats/track_oracle_format_base_export.h>
 
 #include <string>
 

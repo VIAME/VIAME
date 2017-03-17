@@ -6,8 +6,8 @@
 
 #include "schema_factory.h"
 
-#include <track_oracle/track_base_impl.h>
-#include <track_oracle/file_format_manager.h>
+#include <track_oracle/core/track_base_impl.h>
+#include <track_oracle/file_formats/file_format_manager.h>
 
 
 using std::pair;
