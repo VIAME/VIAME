@@ -34,7 +34,6 @@ Test Python interface to vital::image_container
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 from vital.types import (
     Image,

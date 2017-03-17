@@ -34,13 +34,12 @@ Tests for vital::algo::convert_image and general algorithm tests
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
 from vital import (
     apm,
-    ConfigBlock,
+    config_block,
 )
 from vital.algo import ConvertImage
 from vital.exceptions.base import VitalNullPointerException
@@ -143,7 +142,7 @@ class TestVitalAlgoConvertImage (object):
 
     def test_check_conf(self):
         ci = ConvertImage('ci')
-        c = ConfigBlock()
+        c = config_block()
         nt.assert_false(ci.check_config(c))
 
         c.set_value('ci:type', '')
