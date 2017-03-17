@@ -7,9 +7,6 @@
 #ifndef INCL_TRACK_FIELD_H
 #define INCL_TRACK_FIELD_H
 
-#include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_export.h>
-
 #include <string>
 #include <utility>
 #include <track_oracle/core/track_oracle_core.h>
@@ -33,7 +30,7 @@ template<typename T> class track_field;
 template<typename T> std::ostream& operator<<( std::ostream& os, const track_field<T>& f);
 
 template< typename T >
-class TRACK_ORACLE_EXPORT track_field: public track_field_base
+class track_field: public track_field_base
 {
   friend std::ostream& operator<< <> ( std::ostream& os, const track_field<T>& f );
 
