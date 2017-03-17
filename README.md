@@ -195,23 +195,10 @@ Additional Documentation
 [Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
-[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Examples](examples/scoring_and_roc_generation)
+[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
 
 
 [KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes/examples)
-
-
-
-
-
- 
-
-
-
-
-
-
-
 
 
 
