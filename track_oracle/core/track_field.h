@@ -28,7 +28,6 @@ namespace kwiver {
 namespace track_oracle {
 
 class track_field_host;
-template< typename T > class track_field_functor;
 
 template<typename T> class track_field;
 template<typename T> std::ostream& operator<<( std::ostream& os, const track_field<T>& f);
@@ -85,8 +84,6 @@ public:
 
   virtual void copy_value( const oracle_entry_handle_type& src,
                            const oracle_entry_handle_type& dst ) const;
-
-  std::pair< oracle_entry_handle_type, Type > apply_functor( track_field_functor<Type>& f ) const;
 
   track_field_io_proxy<Type> io() const;
   track_field_io_proxy<Type> io( const oracle_entry_handle_type& row_handle) const;

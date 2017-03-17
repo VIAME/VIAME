@@ -33,8 +33,6 @@ namespace track_oracle {
 class track_oracle_core_impl;
 class element_store_base;
 
-template <typename T> class track_field_functor;
-
 class TRACK_ORACLE_EXPORT track_oracle_core
 {
 public:
@@ -81,8 +79,6 @@ public:
   static bool write_csv( std::ostream& os, const track_handle_list_type& tracks, bool csv_v1_semantics = false );
 
   static csv_handler_map_type get_csv_handler_map( const std::vector< std::string >& headers );
-
-  template< typename T> static void apply_functor( field_handle_type field, track_field_functor<T>& f );
 
   static bool clone_nonsystem_fields( const track_handle_type& src,
                                       const track_handle_type& dst );

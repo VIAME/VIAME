@@ -13,8 +13,6 @@ set( track_oracle_public_headers
   track_field_host.h
   track_field_base.h
   track_field.h
-  track_field_functor.h
-  track_field_functor_library.h
   track_field_io_proxy.h
   schema_algorithm.h
   state_flags.h
@@ -25,7 +23,6 @@ set( track_oracle_private_headers
   track_oracle_instantiation.h
   track_oracle_row_view_instantiation.h
   track_field_instantiation.h
-  track_field_functor_instantiation.h
   track_field_output_specializations.h
   track_base_impl.h
   track_oracle_core_impl.h

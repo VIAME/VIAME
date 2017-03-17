@@ -13,7 +13,6 @@
 #include <track_oracle/core/element_store.h>
 #include <track_oracle/core/track_field_output_specializations.h>
 #include <track_oracle/core/track_oracle_api_types.h>
-#include <track_oracle/core/track_field_functor.h>
 
 using std::make_pair;
 using std::ostream;
@@ -466,15 +465,6 @@ ostream& operator<<( ostream& os, const track_field<T>& f ) {
     os << " (no row set)";
   }
   return os;
-}
-
-template< typename T >
-pair< oracle_entry_handle_type, typename track_field<T>::Type >
-track_field<T>
-::apply_functor( track_field_functor<Type>& f ) const
-{
-  track_oracle_core::apply_functor( this->field_handle, f );
-  return make_pair( f.result_handle, f.result_value );
 }
 
 } // ...track_oracle

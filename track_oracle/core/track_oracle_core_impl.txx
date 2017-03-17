@@ -12,8 +12,6 @@
 #include <limits>
 #include <algorithm>
 
-#include <track_oracle/core/track_field_functor.h>
-
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
@@ -216,22 +214,6 @@ track_oracle_core_impl
   } // ... for the domain
 
   return INVALID_ROW_HANDLE;
-}
-
-template< typename T >
-void
-track_oracle_core_impl
-::apply_functor( field_handle_type field, track_field_functor<T>& f )
-{
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
-  pair< map< oracle_entry_handle_type, T >*, T> probe = this->lookup_table<T>( field );
-  map< oracle_entry_handle_type, T >& data_column = *(probe.first);
-  for (typename map< oracle_entry_handle_type, T>::const_iterator i = data_column.begin();
-       i != data_column.end();
-       ++i )
-  {
-    f.apply_at_row( i->first, i->second );
-  }
 }
 
 } // ...track_oracle

@@ -26,7 +26,6 @@
   template TRACK_FIELD_EXPORT std::pair< bool, kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::get( kwiver::track_oracle::oracle_entry_handle_type ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>* kwiver::track_oracle::track_field<T>::clone() const; \
   template TRACK_FIELD_EXPORT void kwiver::track_oracle::track_field<T>::copy_value( const kwiver::track_oracle::oracle_entry_handle_type&, const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
-  template TRACK_FIELD_EXPORT std::pair< kwiver::track_oracle::oracle_entry_handle_type, kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::apply_functor( kwiver::track_oracle::track_field_functor<T>& ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::field_handle_type kwiver::track_oracle::track_field<T>::lookup_or_create_element_store( const std::string & ); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io() const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io( const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
@@ -50,7 +49,6 @@
   template TRACK_FIELD_EXPORT std::pair< bool, kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::get( kwiver::track_oracle::oracle_entry_handle_type ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>* kwiver::track_oracle::track_field<T>::clone() const; \
   template TRACK_FIELD_EXPORT void kwiver::track_oracle::track_field<T>::copy_value( const kwiver::track_oracle::oracle_entry_handle_type&, const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
-  template TRACK_FIELD_EXPORT std::pair< kwiver::track_oracle::oracle_entry_handle_type, kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::apply_functor( kwiver::track_oracle::track_field_functor<T>& ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::field_handle_type kwiver::track_oracle::track_field<T>::lookup_or_create_element_store( const std::string & ); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io() const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io( const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
@@ -120,7 +118,6 @@
   template TRACK_FIELD_EXPORT std::pair< bool, kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::get( kwiver::track_oracle::oracle_entry_handle_type ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>* kwiver::track_oracle::track_field<T>::clone() const; \
   template TRACK_FIELD_EXPORT void kwiver::track_oracle::track_field<T>::copy_value( const kwiver::track_oracle::oracle_entry_handle_type&, const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
-  template TRACK_FIELD_EXPORT std::pair< kwiver::track_oracle::oracle_entry_handle_type, kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::apply_functor( kwiver::track_oracle::track_field_functor<Type>& ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io() const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io( const kwiver::track_oracle::oracle_entry_handle_type& ) const; \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field_io_proxy< kwiver::track_oracle::track_field<T>::Type > kwiver::track_oracle::track_field<T>::io_fmt( const kwiver::track_oracle::track_field<T>::Type& ) const; \

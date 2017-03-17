@@ -48,8 +48,6 @@ struct csv_element
 namespace kwiver {
 namespace track_oracle {
 
-template< typename T> class track_field_functor;
-
 struct xml_output_helper;
 
 class TRACK_ORACLE_EXPORT track_oracle_core_impl
@@ -171,9 +169,6 @@ public:
 
   // given a list of headers, return the handlers
   csv_handler_map_type get_csv_handler_map( const std::vector< std::string >& headers );
-
-  // Call apply_at_row() for all the values of the field in the functor
-  template< typename T > void apply_functor( field_handle_type field, track_field_functor<T>& f );
 
   // Copy all fields which are not marked SYSTEM from the src row to the dst row
   bool clone_nonsystem_fields( const oracle_entry_handle_type& src,

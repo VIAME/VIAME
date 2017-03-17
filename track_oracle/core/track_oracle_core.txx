@@ -57,14 +57,6 @@ track_oracle_core
   return track_oracle_core::get_instance().lookup<T>( field, val, domain );
 }
 
-template< typename T>
-void
-track_oracle_core
-::apply_functor( field_handle_type field, track_field_functor<T>& f )
-{
-  return track_oracle_core::get_instance().apply_functor<T>( field, f );
-}
-
 } // ...track_oracle
 } // ...kwiver
 
