@@ -110,6 +110,12 @@ if( VIAME_ENABLE_PYTHON )
       please point your PYTHON_LIBRARY and PYTHON_INCLUDE_DIR to a Python2.7.* \
       install, or set VIAME_DISABLE_PYTHON_CHECK to ignore this message." )
   endif()
+
+  if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
+      NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
+    message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
+      make sure the variable is set correctly and you have python-dev installed." )
+  endif()
 endif()
 
 if( VIAME_ENABLE_CUDA )
