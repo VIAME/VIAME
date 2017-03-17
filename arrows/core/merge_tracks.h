@@ -58,7 +58,7 @@ typedef std::map<vital::track_sptr, vital::track_sptr> track_map_t;
 /**
  * This function extracts all the tracks found on \p current_frame and
  * \p target_frame.  It then extracts the corresponding features and descriptors
- * and uses the provide matcher algorithm to identify matching tracks
+ * and uses the provided matcher algorithm to identify matching tracks
  *
  *  \param matcher The matcher algorithm to use in feature/descriptor matching
  *  \param all_tracks The set of all tracks on which to detect matches
@@ -76,7 +76,7 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
 /**
  * This function extracts all the tracks found on \p target_frame.
  * It then extracts the corresponding features and descriptors
- * and uses the provide matcher algorithm to identify matching tracks between
+ * and uses the provided matcher algorithm to identify matching tracks between
  * the set of provided current tracks, features, and descriptors.  This version
  * of the function exists so that the current tracks, features, and
  * descriptors do not need to be extracted each time if matching against
@@ -102,9 +102,9 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
 /**
  * This function uses the provide matcher algorithm to identify matching tracks
  * between the sets of provided tracks, features, and descriptors.
- * It is assumed that the current and target tracks have track states contain
- * only tracks covering the current and target frames respectively.
- * Furthermore, the provided features and descriptors are extract from the
+ * It is assumed that the current and target track sets contain only tracks
+ * with states covering the current and target frames respectively.
+ * Furthermore, the provided features and descriptors are extracted from the
  * corresponding tracks on those frames.  This version of the function exists
  * so that the current tracks, features, and descriptors do not need to be
  * extracted each time if matching multiple frame combinations.
