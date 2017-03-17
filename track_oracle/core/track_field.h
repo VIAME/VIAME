@@ -73,8 +73,6 @@ public:
   bool exists( const oracle_entry_handle_type& row_handle ) const;
   virtual bool exists( void ) const;
 
-  virtual std::ostream& print( std::ostream& os );
-
   std::pair< bool, Type > get( oracle_entry_handle_type row_handle ) const;
 
   virtual track_field<T>* clone() const;

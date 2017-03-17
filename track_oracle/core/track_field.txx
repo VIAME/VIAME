@@ -441,16 +441,6 @@ track_field<T>
   return track_field_io_proxy<Type>( typed_b->get_io_handler(), val );
 }
 
-template< typename T >
-ostream&
-track_field<T>
-::print( std::ostream& os )
-{
-  os << *this;
-  return os;
-}
-
-
 template< typename T>
 ostream& operator<<( ostream& os, const track_field<T>& f ) {
   os << " (" << f.field_handle << ") "

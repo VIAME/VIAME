@@ -42,7 +42,6 @@ public:
   std::string get_field_name() const;
   field_handle_type get_field_handle() const;
   virtual void remove_at_row( const oracle_entry_handle_type& row );
-  virtual std::ostream& print( std::ostream& os );
   virtual bool exists() const;
   virtual track_field_base* clone() const = 0;
   virtual void copy_value( const oracle_entry_handle_type& src,

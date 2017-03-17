@@ -112,7 +112,7 @@ track_oracle_row_view
     if ( ! this->field_list[i]->exists() )
     {
       LOG_INFO( main_logger, "Row " << this->get_cursor() << " is missing ");
-      this->field_list[i]->print( cerr);
+      LOG_INFO( main_logger, this->field_list[i] );
       LOG_INFO( main_logger, "\ncomplete dump:");
       LOG_INFO( main_logger, *this << "");
       return false;
@@ -149,7 +149,7 @@ operator<<( ostream& os, const track_oracle_row_view& r )
   for (unsigned i=0; i<r.field_list.size(); ++i)
   {
     os << "..";
-    r.field_list[i]->print(os);
+    os << r.field_list[i];
     os << "\n";
   }
   return os;

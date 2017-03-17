@@ -52,14 +52,6 @@ track_field_base
   return field_handle;
 }
 
-ostream&
-track_field_base
-::print( ostream& os )
-{
-  os << "print called on abstract field base...";
-  return os;
-}
-
 //
 // can't make exists() pure virtual because typeless instances are
 // used as helper classes for e.g. the __parent_track field.
