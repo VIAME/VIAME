@@ -21,6 +21,7 @@ set( plugin_core_headers
   initialize_cameras_landmarks.h
   match_features_fundamental_matrix.h
   match_features_homography.h
+  merge_tracks.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
@@ -70,6 +71,7 @@ set( plugin_core_sources
   initialize_cameras_landmarks.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
+  merge_tracks.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
