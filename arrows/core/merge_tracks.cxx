@@ -126,7 +126,7 @@ merge_tracks( track_pairs_t const& matches,
   int num_merged = 0;
 
   // merge the tracks
-  VITAL_FOREACH( auto match, matches )
+  for( auto match : matches )
   {
     track_sptr t1 = match.first;
     track_sptr t2 = match.second;
