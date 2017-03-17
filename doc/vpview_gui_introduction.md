@@ -22,7 +22,7 @@ Note: The list is not complete, but currently focusing on the most used (and new
   Filename containing the tracks data.  
 * TrackPVOsFile = filename  
   Specifies (PVO or TOT) file  containing track classification data in the ASCII format  
-  where each line contains 'track-id person-probability vehicle-probability other-probability'.  
+  where each line contains 'track-id fish-probability scallop-probability other-probability'.  
 * TrackColorOverride = r g b  
   rgb color, specified from 0 to 1, overrides the default vpView track color for this
   project only  
