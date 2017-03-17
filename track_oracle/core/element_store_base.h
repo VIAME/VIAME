@@ -7,6 +7,9 @@
 #ifndef INCL_ELEMENT_STORE_BASE_H
 #define INCL_ELEMENT_STORE_BASE_H
 
+#include <vital/vital_config.h>
+#include <track_oracle/core/track_oracle_export.h>
+
 ///
 /// The base class for data columns in track_oracle.
 /// Serves several purposes:
@@ -24,7 +27,7 @@ class  TiXmlElement;
 namespace kwiver {
 namespace track_oracle {
 
-class element_store_base
+class TRACK_ORACLE_EXPORT element_store_base
 {
 public:
 

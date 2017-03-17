@@ -21,7 +21,9 @@
 #include <track_oracle/core/track_oracle_export.h>
 #define TRACK_FIELD_EXPORT TRACK_ORACLE_EXPORT
 #define KWIVER_IO_EXPORT TRACK_ORACLE_EXPORT
-
+#define TRACK_ORACLE_CORE_EXPORT TRACK_ORACLE_EXPORT
+#define ELEMENT_STORE_EXPORT TRACK_ORACLE_EXPORT
+#define TRACK_ORACLE_ROW_VIEW_EXPORT TRACK_ORACLE_EXPORT
 #include <track_oracle/core/track_oracle_instantiation.h>
 #include <track_oracle/core/track_field_instantiation.h>
 #include <track_oracle/core/track_oracle_row_view_instantiation.h>

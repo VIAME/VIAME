@@ -75,7 +75,7 @@ file_format_schema_type
   map< string, unsigned >::iterator probe = m.find( src_fn );
   if (probe == m.end())
   {
-    id = m.size() + 1; // first ID is 1
+    id = static_cast<unsigned>(m.size()) + 1; // first ID is 1
     m[ src_fn ] = id;
     id_to_src_fn_map_type& m2 = get_instance().id_to_src_fn;
     m2[ id ] = src_fn;
