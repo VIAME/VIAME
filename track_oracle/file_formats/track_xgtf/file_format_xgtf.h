@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_XGTF_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_xgtf/track_xgtf_export.h>
+#include <track_oracle/file_formats/track_xgtf/track_xgtf_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_xgtf/track_xgtf.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_xgtf/track_xgtf.h>
 
 namespace kwiver {
 namespace track_oracle {

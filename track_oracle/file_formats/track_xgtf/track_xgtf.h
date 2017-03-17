@@ -8,10 +8,10 @@
 #define INCL_TRACK_XGTF_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_xgtf/track_xgtf_export.h>
+#include <track_oracle/file_formats/track_xgtf/track_xgtf_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 
 #include <vgl/vgl_box_2d.h>
 

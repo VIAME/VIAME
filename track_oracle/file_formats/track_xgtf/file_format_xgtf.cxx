@@ -15,7 +15,7 @@
 
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/utils/logging_map.h>
-#include <track_oracle/track_xgtf/track_xgtf.h>
+#include <track_oracle/file_formats/track_xgtf/track_xgtf.h>
 #include <track_oracle/aries_interface/aries_interface.h>
 
 #include <iostream>
