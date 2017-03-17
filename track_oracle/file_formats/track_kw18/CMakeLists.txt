@@ -9,6 +9,7 @@ set( track_kw18_public_headers
 
 set( track_kw18_sources
   file_format_kw18.cxx
+  track_kw18_instances.cxx
 )
 
 kwiver_install_headers(
