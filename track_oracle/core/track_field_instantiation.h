@@ -62,33 +62,28 @@
 #define TRACK_FIELD_INSTANCES_DATA_TERM_SPECIAL_OUTPUT(T) \
   TRACK_FIELD_INSTANCES_GENERAL(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field();                        \
-  template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::~track_field(); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( kwiver::track_oracle::track_field_host * );
 
 #define TRACK_FIELD_INSTANCES_OLD_STYLE_SPECIAL_OUTPUT(T) \
   TRACK_FIELD_INSTANCES_GENERAL(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( const std::string& ); \
-  template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::~track_field(); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( const std::string&, kwiver::track_oracle::track_field_host* );
 
 #define TRACK_FIELD_INSTANCES_DATA_TERM_DEFAULT_OUTPUT(T) \
   TRACK_FIELD_INSTANCES_GENERAL(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field();                        \
-  template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::~track_field(); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( kwiver::track_oracle::track_field_host * ); \
   template TRACK_FIELD_EXPORT std::ostream& kwiver::track_oracle::operator<< < T >( std::ostream&, const kwiver::track_oracle::track_field< T >& );
 
 #define TRACK_FIELD_INSTANCES_OLD_STYLE_DEFAULT_OUTPUT(T) \
   TRACK_FIELD_INSTANCES_GENERAL(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( const std::string& ); \
-  template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::~track_field(); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( const std::string&, kwiver::track_oracle::track_field_host* ); \
   template TRACK_FIELD_EXPORT std::ostream& kwiver::track_oracle::operator<< < T >( std::ostream&, const kwiver::track_oracle::track_field< T >& );
 
 #define TRACK_FIELD_INSTANCES_OLD_STYLE_DEFAULT_OUTPUT_DEBUG(T) \
   TRACK_FIELD_INSTANCES_GENERAL_DEBUG(T) \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( const std::string& ); \
-  template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::~track_field(); \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T>::track_field( const std::string&, kwiver::track_oracle::track_field_host* ); \
   template TRACK_FIELD_EXPORT std::ostream& kwiver::track_oracle::operator<< < T >( std::ostream&, const kwiver::track_oracle::track_field< T >& );
 
@@ -99,7 +94,6 @@
 #define TRACK_FIELD_INSTANCES_OLD_STYLE_SPECIAL_OUTPUT_COMMA(T, T2)        \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T, T2>::track_field( const std::string& );    \
   template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T, T2>::track_field( const std::string&, kwiver::track_oracle::track_field_host* ); \
-  template TRACK_FIELD_EXPORT kwiver::track_oracle::track_field<T, T2>::~track_field(); \
   template TRACK_FIELD_EXPORT std::ostream& kwiver::track_oracle::operator<< < T, T2 >( std::ostream&, const kwiver::track_oracle::track_field< T, T2 >& );
 
 #undef TF_MACRO_COMMA

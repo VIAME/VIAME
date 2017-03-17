@@ -15,6 +15,8 @@
 
 #include <vital/types/timestamp.h>
 
+#include <track_oracle/core/state_flags.h>
+
 #include <vital/vital_config.h>
 #include <track_oracle/core/track_oracle_export.h>
 #define TRACK_FIELD_EXPORT TRACK_ORACLE_EXPORT
@@ -44,6 +46,8 @@
   ELEMENT_STORE_INSTANCES(T) \
   KWIVER_IO_BASE_INSTANCES(T)
 
+TRACK_ORACLE_INSTANCES(kwiver::track_oracle::state_flag_type);
+ELEMENT_STORE_INSTANCES(kwiver::track_oracle::state_flag_type);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_DEFAULT_OUTPUT(bool);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_DEFAULT_OUTPUT(int);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_DEFAULT_OUTPUT(double);
