@@ -1,11 +1,13 @@
 Scoring Notes
 -------------
 
-The KWANT package provides a scoring tool that can be used to
-calculate the probability of detecting an item. The input to this tool
-must be in the KitWare kw18 format. Several scripts are provided to
-convert habcam annotations and Scallop-TK output to kw18 format. The
-format is very simple so additional converters can be easily created.
+The KWANT package provides scoring tools that can be used to
+calculate the probability of detecting an item, along with other scoring
+metrics such as ROC curves, specificity, sensitivities, etc. The input to
+these tools must be in the Kitware kw18 format. Several scripts are provided to
+convert other formats (such as habcam annotations and Scallop-tk outputs) to
+kw18 format. The format is very simple so additional converters can be easily
+created.
 
 The scoring tool takes two files: the actual detections in the truth
 file and the computed detections. The computed detections are scored
@@ -66,5 +68,4 @@ The score_tracks tool is run as follows:
 
      score_tracks --computed-tracks computed_det.kw18 --truth-tracks ground_truth2.kw18
 
-A full list of the options can be coaxed from the tool by using the
-`-?` option.
+A full list of the options can be coaxed from the tool by using the `-?` option.
