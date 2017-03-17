@@ -9,7 +9,7 @@ process input
 process detector
   :: image_object_detector
   :detector:type                     scallop_tk
-  :detector:scallop_tk:config_file   config_location
+  :detector:scallop_tk:config_file   models/scallop_tk/SYSTEM_SETTINGS
 
 # =============================================================================
 process draw
