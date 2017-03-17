@@ -186,7 +186,7 @@ Additional Documentation
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
-[Running Detectors](doc/detector_introduction.rst) > > > [Examples](examples/detector_pipelines)
+[Running Detectors](doc/detector_introduction.rst) > > > [Pipeline Run Examples](examples/detector_pipelines) > > > [CXX Usage Examples](examples/using_detectors_in_cxx_code)
 
 
 [How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins)
@@ -195,7 +195,7 @@ Additional Documentation
 [Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
-[Scoring and Evaluation of Detectors](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
 [KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes/examples)

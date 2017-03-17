@@ -1,3 +1,6 @@
+GUI Notes
+---------
+
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
 GUIs are useful for displaying detections, their respective probabilities, and for making
 new annotations in video. There are additionally simpler GUIs which can be enabled in .pipe
