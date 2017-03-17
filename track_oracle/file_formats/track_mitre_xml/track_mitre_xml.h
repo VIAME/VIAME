@@ -8,10 +8,10 @@
 #define INCL_TRACK_MITRE_XML_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_mitre_xml/track_mitre_xml_export.h>
+#include <track_oracle/file_formats/track_mitre_xml/track_mitre_xml_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_point_2d.h>
 

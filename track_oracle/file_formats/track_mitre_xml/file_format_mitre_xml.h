@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_MITRE_BOX_XML_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_mitre_xml/track_mitre_xml_export.h>
+#include <track_oracle/file_formats/track_mitre_xml/track_mitre_xml_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_mitre_xml/track_mitre_xml.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_mitre_xml/track_mitre_xml.h>
 
 namespace kwiver {
 namespace track_oracle {
