@@ -8,10 +8,10 @@
 #define INCL_TRACK_KW_18_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_kw18/track_kw18_export.h>
+#include <track_oracle/file_formats/track_kw18/track_kw18_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 #include <track_oracle/data_terms/data_terms.h>
 
 namespace kwiver {
