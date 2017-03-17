@@ -8,10 +8,10 @@
 #define INCL_TRACK_COMMS_XML_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_comms_xml/track_comms_xml_export.h>
+#include <track_oracle/file_formats/track_comms_xml/track_comms_xml_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 #include <vgl/vgl_box_2d.h>
 
 /*

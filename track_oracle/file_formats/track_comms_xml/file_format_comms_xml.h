@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_COMMS_XML_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_comms_xml/track_comms_xml_export.h>
+#include <track_oracle/file_formats/track_comms_xml/track_comms_xml_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_comms_xml/track_comms_xml.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_comms_xml/track_comms_xml.h>
 
 namespace kwiver {
 namespace track_oracle {
