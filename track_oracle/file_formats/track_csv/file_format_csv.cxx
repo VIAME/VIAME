@@ -6,16 +6,16 @@
 
 #include "file_format_csv.h"
 
-#include <track_oracle/track_csv/track_csv.h>
+#include <track_oracle/file_formats/track_csv/track_csv.h>
 #ifdef KWIVER_ENABLE_TRACK_MGRS
 #include <track_oracle/track_scorable_mgrs/scorable_mgrs_data_term.h>
 #endif
 
 #include <track_oracle/utils/tokenizers.h>
-#include <track_oracle/element_store_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/element_store_base.h>
+#include <track_oracle/core/track_field.h>
+#include <track_oracle/core/state_flags.h>
 #include <track_oracle/data_terms/data_terms.h>
-#include <track_oracle/state_flags.h>
 
 #include <boost/smart_ptr.hpp>
 #include <boost/lexical_cast.hpp>

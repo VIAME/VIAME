@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_CSV_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_csv/track_csv_export.h>
+#include <track_oracle/file_formats/track_csv/track_csv_export.h>
 
-#include <track_oracle/track_csv/track_csv.h>
-#include <track_oracle/file_format_base.h>
+#include <track_oracle/file_formats/track_csv/track_csv.h>
+#include <track_oracle/file_formats/file_format_base.h>
 
 namespace kwiver {
 namespace track_oracle {
