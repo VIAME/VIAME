@@ -13,7 +13,7 @@
 
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/utils/logging_map.h>
-#include <track_oracle/element_store_base.h>
+#include <track_oracle/core/element_store_base.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
