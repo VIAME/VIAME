@@ -1,11 +1,14 @@
-GUI Notes
----------
+General GUI Notes
+-----------------
 
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
 GUIs are useful for displaying detections, their respective probabilities, and for making
 new annotations in video. There are additionally simpler GUIs which can be enabled in .pipe
 files that are a part of KWIVER. For examples on how to run these see the "visualizing_detections_in_gui"
 example folder.
+
+vpView GUI Notes
+----------------
 
 vpView does not open videos directory, but instead open prj files containing a pointer
 to any imagery and detections we want to load. Listed below are the parameters available in
