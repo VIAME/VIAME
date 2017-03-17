@@ -189,7 +189,7 @@ Additional Documentation
 [Running Detectors](doc/detector_introduction.rst) > > > [Pipeline Run Examples](examples/detector_pipelines) > > > [CXX Usage Examples](examples/using_detectors_in_cxx_code)
 
 
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins)
+[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins) > > > [Templates](plugins/templates)
 
 
 [Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
