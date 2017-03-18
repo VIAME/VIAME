@@ -8,10 +8,10 @@
 #define INCL_TRACK_CALLOUT_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_e2at_callout/track_e2at_callout_export.h>
+#include <track_oracle/file_formats/track_e2at_callout/track_e2at_callout_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 
 /*
 This is a schema for the E2AT callout CSVs.

@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_CALLOUT_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_e2at_callout/track_e2at_callout_export.h>
+#include <track_oracle/file_formats/track_e2at_callout/track_e2at_callout_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_e2at_callout/track_e2at_callout.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_e2at_callout/track_e2at_callout.h>
 
 namespace kwiver {
 namespace track_oracle {

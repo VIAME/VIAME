@@ -16,31 +16,31 @@
 
 #include <vital/types/timestamp.h>
 
-#include <track_oracle/file_format_schema.h>
-#include <track_oracle/file_format_base.h>
+#include <track_oracle/file_formats/file_format_schema.h>
+#include <track_oracle/file_formats/file_format_base.h>
 
-#include <track_oracle/state_flags.h>
-#include <track_oracle/element_store_base.h>
+#include <track_oracle/core/state_flags.h>
+#include <track_oracle/core/element_store_base.h>
 
-#include <track_oracle/track_kw18/file_format_kw18.h>
+#include <track_oracle/file_formats/track_kw18/file_format_kw18.h>
 #ifdef SHAPELIB_ENABLED
-#include <track_oracle/track_apix/file_format_apix.h>
+#include <track_oracle/file_formats/track_apix/file_format_apix.h>
 #endif
-#include <track_oracle/track_comms_xml/file_format_comms_xml.h>
-#include <track_oracle/track_kst/file_format_kst.h>
-#include <track_oracle/track_kwxml/file_format_kwxml.h>
-#include <track_oracle/track_mitre_xml/file_format_mitre_xml.h>
-#include <track_oracle/track_xgtf/file_format_xgtf.h>
-#include <track_oracle/track_vatic/file_format_vatic.h>
-#include <track_oracle/track_vpd/file_format_vpd_track.h>
-#include <track_oracle/track_vpd/file_format_vpd_event.h>
-#include <track_oracle/track_e2at_callout/file_format_e2at_callout.h>
+#include <track_oracle/file_formats/track_comms_xml/file_format_comms_xml.h>
+#include <track_oracle/file_formats/track_kst/file_format_kst.h>
+#include <track_oracle/file_formats/track_kwxml/file_format_kwxml.h>
+#include <track_oracle/file_formats/track_mitre_xml/file_format_mitre_xml.h>
+#include <track_oracle/file_formats/track_xgtf/file_format_xgtf.h>
+#include <track_oracle/file_formats/track_vatic/file_format_vatic.h>
+#include <track_oracle/file_formats/track_vpd/file_format_vpd_track.h>
+#include <track_oracle/file_formats/track_vpd/file_format_vpd_event.h>
+#include <track_oracle/file_formats/track_e2at_callout/file_format_e2at_callout.h>
 #ifdef TRACK_4676_ENABLED
-#include <track_oracle/track_4676/file_format_4676.h>
+#include <track_oracle/file_formats/track_4676/file_format_4676.h>
 #endif
-#include <track_oracle/track_csv/file_format_csv.h>
-#include <track_oracle/track_kwiver/file_format_kwiver.h>
-#include <track_oracle/schema_algorithm.h>
+#include <track_oracle/file_formats/track_csv/file_format_csv.h>
+#include <track_oracle/file_formats/track_kwiver/file_format_kwiver.h>
+#include <track_oracle/file_formats/schema_algorithm.h>
 
 #include <boost/thread/mutex.hpp>
 
