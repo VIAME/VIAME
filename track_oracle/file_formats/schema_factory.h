@@ -14,7 +14,7 @@
 //
 
 #include <vital/vital_config.h>
-#include <track_oracle/core/track_oracle_file_formats_export.h>
+#include <track_oracle/file_formats/track_oracle_file_formats_export.h>
 
 #include <string>
 

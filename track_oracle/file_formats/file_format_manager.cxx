@@ -40,7 +40,7 @@
 #endif
 #include <track_oracle/file_formats/track_csv/file_format_csv.h>
 #include <track_oracle/file_formats/track_kwiver/file_format_kwiver.h>
-#include <track_oracle/file_formats/schema_algorithm.h>
+#include <track_oracle/core/schema_algorithm.h>
 
 #include <boost/thread/mutex.hpp>
 
