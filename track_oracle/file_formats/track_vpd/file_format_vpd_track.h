@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_VPD_TRACK_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_vpd/track_vpd_export.h>
+#include <track_oracle/file_formats/track_vpd/track_vpd_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_vpd/track_vpd_track.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_vpd/track_vpd_track.h>
 
 namespace kwiver {
 namespace track_oracle {

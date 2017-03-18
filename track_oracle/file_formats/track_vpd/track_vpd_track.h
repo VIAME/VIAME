@@ -8,10 +8,10 @@
 #define INCL_TRACK_VPD_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_vpd/track_vpd_export.h>
+#include <track_oracle/file_formats/track_vpd/track_vpd_export.h>
 
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
 #include <string>
 #include <utility>
 #include <vgl/vgl_box_2d.h>
