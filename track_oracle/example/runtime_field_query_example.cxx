@@ -14,10 +14,10 @@
 #include <string>
 #include <cstdlib>
 
-#include <track_oracle/track_oracle_core.h>
-#include <track_oracle/element_descriptor.h>
-#include <track_oracle/track_field.h>
-#include <track_oracle/file_format_manager.h>
+#include <track_oracle/core/track_oracle_core.h>
+#include <track_oracle/core/element_descriptor.h>
+#include <track_oracle/core/track_field.h>
+#include <track_oracle/file_formats/file_format_manager.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
