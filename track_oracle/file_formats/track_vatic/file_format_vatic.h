@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_VATIC_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_vatic/track_vatic_export.h>
+#include <track_oracle/file_formats/track_vatic/track_vatic_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_vatic/track_vatic.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_vatic/track_vatic.h>
 
 namespace kwiver {
 namespace track_oracle {
