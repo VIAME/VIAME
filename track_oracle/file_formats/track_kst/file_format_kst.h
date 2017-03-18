@@ -8,10 +8,10 @@
 #define INCL_FILE_FORMAT_KST_H
 
 #include <vital/vital_config.h>
-#include <track_oracle/track_kst/track_kst_export.h>
+#include <track_oracle/file_formats/track_kst/track_kst_export.h>
 
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/track_kst/track_kst.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/track_kst/track_kst.h>
 
 namespace kwiver {
 namespace track_oracle {
