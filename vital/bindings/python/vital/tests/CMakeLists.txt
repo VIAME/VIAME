@@ -2,9 +2,11 @@
 # Python support
 #
 
-## kwiver_create_python_plugin_init(vital/tests)
-
 # Add python modules
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/helpers.py
+  vital/tests
+  helpers )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_algo_convert_image.py
   vital/tests
   test_algo_convert_image )
@@ -13,6 +15,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_apm.py
   vital/tests
   test_apm )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera.py
+  vital/tests
+  test_camera )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera_intrinsics.py
   vital/tests
   test_camera_intrinsics )
@@ -20,10 +26,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera_intrinsics.py
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera_map.py
   vital/tests
   test_camera_map )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera.py
-  vital/tests
-  test_camera )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_color.py
   vital/tests
@@ -53,17 +55,29 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_find_vital_library.py
   vital/tests
   test_find_vital_library )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_image_container.py
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_homography.py
   vital/tests
-  test_image_container )
+  test_homography )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_image.py
   vital/tests
   test_image )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_image_container.py
+  vital/tests
+  test_image_container )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_landmark.py
+  vital/tests
+  test_landmark )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_rotation.py
   vital/tests
   test_rotation )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_similarity.py
+  vital/tests
+  test_similarity )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track.py
   vital/tests
@@ -72,6 +86,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track.py
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track_set.py
   vital/tests
   test_track_set )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track_state.py
+  vital/tests
+  test_track_state )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   vital/tests

@@ -148,7 +148,7 @@ class Rotation (VitalObject):
         :param axis: Axis column vector (3x1)
         :type axis: collections.Iterable
 
-        :param angle: Angle of rotation about axis
+        :param angle: Angle of rotation about axis (radians)
         :type angle: float
 
         :param ctype: C data type to store rotation data in.
@@ -175,15 +175,16 @@ class Rotation (VitalObject):
     @classmethod
     def from_ypr(cls, yaw, pitch, roll, ctype=ctypes.c_double):
         """
-        Create rotation based on the given yaw, pitch and roll values.
+        Create rotation based on the given yaw, pitch and roll values with that
+        assumed order.
 
-        :param yaw: yaw value
+        :param yaw: yaw value (radians)
         :type yaw: float
 
-        :param pitch: pitch value
+        :param pitch: pitch value (radians)
         :type pitch: float
 
-        :param roll: roll value
+        :param roll: roll value (radians)
         :type roll: float
 
         :param ctype: C data type to store rotation data in.
@@ -445,7 +446,7 @@ class Rotation (VitalObject):
 
     def axis(self):
         """
-        :return: This rotation's axis and angle.
+        :return: This rotation's axis of rotation.
         :rtype: (vital.types.EigenArray, float)
         """
         r2axis = self._get_c_function(self._spec, 'axis')
@@ -457,6 +458,10 @@ class Rotation (VitalObject):
                           from_cptr=mat_ptr, owns_data=True)
 
     def angle(self):
+        """
+        :return: This rotation's angle of rotation (radians).
+        :rtype: float
+        """
         r2angle = self._get_c_function(self._spec, 'angle')
         r2angle.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         r2angle.restype = self._ctype
@@ -465,7 +470,7 @@ class Rotation (VitalObject):
 
     def rodrigues(self):
         """
-        :return: This rotation as a Rodrigues vector
+        :return: This rotation as a Rodrigues vector.
         :rtype: vital.types.EigenArray
         """
         r2rod = self._get_c_function(self._spec, "rodrigues")
@@ -477,6 +482,10 @@ class Rotation (VitalObject):
                               from_cptr=rod_ptr, owns_data=True)
 
     def yaw_pitch_roll(self):
+        """
+        :return: Convert to yaw, pitch, and roll (radians).
+        :rtype: tuple of three floats
+        """
         r2ypr = self._get_c_function(self._spec, "ypr")
         r2ypr.argtypes = [self.C_TYPE_PTR,
                           ctypes.POINTER(self._ctype),  # yaw
@@ -506,8 +515,8 @@ class Rotation (VitalObject):
         """
         Compose this rotation with another (multiply).
 
-        This rotation is considered the left-hand operand and the given rotation
-        is considered the right-hand operand.
+        This rotation is considered the left-hand operand and the given 
+        rotation is considered the right-hand operand.
 
         Result rotation will have the same data type as this rotation.
 

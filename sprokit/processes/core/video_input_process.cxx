@@ -168,6 +168,13 @@ void video_input_process
     //
     // Sometimes the video source can not determine either the frame
     // number or frame time or both.
+    if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
+    {
+      throw sprokit::invalid_configuration_exception( name(),
+            "Video reader selected does not supply image data." );
+    }
+
+
     if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
     {
       d->m_frame_number = ts.get_frame();

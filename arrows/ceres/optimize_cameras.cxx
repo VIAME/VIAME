@@ -183,7 +183,8 @@ void
 optimize_cameras
 ::optimize(vital::camera_map_sptr & cameras,
            vital::track_set_sptr tracks,
-           vital::landmark_map_sptr landmarks) const
+           vital::landmark_map_sptr landmarks,
+           vital::video_metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
   {
@@ -317,7 +318,8 @@ void
 optimize_cameras
 ::optimize(vital::camera_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
-           const std::vector<vital::landmark_sptr>& landmarks) const
+           const std::vector<vital::landmark_sptr>& landmarks,
+           kwiver::vital::video_metadata_vector metadata) const
 {
   // extract camera parameters to optimize
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);

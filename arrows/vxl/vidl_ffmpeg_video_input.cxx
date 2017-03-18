@@ -180,6 +180,9 @@ public:
         }
 
         meta->set_timestamp( ts );
+
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_FILENAME,
+                                      video_path ) );
         this->metadata_collection.push_back( meta );
 
         // indicate we have found
