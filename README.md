@@ -4,11 +4,11 @@
 VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
 majorly targeting marine species analytics. It is also useful as a general computer
-vision toolkit, since it contains many common algorithms and builds other popular
-repositories together. The core infrastructure connecting different system components
-is currently the KWIVER library, which can connect C/C++, python, and matlab nodes
-together in a graph-like pipeline architecture. For more information about KWIVER's
-capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
+vision toolkit as it contains many common algorithms and compiles several other popular
+repositories together as a part of its build process. The core infrastructure connecting
+different system components is currently the KWIVER library, which can connect C/C++, python,
+and matlab nodes together in a graph-like pipeline architecture. For more information
+about KWIVER's capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
 Alongside the pipelined image processing system are a number of standalone utilties
 for model training, output detection visualization, and detector/tracker
 evaluation (a.k.a. scoring).
@@ -193,18 +193,18 @@ approach to select which concrete implementation to instantiate.
 
 For a simple pipeline test, go to -
 
-$ cd [install-directory]/examples/hello_world_pipeline/
+  cd [install-directory]/examples/hello_world_pipeline/
 
 or
 
-$ cd [install-directory]/examples/detector_pipelines/
+  cd [install-directory]/examples/detector_pipelines/
 
 In those directories, run one of the detector pipelines. Which ENABLE_FLAGS you
 enabled will control which detector pipelines you can run, and only pipeline files
 with all required dependencies enabled will show up in the install tree.
 They can be run via one of the scripts placed in the directory, or via:
 
-'pipeline_runner -p [pipeline-file].pipe'
+  'pipeline_runner -p [pipeline-file].pipe'
 
 Output detections can then be viewed in the GUI, e.g., see:
 
