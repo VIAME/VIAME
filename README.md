@@ -3,13 +3,15 @@
 <br>
 VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
-majorly targeting marine species analytics. The core infrastructure connecting
-different system components is currently the KWIVER library, which can connect
-C/C++, python, and matlab nodes together in a graph-like pipeline architecture.
-For more information about KWIVER's capabilities, please
-see <a href="https://github.com/Kitware/kwiver/">here</a>. Alongside the pipelined image
-processing system are a number of standalone utilties for model training,
-output detection visualization, and detector/tracker evaluation (a.k.a. scoring).
+majorly targeting marine species analytics. It is also useful as a general computer
+vision toolkit, since it contains many common algorithms and builds other popular
+repositories together. The core infrastructure connecting different system components
+is currently the KWIVER library, which can connect C/C++, python, and matlab nodes
+together in a graph-like pipeline architecture. For more information about KWIVER's
+capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
+Alongside the pipelined image processing system are a number of standalone utilties
+for model training, output detection visualization, and detector/tracker
+evaluation (a.k.a. scoring).
 
 <p align="center">
 <br>
@@ -29,8 +31,8 @@ with additional tips [here](doc/build_and_install_guide.rst#build-tips-n-tricks)
 [here](doc/build_and_install_guide.rst#known-issues).
 
 VIAME itself can be built either as a super-build, which builds most of its
-dependencies alongside itself, or standalone. To build viame as a super-build
-requires [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
+dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
+[Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
 If using the command line, run the following commands, only replacing [source-directory] and
 [build-directory] with locations of your choice:
 
@@ -116,38 +118,38 @@ Another good initial test is to run the [install-directory]/bin/plugin_explorer 
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
-\-\-\-\- Algorithm search path  
+\-\-\-\- Algorithm search path
 
-Factories that create type "image_object_detector"  
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
-Info on algorithm type "image_object_detector" implementation "darknet"  
-  Plugin name: darknet      Version: 1.0  
-      Description:        Image object detector using darknet  
-      Creates concrete type: kwiver::arrows::darknet::darknet_detector  
-      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so  
-      Plugin module name: arrows.darknet  
-  
-Factories that create type "track_features"  
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
-Info on algorithm type "track_features" implementation "core"  
-  Plugin name: core      Version: 1.0  
-      Description:        Track features from frame to frame using feature detection, matching, and  
-       loop closure.  
-      Creates concrete type: kwiver::arrows::core::track_features_core  
-      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so  
-      Plugin module name: arrows.core  
-  
-Factories that create type "video_input"  
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-  
-Info on algorithm type "video_input" implementation "vxl"  
-  Plugin name: vxl      Version: 1.0  
-      Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.  
-      Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input  
-      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so  
-      Plugin module name: arrows.vxl  
-  
-etc...  
-  
+Factories that create type "image_object_detector"
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+Info on algorithm type "image_object_detector" implementation "darknet"
+  Plugin name: darknet      Version: 1.0
+      Description:        Image object detector using darknet
+      Creates concrete type: kwiver::arrows::darknet::darknet_detector
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so
+      Plugin module name: arrows.darknet
+
+Factories that create type "track_features"
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+Info on algorithm type "track_features" implementation "core"
+  Plugin name: core      Version: 1.0
+      Description:        Track features from frame to frame using feature detection, matching, and
+       loop closure.
+      Creates concrete type: kwiver::arrows::core::track_features_core
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so
+      Plugin module name: arrows.core
+
+Factories that create type "video_input"
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+Info on algorithm type "video_input" implementation "vxl"
+  Plugin name: vxl      Version: 1.0
+      Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.
+      Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input
+      Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so
+      Plugin module name: arrows.vxl
+
+etc...
+
 The plugin loaded line represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm
 list shows each concrete algorithm that could be loaded and declared in pipeline files.
