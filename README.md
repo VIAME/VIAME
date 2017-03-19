@@ -29,8 +29,8 @@ Pre-Built Binaries
 Coming Soon
 
 
-Example Documentation
----------------------
+Documentation
+-------------
 
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
