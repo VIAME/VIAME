@@ -1,8 +1,8 @@
-Running a detector in CXX code
-------------------------------
+Running a detector from C++ code
+--------------------------------
 
-We will be using a Hough circle detector as an and example of what the
-mechanics of implementing a VIAME detector using the KWIVER framework.
+We will be using a Hough circle detector as an and example of the
+mechanics of implementing a VIAME detector in cxx code.
 
 In general, detectors accept images and produce detections. The data
 types that we will need to get data in and out of the detector are
@@ -23,13 +23,13 @@ Now that we have an image, we can pass it to the detector using the following me
 `hough_circle_detector` and get a list of detections.
 
 ```
-  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data) const;
+  virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data ) const;
 ```
 
 The detections, for example, can be drawn on the original image to see
 how well the detector is performing.
 
-The following program implements a simple single image detector.
+The following program implements a simple single object detector.
 
 ```
     #include <arrows/ocv/image_container.h>
@@ -68,7 +68,7 @@ Now that we have a simple program running, there are two concepts that
 are supported by vital that are essential for building larger
 applications; logging and configuration support.
 
-LOGGING
+Logging
 -------
 
 Vital provides logging support through macros that are used in the
@@ -89,7 +89,7 @@ of code implements a logger and generates a message.
 
 ```
 
-The vita logger is similar to most loggers in that it needs logging
+The vital logger is similar to most loggers in that it needs logging
 object to provide context for the log message. Each logger object has
 an associated name that can be used to when configuring what logging
 output should be displayed. The default logger does not provide any
