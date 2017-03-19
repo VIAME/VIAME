@@ -210,5 +210,5 @@ They can be run via one of the scripts placed in the directory, or via:
 
 Output detections can then be viewed in the GUI, e.g., see:
 
-	[install-directory]/examples/visualizing_detections_in_gui/
+[install-directory]/examples/visualizing_detections_in_gui/
 
