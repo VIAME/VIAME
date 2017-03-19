@@ -130,9 +130,21 @@ if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
 endif()
 
-if (fletch_BUILD_WITH_CUDNN)
+if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
-  mark_as_advanced( CUDNN_ROOT )
+
+  find_library( CUDNN_LIBRARY REQUIRED
+    NAMES cudnn libcudnn.so libcudnn.so.5
+    PATHS ${CUDNN_ROOT}
+          ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
+          ${CUDA_TOOLKIT_ROOT_DIR}
+    PATH_SUFFIXES lib lib64 )
+
+  if( NOT CUDNN_LIBRARY )
+    message( FATAL_ERROR "Unable to locate CUDNN library" )
+  else()
+    set( CUDNN_LIBRARIES CUDNN_LIBRARY CACHE INTERNAL ) # Different subprojects use each variable
+  endif()
 endif()
 
 if( WIN32 AND VIAME_ENABLE_CAFFE )
