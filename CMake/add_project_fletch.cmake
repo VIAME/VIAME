@@ -17,6 +17,10 @@ if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
 endif()
 
+if( VIAME_ENABLE_CUDNN )
+  FormatPassdowns( "CUDNN" VIAME_CUDNN_FLAGS )
+endif()
+
 if( VIAME_ENABLE_VXL )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -65,35 +69,35 @@ endif()
 if( VIAME_ENABLE_CUDA )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_DISABLE_GPU_SUPPORT:BOOL=OFF
+    -Dfletch_BUILD_WITH_CUDA:BOOL=ON
   )
-  if( VIAME_ENABLE_CUDA )
+  if( VIAME_ENABLE_CUDNN )
     set( fletch_DEP_FLAGS
       ${fletch_DEP_FLAGS}
-      -Dfletch_DISABLE_CUDNN_SUPPORT:BOOL=OFF
+      -Dfletch_BUILD_WITH_CUDNN:BOOL=ON
     )
   else()
     set( fletch_DEP_FLAGS
-     ${fletch_DEP_FLAGS}
-      -Dfletch_DISABLE_CUDNN_SUPPORT:BOOL=ON
+      ${fletch_DEP_FLAGS}
+      -Dfletch_BUILD_WITH_CUDNN:BOOL=OFF
     )
   endif()
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_DISABLE_GPU_SUPPORT:BOOL=ON
+    -Dfletch_BUILD_WITH_CUDA:BOOL=OFF
   )
 endif()
 
 if( VIAME_ENABLE_FFMPEG )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_DISABLE_FFMPEG_SUPPORT:BOOL=OFF
+    -Dfletch_ENABLE_FFmpeg:BOOL=ON
   )
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_DISABLE_FFMPEG_SUPPORT:BOOL=ON
+    -Dfletch_ENABLE_FFmpeg:BOOL=OFF
   )
 endif()
 
@@ -105,6 +109,7 @@ ExternalProject_Add(fletch
     ${VIAME_ARGS_COMMON}
     ${VIAME_PYTHON_FLAGS}
     ${VIAME_CUDA_FLAGS}
+    ${VIAME_CUDNN_FLAGS}
 
     -DBUILD_SHARED_LIBS:BOOL=ON
 

@@ -23,6 +23,14 @@ if( VIAME_ENABLE_CUDA )
   FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
 endif()
 
+if( VIAME_ENABLE_CUDNN )
+  FormatPassdowns( "CUDNN" VIAME_CUDNN_FLAGS )
+endif()
+
+if( VIAME_ENABLE_CUDNN )
+  FormatPassdowns( "DOXYGEN" VIAME_DOXYGEN_FLAGS )
+endif()
+
 if( VIAME_ENABLE_YOLO )
   set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} darknet )
 endif()
@@ -40,6 +48,8 @@ ExternalProject_Add(kwiver
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
     ${VIAME_CUDA_FLAGS}
+    ${VIAME_CUDNN_FLAGS}
+    ${VIAME_DOXYGEN_FLAGS}
 
     # Required
     -DBUILD_SHARED_LIBS:BOOL=ON

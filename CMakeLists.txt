@@ -88,6 +88,10 @@ if( VIAME_ENABLE_MATLAB )
   find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
 endif()
 
+if( VIAME_ENABLE_DOCS )
+  find_package( Doxygen REQUIRED )
+endif()
+
 if( VIAME_ENABLE_PYTHON )
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF)
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
@@ -124,6 +128,11 @@ endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
+endif()
+
+if (fletch_BUILD_WITH_CUDNN)
+  set( CUDNN_ROOT "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
+  mark_as_advanced( CUDNN_ROOT )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_CAFFE )
@@ -209,7 +218,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_faster_rcnn )
   endif()
 
-  # Viame plugins
+  # VIAME plugins, adds this project causing the below else() block to run
   include( add_project_viame )
 
 else()
@@ -271,7 +280,7 @@ else()
     set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
     set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
     set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
-  
+
     configure_file(
       ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
       ${VIAME_PIPELINE_RUNNER_SCRIPT}
