@@ -286,25 +286,39 @@ CMake says it cannot find matlab
 
 Make sure your matlab CMake paths are set to something like the following
 
-Matlab_ENG_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libeng.so\n
-Matlab_INCLUDE_DIRS:PATH=[matlab_install_loc]/extern/include\n
-Matlab_MEX_EXTENSION:STRING=mexa64\n
-Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so\n
-Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so\n
-Matlab_ROOT_DIR:PATH=[matlab_install_loc]\n
+Matlab_ENG_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libeng.so
+
+Matlab_INCLUDE_DIRS:PATH=[matlab_install_loc]/extern/include
+
+Matlab_MEX_EXTENSION:STRING=mexa64
+
+Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so
+
+Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so
+
+Matlab_ROOT_DIR:PATH=[matlab_install_loc]
+
 
 
 **Issue:**
 
-When PYTHON is enabled, getting the below error.\n
+When PYTHON is enabled, getting the below error.
 
-[100%] Building CXX object python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o\n
-_caffe.cpp:8:41: error: boost/python/raw_function.hpp: No such file or directory\n
-_caffe.cpp: In function ‘void caffe::init_module__caffe()’:\n
-_caffe.cpp:349: error: ‘raw_function’ is not a member of ‘bp’\n
-_caffe.cpp:406: error: ‘raw_function’ is not a member of ‘bp’\n
-make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1\n
-make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2\n
+
+[100%] Building CXX object python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o
+
+_caffe.cpp:8:41: error: boost/python/raw_function.hpp: No such file or directory
+
+_caffe.cpp: In function ‘void caffe::init_module__caffe()’:
+
+_caffe.cpp:349: error: ‘raw_function’ is not a member of ‘bp’
+
+_caffe.cpp:406: error: ‘raw_function’ is not a member of ‘bp’
+
+make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1
+
+make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2
+
 make: *** [all] Error 2
 
 **Solution:**
