@@ -5,18 +5,18 @@
 .. _linux-label:
 
 ======================
-Building Viame (Linux)
+Building VIAME (Linux)
 ======================
 
-These instructions are designed to help build Viame on a fresh machine. They were written for and tested on Ubuntu
+These instructions are designed to help build VIAME on a fresh machine. They were written for and tested on Ubuntu
 16.04 Desktop version. Other Linux machines will have similar directions, but some steps (particularly the dependency
-install) may not be exactly identical. Viame has also been built on: CentOS/RHEL 6+, Fedora 19+, Ubuntu 14.04+.
+install) may not be exactly identical. VIAME has also been built on: CentOS/RHEL 6+, Fedora 19+, Ubuntu 14.04+.
 
 ********************
 Install Dependencies
 ********************
 
-Some of the dependencies required for Viame can be installed with one quick and easy instruction with no configuration
+Some of the dependencies required for VIAME can be installed with one quick and easy instruction with no configuration
 required. Different Linux distributions may have different packages already installed, or may use a different package
 manager than apt, but on Ubuntu this should help to provide a starting point.
 
@@ -26,17 +26,17 @@ manager than apt, but on Ubuntu this should help to provide a starting point.
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy, e.g.:
 
-`sudo pip install numpy`
+`sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy`
 
 Install CMAKE
 =============
 
-Depending on the OS, the version of cmake you get with apt/yum is often too old to use for Viame (you currently need
+Depending on the OS, the version of cmake you get with apt/yum is often too old to use for VIAME (you currently need
 at least CMake 3.3) so you may need to do a manual install. Go to the cmake website,
 `https://cmake.org/download`, and download the appropriate binary distribution (for Ubuntu, this would be something
-like cmake-3.6.1-Linux-x86_64.sh, depending on version). Download the source code, cmake-3.6.1.tar.gz (or just download
-and use the installer for windows).  To untar and build the source, use the following
-set of commands. Keep in mind that if you're not using version 3.6.1, you'll need to update the version number in the
+like cmake-3.6.1-Linux-x86_64.sh, depending on version). Alternatively, download the source code, e.g. cmake-3.6.1.tar.gz,
+and build the binaries from source. To untar and build the source, use the following set of commands. Keep in mind
+that if you're not using version 3.6.1, you'll need to update the version number in the
 below to match your downloaded version.
 
 `cd ~/Downloads`
@@ -54,15 +54,16 @@ below to match your downloaded version.
 `sudo ln -s /usr/local/bin/cmake /bin/cmake`
 
 These instructions build the source code into a working executable, installs the executable into a personal system
-directory, and then lets the operating system know where that directory is so it can find cmake in the future.
+directory, and then lets the operating system know where that directory is so it can find cmake in the future in
+case /usr/local/bin isn't in your PATH variable by default.
 
 ******************
 Prepare the Source
 ******************
 
-With all our dependencies installed, we need to build the environment for Viame itself. Viame uses git submodules rather
+With all our dependencies installed, we need to build the environment for VIAME itself. VIAME uses git submodules rather
 than requiring the user to grab each repository totally separately. To prepare the environment and obtain all the necessary
-source code, use the following commands. Note that you can change `src` to whatever you want to name your Viame source directory.
+source code, use the following commands. Note that you can change `src` to whatever you want to name your VIAME source directory.
 
 `git clone git@github.com:Kitware/VIAME.git src`
 
@@ -71,29 +72,68 @@ source code, use the following commands. Note that you can change `src` to whate
 `git submodule update --init --recursive`
 
 ***********
-Build Viame
+Build VIAME
 ***********
 
-Viame may be built with a number of optional plugins--VXL, Caffe, OpenCV, Scallop_TK, and Matlab--with a corresponding option
+VIAME may be built with a number of optional plugins--VXL, Caffe, OpenCV, Scallop_TK, and Matlab--with a corresponding option
 called VIAME_ENABLE_[option], in all caps. For each plugin to install, you need a cmake build flag setting the option. The
 flag looks like `-DVIAME_ENABLE_OPENCV:BOOL=ON`, of course changing OPENCV to match the plugin. Multiple plugins may be
-used, or none.
+used, or none. They are listed below:
 
-Viame can be built either in the source directory tree or in a seperate build directory (recommended). Replace "build" with
-your location of choice, and run the following commands:
+<center>
 
-`mkdir build`
+| Flag                         | Description                                                                           |
+|------------------------------|---------------------------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                 |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
+| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, FRCNN dependency)          |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes                                           |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
+| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                                       |
+| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
 
-`cd build`
+</center>
+
+There are also a number of flags which control which system utilities and optimizations are built in, e.g.:
+
+<center>
+
+| Flag                         | Description                                                                                 |
+|------------------------------|---------------------------------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Caffe, etc...)               |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                     |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                 |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
+
+</center>
+
+VIAME can be built either in the source directory tree or in a seperate build directory (recommended). Replace
+"[build-directory]" with your location of choice, and run the following commands:
+
+`mkdir [build-directory]`
+
+`cd [build-directory]`
 
 `cmake [build_flags] [path_to_source_tree]`
 
 `make` or `make -j10` for a threaded build
 
+Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables
+to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled.
+
+![cmake-options](http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png)
+
 .. _mac-label:
 
 ====================
-Building Viame (Mac)
+Building VIAME (Mac)
 ====================
 
 Building on Mac is very similar to Linux, minus the dependency install stage. Currently, we have only tested VIAME
@@ -104,7 +144,7 @@ follow the same Linux build instructions above.
 .. _windows-label:
 
 ========================
-Building Viame (Windows)
+Building VIAME (Windows)
 ========================
 
 Building on windows can be very similar to Linux if using a shell like cygwin (`https://www.cygwin.com/`), though if not you
@@ -157,7 +197,7 @@ Known Issues
 When compiling with CUDA turned on:
 
 nvcc fatal   : Visual Studio configuration file 'vcvars64.bat' could not be found for
-installation at 'Microsoft Visual Studio XX.0\VC\bin\x86_amd64/../../..' or similar
+installation at 'Microsoft Visual Studio XX.0/VC/bin/x86_amd64/../../..' or similar
 
 **Solution:**
 

@@ -23,6 +23,34 @@ evaluation (a.k.a. scoring).
 </p>
 <br>
 
+Pre-Built Binaries
+------------------
+
+Coming Soon
+
+
+Example Documentation
+---------------------
+
+[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
+
+
+[Running Detectors](doc/detector_introduction.rst) > > > [Pipeline Run Examples](examples/detector_pipelines) > > > [CXX Usage Examples](examples/using_detectors_in_cxx_code)
+
+
+[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins) > > > [Templates](plugins/templates)
+
+
+[Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+
+
+[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
+
+
+[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes/examples)
+
+
+
 Quick Build Instructions
 ------------------------
 
@@ -181,26 +209,4 @@ They can be run via one of the scripts placed in the directory, or via:
 Output detections can then be viewed in the GUI, e.g., see:
 
 [install-directory]/examples/visualizing_detections_in_gui/
-
-Additional Documentation
-------------------------
-
-[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
-
-
-[Running Detectors](doc/detector_introduction.rst) > > > [Pipeline Run Examples](examples/detector_pipelines) > > > [CXX Usage Examples](examples/using_detectors_in_cxx_code)
-
-
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins) > > > [Templates](plugins/templates)
-
-
-[Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
-
-
-[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
-
-
-[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes/examples)
-
-
 
