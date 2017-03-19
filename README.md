@@ -193,20 +193,20 @@ approach to select which concrete implementation to instantiate.
 
 For a simple pipeline test, go to -
 
-&nbsp;&nbsp;cd [install-directory]/examples/hello_world_pipeline/
+  cd [install-directory]/examples/hello_world_pipeline/
 
 or
 
-&nbsp;&nbsp;cd [install-directory]/examples/detector_pipelines/
+  cd [install-directory]/examples/detector_pipelines/
 
 In those directories, run one of the detector pipelines. Which ENABLE_FLAGS you
 enabled will control which detector pipelines you can run, and only pipeline files
 with all required dependencies enabled will show up in the install tree.
 They can be run via one of the scripts placed in the directory, or via:
 
-&nbsp;&nbsp;'pipeline_runner -p [pipeline-file].pipe'
+  'pipeline_runner -p [pipeline-file].pipe'
 
 Output detections can then be viewed in the GUI, e.g., see:
 
-[install-directory]/examples/visualizing_detections_in_gui/
+  [install-directory]/examples/visualizing_detections_in_gui/
 
