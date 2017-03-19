@@ -143,7 +143,7 @@ Depending on which enable flags you have set and your system configuration, you 
 to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2017/03/cmake-options.png
-   :scale: 50 %
+   :scale: 30 %
    :align: center
 
 .. _mac-label:
