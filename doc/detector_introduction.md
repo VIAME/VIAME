@@ -337,8 +337,8 @@ algorithms can be in the same file, which is exactly how more
 complicated applications are configured.
 
 
-Sequencing Multiple Algorithms
-------------------------------
+Sequencing Multiple Algorithms in a Pipeline
+--------------------------------------------
 
 In a real application, the input images may come from places other
 than a file on the disk and there may be algorithms applied to
