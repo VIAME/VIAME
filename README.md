@@ -47,7 +47,7 @@ Documentation
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
 
 
-[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes/examples)
+[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
 
