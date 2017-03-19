@@ -204,7 +204,7 @@ enabled will control which detector pipelines you can run, and only pipeline fil
 with all required dependencies enabled will show up in the install tree.
 They can be run via one of the scripts placed in the directory, or via:
 
-	'pipeline_runner -p [pipeline-file].pipe'
+	pipeline_runner -p [pipeline-file].pipe
 
 Output detections can then be viewed in the GUI, e.g., see:
 
