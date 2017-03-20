@@ -152,11 +152,6 @@ if( WIN32 AND VIAME_ENABLE_CAFFE )
     please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
-if( WIN32 AND VIAME_ENABLE_KWANT )
-  message( FATAL_ERROR "Internal KWANT build on windows not currently supported, \
-    but it will be soon. Please disable for now." )
-endif()
-
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
   message( FATAL_ERROR "Cannot build in Debug on Windows with Python enabled, \
     build in RelWithDebInfo or Release until fixed." )
