@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,26 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief detection_refiner algorithm instantiation
- */
+#ifndef ARROWS_PROCESSES_REFINE_DETECTIONS_PROCESS_H
+#define ARROWS_PROCESSES_REFINE_DETECTIONS_PROCESS_H
 
-#include <vital/algo/algorithm.txx>
-#include <vital/algo/detection_refiner.h>
+#include <sprokit/pipeline/process.h>
+
+#include "kwiver_processes_export.h"
+
+#include <vital/config/config_block.h>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
 
-detection_refiner
-::detection_refiner()
+// ----------------------------------------------------------------
+/**
+ * @brief Object detection refiner process.
+ *
+ */
+class KWIVER_PROCESSES_NO_EXPORT refine_detections_process
+  : public sprokit::process
 {
-  attach_logger( "detection_refiner" ); // specify a logger
-}
+public:
+  refine_detections_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~refine_detections_process();
 
-} } }
 
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::detection_refiner);
-/// \endcond
+protected:
+  virtual void _configure();
+  virtual void _step();
+
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+};
+
+
+
+} // end namespace
+
+#endif /* ARROWS_PROCESSES_REFINE_DETECTIONS_PROCESS_H */

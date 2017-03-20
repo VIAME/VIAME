@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "detection_refiner_process.h"
+#include "refine_detections_process.h"
 
-#include <vital/algo/detection_refiner.h>
+#include <vital/algo/refine_detections.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
@@ -41,22 +41,22 @@ create_config_trait( refiner, std::string, "", "Algorithm configuration subblock
 
 //----------------------------------------------------------------
 // Private implementation class
-class detection_refiner_process::priv
+class refine_detections_process::priv
 {
 public:
   priv();
   ~priv();
 
-   vital::algo::detection_refiner_sptr m_refiner;
+   vital::algo::refine_detections_sptr m_refiner;
 
 }; // end priv class
 
 
 // ==================================================================
-detection_refiner_process::
-detection_refiner_process( kwiver::vital::config_block_sptr const& config )
+refine_detections_process::
+refine_detections_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new detection_refiner_process::priv )
+    d( new refine_detections_process::priv )
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
@@ -66,30 +66,30 @@ detection_refiner_process( kwiver::vital::config_block_sptr const& config )
 }
 
 
-detection_refiner_process::
-~detection_refiner_process()
+refine_detections_process::
+~refine_detections_process()
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-detection_refiner_process::
+refine_detections_process::
 _configure()
 {
   vital::config_block_sptr algo_config = get_config();
 
-  vital::algo::detection_refiner::set_nested_algo_configuration( "refiner", algo_config, d->m_refiner );
+  vital::algo::refine_detections::set_nested_algo_configuration( "refiner", algo_config, d->m_refiner );
 
   if ( ! d->m_refiner )
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create refiner" );
   }
 
-  vital::algo::detection_refiner::get_nested_algo_configuration( "refiner", algo_config, d->m_refiner );
+  vital::algo::refine_detections::get_nested_algo_configuration( "refiner", algo_config, d->m_refiner );
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::detection_refiner::check_nested_algo_configuration( "refiner", algo_config ) )
+  if ( ! vital::algo::refine_detections::check_nested_algo_configuration( "refiner", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
@@ -98,7 +98,7 @@ _configure()
 
 // ------------------------------------------------------------------
 void
-detection_refiner_process::
+refine_detections_process::
 _step()
 {
   vital::image_container_sptr image = grab_from_port_using_trait( image );
@@ -113,7 +113,7 @@ _step()
 
 // ------------------------------------------------------------------
 void
-detection_refiner_process::
+refine_detections_process::
 make_ports()
 {
   // Set up for required ports
@@ -133,7 +133,7 @@ make_ports()
 
 // ------------------------------------------------------------------
 void
-detection_refiner_process::
+refine_detections_process::
 make_config()
 {
   declare_config_using_trait( refiner );
@@ -141,13 +141,13 @@ make_config()
 
 
 // ================================================================
-detection_refiner_process::priv
+refine_detections_process::priv
 ::priv()
 {
 }
 
 
-detection_refiner_process::priv
+refine_detections_process::priv
 ::~priv()
 {
 }

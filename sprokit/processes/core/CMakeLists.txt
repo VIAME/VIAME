@@ -11,7 +11,6 @@ set( sources
   detected_object_output_process.cxx
   detected_object_input_process.cxx
   detected_object_filter_process.cxx
-  detection_refiner_process.cxx
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
@@ -22,6 +21,7 @@ set( sources
   image_writer_process.cxx
   matcher_process.cxx
   read_descriptor_process.cxx
+  refine_detections_process.cxx
   stabilize_image_process.cxx
   video_input_process.cxx
 )
@@ -32,7 +32,6 @@ set( private_headers
   detected_object_output_process.h
   detected_object_input_process.h
   detected_object_filter_process.h
-  detection_refiner_process.h
   draw_detected_object_set_process.h
   draw_tracks_process.h
   extract_descriptors_process.h
@@ -43,6 +42,7 @@ set( private_headers
   image_writer_process.h
   matcher_process.h
   read_descriptor_process.h
+  refine_detections_process.h
   stabilize_image_process.h
   video_input_process.h
 )

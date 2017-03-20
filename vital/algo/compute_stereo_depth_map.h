@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,51 @@
 
 /**
  * \file
- * \brief Header defining abstract image object detector
+ * \brief compute_stereo_depth_map algorithm definition
  */
 
-#ifndef VITAL_ALGO_DETECTION_REFINER_H_
-#define VITAL_ALGO_DETECTION_REFINER_H_
+#ifndef VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_
+#define VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_
 
+#include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
-
-#include <vector>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector base class/
- *
- */
-class VITAL_ALGO_EXPORT detection_refiner
-: public algorithm_def<detection_refiner>
+/// An abstract base class for detecting feature points
+class VITAL_ALGO_EXPORT compute_stereo_depth_map
+  : public kwiver::vital::algorithm_def<compute_stereo_depth_map>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "detection_refiner"; }
+  static std::string static_type_name() { return "compute_stereo_depth_map"; }
 
-  /// Find all objects on the provided image
+  /// Compute a stereo depth map given two images
   /**
-   * This method analyzes the supplied image and along with any saved
-   * context, returns a vector of detected image objects.
+   * \throws image_size_mismatch_exception
+   *    When the given input image sizes do not match.
    *
-   * \param image_data the image pixels
-   * \returns vector of image objects found
+   * \param left_image contains the first image to process
+   * \param right_image contains the second image to process
+   * \returns a depth map image
    */
-  virtual detected_object_set_sptr
-      refine( image_container_sptr image_data,
-              detected_object_set_sptr detections ) const = 0;
+  virtual kwiver::vital::image_container_sptr
+  compute(kwiver::vital::image_container_sptr left_image,
+          kwiver::vital::image_container_sptr right_image) const = 0;
 
 protected:
-  detection_refiner();
+  compute_stereo_depth_map();
+
 };
 
-/// Shared pointer for generic detection_refiner definition type.
-typedef std::shared_ptr<detection_refiner> detection_refiner_sptr;
+
+/// Shared pointer for compute_stereo_depth_map algorithm definition class
+typedef std::shared_ptr<compute_stereo_depth_map> compute_stereo_depth_map_sptr;
+
 
 } } } // end namespace
 
-#endif //VITAL_ALGO_DETECTION_REFINER_H_
+#endif // VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,44 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_PROCESSES_DETECTION_REFINER_PROCESS_H
-#define ARROWS_PROCESSES_DETECTION_REFINER_PROCESS_H
+/**
+ * \file
+ * \brief train_detector algorithm definition instantiation
+ */
 
-#include <sprokit/pipeline/process.h>
-
-#include "kwiver_processes_export.h"
-
-#include <vital/config/config_block.h>
+#include <vital/algo/train_detector.h>
+#include <vital/algo/algorithm.txx>
 
 namespace kwiver {
+namespace vital {
+namespace algo {
 
-// ----------------------------------------------------------------
-/**
- * @brief Object detection refiner process.
- *
- */
-class KWIVER_PROCESSES_NO_EXPORT detection_refiner_process
-  : public sprokit::process
+train_detector
+::train_detector()
 {
-public:
-  detection_refiner_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~detection_refiner_process();
+  attach_logger( "train_detector" );
+}
 
+void
+train_detector
+::train(std::vector< kwiver::vital::image_container_sptr > images,
+        std::vector< kwiver::vital::detected_object_set_sptr > groundtruth) const
+{
+  throw std::runtime_error( "Method not implemented" );
+}
 
-protected:
-  virtual void _configure();
-  virtual void _step();
+} } }
 
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  const std::unique_ptr<priv> d;
-};
-
-
-
-} // end namespace
-
-#endif /* ARROWS_PROCESSES_DETECTION_REFINER_PROCESS_H */
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::train_detector);
+/// \endcond
