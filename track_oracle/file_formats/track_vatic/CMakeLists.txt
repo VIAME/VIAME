@@ -19,7 +19,7 @@ kwiver_install_headers(
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_vatic_export.h
   NOPATH SUBDIR        track_oracle/track_vatic
-
+)
 
 kwiver_add_library( track_vatic
   ${track_vatic_public_headers}
