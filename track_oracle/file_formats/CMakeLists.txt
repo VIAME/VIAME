@@ -21,7 +21,7 @@ kwiver_install_headers(
 )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/file_formats/track_oracle_format_base_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/track_oracle_format_base_export.h
   NOPATH SUBDIR      track_oracle
 )
 
