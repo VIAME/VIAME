@@ -33,13 +33,13 @@
 
 #include <plugins/uw_predictor/viame_uw_predictor_export.h>
 
-#include <vital/algo/detection_refiner.h>
+#include <vital/algo/refine_detections.h>
 
 namespace viame {
 
 class VIAME_UW_PREDICTOR_EXPORT uw_predictor_classifier :
   public kwiver::vital::algorithm_impl<
-    uw_predictor_classifier, kwiver::vital::algo::detection_refiner >
+    uw_predictor_classifier, kwiver::vital::algo::refine_detections >
 {
 public:
   uw_predictor_classifier();
