@@ -32,6 +32,9 @@ Coming Soon
 Documentation
 -------------
 
+[VIAME System Overview WACV 2017 Paper](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf)
+
+
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
