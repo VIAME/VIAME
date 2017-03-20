@@ -17,13 +17,12 @@ set( track_oracle_format_base_sources
 
 kwiver_install_headers(
   ${track_oracle_format_base_public_headers}
-  SUBDIR      track_oracle
+  SUBDIR      track_oracle/file_formats
 )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/track_oracle_format_base_export.h
-  SUBDIR      track_oracle
-  NOPATH
+  ${CMAKE_CURRENT_BINARY_DIR}/file_formats/track_oracle_format_base_export.h
+  NOPATH SUBDIR      track_oracle
 )
 
 kwiver_add_library( track_oracle_format_base

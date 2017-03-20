@@ -23,8 +23,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/scorable_mgrs_export.h
-  SUBDIR       track_oracle/scorable_mgrs
-  NOPATH
+  NOPATH SUBDIR       track_oracle/scorable_mgrs
 )
 
 kwiver_add_library( scorable_mgrs
@@ -59,8 +58,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/scorable_mgrs_data_term_export.h
-  SUBDIR       track_oracle/scorable_mgrs
-  NOPATH
+  NOPATH SUBDIR       track_oracle/scorable_mgrs
 )
 
 kwiver_add_library( scorable_mgrs_data_term
@@ -94,8 +92,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_scorable_mgrs_export.h
-  SUBDIR       track_oracle/scorable_mgrs
-  NOPATH
+  NOPATH SUBDIR       track_oracle/scorable_mgrs
 )
 
 kwiver_add_library( track_scorable_mgrs

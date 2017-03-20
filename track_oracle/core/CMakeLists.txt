@@ -63,13 +63,12 @@ endif()
 
 kwiver_install_headers(
   ${track_oracle_public_headers}
-  SUBDIR       track_oracle
+  SUBDIR       track_oracle/core
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_oracle_export.h
-  SUBDIR       track_oracle
-  NOPATH
+  NOPATH SUBDIR       track_oracle/core
 )
 
 kwiver_add_library( track_oracle

@@ -18,8 +18,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_e2at_callout_export.h
-  SUBDIR        track_oracle/track_e2at_callout
-  NOPATH
+  NOPATH SUBDIR        track_oracle/track_e2at_callout
 )
 
 kwiver_add_library( track_e2at_callout

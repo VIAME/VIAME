@@ -26,8 +26,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_apix_export.h
-  SUBDIR          track_oracle/track_apix
-  NOPATH
+  NOPATH SUBDIR          track_oracle/track_apix
 )
 
 kwiver_add_library( track_apix

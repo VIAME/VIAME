@@ -18,8 +18,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_kwiver_export.h
-  SUBDIR        track_oracle/track_kwiver
-  NOPATH
+  NOPATH SUBDIR        track_oracle/track_kwiver
 )
 
 kwiver_add_library( track_kwiver
