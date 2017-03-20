@@ -50,7 +50,7 @@ Documentation
 [KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
-[WACV 2017 Overview Paper](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf) [WACV 2017 Poster](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf)
+[WACV 2017 Overview Paper](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf) > > > [WACV 2017 Poster](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf)
 
 
 Quick Build Instructions
