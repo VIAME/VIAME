@@ -32,9 +32,6 @@ Coming Soon
 Documentation
 -------------
 
-[VIAME System Overview WACV 2017 Paper](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf)
-
-
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
@@ -52,6 +49,8 @@ Documentation
 
 [KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
+
+[WACV 2017 Overview Paper](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf) [WACV 2017 Poster](http://www.viametoolkit.org/wp-content/uploads/2017/03/VIAME_WACV17_Paper.pdf)
 
 
 Quick Build Instructions
