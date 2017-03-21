@@ -175,6 +175,10 @@ if( VIAME_ENABLE_VIVIA )
      ${VIAME_ARGS_libkml}
     -DKML_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/libkml-build
     )
+  set(VIAME_ARGS_VTK
+     ${VIAME_ARGS_VTK}
+    -DVTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VTK-build
+    )
 endif()
 
 if( VIAME_ENABLE_VXL )
