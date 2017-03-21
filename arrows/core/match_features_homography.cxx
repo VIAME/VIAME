@@ -53,7 +53,7 @@ class match_features_homography::priv
 public:
   /// Constructor
   priv()
-  : inlier_scale(10.0),
+  : inlier_scale(1.0),
     min_required_inlier_count(0),
     min_required_inlier_percent(0.0),
     m_logger( vital::get_logger( "arrows.core.match_features_homography" ))
@@ -96,7 +96,9 @@ match_features_homography
   vital::config_block_sptr config = algorithm::get_configuration();
   config->set_value("inlier_scale", d_->inlier_scale,
                     "The acceptable error distance (in pixels) between warped "
-                    "and measured points to be considered an inlier match.");
+                    "and measured points to be considered an inlier match. "
+                    "Note that this scale is multiplied by the average scale of "
+                    "the features being matched at each stage.");
   config->set_value("min_required_inlier_count", d_->min_required_inlier_count,
                     "The minimum required inlier point count. If there are less "
                     "than this many inliers, no matches will be output.");
@@ -173,6 +175,47 @@ match_features_homography
 }
 
 
+namespace {
+/// Compute the average feature scale
+double
+average_feature_scale(feature_set_sptr features)
+{
+  double scale = 0.0;
+  if( !features )
+  {
+    return scale;
+  }
+  for( auto const& f : features->features() )
+  {
+    scale += f->scale();
+  }
+  if( features->size() > 0 )
+  {
+    scale /= features->size();
+  }
+  return scale;
+}
+
+
+/// Compute the minimum feature scale
+double
+min_feature_scale(feature_set_sptr features)
+{
+  double min_scale = std::numeric_limits<double>::infinity();
+  if( !features || features->size() == 0 )
+  {
+    return 1.0;
+  }
+  for( auto const& f : features->features() )
+  {
+    min_scale = std::min(min_scale, f->scale());
+  }
+  return min_scale;
+}
+
+}
+
+
 /// Match one set of features and corresponding descriptors to another
 match_set_sptr
 match_features_homography
@@ -200,6 +243,19 @@ match_features_homography
     dst_desc = ret.second;
   }
 
+  double avg_scale = ( average_feature_scale(src_feat)
+                     + average_feature_scale(dst_feat) ) / 2.0;
+
+  // ideally the notion of scale would be standardized relative to
+  // some baseline, regardless of the detector, but currently it is not
+  // so we get the minimum observed scale in the data
+  double min_scale = std::min( min_feature_scale(feat1),
+                               min_feature_scale(feat2) );
+
+  double scale_ratio = avg_scale / min_scale;
+  LOG_DEBUG( d_->m_logger, "Filtered scale ratio: " << scale_ratio );
+
+
   // compute the initial matches
   match_set_sptr init_matches = matcher1_->match(src_feat, src_desc,
                                                  dst_feat, dst_desc);
@@ -207,7 +263,7 @@ match_features_homography
   // estimate a homography from the initial matches
   std::vector<bool> inliers;
   homography_sptr H = h_estimator_->estimate(src_feat, dst_feat, init_matches,
-                                             inliers, d_->inlier_scale);
+                                             inliers, d_->inlier_scale * scale_ratio);
 
   // count the number of inliers
   int inlier_count = static_cast<int>(std::count(inliers.begin(),
