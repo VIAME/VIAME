@@ -35,6 +35,7 @@
 
 // -- list processes to register --
 #include "compute_homography_process.h"
+#include "compute_stereo_depth_map_process.h"
 #include "detect_features_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
@@ -107,6 +108,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_homography" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Compute a frame to frame homography based on tracks" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::compute_stereo_depth_map_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_stereo_depth_map" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Compute a stereo depth map given two frames" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   fact = vpm.ADD_PROCESS( kwiver::draw_tracks_process );

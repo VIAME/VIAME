@@ -7,6 +7,7 @@ set( sources
   register_processes.cxx
 
   compute_homography_process.cxx
+  compute_stereo_depth_map_process.cxx
   detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
@@ -28,6 +29,7 @@ set( sources
 
 set( private_headers
   compute_homography_process.h
+  compute_stereo_depth_map_process.h
   detect_features_process.h
   detected_object_output_process.h
   detected_object_input_process.h
