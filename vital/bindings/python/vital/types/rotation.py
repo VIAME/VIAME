@@ -364,6 +364,23 @@ class Rotation (VitalObject):
         return "%s(%s)" % (self.__class__.__name__, self.quaternion().flatten())
 
     def __eq__(self, other):
+        """
+        Check whether two rotations are equivalent.
+        
+        :param other: Rotation to compare this rotation to.
+        :type other: vital.types.Rotation
+        
+        :return: Whether this rotation is equal to other.
+        :rtype: Boolean
+        
+        TODO: two quaternions can represent the same rotation but have 
+        different components. The test is to calculate the product of the first
+        rotation with the inverse of the second to calculate the difference 
+        rotation. Convert the difference rotation to axis and angle form, and 
+        if the angle is greater than some threshold, they should not be 
+        considered equal.
+        """
+        
         if isinstance(other, Rotation):
             if self._ctype != other._ctype:
                 # raise ValueError("Cannot test equality of two rotations of "

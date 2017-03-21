@@ -256,7 +256,15 @@ class OpaqueTypeCache (object):
 
     def get_types(self, k):
         """
-        Return or generate opaque type and pointer based on shape spec
+        Return or generate opaque type and pointer based on shape spec.
+        
+        :param k: Descriptive identifier.
+        :type k: str
+        
+        :return: The first element is a subclass of ctypes.Structure with 
+            __name__ populated with self._prefix and k. The second element is 
+            ctypes pointer to the first element.
+        :rtype: (subclass of ctypes.Structure, ctypes pointer to structure)
         """
         if k not in self._c_type_cache:
             # Based on VitalClassMetadata meta-cass
@@ -269,8 +277,13 @@ class OpaqueTypeCache (object):
 
     def new_type_getter(self):
         """
-        Returns new simple object with a __getitem__ hook for getting a specific
-        C opaque type.
+        Returns a new simple object with a __getitem__ hook that accepts a 
+        string representing a particular C opaque type and returns the 
+        appropriate subclass of ctypes.Structure and the second a ctypes 
+        pointer to first.
+        
+        :return: c type manager.
+        :rtype: instance of c_type_manager.
         """
         class c_type_manager (object):
             def __getitem__(s2, k):
@@ -287,8 +300,12 @@ class OpaqueTypeCache (object):
 
     def new_ptr_getter(self):
         """
-        Returns new simple object with a __getitem__ hook for getting a specific
-        C opaque pointer type.
+        Returns a new simple object with a __getitem__ hook that accepts a 
+        string representing a particular C opaque type and returns a ctypes 
+        pointer to the appropriate subclass of ctypes.Structure.
+        
+        :return: c type manager.
+        :rtype: instance of c_type_ptr_manager.
         """
         class c_type_ptr_manager (object):
             def __getitem__(s2, k):

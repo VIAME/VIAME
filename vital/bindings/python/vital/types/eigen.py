@@ -118,6 +118,9 @@ class EigenArray (numpy.ndarray, VitalObject):
         """
         Initialize C function naming map for the given shape and type
         information.
+        
+        This method will return names consistent with the convention defined 
+        in <KWIVER_src>/vital/bindings/c/types/eigen.h.
 
         :returns: Function name mapping and associated ctypes data type
         :rtype: (str, dict[str, str], _ctypes._SimpleCData)
