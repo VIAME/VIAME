@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <typeinfo>
 
 #include <track_oracle/core/track_field.h>
 #include <track_oracle/core/element_store.h>
