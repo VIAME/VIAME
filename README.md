@@ -140,7 +140,7 @@ After switching branches to ensure that you have on the correct hashes
 of sub-packages within the build (e.g. fletch or KWIVER). Very rarely
 you may also need to run:
 
-  git submodule sync
+	git submodule sync
 
 Just in case the address of submodules has changed. You only need to
 run this command if you get a "cannot fetch hash #hashid" error.
