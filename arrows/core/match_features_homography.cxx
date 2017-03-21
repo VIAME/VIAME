@@ -185,29 +185,35 @@ match_features_homography
   }
 
   // filter features if a filter_features is set
-  feature_set_sptr src_feat;
-  descriptor_set_sptr src_desc;
+  feature_set_sptr    src_feat = feat1,  dst_feat = feat2;
+  descriptor_set_sptr src_desc = desc1,  dst_desc = desc2;
   if (feature_filter_.get())
   {
-    std::pair<feature_set_sptr, descriptor_set_sptr> ret = feature_filter_->filter(feat1, desc1);
+    // filter source image features
+    auto ret = feature_filter_->filter(feat1, desc1);
     src_feat = ret.first;
     src_desc = ret.second;
-  }
-  else
-  {
-    src_feat = feat1;
-    src_desc = desc1;
+
+    // filter destination image features
+    ret = feature_filter_->filter(feat2, desc2);
+    dst_feat = ret.first;
+    dst_desc = ret.second;
   }
 
   // compute the initial matches
-  match_set_sptr init_matches = matcher1_->match(src_feat, src_desc, feat2, desc2);
+  match_set_sptr init_matches = matcher1_->match(src_feat, src_desc,
+                                                 dst_feat, dst_desc);
 
   // estimate a homography from the initial matches
   std::vector<bool> inliers;
-  homography_sptr H = h_estimator_->estimate(src_feat, feat2, init_matches,
+  homography_sptr H = h_estimator_->estimate(src_feat, dst_feat, init_matches,
                                              inliers, d_->inlier_scale);
-  int inlier_count = static_cast<int>(std::count(inliers.begin(), inliers.end(), true));
-  LOG_INFO(d_->m_logger, "inlier ratio: " << inlier_count << "/" << inliers.size());
+
+  // count the number of inliers
+  int inlier_count = static_cast<int>(std::count(inliers.begin(),
+                                                 inliers.end(), true));
+  LOG_INFO(d_->m_logger, "inlier ratio: " <<
+                         inlier_count << "/" << inliers.size());
 
   // verify matching criteria are met
   if( !inlier_count || inlier_count < d_->min_required_inlier_count ||
