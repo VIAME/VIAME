@@ -62,6 +62,7 @@ public:
   priv()
     : top_fraction(0.2),
       min_features(100),
+      max_features(1000),
       m_logger( vital::get_logger( "arrows.core.filter_features_scale" ))
   {
   }
@@ -92,6 +93,10 @@ public:
     // compute threshold
     unsigned int cutoff = std::max(min_features,
         static_cast<unsigned int>(top_fraction * indices.size()));
+    if (max_features > 0 )
+    {
+      cutoff = std::min(cutoff, max_features);
+    }
 
     // partially sort on descending feature scale
     std::nth_element(indices.begin(), indices.begin()+cutoff, indices.end(),
@@ -116,6 +121,7 @@ public:
 
   double top_fraction;
   unsigned int min_features;
+  unsigned int max_features;
   vital::logger_handle_t m_logger;
 };
 
@@ -148,7 +154,10 @@ filter_features_scale
                     "Fraction of largest scale keypoints to keep, range (0.0, 1.0]");
 
   config->set_value("min_features", d_->min_features,
-                    "minimum number of features to keep");
+                    "Minimum number of features to keep");
+
+  config->set_value("max_features", d_->max_features,
+                    "Maximum number of features to keep, use 0 for unlimited");
 
   return config;
 }
@@ -161,6 +170,7 @@ filter_features_scale
 {
   d_->top_fraction = config->get_value<double>("top_fraction", d_->top_fraction);
   d_->min_features = config->get_value<unsigned int>("min_features", d_->min_features);
+  d_->max_features = config->get_value<unsigned int>("max_features", d_->max_features);
 }
 
 
@@ -174,6 +184,18 @@ filter_features_scale
   {
     LOG_ERROR( d_->m_logger,
              "top_fraction parameter is " << top_fraction << ", needs to be in (0.0, 1.0].");
+    return false;
+  }
+
+  unsigned int min_features =
+    config->get_value<unsigned int>("min_features", d_->min_features);
+  unsigned int max_features =
+    config->get_value<unsigned int>("max_features", d_->max_features);
+  if( max_features > 0 && max_features < min_features )
+  {
+    LOG_ERROR( d_->m_logger, "max_features (" << max_features
+                             << ") must be zero or greater than min_features ("
+                             << min_features << ")" );
     return false;
   }
   return true;
