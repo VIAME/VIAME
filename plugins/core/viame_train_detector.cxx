@@ -189,7 +189,25 @@ main( int argc, char* argv[] )
 
   // Run tool:
   //   (a) Load groundtruth according to criteria
-  //   (b)
+  //   (b) Select detector to train
+
+  // Load labels.txt file
+  //
+
+  // Load train.txt, if available
+  //
+
+  // Load test.txt, if available
+  //
+
+  // Identify all sub-directories containing data
+  //
+
+  // Identify technique to run
+  //
+
+  // Run training algorithm
+  //
 
   return 0;
 }

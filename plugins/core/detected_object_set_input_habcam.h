@@ -47,16 +47,17 @@
 namespace viame {
 
 class VIAME_CORE_EXPORT detected_object_set_input_habcam
-  : public kwiver::vital::algorithm_impl<detected_object_set_input_habcam, kwiver::vital::algo::detected_object_set_input>
+  : public kwiver::vital::algorithm_impl< detected_object_set_input_habcam,
+      kwiver::vital::algo::detected_object_set_input >
 {
 public:
   detected_object_set_input_habcam();
   virtual ~detected_object_set_input_habcam();
 
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name );
+  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name );
 
 private:
   virtual void new_stream();
