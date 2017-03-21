@@ -31,6 +31,15 @@ algorithms_create_plugin( viame_core
   register_algorithms.cxx
   )
 
-if (KWIVER_ENABLE_TESTS)
-#  add_subdirectory(tests)
-endif()
+kwiver_add_executable( viame_train_detector
+  viame_train_detector.cxx
+  )
+
+target_link_libraries( viame_train_detector
+  PRIVATE      vital
+               vital_vpm
+               vital_config
+               vital_logger
+               vital_algo
+               kwiversys
+  )
