@@ -42,6 +42,8 @@
 #include <sprokit/python/util/python_gil.h>
 #include <sprokit/python/util/python_threading.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
@@ -54,6 +56,9 @@ using namespace boost::python;
 static void register_process( sprokit::process::type_t const& type,
                               sprokit::process::description_t const& desc,
                               object obj );
+
+static bool is_process_loaded( const std::string& name );
+static void mark_process_loaded( const std::string& name );
 
 BOOST_PYTHON_MODULE(process_factory)
 {
@@ -135,11 +140,11 @@ BOOST_PYTHON_MODULE(process_factory)
     , "The base class of process clusters."
     , no_init);
 
-  def("is_process_module_loaded", &sprokit::is_process_module_loaded
+  def("is_process_module_loaded", &is_process_loaded
       , (arg("module"))
       , "Returns True if the module has already been loaded, False otherwise.");
 
-  def("mark_process_module_as_loaded", &sprokit::mark_process_module_as_loaded
+  def("mark_process_module_as_loaded", &mark_process_loaded
       , (arg("module"))
       , "Marks a module as loaded.");
 
@@ -153,14 +158,31 @@ BOOST_PYTHON_MODULE(process_factory)
 
 
 
-  //+ convert this to process_factory
+  // ------------------------------------------------------------------
   class_<sprokit::process_factory, sprokit::process_factory, boost::noncopyable>("ProcessFactory"
-    , "A registry of all known process types."
-    , no_init)
+    , "The process factory.."
+    , no_init);
+
+  def("is_process_module_loaded", &is_process_loaded
+      , (arg("module"))
+      , "Returns True if the module has already been loaded, False otherwise.");
+
+  def("mark_process_module_as_loaded", &mark_process_loaded
+      , (arg("module"))
+      , "Marks a module as loaded.");
+
+  def("add_process", &register_process
+      , (arg("type"), arg("description"), arg("ctor"))
+      , "Registers a function which creates a process of the given type.");
+
+  def("create_process", &sprokit::create_process
+      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
+      , "Creates a new process of the given type.");
   ;
 }
 
 
+// ==================================================================
 class python_process_wrapper
   : sprokit::python::python_threading
 {
@@ -176,6 +198,7 @@ private:
 };
 
 
+// ------------------------------------------------------------------
 void
 register_process( sprokit::process::type_t const&        type,
                   sprokit::process::description_t const& desc,
@@ -195,7 +218,24 @@ register_process( sprokit::process::type_t const&        type,
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc );
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc )
+    ;
+}
+
+
+// ------------------------------------------------------------------
+bool is_process_loaded( const std::string& name )
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  return vpm.is_module_loaded( name );
+}
+
+
+// ------------------------------------------------------------------
+void mark_process_loaded( const std::string& name )
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.mark_module_as_loaded( name );
 }
 
 

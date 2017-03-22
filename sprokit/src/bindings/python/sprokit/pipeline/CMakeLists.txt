@@ -132,9 +132,9 @@ sprokit_create_python_init(sprokit/pipeline
   modules
   pipeline
   process
-  process_registry
+  process_factory
   scheduler
-  scheduler_registry
+  scheduler_factory
   stamp
   utils
   version)
