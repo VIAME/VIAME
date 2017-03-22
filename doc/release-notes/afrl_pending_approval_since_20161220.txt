@@ -15,6 +15,14 @@ Arrows - Core
  * Added a core implementation of "filter_tracks" which applies filters based
    on track length or based on importance of the track in covering a match matrix.
 
+ * Added a core implementation of "filter_features" which filters features
+   based on keypoint scale.
+
+ * Changed "match_features_homography" to apply feature filtering to both the
+   source and destination frames.  This seems to be more robust when the number
+   of features is very large.  Also adjusted the homography inlier scale with
+   respect to the average scale of the features.
+
  * Added multi-threaded operation to close_loops_keyframe and
    close_loops_exhaustive algorithms.  Frame matching tasks are added to the
    thread pool.
