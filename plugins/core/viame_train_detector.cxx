@@ -166,7 +166,7 @@ bool remove_and_reset_folder( std::string location )
 {
   if( does_folder_exist( location ) )
   {
-    boost::remove_all( location );
+    boost::filesystem::remove_all( location );
   }
 
   create_folder( location );
@@ -287,18 +287,18 @@ main( int argc, char* argv[] )
   // Load train.txt, if available
   if( does_file_exist( append_path( input_dir, "train.txt" ) ) )
   {
-    
+
   }
 
   // Load test.txt, if available
   if( does_file_exist( append_path( input_dir, "test.txt" ) ) )
   {
-    
+
   }
 
 
   // Identify all sub-directories containing data
-  
+
 
   // Identify technique to run
   //
