@@ -96,8 +96,8 @@ if( VIAME_ENABLE_PYTHON )
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF)
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
-  find_package( PythonLibs REQUIRED )
   find_package( PythonInterp REQUIRED )
+  find_package( PythonLibs REQUIRED )
 
   if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
       ( NOT PYTHON_VERSION_MAJOR EQUAL "2" OR NOT PYTHON_VERSION_MINOR EQUAL "7" ) )
