@@ -43,6 +43,9 @@
 #include <vital/algo/algorithm_factory.h>
 #include <vital/algo/train_detector.h>
 
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -60,7 +63,7 @@ public:
   // Collected command line args
   kwiversys::CommandLineArguments m_args;
 
-  // Global options
+  // Config options
   bool opt_help;
   bool opt_list;
   std::string opt_config;
@@ -85,14 +88,89 @@ static kwiver::vital::logger_handle_t g_logger;
 
 //===================================================================
 // Assorted helper functions
-
-
-//===================================================================
-// Groundtruth data loading function
-void
-get_groundtruth()
+bool does_file_exist( const std::string& location )
 {
+  return boost::filesystem::exists( location ) &&
+         !boost::filesystem::is_directory( location );
+}
 
+bool does_folder_exist( const std::string& location )
+{
+  return boost::filesystem::exists( location ) &&
+         boost::filesystem::is_directory( location );
+}
+
+bool list_all_subfolders( const std::string& location,
+                          std::vector< std::string >& subfolders )
+{
+  subfolders.clear();
+
+  if( !does_folder_exist( location ) )
+  {
+    return false;
+  }
+
+  boost::filesystem::path dir( location );
+
+  for( boost::filesystem::directory_iterator dir_iter( dir );
+       dir_iter != boost::filesystem::directory_iterator();
+       ++dir_iter )
+  {
+    if( boost::filesystem::is_directory( *dir_iter ) )
+    {
+      subfolders.push_back( dir_iter->path().string() );
+    }
+  }
+
+  return true;
+}
+
+bool list_files_in_folder( const std::string& location,
+                           std::vector< std::string >& filepaths )
+{
+  filepaths.clear();
+
+  if( !does_folder_exist( location ) )
+  {
+    return false;
+  }
+
+  boost::filesystem::path dir( location );
+
+  for( boost::filesystem::directory_iterator file_iter( dir );
+       file_iter != boost::filesystem::directory_iterator();
+       ++file_iter )
+  {
+    if( boost::filesystem::is_regular_file( *file_iter ) )
+    {
+      filepaths.push_back( file_iter->path().string() );
+    }
+  }
+
+  return true;
+}
+
+bool create_folder( const std::string& location )
+{
+  boost::filesystem::path dir( location );
+
+  return boost::filesystem::create_directories( dir );
+}
+
+std::string append_path( std::string p1, std::string p2 )
+{
+  return p1 + "/" + p2;
+}
+
+bool remove_and_reset_folder( std::string location )
+{
+  if( does_folder_exist( location ) )
+  {
+    boost::remove_all( location );
+  }
+
+  create_folder( location );
+  return true;
 }
 
 // ==================================================================
@@ -191,17 +269,36 @@ main( int argc, char* argv[] )
   //   (a) Load groundtruth according to criteria
   //   (b) Select detector to train
 
+  std::string input_dir = g_params.opt_input;
+
+  if( !does_folder_exist( input_dir ) )
+  {
+    std::cerr << "Input directory does not exist, exiting." << std::endl;
+    exit( 0 );
+  }
+
   // Load labels.txt file
-  //
+  if( !does_file_exist( append_path( input_dir, "labels.txt" ) ) )
+  {
+    std::cerr << "Label file does not exist" << std::endl;
+    exit( 0 );
+  }
 
   // Load train.txt, if available
-  //
+  if( does_file_exist( append_path( input_dir, "train.txt" ) ) )
+  {
+    
+  }
 
   // Load test.txt, if available
-  //
+  if( does_file_exist( append_path( input_dir, "test.txt" ) ) )
+  {
+    
+  }
+
 
   // Identify all sub-directories containing data
-  //
+  
 
   // Identify technique to run
   //

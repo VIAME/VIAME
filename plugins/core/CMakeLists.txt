@@ -35,6 +35,14 @@ kwiver_add_executable( viame_train_detector
   viame_train_detector.cxx
   )
 
+find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
+    COMPONENTS
+      chrono
+      filesystem)
+
+include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+link_directories( ${Boost_LIBRARY_DIRS} )
+
 target_link_libraries( viame_train_detector
   PRIVATE      vital
                vital_vpm
@@ -42,4 +50,5 @@ target_link_libraries( viame_train_detector
                vital_logger
                vital_algo
                kwiversys
+               ${Boost_FILESYSTEM_LIBRARY}
   )
