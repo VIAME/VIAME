@@ -122,6 +122,16 @@ if( VIAME_ENABLE_PYTHON )
   endif()
 endif()
 
+# VXL enabled triggers yasm to be built, requiring at least some python
+if( VIAME_ENABLE_VXL )
+  find_package( PythonInterp QUIET )
+  if( NOT PYTHONINTERP_FOUND )
+    message( FATAL_ERROR "If VXL is enabled, there must be some python install located \
+      on the system to build, even if VIAME_ENABLE_PYTHON is turned off for all other \
+      packages. A python binary could not be found. Please install at least python." )
+  endif()
+endif()
+
 if( VIAME_ENABLE_CUDA )
   find_package( CUDA QUIET REQUIRED )
 endif()
