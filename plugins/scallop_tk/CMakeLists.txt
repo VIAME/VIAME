@@ -37,6 +37,29 @@ target_link_libraries( viame_scallop_tk
                        kwiver_algo_ocv
                        ScallopTK
   )
+  
+if(WIN32)
+  target_link_libraries( viame_scallop_tk
+  PUBLIC			     caffe
+					     GLog
+					     GFlags
+					     proto
+					     libprotobuf
+					     caffehdf5
+					     caffehdf5_hl
+					     boost_system-vc140-mt-1_55
+					     boost_thread-vc140-mt-1_55
+					     boost_filesystem-vc140-mt-1_55
+					     libopenblas
+					     leveldb
+					     lmdb
+					     lmdbd
+					     ntdll
+					   )
+  if(VIAME_ENABLE_CUDA)
+    target_link_libraries( viame_scallop_tk PUBLIC cudart)
+  endif()
+endif()
 
 algorithms_create_plugin( viame_scallop_tk
   register_algorithms.cxx
