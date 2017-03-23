@@ -53,7 +53,9 @@ else()
   set( pipeline_runner_app "${CMAKE_INSTALL_PREFIX}/bin/pipeline_runner" )
 endif()
 
-fixup_bundle(\"${pipeline_runner_app}\" \"${FIXUP_LIBS}\" \"${FIXUP_DIRS}\")
+if( WIN32 )
+  fixup_bundle(\"${pipeline_runner_app}\" \"${FIXUP_LIBS}\" \"${FIXUP_DIRS}\")
+endif()
 
 if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
   install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
