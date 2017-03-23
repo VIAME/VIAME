@@ -18,7 +18,7 @@ python format_data_for_training.py \
   ${common_args}
 
 python format_data_for_training.py \
-  -i ${input_folder}/FalseEx/Filelist.txt  \
+  -i ${input_folder}/FalseEx/filelist.txt  \
   -f habcam -o ${output_folder}/formatted_samples \
   -v ${output_folder}/validation \
   ${common_args}

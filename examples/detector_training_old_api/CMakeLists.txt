@@ -29,3 +29,7 @@ if( VIAME_DOWNLOAD_MODELS )
     examples/detector_training_old_api
     training_data )
 endif()
+
+install( FILES       config_files/FRCNN.prototxt
+                     config_files/YOLOv2.cfg
+         DESTINATION examples/detector_training_old_api/config_files )
