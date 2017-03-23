@@ -264,7 +264,7 @@ class OpaqueTypeCache (object):
         :return: The first element is a subclass of ctypes.Structure with 
             __name__ populated with self._prefix and k. The second element is 
             ctypes pointer to the first element.
-        :rtype: (subclass of ctypes.Structure, ctypes pointer to structure)
+        :rtype: (subclass of ctypes.Structure, ctypes pointer type)
         """
         if k not in self._c_type_cache:
             # Based on VitalClassMetadata meta-cass
@@ -279,8 +279,7 @@ class OpaqueTypeCache (object):
         """
         Returns a new simple object with a __getitem__ hook that accepts a 
         string representing a particular C opaque type and returns the 
-        appropriate subclass of ctypes.Structure and the second a ctypes 
-        pointer to first.
+        appropriate subclass of ctypes.Structure.
         
         :return: c type manager.
         :rtype: instance of c_type_manager.
@@ -302,7 +301,7 @@ class OpaqueTypeCache (object):
         """
         Returns a new simple object with a __getitem__ hook that accepts a 
         string representing a particular C opaque type and returns a ctypes 
-        pointer to the appropriate subclass of ctypes.Structure.
+        pointer type for the appropriate subclass of ctypes.Structure.
         
         :return: c type manager.
         :rtype: instance of c_type_ptr_manager.
