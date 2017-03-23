@@ -3,7 +3,9 @@
 ##
 
 set( example_files
-  format_data_for_training.py )
+  format_data_for_training.py
+  generate_headers.py
+  create_dir.py )
 
 if( WIN32 )
   set( example_files
