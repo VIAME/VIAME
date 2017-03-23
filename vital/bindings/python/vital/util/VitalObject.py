@@ -263,7 +263,7 @@ class OpaqueTypeCache (object):
         
         :return: The first element is a subclass of ctypes.Structure with 
             __name__ populated with self._prefix and k. The second element is 
-            ctypes pointer to the first element.
+            a ctypes pointer to the first element.
         :rtype: (subclass of ctypes.Structure, ctypes pointer type)
         """
         if k not in self._c_type_cache:
