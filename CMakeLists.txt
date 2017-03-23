@@ -59,7 +59,7 @@ option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
 # Add external package build instructions
 ##
 option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
-option( VIAME_BUILD_PACKAGE       "Build a binary package at the end of build"      OFF )
+option( VIAME_CREATE_PACKAGE      "Build a binary package at the end of build"      OFF )
 
 ###
 # Add logic relating to enable flags
@@ -329,7 +329,7 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
   endif()
 
-  if( VIAME_BUILD_PACKAGE )
+  if( VIAME_CREATE_PACKAGE )
     include( build_package )
   endif()
   

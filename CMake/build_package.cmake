@@ -1,27 +1,27 @@
 ###
 # top level build file for NOAA VIAME Package Util
-#
+##
 
-file( GLOB VIAME_BIN_FILES "${VIAME_BUILD_INSTALL_PREFIX}/bin/*"  )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/bin )
+file( GLOB VIAME_BIN_FILES "${CMAKE_INSTALL_PREFIX}/bin/*"  )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/bin )
 
-file( GLOB VIAME_LIB_FILES "${VIAME_BUILD_INSTALL_PREFIX}/lib/*"  )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/lib )
+file( GLOB VIAME_LIB_FILES "${CMAKE_INSTALL_PREFIX}/lib/*"  )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib )
 
-file( GLOB VIAME_INCLUDE_FILES "${VIAME_BUILD_INSTALL_PREFIX}/include/*"  )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/include )
+file( GLOB VIAME_INCLUDE_FILES "${CMAKE_INSTALL_PREFIX}/include/*"  )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/include )
 
-file( GLOB VIAME_GUI_PLUGINS_FILES "${VIAME_BUILD_INSTALL_PREFIX}/plugins/*"  )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/plugins )
+file( GLOB VIAME_GUI_PLUGINS_FILES "${CMAKE_INSTALL_PREFIX}/plugins/*"  )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/plugins )
 
-file( GLOB VIAME_SPRKIT_PLUGINS_FILES "${VIAME_BUILD_INSTALL_PREFIX}/lib/sprokit/*" )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/lib/sprokit )
+file( GLOB VIAME_SPRKIT_PLUGINS_FILES "${CMAKE_INSTALL_PREFIX}/lib/sprokit/*" )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/sprokit )
 
-file( GLOB VIAME_VIAME_PLUGINS_FILES "${VIAME_BUILD_INSTALL_PREFIX}/lib/modules/*" )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/lib/modules )
+file( GLOB VIAME_VIAME_PLUGINS_FILES "${CMAKE_INSTALL_PREFIX}/lib/modules/*" )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules )
 
-file( GLOB VIAME_PLUGIN_PLUGINS_FILES "${VIAME_BUILD_INSTALL_PREFIX}/lib/modules/plugin_explorer/*" )
-list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/lib/modules/plugin_explorer/ )
+file( GLOB VIAME_PLUGIN_PLUGINS_FILES "${CMAKE_INSTALL_PREFIX}/lib/modules/plugin_explorer/*" )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules/plugin_explorer/ )
 
 set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "VIAME" )
 set( CPACK_PACKAGE_VENDOR              "Kitware, NOAA, and Friends" )
@@ -39,15 +39,20 @@ set( FIXUP_LIBS )
 
 foreach( path_id ${FIXUP_DIRS} )
   if( WIN32 )
-    file( GLOB FILES_TO_ADD "${path_ids}/*.dll" )
+    file( GLOB FILES_TO_ADD "${path_id}/*.dll" )
     set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
   else()
-    file( GLOB FILES_TO_ADD "${path_ids}/*.so" )
+    file( GLOB FILES_TO_ADD "${path_id}/*.so" )
     set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
   endif()
 endforeach()
 
-set( pipeline_runner_app "${VIAME_BUILD_INSTALL_PREFIX}/bin/pipeline_runner.exe" )
+if( WIN32 )
+  set( pipeline_runner_app "${CMAKE_INSTALL_PREFIX}/bin/pipeline_runner.exe" )
+else()
+  set( pipeline_runner_app "${CMAKE_INSTALL_PREFIX}/bin/pipeline_runner" )
+endif()
+
 fixup_bundle(\"${pipeline_runner_app}\" \"${FIXUP_LIBS}\" \"${FIXUP_DIRS}\")
 
 if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
