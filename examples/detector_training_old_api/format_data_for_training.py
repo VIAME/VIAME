@@ -286,14 +286,17 @@ if __name__ == "__main__" :
     # Write out annotation file for image
     fout = open( output_txt_fn, "w" )
     for annotation in annotations:
-      if args.filter:
-        annotation[1] = min( max( 2, int( annotation[1] ) ), width-2 )
-        annotation[2] = min( max( 2, int( annotation[2] ) ), height-2 )
-        annotation[3] = min( max( 2, int( annotation[3] ) ), width-2 )
-        annotation[4] = min( max( 2, int( annotation[4] ) ), height-2 )
 
-        if annotation[3]-annotation[1] <= 1 or annotation[4]-annotation[2] <= 1:
+      if args.filter:
+        br_x = min( max( 2, int( annotation[1] ) ), width-2 )
+        br_y = min( max( 2, int( annotation[2] ) ), height-2 )
+        tr_x = min( max( 2, int( annotation[1] + annotation[3] ) ), width-2 )
+        tr_y = min( max( 2, int( annotation[2] + annotation[4] ) ), height-2 )
+
+        if tr_x-br_x <= 1 or tr_y-br_y <= 1:
           continue
+  
+        annotation = [ annotation[1], br_x, br_y, tr_x-br_x, tr_y-br_y ]
   
       if args.norm:
         fout.write( str( annotation[0] )

@@ -6,7 +6,7 @@ if( VIAME_INSTALL_EXAMPLES )
 
   add_subdirectory( common_data )
   add_subdirectory( detection_file_conversions )
-  add_subdirectory( detector_model_training )
+  add_subdirectory( detector_training_old_api )
   add_subdirectory( detector_pipelines )
   add_subdirectory( hello_world_pipeline )
   add_subdirectory( scoring_and_roc_generation )
