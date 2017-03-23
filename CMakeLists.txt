@@ -239,10 +239,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   # VIAME plugins, adds this project causing the below else() block to run
   include( add_project_viame )
-
-  if( VIAME_BUILD_PACKAGE )
-    include( build_package )
-  endif()
   
 else()
 
@@ -333,4 +329,8 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
   endif()
 
+  if( VIAME_BUILD_PACKAGE )
+    include( build_package )
+  endif()
+  
 endif()

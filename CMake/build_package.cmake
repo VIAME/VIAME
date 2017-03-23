@@ -2,17 +2,6 @@
 # top level build file for NOAA VIAME Package Util
 #
 
-cmake_minimum_required( VERSION 3.3 )
-
-project( VIAME-PACKAGE-BUILDER )
-
-set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH} )
-include( ExternalProject )
-
-if( NOT DEFINED VIAME_BUILD_INSTALL_PREFIX )
-  set( VIAME_BUILD_INSTALL_PREFIX "${VIAME_BINARY_DIR}/install" )
-endif()
-
 file( GLOB VIAME_BIN_FILES "${VIAME_BUILD_INSTALL_PREFIX}/bin/*"  )
 list( APPEND FIXUP_DIRS ${VIAME_BUILD_INSTALL_PREFIX}/bin )
 
@@ -46,9 +35,24 @@ set( CPACK_PACKAGE_INSTALL_DIRECTORY   "VIAME-${CMake_VERSION_MAJOR}.${CMake_VER
 include( BundleUtilities )
 include( InstallRequiredSystemLibraries )
 
-fixup_bundle( "${VIAME_BUILD_INSTALL_PREFIX}/bin/pipeline_runner.exe"
-              ""
-              "${FIXUP_DIRS}" )
+set( FIXUP_LIBS )
+
+foreach( path_id ${FIXUP_DIRS} )
+  if( WIN32 )
+    file( GLOB FILES_TO_ADD "${path_ids}/*.dll" )
+    set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
+  else()
+    file( GLOB FILES_TO_ADD "${path_ids}/*.so" )
+    set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
+  endif()
+endforeach()
+
+set( pipeline_runner_app "${VIAME_BUILD_INSTALL_PREFIX}/bin/pipeline_runner.exe" )
+fixup_bundle(\"${pipeline_runner_app}\" \"${FIXUP_LIBS}\" \"${FIXUP_DIRS}\")
+
+if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
+  install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
+endif( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
 
 #    if( WIN32 AND NOT UNIX )
 #      set( CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
