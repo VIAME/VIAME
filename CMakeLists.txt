@@ -158,11 +158,6 @@ if( VIAME_ENABLE_CUDNN )
   endif()
 endif()
 
-if( WIN32 AND VIAME_ENABLE_CAFFE )
-  message( FATAL_ERROR "Internal Caffe build on windows not currently supported, \
-    please build Caffe externally using the Caffe windows branch, if desired." )
-endif()
-
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
   message( FATAL_ERROR "Cannot build in Debug on Windows with Python enabled, \
     build in RelWithDebInfo or Release until fixed." )
