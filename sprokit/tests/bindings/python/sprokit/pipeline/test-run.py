@@ -370,7 +370,7 @@ if __name__ == '__main__':
     import sys
 
     if not len(sys.argv) == 4:
-        test_error("Expected three arguments")
+        test_error("Expected three arguments. \"name-of-test\" \"new cwd\" \"python path to add\"")
         sys.exit(1)
 
     (testname, sched_type) = tuple(sys.argv[1].split('-', 1))
