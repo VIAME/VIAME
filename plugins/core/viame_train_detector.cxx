@@ -296,7 +296,6 @@ main( int argc, char* argv[] )
 
   }
 
-
   // Identify all sub-directories containing data
 
 
