@@ -66,7 +66,7 @@ def test_api_calls():
     from sprokit.pipeline import edge
     from sprokit.pipeline import modules
     from sprokit.pipeline import process
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
     from sprokit.pipeline import stamp
 
     e = edge.Edge()
@@ -90,9 +90,7 @@ def test_api_calls():
 
     modules.load_known_modules()
 
-    reg = process_registry.ProcessRegistry.self()
-
-    p = reg.create_process('orphan', process.ProcessName())
+    p = process_factory.create_process('orphan', process.ProcessName())
 
     e.set_upstream_process(p)
     e.set_downstream_process(p)

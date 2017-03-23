@@ -77,17 +77,29 @@ main()
 
   VITAL_FOREACH( const auto fact, proc_list )
   {
-    // Test to see if this process does not work well with this test.
-    std::string attrib;
-    if ( fact->get_attribute( "no-test", attrib ) && ( attrib == "introspect" ) )
-    {
-      continue;
-    }
-
     sprokit::process::type_t type;
     if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type ) )
     {
       TEST_ERROR( "Factory for this process has no registered name" );
+      continue;
+    }
+
+    // Test to see if this process does not work well with this test.
+    std::string attrib;
+    if ( fact->get_attribute( "no-test", attrib ) && ( attrib == "introspect" ) )
+    {
+      std::cout << "Test " << type << " has been marked for exclusion from this test" << std::endl;
+      continue;
+    }
+
+    //
+    // There are problems with python processes when they throw exceptions.
+    // The type is not the same as in c++ processes which confuses the tests.
+    //
+    if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, attrib )
+         && ( attrib == "python-runtime" ) )
+    {
+      std::cout << "Test " << type << " has been skipped because it is a python process" << std::endl;
       continue;
     }
 
@@ -134,14 +146,14 @@ test_process( sprokit::process::type_t const& type )
 
   if ( process->name() != expected_name )
   {
-    TEST_ERROR( "Name (" << process->name() << ") "
-                                               "does not match expected name: " << expected_name );
+    TEST_ERROR( "Name (" << process->name()
+                << ") does not match expected name: " << expected_name );
   }
 
   if ( process->type() != type )
   {
-    TEST_ERROR( "Type (" << process->type() << ") "
-                                               "does not match registry type: " << type );
+    TEST_ERROR( "Type (" << process->type()
+                << ") does not match registry type: " << type );
   }
 
   test_process_properties( process );
@@ -155,6 +167,7 @@ test_process( sprokit::process::type_t const& type )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_properties( sprokit::process_t const process )
 {
@@ -166,6 +179,7 @@ test_process_properties( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_configuration( sprokit::process_t const process )
 {
@@ -193,6 +207,7 @@ test_process_configuration( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_input_ports( sprokit::process_t const process )
 {
@@ -266,6 +281,7 @@ test_process_input_ports( sprokit::process_t const process )
 } // test_process_input_ports
 
 
+// ------------------------------------------------------------------
 void
 test_process_output_ports( sprokit::process_t const process )
 {
@@ -327,6 +343,7 @@ test_process_output_ports( sprokit::process_t const process )
 } // test_process_output_ports
 
 
+// ------------------------------------------------------------------
 void
 test_process_invalid_configuration( sprokit::process_t const process )
 {
@@ -338,6 +355,7 @@ test_process_invalid_configuration( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_invalid_input_port( sprokit::process_t const process )
 {
@@ -356,6 +374,7 @@ test_process_invalid_input_port( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_invalid_output_port( sprokit::process_t const process )
 {

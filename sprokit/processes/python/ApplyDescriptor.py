@@ -45,7 +45,7 @@ except:
     # building and configuring SMQTK
     print "SMQTK not configured into this Python instance.  Entering ApplyDescriptor test mode"
     apply_descriptor_test_mode = True
-    
+
 
 class ApplyDescriptor(KwiverProcess):
     """
@@ -106,7 +106,7 @@ class ApplyDescriptor(KwiverProcess):
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
-        # If we're in test mode, just grab the image and 
+        # If we're in test mode, just grab the image and
         # push a fake descriptor without trying to use
         # smqtk.
         if not apply_descriptor_test_mode:
@@ -136,15 +136,13 @@ class ApplyDescriptor(KwiverProcess):
 
 # ==================================================================
 def __sprokit_register__():
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
 
     module_name = 'python:kwiver.ApplyDescriptor'
 
-    reg = process_registry.ProcessRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    reg.register_process('ApplyDescriptor', 'Apply descriptor to image', ApplyDescriptor)
+    process_factory.register_add('ApplyDescriptor', 'Apply descriptor to image', ApplyDescriptor)
 
-    reg.mark_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

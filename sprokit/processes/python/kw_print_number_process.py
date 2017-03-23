@@ -30,6 +30,7 @@
 import sprokit.pipeline.process
 import sprokit.pipeline.config
 from sprokit.pipeline.process_factory import ProcessFactory
+
 import os.path
 
 class kw_print_number_process(sprokit.pipeline.process.PythonProcess):
@@ -82,11 +83,15 @@ class kw_print_number_process(sprokit.pipeline.process.PythonProcess):
 
 # ==================================================================
 def __sprokit_register__():
+    from sprokit.pipeline import process_factory
+
     module_name = 'python:kwiver.print_number'
 
-    if ProcessFactory.is_process_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    ProcessFactory.add_process('kw_print_number_process', 'A Simple Kwiver Test Process', kw_print_number_process)
+    process_factory.add_process('kw_print_number_process',
+                                'A Simple Kwiver Test Process',
+                                kw_print_number_process)
 
-    ProcessFactory.mark_process_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

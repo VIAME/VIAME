@@ -74,13 +74,15 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
 
 # ----------------------------------------------------------------
 def __sprokit_register__():
+    from sprokit.pipeline import process_factory
+
     module_name = 'python:kwiver.write_homography'
 
-    reg = sprokit.pipeline.process_registry.ProcessRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    reg.register_process('kw_write_homography', 'A Simple Kwiver homography writer', HomographyWriterProcess)
+    process_factory.register_add('kw_write_homography',
+                                 'A Simple Kwiver homography writer',
+                                 HomographyWriterProcess)
 
-    reg.mark_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

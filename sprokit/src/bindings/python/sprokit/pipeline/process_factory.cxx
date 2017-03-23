@@ -43,6 +43,7 @@
 #include <sprokit/python/util/python_threading.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_foreach.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -59,7 +60,10 @@ static void register_process( sprokit::process::type_t const& type,
 
 static bool is_process_loaded( const std::string& name );
 static void mark_process_loaded( const std::string& name );
+static std::string get_description( const std::string& name );
+static std::vector< std::string > process_names();
 
+// ==================================================================
 BOOST_PYTHON_MODULE(process_factory)
 {
   class_<sprokit::process::description_t>("ProcessDescription"
@@ -178,7 +182,13 @@ BOOST_PYTHON_MODULE(process_factory)
   def("create_process", &sprokit::create_process
       , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
       , "Creates a new process of the given type.");
-  ;
+
+  def("description", &get_description
+      , (arg("type"))
+      , "Returns description for the process");
+
+  def("types", &process_names
+      , "Returns list of process names" );
 }
 
 
@@ -213,7 +223,7 @@ register_process( sprokit::process::type_t const&        type,
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   sprokit::process::type_t derived_type = "python::";
   auto fact = vpm.add_factory( new sprokit::process_factory( derived_type + type, // derived type name string
-                                                             type, // name of the process
+                                                             typeid( sprokit::process ).name(),
                                                              wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
@@ -239,6 +249,44 @@ void mark_process_loaded( const std::string& name )
 }
 
 
+// ------------------------------------------------------------------
+std::string get_description( const std::string& type )
+{
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
+  proc_factory ifact;
+
+  kwiver::vital::plugin_factory_handle_t a_fact;
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(
+    a_fact = ifact.find_factory( type );
+    )
+
+  std::string buf = "-- Not Set --";
+  a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+
+  return buf;
+}
+
+
+// ------------------------------------------------------------------
+std::vector< std::string > process_names()
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  auto fact_list = vpm.get_factories<sprokit::process>();
+
+  std::vector<std::string> name_list;
+  VITAL_FOREACH( auto fact, fact_list )
+  {
+    std::string buf;
+    if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
+    {
+      name_list.push_back( buf );
+    }
+  } // end foreach
+
+  return name_list;
+}
+
+// ------------------------------------------------------------------
 python_process_wrapper
   ::python_process_wrapper( object obj )
   : m_obj( obj )
