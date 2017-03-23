@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2013-2017 by Kitware, Inc. All Rights Reserved. Please refer to
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 
 #include <sprokit/config.h>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 using namespace sprokit;
 

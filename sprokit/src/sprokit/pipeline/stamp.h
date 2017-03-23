@@ -33,10 +33,11 @@
 
 #include "pipeline-config.h"
 
+#include <vital/noncopyable.h>
+
 #include "types.h"
 
 #include <boost/cstdint.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/operators.hpp>
 
 /**
@@ -58,7 +59,7 @@ namespace sprokit
 class SPROKIT_PIPELINE_EXPORT stamp
   : private boost::equality_comparable<sprokit::stamp
   , boost::less_than_comparable1<sprokit::stamp
-  , boost::noncopyable
+  , kwiver::vital::noncopyable
     > >
 {
   public:

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ static object cluster_from_process(sprokit::process_t const& process);
 
 BOOST_PYTHON_MODULE(process_cluster)
 {
-  class_<wrap_process_cluster, boost::noncopyable>("PythonProcessCluster"
+  class_<wrap_process_cluster, kwiver::vital::noncopyable>("PythonProcessCluster"
     , "The base class for Python process clusters."
     , no_init)
     .def(init<kwiver::vital::config_block_sptr>())
@@ -342,7 +342,7 @@ wrap_process_cluster
 object
 cluster_from_process(sprokit::process_t const& process)
 {
-  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(process);
+  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(process);
 
   if (!cluster)
   {

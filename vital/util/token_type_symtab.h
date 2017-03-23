@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ public:
 
   /** Lookup name in token type resolver.
    */
-  virtual bool lookup_entry (std::string const& name, std::string& result);
+  virtual bool lookup_entry (std::string const& name, std::string& result) const;
 
   /** Add entry to table.
    */

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT expect_process
     void _reconfigure(kwiver::vital::config_block_sptr const& conf);
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

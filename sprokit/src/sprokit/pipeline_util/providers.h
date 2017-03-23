@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #include <vital/config/config_block.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 /**
  * \file providers.h
@@ -49,7 +49,7 @@ namespace sprokit
 // ==================================================================
 class provider;
 /// Type to more easily handle providers.
-typedef boost::shared_ptr<provider> provider_t;
+typedef std::shared_ptr<provider> provider_t;
 
 /**
  * \class provider providers.h "providers.h"

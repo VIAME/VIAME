@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ class edge::priv
     priv(bool depends_, size_t capacity_, bool blocking_);
     ~priv();
 
-    typedef boost::weak_ptr<process> process_ref_t;
+    typedef std::weak_ptr<process> process_ref_t;
 
     bool full_of_data() const;
     void complete_check() const;
