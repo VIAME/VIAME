@@ -67,7 +67,7 @@ if __name__ == "__main__" :
       f.write( "train = " + args.output_dir + "/train_files.txt\n" )
       f.write( "valid = " + args.output_dir + "/test_files.txt\n" )
       f.write( "names = " + args.type_str + ".lbl\n" )
-      f.write( "backup = models\n" )
+      f.write( "backup = " + args.output_dir + "/models\n" )
 
   # Dump out list files
   create_dir( args.output_dir + "/models" )
@@ -87,4 +87,3 @@ if __name__ == "__main__" :
   with open( args.output_dir + "/test_files.txt", "w" ) as f:
     for item in test_list:
       f.write( item + "\n" )
-  
