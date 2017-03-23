@@ -5,6 +5,18 @@
 set( example_files
   format_data_for_training.py )
 
+if( WIN32 )
+  set( example_files
+    ${example_files}
+    habcam_training_example.bat
+    training_on_many_datasets.bat )
+else()
+  set( example_files
+    ${example_files}
+    habcam_training_example.sh
+    training_on_many_datasets.sh )
+endif()
+
 install( FILES       ${example_files}
          DESTINATION examples/detector_model_training )
 
