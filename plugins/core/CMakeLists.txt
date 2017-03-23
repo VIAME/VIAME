@@ -50,5 +50,6 @@ target_link_libraries( viame_train_detector
                vital_logger
                vital_algo
                kwiversys
+               ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
   )

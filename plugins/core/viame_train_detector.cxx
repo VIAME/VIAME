@@ -284,6 +284,10 @@ main( int argc, char* argv[] )
     exit( 0 );
   }
 
+  // Temp
+  std::cerr << "Cannot find detector " << g_params.opt_detector << std::endl;
+  exit( 0 );
+
   // Load train.txt, if available
   if( does_file_exist( append_path( input_dir, "train.txt" ) ) )
   {
