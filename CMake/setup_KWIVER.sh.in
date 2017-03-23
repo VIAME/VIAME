@@ -8,4 +8,7 @@ export PATH=$this_dir/bin:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
 
+# Set default log reporting level for default logger.
+# export KWIVER_DEFAULT_LOG_LEVEL=info
+
 # Append here

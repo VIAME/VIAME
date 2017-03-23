@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,7 @@
 #include "process.h"
 #include "types.h"
 
-#include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <vital/noncopyable.h>
 
 /**
  * \file pipeline.h
@@ -56,7 +55,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT pipeline
-  : boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /**
@@ -490,7 +489,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     SPROKIT_PIPELINE_NO_EXPORT void stop();
 
     class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

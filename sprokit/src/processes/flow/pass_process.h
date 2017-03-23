@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #include "flow-config.h"
 
 #include <sprokit/pipeline/process.h>
-
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file pass_process.h
@@ -88,7 +86,7 @@ class SPROKIT_PROCESSES_FLOW_NO_EXPORT pass_process
     void _step();
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

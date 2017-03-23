@@ -198,8 +198,6 @@ public:
   vector_2d intensity_range;
 
   vital::logger_handle_t m_logger;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

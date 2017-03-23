@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef KWIVER_VITAL_UTIL_STRING_FORMAT_H
+#define KWIVER_VITAL_UTIL_STRING_FORMAT_H
+
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
+#include <string>
+#include <algorithm>
 
 namespace kwiver {
 namespace vital {
 
 /**
  * @brief Printf style formatting for std::string
+ *
+ * This function creates a std::string from an printf style input
+ * format specifier and a list of values.
  *
  * @param fmt_str Formatting string using embedded printf format specifiers.
  *
@@ -69,4 +77,24 @@ string_format( const std::string fmt_str, ... )
   return std::string( formatted.get() );
 }
 
+
+/**
+ * @brief Does string start with pattern
+ *
+ * This function checks to see if the input starts with the supplied
+ * pattern.
+ *
+ * @param input String to be checked
+ * @param pattern String to use for checking.
+ *
+ * @return \b true if string starts with pattern
+ */
+inline bool
+starts_with( const std::string& input, const std::string& pattern)
+{
+  return input.compare( 0, pattern.size(), pattern );
+}
+
 } } // end namespace
+
+#endif /* KWIVER_VITAL_UTIL_STRING_FORMAT_H */

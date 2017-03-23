@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,13 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/scoped_ptr.hpp>
-
 /**
  * \file take_string_process.h
  *
  * \brief Declaration of the string taking process.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class take_string_process
@@ -84,7 +81,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT take_string_process
     void _step();
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

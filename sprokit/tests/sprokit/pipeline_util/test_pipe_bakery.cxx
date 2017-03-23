@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2016 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-
+#include <memory>
 #include <cstdlib>
 
 #define TEST_ARGS (sprokit::path_t const& pipe_file)
@@ -669,7 +669,7 @@ IMPLEMENT_TEST(cluster_multiplier)
 
   sprokit::process_t const proc = ctor(config);
 
-  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   if (!cluster)
   {
@@ -821,7 +821,7 @@ IMPLEMENT_TEST(cluster_map_config)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -849,7 +849,7 @@ IMPLEMENT_TEST(cluster_map_config_tunable)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -880,7 +880,7 @@ DONT_IMPLEMENT_TEST(cluster_map_config_redirect)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -918,7 +918,7 @@ DONT_IMPLEMENT_TEST(cluster_map_config_modified)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -955,7 +955,7 @@ IMPLEMENT_TEST(cluster_map_config_not_read_only)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -990,7 +990,7 @@ IMPLEMENT_TEST(cluster_map_config_only_provided)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -1026,7 +1026,7 @@ IMPLEMENT_TEST(cluster_map_config_only_conf_provided)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -1064,7 +1064,7 @@ IMPLEMENT_TEST(cluster_map_config_to_non_process)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -1099,7 +1099,7 @@ IMPLEMENT_TEST(cluster_map_config_not_from_cluster)
     return;
   }
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(cluster);
   pipeline->setup_pipeline();
@@ -1263,7 +1263,7 @@ create_process(sprokit::process::type_t const& type, sprokit::process::name_t co
 sprokit::pipeline_t
 create_pipeline()
 {
-  return boost::make_shared<sprokit::pipeline>();
+  return std::make_shared<sprokit::pipeline>();
 }
 
 sprokit::process_cluster_t
@@ -1281,7 +1281,7 @@ setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t c
 
   sprokit::process_t const proc = ctor(config);
 
-  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   return cluster;
 }

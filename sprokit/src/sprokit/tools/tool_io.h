@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,15 @@
 
 #include <sprokit/pipeline_util/path.h>
 
-#include <boost/shared_ptr.hpp>
-
 #include <istream>
 #include <ostream>
+#include <memory>
 
 namespace sprokit
 {
 
-typedef boost::shared_ptr<std::istream> istream_t;
-typedef boost::shared_ptr<std::ostream> ostream_t;
+typedef std::shared_ptr<std::istream> istream_t;
+typedef std::shared_ptr<std::ostream> ostream_t;
 
 SPROKIT_TOOLS_EXPORT istream_t open_istream(sprokit::path_t const& path);
 SPROKIT_TOOLS_EXPORT ostream_t open_ostream(sprokit::path_t const& path);

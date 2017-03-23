@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,13 @@
 #include "pipeline-config.h"
 
 #include <vital/config/config_block.h>
+#include <vital/noncopyable.h>
+
 #include "types.h"
 
 #include <boost/chrono/system_clocks.hpp>
-#include <boost/noncopyable.hpp>
 #include <boost/operators.hpp>
 #include <boost/optional.hpp>
-#include <boost/scoped_ptr.hpp>
 
 #include <vector>
 
@@ -109,7 +109,7 @@ typedef std::vector< edge_t > edges_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT edge
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
 public:
   /**
@@ -335,7 +335,7 @@ public:
 
 private:
   class SPROKIT_PIPELINE_NO_EXPORT priv;
-  boost::scoped_ptr< priv > d;
+  std::unique_ptr< priv > d;
 };
 
 }

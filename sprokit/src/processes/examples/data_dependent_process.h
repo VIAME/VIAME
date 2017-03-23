@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,13 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/scoped_ptr.hpp>
-
 /**
  * \file data_dependent_process.h
  *
  * \brief Declaration of the data dependent process.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class data_dependent_process
@@ -104,7 +101,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
     void make_ports();
 
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

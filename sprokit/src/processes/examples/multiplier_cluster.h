@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,13 @@
 
 #include <sprokit/pipeline/process_cluster.h>
 
-#include <boost/scoped_ptr.hpp>
-
 /**
  * \file multiplier_cluster.h
  *
  * \brief Declaration of the multiplier cluster.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class multiplier_cluster
@@ -65,13 +62,15 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT multiplier_cluster
      * \param config The configuration for the process.
      */
     multiplier_cluster(kwiver::vital::config_block_sptr const& config);
+
     /**
      * \brief Destructor.
      */
-    ~multiplier_cluster();
+    virtual ~multiplier_cluster();
+
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

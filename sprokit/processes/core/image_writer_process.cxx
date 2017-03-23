@@ -36,7 +36,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
-#include <vital/util/string_format.h>
+#include <vital/util/string.h>
 
 #include <kwiver_type_traits.h>
 

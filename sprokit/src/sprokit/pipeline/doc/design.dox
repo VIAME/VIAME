@@ -16,7 +16,7 @@
  * copies from occurring and simplify memory management.
  *
  * The use of \c typedef within the codebase also simplifies changing core types
- * if necessary (e.g., replacing \c boost::shared_ptr with a different managed
+ * if necessary (e.g., replacing \c std::shared_ptr with a different managed
  * pointer class).
  *
  * Some of the core classes (i.e., \ref sprokit::datum and \ref sprokit::stamp) are

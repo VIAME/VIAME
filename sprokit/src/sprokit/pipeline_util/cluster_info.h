@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
 };
 
 /// A handle to information about a cluster.
-typedef boost::shared_ptr<cluster_info> cluster_info_t;
+typedef std::shared_ptr<cluster_info> cluster_info_t;
 
 } // end namespace sprokit
 
