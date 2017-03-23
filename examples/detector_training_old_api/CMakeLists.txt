@@ -18,7 +18,7 @@ else()
 endif()
 
 install( FILES       ${example_files}
-         DESTINATION examples/detector_model_training )
+         DESTINATION examples/detector_training_old_api )
 
 if( VIAME_DOWNLOAD_MODELS )
   DownloadExtractAndInstall(
@@ -26,6 +26,6 @@ if( VIAME_DOWNLOAD_MODELS )
     b5497368fb79c74f8172213b14a08f7d
     ${VIAME_DOWNLOAD_DIR}/training_data_set1.tar.gz
     ${CMAKE_CURRENT_SOURCE_DIR}
-    examples/detector_model_training
+    examples/detector_training_old_api
     training_data )
 endif()
