@@ -384,9 +384,6 @@ public:
    */
   I* create( const std::string& value )
   {
-    // Get singleton plugin manager
-    kwiver::vital::plugin_manager& pm = kwiver::vital::plugin_manager::instance();
-
     plugin_factory_handle_t a_fact = this->find_factory( value );
     return a_fact->create_object<I>();
   }
