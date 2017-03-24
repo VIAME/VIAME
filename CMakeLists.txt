@@ -338,6 +338,7 @@ else()
   # Install system libs if packaging enabled
   ##
   if( VIAME_CREATE_PACKAGE )
+    set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
     include( InstallRequiredSystemLibraries )
     if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
       install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )

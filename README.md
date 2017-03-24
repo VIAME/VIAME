@@ -29,8 +29,10 @@ Pre-Built Binaries
 Note: The package generation system is still relatively new and in an experimental state.
 
 [Windows 7/8/10, 64-Bit](empty)
+Configuration: Everything enabled except Caffe and Docs
 
 [Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d4c1d18d777f0aef5d8923/download)
+Configuration: Everything enabled except Matlab and Docs
 
 Documentation
 -------------
