@@ -32,41 +32,38 @@
 def test_import():
     try:
         from sprokit.pipeline import config
-        import sprokit.pipeline.scheduler_registry
+        import sprokit.pipeline.scheduler_factory
     except:
-        test_error("Failed to import the scheduler_registry module")
+        test_error("Failed to import the scheduler_factory module")
 
 
 def test_create():
     from sprokit.pipeline import config
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import scheduler_factory
 
-    scheduler_registry.SchedulerRegistry.self()
-    scheduler_registry.SchedulerType()
-    scheduler_registry.SchedulerTypes()
-    scheduler_registry.SchedulerDescription()
-    scheduler_registry.SchedulerModule()
+    scheduler_factory.SchedulerType()
+    ## scheduler_factory.SchedulerTypes()
+    scheduler_factory.SchedulerDescription()
+    scheduler_factory.SchedulerModule()
 
 
 def test_api_calls():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
     from sprokit.pipeline import pipeline
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import scheduler_factory
 
     modules.load_known_modules()
-
-    reg = scheduler_registry.SchedulerRegistry.self()
 
     sched_type = 'thread_per_process'
     c = config.empty_config()
     p = pipeline.Pipeline()
 
-    reg.create_scheduler(sched_type, p)
-    reg.create_scheduler(sched_type, p, c)
-    reg.types()
-    reg.description(sched_type)
-    reg.default_type
+    scheduler_factory.create_scheduler(sched_type, p)
+    scheduler_factory.create_scheduler(sched_type, p, c)
+    scheduler_factory.types()
+    scheduler_factory.description(sched_type)
+    scheduler_factory.default_type
 
 
 def example_scheduler(check_init):
@@ -116,24 +113,22 @@ def test_register():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
     from sprokit.pipeline import pipeline
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import scheduler_factory
 
     modules.load_known_modules()
-
-    reg = scheduler_registry.SchedulerRegistry.self()
 
     sched_type = 'python_example'
     sched_desc = 'simple description'
 
-    reg.register_scheduler(sched_type, sched_desc, example_scheduler(True))
+    scheduler_factory.add_scheduler(sched_type, sched_desc, example_scheduler(True))
 
-    if not sched_desc == reg.description(sched_type):
+    if not sched_desc == scheduler_factory.description(sched_type):
         test_error("Description was not preserved when registering")
 
     p = pipeline.Pipeline()
 
     try:
-        s = reg.create_scheduler(sched_type, p)
+        s = scheduler_factory.create_scheduler(sched_type, p)
         if s is None:
             raise Exception()
     except:
@@ -144,26 +139,22 @@ def test_wrapper_api():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
     from sprokit.pipeline import pipeline
-    from sprokit.pipeline import process_registry
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import process_factory
+    from sprokit.pipeline import scheduler_factory
 
     sched_type = 'python_example'
     sched_desc = 'simple description'
 
     modules.load_known_modules()
 
-    reg = scheduler_registry.SchedulerRegistry.self()
-
-    reg.register_scheduler(sched_type, sched_desc, example_scheduler(False))
+    scheduler_factory.add_scheduler(sched_type, sched_desc, example_scheduler(False))
 
     p = pipeline.Pipeline()
-
-    preg = process_registry.ProcessRegistry.self()
 
     proc_type = 'orphan'
     proc_name = 'orphan'
 
-    proc = preg.create_process(proc_type, proc_name)
+    proc = process_factory.create_process(proc_type, proc_name)
 
     p.add_process(proc)
 
@@ -184,7 +175,7 @@ def test_wrapper_api():
     p.reset()
     p.setup_pipeline()
 
-    s = reg.create_scheduler(sched_type, p)
+    s = scheduler_factory.create_scheduler(sched_type, p)
     check_scheduler(s)
 
 

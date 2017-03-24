@@ -5,19 +5,20 @@ set(modules_python_srcs
 
 set(modules_python_private_headers
   modules-config.h
-  registration.h)
+  )
 
 sprokit_private_header_group(${modules_python_private_headers})
-sprokit_add_plugin(modules_python
-  MAKE_SPROKIT_MODULES_PYTHON_LIB
-  ${modules_python_srcs}
-  ${modules_python_private_headers})
-target_link_libraries(modules_python
-  LINK_PRIVATE
-    sprokit_pipeline
-    sprokit_python_util
-    ${${boost_python_library_var}}
-    ${PYTHON_LIBRARIES})
+
+kwiver_add_plugin(modules_python
+  SUBDIR          sprokit
+  SOURCES         ${modules_python_srcs}
+                  ${modules_python_private_headers}
+  PRIVATE         sprokit_pipeline
+                  sprokit_python_util
+                  ${${boost_python_library_var}}
+                  ${PYTHON_LIBRARIES}
+                  kwiversys
+                  )
 
 sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/modules.py"
   sprokit/modules

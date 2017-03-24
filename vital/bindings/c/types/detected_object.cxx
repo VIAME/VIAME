@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,7 +123,7 @@ void vital_detected_object_set_confidence( vital_detected_object_t * obj,
 }
 
 
-vital_detected_object_type_t* vital_detected_object_type( vital_detected_object_t * obj )
+vital_detected_object_type_t* vital_detected_object_get_type( vital_detected_object_t * obj )
 {
   STANDARD_CATCH(
     "C::detected_object::object_type", 0,
@@ -144,4 +144,51 @@ void vital_detected_object_set_type( vital_detected_object_t *      obj,
     //+ DOT is managed by sptr
     kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_type( ldot );
   );
+}
+
+
+int64_t vital_detected_object_index( vital_detected_object_t * obj )
+{
+  STANDARD_CATCH(
+    "C::detected_object::index", 0,
+    return kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->index();
+  );
+  return 0;
+}
+
+
+void vital_detected_object_set_index(vital_detected_object_t * obj,
+                                     int64_t idx)
+{
+  kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_index(idx);
+}
+
+
+char* vital_detected_object_detector_name(vital_detected_object_t * obj)
+{
+  std::string sname =  kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->detector_name();
+  //+ TBD need to return pointer to persistent string
+  return 0;
+}
+
+
+void vital_detected_object_detector_set_name(vital_detected_object_t * obj,
+                                            char* name )
+{
+  std::string sname(name);
+  kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_detector_name( sname );
+}
+
+
+vital_image_t* vital_detected_object_mask(vital_detected_object_t * obj)
+{
+  //+ TBD need to look up image_sptr in cache
+  return 0;
+}
+
+
+void vital_detected_object_set_mask(vital_detected_object_t * obj,
+                                    vital_image_t* mask)
+{
+  //+ TBD need to look up image in cache
 }

@@ -71,8 +71,6 @@ public:
 
   virtual ~dummy_est() VITAL_DEFAULT_DTOR
 
-  std::string impl_name() const { return "dummy_est"; }
-
   void set_configuration(kwiver::vital::config_block_sptr config) {}
   bool check_configuration(kwiver::vital::config_block_sptr config) const {return true;}
 

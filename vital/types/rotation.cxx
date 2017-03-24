@@ -71,7 +71,7 @@ rotation_< T >
 }
 
 
-/// Constructor - from rotation angle and axis
+/// Constructor - from rotation angle (radians) and axis
 template < typename T >
 rotation_< T >
 ::rotation_( T angle, const Eigen::Matrix< T, 3, 1 >& axis )
@@ -80,7 +80,7 @@ rotation_< T >
 }
 
 
-/// Constructor - from yaw, pitch, and roll
+/// Constructor - from yaw, pitch, and roll (radians)
 template < typename T >
 rotation_< T >
 ::rotation_( const T& yaw, const T& pitch, const T& roll )
@@ -187,7 +187,7 @@ rotation_< T >
 }
 
 
-/// Convert to yaw, pitch, and roll
+/// Convert to yaw, pitch, and roll (radians)
 template < typename T >
 void
 rotation_< T >

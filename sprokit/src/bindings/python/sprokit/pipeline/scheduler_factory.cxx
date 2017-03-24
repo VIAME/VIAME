@@ -39,6 +39,10 @@
 
 #include <sprokit/python/util/python_threading.h>
 #include <sprokit/python/util/python_gil.h>
+#include <sprokit/python/util/python_exceptions.h>
+
+#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_foreach.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -52,9 +56,22 @@ using namespace boost::python;
 static void register_scheduler( sprokit::scheduler::type_t const& type,
                                 sprokit::scheduler::description_t const& desc,
                                 object obj );
+static bool is_scheduler_loaded( const std::string& name );
+static void mark_scheduler_loaded( const std::string& name );
+static std::string get_description( const std::string& name );
+static std::vector< std::string > scheduler_names();
+static std::string get_default_type();
 
+//==================================================================
 BOOST_PYTHON_MODULE(scheduler_factory)
 {
+  // Define types
+  class_<sprokit::scheduler::description_t>("SchedulerDescription"
+    , "The type for a description of a process type.");
+  class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
+    , "The type for a process module name.");
+
+  // Define unbound functions.
   def("add_scheduler", &register_scheduler
       , (arg("type"), arg("description"), arg("ctor"))
       , "Registers a function which creates a scheduler of the given type.");
@@ -64,13 +81,23 @@ BOOST_PYTHON_MODULE(scheduler_factory)
       , "Creates a new scheduler of the given type.");
 
 
-  def("is_scheduler module_loaded", &sprokit::is_scheduler_module_loaded
+  def("is_scheduler_module_loaded", &is_scheduler_loaded
       , (arg("module"))
       , "Returns True if the module has already been loaded, False otherwise.");
 
-  def("mark_scheduler_module_as_loaded", &sprokit::mark_scheduler_module_as_loaded
+  def("mark_scheduler_module_as_loaded", &mark_scheduler_loaded
       , (arg("module"))
       , "Marks a module as loaded.");
+
+  def("types", &scheduler_names
+      , "A list of known scheduler types.");
+
+  def("description", &get_description
+      , (arg("type"))
+      , "The description for the given scheduler type.");
+
+  def("default_type", &get_default_type
+      , "The default scheduler type.");
 
 
   class_<sprokit::scheduler::type_t>("SchedulerType"
@@ -94,16 +121,6 @@ BOOST_PYTHON_MODULE(scheduler_factory)
     , "A registry of all known scheduler types."
     , no_init)
 
-    /*
-    .def("types", &sprokit::scheduler_registry::types //+ fixme - part of plugin manager
-      , "A list of known scheduler types.")
-
-    .def("description", &sprokit::scheduler_registry::description //+ part of plugin manager
-      , (arg("type"))
-      , "The description for the given scheduler type.")
-    */
-    .def_readonly("default_type", &sprokit::scheduler_factory::default_type
-      , "The default scheduler type.")
   ;
 }
 
@@ -137,12 +154,73 @@ register_scheduler( sprokit::scheduler::type_t const& type,
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   sprokit::scheduler::type_t derived_type = "python::";
   auto fact = vpm.add_factory( new sprokit::scheduler_factory( derived_type + type, // derived type name string
-                                                               type, // name of the scheduler
+                                                               typeid( sprokit::scheduler ).name(),
                                                                wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc );
+}
+
+
+// ------------------------------------------------------------------
+bool is_scheduler_loaded( const std::string& name )
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  return vpm.is_module_loaded( name );
+}
+
+
+// ------------------------------------------------------------------
+void mark_scheduler_loaded( const std::string& name )
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.mark_module_as_loaded( name );
+}
+
+
+// ------------------------------------------------------------------
+std::string get_description( const std::string& type )
+{
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > proc_factory;
+  proc_factory ifact;
+
+  kwiver::vital::plugin_factory_handle_t a_fact;
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(
+    a_fact = ifact.find_factory( type );
+    )
+
+  std::string buf = "-- Not Set --";
+  a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+
+  return buf;
+}
+
+
+// ------------------------------------------------------------------
+std::vector< std::string > scheduler_names()
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  auto fact_list = vpm.get_factories<sprokit::scheduler>();
+
+  std::vector<std::string> name_list;
+  VITAL_FOREACH( auto fact, fact_list )
+  {
+    std::string buf;
+    if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
+    {
+      name_list.push_back( buf );
+    }
+  } // end foreach
+
+  return name_list;
+}
+
+
+// ------------------------------------------------------------------
+std::string get_default_type()
+{
+  return sprokit::scheduler_factory::default_type;
 }
 
 

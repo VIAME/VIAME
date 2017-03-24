@@ -36,9 +36,11 @@ def __sprokit_register__():
 
     module_name = 'python:schedulers.examples'
 
-    if reg.is_scheduler_module_loaded(module_name):
+    if scheduler_factory.is_scheduler_module_loaded(module_name):
         return
 
-    register_scheduler('pythread_per_process', 'Run each process in its own Python thread', pythread_per_process_scheduler.PyThreadPerProcessScheduler)
+    scheduler_factory.add_scheduler('pythread_per_process',
+                                    'Run each process in its own Python thread',
+                                    pythread_per_process_scheduler.PyThreadPerProcessScheduler)
 
-    mark_scheduler_module_as_loaded(module_name)
+    scheduler_factory.mark_scheduler_module_as_loaded(module_name)

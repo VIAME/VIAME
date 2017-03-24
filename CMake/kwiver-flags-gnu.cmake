@@ -21,6 +21,7 @@ kwiver_check_compiler_flag( -Wl,--copy-dt-needed-entries )
 
 
 OPTION(KWIVER_CPP_EXTRA "Generate more warnings about bad practices" OFF)
+mark_as_advanced( KWIVER_CPP_EXTRA)
 if (KWIVER_CPP_EXTRA)
   # General warnings
   kwiver_check_compiler_flag(-Wextra)
@@ -62,6 +63,7 @@ if (KWIVER_CPP_EXTRA)
 endif()
 
 OPTION(KWIVER_CPP_NITPICK "Generate warnings about nitpicky things" OFF)
+mark_as_advanced(KWIVER_CPP_NITPICK)
 if (KWIVER_CPP_NITPICK)
   kwiver_check_compiler_flag(-Wunsafe-loop-optimizations)
   kwiver_check_compiler_flag(-Wsign-promo)
@@ -70,6 +72,7 @@ if (KWIVER_CPP_NITPICK)
 endif ()
 
 option(KWIVER_CPP_PEDANTIC "Be pedantic" OFF)
+mark_as_advanced(KWIVER_CPP_PEDANTIC)
 cmake_dependent_option(KWIVER_CPP_PEDANTIC_ERRORS "Be REALLY pedantic" OFF
   KWIVER_CPP_PEDANTIC OFF)
 if (KWIVER_CPP_PEDANTIC)
@@ -92,6 +95,7 @@ if (KWIVER_CPP_CLANG_CATCH_UNDEFINED_BEHAVIOR)
 endif ()
 
 OPTION(KWIVER_CPP_ASAN "Enable address sanitization" OFF)
+mark_as_advanced(KWIVER_CPP_ASAN)
 if (KWIVER_CPP_ASAN)
   kwiver_check_compiler_flag(-fsanitize=address)
   kwiver_check_compiler_flag(-fno-omit-frame-pointer)
@@ -99,6 +103,7 @@ endif ()
 
 ## only in debug mode/config
 OPTION(KWIVER_CPP_COVERAGE "Build with coverage testing" OFF)
+mark_as_advanced(KWIVER_CPP_COVERAGE)
 if (KWIVER_CPP_COVERAGE   AND   CMAKE_BUILD_TYPE EQUAL "DEBUG")
   kwiver_check_compiler_flag(-O0)
   kwiver_check_compiler_flag(-pg)

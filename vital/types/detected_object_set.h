@@ -39,6 +39,7 @@
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 #include <vital/attribute_set.h>
+#include <vital/noncopyable.h>
 
 #include <vital/types/detected_object.h>
 
@@ -58,7 +59,8 @@ typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
  * This class represents a ordered set of detected objects. The
  * detections are ordered on their basic confidence value.
  */
-class VITAL_EXPORT detected_object_set VITAL_FINAL
+class VITAL_EXPORT detected_object_set final
+  : private noncopyable
 {
 public:
 

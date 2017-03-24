@@ -102,7 +102,10 @@ clone() const
   }
 
   // duplicate attributes
-  new_obj->m_attrs = this->m_attrs->clone();
+  if ( this->m_attrs )
+  {
+    new_obj->m_attrs = this->m_attrs->clone();
+  }
 
   return new_obj;
 }
@@ -204,6 +207,24 @@ select( const std::string& class_name, double threshold )
   }
 
   return vect;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::attribute_set_sptr
+detected_object_set::
+attributes()
+{
+  return m_attrs;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+set_attributes( attribute_set_sptr attrs )
+{
+  m_attrs = attrs;
 }
 
 } } // end namespace
