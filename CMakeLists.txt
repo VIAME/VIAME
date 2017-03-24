@@ -239,7 +239,11 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   # VIAME plugins, adds this project causing the below else() block to run
   include( add_project_viame )
-  
+
+  # Fixup package
+  if( VIAME_CREATE_PACKAGE )
+    include( build_package )
+  endif()
 else()
 
   ###
@@ -329,8 +333,13 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
   endif()
 
+  ###
+  # Install system libs if packaging enabled
+  ##
   if( VIAME_CREATE_PACKAGE )
-    include( build_package )
+    include( InstallRequiredSystemLibraries )
+    if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
+      install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
+    endif()
   endif()
-  
 endif()
