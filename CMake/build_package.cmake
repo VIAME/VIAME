@@ -62,7 +62,6 @@ set( CPACK_PACKAGE_INSTALL_DIRECTORY   "VIAME-${CMake_VERSION_MAJOR}.${CMake_VER
 include( BundleUtilities )
 include( InstallRequiredSystemLibraries )
 
-
 #foreach( path_id ${FIXUP_DIRS} )
 #  if( WIN32 )
 #    file( GLOB FILES_TO_ADD "${path_id}/*.dll" )

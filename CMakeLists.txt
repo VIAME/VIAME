@@ -60,6 +60,7 @@ option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
 ##
 option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
 option( VIAME_CREATE_PACKAGE      "Build a binary package at the end of build"      OFF )
+mark_as_advanced( VIAME_CREATE_PACKAGE )
 
 ###
 # Add logic relating to enable flags
