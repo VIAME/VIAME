@@ -361,7 +361,7 @@ class EigenArray (numpy.ndarray, VitalObject):
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        s = str(self)
+        s = numpy.array2string(self, separator=',')
         # prefix lines based on the length of the class name
         l = s.splitlines()
         l[0] = cls_name + '(' + l[0]
