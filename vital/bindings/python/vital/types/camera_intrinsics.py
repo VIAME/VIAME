@@ -63,6 +63,7 @@ class CameraIntrinsics (VitalObject):
         :param dist_coeffs: Existing distortion coefficients (Default: empty).
             Values are copied into this structure.
         :type dist_coeffs: collections.Sequence[float]
+        
         """
         super(CameraIntrinsics, self).__init__(from_cptr, focal_length,
                                                principle_point, aspect_ratio,
@@ -77,6 +78,7 @@ class CameraIntrinsics (VitalObject):
         :type aspect_ratio: float
         :type skew: float
         :type dist_coeffs: collections.Sequence[float]
+        
         """
         ci_new = self.VITAL_LIB['vital_camera_intrinsics_new']
         ci_new.argtypes = [
@@ -159,6 +161,23 @@ class CameraIntrinsics (VitalObject):
 
     def __ne__(self, other):
         return not (self == other)
+    
+    def __str__(self):
+        l = []
+        l.append(''.join(['focal length = ',str(self.focal_length)]))
+        l.append(''.join(['aspect ratio = ',str(self.aspect_ratio)]))
+        pp = self.principle_point.ravel()
+        l.append(''.join(['principle point = (',str(pp[0]),', ',str(pp[1]),
+                                              ')']))
+        l.append(''.join(['skew = ',str(self.skew)]))
+        d = self.dist_coeffs.ravel()
+        d = numpy.array2string(d, separator=',')
+        l.append(''.join(['distortion = [',str(d[2:])]))
+        return '\n'.join(l)
+    
+    def __repr__(self):
+        cls_name = self.__module__
+        return ''.join([cls_name,'\n',str(self)])
 
     def as_matrix(self):
         """
@@ -293,3 +312,11 @@ class CameraIntrinsics (VitalObject):
         with VitalErrorHandle() as eh:
             m_ptr = f(self, p, eh)
             return EigenArray(2, 1, from_cptr=m_ptr, owns_data=True)
+    
+    def to_list(self):
+        """
+        Return parameters as a list
+        
+        """
+        
+        return [self.focal_length,self.aspect_ratio]

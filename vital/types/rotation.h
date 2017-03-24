@@ -75,6 +75,10 @@ public:
    * order (x,y,z,w). Likewise, the constructor for an Eigen:Quaternion from an
    * array assumes the order (x,y,z,w).
    */
+  //TODO: normalize quaternion. If the user provides a non-normalized quaterion,
+  //It will remain so. This can cause problems when converting to other types.
+  //Might want to consider using the actual Eigen::Quaternion constructor. This 
+  //will also resolve the strange order of the coefficients.
   explicit rotation_< T > ( const Eigen::Matrix< T, 4, 1 > &quaternion )
   : q_( quaternion ) { }
 

@@ -447,3 +447,17 @@ class EigenArray (numpy.ndarray, VitalObject):
         f.restype = self._c_type
         with VitalErrorHandle() as eh:
             return f(self, row, col, eh)
+    
+    def norm(self, norm_type='L2'):
+        """
+        Return the norm of the array.
+        
+        :norm_type row: Type of norm to use.
+        :norm_type col: 'L2' |
+
+        :return: Norm of the array.
+        :rtype: float
+        
+        """
+        if norm_type == 'L2':
+            return numpy.linalg.norm(self)

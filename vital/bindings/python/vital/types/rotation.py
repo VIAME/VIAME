@@ -82,8 +82,8 @@ class Rotation (VitalObject):
     def from_quaternion(cls, q_vec, ctype=ctypes.c_double):
         """
         Create rotation based on the given 4x1 (column-vector) quaternion
-        representation whose format, `[x, y, z, w]`, represents the `w+xi+yj+zk`
-        formula (see Eigen's `Quaternion` class).
+        representation whose format, `[x, y, z, w]`, represents the 
+        `w+xi+yj+zk` formula (see Eigen's `Quaternion` class).
 
         Input data is copied.
 
@@ -98,9 +98,10 @@ class Rotation (VitalObject):
 
         :raises ValueError: The input array-like data did not conform to the
             specified target shape.
-
+        
         """
         q_vec = EigenArray.from_iterable(q_vec, ctype, (4, 1))
+        q_vec /= q_vec.norm()
         s = cls._gen_spec(ctype)
         r_from_q = cls._get_c_function(s, 'new_from_quaternion')
         r_from_q.argtypes = [EigenArray.c_ptr_type(4, 1, ctype),
@@ -229,6 +230,23 @@ class Rotation (VitalObject):
         with VitalErrorHandle() as eh:
             r_ptr = r_from_mat(mat, eh)
         return Rotation(ctype, r_ptr)
+    
+    @classmethod
+    def random(cls, ctype=ctypes.c_double):
+        """
+        Create a random rotation.
+        
+        Note: this is not uniformly random in S03. Eigen has a UnitRandom 
+        method for Quaternion.
+        
+        :param datatype: Type to store data in the homography.
+        :type datatype: ctypes._SimpleCData
+
+        :return: random rotation.
+        :rtype: vital.types.Rotation
+
+        """
+        return cls.from_quaternion(numpy.random.rand(4)*2-1, ctype=ctype)
 
     @classmethod
     def interpolate(cls, a, b, f):
@@ -478,6 +496,7 @@ class Rotation (VitalObject):
         """
         :return: This rotation's angle of rotation (radians).
         :rtype: float
+        TODO: figure out why this sometimes returns negative values.
         """
         r2angle = self._get_c_function(self._spec, 'angle')
         r2angle.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
@@ -489,6 +508,7 @@ class Rotation (VitalObject):
         """
         :return: This rotation as a Rodrigues vector.
         :rtype: vital.types.EigenArray
+        
         """
         r2rod = self._get_c_function(self._spec, "rodrigues")
         r2rod.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
@@ -596,3 +616,17 @@ class Rotation (VitalObject):
             m_ptr = r_rv(self, vec, eh)
         return EigenArray(3, dtype=numpy.dtype(self._ctype), from_cptr=m_ptr,
                           owns_data=True)
+
+    def angle_from(self, other):
+        """
+        Return angle between rotations
+        
+        :param other: the other rotation to compare this rotation to.
+        :type other: vital.types.Rotation
+        
+        :return: This rotation's angle of rotation (radians).
+        :rtype: float
+        
+        """
+        # For some reason, the angle method can return negative values.
+        return abs((self.inverse()*other).angle())
