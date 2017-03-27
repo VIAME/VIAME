@@ -66,7 +66,8 @@ static std::string const split_str = "=";
 }
 
 pipeline_builder
-::pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc)
+::pipeline_builder(boost::program_options::variables_map const& vm,
+                   boost::program_options::options_description const& desc)
   : m_blocks()
 {
   if (!vm.count("pipeline"))
@@ -89,6 +90,8 @@ pipeline_builder
   load_from_options(vm);
 }
 
+
+// ==================================================================
 pipeline_builder
 ::pipeline_builder()
   : m_blocks()
@@ -100,6 +103,8 @@ pipeline_builder
 {
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline_builder
 ::load_pipeline(std::istream& istr)
@@ -107,6 +112,8 @@ pipeline_builder
   m_blocks = sprokit::load_pipe_blocks(istr, boost::filesystem::current_path());
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline_builder
 ::load_from_options(boost::program_options::variables_map const& vm)
@@ -128,6 +135,8 @@ pipeline_builder
   }
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline_builder
 ::load_supplement(sprokit::path_t const& path)
@@ -137,6 +146,8 @@ pipeline_builder
   m_blocks.insert(m_blocks.end(), supplement.begin(), supplement.end());
 }
 
+
+// ------------------------------------------------------------------
 void
 pipeline_builder
 ::add_setting(std::string const& setting)
@@ -195,6 +206,8 @@ pipeline_builder
   m_blocks.push_back(block);
 }
 
+
+// ------------------------------------------------------------------
 sprokit::pipeline_t
 pipeline_builder
 ::pipeline() const
@@ -202,6 +215,8 @@ pipeline_builder
   return sprokit::bake_pipe_blocks(m_blocks);
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 pipeline_builder
 ::config() const
@@ -209,6 +224,8 @@ pipeline_builder
   return sprokit::extract_configuration(m_blocks);
 }
 
+
+// ------------------------------------------------------------------
 sprokit::pipe_blocks
 pipeline_builder
 ::blocks() const
@@ -216,6 +233,8 @@ pipeline_builder
   return m_blocks;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 pipeline_common_options()
 {
@@ -231,6 +250,8 @@ pipeline_common_options()
   return desc;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 pipeline_input_options()
 {
@@ -244,6 +265,8 @@ pipeline_input_options()
   return desc;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 pipeline_output_options()
 {
@@ -256,6 +279,8 @@ pipeline_output_options()
   return desc;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 pipeline_run_options()
 {
