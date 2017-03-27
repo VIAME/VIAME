@@ -28,11 +28,13 @@ Pre-Built Binaries
 
 Note: The package generation system is still relatively new and in an experimental state.
 
-[Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/58d8dbee8d777f0aef5d8950/download)
+[Windows 7/8/10, 64-Bit, GPU + Matlab Support](https://data.kitware.com/api/v1/item/58d8dbee8d777f0aef5d8950/download)
 
-Configuration: Everything enabled except Caffe and Docs
+[Windows 7/8/10, 64_bit, CPU Only](https://data.kitware.com/api/v1/item/58d928558d777f0aef5d8960/download)
 
-Notes: Remove matlab plugin if not using matlab r2016 to avoid DLL errors
+Notes: The matlab plugin in the first release was built using using matlab r2016, it may or may not work
+with other versions. It was also moved to an "experimental" folder in the plugin directory, and can either
+be moved back into the main plugin directory or added to your path to use it.
 
 
 [Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d4c1d18d777f0aef5d8923/download)
