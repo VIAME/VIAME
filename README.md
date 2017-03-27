@@ -28,7 +28,7 @@ Pre-Built Binaries
 
 Note: The package generation system is still relatively new and in an experimental state.
 
-[Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/58d4e1a38d777f0aef5d8929/download)
+[Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/58d8dbee8d777f0aef5d8950/download)
 
 Configuration: Everything enabled except Caffe and Docs
 
