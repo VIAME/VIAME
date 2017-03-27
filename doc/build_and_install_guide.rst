@@ -174,7 +174,11 @@ of where you want to put the downloaded source code.
 Next, do a git submodule update to pull down all required packages. In TortoiseGit right click on the folder you checked
 out the source into, move to the TortoiseGit menu section, and select `Submodule Update`.
 
-Now, create a build folder and run the CMake GUI (`https://cmake.org/runningcmake/`). Point it to your source and build
+Next, install any required dependencies for items you want to build. If using CUDA, version 8.0 is desired, along with
+Python 2.7. Other versions have yet to be tested extensively. On Windows it can also be beneficial to use Anaconda to get 
+multiple python packages. Boost Python (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
+
+Finally, create a build folder and run the CMake GUI (`https://cmake.org/runningcmake/`). Point it to your source and build
 directories, select your compiler of choice, and setup and build flags you want.
 
 

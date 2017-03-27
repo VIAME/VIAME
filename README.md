@@ -32,9 +32,13 @@ Note: The package generation system is still relatively new and in an experiment
 
 [Windows 7/8/10, 64-bit, CPU Only](https://data.kitware.com/api/v1/item/58d928558d777f0aef5d8960/download)
 
-Notes: The matlab plugin in the first release was built using using matlab r2016, it may or may not work
+The matlab plugin in the first release was built using matlab r2016, it may or may not work
 with other versions. It was also moved to an "experimental" folder in the plugin directory, and can either
 be moved back into the main plugin directory or added to your path to use it.
+
+
+If you get an error relating to not finding python27.dll on windows, you can either ignore the error for now or
+install Python 2.7 either via anaconda or the default installer. This will be fixed in a future release.
 
 
 [Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d4c1d18d777f0aef5d8923/download)
@@ -93,11 +97,13 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 	make -j8
 
 Or alternatively by building it in Visual Studio or your compiler of choice on Windows.
-Currently VS2013 thru VS2017 is supported. If using CUDA, version 8.0 is desired,
-along with Python 2.7. Other versions have yet to be tested extensively. The '-j8' tells
-the build to run multi-threaded using 8 threads, this is useful for a faster build though
-if you get an error it can be difficult to know where it was, in which case running just
-'make' might be more helpful.
+The '-j8' tells the build to run multi-threaded using 8 threads, this is useful for a
+faster build though if you get an error it can be difficult to know where it was, in which case running just
+'make' might be more helpful. For Windows, currently VS2013 thru VS2017 is supported.
+If using CUDA, version 8.0 is desired, along with Python 2.7. Other versions have yet
+to be tested extensively. On Windows it can also be beneficial to use Anaconda to get 
+multiple python packages. Boost Python (turned on by default when Python is enabled)
+requires Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built, such
 as those listed below. If a plugin is enabled that depends on another dependency (such
