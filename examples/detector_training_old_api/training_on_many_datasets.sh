@@ -43,5 +43,13 @@ python format_data_for_training.py \
   --clip-right \
   ${common_args}
 
-# Run Training Module
+# Generate input training list and run training
+python generate_headers.py -t YOLOv2 \
+  -i ${input_folder} \
+  -o ${output_folder} \
+  -e ${data_type}
 
+darknet -i ${gpu_id} detector train \
+  ${output_folder}/YOLOv2.data \
+  config_files/YOLOv2.cfg \
+  ../detector_pipelines/models/model2.weights

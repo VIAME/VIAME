@@ -26,8 +26,18 @@ evaluation (a.k.a. scoring).
 Pre-Built Binaries
 ------------------
 
-Coming Soon
+Note: The package generation system is still relatively new and in an experimental state.
 
+[Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/58d8dbee8d777f0aef5d8950/download)
+
+Configuration: Everything enabled except Caffe and Docs
+
+Notes: Remove matlab plugin if not using matlab r2016 to avoid DLL errors
+
+
+[Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d4c1d18d777f0aef5d8923/download)
+
+Configuration: Everything enabled except Matlab and Docs
 
 Documentation
 -------------

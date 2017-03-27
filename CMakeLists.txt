@@ -59,6 +59,8 @@ option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
 # Add external package build instructions
 ##
 option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
+option( VIAME_CREATE_PACKAGE      "Build a binary package at the end of build"      OFF )
+mark_as_advanced( VIAME_CREATE_PACKAGE )
 
 ###
 # Add logic relating to enable flags
@@ -93,7 +95,7 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF)
+  option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
   find_package( PythonInterp REQUIRED )
@@ -234,6 +236,10 @@ if( VIAME_BUILD_DEPENDENCIES )
   # VIAME plugins, adds this project causing the below else() block to run
   include( add_project_viame )
 
+  # Fixup package
+  if( VIAME_CREATE_PACKAGE )
+    include( build_package )
+  endif()
 else()
 
   ###
@@ -323,4 +329,14 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
   endif()
 
+  ###
+  # Install system libs if packaging enabled
+  ##
+  if( VIAME_CREATE_PACKAGE )
+    set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
+    include( InstallRequiredSystemLibraries )
+    if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
+      install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
+    endif()
+  endif()
 endif()
