@@ -34,7 +34,7 @@ Interface to vital::homography
 
 """
 import ctypes
-
+import collections
 import numpy
 
 from vital.exceptions.math import PointMapsToInfinityException
@@ -45,7 +45,7 @@ from vital.util import VitalObject, TYPE_NAME_MAP
 
 
 class Homography (VitalObject):
-
+    
     @classmethod
     def from_matrix(cls, m, datatype=ctypes.c_double):
         """
@@ -75,6 +75,41 @@ class Homography (VitalObject):
             Homography.c_ptr_type()
         )
         return Homography(from_cptr=cptr)
+    
+    @classmethod
+    def from_translation(cls, dx, dy, datatype=ctypes.c_double):
+        """
+        Return homography that represents a translation.
+        
+        :param dx: Homography will displace input points by this amount along 
+            the x-axis.
+        :type dx: float | double | int
+        
+        :param dy: Homography will displace input points by this value along 
+            the y-axis.
+        :type dy: float | double | int
+        
+        :return: New homography instance.
+        :rtype: Homography
+        
+        """
+        m = numpy.matrix([[1, 0, dx], [0, 1, dy], [0, 0, 1]])
+        return cls.from_matrix(m, datatype=datatype)
+    
+    @classmethod
+    def from_scalar(cls, scale, datatype=ctypes.c_double):
+        """
+        Return homography that scales inputs.
+        
+        :param scale: Homography will scale input vectors by this multiple.
+        :type s: float | double | int
+        
+        :return: New homography instance.
+        :rtype: Homography
+        
+        """
+        m = numpy.matrix([[scale, 0, 0], [0, scale, 0], [0, 0, 1]]) 
+        return cls.from_matrix(m, datatype=datatype)
     
     @classmethod
     def read_from_file(cls, fin, datatype=ctypes.c_double):
@@ -176,6 +211,8 @@ class Homography (VitalObject):
                 self.C_TYPE_PTR
             )
             return Homography(from_cptr=h_cptr)
+        elif isinstance(other, collections.Iterable):
+            return map(self, other)
         else:
             raise ValueError("Not given a homography instance as the rhs "
                              "argument. Given %s type instead."
