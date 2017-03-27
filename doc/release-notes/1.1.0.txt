@@ -153,7 +153,6 @@ Vital
    is to respond in real-time. A typical parameter that could be
    varied in this manner would be a threshold or a scaling value.
 
-
 Sprokit
 
  * Added sprokit port operations that have timeout. Allows process to
@@ -244,3 +243,6 @@ Vital
    convert BGR to RGB and copied data instead of simply calling the
    corresponding C++ code.  This has been removed.  Another solution
    should be found if this causes problems elsewhere.
+
+ * Moved list copy in detected_object_set to eliminate collisions in
+   select methods.

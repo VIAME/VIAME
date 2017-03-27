@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,8 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/make_shared.hpp>
+
+#include <memory>
 
 /**
  * \file thread_per_process_scheduler.cxx
@@ -61,7 +62,7 @@ class thread_per_process_scheduler::priv
 
     void run_process(process_t const& process);
 
-    boost::scoped_ptr<boost::thread_group> process_threads;
+    std::unique_ptr<boost::thread_group> process_threads;
 
     typedef boost::shared_mutex mutex_t;
     typedef boost::shared_lock<mutex_t> shared_lock_t;
@@ -177,7 +178,7 @@ thread_per_process_scheduler::priv
   kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
 
   name_thread(process->name());
-  edge_t monitor_edge = boost::make_shared<edge>(edge_conf);
+  edge_t monitor_edge = std::make_shared<edge>(edge_conf);
 
   process->connect_output_port(process::port_heartbeat, monitor_edge);
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public:
    * @param[out] result Translated string
    * @return TRUE if name found in table; false otherwise
    */
-  virtual bool lookup_entry (std::string const& name, std::string& result) = 0;
+  virtual bool lookup_entry (std::string const& name, std::string& result) const = 0;
 
 
 protected:

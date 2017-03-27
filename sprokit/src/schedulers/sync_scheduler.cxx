@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,12 +46,12 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 
 #include <deque>
 #include <iterator>
 #include <map>
 #include <queue>
+#include <memory>
 
 /**
  * \file sync_scheduler.cxx
@@ -182,7 +182,7 @@ sync_scheduler::priv
   VITAL_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = pipe->process_by_name(name);
-    edge_t const monitor_edge = boost::make_shared<edge>(edge_conf);
+    edge_t const monitor_edge = std::make_shared<edge>(edge_conf);
 
     proc->connect_output_port(process::port_heartbeat, monitor_edge);
     monitor_edges[name] = monitor_edge;

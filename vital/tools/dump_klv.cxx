@@ -165,7 +165,7 @@ int main( int argc, char** argv )
   }
   catch ( kwiver::vital::video_exception const& e )
   {
-    std::cerr << "Couldn't open " << video_file << std::endl
+    std::cerr << "Video Exception-Couldn't open " << video_file << std::endl
               << e.what() << std::endl;
     return EXIT_FAILURE;
   }

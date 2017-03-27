@@ -45,7 +45,7 @@ const double detected_object_type::INVALID_SCORE = std::numeric_limits< double >
 
 // Master list of all class_names
 std::set< std::string > detected_object_type::s_master_name_set;
-
+std::mutex detected_object_type::s_table_mutex;
 
 // ==================================================================
 namespace {
@@ -162,6 +162,7 @@ set_score( const std::string& class_name, double score )
 {
   // Check to see if class_name is in the master set.
   // If not, add it
+  std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
   auto it = s_master_name_set.find( class_name );
   if ( it == s_master_name_set.end() )
   {
@@ -250,6 +251,7 @@ const std::string*
 detected_object_type::
 find_string( const std::string& str ) const
 {
+  std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
   auto it = s_master_name_set.find( str );
   if ( it == s_master_name_set.end() )
   {
@@ -268,6 +270,7 @@ std::vector< std::string >
 detected_object_type::
 all_class_names()
 {
+  std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
   std::vector< std::string > names( s_master_name_set.begin(), s_master_name_set.end() );
   return names;
 }

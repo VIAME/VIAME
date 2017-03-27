@@ -188,8 +188,6 @@ protected:
   rotation_<T> rot_;
   /// the translation used to parameterize the essential  matrix
   vector_t trans_;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

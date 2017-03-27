@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #include "pipeline-config.h"
 
 #include "process.h"
-
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file process_cluster.h
@@ -215,7 +213,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
 
   private:
     class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }
