@@ -147,6 +147,12 @@ if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
 endif()
 
+if( WIN32 AND VIAME_ENABLE_FASTER_RCNN )
+  message( FATAL_ERROR "Faster R-CNN on windows is currently untested \
+    in VIAME, either disable it, or if you're ambitious, disable this message \
+    and continue." )
+endif()
+
 if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
