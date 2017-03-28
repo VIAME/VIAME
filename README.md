@@ -41,7 +41,7 @@ If you get an error relating to not finding python27.dll on windows, you can eit
 install Python 2.7 either via anaconda or the default installer. This will be fixed in a future release.
 
 
-[Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d4c1d18d777f0aef5d8923/download)
+[Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
 
 Configuration: Everything enabled except Matlab and Docs
 
