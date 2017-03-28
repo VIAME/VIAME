@@ -219,9 +219,31 @@ class TestHomography (unittest.TestCase):
         p1 = p1[:2]/p1[2]
         h_d = Homography.from_matrix(h, ctypes.c_double)
         
+        # map from Numpy array.
         numpy.testing.assert_almost_equal(
             h_d.map(p0[:2]).ravel(), p1
         )
+        
+        # map from EigenArray
+        p0 = EigenArray.from_iterable(p0[:2])
+        numpy.testing.assert_almost_equal(
+            h_d.map(p0).ravel(), p1
+        )
+        
+        # Another explicit case.
+        p0 = numpy.array([1923.47,645.676])
+        h = numpy.array([[5.491496261770000276e-01,-1.125428185150000038e-01,
+                          1.358427031619999923e+02],
+                         [-1.429513389049999993e-02	,6.035527375529999849e-01,
+                          5.923971959490000216e+01],
+                         [-2.042570000000000164e-06,-2.871670000000000197e-07,
+                          1]])
+        p1 = numpy.dot(h, p0);      p1 = p1[:2]/p1[2]
+        
+        H = Homography.from_matrix(h)
+        P = EigenArray.from_iterable(p0)
+        H.map(P)
+
         
 
     def test_point_map_zero_div(self):

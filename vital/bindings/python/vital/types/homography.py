@@ -97,7 +97,7 @@ class Homography (VitalObject):
         return cls.from_matrix(m, datatype=datatype)
     
     @classmethod
-    def from_scalar(cls, scale, datatype=ctypes.c_double):
+    def from_scale(cls, scale, datatype=ctypes.c_double):
         """
         Return homography that scales inputs.
         
