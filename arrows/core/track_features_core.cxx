@@ -193,15 +193,35 @@ track_features_core
                            image_data, mask);
   }
 
-  // match features to from the previous to the current frame
-  match_set_sptr mset = matcher_->match(prev_tracks->last_frame_features(),
-                                        prev_tracks->last_frame_descriptors(),
-                                        curr_feat,
-                                        curr_desc);
+  const vital::frame_id_t last_frame = prev_tracks->last_frame();
+  vital::frame_id_t prev_frame = last_frame;
 
-  track_set_sptr active_set = prev_tracks->active_tracks();
+  track_set_sptr active_set;
+  // if processing out of order, see if there are tracks on the previous frame
+  // and prefer those over the last frame (i.e. largest frame number)
+  if( prev_frame >= frame_number && frame_number > 0 )
+  {
+    active_set = prev_tracks->active_tracks(frame_number - 1);
+    if( active_set && active_set->size() > 0 )
+    {
+      prev_frame = frame_number - 1;
+    }
+  }
+  if( !active_set )
+  {
+    active_set = prev_tracks->active_tracks(prev_frame);
+  }
+
+  // detect features on the previous frame
+  feature_set_sptr prev_feat = active_set->frame_features(prev_frame);
+  // extract descriptors on the previous frame
+  descriptor_set_sptr prev_desc = active_set->frame_descriptors(prev_frame);
+
+  // match features to from the previous to the current frame
+  match_set_sptr mset = matcher_->match(prev_feat, prev_desc,
+                                        curr_feat, curr_desc);
+
   std::vector<track_sptr> active_tracks = active_set->tracks();
-  std::vector<track_sptr> all_tracks = prev_tracks->tracks();
   std::vector<match> vm = mset->matches();
   std::set<unsigned> matched;
 
@@ -234,6 +254,7 @@ track_features_core
                        matched.begin(), matched.end(),
                        unmatched_insert_itr );
 
+  std::vector<track_sptr> all_tracks = prev_tracks->tracks();
   VITAL_FOREACH(unsigned i, unmatched)
   {
     track::track_state ts(frame_number, vf[i], df[i]);
