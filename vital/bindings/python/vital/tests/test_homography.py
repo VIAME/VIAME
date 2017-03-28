@@ -210,6 +210,19 @@ class TestHomography (unittest.TestCase):
         numpy.testing.assert_almost_equal(
             h_d.map(p_d), p_d
         )
+        
+        # Code to generate truth
+        h = numpy.random.rand(3,3)
+        h = h/numpy.linalg.norm(h)
+        p0 = numpy.random.rand(3); p0[2] = 1
+        p1 = numpy.dot(h, p0)
+        p1 = p1[:2]/p1[2]
+        h_d = Homography.from_matrix(h, ctypes.c_double)
+        
+        numpy.testing.assert_almost_equal(
+            h_d.map(p0[:2]).ravel(), p1
+        )
+        
 
     def test_point_map_zero_div(self):
         test_p = [1, 1]
