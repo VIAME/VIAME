@@ -13,6 +13,10 @@ if( WIN32 )
   set( ScallopTK_BUILD_SHARED
     -DBUILD_SHARED_LIBS:BOOL=OFF
   )
+  set( ScallopTK_HDF5_DIRS
+    -DHDF5_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/cmake
+    -DHDF5_DIFF_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/h5diff.exe
+  )
 else()
   set( ScallopTK_BUILD_SHARED
     -DBUILD_SHARED_LIBS:BOOL=ON
@@ -34,6 +38,7 @@ ExternalProject_Add(scallop_tk
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${ScallopTK_BUILD_SHARED}
+    ${ScallopTK_HDF5_DIRS}
     -DVC_TOOLNAMES:BOOL=ON
     -DBUILD_TOOLS:BOOL=ON
     -DBUILD_TESTS:BOOL=OFF
