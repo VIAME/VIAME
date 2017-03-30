@@ -31,6 +31,7 @@
 #include "hello_world_detector.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace viame {
 
@@ -105,7 +106,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
 
-  LOG_INFO( logger(), "Text: " << d->m_text );
+  std::cout << "Text: " << d->m_text << std::endl;
 
   return detected_set;
 }
