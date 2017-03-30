@@ -38,6 +38,10 @@ target_link_libraries( viame_scallop_tk
                        ScallopTK
   )
 
+if(VIAME_ENABLE_CAFFE AND WIN32)
+  target_link_libraries(viame_scallop_tk PUBLIC caffe glog)
+endif()
+
 algorithms_create_plugin( viame_scallop_tk
   register_algorithms.cxx
   )

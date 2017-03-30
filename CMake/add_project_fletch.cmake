@@ -156,6 +156,10 @@ set( VIAME_ARGS_fletch
   -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
   )
 
+set( VIAME_ARGS_Boost
+  -DBoost_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include
+  )
+
 if( VIAME_ENABLE_OPENCV )
   set(VIAME_ARGS_fletch
     ${VIAME_ARGS_fletch}

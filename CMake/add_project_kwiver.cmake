@@ -42,6 +42,7 @@ ExternalProject_Add(kwiver
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
+    ${VIAME_ARGS_Boost}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_VXL}
     ${VIAME_ARGS_darknet}
@@ -53,7 +54,6 @@ ExternalProject_Add(kwiver
 
     # Required
     -DBUILD_SHARED_LIBS:BOOL=ON
-    -DBoost_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include
     -DKWIVER_ENABLE_ARROWS:BOOL=ON
     -DKWIVER_ENABLE_TOOLS:BOOL=ON
     -DKWIVER_ENABLE_SPROKIT:BOOL=ON

@@ -95,6 +95,11 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
+  if( APPLE )
+    message( FATAL_ERROR "Python on mac currently not working properly, please \
+      either disable python or if you're ambitious, remove this comment and continue \
+      with it on to see if it builds for you." )
+  endif()
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
@@ -142,6 +147,12 @@ if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
 endif()
 
+if( WIN32 AND VIAME_ENABLE_FASTER_RCNN )
+  message( FATAL_ERROR "Faster R-CNN on windows is currently untested \
+    in VIAME, either disable it, or if you're ambitious, disable this message \
+    and continue." )
+endif()
+
 if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
@@ -158,11 +169,6 @@ if( VIAME_ENABLE_CUDNN )
     # Different subprojects use each variable
     set( CUDNN_LIBRARIES CUDNN_LIBRARY CACHE INTERNAL "" FORCE )
   endif()
-endif()
-
-if( WIN32 AND VIAME_ENABLE_CAFFE )
-  message( FATAL_ERROR "Internal Caffe build on windows not currently supported, \
-    please build Caffe externally using the Caffe windows branch, if desired." )
 endif()
 
 if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
