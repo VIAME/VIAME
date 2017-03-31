@@ -104,7 +104,7 @@ kwiver::vital::image_container_sptr
 hello_world_filter::
 filter( kwiver::vital::image_container_sptr image_data ) const
 {
-  auto image_output = std::make_shared< kwiver::vital::image_container_sptr >();
+  kwiver::vital::image_container_sptr image_output;
 
   std::cout << "Text: " << d->m_text << std::endl;
 

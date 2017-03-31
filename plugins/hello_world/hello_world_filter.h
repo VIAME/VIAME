@@ -45,7 +45,7 @@ public:
   hello_world_filter();
   virtual ~hello_world_filter();
 
-  // Get the current configuration (parameters) for this detector
+  // Get the current configuration (parameters) for this filter
   virtual kwiver::vital::config_block_sptr get_configuration() const;
 
   // Set configurations automatically parsed from input pipeline and config files
