@@ -36,9 +36,7 @@ The matlab plugins in the above releases were built using matlab r2016. They may
 with other versions. They were also moved to an "experimental" folder in the plugin directory, and can either
 be moved back into the main plugin directory or added to your path to use them.
 
-[Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
-
-Configuration: Everything enabled except Matlab and Docs
+[Ubuntu 14.04, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
 
 Documentation
 -------------
