@@ -8,6 +8,7 @@ set( plugin_matlab_files
   check_configuration.m
   detector_initialize.m
   mahalanobis.m
+  detect.m
   contourchains.m
   mahalanobis_mex.mexmaci64
   contourchains_mex.mexmaci64
