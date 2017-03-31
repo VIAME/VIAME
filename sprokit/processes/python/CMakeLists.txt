@@ -9,7 +9,7 @@ kwiver_create_python_plugin_init(kwiver)
 kwiver_create_python_plugin_init(kwiver/processes)
 
 # add python processes here
-if( NOT WIN32 )
+if( FALSE )
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/kw_print_number_process.py
     kwiver/processes
     kw_print_number_process)
