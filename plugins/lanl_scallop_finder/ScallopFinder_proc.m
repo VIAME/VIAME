@@ -16,7 +16,7 @@ else
     red = 1;
 end
 
-d = mahalanobis_mex(X,ones(size(X,1),1));%pixel Mahalanobis distances
+d = mahalanobis(X,ones(size(X,1),1));%pixel Mahalanobis distances
 d = d.*red.*sat;
 d = reshape(d,rows,cols);
 d = medfilt2(d,[3 3]);%[9 9]
@@ -42,7 +42,7 @@ for sigma = 1:3
     J = logical(J);
     J(:,[1:2 end-1:end]) = 0;
     J([1:2 end-1:end],:) = 0;
-    C = contourchains_mex(J);
+    C = contourchains(J);
     edgIdsLs = unique(C(:,3:4),'rows');% array of edgeids and their lengths
     T = prctile(edgIdsLs(:,2),90);% prctile cutoff on edge length
     C = C(C(:,4)>T,:);% retain edgepoints belonging to edges above cutoff
@@ -63,7 +63,7 @@ for sigma = 1:3
         support = LD/Peri;
         nrings = round(Par(3));
         if (dev<0.2)&&(support>0.2)&&(Par(3)>Rmin)&&(Par(3)<Rmax)
-            count = count+1;            
+            count = count+1;
             insamp =zeros(nrings*nt,2);
             outsamp =zeros(nrings*nt,2);
             a = Par(1);
@@ -92,13 +92,13 @@ for sigma = 1:3
             id = sum(d(insamp));
             od = sum(d(outsamp));
             disparity(count) = max(0,id-od);
-            
+
             CR(count,1:3) = Par;
             CR(count,4) = id/(pi*Par(3)*Par(3));
         end
-        
+
     end
- 
+
 end
 CR = CR(1:count,:);
 disparity = disparity(1:count);
@@ -188,7 +188,7 @@ for i = 1:bands
     %smooth the image out
     aSmooth=imfilter(I(:,:,i),gau,'conv','replicate');         % run the filter across rows
     aSmooth=imfilter(aSmooth,gau','conv','replicate');  % and then across columns
-    
+
     %apply directional derivatives
     ax = imfilter(aSmooth, dgau2D, 'conv','replicate');
     ay = imfilter(aSmooth, dgau2D', 'conv','replicate');

@@ -4,8 +4,11 @@
 
 set( plugin_matlab_files
   ScallopFinder.m
+  ScallopFinder_proc.m
   check_configuration.m
   detector_initialize.m
+  mahalanobis.m
+  contourchains.m
   mahalanobis_mex.mexmaci64
   contourchains_mex.mexmaci64
   )
