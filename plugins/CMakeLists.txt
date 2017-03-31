@@ -19,7 +19,7 @@ endif()
 
 if( VIAME_ENABLE_MATLAB )
   add_subdirectory( camtrawl )
-  add_subdirectory( LANLScallopFinder )
+  add_subdirectory( lanl_scallop_finder )
 endif()
 
 if( VIAME_ENABLE_UW_PREDICTOR )

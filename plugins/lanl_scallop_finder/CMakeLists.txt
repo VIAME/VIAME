@@ -10,4 +10,4 @@ set( plugin_matlab_files
   contourchains_mex.mexmaci64
   )
 
-install( FILES ${plugin_matlab_files} DESTINATION matlab/LANLScallopFinder )
+install( FILES ${plugin_matlab_files} DESTINATION matlab/lanl_scallop_finder )
