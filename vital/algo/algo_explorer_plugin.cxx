@@ -38,8 +38,10 @@ namespace vital {
 
 // ----------------------------------------------------------------
 /**
- * @brief
+ * @brief Plugin to provide detailed dsplay of algorithm plugins.
  *
+ * This class implements a plugin category formatter for the plugin_explorer
+ * tool.
  */
 class algo_explorer
   : public category_explorer
