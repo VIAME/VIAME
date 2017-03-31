@@ -108,7 +108,7 @@ filter( kwiver::vital::image_container_sptr image_data ) const
 
   std::cout << "Text: " << d->m_text << std::endl;
 
-  return detected_set;
+  return image_output;
 }
 
 
