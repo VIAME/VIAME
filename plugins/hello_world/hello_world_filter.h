@@ -28,42 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Defaults plugin algorithm registration interface impl
- */
+#ifndef VIAME_HELLO_WORLD_FILTER_H
+#define VIAME_HELLO_WORLD_FILTER_H
 
-#include <plugins/uw_predictor/viame_uw_predictor_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+#include <plugins/hello_world/viame_hello_world_export.h>
 
-#include "uw_predictor_classifier.h"
-
+#include <vital/algo/image_filter.h>
 
 namespace viame {
 
-extern "C"
-VIAME_UW_PREDICTOR_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+class VIAME_HELLO_WORLD_EXPORT hello_world_filter :
+  public kwiver::vital::algorithm_impl<
+    hello_world_filter, kwiver::vital::algo::image_filter >
 {
-  static auto const module_name = std::string( "viame.uw_predictor" );
-  if (vpm.is_module_loaded( module_name ) )
-  {
-    return;
-  }
+public:
+  hello_world_filter();
+  virtual ~hello_world_filter();
 
-  // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "uw_predictor_classifier", viame::uw_predictor_classifier );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "UW predictor classifier")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "University of Washington" )
-    ;
+  // Get the current configuration (parameters) for this filter
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
 
+  // Set configurations automatically parsed from input pipeline and config files
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  // - - - - - - -
-  vpm.mark_module_as_loaded( module_name );
-}
+  // Main filtering method
+  virtual kwiver::vital::image_container_sptr filter(
+    kwiver::vital::image_container_sptr image_data );
 
-} // end namespace viame
+private:
+  class priv;
+  const std::unique_ptr< priv > d;
+};
+
+} // end namespace
+
+#endif /* VIAME_HELLO_WORLD_FILTER_H */
