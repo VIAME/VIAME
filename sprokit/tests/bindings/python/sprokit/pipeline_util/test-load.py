@@ -65,7 +65,7 @@ def test_create(path_unused):
 def test_api_calls(path_unused):
     from sprokit.pipeline import config
     from sprokit.pipeline import process
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
     from sprokit.pipeline_util import load
 
     o = load.ConfigKeyOptions()
@@ -164,7 +164,7 @@ def test_api_calls(path_unused):
     o.description
     o.subblocks
     o.type = process.ProcessType()
-    o.description = process_registry.ProcessDescription()
+    o.description = process_factory.ProcessDescription()
     o.subblocks = load.ClusterSubblocks()
 
     o = load.ClusterDefineBlock()

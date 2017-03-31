@@ -33,7 +33,7 @@
  * \brief Ceres algorithm registration implementation
  */
 
-#include <arrows/ceres/kwiver_algo_ceres_export.h>
+#include <arrows/ceres/kwiver_algo_ceres_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/ceres/bundle_adjust.h>
@@ -45,7 +45,7 @@ namespace arrows {
 namespace ceres {
 
 extern "C"
-KWIVER_ALGO_CERES_EXPORT
+KWIVER_ALGO_CERES_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

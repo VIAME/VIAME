@@ -112,13 +112,11 @@ def make_sink(conf):
 
 def create_process(type, name, conf):
     from sprokit.pipeline import modules
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
 
     modules.load_known_modules()
 
-    reg = process_registry.ProcessRegistry.self()
-
-    p = reg.create_process(type, name, conf)
+    p = process_factory.create_process(type, name, conf)
 
     return p
 
@@ -126,13 +124,11 @@ def create_process(type, name, conf):
 def run_pipeline(sched_type, pipe, conf):
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import scheduler_factory
 
     modules.load_known_modules()
 
-    reg = scheduler_registry.SchedulerRegistry.self()
-
-    s = reg.create_scheduler(sched_type, pipe, conf)
+    s = scheduler_factory.create_scheduler(sched_type, pipe, conf)
 
     s.start()
     s.wait()

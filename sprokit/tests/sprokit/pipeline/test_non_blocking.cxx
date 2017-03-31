@@ -177,7 +177,7 @@ IMPLEMENT_TEST(non_blocking)
     // Get value from output adapter
     int num = rds->get_port_data<int>("number");
     received.insert( num );
-    std::cout << "received: " << num << std::endl;
+    //+ std::cout << "received: " << num << std::endl;
   }
 
   ep.wait();

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,22 @@ namespace logger_ns {
 /**
  * @brief Factory for default underlying logger.
  *
- * This class represents the factory for the mini_logger logging service.
+ * This class represents the factory for the default logging service.
  *
- * An object of this type can be created early in the program
- * execution (i.e. static initializer time), which is before the
- * initialize method is called.
+ * This is a minimal implementation of a kwiver logger. The logging
+ * level is set to a default threshold depending on the build mode. If
+ * built in debug mode, the threshold is set to display TRACE level
+ * messages and above, which is all lob messages. If built in release
+ * mode, the threshold is set to display WARN level messages and
+ * above, which results in a much reduced logger output.
+ *
+ * The default log threshold can be overridden by an environment
+ * variable "KWIVER_DEFAULT_LOG_LEVEL". If this is set to a
+ * recognizable level, the default will be set to that level. If the
+ * level is not recognized, the default level is unchanged and no
+ * error message is generated.
+ *
+ * Recognized levels are: trace, debug, info, warn, error, fatal.
  */
 class logger_factory_default
   : public kwiver_logger_factory

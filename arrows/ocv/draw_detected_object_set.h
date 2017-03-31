@@ -55,10 +55,7 @@ class KWIVER_ALGO_OCV_EXPORT draw_detected_object_set
 {
 public:
   draw_detected_object_set();
-  draw_detected_object_set(const draw_detected_object_set& other);
   virtual ~draw_detected_object_set();
-
-  virtual std::string impl_name() const { return "ocv"; }
 
   virtual vital::config_block_sptr get_configuration() const;
   virtual void set_configuration(vital::config_block_sptr config);

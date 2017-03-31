@@ -53,7 +53,7 @@ def test_api_calls():
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
     from sprokit.pipeline import process_cluster
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
 
     p = pipeline.Pipeline()
 
@@ -70,18 +70,16 @@ def test_api_calls():
 
     modules.load_known_modules()
 
-    reg = process_registry.ProcessRegistry.self()
-
-    proc1 = reg.create_process(proc_type1, proc_name1)
+    proc1 = process_factory.create_process(proc_type1, proc_name1)
 
     conf_name = 'output'
 
     c = config.empty_config()
 
     c.set_value(conf_name, 'test-python-pipeline-api_calls-print_number.txt')
-    proc2 = reg.create_process(proc_type2, proc_name2, c)
+    proc2 = process_factory.create_process(proc_type2, proc_name2, c)
 
-    proc3 = reg.create_process(proc_type3, proc_name3)
+    proc3 = process_factory.create_process(proc_type3, proc_name3)
 
     p.add_process(proc1)
     p.add_process(proc2)
