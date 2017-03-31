@@ -51,8 +51,13 @@ if( VIAME_ENABLE_MATLAB AND VIAME_ENABLE_UW_PREDICTOR )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        camtrawl_pipeline.pipe
-       lanl_pipeline.pipe
-       run_lanl.sh )
+       lanl_pipeline.pipe )
+
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_lanl.sh )
+  endif()
 endif()
 
 ###
