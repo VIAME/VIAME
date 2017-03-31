@@ -26,15 +26,15 @@ evaluation (a.k.a. scoring).
 Pre-Built Binaries
 ------------------
 
-Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages installed.
+Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages.
 
 [Windows 7/8/10, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58ddc1a98d777f0aef5d8cfd/download)
 
 [Windows 7/8/10, 64-bit, CPU Version](https://data.kitware.com/api/v1/item/58ddbebc8d777f0aef5d8cfb/download)
 
-The matlab plugin in the first release was built using matlab r2016, it may or may not work
-with other versions. It was also moved to an "experimental" folder in the plugin directory, and can either
-be moved back into the main plugin directory or added to your path to use it.
+The matlab plugins in the above releases were built using matlab r2016. They may or may not work
+with other versions. They were also moved to an "experimental" folder in the plugin directory, and can either
+be moved back into the main plugin directory or added to your path to use them.
 
 [Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
 
