@@ -59,7 +59,7 @@ typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
  * This class represents a ordered set of detected objects. The
  * detections are ordered on their basic confidence value.
  */
-class VITAL_EXPORT detected_object_set final
+class VITAL_EXPORT detected_object_set
   : private noncopyable
 {
 public:
