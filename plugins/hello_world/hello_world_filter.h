@@ -54,7 +54,7 @@ public:
 
   // Main filtering method
   virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data ) const;
+    kwiver::vital::image_container_sptr image_data );
 
 private:
   class priv;

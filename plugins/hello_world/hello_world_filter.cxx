@@ -102,7 +102,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::image_container_sptr
 hello_world_filter::
-filter( kwiver::vital::image_container_sptr image_data ) const
+filter( kwiver::vital::image_container_sptr image_data )
 {
   kwiver::vital::image_container_sptr image_output;
 
