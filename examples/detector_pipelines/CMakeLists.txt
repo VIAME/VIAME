@@ -41,7 +41,7 @@ if( VIAME_ENABLE_OPENCV )
        hough_detector.pipe )
 endif()
 
-if( VIAME_ENABLE_SCALLOP_TK AND VIAME_ENABLE_YOLO AND VIAME_ENABLE_FASTER_RCNN )
+if( VIAME_ENABLE_SCALLOP_TK AND VIAME_ENABLE_YOLO )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        multi_cnn_detector.pipe )
@@ -50,7 +50,14 @@ endif()
 if( VIAME_ENABLE_MATLAB AND VIAME_ENABLE_UW_PREDICTOR )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       camtrawl_pipeline.pipe )
+       camtrawl_pipeline.pipe
+       lanl_detector.pipe )
+
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_lanl.sh )
+  endif()
 endif()
 
 ###

@@ -37,6 +37,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include "hello_world_detector.h"
+#include "hello_world_filter.h"
 
 
 namespace viame {
@@ -61,6 +62,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
+  fact = vpm.ADD_ALGORITHM( "hello_world", viame::hello_world_filter );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Hello world filter.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
   // - - - - - - -
   vpm.mark_module_as_loaded( module_name );

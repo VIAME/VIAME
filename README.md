@@ -26,24 +26,17 @@ evaluation (a.k.a. scoring).
 Pre-Built Binaries
 ------------------
 
-Note: The package generation system is still relatively new and in an experimental state.
+Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages.
 
-[Windows 7/8/10, 64-Bit, GPU + Matlab Support](https://data.kitware.com/api/v1/item/58d8dbee8d777f0aef5d8950/download)
+[Windows 7/8/10, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58ddc1a98d777f0aef5d8cfd/download)
 
-[Windows 7/8/10, 64-bit, CPU Only](https://data.kitware.com/api/v1/item/58d928558d777f0aef5d8960/download)
+[Windows 7/8/10, 64-bit, CPU Version](https://data.kitware.com/api/v1/item/58ddbebc8d777f0aef5d8cfb/download)
 
-The matlab plugin in the first release was built using matlab r2016, it may or may not work
-with other versions. It was also moved to an "experimental" folder in the plugin directory, and can either
-be moved back into the main plugin directory or added to your path to use it.
+The matlab plugins in the above releases were built using matlab r2016. They may or may not work
+with other versions. They were also moved to an "experimental" folder in the plugin directory, and can either
+be moved back into the main plugin directory or added to your path to use them.
 
-
-If you get an error relating to not finding python27.dll on windows, you can either ignore the error for now or
-install Python 2.7 either via anaconda or the default installer. This will be fixed in a future release.
-
-
-[Ubuntu 14.04, 64-Bit](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
-
-Configuration: Everything enabled except Matlab and Docs
+[Ubuntu 14.04, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
 
 Documentation
 -------------
