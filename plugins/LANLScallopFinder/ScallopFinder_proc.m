@@ -1,8 +1,8 @@
 function [detected_object_set,detected_object_classification] = ScallopFinder_proc(image)
 [rows,cols,bands] = size(image);
+image = image(:,:,[3 2 1]);
 Rmax = 115;
 Rmin = 10;
-
 if bands>1
     X = rgb2hsv(double(reshape(image,rows*cols,bands))/255);
     red = 2*abs(X(:,1)-0.5);
@@ -16,7 +16,7 @@ else
     red = 1;
 end
 
-d = mahalanobis_mex(X,ones(size(X,1),1));%pixel Mahalanobis distances
+d = mahalanobis(X,ones(size(X,1),1));%pixel Mahalanobis distances
 d = d.*red.*sat;
 d = reshape(d,rows,cols);
 d = medfilt2(d,[3 3]);%[9 9]
@@ -42,7 +42,7 @@ for sigma = 1:3
     J = logical(J);
     J(:,[1:2 end-1:end]) = 0;
     J([1:2 end-1:end],:) = 0;
-    C = contourchains_mex(J);
+    C = contourchains(J);
     edgIdsLs = unique(C(:,3:4),'rows');% array of edgeids and their lengths
     T = prctile(edgIdsLs(:,2),90);% prctile cutoff on edge length
     C = C(C(:,4)>T,:);% retain edgepoints belonging to edges above cutoff
@@ -135,15 +135,15 @@ if Nnew>0
     end
 end
 L = size(CR,1);
-%detected_object_set = [5 5 15 15 1];
+
 detected_object_set = [CR(:,2) - CR(:,3) ...
                        CR(:,1) - CR(:,3) ...
                        CR(:,2) + CR(:,3) ...
-                      CR(:,1) + CR(:,3) CR(:,4)];% box and confidence for detection
+                       CR(:,1) + CR(:,3) CR(:,3)];% box and confidence for detection
 detected_object_classification = struct();
 for i = 1:L
     detected_object_classification(i,1).name='Scallop';
-    detected_object_classification(i,1).score = CR(i,4);
+    detected_object_classification(i,1).score= CR(i,4);
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%SUBFUNCTIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

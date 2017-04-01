@@ -33,8 +33,10 @@ function detect( in_image )
 global detected_object_set;
 global detected_object_classification;
 global detected_object_chips;
+
 [detected_object_set,detected_object_classification] = ...
 ScallopFinder_proc( in_image );
+size(detected_object_set)
 % This function is called to perform the detection operation on the
 % supplied image.
 
