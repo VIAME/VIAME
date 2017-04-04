@@ -121,6 +121,14 @@ bool
 track_features_core
 ::check_configuration(vital::config_block_sptr config) const
 {
+  bool config_valid = true;
+  // this algorithm is optional
+  if (config->has_value("loop_closer") &&
+      config->get_value<std::string>("loop_closer") != "" &&
+      !algo::close_loops::check_nested_algo_configuration("loop_closer", config))
+  {
+    config_valid = false;
+  }
   return (
     algo::detect_features::check_nested_algo_configuration("feature_detector", config)
     &&
@@ -128,7 +136,7 @@ track_features_core
     &&
     algo::match_features::check_nested_algo_configuration("feature_matcher", config)
     &&
-    algo::close_loops::check_nested_algo_configuration("loop_closer", config)
+    config_valid
   );
 }
 
@@ -142,7 +150,7 @@ track_features_core
         image_container_sptr mask) const
 {
   // verify that all dependent algorithms have been initialized
-  if( !detector_ || !extractor_ || !matcher_ || !closer_ )
+  if( !detector_ || !extractor_ || !matcher_ )
   {
     // Something did not initialize
     throw vital::algorithm_configuration_exception(this->type_name(), this->impl_name(),
@@ -186,11 +194,15 @@ track_features_core
        new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
        new_tracks.back()->set_id(this->next_track_id_++);
     }
-    // call loop closure on the first frame to establish this
-    // frame as the first frame for loop closing purposes
-    return closer_->stitch(frame_number,
-                           track_set_sptr(new simple_track_set(new_tracks)),
-                           image_data, mask);
+    if( closer_ )
+    {
+      // call loop closure on the first frame to establish this
+      // frame as the first frame for loop closing purposes
+      return closer_->stitch(frame_number,
+                             track_set_sptr(new simple_track_set(new_tracks)),
+                             image_data, mask);
+    }
+    return track_set_sptr(new simple_track_set(new_tracks));
   }
 
   const vital::frame_id_t last_frame = prev_tracks->last_frame();
@@ -262,11 +274,15 @@ track_features_core
     all_tracks.back()->set_id(this->next_track_id_++);
   }
 
-  track_set_sptr stitched_tracks = closer_->stitch(frame_number,
-    track_set_sptr(new simple_track_set(all_tracks)),
-    image_data, mask);
+  if( closer_ )
+  {
+    track_set_sptr stitched_tracks = closer_->stitch(frame_number,
+      track_set_sptr(new simple_track_set(all_tracks)),
+      image_data, mask);
+    return stitched_tracks;
+  }
 
-  return stitched_tracks;
+  return track_set_sptr(new simple_track_set(all_tracks));
 }
 
 } // end namespace core
