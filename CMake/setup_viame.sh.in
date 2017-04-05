@@ -20,6 +20,9 @@ export PYTHONPATH=$this_dir/python:$this_dir/lib/python2.7/site-packages:$PYTHON
 export PYTHONPATH=$this_dir/lib/python2.7/dist-packages:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes
 
+# set default log level
+export KWIVER_DEFAULT_LOG_LEVEL=trace
+
 # paths for matlab (empty if not built with matlab)
 @SETUP_MATLAB_LIBRARY_PATH@
 
