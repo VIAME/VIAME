@@ -58,7 +58,6 @@ namespace core {
 /// Default Constructor
 track_features_core
 ::track_features_core()
-: next_track_id_(0)
 {
 }
 
@@ -206,6 +205,8 @@ track_features_core
   std::vector<feature_sptr> vf = curr_feat->features();
   std::vector<descriptor_sptr> df = curr_desc->descriptors();
 
+  track_id_t next_track_id = 0;
+
   // special case for the first frame
   if( !prev_tracks )
   {
@@ -218,7 +219,7 @@ track_features_core
     {
        track::track_state ts(frame_number, *fit, *dit);
        new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-       new_tracks.back()->set_id(this->next_track_id_++);
+       new_tracks.back()->set_id(next_track_id++);
     }
     if( closer_ )
     {
@@ -230,6 +231,9 @@ track_features_core
     }
     return track_set_sptr(new simple_track_set(new_tracks));
   }
+
+  // get the last track id in the existing set of tracks and increment it
+  next_track_id = (*prev_tracks->all_track_ids().crbegin()) + 1;
 
   const vital::frame_id_t last_frame = prev_tracks->last_frame();
   vital::frame_id_t prev_frame = last_frame;
@@ -317,7 +321,7 @@ track_features_core
   {
     track::track_state ts(frame_number, vf[i], df[i]);
     all_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-    all_tracks.back()->set_id(this->next_track_id_++);
+    all_tracks.back()->set_id(next_track_id++);
   }
 
   if( closer_ )
