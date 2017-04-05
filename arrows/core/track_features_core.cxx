@@ -34,6 +34,7 @@
  */
 
 #include "track_features_core.h"
+#include "merge_tracks.h"
 
 #include <algorithm>
 #include <iostream>
@@ -171,11 +172,36 @@ track_features_core
         );
   }
 
-  // detect features on the current frame
-  feature_set_sptr curr_feat = detector_->detect(image_data, mask);
+  track_set_sptr existing_set;
+  feature_set_sptr curr_feat;
+  descriptor_set_sptr curr_desc;
 
-  // extract descriptors on the current frame
-  descriptor_set_sptr curr_desc = extractor_->extract(image_data, curr_feat, mask);
+  // see if there are already existing tracks on this frame
+  if( prev_tracks )
+  {
+    existing_set = prev_tracks->active_tracks(frame_number);
+    if( existing_set && existing_set->size() > 0 )
+    {
+      LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
+      // use existing features
+      curr_feat = existing_set->frame_features(frame_number);
+
+      // use existng descriptors
+      curr_desc = existing_set->frame_descriptors(frame_number);
+    }
+  }
+  if( !curr_feat || curr_feat->size() == 0 )
+  {
+    LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
+    // detect features on the current frame
+    curr_feat = detector_->detect(image_data, mask);
+  }
+  if( !curr_desc || curr_desc->size() == 0 )
+  {
+    LOG_DEBUG( logger(), "Computing new descriptors on frame "<<frame_number);
+    // extract descriptors on the current frame
+    curr_desc = extractor_->extract(image_data, curr_feat, mask);
+  }
 
   std::vector<feature_sptr> vf = curr_feat->features();
   std::vector<descriptor_sptr> df = curr_desc->descriptors();
@@ -235,6 +261,26 @@ track_features_core
 
   std::vector<track_sptr> active_tracks = active_set->tracks();
   std::vector<match> vm = mset->matches();
+
+  // if we previously had tracks on this frame, stitch to a previous frame
+  if( existing_set && existing_set->size() > 0 )
+  {
+    std::vector<track_sptr> existing_tracks = existing_set->tracks();
+    track_pairs_t track_matches;
+    VITAL_FOREACH(match m, vm)
+    {
+      track_sptr tp = active_tracks[m.first];
+      track_sptr tc = existing_tracks[m.second];
+      track_matches.push_back( std::make_pair(tc, tp) );
+    }
+    track_map_t track_replacement;
+    int num_linked = merge_tracks(track_matches, track_replacement);
+    LOG_DEBUG( logger(), "Stitched " << num_linked <<
+                         " existing tracks from frame " << frame_number <<
+                         " to " << prev_frame );
+    return remove_replaced_tracks(prev_tracks, track_replacement);
+  }
+
   std::set<unsigned> matched;
 
   VITAL_FOREACH(match m, vm)
