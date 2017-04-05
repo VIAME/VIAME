@@ -204,7 +204,7 @@ match_features_homography
 
   // estimate a homography from the initial matches
   std::vector<bool> inliers;
-  homography_sptr H = h_estimator_->estimate(feat1, feat2, init_matches,
+  homography_sptr H = h_estimator_->estimate(src_feat, feat2, init_matches,
                                              inliers, d_->inlier_scale);
   int inlier_count = static_cast<int>(std::count(inliers.begin(), inliers.end(), true));
   LOG_INFO(d_->m_logger, "inlier ratio: " << inlier_count << "/" << inliers.size());
