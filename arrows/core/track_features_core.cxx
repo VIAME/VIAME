@@ -37,6 +37,7 @@
 #include "merge_tracks.h"
 
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -266,6 +267,7 @@ track_features_core
   std::vector<track_sptr> active_tracks = active_set->tracks();
   std::vector<match> vm = mset->matches();
 
+  track_set_sptr updated_track_set;
   // if we previously had tracks on this frame, stitch to a previous frame
   if( existing_set && existing_set->size() > 0 )
   {
@@ -282,57 +284,55 @@ track_features_core
     LOG_DEBUG( logger(), "Stitched " << num_linked <<
                          " existing tracks from frame " << frame_number <<
                          " to " << prev_frame );
-    return remove_replaced_tracks(prev_tracks, track_replacement);
+    updated_track_set = remove_replaced_tracks(prev_tracks, track_replacement);
   }
-
-  std::set<unsigned> matched;
-
-  VITAL_FOREACH(match m, vm)
+  else
   {
-    matched.insert(m.second);
-    track_sptr t = active_tracks[m.first];
-    track::track_state ts(frame_number, vf[m.second], df[m.second]);
-    t->append(ts);
-  }
+    std::set<unsigned> matched;
 
-  // find the set of unmatched active track indices
-  std::vector< unsigned int > unmatched;
-  std::back_insert_iterator< std::vector< unsigned int > > unmatched_insert_itr(unmatched);
-
-  //
-  // Generate a sequence of numbers
-  //
-  std::vector< unsigned int > sequence( vf.size() );
-  {
-    auto eit = sequence.end();
-    unsigned int count(0);
-    for ( auto it = sequence.begin(); it != eit; ++it)
+    VITAL_FOREACH(match m, vm)
     {
-      *it = count++;
+      track_sptr t = active_tracks[m.first];
+      track::track_state ts(frame_number, vf[m.second], df[m.second]);
+      if( t->append(ts) || t->insert(ts) )
+      {
+        matched.insert(m.second);
+      }
     }
+
+    // find the set of unmatched active track indices
+    std::vector< unsigned int > unmatched;
+    std::back_insert_iterator< std::vector< unsigned int > > unmatched_insert_itr(unmatched);
+
+    //
+    // Generate a sequence of numbers
+    //
+    std::vector< unsigned int > sequence( vf.size() );
+    std::iota(sequence.begin(), sequence.end(), 0);
+
+    std::set_difference( sequence.begin(), sequence.end(),
+                         matched.begin(), matched.end(),
+                         unmatched_insert_itr );
+
+    std::vector<track_sptr> all_tracks = prev_tracks->tracks();
+    VITAL_FOREACH(unsigned i, unmatched)
+    {
+      track::track_state ts(frame_number, vf[i], df[i]);
+      all_tracks.push_back(std::make_shared<vital::track>(ts));
+      all_tracks.back()->set_id(next_track_id++);
+    }
+    updated_track_set = std::make_shared<simple_track_set>(all_tracks);
   }
 
-  std::set_difference( sequence.begin(), sequence.end(),
-                       matched.begin(), matched.end(),
-                       unmatched_insert_itr );
-
-  std::vector<track_sptr> all_tracks = prev_tracks->tracks();
-  VITAL_FOREACH(unsigned i, unmatched)
-  {
-    track::track_state ts(frame_number, vf[i], df[i]);
-    all_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-    all_tracks.back()->set_id(next_track_id++);
-  }
-
+  // run loop closure if enabled
   if( closer_ )
   {
-    track_set_sptr stitched_tracks = closer_->stitch(frame_number,
-      track_set_sptr(new simple_track_set(all_tracks)),
-      image_data, mask);
-    return stitched_tracks;
+    updated_track_set = closer_->stitch(frame_number,
+                                        updated_track_set,
+                                        image_data, mask);
   }
 
-  return track_set_sptr(new simple_track_set(all_tracks));
+  return updated_track_set;
 }
 
 } // end namespace core
