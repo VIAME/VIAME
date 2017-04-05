@@ -47,9 +47,10 @@ namespace vital {
 
 /// An abstract ordered collection of 2D image feature points.
 /**
- * The base class of feature_set is abstract and provides a
- * double precision interface.  The templated derived class
- * can store values in either single or double precision.
+ * The base class feature_set is abstract and provides an interface for
+ * returning a vector of features.  There is a simple derived class that
+ * stores the data as a vector of features and returns it.  Other derived
+ * classes can store the data in other formats and convert on demand.
  */
 class feature_set
 {
