@@ -263,6 +263,12 @@ track_features_core
   // match features to from the previous to the current frame
   match_set_sptr mset = matcher_->match(prev_feat, prev_desc,
                                         curr_feat, curr_desc);
+  if( !mset )
+  {
+    LOG_WARN( logger(), "Feature matching between frames " << prev_frame <<
+                        " and "<<frame_number<<" failed" );
+    return prev_tracks;
+  }
 
   std::vector<track_sptr> active_tracks = active_set->tracks();
   std::vector<match> vm = mset->matches();
