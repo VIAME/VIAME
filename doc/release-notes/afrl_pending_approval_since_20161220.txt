@@ -44,6 +44,10 @@ Arrows - Core
    MAP-Tk GUI which allows users to stop tracking, change the active frame,
    and start a new tracker.
 
+ * Loop closure is now an optional component algorithm of the core feature
+   tracker.  Leaving the loop closure algorithm unspecified will cause the
+   tracker to skip loop closure.
+
 Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
