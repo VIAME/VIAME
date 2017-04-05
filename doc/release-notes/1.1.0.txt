@@ -153,6 +153,9 @@ Vital
    is to respond in real-time. A typical parameter that could be
    varied in this manner would be a threshold or a scaling value.
 
+ * Added feature to plugin_explorer to allow filtering by
+   implementation type and factory type when selecting by category.
+
 Sprokit
 
  * Added sprokit port operations that have timeout. Allows process to
