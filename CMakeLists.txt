@@ -292,6 +292,15 @@ else()
   # set the name for our package exports
   set( kwiver_export_name      viame_exports )
 
+  # Setup python directories for plugin processes in same style as KWIVER
+  if( VIAME_ENABLE_PYTHON )
+    set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
+    set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
+
+    kwiver_create_python_plugin_init( viame )
+    kwiver_create_python_plugin_init( viame/processes )
+  endif()
+
   ###
   # build submodules
 
