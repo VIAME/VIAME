@@ -77,7 +77,7 @@ class hello_world_detector(KwiverProcess):
         print "Text: " + str( text )
 
         # push dummy detections object to output port
-        detections = [ 100 100 200 200 ]
+        detections = [ 100, 100, 200, 200 ]
         self.push_to_port_using_trait( 'detections', detections )
 
         self._base_step()

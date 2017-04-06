@@ -6,4 +6,4 @@ source ../../setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p hello_world_python.pipe
+pipeline_runner -p hello_world_python.pipe -S pythread_per_process 

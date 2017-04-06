@@ -32,7 +32,7 @@ from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
 from vital.types import ImageContainer
 
-class hello_world_detector(KwiverProcess):
+class hello_world_filter(KwiverProcess):
     """
     This process gets an image as input, does some stuff to it and
     sends the modified version to the output port.
