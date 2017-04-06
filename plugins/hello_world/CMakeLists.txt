@@ -36,3 +36,13 @@ target_link_libraries( viame_hello_world
 algorithms_create_plugin( viame_hello_world
   register_algorithms.cxx
   )
+
+if( VIAME_ENABLE_PYTHON )
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    viame/processes/hello_world
+    __init__)
+
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
+    viame/processes/hello_world
+    hello_world_detector)
+endif()
