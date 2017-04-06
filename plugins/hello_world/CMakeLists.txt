@@ -45,4 +45,8 @@ if( VIAME_ENABLE_PYTHON )
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
     viame/processes/hello_world
     hello_world_detector)
+
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_filter.py
+    viame/processes/hello_world
+    hello_world_filter)
 endif()
