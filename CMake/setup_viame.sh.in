@@ -18,7 +18,7 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 # paths for python
 export PYTHONPATH=$this_dir/python:$this_dir/lib/python2.7/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python2.7/dist-packages:$PYTHONPATH
-export SPROKIT_PYTHON_MODULES=kwiver.processes
+export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
 # set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=trace
