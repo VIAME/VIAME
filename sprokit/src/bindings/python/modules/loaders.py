@@ -118,9 +118,8 @@ class ModuleLoader(Loader):
 
             try:
                 module = import_module(import_path)
-            except ImportError:
-                #raise Exception(import_path)
-
+            except ImportError as e:
+                print "[DEBUG] Could not import:", import_path, " Reason: ", e
                 module = None
 
             if module is not None:
@@ -130,5 +129,4 @@ class ModuleLoader(Loader):
         """Load all modules found in a namespace"""
 
         modules = self._findPluginModules(namespace)
-
         self._cache = list(modules)
