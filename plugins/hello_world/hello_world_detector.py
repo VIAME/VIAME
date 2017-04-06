@@ -41,12 +41,12 @@ class hello_world_detector(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        self.add_config_trait("output", "output", '.',
-        'The path of the file to output to.')
+        self.add_config_trait("text", "text", 'Hello World',
+          'Text to display to user.')
 
-        self.declare_config_using_trait( 'output' )
+        self.declare_config_using_trait('text')
 
-        self.add_port_trait( 'out_image', 'image', 'Processed image' )
+        self.add_port_trait('detections', 'detected_object_set', 'Output detections')
 
         # set up required flags
         optional = process.PortFlags()
@@ -55,13 +55,12 @@ class hello_world_detector(KwiverProcess):
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
-
-        self.declare_output_port_using_trait('out_image', optional )
+        self.declare_output_port_using_trait('detections', optional)
 
     # ----------------------------------------------
     def _configure(self):
         print "[DEBUG] ----- configure"
-        path = self.config_value('output')
+        text = self.config_value('text')
 
         self._base_configure()
 
@@ -71,26 +70,14 @@ class hello_world_detector(KwiverProcess):
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
-        # Get image from conatiner
+        # Get python image from conatiner (just for show)
         in_img = in_img_c.get_image()
 
-        # convert generic image to PIL image
-        pil_image = in_img.get_pil_image()
+        # Print out text to screen
+        print "Text: " + str( text )
 
-        # draw on the image to prove we can do it
-        num = 37
-        import ImageDraw
-        draw = ImageDraw.Draw(pil_image)
-        draw.line((0, 0) + pil_image.size, fill=128, width=5)
-        draw.line((0, pil_image.size[1], pil_image.size[0], 0), fill=32768, width=5)
-        #                 x0   y0   x1       y1
-        draw.rectangle( [num, num, num+100, num+100], outline=125 )
-        del draw
-
-        new_image = Image.from_pil( pil_image )  # get new image handle
-        new_ic = ImageContainer( new_image )
-
-        # push object to output port
-        self.push_to_port_using_trait( 'out_image', new_ic )
+        # push dummy detections object to output port
+        detections = [ 100 100 200 200 ]
+        self.push_to_port_using_trait( 'detections', detections )
 
         self._base_step()
