@@ -46,7 +46,7 @@ class hello_world_detector(KwiverProcess):
 
         self.declare_config_using_trait('text')
 
-        self.add_port_trait('detections', 'detected_object_set', 'Output detections')
+        self.add_port_trait('out_image', 'image', 'Processed image')
 
         # set up required flags
         optional = process.PortFlags()
@@ -55,7 +55,7 @@ class hello_world_detector(KwiverProcess):
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
-        self.declare_output_port_using_trait('detections', optional)
+        self.declare_output_port_using_trait('out_image', optional )
 
     # ----------------------------------------------
     def _configure(self):
@@ -77,7 +77,6 @@ class hello_world_detector(KwiverProcess):
         print "Text: " + str( text )
 
         # push dummy detections object to output port
-        detections = [ 100 100 200 200 ]
-        self.push_to_port_using_trait( 'detections', detections )
+        self.push_to_port_using_trait('out_image', in_img)
 
         self._base_step()
