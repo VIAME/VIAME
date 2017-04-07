@@ -1,8 +1,6 @@
 ###
 # Loadable algorithms
 
-find_package( OpenCV REQUIRED )
-
 set( plugin_headers
   hello_world_detector.h
   hello_world_filter.h
