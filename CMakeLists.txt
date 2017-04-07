@@ -95,11 +95,6 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  if( APPLE )
-    message( FATAL_ERROR "Python on mac currently not working properly, please \
-      either disable python or if you're ambitious, remove this comment and continue \
-      with it on to see if it builds for you." )
-  endif()
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
