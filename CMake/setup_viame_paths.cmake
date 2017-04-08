@@ -16,3 +16,7 @@ if( VIAME_ENABLE_MATLAB )
     set( SETUP_MATLAB_LIBRARY_PATH "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib64:/usr/lib:${Matlab_LIBRARY_DIR}" )
   endif()
 endif()
+
+if( VIAME_ENABLE_PYTHON )
+  set( SETUP_PYTHON_LIBRARY_PATH "export PYTHON_LIBRARY=${PYTHON_LIBRARY}" )
+endif()
