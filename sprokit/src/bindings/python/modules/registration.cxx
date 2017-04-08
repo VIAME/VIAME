@@ -40,6 +40,10 @@
 #include <vital/plugin_loader/plugin_loader.h>
 #include <kwiversys/SystemTools.hxx>
 
+#ifdef SPROKIT_LOAD_PYLIB_SYM
+  #include <dlfcn.h>
+#endif
+
 using namespace boost::python;
 
 static sprokit::envvar_name_t const python_suppress_envvar = sprokit::envvar_name_t("SPROKIT_NO_PYTHON_MODULES");
@@ -72,6 +76,15 @@ register_factories(kwiver::vital::plugin_loader& vpm)
   }
 
   Py_Initialize();
+
+#ifdef SPROKIT_LOAD_PYLIB_SYM
+  const char *pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
+
+  if( pylib )
+  {
+    dlopen( pylib, RTLD_LAZY | RTLD_GLOBAL );
+  }
+#endif
 
   sprokit::python::python_gil const gil;
 

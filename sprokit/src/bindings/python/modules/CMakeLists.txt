@@ -9,15 +9,19 @@ set(modules_python_private_headers
 
 sprokit_private_header_group(${modules_python_private_headers})
 
+if(UNIX)
+  add_definitions( -DSPROKIT_LOAD_PYLIB_SYM )
+endif()
+
 kwiver_add_plugin(modules_python
   SUBDIR          sprokit
   SOURCES         ${modules_python_srcs}
                   ${modules_python_private_headers}
   PRIVATE         sprokit_pipeline
                   sprokit_python_util
+                  kwiversys
                   ${${boost_python_library_var}}
                   ${PYTHON_LIBRARIES}
-                  kwiversys
                   )
 
 sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/modules.py"
