@@ -60,7 +60,7 @@ class hello_world_filter(KwiverProcess):
     # ----------------------------------------------
     def _configure(self):
         print "[DEBUG] ----- configure"
-        text = self.config_value('text')
+        self.text = self.config_value('text')
 
         self._base_configure()
 
@@ -74,9 +74,9 @@ class hello_world_filter(KwiverProcess):
         in_img = in_img_c.get_image()
 
         # Print out text to screen
-        print "Text: " + str( text )
+        print "Text: " + str( self.text )
 
         # push dummy detections object to output port
-        self.push_to_port_using_trait('out_image', in_img)
+        self.push_to_port_using_trait('out_image', ImageContainer(in_img))
 
         self._base_step()

@@ -18,6 +18,7 @@ endif()
 if( VIAME_ENABLE_PYTHON )
 
   set( HELLO_WORLD_EX_SOURCE
+       ${HELLO_WORLD_EX_SOURCE}
        hello_world_python.pipe )
 
   if( WIN32 )

@@ -7,9 +7,8 @@ process input
 
 # =============================================================================
 process detector
-  :: image_object_detector
-  :detector:type                     hello_world
-  :detector:hello_world:text         Hello World!!!
+  :: hello_world_filter
+  :text                Hello World!! (from python)
 
 # =============================================================================
 # global pipeline config

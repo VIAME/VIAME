@@ -60,7 +60,7 @@ class hello_world_detector(KwiverProcess):
     # ----------------------------------------------
     def _configure(self):
         print "[DEBUG] ----- configure"
-        text = self.config_value('text')
+        self.text = self.config_value('text')
 
         self._base_configure()
 
@@ -74,7 +74,7 @@ class hello_world_detector(KwiverProcess):
         in_img = in_img_c.get_image()
 
         # Print out text to screen
-        print "Text: " + str( text )
+        print "Text: " + str( self.text )
 
         # push dummy detections object to output port
         detections = [ 100, 100, 200, 200 ]
