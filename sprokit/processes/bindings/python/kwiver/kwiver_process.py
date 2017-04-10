@@ -150,17 +150,23 @@ class KwiverProcess(process.PythonProcess):
         #                   trait name, system-level-type,   opt-converter-function
         self.add_type_trait("timestamp", "kwiver:timestamp")
         self.add_type_trait("gsd", "kwiver:gsd")
-        self.add_type_trait("image", "kwiver:image", VTC._convert_image_container_in, VTC._convert_image_container_out )
-        self.add_type_trait("mask", "kwiver:image", VTC._convert_image_container_in, VTC._convert_image_container_out )
+        self.add_type_trait("image", "kwiver:image",
+          VTC._convert_image_container_in, VTC._convert_image_container_out )
+        self.add_type_trait("mask", "kwiver:image",
+          VTC._convert_image_container_in, VTC._convert_image_container_out )
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set")
-        self.add_type_trait("track_set", "kwiver:track_set", VTC._convert_track_set_handle )
+        self.add_type_trait("detected_object_set", "kwiver:detected_object_set",
+          VTC._convert_detected_object_set_in, VTC._convert_detected_object_set_out )
+        self.add_type_trait("track_set", "kwiver:track_set",
+          VTC._convert_track_set_handle )
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
         self.add_type_trait("image_file_name", "kwiver:image_file_name")
         self.add_type_trait("video_file_name", "kwiver:video_file_name")
 
-        self.add_type_trait( "double_vector", "kwiver:d_vector", VTC._convert_double_vector_in, VTC._convert_double_vector_out )
+        self.add_type_trait( "double_vector", "kwiver:d_vector",
+          VTC._convert_double_vector_in, VTC._convert_double_vector_out )
 
 
         #          port-name   type-trait-name    description
@@ -169,6 +175,7 @@ class KwiverProcess(process.PythonProcess):
         self.add_port_trait("mask", "mask", "Imput mask image")
         self.add_port_trait("feature_set", "feature_set", "Set of detected features")
         self.add_port_trait("descriptor_set", "descriptor_set", "Set of feature descriptors")
+        self.add_port_trait("detected_object_set", "detected_object_set", "Set of object detections")
         self.add_port_trait("track_set", "track_set", "Set of feature tracks for stabilization")
 
         self.add_port_trait("homography_src_to_ref", "homography_src_to_ref", "Source image to ref image homography.")
@@ -356,4 +363,4 @@ class KwiverProcess(process.PythonProcess):
         pt = self._port_trait_set[ptn]
         if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
 
-        self.push_datum_to_port( pt.name, val)
+        self.push_datum_to_port( pt.name, val )

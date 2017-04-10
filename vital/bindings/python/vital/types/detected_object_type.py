@@ -89,13 +89,13 @@ class DetectedObjectType (VitalObject):
         dot_gmlc = self.VITAL_LIB.vital_detected_object_type_get_most_likely_class
         dot_gmlc.argtypes = [self.C_TYPE_PTR]
         dot_gmlc.restype = c_char_p
-        reurn dot_gmlc(self)
+        return dot_gmlc(self)
 
     def get_most_likely_score(self):
         dot_gmls = self.VITAL_LIB.vital_detected_object_type_get_most_likely_score
         dot_gmls.argtypes = [self.C_TYPE_PTR]
         dot_gmls.restype = c_double
-        reurn dot_gmls(self)
+        return dot_gmls(self)
 
     def set_score(self, name, score):
         dot_ss = self.VITAL_LIB.vital_detected_object_type_set_score

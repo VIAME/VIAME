@@ -68,12 +68,14 @@ class BoundingBox (VitalObject):
             bb_nfv.argtypes = [ctype.POINTER(ctype.c_double), ctype.POINTER(ctype.c_double)]
             bb_nfv(self, one, two)
 
-        else if four is None:
+        elif four is None:
             """
             signature 2
             """
             bb_npwh = self.VITAL_LIB.vital_bounding_box_new_from_point_width_height
-            bb_npwh.argtypes = [ctype.POINTER(ctype.c_double), ctype.c_double), ctype.c_double]
+            bb_npwh.argtypes = [ctype.POINTER(ctype.c_double),
+                                ctype.POINTER(ctype.c_double),
+                                ctype.POINTER(ctype.c_double)]
             bb_npwh(self, one, two, three)
 
         else:
