@@ -31,6 +31,9 @@ from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
 from vital.types import ImageContainer
+from vital.types import DetectedObject
+from vital.types import DetectedObjectSet
+from vital.types import BoundingBox
 
 class hello_world_detector(KwiverProcess):
     """
@@ -46,7 +49,7 @@ class hello_world_detector(KwiverProcess):
 
         self.declare_config_using_trait('text')
 
-        self.add_port_trait('detections', 'detected_object_set', 'Output detections')
+        #self.add_port_trait('detections', 'detected_object_set', 'Output detections')
 
         # set up required flags
         optional = process.PortFlags()
@@ -55,18 +58,16 @@ class hello_world_detector(KwiverProcess):
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
-        self.declare_output_port_using_trait('detections', optional)
+        self.declare_output_port_using_trait('detected_object_set', optional)
 
     # ----------------------------------------------
     def _configure(self):
-        print "[DEBUG] ----- configure"
         self.text = self.config_value('text')
 
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-        print "[DEBUG] ----- start step"
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
@@ -77,7 +78,7 @@ class hello_world_detector(KwiverProcess):
         print "Text: " + str( self.text )
 
         # push dummy detections object to output port
-        detections = [ 100, 100, 200, 200 ]
-        self.push_to_port_using_trait( 'detections', detections )
+        detections = DetectedObjectSet()
+        self.push_to_port_using_trait('detected_object_set', detections)
 
         self._base_step()

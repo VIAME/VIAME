@@ -7,7 +7,7 @@ process input
 
 # =============================================================================
 process detector
-  :: hello_world_filter
+  :: hello_world_detector
   :text                Hello World!! (from python)
 
 # =============================================================================
