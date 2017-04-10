@@ -2,9 +2,11 @@
 if( APPLE )
   set( SETUP_READLINK_CMD "this_dir=$(cd \"$(dirname \"$BASH_SOURCE[0]\")\" && pwd)" )
   set( SETUP_LIBRARY_PATH "export DYLD_FALLBACK_LIBRARY_PATH=$this_dir/lib:$DYLD_FALLBACK_LIBRARY_PATH" )
+  set( SETUP_QT_PLUGIN_PATH "#export QT_PLUGIN_PATH=$this_dir/lib/qt4/plugins" )
 else()
   set( SETUP_READLINK_CMD "this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))" )
   set( SETUP_LIBRARY_PATH "export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH" )
+  set( SETUP_QT_PLUGIN_PATH "export QT_PLUGIN_PATH=$this_dir/lib/qt4/plugins" )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
