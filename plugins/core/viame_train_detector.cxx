@@ -233,6 +233,13 @@ main( int argc, char* argv[] )
   if( g_params.opt_list )
   {
     kwiver::vital::plugin_loader pl( "register_explorer_plugin", SHARED_LIB_SUFFIX );
+
+    kwiver::vital::path_list_t pathl;
+    const std::string& default_module_paths( DEFAULT_MODULE_PATHS );
+
+    kwiversys::SystemTools::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
+    pl.load_plugins( pathl );
+
     auto fact_list = pl.get_factories( typeid( kwiver::vital::algo::train_detector ).name() );
 
     if( fact_list.empty() )
