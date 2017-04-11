@@ -3,10 +3,12 @@
 
 set( headers
   darknet_detector.h
+  darknet_trainer.h
 )
 
 set( sources
   darknet_detector.cxx
+  darknet_trainer.cxx
   )
 
 set( darknet_linked_libs

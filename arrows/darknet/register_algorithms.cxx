@@ -32,6 +32,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/darknet/darknet_detector.h>
+#include <arrows/darknet/darknet_trainer.h>
 
 namespace kwiver {
 namespace arrows {
@@ -52,6 +53,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   auto fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Image object detector using darknet" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_trainer );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Training utility for darknet" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

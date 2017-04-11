@@ -63,10 +63,10 @@ public:
    * \param test_groundtruth annotations loaded for each image
    */
   virtual void
-  train(std::vector< std::string > train_image_names,
-        std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-        std::vector< std::string > test_image_names,
-        std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth) const = 0;
+  train_from_disk(std::vector< std::string > train_image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+    std::vector< std::string > test_image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth) = 0;
 
   /// Train a detection model given images and detections
   /**
@@ -79,8 +79,8 @@ public:
    * \param groundtruth annotations loaded for each image
    */
   virtual void
-  train(std::vector< kwiver::vital::image_container_sptr > images,
-        std::vector< kwiver::vital::detected_object_set_sptr > groundtruth) const;
+  train_from_memory(std::vector< kwiver::vital::image_container_sptr > images,
+    std::vector< kwiver::vital::detected_object_set_sptr > groundtruth);
 
 protected:
   train_detector();
