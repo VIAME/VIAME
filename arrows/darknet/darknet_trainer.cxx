@@ -114,7 +114,6 @@ darknet_trainer::
 check_configuration( vital::config_block_sptr config ) const
 {
   std::string net_config = config->get_value< std::string >( "net_config" );
-  std::string class_file = config->get_value< std::string >( "class_names" );
 
   if( net_config.empty() || !kwiversys::SystemTools::FileExists( net_config ) )
   {
