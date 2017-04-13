@@ -46,7 +46,11 @@
 #include <iterator>
 
 #include <vital/vital_foreach.h>
-#include <vital/algo/algorithm.h>
+#include <vital/algo/detect_features.h>
+#include <vital/algo/extract_descriptors.h>
+#include <vital/algo/match_features.h>
+#include <vital/algo/close_loops.h>
+
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
 
@@ -56,9 +60,41 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
+
+/// Private implementation class
+class track_features_core::priv
+{
+public:
+  /// Constructor
+  priv()
+  {
+  }
+
+  /// The feature detector algorithm to use
+  vital::algo::detect_features_sptr detector;
+
+  /// The descriptor extractor algorithm to use
+  vital::algo::extract_descriptors_sptr extractor;
+
+  /// The feature matching algorithm to use
+  vital::algo::match_features_sptr matcher;
+
+  /// The loop closure algorithm to use
+  vital::algo::close_loops_sptr closer;
+};
+
+
 /// Default Constructor
 track_features_core
 ::track_features_core()
+: d_(new priv)
+{
+}
+
+
+/// Destructor
+track_features_core
+::~track_features_core() VITAL_NOTHROW
 {
 }
 
@@ -73,16 +109,20 @@ track_features_core
 
   // Sub-algorithm implementation name + sub_config block
   // - Feature Detector algorithm
-  algo::detect_features::get_nested_algo_configuration("feature_detector", config, detector_);
+  algo::detect_features::
+    get_nested_algo_configuration("feature_detector", config, d_->detector);
 
   // - Descriptor Extractor algorithm
-  algo::extract_descriptors::get_nested_algo_configuration("descriptor_extractor", config, extractor_);
+  algo::extract_descriptors::
+    get_nested_algo_configuration("descriptor_extractor", config, d_->extractor);
 
   // - Feature Matcher algorithm
-  algo::match_features::get_nested_algo_configuration("feature_matcher", config, matcher_);
+  algo::match_features::
+    get_nested_algo_configuration("feature_matcher", config, d_->matcher);
 
   // - Loop closure algorithm
-  algo::close_loops::get_nested_algo_configuration("loop_closer", config, closer_);
+  algo::close_loops::
+    get_nested_algo_configuration("loop_closer", config, d_->closer);
 
   return config;
 }
@@ -102,19 +142,19 @@ track_features_core
   // assigning to instance property.
   algo::detect_features_sptr df;
   algo::detect_features::set_nested_algo_configuration("feature_detector", config, df);
-  detector_ = df;
+  d_->detector = df;
 
   algo::extract_descriptors_sptr ed;
   algo::extract_descriptors::set_nested_algo_configuration("descriptor_extractor", config, ed);
-  extractor_ = ed;
+  d_->extractor = ed;
 
   algo::match_features_sptr mf;
   algo::match_features::set_nested_algo_configuration("feature_matcher", config, mf);
-  matcher_ = mf;
+  d_->matcher = mf;
 
   algo::close_loops_sptr cl;
   algo::close_loops::set_nested_algo_configuration("loop_closer", config, cl);
-  closer_ = cl;
+  d_->closer = cl;
 }
 
 
@@ -151,7 +191,7 @@ track_features_core
         image_container_sptr mask) const
 {
   // verify that all dependent algorithms have been initialized
-  if( !detector_ || !extractor_ || !matcher_ )
+  if( !d_->detector || !d_->extractor || !d_->matcher )
   {
     // Something did not initialize
     throw vital::algorithm_configuration_exception(this->type_name(), this->impl_name(),
@@ -194,13 +234,13 @@ track_features_core
   {
     LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
     // detect features on the current frame
-    curr_feat = detector_->detect(image_data, mask);
+    curr_feat = d_->detector->detect(image_data, mask);
   }
   if( !curr_desc || curr_desc->size() == 0 )
   {
     LOG_DEBUG( logger(), "Computing new descriptors on frame "<<frame_number);
     // extract descriptors on the current frame
-    curr_desc = extractor_->extract(image_data, curr_feat, mask);
+    curr_desc = d_->extractor->extract(image_data, curr_feat, mask);
   }
 
   std::vector<feature_sptr> vf = curr_feat->features();
@@ -222,13 +262,13 @@ track_features_core
        new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
        new_tracks.back()->set_id(next_track_id++);
     }
-    if( closer_ )
+    if( d_->closer )
     {
       // call loop closure on the first frame to establish this
       // frame as the first frame for loop closing purposes
-      return closer_->stitch(frame_number,
-                             track_set_sptr(new simple_track_set(new_tracks)),
-                             image_data, mask);
+      return d_->closer->stitch(frame_number,
+                                track_set_sptr(new simple_track_set(new_tracks)),
+                                image_data, mask);
     }
     return track_set_sptr(new simple_track_set(new_tracks));
   }
@@ -261,8 +301,8 @@ track_features_core
   descriptor_set_sptr prev_desc = active_set->frame_descriptors(prev_frame);
 
   // match features to from the previous to the current frame
-  match_set_sptr mset = matcher_->match(prev_feat, prev_desc,
-                                        curr_feat, curr_desc);
+  match_set_sptr mset = d_->matcher->match(prev_feat, prev_desc,
+                                           curr_feat, curr_desc);
   if( !mset )
   {
     LOG_WARN( logger(), "Feature matching between frames " << prev_frame <<
@@ -331,11 +371,11 @@ track_features_core
   }
 
   // run loop closure if enabled
-  if( closer_ )
+  if( d_->closer )
   {
-    updated_track_set = closer_->stitch(frame_number,
-                                        updated_track_set,
-                                        image_data, mask);
+    updated_track_set = d_->closer->stitch(frame_number,
+                                           updated_track_set,
+                                           image_data, mask);
   }
 
   return updated_track_set;
