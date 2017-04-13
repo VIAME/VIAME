@@ -46,9 +46,10 @@ namespace vital {
 
 /// An abstract ordered collection of feature descriptors.
 /**
- * The base class of descriptor_set is abstract and provides a
- * double precision interface.  The templated derived class
- * can store values in either single or double precision.
+ * The base class descriptor_set is abstract and provides an interface
+ * for returning a vector of descriptors.  There is a simple derived class
+ * that stores the data as a vector of descriptors and returns it.  Other
+ * derived classes can store the data in other formats and convert on demand.
  */
 class descriptor_set
 {
@@ -92,7 +93,7 @@ public:
 
 
 protected:
-  /// The vector of featrues
+  /// The vector of descriptors
   std::vector< descriptor_sptr > data_;
 };
 

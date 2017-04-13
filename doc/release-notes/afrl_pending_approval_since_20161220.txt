@@ -45,6 +45,17 @@ Arrows - Core
  * Updated hierarchical_bundle_adjust and initialize_cameras_landmarks to
    accept an optional metadata_map and pass it along to nested algorithms.
 
+ * Generalized the track_features_core algorithm to handle tracking on frames
+   that may come out of order and frames that have already been tracked.  Also
+   removed the caching of the next frame id in the algorithm and now retrive it
+   from the existing track set instead.  These changes are to support the
+   MAP-Tk GUI which allows users to stop tracking, change the active frame,
+   and start a new tracker.
+
+ * Loop closure is now an optional component algorithm of the core feature
+   tracker.  Leaving the loop closure algorithm unspecified will cause the
+   tracker to skip loop closure.
+
 Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
@@ -67,6 +78,9 @@ Vital
    metadata_map.  This includes initalize_cameras_landmarks, bundle_adjust,
    and optimize_cameras.
 
+ * Added an "insert" member function to the track data structure to insert
+   track states at any frame position, as long as that frame is not already
+   occupied.
 
 Fixes since last public release
 -------------------------------

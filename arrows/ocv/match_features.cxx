@@ -63,11 +63,17 @@ match_features
   // sets contain non-zero elements
   if( !desc1->size() || !desc2->size() )
   {
-    return vital::match_set_sptr( new arrows::ocv::match_set() );
+    return vital::match_set_sptr();
   }
 
   cv::Mat d1 = descriptors_to_ocv_matrix(*desc1);
   cv::Mat d2 = descriptors_to_ocv_matrix(*desc2);
+  if( d1.empty() || d2.empty())
+  {
+    LOG_DEBUG( logger(), "Unable to convert descriptors to OpenCV format");
+    return vital::match_set_sptr();
+  }
+
   std::vector<cv::DMatch> matches;
   ocv_match(d1, d2, matches);
   return vital::match_set_sptr(new ocv::match_set(matches));

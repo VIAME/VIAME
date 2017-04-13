@@ -102,7 +102,7 @@ BOOST_PYTHON_MODULE(config)
   class_<kwiver::vital::config_block_value_t>("ConfigValue"
     , "A value in the configuration.");
 
-  class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr, boost::noncopyable>("Config"
+  class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr, kwiver::vital::noncopyable>("Config"
     , "A key-value store of configuration values"
     , no_init)
     .def("subblock", &kwiver::vital::config_block::subblock

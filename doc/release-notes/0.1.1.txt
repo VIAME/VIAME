@@ -1,0 +1,21 @@
+KWIVER v0.1.1 Release Notes
+===========================
+
+This release provides patches to the KWIVER v0.1.0 release to address issues.
+KWIVER v0.1.1 is a bug fix release with no new functionality.
+
+
+Fixes since v0.1.0
+--------------------
+
+Arrows - Core
+
+ * The match_feature_homography class had a bug in which the feature matches
+   used in homography estimation indexed into the source features rather than
+   the filtered features.  As a result, when a filter was used, the feature
+   locations where incorrect causing the algorithm to fail.  The code has now
+   been corrected to properly use the filtered feature list.
+
+Vital
+
+ * Updated some outdated comments in feature_set and descriptor_set.

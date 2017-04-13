@@ -58,8 +58,9 @@ token_type_sysenv::
 // ----------------------------------------------------------------
 bool
 token_type_sysenv::
-lookup_entry (std::string const& name, std::string& result)
+lookup_entry (std::string const& name, std::string& result) const
 {
+  kwiversys::SystemInformation* SI( const_cast< kwiversys::SystemInformation* >(&m_sysinfo) );
 
   if ("cwd" == name) // current directory
   {
@@ -71,8 +72,8 @@ lookup_entry (std::string const& name, std::string& result)
   else if ("numproc" == name)   // number of processors/cores
   {
     std::stringstream sval;
-    unsigned int numCPU = m_sysinfo.GetNumberOfLogicalCPU();
-    // unsigned int numCPU = m_sysinfo.GetNumberOfPhysicalCPU();
+    unsigned int numCPU = SI->GetNumberOfLogicalCPU();
+    // unsigned int numCPU = SI->GetNumberOfPhysicalCPU();
     sval << numCPU;
     result = sval.str();
     return true;
@@ -82,7 +83,7 @@ lookup_entry (std::string const& name, std::string& result)
   else if ("totalvirtualmemory" == name)
   {
     std::stringstream sval;
-    sval <<  m_sysinfo.GetTotalVirtualMemory();
+    sval <<  SI->GetTotalVirtualMemory();
     result = sval.str();
     return true;
   }
@@ -91,7 +92,7 @@ lookup_entry (std::string const& name, std::string& result)
   else if ("availablevirtualmemory" == name)
   {
     std::stringstream sval;
-    sval << m_sysinfo.GetAvailableVirtualMemory();
+    sval << SI->GetAvailableVirtualMemory();
     result = sval.str();
     return true;
   }
@@ -100,7 +101,7 @@ lookup_entry (std::string const& name, std::string& result)
   else if ("totalphysicalmemory" == name)
   {
     std::stringstream sval;
-    sval << m_sysinfo.GetTotalPhysicalMemory();
+    sval << SI->GetTotalPhysicalMemory();
     result = sval.str();
     return true;
   }
@@ -109,7 +110,7 @@ lookup_entry (std::string const& name, std::string& result)
   else if ("availablephysicalmemory" == name)
   {
     std::stringstream sval;
-    sval << m_sysinfo.GetAvailablePhysicalMemory();
+    sval << SI->GetAvailablePhysicalMemory();
     result = sval.str();
     return true;
   }
@@ -117,49 +118,49 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("hostname" == name)   // network name of system
   {
-    result = m_sysinfo.GetHostname();
+    result = SI->GetHostname();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("domainname" == name)
   {
-    result = m_sysinfo.GetFullyQualifiedDomainName();
+    result = SI->GetFullyQualifiedDomainName();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("osname" == name)
   {
-    result = m_sysinfo.GetOSName();
+    result = SI->GetOSName();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("osdescription" == name)
   {
-    result = m_sysinfo.GetOSDescription();
+    result = SI->GetOSDescription();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("osplatform" == name)
   {
-    result = m_sysinfo.GetOSPlatform();
+    result = SI->GetOSPlatform();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("osversion" == name)
   {
-    result = m_sysinfo.GetOSVersion();
+    result = SI->GetOSVersion();
     return true;
   }
 
   // ----------------------------------------------------------------
   else if ("is64bits" == name)
   {
-    if ( 1 == m_sysinfo.Is64Bits())
+    if ( 1 == SI->Is64Bits())
     {
       result = "TRUE";
     }
@@ -174,7 +175,7 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("iswindows" == name)
   {
-    if ( 1 == m_sysinfo.GetOSIsWindows())
+    if ( 1 == SI->GetOSIsWindows())
     {
       result = "TRUE";
     }
@@ -189,7 +190,7 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("islinux" == name)
   {
-    if ( 1 == m_sysinfo.GetOSIsLinux())
+    if ( 1 == SI->GetOSIsLinux())
     {
       result = "TRUE";
     }
@@ -204,7 +205,7 @@ lookup_entry (std::string const& name, std::string& result)
   // ----------------------------------------------------------------
   else if ("isapple" == name)
   {
-    if ( 1 == m_sysinfo.GetOSIsApple())
+    if ( 1 == SI->GetOSIsApple())
     {
       result = "TRUE";
     }

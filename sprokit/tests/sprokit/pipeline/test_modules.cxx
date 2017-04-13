@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ IMPLEMENT_TEST(envvar)
 
   sprokit::scheduler::type_t const sched_type = sprokit::scheduler::type_t("test");
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>();
 
   sprokit::create_scheduler(sched_type, pipeline);
 }

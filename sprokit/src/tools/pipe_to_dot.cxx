@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,14 +128,14 @@ sprokit_tool_main(int argc, char const* argv[])
       conf->set_value(sprokit::process::config_name, graph_name);
 
       sprokit::process_t const proc = info->ctor(conf);
-      cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+      cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
     }
     else if (have_cluster_type)
     {
       sprokit::process::type_t const type = vm["cluster-type"].as<sprokit::process::type_t>();
 
       sprokit::process_t const proc = sprokit::create_process(type, graph_name, conf);
-      cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+      cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
       if (!cluster)
       {

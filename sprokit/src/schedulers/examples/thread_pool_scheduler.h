@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #include <schedulers/examples/schedulers_examples_export.h>
 
 #include <sprokit/pipeline/scheduler.h>
-
-#include <boost/scoped_ptr.hpp>
 
 #include <cstddef>
 
@@ -97,7 +95,7 @@ class SCHEDULERS_EXAMPLES_NO_EXPORT thread_pool_scheduler
     void _stop();
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 } // end namespace
