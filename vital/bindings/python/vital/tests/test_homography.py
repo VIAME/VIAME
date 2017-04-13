@@ -231,7 +231,7 @@ class TestHomography (unittest.TestCase):
         )
         
         # Another explicit case.
-        p0 = numpy.array([1923.47,645.676])
+        p0 = numpy.array([1923.47,645.676,1])
         h = numpy.array([[5.491496261770000276e-01,-1.125428185150000038e-01,
                           1.358427031619999923e+02],
                          [-1.429513389049999993e-02	,6.035527375529999849e-01,
@@ -239,11 +239,11 @@ class TestHomography (unittest.TestCase):
                          [-2.042570000000000164e-06,-2.871670000000000197e-07,
                           1]])
         p1 = numpy.dot(h, p0);      p1 = p1[:2]/p1[2]
-        
         H = Homography.from_matrix(h)
-        P = EigenArray.from_iterable(p0)
-        H.map(P)
-
+        P = EigenArray.from_iterable(p0[:2])
+        numpy.testing.assert_almost_equal(
+            H.map(P).ravel(), p1
+        )
         
 
     def test_point_map_zero_div(self):
@@ -310,13 +310,13 @@ class TestHomography (unittest.TestCase):
             h_mult, h_ident, 1
         )
         nose.tools.assert_raises(
-            ValueError,
+            TypeError,
             h_mult, h_ident, 'a string'
         )
     
     def test_write_to_file(self):
         # Use a random string filename to avoid name collision.
-        fname = 'temp_test_Hb80yrE9nMfstfoQWNtSYDf.txt'
+        fname = 'temp_homography_test_write_to_file.txt'
         
         h = Homography.from_matrix([[1, 0,  1],
                                     [0, 12.01321561,  1],
@@ -335,7 +335,7 @@ class TestHomography (unittest.TestCase):
 
     def test_read_from_file(self):
         # Use a random string filename to avoid name collision.
-        fname = 'temp_test_Hb80yrE9nMfstfoQWNtSYDf.txt'
+        fname = 'temp_homography_test_read_from_file.txt'
         
         # Reference homography
         h = Homography.from_matrix([[1, 0,  1],
@@ -353,7 +353,8 @@ class TestHomography (unittest.TestCase):
             with open(fname, 'r') as f:
                 h2 = Homography.read_from_file(f)
             
-            assert h == h2
+            numpy.testing.assert_almost_equal(h.as_matrix(), 
+                                              h2.as_matrix())
         finally:
             if os.path.isfile(fname):
                 os.remove(fname)

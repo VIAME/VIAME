@@ -223,12 +223,11 @@ class TestVitalCamera (unittest.TestCase):
 
     def test_read_write_krtd_file(self):
         # Use a random string filename to avoid name collision.
-        fname = 'temp_test_dew$3gF$#%H&N*67nb4NtSYDf.txt'
+        fname = 'temp_camera_test_read_write_krtd_file.txt'
         
         try:
             for _ in range(100):
                 c = (rand(3)*2-1)*100
-                c[:] = 1
                 center = EigenArray.from_iterable(c)
                 rotation = Rotation.random()
                 intrinsics = CameraIntrinsics(focal_length=rand(1)*1e4, 
