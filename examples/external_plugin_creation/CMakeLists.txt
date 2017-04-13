@@ -1,3 +1,6 @@
 ###
-# A common location for data used across multiple examples
+# External plugin examples
 ##
+
+install( DIRECTORY cxx DESTINATION examples/external_plugin_creation )
+install( DIRECTORY python DESTINATION examples/external_plugin_creation )
