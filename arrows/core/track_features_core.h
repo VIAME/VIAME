@@ -135,9 +135,6 @@ private:
   /// The loop closure algorithm to use
   vital::algo::close_loops_sptr closer_;
 
-  /// The ID to use for the next created track
-  mutable unsigned long next_track_id_;
-
 };
 
 } // end namespace core

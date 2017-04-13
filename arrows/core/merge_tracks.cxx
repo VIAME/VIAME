@@ -99,6 +99,10 @@ match_tracks( vital::algo::match_features_sptr matcher,
   // run the matcher algorithm between the target and current frames
   match_set_sptr mset = matcher->match(target_features, target_descriptors,
                                        current_features, current_descriptors);
+  if( !mset )
+  {
+    return track_pairs_t();
+  }
 
   // populate matched track pairs
   std::vector<vital::track_sptr> cur_tracks = current_tracks->tracks();

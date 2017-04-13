@@ -137,6 +137,22 @@ track
 }
 
 
+/// Insert a track state.
+bool
+track
+::insert( const track_state& state )
+{
+  auto pos = std::lower_bound( this->history_.begin(), this->history_.end(),
+                               state.frame_id, compare_state_frame() );
+  if( pos != this->history_.end() && pos->frame_id == state.frame_id )
+  {
+    return false;
+  }
+  this->history_.insert(pos, state);
+  return true;
+}
+
+
 /// Find the track state iterator matching \a frame
 track::history_const_itr
 track
