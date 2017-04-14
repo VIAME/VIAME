@@ -80,9 +80,15 @@ public:
   /// Get and in-memory image class to access the data
   virtual image get_image() const = 0;
 
-  /// Get metadata associated with this image, if available
-  virtual video_metadata_sptr get_metadata() const { return nullptr; }
+  /// Get metadata associated with this image
+  virtual video_metadata_sptr get_metadata() const { return md_; }
 
+  /// Set metadata associated with this image
+  virtual void set_metadata(video_metadata_sptr md) { md_ = md; }
+
+protected:
+  /// optional metadata
+  video_metadata_sptr md_;
 };
 
 
@@ -104,8 +110,9 @@ public:
   /// Constructor
   explicit simple_image_container(const image& d, video_metadata_sptr m = nullptr)
   : data(d)
-  , md(m)
-  {}
+  {
+    this->set_metadata(m);
+  }
 
   /// The size of the image data in bytes
   /**
@@ -126,15 +133,9 @@ public:
   /// Get and in-memory image class to access the data
   virtual image get_image() const { return data; };
 
-  /// Get metadata associated with this image, if available
-  virtual video_metadata_sptr get_metadata() const { return md; }
-
 protected:
   /// data for this image container
   image data;
-
-  /// optional metadata
-  video_metadata_sptr md;
 };
 
 
