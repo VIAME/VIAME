@@ -26,8 +26,14 @@ set( PLUGIN_NAME "example_external_plugin" )
 
 set( PLUGIN_FILES
   example_filter.py
+  __init__.py
   )
 
-install( FILES example_filter.py
-  DESTINATION "${VIAME_DIR}/lib/python2.7/site-packages"
-  )
+set( PYTHON_PATH "python2.7/site-packages" )
+set( PLUGIN_PATH "viame/processes/external_example" )
+
+foreach( PLUGIN_FILE ${PLUGIN_FILES} )
+  install( FILES "${PLUGIN_FILE}"
+    DESTINATION "${VIAME_DIR}/lib/${PYTHON_PATH}/${PLUGIN_PATH}"
+    )
+endforeach()

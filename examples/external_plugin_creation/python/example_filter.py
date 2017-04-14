@@ -32,10 +32,10 @@ from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
 from vital.types import ImageContainer
 
-class hello_world_filter(KwiverProcess):
+class example_filter( KwiverProcess ):
     """
-    This process gets an image as input, does some stuff to it and
-    sends the modified version to the output port.
+    This process gets an image as input, prints out text, and sends a copy of
+    the image to the output port.
     """
     # ----------------------------------------------
     def __init__(self, conf):
@@ -78,3 +78,4 @@ class hello_world_filter(KwiverProcess):
         self.push_to_port_using_trait('out_image', ImageContainer(in_img))
 
         self._base_step()
+
