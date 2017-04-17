@@ -294,6 +294,8 @@ track_features_core
       d_->feature_io->load(kwfd_file, feat, desc);
       if( feat && feat->size() > 0 && desc && desc->size() > 0 )
       {
+        LOG_DEBUG( logger(), "Loaded features on frame " << frame_number
+                             << " from " << kwfd_file );
         // Handle the special case where feature were loaded from a track
         // file without descriptors. If the number of features from both
         // sources matches, then assign just the descriptors
@@ -347,6 +349,8 @@ track_features_core
       }
     }
     d_->feature_io->save(kwfd_file, curr_feat, curr_desc);
+    LOG_DEBUG( logger(), "Saved features on frame " << frame_number
+                         << " to " << kwfd_file );
   }
 
   std::vector<feature_sptr> vf = curr_feat->features();
