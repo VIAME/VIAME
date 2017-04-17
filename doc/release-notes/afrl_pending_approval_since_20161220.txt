@@ -56,6 +56,9 @@ Arrows - Core
    tracker.  Leaving the loop closure algorithm unspecified will cause the
    tracker to skip loop closure.
 
+ * Updated the core tracking algorithm to read and write features and
+   descriptors to disk if a feature_descriptor_io algorithm is specified.
+
 Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
@@ -81,6 +84,13 @@ Vital
  * Added an "insert" member function to the track data structure to insert
    track states at any frame position, as long as that frame is not already
    occupied.
+
+ * Added an optional video_metadata member to the image_container class so that
+   metadata for images can be easily carried along with the image data.
+
+ * Added a utility function to construct a base filename from a metadata packet
+   and frame number in a consistent way for use in naming cache files
+   associated with video frames.
 
 Fixes since last public release
 -------------------------------
