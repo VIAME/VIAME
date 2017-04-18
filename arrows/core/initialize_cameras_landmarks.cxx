@@ -131,7 +131,7 @@ public:
     next_frame_max_distance(0),
     global_ba_rate(1.5),
     interim_reproj_thresh(5.0),
-    final_reproj_thresh(1.0),
+    final_reproj_thresh(2.0),
     zoom_scale_thresh(0.1),
     base_camera(),
     e_estimator(),
