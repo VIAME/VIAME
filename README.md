@@ -290,7 +290,6 @@ follows:
   * When catching exceptions, catch the type then use ``sys.exc_info()`` so
     that it works in Python versions from 2.4 to 3.3
   * No metaclasses; they don't work with the same syntax in Python2 and Python3
-  * Avoid 'with' since it doesn't work in Python 2.4
 
 ## Testing ##
 

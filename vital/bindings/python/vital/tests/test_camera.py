@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,10 @@ Tests for Camera interface class.
 import ctypes
 import math
 import unittest
-
+from numpy.random import rand
 import nose.tools
 import numpy
+import os
 
 from vital.types import (
     Camera,
@@ -219,3 +220,41 @@ class TestVitalCamera (unittest.TestCase):
         numpy.testing.assert_equal(c1.center, c2.center)
         nose.tools.assert_equal(c1.rotation, c2.rotation)
         nose.tools.assert_equal(c1.intrinsics, c2.intrinsics)
+
+    def test_read_write_krtd_file(self):
+        # Use a random string filename to avoid name collision.
+        fname = 'temp_camera_test_read_write_krtd_file.txt'
+        
+        try:
+            for _ in range(100):
+                c = (rand(3)*2-1)*100
+                center = EigenArray.from_iterable(c)
+                rotation = Rotation.random()
+                intrinsics = CameraIntrinsics(focal_length=rand(1)*1e4, 
+                                              principle_point=rand(2)*1000,
+                                              aspect_ratio=rand(1), 
+                                              skew=0., 
+                                              dist_coeffs=rand(3))
+                c1 = Camera(center=center, rotation=rotation, 
+                            intrinsics=intrinsics)
+        
+                c1.write_krtd_file(fname)
+                c2 = Camera.from_krtd_file(fname)
+                
+                err = numpy.linalg.norm(c1.center-c2.center)
+                assert err < 1e-9, ''.join(['Centers are different by ',
+                                            str(err)])
+                
+                c1.rotation.angle_from(c2.rotation) < 1e-12
+                            
+                attr = ['focal_length','aspect_ratio','principle_point','skew',
+                        'dist_coeffs']
+                for att in attr:
+                    v1 = numpy.array(getattr(c1.intrinsics,att))
+                    v2 = numpy.array(getattr(c2.intrinsics,att))
+                    err = numpy.linalg.norm(v1-v2)
+                    assert err < 1e-8, ''.join(['Difference ',str(err),
+                                                 ' for attribute: ',att])
+        finally:
+            if os.path.isfile(fname):
+                os.remove(fname)

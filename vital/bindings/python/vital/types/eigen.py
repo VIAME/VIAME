@@ -361,7 +361,7 @@ class EigenArray (numpy.ndarray, VitalObject):
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        s = str(self)
+        s = numpy.array2string(self, separator=',')
         # prefix lines based on the length of the class name
         l = s.splitlines()
         l[0] = cls_name + '(' + l[0]
@@ -447,3 +447,17 @@ class EigenArray (numpy.ndarray, VitalObject):
         f.restype = self._c_type
         with VitalErrorHandle() as eh:
             return f(self, row, col, eh)
+    
+    def norm(self, norm_type='L2'):
+        """
+        Return the norm of the array.
+        
+        :norm_type row: Type of norm to use.
+        :norm_type col: 'L2' |
+
+        :return: Norm of the array.
+        :rtype: float
+        
+        """
+        if norm_type == 'L2':
+            return numpy.linalg.norm(self)
