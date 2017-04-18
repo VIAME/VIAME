@@ -62,6 +62,10 @@ estimate_homography
            std::vector<bool>& inliers,
            double inlier_scale) const
 {
+  if( !feat1 || !feat2 || !matches )
+  {
+    return homography_sptr();
+  }
   std::vector<feature_sptr> vf1 = feat1->features();
   std::vector<feature_sptr> vf2 = feat2->features();
   std::vector<match> mset = matches->matches();

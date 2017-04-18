@@ -48,9 +48,9 @@
 #endif
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <memory>
 
 #define TEST_ARGS ()
 
@@ -136,7 +136,7 @@ IMPLEMENT_TEST(null_config)
   kwiver::vital::config_block_sptr const config;
 
   EXPECT_EXCEPTION(sprokit::null_edge_config_exception,
-                   boost::make_shared<sprokit::edge>(config),
+                   std::make_shared<sprokit::edge>(config),
                    "when passing a NULL config to an edge");
 }
 
@@ -144,7 +144,7 @@ IMPLEMENT_TEST(makes_dependency)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   if (!edge->makes_dependency())
   {
@@ -153,7 +153,7 @@ IMPLEMENT_TEST(makes_dependency)
 
   config->set_value(sprokit::edge::config_dependency, "false");
 
-  sprokit::edge_t const edge2 = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge2 = std::make_shared<sprokit::edge>(config);
 
   if (edge2->makes_dependency())
   {
@@ -166,7 +166,7 @@ IMPLEMENT_TEST(new_has_no_data)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   if (edge->has_data())
   {
@@ -178,7 +178,7 @@ IMPLEMENT_TEST(new_is_not_full)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   if (edge->full_of_data())
   {
@@ -190,7 +190,7 @@ IMPLEMENT_TEST(new_has_count_zero)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   if (edge->datum_count())
   {
@@ -202,7 +202,7 @@ IMPLEMENT_TEST(push_datum)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -230,7 +230,7 @@ IMPLEMENT_TEST(peek_datum)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -260,7 +260,7 @@ IMPLEMENT_TEST(peek_datum_index)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -301,7 +301,7 @@ IMPLEMENT_TEST(pop_datum)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -324,7 +324,7 @@ IMPLEMENT_TEST(get_datum)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -354,7 +354,7 @@ IMPLEMENT_TEST(null_upstream_process)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::process_t const process;
 
@@ -367,7 +367,7 @@ IMPLEMENT_TEST(null_downstream_process)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::process_t const process;
 
@@ -384,7 +384,7 @@ IMPLEMENT_TEST(set_upstream_process)
 
   sprokit::process_t const process = sprokit::create_process(proc_type, sprokit::process::name_t());
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>();
 
   edge->set_upstream_process(process);
 
@@ -401,7 +401,7 @@ IMPLEMENT_TEST(set_downstream_process)
 
   sprokit::process_t const process = sprokit::create_process(proc_type, sprokit::process::name_t());
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>();
 
   edge->set_downstream_process(process);
 
@@ -414,7 +414,7 @@ IMPLEMENT_TEST(push_data_into_complete)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -444,7 +444,7 @@ IMPLEMENT_TEST(get_data_from_complete)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   edge->mark_downstream_as_complete();
 
@@ -484,7 +484,7 @@ IMPLEMENT_TEST(capacity)
 
   config->set_value(sprokit::edge::config_capacity, value_capacity);
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -536,7 +536,7 @@ IMPLEMENT_TEST(try_push_datum)
 
   config->set_value(sprokit::edge::config_capacity, 1);
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   sprokit::stamp::increment_t const inc = sprokit::stamp::increment_t(1);
 
@@ -575,7 +575,7 @@ IMPLEMENT_TEST(try_push_datum)
 
 IMPLEMENT_TEST(try_get_datum)
 {
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>();
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>();
 
   time_point_t const start = time_clock_t::now();
 

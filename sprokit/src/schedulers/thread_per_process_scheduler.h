@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #include <schedulers/schedulers_export.h>
 
 #include <sprokit/pipeline/scheduler.h>
-
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file thread_per_process_scheduler.h
@@ -98,7 +96,7 @@ protected:
 
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

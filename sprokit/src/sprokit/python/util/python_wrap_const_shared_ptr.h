@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,8 @@
 
 #include <boost/python/pointee.hpp>
 #include <boost/get_pointer.hpp>
-#include <boost/shared_ptr.hpp>
+
+#include <memory>
 
 // Retrieved from http://mail.python.org/pipermail/cplusplus-sig/2006-November/011329.html
 namespace boost
@@ -45,13 +46,13 @@ namespace python
 template <typename T>
 inline
 T*
-get_pointer(boost::shared_ptr<T const> const& p)
+get_pointer(std::shared_ptr<T const> const& p)
 {
   return const_cast<T*>(p.get());
 }
 
 template <typename T>
-struct pointee<boost::shared_ptr<T const> >
+struct pointee<std::shared_ptr<T const> >
 {
   typedef T type;
 };

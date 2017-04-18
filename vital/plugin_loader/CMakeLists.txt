@@ -27,12 +27,12 @@ kwiver_add_library(vital_vpm
 
 kwiver_install_headers(
   ${vital_vpm_headers}
-  SUBDIR      vital
+  SUBDIR      vital/plugin_loader
   )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
-  SUBDIR      vital
+  SUBDIR      vital/plugin_loader
   NOPATH
   )
 

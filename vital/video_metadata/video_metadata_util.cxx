@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,71 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PROCESSES_EXAMPLES_CONST_NUMBER_PROCESS_H
-#define SPROKIT_PROCESSES_EXAMPLES_CONST_NUMBER_PROCESS_H
-
-#include "examples-config.h"
-
-#include <sprokit/pipeline/process.h>
-
 /**
- * \file const_number_process.h
- *
- * \brief Declaration of the constant number process.
+ * \file
+ * \brief This file contains the implementation for vital video metadata
+ *  utility functions.
  */
 
-namespace sprokit {
+#include "video_metadata_util.h"
 
-/**
- * \class const_number_process
- *
- * \brief Generates constant numbers.
- *
- * \process Generates constant numbers.
- *
- * \oports
- *
- * \oport{number} The number.
- *
- * \configs
- *
- * \config{value} The first number to use.
- *
- * \reqs
- *
- * \req The \port{number} output must be connected.
- *
- * \ingroup examples
- */
-class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT const_number_process
-  : public process
+#include <kwiversys/SystemTools.hxx>
+
+
+namespace kwiver {
+namespace vital {
+
+
+/// Extract an image file basename from metadata and (if needed) frame number
+std::string
+basename_from_metadata(video_metadata_sptr md,
+                       frame_id_t frame)
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    const_number_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~const_number_process();
-  protected:
-    /**
-     * \brief Configure the process.
-     */
-    void _configure();
+  typedef kwiversys::SystemTools  ST;
 
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
-};
-
+  std::string basename = "frame";
+  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_FILENAME ) )
+  {
+    std::string img_name = md->find( VITAL_META_IMAGE_FILENAME ).as_string();
+    basename = ST::GetFilenameWithoutLastExtension( img_name );
+  }
+  else
+  {
+    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_FILENAME ) )
+    {
+      std::string vid_name = md->find( VITAL_META_VIDEO_FILENAME ).as_string();
+      basename = ST::GetFilenameWithoutLastExtension( vid_name );
+    }
+    char frame_str[6];
+    std::snprintf(frame_str, 6, "%05d", static_cast<int>(frame));
+    basename += std::string(frame_str);
+  }
+  return basename;
 }
 
-#endif // SPROKIT_PROCESSES_EXAMPLES_CONST_NUMBER_PROCESS_H
+
+} } // end namespace

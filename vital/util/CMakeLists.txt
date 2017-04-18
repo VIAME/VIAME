@@ -46,6 +46,7 @@ set( public_headers
   source_location.h
 
   data_stream_reader.h
+  string.h
   string_editor.h
   thread_pool.h
   token_expander.h

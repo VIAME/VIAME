@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #include <vital/logger/vital_logger_export.h>
 #include "default_logger.h"
 #include "kwiver_logger.h"
+#include <kwiversys/SystemTools.hxx>
 
 #include <memory>
 #include <mutex>
@@ -39,6 +40,7 @@
 #include <iomanip>
 #include <iostream>
 #include <string.h>
+#include <algorithm>
 
 namespace kwiver {
 namespace vital {
@@ -67,8 +69,47 @@ public:
   /// CTOR
   default_logger( logger_ns::logger_factory_default* p, std::string const& name )
     : kwiver_logger( p, name ),
-    m_logLevel( kwiver_logger::LEVEL_TRACE )
-  { }
+#if defined( NDEBUG )
+    m_logLevel( kwiver_logger::LEVEL_WARN ) // default for release builds
+#else
+    m_logLevel( kwiver_logger::LEVEL_TRACE ) // default for debug builds
+#endif
+  {
+    // Allow env variable to override default log level
+    std::string level;
+    if ( kwiversys::SystemTools::GetEnv( "KWIVER_DEFAULT_LOG_LEVEL", level ) )
+    {
+      // Convert input to lower for easier comparison
+      std::transform(level.begin(), level.end(), level.begin(), ::tolower);
+
+      if ( "trace" == level )
+      {
+        m_logLevel = kwiver_logger::LEVEL_TRACE;
+      }
+      else if ( "debug" == level )
+      {
+        m_logLevel = kwiver_logger::LEVEL_DEBUG;
+      }
+      else if ( "info" == level )
+      {
+        m_logLevel = kwiver_logger::LEVEL_INFO;
+      }
+      else if ( "warn" == level )
+      {
+        m_logLevel = kwiver_logger::LEVEL_WARN;
+      }
+      else if ( "error" == level )
+      {
+        m_logLevel = kwiver_logger::LEVEL_ERROR;
+      }
+      else if ( "fatal" == level )
+      {
+        m_logLevel = kwiver_logger::LEVEL_FATAL;
+      }
+
+      // If the level is not recognised, then leave at default
+    }
+  }
 
   virtual ~default_logger() VITAL_DEFAULT_DTOR
 
@@ -272,7 +313,4 @@ logger_factory_default
   return log;
 }
 
-
-}
-}
-}     // end namespace
+} } }     // end namespace

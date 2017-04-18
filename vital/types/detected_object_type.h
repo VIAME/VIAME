@@ -42,6 +42,7 @@
 #include <map>
 #include <set>
 #include <memory>
+#include <mutex>
 
 namespace kwiver {
 namespace vital {
@@ -227,6 +228,9 @@ private:
    * set_score().
    */
   static std::set< std::string > s_master_name_set;
+
+  // Used to control access to shared resources
+  static std::mutex s_table_mutex;
 };
 
 // typedef for a object_type shared pointer

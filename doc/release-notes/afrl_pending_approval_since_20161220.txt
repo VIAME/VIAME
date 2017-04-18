@@ -15,6 +15,14 @@ Arrows - Core
  * Added a core implementation of "filter_tracks" which applies filters based
    on track length or based on importance of the track in covering a match matrix.
 
+ * Added a core implementation of "filter_features" which filters features
+   based on keypoint scale.
+
+ * Changed "match_features_homography" to apply feature filtering to both the
+   source and destination frames.  This seems to be more robust when the number
+   of features is very large.  Also adjusted the homography inlier scale with
+   respect to the average scale of the features.
+
  * Added multi-threaded operation to close_loops_keyframe and
    close_loops_exhaustive algorithms.  Frame matching tasks are added to the
    thread pool.
@@ -36,6 +44,20 @@ Arrows - Core
 
  * Updated hierarchical_bundle_adjust and initialize_cameras_landmarks to
    accept an optional metadata_map and pass it along to nested algorithms.
+
+ * Generalized the track_features_core algorithm to handle tracking on frames
+   that may come out of order and frames that have already been tracked.  Also
+   removed the caching of the next frame id in the algorithm and now retrive it
+   from the existing track set instead.  These changes are to support the
+   MAP-Tk GUI which allows users to stop tracking, change the active frame,
+   and start a new tracker.
+
+ * Loop closure is now an optional component algorithm of the core feature
+   tracker.  Leaving the loop closure algorithm unspecified will cause the
+   tracker to skip loop closure.
+
+ * Updated the core tracking algorithm to read and write features and
+   descriptors to disk if a feature_descriptor_io algorithm is specified.
 
 Vital
 
@@ -59,6 +81,16 @@ Vital
    metadata_map.  This includes initalize_cameras_landmarks, bundle_adjust,
    and optimize_cameras.
 
+ * Added an "insert" member function to the track data structure to insert
+   track states at any frame position, as long as that frame is not already
+   occupied.
+
+ * Added an optional video_metadata member to the image_container class so that
+   metadata for images can be easily carried along with the image data.
+
+ * Added a utility function to construct a base filename from a metadata packet
+   and frame number in a consistent way for use in naming cache files
+   associated with video frames.
 
 Fixes since last public release
 -------------------------------

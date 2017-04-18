@@ -34,8 +34,10 @@
  */
 
 #include "track_features_core.h"
+#include "merge_tracks.h"
 
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -44,20 +46,67 @@
 #include <iterator>
 
 #include <vital/vital_foreach.h>
-#include <vital/algo/algorithm.h>
+#include <vital/algo/detect_features.h>
+#include <vital/algo/extract_descriptors.h>
+#include <vital/algo/feature_descriptor_io.h>
+#include <vital/algo/match_features.h>
+#include <vital/algo/close_loops.h>
+
+#include <vital/video_metadata/video_metadata_util.h>
+
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 using namespace kwiver::vital;
+typedef kwiversys::SystemTools ST;
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
+
+/// Private implementation class
+class track_features_core::priv
+{
+public:
+  /// Constructor
+  priv()
+    : features_dir("")
+  {
+  }
+
+  config_path_t features_dir;
+
+  /// The feature detector algorithm to use
+  vital::algo::detect_features_sptr detector;
+
+  /// The descriptor extractor algorithm to use
+  vital::algo::extract_descriptors_sptr extractor;
+
+  /// The file I/O for feature descriptor caching
+  vital::algo::feature_descriptor_io_sptr feature_io;
+
+  /// The feature matching algorithm to use
+  vital::algo::match_features_sptr matcher;
+
+  /// The loop closure algorithm to use
+  vital::algo::close_loops_sptr closer;
+};
+
+
 /// Default Constructor
 track_features_core
 ::track_features_core()
-: next_track_id_(0)
+: d_(new priv)
+{
+}
+
+
+/// Destructor
+track_features_core
+::~track_features_core() VITAL_NOTHROW
 {
 }
 
@@ -70,18 +119,31 @@ track_features_core
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
+  config->set_value("features_dir", d_->features_dir,
+                    "Path to a directory in which to read or write the feature "
+                    "detection and description files.\n"
+                    "Using this directory requires a feature_io algorithm.");
+
   // Sub-algorithm implementation name + sub_config block
   // - Feature Detector algorithm
-  algo::detect_features::get_nested_algo_configuration("feature_detector", config, detector_);
+  algo::detect_features::
+    get_nested_algo_configuration("feature_detector", config, d_->detector);
 
   // - Descriptor Extractor algorithm
-  algo::extract_descriptors::get_nested_algo_configuration("descriptor_extractor", config, extractor_);
+  algo::extract_descriptors::
+    get_nested_algo_configuration("descriptor_extractor", config, d_->extractor);
+
+  // - Feature Descriptor I/O algorithm
+  algo::feature_descriptor_io::
+    get_nested_algo_configuration("feature_io", config, d_->feature_io);
 
   // - Feature Matcher algorithm
-  algo::match_features::get_nested_algo_configuration("feature_matcher", config, matcher_);
+  algo::match_features::
+    get_nested_algo_configuration("feature_matcher", config, d_->matcher);
 
   // - Loop closure algorithm
-  algo::close_loops::get_nested_algo_configuration("loop_closer", config, closer_);
+  algo::close_loops::
+    get_nested_algo_configuration("loop_closer", config, d_->closer);
 
   return config;
 }
@@ -97,23 +159,30 @@ track_features_core
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
+  d_->features_dir = config->get_value<config_path_t>("features_dir",
+                                                      d_->features_dir);
+
   // Setting nested algorithm instances via setter methods instead of directly
   // assigning to instance property.
   algo::detect_features_sptr df;
   algo::detect_features::set_nested_algo_configuration("feature_detector", config, df);
-  detector_ = df;
+  d_->detector = df;
 
   algo::extract_descriptors_sptr ed;
   algo::extract_descriptors::set_nested_algo_configuration("descriptor_extractor", config, ed);
-  extractor_ = ed;
+  d_->extractor = ed;
+
+  algo::feature_descriptor_io_sptr fi;
+  algo::feature_descriptor_io::set_nested_algo_configuration("feature_io", config, fi);
+  d_->feature_io = fi;
 
   algo::match_features_sptr mf;
   algo::match_features::set_nested_algo_configuration("feature_matcher", config, mf);
-  matcher_ = mf;
+  d_->matcher = mf;
 
   algo::close_loops_sptr cl;
   algo::close_loops::set_nested_algo_configuration("loop_closer", config, cl);
-  closer_ = cl;
+  d_->closer = cl;
 }
 
 
@@ -121,6 +190,34 @@ bool
 track_features_core
 ::check_configuration(vital::config_block_sptr config) const
 {
+  bool config_valid = true;
+  // this algorithm is optional
+  if (config->has_value("loop_closer") &&
+      config->get_value<std::string>("loop_closer") != "" &&
+      !algo::close_loops::check_nested_algo_configuration("loop_closer", config))
+  {
+    config_valid = false;
+  }
+
+  if (config->has_value("features_dir")
+      && config->get_value<std::string>("features_dir") != "" )
+  {
+    config_path_t fp = config->get_value<config_path_t>("features_dir");
+    if ( ST::FileExists( fp ) && !ST::FileIsDirectory( fp ) )
+    {
+      LOG_ERROR( logger(), "Given features directory is a file "
+                           "(Given: " << fp << ")");
+      config_valid = false;
+    }
+  }
+
+  // this algorithm is optional
+  if (config->has_value("feature_io") &&
+      config->get_value<std::string>("feature_io") != "" &&
+      !algo::feature_descriptor_io::check_nested_algo_configuration("feature_io", config))
+  {
+    config_valid = false;
+  }
   return (
     algo::detect_features::check_nested_algo_configuration("feature_detector", config)
     &&
@@ -128,7 +225,7 @@ track_features_core
     &&
     algo::match_features::check_nested_algo_configuration("feature_matcher", config)
     &&
-    algo::close_loops::check_nested_algo_configuration("loop_closer", config)
+    config_valid
   );
 }
 
@@ -142,7 +239,7 @@ track_features_core
         image_container_sptr mask) const
 {
   // verify that all dependent algorithms have been initialized
-  if( !detector_ || !extractor_ || !matcher_ || !closer_ )
+  if( !d_->detector || !d_->extractor || !d_->matcher )
   {
     // Something did not initialize
     throw vital::algorithm_configuration_exception(this->type_name(), this->impl_name(),
@@ -163,14 +260,103 @@ track_features_core
         );
   }
 
-  // detect features on the current frame
-  feature_set_sptr curr_feat = detector_->detect(image_data, mask);
+  track_set_sptr existing_set;
+  feature_set_sptr curr_feat;
+  descriptor_set_sptr curr_desc;
 
-  // extract descriptors on the current frame
-  descriptor_set_sptr curr_desc = extractor_->extract(image_data, curr_feat, mask);
+  // see if there are already existing tracks on this frame
+  if( prev_tracks )
+  {
+    existing_set = prev_tracks->active_tracks(frame_number);
+    if( existing_set && existing_set->size() > 0 )
+    {
+      LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
+      // use existing features
+      curr_feat = existing_set->frame_features(frame_number);
+
+      // use existng descriptors
+      curr_desc = existing_set->frame_descriptors(frame_number);
+    }
+  }
+
+  // see if there are existing features cached on disk
+  if( (!curr_feat || curr_feat->size() == 0 ||
+       !curr_desc || curr_desc->size() == 0 ) &&
+      d_->feature_io && d_->features_dir != "" )
+  {
+    video_metadata_sptr md = image_data->get_metadata();
+    std::string basename = basename_from_metadata(md, frame_number);
+    path_t kwfd_file = d_->features_dir + "/" + basename + ".kwfd";
+    if( ST::FileExists( kwfd_file ) )
+    {
+      feature_set_sptr feat;
+      descriptor_set_sptr desc;
+      d_->feature_io->load(kwfd_file, feat, desc);
+      if( feat && feat->size() > 0 && desc && desc->size() > 0 )
+      {
+        LOG_DEBUG( logger(), "Loaded features on frame " << frame_number
+                             << " from " << kwfd_file );
+        // Handle the special case where feature were loaded from a track
+        // file without descriptors. If the number of features from both
+        // sources matches, then assign just the descriptors
+        if( (curr_feat && curr_feat->size() > 0) &&
+            (!curr_desc || curr_desc->size() == 0 ) &&
+            (curr_feat->size() == feat->size() ) )
+        {
+          curr_desc = desc;
+          //TODO: assign these descriptors to the existing track states
+        }
+        else
+        {
+          curr_feat = feat;
+          curr_desc = desc;
+        }
+      }
+    }
+  }
+
+  // compute features and descriptors from the image
+  bool features_computed = false;
+  if( !curr_feat || curr_feat->size() == 0 )
+  {
+    LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
+    // detect features on the current frame
+    curr_feat = d_->detector->detect(image_data, mask);
+    features_computed = true;
+  }
+  if( !curr_desc || curr_desc->size() == 0 )
+  {
+    LOG_DEBUG( logger(), "Computing new descriptors on frame "<<frame_number);
+    // extract descriptors on the current frame
+    curr_desc = d_->extractor->extract(image_data, curr_feat, mask);
+    features_computed = true;
+  }
+
+  // cache features if they were just computed and feature I/O is enabled
+  if( features_computed && d_->feature_io && d_->features_dir != "")
+  {
+    video_metadata_sptr md = image_data->get_metadata();
+    std::string basename = basename_from_metadata(md, frame_number);
+    path_t kwfd_file = d_->features_dir + "/" + basename + ".kwfd";
+
+    // make the enclosing directory if it does not already exist
+    const kwiver::vital::path_t fd_dir = ST::GetFilenamePath( kwfd_file );
+    if( !ST::FileIsDirectory( fd_dir ) )
+    {
+      if( !ST::MakeDirectory( fd_dir ) )
+      {
+        LOG_ERROR( logger(), "Unable to create directory: " << fd_dir );
+      }
+    }
+    d_->feature_io->save(kwfd_file, curr_feat, curr_desc);
+    LOG_DEBUG( logger(), "Saved features on frame " << frame_number
+                         << " to " << kwfd_file );
+  }
 
   std::vector<feature_sptr> vf = curr_feat->features();
   std::vector<descriptor_sptr> df = curr_desc->descriptors();
+
+  track_id_t next_track_id = 0;
 
   // special case for the first frame
   if( !prev_tracks )
@@ -184,68 +370,125 @@ track_features_core
     {
        track::track_state ts(frame_number, *fit, *dit);
        new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-       new_tracks.back()->set_id(this->next_track_id_++);
+       new_tracks.back()->set_id(next_track_id++);
     }
-    // call loop closure on the first frame to establish this
-    // frame as the first frame for loop closing purposes
-    return closer_->stitch(frame_number,
-                           track_set_sptr(new simple_track_set(new_tracks)),
-                           image_data, mask);
+    if( d_->closer )
+    {
+      // call loop closure on the first frame to establish this
+      // frame as the first frame for loop closing purposes
+      return d_->closer->stitch(frame_number,
+                                track_set_sptr(new simple_track_set(new_tracks)),
+                                image_data, mask);
+    }
+    return track_set_sptr(new simple_track_set(new_tracks));
   }
+
+  // get the last track id in the existing set of tracks and increment it
+  next_track_id = (*prev_tracks->all_track_ids().crbegin()) + 1;
+
+  const vital::frame_id_t last_frame = prev_tracks->last_frame();
+  vital::frame_id_t prev_frame = last_frame;
+
+  track_set_sptr active_set;
+  // if processing out of order, see if there are tracks on the previous frame
+  // and prefer those over the last frame (i.e. largest frame number)
+  if( prev_frame >= frame_number && frame_number > 0 )
+  {
+    active_set = prev_tracks->active_tracks(frame_number - 1);
+    if( active_set && active_set->size() > 0 )
+    {
+      prev_frame = frame_number - 1;
+    }
+  }
+  if( !active_set )
+  {
+    active_set = prev_tracks->active_tracks(prev_frame);
+  }
+
+  // detect features on the previous frame
+  feature_set_sptr prev_feat = active_set->frame_features(prev_frame);
+  // extract descriptors on the previous frame
+  descriptor_set_sptr prev_desc = active_set->frame_descriptors(prev_frame);
 
   // match features to from the previous to the current frame
-  match_set_sptr mset = matcher_->match(prev_tracks->last_frame_features(),
-                                        prev_tracks->last_frame_descriptors(),
-                                        curr_feat,
-                                        curr_desc);
+  match_set_sptr mset = d_->matcher->match(prev_feat, prev_desc,
+                                           curr_feat, curr_desc);
+  if( !mset )
+  {
+    LOG_WARN( logger(), "Feature matching between frames " << prev_frame <<
+                        " and "<<frame_number<<" failed" );
+    return prev_tracks;
+  }
 
-  track_set_sptr active_set = prev_tracks->active_tracks();
   std::vector<track_sptr> active_tracks = active_set->tracks();
-  std::vector<track_sptr> all_tracks = prev_tracks->tracks();
   std::vector<match> vm = mset->matches();
-  std::set<unsigned> matched;
 
-  VITAL_FOREACH(match m, vm)
+  track_set_sptr updated_track_set;
+  // if we previously had tracks on this frame, stitch to a previous frame
+  if( existing_set && existing_set->size() > 0 )
   {
-    matched.insert(m.second);
-    track_sptr t = active_tracks[m.first];
-    track::track_state ts(frame_number, vf[m.second], df[m.second]);
-    t->append(ts);
-  }
-
-  // find the set of unmatched active track indices
-  std::vector< unsigned int > unmatched;
-  std::back_insert_iterator< std::vector< unsigned int > > unmatched_insert_itr(unmatched);
-
-  //
-  // Generate a sequence of numbers
-  //
-  std::vector< unsigned int > sequence( vf.size() );
-  {
-    auto eit = sequence.end();
-    unsigned int count(0);
-    for ( auto it = sequence.begin(); it != eit; ++it)
+    std::vector<track_sptr> existing_tracks = existing_set->tracks();
+    track_pairs_t track_matches;
+    VITAL_FOREACH(match m, vm)
     {
-      *it = count++;
+      track_sptr tp = active_tracks[m.first];
+      track_sptr tc = existing_tracks[m.second];
+      track_matches.push_back( std::make_pair(tc, tp) );
     }
+    track_map_t track_replacement;
+    int num_linked = merge_tracks(track_matches, track_replacement);
+    LOG_DEBUG( logger(), "Stitched " << num_linked <<
+                         " existing tracks from frame " << frame_number <<
+                         " to " << prev_frame );
+    updated_track_set = remove_replaced_tracks(prev_tracks, track_replacement);
   }
-
-  std::set_difference( sequence.begin(), sequence.end(),
-                       matched.begin(), matched.end(),
-                       unmatched_insert_itr );
-
-  VITAL_FOREACH(unsigned i, unmatched)
+  else
   {
-    track::track_state ts(frame_number, vf[i], df[i]);
-    all_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-    all_tracks.back()->set_id(this->next_track_id_++);
+    std::set<unsigned> matched;
+
+    VITAL_FOREACH(match m, vm)
+    {
+      track_sptr t = active_tracks[m.first];
+      track::track_state ts(frame_number, vf[m.second], df[m.second]);
+      if( t->append(ts) || t->insert(ts) )
+      {
+        matched.insert(m.second);
+      }
+    }
+
+    // find the set of unmatched active track indices
+    std::vector< unsigned int > unmatched;
+    std::back_insert_iterator< std::vector< unsigned int > > unmatched_insert_itr(unmatched);
+
+    //
+    // Generate a sequence of numbers
+    //
+    std::vector< unsigned int > sequence( vf.size() );
+    std::iota(sequence.begin(), sequence.end(), 0);
+
+    std::set_difference( sequence.begin(), sequence.end(),
+                         matched.begin(), matched.end(),
+                         unmatched_insert_itr );
+
+    std::vector<track_sptr> all_tracks = prev_tracks->tracks();
+    VITAL_FOREACH(unsigned i, unmatched)
+    {
+      track::track_state ts(frame_number, vf[i], df[i]);
+      all_tracks.push_back(std::make_shared<vital::track>(ts));
+      all_tracks.back()->set_id(next_track_id++);
+    }
+    updated_track_set = std::make_shared<simple_track_set>(all_tracks);
   }
 
-  track_set_sptr stitched_tracks = closer_->stitch(frame_number,
-    track_set_sptr(new simple_track_set(all_tracks)),
-    image_data, mask);
+  // run loop closure if enabled
+  if( d_->closer )
+  {
+    updated_track_set = d_->closer->stitch(frame_number,
+                                           updated_track_set,
+                                           image_data, mask);
+  }
 
-  return stitched_tracks;
+  return updated_track_set;
 }
 
 } // end namespace core

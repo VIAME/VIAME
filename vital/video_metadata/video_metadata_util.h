@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdarg.h>  // For va_start, etc.
-#include <memory>    // For std::unique_ptr
+/**
+ * \file
+ * \brief This file contains additional utilty functions for working with
+ *  video metadata.
+ */
+
+#ifndef KWIVER_VITAL_VIDEO_METADATA_UTIL_H
+#define KWIVER_VITAL_VIDEO_METADATA_UTIL_H
+
+
+#include <vital/video_metadata/video_metadata.h>
+#include <vital/vital_types.h>
 
 namespace kwiver {
 namespace vital {
 
+
+/// Extract an image file basename from metadata and (if needed) frame number
 /**
- * @brief Printf style formatting for std::string
- *
- * @param fmt_str Formatting string using embedded printf format specifiers.
- *
- * @return Formatted string.
+ * The purpose of this function is to provide a standard way to get a base file
+ * name (no file extension) from metadata.  This is either the original image
+ * file basename, if provided, or the video basename, if provided, with frame
+ * number appended, or simply "frame%05d".
  */
-inline std::string
-string_format( const std::string fmt_str, ... )
-{
-  int final_n, n = ( (int)fmt_str.size() ) * 2; /* Reserve two times as much as the length of the fmt_str */
-  std::string str;
-  std::unique_ptr< char[] > formatted;
-  va_list ap;
+VITAL_VIDEO_METADATA_EXPORT
+std::string
+basename_from_metadata(video_metadata_sptr md,
+                       frame_id_t frame);
 
-  while ( 1 )
-  {
-    formatted.reset( new char[n] );   /* Wrap the plain char array into the unique_ptr */
-    strcpy( &formatted[0], fmt_str.c_str() );
-    va_start( ap, fmt_str );
-    final_n = vsnprintf( &formatted[0], n, fmt_str.c_str(), ap );
-    va_end( ap );
-    if ( ( final_n < 0 ) || ( final_n >= n ) )
-    {
-      n += abs( final_n - n + 1 );
-    }
-    else
-    {
-      break;
-    }
-  }
-
-  return std::string( formatted.get() );
-}
 
 } } // end namespace
+
+#endif /* KWIVER_VITAL_VIDEO_METADATA_UTIL_H */

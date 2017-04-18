@@ -69,6 +69,8 @@ static char const comment_marker = '#';
 static void flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root);
 static bool is_separator(char ch);
 
+
+// ------------------------------------------------------------------
 pipe_blocks
 load_pipe_blocks_from_file(path_t const& fname)
 {
@@ -82,6 +84,8 @@ load_pipe_blocks_from_file(path_t const& fname)
   return blocks;
 }
 
+
+// ------------------------------------------------------------------
 pipe_blocks
 load_pipe_blocks(std::istream& istr, path_t const& inc_root)
 {
@@ -101,6 +105,8 @@ load_pipe_blocks(std::istream& istr, path_t const& inc_root)
   return parse_pipe_blocks_from_string(sstr.str());
 }
 
+
+// ------------------------------------------------------------------
 cluster_blocks
 load_cluster_blocks_from_file(path_t const& fname)
 {
@@ -115,6 +121,8 @@ load_cluster_blocks_from_file(path_t const& fname)
   return blocks;
 }
 
+
+// ------------------------------------------------------------------
 cluster_blocks
 load_cluster_blocks(std::istream& istr, path_t const& inc_root)
 {
@@ -134,6 +142,8 @@ load_cluster_blocks(std::istream& istr, path_t const& inc_root)
   return parse_cluster_blocks_from_string(sstr.str());
 }
 
+
+// ------------------------------------------------------------------
 void
 flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t const& inc_root)
 {
@@ -232,6 +242,8 @@ flatten_pipe_declaration(std::stringstream& sstr, std::istream& istr, path_t con
   }
 }
 
+
+// ------------------------------------------------------------------
 bool
 is_separator(char ch)
 {
