@@ -165,7 +165,7 @@ class Camera (VitalObject):
     
     
     def __repr__(self):
-        cls_name = self.__module__
+        cls_name = self.__class__.__name__
         return ''.join([cls_name,'\n',str(self)])
     
     def clone(self):
