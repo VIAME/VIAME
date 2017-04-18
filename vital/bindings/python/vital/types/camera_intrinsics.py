@@ -312,11 +312,3 @@ class CameraIntrinsics (VitalObject):
         with VitalErrorHandle() as eh:
             m_ptr = f(self, p, eh)
             return EigenArray(2, 1, from_cptr=m_ptr, owns_data=True)
-    
-    def to_list(self):
-        """
-        Return parameters as a list
-        
-        """
-        
-        return [self.focal_length,self.aspect_ratio]
