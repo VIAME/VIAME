@@ -78,7 +78,7 @@ class @template@_detector(KwiverProcess):
         # Print out example_param to screen
         print "Example parameter: " + str( self.example_param )
 
-        # push dummy detections object to output port
+        # push dummy (empty) detections object to output port
         detections = DetectedObjectSet()
         self.push_to_port_using_trait('detected_object_set', detections)
 

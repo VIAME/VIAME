@@ -76,7 +76,7 @@ class hello_world_filter(KwiverProcess):
         # Print out text to screen
         print "Text: " + str( self.text )
 
-        # push dummy detections object to output port
+        # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('out_image', ImageContainer(in_img))
 
         self._base_step()
