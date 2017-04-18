@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -166,3 +166,7 @@ class TestVitalEigenMatrix (unittest.TestCase):
 
         e2 = EigenArray.from_iterable(e)
         numpy.testing.assert_equal(e, e2)
+
+    def test_norm(self):
+        e = EigenArray.from_iterable([1,2,3,4])
+        e.norm() == numpy.sqrt(1+4+9+16)
