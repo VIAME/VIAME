@@ -48,13 +48,19 @@
 #include <vital/vital_foreach.h>
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
+#include <vital/algo/feature_descriptor_io.h>
 #include <vital/algo/match_features.h>
 #include <vital/algo/close_loops.h>
+
+#include <vital/video_metadata/video_metadata_util.h>
 
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 using namespace kwiver::vital;
+typedef kwiversys::SystemTools ST;
 
 namespace kwiver {
 namespace arrows {
@@ -67,14 +73,20 @@ class track_features_core::priv
 public:
   /// Constructor
   priv()
+    : features_dir("")
   {
   }
+
+  config_path_t features_dir;
 
   /// The feature detector algorithm to use
   vital::algo::detect_features_sptr detector;
 
   /// The descriptor extractor algorithm to use
   vital::algo::extract_descriptors_sptr extractor;
+
+  /// The file I/O for feature descriptor caching
+  vital::algo::feature_descriptor_io_sptr feature_io;
 
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr matcher;
@@ -107,6 +119,11 @@ track_features_core
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
+  config->set_value("features_dir", d_->features_dir,
+                    "Path to a directory in which to read or write the feature "
+                    "detection and description files.\n"
+                    "Using this directory requires a feature_io algorithm.");
+
   // Sub-algorithm implementation name + sub_config block
   // - Feature Detector algorithm
   algo::detect_features::
@@ -115,6 +132,10 @@ track_features_core
   // - Descriptor Extractor algorithm
   algo::extract_descriptors::
     get_nested_algo_configuration("descriptor_extractor", config, d_->extractor);
+
+  // - Feature Descriptor I/O algorithm
+  algo::feature_descriptor_io::
+    get_nested_algo_configuration("feature_io", config, d_->feature_io);
 
   // - Feature Matcher algorithm
   algo::match_features::
@@ -138,6 +159,9 @@ track_features_core
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
+  d_->features_dir = config->get_value<config_path_t>("features_dir",
+                                                      d_->features_dir);
+
   // Setting nested algorithm instances via setter methods instead of directly
   // assigning to instance property.
   algo::detect_features_sptr df;
@@ -147,6 +171,10 @@ track_features_core
   algo::extract_descriptors_sptr ed;
   algo::extract_descriptors::set_nested_algo_configuration("descriptor_extractor", config, ed);
   d_->extractor = ed;
+
+  algo::feature_descriptor_io_sptr fi;
+  algo::feature_descriptor_io::set_nested_algo_configuration("feature_io", config, fi);
+  d_->feature_io = fi;
 
   algo::match_features_sptr mf;
   algo::match_features::set_nested_algo_configuration("feature_matcher", config, mf);
@@ -167,6 +195,26 @@ track_features_core
   if (config->has_value("loop_closer") &&
       config->get_value<std::string>("loop_closer") != "" &&
       !algo::close_loops::check_nested_algo_configuration("loop_closer", config))
+  {
+    config_valid = false;
+  }
+
+  if (config->has_value("features_dir")
+      && config->get_value<std::string>("features_dir") != "" )
+  {
+    config_path_t fp = config->get_value<config_path_t>("features_dir");
+    if ( ST::FileExists( fp ) && !ST::FileIsDirectory( fp ) )
+    {
+      LOG_ERROR( logger(), "Given features directory is a file "
+                           "(Given: " << fp << ")");
+      config_valid = false;
+    }
+  }
+
+  // this algorithm is optional
+  if (config->has_value("feature_io") &&
+      config->get_value<std::string>("feature_io") != "" &&
+      !algo::feature_descriptor_io::check_nested_algo_configuration("feature_io", config))
   {
     config_valid = false;
   }
@@ -230,17 +278,79 @@ track_features_core
       curr_desc = existing_set->frame_descriptors(frame_number);
     }
   }
+
+  // see if there are existing features cached on disk
+  if( (!curr_feat || curr_feat->size() == 0 ||
+       !curr_desc || curr_desc->size() == 0 ) &&
+      d_->feature_io && d_->features_dir != "" )
+  {
+    video_metadata_sptr md = image_data->get_metadata();
+    std::string basename = basename_from_metadata(md, frame_number);
+    path_t kwfd_file = d_->features_dir + "/" + basename + ".kwfd";
+    if( ST::FileExists( kwfd_file ) )
+    {
+      feature_set_sptr feat;
+      descriptor_set_sptr desc;
+      d_->feature_io->load(kwfd_file, feat, desc);
+      if( feat && feat->size() > 0 && desc && desc->size() > 0 )
+      {
+        LOG_DEBUG( logger(), "Loaded features on frame " << frame_number
+                             << " from " << kwfd_file );
+        // Handle the special case where feature were loaded from a track
+        // file without descriptors. If the number of features from both
+        // sources matches, then assign just the descriptors
+        if( (curr_feat && curr_feat->size() > 0) &&
+            (!curr_desc || curr_desc->size() == 0 ) &&
+            (curr_feat->size() == feat->size() ) )
+        {
+          curr_desc = desc;
+          //TODO: assign these descriptors to the existing track states
+        }
+        else
+        {
+          curr_feat = feat;
+          curr_desc = desc;
+        }
+      }
+    }
+  }
+
+  // compute features and descriptors from the image
+  bool features_computed = false;
   if( !curr_feat || curr_feat->size() == 0 )
   {
     LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
     // detect features on the current frame
     curr_feat = d_->detector->detect(image_data, mask);
+    features_computed = true;
   }
   if( !curr_desc || curr_desc->size() == 0 )
   {
     LOG_DEBUG( logger(), "Computing new descriptors on frame "<<frame_number);
     // extract descriptors on the current frame
     curr_desc = d_->extractor->extract(image_data, curr_feat, mask);
+    features_computed = true;
+  }
+
+  // cache features if they were just computed and feature I/O is enabled
+  if( features_computed && d_->feature_io && d_->features_dir != "")
+  {
+    video_metadata_sptr md = image_data->get_metadata();
+    std::string basename = basename_from_metadata(md, frame_number);
+    path_t kwfd_file = d_->features_dir + "/" + basename + ".kwfd";
+
+    // make the enclosing directory if it does not already exist
+    const kwiver::vital::path_t fd_dir = ST::GetFilenamePath( kwfd_file );
+    if( !ST::FileIsDirectory( fd_dir ) )
+    {
+      if( !ST::MakeDirectory( fd_dir ) )
+      {
+        LOG_ERROR( logger(), "Unable to create directory: " << fd_dir );
+      }
+    }
+    d_->feature_io->save(kwfd_file, curr_feat, curr_desc);
+    LOG_DEBUG( logger(), "Saved features on frame " << frame_number
+                         << " to " << kwfd_file );
   }
 
   std::vector<feature_sptr> vf = curr_feat->features();
