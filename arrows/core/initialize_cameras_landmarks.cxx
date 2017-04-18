@@ -438,8 +438,10 @@ initialize_cameras_landmarks
                     "error (in pixels) during intermediate processing steps.");
 
   config->set_value("final_reproj_thresh", d_->final_reproj_thresh,
-                    "Threshold for rejecting landmarks based on reprojection "
-                    "error (in pixels) after the final bundle adjustment.");
+                    "Relative threshold for rejecting landmarks based on "
+                    "reprojection error relative to the median error after "
+                    "the final bundle adjustment.  For example, a value of 2 "
+                    "mean twice the median error");
 
   config->set_value("zoom_scale_thresh", d_->zoom_scale_thresh,
                     "Threshold on image scale change used to detect a camera "
