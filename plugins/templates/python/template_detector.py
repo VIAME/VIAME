@@ -36,7 +36,7 @@ from vital.types import DetectedObject
 from vital.types import DetectedObjectSet
 from vital.types import BoundingBox
 
-class hello_world_detector(KwiverProcess):
+class @template@_detector(KwiverProcess):
     """
     This process gets an image as input, does some stuff to it and
     sends the modified version to the output port.
@@ -45,25 +45,25 @@ class hello_world_detector(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        self.add_config_trait("text", "text", 'Hello World',
+        self.add_config_trait("example_param",
+          "example_param",
+          'Default Value',
           'Text to display to user.')
 
-        self.declare_config_using_trait('text')
-
-        #self.add_port_trait('detections', 'detected_object_set', 'Output detections')
+        self.declare_config_using_trait('example_param')
 
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        #  declare our input port ( port-name,flags)
+        #  declare our input port (port-name,flags)
         self.declare_input_port_using_trait('image', required)
         self.declare_output_port_using_trait('detected_object_set', optional)
 
     # ----------------------------------------------
     def _configure(self):
-        self.text = self.config_value('text')
+        self.example_param = self.config_value('example_param')
 
         self._base_configure()
 
@@ -75,8 +75,8 @@ class hello_world_detector(KwiverProcess):
         # Get python image from conatiner (just for show)
         in_img = in_img_c.get_image()
 
-        # Print out text to screen
-        print "Text: " + str( self.text )
+        # Print out example_param to screen
+        print "Example parameter: " + str( self.example_param )
 
         # push dummy detections object to output port
         detections = DetectedObjectSet()
