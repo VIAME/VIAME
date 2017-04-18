@@ -41,6 +41,7 @@ more python friendly types.
 #include <vital/logger/logger.h>
 
 #include <vital/bindings/c/types/image_container.hxx>
+#include <vital/bindings/c/types/detected_object_set.hxx>
 
 #include <sprokit/pipeline/datum.h>
 
@@ -197,7 +198,7 @@ vital_detected_object_set_from_datum( PyObject* args )
     kwiver::vital::detected_object_set_sptr sptr = boost::any_cast< kwiver::vital::detected_object_set_sptr > ( any );
 
     // Register this object with the main detected_object_set interface
-    vital_detected_object_set_t* ptr; // = vital_detected_object_set_from_sptr( sptr );
+    vital_detected_object_set_t* ptr = vital_detected_object_set_from_sptr( sptr );
     return ptr;
   }
   catch ( boost::bad_any_cast const& e )
@@ -224,7 +225,7 @@ PyObject*
 vital_detected_object_set_to_datum( vital_detected_object_set_t* handle )
 {
   // Get sptr from handle. Use sptr cache access interface
-  kwiver::vital::detected_object_set_sptr sptr; // = vital_detected_object_set_to_sptr( handle );
+  kwiver::vital::detected_object_set_sptr sptr = vital_detected_object_set_to_sptr( handle );
 
   if ( ! sptr )
   {
