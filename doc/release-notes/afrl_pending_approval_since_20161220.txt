@@ -59,6 +59,11 @@ Arrows - Core
  * Updated the core tracking algorithm to read and write features and
    descriptors to disk if a feature_descriptor_io algorithm is specified.
 
+ * Changed the meaning of the final_reproj_thresh parameter of the core
+   initialize_cameras_landmarks algorithm to be relative to the final median
+   reprojection error rather than an absolute measure.  This adaptive
+   threshold is more robust.
+
 Vital
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
