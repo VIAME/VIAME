@@ -159,6 +159,13 @@ public:
   Eigen::Matrix< T, 3, 1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
 
   /// Equality operator
+  /**
+   * TODO: two quaternions can represent the same rotation but have different 
+   * components. The test is to calculate the product of the first rotation with
+   * the inverse of the second to calculate the difference rotation. Convert the
+   * difference rotation to axis and angle form, and if the angle is greater 
+   * than some threshold, they should not be considered equal.
+   */
   inline bool operator==( const rotation_< T >& rhs ) const
   {
     return this->q_.coeffs() == rhs.q_.coeffs();

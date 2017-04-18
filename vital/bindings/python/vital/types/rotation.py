@@ -371,14 +371,7 @@ class Rotation (VitalObject):
         :type other: vital.types.Rotation
         
         :return: Whether this rotation is equal to other.
-        :rtype: Boolean
-        
-        TODO: two quaternions can represent the same rotation but have 
-        different components. The test is to calculate the product of the first
-        rotation with the inverse of the second to calculate the difference 
-        rotation. Convert the difference rotation to axis and angle form, and 
-        if the angle is greater than some threshold, they should not be 
-        considered equal.
+        :rtype: bool
         """
         
         if isinstance(other, Rotation):
