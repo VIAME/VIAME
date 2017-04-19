@@ -390,6 +390,10 @@ class Rotation (VitalObject):
         
         :return: Whether this rotation is equal to other.
         :rtype: bool
+        
+        NOTE: the C++ code called by this method compares the two quaternions 
+        elementwise to determine equality. However, it is possible for two 
+        quaternions to have different elements but represent the same rotation.
         """
         
         if isinstance(other, Rotation):

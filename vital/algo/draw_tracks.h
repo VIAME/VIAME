@@ -66,7 +66,7 @@ public:
    * tracks and images are provided to the function on the first call,
    * or in an online fashion where only new images are provided on
    * sequential calls. This function can additionally consume a second
-   * track set which can optionally be used to display additional
+   * track set, which can optionally be used to display additional
    * information to provide a comparison between the two track sets.
    *
    * \param display_set the main track set to draw
