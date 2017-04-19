@@ -97,5 +97,8 @@ Vital
    and frame number in a consistent way for use in naming cache files
    associated with video frames.
 
+ * Improved Python bindings completeness, added additional Python tests, and
+   extended documentation of Python bindings.
+
 Fixes since last public release
 -------------------------------
