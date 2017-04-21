@@ -29,5 +29,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=trace
 @SETUP_MATLAB_LIBRARY_PATH@
 
 # paths for adding exes to path (must occur after python and matlab)
-export PATH=$this_dir/bin:$this_dir/pipelines:$PATH
+export PATH=$this_dir/bin:$PATH
 @SETUP_LIBRARY_PATH@
