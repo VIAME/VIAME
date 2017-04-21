@@ -131,6 +131,7 @@ target_link_libraries(python-sprokit.pipeline-version
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
+if( NOT WIN32 )
 sprokit_create_python_init(sprokit/pipeline
   config
   datum
@@ -144,3 +145,14 @@ sprokit_create_python_init(sprokit/pipeline
   stamp
   utils
   version)
+else()
+sprokit_create_python_init(sprokit/pipeline
+  datum
+  edge
+  modules
+  pipeline
+  process
+  scheduler
+  utils
+  version)
+endif()
