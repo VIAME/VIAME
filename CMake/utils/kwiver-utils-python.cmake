@@ -148,7 +148,7 @@ function (kwiver_add_python_module_int    path     modpath    module)
   set(python_noarchdir)
 
   if (WIN32)
-    set(python_install_path bin)
+    set(python_install_path lib)
   else ()
     if (python_noarch)
       set(python_noarchdir /noarch)
