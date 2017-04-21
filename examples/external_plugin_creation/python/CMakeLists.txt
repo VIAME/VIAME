@@ -29,11 +29,16 @@ set( PLUGIN_FILES
   __init__.py
   )
 
-set( PYTHON_PATH "python2.7/site-packages" )
 set( PLUGIN_PATH "viame/processes/external_example" )
+
+if( EXISTS "${VIAME_DIR}/lib/python2.7/site-packages" )
+  set( PYTHON_PATH "lib/python2.7/site-packages" )
+else()
+  set( PYTHON_PATH "lib/python2.7/dist-packages" )
+endif()
 
 foreach( PLUGIN_FILE ${PLUGIN_FILES} )
   install( FILES "${PLUGIN_FILE}"
-    DESTINATION "${VIAME_DIR}/lib/${PYTHON_PATH}/${PLUGIN_PATH}"
+    DESTINATION "${VIAME_DIR}/${PYTHON_PATH}/${PLUGIN_PATH}"
     )
 endforeach()
