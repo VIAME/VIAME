@@ -18,6 +18,9 @@ else()
   message( FATAL_ERROR "VIAME install directory not set" )
 endif()
 
+find_package( KWIVER REQUIRED HINTS "${VIAME_DIR}/lib/cmake/kwiver" )
+find_package( OpenCV REQUIRED HINTS "${VIAME_DIR}" )
+
 # Set default paths
 set( CMAKE_INSTALL_PREFIX "${VIAME_DIR}" CACHE PATH "Default install dir" FORCE )
 set( PLUGIN_NAME "example_plugin" )

@@ -10,6 +10,7 @@ if( WIN32 )
 
   if( VIAME_ENABLE_OPENCV )
     CopyFiles( ${VIAME_BUILD_INSTALL_PREFIX}/x64/*/bin/*.dll ${VIAME_BUILD_INSTALL_PREFIX}/bin )
+	CopyFiles( ${VIAME_BUILD_INSTALL_PREFIX}/x64/*/lib/*.lib ${VIAME_BUILD_INSTALL_PREFIX}/lib )
   endif()
 
 endif()
