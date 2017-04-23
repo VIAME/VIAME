@@ -51,7 +51,7 @@
 namespace boost
 {
   template <> inline kwiver::vital::config_block const volatile*
-  get_pointer( class kwiver::vital::config_block const volatile *em )
+  get_pointer( class kwiver::vital::config_block const volatile* em )
   {
     return em;
   }
