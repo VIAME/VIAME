@@ -76,10 +76,10 @@ BOOST_PYTHON_MODULE(stamp)
 #if PY_VERSION_HEX >= 0x02070000
   object const functools = import("functools");
   object const total_ordering = functools.attr("total_ordering");
-
-  object const stamp = scope().attr("Stamp");
-
-  scope().attr("Stamp") = total_ordering(stamp);
+  #ifndef WIN32
+    object const stamp = scope().attr("Stamp");
+    scope().attr("Stamp") = total_ordering(stamp);
+  #endif
 #endif
 }
 

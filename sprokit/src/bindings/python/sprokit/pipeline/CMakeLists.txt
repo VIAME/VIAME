@@ -67,7 +67,6 @@ target_link_libraries(python-sprokit.pipeline-process_cluster
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
-if( NOT WIN32 )
 _sprokit_add_python_library(process_factory
   sprokit/pipeline
   process_factory.cxx)
@@ -78,7 +77,6 @@ target_link_libraries(python-sprokit.pipeline-process_factory
                       ${PYTHON_LIBRARIES}
                       vital_vpm
     )
-endif()
 
 _sprokit_add_python_library(scheduler
   sprokit/pipeline
@@ -89,7 +87,6 @@ target_link_libraries(python-sprokit.pipeline-scheduler
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
-if( NOT WIN32 )
 _sprokit_add_python_library(scheduler_factory
   sprokit/pipeline
   scheduler_factory.cxx)
@@ -109,7 +106,6 @@ target_link_libraries(python-sprokit.pipeline-stamp
                       sprokit_python_util
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
-endif()
 
 _sprokit_add_python_library(utils
   sprokit/pipeline
@@ -129,7 +125,6 @@ target_link_libraries(python-sprokit.pipeline-version
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
 
-if( NOT WIN32 )
 sprokit_create_python_init(sprokit/pipeline
   config
   datum
@@ -143,14 +138,3 @@ sprokit_create_python_init(sprokit/pipeline
   stamp
   utils
   version)
-else()
-sprokit_create_python_init(sprokit/pipeline
-  datum
-  edge
-  modules
-  pipeline
-  process
-  scheduler
-  utils
-  version)
-endif()

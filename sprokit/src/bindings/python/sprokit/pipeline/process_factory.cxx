@@ -52,6 +52,23 @@
 #include <boost/python/wrapper.hpp>
 #include <boost/python/def.hpp>
 
+#ifdef WIN32
+ // Windows get_pointer const volatile workaround
+namespace boost
+{
+  template <> inline sprokit::process const volatile*
+  get_pointer(class sprokit::process const volatile* p)
+  {
+    return p;
+  }
+  template <> inline sprokit::process_cluster const volatile*
+  get_pointer(class sprokit::process_cluster const volatile* p)
+  {
+    return p;
+  }
+}
+#endif
+
 using namespace boost::python;
 
 static void register_process( sprokit::process::type_t const& type,
