@@ -1,6 +1,5 @@
 project(sprokit_python_sprokit_pipeline)
 
-if( NOT WIN32 )
 _sprokit_add_python_library(config
   sprokit/pipeline
   config.cxx)
@@ -9,7 +8,6 @@ target_link_libraries(python-sprokit.pipeline-config
                       sprokit_python_util
                       ${${boost_python_library_var}}
                       ${PYTHON_LIBRARIES})
-endif()
 
 _sprokit_add_python_library(datum
   sprokit/pipeline
