@@ -48,12 +48,13 @@
  */
 
 #ifdef WIN32
+// Windows get_pointer const volatile workaround
 namespace boost
 {
   template <> inline kwiver::vital::config_block const volatile*
-  get_pointer( class kwiver::vital::config_block const volatile* em )
+  get_pointer( class kwiver::vital::config_block const volatile* cb )
   {
-    return em;
+    return cb;
   }
 }
 #endif
