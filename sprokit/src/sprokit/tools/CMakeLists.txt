@@ -3,13 +3,10 @@ project(sprokit_tools)
 sprokit_use_tools_fixes()
 
 set(tools_srcs
-  pipeline_builder.cxx
   tool_io.cxx
   tool_usage.cxx)
 
 set(tools_headers
-  literal_pipeline.h
-  pipeline_builder.h
   tool_io.h
   tool_main.h
   tool_usage.h
