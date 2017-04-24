@@ -29,10 +29,14 @@
 
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
+
 from vital.types import Image
 from vital.types import ImageContainer
+from vital.types import DetectedObject
+from vital.types import DetectedObjectSet
+from vital.types import BoundingBox
 
-class hello_world_filter(KwiverProcess):
+class @template@_detector(KwiverProcess):
     """
     This process gets an image as input, does some stuff to it and
     sends the modified version to the output port.
@@ -41,42 +45,41 @@ class hello_world_filter(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        self.add_config_trait("text", "text", 'Hello World',
+        self.add_config_trait("example_param",
+          "example_param",
+          'Default Value',
           'Text to display to user.')
 
-        self.declare_config_using_trait('text')
-
-        self.add_port_trait('out_image', 'image', 'Processed image')
+        self.declare_config_using_trait('example_param')
 
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        #  declare our input port ( port-name,flags)
+        #  declare our input port (port-name,flags)
         self.declare_input_port_using_trait('image', required)
-        self.declare_output_port_using_trait('out_image', optional )
+        self.declare_output_port_using_trait('detected_object_set', optional)
 
     # ----------------------------------------------
     def _configure(self):
-        print "[DEBUG] ----- configure"
-        self.text = self.config_value('text')
+        self.example_param = self.config_value('example_param')
 
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-        print "[DEBUG] ----- start step"
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
         # Get python image from conatiner (just for show)
         in_img = in_img_c.get_image()
 
-        # Print out text to screen
-        print "Text: " + str( self.text )
+        # Print out example_param to screen
+        print "Example parameter: " + str( self.example_param )
 
-        # push dummy image object (same as input) to output port
-        self.push_to_port_using_trait('out_image', ImageContainer(in_img))
+        # push dummy (empty) detections object to output port
+        detections = DetectedObjectSet()
+        self.push_to_port_using_trait('detected_object_set', detections)
 
         self._base_step()

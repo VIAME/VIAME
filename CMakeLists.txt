@@ -314,6 +314,7 @@ else()
     set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
     set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
     set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
+    set( VIAME_SETUP_SCRIPT             "${VIAME_BINARY_DIR}/setup_viame.bat" )
 
     configure_file(
       ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
@@ -327,10 +328,15 @@ else()
       ${CMAKE_SOURCE_DIR}/CMake/plugin_explorer.bat.in
       ${VIAME_PLUGIN_EXPLORER_SCRIPT}
     )
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/CMake/setup_viame.bat.in
+      ${VIAME_SETUP_SCRIPT}
+    )
 
     install( PROGRAMS      ${VIAME_PIPELINE_RUNNER_SCRIPT}
                            ${VIAME_PROCESSOPEDIA_SCRIPT}
                            ${VIAME_PLUGIN_EXPLORER_SCRIPT}
+                           ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
   else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )

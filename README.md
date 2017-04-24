@@ -49,9 +49,9 @@ Pre-Built Binaries
 
 Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages.
 
-[Windows 7/8/10, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58ddc1a98d777f0aef5d8cfd/download)
+[Windows 7/8/10, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58fe4ad68d777f16d01e0445/download)
 
-[Windows 7/8/10, 64-bit, CPU Version](https://data.kitware.com/api/v1/item/58ddbebc8d777f0aef5d8cfb/download)
+[Windows 7/8/10, 64-bit, CPU Version](https://data.kitware.com/api/v1/item/58fe4ac78d777f16d01e0442/download)
 
 The matlab plugins in the above releases were built using matlab r2016. They may or may not work
 with other versions. They were also moved to an "experimental" folder in the plugin directory, and can either
@@ -95,7 +95,7 @@ The '-j8' tells the build to run multi-threaded using 8 threads, this is useful 
 faster build though if you get an error it can be difficult to know where it was, in which case running just
 'make' might be more helpful. For Windows, currently VS2013 thru VS2017 is supported.
 If using CUDA, version 8.0 is desired, along with Python 2.7. Other versions have yet
-to be tested extensively. On Windows it can also be beneficial to use Anaconda to get 
+to be tested extensively. On Windows it can also be beneficial to use Anaconda to get
 multiple python packages. Boost Python (turned on by default when Python is enabled)
 requires Numpy and a few other dependencies.
 
