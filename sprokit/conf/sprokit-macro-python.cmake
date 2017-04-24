@@ -164,7 +164,15 @@ function (sprokit_add_python_module_int    path     modpath    module)
     set(sprokit_configure_extra_dests
       "${sprokit_python_output_path}/${python_noarchdir}\${config}${python_sitepath}/${modpath}/${module}.py")
   endif ()
-  sprokit_configure_file_w_uid("${safe_modpath}-${module}"
+
+  if( WIN32 )
+    # Use shorter paths due to 260 char limit on directories on windows
+    set(python_configure_id "${safe_modpath}-${module}")
+  else()
+    set(python_configure_id "python${python_arch}-${safe_modpath}-${module}")
+  endif()
+
+  sprokit_configure_file_w_uid("${python_configure_id}"
     "${module}"
     "${path}"
     "${sprokit_python_output_path}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
@@ -176,7 +184,7 @@ function (sprokit_add_python_module_int    path     modpath    module)
     COMPONENT   runtime)
 
   add_dependencies(python
-    "configure-${safe_modpath}-${module}")
+    "configure-${python_configure_id}")
 
   if (python_both_arch)
     set(python_both_arch)
