@@ -35,7 +35,9 @@
 #include <memory>    // For std::unique_ptr
 #include <string>
 #include <cstring>
+#include <sstream>
 #include <algorithm>
+#include <iterator>
 
 namespace kwiver {
 namespace vital {
@@ -94,6 +96,42 @@ inline bool
 starts_with( const std::string& input, const std::string& pattern)
 {
   return (0 == input.compare( 0, pattern.size(), pattern ) );
+}
+
+
+/**
+ * @brief Join a set of strings with specified separator.
+ *
+ * A single string is created and returned from the supplied vector of
+ * strings with the specified separator inserted between
+ * strings. There is no trailing separator.
+ *
+ * @param elements Vector of elements to join
+ * @param str_separator String to be placed between elements
+ *
+ * @return Single string with all elements joined with separator.
+ */
+inline std::string
+join( const std::vector<std::string>& elements, const std::string& str_separator)
+{
+  const char* const separator = str_separator.c_str();
+  switch (elements.size())
+  {
+  case 0:
+    return "";
+
+  case 1:
+    return elements[0];
+
+  default:
+  {
+    std::ostringstream os;
+    std::copy(elements.begin(), elements.end()-1,
+              std::ostream_iterator<std::string>(os, separator));
+    os << *elements.rbegin();
+    return os.str();
+  }
+  } // end switch
 }
 
 } } // end namespace
