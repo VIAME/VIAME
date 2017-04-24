@@ -259,6 +259,21 @@ include( kwiver-install-utils )
 get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
+# setup general paths to includes and libs for packages we use/provide
+set( KWIVER_INCLUDE_DIRS "${EIGEN3_INCLUDE_DIR}")
+set( KWIVER_LIBRARY_DIRS "")
+
+if ( NOT fletch_ENABLED_Boost)
+  list( APPEND KWIVER_INCLUDE_DIRS "${BOOST_ROOT_ARG}/include")
+  list( APPEND KWIVER_LIBRARY_DIRS "${BOOST_ROOT_ARG}/lib")
+endif()
+
+if (fletch_ROOT)
+  # since we have fletch, add include and lib dirs to export
+  list( APPEND KWIVER_INCLUDE_DIRS "${fletch_ROOT}/include")
+  list( APPEND KWIVER_LIBRARY_DIRS "${fletch_ROOT}/lib")
+endif()
+
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-build.cmake.in"
   "${KWIVER_CONFIG_FILE}"
@@ -269,7 +284,8 @@ kwiver_configure_file(kwiver-config
   KWIVER_CMAKE_DIR
   kwiver_libs
   fletch_DIR
-  EIGEN3_INCLUDE_DIR
+  KWIVER_INCLUDE_DIRS
+  KWIVER_LIBRARY_DIRS
   )
 
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
@@ -286,7 +302,10 @@ kwiver_configure_file(kwiver-install-config
   CMAKE_INSTALL_PREFIX
   kwiver_libs
   fletch_DIR
-  EIGEN3_INCLUDE_DIR
+  KWIVER_INCLUDE_DIRS
+  KWIVER_LIBRARY_DIRS
+  LIB_SUFFIX
+  KWIVER_VERSION
   )
 
 kwiver_install(
