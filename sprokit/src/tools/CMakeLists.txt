@@ -32,6 +32,7 @@ endfunction ()
 add_tool(pipe_config
   sprokit_tools
   sprokit_pipeline
+  sprokit_pipeline_util
   vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
