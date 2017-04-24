@@ -33,20 +33,19 @@
 
 #include "tools-config.h"
 
-#include <sprokit/pipeline_util/path.h>
+#include <vital/vital_types.h>
 
 #include <istream>
 #include <ostream>
 #include <memory>
 
-namespace sprokit
-{
+namespace sprokit {
 
 typedef std::shared_ptr<std::istream> istream_t;
 typedef std::shared_ptr<std::ostream> ostream_t;
 
-SPROKIT_TOOLS_EXPORT istream_t open_istream(sprokit::path_t const& path);
-SPROKIT_TOOLS_EXPORT ostream_t open_ostream(sprokit::path_t const& path);
+SPROKIT_TOOLS_EXPORT istream_t open_istream(kwiver::vital::path_t const& path);
+SPROKIT_TOOLS_EXPORT ostream_t open_ostream(kwiver::vital::path_t const& path);
 
 }
 

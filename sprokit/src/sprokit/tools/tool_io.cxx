@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #include "tool_io.h"
 
 #include <boost/filesystem/fstream.hpp>
+#include <sprokit/pipeline_util/path.h>
 
 #include <iostream>
 
@@ -40,23 +41,26 @@ namespace sprokit
 namespace
 {
 
-static sprokit::path_t const iostream_path = sprokit::path_t("-");
+static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
 
 }
 
 static void std_stream_dtor(void* ptr);
 
+
+// ------------------------------------------------------------------
 istream_t
-open_istream(sprokit::path_t const& path)
+open_istream(kwiver::vital::path_t const& path_p)
 {
   istream_t istr;
 
-  if (path == iostream_path)
+  if (path_p == iostream_path)
   {
     istr.reset(&std::cin, &std_stream_dtor);
   }
   else
   {
+    sprokit::path_t path(path_p);
     istr.reset(new boost::filesystem::ifstream(path));
 
     if (!istr->good())
@@ -71,23 +75,25 @@ open_istream(sprokit::path_t const& path)
   return istr;
 }
 
+
+// ------------------------------------------------------------------
 ostream_t
-open_ostream(sprokit::path_t const& path)
+open_ostream(kwiver::vital::path_t const& path_p)
 {
   ostream_t ostr;
 
-  if (path == iostream_path)
+  if (path_p == iostream_path)
   {
     ostr.reset(&std::cout, &std_stream_dtor);
   }
   else
   {
+    sprokit::path_t path(path_p);
     ostr.reset(new boost::filesystem::ofstream(path));
 
     if (!ostr->good())
     {
-      std::string const str = path.string<std::string>();
-      std::string const reason = "Unable to open input file: " + str;
+      std::string const reason = "Unable to open input file: " + path_p;
 
       throw std::runtime_error(reason);
     }
@@ -96,6 +102,8 @@ open_ostream(sprokit::path_t const& path)
   return ostr;
 }
 
+
+// ------------------------------------------------------------------
 void
 std_stream_dtor(void* /*ptr*/)
 {

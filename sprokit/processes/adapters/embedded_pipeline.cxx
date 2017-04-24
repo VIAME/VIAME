@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <sprokit/tools/pipeline_builder.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/scheduler.h>
@@ -140,12 +140,12 @@ embedded_pipeline
 ::build_pipeline( std::istream& istr )
 {
   // create a pipeline
-  sprokit::pipeline_builder builder;
-  builder.load_pipeline( istr );
+  const sprokit::pipeline_builder_sptr builder = std::make_shared<sprokit::pipeline_builder>();
+  builder->load_pipeline( istr );
 
   // build pipeline
-  m_priv->m_pipeline = builder.pipeline();
-  m_priv->m_pipe_config = builder.config();
+  m_priv->m_pipeline = builder->pipeline();
+  m_priv->m_pipe_config = builder->config();
 
   if ( ! m_priv->m_pipeline)
   {

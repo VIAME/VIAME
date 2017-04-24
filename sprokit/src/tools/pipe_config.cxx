@@ -28,7 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_io.h>
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
@@ -36,6 +35,7 @@
 #include <vital/config/config_block.h>
 #include <vital/vital_foreach.h>
 
+#include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
@@ -130,11 +130,11 @@ sprokit_tool_main(int argc, char const* argv[])
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc,
     program_description );
 
-  sprokit::pipeline_builder const builder(vm, desc);
+  const sprokit::pipeline_builder_sptr builder = sprokit::build_pipeline(vm, desc);
 
-  sprokit::pipeline_t const pipe = builder.pipeline();
-  kwiver::vital::config_block_sptr const config = builder.config();
-  sprokit::pipe_blocks const blocks = builder.blocks();
+  sprokit::pipeline_t const pipe = builder->pipeline();
+  kwiver::vital::config_block_sptr const config = builder->config();
+  sprokit::pipe_blocks const blocks = builder->blocks();
 
   if (!pipe)
   {
@@ -143,7 +143,7 @@ sprokit_tool_main(int argc, char const* argv[])
     return EXIT_FAILURE;
   }
 
-  sprokit::path_t const opath = vm["output"].as<sprokit::path_t>();
+  kwiver::vital::path_t const opath = vm["output"].as<kwiver::vital::path_t>();
 
   sprokit::ostream_t const ostr = sprokit::open_ostream(opath);
 
@@ -156,6 +156,7 @@ sprokit_tool_main(int argc, char const* argv[])
   return EXIT_SUCCESS;
 }
 
+// ------------------------------------------------------------------
 config_printer
 ::config_printer(std::ostream& ostr, sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf)
   : m_ostr(ostr)
@@ -169,6 +170,8 @@ config_printer
 {
 }
 
+
+// ==================================================================
 class key_printer
 {
   public:
