@@ -164,7 +164,8 @@ function (sprokit_add_python_module_int    path     modpath    module)
     set(sprokit_configure_extra_dests
       "${sprokit_python_output_path}/${python_noarchdir}\${config}${python_sitepath}/${modpath}/${module}.py")
   endif ()
-  sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}"
+  sprokit_configure_file_w_uid("${safe_modpath}-${module}"
+    "${module}"
     "${path}"
     "${sprokit_python_output_path}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
@@ -175,7 +176,7 @@ function (sprokit_add_python_module_int    path     modpath    module)
     COMPONENT   runtime)
 
   add_dependencies(python
-    "configure-python${python_arch}-${safe_modpath}-${module}")
+    "configure-${safe_modpath}-${module}")
 
   if (python_both_arch)
     set(python_both_arch)
