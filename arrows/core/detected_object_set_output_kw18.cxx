@@ -38,12 +38,8 @@
 #include <fstream>
 #include <time.h>
 
-#if (__GNUC__ == 4 && __GNUC_MINOR__ < 5 )
-  #ifdef __APPLE__
-    #include <atomic>
-  #else
-    #include <cstdatomic>
-  #endif
+#if ( __GNUC__ == 4 && __GNUC_MINOR__ < 5 && !defined(__clang__) )
+  #include <cstdatomic>
 #else
   #include <atomic>
 #endif
