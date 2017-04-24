@@ -166,14 +166,16 @@ function (sprokit_add_python_module_int    path     modpath    module)
   endif ()
 
   if( WIN32 )
-    # Use shorter paths due to 260 char limit on directories on windows
+    # Use shorter (but less descript) paths due to 260 char limit on directories on windows
     set(python_configure_id "${safe_modpath}-${module}")
+    set(python_module_id "${module}")
   else()
     set(python_configure_id "python${python_arch}-${safe_modpath}-${module}")
+    set(python_module_id "python${python_arch}-${safe_modpath}-${module}")
   endif()
 
   sprokit_configure_file_w_uid("${python_configure_id}"
-    "${module}"
+    "${python_module_id}"
     "${path}"
     "${sprokit_python_output_path}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
