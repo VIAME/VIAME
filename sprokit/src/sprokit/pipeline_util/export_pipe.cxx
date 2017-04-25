@@ -149,7 +149,7 @@ config_printer
   sprokit::config_values_t const& values = process_block.config_values;
 
   m_ostr << "process " << name << std::endl;
-  m_ostr << ":: " << type << std::endl;
+  m_ostr << " :: " << type << std::endl;
 
   key_printer const printer( m_ostr );
 
@@ -273,9 +273,9 @@ config_printer
   sprokit::process::type_t const type = proc->type();
   sprokit::process::name_t const norm_name = normalize_name( name );
 
-  m_ostr << "# Defaults for \'" << name << "\' " << kind << ":" << std::endl;
-  m_ostr << "config " << norm_name << std::endl;
-  m_ostr << "#:: " << type << std::endl;
+  m_ostr << "# Defaults for \'" << name << "\' " << kind << ":" << std::endl
+         << "config " << norm_name << std::endl
+         << "#:: " << type << std::endl;
 
   output_process( proc );
 }
@@ -291,7 +291,7 @@ config_printer
   kwiver::vital::config_block_keys_t const tunable_keys = proc->available_tunable_config();
   sprokit::process::name_t const norm_name = normalize_name( name );
   kwiver::vital::wrap_text_block wtb;
-  wtb.set_indent_string( " #  " );
+  wtb.set_indent_string( "  #    " );
 
   VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
   {
@@ -311,7 +311,7 @@ config_printer
     std::string const tunable = ( is_tunable ? "yes" : "no" );
 
     m_ostr << "  # Key: " << key << std::endl
-           << "  # Description: " << desc << std::endl
+           << "  # Description:\n" << desc
            << "  # Tunable: " << tunable << std::endl;
 
     kwiver::vital::config_block_value_t const& def = info->def;
