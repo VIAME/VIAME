@@ -31,10 +31,9 @@
 #include <sprokit/tools/tool_io.h>
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
+#include <sprokit/tools/build_pipeline_from_options.h>
 
 #include <sprokit/pipeline_util/export_dot.h>
-#include <sprokit/pipeline_util/path.h>
-#include <sprokit/pipeline_util/pipeline_builder.h>
 
 #include <vital/config/config_block.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -112,10 +111,9 @@ sprokit_tool_main(int argc, char const* argv[])
     kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
     vpm.load_all_plugins();
 
-    sprokit::pipeline_builder_sptr builder;
-
-    builder = sprokit::load_from_options(vm);
-    kwiver::vital::config_block_sptr const conf = builder->config();
+    sprokit::build_pipeline_from_options builder;
+    builder.load_from_options(vm);
+    kwiver::vital::config_block_sptr const conf = builder.config();
 
     if (have_cluster)
     {
@@ -154,9 +152,9 @@ sprokit_tool_main(int argc, char const* argv[])
   }
   else if (have_pipeline)
   {
-    const sprokit::pipeline_builder_sptr builder = sprokit::build_pipeline(vm, desc);
+    const sprokit::build_pipeline_from_options builder(vm, desc);
 
-    pipe = builder->pipeline();
+    pipe = builder.pipeline();
 
     if (!pipe)
     {

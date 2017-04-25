@@ -28,46 +28,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
-#define SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+#ifndef SPROKIT_TOOLS_BUILD_PIPELINE_FROM_OPTIONS_H
+#define SPROKIT_TOOLS_BUILD_PIPELINE_FROM_OPTIONS_H
 
-#include "pipeline_util-config.h"
+#include "tools-config.h"
 
-#include <sprokit/pipeline/types.h>
 #include <sprokit/pipeline_util/pipeline_builder.h>
+#include <boost/program_options/variables_map.hpp>
 
-#include <iostream>
+#include <boost/program_options/options_description.hpp>
 
 namespace sprokit {
 
-// ==================================================================
+// ----------------------------------------------------------------
 /**
- * @brief Export built pipeline
+ * @brief Build pipeline from command line options
  *
- * This class converts a built pipeline in a readable manner as a
- * pipeline file.
- *
- * Derived classes can implement other output formats.
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT export_pipe
+class SPROKIT_TOOLS_EXPORT build_pipeline_from_options
+  : public pipeline_builder
 {
 public:
-  // -- CONSTRUCTORS --
+
+  build_pipeline_from_options();
+
   /**
-   * @brief Create new object
+   * \brief Create pipeline from command line input.
    *
-   * @param pipe constructed pipeline from pipeline builder.
+   * This is the all-in-one call to create a pipeline builder.
+   *
+   * \param vm Variable map from parsing the command line
+   * \param desc Command line options descriptions
    */
-  export_pipe( const sprokit::pipeline_builder& builder );
-  virtual ~export_pipe();
+  build_pipeline_from_options( boost::program_options::variables_map const& vm,
+                               boost::program_options::options_description const& desc );
 
-  // Generate output for pipeline
-  virtual void generate( std::ostream& str );
+  virtual ~build_pipeline_from_options() = default;
 
-private:
-  const sprokit::pipeline_builder&  m_builder;
-}; // end class export_pipe
+  /**
+   * \brief Load options into builder.
+   *
+   * This method loads options as specified from the command
+   * line. These options are supplementary config files and settings
+   * as specified in the program options supplied.
+   *
+   * The result of this call is to add more entries to the internal
+   * pipeline representation.
+   *
+   * \param vm Program options
+   */
+  void load_from_options( boost::program_options::variables_map const& vm );
+
+}; // end class build_pipeline_from_options
 
 } // end namespace
 
-#endif // SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+#endif // SPROKIT_TOOLS_BUILD_PIPELINE_FROM_OPTIONS_H

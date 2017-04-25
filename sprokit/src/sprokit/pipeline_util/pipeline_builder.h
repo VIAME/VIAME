@@ -66,7 +66,7 @@ public:
    *
    */
   pipeline_builder();
-  ~pipeline_builder();
+  virtual ~pipeline_builder() = default;
 
   /**
    * \brief Load pipeline configuration from stream.
@@ -129,7 +129,6 @@ private:
   sprokit::pipe_blocks m_blocks;
 };
 
-typedef std::shared_ptr< pipeline_builder> pipeline_builder_sptr;
 }
 
 #endif // SPROKIT_TOOLS_PIPELINE_BUILDER_H

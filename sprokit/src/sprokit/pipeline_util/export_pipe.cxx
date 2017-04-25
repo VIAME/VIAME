@@ -417,7 +417,7 @@ normalize_name( sprokit::process::name_t const& name )
 
 // ==================================================================
 export_pipe::
-export_pipe( const sprokit::pipeline_builder_sptr builder )
+export_pipe( const sprokit::pipeline_builder& builder )
   : m_builder( builder )
 {
 }
@@ -433,9 +433,9 @@ void
 export_pipe::
 generate( std::ostream& str )
 {
-  sprokit::pipeline_t const pipe = m_builder->pipeline();
-  kwiver::vital::config_block_sptr const config = m_builder->config();
-  sprokit::pipe_blocks const blocks = m_builder->blocks();
+  sprokit::pipeline_t const pipe = m_builder.pipeline();
+  kwiver::vital::config_block_sptr const config = m_builder.config();
+  sprokit::pipe_blocks const blocks = m_builder.blocks();
 
   config_printer printer( str, pipe, config );
 

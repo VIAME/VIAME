@@ -4,12 +4,15 @@ sprokit_use_tools_fixes()
 
 set(tools_srcs
   tool_io.cxx
-  tool_usage.cxx)
+  tool_usage.cxx
+  build_pipeline_from_options.cxx
+  )
 
 set(tools_headers
   tool_io.h
   tool_main.h
   tool_usage.h
+  build_pipeline_from_options.h
   tools-config.h)
 
 sprokit_add_library(sprokit_tools

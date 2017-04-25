@@ -140,12 +140,12 @@ embedded_pipeline
 ::build_pipeline( std::istream& istr )
 {
   // create a pipeline
-  const sprokit::pipeline_builder_sptr builder = std::make_shared<sprokit::pipeline_builder>();
-  builder->load_pipeline( istr );
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( istr );
 
   // build pipeline
-  m_priv->m_pipeline = builder->pipeline();
-  m_priv->m_pipe_config = builder->config();
+  m_priv->m_pipeline = builder.pipeline();
+  m_priv->m_pipe_config = builder.config();
 
   if ( ! m_priv->m_pipeline)
   {

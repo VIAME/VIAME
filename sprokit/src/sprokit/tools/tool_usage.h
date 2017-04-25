@@ -57,34 +57,6 @@ SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_input_
 SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_output_options();
 SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_run_options();
 
-/**
- * \brief Create pipeline from command line input.
- *
- * This is the all-in-one call to create a pipeline builder.
- *
- * \param vm Variable map from parsing the command line
- * \param desc Command line options descriptions
- */
-SPROKIT_TOOLS_EXPORT
-sprokit::pipeline_builder_sptr build_pipeline( boost::program_options::variables_map const& vm,
-                                               boost::program_options::options_description const& desc );
-
-
-/**
- * \brief Load options into builder.
- *
- * This method loads options as specified from the command
- * line. These options are supplementary config files and settings
- * as specified in the program options supplied.
- *
- * The result of this call is to add more entries to the internal
- * pipeline representation.
- *
- * \param vm Program options
- */
-SPROKIT_TOOLS_EXPORT
-sprokit::pipeline_builder_sptr load_from_options( boost::program_options::variables_map const& vm,
-                                                  sprokit::pipeline_builder_sptr pbs = 0);
 }
 
 #endif // SPROKIT_TOOLS_TOOL_USAGE_H

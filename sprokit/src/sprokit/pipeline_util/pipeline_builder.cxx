@@ -62,11 +62,6 @@ pipeline_builder
 {
 }
 
-pipeline_builder
-::~pipeline_builder()
-{
-}
-
 
 // ------------------------------------------------------------------
 void

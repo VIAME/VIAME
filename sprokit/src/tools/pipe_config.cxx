@@ -31,6 +31,7 @@
 #include <sprokit/tools/tool_io.h>
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
+#include <sprokit/tools/build_pipeline_from_options.h>
 
 #include <vital/config/config_block.h>
 
@@ -81,11 +82,11 @@ sprokit_tool_main(int argc, char const* argv[])
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc,
     program_description );
 
-  const sprokit::pipeline_builder_sptr builder = sprokit::build_pipeline(vm, desc);
+  const sprokit::build_pipeline_from_options builder(vm, desc);
 
-  sprokit::pipeline_t const pipe = builder->pipeline();
-  kwiver::vital::config_block_sptr const config = builder->config();
-  sprokit::pipe_blocks const blocks = builder->blocks();
+  sprokit::pipeline_t const pipe = builder.pipeline();
+  kwiver::vital::config_block_sptr const config = builder.config();
+  sprokit::pipe_blocks const blocks = builder.blocks();
 
   if (!pipe)
   {
