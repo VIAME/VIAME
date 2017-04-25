@@ -232,15 +232,21 @@ main( int argc, char* argv[] )
   // List option
   if( g_params.opt_list )
   {
-    kwiver::vital::plugin_loader pl( "register_explorer_plugin", SHARED_LIB_SUFFIX );
+    kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
 
     kwiver::vital::path_list_t pathl;
     const std::string& default_module_paths( DEFAULT_MODULE_PATHS );
 
     kwiversys::SystemTools::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
-    pl.load_plugins( pathl );
 
-    auto fact_list = pl.get_factories( typeid( kwiver::vital::algo::train_detector ).name() );
+    VITAL_FOREACH( auto path, pathl )
+    {
+      vpm.add_search_path( path );
+    }
+
+    vpm.load_plugins( pathl );
+
+    auto fact_list = vpm.get_factories( typeid( kwiver::vital::algo::train_detector ).name() );
 
     if( fact_list.empty() )
     {
