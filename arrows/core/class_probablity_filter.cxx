@@ -31,8 +31,8 @@
 #include "class_probablity_filter.h"
 
 #include <vital/vital_foreach.h>
-
-#include <sstream>
+#include <vital/config/config_difference.h>
+#include <vital/util/string.h>
 
 /**
  * \todo The interactions between the list of classes and keep_all_classes
@@ -88,7 +88,8 @@ class_probablity_filter::get_configuration() const
 
 // ------------------------------------------------------------------
 void
-class_probablity_filter::set_configuration( vital::config_block_sptr config_in )
+class_probablity_filter::
+set_configuration( vital::config_block_sptr config_in )
 {
   vital::config_block_sptr config = this->get_configuration();
 
@@ -112,15 +113,26 @@ class_probablity_filter::set_configuration( vital::config_block_sptr config_in )
 
 // ------------------------------------------------------------------
 bool
-class_probablity_filter::check_configuration( vital::config_block_sptr config ) const
+class_probablity_filter::
+check_configuration( vital::config_block_sptr config ) const
 {
+  kwiver::vital::config_difference cd( this->get_configuration(), config );
+  const auto key_list = cd.extra_keys();
+
+  if ( ! key_list.empty() )
+  {
+    LOG_WARN( logger(), "Additional parameters found in config block that are not required or desired: "
+              << kwiver::vital::join( key_list, ", " ) );
+  }
+
   return true;
 }
 
 
 // ------------------------------------------------------------------
 vital::detected_object_set_sptr
-class_probablity_filter::filter( const vital::detected_object_set_sptr input_set ) const
+class_probablity_filter::
+filter( const vital::detected_object_set_sptr input_set ) const
 {
   auto ret_set = std::make_shared<vital::detected_object_set>();
 
