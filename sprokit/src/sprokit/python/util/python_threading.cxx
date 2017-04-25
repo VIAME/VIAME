@@ -30,7 +30,7 @@
 
 #include "python_threading.h"
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 namespace sprokit
 {

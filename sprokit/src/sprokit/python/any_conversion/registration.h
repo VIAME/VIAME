@@ -38,7 +38,7 @@
 #include <boost/function.hpp>
 #include <boost/optional.hpp>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 /**
  * \file any_conversion/registration.h

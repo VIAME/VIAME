@@ -148,7 +148,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
       ++module_dir_iter;
 
       path_t const path = ent.path();
-      path_t::string_type const& pstr = path.native();
+      std::string const pstr = path.string();
 
       if (!boost::ends_with(pstr, pipe_suffix))
       {

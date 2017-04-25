@@ -47,6 +47,18 @@
  * \brief Python bindings for \link kwiver::vital::config \endlink.
  */
 
+#ifdef WIN32
+// Windows get_pointer const volatile workaround
+namespace boost
+{
+  template <> inline kwiver::vital::config_block const volatile*
+  get_pointer( class kwiver::vital::config_block const volatile* cb )
+  {
+    return cb;
+  }
+}
+#endif
+
 namespace kwiver {
 namespace vital {
 

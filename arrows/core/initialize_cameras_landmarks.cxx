@@ -143,6 +143,11 @@ public:
   {
   }
 
+  /// Destructor
+  ~priv()
+  {
+  }
+
   /// Construct and initialized camera for \a frame
   camera_sptr init_camera(frame_id_t frame, frame_id_t last_frame,
                           const camera_map::map_camera_t& cams,
@@ -182,8 +187,6 @@ public:
   vital::algo::bundle_adjust_sptr bundle_adjuster;
   /// Logger handle
   vital::logger_handle_t m_logger;
-public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

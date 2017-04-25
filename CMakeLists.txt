@@ -31,7 +31,7 @@ endif()
 
 ###
 # project specific directories
-#
+##
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
 # root directories
@@ -45,6 +45,23 @@ set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
 set(KWIVER_SETUP_SCRIPT_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.sh" )
 
 LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cmake resources
+
+# ================================================================
+# project global includes
+include_directories("${KWIVER_SOURCE_DIR}")
+include_directories("${KWIVER_SOURCE_DIR}/sprokit/src")
+include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
+# include vital internal headers for private use only
+include_directories("${KWIVER_SOURCE_DIR}/vital/internal")
+
+# kwiversys includes are generated in the binary directory
+include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
+
+# ================================================================
+
+include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # ================================================================
 ###
@@ -109,22 +126,6 @@ if (DEFINED BOOST_ROOT)
 else()
   set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
 endif()
-
-# ================================================================
-# project global includes
-include_directories("${KWIVER_SOURCE_DIR}")
-include_directories("${KWIVER_BINARY_DIR}")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
-# include vital internal headers for private use only
-include_directories("${KWIVER_SOURCE_DIR}/vital/internal")
-
-# kwiversys includes are generated in the binary directory
-include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
-
-# ================================================================
-
-include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # ================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )

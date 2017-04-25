@@ -37,8 +37,7 @@
 
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
-
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 using namespace boost::python;
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,50 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
-#define SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
+#ifndef SPROKIT_PYTHON_UTIL_PYTHON_H
+#define SPROKIT_PYTHON_UTIL_PYTHON_H
 
-#include "util-config.h"
+#if defined(_MSC_VER) && defined(_DEBUG)
+  // Include these low level headers before undefing _DEBUG. Otherwise when doing
+  // a debug build against a release build of python the compiler will end up
+  // including these low level headers without DEBUG enabled, causing it to try
+  // and link release versions of this low level C api.
+  #include <basetsd.h>
+  #include <assert.h>
+  #include <ctype.h>
+  #include <errno.h>
+  #include <io.h>
+  #include <math.h>
+  #include <sal.h>
+  #include <stdarg.h>
+  #include <stddef.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <string.h>
+  #include <sys/stat.h>
+  #include <time.h>
+  #include <wchar.h>
+  #undef _DEBUG
+  #include <Python.h>
+  #define _DEBUG
+#else
+  #include <Python.h>
+#endif
 
-#include <vital/noncopyable.h>
-
-#include <sprokit/python/util/python.h>
-
-/**
- * \file python_gil.h
- *
- * \brief RAII class for grabbing the Python GIL.
- */
-
-namespace sprokit
-{
-
-namespace python
-{
-
-/**
- * \class python_gil python_gil.h <sprokit/python/util/python_gil.h>
- *
- * \brief Grabs the Python GIL and uses RAII to ensure it is released.
- */
-class SPROKIT_PYTHON_UTIL_EXPORT python_gil
-  : kwiver::vital::noncopyable
-{
-  public:
-    /**
-     * \brief Constructor.
-     */
-    python_gil();
-    /**
-     * \brief Destructor.
-     */
-    ~python_gil();
-  private:
-    PyGILState_STATE const state;
-};
-
-}
-
-}
-
-#endif // SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
+#endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H

@@ -2,6 +2,7 @@
 
 include( kwiver-depends-Boost )
 include( kwiver-depends-Eigen )
+include( kwiver-depends-CUDA )
 include( kwiver-depends-OpenCV )
 include( kwiver-depends-PROJ )
 include( kwiver-depends-VisCL )
