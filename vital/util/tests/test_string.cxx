@@ -57,19 +57,10 @@ main( int argc, char* argv[] )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( test_starts_with )
 {
-  TEST_EQUAL( kwiver::vital::starts_with( "input_string", "input" ), true, true );
-
-  if ( kwiver::vital::starts_with( "input_string", " input" ) )
-  {
-    TEST_ERROR( "kwiver::vital::starts_with( \"input_string\", \" input\" ) returned incorrect result."  );
-  }
-
-  TEST_EQUAL( kwiver::vital::starts_with( " input_string", " input" ), true, true );
-
-  if( kwiver::vital::starts_with( "input_string", " string" ) )
-  {
-    TEST_ERROR( "kwiver::vital::starts_with( \"input_string\", \" string\" ) returned incorrect result." );
-  }
+  TEST_EQUAL( "prefix match", kwiver::vital::starts_with( "input_string", "input" ), true );
+  TEST_EQUAL( "leading space", kwiver::vital::starts_with( "input_string", " input" ), false );
+  TEST_EQUAL( "leading space match", kwiver::vital::starts_with( " input_string", " input" ), true);
+  TEST_EQUAL( "mismatch", kwiver::vital::starts_with( "input_string", " string" ), false );
 }
 
 
@@ -77,32 +68,27 @@ IMPLEMENT_TEST( test_starts_with )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( test_string_format )
 {
-
-  std::string result = kwiver::vital::string_format( "%d %d", 1, 2);
-  std::string expected = "1 2";
-  if (result != expected )
-  {
-    std::stringstream str;
-    str << "Result: '" << result << "' not as expected '" << expected;
-    TEST_ERROR(str.str());
-  }
-
-  result = kwiver::vital::string_format( " %d %d", 1, 2);
-  expected = " 1 2";
-  if (result != expected )
-  {
-    std::stringstream str;
-    str << "Result: '" << result << "' not as expected '" << expected;
-    TEST_ERROR(str.str());
-  }
+  TEST_EQUAL( "Numeric values", kwiver::vital::string_format( "%d %d", 1, 2), "1 2" );
+  TEST_EQUAL( "Leading space", kwiver::vital::string_format( " %d %d", 1, 2), " 1 2" );
 
   const std::string long_string( "this is a very long string - relatively speaking" );
-  result = kwiver::vital::string_format( "%s", long_string.c_str());
-  expected = long_string;
-  if (result != expected )
-  {
-    std::stringstream str;
-    str << "Result: '" << result << "' not as expected '" << expected;
-    TEST_ERROR(str.str());
-  }
+  TEST_EQUAL( "result longer than format string", kwiver::vital::string_format( "%s", long_string.c_str()), long_string );
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( test_string_join )
+{
+  std::vector<std::string> input;
+
+  TEST_EQUAL( "Empty vector", kwiver::vital::join( input, ", " ), "" );
+
+  input.push_back( "one" );
+
+  TEST_EQUAL( "One element vector", kwiver::vital::join( input, std::string(", ") ), "one" );
+
+  input.push_back( "two" );
+  input.push_back( "three" );
+
+  TEST_EQUAL( "Three element vector", kwiver::vital::join( input, std::string(", ") ), "one, two, three" );
 }
