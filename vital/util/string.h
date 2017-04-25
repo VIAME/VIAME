@@ -92,7 +92,7 @@ string_format( const std::string fmt_str, ... )
 inline bool
 starts_with( const std::string& input, const std::string& pattern)
 {
-  return input.compare( 0, pattern.size(), pattern );
+  return (0 == input.compare( 0, pattern.size(), pattern ) );
 }
 
 } } // end namespace
