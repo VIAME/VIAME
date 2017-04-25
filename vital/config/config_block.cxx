@@ -37,6 +37,7 @@
 #include "config_block.h"
 
 #include <vital/vital_foreach.h>
+#include <vital/util/string.h>
 
 #include <algorithm>
 #include <iterator>
@@ -74,12 +75,6 @@ static inline std::string&
 trim( std::string& s )
 {
   return ltrim( rtrim( s ) );
-}
-
-
-bool starts_with( std::string const& str, std::string const& pfx )
-{
-  return ( str.substr( 0, pfx.size()) == pfx );
 }
 
 } // end namespace
@@ -267,11 +262,11 @@ config_block
   // Iterate over this. If not in other, then add to output.
   config_block_keys_t const keys = this->available_values();
 
-  VITAL_FOREACH( config_block_key_t const & key, keys )
+  VITAL_FOREACH( const auto & key, keys )
   {
     if ( ! other->has_value( key ) )
     {
-      ret_block->copy_entry( key, config_block_sptr(this) );
+      ret_block->copy_entry( key, this );
     }
   } // end for
 
@@ -281,7 +276,7 @@ config_block
 
 
 // ------------------------------------------------------------------
-//Return the values available in the configuration.
+// Return the values available in the configuration.
 config_block_keys_t
 config_block
 ::available_values() const
@@ -422,10 +417,26 @@ config_block
 ::copy_entry( const config_block_key_t& key,
               const config_block_sptr from )
 {
+  copy_entry( key, from.get() );
+}
+
+
+// ------------------------------------------------------------------
+void
+config_block
+::copy_entry( const config_block_key_t& key,
+              const config_block* from )
+{
   config_block_value_t const& val = from->get_value< config_block_value_t > ( key );
   config_block_description_t const& descr = from->get_description( key );
 
   this->i_set_value( key, val, descr );
+
+  // Copy RO status
+  if ( from->is_read_only( key ) )
+  {
+    this->mark_read_only( key );
+  }
 
   // Copy location if there is one.
   auto i = m_def_store.find( key );
