@@ -34,6 +34,7 @@
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
 #include <string>
+#include <cstring>
 #include <algorithm>
 
 namespace kwiver {
