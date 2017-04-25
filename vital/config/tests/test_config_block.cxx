@@ -824,33 +824,37 @@ IMPLEMENT_TEST(difference_config)
   configa->set_location(keyb, filename, __LINE__);
 
   configb->set_value(keyb, valueb);
-  configa->set_location(keyb, filename, __LINE__);
+  configb->set_location(keyb, filename, __LINE__);
 
   configb->set_value(keyc, valuec);
-  configa->set_location(keyb, filename, __LINE__);
+  configb->set_location(keyc, filename, __LINE__);
 
-  auto diff_config = configa->difference_config(configb);
-  // should be (a - b) = keya
-  if ( ! diff_config->has_value( keya ) )
   {
-    TEST_ERROR( "keya not present in diff" );
+    auto diff_config = configa->difference_config(configb);
+    // should be (a - b) => keya
+    if ( ! diff_config->has_value( keya ) )
+    {
+      TEST_ERROR( "(1) keya not present in diff" );
+    }
+
+    if ( diff_config->has_value( keyb ) )
+    {
+      TEST_ERROR( "(1) keyb present in diff" );
+    }
   }
 
-  if ( diff_config->has_value( keyb ) )
   {
-    TEST_ERROR( "keyb present in diff" );
-  }
+    auto diff_config = configb->difference_config(configa);
+    // should be (b - a) => keyc
+    if ( ! diff_config->has_value( keyc ) )
+    {
+      TEST_ERROR( "(2) keyc not present in diff" );
+    }
 
-  diff_config = configb->difference_config(configa);
-  // should be (b - a) = keyb
-  if ( ! diff_config->has_value( keyb ) )
-  {
-    TEST_ERROR( "keyb not present in diff" );
-  }
-
-  if ( diff_config->has_value( keya ) )
-  {
-    TEST_ERROR( "keya present in diff" );
+    if ( diff_config->has_value( keya ) )
+    {
+      TEST_ERROR( "(2) keya present in diff" );
+    }
   }
 }
 
