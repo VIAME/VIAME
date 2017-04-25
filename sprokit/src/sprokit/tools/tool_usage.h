@@ -31,7 +31,8 @@
 #ifndef SPROKIT_TOOLS_TOOL_USAGE_H
 #define SPROKIT_TOOLS_TOOL_USAGE_H
 
-#include "tools-config.h"
+#include <sprokit/tools/sprokit_tools_export.h>
+#include <vital/vital_config.h>
 
 #include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline/scheduler_factory.h>
@@ -42,7 +43,7 @@
 namespace sprokit
 {
 
-SPROKIT_TOOLS_EXPORT SPROKIT_NO_RETURN void tool_usage(int ret, boost::program_options::options_description const& options);
+SPROKIT_TOOLS_EXPORT VITAL_NO_RETURN void tool_usage(int ret, boost::program_options::options_description const& options);
 SPROKIT_TOOLS_EXPORT void tool_version_message();
 
 SPROKIT_TOOLS_EXPORT boost::program_options::options_description tool_common_options();

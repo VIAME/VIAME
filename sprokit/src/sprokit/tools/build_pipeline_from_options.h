@@ -31,7 +31,7 @@
 #ifndef SPROKIT_TOOLS_BUILD_PIPELINE_FROM_OPTIONS_H
 #define SPROKIT_TOOLS_BUILD_PIPELINE_FROM_OPTIONS_H
 
-#include "tools-config.h"
+#include <sprokit/tools/sprokit_tools_export.h>
 
 #include <sprokit/pipeline_util/pipeline_builder.h>
 #include <boost/program_options/variables_map.hpp>

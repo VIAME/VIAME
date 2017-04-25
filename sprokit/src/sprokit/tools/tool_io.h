@@ -31,7 +31,7 @@
 #ifndef SPROKIT_TOOLS_TOOL_IO_H
 #define SPROKIT_TOOLS_TOOL_IO_H
 
-#include "tools-config.h"
+#include <sprokit/tools/sprokit_tools_export.h>
 
 #include <vital/vital_types.h>
 
