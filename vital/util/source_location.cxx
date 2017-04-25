@@ -74,10 +74,19 @@ format (std::ostream & str) const
 {
   if (m_line_num > 0)
   {
-    str << m_file_name << ":" << m_line_num;
+    str << *m_file_name << ":" << m_line_num;
   }
 
   return str;
+}
+
+
+// ------------------------------------------------------------------
+bool
+source_location::
+valid() const
+{
+  return (  m_line_num > 0) && ( ! m_file_name->empty() );
 }
 
 } } // end namespace
