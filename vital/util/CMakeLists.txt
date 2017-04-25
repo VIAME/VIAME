@@ -65,6 +65,7 @@ set( sources
   source_location.cxx
 
   data_stream_reader.cxx
+  string.cxx
   string_editor.cxx
   token_expander.cxx
   token_expand_editor.cxx

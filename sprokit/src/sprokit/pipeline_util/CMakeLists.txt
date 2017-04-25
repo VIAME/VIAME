@@ -13,6 +13,7 @@ set(pipeline_util_srcs
   ensure_provided.cxx
   export_dot.cxx
   export_dot_exception.cxx
+  export_pipe.cxx
   extract_literal_value.cxx
   load_pipe.cxx
   load_pipe_exception.cxx
@@ -20,6 +21,7 @@ set(pipeline_util_srcs
   pipe_bakery.cxx
   pipe_bakery_exception.cxx
   pipe_grammar.cxx
+  pipeline_builder.cxx
   provided_by_cluster.cxx
   provider_dereferencer.cxx
   providers.cxx
@@ -28,6 +30,8 @@ set(pipeline_util_srcs
 set(pipeline_util_headers
   export_dot.h
   export_dot_exception.h
+  export_pipe.h
+  literal_pipeline.h
   load_pipe.h
   load_pipe_exception.h
   path.h
@@ -35,6 +39,7 @@ set(pipeline_util_headers
   pipe_bakery_exception.h
   pipe_declaration_types.h
   pipe_grammar.h
+  pipeline_builder.h
   pipeline_util-config.h
   )
 
@@ -105,6 +110,7 @@ target_link_libraries(sprokit_pipeline_util
             ${Boost_FILESYSTEM_LIBRARY}
             ${Boost_SYSTEM_LIBRARY}
   PRIVATE     vital_config
+              vital_util
             ${Boost_CHRONO_LIBRARY}
             ${Boost_THREAD_LIBRARY}
             ${CMAKE_THREAD_LIBS_INIT}

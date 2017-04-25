@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@
 #include <vital/config/config_block.h>
 #include <vital/vital_foreach.h>
 
-#include <sprokit/tools/pipeline_builder.h>
-#include <sprokit/tools/literal_pipeline.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
+#include <sprokit/pipeline_util/literal_pipeline.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/scheduler.h>

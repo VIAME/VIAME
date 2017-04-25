@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,19 @@
 #ifndef SPROKIT_TOOLS_PIPELINE_BUILDER_H
 #define SPROKIT_TOOLS_PIPELINE_BUILDER_H
 
-#include "tools-config.h"
+#include "pipeline_util-config.h"
 
-#include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
-
 #include <sprokit/pipeline/types.h>
 
+#include <vital/vital_types.h>
 #include <vital/noncopyable.h>
-
-#include <boost/program_options/options_description.hpp>
-#include <boost/program_options/variables_map.hpp>
 
 #include <istream>
 #include <string>
+#include <memory>
 
-namespace sprokit
-{
+namespace sprokit {
 
 // ----------------------------------------------------------------
 /**
@@ -61,26 +57,16 @@ namespace sprokit
  * After the pipeline builder is configured as desired, it can build
  * the pipeline which is ready to process.
  */
-class SPROKIT_TOOLS_EXPORT pipeline_builder
+class SPROKIT_PIPELINE_UTIL_EXPORT pipeline_builder
   : kwiver::vital::noncopyable
 {
 public:
-  /**
-   * \brief Create pipeline from command line input.
-   *
-   * This is the all-in-one call to create a pipeline builder.
-   *
-   * \param vm Variable map from parsing the command line
-   * \param desc Command line options descriptions
-   */
-  pipeline_builder(boost::program_options::variables_map const& vm, boost::program_options::options_description const& desc);
-
   /**
    * \brief Create default pipeline builder object.
    *
    */
   pipeline_builder();
-  ~pipeline_builder();
+  virtual ~pipeline_builder() = default;
 
   /**
    * \brief Load pipeline configuration from stream.
@@ -94,27 +80,13 @@ public:
   void load_pipeline(std::istream& istr);
 
   /**
-   * \brief Load options into builder.
-   *
-   * This method loads options as specified from the command
-   * line. These options are supplementary config files and settings
-   * as specified in th eprogram options supplied.
-   *
-   * The result of this call is to add more entries to the internal
-   * pipeline representation.
-   *
-   * \param vm Program options
-   */
-  void load_from_options(boost::program_options::variables_map const& vm);
-
-  /**
    * \brief Load supplemental data into pipeline description.
    *
    * Adds supplemental block to the internal representation of the pipeline.
    *
    * \param path File to read.
    */
-  void load_supplement(sprokit::path_t const& path);
+  void load_supplement( kwiver::vital::path_t const& path);
 
   /**
    * \brief Add single config entry
@@ -156,11 +128,6 @@ public:
 private:
   sprokit::pipe_blocks m_blocks;
 };
-
-SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_common_options();
-SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_input_options();
-SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_output_options();
-SPROKIT_TOOLS_EXPORT boost::program_options::options_description pipeline_run_options();
 
 }
 

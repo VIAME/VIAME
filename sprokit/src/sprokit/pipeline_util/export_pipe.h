@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_TOOLS_TOOLS_CONFIG_H
-#define SPROKIT_TOOLS_TOOLS_CONFIG_H
+#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+#define SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
 
-#include <sprokit/config.h>
+#include "pipeline_util-config.h"
 
+#include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
+
+#include <iostream>
+
+namespace sprokit {
+
+// ==================================================================
 /**
- * \file scoring-config.h
+ * @brief Export built pipeline
  *
- * \brief Defines for symbol visibility in scoring.
+ * This class converts a built pipeline in a readable manner as a
+ * pipeline file.
+ *
+ * Derived classes can implement other output formats.
  */
+class SPROKIT_PIPELINE_UTIL_EXPORT export_pipe
+{
+public:
+  // -- CONSTRUCTORS --
+  /**
+   * @brief Create new object
+   *
+   * @param pipe constructed pipeline from pipeline builder.
+   */
+  export_pipe( const sprokit::pipeline_builder& builder );
+  virtual ~export_pipe();
 
-#ifdef MAKE_SPROKIT_TOOLS_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_TOOLS_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_TOOLS_EXPORT SPROKIT_IMPORT
-#endif
+  // Generate output for pipeline
+  virtual void generate( std::ostream& str );
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_TOOLS_NO_EXPORT SPROKIT_NO_EXPORT
+private:
+  const sprokit::pipeline_builder&  m_builder;
+}; // end class export_pipe
 
-/// Mark as deprecated.
-#define SPROKIT_TOOLS_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_TOOLS_EXPORT
+} // end namespace
 
-#endif // SPROKIT_TOOLS_TOOLS_CONFIG_H
+#endif // SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H

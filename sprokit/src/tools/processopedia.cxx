@@ -82,7 +82,6 @@ sprokit_tool_main(int argc, char const* argv[])
 
   if (vm.count("path"))
   {
-    //+ sprokit::module_paths_t paths = sprokit::get_module_load_path();
     auto const& paths = vpm.search_path();
     std::cout << "Modules will be loaded from the following directories, in order:\n";
 

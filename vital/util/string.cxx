@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,79 +28,71 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tool_io.h"
+#include "string.h"
 
-#include <iostream>
-#include <fstream>
+#include <algorithm>
+#include <iterator>
+#include <memory>    // For std::unique_ptr
+#include <cstring>
+#include <sstream>
 
-namespace sprokit {
-
-namespace {
-
-static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
-
-}
-
-static void std_stream_dtor(void* ptr);
+namespace kwiver {
+namespace vital {
 
 
 // ------------------------------------------------------------------
-istream_t
-open_istream(kwiver::vital::path_t const& path)
+std::string
+string_format( const std::string fmt_str, ... )
 {
-  istream_t istr;
+  int final_n, n = ( (int)fmt_str.size() ) * 2; /* Reserve two times as much as the length of the fmt_str */
+  std::string str;
+  std::unique_ptr< char[] > formatted;
+  va_list ap;
 
-  if (path == iostream_path)
+  while ( 1 )
   {
-    istr.reset(&std::cin, &std_stream_dtor);
-  }
-  else
-  {
-    istr.reset(new std::ifstream(path));
-
-    if (!istr->good())
+    formatted.reset( new char[n] );   /* Wrap the plain char array into the unique_ptr */
+    strcpy( &formatted[0], fmt_str.c_str() );
+    va_start( ap, fmt_str );
+    final_n = vsnprintf( &formatted[0], n, fmt_str.c_str(), ap );
+    va_end( ap );
+    if ( ( final_n < 0 ) || ( final_n >= n ) )
     {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
+      n += abs( final_n - n + 1 );
+    }
+    else
+    {
+      break;
     }
   }
 
-  return istr;
+  return std::string( formatted.get() );
 }
 
 
 // ------------------------------------------------------------------
-ostream_t
-open_ostream(kwiver::vital::path_t const& path)
+std::string
+join( const std::vector<std::string>& elements, const std::string& str_separator)
 {
-  ostream_t ostr;
-
-  if (path == iostream_path)
+  const char* const separator = str_separator.c_str();
+  switch (elements.size())
   {
-    ostr.reset(&std::cout, &std_stream_dtor);
-  }
-  else
+  case 0:
+    return "";
+
+  case 1:
+    return elements[0];
+
+  default:
   {
-    ostr.reset(new std::ofstream(path));
-
-    if (!ostr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
+    std::ostringstream os;
+    std::copy(elements.begin(), elements.end()-1,
+              std::ostream_iterator<std::string>(os, separator));
+    os << *elements.rbegin();
+    return os.str();
   }
-
-  return ostr;
+  } // end switch
 }
 
 
-// ------------------------------------------------------------------
-void
-std_stream_dtor(void* /*ptr*/)
-{
-  // We don't want to delete std::cin or std::cout.
-}
-
-} // end namespace
+}} // end namespace
