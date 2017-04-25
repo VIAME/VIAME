@@ -30,16 +30,12 @@
 
 #include "tool_io.h"
 
-#include <boost/filesystem/fstream.hpp>
-#include <sprokit/pipeline_util/path.h>
-
 #include <iostream>
+#include <fstream>
 
-namespace sprokit
-{
+namespace sprokit {
 
-namespace
-{
+namespace {
 
 static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
 
@@ -50,23 +46,21 @@ static void std_stream_dtor(void* ptr);
 
 // ------------------------------------------------------------------
 istream_t
-open_istream(kwiver::vital::path_t const& path_p)
+open_istream(kwiver::vital::path_t const& path)
 {
   istream_t istr;
 
-  if (path_p == iostream_path)
+  if (path == iostream_path)
   {
     istr.reset(&std::cin, &std_stream_dtor);
   }
   else
   {
-    sprokit::path_t path(path_p);
-    istr.reset(new boost::filesystem::ifstream(path));
+    istr.reset(new std::ifstream(path));
 
     if (!istr->good())
     {
-      std::string const str = path.string<std::string>();
-      std::string const reason = "Unable to open input file: " + str;
+      std::string const reason = "Unable to open input file: " + path;
 
       throw std::runtime_error(reason);
     }
@@ -78,22 +72,21 @@ open_istream(kwiver::vital::path_t const& path_p)
 
 // ------------------------------------------------------------------
 ostream_t
-open_ostream(kwiver::vital::path_t const& path_p)
+open_ostream(kwiver::vital::path_t const& path)
 {
   ostream_t ostr;
 
-  if (path_p == iostream_path)
+  if (path == iostream_path)
   {
     ostr.reset(&std::cout, &std_stream_dtor);
   }
   else
   {
-    sprokit::path_t path(path_p);
-    ostr.reset(new boost::filesystem::ofstream(path));
+    ostr.reset(new std::ofstream(path));
 
     if (!ostr->good())
     {
-      std::string const reason = "Unable to open input file: " + path_p;
+      std::string const reason = "Unable to open input file: " + path;
 
       throw std::runtime_error(reason);
     }
@@ -110,4 +103,4 @@ std_stream_dtor(void* /*ptr*/)
   // We don't want to delete std::cin or std::cout.
 }
 
-}
+} // end namespace
