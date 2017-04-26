@@ -523,8 +523,21 @@ main( int argc, char* argv[] )
     config->set_value( "detector_trainer_tool:detector_trainer:type", g_params.opt_detector );
   }
 
+  kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+    ( "detected_object_set_input", config, groundtruth_reader );
+  kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+    ( "detected_object_set_input", config, groundtruth_reader );
+
+  kwiver::vital::algo::train_detector::get_nested_algo_configuration
+    ( "detector_trainer", config, detector_trainer );
+  kwiver::vital::algo::train_detector::set_nested_algo_configuration
+    ( "detector_trainer", config, detector_trainer );
+
   // Read setup configs
-  // []
+  double percent_test = config->get_value< double >( "default_percent_test" );
+  std::string groundtruth_extension = config->get_value< std::string >( "groundtruth_extension" );
+  std::string image_extension = config->get_value< std::string >( "image_extensions" );
+  std::string groundtruth_style = config->get_value< std::string >( "groundtruth_style" );
 
   // Identify all sub-directories containing data
   std::vector< std::string > subdirs;
