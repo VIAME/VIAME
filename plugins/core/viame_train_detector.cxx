@@ -550,7 +550,6 @@ main( int argc, char* argv[] )
   std::vector< kwiver::vital::detected_object_set_sptr > test_gt;
 
   // Run training algorithm
-  //
-
+  detector_trainer->train_from_disk( train_image_fn, train_gt, test_image_fn, test_gt );
   return 0;
 }
