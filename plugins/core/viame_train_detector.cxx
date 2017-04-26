@@ -246,17 +246,21 @@ main( int argc, char* argv[] )
 
     vpm.load_plugins( pathl );
 
-    auto fact_list = vpm.get_factories( typeid( kwiver::vital::algo::train_detector ).name() );
+    auto fact_list = vpm.get_factories(  "train_detector" );
 
     if( fact_list.empty() )
     {
       std::cerr << "No loaded detectors to list" << std::endl;
     }
+    else
+    {
+      std::cout << std::endl << "Trainable detector variants:" << std::endl << std::endl;
+    }
 
     VITAL_FOREACH( auto fact, fact_list )
     {
       std::string name;
-      if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
+      if( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
       {
         std::cout << name << std::endl;
       }
