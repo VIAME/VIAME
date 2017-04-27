@@ -31,6 +31,8 @@
 #ifndef SPROKIT_PIPELINE_LEX_PROCESS_H
 #define SPROKIT_PIPELINE_LEX_PROCESS_H
 
+#include "pipeline_util-config.h"
+
 #include "token.h"
 
 #include <vital/logger/logger.h>
@@ -57,7 +59,7 @@ namespace sprokit {
  * 5) Quit when EOF token is returned.
  *
  */
-class lex_processor
+class SPROKIT_PIPELINE_UTIL_EXPORT lex_processor final
 {
 public:
   /**

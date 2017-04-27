@@ -31,6 +31,7 @@
 #include "lex_processor.h"
 
 #include <vital/exceptions.h>
+#include <vital/config/config_block_exception.h>
 #include <vital/util/data_stream_reader.h>
 #include <kwiversys/SystemTools.hxx>
 
@@ -40,6 +41,7 @@
 #include <algorithm>
 #include <cctype>
 #include <sstream>
+#include <set>
 
 
 /*
@@ -80,8 +82,22 @@ public:
   {
     if ( ! m_stream )
     {
-      throw kwiver::vital::file_not_found_exception( file_name, "could not open file" );
+      throw kwiver::vital::config_file_not_found_exception( file_name, "could not open file");
     }
+  }
+
+
+  include_context( const include_context& other )
+    : m_stream( *other.m_filename )
+    , m_reader( m_stream )
+    , m_filename( other.m_filename )
+  {
+  }
+
+
+  ~include_context()
+  {
+    m_stream.close();
   }
 
   /**
@@ -92,7 +108,7 @@ public:
   // -- MEMBER DATA --
 
   // This is the actual file stream
-  std::istream m_stream;
+  std::ifstream m_stream;
 
   // This reader operates on the above stream to provide trimmed input
   // with no comments or blank lines
@@ -123,7 +139,7 @@ public:
    */
   int find_res_word( const std::string& n ) const;
 
-  void process_id();
+  token_sptr process_id();
 
   /**
    * @brief Get current source location.
@@ -139,7 +155,7 @@ public:
    * @brief Get new input line
    *
    *
-   * @return \b true if line is returned. \b fales if EOF
+   * @return \b true if line is returned. \b false if EOF
    */
   bool get_line();
 
@@ -381,8 +397,8 @@ get_token()
     if ( isalnum( c ) || ( c == '_' ) )
     {
       --m_priv->m_cur_char;
-      m_priv->process_id();
-      continue;
+      t = m_priv->process_id();
+      return t;
     }
 
     // All that's left is single char tokens return c as character
@@ -429,13 +445,12 @@ priv()
   m_keyword_table["cluster"]      = TK_CLUSTER;
   m_keyword_table["imap"]         = TK_IMAP;
   m_keyword_table["omap"]         = TK_OMAP;
-  m_keyword_table["relativepath"] = TK_RELATIVEPATH;
-
+  m_keyword_table["relativepath"] = TK_RELATIVE_PATH;
 }
 
 
 // ------------------------------------------------------------------
-void
+token_sptr
 lex_processor::priv::
 process_id()
 {
@@ -450,7 +465,7 @@ process_id()
     // These characters are only allowed in the first token
     // (e.g. config key)
     if ( ( ( a == '.' ) || ( a == ':' ) ) &&
-         ! m_m_first_token_in_line )
+         ! m_first_token_in_line )
     {
       break;
     }
@@ -471,8 +486,9 @@ process_id()
   // Check ident against list of keywords
   // Create the new token
   token_sptr t = std::make_shared< token > ( find_res_word( ident ), ident );
-  t->set_location( CurrentLoc() );
-  m_priv->m_first_token_in_line = false;
+  t->set_location( current_loc() );
+  m_first_token_in_line = false;
+
   return t;
 }
 
@@ -489,7 +505,7 @@ find_res_word( const std::string& n ) const
 {
   if ( m_keyword_table.count( n )  > 0 )
   {
-    return m_keyword_table[n];
+    return m_keyword_table.at(n);
   }
 
   return TK_IDENTIFIER;     // not in table
@@ -497,13 +513,13 @@ find_res_word( const std::string& n ) const
 
 
 // ------------------------------------------------------------------
-source_location
-lex::processor::priv::
+kwiver::vital::source_location
+lex_processor::priv::
 current_loc() const
 {
   // Get current location from the include file stack top element
-  return source_location( m_include_stack.front().m_file_name,
-                          m_include_stack.front().m_reader.line_number() );
+  return kwiver::vital::source_location( m_include_stack.front().m_filename,
+                                         m_include_stack.front().m_reader.line_number() );
 }
 
 
@@ -524,13 +540,22 @@ get_line()
 
 
 // ------------------------------------------------------------------
+bool
+lex_processor::priv::
+trim_string( std::string& str )
+{
+  return m_trim_string.edit( str );
+}
+
+
+// ------------------------------------------------------------------
 /**
  * @brief Flush remaining line in parser.
  *
  * This method causes a new line to be read from the file.
  */
 void
-lex::processor::priv::
+lex_processor::priv::
 flush_line()
 {
   m_input_line.clear();
@@ -555,11 +580,11 @@ flush_line()
  * @return Full file path, or empty string on failure.
  */
 kwiver::vital::config_path_t
-lex::processor::priv::
+lex_processor::priv::
 resolve_file_name( kwiver::vital::config_path_t const& file_name )
 {
   // Test for absolute file name
-  if ( kwiver::vital::kwiversys::SystemTools::FileIsFullPath( file_name ) )
+  if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
   {
     return file_name;
   }

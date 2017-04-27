@@ -120,6 +120,7 @@ target_link_libraries(sprokit_pipeline_util
             ${Boost_CHRONO_LIBRARY}
             ${Boost_THREAD_LIBRARY}
             ${CMAKE_THREAD_LIBS_INIT}
+             kwiversys
  )
 
 set_target_properties(sprokit_pipeline_util
