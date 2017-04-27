@@ -254,7 +254,7 @@ config_block
 // ------------------------------------------------------------------
 config_block_sptr
 config_block
-::difference_config( const config_block_sptr other )
+::difference_config( const config_block_sptr other ) const
 {
   auto ret_block = empty_config();
 

@@ -314,7 +314,7 @@ public:
    *
    * \param other The config block to be differenced with.
    */
-  config_block_sptr difference_config( const config_block_sptr other );
+  config_block_sptr difference_config( const config_block_sptr other ) const;
 
 
   ///Return the values available in the configuration.
@@ -421,6 +421,9 @@ private:
    */
   void copy_entry( config_block_key_t const& key,
                    const config_block_sptr from );
+
+  void copy_entry( config_block_key_t const& key,
+                   const config_block* from );
 
   typedef std::map< config_block_key_t, config_block_value_t > store_t;
   typedef std::set< config_block_key_t > ro_list_t;
