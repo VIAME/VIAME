@@ -53,6 +53,36 @@ namespace vital {
  *
  * It is up to the user to determine what these two lists mean and how
  * to report the differences.
+ *
+ * There are a few cases, such as processes and algorithms, where the
+ * expected config is known and established in the code. In these
+ * cases it is useful to know if there are any extra config items
+ * supplied that are not expected. Must usually these extra items are
+ * misspellings of expected ones, or from general confusion about what
+ * config entries are really required.
+ *
+ * The following example shows how the config difference might be used
+ * to detect config errors.
+ *
+ \code
+  //                                    ref-config                received-config
+  kwiver::vital::config_difference cd( this->get_configuration(), config );
+  const auto key_list = cd.extra_keys();
+  if ( ! key_list.empty() )
+  {
+    // This may be considered an error in some cases
+    LOG_WARN( logger(), "Additional parameters found in config block that are not required or desired: "
+              << kwiver::vital::join( key_list, ", " ) );
+  }
+
+  key_list = cd.unspecified_keys();
+  if ( ! key_list.empty() )
+  {
+    LOG_WARN( logger(), "Parameters that were not supplied in the config, using default values: "
+              << kwiver::vital::join( key_list, ", " ) );
+  }
+ \endcode
+ *
  */
 class VITAL_CONFIG_EXPORT config_difference
 {
