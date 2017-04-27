@@ -47,7 +47,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 
@@ -194,7 +193,7 @@ bool string_to_vector( const std::string& str,
 
   try
   {
-    BOOST_FOREACH( std::string s, parsed_string )
+    VITAL_FOREACH( std::string s, parsed_string )
     {
       if( !s.empty() )
       {
@@ -466,7 +465,7 @@ main( int argc, char* argv[] )
   else if( train_files.empty() != test_files.empty() )
   {
     std::cerr << "If one of either train.txt or test.txt is specified, "
-      "they must both be." << std::endl;
+      "then they must both be." << std::endl;
     exit( 0 );
   }
   else
@@ -536,8 +535,33 @@ main( int argc, char* argv[] )
   // Read setup configs
   double percent_test = config->get_value< double >( "default_percent_test" );
   std::string groundtruth_extension = config->get_value< std::string >( "groundtruth_extension" );
-  std::string image_extension = config->get_value< std::string >( "image_extensions" );
+  std::string image_extensions_str = config->get_value< std::string >( "image_extensions" );
   std::string groundtruth_style = config->get_value< std::string >( "groundtruth_style" );
+
+  std::vector< std::string > image_extensions;
+  bool one_file_per_image;
+
+  if( groundtruth_style == "one_per_file" )
+  {
+    one_file_per_image = true;
+  }
+  else if( groundtruth_style == "one_per_folder" )
+  {
+    one_file_per_image = false;
+  }
+  else
+  {
+    std::cerr << "Invalid groundtruth style: " << groundtruth_style << std::endl;
+    exit( 0 );
+  }
+
+  if( percent_test < 0.0 || percent_test > 1.0 )
+  {
+    std::cerr << "Percent test must be [0.0,1.0]" << std::endl;
+    exit( 0 );
+  }
+
+  string_to_vector( image_extensions_str, image_extensions, "\n\t\v,; " );
 
   // Identify all sub-directories containing data
   std::vector< std::string > subdirs;
@@ -548,6 +572,20 @@ main( int argc, char* argv[] )
   std::vector< kwiver::vital::detected_object_set_sptr > train_gt;
   std::vector< std::string > test_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > test_gt;
+
+  VITAL_FOREACH( std::string folder, subdirs )
+  {
+    std::string fullpath = append_path( g_params.opt_input, folder );
+
+    std::vector< std::string > files;
+    list_files_in_folder( fullpath, files );
+    std::sort( files.begin(), files.end() );
+
+    VITAL_FOREACH( std::string file, files )
+    {
+      
+    }
+  }
 
   // Run training algorithm
   detector_trainer->train_from_disk( train_image_fn, train_gt, test_image_fn, test_gt );
