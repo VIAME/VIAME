@@ -131,7 +131,8 @@ bool list_all_subfolders( const std::string& location,
 }
 
 bool list_files_in_folder( const std::string& location,
-                           std::vector< std::string >& filepaths )
+                           std::vector< std::string >& filepaths,
+                           std::vector< std::string > extensions = std::vector< std::string >() )
 {
   filepaths.clear();
 
@@ -148,7 +149,21 @@ bool list_files_in_folder( const std::string& location,
   {
     if( boost::filesystem::is_regular_file( *file_iter ) )
     {
-      filepaths.push_back( file_iter->path().string() );
+      if( extensions.empty() )
+      {
+        filepaths.push_back( file_iter->path().string() );
+      }
+      else
+      {
+        for( unsigned i = 0; i < extensions.size(); i++ )
+        {
+          if( file_iter->path().extension() == extensions[i] )
+          {
+            filepaths.push_back( file_iter->path().string() );
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -176,6 +191,17 @@ bool remove_and_reset_folder( std::string location )
 
   create_folder( location );
   return true;
+}
+
+std::string get_filename_with_last_path( std::string path )
+{
+  return append_path( boost::filesystem::path( path ).parent_path().filename().string(),
+                      boost::filesystem::path( path ).filename().string() );
+}
+
+std::string get_filename_no_path( std::string path )
+{
+  return boost::filesystem::path( path ).filename().string();
 }
 
 template< typename T >
@@ -239,16 +265,17 @@ static kwiver::vital::config_block_sptr default_config()
   kwiver::vital::config_block_sptr config
     = kwiver::vital::config_block::empty_config( "detector_trainer_tool" );
 
-  config->set_value( "groundtruth_extension", "txt",
-                     "Groundtruth file extension (txt, kw18, etc...)" );
+  config->set_value( "groundtruth_extensions", ".txt",
+                     "Groundtruth file extensions (txt, kw18, etc...). Note: this is indepedent "
+                     "of the format that's stored in the file" );
   config->set_value( "groundtruth_style", "one_per_file",
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
 
   config->set_value( "default_percent_test", "0.05",
                      "Percent [0.0, 1.0] of test samples to use if no manual files specified." );
-  config->set_value( "image_extensions", "jpg;jpeg;JPG;JPEG;tif;tiff;TIF;TIFF;png;PNG",
-                     "Semicolon list of seperated image extensions to use in training if no "
-                     "manual files specified." );
+  config->set_value( "image_extensions", ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG",
+                     "Semicolon list of seperated image extensions to use in training, images "
+                     "without this extension will not be included." );
 
   kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
     ( "groundtruth_reader", config, kwiver::vital::algo::detected_object_set_input_sptr() );
@@ -502,7 +529,7 @@ main( int argc, char* argv[] )
 
       if( !does_file_exist( test_files[i] ) )
       {
-        std::cerr << "Could not find train file: " << test_files[i] << std::endl;
+        std::cerr << "Could not find test file: " << test_files[i] << std::endl;
       }
     }
   }
@@ -534,11 +561,11 @@ main( int argc, char* argv[] )
 
   // Read setup configs
   double percent_test = config->get_value< double >( "default_percent_test" );
-  std::string groundtruth_extension = config->get_value< std::string >( "groundtruth_extension" );
+  std::string groundtruth_extensions_str = config->get_value< std::string >( "groundtruth_extensions" );
   std::string image_extensions_str = config->get_value< std::string >( "image_extensions" );
   std::string groundtruth_style = config->get_value< std::string >( "groundtruth_style" );
 
-  std::vector< std::string > image_extensions;
+  std::vector< std::string > image_extensions, groundtruth_extensions;
   bool one_file_per_image;
 
   if( groundtruth_style == "one_per_file" )
@@ -562,12 +589,14 @@ main( int argc, char* argv[] )
   }
 
   string_to_vector( image_extensions_str, image_extensions, "\n\t\v,; " );
+  string_to_vector( groundtruth_extensions_str, groundtruth_extensions, "\n\t\v,; " );
 
   // Identify all sub-directories containing data
   std::vector< std::string > subdirs;
   list_all_subfolders( g_params.opt_input, subdirs );
 
   // Load groundtruth for all image files in all folders using reader class
+  std::vector< 
   std::vector< std::string > train_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > train_gt;
   std::vector< std::string > test_image_fn;
@@ -577,15 +606,25 @@ main( int argc, char* argv[] )
   {
     std::string fullpath = append_path( g_params.opt_input, folder );
 
-    std::vector< std::string > files;
-    list_files_in_folder( fullpath, files );
-    std::sort( files.begin(), files.end() );
+    std::vector< std::string > image_files, gt_files;
+    list_files_in_folder( fullpath, image_files, image_extensions );
+    list_files_in_folder( fullpath, gt_files, groundtruth_extensions );
+    std::sort( image_files.begin(), image_files.end() );
 
-    VITAL_FOREACH( std::string file, files )
+    VITAL_FOREACH( std::string image_file, image_files )
     {
-      
+      const std::string file_wrt_input = append_path( folder, image_file );
+      const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
+
+      // Is this a test or a train image?
+      // []
+
+      // Read groundtruth for frame
+      asdsa
     }
   }
+
+  // Adjust all groundtruth detections for label file contents
 
   // Run training algorithm
   detector_trainer->train_from_disk( train_image_fn, train_gt, test_image_fn, test_gt );
