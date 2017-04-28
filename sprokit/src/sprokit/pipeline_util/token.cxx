@@ -111,12 +111,14 @@ token::token_name( int tk )
     C( TK_CONNECT, "CONNECT" );
     C( TK_FROM, "FROM" );
     C( TK_TO, "TO" );
-    C( TK_RELATIVE_PATH, "RELATIVEPATH" );
+    C( TK_RELATIVE_PATH, "RELATIVE_PATH" );
     C( TK_BLOCK, "BLOCK" );
     C( TK_ENDBLOCK, "ENDBLOCK" );
+    C( TK_CONFIG, "config" );
     C( TK_CLUSTER, "CLUSTER" );
     C( TK_IMAP, "IMAP" );
-    C( TK_OMAP, "OMAP" );
+    C( TK_DOUBLE_COLON, "DOUBLE_COLON" );
+    C( TK_EOL, "EOL" );
 
   default:
     return "Unknown token";
@@ -155,8 +157,11 @@ token::format( std::ostream& str ) const
     C( TK_BLOCK );
     C( TK_ENDBLOCK );
     C( TK_CLUSTER );
+    C( TK_CONFIG );
     C( TK_IMAP );
     C( TK_OMAP );
+    C( TK_DOUBLE_COLON );
+    C( TK_EOL );
 
   case TK_NONE:
     str << "Character token: ";

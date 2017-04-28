@@ -31,6 +31,8 @@
 #ifndef SPROKIT_PIPELINE_TOKEN_H
 #define SPROKIT_PIPELINE_TOKEN_H
 
+#include "pipeline_util-config.h"
+
 #include <vital/util/source_location.h>
 
 #include <iostream>
@@ -72,12 +74,16 @@ enum token_type_t {
 
   TK_BLOCK,
   TK_ENDBLOCK,
+  TK_CONFIG,
 
   TK_CLUSTER,
   TK_IMAP,
   TK_OMAP,
 
+  TK_DOUBLE_COLON,
+
   // These are last in the list - order counts
+  TK_EOL,
   TK_EOF,        // End Of File
 
   TK_LAST       // highest token value
@@ -90,7 +96,7 @@ enum token_type_t {
  * This class represents a lexical token.
  */
 
-class token
+class SPROKIT_PIPELINE_UTIL_EXPORT token
 {
 public:
   // -- CONSTRUCTORS --

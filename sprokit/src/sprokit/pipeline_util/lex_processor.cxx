@@ -33,6 +33,7 @@
 #include <vital/exceptions.h>
 #include <vital/config/config_block_exception.h>
 #include <vital/util/data_stream_reader.h>
+#include <vital/util/string.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <fstream>
@@ -224,7 +225,8 @@ public:
  */
 lex_processor::
 lex_processor()
-  : m_priv( new lex_processor::priv )
+  : m_logger( kwiver::vital::get_logger( "lex_processor" ) )
+  ,m_priv( new lex_processor::priv )
 { }
 
 
@@ -233,10 +235,7 @@ lex_processor::
 { }
 
 
-/* ----------------------------------------------------
- * This method runs as a thread and processes all
- * of the specified files.
- */
+// ------------------------------------------------------------------
 void
 lex_processor::
 open_file( const std::string& file_name )
@@ -326,8 +325,14 @@ get_token()
     }
 
     // get new line could check for "include" keyword and handle that operation.
-    // Check for include directive - starts with "include "
-    if ( m_priv->m_input_line.substr( 0, 8 ) != "include " )
+    // Check for include directive - starts with "include " or "!include"
+    if ( *m_priv->m_cur_char == '!' )
+    {
+      m_priv->m_cur_char++;
+    }
+
+    if ( kwiver::vital::starts_with(std::string (m_priv->m_cur_char, m_priv->m_input_line.end() ),
+                                    "include " ) )
     {
       // process include directive
       m_priv->m_cur_char += 8;
@@ -345,13 +350,16 @@ get_token()
         throw kwiver::vital::config_file_not_found_exception( file_name, sstr.str() );
       }
 
+      LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );
+      m_priv->flush_line();
+
       // Push the current location onto the include stack
       m_priv->m_include_stack.push_back( include_context( resolv_filename ) );
     }
   }
 
   // loop until we have discovered a token
-  while ( 1 )
+  while ( m_priv->m_cur_char != m_priv->m_input_line.end() )
   {
     token_sptr t;
     char c = *m_priv->m_cur_char++;  // Advance pointer
@@ -359,6 +367,39 @@ get_token()
     if ( std::isspace( c ) )
     {
       continue;
+    }
+
+    // Check to see if there is another character in look-ahead memory
+    if ( m_priv->m_cur_char != m_priv->m_input_line.end() )
+    {
+      char n = *m_priv->m_cur_char++;  // Advance pointer
+
+      // Look for cluster documentation. "--"
+      if ( ( '-' == c ) && ( '-' == n ) )
+      {
+        // Collect description text from after token to EOL
+        std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
+        m_priv->trim_string( text );
+        t = std::make_shared< token > ( TK_CLUSTER_DESC, text );
+        t->set_location( current_location() );
+
+        m_priv->flush_line();
+        return t;
+      }
+
+      // look for "::"
+      if ( c == ':' && n == ':' )
+      {
+        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( "::" ), "::" );
+        t->set_location( current_location() );
+
+        return t;
+      }
+
+      // Here is where we would handle ":=", "+=", and other multiple character operators
+
+      // Reset pointer to restore our second character
+      m_priv->m_cur_char--;
     }
 
     if ( '=' == c )
@@ -374,22 +415,10 @@ get_token()
       if ( ':' == c )  // old style config line
       {
         m_priv->m_first_token_in_line = false;
-        t = std::make_shared< token > ( ':' );
+        t = std::make_shared< token > ( TK_COLON, ":" );
         t->set_location( m_priv->current_loc() );
         return t;
       }
-    }
-
-    // Look for cluster documentation. "--"
-    if ( ( '-' == c ) && ( '-' == *m_priv->m_cur_char ) )
-    {
-      std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
-      m_priv->trim_string( text );
-      t = std::make_shared< token > ( TK_CLUSTER_DESC, text );
-      t->set_location( m_priv->current_loc() );
-
-      m_priv->flush_line();
-      return t;
     }
 
     // Is it a character.
@@ -410,6 +439,11 @@ get_token()
     t->set_location( m_priv->current_loc() );
     return t;
   }   // end while
+
+  // This probably should not happen since blank lines are absorbed.
+  auto t = std::make_shared< token > ( TK_EOL, "" );
+  t->set_location( m_priv->current_loc() );
+  return t;
 } // lex_processor::get_next_token
 
 
@@ -446,6 +480,9 @@ priv()
   m_keyword_table["imap"]         = TK_IMAP;
   m_keyword_table["omap"]         = TK_OMAP;
   m_keyword_table["relativepath"] = TK_RELATIVE_PATH;
+  m_keyword_table["config"]       = TK_CONFIG;
+
+  m_keyword_table["::"]           = TK_DOUBLE_COLON;
 }
 
 
@@ -454,9 +491,9 @@ token_sptr
 lex_processor::priv::
 process_id()
 {
-  int a = *m_cur_char++;
+  int a;
 
-  std::string ident( 1, (char) a ); // Start the ident with a character
+  std::string ident;
 
   while ( m_cur_char != m_input_line.end() )
   {
@@ -467,6 +504,9 @@ process_id()
     if ( ( ( a == '.' ) || ( a == ':' ) ) &&
          ! m_first_token_in_line )
     {
+      // end of token if not first
+      // back up iterator
+      --m_cur_char;
       break;
     }
 
@@ -518,8 +558,8 @@ lex_processor::priv::
 current_loc() const
 {
   // Get current location from the include file stack top element
-  return kwiver::vital::source_location( m_include_stack.front().m_filename,
-                                         m_include_stack.front().m_reader.line_number() );
+  return kwiver::vital::source_location( m_include_stack.back().m_filename,
+                                         m_include_stack.back().m_reader.line_number() );
 }
 
 
