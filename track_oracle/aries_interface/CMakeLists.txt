@@ -13,7 +13,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/scoring_aries_interface_export.h
-  SUBDIR     track_oracle/aries_interface
+  NOPATH SUBDIR     track_oracle/aries_interface
 )
 
 kwiver_add_library( scoring_aries_interface

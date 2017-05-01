@@ -29,7 +29,8 @@
 
 import sprokit.pipeline.process
 import sprokit.pipeline.config
-import sprokit.pipeline.process_registry
+from sprokit.pipeline.process_factory import ProcessFactory
+
 import os.path
 
 class kw_print_number_process(sprokit.pipeline.process.PythonProcess):
@@ -60,8 +61,6 @@ class kw_print_number_process(sprokit.pipeline.process.PythonProcess):
         if not path:
             raise RuntimeError('The path given was empty')
 
-        print "KEITH Path is ",path
-
         self.fout = open(path, 'w+')
         self.fout.flush()
 
@@ -84,12 +83,15 @@ class kw_print_number_process(sprokit.pipeline.process.PythonProcess):
 
 # ==================================================================
 def __sprokit_register__():
-    module_name = 'python:kwiver.print_number'
-    reg = sprokit.pipeline.process_registry.ProcessRegistry.self()
+    from sprokit.pipeline import process_factory
 
-    if reg.is_module_loaded(module_name):
+    module_name = 'python:kwiver.print_number'
+
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    reg.register_process('kw_print_number_process', 'A Simple Kwiver Test Process', kw_print_number_process)
+    process_factory.add_process('kw_print_number_process',
+                                'A Simple Kwiver Test Process',
+                                kw_print_number_process)
 
-    reg.mark_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

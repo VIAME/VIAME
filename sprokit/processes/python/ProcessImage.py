@@ -98,15 +98,13 @@ class ProcessImage(KwiverProcess):
 
 # ==================================================================
 def __sprokit_register__():
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
 
     module_name = 'python:kwiver.ProcessImage'
 
-    reg = process_registry.ProcessRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    reg.register_process('ProcessImage', 'Process image test', ProcessImage)
+    process_factory.add_process('ProcessImage', 'Process image test', ProcessImage)
 
-    reg.mark_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

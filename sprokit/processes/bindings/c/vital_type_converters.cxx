@@ -37,9 +37,11 @@ more python friendly types.
 
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/logger/logger.h>
 
 #include <vital/bindings/c/types/image_container.hxx>
+#include <vital/bindings/c/types/detected_object_set.hxx>
 
 #include <sprokit/pipeline/datum.h>
 
@@ -152,6 +154,78 @@ vital_image_container_to_datum( vital_image_container_t* handle )
 {
   // Get sptr from handle. Use sptr cache access interface
   kwiver::vital::image_container_sptr sptr = vital_image_container_to_sptr( handle );
+
+  if ( ! sptr )
+  {
+    // Could not find sptr for supplied handle.
+    Py_RETURN_NONE;
+  }
+
+  // Return address of datum through PyCapsule object.
+  // The caller now owns the datum.
+  PyObject* cap = put_in_datum_capsule( sptr );
+  return cap;
+}
+
+
+// ==================================================================
+/**
+ * @brief Convert datum to detected object set handle
+ *
+ * The item held in the datum is extracted and registered as a detected
+ * object set container.
+ *
+ * The PyCapsule contains a raw pointer to the datum. The datum_t
+ * (sptr to datum) is held by the caller while we extract its contents
+ * (an sptr). After this, the datum can be deleted.
+ *
+ * @param args PyCapsule object
+ *
+ * @return detected object set handle
+ */
+vital_detected_object_set_t*
+vital_detected_object_set_from_datum( PyObject* args )
+{
+  // arg is the capsule
+  sprokit::datum* dptr = (sprokit::datum*) PyCapsule_GetPointer( args, "sprokit::datum" );
+
+  try
+  {
+    // Get boost::any from the datum
+    boost::any const any = dptr->get_datum< boost::any > ();
+
+    // Get sptr from boost::any
+    kwiver::vital::detected_object_set_sptr sptr = boost::any_cast< kwiver::vital::detected_object_set_sptr > ( any );
+
+    // Register this object with the main detected_object_set interface
+    vital_detected_object_set_t* ptr = vital_detected_object_set_from_sptr( sptr );
+    return ptr;
+  }
+  catch ( boost::bad_any_cast const& e )
+  {
+    // This is a warning because this converter should only be called
+    // if there is good reason to believe that the object really is an
+    // detected_object_set.
+    LOG_WARN( logger, "Conversion error" << e.what() );
+  }
+
+  return NULL;
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Convert detected object set container handle to PyCapsule
+ *
+ * @param handle Opaque handle to detected object set container
+ *
+ * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ */
+PyObject*
+vital_detected_object_set_to_datum( vital_detected_object_set_t* handle )
+{
+  // Get sptr from handle. Use sptr cache access interface
+  kwiver::vital::detected_object_set_sptr sptr = vital_detected_object_set_to_sptr( handle );
 
   if ( ! sptr )
   {

@@ -20,8 +20,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/data_terms_export.h
-  SUBDIR        track_oracle/data_terms
-  NOPATH
+  NOPATH SUBDIR        track_oracle/data_terms
 )
 
 kwiver_add_library( data_terms

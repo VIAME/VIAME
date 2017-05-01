@@ -10,7 +10,7 @@
 
 #include <tinyxml.h>
 
-#include <track_oracle/kwiver_io_helpers.h>
+#include <track_oracle/core/kwiver_io_helpers.h>
 #include <track_oracle/aries_interface/aries_interface.h>
 
 #include <vital/logger/logger.h>

@@ -38,38 +38,21 @@
 ///
 ///
 
+#include <string>
+#include <track_oracle/data_terms/data_term_tmp_utils.h>
+
 #include <vital/vital_config.h>
 #include <track_oracle/data_terms/data_terms_export.h>
 
-#include <string>
-#include <track_oracle/track_oracle_api_types.h>
-#include <track_oracle/data_terms/data_term_tmp_utils.h>
-#include <track_oracle/kwiver_io_base.h>
-
-namespace kwiver {
-namespace track_oracle {
-
-namespace dt {
-
-struct DATA_TERMS_EXPORT context
-{
-  std::string name;
-  std::string description;
-  field_handle_type fh;
-  context( const std::string& n, const std::string& d )
-    : name(n), description(d), fh( INVALID_FIELD_HANDLE )
-  {}
-};
-
-} // ...dt
-
-} // ...track_oracle
-} // ...kwiver
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/kwiver_io_base.h>
+#include <track_oracle/core/track_oracle_api_types.h>
 
 #define DECL_DT(NAME, TYPE, DESC )         \
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE>    \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -80,6 +63,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE>    \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static TYPE get_default_value() { return DEFAULT; } \
   static context c; \
@@ -91,6 +75,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -106,6 +91,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static TYPE get_default_value() { return DEFAULT; } \
   static context c; \
@@ -122,6 +108,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -133,6 +120,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -145,6 +133,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -159,6 +148,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -178,6 +168,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
@@ -194,6 +185,7 @@ struct DATA_TERMS_EXPORT context
   struct DATA_TERMS_EXPORT NAME : public data_term_base, kwiver_io_base<TYPE> \
 { \
   NAME(): kwiver::track_oracle::kwiver_io_base<TYPE>( #NAME ) {}                        \
+  ~NAME() {} \
   typedef TYPE Type; \
   static context c; \
   static std::string get_context_name() { return #NAME; }   \
