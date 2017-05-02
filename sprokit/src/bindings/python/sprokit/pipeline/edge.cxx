@@ -64,7 +64,7 @@ BOOST_PYTHON_MODULE(edge)
     .def(vector_indexing_suite<sprokit::edges_t>())
   ;
 
-  class_<sprokit::edge, sprokit::edge_t, kwiver::vital::noncopyable>("Edge"
+  class_<sprokit::edge, sprokit::edge_t, boost::noncopyable>("Edge"
     , "A communication channel between processes."
     , no_init)
     .def(init<>())

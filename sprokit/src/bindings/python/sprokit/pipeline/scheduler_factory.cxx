@@ -123,7 +123,7 @@ BOOST_PYTHON_MODULE(scheduler_factory)
   class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
     , "The type for a scheduler module name.");
 
-  class_<sprokit::scheduler, sprokit::scheduler_t, kwiver::vital::noncopyable>("Scheduler"
+  class_<sprokit::scheduler, sprokit::scheduler_t, boost::noncopyable>("Scheduler"
     , "An abstract class which offers an interface for pipeline execution strategies."
     , no_init)
     .def("start", &sprokit::scheduler::start
@@ -134,7 +134,7 @@ BOOST_PYTHON_MODULE(scheduler_factory)
       , "Stop the execution of the pipeline.")
   ;
 
-  class_<sprokit::scheduler_factory, sprokit::scheduler_factory, kwiver::vital::noncopyable>("SchedulerFactory"
+  class_<sprokit::scheduler_factory, sprokit::scheduler_factory, boost::noncopyable>("SchedulerFactory"
     , "A registry of all known scheduler types."
     , no_init)
 

@@ -44,7 +44,7 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(pipeline)
 {
-  class_<sprokit::pipeline, sprokit::pipeline_t, kwiver::vital::noncopyable>("Pipeline"
+  class_<sprokit::pipeline, sprokit::pipeline_t, boost::noncopyable>("Pipeline"
     , "A data structure for a collection of connected processes."
     , no_init)
     .def(init<>())
