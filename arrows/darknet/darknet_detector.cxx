@@ -37,9 +37,11 @@
 #include <kwiversys/SystemTools.hxx>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include <string>
 #include <sstream>
+#include <exception>
 
 #ifdef DARKNET_USE_GPU
 #define GPU
@@ -88,7 +90,7 @@ public:
   }
 
   image cvmat_to_image( const cv::Mat& src );
-
+  double resize_image( const cv::Mat& src, cv::Mat& dst );
 
   // Items from the config
   std::string m_net_config;
@@ -149,9 +151,9 @@ get_configuration() const
     "GPU index. Only used when darknet is compiled with GPU support." );
   config->set_value( "resize_option", d->m_resize_option,
     "Pre-processing resize option, can be: disabled, or maintain_ar." );
-  config->set_value( "resize_ni", d->m_resize_ni,
+  config->set_value( "resize_ni", d->m_resize_i,
     "Width resolution after resizing" );
-  config->set_value( "resize_nj", d->m_resize_ni,
+  config->set_value( "resize_nj", d->m_resize_i,
     "Height resolution after resizing" );
 
   return config;
@@ -243,7 +245,7 @@ check_configuration( vital::config_block_sptr config ) const
     success = false;
   }
 
-  if( m_resize_option() != "disabled" && ( m_resize_i != 0 || m_resize_j != 0 ) )
+  if( d->m_resize_option != "disabled" && ( d->m_resize_i != 0 || d->m_resize_j != 0 ) )
   {
     LOG_ERROR( logger(), "resize dimentions must be set if resizing enabled" );
     success = false;
@@ -349,13 +351,13 @@ detect( vital::image_container_sptr image_data ) const
 
     kwiver::vital::bounding_box_d bbox( left, top, right, bot );
 
-    if( resize_factor != 1.0 )
+    if( scale_factor != 1.0 )
     {
-      bbox.scale( resize_factor );
+      bbox = scale( bbox, scale_factor );
     }
 
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-    bool has_name(false);
+    bool has_name = false;
 
     // Iterate over all classes and collect all names over the threshold, and max score
     double conf = 0.0;
@@ -416,5 +418,57 @@ cvmat_to_image( const cv::Mat& src )
   return out;
 }
 
+double
+darknet_detector::priv::
+resize_image( const cv::Mat& src, cv::Mat& dst )
+{
+  double scale = 1.0;
+
+  if( m_resize_option == "disabled" )
+  {
+    dst = src;
+  }
+  else if( m_resize_option == "maintain_ar" )
+  {
+    double height = static_cast< double >( src.rows );
+    double width = static_cast< double >( src.cols );
+
+    double scale = 1.0;
+
+    if( height > m_resize_j )
+    {
+      scale = m_resize_j / height;
+    }
+    if( width > m_resize_i )
+    {
+      scale = std::min( scale, m_resize_i / width );
+    }
+
+    cv::Mat resized;
+
+    if( scale == 1.0 )
+    {
+      resized = dst;
+    }
+    else
+    {
+      cv::resize( src, resized, cv::Size(), scale, scale );
+    }
+
+    dst.create( m_resize_j, m_resize_i, src.type() );
+    dst.setTo( 0 );
+
+    cv::Rect roi( 0, 0, resized.cols, resized.rows );
+    cv::Mat aoi( dst, roi );
+
+    resized.copyTo( aoi );
+  }
+  else
+  {
+    throw std::runtime_error( "Invalid resize option: " + m_resize_option );
+  }
+
+  return scale;
+}
 
 } } } // end namespace

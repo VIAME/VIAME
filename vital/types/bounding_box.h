@@ -246,6 +246,9 @@ typedef bounding_box< double > bounding_box_d;
                            double scale_factor )
 {
   bbox = bounding_box<T>(
+    bbox.upper_left() * scale_factor,
+    bbox.lower_right() * scale_factor );
+
   return bbox;
 }
 
