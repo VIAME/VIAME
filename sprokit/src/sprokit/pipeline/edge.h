@@ -34,7 +34,7 @@
 #include "pipeline-config.h"
 
 #include <vital/config/config_block.h>
-#include <vital/noncopyable.h>
+#include <boost/noncopyable.hpp>
 
 #include "types.h"
 
@@ -109,7 +109,7 @@ typedef std::vector< edge_t > edges_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT edge
-  : private kwiver::vital::noncopyable
+  : private boost::noncopyable
 {
 public:
   /**

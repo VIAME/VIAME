@@ -282,7 +282,7 @@ BOOST_PYTHON_MODULE(process)
 
   implicitly_convertible<std::shared_ptr<sprokit::process::data_info>, sprokit::process::data_info_t>();
 
-  class_<wrap_process, kwiver::vital::noncopyable>("PythonProcess"
+  class_<wrap_process, boost::noncopyable>("PythonProcess"
     , "The base class for Python processes."
     , no_init)
     .def(init<kwiver::vital::config_block_sptr>())

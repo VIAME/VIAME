@@ -79,7 +79,7 @@ BOOST_PYTHON_MODULE(process_factory)
   class_<kwiver::vital::plugin_manager::module_t>("ProcessModule"
     , "The type for a process module name.");
 
-  class_<sprokit::process, sprokit::process_t, kwiver::vital::noncopyable>("Process"
+  class_<sprokit::process, sprokit::process_t, boost::noncopyable>("Process"
     , "The base class of processes."
     , no_init)
     .def("configure", &sprokit::process::configure
@@ -149,7 +149,7 @@ BOOST_PYTHON_MODULE(process_factory)
   ;
 
   class_<sprokit::process_cluster, sprokit::process_cluster_t, bases<sprokit::process>,
-         kwiver::vital::noncopyable>("ProcessCluster"
+         boost::noncopyable>("ProcessCluster"
     , "The base class of process clusters."
     , no_init);
 
@@ -172,7 +172,7 @@ BOOST_PYTHON_MODULE(process_factory)
 
 
   //+ convert this to process_factory
-  class_<sprokit::process_factory, sprokit::process_factory, kwiver::vital::noncopyable>("ProcessFactory"
+  class_<sprokit::process_factory, sprokit::process_factory, boost::noncopyable>("ProcessFactory"
     , "A registry of all known process types."
     , no_init)
   ;
