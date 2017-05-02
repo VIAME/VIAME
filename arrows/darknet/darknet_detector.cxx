@@ -74,6 +74,9 @@ public:
     : m_thresh( 0.24 )
     , m_hier_thresh( 0.5 )
     , m_gpu_index( -1 )
+    , m_resize_option( "disabled" )
+    , m_resize_i( 0 )
+    , m_resize_j( 0 )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -81,7 +84,7 @@ public:
 
   ~priv()
   {
-    free(m_names);
+    free( m_names );
   }
 
   image cvmat_to_image( const cv::Mat& src );
@@ -95,6 +98,10 @@ public:
   float m_thresh;
   float m_hier_thresh;
   int m_gpu_index;
+
+  std::string m_resize_option;
+  unsigned m_resize_i;
+  unsigned m_resize_j;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -128,13 +135,24 @@ get_configuration() const
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
-  config->set_value( "net_config", d->m_net_config, "Name of network config file." );
-  config->set_value( "weight_file", d->m_weight_file, "Name of optional weight file." );
-  config->set_value( "class_names", d->m_class_names, "Name of file that contains the class names." );
-  config->set_value( "thresh", d->m_thresh, "Threshold value." );
-  config->set_value( "hier_thresh", d->m_hier_thresh, "Hier threshold value." );
-  config->set_value( "gpu_index", d->m_gpu_index, "GPU index. Only used when darknet "
-		     "is compiled with GPU support." );
+  config->set_value( "net_config", d->m_net_config,
+    "Name of network config file." );
+  config->set_value( "weight_file", d->m_weight_file,
+    "Name of optional weight file." );
+  config->set_value( "class_names", d->m_class_names,
+    "Name of file that contains the class names." );
+  config->set_value( "thresh", d->m_thresh,
+    "Threshold value." );
+  config->set_value( "hier_thresh", d->m_hier_thresh,
+    "Hier threshold value." );
+  config->set_value( "gpu_index", d->m_gpu_index,
+    "GPU index. Only used when darknet is compiled with GPU support." );
+  config->set_value( "resize_option", d->m_resize_option,
+    "Pre-processing resize option, can be: disabled, or maintain_ar." );
+  config->set_value( "resize_ni", d->m_resize_ni,
+    "Width resolution after resizing" );
+  config->set_value( "resize_nj", d->m_resize_ni,
+    "Height resolution after resizing" );
 
   return config;
 }
@@ -157,6 +175,9 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_thresh      = config->get_value< float > ( "thresh" );
   this->d->m_hier_thresh = config->get_value< float > ( "hier_thresh" );
   this->d->m_gpu_index   = config->get_value< int > ( "gpu_index" );
+  this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
+  this->d->m_resize_i    = config->get_value< unsigned >( "resize_i" );
+  this->d->m_resize_j    = config->get_value< unsigned >( "resize_j" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -222,6 +243,12 @@ check_configuration( vital::config_block_sptr config ) const
     success = false;
   }
 
+  if( m_resize_option() != "disabled" && ( m_resize_i != 0 || m_resize_j != 0 ) )
+  {
+    LOG_ERROR( logger(), "resize dimentions must be set if resizing enabled" );
+    success = false;
+  }
+
   return success;
 } // darknet_detector::check_configuration
 
@@ -233,6 +260,14 @@ detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+
+  // resizes image if enabled
+  double scale_factor = 1.0;
+
+  if( d->m_resize_option != "disabled" )
+  {
+    scale_factor = d->resize_image( cv_image, cv_image );
+  }
 
   // copies and converts to floating pixel value.
   image im = d->cvmat_to_image( cv_image );
@@ -312,7 +347,13 @@ detect( vital::image_container_sptr image_data ) const
       bot = im.h - 1;
     }
 
-    kwiver::vital::bounding_box_d bbox( left, top, right, bot);
+    kwiver::vital::bounding_box_d bbox( left, top, right, bot );
+
+    if( resize_factor != 1.0 )
+    {
+      bbox.scale( resize_factor );
+    }
+
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
     bool has_name(false);
 
