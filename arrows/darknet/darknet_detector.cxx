@@ -90,7 +90,8 @@ public:
   }
 
   image cvmat_to_image( const cv::Mat& src );
-  double resize_image( const cv::Mat& src, cv::Mat& dst );
+  double format_image( const cv::Mat& src, cv::Mat& dst );
+  vital::detected_object_set_sptr process_image( const cv::Mat& cv_image );
 
   // Items from the config
   std::string m_net_config;
@@ -102,6 +103,7 @@ public:
   int m_gpu_index;
 
   std::string m_resize_option;
+  double m_scale;
   unsigned m_resize_i;
   unsigned m_resize_j;
 
@@ -111,6 +113,8 @@ public:
 
   box *m_boxes;                   /* detection boxes */
   float **m_probs;                /*  */
+
+  kwiver::vital::logger_handle_t m_logger;
 };
 
 
@@ -150,7 +154,9 @@ get_configuration() const
   config->set_value( "gpu_index", d->m_gpu_index,
     "GPU index. Only used when darknet is compiled with GPU support." );
   config->set_value( "resize_option", d->m_resize_option,
-    "Pre-processing resize option, can be: disabled, or maintain_ar." );
+    "Pre-processing resize option, can be: disabled, maintain_ar, scale, or chip." );
+  config->set_value( "scale", d->m_scale,
+    "Image scaling factor." );
   config->set_value( "resize_ni", d->m_resize_i,
     "Width resolution after resizing" );
   config->set_value( "resize_nj", d->m_resize_i,
@@ -178,6 +184,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_hier_thresh = config->get_value< float > ( "hier_thresh" );
   this->d->m_gpu_index   = config->get_value< int > ( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
+  this->d->m_scale       = config->get_value< double >( "scale" );
   this->d->m_resize_i    = config->get_value< unsigned >( "resize_i" );
   this->d->m_resize_j    = config->get_value< unsigned >( "resize_j" );
 
@@ -268,55 +275,68 @@ detect( vital::image_container_sptr image_data ) const
 
   if( d->m_resize_option != "disabled" )
   {
-    scale_factor = d->resize_image( cv_image, cv_image );
+    scale_factor = d->format_image( cv_image, cv_image );
   }
 
+  vital::detected_object_set_sptr detections = d->process_image( cv_image );
+
+  // TODO: rescale boxes
+
+  return detections;
+} // darknet_detector::detect
+
+
+// ==================================================================
+vital::detected_object_set_sptr
+darknet_detector::priv::
+process_image( const cv::Mat& cv_image )
+{
   // copies and converts to floating pixel value.
-  image im = d->cvmat_to_image( cv_image );
+  image im = cvmat_to_image( cv_image );
   // show_image( im, "first version" );
 
-  image sized = resize_image( im, d->m_net.w, d->m_net.h );
+  image sized = resize_image( im, m_net.w, m_net.h );
   // show_image( sized, "sized version" );
 
-  layer l = d->m_net.layers[d->m_net.n - 1];     /* last network layer (output?) */
+  layer l = m_net.layers[m_net.n - 1];     /* last network layer (output?) */
   const size_t l_size = l.w * l.h * l.n;
 
-  d->m_boxes = (box*) calloc( l_size, sizeof( box ) );
-  d->m_probs = (float**) calloc( l_size, sizeof( float* ) ); // allocate vector of pointers
+  m_boxes = (box*) calloc( l_size, sizeof( box ) );
+  m_probs = (float**) calloc( l_size, sizeof( float* ) ); // allocate vector of pointers
   for ( size_t j = 0; j < l_size; ++j )
   {
-    d->m_probs[j] = (float*) calloc( l.classes + 1, sizeof( float*) );
+    m_probs[j] = (float*) calloc( l.classes + 1, sizeof( float*) );
   }
 
   /* pointer the image data */
   float* X = sized.data;
 
   /* run image through network */
-  network_predict( d->m_net, X );
+  network_predict( m_net, X );
 
   /* get boxes around detected objects */
   get_region_boxes( l,     /* i: network output layer */
                     1, 1, /* i: w, h -  */
-                    d->m_thresh, /* i: caller supplied threshold */
-                    d->m_probs, /* o: probability vector */
-                    d->m_boxes, /* o: list of boxes */
+                    m_thresh, /* i: caller supplied threshold */
+                    m_probs, /* o: probability vector */
+                    m_boxes, /* o: list of boxes */
                     0,     /* i: only objectness (false) */
                     0,     /* i: map */
-                    d->m_hier_thresh ); /* i: caller supplied value */
+                    m_hier_thresh ); /* i: caller supplied value */
 
   const float nms( 0.4 );       // don't know what this is
 
   if ( l.softmax_tree && nms )
   {
-    do_nms_obj( d->m_boxes, d->m_probs, l_size, l.classes, nms );
+    do_nms_obj( m_boxes, m_probs, l_size, l.classes, nms );
   }
   else if ( nms )
   {
-    do_nms_sort( d->m_boxes, d->m_probs, l_size, l.classes, nms );
+    do_nms_sort( m_boxes, m_probs, l_size, l.classes, nms );
   }
   else
   {
-    LOG_ERROR( logger(), "Internal error - nms == 0" );
+    //LOG_ERROR( logger(), "Internal error - nms == 0" );
   }
 
   // -- extract detections and convert to our format --
@@ -324,7 +344,7 @@ detect( vital::image_container_sptr image_data ) const
 
   for ( size_t i = 0; i < l_size; ++i )
   {
-    const box b = d->m_boxes[i];
+    const box b = m_boxes[i];
 
     int left  = ( b.x - b.w / 2. ) * im.w;
     int right = ( b.x + b.w / 2. ) * im.w;
@@ -351,11 +371,6 @@ detect( vital::image_container_sptr image_data ) const
 
     kwiver::vital::bounding_box_d bbox( left, top, right, bot );
 
-    if( scale_factor != 1.0 )
-    {
-      bbox = scale( bbox, scale_factor );
-    }
-
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
     bool has_name = false;
 
@@ -364,10 +379,10 @@ detect( vital::image_container_sptr image_data ) const
 
     for ( int class_idx = 0; class_idx < l.classes; ++class_idx )
     {
-      const double prob = static_cast< double >( d->m_probs[i][class_idx] );
-      if ( prob >= d->m_thresh )
+      const double prob = static_cast< double >( m_probs[i][class_idx] );
+      if ( prob >= m_thresh )
       {
-        const std::string class_name( d->m_names[class_idx] );
+        const std::string class_name( m_names[class_idx] );
         dot->set_score( class_name, prob );
         conf = std::max( conf, prob );
         has_name = true;
@@ -383,14 +398,12 @@ detect( vital::image_container_sptr image_data ) const
   // Free allocated memory
   free_image(im);
   free_image(sized);
-  free( d->m_boxes );
-  free_ptrs( (void**)d->m_probs, l_size );
+  free( m_boxes );
+  free_ptrs( (void**)m_probs, l_size );
 
   return detected_objects;
-} // darknet_detector::detect
+}
 
-
-// ==================================================================
 
 image
 darknet_detector::priv::
@@ -420,7 +433,7 @@ cvmat_to_image( const cv::Mat& src )
 
 double
 darknet_detector::priv::
-resize_image( const cv::Mat& src, cv::Mat& dst )
+format_image( const cv::Mat& src, cv::Mat& dst )
 {
   double scale = 1.0;
 
@@ -462,6 +475,18 @@ resize_image( const cv::Mat& src, cv::Mat& dst )
     cv::Mat aoi( dst, roi );
 
     resized.copyTo( aoi );
+  }
+  else if( m_resize_option == "chip" || m_resize_option == "scale" )
+  {
+    if( m_scale == 1.0 )
+    {
+      dst = src;
+    }
+    else
+    {
+      cv::resize( src, dst, cv::Size(), m_scale, m_scale );
+      scale = m_scale;
+    }
   }
   else
   {
