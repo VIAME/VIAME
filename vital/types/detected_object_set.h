@@ -156,6 +156,27 @@ public:
                                     double             threshold = detected_object_type::INVALID_SCORE );
 
   /**
+   * @brief Scale all detection locations by some scale factor.
+   *
+   * This method changes the bounding boxes within all stored detections
+   * by scaling them by some scale factor.
+   *
+   * @param scale Scale factor
+   */
+  void scale( double scale_factor );
+
+  /**
+   * @brief Shift all detection locations by some translation offset.
+   *
+   * This method shifts the bounding boxes within all stored detections
+   * by a supplied column and row shift.
+   *
+   * @param col_shift Column  (a.k.a. x, i, width) translation factor
+   * @param row_shift Row (a.k.a. y, j, height) translation factor
+   */
+  void shift( double col_shift, double row_shift );
+
+  /**
    * @brief Get attributes set.
    *
    * This method returns a pointer to the attribute set that is

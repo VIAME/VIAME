@@ -82,6 +82,7 @@ public:
     , m_scale( 1.0 )
     , m_resize_i( 0 )
     , m_resize_j( 0 )
+    , m_chip_step( 100 )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -91,10 +92,6 @@ public:
   {
     free( m_names );
   }
-
-  image cvmat_to_image( const cv::Mat& src );
-  double format_image( const cv::Mat& src, cv::Mat& dst );
-  vital::detected_object_set_sptr process_image( const cv::Mat& cv_image );
 
   // Items from the config
   std::string m_net_config;
@@ -109,6 +106,7 @@ public:
   double m_scale;
   unsigned m_resize_i;
   unsigned m_resize_j;
+  unsigned m_chip_step;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -116,6 +114,12 @@ public:
 
   box *m_boxes;                   /* detection boxes */
   float **m_probs;                /*  */
+
+  // Helper functions
+  image cvmat_to_image( const cv::Mat& src );
+  double format_image( const cv::Mat& src, cv::Mat& dst );
+  double scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst );
+  vital::detected_object_set_sptr process_image( const cv::Mat& cv_image );
 
   kwiver::vital::logger_handle_t m_logger;
 };
@@ -133,7 +137,7 @@ darknet_detector()
 
 darknet_detector::
 ~darknet_detector()
-{ }
+{}
 
 
 // --------------------------------------------------------------------
@@ -159,11 +163,13 @@ get_configuration() const
   config->set_value( "resize_option", d->m_resize_option,
     "Pre-processing resize option, can be: disabled, maintain_ar, scale, or chip." );
   config->set_value( "scale", d->m_scale,
-    "Image scaling factor." );
+    "Image scaling factor used when resize_option is scale or chip." );
   config->set_value( "resize_ni", d->m_resize_i,
     "Width resolution after resizing" );
-  config->set_value( "resize_nj", d->m_resize_i,
+  config->set_value( "resize_nj", d->m_resize_j,
     "Height resolution after resizing" );
+  config->set_value( "chip_step", d->m_chip_step,
+    "When in chip mode, the chip step size between chips." );
 
   return config;
 }
@@ -190,6 +196,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_scale       = config->get_value< double >( "scale" );
   this->d->m_resize_i    = config->get_value< unsigned >( "resize_i" );
   this->d->m_resize_j    = config->get_value< unsigned >( "resize_j" );
+  this->d->m_chip_step   = config->get_value< double >( "chip_step" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -202,12 +209,12 @@ set_configuration( vital::config_block_sptr config_in )
 #endif
 
   // Open file and return 'list' of labels
-  d->m_names = get_labels( const_cast< char* >(d->m_class_names.c_str() ) );
+  d->m_names = get_labels( const_cast< char* >( d->m_class_names.c_str() ) );
 
-  d->m_net = parse_network_cfg( const_cast< char* >(d->m_net_config.c_str()) );
+  d->m_net = parse_network_cfg( const_cast< char* >( d->m_net_config.c_str() ) );
   if ( ! d->m_weight_file.empty() )
   {
-    load_weights( &d->m_net, const_cast< char* >(d->m_weight_file.c_str()) );
+    load_weights( &d->m_net, const_cast< char* >( d->m_weight_file.c_str() ) );
   }
 
   set_batch_network( &d->m_net, 1 );
@@ -273,24 +280,64 @@ detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat cv_resized_image;
+
+  vital::detected_object_set_sptr detections;
 
   // resizes image if enabled
   double scale_factor = 1.0;
 
   if( d->m_resize_option != "disabled" )
   {
-    scale_factor = d->format_image( cv_image, cv_image );
+    scale_factor = d->format_image( cv_image, cv_resized_image );
+  }
+  else
+  {
+    cv_resized_image = cv_image;
   }
 
-  vital::detected_object_set_sptr detections = d->process_image( cv_image );
-
-  if( scale_factor != 1.0 )
+  // run detector
+  if( d->m_resize_option != "chip" && d->m_resize_option != "multi_scale_chip" )
   {
-    VITAL_FOREACH( auto detection, detections->select() )
+    detections = d->process_image( cv_resized_image );
+
+    // rescales output detections if required
+    if( scale_factor != 1.0 )
     {
-      auto bbox = detection->bounding_box();
-      bbox = scale( bbox, scale_factor );
-      detection->set_bounding_box( bbox );
+      detections->scale( scale_factor );
+    }
+  }
+  else
+  {
+    for( unsigned int ux = 0; ux < image_data->width(); ux += this->d->m_stride )
+    {
+      unsigned int tux = ux;
+      if( tux + this->d->m_chip_width > image_data->width() )
+      {
+        tux = image_data->width() - this->d->m_chip_width - 1;
+
+        if( tux >= image_data->width() )
+          continue;
+      }
+      for( unsigned int uy = 0; uy < image_data->height(); uy += this->d->m_stride )
+      {
+        unsigned int tuy = uy;
+
+        if( tuy + this->d->m_chip_height > image_data->height() )
+        {
+          tuy = image_data->height() - this->d->m_chip_height - 1;
+
+          if( tuy >= image_data->height() )
+            continue;
+        }
+
+        cv::Mat cropped_image = image(
+          cv::Rect( tux, tuy, this->d->m_chip_width, this->d->m_chip_height ) );
+
+        image_chips.push_back( cropped_image );
+        chip_x.push_back( tux );
+        chip_y.push_back( tuy );
+      }
     }
   }
 
@@ -449,11 +496,7 @@ format_image( const cv::Mat& src, cv::Mat& dst )
 {
   double scale = 1.0;
 
-  if( m_resize_option == "disabled" )
-  {
-    dst = src;
-  }
-  else if( m_resize_option == "maintain_ar" )
+  if( m_resize_option == "maintain_ar" )
   {
     double height = static_cast< double >( src.rows );
     double width = static_cast< double >( src.cols );
@@ -488,7 +531,8 @@ format_image( const cv::Mat& src, cv::Mat& dst )
 
     resized.copyTo( aoi );
   }
-  else if( m_resize_option == "chip" || m_resize_option == "scale" )
+  else if( m_resize_option == "chip" || m_resize_option == "scale" ||
+           m_resize_option == "multi_scale_chip" )
   {
     if( m_scale == 1.0 )
     {

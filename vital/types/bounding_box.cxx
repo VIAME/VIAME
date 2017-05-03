@@ -39,8 +39,8 @@ namespace vital {
 #define instantiate(T)                                                  \
 template bounding_box<T> & translate( bounding_box<T>& bbox,            \
                                       bounding_box<T>::vector_type const& pt ); \
-template bounding_box<T> & scale( bounding_box<T>& bbox,                \
-                                  double scale_factor );                \
+template bounding_box<T> scale( bounding_box<T> const& bbox,            \
+                                double scale_factor );                  \
 template bounding_box<T> intersection( bounding_box<T> const& one,      \
                                        bounding_box<T> const& other )
 

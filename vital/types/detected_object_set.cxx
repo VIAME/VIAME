@@ -29,6 +29,7 @@
  */
 
 #include "detected_object_set.h"
+#include "bounding_box.h"
 
 #include <vital/vital_foreach.h>
 
@@ -209,6 +210,32 @@ select( const std::string& class_name, double threshold )
   return vect;
 }
 
+// ------------------------------------------------------------------
+void
+detected_object_set::
+scale( double scale_factor )
+{
+  VITAL_FOREACH( auto detection, m_detected_objects )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::scale( bbox, scale_factor );
+    detection->set_bounding_box( bbox );
+  }
+}
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+shift( double col_shift, double row_shift )
+{
+  VITAL_FOREACH( auto detection, m_detected_objects )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::translate( bbox,
+      bounding_box_d::vector_type( col_shift, row_shift ) );
+    detection->set_bounding_box( bbox );
+  }
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::attribute_set_sptr
