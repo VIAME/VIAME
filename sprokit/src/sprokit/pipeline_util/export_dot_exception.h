@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011, 2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,11 +58,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT export_dot_exception
     /**
      * \brief Constructor.
      */
-    export_dot_exception() throw();
+    export_dot_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~export_dot_exception() throw();
+    virtual ~export_dot_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -79,11 +79,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
     /**
      * \brief Constructor.
      */
-    null_pipeline_export_dot_exception() throw();
+    null_pipeline_export_dot_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~null_pipeline_export_dot_exception() throw();
+    ~null_pipeline_export_dot_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -100,11 +100,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
     /**
      * \brief Constructor.
      */
-    null_cluster_export_dot_exception() throw();
+    null_cluster_export_dot_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~null_cluster_export_dot_exception() throw();
+    ~null_cluster_export_dot_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -121,11 +121,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT empty_name_export_dot_exception
     /**
      * \brief Constructor.
      */
-    empty_name_export_dot_exception() throw();
+    empty_name_export_dot_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~empty_name_export_dot_exception() throw();
+    ~empty_name_export_dot_exception() VITAL_NOTHROW;
 };
 
 }

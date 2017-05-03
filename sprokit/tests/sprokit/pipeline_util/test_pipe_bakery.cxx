@@ -51,7 +51,7 @@
 #include <memory>
 #include <cstdlib>
 
-#define TEST_ARGS (sprokit::path_t const& pipe_file)
+#define TEST_ARGS (kwiver::vital::path_t const& pipe_file)
 
 DECLARE_TEST_MAP();
 
@@ -65,9 +65,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   std::string const testname = argv[1];
-  sprokit::path_t const pipe_dir = argv[2];
+  kwiver::vital::path_t const pipe_dir = argv[2];
 
-  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  kwiver::vital::path_t const pipe_file = pipe_dir + "/"  + testname + pipe_ext;
 
   RUN_TEST(testname, pipe_file);
 }
@@ -392,8 +392,7 @@ IMPLEMENT_TEST(config_append_path)
 
   const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
   const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  sprokit::path_t const expected_path = sprokit::path_t("myvalue") / sprokit::path_t("othervalue");
-  const auto expected = expected_path.string<kwiver::vital::config_block_value_t>();
+  kwiver::vital::path_t const expected = kwiver::vital::path_t("myvalue") + "/" + kwiver::vital::path_t("othervalue");
 
   if (myvalue != expected)
   {
@@ -413,8 +412,7 @@ IMPLEMENT_TEST(config_append_path_empty)
 
   const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
   const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  sprokit::path_t const expected_path = sprokit::path_t(".") / sprokit::path_t("othervalue");
-  const auto expected = expected_path.string<kwiver::vital::config_block_value_t>();
+  kwiver::vital::path_t const expected = kwiver::vital::path_t(".") + "/" + kwiver::vital::path_t("othervalue");
 
   if (myvalue != expected)
   {
@@ -801,7 +799,7 @@ IMPLEMENT_TEST(cluster_configuration_provide)
   test_cluster(cluster, output_path);
 }
 
-static sprokit::process_cluster_t setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t const& pipe_file);
+static sprokit::process_cluster_t setup_map_config_cluster(sprokit::process::name_t const& name, kwiver::vital::path_t const& pipe_file);
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_map_config)
@@ -1267,7 +1265,7 @@ create_pipeline()
 }
 
 sprokit::process_cluster_t
-setup_map_config_cluster(sprokit::process::name_t const& name, sprokit::path_t const& pipe_file)
+setup_map_config_cluster(sprokit::process::name_t const& name, kwiver::vital::path_t const& pipe_file)
 {
   sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
 

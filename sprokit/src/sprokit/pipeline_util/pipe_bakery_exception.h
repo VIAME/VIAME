@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,11 +63,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT pipe_bakery_exception
     /**
      * \brief Constructor.
      */
-    pipe_bakery_exception() throw();
+    pipe_bakery_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~pipe_bakery_exception() throw();
+    virtual ~pipe_bakery_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -84,11 +84,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
     /**
      * \brief Constructor.
      */
-    missing_cluster_block_exception() throw();
+    missing_cluster_block_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~missing_cluster_block_exception() throw();
+    ~missing_cluster_block_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -105,11 +105,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
     /**
      * \brief Constructor.
      */
-    multiple_cluster_blocks_exception() throw();
+    multiple_cluster_blocks_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~multiple_cluster_blocks_exception() throw();
+    ~multiple_cluster_blocks_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -126,11 +126,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
     /**
      * \brief Constructor.
      */
-    cluster_without_processes_exception() throw();
+    cluster_without_processes_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~cluster_without_processes_exception() throw();
+    virtual ~cluster_without_processes_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -147,11 +147,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
     /**
      * \brief Constructor.
      */
-    cluster_without_ports_exception() throw();
+    cluster_without_ports_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~cluster_without_ports_exception() throw();
+    virtual ~cluster_without_ports_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -168,11 +168,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
     /**
      * \brief Constructor.
      */
-    duplicate_cluster_port_exception(process::port_t const& port, char const* const side) throw();
+    duplicate_cluster_port_exception(process::port_t const& port, char const* const side) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~duplicate_cluster_port_exception() throw();
+    virtual ~duplicate_cluster_port_exception() VITAL_NOTHROW;
 
     /// The name of the duplicate port.
     process::port_t const m_port;
@@ -192,11 +192,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
     /**
      * \brief Constructor.
      */
-    duplicate_cluster_input_port_exception(process::port_t const& port) throw();
+    duplicate_cluster_input_port_exception(process::port_t const& port) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~duplicate_cluster_input_port_exception() throw();
+    ~duplicate_cluster_input_port_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -213,11 +213,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
     /**
      * \brief Constructor.
      */
-    duplicate_cluster_output_port_exception(process::port_t const& port) throw();
+    duplicate_cluster_output_port_exception(process::port_t const& port) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~duplicate_cluster_output_port_exception() throw();
+    ~duplicate_cluster_output_port_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -237,11 +237,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
      * \param key The key the flag was on.
      * \param flag The unrecognized flag.
      */
-    unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) throw();
+    unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~unrecognized_config_flag_exception() throw();
+    ~unrecognized_config_flag_exception() VITAL_NOTHROW;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
@@ -266,11 +266,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
      * \param key The key the flag was on.
      * \param reason The reason for the mismatch.
      */
-    config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) throw();
+    config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~config_flag_mismatch_exception() throw();
+    ~config_flag_mismatch_exception() VITAL_NOTHROW;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
@@ -296,11 +296,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
      * \param provider The unrecognized provider.
      * \param index The index requested from the provider.
      */
-    unrecognized_provider_exception(kwiver::vital::config_block_key_t const& key, config_provider_t const& provider, kwiver::vital::config_block_value_t const& index) throw();
+    unrecognized_provider_exception(kwiver::vital::config_block_key_t const& key, config_provider_t const& provider, kwiver::vital::config_block_value_t const& index) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~unrecognized_provider_exception() throw();
+    ~unrecognized_provider_exception() VITAL_NOTHROW;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
@@ -324,11 +324,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT circular_config_provide_exception
     /**
      * \brief Constructor.
      */
-    circular_config_provide_exception() throw();
+    circular_config_provide_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~circular_config_provide_exception() throw();
+    ~circular_config_provide_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -345,11 +345,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
     /**
      * \brief Constructor.
      */
-    unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) throw();
+    unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~unrecognized_system_index_exception() throw();
+    ~unrecognized_system_index_exception() VITAL_NOTHROW;
 
     /// The index that was requested.
     kwiver::vital::config_block_value_t const m_index;

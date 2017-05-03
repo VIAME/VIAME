@@ -33,11 +33,11 @@
 
 #include "registration.h"
 
-#include <sprokit/pipeline/utils.h>
-
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 #include <sprokit/python/util/python.h>
+
+#include <kwiversys/SystemTools.hxx>
 
 using namespace boost::python;
 
@@ -75,8 +75,7 @@ load()
 bool
 is_suppressed()
 {
-  sprokit::envvar_value_t const python_suppress = sprokit::get_envvar(python_suppress_envvar);
-
+  const char* python_suppress = kwiversys::SystemTools::GetEnv(python_suppress_envvar);
   bool suppress_python_modules = false;
 
   if (python_suppress)

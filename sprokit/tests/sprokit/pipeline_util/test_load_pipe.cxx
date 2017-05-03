@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
-#include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
 #include <vital/config/config_block.h>
@@ -45,7 +44,7 @@
 
 #include <cstddef>
 
-#define TEST_ARGS (sprokit::path_t const& pipe_file)
+#define TEST_ARGS (kwiver::vital::path_t const& pipe_file)
 
 DECLARE_TEST_MAP();
 
@@ -57,9 +56,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   testname_t const testname = argv[1];
-  sprokit::path_t const pipe_dir = argv[2];
+  kwiver::vital::path_t const pipe_dir = argv[2];
 
-  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  kwiver::vital::path_t const pipe_file = pipe_dir + "/" +  testname + pipe_ext;
 
   RUN_TEST(testname, pipe_file);
 }

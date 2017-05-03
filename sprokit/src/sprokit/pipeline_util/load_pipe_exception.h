@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,11 +64,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT load_pipe_exception
     /**
      * \brief Constructor.
      */
-    load_pipe_exception() throw();
+    load_pipe_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~load_pipe_exception() throw();
+    virtual ~load_pipe_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -87,11 +87,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT file_no_exist_exception
      *
      * \param fname The path that does not exist.
      */
-    file_no_exist_exception(path_t const& fname) throw();
+    file_no_exist_exception(path_t const& fname) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~file_no_exist_exception() throw();
+    ~file_no_exist_exception() VITAL_NOTHROW;
 
     /// The path that does not exist.
     path_t const m_fname;
@@ -113,11 +113,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT not_a_file_exception
      *
      * \param path The path that is not a file.
      */
-    not_a_file_exception(path_t const& path) throw();
+    not_a_file_exception(path_t const& path) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~not_a_file_exception() throw();
+    ~not_a_file_exception() VITAL_NOTHROW;
 
     /// The path is not a file.
     path_t const m_path;
@@ -139,11 +139,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT file_open_exception
      *
      * \param fname The path that was unable to be loaded.
      */
-    file_open_exception(path_t const& fname) throw();
+    file_open_exception(path_t const& fname) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~file_open_exception() throw();
+    ~file_open_exception() VITAL_NOTHROW;
 
     /// The path that was unable to be loaded.
     path_t const m_fname;
@@ -165,11 +165,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT stream_failure_exception
      *
      * \param msg The message given for the stream failure.
      */
-    stream_failure_exception(std::string const& msg) throw();
+    stream_failure_exception(std::string const& msg) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~stream_failure_exception() throw();
+    ~stream_failure_exception() VITAL_NOTHROW;
 
     /// The message given for the stream failure.
     std::string const m_msg;
@@ -192,11 +192,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT failed_to_parse
      * \param reason A reason for the failure
      * \param where Where the error occurred.
      */
-    failed_to_parse(std::string const& reason, std::string const& where) throw();
+    failed_to_parse(std::string const& reason, std::string const& where) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~failed_to_parse() throw();
+    ~failed_to_parse() VITAL_NOTHROW;
 
     /// The reason for the failure to parse.
     std::string const m_reason;

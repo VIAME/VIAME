@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,11 +59,11 @@ class SPROKIT_PIPELINE_EXPORT process_registry_exception
     /**
      * \brief Constructor.
      */
-    process_registry_exception() throw();
+    process_registry_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~process_registry_exception() throw();
+    virtual ~process_registry_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -82,11 +82,11 @@ class SPROKIT_PIPELINE_EXPORT null_process_ctor_exception
      *
      * \param type The type the ctor is for.
      */
-    null_process_ctor_exception(process::type_t const& type) throw();
+    null_process_ctor_exception(process::type_t const& type) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~null_process_ctor_exception() throw();
+    ~null_process_ctor_exception() VITAL_NOTHROW;
 
     /// The type that was passed a \c NULL constructor.
     process::type_t const m_type;
@@ -106,11 +106,11 @@ class SPROKIT_PIPELINE_EXPORT null_process_registry_config_exception
     /**
      * \brief Constructor.
      */
-    null_process_registry_config_exception() throw();
+    null_process_registry_config_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~null_process_registry_config_exception() throw();
+    ~null_process_registry_config_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -129,11 +129,11 @@ class SPROKIT_PIPELINE_EXPORT no_such_process_type_exception
      *
      * \param type The type requested.
      */
-    no_such_process_type_exception(process::type_t const& type) throw();
+    no_such_process_type_exception(process::type_t const& type) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~no_such_process_type_exception() throw();
+    ~no_such_process_type_exception() VITAL_NOTHROW;
 
     /// The type that was requested from the \link process_registry process registry\endlink.
     process::type_t const m_type;
@@ -155,11 +155,11 @@ class SPROKIT_PIPELINE_EXPORT process_type_already_exists_exception
      *
      * \param type The type requested.
      */
-    process_type_already_exists_exception(process::type_t const& type) throw();
+    process_type_already_exists_exception(process::type_t const& type) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~process_type_already_exists_exception() throw();
+    ~process_type_already_exists_exception() VITAL_NOTHROW;
 
     /// The type that was requested from the \link process_registry process registry\endlink.
     process::type_t const m_type;

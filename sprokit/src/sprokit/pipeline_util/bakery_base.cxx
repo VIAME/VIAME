@@ -41,11 +41,12 @@
 #include "provider_dereferencer.h"
 #include "config_provider_sorter.h"
 
+#include <vital/vital_foreach.h>
+
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
 
 
 namespace sprokit {
@@ -147,7 +148,7 @@ bakery_base
 
   config_values_t const& values = config_block.values;
 
-  BOOST_FOREACH (config_value_t const& value, values)
+  VITAL_FOREACH (config_value_t const& value, values)
   {
     register_config_value(root_key, value);
   }
@@ -161,7 +162,7 @@ bakery_base
 {
   config_values_t const& values = process_block.config_values;
 
-  BOOST_FOREACH (config_value_t const& value, values)
+  VITAL_FOREACH (config_value_t const& value, values)
   {
     register_config_value(process_block.name, value);
   }
@@ -218,7 +219,7 @@ bakery_base
 
   if (key.options.flags)
   {
-    BOOST_FOREACH (config_flag_t const& flag, *key.options.flags)
+    VITAL_FOREACH (config_flag_t const& flag, *key.options.flags)
     {
       if (flag == flag_read_only)
       {
@@ -318,7 +319,7 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
 
     unprovided_keys_t unprovided_keys;
 
-    BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
+    VITAL_FOREACH( bakery_base::config_decl_t & decl, configs )
     {
       kwiver::vital::config_block_key_t const& key = decl.first;
 
@@ -352,7 +353,7 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
   {
     config_provider_sorter sorter;
 
-    BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
+    VITAL_FOREACH( bakery_base::config_decl_t & decl, configs )
     {
       kwiver::vital::config_block_key_t const& key = decl.first;
       bakery_base::config_info_t const& info = decl.second;
@@ -371,9 +372,9 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
     provider_dereferencer const deref( tmp_conf );
 
     /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
-    BOOST_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+    VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
     {
-      BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
+      VITAL_FOREACH( bakery_base::config_decl_t & decl, configs )
       {
         kwiver::vital::config_block_key_t const& cur_key = decl.first;
 
@@ -396,7 +397,7 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
 
   kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
+  VITAL_FOREACH( bakery_base::config_decl_t & decl, configs )
   {
     kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;
@@ -427,7 +428,7 @@ dereference_static_providers( bakery_base::config_decls_t& configs )
 {
   provider_dereferencer const deref;
 
-  BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
+  VITAL_FOREACH( bakery_base::config_decl_t & decl, configs )
   {
     bakery_base::config_info_t& info = decl.second;
     bakery_base::config_reference_t& ref = info.reference;

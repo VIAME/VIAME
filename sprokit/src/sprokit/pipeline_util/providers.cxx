@@ -36,6 +36,8 @@
 #include <vital/config/config_block.h>
 #include <sprokit/pipeline/utils.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/thread/thread.hpp>
@@ -107,17 +109,18 @@ system_provider
   }
   else if (index == "homedir")
   {
-    envvar_value_t const home = get_envvar(
+    std::string home;
+    kwiversys::SystemTools::GetEnv(
 #if defined(_WIN32) || defined(_WIN64)
-      "UserProfile"
+      "UserProfile",
 #else
-      "HOME"
+      "HOME",
 #endif
-    );
+      home );
 
-    if (home)
+    if ( ! home.empty() )
     {
-      value = kwiver::vital::config_block_value_t(*home);
+      value = kwiver::vital::config_block_value_t( home );
     }
   }
   else if (index == "curdir")

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,18 +42,18 @@ namespace sprokit
 {
 
 pipe_bakery_exception
-::pipe_bakery_exception() SPROKIT_NOTHROW
+::pipe_bakery_exception() VITAL_NOTHROW
   : pipeline_exception()
 {
 }
 
 pipe_bakery_exception
-::~pipe_bakery_exception() SPROKIT_NOTHROW
+::~pipe_bakery_exception() VITAL_NOTHROW
 {
 }
 
 missing_cluster_block_exception
-::missing_cluster_block_exception() SPROKIT_NOTHROW
+::missing_cluster_block_exception() VITAL_NOTHROW
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -65,12 +65,12 @@ missing_cluster_block_exception
 }
 
 missing_cluster_block_exception
-::~missing_cluster_block_exception() SPROKIT_NOTHROW
+::~missing_cluster_block_exception() VITAL_NOTHROW
 {
 }
 
 multiple_cluster_blocks_exception
-::multiple_cluster_blocks_exception() SPROKIT_NOTHROW
+::multiple_cluster_blocks_exception() VITAL_NOTHROW
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -82,12 +82,12 @@ multiple_cluster_blocks_exception
 }
 
 multiple_cluster_blocks_exception
-::~multiple_cluster_blocks_exception() SPROKIT_NOTHROW
+::~multiple_cluster_blocks_exception() VITAL_NOTHROW
 {
 }
 
 cluster_without_processes_exception
-::cluster_without_processes_exception() SPROKIT_NOTHROW
+::cluster_without_processes_exception() VITAL_NOTHROW
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -99,12 +99,12 @@ cluster_without_processes_exception
 }
 
 cluster_without_processes_exception
-::~cluster_without_processes_exception() SPROKIT_NOTHROW
+::~cluster_without_processes_exception() VITAL_NOTHROW
 {
 }
 
 cluster_without_ports_exception
-::cluster_without_ports_exception() SPROKIT_NOTHROW
+::cluster_without_ports_exception() VITAL_NOTHROW
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -116,12 +116,12 @@ cluster_without_ports_exception
 }
 
 cluster_without_ports_exception
-::~cluster_without_ports_exception() SPROKIT_NOTHROW
+::~cluster_without_ports_exception() VITAL_NOTHROW
 {
 }
 
 duplicate_cluster_port_exception
-::duplicate_cluster_port_exception(process::port_t const& port, char const* const side) SPROKIT_NOTHROW
+::duplicate_cluster_port_exception(process::port_t const& port, char const* const side) VITAL_NOTHROW
   : pipe_bakery_exception()
   , m_port(port)
 {
@@ -135,34 +135,34 @@ duplicate_cluster_port_exception
 }
 
 duplicate_cluster_port_exception
-::~duplicate_cluster_port_exception() SPROKIT_NOTHROW
+::~duplicate_cluster_port_exception() VITAL_NOTHROW
 {
 }
 
 duplicate_cluster_input_port_exception
-::duplicate_cluster_input_port_exception(process::port_t const& port) SPROKIT_NOTHROW
+::duplicate_cluster_input_port_exception(process::port_t const& port) VITAL_NOTHROW
   : duplicate_cluster_port_exception(port, "input")
 {
 }
 
 duplicate_cluster_input_port_exception
-::~duplicate_cluster_input_port_exception() SPROKIT_NOTHROW
+::~duplicate_cluster_input_port_exception() VITAL_NOTHROW
 {
 }
 
 duplicate_cluster_output_port_exception
-::duplicate_cluster_output_port_exception(process::port_t const& port) SPROKIT_NOTHROW
+::duplicate_cluster_output_port_exception(process::port_t const& port) VITAL_NOTHROW
   : duplicate_cluster_port_exception(port, "output")
 {
 }
 
 duplicate_cluster_output_port_exception
-::~duplicate_cluster_output_port_exception() SPROKIT_NOTHROW
+::~duplicate_cluster_output_port_exception() VITAL_NOTHROW
 {
 }
 
 unrecognized_config_flag_exception
-::unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) SPROKIT_NOTHROW
+::unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) VITAL_NOTHROW
   : pipe_bakery_exception()
   , m_key(key)
   , m_flag(flag)
@@ -177,12 +177,12 @@ unrecognized_config_flag_exception
 }
 
 unrecognized_config_flag_exception
-::~unrecognized_config_flag_exception() SPROKIT_NOTHROW
+::~unrecognized_config_flag_exception() VITAL_NOTHROW
 {
 }
 
 config_flag_mismatch_exception
-::config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) SPROKIT_NOTHROW
+::config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) VITAL_NOTHROW
   : pipe_bakery_exception()
   , m_key(key)
   , m_reason(reason)
@@ -197,14 +197,14 @@ config_flag_mismatch_exception
 }
 
 config_flag_mismatch_exception
-::~config_flag_mismatch_exception() SPROKIT_NOTHROW
+::~config_flag_mismatch_exception() VITAL_NOTHROW
 {
 }
 
 unrecognized_provider_exception
 ::unrecognized_provider_exception(kwiver::vital::config_block_key_t const& key,
                                   config_provider_t const& provider,
-                                  kwiver::vital::config_block_value_t const& index) SPROKIT_NOTHROW
+                                  kwiver::vital::config_block_value_t const& index) VITAL_NOTHROW
   : pipe_bakery_exception()
   , m_key(key)
   , m_provider(provider)
@@ -220,12 +220,12 @@ unrecognized_provider_exception
 }
 
 unrecognized_provider_exception
-::~unrecognized_provider_exception() SPROKIT_NOTHROW
+::~unrecognized_provider_exception() VITAL_NOTHROW
 {
 }
 
 circular_config_provide_exception
-::circular_config_provide_exception() SPROKIT_NOTHROW
+::circular_config_provide_exception() VITAL_NOTHROW
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -236,12 +236,12 @@ circular_config_provide_exception
 }
 
 circular_config_provide_exception
-::~circular_config_provide_exception() SPROKIT_NOTHROW
+::~circular_config_provide_exception() VITAL_NOTHROW
 {
 }
 
 unrecognized_system_index_exception
-::unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) SPROKIT_NOTHROW
+::unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) VITAL_NOTHROW
   : pipe_bakery_exception()
   , m_index(index)
 {
@@ -254,7 +254,7 @@ unrecognized_system_index_exception
 }
 
 unrecognized_system_index_exception
-::~unrecognized_system_index_exception() SPROKIT_NOTHROW
+::~unrecognized_system_index_exception() VITAL_NOTHROW
 {
 }
 
