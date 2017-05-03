@@ -33,6 +33,8 @@
 // kwiver includes
 #include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
+#include <vital/vital_foreach.h>
+
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
 
@@ -77,6 +79,7 @@ public:
     , m_hier_thresh( 0.5 )
     , m_gpu_index( -1 )
     , m_resize_option( "disabled" )
+    , m_scale( 1.0 )
     , m_resize_i( 0 )
     , m_resize_j( 0 )
     , m_names( 0 )
@@ -125,7 +128,7 @@ darknet_detector()
 {
   // set darknet global GPU index
   gpu_index = d->m_gpu_index;
- }
+}
 
 
 darknet_detector::
@@ -252,7 +255,8 @@ check_configuration( vital::config_block_sptr config ) const
     success = false;
   }
 
-  if( d->m_resize_option != "disabled" && ( d->m_resize_i != 0 || d->m_resize_j != 0 ) )
+  if( d->m_resize_option != "disabled" &&
+      ( d->m_resize_i != 0 || d->m_resize_j != 0 || d->m_resize_option == "scale" ) )
   {
     LOG_ERROR( logger(), "resize dimentions must be set if resizing enabled" );
     success = false;
@@ -280,7 +284,15 @@ detect( vital::image_container_sptr image_data ) const
 
   vital::detected_object_set_sptr detections = d->process_image( cv_image );
 
-  // TODO: rescale boxes
+  if( scale_factor != 1.0 )
+  {
+    VITAL_FOREACH( auto detection, detections->select() )
+    {
+      auto bbox = detection->bounding_box();
+      bbox = scale( bbox, scale_factor );
+      detection->set_bounding_box( bbox );
+    }
+  }
 
   return detections;
 } // darknet_detector::detect
@@ -336,7 +348,7 @@ process_image( const cv::Mat& cv_image )
   }
   else
   {
-    //LOG_ERROR( logger(), "Internal error - nms == 0" );
+    LOG_ERROR( m_logger, "Internal error - nms == 0" );
   }
 
   // -- extract detections and convert to our format --
