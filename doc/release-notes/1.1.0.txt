@@ -156,6 +156,9 @@ Vital
  * Added feature to plugin_explorer to allow filtering by
    implementation type and factory type when selecting by category.
 
+ * Added method to do a set difference between two config blocks. This
+   can be used to validate config blocks against a known standard.
+
 Sprokit
 
  * Added sprokit port operations that have timeout. Allows process to

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,65 +28,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of source_location class.
- */
+#include "config_difference.h"
 
-#include "source_location.h"
+/*
+  Possible enhancements
+
+  - Methods to help iterate through a config block given a list of keys.
+  - Formatting methods to help in reporting errors.
+  - Easy way to drill down to get source_loc for some entries.
+ */
 
 namespace kwiver {
 namespace vital {
 
-// ------------------------------------------------------------------
-source_location::
-source_location()
-  : m_line_num(0)
-{ }
-
 
 // ------------------------------------------------------------------
-source_location::
-source_location( std::shared_ptr< std::string > f, int l)
-: m_file_name(f)
-, m_line_num(l)
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-source_location( const source_location& other )
-  : m_file_name(other.m_file_name)
-  , m_line_num( other.m_line_num )
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-~source_location()
-{ }
-
-
-// ------------------------------------------------------------------
-std::ostream &
-source_location::
-format (std::ostream & str) const
+config_difference::
+config_difference( const config_block_sptr reference, const config_block_sptr other )
 {
-  if (m_line_num > 0)
-  {
-    str << *m_file_name << ":" << m_line_num;
-  }
+  auto extra_config = reference->difference_config( other );
+  m_extra_keys = extra_config->available_values();
 
-  return str;
+  auto missing_keys = other->difference_config( reference );
+  m_missing_keys = missing_keys->available_values();
+}
+
+
+config_difference::
+~config_difference()
+{ }
+
+
+// ------------------------------------------------------------------
+config_block_keys_t
+config_difference::
+extra_keys() const
+{
+  return m_extra_keys;
 }
 
 
 // ------------------------------------------------------------------
-bool
-source_location::
-valid() const
+config_block_keys_t
+config_difference::
+unspecified_keys() const
 {
-  return (  m_line_num > 0) && ( ! m_file_name->empty() );
+  return m_missing_keys;
 }
 
 } } // end namespace

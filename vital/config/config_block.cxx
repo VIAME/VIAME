@@ -37,6 +37,7 @@
 #include "config_block.h"
 
 #include <vital/vital_foreach.h>
+#include <vital/util/string.h>
 
 #include <algorithm>
 #include <iterator>
@@ -74,12 +75,6 @@ static inline std::string&
 trim( std::string& s )
 {
   return ltrim( rtrim( s ) );
-}
-
-
-bool starts_with( std::string const& str, std::string const& pfx )
-{
-  return ( str.substr( 0, pfx.size()) == pfx );
 }
 
 } // end namespace
@@ -251,16 +246,37 @@ config_block
 
   VITAL_FOREACH( config_block_key_t const & key, keys )
   {
-    config_block_value_t const& val = conf->get_value< config_block_value_t > ( key );
-    config_block_description_t const& descr = conf->get_description( key );
-
-    i_set_value( key, val, descr );
-  }
+    this->copy_entry( key, conf );
+  } // end for
 }
 
 
 // ------------------------------------------------------------------
-//Return the values available in the configuration.
+config_block_sptr
+config_block
+::difference_config( const config_block_sptr other ) const
+{
+  auto ret_block = empty_config();
+
+  // determine which entries are in this but not in other
+  // Iterate over this. If not in other, then add to output.
+  config_block_keys_t const keys = this->available_values();
+
+  VITAL_FOREACH( const auto & key, keys )
+  {
+    if ( ! other->has_value( key ) )
+    {
+      ret_block->copy_entry( key, this );
+    }
+  } // end for
+
+  return ret_block;
+}
+
+
+
+// ------------------------------------------------------------------
+// Return the values available in the configuration.
 config_block_keys_t
 config_block
 ::available_values() const
@@ -391,6 +407,42 @@ config_block
     {
       m_descr_store[key] = descr;
     }
+  }
+}
+
+
+// ------------------------------------------------------------------
+void
+config_block
+::copy_entry( const config_block_key_t& key,
+              const config_block_sptr from )
+{
+  copy_entry( key, from.get() );
+}
+
+
+// ------------------------------------------------------------------
+void
+config_block
+::copy_entry( const config_block_key_t& key,
+              const config_block* from )
+{
+  config_block_value_t const& val = from->get_value< config_block_value_t > ( key );
+  config_block_description_t const& descr = from->get_description( key );
+
+  this->i_set_value( key, val, descr );
+
+  // Copy RO status
+  if ( from->is_read_only( key ) )
+  {
+    this->mark_read_only( key );
+  }
+
+  // Copy location if there is one.
+  auto i = m_def_store.find( key );
+  if ( i != m_def_store.end() )
+  {
+    this->m_def_store[key] = i->second;
   }
 }
 
