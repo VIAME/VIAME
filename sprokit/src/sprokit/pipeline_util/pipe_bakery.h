@@ -38,6 +38,7 @@
 
 #include "cluster_info.h"
 
+#include <vital/vital_types.h>
 #include <sprokit/pipeline/types.h>
 
 #include <iosfwd>
@@ -58,17 +59,16 @@ namespace sprokit
  *
  * \returns A new pipeline baked from the given file.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file(path_t const& fname);
+SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file( kwiver::vital::path_t const& fname);
 
 /**
  * \brief Bake a pipeline from a stream.
  *
  * \param istr The stream to load the pipeline from.
- * \param inc_root The root directory to search for includes from.
  *
  * \returns A pipeline baked from the given stream.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr, path_t const& inc_root = "");
+SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr );
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -86,17 +86,16 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& bloc
  *
  * \returns Information about the cluster in the file.
  */
-cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster_from_file(path_t const& fname);
+SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster_from_file( kwiver::vital::path_t const& fname);
 
 /**
  * \brief Bake a cluster from a stream.
  *
  * \param istr The stream to load the cluster from.
- * \param inc_root The root directory to search for includes from.
  *
  * \returns Information about the cluster in the stream.
  */
-cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster(std::istream& istr, path_t const& inc_root = "");
+SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster(std::istream& istr );
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -105,7 +104,7 @@ cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster(std::istream& istr, pat
  *
  * \returns Information about the cluster based on \p blocks.
  */
-cluster_info_t SPROKIT_PIPELINE_UTIL_EXPORT bake_cluster_blocks(cluster_blocks const& blocks);
+SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster_blocks(cluster_blocks const& blocks);
 
 /**
  * \brief Extract a configuration from a collection of blocks.

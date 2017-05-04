@@ -68,7 +68,7 @@ void
 pipeline_builder
 ::load_pipeline(std::istream& istr)
 {
-  m_blocks = sprokit::load_pipe_blocks(istr, boost::filesystem::current_path());
+  m_blocks = sprokit::load_pipe_blocks(istr);
 }
 
 

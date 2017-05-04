@@ -65,7 +65,7 @@ static kwiver::vital::config_block_key_t const config_pipeline_key = kwiver::vit
 
 // ------------------------------------------------------------------
 pipeline_t
-bake_pipe_from_file( path_t const& fname )
+bake_pipe_from_file( kwiver::vital::path_t const& fname )
 {
   return bake_pipe_blocks( load_pipe_blocks_from_file( fname ) );
 }
@@ -73,9 +73,9 @@ bake_pipe_from_file( path_t const& fname )
 
 // ------------------------------------------------------------------
 pipeline_t
-bake_pipe( std::istream& istr, path_t const& inc_root )
+bake_pipe( std::istream& istr )
 {
-  return bake_pipe_blocks( load_pipe_blocks( istr, inc_root ) );
+  return bake_pipe_blocks( load_pipe_blocks( istr ) );
 }
 
 
@@ -146,7 +146,7 @@ bake_pipe_blocks( pipe_blocks const& blocks )
 
 // ------------------------------------------------------------------
 cluster_info_t
-bake_cluster_from_file( path_t const& fname )
+bake_cluster_from_file( kwiver::vital::path_t const& fname )
 {
   return bake_cluster_blocks( load_cluster_blocks_from_file( fname ) );
 }
@@ -154,9 +154,9 @@ bake_cluster_from_file( path_t const& fname )
 
 // ------------------------------------------------------------------
 cluster_info_t
-bake_cluster( std::istream& istr, path_t const& inc_root )
+bake_cluster( std::istream& istr )
 {
-  return bake_cluster_blocks( load_cluster_blocks( istr, inc_root ) );
+  return bake_cluster_blocks( load_cluster_blocks( istr ) );
 }
 
 
