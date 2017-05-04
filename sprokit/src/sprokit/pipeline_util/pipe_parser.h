@@ -128,14 +128,14 @@ public:
 private:
 
   // production methods
-  bool process_definition( process_pipe_block& ppb );
-  bool process_config_block( config_pipe_block& pcb );
+  void process_definition( process_pipe_block& ppb );
+  void process_config_block( config_pipe_block& pcb );
   void process_connection( connect_pipe_block& cpb );
 
   // Cluster productions
   bool cluster_config( cluster_config_t& cfg );
-  bool cluster_input( cluster_input_t& imap );
-  bool cluster_output( cluster_output_t& omap );
+  void cluster_input( cluster_input_t& imap );
+  void cluster_output( cluster_output_t& omap );
 
   // Support methods
   void parse_port_addr( process::port_addr_t& out_pa );

@@ -135,10 +135,8 @@ parse_pipeline( std::istream& input )
     {
       m_lexer.unget_token( t );
       config_pipe_block cpb;
-      if ( process_config_block( cpb ) )
-      {
-        m_pipe_blocks.push_back( cpb );
-      }
+      process_config_block( cpb );
+      m_pipe_blocks.push_back( cpb );
       continue;
     }
 
@@ -146,10 +144,8 @@ parse_pipeline( std::istream& input )
     {
       m_lexer.unget_token( t );
       process_pipe_block ppb;
-      if ( process_definition(ppb) )
-      {
-        m_pipe_blocks.push_back( ppb );
-      }
+      process_definition(ppb);
+      m_pipe_blocks.push_back( ppb );
       continue;
     }
 
@@ -158,9 +154,7 @@ parse_pipeline( std::istream& input )
       m_lexer.unget_token( t );
       connect_pipe_block cpb;
       process_connection( cpb );
-
       m_pipe_blocks.push_back( cpb );
-
       continue;
     }
 
@@ -220,10 +214,8 @@ parse_cluster( std::istream& input )
     {
       m_lexer.unget_token( t );
       cluster_input_t imap;
-      if ( cluster_input( imap ) )
-      {
-        cpb.subblocks.push_back( imap );
-      }
+      cluster_input( imap );
+      cpb.subblocks.push_back( imap );
       continue;
     }
 
@@ -232,10 +224,8 @@ parse_cluster( std::istream& input )
     {
       m_lexer.unget_token( t );
       cluster_output_t omap;
-      if ( cluster_output( omap ) )
-      {
-        cpb.subblocks.push_back( omap );
-      }
+      cluster_output( omap );
+      cpb.subblocks.push_back( omap );
       continue;
     }
 
@@ -266,10 +256,10 @@ parse_cluster( std::istream& input )
     {
       m_lexer.unget_token( t );
       process_pipe_block ppb;
-      if ( process_definition( ppb ) )
-      {
-        m_cluster_blocks.push_back( ppb );
-      }
+      process_definition( ppb );
+
+      m_cluster_blocks.push_back( ppb );
+
       continue;
     }
 
@@ -277,10 +267,8 @@ parse_cluster( std::istream& input )
     {
       m_lexer.unget_token( t );
       config_pipe_block cpb;
-      if ( process_config_block( cpb ) )
-      {
-        m_cluster_blocks.push_back( cpb );
-      }
+      process_config_block( cpb );
+      m_cluster_blocks.push_back( cpb );
       continue;
     }
 
@@ -289,9 +277,7 @@ parse_cluster( std::istream& input )
       m_lexer.unget_token( t );
       connect_pipe_block cpb;
       process_connection( cpb );
-
       m_cluster_blocks.push_back( cpb );
-
       continue;
     }
 
@@ -309,7 +295,7 @@ parse_cluster( std::istream& input )
  *
  * "process" <proc_name> "::" <proc-type> <opt-config>
  */
-bool
+void
 pipe_parser::
 process_definition(process_pipe_block& ppb)
 {
@@ -345,8 +331,6 @@ process_definition(process_pipe_block& ppb)
 
   // Handle the optional config lines
   parse_config( ppb.config_values );
-
-  return true;
 }
 
 
@@ -357,7 +341,7 @@ process_definition(process_pipe_block& ppb)
  * "config" <config-key><EOL>
  * <config-entry-list>
  */
-bool
+void
 pipe_parser::
 process_config_block( config_pipe_block& cpb )
 {
@@ -400,8 +384,6 @@ process_config_block( config_pipe_block& cpb )
 
   // process config lines in block
   parse_config( cpb.values );
-
-  return true;
 }
 
 
@@ -500,6 +482,10 @@ new_config( sprokit::config_value_t& val )
      {
        val.key.key_path.push_back( t->text() );
      }
+     else
+     {
+       PARSE_ERROR( t, "Expecting config key component but found \"" << t->text() << "\"" );
+     }
 
      t = m_lexer.get_token();
      if ( t->token_value() != ':')
@@ -516,7 +502,7 @@ new_config( sprokit::config_value_t& val )
 
     // get next token after ']'
     t = m_lexer.get_token();
-}
+  }
 
   if ( t->token_value() == TK_ASSIGN
     || t->token_value() == TK_LOCAL_ASSIGN )
@@ -585,7 +571,7 @@ parse_attrs( sprokit::config_value_t& val )
 /**
  * Connection production
  *
- * "connect" "from" <proc>.<port> "to" <proc>.<port>
+ * "connect" "from" <proc>"."<port> "to" <proc>"."<port>
  */
 void
 pipe_parser::
@@ -655,12 +641,16 @@ cluster_config( cluster_config_t& cfg )
 /**
  * @brief Parse cluster IMAP definition
  *
- * "imap" "from" <port> "to" <process>"."<port>
- * "--" description
+ * "imap" "from" <port> "to" <port_list> <EOL> <description>
  *
- * TBD appears that there can be multiple port_addrs in the to clause.
+ * port_list ::= <port_spec>
+ *             | <port_spec> , <port_list>
+ *
+ * port_spec ::= <process>"."<port>
+ *
+ * "--" description
  */
-bool
+void
 pipe_parser::
 cluster_input( cluster_input_t& imap )
 {
@@ -686,16 +676,41 @@ cluster_input( cluster_input_t& imap )
   t = m_lexer.get_token();
   expect_token( TK_TO, t );
 
-  // parse port addr
-  process::port_addr_t port_addr;
-  parse_port_addr( port_addr );
+  // initiate reporting of EOL
+  m_lexer.absorb_eol( false );
 
-  // Add to list of ports
-  imap.targets.push_back( port_addr );
+  // PArse list of "to" port specs
+  while ( true )
+  {
+    // parse port addr list
+    process::port_addr_t port_addr;
+    parse_port_addr( port_addr );
+
+    // Add to list of ports
+    imap.targets.push_back( port_addr );
+
+    t = m_lexer.get_token();
+
+    // end of line is end of statement
+    if ( t->token_type() == TK_EOL )
+    {
+      break;
+    }
+
+    // If this is a comma, then
+    if ( t->token_value() == ',' )
+    {
+      t = m_lexer.get_token();
+    }
+    else
+    {
+      PARSE_ERROR( t, "Expecting comma or EOL but found \"" << t->text() << "\"" );
+    }
+  } // end while
+
+  m_lexer.absorb_eol( true );
 
   imap.description = collect_comments();
-
-  return true;
 }
 
 
@@ -706,7 +721,7 @@ cluster_input( cluster_input_t& imap )
  * "omap" "from" <process>"."<port> "to" <port>
  * "--" description
  */
-bool
+void
 pipe_parser::
 cluster_output( cluster_output_t& omap )
 {
@@ -735,8 +750,6 @@ cluster_output( cluster_output_t& omap )
   omap.to = t->text();
 
   omap.description = collect_comments();
-
-  return true;
 }
 
 
@@ -780,9 +793,6 @@ collect_comments()
  * port_addr::= proc_name '.' port_name
  *
  * @param[out] out_pa The port address parts are returned hjere.
- *
- * @return \b true if the specification has the correct syntax and the
- * output parameter is updated with a valid names. \b false if parse error.
  */
 void
 pipe_parser::
