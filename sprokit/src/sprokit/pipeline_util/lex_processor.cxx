@@ -186,6 +186,20 @@ public:
   // that line.
   bool m_first_token_in_line;
 
+  // These absorb* attributes are not the prettiest way of handling
+  // conditional separators, but the original grammar used whitespace
+  // and EOL as tokens. Generally the new grammar does not care about
+  // these but there are some cases where it is needed to support the
+  // old grammar. Rather than adding many optional whitespace and EOL
+  // tokens in all the productions, those that need it turn on these
+  // rarely used tokens.
+
+  // This indicates whether EOL's should be absorbed or reported.
+  bool m_absorb_eol;
+
+  // This indicates whether whitespace should be absorbed or reported.
+  bool m_absorb_whitespace;
+
   // -- the following data do not need to be initialized by CTOR
 
   /** Current input line that is being processed.
@@ -264,6 +278,15 @@ get_rest_of_line()
 
   m_priv->flush_line();
   return line;
+}
+
+
+// ------------------------------------------------------------------
+void
+lex_processor::
+flush_line()
+{
+  m_priv->flush_line();
 }
 
 
@@ -356,7 +379,14 @@ get_token()
       // Push the current location onto the include stack
       m_priv->m_include_stack.push_back( include_context( resolv_filename ) );
     }
-  }
+
+    if ( ! m_priv->m_absorb_eol )
+    {
+      auto t = std::make_shared< token > ( TK_EOL, "" );
+      t->set_location( m_priv->current_loc() );
+      return t;
+    }
+  } // end of EOL handling
 
   // loop until we have discovered a token
   while ( m_priv->m_cur_char != m_priv->m_input_line.end() )
@@ -366,7 +396,26 @@ get_token()
 
     if ( std::isspace( c ) )
     {
-      continue;
+      if ( m_priv->m_absorb_whitespace )
+      {
+        continue;
+      }
+      else
+      {
+        // generate a whitespace token collecting all whitespace at
+        // this point
+        t = std::make_shared< token > ( TK_WHITESPACE, " " );
+        t->set_location( current_location() );
+
+        // Skip over all whitespace. No need to generate more tokens.
+        while ( ( m_priv->m_cur_char != m_priv->m_input_line.end() )
+                && ( std::isspace( *m_priv->m_cur_char ) ) )
+        {
+          ++m_priv->m_cur_char;
+        }
+
+        return t;
+      }
     }
 
     // Check to see if there is another character in look-ahead memory
@@ -396,7 +445,15 @@ get_token()
         return t;
       }
 
-      // Here is where we would handle ":=", "+=", and other multiple character operators
+      if ( c == ':' && n == '=' )
+      {
+        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( ":=" ), ":=" );
+        t->set_location( current_location() );
+
+        return t;
+      }
+
+      // Here is where we would handle "+=", and other multiple character operators
 
       // Reset pointer to restore our second character
       m_priv->m_cur_char--;
@@ -447,10 +504,30 @@ get_token()
 } // lex_processor::get_next_token
 
 
+// ------------------------------------------------------------------
+void
+lex_processor::
+absorb_eol( bool opt )
+{
+  m_priv->m_absorb_eol = opt;
+}
+
+
+// ------------------------------------------------------------------
+void
+lex_processor::
+absorb_whitespace( bool opt )
+{
+  m_priv->m_absorb_whitespace = opt;
+}
+
+
 // ==================================================================
 lex_processor::priv::
 priv()
   : m_first_token_in_line( false )
+  , m_absorb_eol( true )
+  , m_absorb_whitespace( true )
 {
   m_cur_char = m_input_line.end();
   m_trim_string.add( new kwiver::vital::edit_operation::left_trim );
@@ -464,13 +541,14 @@ priv()
   m_keyword_table["endblock"]     = TK_ENDBLOCK;
   m_keyword_table["process"]      = TK_PROCESS;
   m_keyword_table["/static"]      = TK_STATIC;
-  m_keyword_table["ro"]           = TK_RO;
 
-  // These append keywords could be shorteded
-  m_keyword_table["append"]       = TK_APPEND;
-  m_keyword_table["append-sp"]    = TK_APPEND_SP;
-  m_keyword_table["append-comma"] = TK_APPEND_COMMA;
-  m_keyword_table["append-path"]  = TK_APPEND_PATH;
+  m_keyword_table["ro"]           = TK_ATTRIBUTE;
+
+  // These append keywords could be shortened or converted to an operator
+  m_keyword_table["append"]       = TK_ATTRIBUTE;
+  m_keyword_table["append-sp"]    = TK_ATTRIBUTE;
+  m_keyword_table["append-comma"] = TK_ATTRIBUTE;
+  m_keyword_table["append-path"]  = TK_ATTRIBUTE;
 
   m_keyword_table["connect"]      = TK_CONNECT;
   m_keyword_table["from"]         = TK_FROM;
@@ -483,6 +561,7 @@ priv()
   m_keyword_table["config"]       = TK_CONFIG;
 
   m_keyword_table["::"]           = TK_DOUBLE_COLON;
+  m_keyword_table[":="]           = TK_LOCAL_ASSIGN;
 }
 
 
@@ -510,8 +589,11 @@ process_id()
       break;
     }
 
-    // Is the character one of [a-zA-Z0-9_.:]
-    if ( isalnum( a ) || ( a == '_' ) || ( a == '.' ) || ( a == ':' ) )
+    // Is the character one of [a-zA-Z0-9_.:-]
+    if ( isalnum( a ) || ( a == '_' )
+         || ( a == '.' )
+         || ( a == '-' ) // for attributes
+         || ( a == ':' ) )
     {
       ident += a; // add the character
     }
@@ -592,7 +674,8 @@ trim_string( std::string& str )
 /**
  * @brief Flush remaining line in parser.
  *
- * This method causes a new line to be read from the file.
+ * This method causes a new line to be read from the file. It is
+ * idempotent in that multiple calls will not flush multiple lines.
  */
 void
 lex_processor::priv::

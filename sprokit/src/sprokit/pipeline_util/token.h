@@ -28,6 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file
+ * \brief Interface to lexical token.
+ */
+
 #ifndef SPROKIT_PIPELINE_TOKEN_H
 #define SPROKIT_PIPELINE_TOKEN_H
 
@@ -53,7 +58,7 @@ enum token_type_t {
 
   TK_IDENTIFIER,     // word
 
-  TK_CLUSTER_DESC, // '--' description marker for fluster defs
+  TK_CLUSTER_DESC, // '--' description marker for cluster defs
 
   TK_LOCAL_ASSIGN, // :=
   TK_ASSIGN,       // =
@@ -62,11 +67,7 @@ enum token_type_t {
   // Keyword tokens
   TK_PROCESS,
   TK_STATIC,
-  TK_RO,
-  TK_APPEND,
-  TK_APPEND_SP,
-  TK_APPEND_COMMA,
-  TK_APPEND_PATH,
+  TK_ATTRIBUTE, // for all attribute words
   TK_CONNECT,
   TK_FROM,
   TK_TO,
@@ -83,6 +84,7 @@ enum token_type_t {
   TK_DOUBLE_COLON,
 
   // These are last in the list - order counts
+  TK_WHITESPACE,
   TK_EOL,
   TK_EOF,        // End Of File
 
@@ -121,7 +123,7 @@ public:
 
 private:
   int m_token_type;           // token type code
-  std::string m_text;             // String associated with token
+  std::string m_text;         // String associated with token
 
   // where token was discovered
   kwiver::vital::source_location m_srcLocation;

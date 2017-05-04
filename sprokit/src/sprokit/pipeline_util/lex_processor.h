@@ -138,6 +138,13 @@ public:
    */
   std::string get_rest_of_line();
 
+  /**
+   * @brief Flush remainder of line in parser.
+   *
+   * This method skips to the next character after the next new-line.
+   */
+  void flush_line();
+
   //@{
   /**
    * \brief Add directory to search path.
@@ -152,6 +159,27 @@ public:
   void add_search_path( kwiver::vital::config_path_list_t const& file_path );
 //@}
 
+  /**
+   * @brief Set mode to absorb EOL or not.
+   *
+   * This option is set based on the parser state to enable or disable
+   * reporting of EOL tokens. Generally they are not reported but, due
+   * to quirks in the original syntax, this is helpful.
+   *
+   * @param opt \b true indicates that EOL is not to be reported.
+   */
+  void absorb_eol( bool opt);
+
+  /**
+   * @brief Set mode to absorb whitespace.
+   *
+   * This option is set based on the parser state to enable or disable
+   * reporting of whitespace tokens. Generally they are not reported
+   * but, due to quirks in the original syntax, this is helpful.
+   *
+   * @param opt \b true indicates that whitespace is not to be reported.
+   */
+  void absorb_whitespace( bool opt);
 
 private:
   kwiver::vital::logger_handle_t m_logger;

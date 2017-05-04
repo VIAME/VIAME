@@ -156,14 +156,20 @@ class SPROKIT_PIPELINE_EXPORT process
     /// The type for a flag on a port.
     ///\todo Add descriptions of predefined port flags.
     typedef std::string port_flag_t;
+
     /// The type for a group of port flags.
     typedef std::set<port_flag_t> port_flags_t;
+
     /// The type for the address of a port within the pipeline.
+    /// Derived from "process.port"
     typedef std::pair<name_t, port_t> port_addr_t;
+
     /// The type for a group of port addresses.
     typedef std::vector<port_addr_t> port_addrs_t;
+
     /// The type for a connection within the pipeline.
     typedef std::pair<port_addr_t, port_addr_t> connection_t;
+
     /// The type for a group of connections.
     typedef std::vector<connection_t> connections_t;
 

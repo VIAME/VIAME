@@ -103,11 +103,6 @@ token::token_name( int tk )
     C( TK_COLON, "start-of-legacy-config" );
     C( TK_PROCESS, "PROCESS" );
     C( TK_STATIC, "STATIC" );
-    C( TK_RO, "ro-attr" );
-    C( TK_APPEND, "append-attr" );
-    C( TK_APPEND_SP, "append-sp-attr" );
-    C( TK_APPEND_COMMA, "append-comma-attr" );
-    C( TK_APPEND_PATH, "append-path-attr" );
     C( TK_CONNECT, "CONNECT" );
     C( TK_FROM, "FROM" );
     C( TK_TO, "TO" );
@@ -145,11 +140,6 @@ token::format( std::ostream& str ) const
     C( TK_COLON );
     C( TK_PROCESS );
     C( TK_STATIC );
-    C( TK_RO );
-    C( TK_APPEND );
-    C( TK_APPEND_SP );
-    C( TK_APPEND_COMMA );
-    C( TK_APPEND_PATH );
     C( TK_CONNECT );
     C( TK_FROM );
     C( TK_TO );

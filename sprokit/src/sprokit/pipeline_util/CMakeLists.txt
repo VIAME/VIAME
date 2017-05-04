@@ -15,19 +15,19 @@ set(pipeline_util_srcs
   export_dot_exception.cxx
   export_pipe.cxx
   extract_literal_value.cxx
+  lex_processor.cxx
   load_pipe.cxx
   load_pipe_exception.cxx
   loaded_cluster.cxx
   pipe_bakery.cxx
   pipe_bakery_exception.cxx
-  pipe_grammar.cxx
+  pipe_parser.cxx
+  pipe_parser_exception.cxx
   pipeline_builder.cxx
   provided_by_cluster.cxx
   provider_dereferencer.cxx
   providers.cxx
-
   token.cxx
-  lex_processor.cxx
   )
 
 set(pipeline_util_headers
@@ -41,8 +41,7 @@ set(pipeline_util_headers
   pipe_bakery.h
   pipe_bakery_exception.h
   pipe_declaration_types.h
-  pipe_grammar.h
-  pipeline_builder.h
+  pipe_parser_exception.h
   pipeline_util-config.h
   )
 
@@ -56,13 +55,14 @@ set(pipeline_util_private_headers
   config_provider_sorter.h
   ensure_provided.h
   extract_literal_value.h
+  lex_processor.h
   loaded_cluster.h
+  pipe_parser.h
+  pipeline_builder.h
   provided_by_cluster.h
   provider_dereferencer.h
   providers.h
-
   token.h
-  lex_processor.h
   )
 
 if (WIN32)
