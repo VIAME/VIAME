@@ -22,7 +22,6 @@ set(pipeline_util_srcs
   pipe_bakery.cxx
   pipe_bakery_exception.cxx
   pipe_parser.cxx
-  pipe_parser_exception.cxx
   pipeline_builder.cxx
   provided_by_cluster.cxx
   provider_dereferencer.cxx
@@ -41,7 +40,6 @@ set(pipeline_util_headers
   pipe_bakery.h
   pipe_bakery_exception.h
   pipe_declaration_types.h
-  pipe_parser_exception.h
   pipeline_util-config.h
   )
 
