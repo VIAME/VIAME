@@ -187,12 +187,12 @@ set_configuration( vital::config_block_sptr config_in )
 
   config->merge_config( config_in );
 
-  this->d->m_net_config  = config->get_value< std::string > ( "net_config" );
-  this->d->m_weight_file = config->get_value< std::string > ( "weight_file" );
-  this->d->m_class_names = config->get_value< std::string > ( "class_names" );
-  this->d->m_thresh      = config->get_value< float > ( "thresh" );
-  this->d->m_hier_thresh = config->get_value< float > ( "hier_thresh" );
-  this->d->m_gpu_index   = config->get_value< int > ( "gpu_index" );
+  this->d->m_net_config  = config->get_value< std::string >( "net_config" );
+  this->d->m_weight_file = config->get_value< std::string >( "weight_file" );
+  this->d->m_class_names = config->get_value< std::string >( "class_names" );
+  this->d->m_thresh      = config->get_value< float >( "thresh" );
+  this->d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
+  this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
   this->d->m_resize_i    = config->get_value< int >( "resize_i" );
