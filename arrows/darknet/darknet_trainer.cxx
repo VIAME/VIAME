@@ -180,7 +180,17 @@ train_from_disk(std::vector< std::string > train_image_names,
   std::vector< std::string > test_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
 {
+  // Format images correctly in tmp folder
+  asdas
 
+  // Setup initial training sequence
+  sadsa
+
+  // Run training sequence
+  sadas
+
+  // Evaluate final models and select best one
+  // [ TODO ]
 }
 
 
