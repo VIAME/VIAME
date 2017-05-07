@@ -2,11 +2,13 @@
 #
 
 set( headers
+  darknet_custom_resize.h
   darknet_detector.h
   darknet_trainer.h
 )
 
 set( sources
+  darknet_custom_resize.cxx
   darknet_detector.cxx
   darknet_trainer.cxx
   )

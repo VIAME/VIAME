@@ -29,6 +29,7 @@
  */
 
 #include "darknet_detector.h"
+#include "darknet_custom_resize.h"
 
 // kwiver includes
 #include <vital/logger/logger.h>
@@ -117,8 +118,6 @@ public:
 
   // Helper functions
   image cvmat_to_image( const cv::Mat& src );
-  double format_image( const cv::Mat& src, cv::Mat& dst );
-  double scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst );
   vital::detected_object_set_sptr process_image( const cv::Mat& cv_image );
 
   kwiver::vital::logger_handle_t m_logger;
@@ -187,12 +186,12 @@ set_configuration( vital::config_block_sptr config_in )
 
   config->merge_config( config_in );
 
-  this->d->m_net_config  = config->get_value< std::string > ( "net_config" );
-  this->d->m_weight_file = config->get_value< std::string > ( "weight_file" );
-  this->d->m_class_names = config->get_value< std::string > ( "class_names" );
-  this->d->m_thresh      = config->get_value< float > ( "thresh" );
-  this->d->m_hier_thresh = config->get_value< float > ( "hier_thresh" );
-  this->d->m_gpu_index   = config->get_value< int > ( "gpu_index" );
+  this->d->m_net_config  = config->get_value< std::string >( "net_config" );
+  this->d->m_weight_file = config->get_value< std::string >( "weight_file" );
+  this->d->m_class_names = config->get_value< std::string >( "class_names" );
+  this->d->m_thresh      = config->get_value< float >( "thresh" );
+  this->d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
+  this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
   this->d->m_resize_i    = config->get_value< int >( "resize_i" );
@@ -293,7 +292,8 @@ detect( vital::image_container_sptr image_data ) const
 
   if( d->m_resize_option != "disabled" )
   {
-    scale_factor = d->format_image( cv_image, cv_resized_image );
+    scale_factor = format_image( cv_image, cv_resized_image,
+      d->m_resize_option, d->m_scale, d->m_resize_i, d->m_resize_j );
   }
   else
   {
@@ -332,7 +332,7 @@ detect( vital::image_container_sptr image_data ) const
 
         cv::Mat cropped_image = cv_resized_image( cv::Rect( i, j, ti, tj ) );
         cv::Mat res;
-        double res_scale = d->scale_image_maintaining_ar( cv_image, res );
+        double res_scale = scale_image_maintaining_ar( cv_image, res, d->m_resize_i, d->m_resize_j );
         vital::detected_object_set_sptr new_dets = d->process_image( res );
         new_dets->shift( i, j );
         new_dets->scale( res_scale );
@@ -344,7 +344,7 @@ detect( vital::image_container_sptr image_data ) const
     if( d->m_resize_option == "chip_and_original" )
     {
       cv::Mat res;
-      double res_scale = d->scale_image_maintaining_ar( cv_image, res );
+      double res_scale = scale_image_maintaining_ar( cv_image, res, d->m_resize_i, d->m_resize_j );
       vital::detected_object_set_sptr new_dets = d->process_image( res );
       new_dets->scale( res_scale );
       detections->add( new_dets );
@@ -498,74 +498,6 @@ cvmat_to_image( const cv::Mat& src )
   }
 
   return out;
-}
-
-double
-darknet_detector::priv::
-scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst )
-{
-  double scale = 1.0;
-
-  if( src.rows == m_resize_j && src.cols == m_resize_i )
-  {
-    dst = src;
-    return scale;
-  }
-
-  double height = static_cast< double >( src.rows );
-  double width = static_cast< double >( src.cols );
-
-  if( height > m_resize_j )
-  {
-    scale = m_resize_j / height;
-  }
-  if( width > m_resize_i )
-  {
-    scale = std::min( scale, m_resize_i / width );
-  }
-
-  cv::Mat resized;
-  cv::resize( src, resized, cv::Size(), scale, scale );
-
-  dst.create( m_resize_j, m_resize_i, src.type() );
-  dst.setTo( 0 );
-
-  cv::Rect roi( 0, 0, resized.cols, resized.rows );
-  cv::Mat aoi( dst, roi );
-
-  resized.copyTo( aoi );
-  return scale;
-}
-
-double
-darknet_detector::priv::
-format_image( const cv::Mat& src, cv::Mat& dst )
-{
-  double scale = 1.0;
-
-  if( m_resize_option == "maintain_ar" )
-  {
-    scale = scale_image_maintaining_ar( src, dst );
-  }
-  else if( m_resize_option == "chip" || m_resize_option == "scale" ||
-           m_resize_option == "chip_and_original" )
-  {
-    if( m_scale == 1.0 )
-    {
-      dst = src;
-    }
-    else
-    {
-      cv::resize( src, dst, cv::Size(), m_scale, m_scale );
-      scale = m_scale;
-    }
-  }
-  else
-  {
-    throw std::runtime_error( "Invalid resize option: " + m_resize_option );
-  }
-
-  return scale;
 }
 
 } } } // end namespace
