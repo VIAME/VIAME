@@ -127,6 +127,18 @@ add( detected_object_sptr object )
 
 
 // ------------------------------------------------------------------
+void
+detected_object_set::
+add( detected_object_set_sptr detections )
+{
+  VITAL_FOREACH( auto detection, detections->select() )
+  {
+    this->add( detection );
+  }
+}
+
+
+// ------------------------------------------------------------------
 size_t
 detected_object_set::
 size() const
@@ -215,6 +227,11 @@ void
 detected_object_set::
 scale( double scale_factor )
 {
+  if( scale_factor == 1.0 )
+  {
+    return;
+  }
+
   VITAL_FOREACH( auto detection, m_detected_objects )
   {
     auto bbox = detection->bounding_box();
@@ -228,6 +245,11 @@ void
 detected_object_set::
 shift( double col_shift, double row_shift )
 {
+  if( col_shift == 0.0 && row_shift == 0.0 )
+  {
+    return;
+  }
+
   VITAL_FOREACH( auto detection, m_detected_objects )
   {
     auto bbox = detection->bounding_box();

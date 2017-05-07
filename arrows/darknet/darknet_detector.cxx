@@ -104,9 +104,9 @@ public:
 
   std::string m_resize_option;
   double m_scale;
-  unsigned m_resize_i;
-  unsigned m_resize_j;
-  unsigned m_chip_step;
+  int m_resize_i;
+  int m_resize_j;
+  int m_chip_step;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -161,7 +161,8 @@ get_configuration() const
   config->set_value( "gpu_index", d->m_gpu_index,
     "GPU index. Only used when darknet is compiled with GPU support." );
   config->set_value( "resize_option", d->m_resize_option,
-    "Pre-processing resize option, can be: disabled, maintain_ar, scale, or chip." );
+    "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
+    "chip, or chip_and_original." );
   config->set_value( "scale", d->m_scale,
     "Image scaling factor used when resize_option is scale or chip." );
   config->set_value( "resize_ni", d->m_resize_i,
@@ -194,9 +195,9 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_gpu_index   = config->get_value< int > ( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
-  this->d->m_resize_i    = config->get_value< unsigned >( "resize_i" );
-  this->d->m_resize_j    = config->get_value< unsigned >( "resize_j" );
-  this->d->m_chip_step   = config->get_value< double >( "chip_step" );
+  this->d->m_resize_i    = config->get_value< int >( "resize_i" );
+  this->d->m_resize_j    = config->get_value< int >( "resize_j" );
+  this->d->m_chip_step   = config->get_value< int >( "chip_step" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -240,7 +241,8 @@ check_configuration( vital::config_block_sptr config ) const
   {
     std::stringstream str;
     config->print( str );
-    LOG_ERROR( logger(), "Required net config file not specified. Configuration is as follows:\n" << str.str() );
+    LOG_ERROR( logger(), "Required net config file not specified. "
+      "Configuration is as follows:\n" << str.str() );
     success = false;
   }
   else if ( ! kwiversys::SystemTools::FileExists( net_config ) )
@@ -253,7 +255,8 @@ check_configuration( vital::config_block_sptr config ) const
   {
     std::stringstream str;
     config->print( str );
-    LOG_ERROR( logger(), "Required class name list file not specified, Configuration is as follows:\n" << str.str() );
+    LOG_ERROR( logger(), "Required class name list file not specified, "
+      "Configuration is as follows:\n" << str.str() );
     success = false;
   }
   else if ( ! kwiversys::SystemTools::FileExists( class_file ) )
@@ -279,6 +282,7 @@ darknet_detector::
 detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
+
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
   cv::Mat cv_resized_image;
 
@@ -297,47 +301,53 @@ detect( vital::image_container_sptr image_data ) const
   }
 
   // run detector
-  if( d->m_resize_option != "chip" && d->m_resize_option != "multi_scale_chip" )
+  if( d->m_resize_option != "chip" && d->m_resize_option != "chip_and_original" )
   {
     detections = d->process_image( cv_resized_image );
 
     // rescales output detections if required
-    if( scale_factor != 1.0 )
-    {
-      detections->scale( scale_factor );
-    }
+    detections->scale( scale_factor );
   }
   else
   {
-    for( unsigned int ux = 0; ux < image_data->width(); ux += this->d->m_stride )
+    detections = std::make_shared< vital::detected_object_set >();
+
+    // Chip up and process scaled image
+    for( int i = 0; i < cv_resized_image.cols; i += d->m_chip_step )
     {
-      unsigned int tux = ux;
-      if( tux + this->d->m_chip_width > image_data->width() )
+      int ti = i + d->m_resize_i;
+      
+      if( ti > cv_resized_image.cols )
       {
-        tux = image_data->width() - this->d->m_chip_width - 1;
-
-        if( tux >= image_data->width() )
-          continue;
+        ti = cv_resized_image.cols - ti;
       }
-      for( unsigned int uy = 0; uy < image_data->height(); uy += this->d->m_stride )
+      for( int j = 0; j < cv_resized_image.rows; j += d->m_chip_step )
       {
-        unsigned int tuy = uy;
+        int tj = j + d->m_resize_j;
 
-        if( tuy + this->d->m_chip_height > image_data->height() )
+        if( tj > cv_resized_image.rows )
         {
-          tuy = image_data->height() - this->d->m_chip_height - 1;
-
-          if( tuy >= image_data->height() )
-            continue;
+          tj = cv_resized_image.rows - tj;
         }
 
-        cv::Mat cropped_image = image(
-          cv::Rect( tux, tuy, this->d->m_chip_width, this->d->m_chip_height ) );
-
-        image_chips.push_back( cropped_image );
-        chip_x.push_back( tux );
-        chip_y.push_back( tuy );
+        cv::Mat cropped_image = cv_resized_image( cv::Rect( i, j, ti, tj ) );
+        cv::Mat res;
+        double res_scale = d->scale_image_maintaining_ar( cv_image, res );
+        vital::detected_object_set_sptr new_dets = d->process_image( res );
+        new_dets->shift( i, j );
+        new_dets->scale( res_scale );
+        detections->add( new_dets );
       }
+    }
+
+    // Process full sized image if enabled
+    if( d->m_resize_option == "chip_and_original" )
+    {
+      cv::Mat res;
+      double res_scale = d->scale_image_maintaining_ar( cv_image, res );
+      vital::detected_object_set_sptr new_dets = d->process_image( res );
+      new_dets->scale( res_scale );
+      detections->add( new_dets );
     }
   }
 
@@ -374,13 +384,13 @@ process_image( const cv::Mat& cv_image )
   network_predict( m_net, X );
 
   /* get boxes around detected objects */
-  get_region_boxes( l,     /* i: network output layer */
-                    1, 1, /* i: w, h -  */
+  get_region_boxes( l,        /* i: network output layer */
+                    1, 1,     /* i: w, h -  */
                     m_thresh, /* i: caller supplied threshold */
-                    m_probs, /* o: probability vector */
-                    m_boxes, /* o: list of boxes */
-                    0,     /* i: only objectness (false) */
-                    0,     /* i: map */
+                    m_probs,  /* o: probability vector */
+                    m_boxes,  /* o: list of boxes */
+                    0,        /* i: only objectness (false) */
+                    0,        /* i: map */
                     m_hier_thresh ); /* i: caller supplied value */
 
   const float nms( 0.4 );       // don't know what this is
@@ -492,47 +502,53 @@ cvmat_to_image( const cv::Mat& src )
 
 double
 darknet_detector::priv::
+scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst )
+{
+  double scale = 1.0;
+
+  if( src.rows == m_resize_j && src.cols == m_resize_i )
+  {
+    dst = src;
+    return scale;
+  }
+
+  double height = static_cast< double >( src.rows );
+  double width = static_cast< double >( src.cols );
+
+  if( height > m_resize_j )
+  {
+    scale = m_resize_j / height;
+  }
+  if( width > m_resize_i )
+  {
+    scale = std::min( scale, m_resize_i / width );
+  }
+
+  cv::Mat resized;
+  cv::resize( src, resized, cv::Size(), scale, scale );
+
+  dst.create( m_resize_j, m_resize_i, src.type() );
+  dst.setTo( 0 );
+
+  cv::Rect roi( 0, 0, resized.cols, resized.rows );
+  cv::Mat aoi( dst, roi );
+
+  resized.copyTo( aoi );
+  return scale;
+}
+
+double
+darknet_detector::priv::
 format_image( const cv::Mat& src, cv::Mat& dst )
 {
   double scale = 1.0;
 
   if( m_resize_option == "maintain_ar" )
   {
-    double height = static_cast< double >( src.rows );
-    double width = static_cast< double >( src.cols );
-
-    double scale = 1.0;
-
-    if( height > m_resize_j )
-    {
-      scale = m_resize_j / height;
-    }
-    if( width > m_resize_i )
-    {
-      scale = std::min( scale, m_resize_i / width );
-    }
-
-    cv::Mat resized;
-
-    if( scale == 1.0 )
-    {
-      resized = dst;
-    }
-    else
-    {
-      cv::resize( src, resized, cv::Size(), scale, scale );
-    }
-
-    dst.create( m_resize_j, m_resize_i, src.type() );
-    dst.setTo( 0 );
-
-    cv::Rect roi( 0, 0, resized.cols, resized.rows );
-    cv::Mat aoi( dst, roi );
-
-    resized.copyTo( aoi );
+    scale = scale_image_maintaining_ar( src, dst );
   }
   else if( m_resize_option == "chip" || m_resize_option == "scale" ||
-           m_resize_option == "multi_scale_chip" )
+           m_resize_option == "chip_and_original" )
   {
     if( m_scale == 1.0 )
     {

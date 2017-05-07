@@ -92,7 +92,7 @@ public:
    *
    * @return Managed copy of this object.
    */
-  detected_object_set_sptr clone () const;
+  detected_object_set_sptr clone() const;
 
   /**
    * @brief Add detection to set.
@@ -102,6 +102,15 @@ public:
    * @param object Detection to be added to set.
    */
   void add( detected_object_sptr object );
+
+  /**
+   * @brief Add detection set to set.
+   *
+   * This method adds a new detection set to this set.
+   *
+   * @param detections Detection set to be added to set.
+   */
+  void add( detected_object_set_sptr detections );
 
   /**
    * @brief Get number of detections in this set.
