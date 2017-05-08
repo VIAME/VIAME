@@ -27,6 +27,7 @@ set(pipeline_util_srcs
   provider_dereferencer.cxx
   providers.cxx
   token.cxx
+  pipe_display.cxx
   )
 
 set(pipeline_util_headers
@@ -61,6 +62,7 @@ set(pipeline_util_private_headers
   provider_dereferencer.h
   providers.h
   token.h
+  pipe_display.h
   )
 
 if (WIN32)
