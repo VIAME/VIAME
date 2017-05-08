@@ -34,6 +34,7 @@
 #include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
+#include <sprokit/pipeline_util/load_pipe_exception.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process_cluster.h>
@@ -71,7 +72,6 @@ main(int argc, char* argv[])
 
   RUN_TEST(testname, pipe_file);
 }
-
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block)
@@ -196,7 +196,7 @@ IMPLEMENT_TEST(config_not_a_flag)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
 
-  EXPECT_EXCEPTION(sprokit::unrecognized_config_flag_exception,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::extract_configuration(blocks),
                    "using an unknown flag");
 }
@@ -210,26 +210,6 @@ IMPLEMENT_TEST(config_read_only_override)
   EXPECT_EXCEPTION(kwiver::vital::set_on_read_only_value_exception,
                    sprokit::extract_configuration(blocks),
                    "setting a read-only value");
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
-
-  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  const auto expected = kwiver::vital::config_block_value_t("myvalue");
-
-  if (myvalue != expected)
-  {
-    TEST_ERROR("Configuration value was not appended: "
-               "Expected: " << expected << " "
-               "Received: " << myvalue);
-  }
 }
 
 
@@ -324,46 +304,6 @@ IMPLEMENT_TEST(config_append_comma)
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_comma_empty)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
-
-  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  const auto expected = kwiver::vital::config_block_value_t("othervalue");
-
-  if (myvalue != expected)
-  {
-    TEST_ERROR("Configuration value was created with a comma separator: "
-               "Expected: " << expected << " "
-               "Received: " << myvalue);
-  }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_space)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
-
-  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  const auto expected = kwiver::vital::config_block_value_t("myvalue othervalue");
-
-  if (myvalue != expected)
-  {
-    TEST_ERROR("Configuration value was not appended with a space separator: "
-               "Expected: " << expected << " "
-               "Received: " << myvalue);
-  }
-}
-
-
-// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_append_space_empty)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -400,70 +340,6 @@ IMPLEMENT_TEST(config_append_path)
                "Expected: " << expected << " "
                "Received: " << myvalue);
   }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_path_empty)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration(blocks);
-
-  const auto mykey = kwiver::vital::config_block_key_t("myblock:mykey");
-  const auto myvalue = conf->get_value<kwiver::vital::config_block_value_t>(mykey);
-  kwiver::vital::path_t const expected = kwiver::vital::path_t(".") + "/" + kwiver::vital::path_t("othervalue");
-
-  if (myvalue != expected)
-  {
-    TEST_ERROR("Configuration value was not created properly with a path separator: "
-               "Expected: " << expected << " "
-               "Received: " << myvalue);
-  }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_flag_mismatch_ac)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
-                   sprokit::extract_configuration(blocks),
-                   "a configuration value has mismatch configuration flags");
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_flag_mismatch_ap)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
-                   sprokit::extract_configuration(blocks),
-                   "a configuration value has mismatch configuration flags");
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_flag_mismatch_cp)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
-                   sprokit::extract_configuration(blocks),
-                   "a configuration value has mismatch configuration flags");
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(config_append_flag_mismatch_all)
-{
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
-
-  EXPECT_EXCEPTION(sprokit::config_flag_mismatch_exception,
-                   sprokit::extract_configuration(blocks),
-                   "a configuration value has mismatch configuration flags");
 }
 
 

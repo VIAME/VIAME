@@ -1,2 +1,2 @@
 config myotherblock
-  :mykey{UNKNOWN} myvalue
+  mykey = $UNKNOWN{myvalue}

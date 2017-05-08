@@ -1,5 +1,5 @@
 cluster mycluster
-  :# clusterdesc
-  :# iportdesc
+  -- clusterdesc
   imap from iport
        to   myproc/slash.iport
+  -- iportdesc

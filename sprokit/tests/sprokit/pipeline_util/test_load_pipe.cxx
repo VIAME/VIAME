@@ -244,15 +244,6 @@ IMPLEMENT_TEST(no_exist)
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(not_a_file)
-{
-  EXPECT_EXCEPTION(sprokit::not_a_file_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
-                   "loading a non-file");
-}
-
-
-// ------------------------------------------------------------------
 IMPLEMENT_TEST(include_no_exist)
 {
   EXPECT_EXCEPTION(sprokit::file_no_exist_exception,
@@ -262,18 +253,9 @@ IMPLEMENT_TEST(include_no_exist)
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(include_not_a_file)
-{
-  EXPECT_EXCEPTION(sprokit::not_a_file_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
-                   "including a non-file");
-}
-
-
-// ------------------------------------------------------------------
 IMPLEMENT_TEST(no_parse)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_pipe_blocks_from_file(pipe_file),
                    "loading an invalid file");
 }
@@ -282,7 +264,7 @@ IMPLEMENT_TEST(no_parse)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(parse_error)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -402,7 +384,7 @@ IMPLEMENT_TEST(cluster_all)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_config_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -411,7 +393,7 @@ IMPLEMENT_TEST(cluster_missing_config_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_input_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -420,7 +402,7 @@ IMPLEMENT_TEST(cluster_missing_input_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_output_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -429,7 +411,7 @@ IMPLEMENT_TEST(cluster_missing_output_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_type)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -438,7 +420,7 @@ IMPLEMENT_TEST(cluster_missing_type)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_type_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -447,7 +429,7 @@ IMPLEMENT_TEST(cluster_missing_type_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_multiple_clusters)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -456,7 +438,7 @@ IMPLEMENT_TEST(cluster_multiple_clusters)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_not_first)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -465,7 +447,7 @@ IMPLEMENT_TEST(cluster_not_first)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_with_slash)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -500,7 +482,7 @@ IMPLEMENT_TEST(cluster_output_map_with_slash)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(process_with_slash)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }

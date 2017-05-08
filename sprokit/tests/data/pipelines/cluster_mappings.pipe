@@ -1,9 +1,10 @@
 cluster mycluster
-  :# clusterdesc
-  :# iport desc
+  -- clusterdesc
   imap from iport
        to   myproc.iport
        to   myproc.iport2
-  :# oport desc
-  omap from myproc.oport
-       to   oport
+  -- iport desc
+
+
+  omap from myproc.oport       to   oport
+  -- oport desc

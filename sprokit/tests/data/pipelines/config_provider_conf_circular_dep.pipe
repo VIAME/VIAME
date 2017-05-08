@@ -1,5 +1,6 @@
 config myblock
-  :mykey{CONF} myotherblock:mykey
+  mykey = $CONF{myotherblock:mykey}
 
 config myotherblock
-  :mykey{CONF} myblock:mykey
+  mykey = $CONF{myblock:mykey}
+# generates exception - sprokit::circular_config_provide_exception
