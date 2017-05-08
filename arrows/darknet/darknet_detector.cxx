@@ -331,11 +331,13 @@ detect( vital::image_container_sptr image_data ) const
         }
 
         cv::Mat cropped_image = cv_resized_image( cv::Rect( i, j, ti, tj ) );
-        cv::Mat res;
-        double res_scale = scale_image_maintaining_ar( cv_image, res, d->m_resize_i, d->m_resize_j );
-        vital::detected_object_set_sptr new_dets = d->process_image( res );
+        cv::Mat scaled_crop;
+        double scaled_crop_scale = scale_image_maintaining_ar( cropped_image,
+          scaled_crop, d->m_resize_i, d->m_resize_j );
+        vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
+        new_dets->scale( scaled_crop_scale );
         new_dets->shift( i, j );
-        new_dets->scale( res_scale );
+        new_dets->scale( scale_factor );
         detections->add( new_dets );
       }
     }
@@ -343,10 +345,11 @@ detect( vital::image_container_sptr image_data ) const
     // Process full sized image if enabled
     if( d->m_resize_option == "chip_and_original" )
     {
-      cv::Mat res;
-      double res_scale = scale_image_maintaining_ar( cv_image, res, d->m_resize_i, d->m_resize_j );
-      vital::detected_object_set_sptr new_dets = d->process_image( res );
-      new_dets->scale( res_scale );
+      cv::Mat scaled_original;
+      double scaled_original_scale = scale_image_maintaining_ar( cv_image,
+        scaled_original, d->m_resize_i, d->m_resize_j );
+      vital::detected_object_set_sptr new_dets = d->process_image( scaled_original );
+      new_dets->scale( scaled_original_scale );
       detections->add( new_dets );
     }
   }
