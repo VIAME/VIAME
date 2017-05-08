@@ -34,11 +34,13 @@
  */
 
 #include "pipe_parser.h"
-#include "pipe_parser_exception.h"
+#include "load_pipe_exception.h"
 
 #include <vital/util/tokenize.h>
+#include <vital/util/string.h>
 
 #include <sstream>
+
 
 /*
  * Open issues:
@@ -68,6 +70,13 @@ namespace {
     throw parsing_exception( str.str() );       \
   }
 
+#define EXPECTED( E, T ) PARSE_ERROR( T, "Expected \"" << E << "\" but found \"" << T->text() << "\"" )
+
+#ifdef DEBUG
+#define PARSER_TRACE( MSG ) LOG_TRACE( m_logger, MSG )
+#else
+#define PARSER_TRACE( MSG )
+#endif
 // ------------------------------------------------------------------
 /**
  * \brief Block context structure.
@@ -123,13 +132,31 @@ set_compatibility_mode( compatibility_mode_t mode )
 
 
 // ------------------------------------------------------------------
+/**
+ * @brief Parse a process pipeline file
+ *
+ * Grammar:
+ * process-pipe-file ::= <def-list>
+ *
+ * def-list ::= <pipe-def-item>
+ *            | <pipe-def-item> <def-list>
+ *
+ * pipe-def-item ::= <config-block>
+ *                 | <config-block>
+ *                 | <process-definition>
+ *                 | <process-connection>
+ *
+ */
 sprokit::pipe_blocks
 pipe_parser::
-parse_pipeline( std::istream& input )
+parse_pipeline( std::istream& input, const std::string& name )
 {
+  m_lexer.open_stream( input, name );
+
   while( true )
   {
     auto t = m_lexer.get_token();
+    PARSER_TRACE( "Got " << *t );
 
     if ( t->token_type() == TK_CONFIG )
     {
@@ -156,6 +183,11 @@ parse_pipeline( std::istream& input )
       process_connection( cpb );
       m_pipe_blocks.push_back( cpb );
       continue;
+    }
+
+    if ( t->token_type() >= TK_EOL )
+    {
+      break;
     }
 
     PARSE_ERROR( t, "Found unexpected token \"" << t->text() << "\"");
@@ -185,29 +217,31 @@ parse_pipeline( std::istream& input )
  */
 sprokit::cluster_blocks
 pipe_parser::
-parse_cluster( std::istream& input )
+parse_cluster( std::istream& input, const std::string& name )
 {
-  // There is only one cluster block per cluster.
-  // cluster block "cluster"
+  m_lexer.open_stream( input, name );
+
+  cluster_pipe_block clpb;
+
   auto t = m_lexer.get_token();
   expect_token( TK_CLUSTER, t );
 
-  cluster_pipe_block cpb;
-
-  // Get cluster name as TK_IDENTIFIER
+  t = m_lexer.get_token();
   if (t->token_type() != TK_IDENTIFIER )
   {
-    PARSE_ERROR( t, "Expected cluster name but found " << t->text() );
+    EXPECTED( "cluster name", t );
   }
 
-  cpb.type = t->text(); // save cluster name
+  clpb.type = t->text(); // save cluster name
+  PARSER_TRACE( "cluster type: " << *t );
 
   // get optional description
-  cpb.description = collect_comments();
+  clpb.description = collect_comments();
 
   while( true )
   {
     t = m_lexer.get_token();
+    PARSER_TRACE( "parse_cluster: " << *t );
 
     // cluster imap
     if ( t->token_type() == TK_IMAP )
@@ -215,7 +249,7 @@ parse_cluster( std::istream& input )
       m_lexer.unget_token( t );
       cluster_input_t imap;
       cluster_input( imap );
-      cpb.subblocks.push_back( imap );
+      clpb.subblocks.push_back( imap );
       continue;
     }
 
@@ -225,28 +259,29 @@ parse_cluster( std::istream& input )
       m_lexer.unget_token( t );
       cluster_output_t omap;
       cluster_output( omap );
-      cpb.subblocks.push_back( omap );
+      clpb.subblocks.push_back( omap );
       continue;
     }
 
-    // cluster config entry
+    // possible cluster config entry
     // cluster_config_t contains only one config entry
     cluster_config_t cfg;
+    m_lexer.unget_token( t );
     if ( cluster_config( cfg ) )
     {
-      cpb.subblocks.push_back( cfg );
+      clpb.subblocks.push_back( cfg );
       continue;
     }
 
-    // unexpected token
+    // unexpected token t
     break;
   } // end while
 
-  m_lexer.unget_token( t );
 
   // Add cluster header to the list.
-  m_cluster_blocks.push_back( cpb );
+  m_cluster_blocks.push_back( clpb );
 
+  // zero or more of the following
   while (true )
   {
     t = m_lexer.get_token();
@@ -254,6 +289,8 @@ parse_cluster( std::istream& input )
     // parse the process config and connect blocks
     if ( t->token_type() == TK_PROCESS )
     {
+      PARSER_TRACE( "parse_cluster processes: " << *t );
+
       m_lexer.unget_token( t );
       process_pipe_block ppb;
       process_definition( ppb );
@@ -265,21 +302,30 @@ parse_cluster( std::istream& input )
 
     if ( t->token_type() == TK_CONFIG )
     {
+      PARSER_TRACE( "parse_cluster config: " << *t );
       m_lexer.unget_token( t );
       config_pipe_block cpb;
       process_config_block( cpb );
+
       m_cluster_blocks.push_back( cpb );
       continue;
     }
 
     if ( t->token_type() == TK_CONNECT )
     {
-      m_lexer.unget_token( t );
+      PARSER_TRACE( "parse_cluster connect: " << *t );
+      m_lexer.unget_token( t ); // push back connect keyword
       connect_pipe_block cpb;
       process_connection( cpb );
+
       m_cluster_blocks.push_back( cpb );
       continue;
     }
+
+    if ( t->token_type() >= TK_EOL)
+     {
+       break;
+     }
 
     // unexpected token
     PARSE_ERROR( t, "Found unexpected token \"" << t->text() << "\"" );
@@ -301,33 +347,34 @@ process_definition(process_pipe_block& ppb)
 {
   auto t = m_lexer.get_token();
 
-  // Should be guaranteed that his is a process token
+  // Should be guaranteed that his is a "process" token
   expect_token( TK_PROCESS, t );
 
   // Save location of the "process" keyword
   ppb.loc = t->get_location();
 
-  t = m_lexer.get_token();      // get from process name
+  t = m_lexer.get_token();
   if (t->token_type() != TK_IDENTIFIER)
   {
-    PARSE_ERROR( t, "Expected process name but found " << t->text() );
+    EXPECTED( "process name", t );
   }
 
-  ppb.name = t->token_value();
+  ppb.name = t->text();
 
   t = m_lexer.get_token();      // get '::' separator
   if (t->token_type() != TK_DOUBLE_COLON)
   {
-    PARSE_ERROR( t, "Expected process \"::\" but found " << t->text() );
+    EXPECTED( "\"::\"", t );
   }
 
   t = m_lexer.get_token();      // get from process type
   if (t->token_type() != TK_IDENTIFIER)
   {
-    PARSE_ERROR( t, "Expected process type but found " << t->text() );
+    EXPECTED( "process type name", t );
   }
 
-  ppb.type = t->token_value();
+  ppb.type = t->text();
+  PARSER_TRACE( "Accepted process definition - " << ppb.name << " :: " << ppb.type );
 
   // Handle the optional config lines
   parse_config( ppb.config_values );
@@ -338,14 +385,14 @@ process_definition(process_pipe_block& ppb)
 /**
  * @brief Parse top level config block.
  *
- * "config" <config-key><EOL>
- * <config-entry-list>
+ * config-block ::= "config" <config-key><EOL> <config-entry-list>
  */
 void
 pipe_parser::
 process_config_block( config_pipe_block& cpb )
 {
   auto t = m_lexer.get_token();
+  PARSER_TRACE( "process_config_block Got " << *t );
 
   // Should be guaranteed that this is a config token
   expect_token( TK_CONFIG, t );
@@ -356,29 +403,51 @@ process_config_block( config_pipe_block& cpb )
   // initiate reporting of EOL
   m_lexer.absorb_eol( false );
 
-  // process the block name. Need to split up name into components
+  // identifier token is requried
+  t = m_lexer.get_token();
+  PARSER_TRACE( "process_config_block block name Got " << *t );
+
+  // expecting TK_IDENTIFIER ":" TK_IDENTIFIER... <eol>
+  if ( t->token_type() == TK_IDENTIFIER )
+  {
+    cpb.key.push_back( t->text() );
+  }
+  else
+  {
+    EXPECTED( "config block key component", t );
+  }
+
+  // Process the rest of the block name. Need to split up name into components.
+  // Loop terminates at EOL
   while ( true )
   {
      t = m_lexer.get_token();
+     PARSER_TRACE( "process_config_block block name-2 Got " << *t );
 
-     if ( t->token_value() == TK_EOL)
+     if ( t->token_type() >= TK_EOL)
      {
        break;
      }
 
-    // expecting TK_IDENTIFIER ":" TK_IDENTIFIER... <eol>
+     // This must be a ':' <IDENTIFIER> if we have not hit EOL
+     if ( t->token_type() != TK_COLON)
+     {
+       EXPECTED( "\":\"", t );
+     }
+
+     // expecting TK_IDENTIFIER which always follows a ':'
+     t = m_lexer.get_token();
      if ( t->token_type() == TK_IDENTIFIER )
      {
        cpb.key.push_back( t->text() );
      }
-
-     t = m_lexer.get_token();
-     if ( t->token_value() != ':')
+     else
      {
-       PARSE_ERROR( t, "Expected ':' separating config key components, but \""
-                  << t->text() << "\" found" );
+       EXPECTED( "config block key component", t );
      }
   } // end while
+
+  PARSER_TRACE( "Accept config block header - " << kwiver::vital::join(cpb.key, ":") );
 
   m_lexer.absorb_eol( true );
 
@@ -394,6 +463,7 @@ process_config_block( config_pipe_block& cpb )
  * ":"<key><opt-attrs><whitespace><value>
  *
  * key ::= id : id : ...
+ * key ::= static/id : id : ...
  *
  * opt_attrs ::=
  *             | "[" <attr-list> "]"
@@ -414,19 +484,14 @@ old_config( sprokit::config_value_t& val )
   // process the block name. Need to split up name into components
   while ( true )
   {
-     t = m_lexer.get_token();
+    std::string part = parse_config_key();
+    val.key.key_path.push_back( part );
 
-    // expecting TK_IDENTIFIER ":" ...
-     if ( t->token_type() == TK_IDENTIFIER)
-     {
-       val.key.key_path.push_back( t->text() );
-     }
-
-     t = m_lexer.get_token();
-     if ( t->token_value() != ':')
-     {
-       break;
-     }
+    t = m_lexer.get_token();
+    if ( t->token_type() != TK_COLON)
+    {
+      break;
+    }
   } // end while
 
   // expecting '[' or something else (a space)
@@ -434,20 +499,23 @@ old_config( sprokit::config_value_t& val )
   {
     // process attrs
     parse_attrs( val );
+    t = m_lexer.get_token();
   }
 
-  t = m_lexer.get_token();
 
   // should be a space
-  if ( t->token_type() != TK_WHITESPACE )
+  if ( t->token_value() != TK_WHITESPACE )
   {
-    PARSE_ERROR( t, "Expected whitespace but found " << token::token_name( t->token_value() ) );
+    EXPECTED( "whitespace", t );
   }
 
   // save rest of line as the config value
   val.value = m_lexer.get_rest_of_line();
 
   m_lexer.absorb_whitespace( true );
+
+  PARSER_TRACE( "Accepted old style config: \"" << kwiver::vital::join( val.key.key_path, ":" ) << "\""
+                << " = " << "\"" << val.value << "\"" );
 }
 
 
@@ -475,23 +543,15 @@ new_config( sprokit::config_value_t& val )
   // process the entry name. Need to split up name into components
   while ( true )
   {
-     t = m_lexer.get_token();
+    std::string part = parse_config_key();
+    val.key.key_path.push_back( part );
 
-     // expecting TK_IDENTIFIER ":" ...
-     if ( t->token_type() == TK_IDENTIFIER)
-     {
-       val.key.key_path.push_back( t->text() );
-     }
-     else
-     {
-       PARSE_ERROR( t, "Expecting config key component but found \"" << t->text() << "\"" );
-     }
-
-     t = m_lexer.get_token();
-     if ( t->token_value() != ':')
-     {
-       break;
-     }
+    // look for key component separator
+    t = m_lexer.get_token();
+    if ( t->token_type() != TK_COLON)
+    {
+      break;
+    }
   } // end while
 
   // expecting '[' or '=' or ':='
@@ -513,12 +573,15 @@ new_config( sprokit::config_value_t& val )
     }
 
     // save rest of line as the config value
-    val.value = m_lexer.get_rest_of_line();
+    val.value = t->text();
   }
   else
   {
     PARSE_ERROR( t, "Expecting assignment operator but found \"" << t->text() << "\"" );
   }
+
+    PARSER_TRACE( "Accepted new style config: \"" << kwiver::vital::join( val.key.key_path, ":" ) << "\""
+                << " = " << "\"" << val.value << "\"" );
 }
 
 
@@ -545,9 +608,11 @@ parse_attrs( sprokit::config_value_t& val )
 
   while( true )
   {
-    if ( t->token_type() != TK_ATTRIBUTE )
+    // The original grammar allows flag names as other identifiers, so
+    // as a result, we can not differentiate attributes from identifiers.
+    if ( t->token_type() != TK_IDENTIFIER )
     {
-      PARSE_ERROR( t, "Expecting attribute name but found \"" << t->text() << "\"" );
+      PARSE_ERROR( t, "Expecting attribute flag but found \"" << t->text() << "\"" );
     }
 
     val.key.options.flags->push_back( t->text() );
@@ -569,9 +634,9 @@ parse_attrs( sprokit::config_value_t& val )
 
 // ------------------------------------------------------------------
 /**
- * Connection production
+ * @ bruef Connection production
  *
- * "connect" "from" <proc>"."<port> "to" <proc>"."<port>
+ * process-connection ::= "connect" "from" <proc>"."<port> "to" <proc>"."<port>
  */
 void
 pipe_parser::
@@ -596,6 +661,7 @@ process_connection( connect_pipe_block& cpb )
   expect_token( TK_TO, t );
 
   parse_port_addr( cpb.to );
+  PARSER_TRACE( "Accept connect" );
 }
 
 
@@ -608,12 +674,12 @@ process_connection( connect_pipe_block& cpb )
  * -- old style
  * :<key> <value>
  * :<key>[attr-list] <value>
- * "--" description.
+ * <description>
  *
  * -- new style
  * <key> "=" <value>
  * <key>"["<attr-list"]" "=" <value>
- * "--" description.
+ * <description>
  *
  * @return \b true if a config entry was parsed. \b false if not a
  * valid config entry. Note that a false return does not indicate an
@@ -626,7 +692,7 @@ cluster_config( cluster_config_t& cfg )
 
   if ( ! parse_config_line( cfg.config_value ) )
   {
-    // error parsing
+    // not a config entry
     return false;
   }
 
@@ -641,14 +707,13 @@ cluster_config( cluster_config_t& cfg )
 /**
  * @brief Parse cluster IMAP definition
  *
- * "imap" "from" <port> "to" <port_list> <EOL> <description>
+ * "imap" "from" <port> "to" <port_list> <description>
  *
  * port_list ::= <port_spec>
- *             | <port_spec> , <port_list>
+ *             | <port_spec> "to" <port_list>
  *
  * port_spec ::= <process>"."<port>
  *
- * "--" description
  */
 void
 pipe_parser::
@@ -664,22 +729,13 @@ cluster_input( cluster_input_t& imap )
   expect_token( TK_FROM, t );
 
   // Get port name
-  t = m_lexer.get_token();
-  if (t->token_type() != TK_IDENTIFIER )
-  {
-    PARSE_ERROR( t, "Expected port name but found " << t->text() );
-  }
-
-  imap.from = t->text();
+  imap.from = parse_port_name();
 
   // Validate noise word "to"
   t = m_lexer.get_token();
   expect_token( TK_TO, t );
 
-  // initiate reporting of EOL
-  m_lexer.absorb_eol( false );
-
-  // PArse list of "to" port specs
+  // Parse list of "to" port specs
   while ( true )
   {
     // parse port addr list
@@ -691,24 +747,16 @@ cluster_input( cluster_input_t& imap )
 
     t = m_lexer.get_token();
 
-    // end of line is end of statement
-    if ( t->token_type() == TK_EOL )
+    // If this is "to" , then
+    if ( t->token_value() != TK_TO )
     {
+      // replace unrecognized token
+      m_lexer.unget_token( t );
       break;
-    }
-
-    // If this is a comma, then
-    if ( t->token_value() == ',' )
-    {
-      t = m_lexer.get_token();
-    }
-    else
-    {
-      PARSE_ERROR( t, "Expecting comma or EOL but found \"" << t->text() << "\"" );
     }
   } // end while
 
-  m_lexer.absorb_eol( true );
+  PARSER_TRACE( "Accept cluster IMAP");
 
   imap.description = collect_comments();
 }
@@ -728,7 +776,7 @@ cluster_output( cluster_output_t& omap )
   auto t = m_lexer.get_token();
 
   // Should be guaranteed that this is the correct token
-  expect_token( TK_IMAP, t );
+  expect_token( TK_OMAP, t );
 
   // Validate noise word "from"
   t = m_lexer.get_token();
@@ -744,9 +792,10 @@ cluster_output( cluster_output_t& omap )
   t = m_lexer.get_token();
   if (t->token_type() != TK_IDENTIFIER )
   {
-    PARSE_ERROR( t, "Expected port name but found " << t->text() );
+    EXPECTED( "port name", t );
   }
 
+  PARSER_TRACE( "Accept cluster OMAP");
   omap.to = t->text();
 
   omap.description = collect_comments();
@@ -759,6 +808,10 @@ cluster_output( cluster_output_t& omap )
  *
  * Cluster comments start with "--" string, sequential lines that are
  * comments will be collected. Each line is ended with a new-line character.
+ *
+ * description ::= "--" rest-of-line <eol>
+ *               | "--" rest-of-line <eol> <description>
+ *
  *
  * @return Collected comment or empty string if no comments found.
  */
@@ -777,10 +830,18 @@ collect_comments()
       break;
     }
 
-    comments += m_lexer.get_rest_of_line() + "\n";
+    comments += t->text() + "\n";
   } // end while
 
   m_lexer.unget_token( t );
+
+  if ( comments.empty() )
+  {
+    // Comments are required, can you believe it
+    PARSE_ERROR( t, "Required descriptive comments missing" );
+  }
+
+  PARSER_TRACE( "Accepting cluster comment: " << comments );
 
   return comments;
 }
@@ -790,35 +851,109 @@ collect_comments()
 /**
  * @brief Parse port addr specification.
  *
- * port_addr::= proc_name '.' port_name
+ * port_addr ::= <proc_name> '.' <port_name>
+ * port_name ::= <id>
+ *             | <id> '\' <port_name>
  *
- * @param[out] out_pa The port address parts are returned hjere.
+ * @param[out] out_pa The port address parts are returned here.
  */
 void
 pipe_parser::
 parse_port_addr( process::port_addr_t& out_pa)
 {
-  auto t = m_lexer.get_token();      // get from process name
-  if (t->token_type() != TK_IDENTIFIER )
-  {
-    PARSE_ERROR( t, "Expected process name but found " << t->text() );
-  }
+  const std::string proc_name = parse_process_name();
 
-  const std::string proc_name( t->text() );
-
-  t = m_lexer.get_token();      // get separator
+  auto t = m_lexer.get_token();      // get separator
   expect_token( '.', t );
 
-  t = m_lexer.get_token();      // get from port name
-  if (t->token_type() != TK_IDENTIFIER )
-  {
-    PARSE_ERROR( t, "Expected port name but found " << t->text() );
-  }
-
-  const std::string port_name( t->text() );
+  std::string port_name = parse_port_name();
 
   // copy output to parameter
   out_pa = process::port_addr_t( proc_name, port_name );
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Parse extended id.
+ *
+ * This method parses an extended identifier. It is just like a
+ * regular ID token but also allows some special characters.
+ *
+ * key-comp ::= <id>
+ *            |  <id> <extra-char> <key-comp>
+ *
+ * @param extra_char Additional separator characters that are
+ * allowable in this class of identifier.
+ *
+ * @param expecting Semantic name of identifier being parsed. Used for
+ * identifying errors
+ *
+ * @return Text of key component
+ */
+std::string
+pipe_parser::
+parse_extended_id( const std::string& extra_char,
+                   const std::string& expecting)
+{
+  std::string comp;
+
+  token_sptr t;
+
+  while (true )
+  {
+    t = m_lexer.get_token();
+    if (t->token_type() != TK_IDENTIFIER )
+    {
+      EXPECTED( expecting, t ); // terminate with error
+    }
+
+    comp += t->text();
+
+    // handle allowable characters
+    t = m_lexer.get_token();
+    auto pos = extra_char.find( t->token_value() );
+    if ( pos != std::string::npos ) // char allowable
+    {
+      comp += extra_char[pos];
+      continue;
+    }
+
+    // unallowable character found. Terminate identifier.
+    break;
+  }
+
+  // put unknown token back
+  m_lexer.unget_token( t );
+
+  return comp;
+}
+
+
+// ------------------------------------------------------------------
+std::string
+pipe_parser::
+parse_config_key()
+{
+  return parse_extended_id( "/.", "config key component" );
+}
+
+
+// ------------------------------------------------------------------
+std::string
+pipe_parser::
+parse_port_name()
+{
+  return parse_extended_id( "/", "port name" );
+}
+
+
+// ------------------------------------------------------------------
+std::string
+pipe_parser::
+parse_process_name()
+{
+  return parse_extended_id( "/", "process name" );
 }
 
 
@@ -847,6 +982,7 @@ parse_config( config_values_t& out_config )
 
     // look at current token
     auto t = m_lexer.get_token();
+    PARSER_TRACE( "parse_config first get  " << *t );
 
     if ( t->token_type() == TK_BLOCK )
     {
@@ -885,12 +1021,15 @@ parse_config( config_values_t& out_config )
 
     // preload keypath with current block context
     config_val.key.key_path = current_context;
-
+    m_lexer.unget_token( t );
     if ( ! parse_config_line( config_val ) )
     {
       // not a valid config line. Could be something else valid though.
       break;
     }
+
+    // Add config entry to the current list.
+    out_config.push_back( config_val );
 
   } // ---- end while ----
 
@@ -934,6 +1073,7 @@ parse_config_line( config_value_t& config_val )
 {
   bool ret_status(true);        // assume o.k.
   auto t = m_lexer.get_token();
+  PARSER_TRACE( "parse_config_line Got " << *t );
 
   // leading colon indicates old format config entry
   if ( t->token_type() == TK_COLON )
@@ -963,15 +1103,15 @@ parse_config_line( config_value_t& config_val )
     t = m_lexer.get_token();
   }
 
-  // possibly a new style config <key> "=" <value>
-  // possibly a new style config <key>"["<attr-list"]" "=" <value>
-  auto lat = m_lexer.get_token();
-  if ( ( lat->token_type() == TK_ASSIGN )
-       || ( lat->token_type() == TK_LOCAL_ASSIGN )
-       || ( lat->token_value() == '[' ) ) // possible attributes
+  // possibly a new style config
+  // <key> "=" <value>
+  // <key>.<key> "=" <value>
+  // <key>:<key> "=" <value>
+  // <key>"["<attr-list"]" "=" <value>
+  // Best test is presence of '=', but that is hard to do.
+  if ( t->token_type() == TK_IDENTIFIER )
   {
     // push last two tokens back to lexer
-    m_lexer.unget_token( lat );
     m_lexer.unget_token( t );
 
     // process new style config
@@ -979,13 +1119,9 @@ parse_config_line( config_value_t& config_val )
 
     return ret_status;
   }
-  else
-  {
-    // probably not an config statement
-    // push last two tokens back to lexer
-    m_lexer.unget_token( lat );
-    m_lexer.unget_token( t );
-  }
+
+  // probably not an config statement
+  m_lexer.unget_token( t );
 
   // indicate some other type of token
   return false;
@@ -999,7 +1135,7 @@ bool
 pipe_parser::
 expect_token( int expected_tk, token_sptr t )
 {
-  if ( t->token_type() != expected_tk )
+  if ( t->token_value() != expected_tk )
   {
     PARSE_ERROR( t, "Expected \"" << token::token_name( expected_tk ) << "\" keyword, but found "
                << t->text() );

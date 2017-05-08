@@ -87,6 +87,15 @@ public:
    */
   void open_file( const std::string& file_name );
 
+/**
+ * @brief Read tokens from input stream.
+ *
+ * @param input Stream to read text from.
+ * @param name Name of stream. This could be the name of the file or a
+ * marker string for a stream with another source.
+ */
+  void open_stream( std::istream& input, const std::string& name = "" );
+
   /**
    * @brief Get source location for current position in input.
    *
@@ -182,6 +191,8 @@ public:
   void absorb_whitespace( bool opt);
 
 private:
+  token_sptr get_next_token();
+
   kwiver::vital::logger_handle_t m_logger;
   kwiver::vital::config_path_t m_config_file;
 

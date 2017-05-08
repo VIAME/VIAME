@@ -28,6 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file load_pipe.cxx
+ *
+ * \brief Implementation of the pipeline declaration loading.
+ */
+
 #include "load_pipe.h"
 #include "load_pipe_exception.h"
 
@@ -50,12 +56,6 @@
 #include <sstream>
 #include <string>
 
-/**
- * \file load_pipe.cxx
- *
- * \brief Implementation of the pipeline declaration loading.
- */
-
 namespace sprokit {
 
 static std::string const default_include_dirs = std::string( DEFAULT_PIPE_INCLUDE_PATHS );
@@ -65,16 +65,22 @@ static std::string const sprokit_include_envvar = std::string( "SPROKIT_PIPE_INC
 pipe_blocks
 load_pipe_blocks_from_file( kwiver::vital::path_t const& fname )
 {
-  std::ifstream pipe_file( fname );
+  sprokit::pipe_parser the_parser;
 
-  if ( ! pipe_file )
+  kwiver::vital::path_list_t path_list;
+  kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
+  if ( ! path_list.empty() )
   {
-    //+ throw file not found exception
+    the_parser.add_search_path( path_list );
   }
 
-  pipe_blocks const blocks = load_pipe_blocks( pipe_file );
+  std::ifstream input( fname );
+  if ( ! input )
+  {
+    throw sprokit::file_no_exist_exception( fname );
+  }
 
-  return blocks;
+  return the_parser.parse_pipeline( input, fname );
 }
 
 
@@ -86,11 +92,12 @@ load_pipe_blocks( std::istream& istr )
 
   kwiver::vital::path_list_t path_list;
   kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
-  the_parser.add_search_path(  path_list );
+  if ( ! path_list.empty() )
+  {
+    the_parser.add_search_path( path_list );
+  }
 
-  pipe_blocks pb = the_parser.parse_pipeline( istr );
-
-  return pb;
+  return the_parser.parse_pipeline( istr );
 }
 
 
@@ -98,14 +105,22 @@ load_pipe_blocks( std::istream& istr )
 cluster_blocks
 load_cluster_blocks_from_file( kwiver::vital::path_t const& fname )
 {
-  std::ifstream cluster_file( fname );
+  sprokit::pipe_parser the_parser;
 
-  if ( ! cluster_file )
+  kwiver::vital::path_list_t path_list;
+  kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
+  if ( ! path_list.empty() )
   {
-    //+ throw file not found exception
+    the_parser.add_search_path( path_list );
   }
 
-  return load_cluster_blocks( cluster_file );
+  std::ifstream input( fname );
+  if ( ! input )
+  {
+    throw sprokit::file_no_exist_exception( fname );
+  }
+
+  return the_parser.parse_cluster( input, fname );
 }
 
 
@@ -117,7 +132,10 @@ load_cluster_blocks( std::istream& istr )
 
   kwiver::vital::path_list_t path_list;
   kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
-  the_parser.add_search_path(  path_list );
+  if ( ! path_list.empty() )
+  {
+    the_parser.add_search_path( path_list );
+  }
 
   return the_parser.parse_cluster( istr );
 }

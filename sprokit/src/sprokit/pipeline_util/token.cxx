@@ -101,18 +101,21 @@ token::token_name( int tk )
     C( TK_LOCAL_ASSIGN, "local-assignment" );
     C( TK_ASSIGN, "assignment" );
     C( TK_COLON, "start-of-legacy-config" );
-    C( TK_PROCESS, "PROCESS" );
-    C( TK_STATIC, "STATIC" );
-    C( TK_CONNECT, "CONNECT" );
-    C( TK_FROM, "FROM" );
-    C( TK_TO, "TO" );
-    C( TK_RELATIVE_PATH, "RELATIVE_PATH" );
-    C( TK_BLOCK, "BLOCK" );
-    C( TK_ENDBLOCK, "ENDBLOCK" );
+    C( TK_PROCESS, "process" );
+    C( TK_CONNECT, "connect" );
+    C( TK_FROM, "from" );
+    C( TK_TO, "to" );
+    C( TK_RELATIVE_PATH, "relativepath" );
+    C( TK_STATIC, "static" );
+    C( TK_BLOCK, "block" );
+    C( TK_ENDBLOCK, "endblock" );
     C( TK_CONFIG, "config" );
-    C( TK_CLUSTER, "CLUSTER" );
-    C( TK_IMAP, "IMAP" );
+    C( TK_CLUSTER, "cluster" );
+    C( TK_IMAP, "imap" );
+    C( TK_OMAP, "omap" );
+    C( TK_ATTRIBUTE, "ATTRIBUTE" );
     C( TK_DOUBLE_COLON, "DOUBLE_COLON" );
+    C( TK_WHITESPACE, "WHITESPACE" );
     C( TK_EOL, "EOL" );
 
   default:
@@ -139,18 +142,20 @@ token::format( std::ostream& str ) const
     C( TK_ASSIGN );
     C( TK_COLON );
     C( TK_PROCESS );
-    C( TK_STATIC );
     C( TK_CONNECT );
     C( TK_FROM );
     C( TK_TO );
     C( TK_RELATIVE_PATH );
+    C( TK_STATIC );
     C( TK_BLOCK );
     C( TK_ENDBLOCK );
     C( TK_CLUSTER );
     C( TK_CONFIG );
     C( TK_IMAP );
     C( TK_OMAP );
+    C( TK_ATTRIBUTE );
     C( TK_DOUBLE_COLON );
+    C( TK_WHITESPACE );
     C( TK_EOL );
 
   case TK_NONE:

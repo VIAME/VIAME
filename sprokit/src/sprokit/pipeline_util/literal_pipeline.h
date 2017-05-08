@@ -96,11 +96,8 @@
 #define SPROKIT_FLAGS_WRAP(flags) \
   "[" << flags << "]"
 
-#define SPROKIT_PROVIDER_WRAP(provider) \
-  "{" << provider << "}"
-
-#define SPROKIT_CONFIG_RAW(key, flags, provider, value) \
-  "  :" << key << flags << provider << " " << value << "\n"
+#define SPROKIT_CONFIG_RAW(key, flags, value) \
+  key << flags << " = " << value << "\n"
 
 /**
  * @brief Fully specify a config item entry.
@@ -109,11 +106,10 @@
  *
  * @param key Name of configuration item.
  * @param flags Flags for this configuration item.
- * @param provider Provider name for this configuration item.
  * @param value Value of this configuration item.
  */
-#define SPROKIT_CONFIG_FULL(key, flags, provider, value) \
-  SPROKIT_CONFIG_RAW(key, SPROKIT_FLAGS_WRAP(flags), SPROKIT_PROVIDER_WRAP(provider), value)
+#define SPROKIT_CONFIG_FULL(key, flags, value) \
+  SPROKIT_CONFIG_RAW(key, SPROKIT_FLAGS_WRAP(flags), value)
 
 /**
  * @brief Specify config item with flags.
@@ -125,20 +121,7 @@
  * @param value Value of this configuration item.
  */
 #define SPROKIT_CONFIG_FLAGS(key, flags, value) \
-  SPROKIT_CONFIG_RAW(key, SPROKIT_FLAGS_WRAP(flags), "", value)
-
-/**
- * @brief Specify config item with provider.
- *
- * This macro generates a configuration item with a provider.
- *
- * @param key Name of configuration item.
- * @param flags Flags for this configuration item.
- * @param provider Provider name for this configuration item.
- * @param value Value of this configuration item.
- */
-#define SPROKIT_CONFIG_PROVIDER(key, provider, value) \
-  SPROKIT_CONFIG_RAW(key, "", SPROKIT_PROVIDER_WRAP(provider), value)
+  SPROKIT_CONFIG_RAW(key, SPROKIT_FLAGS_WRAP(flags), value)
 
 /**
  * @brief Specify a configuration item.
@@ -147,7 +130,7 @@
  * @param value Value for this configuration item.
  */
 #define SPROKIT_CONFIG(key, value) \
-  SPROKIT_CONFIG_RAW(key, "", "", value)
+  SPROKIT_CONFIG_RAW(key, "", value)
 
 /**
  * @brief Start a named configuration block.

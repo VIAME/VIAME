@@ -36,6 +36,8 @@
 #include <vital/util/string.h>
 #include <kwiversys/SystemTools.hxx>
 
+#include <sprokit/pipeline_util/load_pipe_exception.h>
+
 #include <fstream>
 #include <istream>
 #include <vector>
@@ -43,23 +45,6 @@
 #include <cctype>
 #include <sstream>
 #include <set>
-
-
-/*
-Design notes.
-
-Hopefully lots of stuff can be borrowed from the config parser. If
-there are shared methods, there will need to be a common class with
-public methods that support those operations.
-
-May need to borrow the block context class too since we *MUST* support
-the block/endblock keywords. The block stack really belongs in the parser
-not in the lexer.
-
-Debugging output should include tracing input stream and logging token
-output stream.
-
- */
 
 namespace sprokit {
 
@@ -77,8 +62,9 @@ class include_context
 {
 public:
   include_context( const std::string& file_name )
-    : m_stream( file_name ) // open file stream
-    , m_reader( m_stream ) // assign stream to reader
+    : m_fstream( file_name ) // open file stream
+    , m_stream( &m_fstream )
+    , m_reader( m_fstream ) // assign stream to reader
     , m_filename( std::make_shared< std::string >(file_name) )
   {
     if ( ! m_stream )
@@ -88,18 +74,17 @@ public:
   }
 
 
-  include_context( const include_context& other )
-    : m_stream( *other.m_filename )
-    , m_reader( m_stream )
-    , m_filename( other.m_filename )
+  include_context( std::istream& str, const std::string& file_name )
+    : m_stream( &str ) // open file stream
+    , m_reader( *m_stream ) // assign stream to reader
+    , m_filename( std::make_shared< std::string >(file_name) )
   {
   }
-
 
   ~include_context()
   {
-    m_stream.close();
   }
+
 
   /**
    * @brief Get name of file.
@@ -109,7 +94,8 @@ public:
   // -- MEMBER DATA --
 
   // This is the actual file stream
-  std::ifstream m_stream;
+  std::fstream m_fstream;
+  std::istream* m_stream;
 
   // This reader operates on the above stream to provide trimmed input
   // with no comments or blank lines
@@ -181,11 +167,6 @@ public:
   kwiver::vital::config_path_t resolve_file_name( kwiver::vital::config_path_t const& file_name );
 
   //------------------------------------------------------------------
-  // This indicates the first token in the line. It is set when a new
-  // line is read in and reset after the first token is extracted from
-  // that line.
-  bool m_first_token_in_line;
-
   // These absorb* attributes are not the prettiest way of handling
   // conditional separators, but the original grammar used whitespace
   // and EOL as tokens. Generally the new grammar does not care about
@@ -222,7 +203,7 @@ public:
    * stack at end of file and the previous file is resumed, unless it
    * is the last entry on the stack when a real EOF token is retrned.
    */
-  std::vector< include_context > m_include_stack;
+  std::vector< std::shared_ptr< include_context > > m_include_stack;
 
   /**
    * This is used to remove leading and trailing strings.
@@ -239,7 +220,7 @@ public:
  */
 lex_processor::
 lex_processor()
-  : m_logger( kwiver::vital::get_logger( "lex_processor" ) )
+  : m_logger( kwiver::vital::get_logger( "sprokit.pipe_processor" ) )
   ,m_priv( new lex_processor::priv )
 { }
 
@@ -255,7 +236,16 @@ lex_processor::
 open_file( const std::string& file_name )
 {
   // open file, throw error if open error
-  m_priv->m_include_stack.push_back( include_context( file_name ) );
+  m_priv->m_include_stack.push_back( std::make_shared< include_context >( file_name ) );
+}
+
+
+// ------------------------------------------------------------------
+void
+lex_processor::
+open_stream( std::istream& input, const std::string& file_name )
+{
+  m_priv->m_include_stack.push_back( std::make_shared< include_context >( input, file_name ) );
 }
 
 
@@ -296,6 +286,7 @@ lex_processor::
 add_search_path( kwiver::vital::config_path_t const& file_path )
 {
   m_priv->m_search_path.push_back( file_path );
+  LOG_DEBUG( m_logger, "Adding \"" << file_path << "\" to search path" );
 }
 
 
@@ -306,6 +297,9 @@ add_search_path( kwiver::vital::config_path_list_t const& file_path )
 {
   m_priv->m_search_path.insert( m_priv->m_search_path.end(),
                               file_path.begin(), file_path.end() );
+
+  LOG_DEBUG( m_logger, "Adding \"" << kwiver::vital::join( file_path, ", " )
+             << "\" to search path" );
 }
 
 
@@ -315,6 +309,7 @@ lex_processor::
 unget_token( token_sptr token )
 {
   m_priv->m_token_stack.push_back( token );
+  LOG_TRACE( m_logger, "Ungetting " << *token );
 }
 
 
@@ -323,12 +318,31 @@ token_sptr
 lex_processor::
 get_token()
 {
+  auto t = get_next_token();
+  LOG_TRACE( m_logger, *t );
+
+  return t;
+}
+
+
+// ---------------------------------------------------
+token_sptr
+lex_processor::
+get_next_token()
+{
   // First check the token stack
   if ( ! m_priv->m_token_stack.empty() )
   {
     auto t = m_priv->m_token_stack.back();
     m_priv->m_token_stack.pop_back();
     return t;
+  }
+
+  // check for the real end of input
+  if ( m_priv->m_include_stack.empty() )
+  {
+    // return EOF token
+    return std::make_shared< token > ( TK_EOF, "E-O-F" );
   }
 
   if ( m_priv->m_cur_char == m_priv->m_input_line.end() )
@@ -345,7 +359,7 @@ get_token()
         // return EOF token
         return std::make_shared< token > ( TK_EOF, "E-O-F" );
       }
-    }
+    } // end while
 
     // get new line could check for "include" keyword and handle that operation.
     // Check for include directive - starts with "include " or "!include"
@@ -367,17 +381,21 @@ get_token()
       if ( "" == resolv_filename ) // could not resolve
       {
         std::ostringstream sstr;
-        sstr << "file included from " << current_location()
+        sstr << "File included from " << current_location()
              << " could not be found in search path.";
 
-        throw kwiver::vital::config_file_not_found_exception( file_name, sstr.str() );
+        LOG_ERROR( m_logger, sstr.str() );
+        throw sprokit::file_no_exist_exception( file_name );
       }
 
       LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );
       m_priv->flush_line();
 
       // Push the current location onto the include stack
-      m_priv->m_include_stack.push_back( include_context( resolv_filename ) );
+      m_priv->m_include_stack.push_back( std::make_shared< include_context >( resolv_filename ) );
+
+      // Get first line from included file.
+      m_priv->get_line();
     }
 
     if ( ! m_priv->m_absorb_eol )
@@ -447,13 +465,15 @@ get_token()
 
       if ( c == ':' && n == '=' )
       {
-        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( ":=" ), ":=" );
+        // Collect rest of line as text
+        std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
+        m_priv->trim_string( text );
+        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
         t->set_location( current_location() );
 
+        m_priv->flush_line();
         return t;
       }
-
-      // Here is where we would handle "+=", and other multiple character operators
 
       // Reset pointer to restore our second character
       m_priv->m_cur_char--;
@@ -462,20 +482,21 @@ get_token()
     if ( '=' == c )
     {
       // assignment operator
-      t = std::make_shared< token > ( '=' );
+      // Collect rest of line as text
+      std::string text( m_priv->m_cur_char, m_priv->m_input_line.end() );
+      m_priv->trim_string( text );
+      t = std::make_shared< token > ( TK_ASSIGN, text );
       t->set_location( m_priv->current_loc() );
+
+      m_priv->flush_line();
       return t;
     }
 
-    if ( m_priv->m_first_token_in_line )
+    if ( ':' == c )  // old style config line
     {
-      if ( ':' == c )  // old style config line
-      {
-        m_priv->m_first_token_in_line = false;
-        t = std::make_shared< token > ( TK_COLON, ":" );
-        t->set_location( m_priv->current_loc() );
-        return t;
-      }
+      t = std::make_shared< token > ( TK_COLON, ":" );
+      t->set_location( m_priv->current_loc() );
+      return t;
     }
 
     // Is it a character.
@@ -491,16 +512,14 @@ get_token()
 
     // At this point,just pass all single characters
     // as tokens.  Let the parser decide what to do.
-    m_priv->m_first_token_in_line = false;
     t = std::make_shared< token > ( c );
     t->set_location( m_priv->current_loc() );
     return t;
   }   // end while
 
   // This probably should not happen since blank lines are absorbed.
-  auto t = std::make_shared< token > ( TK_EOL, "" );
-  t->set_location( m_priv->current_loc() );
-  return t;
+  // Although, including empty files will get us here.
+  return get_next_token();
 } // lex_processor::get_next_token
 
 
@@ -525,8 +544,7 @@ absorb_whitespace( bool opt )
 // ==================================================================
 lex_processor::priv::
 priv()
-  : m_first_token_in_line( false )
-  , m_absorb_eol( true )
+  : m_absorb_eol( true )
   , m_absorb_whitespace( true )
 {
   m_cur_char = m_input_line.end();
@@ -540,15 +558,12 @@ priv()
   m_keyword_table["block"]        = TK_BLOCK;
   m_keyword_table["endblock"]     = TK_ENDBLOCK;
   m_keyword_table["process"]      = TK_PROCESS;
-  m_keyword_table["/static"]      = TK_STATIC;
 
-  m_keyword_table["ro"]           = TK_ATTRIBUTE;
+  // The original grammar allows flag names as other identifiers, so
+  // as a result, we can not differentiate attributes from identifiers.
 
-  // These append keywords could be shortened or converted to an operator
-  m_keyword_table["append"]       = TK_ATTRIBUTE;
-  m_keyword_table["append-sp"]    = TK_ATTRIBUTE;
-  m_keyword_table["append-comma"] = TK_ATTRIBUTE;
-  m_keyword_table["append-path"]  = TK_ATTRIBUTE;
+  // m_keyword_table["ro"]           = TK_ATTRIBUTE;
+  // m_keyword_table["tunable"]      = TK_ATTRIBUTE;
 
   m_keyword_table["connect"]      = TK_CONNECT;
   m_keyword_table["from"]         = TK_FROM;
@@ -578,22 +593,11 @@ process_id()
   {
     a = *m_cur_char++; // Advance pointer
 
-    // These characters are only allowed in the first token
-    // (e.g. config key)
-    if ( ( ( a == '.' ) || ( a == ':' ) ) &&
-         ! m_first_token_in_line )
-    {
-      // end of token if not first
-      // back up iterator
-      --m_cur_char;
-      break;
-    }
-
-    // Is the character one of [a-zA-Z0-9_.:-]
-    if ( isalnum( a ) || ( a == '_' )
-         || ( a == '.' )
-         || ( a == '-' ) // for attributes
-         || ( a == ':' ) )
+    // Is the character one of [a-zA-Z0-9_-]
+    if ( isalnum( a )
+         || ( a == '-' )
+         || ( a == '_' )
+      )
     {
       ident += a; // add the character
     }
@@ -609,7 +613,6 @@ process_id()
   // Create the new token
   token_sptr t = std::make_shared< token > ( find_res_word( ident ), ident );
   t->set_location( current_loc() );
-  m_first_token_in_line = false;
 
   return t;
 }
@@ -640,8 +643,8 @@ lex_processor::priv::
 current_loc() const
 {
   // Get current location from the include file stack top element
-  return kwiver::vital::source_location( m_include_stack.back().m_filename,
-                                         m_include_stack.back().m_reader.line_number() );
+  return kwiver::vital::source_location( m_include_stack.back()->m_filename,
+                                         m_include_stack.back()->m_reader.line_number() );
 }
 
 
@@ -650,12 +653,11 @@ bool
 lex_processor::priv::
 get_line()
 {
-  bool status = m_include_stack.back().m_reader.getline( m_input_line );
+  bool status = m_include_stack.back()->m_reader.getline( m_input_line );
 
   if ( status )
   {
     m_cur_char = m_input_line.begin();
-    m_first_token_in_line = true;
   }
   return status;
 }
@@ -729,7 +731,7 @@ resolve_file_name( kwiver::vital::config_path_t const& file_name )
   const auto eit = m_include_stack.rend();
   for ( auto it = m_include_stack.rbegin(); it != eit; ++it )
   {
-    kwiver::vital::config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( it->file() ) );
+    kwiver::vital::config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( (*it)->file() ) );
     if ( "" == config_file_dir )
     {
       config_file_dir = ".";

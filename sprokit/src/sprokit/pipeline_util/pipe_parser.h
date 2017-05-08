@@ -79,20 +79,26 @@ public:
   /**
    * @brief Parse a pipeline definition.
    *
-   * @param input Stream to read pipeline definition from.
+   * Parse a pipeline definition file into pipe_blocks.
    *
-   * @return
+   * @param input Stream to read pipeline definition from.
+   * @param name Input file name
+   *
+   * @return A vector of pipe blocks representing the pipeline.
    */
-  sprokit::pipe_blocks parse_pipeline( std::istream& input );
+  sprokit::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "*input*stream*" );
 
   /**
    * @brief Parse cluster definitions.
    *
-   * @param input Stream to read cluster definitions.
+   * Parse a cluster definition into the internal representation.
    *
-   * @return
+   * @param input Stream to read cluster definitions.
+   * @param name Input file name
+   *
+   * @return A vector of cluster blocks representing the cluster definition.
    */
-  sprokit::cluster_blocks parse_cluster( std::istream& input );
+  sprokit::cluster_blocks parse_cluster( std::istream& input, const std::string& name = "*input*stream*" );
 
   /** Compatibility mode.
    *
@@ -133,6 +139,7 @@ private:
   void process_connection( connect_pipe_block& cpb );
 
   // Cluster productions
+  void parse_one_cluster();
   bool cluster_config( cluster_config_t& cfg );
   void cluster_input( cluster_input_t& imap );
   void cluster_output( cluster_output_t& omap );
@@ -145,6 +152,11 @@ private:
   void new_config( sprokit::config_value_t& val );
   std::string collect_comments();
   void parse_attrs( sprokit::config_value_t& val );
+
+  std::string parse_config_key();
+  std::string parse_process_name();
+  std::string parse_port_name();
+  std::string parse_extended_id( const std::string& extra_char,  const std::string& expecting);
 
   bool expect_token( int expected_tk, token_sptr t );
 
