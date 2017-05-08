@@ -40,10 +40,7 @@
 #include "extract_literal_value.h"
 
 #include <vital/vital_foreach.h>
-
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include <vital/util/tokenize.h>
 
 #include <algorithm>
 #include <memory>
@@ -53,6 +50,8 @@ namespace sprokit {
 cluster_creator
 ::cluster_creator( cluster_bakery const& bakery )
   : m_bakery( bakery )
+  , m_logger( kwiver::vital::get_logger( "sprokit.create_pipeline" ) )
+
 {
   bakery_base::config_decls_t default_configs = m_bakery.m_configs;
 
@@ -172,19 +171,19 @@ cluster_creator
     kwiver::vital::config_block_keys_t source_key_path;
 
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-    boost::split( mapped_key_path, key, boost::is_any_of( kwiver::vital::config_block::block_sep ) );
+    kwiver::vital::tokenize( key, mapped_key_path, kwiver::vital::config_block::block_sep, true );
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-    boost::split( source_key_path, value, boost::is_any_of( kwiver::vital::config_block::block_sep ) );
+    kwiver::vital::tokenize( value, source_key_path,  kwiver::vital::config_block::block_sep );
 
     if ( mapped_key_path.size() < 2 )
     {
-      /// \todo Error.
+      LOG_WARN( m_logger, "Mapped key path is less than two elements" );
       continue;
     }
 
     if ( source_key_path.size() < 2 )
     {
-      /// \todo Error.
+      LOG_WARN( m_logger, "Source key path is less than two elements" );
       continue;
     }
 

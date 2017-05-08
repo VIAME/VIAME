@@ -53,6 +53,7 @@
 
 namespace sprokit {
 
+//+ not sure what these are for
 static sprokit::process::name_t denormalize_name( sprokit::process::name_t const& name );
 static sprokit::process::name_t normalize_name( sprokit::process::name_t const& name );
 
@@ -80,6 +81,7 @@ private:
   typedef std::set< sprokit::process::name_t > process_set_t;
 
   std::ostream& m_ostr;
+
   sprokit::pipeline_t const m_pipe;
   kwiver::vital::config_block_sptr const m_config;
   process_set_t m_visited;
@@ -89,9 +91,9 @@ private:
 // ------------------------------------------------------------------
 config_printer
 ::config_printer( std::ostream& ostr, sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf )
-  : m_ostr( ostr ),
-  m_pipe( pipe ),
-  m_config( conf )
+  : m_ostr( ostr )
+  , m_pipe( pipe )
+  , m_config( conf )
 {
 }
 
@@ -127,12 +129,14 @@ config_printer
 
   kwiver::vital::config_block_key_t const key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
 
+  // generate pipe level config block
   m_ostr << "config " << key_path << std::endl;
 
   key_printer const printer( m_ostr );
 
   std::for_each( values.begin(), values.end(), printer );
 
+  // Not sure what we are doing here
   sprokit::process::name_t const denorm_name = denormalize_name( key_path );
 
   output_process_by_name( denorm_name, false );
@@ -373,9 +377,8 @@ key_printer
   kwiver::vital::config_block_key_t const key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
 
   boost::optional< sprokit::config_flags_t > const& flags = options.flags;
-  boost::optional< sprokit::config_provider_t > const& provider = options.provider;
 
-  m_ostr << "  " << kwiver::vital::config_block::block_sep << key_path;
+  m_ostr << "  " << key_path;
 
   if ( flags )
   {
@@ -384,12 +387,7 @@ key_printer
     m_ostr << "[" << flag_list << "]";
   }
 
-  if ( provider )
-  {
-    m_ostr << "{" << *provider << "}";
-  }
-
-  m_ostr << " " << value << std::endl;
+  m_ostr << " = " << value << std::endl;
 }
 
 
@@ -398,6 +396,7 @@ sprokit::process::name_t
 denormalize_name( sprokit::process::name_t const& name )
 {
   sprokit::process::name_t denorm_name(name);
+  // replace ';' with '/'
   std::replace( denorm_name.begin(), denorm_name.end(), ':', '/' );
 
   return denorm_name;
@@ -409,6 +408,7 @@ sprokit::process::name_t
 normalize_name( sprokit::process::name_t const& name )
 {
   sprokit::process::name_t norm_name( name );
+  // replace '/' with ';'
   std::replace( norm_name.begin(), norm_name.end(), '/', ':' );
 
   return norm_name;
