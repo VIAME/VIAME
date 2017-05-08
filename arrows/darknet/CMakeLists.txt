@@ -17,6 +17,8 @@ set( darknet_linked_libs
   ${darknet_LIBRARIES}
   kwiversys
   ${OpenCV_LIBS}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
   kwiver_algo_ocv )
 
 # if darknet was built with the GPU support

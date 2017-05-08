@@ -33,20 +33,23 @@
 
 #include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
+#include <vital/vital_foreach.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <string>
 #include <sstream>
+#include <fstream>
 
 namespace kwiver {
 namespace arrows {
@@ -64,6 +67,8 @@ public:
     , m_resize_i( 0 )
     , m_resize_j( 0 )
     , m_chip_step( 100 )
+    , m_overlap_required( 0.05 )
+    , m_chips_w_gt_only( false )
   {}
 
   ~priv()
@@ -80,11 +85,22 @@ public:
   int m_resize_i;
   int m_resize_j;
   int m_chip_step;
+  double m_overlap_required;
+  bool m_chips_w_gt_only;
 
   // Helper functions
   std::vector< std::string > format_images( std::string folder,
     std::vector< std::string > image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > groundtruth );
+
+  bool print_detections(
+    std::string filename,
+    kwiver::vital::detected_object_set_sptr all_detections,
+    kwiver::vital::bounding_box_d region );
+
+  void generate_fn(
+    std::string folder, std::string& gt,
+    std::string& img, const int len = 10 );
 
   kwiver::vital::logger_handle_t m_logger;
 };
@@ -133,6 +149,12 @@ get_configuration() const
     "Height resolution after resizing" );
   config->set_value( "chip_step", d->m_chip_step,
     "When in chip mode, the chip step size between chips." );
+  config->set_value( "overlap_required", d->m_overlap_required,
+    "Percentage of which a target must appear on a chip for it to be included "
+    "as a training sample for said chip." );
+  config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
+    "Only chips with valid groundtruth objects on them will be included in "
+    "training." );
 
   return config;
 }
@@ -159,6 +181,8 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_i    = config->get_value< int >( "resize_i" );
   this->d->m_resize_j    = config->get_value< int >( "resize_j" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
+  this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
+  this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
 }
 
 
@@ -210,6 +234,10 @@ train_from_disk(std::vector< std::string > train_image_names,
 
     // Generate train image list
     //boost::replace_all( target, "foo", "bar" );
+    //"darknet -i ${gpu_id} detector train
+    //  ${output_folder}/YOLOv2.data
+    //  config_files/YOLOv2.cfg
+    //  ../detector_pipelines/models/model2.weights";
   }
 
   // Setup initial training sequence
@@ -239,13 +267,183 @@ format_images( std::string folder,
   boost::filesystem::path dir( folder );
   boost::filesystem::create_directories( dir );
 
-  for( unsigned i = 0; i < image_names.size(); ++i )
+  for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
-    const std::string image_fn = image_names[i];
-    kwiver::vital::detected_object_set detections = groundtruth[i]->select();
+    const std::string image_fn = image_names[fid];
+    kwiver::vital::detected_object_set_sptr detections_ptr = groundtruth[fid];
+    kwiver::vital::detected_object_set_sptr scaled_detections_ptr = groundtruth[fid]->clone();
+
+    // Scale and break up image according to settings
+    cv::Mat original_image, resized_image;
+    original_image = cv::imread( image_fn, -1 );
+
+    double resized_scale = 1.0;
+
+    if( m_resize_option != "disabled" )
+    {
+      resized_scale = format_image( original_image, resized_image,
+        m_resize_option, m_scale, m_resize_i, m_resize_j );
+      scaled_detections_ptr->scale( resized_scale );
+    }
+    else
+    {
+      resized_image = original_image;
+      scaled_detections_ptr = detections_ptr;
+    }
+
+    if( m_resize_option != "chip" && m_resize_option != "chip_and_original" )
+    {
+      std::string gt_file, img_file;
+      generate_fn( folder, gt_file, img_file );
+
+      kwiver::vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
+      if( print_detections( gt_file, scaled_detections_ptr, roi_box ) )
+      {
+        cv::imwrite( img_file, resized_image );
+      }
+    }
+    else
+    {
+      // Chip up and process scaled image
+      for( int i = 0; i < resized_image.cols; i += m_chip_step )
+      {
+        int ti = i + m_resize_i;
+
+        if( ti > resized_image.cols )
+        {
+          ti = resized_image.cols - ti;
+        }
+        for( int j = 0; j < resized_image.rows; j += m_chip_step )
+        {
+          int tj = j + m_resize_j;
+
+          if( tj > resized_image.rows )
+          {
+            tj = resized_image.rows - tj;
+          }
+
+          cv::Mat cropped_image = resized_image( cv::Rect( i, j, ti, tj ) );
+          cv::Mat resized_crop;
+
+          scale_image_maintaining_ar( original_image,
+            resized_crop, m_resize_i, m_resize_j );
+
+          std::string gt_file, img_file;
+          generate_fn( folder, gt_file, img_file );
+
+          kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_i, j + m_resize_j );
+          if( print_detections( gt_file, scaled_detections_ptr, roi_box ) )
+          {
+            cv::imwrite( img_file, resized_crop );
+          }
+        }
+      }
+
+      // Process full sized image if enabled
+      if( m_resize_option == "chip_and_original" )
+      {
+        cv::Mat scaled_original;
+
+        double scaled_original_scale = scale_image_maintaining_ar( original_image,
+          scaled_original, m_resize_i, m_resize_j );
+
+        kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth[fid]->clone();
+        scaled_original_dets_ptr->scale( scaled_original_scale );
+
+        std::string gt_file, img_file;
+        generate_fn( folder, gt_file, img_file );
+
+        kwiver::vital::bounding_box_d roi_box( 0, 0,
+          scaled_original.cols, scaled_original.rows );
+
+        if( print_detections( gt_file, scaled_original_dets_ptr, roi_box ) )
+        {
+          cv::imwrite( img_file, scaled_original );
+        }
+      }
+    }
   }
 
   return output_fns;
+}
+
+bool
+darknet_trainer::priv::
+print_detections(
+  std::string filename,
+  kwiver::vital::detected_object_set_sptr all_detections,
+  kwiver::vital::bounding_box_d region )
+{
+  kwiver::vital::detected_object::vector_t input = all_detections->select();
+  std::vector< std::string > to_write;
+
+  const double width = region.width();
+  const double height = region.height();
+
+  VITAL_FOREACH( auto detection, input )
+  {
+    kwiver::vital::bounding_box_d det_box = detection->bounding_box();
+    kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
+
+    if( det_box.area() > 0 &&
+        overlap.area() / det_box.area() >= m_overlap_required )
+    {
+      std::string category;
+      double tmp;
+      detection->type()->get_most_likely( category, tmp );
+
+      double min_x = overlap.min_x() - region.min_x();
+      double min_y = overlap.min_y() - region.min_y();
+
+      double max_x = overlap.max_x() - region.min_x();
+      double max_y = overlap.max_y() - region.min_y();
+
+      std::string line = category + " ";
+
+      line += boost::lexical_cast< std::string >( 0.5 * ( min_x + max_x ) / width ) + " ";
+      line += boost::lexical_cast< std::string >( 0.5 * ( min_y + max_y ) / height ) + " ";
+
+      line += boost::lexical_cast< std::string >( overlap.width() / width ) + " ";
+      line += boost::lexical_cast< std::string >( overlap.height() / height );
+
+      to_write.push_back( line );
+    }
+  }
+
+  if( !m_chips_w_gt_only || !to_write.empty() )
+  {
+    std::ofstream fout( filename.c_str() );
+
+    VITAL_FOREACH( std::string line, to_write )
+    {
+      fout << line << std::endl;
+    }
+
+    fout.close();
+    return true;
+  }
+
+  return false;
+}
+
+void
+darknet_trainer::priv::
+generate_fn( std::string folder, std::string& gt, std::string& img, const int len )
+{
+  static const char alphanum[] =
+    "0123456789"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz";
+
+  std::string s( len, ' ' );
+
+  for( int i = 0; i < len; ++i )
+  {
+    s[i] = alphanum[ rand() % (sizeof(alphanum) - 1) ];
+  }
+
+  gt = folder + "/" + s + ".txt";
+  img = folder + "/" + s + ".png";
 }
 
 } } } // end namespace
