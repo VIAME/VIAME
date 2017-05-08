@@ -39,6 +39,12 @@
 
 #include <opencv2/core/core.hpp>
 
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include <string>
 #include <sstream>
 
@@ -66,7 +72,7 @@ public:
   // Items from the config
   std::string m_net_config;
   std::string m_output_weights;
-  std::string m_tmp_directory;
+  std::string m_train_directory;
   bool m_skip_format;
   int m_gpu_index;
   std::string m_resize_option;
@@ -76,8 +82,9 @@ public:
   int m_chip_step;
 
   // Helper functions
-  double format_image( const cv::Mat& src, cv::Mat& dst );
-  double scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst );
+  std::vector< std::string > format_images( std::string folder,
+    std::vector< std::string > image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > groundtruth );
 
   kwiver::vital::logger_handle_t m_logger;
 };
@@ -108,10 +115,10 @@ get_configuration() const
     "Name of network config file." );
   config->set_value( "output_weights", d->m_output_weights,
     "Output weights file." );
-  config->set_value( "tmp_directory", d->m_tmp_directory,
+  config->set_value( "train_directory", d->m_train_directory,
     "Temp directory for all files used in training." );
   config->set_value( "skip_format", d->m_skip_format,
-    "Skip file formatting, assume that the tmp_directory is pre-populated "
+    "Skip file formatting, assume that the train_directory is pre-populated "
     "with all files required for model training." );
   config->set_value( "gpu_index", d->m_gpu_index,
     "GPU index. Only used when darknet is compiled with GPU support." );
@@ -144,7 +151,7 @@ set_configuration( vital::config_block_sptr config_in )
 
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
   this->d->m_output_weights = config->get_value< std::string >( "output_weights" );
-  this->d->m_tmp_directory = config->get_value< std::string >( "tmp_directory" );
+  this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
@@ -181,17 +188,64 @@ train_from_disk(std::vector< std::string > train_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
 {
   // Format images correctly in tmp folder
-  asdas
+  if( !d->m_skip_format )
+  {
+    // Delete and reset folder contents
+    if( boost::filesystem::exists( d->m_train_directory ) &&
+        boost::filesystem::is_directory( d->m_train_directory ) )
+    {
+      boost::filesystem::remove_all( d->m_train_directory );
+    }
+
+    boost::filesystem::path dir( d->m_train_directory );
+    boost::filesystem::create_directories( dir );
+
+    // Format train images
+    std::vector< std::string > train_list, test_list;
+
+    train_list = d->format_images( d->m_train_directory + "/train_images",
+      train_image_names, train_groundtruth );
+    test_list = d->format_images( d->m_train_directory + "/test_images",
+      test_image_names, test_groundtruth );
+
+    // Generate train image list
+    //boost::replace_all( target, "foo", "bar" );
+  }
 
   // Setup initial training sequence
-  sadsa
+  // Replace with ID count
 
   // Run training sequence
-  sadas
+#ifdef WIN32
+  std::string darknet_cmd = "darknet.exe";
+#else
+  std::string darknet_cmd = "darknet";
+#endif
+  system( darknet_cmd.c_str() );
 
   // Evaluate final models and select best one
   // [ TODO ]
 }
 
+// --------------------------------------------------------------------
+std::vector< std::string >
+darknet_trainer::priv::
+format_images( std::string folder,
+  std::vector< std::string > image_names,
+  std::vector< kwiver::vital::detected_object_set_sptr > groundtruth )
+{
+  std::vector< std::string > output_fns;
+
+  boost::filesystem::path dir( folder );
+  boost::filesystem::create_directories( dir );
+
+  for( unsigned i = 0; i < image_names.size(); ++i )
+  {
+    const std::string image_fn = image_names[i];
+    kwiver::vital::detected_object_set detections = groundtruth[i]->select();
+  }
+
+  return output_fns;
+}
 
 } } } // end namespace

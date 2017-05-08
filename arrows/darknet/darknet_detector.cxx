@@ -316,7 +316,7 @@ detect( vital::image_container_sptr image_data ) const
     for( int i = 0; i < cv_resized_image.cols; i += d->m_chip_step )
     {
       int ti = i + d->m_resize_i;
-      
+
       if( ti > cv_resized_image.cols )
       {
         ti = cv_resized_image.cols - ti;
@@ -409,7 +409,7 @@ process_image( const cv::Mat& cv_image )
   }
 
   // -- extract detections and convert to our format --
-  auto detected_objects = std::make_shared< vital::detected_object_set > ();
+  auto detected_objects = std::make_shared< vital::detected_object_set >();
 
   for ( size_t i = 0; i < l_size; ++i )
   {
