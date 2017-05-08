@@ -616,7 +616,7 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_flag_t const flag_output_shared;
 
     /**
-     * \brief A flag which indicates that the input may be defined as
+     * \brief A flag which indicates that the input \b may be defined as
      * a configuration value.
      *
      * If this port is not connected, the value supplied is taken from

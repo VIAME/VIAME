@@ -985,10 +985,15 @@ process
 
   if (static_)
   {
+    // Here is where we create a config key to supply data to this
+    // static port. Note that the config key name is prefixed with
+    // "static/". It is assumed that the person who writes the config
+    // knows to add the static prefix also.
     declare_configuration_key(
       static_input_prefix + port,
       kwiver::vital::config_block_value_t(),
-      kwiver::vital::config_block_description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
+      kwiver::vital::config_block_description_t("A default value to use for the \'"
+                                                + port + "\' port if it is not connected."));
 
     d->static_inputs.insert(port);
   }
