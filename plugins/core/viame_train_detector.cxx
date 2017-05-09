@@ -74,6 +74,7 @@ public:
   std::string opt_config;
   std::string opt_input;
   std::string opt_detector;
+  std::string opt_out_config;
 
   trainer_vars()
   {
@@ -341,6 +342,10 @@ main( int argc, char* argv[] )
     &g_params.opt_detector, "Type of detector to train if no config" );
   g_params.m_args.AddArgument( "-d",        argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
+  g_params.m_args.AddArgument( "--output-config", argT::SPACE_ARGUMENT,
+    &g_params.opt_out_config, "Output a sample configuration to file" );
+  g_params.m_args.AddArgument( "-o",        argT::SPACE_ARGUMENT,
+    &g_params.opt_out_config, "Output a sample configuration to file" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -417,7 +422,7 @@ main( int argc, char* argv[] )
 
   std::string input_dir = g_params.opt_input;
 
-  if( !does_folder_exist( input_dir ) )
+  if( !g_params.opt_out_config.empty() || !does_folder_exist( input_dir ) )
   {
     std::cerr << "Input directory does not exist, exiting." << std::endl;
     exit( 0 );
@@ -488,6 +493,8 @@ main( int argc, char* argv[] )
   if( train_files.empty() && test_files.empty() )
   {
     std::cout << "Automatically selecting train and test files" << std::endl;
+
+    // TODO: SELECT FILES
   }
   else if( train_files.empty() != test_files.empty() )
   {
@@ -549,15 +556,38 @@ main( int argc, char* argv[] )
     config->set_value( "detector_trainer_tool:detector_trainer:type", g_params.opt_detector );
   }
 
+  kwiver::vital::algo::train_detector::get_nested_algo_configuration
+    ( "detector_trainer", config, detector_trainer );
+  kwiver::vital::algo::train_detector::set_nested_algo_configuration
+    ( "detector_trainer", config, detector_trainer );
+
   kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
     ( "detected_object_set_input", config, groundtruth_reader );
   kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
     ( "detected_object_set_input", config, groundtruth_reader );
 
-  kwiver::vital::algo::train_detector::get_nested_algo_configuration
-    ( "detector_trainer", config, detector_trainer );
-  kwiver::vital::algo::train_detector::set_nested_algo_configuration
-    ( "detector_trainer", config, detector_trainer );
+  bool valid_config = check_config( config );
+
+  if( !g_params.opt_out_config.empty() )
+  {
+    write_config_file( config, g_params.opt_out_config );
+
+    if( valid_config )
+    {
+      std::cout << "Configuration file contained valid parameters "
+        "and may be used for running" << std::endl;
+    }
+    else
+    {
+      std::cout << "Configuration deemed not valid." << std::endl;
+    }
+    return EXIT_SUCCESS;
+  }
+  else if( !valid_config )
+  {
+    std::cout << "Configuration not valid." << std::endl;
+    return EXIT_FAILURE;
+  }
 
   // Read setup configs
   double percent_test = config->get_value< double >( "default_percent_test" );
@@ -596,7 +626,6 @@ main( int argc, char* argv[] )
   list_all_subfolders( g_params.opt_input, subdirs );
 
   // Load groundtruth for all image files in all folders using reader class
-  std::vector< 
   std::vector< std::string > train_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > train_gt;
   std::vector< std::string > test_image_fn;
@@ -617,10 +646,8 @@ main( int argc, char* argv[] )
       const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
 
       // Is this a test or a train image?
-      // []
 
       // Read groundtruth for frame
-      asdsa
     }
   }
 
