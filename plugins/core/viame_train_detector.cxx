@@ -422,7 +422,7 @@ main( int argc, char* argv[] )
 
   std::string input_dir = g_params.opt_input;
 
-  if( !g_params.opt_out_config.empty() || !does_folder_exist( input_dir ) )
+  if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
   {
     std::cerr << "Input directory does not exist, exiting." << std::endl;
     exit( 0 );
@@ -434,12 +434,12 @@ main( int argc, char* argv[] )
   std::vector< std::string > labels;
   std::vector< std::vector< std::string > > label_ids;
 
-  if( !does_file_exist( label_fn ) )
+  if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
   {
     std::cerr << "Label file does not exist" << std::endl;
     exit( 0 );
   }
-  else
+  else if( g_params.opt_out_config.empty() )
   {
     std::ifstream in( label_fn.c_str() );
 
@@ -553,18 +553,18 @@ main( int argc, char* argv[] )
   }
   else
   {
-    config->set_value( "detector_trainer_tool:detector_trainer:type", g_params.opt_detector );
+    config->set_value( "detector_trainer:type", g_params.opt_detector );
   }
 
-  kwiver::vital::algo::train_detector::get_nested_algo_configuration
-    ( "detector_trainer", config, detector_trainer );
   kwiver::vital::algo::train_detector::set_nested_algo_configuration
     ( "detector_trainer", config, detector_trainer );
+  kwiver::vital::algo::train_detector::get_nested_algo_configuration
+    ( "detector_trainer", config, detector_trainer );
 
-  kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
-    ( "detected_object_set_input", config, groundtruth_reader );
   kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
-    ( "detected_object_set_input", config, groundtruth_reader );
+    ( "groundtruth_reader", config, groundtruth_reader );
+  kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+    ( "groundtruth_reader", config, groundtruth_reader );
 
   bool valid_config = check_config( config );
 
@@ -633,22 +633,54 @@ main( int argc, char* argv[] )
 
   VITAL_FOREACH( std::string folder, subdirs )
   {
-    std::string fullpath = append_path( g_params.opt_input, folder );
+    std::cout << "Processing " << folder << std::endl;
+
+    std::string fullpath = folder;
 
     std::vector< std::string > image_files, gt_files;
     list_files_in_folder( fullpath, image_files, image_extensions );
     list_files_in_folder( fullpath, gt_files, groundtruth_extensions );
     std::sort( image_files.begin(), image_files.end() );
+    std::sort( gt_files.begin(), gt_files.end() );
 
-    VITAL_FOREACH( std::string image_file, image_files )
+    //VITAL_FOREACH( std::string image_file, image_files )
+    if( image_files.size() != 1 || gt_files.size() != 1 )
     {
-      const std::string file_wrt_input = append_path( folder, image_file );
-      const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
-
-      // Is this a test or a train image?
-
-      // Read groundtruth for frame
+      std::cout << "Skipping folder " << image_files.size() << std::endl;
+      continue;
     }
+
+    std::string image_file = image_files[0];
+    std::string gt_file = gt_files[0];
+
+    const std::string file_wrt_input = append_path( folder, image_file );
+    const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
+
+    // Is this a test or a train image?
+
+    // Read groundtruth for frame
+    kwiver::vital::algo::detected_object_set_input_sptr folder_gt_reader;
+
+    kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+      ( "groundtruth_reader", config, folder_gt_reader );
+    kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+      ( "groundtruth_reader", config, folder_gt_reader );
+
+    kwiver::vital::detected_object_set_sptr frame_dets =
+      std::make_shared< kwiver::vital::detected_object_set>();
+
+    std::cout << gt_file << " " << image_file << std::endl;
+
+    std::string copy = image_file;
+
+    folder_gt_reader->open( gt_file );
+    folder_gt_reader->read_set( frame_dets, image_file );
+    folder_gt_reader->close();
+
+    std::cout << "Read " << frame_dets->size() << " detections" << std::endl;
+
+    train_image_fn.push_back( copy );
+    train_gt.push_back( frame_dets );
   }
 
   // Adjust all groundtruth detections for label file contents
