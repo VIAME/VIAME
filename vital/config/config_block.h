@@ -353,6 +353,7 @@ public:
    */
   void print( std::ostream & str );
 
+
   /// Set source file location where entry is defined.
   /**
    * This method adds the source file location where a config entry
@@ -363,6 +364,8 @@ public:
    * \param line Line number in file
    */
   void set_location( config_block_key_t const& key, std::shared_ptr< std::string > file, int line );
+  void set_location( config_block_key_t const& key, const kwiver::vital::source_location& loc );
+
 
   /// Get file location where config key was defined.
   /**
@@ -374,12 +377,25 @@ public:
    * \param[out] file Name of the last file where this symbol was defined
    * \param[out] line Line number in file of definition
    *
-   * \return \b true if the symbol definition is available.
+   * \return \b true if the location is available.
    */
   bool get_location( config_block_key_t const& key,
                      std::string& file,
                      int& line) const;
 
+
+  /// Get file location where config key was defined.
+  /**
+   * This method returns the location where the specified config entry
+   * was defined. If it is no location for the definition of the
+   * symbol, the output parameters are unchanged.
+   *
+   * \param[in] key Name of the config entry
+   * \param[out] loc Location of where this entry was defined.
+   *
+   * \return \b true if the location is available.
+   */
+  bool get_location( config_block_key_t const& key, kwiver::vital::source_location& loc ) const;
 
 private:
   /// Internal constructor
