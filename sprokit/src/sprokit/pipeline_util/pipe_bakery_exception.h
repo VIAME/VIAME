@@ -28,6 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * \file pipe_bakery_exception.h
+ *
+ * \brief Header for exceptions used when baking a pipeline.
+ */
+
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 
@@ -40,15 +46,18 @@
 
 #include <string>
 
-/**
- * \file pipe_bakery_exception.h
- *
- * \brief Header for exceptions used when baking a pipeline.
- */
+namespace kwiver {
+namespace vital {
 
-namespace sprokit
-{
+  class source_location;
 
+} // end namespace vital
+} // end namespace kwiver
+
+
+namespace sprokit {
+
+// ------------------------------------------------------------------
 /**
  * \class pipe_bakery_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -70,6 +79,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT pipe_bakery_exception
     virtual ~pipe_bakery_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class missing_cluster_block_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -91,6 +101,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
     ~missing_cluster_block_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class multiple_cluster_blocks_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -112,6 +123,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
     ~multiple_cluster_blocks_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class cluster_without_processes_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -127,12 +139,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
      * \brief Constructor.
      */
     cluster_without_processes_exception() VITAL_NOTHROW;
+
     /**
      * \brief Destructor.
      */
     virtual ~cluster_without_processes_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class cluster_without_ports_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -148,12 +162,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
      * \brief Constructor.
      */
     cluster_without_ports_exception() VITAL_NOTHROW;
+
     /**
      * \brief Destructor.
      */
     virtual ~cluster_without_ports_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class duplicate_cluster_port_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -169,6 +185,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
      * \brief Constructor.
      */
     duplicate_cluster_port_exception(process::port_t const& port, char const* const side) VITAL_NOTHROW;
+
     /**
      * \brief Destructor.
      */
@@ -178,6 +195,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
     process::port_t const m_port;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class duplicate_cluster_input_port_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -193,12 +211,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
      * \brief Constructor.
      */
     duplicate_cluster_input_port_exception(process::port_t const& port) VITAL_NOTHROW;
+
     /**
      * \brief Destructor.
      */
-    ~duplicate_cluster_input_port_exception() VITAL_NOTHROW;
+    virtual ~duplicate_cluster_input_port_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class duplicate_cluster_output_port_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -214,12 +234,14 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
      * \brief Constructor.
      */
     duplicate_cluster_output_port_exception(process::port_t const& port) VITAL_NOTHROW;
+
     /**
      * \brief Destructor.
      */
-    ~duplicate_cluster_output_port_exception() VITAL_NOTHROW;
+    virtual ~duplicate_cluster_output_port_exception() VITAL_NOTHROW;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class unrecognized_config_flag_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -241,14 +263,16 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
     /**
      * \brief Destructor.
      */
-    ~unrecognized_config_flag_exception() VITAL_NOTHROW;
+    virtual ~unrecognized_config_flag_exception() VITAL_NOTHROW;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
+
     /// The unrecognized flag.
     config_flag_t const m_flag;
 };
 
+// ------------------------------------------------------------------
 /**
  * \class config_flag_mismatch_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
  *
@@ -270,89 +294,52 @@ class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
     /**
      * \brief Destructor.
      */
-    ~config_flag_mismatch_exception() VITAL_NOTHROW;
+    virtual ~config_flag_mismatch_exception() VITAL_NOTHROW;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
+
     /// The reason for the mismatch.
     std::string const m_reason;
 };
 
-/**
- * \class unrecognized_provider_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
- *
- * \brief The exception thrown when a configuration provider request key is unknown.
- *
- * \ingroup exceptions
- */
-class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_provider_exception
+// ------------------------------------------------------------------
+class SPROKIT_PIPELINE_UTIL_EXPORT relativepath_exception
   : public pipe_bakery_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param key The key the flag was on.
-     * \param provider The unrecognized provider.
-     * \param index The index requested from the provider.
-     */
-    unrecognized_provider_exception(kwiver::vital::config_block_key_t const& key, config_provider_t const& provider, kwiver::vital::config_block_value_t const& index) VITAL_NOTHROW;
-    /**
-     * \brief Destructor.
-     */
-    ~unrecognized_provider_exception() VITAL_NOTHROW;
+public:
+  /**
+   * \brief Constructor.
+   */
+  relativepath_exception( const std::string& msg,
+                          const kwiver::vital::source_location& loc) VITAL_NOTHROW;
 
-    /// The key the flag was on.
-    kwiver::vital::config_block_key_t const m_key;
-    /// The unrecognized provider.
-    config_provider_t const m_provider;
-    /// The index requested from the provider.
-    kwiver::vital::config_block_value_t const m_index;
+  /**
+   * \brief Destructor.
+   */
+  virtual ~relativepath_exception() VITAL_NOTHROW;
+
 };
 
-/**
- * \class circular_config_provide_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
- *
- * \brief The exception thrown when configuration provider requests are circular.
- *
- * \ingroup exceptions
- */
-class SPROKIT_PIPELINE_UTIL_EXPORT circular_config_provide_exception
+
+// ------------------------------------------------------------------
+class SPROKIT_PIPELINE_UTIL_EXPORT provider_error_exception
   : public pipe_bakery_exception
 {
-  public:
-    /**
-     * \brief Constructor.
-     */
-    circular_config_provide_exception() VITAL_NOTHROW;
-    /**
-     * \brief Destructor.
-     */
-    ~circular_config_provide_exception() VITAL_NOTHROW;
-};
+public:
+  /**
+   * \brief Constructor.
+   */
+  provider_error_exception( const std::string& msg,
+                            const kwiver::vital::source_location& loc) VITAL_NOTHROW;
 
-/**
- * \class unrecognized_system_index_exception pipe_bakery_exception.h <sprokit/pipeline_util/pipe_bakery_exception.h>
- *
- * \brief The exception thrown when the system provider does not know about an index.
- *
- * \ingroup exceptions
- */
-class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_system_index_exception
-  : public pipe_bakery_exception
-{
-  public:
-    /**
-     * \brief Constructor.
-     */
-    unrecognized_system_index_exception(kwiver::vital::config_block_value_t const& index) VITAL_NOTHROW;
-    /**
-     * \brief Destructor.
-     */
-    ~unrecognized_system_index_exception() VITAL_NOTHROW;
+  provider_error_exception( const std::string& msg ) VITAL_NOTHROW;
 
-    /// The index that was requested.
-    kwiver::vital::config_block_value_t const m_index;
+  /**
+   * \brief Destructor.
+   */
+  virtual ~provider_error_exception() VITAL_NOTHROW;
+
 };
 
 }

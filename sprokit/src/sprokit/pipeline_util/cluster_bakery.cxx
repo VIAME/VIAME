@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 #include "pipe_bakery_exception.h"
 #include "cluster_splitter.h"
 
-#include <boost/foreach.hpp>
+#include <vital/vital_foreach.h>
 
 
 namespace sprokit {
@@ -58,10 +58,16 @@ cluster_bakery
 
 
 // ------------------------------------------------------------------
+/*
+ * This method processes a cluster pipe block which contains a vector
+ * of cluster configs, input and output specs.
+ */
 void
 cluster_bakery
 ::operator()( cluster_pipe_block const& cluster_block_ )
 {
+  // If there is another cluster block already processed, then this is
+  // an error.  Only one cluster can be baked at a time.
   if ( m_cluster )
   {
     throw multiple_cluster_blocks_exception();
@@ -71,17 +77,22 @@ cluster_bakery
   m_description = cluster_block_.description;
 
   cluster_component_info_t cluster;
-
   cluster_subblocks_t const& subblocks = cluster_block_.subblocks;
-
   cluster_splitter splitter( cluster );
 
+  // Run splitter over vector of blocks to make collections by block type.
+  // These lists end up in "cluster"
   std::for_each( subblocks.begin(), subblocks.end(), boost::apply_visitor( splitter ) );
 
   m_cluster = cluster;
 
+  // Even though this is called a map, it is really a vector.
   cluster_component_info_t::config_maps_t const& values = cluster.m_configs;
-  BOOST_FOREACH( cluster_config_t const & value, values )
+
+  // Process all cluster config entries and convert to internal
+  // representation for config entries.
+  // Result ends up in this->m_configs
+  VITAL_FOREACH( cluster_config_t const & value, values )
   {
     config_value_t const& config_value = value.config_value;
 

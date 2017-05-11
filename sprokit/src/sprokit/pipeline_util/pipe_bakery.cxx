@@ -37,7 +37,6 @@
 
 #include "load_pipe.h"
 #include "pipe_declaration_types.h"
-#include "providers.h"
 
 #include <vital/config/config_block.h>
 #include <vital/vital_foreach.h>
@@ -99,9 +98,12 @@ bake_pipe_blocks( pipe_blocks const& blocks )
 
   pipe_bakery bakery;
 
+  // apply main visitor to collect
   std::for_each( blocks.begin(), blocks.end(), boost::apply_visitor( bakery ) );
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
+
+  // Convert config entries to global config.
   kwiver::vital::config_block_sptr global_conf = bakery_base::extract_configuration_from_decls( configs );
 
   // Create pipeline.
@@ -187,10 +189,6 @@ bake_cluster_blocks( cluster_blocks const& blocks )
   {
     throw cluster_without_ports_exception();
   }
-
-  bakery_base::config_decls_t& configs = bakery.m_configs;
-
-  bakery_base::dereference_static_providers( configs );
 
   process::type_t const& type = bakery.m_type;
   process::description_t const& description = bakery.m_description;

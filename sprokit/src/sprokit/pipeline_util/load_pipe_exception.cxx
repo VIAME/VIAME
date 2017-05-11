@@ -28,15 +28,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "load_pipe_exception.h"
-
-#include <sstream>
-
 /**
  * \file load_pipe_exception.cxx
  *
  * \brief Implementation of exceptions used when loading a pipe declaration.
  */
+
+#include "load_pipe_exception.h"
+
+#include <sstream>
 
 namespace sprokit
 {
@@ -55,12 +55,11 @@ load_pipe_exception
 
 // ------------------------------------------------------------------
 file_no_exist_exception
-::file_no_exist_exception(path_t const& fname) VITAL_NOTHROW
+::file_no_exist_exception( kwiver::vital::path_t const& fname) VITAL_NOTHROW
   : load_pipe_exception()
   , m_fname(fname)
 {
   std::stringstream sstr;
-
   sstr << "The file does not exist: " << m_fname;
 
   m_what = sstr.str();
@@ -84,6 +83,5 @@ parsing_exception( const std::string& msg ) VITAL_NOTHROW
 parsing_exception::
 ~parsing_exception() VITAL_NOTHROW
 { }
-
 
 }

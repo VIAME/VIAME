@@ -31,7 +31,7 @@
  *
  * <pre>
  *   <path>              ::= platform-specific
- *   <include-directive> ::= "!include"
+ *   <include-directive> ::= "!include" | "include"
  *   <include-spec>      ::= <opt-whitespace> <include-directive> <whitespace> <path>
  * </pre>
  *
@@ -61,10 +61,7 @@
  * flags are:
  *
  * \cflag{ro} Marks the configuration value as read-only.
- * \cflag{append} Appends to the configuration key.
- * \cflag{append=comma} Appends to the configuration key, prefixing a comma if the value is non-empty.
- * \cflag{append=space} Appends to the configuration key, prefixing with a space if the value is non-empty.
- * \cflag{append=path} Appends to the configuration key as if it is a directory name.
+ * \cflag{tunable} Marks the configuration value as tunable.
  *
  * \par Specification
  *
@@ -81,44 +78,94 @@
  * \par Examples
  *
  * <pre>
- *   :foo[ro] bar
- *   :foo[append] 1234
- *   - results in foo = "bar1234"
+ *   foo[ro] = bar
+ *   - results in foo = "bar"
  * </pre>
  *
- * \subsection configuration_provider Configuration provider
- *
- * Configuration values may be fetched from another source by means of a
- * provider. This allows for context-aware configuration files.
- *
- * \par Specification
- *
- * Configuration keys may also be fetched from providers. When using a provider,
- * the value is passed as an argument to the provider which then replaces the
- * value. The currently supported providers include:
- *
- * \cprov{CONF} Replaces the value with another value. The argument for this
- *              provider is the full path of the key to look up.
- * \cprov{SYS} Fetches information from the system. The arguments are not
- *             defined yet.
- * \cprov{ENV} Fetches values from the environment. The argument is the
- *             environment variable to use.
- *
- * <pre>
- *   <provider-start>    ::= "{"
- *   <provider-end>      ::= "}"
- *   <key-provider>      ::= <upper> <key-provider> | <upper>
- *   <key-provider-spec> ::= <provider-start> <key-provider> <provider-end>
- *   <key-options>       ::= <key-flag-decl> | <key-provider-spec> | <key-flag-decl> <key-provider-spec> | ""
- * </pre>
- *
- * \par Examples
- *
- * <pre>
- * :gsd{CONF} common:gsd
- * :delay[ro]{ENV} TEST_ENV
- * </pre>
- *
+
+## Macro Substitution
+
+The values for configuration elements can be composed from static text
+in the config file and dynamic text supplied by macro providers. The
+format of a macro specification is `$TYPE{name}` where **TYPE** is the
+name of macro provider and **name** requests a particular value to be
+supplied. The **name** entry is specific to each provider.
+
+The text of the macro specification is only replaced. Any leading or
+trailing blanks will remain.  If the value of a macro is not defined,
+the macro specification will be replaced with the null string.
+
+### Macro Providers
+
+The macro providers are listed below and discussed in the following sections.
+
+- LOCAL - locally defined values
+- ENV - program environment
+- CONFIG - values from current config block
+- SYSENV - system environment
+
+
+### LOCAL Macro Provider
+
+This macro provider supplies values that have been stored previously
+in the config file.  Local values are specified in the config file
+using the ":=" operator. For example the config entry `mode := online`
+makes `$LOCAL{mode}` available in subsequent configuration
+entries.
+
+```
+mode := online
+...
+config_file = data/$LOCAL{mode}/model.dat
+```
+
+This type of macro definition can appear anywhere in a config file and
+becomes available for use on the next line.  The current block context
+has no effect on the name of the macro.
+
+### ENV Macro Provider
+
+This macro provides gives access to the current program
+environment. The values of environment variables such as "HOME" can be
+used by specifying `$ENV{HOME}` in the config file.
+
+### CONFIG Macro Provider
+
+This macro provider gives access to previously defined configuration entries. For example
+```
+foo:bar = baz
+```
+makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
+as shown below.
+```
+value = mode-$CONFIG{foo:bar}ify
+```
+
+### SYSENV Macro Provider
+
+This macro provider supports the following symbols derived from the
+current host operating system environment.
+
+- curdir - current working directory
+- homedir - current user's home directory
+- pid - current process id
+- numproc - number of processors in the current system
+- totalvirtualmemory - number of KB of total virtual memory
+- availablevirtualmemory - number of KB of available virtual memory
+- totalphysicalmemory - number of KB of total physical memory
+- availablephysicalmemory - number of KB of physical virtual memory
+- hostname - name of the host computer
+- domainname - name of the computer in the domain
+- osname - name of the host operating system
+- osdescription - description of the host operating system
+- osplatform - platorm name (e.g. x86-64)
+- osversion - version number for the host operating system
+- iswindows - TRUE if running on Windows system
+- islinux - TRUE if running on Linux system
+- isapple - TRUE if running on Apple system
+- is64bits - TRUE if running on a 64 bit machine
+
+
  * \subsection configuration_value Configuration value
  *
  * \par Specification
@@ -126,14 +173,14 @@
  * <pre>
  *   <separator>     ::= ":"
  *   <decl-char>     ::= <alnum> | "-" | "_"
- *   <symbol-char>   ::= <decl-char> | "/"
+ *   <symbol-char>   ::= <decl-char> | "/" | "."
  *   <decl-name>     ::= <decl-char> <decl-name>
  *   <key-component> ::= <symbol-char> <key-component>
  *   <key-path>      ::= <key-component> <separator> <key-path> | <key-component>
  *   <full-key-path> ::= <key-path> <key-options>
  *   <value-char>    ::= <graph> | <blank>
  *   <key-value>     ::= <value-char> <key-value> | <value-char>
- *   <config-spec>   ::= <full-key-path> <whitespace> <key-value>
+ *   <config-spec>   ::= <full-key-path> "=" <key-value>
  * </pre>
  *
  * \par Examples
@@ -151,7 +198,7 @@
  * \par Specification
  *
  * <pre>
- *   <partial-config-spec> ::= <opt-whitespace> <separator> <config-spec> <line-end>
+ *   <partial-config-spec> ::= <separator> <config-spec> <line-end>
  *   <partial-configs>     ::= <partial-config-spec> <partial-config> | <partial-config-spec>
  * </pre>
  *
@@ -162,7 +209,92 @@
  * <pre>
  * </pre>
  *
- * \subsection configuration_block Configuration block
+ ### Block Specification
+
+In some cases the fully qualified configuration key can become long and unwieldy.
+The block directive can be used to establish a configuration context to be applied
+to the enclosed configuration entries.
+`block alg`
+Starts a block with the *alg* block name and all entries within the block will have `alg:` prepended to the entry name.
+```
+block alg
+   mode = red      # becomes alg:mode = red
+endblock
+
+```
+Blocks can be nested to an arbitrary depth with each providing context for the enclosed entries.
+
+```
+block foo
+  block bar:fizzle
+    mode = yellow     # becomes foo:bar:fizzle:mode = yellow
+  endblock
+endblock
+```
+### Including Files
+
+The include directive logically inserts the contents of the specified
+file into the current file at the point of the include
+directive. Include files provide an easy way to break up large
+configurations into smaller reusable pieces.
+
+`include filename`
+
+If the file name is not an absolute path, it is located by scanning
+the current config search path.  The manner in which the config
+include path is created is described in a following section.  If the
+file is still not found, the stack of include directories is scanned
+from the current include file back to the initial config file. Macro
+substitution, as described below, is performed on the file name string
+before the searching is done.
+
+Block specifications and include directives can be used together to
+build reusable and shareable configuration snippets.
+
+```
+block main
+  block alg_one
+    include alg_foo.config
+  endblock
+
+  block alg_two
+    include alg_foo.config
+  endblock
+endblock
+```
+
+In this case the same configuration structure can be used in two
+places in the overall configuration.
+
+Include files can be nested to an arbitrary depth.
+
+### Relativepath Modifier
+
+There are cases where an algorithm needs an external file containing
+binary data that is tied to a specific configuration.  These data
+files are usually stored with the main configuration files.
+Specifying a full hard coded file path is not portable between
+different users and systems.
+
+The solution is to specify the location of these external files
+relative to the configuration file and use the *relativepath* modifier
+construct a full, absolute path at run time by prepending the
+configuration file directory path to the value.
+
+```
+relativepath data_file = ../data/online_dat.dat
+```
+
+If the current configuration file is
+`/home/vital/project/config/blue/foo.config`, the resulting config
+entry for **data_file** will be
+`/home/vital/project/config/blue/../data/online.dat`
+
+The *relativepath* modifier can be applied to any configuration entry,
+but it only makes sense to use it with relative file specifications.
+
+
+ * \subsection configuration_section Configuration section
  *
  * Configuration blocks make it easy to assign many configuration indices at
  * without repeating a common path.
@@ -170,7 +302,7 @@
  * \par Specification
  *
  * <pre>
- *   <config-block-spec> ::= <opt-whitespace> "config" <whitespace> <key-path> <line-end>
+ *   <config-block-spec> ::= "config" <key-path> <line-end>
  *                           <partial-configs>
  * </pre>
  *
@@ -180,25 +312,25 @@
  *
  * <pre>
  *   config common
- *     :uncommon  value
- *     :also:uncommon  value
+ *     uncommon = value
+ *     also:uncommon = value
  * </pre>
  * Creates configuration items:
  * <pre>
- *     common:uncommon value
- *     common:also:uncommon value
+ *     common:uncommon = value
+ *     common:also:uncommon = value
  * </pre>
  *
  * Another example:
  * <pre>
  *   config a:common:path
- *     :uncommon:path:to:key value
- *     :other:uncommon:path:to:key value
+ *     uncommon:path:to:key = value
+ *     other:uncommon:path:to:key = value
  * </pre>
  * Creates configuration items:
  * <pre>
- *     a:common:path:uncommon:path:to:key value
- *     a:common:path:other:uncommon:path:to:key value
+ *     a:common:path:uncommon:path:to:key = value
+ *     a:common:path:other:uncommon:path:to:key = value
  *
  * </pre>
  *

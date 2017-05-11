@@ -37,7 +37,6 @@
 
 #include "loaded_cluster.h"
 #include "provided_by_cluster.h"
-#include "extract_literal_value.h"
 
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
@@ -99,15 +98,21 @@ cluster_creator
   VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
   {
     kwiver::vital::config_block_value_t const value = config->get_value< kwiver::vital::config_block_value_t > ( key );
-    bakery_base::config_reference_t const ref = bakery_base::config_reference_t( value );
     bool const is_read_only = config->is_read_only( key );
-    bakery_base::config_info_t const info = bakery_base::config_info_t( ref, is_read_only, bakery_base::config_info_t::append_none );
+
+    kwiver::vital::source_location loc;
+    config->get_location( key, loc );
+    bakery_base::config_info_t const info = bakery_base::config_info_t( value,
+                                                                        is_read_only,
+                                                                        false, // relative path
+                                                                        loc );
+
     kwiver::vital::config_block_key_t const full_key = kwiver::vital::config_block_key_t( type ) +
                                                        kwiver::vital::config_block::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t( full_key, info );
 
     all_configs.push_back( decl );
-  }
+  } // end foreach
 
   kwiver::vital::config_block_sptr const full_config = bakery_base::extract_configuration_from_decls( all_configs );
 
@@ -135,17 +140,15 @@ cluster_creator
   VITAL_FOREACH( cluster_config_t const & conf, info.m_configs )
   {
     config_value_t const& config_value = conf.config_value;
-    config_key_t const& config_key = config_value.key;
-    kwiver::vital::config_block_keys_t const& key_path = config_key.key_path;
+    kwiver::vital::config_block_keys_t const& key_path = config_value.key_path;
     kwiver::vital::config_block_key_t const& key = bakery_base::flatten_keys( key_path );
     kwiver::vital::config_block_value_t const& value = main_config->get_value< kwiver::vital::config_block_value_t > ( key );
     kwiver::vital::config_block_description_t const& description = conf.description;
-    config_key_options_t const& options = config_key.options;
     bool tunable = false;
 
-    if ( options.flags )
+    if ( ! config_value.flags.empty() )
     {
-      config_flags_t const& flags = *options.flags;
+      config_flags_t const& flags = config_value.flags;
       tunable = ( 0 != std::count( flags.begin(), flags.end(), bakery_base::flag_tunable ) );
     }
 
@@ -156,24 +159,21 @@ cluster_creator
       tunable );
   }
 
-  extract_literal_value const literal_value = extract_literal_value();
-
   // Add config mappings.
   VITAL_FOREACH( bakery_base::config_decl_t const & decl, mapped_decls )
   {
     kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& mapping_info = decl.second;
-    bakery_base::config_reference_t const& ref = mapping_info.reference;
 
-    kwiver::vital::config_block_value_t const value = boost::apply_visitor( literal_value, ref );
+    kwiver::vital::config_block_value_t const value = mapping_info.value;
 
     kwiver::vital::config_block_keys_t mapped_key_path;
     kwiver::vital::config_block_keys_t source_key_path;
 
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-    kwiver::vital::tokenize( key, mapped_key_path, kwiver::vital::config_block::block_sep, true );
+    kwiver::vital::tokenize( key, mapped_key_path, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-    kwiver::vital::tokenize( value, source_key_path,  kwiver::vital::config_block::block_sep );
+    kwiver::vital::tokenize( value, source_key_path, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
 
     if ( mapped_key_path.size() < 2 )
     {
