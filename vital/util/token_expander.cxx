@@ -123,13 +123,24 @@ expand_token( std::string const& initial_string )
       else
       {
         // element type is not in the macro provider
-        new_value.append( start, start + exp.end(0) );
+        // append everything up to the match
+        new_value.append( start, start + exp.start(0) );
+        if ( handle_missing_entry( exp.match(1), exp.match(2) ) )
+        {
+          new_value.append( start + exp.start(0), start + exp.end(0) );
+        }
       }
     }
     else
     {
       // provider type not found - no substitution, copy forward original text
-      new_value.append( start, start + exp.end(0) );
+      // append everything up to the match
+      new_value.append( start, start + exp.start(0) );
+
+      if ( handle_missing_provider( exp.match(1), exp.match(2) ) )
+      {
+        new_value.append( start + exp.start(0), start + exp.end(0) );
+      }
     }
 
     // Update matching pointers
@@ -142,5 +153,25 @@ expand_token( std::string const& initial_string )
 
   return new_value;
 } // expand_token
+
+
+// ------------------------------------------------------------------
+bool
+token_expander::
+handle_missing_entry( const std::string& provider, const std::string& entry )
+{
+  // default is to insert unresolved text
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+bool
+token_expander::
+handle_missing_provider( const std::string& provider, const std::string& entry )
+{
+  // default is to insert unresolved text
+  return true;
+}
 
 } } // end namespace
