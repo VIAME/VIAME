@@ -41,24 +41,6 @@
 
 #include <sstream>
 
-
-/*
- * Open issues:
- *
- * Supporting the old version of the "providers" is problematic and
- * leads to ugly syntax of the config entries. Currently not supported.
- *
- * Support for ":=" local assignment. This is useful in the
- * stand-alone config parser, but it is not as compelling in the pipe
- * parser since we can use pipe level config blocks for the same
- * purpose. Given that we must be able to ingest config files that are
- * acceptable to the config_parser, we must handle this in some
- * manner. One possible approach is to annotate this operator in the
- * config attributes and build a local symbol table during an early
- * pass over the AST. This local table would be available for fill-ins
- * when the config block is created.
- */
-
 namespace sprokit {
 
 namespace {
@@ -485,7 +467,7 @@ old_config( sprokit::config_value_t& val )
   while ( true )
   {
     std::string part = parse_config_key();
-    val.key.key_path.push_back( part );
+    val.key_path.push_back( part );
 
     t = m_lexer.get_token();
     if ( t->token_type() != TK_COLON)
@@ -510,11 +492,12 @@ old_config( sprokit::config_value_t& val )
   }
 
   // save rest of line as the config value
+  val.loc = t->get_location();
   val.value = m_lexer.get_rest_of_line();
 
   m_lexer.absorb_whitespace( true );
 
-  PARSER_TRACE( "Accepted old style config: \"" << kwiver::vital::join( val.key.key_path, ":" ) << "\""
+  PARSER_TRACE( "Accepted old style config: \"" << kwiver::vital::join( val.key_path, ":" ) << "\""
                 << " = " << "\"" << val.value << "\"" );
 }
 
@@ -544,7 +527,7 @@ new_config( sprokit::config_value_t& val )
   while ( true )
   {
     std::string part = parse_config_key();
-    val.key.key_path.push_back( part );
+    val.key_path.push_back( part );
 
     // look for key component separator
     t = m_lexer.get_token();
@@ -569,18 +552,19 @@ new_config( sprokit::config_value_t& val )
   {
     if ( t->token_value() == TK_LOCAL_ASSIGN )
     {
-      val.key.options.flags->push_back( "local-assign" );
+      val.flags.push_back( "local-assign" );
     }
 
     // save rest of line as the config value
     val.value = t->text();
+    val.loc = t->get_location();
   }
   else
   {
     PARSE_ERROR( t, "Expecting assignment operator but found \"" << t->text() << "\"" );
   }
 
-    PARSER_TRACE( "Accepted new style config: \"" << kwiver::vital::join( val.key.key_path, ":" ) << "\""
+    PARSER_TRACE( "Accepted new style config: \"" << kwiver::vital::join( val.key_path, ":" ) << "\""
                 << " = " << "\"" << val.value << "\"" );
 }
 
@@ -592,6 +576,10 @@ new_config( sprokit::config_value_t& val )
  * This method parses the attribute list. The leading '[' has already
  * been absorbed. All attributes up to the closing ']' are added to
  * the attribute list. The closing ']' is also absorbed.
+ *
+ * Note that the attributes are rather free-form at this point. We
+ * could verify each one at this point, but historically, that is done
+ * at a later step (semantic validation).
  *
  * '[' <attr-list> ']'
  *
@@ -615,7 +603,7 @@ parse_attrs( sprokit::config_value_t& val )
       PARSE_ERROR( t, "Expecting attribute flag but found \"" << t->text() << "\"" );
     }
 
-    val.key.options.flags->push_back( t->text() );
+    val.flags.push_back( t->text() );
 
     t = m_lexer.get_token();
 
@@ -996,7 +984,7 @@ parse_config( config_values_t& out_config )
       block_ctxt.m_location = m_lexer.current_location();
       block_ctxt.m_previous_context = current_context;
 
-      kwiver::vital::tokenize( block_name, current_context, ":", true );
+      kwiver::vital::tokenize( block_name, current_context, ":", kwiver::vital::TokenizeTrimEmpty );
 
       block_stack.push_back( block_ctxt );
       continue;
@@ -1020,7 +1008,7 @@ parse_config( config_values_t& out_config )
     }
 
     // preload keypath with current block context
-    config_val.key.key_path = current_context;
+    config_val.key_path = current_context;
     m_lexer.unget_token( t );
     if ( ! parse_config_line( config_val ) )
     {
@@ -1097,7 +1085,7 @@ parse_config_line( config_value_t& config_val )
   // that this is a new style config entry
   if ( t->token_type() == TK_RELATIVE_PATH )
   {
-    config_val.key.options.flags->push_back( "relativepath" );
+    config_val.flags.push_back( "relativepath" );
 
     // get next token
     t = m_lexer.get_token();

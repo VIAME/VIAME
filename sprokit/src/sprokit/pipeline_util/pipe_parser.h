@@ -86,7 +86,7 @@ public:
    *
    * @return A vector of pipe blocks representing the pipeline.
    */
-  sprokit::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "*input*stream*" );
+  sprokit::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "" );
 
   /**
    * @brief Parse cluster definitions.
@@ -98,7 +98,7 @@ public:
    *
    * @return A vector of cluster blocks representing the cluster definition.
    */
-  sprokit::cluster_blocks parse_cluster( std::istream& input, const std::string& name = "*input*stream*" );
+  sprokit::cluster_blocks parse_cluster( std::istream& input, const std::string& name = "" );
 
   /** Compatibility mode.
    *
