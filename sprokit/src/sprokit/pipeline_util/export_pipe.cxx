@@ -368,21 +368,18 @@ void
 key_printer
 ::operator()( sprokit::config_value_t const& config_value ) const
 {
-  sprokit::config_key_t const& key = config_value.key;
-  kwiver::vital::config_block_value_t const& value = config_value.value;
+  const auto & value = config_value.value;
+  const auto & keys = config_value.key_path;
 
-  kwiver::vital::config_block_keys_t const& keys = key.key_path;
-  sprokit::config_key_options_t const& options = key.options;
+  const auto key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
 
-  kwiver::vital::config_block_key_t const key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
-
-  boost::optional< sprokit::config_flags_t > const& flags = options.flags;
+  const auto & flags = config_value.flags;
 
   m_ostr << "  " << key_path;
 
-  if ( flags )
+  if ( ! flags.empty() )
   {
-    sprokit::config_flag_t const flag_list = kwiver::vital::join( *flags, "," );
+    const auto flag_list = kwiver::vital::join( flags, "," );
 
     m_ostr << "[" << flag_list << "]";
   }
