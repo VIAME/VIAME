@@ -14,12 +14,12 @@ set( public_headers
   bundle_adjust.h
   close_loops.h
   compute_ref_homography.h
+  compute_stereo_depth_map.h
   convert_image.h
   detect_features.h
   detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
-  detection_refiner.h
   draw_detected_object_set.h
   draw_tracks.h
   dynamic_configuration.h
@@ -37,7 +37,9 @@ set( public_headers
   initialize_cameras_landmarks.h
   match_features.h
   optimize_cameras.h
+  refine_detections.h
   track_features.h
+  train_detector.h
   triangulate_landmarks.h
   video_input.h
   )
@@ -50,12 +52,12 @@ set( sources
   bundle_adjust.cxx
   close_loops.cxx
   compute_ref_homography.cxx
+  compute_stereo_depth_map.cxx
   convert_image.cxx
   detect_features.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
-  detection_refiner.cxx
   draw_detected_object_set.cxx
   draw_tracks.cxx
   dynamic_configuration.cxx
@@ -73,7 +75,9 @@ set( sources
   initialize_cameras_landmarks.cxx
   match_features.cxx
   optimize_cameras.cxx
+  refine_detections.cxx
   track_features.cxx
+  train_detector.cxx
   triangulate_landmarks.cxx
   video_input.cxx
 )

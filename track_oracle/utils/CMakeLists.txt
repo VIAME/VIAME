@@ -15,8 +15,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/logging_map_export.h
-  SUBDIR          track_oracle/utils
-  NOPATH
+  NOPATH SUBDIR          track_oracle/utils
 )
 
 kwiver_add_library( logging_map

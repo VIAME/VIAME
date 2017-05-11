@@ -42,6 +42,7 @@ import ctypes
 
 from vital.types import ImageContainer
 from vital.types import TrackSet
+from vital.types import DetectedObjectSet
 from vital.util import find_vital_library
 
 __VITAL_CONVERTERS_LIB__ = None
@@ -91,6 +92,37 @@ def _convert_image_container_out(handle):
     # convert opaque handle to datum (as PyCapsule)
     func =  _VCL.vital_image_container_to_datum
     func.argtypes = [ ImageContainer.C_TYPE_PTR ]
+    func.restype = ctypes.py_object
+    retval = func(handle)
+    return retval
+
+
+def _convert_detected_object_set_in(datum_ptr):
+    """
+    Convert datum as PyCapsule to image_container opaque handle.
+    """
+    _VCL = _find_converter_lib()
+    # Convert from datum to opaque handle.
+    func = _VCL.vital_detected_object_set_from_datum
+    func.argtypes = [ ctypes.py_object ]
+    func.restype = DetectedObjectSet.C_TYPE_PTR
+    # get opaque handle from the datum
+    handle = func(datum_ptr)
+
+    # convert handle to python object - from c-ptr
+    py_ic_obj = DetectedObjectSet( None, handle )
+
+    return py_ic_obj
+
+
+def _convert_detected_object_set_out(handle):
+    """
+    Convert datum as PyCapsule from image_container opaque handle.
+    """
+    _VCL = _find_converter_lib()
+    # convert opaque handle to datum (as PyCapsule)
+    func =  _VCL.vital_detected_object_set_to_datum
+    func.argtypes = [ DetectedObjectSet.C_TYPE_PTR ]
     func.restype = ctypes.py_object
     retval = func(handle)
     return retval

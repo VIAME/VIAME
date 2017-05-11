@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@ extern "C"
 
 #include <vital/bindings/c/vital_c_export.h>
 
+#include <stddef.h>
+
 /// VITAL Image opaque structure
 typedef struct vital_detected_object_type_s vital_detected_object_type_t;
 
@@ -55,12 +57,15 @@ void vital_detected_object_type_destroy(vital_detected_object_type_t* obj);
 
 VITAL_C_EXPORT
 vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_detected_object_type_t* obj,
-                                                                        int count,
+                                                                        size_t count,
                                                                         char** class_names,
                                                                         double* scores);
 
 VITAL_C_EXPORT
-double vital_detected_object_type_score_from_class( vital_detected_object_type_t* obj, char* class_name );
+bool vital_detected_object_type_has_class_name( vital_detected_object_type_t* obj, char* class_name );
+
+VITAL_C_EXPORT
+double vital_detected_object_type_score( vital_detected_object_type_t* obj, char* class_name );
 
 VITAL_C_EXPORT
 char* vital_detected_object_type_get_most_likely_class( vital_detected_object_type_t* obj);

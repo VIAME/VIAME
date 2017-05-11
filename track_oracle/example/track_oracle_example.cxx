@@ -5,6 +5,8 @@
  */
 
 #include <stdexcept>
+#include <fstream>
+#include <ostream>
 
 //
 // This is a short example demonstrating how to use the track oracle.
@@ -29,12 +31,13 @@
 //
 
 
-#include <track_oracle/element_descriptor.h>
-#include <track_oracle/track_base.h>
-#include <track_oracle/track_field.h>
-#include <track_oracle/track_oracle_core.h>
-#include <track_oracle/schema_algorithm.h>
-#include <track_oracle/track_field_functor.h>
+#include <vital/vital_config.h>
+#include <track_oracle/core/track_oracle_export.h>
+#include <track_oracle/core/element_descriptor.h>
+#include <track_oracle/core/track_base.h>
+#include <track_oracle/core/track_field.h>
+#include <track_oracle/core/track_oracle_core.h>
+#include <track_oracle/core/schema_algorithm.h>
 #include <track_oracle/data_terms/data_terms.h>
 
 #include <vital/logger/logger.h>
@@ -128,29 +131,6 @@ struct derived_track: public ::kwiver::track_oracle::track_base< derived_track, 
   {}
 };
 
-//
-// This is an example of a functor which duplicates the operation of "lookup"
-//
-
-class lookup_timestamp_functor: public ::kwiver::track_oracle::track_field_functor<unsigned long long>
-{
-private:
-  unsigned long long target_timestamp;
-
-public:
-  explicit lookup_timestamp_functor( unsigned long long ts )
-  : ::kwiver::track_oracle::track_field_functor<unsigned long long>(), target_timestamp( ts ) {}
-
-  virtual void apply_at_row( const ::kwiver::track_oracle::oracle_entry_handle_type& row, const unsigned long long& v )
-  {
-    if ( v == this->target_timestamp )
-    {
-      this->result_handle = row;
-      this->result_value = v;
-    }
-  }
-};
-
 
 int main( int argc, char *argv[] )
 {
@@ -231,6 +211,14 @@ int main( int argc, char *argv[] )
     LOG_INFO( main_logger, "After changing first and last timestamps");
     LOG_INFO( main_logger, t << "");
 
+    LOG_INFO( main_logger, "About to write");
+    // write it out to be sure
+    track_handle_list_type tracks;
+    tracks.push_back( track_handle );
+    std::ofstream os ("./foo.kwiver");
+    track_oracle_core::write_kwiver( os, tracks );
+    LOG_INFO( main_logger, "wrote");
+
     // delete some frames
     t.remove_frame( first_frame );
     LOG_INFO( main_logger, "After deleting first frame\n" << t << "");
@@ -261,6 +249,7 @@ int main( int argc, char *argv[] )
 
     // and it's still there.
     LOG_INFO( main_logger, t( track_handle ) << "");
+
   }
 
 
@@ -329,20 +318,6 @@ int main( int argc, char *argv[] )
       }
     }
 
-    // Should be the same as above
-    {
-      LOG_INFO( main_logger, "Lookup #2:");
-      LOG_INFO( main_logger, "" );
-      lookup_timestamp_functor ltf( 103 );
-      pair< oracle_entry_handle_type, unsigned long long > probe = t.timestamp.apply_functor( ltf );
-      frame_handle_type lookup_handle( probe.first );
-      LOG_INFO( main_logger, "Functor lookup: timestamp 103 found? " << lookup_handle.is_valid() );
-      if ( lookup_handle.is_valid() )
-      {
-        track_oracle_frame_view f = t[ lookup_handle ].frame();
-        LOG_INFO( main_logger, "Timestamp 103: " << f[ frame_handle_type( probe.first ) ] );
-      }
-    }
     {
       LOG_INFO( main_logger, "Lookup #3:");
       LOG_INFO( main_logger, "" );
@@ -371,19 +346,6 @@ int main( int argc, char *argv[] )
       LOG_INFO( main_logger, "Track field lookup on data_term: timestamp 103 found? " << lookup.is_valid() );
       track_oracle_frame_view f = t[ lookup ].frame();
       LOG_INFO( main_logger, "Timestamp 103: " << f[ lookup ] );
-    }
-    {
-      LOG_INFO( main_logger, "Lookup #5:");
-      LOG_INFO( main_logger, "" );
-      // data term w/ functor
-      track_field< ::kwiver::track_oracle::dt::tracking::timestamp_usecs > frame_term;
-      lookup_timestamp_functor ltf( 103 );
-      pair< oracle_entry_handle_type, unsigned long long > probe = frame_term.apply_functor( ltf );
-      frame_handle_type lookup_handle( probe.first );
-      LOG_INFO( main_logger, "Functor lookup on data_term: timestamp 103 found? " << lookup_handle.is_valid() );
-      track_oracle_frame_view f = t[ lookup_handle ].frame();
-      LOG_INFO( main_logger, "Timestamp 103: " << f[ lookup_handle ] );
-
     }
   }
 

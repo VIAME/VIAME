@@ -64,7 +64,7 @@ typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
  * application where two threads are accessing the same set
  * concurrently.
  */
-class VITAL_EXPORT detected_object_set final
+class VITAL_EXPORT detected_object_set
   : private noncopyable
 {
 public:

@@ -29,8 +29,7 @@ kwiver_install_headers(
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vibrant_descriptors_export.h
-  SUBDIR        track_oracle/vibrant_descriptors
-  NOPATH
+  NOPATH SUBDIR        track_oracle/vibrant_descriptors
 )
 
 kwiver_add_library( vibrant_descriptors
