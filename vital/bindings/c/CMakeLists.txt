@@ -27,6 +27,7 @@ set(vital_c_public_headers
   types/detected_object.h
   types/detected_object_type.h
   types/detected_object_set.h
+  types/detected_object_set.hxx
   types/eigen.h
   types/feature.h
   types/homography.h

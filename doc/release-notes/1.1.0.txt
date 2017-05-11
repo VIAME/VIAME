@@ -225,6 +225,14 @@ Vital Bindings
  * Added C/Python interface for estimate_canonical_transform algorithm
    definition
 
+ * Added C/Python interface for vital::bounding_box class
+
+ * Added C/Python interface for vital::detected_object class
+
+ * Added C/Python interface for vital::detected_object_type class
+
+ * Added C/Python interface for vital::detected_object_set class
+
 
 Fixes since v1.0.0
 ------------------

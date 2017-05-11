@@ -36,10 +36,10 @@ def __sprokit_register__():
 
     module_name = 'python:test.examples'
 
-    if is_process_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    register_process('test_python_process', 'A test Python process', examples.TestPythonProcess)
-    register_process('pyprint_number', 'A Python process which prints numbers', examples.PythonPrintNumberProcess)
+    process_factory.add_process('test_python_process', 'A test Python process', examples.TestPythonProcess)
+    process_factory.add_process('pyprint_number', 'A Python process which prints numbers', examples.PythonPrintNumberProcess)
 
-    mark_process_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

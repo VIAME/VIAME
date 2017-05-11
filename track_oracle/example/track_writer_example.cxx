@@ -8,9 +8,9 @@
 /// An example program demonstrating track writing.
 ///
 
-#include <track_oracle/track_oracle_core.h>
-#include <track_oracle/file_format_base.h>
-#include <track_oracle/file_format_manager.h>
+#include <track_oracle/core/track_oracle_core.h>
+#include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/file_format_manager.h>
 
 
 #include <vital/logger/logger.h>

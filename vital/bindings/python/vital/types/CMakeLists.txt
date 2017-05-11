@@ -57,6 +57,11 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track_set.py
   vital/types
   track_set )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/bounding_box.py          vital/types  bounding_box )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object.py       vital/types  detected_object )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_type.py  vital/types  detected_object_type )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_set.py   vital/types  detected_object_set )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   vital/types
   __init__ )
@@ -75,4 +80,8 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
 #  rotation
 #  track
 #  track_set
+#  boundinb_box
+#  detected_object
+#  detected_object_type
+#  detected_object_set
 #  )

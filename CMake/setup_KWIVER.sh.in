@@ -10,5 +10,3 @@ export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
 
 # Set default log reporting level for default logger.
 # export KWIVER_DEFAULT_LOG_LEVEL=info
-
-# Append here

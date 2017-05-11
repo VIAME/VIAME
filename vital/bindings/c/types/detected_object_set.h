@@ -69,7 +69,7 @@ size_t vital_detected_object_set_size( vital_detected_object_set_t* obj);
 
 VITAL_C_EXPORT
 vital_detected_object_t** vital_detected_object_set_select_threshold( vital_detected_object_set_t* obj,
-                                                                        double thresh );
+                                                                      double thresh );
 
 VITAL_C_EXPORT
 vital_detected_object_t** vital_detected_object_set_select_class_threshold( vital_detected_object_set_t* obj,

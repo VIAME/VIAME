@@ -33,7 +33,8 @@
  * \brief Interface for detected_object_set class
  */
 
-#include <vital/bindings/c/types/detected_object_set.h>
+#include "detected_object_set.h"
+#include "detected_object_set.hxx"
 
 #include <vital/types/detected_object_set.h>
 #include <vital/types/detected_object.h>
@@ -51,6 +52,54 @@ SharedPointerCache< kwiver::vital::detected_object_set, vital_detected_object_se
   DOBJ_SET_SPTR_CACHE( "detected_object_set" );
 
 } }
+
+// ==================================================================
+// These two functions support C++ access to the SPTR_CACHE.
+
+/**
+ * @brief Accept shared pointer to detected object set.
+ *
+ * This function takes a pointer to a shared_pointer and adds it to
+ * the SPTR_CACHE in the same way as a constructor (above). This
+ * allows us to manage an already existing object.
+ *
+ * @param sptr Pointer to shared pointer
+ *
+ * @return Opaque object pointer/handle
+ */
+vital_detected_object_set_t* vital_detected_object_set_from_sptr( kwiver::vital::detected_object_set_sptr sptr )
+{
+  STANDARD_CATCH(
+    "C::detected_object_set::from_sptr", 0,
+
+    kwiver::vital_c::DOBJ_SET_SPTR_CACHE.store( sptr );
+    return reinterpret_cast<vital_detected_object_set_t*>( sptr.get() );
+    );
+  return 0;
+}
+
+
+vital_detected_object_set_t* vital_detected_object_set_from_c_pointer( kwiver::vital::detected_object_set* ptr )
+{
+  STANDARD_CATCH(
+    "C::detected_object_set::from_c_ptr", 0,
+    kwiver::vital::detected_object_set_sptr sptr(ptr);
+    kwiver::vital_c::DOBJ_SET_SPTR_CACHE.store( sptr );
+    return reinterpret_cast<vital_detected_object_set_t*>( ptr );
+    );
+  return 0;
+}
+
+
+kwiver::vital::detected_object_set_sptr vital_detected_object_set_to_sptr( vital_detected_object_set_t* handle )
+{
+  STANDARD_CATCH(
+    "C::detected_object_set::to_sptr", 0,
+
+    return kwiver::vital_c::DOBJ_SET_SPTR_CACHE.get( handle );
+    );
+  return kwiver::vital::detected_object_set_sptr();
+}
 
 
 // ------------------------------------------------------------------

@@ -1,6 +1,3 @@
-add_executable( test_template test_template.cxx )
-target_link_libraries( test_template track_oracle data_terms vital vital_logger )
-
 #
 # example using the track oracle
 #

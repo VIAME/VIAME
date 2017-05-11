@@ -41,9 +41,11 @@ def __sprokit_register__():
 
     module_name = 'python:test.python.extras'
 
-    if is_process_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
-    register_process('extra_test_python_process', 'An extra test Python process', TestPythonProcess)
+    process_factory.add_process('extra_test_python_process',
+                                'An extra test Python process',
+                                TestPythonProcess)
 
-    mark_process_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

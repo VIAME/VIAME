@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ void vital_detected_object_type_destroy(vital_detected_object_type_t* obj)
 
 // ------------------------------------------------------------------
 vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_detected_object_type_t* obj,
-                                                                        int count,
+                                                                        size_t count,
                                                                         char** class_names,
                                                                         double* scores)
 {
@@ -87,7 +87,7 @@ vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_de
     "C::detected_object_type:new_from_list", 0,
     std::vector<std::string> names;
     std::vector< double > scores;
-    for (int i = 0; i < count; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
       names.push_back(class_names[i]);
       scores.push_back(scores[i]);
@@ -101,10 +101,21 @@ vital_detected_object_type_t* vital_detected_object_type_new_from_list( vital_de
 
 
 // ------------------------------------------------------------------
-double vital_detected_object_type_score_from_class( vital_detected_object_type_t* obj, char* class_name )
+bool vital_detected_object_type_has_class_name( vital_detected_object_type_t* obj, char* class_name )
 {
   STANDARD_CATCH(
-    "C::detected_object_type:score_from_class", 0,
+    "C::detected_object_type:has_class_name", 0,
+    return kwiver::vital_c::DOT_SPTR_CACHE.get( obj )->has_class_name( std::string( class_name ));
+    );
+  return false;
+}
+
+
+// ------------------------------------------------------------------
+double vital_detected_object_type_score( vital_detected_object_type_t* obj, char* class_name )
+{
+  STANDARD_CATCH(
+    "C::detected_object_type:score", 0,
     return kwiver::vital_c::DOT_SPTR_CACHE.get( obj )->score( std::string( class_name ));
     );
   return 0;
