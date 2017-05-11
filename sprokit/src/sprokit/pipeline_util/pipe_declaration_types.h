@@ -55,21 +55,8 @@ namespace sprokit
 typedef std::string token_t;
 
 /// The type for a flag on a configuration key.
-#if 1
 typedef token_t config_flag_t;
-#else
-  //
-  enum config_flag_t {
-    flag_read_only,
-    flag_relativepath,
-    flag_tunable,
-    flag_local_assign,          // := operation
-    flag_append,                // append
-    flag_append_comma,          // append=comma
-    flag_append_space,          // append=space
-    flag_append_path,           // append=path
-  };
-#endif
+
 /// The type for a collection of flags on a configuration key.
 /*
  * These flags are represented as strings, which provides an easily
@@ -82,38 +69,21 @@ typedef std::vector<config_flag_t> config_flags_t;
 /// The type for a configuration provider.
 typedef token_t config_provider_t;
 
-// ------------------------------------------------------------------
-/**
- * \struct config_key_options_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
- *
- * \brief Options for a configuration key.
- */
-struct config_key_options_t
-{
-  /// Flags on the configuration (if requested).
-  boost::optional<config_flags_t> flags;
+/* // ------------------------------------------------------------------ */
+/* /\** */
+/*  * \struct config_key_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h> */
+/*  * */
+/*  * \brief A structure for information on a configuration key. */
+/*  *\/ */
+/* struct config_key_t */
+/* { */
+/*   /// The configuration path. Each element in the vector is a portion of the key. */
+/*   kwiver::vital::config_block_keys_t key_path; */
 
-  /// The configuration provider (if requested).
-  boost::optional<config_provider_t> provider;
-};
-
-
-// ------------------------------------------------------------------
-/**
- * \struct config_key_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h>
- *
- * \brief A structure for information on a configuration key.
- */
-struct config_key_t
-{
-  /// The configuration path. Each element in the vector is a portion of the key.
-  //+ should this path be flattened by the parser?
-  kwiver::vital::config_block_keys_t key_path;
-
-  /// Options for the key.
-  // This indicates read-only, append, etc. as specified and config provider.
-  config_key_options_t options;
-};
+/*   // Attributes that are associated with this config key */
+/*   // An empty list indicates no flags or attributes. */
+/*   config_flags_t flags; */
+/* }; */
 
 
 // ------------------------------------------------------------------
@@ -128,8 +98,12 @@ struct config_key_t
  */
 struct config_value_t
 {
-  /// The key for the configuration.
-  config_key_t key;
+  /// The configuration path. Each element in the vector is a portion of the key.
+  kwiver::vital::config_block_keys_t key_path;
+
+  // Attributes that are associated with this config key
+  // An empty list indicates no flags or attributes.
+  config_flags_t flags;
 
   /// The value of the configuration.
   kwiver::vital::config_block_value_t value;
