@@ -6,7 +6,7 @@ cluster map_config_non_process
   -- The output.
 
 config not_a_process
-  tunable[ro] = $CONF{map_config_non_process:tunable}
+  tunable[ro] = $CONFIG{map_config_non_process:tunable}
 
 process expect
   :: expect

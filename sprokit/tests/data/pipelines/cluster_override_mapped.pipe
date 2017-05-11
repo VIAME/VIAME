@@ -8,7 +8,7 @@ cluster map_config_override
 
 process expect
   :: expect
-  tunable[ro] = $CONF{map_config_override:tunable}
+  tunable[ro] = $CONFIG{map_config_override:tunable}
   expect[ro] = expected
 
 process sink_expect

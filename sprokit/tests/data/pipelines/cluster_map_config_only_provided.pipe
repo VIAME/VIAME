@@ -2,6 +2,7 @@ cluster map_config_only_provided
   -- Cluster for map_config testing.
   tunable[tunable] = expected
   -- A tunable parameter.
+
   omap from expect.dummy
        to   pass
   -- The output.

@@ -8,9 +8,8 @@ cluster map_config_modified
 
 process expect
   :: expect
-  :tunable{CONF} map_config_modified:tunable
-  :tunable[append] _full
-  :expect[ro] expected_full
+  tunable = $CONF{map_config_modified:tunable}_full
+  expect[ro] = expected_full
 
 process sink_expect
   :: sink

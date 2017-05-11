@@ -2,4 +2,4 @@ config myblock
   mykey = myvalue
 
 config myotherblock
-  mykey = $CONF{myblock:mykey}
+  mykey = $CONFIG{myblock:mykey}

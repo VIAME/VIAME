@@ -1,0 +1,6 @@
+config myblock
+
+  block foo:a:b:c
+    # new style config entry
+    mykey = myvalue
+  endblock

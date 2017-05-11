@@ -157,6 +157,63 @@ IMPLEMENT_TEST(config_block)
 
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_block)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_long_block)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_nested_block)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_unclosed_block)
+{
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   "with an expect error");
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_unopened_block)
+{
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   "with an expect error");
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_notalnum)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);

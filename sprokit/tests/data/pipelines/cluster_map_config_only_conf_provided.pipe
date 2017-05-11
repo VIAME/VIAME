@@ -9,7 +9,7 @@ cluster map_config_only_conf_provided
 process expect
   :: expect
   tunable[ro] = $ENV{{TEST_ENV}
-  expect[ro] - expected
+  expect[ro] = expected
 
 process sink_expect
   :: sink

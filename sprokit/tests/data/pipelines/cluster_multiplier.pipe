@@ -10,7 +10,7 @@ cluster multiplier_cluster_test
 
 process const
   :: const_number
-  value[ro]= $CONF{multiplier_cluster_test:factor}
+  value[ro]= $CONFIG{multiplier_cluster_test:factor}
 
 process multiply
   :: multiplication

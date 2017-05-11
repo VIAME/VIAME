@@ -7,11 +7,11 @@ cluster map_config_not_cluster
   -- The output.
 
 config dummy
-  value -expected
+  value = expected
 
 process expect
   :: expect
-  tunable[ro] = $CONF{dummy:value}
+  tunable[ro] = $CONFIG{dummy:value}
   expect[ro] = expected
 
 process sink_expect

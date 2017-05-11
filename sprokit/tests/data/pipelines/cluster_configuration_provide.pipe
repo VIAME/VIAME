@@ -11,7 +11,7 @@ cluster configuration_provide
 
 process const
   :: const_number
-  :value[ro]{CONF} configuration_provide:factor
+  value[ro]= $CONFIG{configuration_provide:factor}
 
 process multiply
   :: multiplication

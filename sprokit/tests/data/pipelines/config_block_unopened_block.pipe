@@ -1,0 +1,3 @@
+config myblock
+  mykey = myvalue
+  endblock
