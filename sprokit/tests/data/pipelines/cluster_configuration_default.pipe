@@ -1,5 +1,6 @@
 cluster configuration_default
   -- Multiply a number by a constant factor.
+
   imap from factor
        to   multiply.factor1
   -- The factor to multiply by.

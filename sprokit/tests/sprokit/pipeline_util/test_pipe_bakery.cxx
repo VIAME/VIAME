@@ -41,7 +41,7 @@
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 
-#include <boost/lexical_cast.hpp>
+#include <kwiversys/SystemTools.hxx>
 
 #include <exception>
 #include <iostream>
@@ -102,6 +102,26 @@ IMPLEMENT_TEST( config_block_block )
   const auto mykey = kwiver::vital::config_block_key_t( "myblock:foo:mykey" );
   const auto myvalue = conf->get_value< kwiver::vital::config_block_value_t > ( mykey );
   const auto expected = kwiver::vital::config_block_value_t( "myvalue" );
+
+  if ( myvalue != expected )
+  {
+    TEST_ERROR( "Configuration was not correct: Expected: "
+                << expected << " Received: " << myvalue );
+  }
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST( config_block_relativepath )
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+
+  kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
+
+  const auto mykey = kwiver::vital::config_block_key_t( "myblock:otherkey" );
+  const auto myvalue = conf->get_value< kwiver::vital::config_block_value_t > ( mykey );
+  const std::string cwd = kwiversys::SystemTools::GetFilenamePath( pipe_file );
+  const auto expected = cwd + "/" + "value";
 
   if ( myvalue != expected )
   {
@@ -539,7 +559,9 @@ IMPLEMENT_TEST( cluster_multiplier )
   const auto ctor = info->ctor;
   const auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "factor", boost::lexical_cast< kwiver::vital::config_block_value_t > ( 30 ) );
+  std::stringstream str;
+  str << int(30);
+  config->set_value( "factor", str.str() );
 
   sprokit::process_t const proc = ctor( config );
 
@@ -1052,8 +1074,13 @@ test_cluster( sprokit::process_t const& cluster, std::string const& path )
     const auto start_key = kwiver::vital::config_block_key_t( "start" );
     const auto end_key = kwiver::vital::config_block_key_t( "end" );
 
-    const auto start_num = boost::lexical_cast< kwiver::vital::config_block_value_t > ( start_value );
-    const auto end_num = boost::lexical_cast< kwiver::vital::config_block_value_t > ( end_value );
+    std::stringstream str;
+    str << start_value;
+    const auto start_num = str.str();
+
+    str.clear();
+    str << end_value;
+    const auto end_num = str.str();
 
     configu->set_value( start_key, start_num );
     configu->set_value( end_key, end_num );
@@ -1111,11 +1138,12 @@ test_cluster( sprokit::process_t const& cluster, std::string const& path )
       TEST_ERROR( "Failed to read a line from the file" );
     }
 
-    if ( kwiver::vital::config_block_value_t( line ) != boost::lexical_cast< kwiver::vital::config_block_value_t > ( i * factor ) )
+    std::stringstream str;
+    str << ( i * factor );
+    if ( kwiver::vital::config_block_value_t( line ) != str.str() )
     {
-      TEST_ERROR( "Did not get expected value: "
-                  "Expected: " << i * factor << " "
-                                                "Received: " << line );
+      TEST_ERROR( "Did not get expected value: Expected: "
+                  << (i * factor) << " Received: " << line );
     }
   }
 

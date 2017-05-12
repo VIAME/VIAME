@@ -170,6 +170,19 @@ IMPLEMENT_TEST(config_block_block)
 
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_relativepath)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_long_block)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
