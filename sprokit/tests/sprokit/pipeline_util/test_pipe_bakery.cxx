@@ -99,14 +99,28 @@ IMPLEMENT_TEST( config_block_block )
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
-  const auto mykey = kwiver::vital::config_block_key_t( "myblock:foo:mykey" );
-  const auto myvalue = conf->get_value< kwiver::vital::config_block_value_t > ( mykey );
-  const auto expected = kwiver::vital::config_block_value_t( "myvalue" );
-
-  if ( myvalue != expected )
   {
-    TEST_ERROR( "Configuration was not correct: Expected: "
-                << expected << " Received: " << myvalue );
+    const auto mykey = kwiver::vital::config_block_key_t( "myblock:foo:mykey" );
+    const auto myvalue = conf->get_value< kwiver::vital::config_block_value_t > ( mykey );
+    const auto expected = kwiver::vital::config_block_value_t( "myvalue" );
+
+    if ( myvalue != expected )
+    {
+      TEST_ERROR( "Configuration was not correct: Expected: "
+                  << expected << " Received: " << myvalue );
+    }
+  }
+
+  {
+    const auto mykey = kwiver::vital::config_block_key_t( "myblock:foo:oldkey" );
+    const auto myvalue = conf->get_value< kwiver::vital::config_block_value_t > ( mykey );
+    const auto expected = kwiver::vital::config_block_value_t( "oldvalue" );
+
+    if ( myvalue != expected )
+    {
+      TEST_ERROR( "Configuration was not correct: Expected: "
+                  << expected << " Received: " << myvalue );
+    }
   }
 }
 
