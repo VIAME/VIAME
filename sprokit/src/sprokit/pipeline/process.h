@@ -631,7 +631,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \code
      process circ
        :: circle_writer
-          :static/foo  3.14159
+          static/radius = 3.14159
      * \endcode
      *
      * This flag may \b not be combined with \ref flag_required because
