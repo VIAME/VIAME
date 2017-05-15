@@ -194,8 +194,8 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
-  this->d->m_resize_i    = config->get_value< int >( "resize_i" );
-  this->d->m_resize_j    = config->get_value< int >( "resize_j" );
+  this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
+  this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
 
   /* the size of this array is a mystery - probably has to match some
@@ -463,7 +463,8 @@ process_image( const cv::Mat& cv_image )
 
     if ( has_name )
     {
-      detected_objects->add( std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot ) );
+      detected_objects->add(
+        std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot ) );
     }
   } // end loop over detections
 

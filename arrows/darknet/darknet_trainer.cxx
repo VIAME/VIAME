@@ -60,7 +60,9 @@ class darknet_trainer::priv
 {
 public:
   priv()
-    : m_skip_format( false )
+    : m_net_config( "" )
+    , m_train_directory( "darknet_training" )
+    , m_skip_format( false )
     , m_gpu_index( -1 )
     , m_resize_option( "maintain_ar" )
     , m_scale( 1.0 )
@@ -178,8 +180,8 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
-  this->d->m_resize_i    = config->get_value< int >( "resize_i" );
-  this->d->m_resize_j    = config->get_value< int >( "resize_j" );
+  this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
+  this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
@@ -277,6 +279,12 @@ format_images( std::string folder,
     cv::Mat original_image, resized_image;
     original_image = cv::imread( image_fn, -1 );
 
+    if( original_image.rows == 0 || original_image.cols == 0 )
+    {
+      std::cout << "Could not load image " << image_fn << std::endl;
+      return std::vector< std::string >();
+    }
+
     double resized_scale = 1.0;
 
     if( m_resize_option != "disabled" )
@@ -307,25 +315,34 @@ format_images( std::string folder,
       // Chip up and process scaled image
       for( int i = 0; i < resized_image.cols; i += m_chip_step )
       {
-        int ti = i + m_resize_i;
+        int cw = i + m_resize_i;
 
-        if( ti > resized_image.cols )
+        if( cw > resized_image.cols )
         {
-          ti = resized_image.cols - ti;
+          cw = resized_image.cols - i;
         }
+        else
+        {
+          cw = m_resize_i;
+        }
+
         for( int j = 0; j < resized_image.rows; j += m_chip_step )
         {
-          int tj = j + m_resize_j;
+          int ch = j + m_resize_j;
 
-          if( tj > resized_image.rows )
+          if( ch > resized_image.rows )
           {
-            tj = resized_image.rows - tj;
+            ch = resized_image.rows - j;
+          }
+          else
+          {
+            ch = m_resize_j;
           }
 
-          cv::Mat cropped_image = resized_image( cv::Rect( i, j, ti, tj ) );
+          cv::Mat cropped_image = resized_image( cv::Rect( i, j, cw, ch ) );
           cv::Mat resized_crop;
 
-          scale_image_maintaining_ar( original_image,
+          scale_image_maintaining_ar( cropped_image,
             resized_crop, m_resize_i, m_resize_j );
 
           std::string gt_file, img_file;
@@ -386,11 +403,13 @@ print_detections(
     kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
 
     if( det_box.area() > 0 &&
+        overlap.max_x() > overlap.min_x() &&
+        overlap.max_y() > overlap.min_y() &&
         overlap.area() / det_box.area() >= m_overlap_required )
     {
-      std::string category;
-      double tmp;
-      detection->type()->get_most_likely( category, tmp );
+      std::string category = "1";
+      //double tmp;
+      //detection->type()->get_most_likely( category, tmp );
 
       double min_x = overlap.min_x() - region.min_x();
       double min_y = overlap.min_y() - region.min_y();
