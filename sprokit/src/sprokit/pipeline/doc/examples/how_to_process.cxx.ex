@@ -15,7 +15,7 @@ class compare_string_process
     void _step();
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 class compare_string_process::priv

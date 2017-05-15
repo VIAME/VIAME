@@ -398,7 +398,7 @@ collate_process
       port_flags_t required;
       required.insert(flag_required);
 
-      // Create input port "tag"
+      // Create input status port "tag"
       declare_input_port(
         port,
         type_none,
@@ -509,4 +509,4 @@ collate_process::priv::tag_info
 {
 }
 
-}
+} // end namespace

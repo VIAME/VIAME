@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2013-2017 by Kitware, Inc. All Rights Reserved. Please refer to
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #include "examples-config.h"
 
 #include <sprokit/pipeline/process.h>
-
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file skip_process.h
@@ -98,7 +96,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT skip_process
     void _step();
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

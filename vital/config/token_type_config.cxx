@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ token_type_config::
 bool
 token_type_config::
 lookup_entry (kwiver::vital::config_block_key_t const& name,
-              std::string& result)
+              std::string& result) const
 {
   bool retcode( true );
 

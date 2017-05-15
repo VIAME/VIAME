@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,7 @@
 
 #include "types.h"
 #include <vital/config/config_block.h>
-
 #include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file scheduler.h
@@ -60,7 +58,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT scheduler
-  : boost::noncopyable
+  : private boost::noncopyable
 {
   public:
     /// The type of registry keys.
@@ -165,7 +163,7 @@ class SPROKIT_PIPELINE_EXPORT scheduler
 
   private:
     class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

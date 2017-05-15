@@ -29,14 +29,16 @@
  */
 
 #include "tool_usage.h"
+#include "tool_io.h"
 
 #include <sprokit/version.h>
 
 #include <boost/program_options/parsers.hpp>
+#include <boost/program_options/value_semantic.hpp>
 
 #include <iostream>
-
 #include <cstdlib>
+#include <functional>
 
 namespace sprokit
 {
@@ -49,6 +51,8 @@ tool_usage(int ret, boost::program_options::options_description const& options)
   exit(ret);
 }
 
+
+// ------------------------------------------------------------------
 void
 tool_version_message()
 {
@@ -70,6 +74,8 @@ tool_version_message()
   std::cout << "Dirty:              " << is_dirty << std::endl;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::options_description
 tool_common_options()
 {
@@ -83,6 +89,8 @@ tool_common_options()
   return desc;
 }
 
+
+// ------------------------------------------------------------------
 boost::program_options::variables_map
 tool_parse(int argc, char const* argv[], boost::program_options::options_description const& desc,
            std::string const& program_description)
@@ -118,5 +126,66 @@ tool_parse(int argc, char const* argv[], boost::program_options::options_descrip
 
   return vm;
 }
+
+
+// ------------------------------------------------------------------
+boost::program_options::options_description
+pipeline_common_options()
+{
+  boost::program_options::options_description desc("Common options");
+
+  desc.add_options()
+    ("config,c", boost::program_options::value<kwiver::vital::path_list_t>()->value_name("FILE"), "File containing supplemental configuration entries. ")
+    ("setting,s", boost::program_options::value<std::vector<std::string> >()->value_name("VAR=VALUE"), "additional configuration")
+    ("include,I", boost::program_options::value<kwiver::vital::path_list_t>()->value_name("DIR"),
+     "a directory to be added to configuration include path")
+  ;
+
+  return desc;
+}
+
+
+// ------------------------------------------------------------------
+boost::program_options::options_description
+pipeline_input_options()
+{
+  boost::program_options::options_description desc("Input options");
+
+  desc.add_options()
+    ("pipeline,p", boost::program_options::value<kwiver::vital::path_t>()->value_name("FILE"),
+     "Main input pipeline description file")
+  ;
+
+  return desc;
+}
+
+
+// ------------------------------------------------------------------
+boost::program_options::options_description
+pipeline_output_options()
+{
+  boost::program_options::options_description desc("Output options");
+
+  desc.add_options()
+    ("output,o", boost::program_options::value<kwiver::vital::path_t>()->value_name("FILE")->default_value("-"), "output path")
+  ;
+
+  return desc;
+}
+
+
+// ------------------------------------------------------------------
+boost::program_options::options_description
+pipeline_run_options()
+{
+  boost::program_options::options_description desc("Run options");
+
+  desc.add_options()
+    ("scheduler,S", boost::program_options::value<sprokit::scheduler::type_t>()->value_name("TYPE"), "scheduler type")
+  ;
+
+  return desc;
+}
+
 
 }

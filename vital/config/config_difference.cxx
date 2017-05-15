@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_TOOLS_TOOLS_CONFIG_H
-#define SPROKIT_TOOLS_TOOLS_CONFIG_H
+#include "config_difference.h"
 
-#include <sprokit/config.h>
+/*
+  Possible enhancements
 
-/**
- * \file scoring-config.h
- *
- * \brief Defines for symbol visibility in scoring.
+  - Methods to help iterate through a config block given a list of keys.
+  - Formatting methods to help in reporting errors.
+  - Easy way to drill down to get source_loc for some entries.
  */
 
-#ifdef MAKE_SPROKIT_TOOLS_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_TOOLS_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_TOOLS_EXPORT SPROKIT_IMPORT
-#endif
+namespace kwiver {
+namespace vital {
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_TOOLS_NO_EXPORT SPROKIT_NO_EXPORT
 
-/// Mark as deprecated.
-#define SPROKIT_TOOLS_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_TOOLS_EXPORT
+// ------------------------------------------------------------------
+config_difference::
+config_difference( const config_block_sptr reference, const config_block_sptr other )
+{
+  auto extra_config = reference->difference_config( other );
+  m_extra_keys = extra_config->available_values();
 
-#endif // SPROKIT_TOOLS_TOOLS_CONFIG_H
+  auto missing_keys = other->difference_config( reference );
+  m_missing_keys = missing_keys->available_values();
+}
+
+
+config_difference::
+~config_difference()
+{ }
+
+
+// ------------------------------------------------------------------
+config_block_keys_t
+config_difference::
+extra_keys() const
+{
+  return m_extra_keys;
+}
+
+
+// ------------------------------------------------------------------
+config_block_keys_t
+config_difference::
+unspecified_keys() const
+{
+  return m_missing_keys;
+}
+
+} } // end namespace

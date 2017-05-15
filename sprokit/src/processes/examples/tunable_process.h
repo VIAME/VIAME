@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,13 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/scoped_ptr.hpp>
-
 /**
  * \file tunable_process.h
  *
  * \brief Declaration of the tunable process.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class tunable_process
@@ -100,7 +97,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT tunable_process
     void _reconfigure(kwiver::vital::config_block_sptr const& conf);
   private:
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

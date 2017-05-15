@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,9 @@
 #include <vital/config/config_block.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
-
-#include <sprokit/pipeline_util/path.h>
+#include <sprokit/tools/build_pipeline_from_options.h>
 
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
@@ -64,7 +62,7 @@ sprokit_tool_main(int argc, char const* argv[])
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   vpm.load_all_plugins();
 
-  sprokit::pipeline_builder const builder(vm, desc);
+  const sprokit::build_pipeline_from_options builder(vm, desc);
 
   sprokit::pipeline_t const pipe = builder.pipeline();
   kwiver::vital::config_block_sptr const conf = builder.config();

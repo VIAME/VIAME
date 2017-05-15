@@ -252,7 +252,7 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("frequency", &sprokit::process::port_info::frequency)
   ;
 
-  implicitly_convertible<boost::shared_ptr<sprokit::process::port_info>, sprokit::process::port_info_t>();
+  implicitly_convertible<std::shared_ptr<sprokit::process::port_info>, sprokit::process::port_info_t>();
 
   class_<sprokit::process::conf_info, sprokit::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
@@ -263,7 +263,7 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("tunable", &sprokit::process::conf_info::tunable)
   ;
 
-  implicitly_convertible<boost::shared_ptr<sprokit::process::conf_info>, sprokit::process::conf_info_t>();
+  implicitly_convertible<std::shared_ptr<sprokit::process::conf_info>, sprokit::process::conf_info_t>();
 
   class_<sprokit::process::data_info, sprokit::process::data_info_t>("DataInfo"
     , "Information about a set of data packets from edges."
@@ -280,7 +280,7 @@ BOOST_PYTHON_MODULE(process)
     .value("valid", sprokit::process::check_valid)
   ;
 
-  implicitly_convertible<boost::shared_ptr<sprokit::process::data_info>, sprokit::process::data_info_t>();
+  implicitly_convertible<std::shared_ptr<sprokit::process::data_info>, sprokit::process::data_info_t>();
 
   class_<wrap_process, boost::noncopyable>("PythonProcess"
     , "The base class for Python processes."

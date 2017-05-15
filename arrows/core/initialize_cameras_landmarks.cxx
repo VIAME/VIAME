@@ -144,7 +144,7 @@ public:
   }
 
   /// Destructor
-  virtual ~priv()
+  ~priv()
   {
   }
 

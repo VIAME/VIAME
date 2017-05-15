@@ -309,11 +309,28 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const s
       continue;
     }
 
+    // If regexp matching is enabled, and this does not match, skip it
+    if ( G_context.opt_fact_filt && ( ! fact_regex.find( ds ) ) )
+    {
+      continue;
+    }
+
     pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
 
     // Get vector of factories
     VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
     {
+      // If regexp matching is enabled, and this does not match, skip it
+      if ( G_context.opt_type_filt )
+      {
+        std::string type_name = "-- Not Set --";
+        if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type_name )
+             || ( ! type_regex.find( type_name ) ) )
+        {
+          continue;
+        }
+      }
+
       if ( cat_handler )
       {
         cat_handler->explore( fact );
@@ -636,7 +653,7 @@ main( int argc, char* argv[] )
   }
 
   // ------------------------------------------------------------------
-  // See if just algo's are selected
+  // See if specific category is selected
   if ( G_context.opt_algo )
   {
     auto plugin_map = vpm.plugin_map();

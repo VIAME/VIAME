@@ -3,19 +3,19 @@ project(sprokit_tools)
 sprokit_use_tools_fixes()
 
 set(tools_srcs
-  pipeline_builder.cxx
   tool_io.cxx
-  tool_usage.cxx)
+  tool_usage.cxx
+  build_pipeline_from_options.cxx
+  )
 
 set(tools_headers
-  literal_pipeline.h
-  pipeline_builder.h
   tool_io.h
   tool_main.h
   tool_usage.h
-  tools-config.h)
+  build_pipeline_from_options.h
+  )
 
-sprokit_add_library(sprokit_tools
+kwiver_add_library(sprokit_tools
   ${tools_srcs}
   ${tools_headers})
 
@@ -29,14 +29,16 @@ target_link_libraries(sprokit_tools
                vital_config
   )
 
-set_target_properties(sprokit_tools
-  PROPERTIES
-    VERSION       ${KWIVER_VERSION}
-    SOVERSION     0
-    DEFINE_SYMBOL MAKE_SPROKIT_TOOLS_LIB)
-
 sprokit_require_tools_fixes(sprokit_tools)
 
-sprokit_install_headers(sprokit/tools ${tools_headers})
+kwiver_install_headers(
+  SUBDIR sprokit/tools
+  ${tools_headers}
+  )
+
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_tools_export.h
+  NOPATH   SUBDIR  sprokit/tools
+  )
 
 sprokit_configure_pkgconfig(sprokit-tools)

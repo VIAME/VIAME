@@ -7,6 +7,8 @@ set(modules_python_private_headers
   modules-config.h
   )
 
+set(python_both_arch TRUE)
+sprokit_create_python_init(sprokit/modules)
 sprokit_private_header_group(${modules_python_private_headers})
 
 if(UNIX)
@@ -46,12 +48,4 @@ if (NOT SPROKIT_ASSUME_STRAIGHT_PLUGIN)
   sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/loaders.py"
     sprokit/modules
     loaders)
-endif ()
-
-sprokit_create_python_init(sprokit/modules)
-#  modules)
-
-set (python_both_arch TRUE)
-
-sprokit_create_python_plugin_init(sprokit/processes)
-sprokit_create_python_plugin_init(sprokit/schedulers)
+endif()

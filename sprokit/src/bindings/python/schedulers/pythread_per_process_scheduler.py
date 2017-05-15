@@ -123,3 +123,18 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
 
     def _make_monitor_edge_config(self):
         self._edge_conf = config.empty_config()
+
+
+def __sprokit_register__():
+    from sprokit.pipeline import scheduler_factory
+
+    module_name = 'python:schedulers'
+
+    if scheduler_factory.is_scheduler_module_loaded(module_name):
+        return
+
+    scheduler_factory.add_scheduler('pythread_per_process',
+                                    'Run each process in its own Python thread',
+                                    PyThreadPerProcessScheduler)
+
+    scheduler_factory.mark_scheduler_module_as_loaded(module_name)

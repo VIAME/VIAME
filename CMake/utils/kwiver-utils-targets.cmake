@@ -383,14 +383,11 @@ endfunction()
 #
 macro( kwiver_make_module_path    root subdir )
   if (WIN32)
-    set(kwiver_module_path_result   "${root}/bin${subdir}" )
-
+    set(kwiver_module_path_result   "${root}/lib/${subdir}" )
     if(KWIVER_USE_CONFIGURATION_SUBDIRECTORY)
-      list( APPEND  kwiver_module_path_result   "${root}/bin/$<CONFIGURATION>${subdir}" )
+      list( APPEND  kwiver_module_path_result   "${root}/lib/$<CONFIGURATION>${subdir}" )
     endif()
-
   else()  # Other Unix systems
     set(kwiver_module_path_result  "${root}/lib${LIB_SUFFIX}/${subdir}" )
   endif()
-
 endmacro()

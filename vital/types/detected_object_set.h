@@ -58,6 +58,11 @@ typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
  *
  * This class represents a ordered set of detected objects. The
  * detections are ordered on their basic confidence value.
+ *
+ * Reentrancy considerations: Typical usage for a set is for a single
+ * detector thread to create a set. It is possible to have an
+ * application where two threads are accessing the same set
+ * concurrently.
  */
 class VITAL_EXPORT detected_object_set
   : private noncopyable
@@ -131,7 +136,7 @@ public:
    *
    * @return List of detections.
    */
-  detected_object::vector_t select( double threshold = detected_object_type::INVALID_SCORE );
+  detected_object::vector_t select( double threshold = detected_object_type::INVALID_SCORE ) const;
 
   /**
    * @brief Select detections based on class_name
@@ -153,7 +158,7 @@ public:
    * @return List of detections.
    */
   detected_object::vector_t select( const std::string& class_name,
-                                    double             threshold = detected_object_type::INVALID_SCORE );
+                                    double             threshold = detected_object_type::INVALID_SCORE ) const;
 
   /**
    * @brief Get attributes set.
@@ -164,7 +169,7 @@ public:
    *
    * @return Pointer to attribute set or NULL
    */
-  attribute_set_sptr attributes();
+  attribute_set_sptr attributes() const;
 
   /**
    * @brief Attach attributes set to this object.

@@ -121,7 +121,7 @@ function (sprokit_add_python_library    name    modpath)
   set(pysuffix "${CMAKE_SHARED_MODULE_SUFFIX}")
   if (WIN32 AND NOT CYTWIN)
     set(pysuffix .pyd)
-  endif ()
+  endif()
 
   set_target_properties("python-${safe_modpath}-${name}"
     PROPERTIES
@@ -147,7 +147,7 @@ function (sprokit_add_python_module_int    path     modpath    module)
   set(python_noarchdir)
 
   if (WIN32)
-    set(python_install_path bin)
+    set(python_install_path lib)
   else ()
     if (python_noarch)
       set(python_noarchdir /noarch)
@@ -164,7 +164,18 @@ function (sprokit_add_python_module_int    path     modpath    module)
     set(sprokit_configure_extra_dests
       "${sprokit_python_output_path}/${python_noarchdir}\${config}${python_sitepath}/${modpath}/${module}.py")
   endif ()
-  sprokit_configure_file("python${python_arch}-${safe_modpath}-${module}"
+
+  if( WIN32 )
+    # Use shorter (but less descript) paths due to 260 char limit on directories on windows
+    set(python_configure_id "${safe_modpath}-${module}")
+    set(python_module_id "${module}")
+  else()
+    set(python_configure_id "python${python_arch}-${safe_modpath}-${module}")
+    set(python_module_id "python${python_arch}-${safe_modpath}-${module}")
+  endif()
+
+  sprokit_configure_file_w_uid("${python_configure_id}"
+    "${python_module_id}"
     "${path}"
     "${sprokit_python_output_path}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
@@ -175,7 +186,7 @@ function (sprokit_add_python_module_int    path     modpath    module)
     COMPONENT   runtime)
 
   add_dependencies(python
-    "configure-python${python_arch}-${safe_modpath}-${module}")
+    "configure-${python_configure_id}")
 
   if (python_both_arch)
     set(python_both_arch)

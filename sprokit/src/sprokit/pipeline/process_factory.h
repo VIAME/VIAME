@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,6 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/make_shared.hpp>
-
 #include <functional>
 #include <memory>
 
@@ -71,7 +69,7 @@ process_t
 create_new_process(kwiver::vital::config_block_sptr const& conf)
 {
   // Note boost pointer
-  return boost::make_shared<T>(conf);
+  return std::make_shared<T>(conf);
 }
 
 

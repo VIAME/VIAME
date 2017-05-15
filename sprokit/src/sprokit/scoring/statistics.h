@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,7 @@
 
 #include "scoring-config.h"
 
-#include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-
+#include <memory>
 #include <vector>
 
 /**
@@ -147,11 +145,11 @@ class SPROKIT_SCORING_EXPORT statistics
     double standard_deviation() const;
   private:
     class SPROKIT_SCORING_NO_EXPORT priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 /// A handle to statistics class.
-typedef boost::shared_ptr<statistics> statistics_t;
+typedef std::shared_ptr<statistics> statistics_t;
 
 }
 

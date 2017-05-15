@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #include "provider_dereferencer.h"
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 namespace sprokit {
 
@@ -44,8 +44,8 @@ provider_dereferencer
 ::provider_dereferencer()
   : m_providers()
 {
-  m_providers[bakery_base::provider_system] = boost::make_shared< system_provider > ();
-  m_providers[bakery_base::provider_environment] = boost::make_shared< environment_provider > ();
+  m_providers[bakery_base::provider_system] = std::make_shared< system_provider > ();
+  m_providers[bakery_base::provider_environment] = std::make_shared< environment_provider > ();
 }
 
 
@@ -54,7 +54,7 @@ provider_dereferencer
 ::provider_dereferencer( kwiver::vital::config_block_sptr const conf )
   : m_providers()
 {
-  m_providers[bakery_base::provider_config] = boost::make_shared< config_provider > ( conf );
+  m_providers[bakery_base::provider_config] = std::make_shared< config_provider > ( conf );
 }
 
 

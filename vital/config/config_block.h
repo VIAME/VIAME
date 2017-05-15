@@ -306,6 +306,17 @@ public:
   void merge_config( config_block_sptr const& config );
 
 
+  /// Get difference between this and other config block.
+  /**
+   * This method determines the difference between two config blocks
+   * (this - other) and returns a new config block that contains all
+   * entries that are in \b this config block but not in the other.
+   *
+   * \param other The config block to be differenced with.
+   */
+  config_block_sptr difference_config( const config_block_sptr other ) const;
+
+
   ///Return the values available in the configuration.
   /**
    * This method returns a list of all config entry keys available
@@ -325,6 +336,7 @@ public:
    * \returns Whether the key exists.
    */
   bool has_value( config_block_key_t const& key ) const;
+
 
   /// The separator between blocks.
   static config_block_key_t const block_sep;
@@ -398,6 +410,21 @@ private:
                     config_block_value_t const& value,
                     config_block_description_t const& descr = config_block_key_t() );
 
+  /**
+   * @brief Copies config entry to this config block.
+   *
+   * This function copies one config entry, as specified by the \b key
+   * from the specified config block to this block.
+   *
+   * @param key Specifies the config entry to copy.
+   * @param from The source config block.
+   */
+  void copy_entry( config_block_key_t const& key,
+                   const config_block_sptr from );
+
+  void copy_entry( config_block_key_t const& key,
+                   const config_block* from );
+
   typedef std::map< config_block_key_t, config_block_value_t > store_t;
   typedef std::set< config_block_key_t > ro_list_t;
 
@@ -421,27 +448,8 @@ private:
   // list of keys that are read-only
   ro_list_t m_ro_list;
 
-  /**
-   * This structure contains the source location where a config entry
-   * was defined. The file is managed by smart pointer so that all
-   * entries, and there could be a lot of them, share the same string.
-   */
-  class source_location
-  {
-  public:
-    source_location() : m_line(0) { }
-    source_location( std::shared_ptr< std::string > f, int l )
-      : m_file( f ), m_line( l ) { }
 
-    std::string file() const { return *m_file; }
-    int line() const { return m_line; }
-
-  private:
-    std::shared_ptr< std::string > m_file;
-    int m_line;
-  };
-
-  typedef std::map< config_block_key_t, source_location > location_t;
+  typedef std::map< config_block_key_t, kwiver::vital::source_location > location_t;
 
   // location where key was defined.
   location_t m_def_store;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdarg.h>  // For va_start, etc.
-#include <memory>    // For std::unique_ptr
+#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+#define SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
 
-namespace kwiver {
-namespace vital {
+#include "pipeline_util-config.h"
 
+#include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
+
+#include <iostream>
+
+namespace sprokit {
+
+// ==================================================================
 /**
- * @brief Printf style formatting for std::string
+ * @brief Export built pipeline
  *
- * @param fmt_str Formatting string using embedded printf format specifiers.
+ * This class converts a built pipeline in a readable manner as a
+ * pipeline file.
  *
- * @return Formatted string.
+ * Derived classes can implement other output formats.
  */
-inline std::string
-string_format( const std::string fmt_str, ... )
+class SPROKIT_PIPELINE_UTIL_EXPORT export_pipe
 {
-  int final_n, n = ( (int)fmt_str.size() ) * 2; /* Reserve two times as much as the length of the fmt_str */
-  std::string str;
-  std::unique_ptr< char[] > formatted;
-  va_list ap;
+public:
+  // -- CONSTRUCTORS --
+  /**
+   * @brief Create new object
+   *
+   * @param pipe constructed pipeline from pipeline builder.
+   */
+  export_pipe( const sprokit::pipeline_builder& builder );
+  virtual ~export_pipe();
 
-  while ( 1 )
-  {
-    formatted.reset( new char[n] );   /* Wrap the plain char array into the unique_ptr */
-    strcpy( &formatted[0], fmt_str.c_str() );
-    va_start( ap, fmt_str );
-    final_n = vsnprintf( &formatted[0], n, fmt_str.c_str(), ap );
-    va_end( ap );
-    if ( ( final_n < 0 ) || ( final_n >= n ) )
-    {
-      n += abs( final_n - n + 1 );
-    }
-    else
-    {
-      break;
-    }
-  }
+  // Generate output for pipeline
+  virtual void generate( std::ostream& str );
 
-  return std::string( formatted.get() );
-}
+private:
+  const sprokit::pipeline_builder&  m_builder;
+}; // end class export_pipe
 
-} } // end namespace
+} // end namespace
+
+#endif // SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H

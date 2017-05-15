@@ -153,6 +153,11 @@ Vital
    is to respond in real-time. A typical parameter that could be
    varied in this manner would be a threshold or a scaling value.
 
+ * Added feature to plugin_explorer to allow filtering by
+   implementation type and factory type when selecting by category.
+
+ * Added method to do a set difference between two config blocks. This
+   can be used to validate config blocks against a known standard.
 
 Sprokit
 
@@ -186,6 +191,8 @@ Sprokit
 
  * Added detected_object_set input and output processes and algorithms.
 
+ * Added pipeline export class which writes a fully resolved pipeline
+   to a file in the form where it can be used as input.
 
 Vital Bindings
 
@@ -252,3 +259,6 @@ Vital
    convert BGR to RGB and copied data instead of simply calling the
    corresponding C++ code.  This has been removed.  Another solution
    should be found if this causes problems elsewhere.
+
+ * Moved list copy in detected_object_set to eliminate collisions in
+   select methods.

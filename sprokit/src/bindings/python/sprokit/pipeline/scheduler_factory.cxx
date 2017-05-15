@@ -51,6 +51,23 @@
 #include <boost/python/wrapper.hpp>
 #include <boost/python/def.hpp>
 
+#ifdef WIN32
+ // Windows get_pointer const volatile workaround
+namespace boost
+{
+  template <> inline sprokit::scheduler const volatile*
+  get_pointer(class sprokit::scheduler const volatile* p)
+  {
+    return p;
+  }
+  template <> inline sprokit::scheduler_factory const volatile*
+  get_pointer(class sprokit::scheduler_factory const volatile* p)
+  {
+    return p;
+  }
+}
+#endif
+
 using namespace boost::python;
 
 static void register_scheduler( sprokit::scheduler::type_t const& type,

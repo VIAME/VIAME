@@ -72,7 +72,7 @@ configure_file(
       ADDITIONAL_MAKE_CLEAN_FILES "${clean_files}")
 endfunction ()
 
-function (sprokit_configure_file name source dest)
+function (sprokit_configure_file_w_uid uid name source dest)
   set(configure_script
     "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.cmake")
   set(configured_path
@@ -95,14 +95,18 @@ function (sprokit_configure_file name source dest)
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\"")
 
   if (NOT no_configure_target)
-    add_custom_target(configure-${name} ${all}
+    add_custom_target(configure-${uid} ${all}
       DEPENDS "${dest}"
       SOURCES "${source}")
     source_group("Configured Files"
       FILES "${source}")
     add_dependencies(configure
-      configure-${name})
+      configure-${uid})
   endif ()
+endfunction ()
+
+function (sprokit_configure_file name source dest)
+  sprokit_configure_file_w_uid(${name} ${name} "${source}" "${dest}" ${ARGN})
 endfunction ()
 
 function (sprokit_configure_file_always name source dest)

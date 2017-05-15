@@ -11,6 +11,7 @@ set( vital_config_public_headers
   config_block_types.h
   config_block_io.h
   config_block_exception.h
+  config_difference.h
   token_type_config.h
 )
 
@@ -23,6 +24,7 @@ set( vital_config_sources
   config_block_io.cxx
   config_block_exception.cxx
   config_parser.cxx
+  config_difference.cxx
   token_type_config.cxx
 )
 
