@@ -28,45 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <arrows/darknet/kwiver_algo_darknet_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+#ifndef KWIVER_ARROWS_DARKENT_CUSTOM_RESIZE
+#define KWIVER_ARROWS_DARKENT_CUSTOM_RESIZE
 
-#include <arrows/darknet/darknet_detector.h>
-#include <arrows/darknet/darknet_trainer.h>
+
+#include <arrows/darknet/kwiver_algo_darknet_export.h>
+
+#include <vital/vital_config.h>
+
+#include <opencv2/core/core.hpp>
+
+#include <vital/algo/image_object_detector.h>
 
 namespace kwiver {
 namespace arrows {
 namespace darknet {
 
-extern "C"
-KWIVER_ALGO_DARKNET_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
-{
-  static auto const module_name = std::string( "arrows.darknet" );
-  if (vpm.is_module_loaded( module_name ) )
-  {
-    return;
-  }
+double
+scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
+                            int width, int height );
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_detector );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Image object detector using darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+double
+format_image( const cv::Mat& src, cv::Mat& dst, std::string option,
+              double scale_factor, int width, int height );
 
-  fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_trainer );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Training utility for darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+} } }
 
-  vpm.mark_module_as_loaded( module_name );
-}
-
-} } } // end namespace
+#endif /* KWIVER_ARROWS_DARKENT_DETECTOR */
