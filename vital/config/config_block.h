@@ -175,6 +175,19 @@ public:
   T get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW;
 
 
+  /**
+   * \brief Convert string to enum value.
+   *
+   * \param key The index of the configuration value to retrieve.
+   * \tparam E Type of the enum value.
+   * \tparam C Type of the enum converter. Must be derived from
+   * enum_converter struct.
+   * \return
+   */
+  template < typename C>
+  typename C::enum_type get_enum_value( const config_block_key_t& key );
+
+
   /// Get the description associated to a value
   /**
    * If the provided key has no description associated with it, an empty
@@ -619,6 +632,16 @@ config_block
     // Upgrade exception by adding more known details.
     throw bad_config_block_cast_exception( key, value, typeid( T ).name(), e.what() );
   }
+}
+
+
+// ------------------------------------------------------------------
+template < typename C >
+typename C::enum_type
+config_block
+::get_enum_value( const config_block_key_t& key )
+{
+  return C().from_string( get_value < std::string >( key ) );
 }
 
 
