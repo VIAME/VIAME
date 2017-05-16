@@ -72,6 +72,23 @@ if (KWIVER_ENABLE_LOG4CXX)
 endif()
 
 ###
+# Build log4cplus plug-in if configured
+if (KWIVER_ENABLE_LOG4CPLUS)
+
+  set ( log4cplus_lib     ${Log4cplus_LIBRARY} ${ApacheRunTime_LIBRARY} )
+  include_directories ( SYSTEM ${Log4cplus_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
+
+  kwiver_add_plugin( vital_log4cplus_logger
+    SOURCES          ${plugin_base_src}
+                     log4cplus_factory.cxx
+    PRIVATE          ${log4cplus_lib}
+                     kwiversys
+    SUBDIR           modules
+    )
+
+endif()
+
+###
 # Add tests if enbled
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )

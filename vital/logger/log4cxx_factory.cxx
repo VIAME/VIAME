@@ -303,7 +303,7 @@ public:
     : kwiver_logger_factory( "log4cxx factory" )
   { }
 
-  virtual ~log4cxx_factory() VITAL_DEFAULT_DTOR
+  virtual ~log4cxx_factory() = default;
 
   virtual logger_handle_t get_logger( std::string const& name )
   {
