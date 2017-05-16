@@ -54,6 +54,7 @@ option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  OFF )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugin"           OFF )
 
 ###
 # Add external package build instructions
@@ -70,7 +71,7 @@ if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
 endif()
 
-if( VIAME_ENABLE_FASTER_RCNN )
+if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK )
   set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
 endif()
 
@@ -237,6 +238,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_FASTER_RCNN )
     include( add_project_faster_rcnn )
+  endif()
+
+  if( VIAME_ENABLE_SMQTK )
+    include( add_project_smqtk )
   endif()
 
   # VIAME plugins, adds this project causing the below else() block to run
