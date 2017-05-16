@@ -207,23 +207,20 @@ public:
   void set_type( detected_object_type_sptr c );
 
   /**
-   * @brief Get pointer to optional classifications object.
+   * @brief Get detection mask image.
    *
-   * This method returns the pointer to the classification object if
-   * there is one. If there is no classification object the pointer is
-   * NULL.
+   * This method returns the mask image associated with this detection.
    *
-   * @return Pointer to classification object or NULL.
+   * @return Pointer to the mask image.
    */
   image_container_sptr mask();
 
   /**
-   * @brief Set new classifications for this detection.
+   * @brief Set mask image for this detection.
    *
-   * This method supplies a new set of class_names and scores for this
-   * detection.
+   * This method supplies a new mask image for this detection.
    *
-   * @param c New classification for this detection
+   * @param m Mask image
    */
   void set_mask( image_container_sptr m );
 
