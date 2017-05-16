@@ -30,7 +30,7 @@
 
 #include "kwiver_logger_factory.h"
 #include <log4cxx/logger.h>
-#include <memory>
+#include <kwiversys/SystemTools.hxx>
 
 #include <log4cplus/configurator.h>
 #include <log4cplus/logger.h>
@@ -343,7 +343,28 @@ class log4cplus_factory
 public:
   log4cplus_factory()
     : kwiver_logger_factory( "log4cplus factory" )
-  { }
+  {
+    std::string config_file;
+
+    // Try the environemnt variable if no config file yet
+    if ( ! kwiversys::SystemTools::GetEnv( "LOG4CPLUS_CONFIGURATION", config_file ) )
+    {
+      if (kwiversys::SystemTools::FileExists( "log4cplus.properties") )
+      {
+        config_file = "log4cplus.properties";
+      }
+    }
+
+    if ( ! config_file.empty())
+    {
+      ::log4cplus::PropertyConfigurator::doConfigure(config_file);
+    }
+    else
+    {
+      ::log4cplus::BasicConfigurator::doConfigure();
+    }
+  }
+
 
   virtual ~log4cplus_factory() = default;
 

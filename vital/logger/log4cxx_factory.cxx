@@ -301,7 +301,10 @@ class log4cxx_factory
 public:
   log4cxx_factory()
     : kwiver_logger_factory( "log4cxx factory" )
-  { }
+  {
+    // There may actually be some initialization to be done.
+    // Currently following the default init process.
+  }
 
   virtual ~log4cxx_factory() = default;
 
