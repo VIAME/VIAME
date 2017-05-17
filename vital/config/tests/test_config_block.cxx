@@ -933,4 +933,10 @@ IMPLEMENT_TEST(enum_conversion)
                     config->get_enum_value < my_ec >( "keyb" ),
                     "enum conversion error");
 
+  EXPECT_EXCEPTION(
+    kwiver::vital::no_such_configuration_value_exception,
+    config->get_enum_value< my_ec >(config_block_key_t("not_a_key")),
+      "accessing description of invalid key"
+      );
+
 }
