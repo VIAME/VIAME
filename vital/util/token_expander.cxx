@@ -110,20 +110,37 @@ expand_token( std::string const& initial_string )
     {
       // lookup token value
       std::string result;
-      ix->second->lookup_entry( exp.match(2), result );
+      if (ix->second->lookup_entry( exp.match(2), result ))
+      {
+        LOG_DEBUG( m_logger, "Substituting: " << "\"" << exp.match(0) << "\" -> \"" << result << "\"" );
 
-      LOG_DEBUG( m_logger, "Substituting: " << "\"" << exp.match(0) << "\" -> \"" << result << "\"" );
+        // append everything up to the match
+        new_value.append( start, start + exp.start(0) );
 
-      // append everything up to the match
-      new_value.append( start, start + exp.start(0) );
-
-      // Append the replacement string
-      new_value.append( result );
+        // Append the replacement string
+        new_value.append( result );
+      }
+      else
+      {
+        // element type is not in the macro provider
+        // append everything up to the match
+        new_value.append( start, start + exp.start(0) );
+        if ( handle_missing_entry( exp.match(1), exp.match(2) ) )
+        {
+          new_value.append( start + exp.start(0), start + exp.end(0) );
+        }
+      }
     }
     else
     {
-      // no substitution, copy forward original text
-      new_value.append( start, start + exp.end(0) );
+      // provider type not found - no substitution, copy forward original text
+      // append everything up to the match
+      new_value.append( start, start + exp.start(0) );
+
+      if ( handle_missing_provider( exp.match(1), exp.match(2) ) )
+      {
+        new_value.append( start + exp.start(0), start + exp.end(0) );
+      }
     }
 
     // Update matching pointers
@@ -136,5 +153,25 @@ expand_token( std::string const& initial_string )
 
   return new_value;
 } // expand_token
+
+
+// ------------------------------------------------------------------
+bool
+token_expander::
+handle_missing_entry( const std::string& provider, const std::string& entry )
+{
+  // default is to insert unresolved text
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+bool
+token_expander::
+handle_missing_provider( const std::string& provider, const std::string& entry )
+{
+  // default is to insert unresolved text
+  return true;
+}
 
 } } // end namespace

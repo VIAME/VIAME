@@ -1,0 +1,5 @@
+config myblock
+  block foo
+    block bar
+      mykey = myvalue
+    endblock

@@ -68,7 +68,7 @@ void
 pipeline_builder
 ::load_pipeline(std::istream& istr)
 {
-  m_blocks = sprokit::load_pipe_blocks(istr, boost::filesystem::current_path());
+  m_blocks = sprokit::load_pipe_blocks(istr);
 }
 
 
@@ -109,7 +109,7 @@ pipeline_builder
 
   kwiver::vital::config_block_keys_t keys;
 
-  kwiver::vital::tokenize( setting_key, keys, kwiver::vital::config_block::block_sep, true );
+  kwiver::vital::tokenize( setting_key, keys, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
 
   if (keys.size() < 2)
   {
@@ -121,7 +121,7 @@ pipeline_builder
     throw std::runtime_error(reason);
   }
 
-  value.key.key_path.push_back(keys.back());
+  value.key_path.push_back(keys.back());
   value.value = setting_value;
 
   keys.pop_back();

@@ -24,7 +24,7 @@ retained.
 If the *value* string is enclosed in quotes, the quotes will become
 part of the value and passed to the program.
 
-The simplest form of a congig entry is:
+The simplest form of a config entry is:
 
 ```
 simple = value

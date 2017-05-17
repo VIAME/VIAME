@@ -32,10 +32,11 @@
 
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/export_dot_exception.h>
-#include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 
 #include <vital/config/config_block.h>
+#include <vital/vital_types.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
@@ -45,7 +46,7 @@
 #include <memory>
 #include <sstream>
 
-#define TEST_ARGS (sprokit::path_t const& pipe_file)
+#define TEST_ARGS (kwiver::vital::path_t const& pipe_file)
 
 DECLARE_TEST_MAP();
 
@@ -57,9 +58,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   testname_t const testname = argv[1];
-  sprokit::path_t const pipe_dir = argv[2];
+  kwiver::vital::path_t const pipe_dir = argv[2];
 
-  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  kwiver::vital::path_t const pipe_file = pipe_dir + "/" +  testname + pipe_ext;
 
   RUN_TEST(testname, pipe_file);
 }

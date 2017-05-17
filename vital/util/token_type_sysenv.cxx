@@ -33,6 +33,17 @@
 
 #include <sstream>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <process.h>
+#define HOME_ENV_NAME "UserProfile"
+#define GETPID() _getpid()
+#else
+#include <sys/types.h>
+#include <unistd.h>
+#define HOME_ENV_NAME "HOME"
+#define GETPID() getpid()
+#endif
+
 namespace kwiver {
 namespace vital {
 
@@ -69,7 +80,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("numproc" == name)   // number of processors/cores
+  if ("numproc" == name)   // number of processors/cores
   {
     std::stringstream sval;
     unsigned int numCPU = SI->GetNumberOfLogicalCPU();
@@ -80,7 +91,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("totalvirtualmemory" == name)
+  if ("totalvirtualmemory" == name)
   {
     std::stringstream sval;
     sval <<  SI->GetTotalVirtualMemory();
@@ -89,7 +100,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("availablevirtualmemory" == name)
+  if ("availablevirtualmemory" == name)
   {
     std::stringstream sval;
     sval << SI->GetAvailableVirtualMemory();
@@ -98,7 +109,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("totalphysicalmemory" == name)
+  if ("totalphysicalmemory" == name)
   {
     std::stringstream sval;
     sval << SI->GetTotalPhysicalMemory();
@@ -107,7 +118,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("availablephysicalmemory" == name)
+  if ("availablephysicalmemory" == name)
   {
     std::stringstream sval;
     sval << SI->GetAvailablePhysicalMemory();
@@ -116,49 +127,49 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("hostname" == name)   // network name of system
+  if ("hostname" == name)   // network name of system
   {
     result = SI->GetHostname();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("domainname" == name)
+  if ("domainname" == name)
   {
     result = SI->GetFullyQualifiedDomainName();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osname" == name)
+  if ("osname" == name)
   {
     result = SI->GetOSName();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osdescription" == name)
+  if ("osdescription" == name)
   {
     result = SI->GetOSDescription();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osplatform" == name)
+  if ("osplatform" == name)
   {
     result = SI->GetOSPlatform();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osversion" == name)
+  if ("osversion" == name)
   {
     result = SI->GetOSVersion();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("is64bits" == name)
+  if ("is64bits" == name)
   {
     if ( 1 == SI->Is64Bits())
     {
@@ -173,7 +184,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("iswindows" == name)
+  if ("iswindows" == name)
   {
     if ( 1 == SI->GetOSIsWindows())
     {
@@ -188,7 +199,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("islinux" == name)
+  if ("islinux" == name)
   {
     if ( 1 == SI->GetOSIsLinux())
     {
@@ -203,7 +214,7 @@ lookup_entry (std::string const& name, std::string& result) const
   }
 
   // ----------------------------------------------------------------
-  else if ("isapple" == name)
+  if ("isapple" == name)
   {
     if ( 1 == SI->GetOSIsApple())
     {
@@ -217,15 +228,40 @@ lookup_entry (std::string const& name, std::string& result) const
     return true;
   }
 
+  // ------------------------------------------------------------------
+  if ("homedir" == name)
+  {
+    std::string home;
+    kwiversys::SystemTools::GetEnv( HOME_ENV_NAME, home );
 
-  // ----------------------------------------------------------------
-//+  else if ("date" == name)
-//  {
+    if ( ! home.empty() )
+    {
+      result = home;
+    }
 
-//  }
+    return true;
+  }
+
+  // ------------------------------------------------------------------
+  if ("curdir" == name)
+  {
+    result = ST::GetCurrentWorkingDirectory();
+    return true;
+  }
+
+  // ------------------------------------------------------------------
+  if ("pid" == name)
+  {
+    const auto pid = GETPID();
+
+    std::stringstream str;
+    str << pid;
+
+    result = str.str();
+    return true;
+  }
 
   return false;
 }
 
-} // end namespace
-} // end namespace
+} } // end namespace

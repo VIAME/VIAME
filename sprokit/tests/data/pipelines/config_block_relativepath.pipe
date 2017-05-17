@@ -1,0 +1,6 @@
+config myblock
+# compatibility type entry
+ # :mykey[relativepath]  myvalue
+
+# new style config entry
+relativepath otherkey = value

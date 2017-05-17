@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file   ensure_provided.cxx
- * @brief  Implementation for ensure_provided class.
- */
+#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+#define SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
 
-#include "ensure_provided.h"
-#include "pipe_bakery_exception.h"
+#include "pipeline_util-config.h"
 
+#include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
+
+#include <iostream>
 
 namespace sprokit {
 
-// ------------------------------------------------------------------
-ensure_provided
-::ensure_provided()
+// ==================================================================
+/**
+ * @brief Export built pipeline
+ *
+ * This class converts a built pipeline in a readable manner as a
+ * pipeline file.
+ *
+ * Derived classes can implement other output formats.
+ */
+class SPROKIT_PIPELINE_UTIL_EXPORT pipe_display
 {
-}
+public:
+  // -- CONSTRUCTORS --
+  /**
+   * @brief Create new object
+   *
+   * @param pipe constructed pipeline from pipeline builder.
+   */
+  pipe_display( std::ostream& str );
+  virtual ~pipe_display();
 
+  // display internal config blocks
+  void display_pipe_blocks( const sprokit::pipe_blocks blocks );
 
-ensure_provided
-::~ensure_provided()
-{
-}
+private:
+  std::ostream& m_ostr;
 
+}; // end class pipe_display
 
-// ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
-ensure_provided
-::operator () (kwiver::vital::config_block_value_t const& value) const
-{
-  return value;
-}
+} // end namespace
 
-
-// ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
-ensure_provided
-::operator () (bakery_base::provider_request_t const& request) const
-{
-  config_provider_t const& provider = request.first;
-  kwiver::vital::config_block_value_t const& value = request.second;
-
-  throw unrecognized_provider_exception("(unknown)", provider, value);
-}
-
-} // end namespace sprokit
+#endif // SPROKIT_PIPELINE_UTIL_PIPE_DISPLAY_H

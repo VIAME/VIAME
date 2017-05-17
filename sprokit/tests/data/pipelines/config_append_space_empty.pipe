@@ -1,2 +1,2 @@
 config myblock
-  :mykey[append=space] othervalue
+  mykey =       othervalue

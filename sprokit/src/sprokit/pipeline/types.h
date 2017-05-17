@@ -28,20 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_TYPES_H
-#define SPROKIT_PIPELINE_TYPES_H
-
-#include "pipeline-config.h"
-
-#include <exception>
-#include <string>
-#include <memory>
-
 /**
  * \file types.h
  *
  * \brief Common types used in the pipeline library.
  */
+
+#ifndef SPROKIT_PIPELINE_TYPES_H
+#define SPROKIT_PIPELINE_TYPES_H
+
+#include "pipeline-config.h"
+
+#include <vital/vital_config.h>
+#include <exception>
+#include <string>
+#include <memory>
 
 /**
  * \brief The namespace for all sprokit-related symbols.
@@ -98,19 +99,20 @@ class SPROKIT_PIPELINE_EXPORT pipeline_exception
     /**
      * \brief Constructor.
      */
-    pipeline_exception() throw();
+    pipeline_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_exception() throw();
+    virtual ~pipeline_exception() VITAL_NOTHROW;
 
     /**
      * \brief A description of the exception.
      *
      * \returns A string describing what went wrong.
      */
-    char const* what() const throw();
-  protected:
+    char const* what() const VITAL_NOTHROW;
+
+protected:
     /// The text of the exception.
     std::string m_what;
 };

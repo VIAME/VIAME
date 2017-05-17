@@ -1,8 +1,8 @@
 cluster mycluster
-  :# clusterdesc
-  :# oportdesc
+  -- clusterdesc
   omap from myproc.oport
        to   oport
-  :# oportdesc
+  -- oportdesc
   omap from myproc.oport2
        to   oport
+  -- oportdesc

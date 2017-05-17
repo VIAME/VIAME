@@ -49,5 +49,5 @@ target_link_libraries(processes_clusters
                       sprokit_pipeline
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
-                      vital_vpm vital_util
+                      vital_vpm vital_util kwiversys
                       )

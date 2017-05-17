@@ -63,6 +63,7 @@ public:
   using bakery_base::operator();
   void operator()( cluster_pipe_block const& cluster_block_ );
 
+  // --------------------------
   class cluster_component_info_t
   {
   public:
