@@ -75,7 +75,7 @@ endif()
 # Build log4cplus plug-in if configured
 if (KWIVER_ENABLE_LOG4CPLUS)
 
-  set ( log4cplus_lib     ${Log4cplus_LIBRARY} ${ApacheRunTime_LIBRARY} )
+  set ( log4cplus_lib     ${Log4cplus_LIBRARY} )
   include_directories ( SYSTEM ${Log4cplus_INCLUDE_DIR} )
 
   kwiver_add_plugin( vital_log4cplus_logger
