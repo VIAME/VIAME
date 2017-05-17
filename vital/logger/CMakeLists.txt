@@ -76,7 +76,7 @@ endif()
 if (KWIVER_ENABLE_LOG4CPLUS)
 
   set ( log4cplus_lib     ${Log4cplus_LIBRARY} ${ApacheRunTime_LIBRARY} )
-  include_directories ( SYSTEM ${Log4cplus_INCLUDE_DIR} ${ApacheRunTime_INCLUDE_DIR} )
+  include_directories ( SYSTEM ${Log4cplus_INCLUDE_DIR} )
 
   kwiver_add_plugin( vital_log4cplus_logger
     SOURCES          ${plugin_base_src}
