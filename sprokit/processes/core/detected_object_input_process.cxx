@@ -91,6 +91,8 @@ detected_object_input_process
 void detected_object_input_process
 ::_configure()
 {
+  start_configure_processing();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -115,6 +117,8 @@ void detected_object_input_process
     throw sprokit::invalid_configuration_exception( name(),
              "Unable to create reader." );
   }
+
+  stop_configure_processing();
 }
 
 
@@ -122,7 +126,11 @@ void detected_object_input_process
 void detected_object_input_process
 ::_init()
 {
+  start_init_processing();
+
   d->m_reader->open( d->m_file_name ); // throws
+
+  stop_init_processing();
 }
 
 
@@ -132,7 +140,14 @@ void detected_object_input_process
 {
   std::string image_name;
   kwiver::vital::detected_object_set_sptr set;
-  if ( d->m_reader->read_set( set, image_name ) )
+
+  start_step_processing();
+
+  bool result = d->m_reader->read_set( set, image_name );
+
+  stop_step_processing();
+
+  if ( result )
   {
     push_to_port_using_trait( image_file_name, image_name );
     push_to_port_using_trait( detected_object_set, set );

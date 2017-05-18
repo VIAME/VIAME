@@ -59,7 +59,7 @@ refine_detections_process( kwiver::vital::config_block_sptr const& config )
     d( new refine_detections_process::priv )
 {
   // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  attach_logger( kwiver::vital::get_logger( name() ) );
 
   make_ports();
   make_config();
@@ -77,7 +77,15 @@ void
 refine_detections_process::
 _configure()
 {
+  start_configure_processing();
+
   vital::config_block_sptr algo_config = get_config();
+
+  // Check config so it will give run-time diagnostic of config problems
+  if ( ! vital::algo::refine_detections::check_nested_algo_configuration( "refiner", algo_config ) )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+  }
 
   vital::algo::refine_detections::set_nested_algo_configuration( "refiner", algo_config, d->m_refiner );
 
@@ -86,13 +94,7 @@ _configure()
     throw sprokit::invalid_configuration_exception( name(), "Unable to create refiner" );
   }
 
-  vital::algo::refine_detections::get_nested_algo_configuration( "refiner", algo_config, d->m_refiner );
-
-  // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::refine_detections::check_nested_algo_configuration( "refiner", algo_config ) )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
-  }
+  stop_configure_processing();
 }
 
 

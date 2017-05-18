@@ -131,6 +131,8 @@ void
 template_process
 ::_configure()
 {
+  start_configure_processing();
+
   //++ Use config traits to access the value for the parameters.
   //++ Values are usually stored in the private structure.
   //++ These config items are not really used in this process.
@@ -138,6 +140,8 @@ template_process
   d->m_header = config_value_using_trait( header );
   d->m_footer = config_value_using_trait( footer );
   d->m_gsd    = config_value_using_trait( gsd ); // converted to double
+
+  stop_configure_processing();
 }
 
 
@@ -160,10 +164,20 @@ template_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
+  // Process Instrumentation call should be just before the real core
+  // of the process step processing. It must be after getting the
+  // inputs because those calls can stall until inputs are available.
+  start_step_processing();
+
   cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
 
   //++ Here is where the process does its work.
   kwiver::vital::image_container_sptr out_image (new kwiver::arrows::ocv::image_container( d->process_image( in_image ) ) );
+
+  // Process Instrumentation call should be after all step core
+  // processing is complete. It must be before pushing the outputs
+  // because those calls can stall.
+  stop_step_processing();
 
   push_to_port_using_trait( image, out_image );
 }
@@ -177,7 +191,13 @@ template_process
 void
 template_process
 ::_init()
-{ }
+{
+  start_init_processing();
+
+  // do initialization, if applicable.
+
+  stop_init_processing();
+}
 
 
 // ------------------------------------------------------------------
@@ -185,7 +205,13 @@ template_process
 void
 template_process
 ::_reset()
-{ }
+{
+  start_reset_processing();
+
+  // do reset processing if applicable.
+
+  stop_reset_processing();
+}
 
 
 // ------------------------------------------------------------------
@@ -195,7 +221,13 @@ template_process
 void
 template_process
 ::_flush()
-{ }
+{
+  start_flush_processing();
+
+  // perform flush processing if applicable.
+
+  stop_flush_processing();
+}
 
 
 // ------------------------------------------------------------------
@@ -205,7 +237,13 @@ template_process
 void
 template_process
 ::_reconfigure(kwiver::vital::config_block_sptr const& conf)
-{ }
+{
+  start_reconfigure_processing();
+
+  // perform reconfigure processing if applicable.
+
+  stop_reconfigure_processing();
+}
 
 
 
@@ -241,8 +279,8 @@ template_process
 }
 
 
-// ================================================================
-//++ Initialize any private data here
+// ================================================================ ++
+//Initialize any private data here
 template_process::priv
 ::priv()
   : m_gsd( 0.1122 )

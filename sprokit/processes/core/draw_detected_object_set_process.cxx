@@ -80,6 +80,8 @@ draw_detected_object_set_process
 void draw_detected_object_set_process
 ::_configure()
 {
+  start_configure_processing();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -93,6 +95,8 @@ void draw_detected_object_set_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm." );
   }
+
+  stop_configure_processing();
 }
 
 
@@ -103,7 +107,11 @@ void draw_detected_object_set_process
   auto input_image = grab_from_port_using_trait( image );
   auto obj_set = grab_from_port_using_trait( detected_object_set );
 
+  start_step_processing();
+
   auto out_image = d->m_algo->draw( obj_set, input_image );
+
+  stop_step_processing();
 
   push_to_port_using_trait( image, out_image );
 }

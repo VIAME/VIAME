@@ -145,6 +145,8 @@ image_file_reader_process
 void image_file_reader_process
 ::_configure()
 {
+  start_configure_processing();
+
   // Examine the configuration
   std::string mode = config_value_using_trait( error_mode );
   std::string path = config_value_using_trait( path );
@@ -171,6 +173,8 @@ void image_file_reader_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
+
+  stop_configure_processing();
 }
 
 
@@ -200,6 +204,8 @@ void image_file_reader_process
     }
   }
 
+  start_step_processing();
+
   LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );
 
   // read image file
@@ -224,6 +230,8 @@ void image_file_reader_process
   // update timestamp
   ++d->m_frame_number;
   d->m_frame_time += d->m_config_frame_time;
+
+  stop_step_processing();
 
   push_to_port_using_trait( timestamp, frame_ts );
   push_to_port_using_trait( image, img_c );

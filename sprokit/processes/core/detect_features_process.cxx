@@ -91,6 +91,8 @@ detect_features_process
 void detect_features_process
 ::_configure()
 {
+  start_configure_processing();
+
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
@@ -106,6 +108,8 @@ void detect_features_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create feature_detector" );
   }
+
+  stop_configure_processing();
 }
 
 
@@ -120,10 +124,14 @@ detect_features_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
+  start_step_processing();
+
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
   // detect features on the current frame
   kwiver::vital::feature_set_sptr curr_feat = d->m_detector->detect( img );
+
+  stop_step_processing();
 
   // return by value
   push_to_port_using_trait( feature_set, curr_feat );

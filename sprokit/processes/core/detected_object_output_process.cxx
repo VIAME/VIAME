@@ -92,6 +92,8 @@ detected_object_output_process
 void detected_object_output_process
 ::_configure()
 {
+  start_configure_processing();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -116,6 +118,8 @@ void detected_object_output_process
     throw sprokit::invalid_configuration_exception( name(),
              "Unable to create writer." );
   }
+
+  stop_configure_processing();
 }
 
 
@@ -123,7 +127,11 @@ void detected_object_output_process
 void detected_object_output_process
 ::_init()
 {
+  start_init_processing();
+
   d->m_writer->open( d->m_file_name ); // throws
+
+  stop_init_processing();
 }
 
 
@@ -141,7 +149,11 @@ void detected_object_output_process
 
   kwiver::vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
 
+  start_step_processing();
+
   d->m_writer->write_set( input, file_name );
+
+  stop_step_processing();
 }
 
 

@@ -77,6 +77,8 @@ void
 image_filter_process::
 _configure()
 {
+  start_configure_processing();
+
   vital::config_block_sptr algo_config = get_config();
 
   vital::algo::image_filter::set_nested_algo_configuration( "filter", algo_config, d->m_filter );
@@ -93,6 +95,8 @@ _configure()
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
+
+  stop_configure_processing();
 }
 
 
@@ -103,8 +107,12 @@ _step()
 {
   vital::image_container_sptr input = grab_from_port_using_trait( image );
 
+  start_step_processing();
+
   // Get detections from filter on image
   vital::image_container_sptr result = d->m_filter->filter( input );
+
+  stop_step_processing();
 
   push_to_port_using_trait( image, result );
 }
