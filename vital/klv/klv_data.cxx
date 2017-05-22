@@ -150,7 +150,12 @@ std::ostream & operator<<( std::ostream& str, klv_data const& obj )
        it != obj.klv_end(); it++)
   {
     str << std::hex << std::setfill( '0' ) << std::setw( 2 ) << int(*it);
-    if (i % 4 == 3) str << " "; i++;
+    if (i % 4 == 3)
+    {
+      str << " ";
+    }
+
+    i++;
   }
 
   str << "\n\nKey bytes: ";
@@ -158,7 +163,12 @@ std::ostream & operator<<( std::ostream& str, klv_data const& obj )
        it != obj.key_end(); it++)
   {
     str << std::hex << std::setfill( '0' ) << std::setw( 2 ) << int(*it);
-    if (i % 4 == 3) str << " "; i++;
+    if (i % 4 == 3)
+    {
+      str << " ";
+    }
+
+    i++;
   }
 
   str << "\n\nValue bytes: ";
@@ -166,7 +176,12 @@ std::ostream & operator<<( std::ostream& str, klv_data const& obj )
        it != obj.value_end(); it++)
   {
     str << std::hex << std::setfill( '0' ) << std::setw( 2 ) << int(*it);
-    if (i % 4 == 3) str << " "; i++;
+    if (i % 4 == 3)
+    {
+      str << " ";
+    }
+
+    i++;
   }
 
   str << std::endl;
