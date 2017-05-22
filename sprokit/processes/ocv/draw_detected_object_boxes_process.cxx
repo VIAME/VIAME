@@ -252,20 +252,20 @@ public:
                                                vital::detected_object_set_sptr  in_set ) const
   {
     cv::Mat image = arrows::ocv::image_container::vital_to_ocv( image_data->get_image() ).clone();
-    auto det_list = in_set->select( );
 
-    VITAL_FOREACH( auto det, det_list )
+    auto ie =  in_set->cend();
+    for ( auto det = in_set->cbegin(); det != ie; ++det )
     {
-      auto det_type = det->type();
+      auto det_type = (*det)->type();
       if ( ! det_type )
       {
         // No type has been assigned. Just filter on threshold
-        if (det->confidence() < m_threshold )
+        if ((*det)->confidence() < m_threshold )
         {
           continue;
         }
 
-        draw_box( image, det, "", det->confidence() );
+        draw_box( image, *det, "", (*det)->confidence() );
         continue;
       }
 
@@ -285,7 +285,7 @@ public:
           continue;
         }
 
-        draw_box( image, det, n, score, text_only, count );
+        draw_box( image, *det, n, score, text_only, count );
         text_only = true; // skip box on all subsequent calls
       }
     } // end foreach

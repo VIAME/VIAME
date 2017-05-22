@@ -108,39 +108,41 @@ IMPLEMENT_TEST(object_creation)
   // get whole list sorted by confidence
   auto list_1 = do_set.select();
 
-  TEST_EQUAL( "size of list", list_1.size(), 5 );
-
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
-  TEST_EQUAL( "expected confidence 3", list_1[3]->confidence(), 0.70 );
-  TEST_EQUAL( "expected confidence 4", list_1[4]->confidence(), 0.65 );
+  TEST_EQUAL( "size of list", list_1->size(), 5 );
+  auto it = list_1->cbegin();
+  TEST_EQUAL( "expected confidence 0", (*it++)->confidence(), 1.0 );
+  TEST_EQUAL( "expected confidence 1", (*it++)->confidence(), 0.78 );
+  TEST_EQUAL( "expected confidence 2", (*it++)->confidence(), 0.75 );
+  TEST_EQUAL( "expected confidence 3", (*it++)->confidence(), 0.70 );
+  TEST_EQUAL( "expected confidence 4", (*it++)->confidence(), 0.65 );
 
   list_1 = do_set.select( 0.75 );
 
-  TEST_EQUAL( "size of list", list_1.size(), 3 );
+  TEST_EQUAL( "size of list", list_1->size(), 3 );
 
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
+  it = list_1->cbegin();
+  TEST_EQUAL( "expected confidence 0", (*it++)->confidence(), 1.0 );
+  TEST_EQUAL( "expected confidence 1", (*it++)->confidence(), 0.78 );
+  TEST_EQUAL( "expected confidence 2", (*it++)->confidence(), 0.75 );
 
   list_1 = do_set.select( "clam" );
 
-  TEST_EQUAL( "size of list", list_1.size(), 4 );
+  TEST_EQUAL( "size of list", list_1->size(), 4 );
 
-  dot = list_1[0]->type();
+  it = list_1->cbegin();
+  dot = (*it++)->type();
   double score = dot->score( "clam" );
   TEST_EQUAL( "expected score 0", score, 0.775 );
 
-  dot = list_1[1]->type();
+  dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 1", score, 0.775 );
 
-  dot = list_1[2]->type();
+  dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 2", score, 0.605 );
 
-  dot = list_1[3]->type();
+  dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 3", score, 0.07 );
 }
@@ -186,39 +188,42 @@ IMPLEMENT_TEST(set_copy)
   // get whole list sorted by confidence
   auto list_1 = do_set_clone->select();
 
-  TEST_EQUAL( "size of list", list_1.size(), 5 );
+  TEST_EQUAL( "size of list", list_1->size(), 5 );
 
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
-  TEST_EQUAL( "expected confidence 3", list_1[3]->confidence(), 0.70 );
-  TEST_EQUAL( "expected confidence 4", list_1[4]->confidence(), 0.65 );
+  auto it = list_1->cbegin();
+  TEST_EQUAL( "expected confidence 0", (*it++)->confidence(), 1.0 );
+  TEST_EQUAL( "expected confidence 1", (*it++)->confidence(), 0.78 );
+  TEST_EQUAL( "expected confidence 2", (*it++)->confidence(), 0.75 );
+  TEST_EQUAL( "expected confidence 3", (*it++)->confidence(), 0.70 );
+  TEST_EQUAL( "expected confidence 4", (*it++)->confidence(), 0.65 );
 
   list_1 = do_set_clone->select( 0.75 );
 
-  TEST_EQUAL( "size of list", list_1.size(), 3 );
+  TEST_EQUAL( "size of list", list_1->size(), 3 );
 
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
+  it = list_1->cbegin();
+  TEST_EQUAL( "expected confidence 0", (*it++)->confidence(), 1.0 );
+  TEST_EQUAL( "expected confidence 1", (*it++)->confidence(), 0.78 );
+  TEST_EQUAL( "expected confidence 2", (*it++)->confidence(), 0.75 );
 
   list_1 =do_set_clone->select( "clam" );
 
-  TEST_EQUAL( "size of list", list_1.size(), 4 );
+  TEST_EQUAL( "size of list", list_1->size(), 4 );
 
-  dot = list_1[0]->type();
+  it = list_1->cbegin();
+  dot = (*it++)->type();
   double score = dot->score( "clam" );
   TEST_EQUAL( "expected score 0", score, 0.775 );
 
-  dot = list_1[1]->type();
+  dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 1", score, 0.775 );
 
-  dot = list_1[2]->type();
+  dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 2", score, 0.605 );
 
-  dot = list_1[3]->type();
+  dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 3", score, 0.07 );
 }

@@ -52,6 +52,9 @@ SharedPointerCache< kwiver::vital::detected_object_set, vital_detected_object_se
   DOBJ_SET_SPTR_CACHE( "detected_object_set" );
 } }
 
+typedef std::vector< kwiver::vital::detected_object_sptr > vector_t;
+
+
 // ==================================================================
 // These two functions support C++ access to the SPTR_CACHE.
 
@@ -125,7 +128,7 @@ vital_detected_object_set_new_from_list( vital_detected_object_t**  dobj,
   STANDARD_CATCH(
     "vital_detected_object_set_new_from_list", 0,
 
-    kwiver::vital::detected_object::vector_t input( n );
+    vector_t input( n );
     for ( size_t i = 0; i < n; ++i )
     {
       input.push_back( kwiver::vital_c::DOBJ_SPTR_CACHE.get( dobj[i] ) );
@@ -191,7 +194,9 @@ void vital_detected_object_set_select_threshold( vital_detected_object_set_t* ob
     *output = (vital_detected_object_t**) malloc( sizeof( vital_detected_object_t* ) * sel_set.size() );
     *length = sel_set.size();
 
-    for ( size_t i = 0; i < sel_set.size(); ++i )
+    auto ie = sel_set->cend();
+    size_t i = 0;
+    for ( auto ix = sel_set->cbegin(); ix != ie; ++ix )
     {
       kwiver::vital_c::DOBJ_SPTR_CACHE.store( sel_set[i] );
       (*output)[i] = reinterpret_cast< vital_detected_object_t* >( sel_set[i].get() );
@@ -216,7 +221,9 @@ void vital_detected_object_set_select_class_threshold( vital_detected_object_set
     *output = (vital_detected_object_t**) malloc( sizeof( vital_detected_object_t* ) * sel_set.size() );
     *length = sel_set.size();
 
-    for (size_t i = 0; i < sel_set.size(); ++i )
+    auto ie = sel_set->cend();
+    size_t i = 0;
+    for ( auto ix = sel_set->cbegin(); ix != ie; ++ix )
     {
       kwiver::vital_c::DOBJ_SPTR_CACHE.store( sel_set[i] );
       (*output)[i] = reinterpret_cast< vital_detected_object_t* >( sel_set[i].get() );
