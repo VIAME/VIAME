@@ -33,11 +33,14 @@ set( plugin_core_headers
   transform.h
   triangulate.h
   triangulate_landmarks.h
+  uuid_factory_core.h
   )
+
 kwiver_install_headers(
   SUBDIR     arrows/core
   ${plugin_core_headers}
   )
+
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_core_export.h
   NOPATH   SUBDIR     arrows/core
@@ -76,6 +79,7 @@ set( plugin_core_sources
   transform.cxx
   triangulate.cxx
   triangulate_landmarks.cxx
+  uuid_factory_core.cxx
   )
 
 # Address MSVC fatal error C1128:
@@ -95,6 +99,7 @@ kwiver_add_library( kwiver_algo_core
 target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   PRIVATE              vital_config
+                       uuid
   )
 
 algorithms_create_plugin( kwiver_algo_core

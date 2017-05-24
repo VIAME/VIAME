@@ -33,8 +33,8 @@
  * \brief Interface to vital global uid
  */
 
-#ifndef KWIVER_VITAL_TYPES_GLOBAL_UID_H
-#define KWIVER_VITAL_TYPES_GLOBAL_UID_H
+#ifndef KWIVER_VITAL_TYPES_UID_H
+#define KWIVER_VITAL_TYPES_UID_H
 
 #include <vital/vital_config.h>
 #include <vital/vital_export.h>
@@ -53,14 +53,12 @@ namespace vital {
  * This class represents a global UID. The content and other
  * attributes are dependent on the method used to create the ID.
  */
-class VITAL_EXPORT global_uid
+class VITAL_EXPORT uid
 {
 public:
-  global_uid();
-
   //@{
   /**
-   * @brief Create global_uid
+   * @brief Create uid
    *
    * This constructor creates an object with a specific ID that may
    * not be globally unique. That is up to the caller. If a really
@@ -70,16 +68,16 @@ public:
    * This method allows the caller to create an ID for specific uses
    * by customizing the content.
    *
-   * @param data Byte array to be held as global_uid
+   * @param data Byte array to be held as uid
    */
-  global_uid( const std::string& data );
-  global_uid( const char* data, size_t byte_count );
+  uid( const std::string& data );
+  uid( const char* data, size_t byte_count );
   //@}
 
-  ~global_uid() = default;
+  ~uid() = default;
 
   /**
-   * @brief Return global_uid value
+   * @brief Return uid value
    *
    * This method returns a pointer to the actual list of bytes that
    * make up the ID.
@@ -97,26 +95,26 @@ public:
   size_t size() const;
 
   /// equality operator
-  bool operator==( const global_uid& other ) const;
-  bool operator!=( const global_uid& other ) const;
-  bool operator< ( const global_uid& other ) const;
+  bool operator==( const uid& other ) const;
+  bool operator!=( const uid& other ) const;
+  bool operator< ( const uid& other ) const;
 
   /**
    * @brief Create object with standard UUID.
    *
    *
-   * @return global_uid that has been initialized with unique standard
+   * @return uid that has been initialized with unique standard
    * UUID.
    */
-  static global_uid create();
+  static uid create();
 
 protected:
 
 private:
-  std::string  m_global_uid;
+  std::string  m_uid;
 
-}; // end class global_uid
+}; // end class uid
 
 } } // end namespace
 
-#endif // KWIVER_VITAL_TYPES_GLOBAL_UID_H
+#endif // KWIVER_VITAL_TYPES_UID_H

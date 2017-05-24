@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,38 +30,73 @@
 
 /**
  * \file
- * \brief test uuid functionality
+ * \brief Implementation of vital global uid
  */
 
-#include <test_common.h>
+#include "uid.h"
 
-#include <vital/types/uid.h>
-#include <iostream>
+#include <uuid/uuid.h>
 
-#define TEST_ARGS      ()
+namespace kwiver {
+namespace vital {
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ------------------------------------------------------------------
+uid::
+uid( const std::string& data)
+  : m_uid( data )
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
 }
 
 
-IMPLEMENT_TEST( test_API )
+uid::
+uid( const char* data, size_t byte_count )
+  : m_uid( data, byte_count )
 {
-  kwiver::vital::uid foo( "init" );
-
-  auto foo_2 = foo;
-  auto foo_3( foo );
-
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
 }
+
+
+// ------------------------------------------------------------------
+const char*
+uid::
+value() const
+{
+  return m_uid.data();
+}
+
+
+// ------------------------------------------------------------------
+size_t
+uid::
+size() const
+{
+  return m_uid.size();
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator==( const uid& other ) const
+{
+  return this->m_uid == other.m_uid;
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator!=( const uid& other ) const
+{
+  return this->m_uid != other.m_uid;
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator<( const uid& other ) const
+{
+  return this->m_uid < other.m_uid ;
+}
+
+} } // end namespace

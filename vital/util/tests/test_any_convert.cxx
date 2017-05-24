@@ -35,7 +35,7 @@
 #include <test_common.h>
 
 #include <vital/util/any_converter.h>
-#include <vital/types/global_uid.h>
+#include <vital/types/uid.h>
 
 #define TEST_ARGS ()
 

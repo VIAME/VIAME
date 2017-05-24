@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,38 +30,71 @@
 
 /**
  * \file
- * \brief test uuid functionality
+ * \brief Implementation of detected object set csv outputuuid factory
  */
 
-#include <test_common.h>
+#include "uuid_factory_core.h"
 
-#include <vital/types/uid.h>
-#include <iostream>
+#include <uuid/uuid.h>
 
-#define TEST_ARGS      ()
 
-DECLARE_TEST_MAP();
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-int
-main(int argc, char* argv[])
+// ------------------------------------------------------------------
+class uuid_factory_core::priv
 {
-  CHECK_ARGS(1);
+public:
 
-  testname_t const testname = argv[1];
 
-  RUN_TEST(testname);
+
+};
+
+
+
+// ==================================================================
+uuid_factory_core::
+uuid_factory_core()
+  : d( new uuid_factory_core::priv() )
+{
+
+}
+
+uuid_factory_core::
+~uuid_factory_core()
+{ }
+
+
+// ------------------------------------------------------------------
+void
+uuid_factory_core::
+set_configuration(vital::config_block_sptr config)
+{
 }
 
 
-IMPLEMENT_TEST( test_API )
+// ------------------------------------------------------------------
+bool
+uuid_factory_core::
+check_configuration(vital::config_block_sptr config) const
 {
-  kwiver::vital::uid foo( "init" );
-
-  auto foo_2 = foo;
-  auto foo_3( foo );
-
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
+  return true;
 }
+
+
+// ------------------------------------------------------------------
+  kwiver::vital::uid
+uuid_factory_core::
+create_uuid()
+{
+  // This may need work to be more system independent.
+  uuid_t new_uuid;
+  uuid_generate( new_uuid );
+  const char* cc = (const char *)&new_uuid[0];
+
+  return kwiver::vital::uid( cc, sizeof( new_uuid ));
+}
+
+
+} } } // end namespace

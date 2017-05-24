@@ -56,6 +56,8 @@
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
 #include <arrows/core/dynamic_config_none.h>
+#include <arrows/core/uuid_factory_core.h>
+
 
 namespace kwiver {
 namespace arrows {
@@ -296,6 +298,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        "or with the keep_all_classes option.\n\n"
                        "3) The input detection_set is cloned and the detected_object_type "
                        "from step 2 is attached." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "uuid", kwiver::arrows::core::uuid_factory_core );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Global UUID generator" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

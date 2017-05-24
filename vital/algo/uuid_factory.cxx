@@ -30,85 +30,24 @@
 
 /**
  * \file
- * \brief Implementation of vital global uid
+ * \brief Implementation for uid factory
  */
 
-#include "global_uid.h"
-
-#include <uuid/uuid.h>
+#include <vital/algo/uuid_factory.h>
+#include <vital/algo/algorithm.txx>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-// ------------------------------------------------------------------
-global_uid::
-global_uid()
-
+uuid_factory
+::uuid_factory()
 {
-  // This may need work to be more system independent.
-  uuid_t new_uuid;
-  uuid_generate( new_uuid );
-  const char* cc = (const char *)&new_uuid[0];
-
-  m_global_uid = std::string( cc, sizeof( new_uuid ));
+  attach_logger( "uuid_factory" );
 }
 
-// ------------------------------------------------------------------
-global_uid::
-global_uid( const std::string& data)
-  : m_global_uid( data )
-{
-}
+} } }
 
-global_uid::
-global_uid( const char* data, size_t byte_count )
-  : m_global_uid( data, byte_count )
-{
-}
-
-
-// ------------------------------------------------------------------
-const char*
-global_uid::
-value() const
-{
-  return m_global_uid.data();
-}
-
-
-// ------------------------------------------------------------------
-size_t
-global_uid::
-size() const
-{
-  return m_global_uid.size();
-}
-
-
-// ------------------------------------------------------------------
-bool
-global_uid::
-operator==( const global_uid& other ) const
-{
-  return this->m_global_uid == other.m_global_uid;
-}
-
-
-// ------------------------------------------------------------------
-bool
-global_uid::
-operator!=( const global_uid& other ) const
-{
-  return this->m_global_uid != other.m_global_uid;
-}
-
-
-// ------------------------------------------------------------------
-bool
-global_uid::
-operator<( const global_uid& other ) const
-{
-  return this->m_global_uid < other.m_global_uid ;
-}
-
-} } // end namespace
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::uuid_factory);
+/// \endcond
