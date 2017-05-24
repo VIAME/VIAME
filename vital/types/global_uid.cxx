@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,76 +30,85 @@
 
 /**
  * \file
- * \brief Implementation of vital uuid
+ * \brief Implementation of vital global uid
  */
 
-#include "uuid.h"
+#include "global_uid.h"
 
-#include <sstream>
-#include <cstring>
-#include <iomanip>
+#include <uuid/uuid.h>
 
 namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
-uuid::
-uuid( const uuid::uuid_data_t& data)
+global_uid::
+global_uid()
+
 {
-  memcpy( this->m_uuid, data, sizeof( this->m_uuid) );
+  // This may need work to be more system independent.
+  uuid_t new_uuid;
+  uuid_generate( new_uuid );
+  const char* cc = (const char *)&new_uuid[0];
+
+  m_global_uid = std::string( cc, sizeof( new_uuid ));
+}
+
+// ------------------------------------------------------------------
+global_uid::
+global_uid( const std::string& data)
+  : m_global_uid( data )
+{
+}
+
+global_uid::
+global_uid( const char* data, size_t byte_count )
+  : m_global_uid( data, byte_count )
+{
 }
 
 
 // ------------------------------------------------------------------
-  const kwiver::vital::uuid::uuid_data_t&
-uuid::
+const char*
+global_uid::
 value() const
 {
-  return m_uuid;
+  return m_global_uid.data();
 }
+
 
 // ------------------------------------------------------------------
-std::string
-uuid::
-format() const
+size_t
+global_uid::
+size() const
 {
-  std::stringstream str;
-  size_t idx = 0;
-  static VITAL_CONSTEXPR char convert[] = "0123456789abcdef";
-
-#define CONV(B)  str << convert[(B >> 4) & 0x0f] << convert[B & 0x0f]
-
-  for (int i = 0; i < 4; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 6; i++, idx++) { CONV(m_uuid[idx]); }
-
-#undef CONV
-
-  return str.str();
+  return m_global_uid.size();
 }
 
 
-bool uuid::
-operator==( const uuid& other )
+// ------------------------------------------------------------------
+bool
+global_uid::
+operator==( const global_uid& other ) const
 {
-  for (size_t i = 0; i < sizeof(m_uuid); i++)
-  {
-    if (this->m_uuid[i] != other.m_uuid[i])
-    {
-      return false;
-    }
-  }
-  return true;
+  return this->m_global_uid == other.m_global_uid;
 }
 
 
-bool uuid::
-operator!=( const uuid& other )
+// ------------------------------------------------------------------
+bool
+global_uid::
+operator!=( const global_uid& other ) const
 {
-  return ! operator==( other );
+  return this->m_global_uid != other.m_global_uid;
 }
 
+
+// ------------------------------------------------------------------
+bool
+global_uid::
+operator<( const global_uid& other ) const
+{
+  return this->m_global_uid < other.m_global_uid ;
+}
 
 } } // end namespace

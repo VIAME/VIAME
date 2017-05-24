@@ -36,7 +36,6 @@
 #include <test_common.h>
 
 #include <vital/attribute_set.h>
-#include <vital/types/uuid.h>
 
 #define TEST_ARGS      ()
 
@@ -88,12 +87,6 @@ IMPLEMENT_TEST( test_api )
     double val = set.get<double>( "second" );
     (void) val;
     , "Cast to wrong data type" );
-
-  // test using UUID type
-  kwiver::vital::uuid::uuid_data_t uu_init = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-  kwiver::vital::uuid a_uuid( uu_init );
-  set.add( "a_uuid", a_uuid );
-  TEST_EQUAL( "Item uuid type test", set.is_type<kwiver::vital::uuid>("a_uuid"), true );
 
   // test data() accessor
   EXPECT_EXCEPTION(

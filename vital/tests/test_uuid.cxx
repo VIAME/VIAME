@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief test point_2 functionality
+ * \brief test uuid functionality
  */
 
 #include <test_common.h>
