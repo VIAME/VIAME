@@ -46,6 +46,7 @@ ExternalProject_Add(kwiver
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_VXL}
     ${VIAME_ARGS_darknet}
+    ${VIAME_ARGS_burnout}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
     ${VIAME_CUDA_FLAGS}

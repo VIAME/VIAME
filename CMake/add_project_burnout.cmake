@@ -48,4 +48,5 @@ ExternalProject_Add_Step(burnout forcebuild
 
 set(VIAME_ARGS_burnout
   -Dburnout_DIR:PATH=${VIAME_BUILD_PREFIX}/src/burnout-build
+  -Dvidtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/burnout-build
   )
