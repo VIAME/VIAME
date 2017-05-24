@@ -208,7 +208,7 @@ endif()
 
 ###
 file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
-install( FILES log4cplys.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
+install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CPLUS )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger.so\n" )
