@@ -60,7 +60,7 @@ public:
   /// Formulate query
   virtual kwiver::vital::track_descriptor_set_sptr formulate(
     int request,
-    std::vector< kwiver::vital::image_container_sptr > images ) const = 0;
+    std::vector< kwiver::vital::image_container_sptr > images ) = 0;
 
 protected:
   formulate_query();
