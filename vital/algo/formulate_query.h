@@ -44,7 +44,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for converting base image type
+/// An abstract base class for formulating descriptors for queries
 class VITAL_ALGO_EXPORT formulate_query
   : public kwiver::vital::algorithm_def<formulate_query>
 {

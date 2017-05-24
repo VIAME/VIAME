@@ -236,7 +236,7 @@ history_entry( const uint64_t& ts,
                const image_bbox_t& img_loc,
                const world_bbox_t& world_loc )
   : ts_(ts),
-    img_loc_(img_loc),
+    img_loc_( img_loc ),
     world_loc_( world_loc )
 {
 }
