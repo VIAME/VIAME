@@ -150,6 +150,7 @@ set( vital_public_headers
   types/timestamp.h
   types/timestamp_config.h
   types/track.h
+  types/track_descriptor.h
   types/track_set.h
   types/vector.h
   types/uuid.h
@@ -200,6 +201,7 @@ set( vital_sources
   types/similarity.cxx
   types/timestamp.cxx
   types/track.cxx
+  types/track_descriptor.cxx
   types/track_set.cxx
   types/uuid.cxx
 )
