@@ -37,6 +37,7 @@
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object.h>
+#include <vital/types/descriptor.h>
 
 #include <vector>
 #include <string>
@@ -150,7 +151,8 @@ public:
 
   // -- TYPES --
   typedef std::vector< track_descriptor_sptr > vector_t;
-  typedef std::vector< double > descriptor_data_t;
+  typedef kwiver::vital::descriptor_dynamic< double > descriptor_data_t;
+  typedef std::shared_ptr< descriptor_data_t > descriptor_data_sptr_t;
   typedef std::vector< history_entry > descriptor_history_t;
   typedef std::string descriptor_id_t;
 
@@ -243,7 +245,7 @@ public:
    *
    * @param data Descriptor data vector
    */
-  void set_features( descriptor_data_t const& data );
+  void set_features( descriptor_data_sptr_t const& data );
 
 
   /**
@@ -254,7 +256,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_t const& get_features() const;
+  descriptor_data_sptr_t const& get_features() const;
 
 
   /**
@@ -269,7 +271,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_t& get_features();
+  descriptor_data_sptr_t& get_features();
 
 
   //@{
@@ -353,7 +355,7 @@ public:
    * @param n New size of features vector.
    * @param init_value Value to initialize the (potentially) added slots.
    */
-  void resize_features( size_t n, int init_value );
+  void resize_features( size_t n, double init_value );
 
 
   /**
@@ -407,7 +409,7 @@ private:
   std::vector< uint64_t > track_ids_;
 
   /// Actual descriptor data contents
-  descriptor_data_t data_;
+  descriptor_data_sptr_t data_;
 
   /// History of descriptor, if known
   descriptor_history_t history_;

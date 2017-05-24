@@ -111,13 +111,13 @@ track_descriptor
 
 void
 track_descriptor
-::set_features( descriptor_data_t const& data )
+::set_features( descriptor_data_sptr_t const& data )
 {
   this->data_ = data;
 }
 
 
-track_descriptor::descriptor_data_t const&
+track_descriptor::descriptor_data_sptr_t const&
 track_descriptor
 ::get_features() const
 {
@@ -125,7 +125,7 @@ track_descriptor
 }
 
 
-track_descriptor::descriptor_data_t&
+track_descriptor::descriptor_data_sptr_t&
 track_descriptor
 ::get_features()
 {
@@ -138,16 +138,16 @@ track_descriptor
 ::at( const size_t idx )
 {
   // validate element index
-  if ( idx >= this->data_.size() )
+  if ( idx >= this->data_->size() )
   {
     std::stringstream msg;
     msg << "Raw descriptor index " << idx
         << " is beyond the last feature element ("
-        << this->data_.size() - 1 << ")";
+        << this->data_->size() - 1 << ")";
     throw std::out_of_range( msg.str() );
   }
 
-  return this->data_[idx];
+  return this->data_->raw_data()[idx];
 }
 
 
@@ -156,16 +156,16 @@ track_descriptor
 ::at( const size_t idx ) const
 {
   // validate element index
-  if ( idx >= this->data_.size() )
+  if ( idx >= this->data_->size() )
   {
     std::stringstream msg;
     msg << "Raw descriptor index " << idx
         << " is beyond the last feature element ("
-        << this->data_.size() - 1 << ")";
+        << this->data_->size() - 1 << ")";
     throw std::out_of_range( msg.str() );
   }
 
-  return this->data_[idx];
+  return this->data_->raw_data()[idx];
 }
 
 
@@ -173,7 +173,7 @@ size_t
 track_descriptor
 ::features_size() const
 {
-  return this->data_.size();
+  return this->data_->size();
 }
 
 
@@ -181,15 +181,20 @@ void
 track_descriptor
 ::resize_features( size_t s )
 {
-  this->data_.resize( s );
+  this->data_ = descriptor_data_sptr_t(
+    new descriptor_data_t( s ) );
 }
 
 
 void
 track_descriptor
-::resize_features( size_t s, int v )
+::resize_features( size_t s, double v )
 {
-  this->data_.resize( s, v );
+  this->data_ = descriptor_data_sptr_t(
+    new descriptor_data_t( s ) );
+
+  std::fill( this->data_->raw_data(),
+    this->data_->raw_data() + s, v );
 }
 
 
@@ -197,7 +202,7 @@ bool
 track_descriptor
 ::has_features() const
 {
-  return ! ( this->data_.empty() );
+  return this->data_->size() != 0;
 }
 
 
