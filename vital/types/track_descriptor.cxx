@@ -37,21 +37,21 @@ namespace kwiver {
 namespace vital {
 
 // Factory methods
-descriptor_sptr
+track_descriptor_sptr
 track_descriptor
 ::create( std::string const& type )
 {
-  descriptor_sptr output( new track_descriptor() );
+  track_descriptor_sptr output( new track_descriptor() );
   output->type_ = type;
   return output;
 }
 
 
-descriptor_sptr
+track_descriptor_sptr
 track_descriptor
-::create( descriptor_sptr to_copy )
+::create( track_descriptor_sptr to_copy )
 {
-  descriptor_sptr output( new track_descriptor() );
+  track_descriptor_sptr output( new track_descriptor() );
   *output = *to_copy;
   return output;
 }
@@ -77,7 +77,7 @@ track_descriptor
 }
 
 
-descriptor_id_t const&
+track_descriptor::descriptor_id_t const&
 track_descriptor
 ::get_type() const
 {
@@ -117,7 +117,7 @@ track_descriptor
 }
 
 
-descriptor_data_t const&
+track_descriptor::descriptor_data_t const&
 track_descriptor
 ::get_features() const
 {
@@ -125,7 +125,7 @@ track_descriptor
 }
 
 
-descriptor_data_t&
+track_descriptor::descriptor_data_t&
 track_descriptor
 ::get_features()
 {
@@ -211,13 +211,13 @@ track_descriptor
 
 void
 track_descriptor
-::add_history_entry( descriptor_history_entry const& hist )
+::add_history_entry( track_descriptor::history_entry const& hist )
 {
   this->history_.push_back( hist );
 }
 
 
-descriptor_history_t const&
+track_descriptor::descriptor_history_t const&
 track_descriptor
 ::get_history() const
 {
@@ -226,10 +226,10 @@ track_descriptor
 
 
 // ================================================================
-descriptor_history_entry::
-descriptor_history_entry( const uint64_t& ts,
-                          const image_bbox_t& img_loc,
-                          const world_bbox_t& world_loc )
+track_descriptor::history_entry::
+history_entry( const uint64_t& ts,
+               const image_bbox_t& img_loc,
+               const world_bbox_t& world_loc )
   : ts_(ts),
     img_loc_(img_loc),
     world_loc_( world_loc )
@@ -237,9 +237,9 @@ descriptor_history_entry( const uint64_t& ts,
 }
 
 
-descriptor_history_entry::
-descriptor_history_entry( const uint64_t& ts,
-                          const image_bbox_t& img_loc )
+track_descriptor::history_entry::
+history_entry( const uint64_t& ts,
+               const image_bbox_t& img_loc )
   : ts_( ts ),
     img_loc_( img_loc ),
     world_loc_( 0, 0, 0, 0 )
@@ -247,30 +247,30 @@ descriptor_history_entry( const uint64_t& ts,
 }
 
 
-descriptor_history_entry::
-~descriptor_history_entry()
+track_descriptor::history_entry::
+~history_entry()
 {
 }
 
 
 uint64_t
-descriptor_history_entry::
+track_descriptor::history_entry::
 get_timestamp() const
 {
   return this->ts_;
 }
 
 
-descriptor_history_entry::image_bbox_t const&
-descriptor_history_entry::
+track_descriptor::history_entry::image_bbox_t const&
+track_descriptor::history_entry::
 get_image_location() const
 {
   return this->img_loc_;
 }
 
 
-descriptor_history_entry::world_bbox_t const&
-descriptor_history_entry::
+track_descriptor::history_entry::world_bbox_t const&
+track_descriptor::history_entry::
 get_world_location() const
 {
   return this->world_loc_;

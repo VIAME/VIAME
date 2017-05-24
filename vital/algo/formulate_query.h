@@ -38,7 +38,7 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
-#include <vital/types/descriptor_set.h>
+#include <vital/types/track_descriptor.h>
 
 namespace kwiver {
 namespace vital {
@@ -58,7 +58,7 @@ public:
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Formulate query
-  virtual kwiver::vital::descriptor_set_sptr formulate(
+  virtual kwiver::vital::track_descriptor_set_sptr formulate(
     int request,
     std::vector< kwiver::vital::image_container_sptr > images ) const = 0;
 
