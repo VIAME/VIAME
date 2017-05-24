@@ -35,8 +35,6 @@
 
 #include "uid.h"
 
-#include <uuid/uuid.h>
-
 namespace kwiver {
 namespace vital {
 
