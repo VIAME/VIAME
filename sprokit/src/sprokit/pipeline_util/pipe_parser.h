@@ -54,7 +54,7 @@ namespace sprokit {
  * @brief Pipe and cluster parser.
  *
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser final
+class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser
 {
 public:
   // -- CONSTRUCTORS --
