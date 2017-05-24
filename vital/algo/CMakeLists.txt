@@ -15,6 +15,7 @@ set( public_headers
   close_loops.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
+  compute_track_descriptors.h
   convert_image.h
   detect_features.h
   detected_object_filter.h
@@ -30,6 +31,7 @@ set( public_headers
   estimate_similarity_transform.h
   extract_descriptors.h
   filter_features.h
+  formulate_query.h
   geo_map.h
   image_filter.h
   image_io.h
@@ -53,6 +55,7 @@ set( sources
   close_loops.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
+  compute_track_descriptors.cxx
   convert_image.cxx
   detect_features.cxx
   detected_object_filter.cxx
@@ -68,6 +71,7 @@ set( sources
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
   filter_features.cxx
+  formulate_query.cxx
   geo_map.cxx
   image_filter.cxx
   image_io.cxx
