@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,80 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tool_io.h"
+#ifndef VITAL_ALGO_FORMULATE_QUERY_H_
+#define VITAL_ALGO_FORMULATE_QUERY_H_
 
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
+#include <vital/vital_config.h>
 
-namespace sprokit {
+#include <string>
+#include <memory>
 
-namespace {
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
+#include <vital/types/descriptor_set.h>
 
-static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-}
-
-static void std_stream_dtor(void* ptr);
-
-
-// ------------------------------------------------------------------
-istream_t
-open_istream(kwiver::vital::path_t const& path)
+/// An abstract base class for converting base image type
+class VITAL_ALGO_EXPORT formulate_query
+  : public kwiver::vital::algorithm_def<formulate_query>
 {
-  istream_t istr;
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "formulate_query"; }
 
-  if (path == iostream_path)
-  {
-    istr.reset(&std::cin, &std_stream_dtor);
-  }
-  else
-  {
-    istr.reset(new std::ifstream(path));
+  /// Set this algorithm's properties via a config block
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  /// Check that the algorithm's currently configuration is valid
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-    if (!istr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
+  /// Formulate query
+  virtual kwiver::vital::descriptor_set_sptr formulate(
+    int request,
+    std::vector< kwiver::vital::image_container_sptr > images ) const = 0;
 
-      throw std::runtime_error(reason);
-    }
-  }
+protected:
+  formulate_query();
 
-  return istr;
-}
+};
 
+typedef std::shared_ptr<formulate_query> formulate_query_sptr;
 
-// ------------------------------------------------------------------
-ostream_t
-open_ostream(kwiver::vital::path_t const& path)
-{
-  ostream_t ostr;
+} } } // end namespace
 
-  if (path == iostream_path)
-  {
-    ostr.reset(&std::cout, &std_stream_dtor);
-  }
-  else
-  {
-    ostr.reset(new std::ofstream(path));
-
-    if (!ostr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return ostr;
-}
-
-
-// ------------------------------------------------------------------
-void
-std_stream_dtor(void* /*ptr*/)
-{
-  // We don't want to delete std::cin or std::cout.
-}
-
-} // end namespace
+#endif // VITAL_ALGO_CONVERT_IMAGE_H_

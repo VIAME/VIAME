@@ -29,6 +29,7 @@
  */
 
 #include "detected_object_set.h"
+#include "bounding_box.h"
 
 #include <vital/vital_foreach.h>
 
@@ -126,6 +127,18 @@ add( detected_object_sptr object )
 
 
 // ------------------------------------------------------------------
+void
+detected_object_set::
+add( detected_object_set_sptr detections )
+{
+  VITAL_FOREACH( auto detection, detections->select() )
+  {
+    this->add( detection );
+  }
+}
+
+
+// ------------------------------------------------------------------
 size_t
 detected_object_set::
 size() const
@@ -209,6 +222,42 @@ select( const std::string& class_name, double threshold )const
   return vect;
 }
 
+// ------------------------------------------------------------------
+void
+detected_object_set::
+scale( double scale_factor )
+{
+  if( scale_factor == 1.0 )
+  {
+    return;
+  }
+
+  VITAL_FOREACH( auto detection, m_detected_objects )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::scale( bbox, scale_factor );
+    detection->set_bounding_box( bbox );
+  }
+}
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+shift( double col_shift, double row_shift )
+{
+  if( col_shift == 0.0 && row_shift == 0.0 )
+  {
+    return;
+  }
+
+  VITAL_FOREACH( auto detection, m_detected_objects )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::translate( bbox,
+      bounding_box_d::vector_type( col_shift, row_shift ) );
+    detection->set_bounding_box( bbox );
+  }
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::attribute_set_sptr

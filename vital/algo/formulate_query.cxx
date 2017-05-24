@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,80 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tool_io.h"
+#include <vital/algo/algorithm.txx>
 
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
+#include "formulate_query.h"
 
-namespace sprokit {
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::formulate_query );
 
-namespace {
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
-
-}
-
-static void std_stream_dtor(void* ptr);
-
-
-// ------------------------------------------------------------------
-istream_t
-open_istream(kwiver::vital::path_t const& path)
+formulate_query
+::formulate_query()
 {
-  istream_t istr;
-
-  if (path == iostream_path)
-  {
-    istr.reset(&std::cin, &std_stream_dtor);
-  }
-  else
-  {
-    istr.reset(new std::ifstream(path));
-
-    if (!istr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return istr;
+  attach_logger( "formulate_query" );
 }
 
 
-// ------------------------------------------------------------------
-ostream_t
-open_ostream(kwiver::vital::path_t const& path)
-{
-  ostream_t ostr;
-
-  if (path == iostream_path)
-  {
-    ostr.reset(&std::cout, &std_stream_dtor);
-  }
-  else
-  {
-    ostr.reset(new std::ofstream(path));
-
-    if (!ostr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return ostr;
-}
-
-
-// ------------------------------------------------------------------
+/// Set this algorithm's properties via a config block
 void
-std_stream_dtor(void* /*ptr*/)
+formulate_query
+::set_configuration( kwiver::vital::config_block_sptr config )
 {
-  // We don't want to delete std::cin or std::cout.
+  (void) config;
 }
 
-} // end namespace
+/// Check that the algorithm's current configuration is valid
+bool
+formulate_query
+::check_configuration( kwiver::vital::config_block_sptr config ) const
+{
+  (void) config;
+  return true;
+}
+
+} } } // end namespace

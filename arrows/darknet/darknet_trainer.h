@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,80 +28,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tool_io.h"
-
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-
-namespace sprokit {
-
-namespace {
-
-static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
-
-}
-
-static void std_stream_dtor(void* ptr);
+#ifndef KWIVER_ARROWS_DARKNET_TRAINER
+#define KWIVER_ARROWS_DARKNET_TRAINER
 
 
-// ------------------------------------------------------------------
-istream_t
-open_istream(kwiver::vital::path_t const& path)
+#include <arrows/darknet/kwiver_algo_darknet_export.h>
+
+#include <vital/vital_config.h>
+
+#include <vital/algo/train_detector.h>
+
+namespace kwiver {
+namespace arrows {
+namespace darknet {
+
+// ----------------------------------------------------------------
+/**
+ * @brief Darknet Training Utility Class
+ */
+class KWIVER_ALGO_DARKNET_EXPORT darknet_trainer
+  : public vital::algorithm_impl<darknet_trainer, vital::algo::train_detector>
 {
-  istream_t istr;
+public:
 
-  if (path == iostream_path)
-  {
-    istr.reset(&std::cin, &std_stream_dtor);
-  }
-  else
-  {
-    istr.reset(new std::ifstream(path));
+  darknet_trainer();
+  virtual ~darknet_trainer();
 
-    if (!istr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
+  virtual vital::config_block_sptr get_configuration() const;
 
-      throw std::runtime_error(reason);
-    }
-  }
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  return istr;
-}
+  virtual void
+  train_from_disk(std::vector< std::string > train_image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+    std::vector< std::string > test_image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
 
+private:
 
-// ------------------------------------------------------------------
-ostream_t
-open_ostream(kwiver::vital::path_t const& path)
-{
-  ostream_t ostr;
+  class priv;
+  const std::unique_ptr<priv> d;
+};
 
-  if (path == iostream_path)
-  {
-    ostr.reset(&std::cout, &std_stream_dtor);
-  }
-  else
-  {
-    ostr.reset(new std::ofstream(path));
+} } }
 
-    if (!ostr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return ostr;
-}
-
-
-// ------------------------------------------------------------------
-void
-std_stream_dtor(void* /*ptr*/)
-{
-  // We don't want to delete std::cin or std::cout.
-}
-
-} // end namespace
+#endif /* KWIVER_ARROWS_DARKNET_TRAINER */

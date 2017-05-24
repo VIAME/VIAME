@@ -31,7 +31,7 @@
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
-#include <sprokit/pipeline_util/path.h>
+// #include <sprokit/pipeline_util/path.h>
 
 #include <sprokit/pipeline/process.h>
 
@@ -76,14 +76,12 @@ static void cluster_block_connect_set(sprokit::cluster_block& block, sprokit::co
 static object cluster_block_cluster(sprokit::cluster_block const& block);
 static void cluster_block_cluster_set(sprokit::cluster_block& block, sprokit::cluster_pipe_block const& cluster);
 static sprokit::pipe_blocks load_pipe_file(std::string const& path);
-static sprokit::pipe_blocks load_pipe(object const& stream, std::string const& inc_root);
+static sprokit::pipe_blocks load_pipe(object const& stream);
 static sprokit::cluster_blocks load_cluster_file(std::string const& path);
-static sprokit::cluster_blocks load_cluster(object const& stream, std::string const& inc_root);
+static sprokit::cluster_blocks load_cluster(object const& stream);
 
 BOOST_PYTHON_MODULE(load)
 {
-  sprokit::python::register_optional_converter<sprokit::config_flags_t>("ConfigFlagsOpt", "An optional config flags.");
-  sprokit::python::register_optional_converter<sprokit::config_provider_t>("ConfigProviderOpt", "An optional config provider.");
   sprokit::python::register_optional_converter<sprokit::process::port_flags_t>("PortFlagsOpt", "An optional port flags.");
 
   class_<sprokit::token_t>("Token"
@@ -94,21 +92,10 @@ BOOST_PYTHON_MODULE(load)
     , "A collection of flags on a configuration setting.")
     .def(vector_indexing_suite<sprokit::config_flags_t>())
   ;
-  class_<sprokit::config_provider_t>("ConfigProvider"
-    , "A provider key for a configuration setting.");
-  class_<sprokit::config_key_options_t>("ConfigKeyOptions"
-    , "A collection of options on a configuration setting.")
-    .def_readwrite("flags", &sprokit::config_key_options_t::flags)
-    .def_readwrite("provider", &sprokit::config_key_options_t::provider)
-  ;
-  class_<sprokit::config_key_t>("ConfigKey"
-    , "A configuration key with its settings.")
-    .def_readwrite("key_path", &sprokit::config_key_t::key_path)
-    .def_readwrite("options", &sprokit::config_key_t::options)
-  ;
   class_<sprokit::config_value_t>("ConfigValue"
     , "A complete configuration setting.")
-    .def_readwrite("key", &sprokit::config_value_t::key)
+    .def_readwrite("key", &sprokit::config_value_t::key_path)
+    .def_readwrite("flags", &sprokit::config_value_t::flags)
     .def_readwrite("value", &sprokit::config_value_t::value)
   ;
   class_<sprokit::config_values_t>("ConfigValues"
@@ -194,13 +181,13 @@ BOOST_PYTHON_MODULE(load)
     , (arg("path"))
     , "Load pipe blocks from a file.");
   def("load_pipe", &load_pipe
-    , (arg("stream"), arg("inc_root") = std::string())
+    , (arg("stream"))
     , "Load pipe blocks from a stream.");
   def("load_cluster_file", &load_cluster_file
     , (arg("path"))
     , "Load cluster blocks from a file.");
   def("load_cluster", &load_cluster
-    , (arg("stream"), arg("inc_root") = std::string())
+    , (arg("stream"))
     , "Load cluster blocks from a stream.");
 }
 
@@ -371,29 +358,29 @@ cluster_block_cluster_set(sprokit::cluster_block& block, sprokit::cluster_pipe_b
 sprokit::pipe_blocks
 load_pipe_file(std::string const& path)
 {
-  return sprokit::load_pipe_blocks_from_file(sprokit::path_t(path));
+  return sprokit::load_pipe_blocks_from_file(path);
 }
 
 sprokit::pipe_blocks
-load_pipe(object const& stream, std::string const& inc_root)
+load_pipe(object const& stream)
 {
   sprokit::python::pyistream istr(stream);
 
-  return sprokit::load_pipe_blocks(istr, sprokit::path_t(inc_root));
+  return sprokit::load_pipe_blocks(istr);
 }
 
 sprokit::cluster_blocks
 load_cluster_file(std::string const& path)
 {
-  return sprokit::load_cluster_blocks_from_file(sprokit::path_t(path));
+  return sprokit::load_cluster_blocks_from_file(path);
 }
 
 sprokit::cluster_blocks
-load_cluster(object const& stream, std::string const& inc_root)
+load_cluster(object const& stream)
 {
   sprokit::python::pyistream istr(stream);
 
-  return sprokit::load_cluster_blocks(istr, sprokit::path_t(inc_root));
+  return sprokit::load_cluster_blocks(istr);
 }
 
 pipe_block_visitor

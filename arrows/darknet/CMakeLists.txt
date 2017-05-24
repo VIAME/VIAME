@@ -2,17 +2,23 @@
 #
 
 set( headers
+  darknet_custom_resize.h
   darknet_detector.h
+  darknet_trainer.h
 )
 
 set( sources
+  darknet_custom_resize.cxx
   darknet_detector.cxx
+  darknet_trainer.cxx
   )
 
 set( darknet_linked_libs
   ${darknet_LIBRARIES}
   kwiversys
   ${OpenCV_LIBS}
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM_LIBRARY}
   kwiver_algo_ocv )
 
 # if darknet was built with the GPU support

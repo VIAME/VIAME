@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,80 +28,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tool_io.h"
+/**
+ * \file
+ * \brief compute_track_descriptors algorithm instantiation
+ */
 
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
+#include <vital/algo/compute_track_descriptors.h>
+#include <vital/algo/algorithm.txx>
 
-namespace sprokit {
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-namespace {
-
-static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
-
-}
-
-static void std_stream_dtor(void* ptr);
-
-
-// ------------------------------------------------------------------
-istream_t
-open_istream(kwiver::vital::path_t const& path)
+compute_track_descriptors
+::compute_track_descriptors()
 {
-  istream_t istr;
-
-  if (path == iostream_path)
-  {
-    istr.reset(&std::cin, &std_stream_dtor);
-  }
-  else
-  {
-    istr.reset(new std::ifstream(path));
-
-    if (!istr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return istr;
+  attach_logger( "compute_track_descriptors" );
 }
 
+} } }
 
-// ------------------------------------------------------------------
-ostream_t
-open_ostream(kwiver::vital::path_t const& path)
-{
-  ostream_t ostr;
-
-  if (path == iostream_path)
-  {
-    ostr.reset(&std::cout, &std_stream_dtor);
-  }
-  else
-  {
-    ostr.reset(new std::ofstream(path));
-
-    if (!ostr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return ostr;
-}
-
-
-// ------------------------------------------------------------------
-void
-std_stream_dtor(void* /*ptr*/)
-{
-  // We don't want to delete std::cin or std::cout.
-}
-
-} // end namespace
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::compute_track_descriptors );
+/// \endcond

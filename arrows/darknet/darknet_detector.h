@@ -57,8 +57,8 @@ public:
 
   virtual vital::config_block_sptr get_configuration() const;
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
 
   virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data ) const;
 

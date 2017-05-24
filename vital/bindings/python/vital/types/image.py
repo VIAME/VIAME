@@ -37,6 +37,7 @@ Interface to VITAL image class.
 __author__ = 'paul.tunison@kitware.com'
 
 import ctypes
+import numpy
 from vital.util import VitalObject
 
 
@@ -390,7 +391,7 @@ class Image (VitalObject):
         :return: numpy array containing image
         :rtype: numpy array
         """
-        pil_image = get_pil_image(self)
+        pil_image = self.get_pil_image()
         numpy_array = numpy.array(pil_image)
         return numpy_array
 
@@ -405,7 +406,7 @@ class Image (VitalObject):
         :return: image in openCV format
         :rtype: ocv image
         """
-        numpy_array = get_numpy_array(self)
+        numpy_array = self.get_numpy_array()
         # Convert RGB to BGR
         open_cv_image = numpy_array[:, :, ::-1].copy()
         return open_cv_image

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,80 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "tool_io.h"
-
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-
-namespace sprokit {
-
-namespace {
-
-static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
-
-}
-
-static void std_stream_dtor(void* ptr);
+#ifndef KWIVER_ARROWS_DARKENT_CUSTOM_RESIZE
+#define KWIVER_ARROWS_DARKENT_CUSTOM_RESIZE
 
 
-// ------------------------------------------------------------------
-istream_t
-open_istream(kwiver::vital::path_t const& path)
-{
-  istream_t istr;
+#include <arrows/darknet/kwiver_algo_darknet_export.h>
 
-  if (path == iostream_path)
-  {
-    istr.reset(&std::cin, &std_stream_dtor);
-  }
-  else
-  {
-    istr.reset(new std::ifstream(path));
+#include <vital/vital_config.h>
 
-    if (!istr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
+#include <opencv2/core/core.hpp>
 
-      throw std::runtime_error(reason);
-    }
-  }
+#include <vital/algo/image_object_detector.h>
 
-  return istr;
-}
+namespace kwiver {
+namespace arrows {
+namespace darknet {
 
+double
+scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
+                            int width, int height );
 
-// ------------------------------------------------------------------
-ostream_t
-open_ostream(kwiver::vital::path_t const& path)
-{
-  ostream_t ostr;
+double
+format_image( const cv::Mat& src, cv::Mat& dst, std::string option,
+              double scale_factor, int width, int height );
 
-  if (path == iostream_path)
-  {
-    ostr.reset(&std::cout, &std_stream_dtor);
-  }
-  else
-  {
-    ostr.reset(new std::ofstream(path));
+} } }
 
-    if (!ostr->good())
-    {
-      std::string const reason = "Unable to open input file: " + path;
-
-      throw std::runtime_error(reason);
-    }
-  }
-
-  return ostr;
-}
-
-
-// ------------------------------------------------------------------
-void
-std_stream_dtor(void* /*ptr*/)
-{
-  // We don't want to delete std::cin or std::cout.
-}
-
-} // end namespace
+#endif /* KWIVER_ARROWS_DARKENT_DETECTOR */
