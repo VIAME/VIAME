@@ -20,6 +20,7 @@ set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_INCLUDE_DIR  "include")
 set(KWSYS_INSTALL_LIB_DIR      lib)
 set(KWSYS_INCLUDE_DIR          ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
+set(KWSYS_INSTALL_BIN_DIR      bin)
 
 # Save our custom CXX flags and reset so we pass no special flags to kwiversys.
 # Our flags are more strict than expected and causes many warnings and errors.
