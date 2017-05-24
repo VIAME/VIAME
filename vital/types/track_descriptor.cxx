@@ -37,21 +37,21 @@ namespace kwiver {
 namespace vital {
 
 // Factory methods
-descriptor_sptr
+track_descriptor_sptr
 track_descriptor
 ::create( std::string const& type )
 {
-  descriptor_sptr output( new track_descriptor() );
+  track_descriptor_sptr output( new track_descriptor() );
   output->type_ = type;
   return output;
 }
 
 
-descriptor_sptr
+track_descriptor_sptr
 track_descriptor
-::create( descriptor_sptr to_copy )
+::create( track_descriptor_sptr to_copy )
 {
-  descriptor_sptr output( new track_descriptor() );
+  track_descriptor_sptr output( new track_descriptor() );
   *output = *to_copy;
   return output;
 }
@@ -77,7 +77,7 @@ track_descriptor
 }
 
 
-descriptor_id_t const&
+track_descriptor::descriptor_id_t const&
 track_descriptor
 ::get_type() const
 {
@@ -111,13 +111,13 @@ track_descriptor
 
 void
 track_descriptor
-::set_features( descriptor_data_t const& data )
+::set_features( descriptor_data_sptr_t const& data )
 {
   this->data_ = data;
 }
 
 
-descriptor_data_t const&
+track_descriptor::descriptor_data_sptr_t const&
 track_descriptor
 ::get_features() const
 {
@@ -125,7 +125,7 @@ track_descriptor
 }
 
 
-descriptor_data_t&
+track_descriptor::descriptor_data_sptr_t&
 track_descriptor
 ::get_features()
 {
@@ -138,16 +138,16 @@ track_descriptor
 ::at( const size_t idx )
 {
   // validate element index
-  if ( idx >= this->data_.size() )
+  if ( idx >= this->data_->size() )
   {
     std::stringstream msg;
     msg << "Raw descriptor index " << idx
         << " is beyond the last feature element ("
-        << this->data_.size() - 1 << ")";
+        << this->data_->size() - 1 << ")";
     throw std::out_of_range( msg.str() );
   }
 
-  return this->data_[idx];
+  return this->data_->raw_data()[idx];
 }
 
 
@@ -156,16 +156,16 @@ track_descriptor
 ::at( const size_t idx ) const
 {
   // validate element index
-  if ( idx >= this->data_.size() )
+  if ( idx >= this->data_->size() )
   {
     std::stringstream msg;
     msg << "Raw descriptor index " << idx
         << " is beyond the last feature element ("
-        << this->data_.size() - 1 << ")";
+        << this->data_->size() - 1 << ")";
     throw std::out_of_range( msg.str() );
   }
 
-  return this->data_[idx];
+  return this->data_->raw_data()[idx];
 }
 
 
@@ -173,7 +173,7 @@ size_t
 track_descriptor
 ::features_size() const
 {
-  return this->data_.size();
+  return this->data_->size();
 }
 
 
@@ -181,15 +181,20 @@ void
 track_descriptor
 ::resize_features( size_t s )
 {
-  this->data_.resize( s );
+  this->data_ = descriptor_data_sptr_t(
+    new descriptor_data_t( s ) );
 }
 
 
 void
 track_descriptor
-::resize_features( size_t s, int v )
+::resize_features( size_t s, double v )
 {
-  this->data_.resize( s, v );
+  this->data_ = descriptor_data_sptr_t(
+    new descriptor_data_t( s ) );
+
+  std::fill( this->data_->raw_data(),
+    this->data_->raw_data() + s, v );
 }
 
 
@@ -197,7 +202,7 @@ bool
 track_descriptor
 ::has_features() const
 {
-  return ! ( this->data_.empty() );
+  return this->data_->size() != 0;
 }
 
 
@@ -211,13 +216,13 @@ track_descriptor
 
 void
 track_descriptor
-::add_history_entry( descriptor_history_entry const& hist )
+::add_history_entry( track_descriptor::history_entry const& hist )
 {
   this->history_.push_back( hist );
 }
 
 
-descriptor_history_t const&
+track_descriptor::descriptor_history_t const&
 track_descriptor
 ::get_history() const
 {
@@ -226,10 +231,10 @@ track_descriptor
 
 
 // ================================================================
-descriptor_history_entry::
-descriptor_history_entry( const uint64_t& ts,
-                          const image_bbox_t& img_loc,
-                          const world_bbox_t& world_loc )
+track_descriptor::history_entry::
+history_entry( const uint64_t& ts,
+               const image_bbox_t& img_loc,
+               const world_bbox_t& world_loc )
   : ts_(ts),
     img_loc_(img_loc),
     world_loc_( world_loc )
@@ -237,9 +242,9 @@ descriptor_history_entry( const uint64_t& ts,
 }
 
 
-descriptor_history_entry::
-descriptor_history_entry( const uint64_t& ts,
-                          const image_bbox_t& img_loc )
+track_descriptor::history_entry::
+history_entry( const uint64_t& ts,
+               const image_bbox_t& img_loc )
   : ts_( ts ),
     img_loc_( img_loc ),
     world_loc_( 0, 0, 0, 0 )
@@ -247,30 +252,30 @@ descriptor_history_entry( const uint64_t& ts,
 }
 
 
-descriptor_history_entry::
-~descriptor_history_entry()
+track_descriptor::history_entry::
+~history_entry()
 {
 }
 
 
 uint64_t
-descriptor_history_entry::
+track_descriptor::history_entry::
 get_timestamp() const
 {
   return this->ts_;
 }
 
 
-descriptor_history_entry::image_bbox_t const&
-descriptor_history_entry::
+track_descriptor::history_entry::image_bbox_t const&
+track_descriptor::history_entry::
 get_image_location() const
 {
   return this->img_loc_;
 }
 
 
-descriptor_history_entry::world_bbox_t const&
-descriptor_history_entry::
+track_descriptor::history_entry::world_bbox_t const&
+track_descriptor::history_entry::
 get_world_location() const
 {
   return this->world_loc_;

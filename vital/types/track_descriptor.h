@@ -37,6 +37,7 @@
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object.h>
+#include <vital/types/descriptor.h>
 
 #include <vector>
 #include <string>
@@ -45,16 +46,11 @@
 namespace kwiver {
 namespace vital {
 
-class descriptor_history_entry;
 class track_descriptor;
 
-// Helper typedefs
-typedef std::string descriptor_id_t;
-typedef std::shared_ptr< track_descriptor > descriptor_sptr_t;
-typedef std::vector< double > descriptor_data_t;
-typedef descriptor_sptr_t descriptor_sptr;
-typedef std::vector< descriptor_history_entry > descriptor_history_t;
-
+typedef std::shared_ptr< track_descriptor > track_descriptor_sptr;
+typedef std::vector< track_descriptor > track_descriptor_set;
+typedef std::shared_ptr< track_descriptor_set > track_descriptor_set_sptr;
 
 // ----------------------------------------------------------------
 /** \brief Track descriptor.
@@ -73,8 +69,92 @@ typedef std::vector< descriptor_history_entry > descriptor_history_t;
 class VITAL_EXPORT track_descriptor
 {
 public:
+
+  // ----------------------------------------------------------------
+  /*
+   * \brief Descriptor history entry.
+   *
+   * If the full history of some descriptor is recorded, one of these
+   * should be created for every frame which the descriptor covers (see
+   * track_descriptor documentation). Only quanities which get used
+   * downstream need be filled.
+   */
+  class history_entry
+  {
+  public:
+    // -- TYPES --
+    typedef bounding_box< unsigned > image_bbox_t;
+    typedef bounding_box< double > world_bbox_t;
+
+    /// Constructors
+    ~history_entry();
+
+    /**
+     * Create new object.
+     *
+     * @param ts Timestamp for this entry
+     * @param img_loc Image location for object
+     * @param world_loc World location for image
+     */
+    history_entry( const uint64_t& ts,
+                   const image_bbox_t& img_loc,
+                   const world_bbox_t& world_loc );
+
+    /**
+     * Create new object.
+     *
+     * @param ts Timestamp for object.
+     * @param img_loc Image location for object.
+     */
+    history_entry( const uint64_t& ts,
+                   const image_bbox_t& img_loc );
+
+    /**
+     * \brief Get timestamp.
+     *
+     *
+     * @return timestamp for this entry
+     */
+    uint64_t get_timestamp() const;
+
+
+    /**
+     * \brief Get image location.
+     *
+     *
+     * @return Bounding box in image coordinates (pixels).
+     */
+    image_bbox_t const& get_image_location() const;
+
+
+    /**
+     * \brief Get world location.
+     *
+     *
+     * @return Bounding box in world coordinates, usually in meters.
+     */
+    world_bbox_t const& get_world_location() const;
+
+
+  private:
+    history_entry(); /* not implemented */
+
+    /// Frame ID and timestamp of the current frame
+    uint64_t ts_;
+
+    /// Image location (pixels)
+    image_bbox_t img_loc_;
+
+    /// World location (world units)
+    world_bbox_t world_loc_;
+  };
+
   // -- TYPES --
-  typedef std::vector< descriptor_sptr_t > vector_t;
+  typedef std::vector< track_descriptor_sptr > vector_t;
+  typedef kwiver::vital::descriptor_dynamic< double > descriptor_data_t;
+  typedef std::shared_ptr< descriptor_data_t > descriptor_data_sptr_t;
+  typedef std::vector< history_entry > descriptor_history_t;
+  typedef std::string descriptor_id_t;
 
   /**
    * \brief Raw descriptor factory method.
@@ -87,7 +167,7 @@ public:
    *
    * @return A smart pointer to the new descriptor is returned.
    */
-  static descriptor_sptr create( std::string const& type );
+  static track_descriptor_sptr create( std::string const& type );
 
 
   /**
@@ -100,7 +180,7 @@ public:
    *
    * @return A smart pointer to the new descriptor is returned.
    */
-  static descriptor_sptr create( descriptor_sptr to_copy );
+  static track_descriptor_sptr create( track_descriptor_sptr to_copy );
 
   ~track_descriptor();
 
@@ -165,7 +245,7 @@ public:
    *
    * @param data Descriptor data vector
    */
-  void set_features( descriptor_data_t const& data );
+  void set_features( descriptor_data_sptr_t const& data );
 
 
   /**
@@ -176,7 +256,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_t const& get_features() const;
+  descriptor_data_sptr_t const& get_features() const;
 
 
   /**
@@ -191,7 +271,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_t& get_features();
+  descriptor_data_sptr_t& get_features();
 
 
   //@{
@@ -275,7 +355,7 @@ public:
    * @param n New size of features vector.
    * @param init_value Value to initialize the (potentially) added slots.
    */
-  void resize_features( size_t n, int init_value );
+  void resize_features( size_t n, double init_value );
 
 
   /**
@@ -305,7 +385,7 @@ public:
    *
    * @param hist New history element to add.
    */
-  void add_history_entry( descriptor_history_entry const& hist );
+  void add_history_entry( history_entry const& hist );
 
 
   /**
@@ -329,90 +409,10 @@ private:
   std::vector< uint64_t > track_ids_;
 
   /// Actual descriptor data contents
-  descriptor_data_t data_;
+  descriptor_data_sptr_t data_;
 
   /// History of descriptor, if known
   descriptor_history_t history_;
-};
-
-
-// ----------------------------------------------------------------
-/*
- * \brief Descriptor history entry.
- *
- * If the full history of some descriptor is recorded, one of these
- * should be created for every frame which the descriptor covers (see
- * track_descriptor documentation). Only quanities which get used downstream
- * need be filled.
- */
-class descriptor_history_entry
-{
-public:
-  // -- TYPES --
-  typedef bounding_box< unsigned > image_bbox_t;
-  typedef bounding_box< double > world_bbox_t;
-
-  /// Constructors
-  ~descriptor_history_entry();
-
-  /**
-   * Create new object.
-   *
-   * @param ts Timestamp for this entry
-   * @param img_loc Image location for object
-   * @param world_loc World location for image
-   */
-  descriptor_history_entry( const uint64_t& ts,
-                            const image_bbox_t& img_loc,
-                            const world_bbox_t& world_loc );
-
-/**
- * Create new object.
- *
- * @param ts Timestamp for object.
- * @param img_loc Image location for object.
- */
-  descriptor_history_entry( const uint64_t& ts,
-                            const image_bbox_t& img_loc );
-
-  /**
-   * \brief Get timestamp.
-   *
-   *
-   * @return timestamp for this entry
-   */
-  uint64_t get_timestamp() const;
-
-
-  /**
-   * \brief Get image location.
-   *
-   *
-   * @return Bounding box in image coordinates (pixels).
-   */
-  image_bbox_t const& get_image_location() const;
-
-
-  /**
-   * \brief Get world location.
-   *
-   *
-   * @return Bounding box in world coordinates, usually in meters.
-   */
-  world_bbox_t const& get_world_location() const;
-
-
-private:
-  descriptor_history_entry(); /* not implemented */
-
-  /// Frame ID and timestamp of the current frame
-  uint64_t ts_;
-
-  /// Image location (pixels)
-  image_bbox_t img_loc_;
-
-  /// World location (world units)
-  world_bbox_t world_loc_;
 };
 
 
