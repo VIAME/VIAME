@@ -43,3 +43,8 @@ endif()
 if (KWIVER_ENABLE_DARKNET)
   add_subdirectory( darknet )
 endif()
+
+# if database is enabled
+if (KWIVER_ENABLE_DATABASE)
+  add_subdirectory( database )
+endif()

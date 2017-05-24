@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,60 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief test VXL bouding_box functionality
- */
+#ifndef __ARROWS_DATATBASE_CONNECTION_H__
+#define __ARROWS_DATABASE_CONNECTION_H__
 
-#include <test_common.h>
+#include <string>
+#include <arrows/database/kwiver_algo_database_export.h>
 
-#include <arrows/vxl/bounding_box.h>
+#include <cppdb/frontend.h>
 
+namespace kwiver {
+namespace arrows {
+namespace database {
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(convert_bb2vgl)
+class KWIVER_ALGO_DATABASE_EXPORT db_connection
 {
 
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
+public:
 
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
+  db_connection(std::string conn_str);
+  virtual ~db_connection();
+  virtual bool connect();
+  virtual void close_connection();
+  virtual bool is_connected();
 
-  if ( bbox.min_x() != vbox.min_x() ||
-       bbox.min_y() != vbox.min_y() ||
-       bbox.max_x() != vbox.max_x() ||
-       bbox.max_y() != vbox.max_y() )
-  {
-    TEST_ERROR( "Assignment vbox = bbox failed" );
-  }
-}
+private:
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
+};
 
+} } } // end namespace
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(convert_vgl2bb)
-{
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
-
-  if ( bbox.min_x() != vbox.min_x() ||
-       bbox.min_y() != vbox.min_y() ||
-       bbox.max_x() != vbox.max_x() ||
-       bbox.max_y() != vbox.max_y() )
-  {
-    TEST_ERROR( "Assignment vbox = bbox failed" );
-  }
-}
+#endif // __ARROWS_DATABASE_CONNECTION_H__
