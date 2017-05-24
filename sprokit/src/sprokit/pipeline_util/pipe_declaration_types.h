@@ -69,22 +69,6 @@ typedef std::vector<config_flag_t> config_flags_t;
 /// The type for a configuration provider.
 typedef token_t config_provider_t;
 
-/* // ------------------------------------------------------------------ */
-/* /\** */
-/*  * \struct config_key_t pipe_declaration_types.h <sprokit/pipeline_util/pipe_declaration_types.h> */
-/*  * */
-/*  * \brief A structure for information on a configuration key. */
-/*  *\/ */
-/* struct config_key_t */
-/* { */
-/*   /// The configuration path. Each element in the vector is a portion of the key. */
-/*   kwiver::vital::config_block_keys_t key_path; */
-
-/*   // Attributes that are associated with this config key */
-/*   // An empty list indicates no flags or attributes. */
-/*   config_flags_t flags; */
-/* }; */
-
 
 // ------------------------------------------------------------------
 /**

@@ -15,7 +15,6 @@ set(sprokit_default_cluster_paths
 set(path_prefix)
 
 if (WIN32)
-  set(path_prefix "L")
   set(path_sep ";")
 else ()
   set(path_sep ":")
