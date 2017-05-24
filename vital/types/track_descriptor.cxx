@@ -111,7 +111,7 @@ track_descriptor
 
 void
 track_descriptor
-::set_features( descriptor_data_sptr_t const& data )
+::set_descriptor( descriptor_data_sptr_t const& data )
 {
   this->data_ = data;
 }
@@ -119,7 +119,7 @@ track_descriptor
 
 track_descriptor::descriptor_data_sptr_t const&
 track_descriptor
-::get_features() const
+::get_descriptor() const
 {
   return this->data_;
 }
@@ -127,7 +127,7 @@ track_descriptor
 
 track_descriptor::descriptor_data_sptr_t&
 track_descriptor
-::get_features()
+::get_descriptor()
 {
   return this->data_;
 }
@@ -171,7 +171,7 @@ track_descriptor
 
 size_t
 track_descriptor
-::features_size() const
+::descriptor_size() const
 {
   return this->data_->size();
 }
@@ -179,7 +179,7 @@ track_descriptor
 
 void
 track_descriptor
-::resize_features( size_t s )
+::resize_descriptor( size_t s )
 {
   this->data_ = descriptor_data_sptr_t(
     new descriptor_data_t( s ) );
@@ -188,7 +188,7 @@ track_descriptor
 
 void
 track_descriptor
-::resize_features( size_t s, double v )
+::resize_descriptor( size_t s, double v )
 {
   this->data_ = descriptor_data_sptr_t(
     new descriptor_data_t( s ) );
@@ -200,7 +200,7 @@ track_descriptor
 
 bool
 track_descriptor
-::has_features() const
+::has_descriptor() const
 {
   return this->data_->size() != 0;
 }
