@@ -233,8 +233,9 @@ class KwiverProcess(process.PythonProcess):
         flag: required/optional flags
 
         """
-        port_trait = self._port_trait_set[ptn]
-        if port_trait == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
+        port_trait = self._port_trait_set.get(ptn, None)
+        if port_trait == None:
+            raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         self.declare_input_port(port_trait.name,
                                 port_trait.type_trait.canonical_name,
@@ -250,8 +251,9 @@ class KwiverProcess(process.PythonProcess):
         flag: required/optional flags
 
         """
-        port_trait = self._port_trait_set[ptn]
-        if port_trait == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
+        port_trait = self._port_trait_set.get(ptn, None)
+        if port_trait == None:
+            raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         self.declare_output_port(port_trait.name,
                                  port_trait.type_trait.canonical_name,
@@ -272,8 +274,9 @@ class KwiverProcess(process.PythonProcess):
 
         The raw datum contains the port data and other metadata.
         """
-        pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
+        pt = self._port_trait_set.get(ptn, None)
+        if pt == None:
+            raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         pipeline_datum = self.grab_datum_from_port(pt.name)
         tt = pt.type_trait
@@ -293,8 +296,9 @@ class KwiverProcess(process.PythonProcess):
         there is a converter registered in sprokit. This is usually limited to
         fundimental types, such as int, double, bool, string, char
         """
-        pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
+        pt = self._port_trait_set.get(ptn, None)
+        if pt == None:
+            raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         return self.grab_value_from_port(pt.name)
 
@@ -305,8 +309,9 @@ class KwiverProcess(process.PythonProcess):
         An exception will be thrown if the config trait has not been registered
         with the process.
         """
-        ct = self._config_trait_set[name]
-        if ct == None: raise ValueError('config trait name \"%\" not registered' % (name))
+        ct = self._config_trait_set.get(name, None)
+        if ct == None:
+            raise ValueError('config trait name \"%\" not registered' % (name))
 
         process.PythonProcess.declare_configuration_key(self, ct.key, ct.default, ct.description)
 
@@ -317,8 +322,9 @@ class KwiverProcess(process.PythonProcess):
         An exception will be thrown if the config trait has not been registered
         with the process.
         """
-        ct = self._config_trait_set[name]
-        if ct == None: raise ValueError('config trait name \"%\" not registered' % (name))
+        ct = self._config_trait_set(name, None)
+        if ct == None:
+            raise ValueError('config trait name \"%\" not registered' % (name))
 
         return self.config_value(ct.name)
 
@@ -338,8 +344,9 @@ class KwiverProcess(process.PythonProcess):
         is some other data type, such as a fundimental type, it will be automatically
         be converted to a datum.
         """
-        pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
+        pt = self._port_trait_set.get(ptn, None)
+        if pt == None:
+            raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         tt = pt.type_trait
         if tt.converter_out != None:
@@ -360,7 +367,8 @@ class KwiverProcess(process.PythonProcess):
 
         The datum has already been formed, so it is pushed directly.
         """
-        pt = self._port_trait_set[ptn]
-        if pt == None: raise ValueError('port trait name \"%\" not registered' % (ptn))
+        pt = self._port_trait_set.get(ptn, None)
+        if pt == None:
+            raise ValueError('port trait name \"%\" not registered' % (ptn))
 
         self.push_datum_to_port( pt.name, val )
