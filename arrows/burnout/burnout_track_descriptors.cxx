@@ -99,7 +99,7 @@ set_configuration( vital::config_block_sptr config_in )
 
   config->merge_config( config_in );
 
-  this->d->m_config  = config->get_value< std::string >( "config" );
+  this->d->m_config = config->get_value< std::string >( "config" );
 }
 
 

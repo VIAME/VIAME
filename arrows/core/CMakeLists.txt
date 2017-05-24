@@ -15,6 +15,7 @@ set( plugin_core_headers
   dynamic_config_none.h
   estimate_canonical_transform.h
   filter_features_magnitude.h
+  formulate_query_core.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
   match_features_fundamental_matrix.h
@@ -58,6 +59,7 @@ set( plugin_core_sources
   dynamic_config_none.cxx
   estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
+  formulate_query_core.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
   match_features_fundamental_matrix.cxx

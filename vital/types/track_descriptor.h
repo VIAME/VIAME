@@ -49,7 +49,7 @@ namespace vital {
 class track_descriptor;
 
 typedef std::shared_ptr< track_descriptor > track_descriptor_sptr;
-typedef std::vector< track_descriptor > track_descriptor_set;
+typedef std::vector< track_descriptor_sptr > track_descriptor_set;
 typedef std::shared_ptr< track_descriptor_set > track_descriptor_set_sptr;
 
 // ----------------------------------------------------------------
@@ -245,7 +245,7 @@ public:
    *
    * @param data Descriptor data vector
    */
-  void set_features( descriptor_data_sptr_t const& data );
+  void set_descriptor( descriptor_data_sptr_t const& data );
 
 
   /**
@@ -256,7 +256,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_sptr_t const& get_features() const;
+  descriptor_data_sptr_t const& get_descriptor() const;
 
 
   /**
@@ -271,7 +271,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_sptr_t& get_features();
+  descriptor_data_sptr_t& get_descriptor();
 
 
   //@{
@@ -302,7 +302,7 @@ public:
    *
    * @return Number of elements in feature vector.
    */
-  size_t features_size() const;
+  size_t descriptor_size() const;
 
 
   /**
@@ -328,7 +328,7 @@ public:
    *
    * @param n New size of features vector.
    */
-  void resize_features( size_t n );
+  void resize_descriptor( size_t n );
 
 
   /**
@@ -355,7 +355,7 @@ public:
    * @param n New size of features vector.
    * @param init_value Value to initialize the (potentially) added slots.
    */
-  void resize_features( size_t n, double init_value );
+  void resize_descriptor( size_t n, double init_value );
 
 
   /**
@@ -363,7 +363,7 @@ public:
    *
    * @return Whether or not the feature vector is empty.
    */
-  bool has_features() const;
+  bool has_descriptor() const;
 
 
   /**
