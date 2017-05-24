@@ -33,7 +33,8 @@
  * \brief train_detector algorithm definition instantiation
  */
 
-#include <vital/algo/train_detector.h>
+#include "train_detector.h"
+
 #include <vital/algo/algorithm.txx>
 
 namespace kwiver {
@@ -48,8 +49,8 @@ train_detector
 
 void
 train_detector
-::train(std::vector< kwiver::vital::image_container_sptr > images,
-        std::vector< kwiver::vital::detected_object_set_sptr > groundtruth) const
+::train_from_memory(std::vector< kwiver::vital::image_container_sptr > images,
+  std::vector< kwiver::vital::detected_object_set_sptr > groundtruth)
 {
   throw std::runtime_error( "Method not implemented" );
 }

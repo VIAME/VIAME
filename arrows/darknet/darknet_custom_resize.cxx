@@ -28,45 +28,86 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <arrows/darknet/kwiver_algo_darknet_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+#include "darknet_custom_resize.h"
 
-#include <arrows/darknet/darknet_detector.h>
-#include <arrows/darknet/darknet_trainer.h>
+#include <vital/vital_foreach.h>
+
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <string>
+#include <exception>
 
 namespace kwiver {
 namespace arrows {
 namespace darknet {
 
-extern "C"
-KWIVER_ALGO_DARKNET_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+
+double
+scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
+                            int width, int height )
 {
-  static auto const module_name = std::string( "arrows.darknet" );
-  if (vpm.is_module_loaded( module_name ) )
+  double scale = 1.0;
+
+  if( src.rows == height && src.cols == width )
   {
-    return;
+    dst = src;
+    return scale;
   }
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_detector );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Image object detector using darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  double original_height = static_cast< double >( src.rows );
+  double original_width = static_cast< double >( src.cols );
 
-  fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_trainer );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Training utility for darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  if( original_height > height )
+  {
+    scale = height / original_height;
+  }
+  if( original_width > width )
+  {
+    scale = std::min( scale, width / original_width );
+  }
 
-  vpm.mark_module_as_loaded( module_name );
+  cv::Mat resized;
+  cv::resize( src, resized, cv::Size(), scale, scale );
+
+  dst.create( height, width, src.type() );
+  dst.setTo( 0 );
+
+  cv::Rect roi( 0, 0, resized.cols, resized.rows );
+  cv::Mat aoi( dst, roi );
+
+  resized.copyTo( aoi );
+  return scale;
+}
+
+double
+format_image( const cv::Mat& src, cv::Mat& dst, std::string option,
+              double scale_factor, int width, int height )
+{
+  double scale = 1.0;
+
+  if( option == "maintain_ar" )
+  {
+    scale = scale_image_maintaining_ar( src, dst, width, height );
+  }
+  else if( option == "chip" || option == "scale" ||
+           option == "chip_and_original" )
+  {
+    if( scale_factor == 1.0 )
+    {
+      dst = src;
+    }
+    else
+    {
+      cv::resize( src, dst, cv::Size(), scale_factor, scale_factor );
+      scale = scale_factor;
+    }
+  }
+  else
+  {
+    throw std::runtime_error( "Invalid resize option: " + option );
+  }
+
+  return scale;
 }
 
 } } } // end namespace

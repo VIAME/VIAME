@@ -28,45 +28,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <arrows/darknet/kwiver_algo_darknet_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+#ifndef KWIVER_ARROWS_DARKNET_TRAINER
+#define KWIVER_ARROWS_DARKNET_TRAINER
 
-#include <arrows/darknet/darknet_detector.h>
-#include <arrows/darknet/darknet_trainer.h>
+
+#include <arrows/darknet/kwiver_algo_darknet_export.h>
+
+#include <vital/vital_config.h>
+
+#include <vital/algo/train_detector.h>
 
 namespace kwiver {
 namespace arrows {
 namespace darknet {
 
-extern "C"
-KWIVER_ALGO_DARKNET_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+// ----------------------------------------------------------------
+/**
+ * @brief Darknet Training Utility Class
+ */
+class KWIVER_ALGO_DARKNET_EXPORT darknet_trainer
+  : public vital::algorithm_impl<darknet_trainer, vital::algo::train_detector>
 {
-  static auto const module_name = std::string( "arrows.darknet" );
-  if (vpm.is_module_loaded( module_name ) )
-  {
-    return;
-  }
+public:
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_detector );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Image object detector using darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  darknet_trainer();
+  virtual ~darknet_trainer();
 
-  fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_trainer );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Training utility for darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  virtual vital::config_block_sptr get_configuration() const;
 
-  vpm.mark_module_as_loaded( module_name );
-}
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-} } } // end namespace
+  virtual void
+  train_from_disk(std::vector< std::string > train_image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+    std::vector< std::string > test_image_names,
+    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+
+private:
+
+  class priv;
+  const std::unique_ptr<priv> d;
+};
+
+} } }
+
+#endif /* KWIVER_ARROWS_DARKNET_TRAINER */

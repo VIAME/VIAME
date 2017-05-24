@@ -97,7 +97,7 @@ public:
    *
    * @return Managed copy of this object.
    */
-  detected_object_set_sptr clone () const;
+  detected_object_set_sptr clone() const;
 
   /**
    * @brief Add detection to set.
@@ -107,6 +107,15 @@ public:
    * @param object Detection to be added to set.
    */
   void add( detected_object_sptr object );
+
+  /**
+   * @brief Add detection set to set.
+   *
+   * This method adds a new detection set to this set.
+   *
+   * @param detections Detection set to be added to set.
+   */
+  void add( detected_object_set_sptr detections );
 
   /**
    * @brief Get number of detections in this set.
@@ -159,6 +168,27 @@ public:
    */
   detected_object::vector_t select( const std::string& class_name,
                                     double             threshold = detected_object_type::INVALID_SCORE ) const;
+
+  /**
+   * @brief Scale all detection locations by some scale factor.
+   *
+   * This method changes the bounding boxes within all stored detections
+   * by scaling them by some scale factor.
+   *
+   * @param scale Scale factor
+   */
+  void scale( double scale_factor );
+
+  /**
+   * @brief Shift all detection locations by some translation offset.
+   *
+   * This method shifts the bounding boxes within all stored detections
+   * by a supplied column and row shift.
+   *
+   * @param col_shift Column  (a.k.a. x, i, width) translation factor
+   * @param row_shift Row (a.k.a. y, j, height) translation factor
+   */
+  void shift( double col_shift, double row_shift );
 
   /**
    * @brief Get attributes set.
