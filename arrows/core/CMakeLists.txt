@@ -82,6 +82,12 @@ set( plugin_core_sources
   uuid_factory_core.cxx
   )
 
+# Need some version of uuid library.
+find_library( LIB_UUID uuid )
+if( NOT LIB_UUID )
+    message( SEND_ERROR "UUID library not found" )
+endif()
+
 # Address MSVC fatal error C1128:
 # number of sections exceeded object file format limit
 if(MSVC)
@@ -99,7 +105,7 @@ kwiver_add_library( kwiver_algo_core
 target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   PRIVATE              vital_config
-                       uuid
+                       ${LIB_UUID}
   )
 
 algorithms_create_plugin( kwiver_algo_core
