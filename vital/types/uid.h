@@ -74,7 +74,16 @@ public:
   uid( const char* data, size_t byte_count );
   //@}
 
+  uid();
+
   ~uid() = default;
+
+  /**
+   * @brief Report if this uuid is valid.
+   *
+   * @return \b true if uid is valid; false otherwise.
+   */
+  bool is_valid() const;
 
   /**
    * @brief Return uid value
@@ -98,17 +107,6 @@ public:
   bool operator==( const uid& other ) const;
   bool operator!=( const uid& other ) const;
   bool operator< ( const uid& other ) const;
-
-  /**
-   * @brief Create object with standard UUID.
-   *
-   *
-   * @return uid that has been initialized with unique standard
-   * UUID.
-   */
-  static uid create();
-
-protected:
 
 private:
   std::string  m_uid;

@@ -84,7 +84,7 @@ check_configuration(vital::config_block_sptr config) const
 
 
 // ------------------------------------------------------------------
-  kwiver::vital::uid
+kwiver::vital::uid
 uuid_factory_core::
 create_uuid()
 {

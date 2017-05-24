@@ -36,8 +36,7 @@
 #include <test_common.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/core/dynamic_config_none.h>
-
+#include <arrows/core/uuid_factory_core.h>
 
 #define TEST_ARGS ()
 
@@ -56,18 +55,18 @@ main(int argc, char* argv[])
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
+
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(test_api)
 {
-  kac::dynamic_config_none dcn;
+  kac::uuid_factory_core algo;
 
   auto cfg = kwiver::vital::config_block::empty_config();
 
-  TEST_EQUAL( "check_configuration return", dcn.check_configuration( cfg ), true );
+  TEST_EQUAL( "check_configuration return", algo.check_configuration( cfg ), true );
 
-  cfg = dcn.get_dynamic_configuration();
-  const auto values = cfg->available_values();
-  TEST_EQUAL( "empty config", values.size(), 0 );
+  kwiver::vital::uid id = algo.create_uuid();
+  TEST_EQUAL( "Valid uid", id.is_valid(), true );
 }
 
 
@@ -78,24 +77,24 @@ IMPLEMENT_TEST(test_loading)
 
   auto cfg = kwiver::vital::config_block::empty_config();
 
-  cfg->set_value( "dyn_cfg:type", "none" );
+  cfg->set_value( "uuid_cfg:type", "uuid" );
 
-  algo::dynamic_configuration_sptr dcs;
+  algo::uuid_factory_sptr fact;
 
   // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::dynamic_configuration::check_nested_algo_configuration( "dyn_cfg", cfg ) )
+  if ( ! algo::uuid_factory::check_nested_algo_configuration( "uuid_cfg", cfg ) )
   {
     TEST_ERROR( "Configuration check failed." );
   }
 
   // Instantiate the configured algorithm
-  algo::dynamic_configuration::set_nested_algo_configuration( "dyn_cfg", cfg, dcs );
-  if ( ! dcs )
+  algo::uuid_factory::set_nested_algo_configuration( "uuid_cfg", cfg, fact );
+  if ( ! fact )
   {
     TEST_ERROR( "Unable to create algorithm" );
   }
   else
   {
-    TEST_EQUAL( "algorithm name", dcs->impl_name(), "none" );
+    TEST_EQUAL( "algorithm name", fact->impl_name(), "uuid" );
   }
 }
