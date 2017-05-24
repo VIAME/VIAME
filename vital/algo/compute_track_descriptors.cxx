@@ -49,5 +49,5 @@ compute_track_descriptors
 } } }
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::compute_track_descriptors);
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::compute_track_descriptors );
 /// \endcond
