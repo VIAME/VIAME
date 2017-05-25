@@ -48,7 +48,7 @@ namespace vital {
  * This enumeration provides a set of well known coordinate reference systems
  * (CRS's). The numeric values correspond to geodetic CRS's as specified by
  * the European Petroleum Survey Group (EPSG) Spatial Reference System
- * Identifier (SRID).
+ * Identifiers (SRID).
  *
  * \note UTM SRID's are obtained by adding the UTM zone number to the base
  *       SRID

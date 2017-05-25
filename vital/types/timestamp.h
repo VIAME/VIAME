@@ -49,7 +49,7 @@ namespace vital {
  *
  * A timestamp has the notion of valid time and valid frame. This is
  * useful when dealing with interpolated timestamps. In this case, a
- * timestamps may have a time, but no frame.
+ * timestamp may have a time, but no frame.
  *
  * When comparing timestamps, they must be from the same domain. If
  * not, then they are not comparable and \b all relative operators
