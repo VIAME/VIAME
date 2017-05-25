@@ -312,6 +312,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
+#ifdef USE_UUID
   fact = vpm.ADD_ALGORITHM( "uuid", kwiver::arrows::core::uuid_factory_core );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Global UUID generator" )
@@ -319,7 +320,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
-
+#endif
 
 
   vpm.mark_module_as_loaded( module_name );
