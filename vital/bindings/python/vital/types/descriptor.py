@@ -66,6 +66,8 @@ class Descriptor (numpy.ndarray, VitalObject):
         """
         if from_cptr is None:
             d_type = ctype
+            # Record type format character for calling the appropriate C
+            # function.
             # noinspection PyProtectedMember
             d_type_char = ctype._type_
             d_new = cls.VITAL_LIB['vital_descriptor_new_{}'.format(d_type_char)]
@@ -88,6 +90,8 @@ class Descriptor (numpy.ndarray, VitalObject):
                 [inst_ptr],
                 ctypes.c_char_p
             )]
+            # Record type format character for calling the appropriate C
+            # function.
             # noinspection PyProtectedMember
             d_type_char = d_type._type_
             # Extract existing instance size information
