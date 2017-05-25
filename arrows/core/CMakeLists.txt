@@ -34,7 +34,6 @@ set( plugin_core_headers
   transform.h
   triangulate.h
   triangulate_landmarks.h
-  uuid_factory_core.h
   )
 
 kwiver_install_headers(
@@ -81,13 +80,18 @@ set( plugin_core_sources
   transform.cxx
   triangulate.cxx
   triangulate_landmarks.cxx
-  uuid_factory_core.cxx
   )
 
 # Need some version of uuid library.
+# This is not optimal way of enabling/disabling UUID
 find_library( LIB_UUID uuid )
 if( NOT LIB_UUID )
-    message( SEND_ERROR "UUID library not found" )
+    message( WARNING "UUID library not found. UUID factory not enabled." )
+    set( LIB_UUID "" )
+else()
+    add_definitions(-DUSE_UUID )
+    set( plugin_core_sources ${plugin_core_sources} uuid_factory_core.cxx )
+    set( plugin_core_headers ${plugin_core_headers} uuid_factory_core.h )
 endif()
 
 # Address MSVC fatal error C1128:
