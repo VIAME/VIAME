@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,40 +28,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief test uuid functionality
- */
+#include <arrows/burnout/kwiver_algo_burnout_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <test_common.h>
+#include <arrows/burnout/burnout_track_descriptors.h>
 
-#include <vital/types/uid.h>
-#include <iostream>
+namespace kwiver {
+namespace arrows {
+namespace burnout {
 
-#define TEST_ARGS      ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+extern "C"
+KWIVER_ALGO_BURNOUT_PLUGIN_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
-
-IMPLEMENT_TEST( test_API )
-{
-  kwiver::vital::uid foo( "init" );
-
-  auto foo_2 = foo;
-  auto foo_3( foo );
-
-  if (foo != foo_3)
+  static auto const module_name = std::string( "arrows.burnout" );
+  if( vpm.is_module_loaded( module_name ) )
   {
-    TEST_ERROR("Equal UUID test failed" );
+    return;
   }
+
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "burnout", kwiver::arrows::burnout::burnout_track_descriptors );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Track descriptors using burnout" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  vpm.mark_module_as_loaded( module_name );
 }
+
+} } } // end namespace

@@ -45,6 +45,7 @@
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/estimate_canonical_transform.h>
 #include <arrows/core/filter_features_magnitude.h>
+#include <arrows/core/formulate_query_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
@@ -56,6 +57,8 @@
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
 #include <arrows/core/dynamic_config_none.h>
+#include <arrows/core/uuid_factory_core.h>
+
 
 namespace kwiver {
 namespace arrows {
@@ -199,6 +202,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
+  fact = vpm.ADD_ALGORITHM( "core", kwiver::arrows::core::formulate_query_core );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Formulate descriptors for later queries." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
   fact = vpm.ADD_ALGORITHM( "none", kwiver::arrows::core::dynamic_config_none );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -296,6 +306,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        "or with the keep_all_classes option.\n\n"
                        "3) The input detection_set is cloned and the detected_object_type "
                        "from step 2 is attached." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "uuid", kwiver::arrows::core::uuid_factory_core );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Global UUID generator" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

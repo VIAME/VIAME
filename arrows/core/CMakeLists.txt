@@ -15,6 +15,7 @@ set( plugin_core_headers
   dynamic_config_none.h
   estimate_canonical_transform.h
   filter_features_magnitude.h
+  formulate_query_core.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
   match_features_fundamental_matrix.h
@@ -33,11 +34,14 @@ set( plugin_core_headers
   transform.h
   triangulate.h
   triangulate_landmarks.h
+  uuid_factory_core.h
   )
+
 kwiver_install_headers(
   SUBDIR     arrows/core
   ${plugin_core_headers}
   )
+
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_core_export.h
   NOPATH   SUBDIR     arrows/core
@@ -58,6 +62,7 @@ set( plugin_core_sources
   dynamic_config_none.cxx
   estimate_canonical_transform.cxx
   filter_features_magnitude.cxx
+  formulate_query_core.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
   match_features_fundamental_matrix.cxx
@@ -76,7 +81,14 @@ set( plugin_core_sources
   transform.cxx
   triangulate.cxx
   triangulate_landmarks.cxx
+  uuid_factory_core.cxx
   )
+
+# Need some version of uuid library.
+find_library( LIB_UUID uuid )
+if( NOT LIB_UUID )
+    message( SEND_ERROR "UUID library not found" )
+endif()
 
 # Address MSVC fatal error C1128:
 # number of sections exceeded object file format limit
@@ -95,6 +107,7 @@ kwiver_add_library( kwiver_algo_core
 target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   PRIVATE              vital_config
+                       ${LIB_UUID}
   )
 
 algorithms_create_plugin( kwiver_algo_core

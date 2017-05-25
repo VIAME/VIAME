@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,38 +30,40 @@
 
 /**
  * \file
- * \brief test uuid functionality
+ * \brief Interface to uid factory
  */
 
-#include <test_common.h>
+#ifndef KWIVER_ARROWS_UUID_FACTORY_H
+#define KWIVER_ARROWS_UUID_FACTORY_H
 
-#include <vital/types/uid.h>
-#include <iostream>
+#include <arrows/core/kwiver_algo_core_export.h>
+#include <vital/algo/uuid_factory.h>
 
-#define TEST_ARGS      ()
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-DECLARE_TEST_MAP();
 
-int
-main(int argc, char* argv[])
+class KWIVER_ALGO_CORE_EXPORT uuid_factory_core
+  : public vital::algorithm_impl<uuid_factory_core, vital::algo::uuid_factory>
 {
-  CHECK_ARGS(1);
+public:
+  uuid_factory_core();
+  virtual ~uuid_factory_core();
 
-  testname_t const testname = argv[1];
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  RUN_TEST(testname);
-}
+  // Main method to generate UUID's
+  virtual kwiver::vital::uid create_uuid();
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
 
 
-IMPLEMENT_TEST( test_API )
-{
-  kwiver::vital::uid foo( "init" );
+} } } // end namespace
 
-  auto foo_2 = foo;
-  auto foo_3( foo );
 
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
-}
+#endif /* KWIVER_ARROWS_UUID_FACTORY_H */

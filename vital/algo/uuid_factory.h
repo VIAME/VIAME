@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,38 +30,39 @@
 
 /**
  * \file
- * \brief test uuid functionality
+ * \brief Interface to uid factory
  */
 
-#include <test_common.h>
+#ifndef VITAL_ALGO_UUID_FACTORY_H
+#define VITAL_ALGO_UUID_FACTORY_H
 
+#include <vital/vital_config.h>
+#include <vital/algo/algorithm.h>
 #include <vital/types/uid.h>
-#include <iostream>
 
-#define TEST_ARGS      ()
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+/// Abstract base class for creating uuid's
+/**
+ *
+ */
+class VITAL_ALGO_EXPORT uuid_factory
+  : public kwiver::vital::algorithm_def< uuid_factory >
 {
-  CHECK_ARGS(1);
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "uuid_factory"; }
 
-  testname_t const testname = argv[1];
+  virtual uid create_uuid() = 0;
 
-  RUN_TEST(testname);
-}
+protected:
+  uuid_factory();
+};
 
+typedef std::shared_ptr< uuid_factory > uuid_factory_sptr;
 
-IMPLEMENT_TEST( test_API )
-{
-  kwiver::vital::uid foo( "init" );
+} } } // end namespace
 
-  auto foo_2 = foo;
-  auto foo_3( foo );
-
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
-}
+#endif /* VITAL_ALGO_UUID_FACTORY_H */

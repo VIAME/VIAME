@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,40 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+
+#include <arrows/burnout/kwiver_algo_burnout_export.h>
+
+#include <vital/vital_config.h>
+
+#include <vital/algo/compute_track_descriptors.h>
+
+namespace kwiver {
+namespace arrows {
+namespace burnout {
+
+// ----------------------------------------------------------------
 /**
- * \file
- * \brief test uuid functionality
+ * @brief burnout_track_descriptors
+ *
  */
-
-#include <test_common.h>
-
-#include <vital/types/uid.h>
-#include <iostream>
-
-#define TEST_ARGS      ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
+  : public vital::algorithm_impl< burnout_track_descriptors,
+      vital::algo::compute_track_descriptors >
 {
-  CHECK_ARGS(1);
+public:
 
-  testname_t const testname = argv[1];
+  burnout_track_descriptors();
+  virtual ~burnout_track_descriptors();
 
-  RUN_TEST(testname);
-}
+  virtual vital::config_block_sptr get_configuration() const;
 
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-IMPLEMENT_TEST( test_API )
-{
-  kwiver::vital::uid foo( "init" );
+  virtual kwiver::vital::track_descriptor_set_sptr
+  compute( kwiver::vital::image_container_sptr image_data,
+           kwiver::vital::track_set_sptr tracks );
 
-  auto foo_2 = foo;
-  auto foo_3( foo );
+private:
 
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
-}
+  class priv;
+  const std::unique_ptr<priv> d;
+};
+
+} } }
+
+#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */

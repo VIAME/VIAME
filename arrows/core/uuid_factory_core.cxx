@@ -30,72 +30,71 @@
 
 /**
  * \file
- * \brief test dynamic configuration
+ * \brief Implementation of detected object set csv outputuuid factory
  */
 
-#include <test_common.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include "uuid_factory_core.h"
 
-#include <arrows/core/dynamic_config_none.h>
+#include <uuid/uuid.h>
 
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
-namespace algo = kwiver::vital::algo;
-namespace kac = kwiver::arrows::core;
+namespace kwiver {
+namespace arrows {
+namespace core {
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(test_api)
+class uuid_factory_core::priv
 {
-  kac::dynamic_config_none dcn;
+public:
 
-  auto cfg = kwiver::vital::config_block::empty_config();
 
-  TEST_EQUAL( "check_configuration return", dcn.check_configuration( cfg ), true );
 
-  cfg = dcn.get_dynamic_configuration();
-  const auto values = cfg->available_values();
-  TEST_EQUAL( "empty config", values.size(), 0 );
+};
+
+
+
+// ==================================================================
+uuid_factory_core::
+uuid_factory_core()
+  : d( new uuid_factory_core::priv() )
+{
+
 }
+
+uuid_factory_core::
+~uuid_factory_core()
+{ }
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(test_loading)
+void
+uuid_factory_core::
+set_configuration(vital::config_block_sptr config)
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  auto cfg = kwiver::vital::config_block::empty_config();
-
-  cfg->set_value( "dyn_cfg:type", "none" );
-
-  algo::dynamic_configuration_sptr dcs;
-
-  // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::dynamic_configuration::check_nested_algo_configuration( "dyn_cfg", cfg ) )
-  {
-    TEST_ERROR( "Configuration check failed." );
-  }
-
-  // Instantiate the configured algorithm
-  algo::dynamic_configuration::set_nested_algo_configuration( "dyn_cfg", cfg, dcs );
-  if ( ! dcs )
-  {
-    TEST_ERROR( "Unable to create algorithm" );
-  }
-  else
-  {
-    TEST_EQUAL( "algorithm name", dcs->impl_name(), "none" );
-  }
 }
+
+
+// ------------------------------------------------------------------
+bool
+uuid_factory_core::
+check_configuration(vital::config_block_sptr config) const
+{
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::uid
+uuid_factory_core::
+create_uuid()
+{
+  // This may need work to be more system independent.
+  uuid_t new_uuid;
+  uuid_generate( new_uuid );
+  const char* cc = (const char *)&new_uuid[0];
+
+  return kwiver::vital::uid( cc, sizeof( new_uuid ));
+}
+
+
+} } } // end namespace

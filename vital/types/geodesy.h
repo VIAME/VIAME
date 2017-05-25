@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,43 @@
 
 /**
  * \file
- * \brief test uuid functionality
+ * \brief This file contains base types and structures for geodesy.
  */
 
-#include <test_common.h>
+#ifndef KWIVER_VITAL_GEODESY_H_
+#define KWIVER_VITAL_GEODESY_H_
 
-#include <vital/types/uid.h>
-#include <iostream>
+#include <vital/vital_config.h>
+#include <vital/vital_export.h>
 
-#define TEST_ARGS      ()
+namespace kwiver {
+namespace vital {
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+/** Well known coordinate reference systems.
+ *
+ * This enumeration provides a set of well known coordinate reference systems
+ * (CRS's). The numeric values correspond to geodetic CRS's as specified by
+ * the European Petroleum Survey Group (EPSG) Spatial Reference System
+ * Identifier (SRID).
+ *
+ * \note UTM SRID's are obtained by adding the UTM zone number to the base
+ *       SRID
+ *
+ * \see https://en.wikipedia.org/wiki/Spatial_reference_system,
+ *      http://www.epsg.org/, https://epsg-registry.org/
+ */
+enum class SRID : int
 {
-  CHECK_ARGS(1);
+  lat_lon_NAD83 = 4269,
+  lat_lon_WGS84 = 4326,
+  UTM_WGS84_north = 32600, // Add zone number to get zoned SRID
+  UTM_WGS84_south = 32700, // Add zone number to get zoned SRID
+  UTM_NAD83_northeast = 3313, // Add zone number (59N - 60N) to get zoned SRID
+  UTM_NAD83_northwest = 26900, // Add zone number (1N - 23N) to get zoned SRID
+};
 
-  testname_t const testname = argv[1];
 
-  RUN_TEST(testname);
-}
+} } // end namespace
 
-
-IMPLEMENT_TEST( test_API )
-{
-  kwiver::vital::uid foo( "init" );
-
-  auto foo_2 = foo;
-  auto foo_3( foo );
-
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
-}
+#endif /* KWIVER_VITAL_GEODESY_H_ */

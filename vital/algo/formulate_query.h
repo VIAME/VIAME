@@ -38,13 +38,13 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
-#include <vital/types/descriptor_set.h>
+#include <vital/types/track_descriptor.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for converting base image type
+/// An abstract base class for formulating descriptors for queries
 class VITAL_ALGO_EXPORT formulate_query
   : public kwiver::vital::algorithm_def<formulate_query>
 {
@@ -58,9 +58,9 @@ public:
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Formulate query
-  virtual kwiver::vital::descriptor_set_sptr formulate(
+  virtual kwiver::vital::track_descriptor_set_sptr formulate(
     int request,
-    std::vector< kwiver::vital::image_container_sptr > images ) const = 0;
+    std::vector< kwiver::vital::image_container_sptr > images ) = 0;
 
 protected:
   formulate_query();

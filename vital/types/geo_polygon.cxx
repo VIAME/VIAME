@@ -30,52 +30,74 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief This file contains the implementation of a geo polygon.
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#include "geo_polygon.h"
 
-#include <vital/vital_config.h>
-
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor.h>
-#include <vital/types/track_set.h>
+#include <stdexcept>
 
 namespace kwiver {
 namespace vital {
-namespace algo {
 
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
+using geo_raw_polygon_t = geo_polygon::geo_raw_polygon_t;
+
+// ----------------------------------------------------------------------------
+geo_polygon::
+geo_polygon()
+  : m_original_crs{ -1 }
+{ }
+
+// ----------------------------------------------------------------------------
+geo_polygon::
+geo_polygon( geo_raw_polygon_t const& polygon, int crs )
+  : m_original_crs( crs )
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
+  m_poly.insert( std::make_pair( crs, polygon ) );
+}
 
-  /// Compute track descriptors given an image and tracks
-  /**
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
-   */
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::track_set_sptr tracks ) = 0;
+// ----------------------------------------------------------------------------
+bool geo_polygon
+::is_empty() const
+{
+  return m_poly.empty();
+}
 
-protected:
-  compute_track_descriptors();
+// ----------------------------------------------------------------------------
+geo_raw_polygon_t geo_polygon
+::polygon() const
+{
+  return m_poly.at( m_original_crs );
+}
 
-};
+// ----------------------------------------------------------------------------
+int geo_polygon
+::crs() const
+{
+  return m_original_crs;
+}
 
+// ----------------------------------------------------------------------------
+geo_raw_polygon_t geo_polygon
+::polygon( int crs ) const
+{
+  auto const i = m_poly.find( crs );
+  if ( i == m_poly.end() )
+  {
+    // TODO convert to requested CRS and add to m_poly
+    throw std::runtime_error( "conversion is not implemented" );
+  }
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
+  return i->second;
+}
 
+// ----------------------------------------------------------------------------
+void geo_polygon
+::set_polygon( geo_raw_polygon_t const& poly, int crs )
+{
+  m_original_crs = crs;
+  m_poly.clear();
+  m_poly.insert( std::make_pair( crs, poly ) );
+}
 
-} } } // end namespace
-
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+} } // end namespace

@@ -30,52 +30,72 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief This file contains the interface to a geo polygon.
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#ifndef KWIVER_VITAL_GEO_POLYGON_H_
+#define KWIVER_VITAL_GEO_POLYGON_H_
 
 #include <vital/vital_config.h>
+#include <vital/vital_export.h>
+#include <vital/types/polygon.h>
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor.h>
-#include <vital/types/track_set.h>
+#include <unordered_map>
 
 namespace kwiver {
 namespace vital {
-namespace algo {
 
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
+// ----------------------------------------------------------------------------
+/** Geo-polygon.
+ *
+ * This class represents a geolocated polygon. The polygon is created by
+ * specifying a raw polygon and a CRS. The original polygon and original CRS
+ * may be directly accessed, or the polygon in a specific CRS may be requested.
+ * Requests for a specific CRS are cached, so that CRS conversion does not need
+ * to be performed every time.
+ */
+class VITAL_EXPORT geo_polygon
 {
 public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
+  typedef kwiver::vital::polygon geo_raw_polygon_t;
 
-  /// Compute track descriptors given an image and tracks
+  geo_polygon();
+  geo_polygon( geo_raw_polygon_t const&, int crs );
+
+  virtual ~geo_polygon() VITAL_DEFAULT_DTOR
+
   /**
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
+   * \throws std::out_of_range if no location has been set.
    */
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::track_set_sptr tracks ) = 0;
+  geo_raw_polygon_t polygon() const;
+  int crs() const;
+
+  /**
+   * \throws std::runtime_error if the conversion fails.
+   */
+  geo_raw_polygon_t polygon( int crs ) const;
+
+  void set_polygon( geo_raw_polygon_t const&, int crs );
+
+  /**
+   * @brief Does polygon have a specified location.
+   *
+   * This method checks the object to see if any location data has been set.
+   *
+   * @return \b true if object is default constructed.
+   */
+  bool is_empty() const;
+
+
+  bool operator==( const geo_polygon& rhs ) const;
+  bool operator!=( const geo_polygon& rhs ) const;
 
 protected:
-  compute_track_descriptors();
 
+  int m_original_crs;
+  mutable std::unordered_map< int, geo_raw_polygon_t > m_poly;
 };
 
+} } // end namespace
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
-
-
-} } } // end namespace
-
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#endif /* KWIVER_VITAL_GEO_POLYGON_H_ */
