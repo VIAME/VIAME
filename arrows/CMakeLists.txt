@@ -49,7 +49,7 @@ if (KWIVER_ENABLE_DATABASE)
   add_subdirectory( database )
 endif()
 
-# if burnout is enabled
+  # if burnout is enabled
 if( KWIVER_ENABLE_BURNOUT )
   add_subdirectory( burnout )
 endif()

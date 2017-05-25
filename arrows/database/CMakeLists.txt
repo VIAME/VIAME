@@ -1,9 +1,11 @@
 
 set( database_headers
+  descriptor_db.h
   connection/db_connection.h
   )
 
 set( database_sources
+  descriptor_db.cxx
   connection/db_connection.cxx
   )
 
@@ -23,7 +25,8 @@ kwiver_add_library( kwiver_algo_database
   )
 
 target_link_libraries( kwiver_algo_database
-  PRIVATE  ${CppDB_LIBRARY}
+  PUBLIC vital
+  PRIVATE ${CppDB_LIBRARY}
   )
 
 

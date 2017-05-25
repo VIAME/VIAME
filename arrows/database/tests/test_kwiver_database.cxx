@@ -36,7 +36,9 @@
 #include <test_common.h>
 #include <string>
 #include <iostream>
-#include <arrows/database/connection/db_connection.h>
+//#include <arrows/database/connection/db_connection.h>
+#include <arrows/database/descriptor_db.h>
+#include <vital/types/descriptor.h>
 
 
 #define TEST_ARGS ()
@@ -57,6 +59,7 @@ main(int argc, char* argv[])
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(database_connection)
 {
+
   std::string db_host = "ceres";
   std::string db_user = "perseas";
   std::string db_pass = "";
@@ -67,6 +70,13 @@ IMPLEMENT_TEST(database_connection)
   std::string conn_str = "host=" + db_host + ";user=" + db_user + ";password=" + db_pass;
   conn_str += ";dbname=" + db_name + ";port=" + db_port;
 
+  kwiver::arrows::database::descriptor_db desc_db(conn_str);
+
+  kwiver::vital::descriptor_sptr desc = std::make_shared<kwiver::vital::descriptor_dynamic<double> >(5);
+
+  desc_db.add_descriptor(desc);
+  desc_db.get_descriptor();
+  /*
   kwiver::arrows::database::db_connection db_conn(conn_str);
   bool is_connected = db_conn.is_connected();
   std::cerr << "is_connected: " << is_connected << std::endl;
@@ -78,4 +88,5 @@ IMPLEMENT_TEST(database_connection)
 
   db_conn.close_connection();
   TEST_EQUAL( "empty config", db_conn.is_connected(), false);
+  */
 }

@@ -29,66 +29,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "db_connection.h"
+#ifndef __ARROWS_DATATBASE_DESCRIPTOR_DB_H__
+#define __ARROWS_DATATBASE_DESCRIPTOR_DB_H__
 
+#include <arrows/database/kwiver_algo_database_export.h>
+#include <arrows/database/connection/db_connection.h>
+
+#include <vital/types/descriptor.h>
+#include <vital/types/descriptor_set.h>
+
+#include <cppdb/frontend.h>
+
+#include <string>
 
 namespace kwiver {
 namespace arrows {
 namespace database {
 
-class db_connection::priv
+class KWIVER_ALGO_DATABASE_EXPORT descriptor_db
 {
+
 public:
 
-  /// Constructor
-  priv()
-    : connect_string_(""),
-      is_connected_(false)
-  {
-  }
+  descriptor_db( std::string conn_str );
+  virtual ~descriptor_db();
+
+  bool add_descriptor( kwiver::vital::descriptor_sptr const desc );
+  bool add_descriptor_set( kwiver::vital::descriptor_set_sptr const desc_set );
+  kwiver::vital::descriptor_sptr get_descriptor( );
+
+private:
+
+  cppdb::session db_conn_;
   std::string connect_string_;
-  bool is_connected_;
-  cppdb::session raw_connection_;
 
-};
+  //db_connection db_conn_;
 
-db_connection::db_connection(std::string conn_str)
-  : d_(new priv)
-{
-
-  /* kwiver connection string is of the following format
-     host=db_host;user=db_user;password=db_pass;dbname=db_name;port=db_port
-   */
-  d_->connect_string_ += ( "postgresql:" );
-#ifdef MODULE_PATH
-  d_->connect_string_ += "@modules_path="  MODULE_PATH;
-#endif
-  d_->connect_string_ += ( ";@blob=bytea");
-  d_->connect_string_ += ";" + conn_str;
-}
-
-db_connection::~db_connection()
-{
-
-}
-
-bool db_connection::connect()
-{
-  d_->raw_connection_.open( d_->connect_string_ );
-  d_->is_connected_ = true;
-  return d_->is_connected_;
-}
-
-void db_connection::close_connection()
-{
-  d_->raw_connection_.close();
-  d_->is_connected_ = false;
-}
-
-bool db_connection::is_connected()
-{
-  return d_->is_connected_;
-}
-
+}; // class descriptor_db
 
 } } } // end namespace
+
+#endif // __ARROWS_DATATBASE_DESCRIPTOR_DB_H__
