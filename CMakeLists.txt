@@ -193,6 +193,12 @@ endif()
 if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.00" )
   message( FATAL_ERROR "You must use at least MSVC version 13 or greater" )
 endif()
+# if we have a 32 bit build, turn off Eigen alignment for more information see:
+# http://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html
+if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
+endif()
 
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
