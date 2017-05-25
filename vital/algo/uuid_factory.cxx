@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,76 +30,24 @@
 
 /**
  * \file
- * \brief Implementation of vital uuid
+ * \brief Implementation for uid factory
  */
 
-#include "uuid.h"
-
-#include <sstream>
-#include <cstring>
-#include <iomanip>
+#include <vital/algo/uuid_factory.h>
+#include <vital/algo/algorithm.txx>
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-// ------------------------------------------------------------------
-uuid::
-uuid( const uuid::uuid_data_t& data)
+uuid_factory
+::uuid_factory()
 {
-  memcpy( this->m_uuid, data, sizeof( this->m_uuid) );
+  attach_logger( "uuid_factory" );
 }
 
+} } }
 
-// ------------------------------------------------------------------
-  const kwiver::vital::uuid::uuid_data_t&
-uuid::
-value() const
-{
-  return m_uuid;
-}
-
-// ------------------------------------------------------------------
-std::string
-uuid::
-format() const
-{
-  std::stringstream str;
-  size_t idx = 0;
-  static VITAL_CONSTEXPR char convert[] = "0123456789abcdef";
-
-#define CONV(B)  str << convert[(B >> 4) & 0x0f] << convert[B & 0x0f]
-
-  for (int i = 0; i < 4; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 6; i++, idx++) { CONV(m_uuid[idx]); }
-
-#undef CONV
-
-  return str.str();
-}
-
-
-bool uuid::
-operator==( const uuid& other )
-{
-  for (size_t i = 0; i < sizeof(m_uuid); i++)
-  {
-    if (this->m_uuid[i] != other.m_uuid[i])
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool uuid::
-operator!=( const uuid& other )
-{
-  return ! operator==( other );
-}
-
-
-} } // end namespace
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::uuid_factory);
+/// \endcond

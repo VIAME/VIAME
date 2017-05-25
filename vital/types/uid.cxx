@@ -30,72 +30,85 @@
 
 /**
  * \file
- * \brief test dynamic configuration
+ * \brief Implementation of vital global uid
  */
 
-#include <test_common.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include "uid.h"
 
-#include <arrows/core/dynamic_config_none.h>
-
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
-namespace algo = kwiver::vital::algo;
-namespace kac = kwiver::arrows::core;
+namespace kwiver {
+namespace vital {
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(test_api)
+uid::
+uid( const std::string& data)
+  : m_uid( data )
 {
-  kac::dynamic_config_none dcn;
+}
 
-  auto cfg = kwiver::vital::config_block::empty_config();
 
-  TEST_EQUAL( "check_configuration return", dcn.check_configuration( cfg ), true );
+uid::
+uid( const char* data, size_t byte_count )
+  : m_uid( data, byte_count )
+{
+}
 
-  cfg = dcn.get_dynamic_configuration();
-  const auto values = cfg->available_values();
-  TEST_EQUAL( "empty config", values.size(), 0 );
+
+uid::
+uid()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+is_valid() const
+{
+  return ! m_uid.empty();
 }
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(test_loading)
+const char*
+uid::
+value() const
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  auto cfg = kwiver::vital::config_block::empty_config();
-
-  cfg->set_value( "dyn_cfg:type", "none" );
-
-  algo::dynamic_configuration_sptr dcs;
-
-  // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::dynamic_configuration::check_nested_algo_configuration( "dyn_cfg", cfg ) )
-  {
-    TEST_ERROR( "Configuration check failed." );
-  }
-
-  // Instantiate the configured algorithm
-  algo::dynamic_configuration::set_nested_algo_configuration( "dyn_cfg", cfg, dcs );
-  if ( ! dcs )
-  {
-    TEST_ERROR( "Unable to create algorithm" );
-  }
-  else
-  {
-    TEST_EQUAL( "algorithm name", dcs->impl_name(), "none" );
-  }
+  return m_uid.data();
 }
+
+
+// ------------------------------------------------------------------
+size_t
+uid::
+size() const
+{
+  return m_uid.size();
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator==( const uid& other ) const
+{
+  return this->m_uid == other.m_uid;
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator!=( const uid& other ) const
+{
+  return this->m_uid != other.m_uid;
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator<( const uid& other ) const
+{
+  return this->m_uid < other.m_uid ;
+}
+
+} } // end namespace
