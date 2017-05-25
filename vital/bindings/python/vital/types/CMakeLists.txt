@@ -29,6 +29,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor.py
   vital/types
   descriptor )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor_set.py
+  vital/types
+  descriptor_set )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/eigen.py
   vital/types
   eigen )
