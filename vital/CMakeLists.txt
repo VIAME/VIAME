@@ -147,6 +147,7 @@ set( vital_public_headers
   types/matrix.h
   types/mesh.h
   types/polygon.h
+  types/query_plan.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
@@ -201,6 +202,7 @@ set( vital_sources
   types/landmark.cxx
   types/mesh.cxx
   types/polygon.cxx
+  types/query_plan.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
