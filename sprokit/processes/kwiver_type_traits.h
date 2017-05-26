@@ -62,7 +62,7 @@ namespace vital {
 
   typedef std::vector< double >  double_vector;
   typedef std::shared_ptr< double_vector > double_vector_sptr;
-  typedef std::vector< string> string_vector;
+  typedef std::vector< std::string > string_vector;
   typedef std::shared_ptr< string_vector > string_vector_sptr;
 
 } }
