@@ -25,6 +25,7 @@ set(vital_c_public_headers
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h
+  types/descriptor_set.hxx
   types/detected_object.h
   types/detected_object_type.h
   types/detected_object_set.h

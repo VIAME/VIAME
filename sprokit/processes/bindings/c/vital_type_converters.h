@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,10 @@
 #include <processes/bindings/c/vital_type_converters_export.h>
 
 #include <vital/bindings/c/common.h>
+#include <vital/bindings/c/types/descriptor_set.h>
+#include <vital/bindings/c/types/detected_object_set.h>
 #include <vital/bindings/c/types/image_container.h>
 #include <vital/bindings/c/types/track_set.h>
-#include <vital/bindings/c/types/detected_object_set.h>
 
 #include <sprokit/python/util/python.h>
 
@@ -70,7 +71,8 @@ PyObject* double_vector_to_datum( PyObject* list );
 VITAL_TYPE_CONVERTERS_EXPORT
 vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
 
-/// Convert a sprokit::datum boost::any value into an array of vital_string_t
+/// Convert a sprokit::datum boost::any value into an array of null-terminated
+/// strings.
 /**
  * \param args sprokit datum wrapped in a PyCapsule object.
  * \param[out] out_vec Output array of new char* instances.
@@ -84,9 +86,32 @@ vital_string_vector_from_datum( PyObject *args,
                                 char ***out_strings,
                                 size_t *out_size );
 
+/// Convert a python list of strings into a string vector datum for sprokit.
+/**
+ * \param list Python list object of python string objects.
+ * \return PyCapsule object containing the sprokit datum.
+ */
 VITAL_TYPE_CONVERTERS_EXPORT
 PyObject*
 vital_string_vector_to_datum( PyObject *list );
+
+/// Convert a sprokit::datum into a vital_descriptor_set_t.
+/**
+ * \oaram args sprokit::datum wrapped in a PyCapsule object.
+ * \return Vital C descriptor_set instance handle.
+ */
+VITAL_TYPE_CONVERTERS_EXPORT
+vital_descriptor_set_t*
+vital_descriptor_set_from_datum( PyObject *args );
+
+/// Convert a vital_descriptor_set_t into a sprokit::datum capsule.
+/**
+ * \param vital_ds Vital C descriptor_set handle.
+ * \return PyCapsule object wrapping the output sprokit::datum.
+ */
+VITAL_TYPE_CONVERTERS_EXPORT
+PyObject*
+vital_descriptor_set_to_datum( vital_descriptor_set_t* vital_ds );
 
   // others
 

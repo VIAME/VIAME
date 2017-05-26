@@ -209,9 +209,47 @@ def convert_string_vector_out(py_strings):
     return func(s_list)
 
 
+# ------------------------------------------------------------------
+def convert_descriptor_set_in(datum_ptr):
+    """
+    Convert a datum pointer to a vital DescriptorSet instance.
+
+    :param datum_ptr: Sprokit datum pointer
+
+    :return: Vital DescriptorSet instance
+    :rtype: DescriptorSet
+
+    """
+    _VCL = find_vital_library.find_vital_type_converter_library()
+
+    func = _VCL['vital_descriptor_set_from_datum']
+    func.argtypes = [ctypes.py_object]
+    func.restype = DescriptorSet.c_ptr_type()
+
+    ds_handle = func(datum_ptr)
+    return DescriptorSet(from_cptr=ds_handle)
+
+
+def convert_descriptor_set_out(py_descriptor_set):
+    """
+    Convert a vital python DescriptorSet instance to a datum as a PyCapsule.
+
+    :param py_descriptor_set: The vital DescriptorSet instance to convert.
+    :type py_descriptor_set: DescriptorSet
+
+    :return: Datum pointer.
+
+    """
+    _VCL = find_vital_library.find_vital_type_converter_library()
+
+    func = _VCL['vital_descriptor_set_to_datum']
+    func.argtypes = [DescriptorSet.c_ptr_type()]
+    func.restype = ctypes.py_object
+
+    return func(py_descriptor_set)
+
 """
 Converters to do:
     feature_set
-    descriptor_set
     detected object classes
 """

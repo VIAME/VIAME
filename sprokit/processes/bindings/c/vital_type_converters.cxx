@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,15 @@ more python friendly types.
 
 #include "vital_type_converters.h"
 
+#include <vital/logger/logger.h>
+#include <vital/types/descriptor_set.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
-#include <vital/types/detected_object_set.h>
-#include <vital/logger/logger.h>
 
+#include <vital/bindings/c/error_handle.h>
 #include <vital/bindings/c/types/image_container.hxx>
+#include <vital/bindings/c/types/descriptor_set.hxx>
 #include <vital/bindings/c/types/detected_object_set.hxx>
 
 #include <sprokit/pipeline/datum.h>
@@ -364,7 +367,7 @@ vital_trackset_from_datum( PyObject* args )
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
     // track_set.
-    LOG_WARN( logger, "Conversion error" << e.what() );
+    LOG_WARN( logger, "Conversion error " << e.what() );
   }
 
   return 0;
@@ -439,6 +442,89 @@ vital_string_vector_to_datum( PyObject *list )
 
   PyObject* cap = put_in_datum_capsule( vect_sptr );
   return cap;
+}
+
+
+vital_descriptor_set_t*
+vital_descriptor_set_from_datum( PyObject *args )
+{
+  // Get capsule from args - or arg may be the capsule
+  sprokit::datum* dptr = (sprokit::datum*) PyCapsule_GetPointer( args, "sprokit::datum" );
+  vital_descriptor_set_t* handle = NULL;
+  vital_error_handle_t* eh = NULL;
+
+  try
+  {
+    boost::any const any = dptr->get_datum< boost::any >();
+    kwiver::vital::descriptor_set_sptr sptr =
+      boost::any_cast< kwiver::vital::descriptor_set_sptr >( any );
+
+    eh = vital_eh_new();
+    if( NULL == eh )
+    {
+      throw "Failed to create vital error handle.";
+    }
+
+    // Create vital C type handle from sptr.
+    handle = vital_descriptor_set_new_from_sptr( sptr, eh );
+
+    if( eh->error_code != 0 )
+    {
+      handle = NULL;
+      throw eh->message;
+    }
+  }
+  catch( boost::bad_any_cast const& e )
+  {
+    // This is a warning because this converter should only be called
+    // if there is good reason to believe that the object really is an
+    // track_set.
+    LOG_WARN( logger, "Conversion error " << e.what() );
+  }
+  catch( char const* e )
+  {
+    LOG_WARN( logger, "vital handled error: " << e );
+  }
+
+  // Destroy handle instance if one was created.
+  vital_eh_destroy( eh );
+
+  return handle;
+}
+
+
+PyObject*
+vital_descriptor_set_to_datum( vital_descriptor_set_t* vital_ds )
+{
+  vital_error_handle_t* eh = vital_eh_new();
+  if( eh )
+  {
+    // Get sptr from the membrane cache with the given handle.
+    kwiver::vital::descriptor_set_sptr sptr =
+      vital_descriptor_set_to_sptr( vital_ds, eh );
+
+    if( eh->error_code )
+    {
+      LOG_WARN( logger, "Failed to get shared pointer for descriptor_set handle:"
+                        << eh->message);
+    }
+    else
+    {
+      // Free error handle instance before return
+      vital_eh_destroy( eh );
+      // Wrap sptr in a datum in a PyCapsule
+      return put_in_datum_capsule( sptr );
+    }
+  }
+  else
+  {
+    LOG_WARN( logger, "Failed to allocate vital error handle" );
+  }
+
+  // Free error handle instance before return
+  vital_eh_destroy( eh );
+
+  Py_RETURN_NONE;
 }
 
 

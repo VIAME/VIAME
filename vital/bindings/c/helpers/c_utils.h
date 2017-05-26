@@ -63,6 +63,10 @@ static auto m_logger( kwiver::vital::get_logger( "vital.c_utils" ) );
  * before setting the new message. If it is desired to retain the message for
  * some other purpose, it should be copied/duplicated before re-using an error
  * handle.
+ *
+ * \param eh_ptr Pointer to an error handle structure. May be null.
+ * \param ec Integer error code.
+ * \param msg C-string message to encode.
  */
 #define POPULATE_EH(eh_ptr, ec, msg)                                                \
   do                                                                                \

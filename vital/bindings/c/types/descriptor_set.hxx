@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,48 @@
 
 /**
  * \file
- * \brief C interface common error handle structure
+ * \brief C/C++ interface to vital::descriptor_set class
  */
 
-#ifndef VITAL_C_ERROR_HANDLE_H_
-#define VITAL_C_ERROR_HANDLE_H_
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#ifndef VITAL_C_DESCRIPTOR_SET_HXX_
+#define VITAL_C_DESCRIPTOR_SET_HXX_
 
 #include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/types/descriptor_set.h>
+#include <vital/types/descriptor_set.h>
 
 
-/// Common error handle structure
+// -----------------------------------------------------------------------------
+// These two functions are a bridge between C++ and the internal C smart pointer
+// management.
+// -----------------------------------------------------------------------------
+
+
+/// Create a vital_descriptor_set_t around an existing shared pointer.
 /**
- * When an instance of this structure is passed into a Vital API and an error
- * occurs a new string (char*) is allocated for ``message`` and the error_code
- * is set to a non-zero value.
+ * If an error occurs, a NULL pointer is returned.
  *
- * If ``message`` is already allocated then the previous memory is first freed.
- *
- * A single error handle can be reused between multiple API calls, but one
- * should check the status between calls and copy the message string before
- * reusing the error handle to avoid losing the message.
- */
-typedef struct vital_error_handle_s {
-  int error_code;
-  char *message;
-} vital_error_handle_t;
-
-
-/// Return a new, empty error handle object.
-/**
- * \returns New error handle whose error code is set to 0 and message to NULL.
+ * \param ds Shared pointer to a vital::descriptor_set instance.
+ * \param eh Vital error handle instance. May be null to ignore errors.
  */
 VITAL_C_EXPORT
-vital_error_handle_t* vital_eh_new();
+vital_descriptor_set_t*
+vital_descriptor_set_new_from_sptr( kwiver::vital::descriptor_set_sptr ds_sptr,
+                                    vital_error_handle_t* eh );
 
 
-/// Destroy the given error handle structure pointer
+/// Get the vital::descriptor_set shared pointer for a handle.
 /**
- * This function does nothing if passed a NULL pointer.
+ * If an error occurs, an empty shared pointer is returned.
  *
- * \param eh Pointer to the error handle instance to destroy.
+ * \param ds Vital C handle to the descriptor_set instance to get the shared
+ *   pointer reference of.
+ * \param eh Vital error handle instance. May be null to ignore errors.
  */
 VITAL_C_EXPORT
-void vital_eh_destroy( vital_error_handle_t *eh );
+kwiver::vital::descriptor_set_sptr
+vital_descriptor_set_to_sptr( vital_descriptor_set_t* ds,
+                              vital_error_handle_t* eh );
 
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif // VITAL_C_ERROR_HANDLE_H_
+#endif // VITAL_C_DESCRIPTOR_SET_HXX_
