@@ -51,6 +51,7 @@
 #include "trait_utils.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace kwiver {
@@ -61,6 +62,8 @@ namespace vital {
 
   typedef std::vector< double >  double_vector;
   typedef std::shared_ptr< double_vector > double_vector_sptr;
+  typedef std::vector< std::string > string_vector;
+  typedef std::shared_ptr< string_vector > string_vector_sptr;
 
 } }
 
@@ -80,6 +83,7 @@ create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
+create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
 create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
 create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vital::detected_object_set_sptr );
@@ -106,7 +110,8 @@ create_port_trait( left_image, image, "Single frame left image." );
 create_port_trait( right_image, image, "Single frame right image." );
 create_port_trait( depth_map, image, "Depth map stored in image form." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
-create_port_trait( descriptor_set, descriptor_set, "Set of feature descriptors." );
+create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
+create_port_trait( string_vector, string_vector, "Vector of strings." );
 create_port_trait( track_set, track_set, "Set of feature tracks for stabilization." );
 create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
 
