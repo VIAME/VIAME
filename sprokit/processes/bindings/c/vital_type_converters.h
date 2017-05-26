@@ -37,6 +37,7 @@
 
 #include <processes/bindings/c/vital_type_converters_export.h>
 
+#include <vital/bindings/c/common.h>
 #include <vital/bindings/c/types/image_container.h>
 #include <vital/bindings/c/types/track_set.h>
 #include <vital/bindings/c/types/detected_object_set.h>
@@ -68,6 +69,24 @@ PyObject* double_vector_to_datum( PyObject* list );
 
 VITAL_TYPE_CONVERTERS_EXPORT
 vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
+
+/// Convert a sprokit::datum boost::any value into an array of vital_string_t
+/**
+ * \param args sprokit datum wrapped in a PyCapsule object.
+ * \param[out] out_vec Output array of new char* instances.
+ *   The caller of this function is responsible for freeing these strings.
+ * \param[out] out_vec_size Output size_t value that is the size of the output
+ *   array.
+ */
+VITAL_TYPE_CONVERTERS_EXPORT
+void
+vital_string_vector_from_datum( PyObject *args,
+                                char ***out_strings,
+                                size_t *out_size );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+PyObject*
+vital_string_vector_to_datum( PyObject *list );
 
   // others
 

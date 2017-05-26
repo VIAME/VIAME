@@ -50,9 +50,13 @@ more python friendly types.
 #include <vector>
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 typedef std::vector< double >  double_vector;
 typedef std::shared_ptr< double_vector > double_vector_sptr;
+
+typedef std::vector< std::string > string_vector;
+typedef std::shared_ptr< string_vector > string_vector_sptr;
 
 static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.type_converters" ) );
 
@@ -364,6 +368,77 @@ vital_trackset_from_datum( PyObject* args )
   }
 
   return 0;
+}
+
+
+void
+vital_string_vector_from_datum( PyObject *args,
+                                char ***out_strings,
+                                size_t *out_size )
+{
+  // arg is the capsule
+  sprokit::datum *dptr = (sprokit::datum*) PyCapsule_GetPointer( args, "sprokit::datum" );
+
+  try
+  {
+    // Get boost::any from the datum
+    boost::any const any = dptr->get_datum< boost::any >();
+    // Get sptr from boost::any
+    string_vector_sptr sptr = boost::any_cast< string_vector_sptr >( any );
+
+    // Set size and allocate output array memory
+    (*out_size) = sptr->size();
+    (*out_strings) = (char**)malloc( sizeof(char*) * (*out_size) );
+    if( (*out_strings) == NULL )
+    {
+      LOG_ERROR( logger, "Failed to allocate memory for c-string array." );
+      return;
+    }
+
+    // Set strings in array, also see ``kwiver::vital_c::make_string_list`` in
+    // "vital/bindings/c/helpers/c_utils.cxx".
+    for( size_t i = 0; i < (*out_size); ++i )
+    {
+      // +1 block size for null-termination
+      (*out_strings)[i] = (char*)malloc( (sptr->at(i).size() + 1) * sizeof(char) );
+      std::strcpy( (*out_strings)[i], sptr->at(i).c_str() );
+    }
+
+    return;
+  }
+  catch ( boost::bad_any_cast const& e )
+  {
+    // This is a warning because this converter should only be called
+    // if there is good reason to believe that the object really is an
+    // image_container.
+    LOG_WARN( logger, "Conversion error: " << e.what() );
+  }
+  catch ( std::out_of_range const& e )
+  {
+    LOG_WARN( logger, "Vector access error: " << e.what() );
+  }
+
+  // not implemented
+  LOG_ERROR( logger, "Function not implemented" );
+}
+
+
+PyObject*
+vital_string_vector_to_datum( PyObject *list )
+{
+  string_vector_sptr vect_sptr( new string_vector() );
+
+  // Copy input values into a new vector.
+  size_t num_elem = PyList_Size( list );
+  std::string s;
+  for( size_t i = 0; i < num_elem; ++i )
+  {
+    PyObject* item = PyList_GetItem( list, i );
+    vect_sptr->push_back( std::string( PyString_AsString( item ) ) );
+  }
+
+  PyObject* cap = put_in_datum_capsule( vect_sptr );
+  return cap;
 }
 
 
