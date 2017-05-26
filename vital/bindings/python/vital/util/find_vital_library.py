@@ -43,15 +43,17 @@ import re
 import sys
 
 
+# Base regular expression for library files across platforms. This should be
+# `%` formatted with the base-name of the library (e.g. "math", "c", etc.)
+__LIBRARY_FILE_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
+
 __LIBRARY_NAME__ = "vital_c"
-__LIBRARY_NAME_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
-__LIBRARY_NAME_RE__ = re.compile(__LIBRARY_NAME_RE_BASE__ % __LIBRARY_NAME__)
+__LIBRARY_NAME_RE__ = re.compile(__LIBRARY_FILE_RE_BASE__ % __LIBRARY_NAME__)
 __LIBRARY_PATH_CACHE__ = None
 __LIBRARY_CACHE__ = None
 
 __TYPE_LIBRARY_NAME__ = "vital_type_converters"
-__TYPE_LIBRARY_NAME_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
-__TYPE_LIBRARY_NAME_RE__ = re.compile(__TYPE_LIBRARY_NAME_RE_BASE__ % __TYPE_LIBRARY_NAME__)
+__TYPE_LIBRARY_NAME_RE__ = re.compile(__LIBRARY_FILE_RE_BASE__ % __TYPE_LIBRARY_NAME__)
 __TYPE_LIBRARY_PATH_CACHE__ = None
 __TYPE_LIBRARY_CACHE__ = None
 
