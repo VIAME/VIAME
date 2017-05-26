@@ -42,6 +42,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <cstring>
 
 namespace kwiver {
 namespace vital {
@@ -168,6 +169,13 @@ public:
   descriptor_dynamic< T > (size_t len)
   : data_( new T[len] ),
   length_( len ) { }
+
+  descriptor_dynamic< T > (size_t len, T* dat)
+  : length_( len )
+  {
+    data_ = new T[len];
+    memmove( data_, dat, len*sizeof(T) );
+  }
 
   /// Destructor
   virtual ~descriptor_dynamic< T > ( ) { delete [] data_; }
