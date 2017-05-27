@@ -39,9 +39,9 @@
 #include <vital/vital_config.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor.h>
 #include <vital/types/track_set.h>
+#include <vital/types/image_container.h>
+#include <vital/types/track_descriptor_set.h>
 
 namespace kwiver {
 namespace vital {

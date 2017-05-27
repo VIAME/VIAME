@@ -49,8 +49,6 @@ namespace vital {
 class track_descriptor;
 
 typedef std::shared_ptr< track_descriptor > track_descriptor_sptr;
-typedef std::vector< track_descriptor_sptr > track_descriptor_set;
-typedef std::shared_ptr< track_descriptor_set > track_descriptor_set_sptr;
 
 // ----------------------------------------------------------------
 /** \brief Track descriptor.
