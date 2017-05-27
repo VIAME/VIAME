@@ -194,6 +194,10 @@ Sprokit
  * Added pipeline export class which writes a fully resolved pipeline
    to a file in the form where it can be used as input.
 
+ * Replaced pipeline parser to support vital config file syntax in
+   addition to the original sprokit pipeline syntax. Some minor
+   semantic differences were introduced in the process.
+
 Vital Bindings
 
  * Fixed bug in python ConfigBlock read-from-file.

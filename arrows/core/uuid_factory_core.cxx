@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,68 +29,72 @@
  */
 
 /**
- * @file   provider_dereferencer.cxx
- * @brief  Implementation for provider_dereferencer class.
+ * \file
+ * \brief Implementation of detected object set csv outputuuid factory
  */
 
-#include "provider_dereferencer.h"
+#include "uuid_factory_core.h"
 
-#include <memory>
+#include <uuid/uuid.h>
 
-namespace sprokit {
+
+namespace kwiver {
+namespace arrows {
+namespace core {
 
 // ------------------------------------------------------------------
-provider_dereferencer
-::provider_dereferencer()
-  : m_providers()
+class uuid_factory_core::priv
 {
-  m_providers[bakery_base::provider_system] = std::make_shared< system_provider > ();
-  m_providers[bakery_base::provider_environment] = std::make_shared< environment_provider > ();
+public:
+
+
+
+};
+
+
+
+// ==================================================================
+uuid_factory_core::
+uuid_factory_core()
+  : d( new uuid_factory_core::priv() )
+{
+
+}
+
+uuid_factory_core::
+~uuid_factory_core()
+{ }
+
+
+// ------------------------------------------------------------------
+void
+uuid_factory_core::
+set_configuration(vital::config_block_sptr config)
+{
 }
 
 
 // ------------------------------------------------------------------
-provider_dereferencer
-::provider_dereferencer( kwiver::vital::config_block_sptr const conf )
-  : m_providers()
+bool
+uuid_factory_core::
+check_configuration(vital::config_block_sptr config) const
 {
-  m_providers[bakery_base::provider_config] = std::make_shared< config_provider > ( conf );
+  return true;
 }
 
 
 // ------------------------------------------------------------------
-provider_dereferencer
-::~provider_dereferencer()
+kwiver::vital::uid
+uuid_factory_core::
+create_uuid()
 {
+  // This may need work to be more system independent.
+  uuid_t new_uuid;
+  uuid_generate( new_uuid );
+  const char* cc = (const char *)&new_uuid[0];
+
+  return kwiver::vital::uid( cc, sizeof( new_uuid ));
 }
 
 
-// ------------------------------------------------------------------
-bakery_base::config_reference_t
-provider_dereferencer
-::operator()( kwiver::vital::config_block_value_t const& value ) const
-{
-  return value;
-}
-
-
-// ------------------------------------------------------------------
-bakery_base::config_reference_t
-provider_dereferencer
-::operator()( bakery_base::provider_request_t const& request ) const
-{
-  config_provider_t const& provider_name = request.first;
-  provider_map_t::const_iterator const i = m_providers.find( provider_name );
-
-  if ( i == m_providers.end() )
-  {
-    return request;
-  }
-
-  provider_t const& provider = i->second;
-  kwiver::vital::config_block_value_t const& value = request.second;
-
-  return ( *provider )( value );
-}
-
-} // end namespace sprokit
+} } } // end namespace

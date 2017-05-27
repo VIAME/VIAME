@@ -1,7 +1,8 @@
 config myblock
 
 cluster mycluster
-  :# clusterdesc
-  :# oport desc
-  omap from myproc.oport
+  -- clusterdesc
+
+ omap from myproc.oport
        to   oport
+  -- oport desc

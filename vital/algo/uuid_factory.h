@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,43 +29,40 @@
  */
 
 /**
- * @file   check_provider.cxx
- * @brief  Implementation for check_provider class.
+ * \file
+ * \brief Interface to uid factory
  */
 
-#include "check_provider.h"
+#ifndef VITAL_ALGO_UUID_FACTORY_H
+#define VITAL_ALGO_UUID_FACTORY_H
 
+#include <vital/vital_config.h>
+#include <vital/algo/algorithm.h>
+#include <vital/types/uid.h>
 
-namespace sprokit {
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-  // ------------------------------------------------------------------
-check_provider
-::check_provider(config_provider_t const& provider)
-  : m_provider(provider)
+/// Abstract base class for creating uuid's
+/**
+ *
+ */
+class VITAL_ALGO_EXPORT uuid_factory
+  : public kwiver::vital::algorithm_def< uuid_factory >
 {
-}
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "uuid_factory"; }
 
-check_provider
-::~check_provider()
-{
-}
+  virtual uid create_uuid() = 0;
 
-// ------------------------------------------------------------------
-bool
-check_provider
-::operator () (kwiver::vital::config_block_value_t const& /*value*/) const
-{
-  return false;
-}
+protected:
+  uuid_factory();
+};
 
-// ------------------------------------------------------------------
-bool
-check_provider
-::operator () (bakery_base::provider_request_t const& request) const
-{
-  config_provider_t const& provider = request.first;
+typedef std::shared_ptr< uuid_factory > uuid_factory_sptr;
 
-  return (m_provider == provider);
-}
+} } } // end namespace
 
-} // end namespace sprokit
+#endif /* VITAL_ALGO_UUID_FACTORY_H */

@@ -1,15 +1,15 @@
 cluster map_config_override
-  :# Cluster for map_config testing.
-  :# A tunable parameter.
-  :tunable[tunable] expected
-  :# The output.
+  -- Cluster for map_config testing.
+  tunable[tunable] = expected
+  -- A tunable parameter.
   omap from expect.dummy
        to   pass
+  --The output.
 
 process expect
   :: expect
-  :tunable[ro]{CONF} map_config_override:tunable
-  :expect[ro] expected
+  tunable[ro] = $CONFIG{map_config_override:tunable}
+  expect[ro] = expected
 
 process sink_expect
   :: sink

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,47 +29,25 @@
  */
 
 /**
- * @file   ensure_provided.cxx
- * @brief  Implementation for ensure_provided class.
+ * \file
+ * \brief Implementation for uid factory
  */
 
-#include "ensure_provided.h"
-#include "pipe_bakery_exception.h"
+#include <vital/algo/uuid_factory.h>
+#include <vital/algo/algorithm.txx>
 
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-namespace sprokit {
-
-// ------------------------------------------------------------------
-ensure_provided
-::ensure_provided()
+uuid_factory
+::uuid_factory()
 {
+  attach_logger( "uuid_factory" );
 }
 
+} } }
 
-ensure_provided
-::~ensure_provided()
-{
-}
-
-
-// ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
-ensure_provided
-::operator () (kwiver::vital::config_block_value_t const& value) const
-{
-  return value;
-}
-
-
-// ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
-ensure_provided
-::operator () (bakery_base::provider_request_t const& request) const
-{
-  config_provider_t const& provider = request.first;
-  kwiver::vital::config_block_value_t const& value = request.second;
-
-  throw unrecognized_provider_exception("(unknown)", provider, value);
-}
-
-} // end namespace sprokit
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::uuid_factory);
+/// \endcond

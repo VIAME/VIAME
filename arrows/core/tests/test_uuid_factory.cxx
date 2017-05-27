@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,45 +29,72 @@
  */
 
 /**
- * @file   extract_literal_value.cxx
- * @brief  Implementation for extract_literal_value class.
+ * \file
+ * \brief test dynamic configuration
  */
 
-#include "extract_literal_value.h"
+#include <test_common.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
+#include <arrows/core/uuid_factory_core.h>
 
-namespace sprokit {
+#define TEST_ARGS ()
 
-// ------------------------------------------------------------------
-extract_literal_value
-::extract_literal_value()
+DECLARE_TEST_MAP();
+
+int
+main(int argc, char* argv[])
 {
+  CHECK_ARGS(1);
+
+  testname_t const testname = argv[1];
+
+  RUN_TEST(testname);
 }
 
-
-extract_literal_value
-::~extract_literal_value()
-{
-}
-
-
-// ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
-extract_literal_value
-::operator () (kwiver::vital::config_block_value_t const& value) const
-{
-  return value;
-}
+namespace algo = kwiver::vital::algo;
+namespace kac = kwiver::arrows::core;
 
 
 // ------------------------------------------------------------------
-kwiver::vital::config_block_value_t
-extract_literal_value
-::operator () (bakery_base::provider_request_t const& request) const
+IMPLEMENT_TEST(test_api)
 {
-  kwiver::vital::config_block_value_t const& value = request.second;
+  kac::uuid_factory_core algo;
 
-  return value;
+  auto cfg = kwiver::vital::config_block::empty_config();
+
+  TEST_EQUAL( "check_configuration return", algo.check_configuration( cfg ), true );
+
+  kwiver::vital::uid id = algo.create_uuid();
+  TEST_EQUAL( "Valid uid", id.is_valid(), true );
 }
 
-} // end namespace sprokit
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(test_loading)
+{
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
+  auto cfg = kwiver::vital::config_block::empty_config();
+
+  cfg->set_value( "uuid_cfg:type", "uuid" );
+
+  algo::uuid_factory_sptr fact;
+
+  // Check config so it will give run-time diagnostic if any config problems are found
+  if ( ! algo::uuid_factory::check_nested_algo_configuration( "uuid_cfg", cfg ) )
+  {
+    TEST_ERROR( "Configuration check failed." );
+  }
+
+  // Instantiate the configured algorithm
+  algo::uuid_factory::set_nested_algo_configuration( "uuid_cfg", cfg, fact );
+  if ( ! fact )
+  {
+    TEST_ERROR( "Unable to create algorithm" );
+  }
+  else
+  {
+    TEST_EQUAL( "algorithm name", fact->impl_name(), "uuid" );
+  }
+}

@@ -54,6 +54,8 @@
  * \brief Types for paths.
  */
 
+//+ this file will be deleted during the deboostification effort
+
 namespace sprokit
 {
 

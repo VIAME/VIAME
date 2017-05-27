@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,36 +29,86 @@
  */
 
 /**
- * @file   check_provider.h
- * @brief  Interface to check_provider class
+ * \file
+ * \brief Implementation of vital global uid
  */
 
-#ifndef SPROKIT_PIPELINE_UTIL_CHECK_PROVIDER_H
-#define SPROKIT_PIPELINE_UTIL_CHECK_PROVIDER_H
+#include "uid.h"
 
-#include "bakery_base.h"
+namespace kwiver {
+namespace vital {
 
-#include <vital/config/config_block.h>
-
-#include <boost/variant.hpp>
-
-
-namespace sprokit {
-
-class check_provider
-  : public boost::static_visitor<bool>
+// ------------------------------------------------------------------
+uid::
+uid( const std::string& data)
+  : m_uid( data )
 {
-  public:
-    check_provider(config_provider_t const& provider);
-    ~check_provider();
-
-    bool operator () (kwiver::vital::config_block_value_t const& value) const;
-    bool operator () (bakery_base::provider_request_t const& request) const;
-  private:
-    config_provider_t const m_provider;
-};
+}
 
 
-} // end namespace sprokit
+uid::
+uid( const char* data, size_t byte_count )
+  : m_uid( data, byte_count )
+{
+}
 
-#endif /* SPROKIT_PIPELINE_UTIL_CHECK_PROVIDER_H */
+
+uid::
+uid()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+is_valid() const
+{
+  return ! m_uid.empty();
+}
+
+
+// ------------------------------------------------------------------
+const char*
+uid::
+value() const
+{
+  return m_uid.data();
+}
+
+
+// ------------------------------------------------------------------
+size_t
+uid::
+size() const
+{
+  return m_uid.size();
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator==( const uid& other ) const
+{
+  return this->m_uid == other.m_uid;
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator!=( const uid& other ) const
+{
+  return this->m_uid != other.m_uid;
+}
+
+
+// ------------------------------------------------------------------
+bool
+uid::
+operator<( const uid& other ) const
+{
+  return this->m_uid < other.m_uid ;
+}
+
+} } // end namespace

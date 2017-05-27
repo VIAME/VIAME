@@ -33,7 +33,8 @@
 
 #include "pipeline_util-config.h"
 
-#include "path.h"
+#include <vital/vital_types.h>
+
 #include "pipe_declaration_types.h"
 
 #include <iosfwd>
@@ -44,8 +45,7 @@
  * \brief Load a pipeline declaration from a stream.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \brief Convert a pipeline description file into a collection of pipeline blocks.
@@ -54,7 +54,7 @@ namespace sprokit
  *
  * \returns A new set of pipeline blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file(path_t const& fname);
+SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file( kwiver::vital::path_t const& fname);
 
 /**
  * \brief Convert a pipeline description into a pipeline.
@@ -64,7 +64,7 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file(path_t const
  *
  * \returns A new set of pipeline blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, path_t const& inc_root = "");
+SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr );
 
 /**
  * \brief Convert a cluster description file into a collection of cluster blocks.
@@ -73,7 +73,7 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, pa
  *
  * \returns A new set of cluster blocks.
  */
-cluster_blocks SPROKIT_PIPELINE_UTIL_EXPORT load_cluster_blocks_from_file(path_t const& fname);
+SPROKIT_PIPELINE_UTIL_EXPORT cluster_blocks load_cluster_blocks_from_file( kwiver::vital::path_t const& fname);
 
 /**
  * \brief Convert a cluster description into a cluster.
@@ -83,7 +83,7 @@ cluster_blocks SPROKIT_PIPELINE_UTIL_EXPORT load_cluster_blocks_from_file(path_t
  *
  * \returns A new set of cluster blocks.
  */
-cluster_blocks SPROKIT_PIPELINE_UTIL_EXPORT load_cluster_blocks(std::istream& istr, path_t const& inc_root = "");
+SPROKIT_PIPELINE_UTIL_EXPORT cluster_blocks load_cluster_blocks(std::istream& istr );
 
 }
 

@@ -1,2 +1,2 @@
 config myblock
-  :myenv{ENV} TEST_ENV
+  myenv= $ENV{TEST_ENV}

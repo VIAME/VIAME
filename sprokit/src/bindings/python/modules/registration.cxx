@@ -46,8 +46,6 @@
 
 using namespace boost::python;
 
-static sprokit::envvar_name_t const python_suppress_envvar = sprokit::envvar_name_t("SPROKIT_NO_PYTHON_MODULES");
-
 static void load();
 static bool is_suppressed();
 

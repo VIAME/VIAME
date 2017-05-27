@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_UTIL_PIPE_GRAMMAR_H
-#define SPROKIT_PIPELINE_UTIL_PIPE_GRAMMAR_H
-
-#include "pipeline_util-config.h"
-
-#include "pipe_declaration_types.h"
-
-#include <string>
-
 /**
- * \file pipe_grammar.h
- *
- * \brief Functions to parse pipeline blocks from a string.
+ * \file
+ * \brief This file contains base types and structures for geodesy.
  */
 
-namespace sprokit
+#ifndef KWIVER_VITAL_GEODESY_H_
+#define KWIVER_VITAL_GEODESY_H_
+
+#include <vital/vital_config.h>
+#include <vital/vital_export.h>
+
+namespace kwiver {
+namespace vital {
+
+// ----------------------------------------------------------------------------
+/** Well known coordinate reference systems.
+ *
+ * This enumeration provides a set of well known coordinate reference systems
+ * (CRS's). The numeric values correspond to geodetic CRS's as specified by
+ * the European Petroleum Survey Group (EPSG) Spatial Reference System
+ * Identifier (SRID).
+ *
+ * \note UTM SRID's are obtained by adding the UTM zone number to the base
+ *       SRID
+ *
+ * \see https://en.wikipedia.org/wiki/Spatial_reference_system,
+ *      http://www.epsg.org/, https://epsg-registry.org/
+ */
+enum class SRID : int
 {
+  lat_lon_NAD83 = 4269,
+  lat_lon_WGS84 = 4326,
+  UTM_WGS84_north = 32600, // Add zone number to get zoned SRID
+  UTM_WGS84_south = 32700, // Add zone number to get zoned SRID
+  UTM_NAD83_northeast = 3313, // Add zone number (59N - 60N) to get zoned SRID
+  UTM_NAD83_northwest = 26900, // Add zone number (1N - 23N) to get zoned SRID
+};
 
-/**
- * \brief Parse pipeline blocks from a string.
- *
- * \param str The string to parse.
- *
- * \returns The pipeline blocks within the string.
- */
-SPROKIT_PIPELINE_UTIL_NO_EXPORT pipe_blocks parse_pipe_blocks_from_string(std::string const& str);
 
-/**
- * \brief Parse cluster blocks from a string.
- *
- * \param str The string to parse.
- *
- * \returns The cluster blocks within the string.
- */
-cluster_blocks SPROKIT_PIPELINE_UTIL_NO_EXPORT parse_cluster_blocks_from_string(std::string const& str);
+} } // end namespace
 
-}
-
-#endif // SPROKIT_PIPELINE_UTIL_PIPE_GRAMMAR_H
+#endif /* KWIVER_VITAL_GEODESY_H_ */

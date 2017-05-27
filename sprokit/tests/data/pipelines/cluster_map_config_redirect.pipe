@@ -1,19 +1,18 @@
 cluster map_config_redirect
-  :# Cluster for map_config testing.
-  :# A tunable parameter.
-  :tunable[tunable] unexpected
-  :# The output.
-  omap from expect.dummy
-       to   pass
+  -- Cluster for map_config testing.
+  tunable[tunable] = unexpected
+  -- A tunable parameter.
+  omap from expect.dummy       to   pass
+  -- The output.
 
 process expect
   :: expect
-  :tunable[ro]{CONF} sink_expect:redirect
-  :expect[ro] expected
+  tunable[ro] = $CONFIG{sink_expect:redirect}
+  expect[ro] = expected
 
 process sink_expect
   :: sink
-  :redirect[ro]{CONF} map_config_redirect:tunable
+  redirect[ro] = $CONFIG{map_config_redirect:tunable}
 
 connect from expect.dummy
         to   sink_expect.sink

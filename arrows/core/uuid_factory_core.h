@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,38 +29,41 @@
  */
 
 /**
- * @file   extract_literal_value.h
- * @brief  Interface to extract_literal_value class.
+ * \file
+ * \brief Interface to uid factory
  */
 
-#ifndef SPROKIT_PIPELINE_UTIL_EXTRACT_LITERAL_VALUE_H
-#define SPROKIT_PIPELINE_UTIL_EXTRACT_LITERAL_VALUE_H
+#ifndef KWIVER_ARROWS_UUID_FACTORY_H
+#define KWIVER_ARROWS_UUID_FACTORY_H
 
-#include "bakery_base.h"
+#include <arrows/core/kwiver_algo_core_export.h>
+#include <vital/algo/uuid_factory.h>
 
-#include <vital/config/config_block.h>
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-#include <boost/variant.hpp>
 
-
-namespace sprokit {
-
-// ----------------------------------------------------------------
-/**
- * @brief
- *
- */
-class extract_literal_value :
-  public boost::static_visitor< kwiver::vital::config_block_value_t >
+class KWIVER_ALGO_CORE_EXPORT uuid_factory_core
+  : public vital::algorithm_impl<uuid_factory_core, vital::algo::uuid_factory>
 {
 public:
-  extract_literal_value();
-  ~extract_literal_value();
+  uuid_factory_core();
+  virtual ~uuid_factory_core();
 
-  kwiver::vital::config_block_value_t operator()( kwiver::vital::config_block_value_t const& value ) const;
-  kwiver::vital::config_block_value_t operator()( bakery_base::provider_request_t const& request ) const;
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
+
+  // Main method to generate UUID's
+  virtual kwiver::vital::uid create_uuid();
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
 };
 
-} // end namespace sprokit
 
-#endif /* SPROKIT_PIPELINE_UTIL_EXTRACT_LITERAL_VALUE_H */
+} } } // end namespace
+
+
+#endif /* KWIVER_ARROWS_UUID_FACTORY_H */

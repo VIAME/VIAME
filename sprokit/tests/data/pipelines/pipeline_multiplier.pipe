@@ -7,20 +7,20 @@ config multiplier
 
 process gen_numbers1
   :: numbers
-  :start[ro]{CONF} multiplier:start1
-  :end[ro]{CONF} multiplier:end1
+  start[ro] = $CONFIG{multiplier:start1}
+  end[ro] = $CONFIG{multiplier:end1}
 
 process gen_numbers2
   :: numbers
-  :start[ro]{CONF} multiplier:start2
-  :end[ro]{CONF} multiplier:end2
+  :start[ro] $CONFIG{multiplier:start2}
+  :end[ro] $CONFIG{multiplier:end2}
 
 process multiply
   :: multiplication
 
 process print
   :: print_number
-  :output[ro]{CONF} multiplier:output
+  :output[ro] = $CONFIG{multiplier:output}
 
 connect from gen_numbers1.number
         to   multiply.factor1

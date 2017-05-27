@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,78 +28,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+#define SPROKIT_PIPELINE_UTIL_EXPORT_PIPE_H
+
+#include "pipeline_util-config.h"
+
+#include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
+
+#include <iostream>
+
+namespace sprokit {
+
+// ==================================================================
 /**
- * \file
- * \brief Implementation of vital uuid
+ * @brief Export built pipeline
+ *
+ * This class converts a built pipeline in a readable manner as a
+ * pipeline file.
+ *
+ * Derived classes can implement other output formats.
  */
-
-#include "uuid.h"
-
-#include <sstream>
-#include <cstring>
-#include <iomanip>
-
-namespace kwiver {
-namespace vital {
-
-// ------------------------------------------------------------------
-uuid::
-uuid( const uuid::uuid_data_t& data)
+class SPROKIT_PIPELINE_UTIL_EXPORT pipe_display
 {
-  memcpy( this->m_uuid, data, sizeof( this->m_uuid) );
-}
+public:
+  // -- CONSTRUCTORS --
+  /**
+   * @brief Create new object
+   *
+   * @param pipe constructed pipeline from pipeline builder.
+   */
+  pipe_display( std::ostream& str );
+  virtual ~pipe_display();
 
+  // display internal config blocks
+  void display_pipe_blocks( const sprokit::pipe_blocks blocks );
 
-// ------------------------------------------------------------------
-  const kwiver::vital::uuid::uuid_data_t&
-uuid::
-value() const
-{
-  return m_uuid;
-}
+private:
+  std::ostream& m_ostr;
 
-// ------------------------------------------------------------------
-std::string
-uuid::
-format() const
-{
-  std::stringstream str;
-  size_t idx = 0;
-  static VITAL_CONSTEXPR char convert[] = "0123456789abcdef";
+}; // end class pipe_display
 
-#define CONV(B)  str << convert[(B >> 4) & 0x0f] << convert[B & 0x0f]
+} // end namespace
 
-  for (int i = 0; i < 4; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 6; i++, idx++) { CONV(m_uuid[idx]); }
-
-#undef CONV
-
-  return str.str();
-}
-
-
-bool uuid::
-operator==( const uuid& other )
-{
-  for (size_t i = 0; i < sizeof(m_uuid); i++)
-  {
-    if (this->m_uuid[i] != other.m_uuid[i])
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool uuid::
-operator!=( const uuid& other )
-{
-  return ! operator==( other );
-}
-
-
-} } // end namespace
+#endif // SPROKIT_PIPELINE_UTIL_PIPE_DISPLAY_H
