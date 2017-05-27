@@ -39,6 +39,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_descriptor_set.h>
+#include <vital/types/descriptor_request.h>
 
 namespace kwiver {
 namespace vital {
@@ -59,8 +60,7 @@ public:
 
   /// Formulate query
   virtual kwiver::vital::track_descriptor_set_sptr formulate(
-    int request,
-    std::vector< kwiver::vital::image_container_sptr > images ) = 0;
+    kwiver::vital::descriptor_request_sptr request ) = 0;
 
 protected:
   formulate_query();
