@@ -42,6 +42,8 @@ set( public_headers
   refine_detections.h
   track_features.h
   train_detector.h
+  track_descriptor_set_input.h
+  track_descriptor_set_output.h
   triangulate_landmarks.h
   video_input.h
   )
@@ -82,6 +84,8 @@ set( sources
   refine_detections.cxx
   track_features.cxx
   train_detector.cxx
+  track_descriptor_set_input.cxx
+  track_descriptor_set_output.cxx
   triangulate_landmarks.cxx
   video_input.cxx
 )
