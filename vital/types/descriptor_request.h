@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,70 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_ALGO_FORMULATE_QUERY_H_
-#define VITAL_ALGO_FORMULATE_QUERY_H_
+/**
+ * \file
+ * \brief This file contains the interface for a descriptor request.
+ */
 
+#ifndef VITAL_DESCRIPTOR_REQUEST_H_
+#define VITAL_DESCRIPTOR_REQUEST_H_
+
+#include "image.h"
+#include "bounding_box.h"
+#include "timestamp.h"
+#include "track_descriptor.h"
+#include "uid.h"
+
+#include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
-#include <string>
 #include <memory>
-
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
-#include <vital/types/descriptor_request.h>
 
 namespace kwiver {
 namespace vital {
-namespace algo {
 
-/// An abstract base class for formulating descriptors for queries
-class VITAL_ALGO_EXPORT formulate_query
-  : public kwiver::vital::algorithm_def<formulate_query>
+// ----------------------------------------------------------------------------
+/// A representation of a descriptor request.
+///
+/// This is used by some arbitrary GUI to request and return computed
+/// descriptors on some region of the input imagery.
+class descriptor_request
 {
 public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "formulate_query"; }
 
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  descriptor_request();
+  ~descriptor_request() VITAL_DEFAULT_DTOR
 
-  /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr formulate(
-    kwiver::vital::descriptor_request_sptr request ) = 0;
+  uid id() const;
+
+  timestamp temporal_lower_bound() const;
+  timestamp temporal_upper_bound() const;
+
+  std::vector< bounding_box_i > spatial_regions() const;
+
+  std::string data_location() const;
+  std::vector< image > image_data() const;
+
+  void set_id( uid const& );
+  void set_temporal_bounds( timestamp const& lower, timestamp const& upper );
+  void set_spatial_regions( std::vector< bounding_box_i > const& );
+
+  void set_data_location( std::string const& );
+  void set_image_data( std::vector< image > const& );
 
 protected:
-  formulate_query();
 
+  uid m_id;
+  timestamp m_temporal_lower;
+  timestamp m_temporal_upper;
+  std::vector< bounding_box_i > m_spatial_regions;
+  std::vector< image > m_image_data;
+  std::string m_data_location;
 };
 
-typedef std::shared_ptr<formulate_query> formulate_query_sptr;
+/// Shared pointer for query plan
+typedef std::shared_ptr< descriptor_request > descriptor_request_sptr;
 
-} } } // end namespace
+} } // end namespace vital
 
-#endif // VITAL_ALGO_CONVERT_IMAGE_H_
+#endif // VITAL_DESCRIPTOR_REQUEST_H_

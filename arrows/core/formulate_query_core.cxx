@@ -119,8 +119,7 @@ formulate_query_core
 /// Extend a previous set of tracks using the current frame
 kwiver::vital::track_descriptor_set_sptr
 formulate_query_core
-::formulate( int request,
-  std::vector< kwiver::vital::image_container_sptr > images )
+::formulate( kwiver::vital::descriptor_request_sptr request )
 {
   kwiver::vital::track_descriptor_set_sptr descs;
 

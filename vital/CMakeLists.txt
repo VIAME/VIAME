@@ -121,6 +121,7 @@ set( vital_public_headers
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h
+  types/descriptor_request.h
   types/detected_object.h
   types/detected_object_set.h
   types/detected_object_type.h
@@ -184,6 +185,7 @@ set( vital_sources
   types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
+  types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
   types/detected_object_type.cxx
