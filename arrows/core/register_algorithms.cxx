@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@
 #include <arrows/core/detected_object_set_output_kw18.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
+#include <arrows/core/track_descriptor_set_output_csv.h>
 #include <arrows/core/dynamic_config_none.h>
 #include <arrows/core/uuid_factory_core.h>
 
@@ -289,6 +290,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                        " - 6: BR-y\n"
                        " - 7: confidence\n"
                        " - 8,9  : class-name,  score  (this pair may be omitted or may repeat any number of times)\n")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "csv", kwiver::arrows::core::track_descriptor_set_output_csv );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Track descriptor csv writer\n")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

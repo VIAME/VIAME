@@ -30,52 +30,99 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief Implementation of load/save wrapping functionality.
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#include "track_descriptor_set_output.h"
 
-#include <vital/vital_config.h>
+#include <vital/algo/algorithm.txx>
+#include <vital/exceptions/io.h>
+#include <vital/vital_types.h>
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/track_set.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
+#include <kwiversys/SystemTools.hxx>
+
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::track_descriptor_set_output);
+/// \endcond
+
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
+track_descriptor_set_output
+::track_descriptor_set_output()
+  : m_stream( 0 )
+  , m_stream_owned( false )
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
-
-  /// Compute track descriptors given an image and tracks
-  /**
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
-   */
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::track_set_sptr tracks ) = 0;
-
-protected:
-  compute_track_descriptors();
-
-};
+  attach_logger( "track_descriptor_set_output" );
+}
 
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
+track_descriptor_set_output
+::~track_descriptor_set_output()
+{
+}
+
+
+// ------------------------------------------------------------------
+void
+track_descriptor_set_output
+::open( std::string const& filename )
+{
+  // try to open the file
+  std::ostream* file( new std::ofstream( filename ) );
+  if ( ! file )
+  {
+    kwiver::vital::file_not_found_exception( filename, "open failed"  );
+  }
+
+  m_stream = file;
+  m_stream_owned = true;
+  m_filename = filename;
+}
+
+
+// ------------------------------------------------------------------
+void
+track_descriptor_set_output
+::use_stream( std::ostream* strm )
+{
+  m_stream = strm;
+  m_stream_owned = false;
+}
+
+
+// ------------------------------------------------------------------
+void
+track_descriptor_set_output
+::close()
+{
+  if ( m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
+}
+
+
+// ------------------------------------------------------------------
+std::ostream&
+track_descriptor_set_output
+::stream()
+{
+  return *m_stream;
+}
+
+
+// ------------------------------------------------------------------
+std::string const&
+track_descriptor_set_output
+::filename()
+{
+  return m_filename;
+}
 
 
 } } } // end namespace
-
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_

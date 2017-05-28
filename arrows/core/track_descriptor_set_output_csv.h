@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,47 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_ALGO_FORMULATE_QUERY_H_
-#define VITAL_ALGO_FORMULATE_QUERY_H_
+/**
+ * \file
+ * \brief Interface for track_descriptor_set_output_csv
+ */
+
+#ifndef KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
+#define KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
 
 #include <vital/vital_config.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
-#include <string>
+#include <vital/algo/track_descriptor_set_output.h>
+
 #include <memory>
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
-
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace core {
 
-/// An abstract base class for formulating descriptors for queries
-class VITAL_ALGO_EXPORT formulate_query
-  : public kwiver::vital::algorithm_def<formulate_query>
+class KWIVER_ALGO_CORE_EXPORT track_descriptor_set_output_csv
+  : public vital::algorithm_impl<track_descriptor_set_output_csv,
+      vital::algo::track_descriptor_set_output>
 {
 public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "formulate_query"; }
+  track_descriptor_set_output_csv();
+  virtual ~track_descriptor_set_output_csv();
 
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr formulate(
-    int request,
-    std::vector< kwiver::vital::image_container_sptr > images ) = 0;
+  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
+    std::string const& image_name );
 
-protected:
-  formulate_query();
-
+private:
+  class priv;
+  std::unique_ptr< priv > d;
 };
-
-typedef std::shared_ptr<formulate_query> formulate_query_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_CONVERT_IMAGE_H_
+#endif // KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H

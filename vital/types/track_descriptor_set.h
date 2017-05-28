@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_ALGO_FORMULATE_QUERY_H_
-#define VITAL_ALGO_FORMULATE_QUERY_H_
+#ifndef VITAL_TRACK_DESCRIPTOR_SET_
+#define VITAL_TRACK_DESCRIPTOR_SET_
 
+#include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
+#include <vital/types/track_descriptor.h>
+
+#include <vector>
 #include <string>
 #include <memory>
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
-
 namespace kwiver {
 namespace vital {
-namespace algo {
 
-/// An abstract base class for formulating descriptors for queries
-class VITAL_ALGO_EXPORT formulate_query
-  : public kwiver::vital::algorithm_def<formulate_query>
-{
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "formulate_query"; }
+typedef std::vector< track_descriptor_sptr > track_descriptor_set;
+typedef std::shared_ptr< track_descriptor_set > track_descriptor_set_sptr;
 
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+} } // end namespace
 
-  /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr formulate(
-    int request,
-    std::vector< kwiver::vital::image_container_sptr > images ) = 0;
-
-protected:
-  formulate_query();
-
-};
-
-typedef std::shared_ptr<formulate_query> formulate_query_sptr;
-
-} } } // end namespace
-
-#endif // VITAL_ALGO_CONVERT_IMAGE_H_
+#endif

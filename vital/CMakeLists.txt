@@ -153,8 +153,9 @@ set( vital_public_headers
   types/timestamp.h
   types/timestamp_config.h
   types/track.h
-  types/track_descriptor.h
   types/track_set.h
+  types/track_descriptor.h
+  types/track_descriptor_set.h
   types/vector.h
   types/uid.h
 
