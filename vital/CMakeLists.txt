@@ -137,6 +137,7 @@ set( vital_public_headers
   types/geo_lat_lon.h
   types/geo_point.h
   types/geo_polygon.h
+  types/geodesy.h
   types/homography.h
   types/homography_f2f.h
   types/homography_f2w.h
@@ -198,6 +199,7 @@ set( vital_sources
   types/geo_lat_lon.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
+  types/geodesy.cxx
   types/homography.cxx
   types/homography_f2f.cxx
   types/homography_f2w.cxx

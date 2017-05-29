@@ -36,6 +36,7 @@
 #ifndef KWIVER_VITAL_GEODESY_H_
 #define KWIVER_VITAL_GEODESY_H_
 
+#include "vector.h"
 #include <vital/vital_config.h>
 #include <vital/vital_export.h>
 
@@ -65,6 +66,37 @@ enum class SRID : int
   UTM_NAD83_northeast = 3313, // Add zone number (59N - 60N) to get zoned SRID
   UTM_NAD83_northwest = 26900, // Add zone number (1N - 23N) to get zoned SRID
 };
+
+/// Functor for implementing geodetic conversion.
+class geo_conversion
+{
+public:
+  virtual vector_2d operator()( vector_2d const& point, int from, int to ) = 0;
+
+protected:
+  virtual ~geo_conversion() VITAL_DEFAULT_DTOR
+};
+
+/// Set the functor used for performing geodetic conversions. \see geo_conv
+VITAL_EXPORT void set_geo_conv( geo_conversion* );
+
+/**
+ * \brief Convert geo-coordinate.
+ *
+ * This converts a raw geo-coordinate from one CRS to another. The numeric CRS
+ * values shall correspond to geodetic CRS's as specified by the European
+ * Petroleum Survey Group (EPSG) Spatial Reference System Identifiers (SRID's).
+ *
+ * Note that the underlying values are ordered easting, northing, for
+ * consistency with Euclidean convention (X, Y), and \em not northing, easting
+ * as is sometimes used for geo-coordinates.
+ *
+ * \returns The raw geo-coordinate in the requested CRS.
+ * \throws std::runtime_error
+ *   Thrown if the conversion fails or if no conversion function has been
+ *   registered.
+ */
+VITAL_EXPORT vector_2d geo_conv( vector_2d const& point, int from, int to );
 
 
 } } // end namespace
