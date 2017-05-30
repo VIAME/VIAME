@@ -34,6 +34,7 @@
  */
 
 #include "descriptor_set.h"
+#include "descriptor_set.hxx"
 
 #include <vector>
 
@@ -82,6 +83,21 @@ vital_descriptor_set_new( vital_descriptor_t const **d_array,
 }
 
 
+/// Create a vital_descriptor_set_t around an existing shared pointer.
+vital_descriptor_set_t*
+vital_descriptor_set_new_from_sptr( kwiver::vital::descriptor_set_sptr ds_sptr,
+                                    vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "vital_descriptor_set_new_from_sptr", eh,
+    // Store the shared pointer in our cache and return the handle.
+    vital_c::DESCRIPTOR_SET_SPTR_CACHE.store( ds_sptr );
+    return reinterpret_cast< vital_descriptor_set_t* >( ds_sptr.get() );
+  );
+  return NULL;
+}
+
+
 /// Destroy a descriptor set
 void
 vital_descriptor_set_destroy( vital_descriptor_set_t const *ds,
@@ -107,7 +123,7 @@ vital_descriptor_set_size( vital_descriptor_set_t const *ds,
 }
 
 
-/// Get the descritpors stored in this set.
+/// Get the descriptors stored in this set.
 void
 vital_descriptor_set_get_descriptors( vital_descriptor_set_t const *ds,
                                       vital_descriptor_t ***out_d_array,
@@ -136,4 +152,18 @@ vital_descriptor_set_get_descriptors( vital_descriptor_set_t const *ds,
     *out_d_array = d_array;
     *out_d_array_length = descriptor_sptr_vec.size();
   );
+}
+
+
+/// Get the vital::descriptor_set shared pointer for a handle.
+kwiver::vital::descriptor_set_sptr
+vital_descriptor_set_to_sptr( vital_descriptor_set_t* ds,
+                              vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "vital_descriptor_set_to_sptr", eh,
+    // Return the cached shared pointer.
+    return vital_c::DESCRIPTOR_SET_SPTR_CACHE.get( ds );
+  );
+  return kwiver::vital::descriptor_set_sptr();
 }

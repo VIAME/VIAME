@@ -86,9 +86,9 @@ class VitalAlgorithm (VitalObject):
         names = ctypes.POINTER(ctypes.c_char_p)()
         algo_reg_names(ctypes.byref(length), ctypes.byref(names))
 
-        # Constructing return array
+        # Constructing return array, copying strings.
         r = []
-        for i in xrange(length.value):
+        for i in range(length.value):
             r.append(names[i])
 
         # Free allocated key listing

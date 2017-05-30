@@ -70,7 +70,7 @@ class VitalObject (object):
     should define how to create create a new C instance and to desctory the
     current C instance, respectively.
 
-    Guarantees that should be maintained after construction:
+    Guarantees that should be maintained:
         - c_type() and c_ptr_type() should be used when trying to get C types
           from class types.
         - C_TYPE and C_TYPE_PTR should be used when trying to get C types from

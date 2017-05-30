@@ -43,17 +43,9 @@ import re
 import sys
 
 
-__LIBRARY_NAME__ = "vital_c"
-__LIBRARY_NAME_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
-__LIBRARY_NAME_RE__ = re.compile(__LIBRARY_NAME_RE_BASE__ % __LIBRARY_NAME__)
-__LIBRARY_PATH_CACHE__ = None
-__LIBRARY_CACHE__ = None
-
-__TYPE_LIBRARY_NAME__ = "vital_type_converters"
-__TYPE_LIBRARY_NAME_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
-__TYPE_LIBRARY_NAME_RE__ = re.compile(__TYPE_LIBRARY_NAME_RE_BASE__ % __TYPE_LIBRARY_NAME__)
-__TYPE_LIBRARY_PATH_CACHE__ = None
-__TYPE_LIBRARY_CACHE__ = None
+# Base regular expression for library files across platforms. This should be
+# `%` formatted with the base-name of the library (e.g. "math", "c", etc.)
+__LIBRARY_FILE_RE_BASE__ = "(?:lib)?%s.(?:so|dylib|dll).*"
 
 
 def _system_library_dirs():
@@ -110,6 +102,13 @@ def _system_path_separator():
         return ':'
 
 
+# -----------------------------------------------------------------------------
+__LIBRARY_NAME__ = "vital_c"
+__LIBRARY_NAME_RE__ = re.compile(__LIBRARY_FILE_RE_BASE__ % __LIBRARY_NAME__)
+__LIBRARY_PATH_CACHE__ = None
+__LIBRARY_CACHE__ = None
+
+
 def find_vital_library_path(use_cache=True):
     """
     Discover the path to a VITAL C interface library based on the directory
@@ -122,6 +121,8 @@ def find_vital_library_path(use_cache=True):
 
     :return: The string path to the VITAL C interface library
     :rtype: str
+
+    :raises RuntimeError: If vital library path was not found.
 
     """
     global __LIBRARY_PATH_CACHE__
@@ -148,6 +149,40 @@ def find_vital_library_path(use_cache=True):
                        % __LIBRARY_NAME__)
 
 
+def find_vital_library(use_cache=True):
+    """
+    Discover and return the ctypes-loaded VITAL C interface library.
+
+    :param use_cache: Use the cached library instance or cache the discovered
+        library. Otherwise, search for the library again, not storing it in the
+        cache. Default is True.
+    :type use_cache: bool
+
+    :return: The cached Vital C library ctypes instance.
+    :rtype: ctypes.CDLL
+
+    :raises RuntimeError: If the library path could not be found or if the
+        library is invalid.
+
+    """
+    if use_cache:
+        global __LIBRARY_CACHE__
+        if not __LIBRARY_CACHE__:
+            __LIBRARY_CACHE__ = ctypes.CDLL(find_vital_library_path(use_cache))
+            if not __LIBRARY_CACHE__:
+                raise RuntimeError("Failed to load VITAL C library.")
+        return __LIBRARY_CACHE__
+    else:
+        return ctypes.CDLL(find_vital_library_path(use_cache))
+
+
+# -----------------------------------------------------------------------------
+__TYPE_LIBRARY_NAME__ = "vital_type_converters"
+__TYPE_LIBRARY_NAME_RE__ = re.compile(__LIBRARY_FILE_RE_BASE__ % __TYPE_LIBRARY_NAME__)
+__TYPE_LIBRARY_PATH_CACHE__ = None
+__TYPE_LIBRARY_CACHE__ = None
+
+
 def find_vital_type_converter_library_path(use_cache=True):
     """
     Discover the path to a vital type converter interface library
@@ -160,6 +195,8 @@ def find_vital_type_converter_library_path(use_cache=True):
 
     :return: The string path to the VITAL type converter interface library
     :rtype: str
+
+    :raises RuntimeError: If vital type converter library path was not found.
 
     """
     global __TYPE_LIBRARY_PATH_CACHE__
@@ -183,23 +220,31 @@ def find_vital_type_converter_library_path(use_cache=True):
                        % __TYPE_LIBRARY_NAME__)
 
 
-def find_vital_library(use_cache=True):
+def find_vital_type_converter_library(use_cache=True):
     """
-    Discover and return the ctypes-loaded VITAL C interface library.
+    Discover and return the ctypes-loaded VITAL C types conversion library.
 
     :param use_cache: Use the cached library instance or cache the discovered
         library. Otherwise, search for the library again, not storing it in the
         cache. Default is True.
     :type use_cache: bool
 
-    :return: The cached Vital C library ctypes instance.
+    :return: The cached Vital C types conversion library ctypes instance.
     :rtype: ctypes.CDLL
+
+    :raises RuntimeError: If the library path could not be found or if the
+        library is invalid.
 
     """
     if use_cache:
-        global __LIBRARY_CACHE__
-        if not __LIBRARY_CACHE__:
-            __LIBRARY_CACHE__ = ctypes.CDLL(find_vital_library_path(use_cache))
-        return __LIBRARY_CACHE__
+        global __TYPE_LIBRARY_CACHE__
+        if not __TYPE_LIBRARY_CACHE__:
+            __TYPE_LIBRARY_CACHE__ = ctypes.CDLL(
+                find_vital_type_converter_library_path(use_cache)
+            )
+            if not __TYPE_LIBRARY_CACHE__:
+                raise RuntimeError("Unable to load VITAL C types conversion "
+                                   "library.")
+        return __TYPE_LIBRARY_CACHE__
     else:
-        return ctypes.CDLL(find_vital_library_path(use_cache))
+        return ctypes.CDLL(find_vital_type_converter_library_path(use_cache))
