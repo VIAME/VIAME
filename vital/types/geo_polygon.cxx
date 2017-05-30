@@ -34,6 +34,7 @@
  */
 
 #include "geo_polygon.h"
+#include "geodesy.h"
 
 #include <stdexcept>
 
@@ -84,8 +85,15 @@ geo_raw_polygon_t geo_polygon
   auto const i = m_poly.find( crs );
   if ( i == m_poly.end() )
   {
-    // TODO convert to requested CRS and add to m_poly
-    throw std::runtime_error( "conversion is not implemented" );
+    auto new_poly = geo_raw_polygon_t{};
+    auto const verts = polygon().get_vertices();
+
+    for ( auto& v : verts )
+    {
+      new_poly.push_back( geo_conv( v, m_original_crs, crs ) );
+    }
+    m_poly.emplace( crs, new_poly );
+    return new_poly;
   }
 
   return i->second;
