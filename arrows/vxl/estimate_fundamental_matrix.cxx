@@ -37,8 +37,9 @@
 #include "estimate_fundamental_matrix.h"
 
 #include <vital/vital_foreach.h>
-
+#include <vital/util/enum_converter.h>
 #include <vital/types/feature.h>
+
 #include <arrows/vxl/camera.h>
 #include <arrows/core/epipolar_geometry.h>
 
@@ -54,6 +55,10 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
+namespace {
+  enum method_t { EST_7_POINT, EST_8_POINT };
+}
+
 /// Private implementation class
 class estimate_fundamental_matrix::priv
 {
@@ -65,11 +70,16 @@ public:
   {
   }
 
-  enum method_t {EST_7_POINT, EST_8_POINT};
-
   bool precondition;
   method_t method;
 };
+
+
+// Define the enum converter
+ENUM_CONVERTER( method_converter, method_t,
+                { "EST_7_POINT",   EST_7_POINT },
+                { "EST_8_POINT",   EST_8_POINT }
+)
 
 
 /// Constructor
@@ -100,13 +110,10 @@ estimate_fundamental_matrix
                     "If true, precondition the data before estimating the "
                     "fundamental matrix");
 
-  std::string method_name = d_->method == priv::EST_8_POINT
-                            ? "EST_8_POINT" : "EST_7_POINT";
-  config->set_value("method", method_name,
+  config->set_value("method", method_converter().to_string( d_->method ),
                     "Fundamental matrix estimation method to use. "
-                    "(Note: does not include RANSAC).  Choices are\n"
-                    "  EST_7_POINT\n"
-                    "  EST_8_POINT");
+                    "(Note: does not include RANSAC).  Choices are: "
+                    + method_converter().element_name_string() );
 
   return config;
 }
@@ -120,15 +127,8 @@ estimate_fundamental_matrix
 
   d_->precondition = config->get_value<bool>("precondition",
                                              d_->precondition);
-  std::string method_name = config->get_value<std::string>("method");
-  if( method_name == "EST_7_POINT" )
-  {
-    d_->method = priv::EST_7_POINT;
-  }
-  else
-  {
-    d_->method = priv::EST_8_POINT;
-  }
+
+  d_->method = config->get_enum_value< method_converter >( "method" );
 }
 
 
@@ -160,7 +160,7 @@ estimate_fundamental_matrix
   }
 
   vpgl_fundamental_matrix<double> vfm;
-  if( d_->method == priv::EST_8_POINT )
+  if( d_->method == EST_8_POINT )
   {
     vpgl_fm_compute_8_point fm_compute(d_->precondition);
     fm_compute.compute(right_points, left_points, vfm);
