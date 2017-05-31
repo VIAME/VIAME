@@ -58,6 +58,8 @@ Arrows - Core
  * Added default version of dynamic_configuration which always returns
    an empty config block.
 
+* Added classes to support track descriptor input and output.
+
 Arrows - OpenCV
 
  * Updated the OpenCV image container functions to handle conversinos between
@@ -89,6 +91,9 @@ Arrows - Darknet
    real-time object detection system. Currently requires an external
    build of the Darknet project - https://gitlab.kitware.com/kwiver/darknet.git
 
+Arrows - Burnout
+
+ * Added burnout descriptors.
 
 Vital
 
@@ -157,7 +162,25 @@ Vital
    implementation type and factory type when selecting by category.
 
  * Added method to do a set difference between two config blocks. This
-   can be used to validate config blocks against a known standard.
+   can be used to validate config blocks against a known
+   standard. Also added functions to determine both difference sets.
+
+ * Added track descriptor support classes for representation and
+   computation of track based descriptors.
+
+ * Added UID class to represent a unique identifier. These identifiers
+   can be set to an arbitrary set of bytes that represent a unique ID
+   within a smaller universe or use a factory to create a more
+   globally unique ID. Added uuid factory to create universal unique
+   IDs.
+
+ * Added algorithm classes to support query formulation with concrete
+   implementations.
+
+ * Added classes to support track descriptor set input and output.
+
+ * Added geographic point and polygon types.
+
 
 Sprokit
 
@@ -198,6 +221,8 @@ Sprokit
    addition to the original sprokit pipeline syntax. Some minor
    semantic differences were introduced in the process.
 
+ * Added processes to support track descriptor input and output.
+
 Vital Bindings
 
  * Fixed bug in python ConfigBlock read-from-file.
@@ -237,6 +262,7 @@ Vital Bindings
 
  * Added C/Python interface for vital::detected_object_set class
 
+ * Added python bindings for descriptor sets and detected object sets.
 
 Fixes since v1.0.0
 ------------------
