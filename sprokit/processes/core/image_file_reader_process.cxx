@@ -43,6 +43,7 @@
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/util/tokenize.h>
+#include <vital/util/enum_converter.h>
 
 #include <kwiver_type_traits.h>
 
@@ -93,10 +94,16 @@ public:
   priv();
   ~priv();
 
-  enum {                        // Error handling modes
+  enum error_mode_t {           // Error handling modes
     ERROR_ABORT = 1,
     ERROR_SKIP
   };
+
+  // Define the enum converter
+  ENUM_CONVERTER( mode_converter, error_mode_t,
+                  { "abort",   ERROR_ABORT },
+                  { "skip",    ERROR_SKIP }
+    )
 
   // Configuration values
   int m_config_error_mode; // error mode
@@ -146,19 +153,7 @@ void image_file_reader_process
   kwiver::vital::tokenize( path, d->m_config_path, ":", true );
   d->m_config_path.push_back( "." ); // add current directory
 
-  if ( mode == "abort" )
-  {
-    d->m_config_error_mode = priv::ERROR_ABORT;
-  }
-  else if (mode == "skip" )
-  {
-    d->m_config_error_mode = priv::ERROR_SKIP;
-  }
-  else
-  {
-    throw sprokit::invalid_configuration_exception( name(),
-             "Invalid specification for \"error_mode\" config parameter." );
-  }
+  d->m_config_error_mode = priv::mode_converter().from_string( mode );
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
