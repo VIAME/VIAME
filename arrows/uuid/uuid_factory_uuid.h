@@ -30,71 +30,40 @@
 
 /**
  * \file
- * \brief Implementation of detected object set csv outputuuid factory
+ * \brief Interface to uid factory
  */
 
-#include "uuid_factory_core.h"
+#ifndef KWIVER_ARROWS_UUID_FACTORY_H
+#define KWIVER_ARROWS_UUID_FACTORY_H
 
-#include <uuid/uuid.h>
-
+#include <arrows/uuid/kwiver_algo_uuid_export.h>
+#include <vital/algo/uuid_factory.h>
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace uuid {
 
-// ------------------------------------------------------------------
-class uuid_factory_core::priv
+
+class KWIVER_ALGO_UUID_EXPORT uuid_factory_uuid
+  : public vital::algorithm_impl<uuid_factory_uuid, vital::algo::uuid_factory>
 {
 public:
+  uuid_factory_uuid();
+  virtual ~uuid_factory_uuid();
 
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
+  // Main method to generate UUID's
+  virtual kwiver::vital::uid create_uuid();
 
+private:
+  class priv;
+  std::unique_ptr< priv > d;
 };
 
 
-
-// ==================================================================
-uuid_factory_core::
-uuid_factory_core()
-  : d( new uuid_factory_core::priv() )
-{
-
-}
-
-uuid_factory_core::
-~uuid_factory_core()
-{ }
-
-
-// ------------------------------------------------------------------
-void
-uuid_factory_core::
-set_configuration(vital::config_block_sptr config)
-{
-}
-
-
-// ------------------------------------------------------------------
-bool
-uuid_factory_core::
-check_configuration(vital::config_block_sptr config) const
-{
-  return true;
-}
-
-
-// ------------------------------------------------------------------
-kwiver::vital::uid
-uuid_factory_core::
-create_uuid()
-{
-  // This may need work to be more system independent.
-  uuid_t new_uuid;
-  uuid_generate( new_uuid );
-  const char* cc = (const char *)&new_uuid[0];
-
-  return kwiver::vital::uid( cc, sizeof( new_uuid ));
-}
-
-
 } } } // end namespace
+
+
+#endif /* KWIVER_ARROWS_UUID_FACTORY_H */

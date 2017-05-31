@@ -36,7 +36,7 @@
 #include <test_common.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/core/uuid_factory_core.h>
+#include <arrows/uuid/uuid_factory_uuid.h>
 
 #define TEST_ARGS ()
 
@@ -53,13 +53,13 @@ main(int argc, char* argv[])
 }
 
 namespace algo = kwiver::vital::algo;
-namespace kac = kwiver::arrows::core;
+namespace kac = kwiver::arrows::uuid;
 
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(test_api)
 {
-  kac::uuid_factory_core algo;
+  kac::uuid_factory_uuid algo;
 
   auto cfg = kwiver::vital::config_block::empty_config();
 
