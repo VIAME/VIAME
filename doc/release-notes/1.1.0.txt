@@ -246,6 +246,14 @@ Arrows
  * Fixed plugin export shmbols and include files to fix Windows build
    issues. Generate separete include files for plugin stubs.
 
+Arrows - Core
+
+ * The match_feature_homography class had a bug in which the feature matches
+   used in homography estimation indexed into the source features rather than
+   the filtered features.  As a result, when a filter was used, the feature
+   locations where incorrect causing the algorithm to fail.  The code has now
+   been corrected to properly use the filtered feature list.
+
 Arrows - OpenCV
 
  * Fixed a potential crash when wrapping a cv::Mat into a mat_image_memory
@@ -266,3 +274,5 @@ Vital
 
  * Moved list copy in detected_object_set to eliminate collisions in
    select methods.
+
+ * Updated some outdated comments in feature_set and descriptor_set.
