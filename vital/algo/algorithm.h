@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
 /**
  * @brief An abstract base class for all algorithms
  *
- * This class is an sbstract base class for all algorithm
+ * This class is an abstract base class for all algorithm
  * implementations.
  */
 class VITAL_ALGO_EXPORT algorithm
@@ -97,7 +97,7 @@ public:
    *    Thrown if an expected configuration value is not present.
    *
    * \throws algorithm_configuration_exception
-   *    Thrown when the algorithm is given an invalid \c config_block or is'
+   *    Thrown when the algorithm is given an invalid \c config_block or is
    *    otherwise unable to configure itself.
    *
    * \param config  The \c config_block instance containing the configuration
@@ -192,8 +192,7 @@ protected:
    * something relevant to the concrete algorithm.
    *
    * A logger is attached by the base class, but it is expected that
-   * that one of the derived classes will attach a more meaningful
-   * logger.
+   * one of the derived classes will attach a more meaningful logger.
    *
    * \param name Name of the logger to attach.
    */

@@ -34,7 +34,6 @@ Interface to VITAL track_set class.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 

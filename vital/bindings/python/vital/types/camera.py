@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015-2016 by Kitware, Inc.
+Copyright 2015-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ class Camera (VitalObject):
         cam_read_krtd.restype = cls.C_TYPE_PTR
 
         with VitalErrorHandle() as eh:
-            return Camera(from_cptr=cam_read_krtd(filepath, eh))
+            return cls(from_cptr=cam_read_krtd(filepath, eh))
 
     @classmethod
     def from_string(cls, s):
@@ -76,15 +76,17 @@ class Camera (VitalObject):
         cam_from_str.restype = cls.c_ptr_type()
         with VitalErrorHandle() as eh:
             cptr = cam_from_str(s, eh)
-        return Camera(from_cptr=cptr)
+        return cls(from_cptr=cptr)
 
     def __init__(self, center=None, rotation=None, intrinsics=None,
                  from_cptr=None):
         """
         Create a new camera instance.
 
-        :param center: Optional center to initialize to. Default is (0, 0, 0).
-        :type center: EigenArray |
+        :param center: Optional center to initialize to. This is the center of 
+            projection of the camera in the world coordinate system. Default is
+            (0, 0, 0).
+        :type center: EigenArray | Numpy array
 
         :param rotation: Optional rotation to initialize to. Otherwise the
             identity rotation is used.
@@ -149,7 +151,23 @@ class Camera (VitalObject):
 
     def __ne__(self, other):
         return not (self == other)
-
+    
+    def __str__(self):
+        s = numpy.array2string(self.as_matrix(), separator=',')
+        s = s[1:-1] # remove first and last []
+        # prefix lines based on the length of the class name
+        l = s.splitlines()
+        l[0] = ' '*9 + '[' + l[0][2:-1]
+        l[1] = 'K(R|T) = ' + '[' + l[1][3:-1]
+        l[2] = ' '*9 + '[' + l[2][3:]
+        l.append(str(self.intrinsics))
+        return '\n'.join(l)
+    
+    
+    def __repr__(self):
+        cls_name = self.__class__.__name__
+        return ''.join([cls_name,'\n',str(self)])
+    
     def clone(self):
         """
         :return: Return a new instance that is the clone of this one.

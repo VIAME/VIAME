@@ -40,15 +40,11 @@
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/algo/algorithm.h>
 #include <vital/algo/track_features.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
 
-#include <vital/algo/detect_features.h>
-#include <vital/algo/extract_descriptors.h>
-#include <vital/algo/match_features.h>
-#include <vital/algo/close_loops.h>
+#include <memory>
 
 
 namespace kwiver {
@@ -63,6 +59,9 @@ public:
 
   /// Default Constructor
   track_features_core();
+
+  /// Destructor
+  virtual ~track_features_core() VITAL_NOTHROW;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
@@ -122,22 +121,9 @@ public:
 
 
 private:
-
-  /// The feature detector algorithm to use
-  vital::algo::detect_features_sptr detector_;
-
-  /// The descriptor extractor algorithm to use
-  vital::algo::extract_descriptors_sptr extractor_;
-
-  /// The feature matching algorithm to use
-  vital::algo::match_features_sptr matcher_;
-
-  /// The loop closure algorithm to use
-  vital::algo::close_loops_sptr closer_;
-
-  /// The ID to use for the next created track
-  mutable unsigned long next_track_id_;
-
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
 };
 
 } // end namespace core

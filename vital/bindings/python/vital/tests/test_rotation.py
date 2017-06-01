@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,15 @@ class TestVitalRotation (unittest.TestCase):
         r2 = Rotation(ctypes.c_float)
         # r2 should get converted into a double instance for checking
         nose.tools.assert_equal(r1, r2)
+        
+        r1 = Rotation.from_quaternion([1,2,3,4], ctype=ctypes.c_double)
+        r2 = Rotation.from_quaternion([1,2,3,4], ctype=ctypes.c_double)
+        nose.tools.assert_equal(r1, r2)
+        
+        r1 = Rotation.from_quaternion([1,2,3,4], ctype=ctypes.c_double)
+        r2 = Rotation.from_quaternion([-1,-2,-3,-4], ctype=ctypes.c_double)
+        assert r1.angle_from(r2) < 1e-12
+        
 
     def test_to_matrix(self):
         # Default value should be identity

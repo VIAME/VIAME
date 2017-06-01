@@ -72,11 +72,15 @@ public:
    *                          to use as constraints.
    * \param[in]     landmarks The vector of landmarks corresponding to
    *                          \p features.
+   * \param[in]     metadata  The optional metadata to constrain the
+   *                          optimization.
    */
   virtual void
   optimize(vital::camera_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
-           const std::vector<vital::landmark_sptr>& landmarks) const;
+           const std::vector<vital::landmark_sptr>& landmarks,
+           kwiver::vital::video_metadata_vector metadata
+             = kwiver::vital::video_metadata_vector()) const;
 };
 
 

@@ -29,7 +29,9 @@ set( public_headers
   estimate_homography.h
   estimate_similarity_transform.h
   extract_descriptors.h
+  feature_descriptor_io.h
   filter_features.h
+  filter_tracks.h
   geo_map.h
   image_filter.h
   image_io.h
@@ -67,7 +69,9 @@ set( sources
   estimate_homography.cxx
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
+  feature_descriptor_io.cxx
   filter_features.cxx
+  filter_tracks.cxx
   geo_map.cxx
   image_filter.cxx
   image_io.cxx

@@ -42,6 +42,7 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/io/eigen_io.h>
 
 #include <iostream>
 #include <typeinfo>
@@ -77,6 +78,24 @@ public:
   virtual covariance_2d covar() const = 0;
   /// Accessor for the RGB color
   virtual rgb_color color() const = 0;
+
+  /// Equality operator
+  bool operator==( feature const& other ) const
+  {
+    return this->data_type() == other.data_type() &&
+           this->loc() == other.loc() &&
+           this->scale() == other.scale() &&
+           this->magnitude() == other.magnitude() &&
+           this->angle() == other.angle() &&
+           this->color() == other.color() &&
+           this->covar() == other.covar();
+  }
+
+  /// Inequality operator
+  bool operator!=( feature const& other ) const
+  {
+    return ! operator==(other);
+  }
 };
 
 /// Shared pointer for base feature type
@@ -169,9 +188,15 @@ public:
   /// Set the covariance matrix of the feature
   void set_covar( covariance_< 2, T > const& covar ) { covar_ = covar; }
 
-  // Set the RGB color of the landmark
+  /// Set the RGB color of the landmark
   void set_color( rgb_color const& color ) { color_ = color; }
 
+  /// Serialization of the class data
+  template<class Archive>
+  void serialize(Archive & archive)
+  {
+    archive( loc_, magnitude_, scale_, angle_, covar_, color_ );
+  }
 
 protected:
   /// location of feature
