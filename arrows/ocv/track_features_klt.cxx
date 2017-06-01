@@ -239,7 +239,7 @@ track_features_klt
   std::vector<uchar> status;
   std::vector<float> err;
   cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, new_points, status, err);
-  d_->prev_image = cv_img;
+  d_->prev_image = cv_img.clone();
 
   // get the last track id in the existing set of tracks and increment it
   next_track_id = (*prev_tracks->all_track_ids().crbegin()) + 1;
