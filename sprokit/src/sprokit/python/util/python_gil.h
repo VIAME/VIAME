@@ -35,7 +35,7 @@
 
 #include <vital/noncopyable.h>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 /**
  * \file python_gil.h

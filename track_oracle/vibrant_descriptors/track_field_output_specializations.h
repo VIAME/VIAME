@@ -10,8 +10,8 @@
 #include <vital/vital_config.h>
 #include <track_oracle/vibrant_descriptors/vibrant_descriptors_export.h>
 
-#include <track_oracle/track_oracle_api_types.h>
-#include <track_oracle/track_field.h>
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/core/track_field.h>
 #include <track_oracle/vibrant_descriptors/descriptor_cutic_type.h>
 #include <track_oracle/vibrant_descriptors/descriptor_metadata_type.h>
 #include <track_oracle/vibrant_descriptors/descriptor_motion_type.h>

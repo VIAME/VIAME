@@ -149,6 +149,37 @@ text = kwiver::vital::token_expander::instance()->expand_token( text );
    */
   std::string expand_token(  std::string const& initial_string );
 
+protected:
+  /**
+   * @brief Handle missing provider entry.
+   *
+   * This method is called when a provider does not have the requested
+   * item.
+   *
+   * @param provider Name of provider.
+   * @param entry Name of entry.
+   *
+   * @return \b true inserts the original text leaving the unresolved
+   * entry in the expanded string. \b false inserts empty string,
+   * removing the unresolved entry from the output.
+   */
+  virtual bool handle_missing_entry( const std::string& provider, const std::string& entry );
+
+  /**
+   * @brief Handle missing provider.
+   *
+   * This method is called when the requested provider is not
+   * registered.
+   *
+   * @param provider Name of provider.
+   * @param entry Name of entry.
+   *
+   * @return \b true inserts the original text leaving the unresolved
+   * entry in the expanded string. \b false inserts empty string,
+   * removing the unresolved entry from the output.
+   */
+  virtual bool handle_missing_provider( const std::string& provider, const std::string& entry );
+
 private:
   typedef std::map < std::string, std::shared_ptr< kwiver::vital::token_type > > map_t;
   typedef map_t::iterator iterator_t;

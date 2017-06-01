@@ -28,27 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <sprokit/src/bindings/python/modules/modules_python_export.h>
 
 #include <boost/python/import.hpp>
 
-#include "registration.h"
-
 #include <sprokit/pipeline/utils.h>
-
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
+#include <sprokit/python/util/python.h>
 
-#include <Python.h>
+#include <vital/plugin_loader/plugin_loader.h>
+#include <kwiversys/SystemTools.hxx>
+
+#ifdef SPROKIT_LOAD_PYLIB_SYM
+  #include <dlfcn.h>
+#endif
 
 using namespace boost::python;
-
-static sprokit::envvar_name_t const python_suppress_envvar = sprokit::envvar_name_t("SPROKIT_NO_PYTHON_MODULES");
 
 static void load();
 static bool is_suppressed();
 
+
+// ==================================================================
+/**
+ * @brief Python module loader.
+ *
+ * This function is called by the plugin loader when it is scanning
+ * all plugins. It looks like a standard registration entry point for
+ * a set or processes, but it activates the python interpreter and
+ * causes it to call sprokit.module.modules.load_python_modules()
+ *
+ * Also note that setting the environment variable
+ * SPROKIT_NO_PYTHON_MODULES will suppress loading all python modules.
+ */
+
+extern "C"
+MODULES_PYTHON_EXPORT
 void
-register_processes()
+register_factories(kwiver::vital::plugin_loader& vpm)
 {
   if (is_suppressed())
   {
@@ -57,6 +75,15 @@ register_processes()
 
   Py_Initialize();
 
+#ifdef SPROKIT_LOAD_PYLIB_SYM
+  const char *pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
+
+  if( pylib )
+  {
+    dlopen( pylib, RTLD_LAZY | RTLD_GLOBAL );
+  }
+#endif
+
   sprokit::python::python_gil const gil;
 
   (void)gil;
@@ -64,6 +91,8 @@ register_processes()
   SPROKIT_PYTHON_IGNORE_EXCEPTION(load())
 }
 
+
+// ------------------------------------------------------------------
 void
 load()
 {
@@ -73,11 +102,12 @@ load()
   loader();
 }
 
+
+// ------------------------------------------------------------------
 bool
 is_suppressed()
 {
-  sprokit::envvar_value_t const python_suppress = sprokit::get_envvar(python_suppress_envvar);
-
+  const char * python_suppress = kwiversys::SystemTools::GetEnv( "SPROKIT_NO_PYTHON_MODULES" );
   bool suppress_python_modules = false;
 
   if (python_suppress)

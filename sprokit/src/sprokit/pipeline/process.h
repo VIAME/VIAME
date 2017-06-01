@@ -39,7 +39,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
-#include <vital/noncopyable.h>
+#include <boost/noncopyable.hpp>
 
 #include <boost/cstdint.hpp>
 #include <boost/rational.hpp>
@@ -96,32 +96,43 @@ typedef std::vector<process_t> processes_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT process
-  : kwiver::vital::noncopyable
+  : private boost::noncopyable
 {
   public:
     /// The type for the type of a process.
     typedef std::string type_t;
+
     /// Process description
     typedef std::string description_t;
+
     /// A group of types.
     typedef std::vector<type_t> types_t;
+
     /// The type for the name of a process.
     typedef std::string name_t;
+
     /// The type for a group of process names.
     typedef std::vector<name_t> names_t;
+
     /// The type for a property on a process.
     typedef std::string property_t;
+
     /// The type for a set of properties on a process.
     ///@todo Add reference to predefined properties.
     typedef std::set<property_t> properties_t;
+
     /// The type for a description of a port.
     typedef std::string port_description_t;
+
     /// The type for the name of a port on a process.
     typedef std::string port_t;
+
     /// The type for a group of ports.
     typedef std::vector<port_t> ports_t;
+
     /// The type for the type of data on a port.
     typedef std::string port_type_t;
+
     /// The type for the component of a frequency.
     typedef size_t frequency_component_t;
 
@@ -145,14 +156,20 @@ class SPROKIT_PIPELINE_EXPORT process
     /// The type for a flag on a port.
     ///\todo Add descriptions of predefined port flags.
     typedef std::string port_flag_t;
+
     /// The type for a group of port flags.
     typedef std::set<port_flag_t> port_flags_t;
+
     /// The type for the address of a port within the pipeline.
+    /// Derived from "process.port"
     typedef std::pair<name_t, port_t> port_addr_t;
+
     /// The type for a group of port addresses.
     typedef std::vector<port_addr_t> port_addrs_t;
+
     /// The type for a connection within the pipeline.
     typedef std::pair<port_addr_t, port_addr_t> connection_t;
+
     /// The type for a group of connections.
     typedef std::vector<connection_t> connections_t;
 
@@ -599,7 +616,7 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_flag_t const flag_output_shared;
 
     /**
-     * \brief A flag which indicates that the input may be defined as
+     * \brief A flag which indicates that the input \b may be defined as
      * a configuration value.
      *
      * If this port is not connected, the value supplied is taken from
@@ -614,7 +631,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \code
      process circ
        :: circle_writer
-          :static/foo  3.14159
+          static/radius = 3.14159
      * \endcode
      *
      * This flag may \b not be combined with \ref flag_required because
@@ -1286,7 +1303,7 @@ class SPROKIT_PIPELINE_EXPORT process
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
 
     class SPROKIT_PIPELINE_NO_EXPORT priv;
-    std::unique_ptr<priv> d;
+    std::shared_ptr<priv> d;
 };
 
 template <typename T>

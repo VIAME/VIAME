@@ -77,7 +77,8 @@ public:
    * This method wraps the input string to the specified line
    * length. Existing newline characters are retained so user
    * specified line breaks are preserved. Multiple spaces are retained
-   * to preserve user formatting.
+   * to preserve user formatting. The returned string always ends with
+   * a newline.
    *
    * @param text The text to be wrapped
    *

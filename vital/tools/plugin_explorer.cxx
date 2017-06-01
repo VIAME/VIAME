@@ -599,6 +599,7 @@ main( int argc, char* argv[] )
   }
 
   //+ test for one of --algorithm or --process allowed
+  //+ test for one of --factory or --type (is this desired?)
 
   // ========
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();

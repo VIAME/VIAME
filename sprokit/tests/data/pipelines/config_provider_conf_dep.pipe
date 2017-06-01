@@ -2,7 +2,7 @@ config myblock
   :mykey myvalue
 
 config myotherblock
-  :mykey{CONF} mymidblock:mykey
+  mykey = $CONFIG{mymidblock:mykey}
 
 config mymidblock
-  :mykey{CONF} myblock:mykey
+  mykey = $CONFIG{myblock:mykey}

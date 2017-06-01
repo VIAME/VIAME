@@ -11,10 +11,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_algo_convert_image.py
   vital/tests
   test_algo_convert_image )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_apm.py
-  vital/tests
-  test_apm )
-
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera.py
   vital/tests
   test_camera )

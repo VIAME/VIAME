@@ -40,8 +40,6 @@ namespace vital {
 class kwiver::vital::explorer_context::priv
 {
 public:
-  priv();
-  ~priv();
 
   // Collected command line args
   kwiversys::CommandLineArguments m_args;
@@ -84,6 +82,29 @@ public:
   std::string opt_load_module;
 
   std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
+
+  priv()
+  {
+    opt_config = false;
+    opt_detail = false;
+    opt_help = false;
+    opt_path_list = false;
+    opt_brief = false;
+    opt_modules = false;
+    opt_files = false;
+    opt_all = false;
+    opt_summary = false;
+    opt_attrs = false;
+
+    opt_attr_filter = false;
+    opt_fact_filt = false;
+
+    m_out_stream = 0;
+  }
+
+  virtual ~priv()
+  {
+  }
 };
 
 

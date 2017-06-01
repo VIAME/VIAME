@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -199,11 +199,11 @@ class SPROKIT_PIPELINE_EXPORT datum_exception
     /**
      * \brief Constructor.
      */
-    datum_exception() throw();
+    datum_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~datum_exception() throw();
+    virtual ~datum_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -226,11 +226,11 @@ class SPROKIT_PIPELINE_EXPORT bad_datum_cast_exception
      * \param error The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) throw();
+    bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~bad_datum_cast_exception() throw();
+    ~bad_datum_cast_exception() VITAL_NOTHROW;
 
     /// The requested datum type.
     std::string const m_requested_typeid;

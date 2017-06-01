@@ -28,13 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/tools/pipeline_builder.h>
 #include <sprokit/tools/tool_io.h>
 #include <sprokit/tools/tool_main.h>
 #include <sprokit/tools/tool_usage.h>
+#include <sprokit/tools/build_pipeline_from_options.h>
 
 #include <sprokit/pipeline_util/export_dot.h>
-#include <sprokit/pipeline_util/path.h>
 
 #include <vital/config/config_block.h>
 #include <sprokit/pipeline/pipeline.h>
@@ -112,14 +111,13 @@ sprokit_tool_main(int argc, char const* argv[])
     kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
     vpm.load_all_plugins();
 
-    sprokit::pipeline_builder builder;
-
+    sprokit::build_pipeline_from_options builder;
     builder.load_from_options(vm);
     kwiver::vital::config_block_sptr const conf = builder.config();
 
     if (have_cluster)
     {
-      sprokit::path_t const ipath = vm["cluster"].as<sprokit::path_t>();
+      kwiver::vital::path_t const ipath = vm["cluster"].as<kwiver::vital::path_t>();
 
       sprokit::istream_t const istr = sprokit::open_istream(ipath);
 
@@ -154,7 +152,7 @@ sprokit_tool_main(int argc, char const* argv[])
   }
   else if (have_pipeline)
   {
-    sprokit::pipeline_builder const builder(vm, desc);
+    const sprokit::build_pipeline_from_options builder(vm, desc);
 
     pipe = builder.pipeline();
 
@@ -181,7 +179,7 @@ sprokit_tool_main(int argc, char const* argv[])
     return EXIT_FAILURE;
   }
 
-  sprokit::path_t const opath = vm["output"].as<sprokit::path_t>();
+  kwiver::vital::path_t const opath = vm["output"].as<kwiver::vital::path_t>();
 
   sprokit::ostream_t const ostr = sprokit::open_ostream(opath);
 

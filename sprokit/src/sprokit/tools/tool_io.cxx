@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,23 @@
 
 #include "tool_io.h"
 
-#include <boost/filesystem/fstream.hpp>
-
 #include <iostream>
+#include <fstream>
 
-namespace sprokit
-{
+namespace sprokit {
 
-namespace
-{
+namespace {
 
-static sprokit::path_t const iostream_path = sprokit::path_t("-");
+static kwiver::vital::path_t const iostream_path = kwiver::vital::path_t("-");
 
 }
 
 static void std_stream_dtor(void* ptr);
 
+
+// ------------------------------------------------------------------
 istream_t
-open_istream(sprokit::path_t const& path)
+open_istream(kwiver::vital::path_t const& path)
 {
   istream_t istr;
 
@@ -57,12 +56,11 @@ open_istream(sprokit::path_t const& path)
   }
   else
   {
-    istr.reset(new boost::filesystem::ifstream(path));
+    istr.reset(new std::ifstream(path));
 
     if (!istr->good())
     {
-      std::string const str = path.string<std::string>();
-      std::string const reason = "Unable to open input file: " + str;
+      std::string const reason = "Unable to open input file: " + path;
 
       throw std::runtime_error(reason);
     }
@@ -71,8 +69,10 @@ open_istream(sprokit::path_t const& path)
   return istr;
 }
 
+
+// ------------------------------------------------------------------
 ostream_t
-open_ostream(sprokit::path_t const& path)
+open_ostream(kwiver::vital::path_t const& path)
 {
   ostream_t ostr;
 
@@ -82,12 +82,11 @@ open_ostream(sprokit::path_t const& path)
   }
   else
   {
-    ostr.reset(new boost::filesystem::ofstream(path));
+    ostr.reset(new std::ofstream(path));
 
     if (!ostr->good())
     {
-      std::string const str = path.string<std::string>();
-      std::string const reason = "Unable to open input file: " + str;
+      std::string const reason = "Unable to open input file: " + path;
 
       throw std::runtime_error(reason);
     }
@@ -96,10 +95,12 @@ open_ostream(sprokit::path_t const& path)
   return ostr;
 }
 
+
+// ------------------------------------------------------------------
 void
 std_stream_dtor(void* /*ptr*/)
 {
   // We don't want to delete std::cin or std::cout.
 }
 
-}
+} // end namespace

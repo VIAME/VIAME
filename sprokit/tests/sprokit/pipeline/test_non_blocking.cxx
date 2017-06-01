@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <sprokit/processes/adapters/embedded_pipeline.h>
 
 #include <sprokit/config.h>
-#include <sprokit/tools/literal_pipeline.h>
+#include <sprokit/pipeline_util/literal_pipeline.h>
 
 #include <sstream>
 #include <unistd.h>
@@ -177,7 +177,7 @@ IMPLEMENT_TEST(non_blocking)
     // Get value from output adapter
     int num = rds->get_port_data<int>("number");
     received.insert( num );
-    std::cout << "received: " << num << std::endl;
+    //+ std::cout << "received: " << num << std::endl;
   }
 
   ep.wait();

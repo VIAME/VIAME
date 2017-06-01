@@ -47,6 +47,18 @@
  * \brief Python bindings for \link kwiver::vital::config \endlink.
  */
 
+#ifdef WIN32
+// Windows get_pointer const volatile workaround
+namespace boost
+{
+  template <> inline kwiver::vital::config_block const volatile*
+  get_pointer( class kwiver::vital::config_block const volatile* cb )
+  {
+    return cb;
+  }
+}
+#endif
+
 namespace kwiver {
 namespace vital {
 
@@ -102,7 +114,7 @@ BOOST_PYTHON_MODULE(config)
   class_<kwiver::vital::config_block_value_t>("ConfigValue"
     , "A value in the configuration.");
 
-  class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr, kwiver::vital::noncopyable>("Config"
+  class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr, boost::noncopyable>("Config"
     , "A key-value store of configuration values"
     , no_init)
     .def("subblock", &kwiver::vital::config_block::subblock

@@ -112,6 +112,7 @@ target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   PRIVATE              kwiversys
                        vital_video_metadata
+                       vital_config
   )
 
 algorithms_create_plugin( kwiver_algo_core

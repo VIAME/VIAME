@@ -38,15 +38,13 @@ class TestPythonProcess(process.PythonProcess):
 
 
 def __sprokit_register__():
-    from sprokit.pipeline import process_registry
+    from sprokit.pipeline import process_factory
 
     module_name = 'python:test.pythonpath.test'
 
-    reg = process_registry.ProcessRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if process_factory.is_module_loaded(module_name):
         return
 
-    reg.register_process('pythonpath_test_process', 'A test process.', TestPythonProcess)
+    process_factory.add_process('pythonpath_test_process', 'A test process.', TestPythonProcess)
 
-    reg.mark_module_as_loaded(module_name)
+    process_factory.mark_module_as_loaded(module_name)

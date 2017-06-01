@@ -68,7 +68,7 @@ class wrap_scheduler
 
 BOOST_PYTHON_MODULE(scheduler)
 {
-  class_<wrap_scheduler, kwiver::vital::noncopyable>("PythonScheduler"
+  class_<wrap_scheduler, boost::noncopyable>("PythonScheduler"
     , "The base class for Python schedulers."
     , no_init)
     .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>())

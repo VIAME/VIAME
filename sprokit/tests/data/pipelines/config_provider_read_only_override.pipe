@@ -1,5 +1,5 @@
 config myblock
-  :mykey[ro]{ENV} PATH
+  mykey[ro] = $ENV{PATH}
 
 config myblock
-  :mykey myothervalue
+  mykey = myothervalue

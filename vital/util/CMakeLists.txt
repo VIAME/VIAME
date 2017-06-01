@@ -55,6 +55,7 @@ set( public_headers
   token_type.h
   token_type_symtab.h
   token_type_sysenv.h
+  tokenize.h
   transform_image.h
   wrap_text_block.h
   )
@@ -73,6 +74,7 @@ set( sources
   source_location.cxx
 
   data_stream_reader.cxx
+  string.cxx
   string_editor.cxx
   thread_pool.cxx
   token_expander.cxx

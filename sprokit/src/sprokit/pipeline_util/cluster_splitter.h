@@ -43,12 +43,14 @@ namespace sprokit {
 
 // ----------------------------------------------------------------
 /**
- * @brief
+ * @brief Separate cluster blocks by type.
  *
+ * This class/visitor separates each cluster block type into its own
+ * list.
  */
-class cluster_splitter
-  : public boost::static_visitor<>
-{
+  class cluster_splitter
+    : public boost::static_visitor<>
+  {
   public:
     cluster_splitter(cluster_bakery::cluster_component_info_t& info);
     ~cluster_splitter();
@@ -57,13 +59,15 @@ class cluster_splitter
     void operator () (cluster_input_t const& input_block);
     void operator () (cluster_output_t const& output_block);
 
+    // is filled in by visitor.
     cluster_bakery::cluster_component_info_t& m_info;
+
   private:
     typedef std::set<process::port_t> unique_ports_t;
 
     unique_ports_t m_input_ports;
     unique_ports_t m_output_ports;
-};
+  };
 
 } // end namespace sprokit
 

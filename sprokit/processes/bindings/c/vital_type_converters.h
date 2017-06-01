@@ -39,8 +39,9 @@
 
 #include <vital/bindings/c/types/image_container.h>
 #include <vital/bindings/c/types/track_set.h>
+#include <vital/bindings/c/types/detected_object_set.h>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -52,6 +53,12 @@ vital_image_container_t* vital_image_container_from_datum( PyObject* args );
 
 VITAL_TYPE_CONVERTERS_EXPORT
 PyObject* vital_image_container_to_datum( vital_image_container_t* handle );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+vital_detected_object_set_t* vital_detected_object_set_from_datum( PyObject* args );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+PyObject* vital_detected_object_set_to_datum( vital_detected_object_set_t* handle );
 
 VITAL_TYPE_CONVERTERS_EXPORT
 double* double_vector_from_datum( PyObject* args );

@@ -156,6 +156,9 @@ Vital
  * Added feature to plugin_explorer to allow filtering by
    implementation type and factory type when selecting by category.
 
+ * Added method to do a set difference between two config blocks. This
+   can be used to validate config blocks against a known standard.
+
 Sprokit
 
  * Added sprokit port operations that have timeout. Allows process to
@@ -188,6 +191,12 @@ Sprokit
 
  * Added detected_object_set input and output processes and algorithms.
 
+ * Added pipeline export class which writes a fully resolved pipeline
+   to a file in the form where it can be used as input.
+
+ * Replaced pipeline parser to support vital config file syntax in
+   addition to the original sprokit pipeline syntax. Some minor
+   semantic differences were introduced in the process.
 
 Vital Bindings
 
@@ -219,6 +228,14 @@ Vital Bindings
 
  * Added C/Python interface for estimate_canonical_transform algorithm
    definition
+
+ * Added C/Python interface for vital::bounding_box class
+
+ * Added C/Python interface for vital::detected_object class
+
+ * Added C/Python interface for vital::detected_object_type class
+
+ * Added C/Python interface for vital::detected_object_set class
 
 
 Fixes since v1.0.0

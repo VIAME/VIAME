@@ -36,7 +36,7 @@
 #include "process.h"
 #include "types.h"
 
-#include <vital/noncopyable.h>
+#include <boost/noncopyable.hpp>
 
 /**
  * \file pipeline.h
@@ -55,7 +55,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT pipeline
-  : private kwiver::vital::noncopyable
+  : private boost::noncopyable
 {
   public:
     /**

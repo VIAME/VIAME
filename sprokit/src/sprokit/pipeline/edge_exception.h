@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,11 +61,11 @@ class SPROKIT_PIPELINE_EXPORT edge_exception
     /**
      * \brief Constructor.
      */
-    edge_exception() throw();
+    edge_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~edge_exception() throw();
+    virtual ~edge_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -82,11 +82,11 @@ class SPROKIT_PIPELINE_EXPORT null_edge_config_exception
     /**
      * \brief Constructor.
      */
-    null_edge_config_exception() throw();
+    null_edge_config_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~null_edge_config_exception() throw();
+    ~null_edge_config_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -103,11 +103,11 @@ class SPROKIT_PIPELINE_EXPORT datum_requested_after_complete
     /**
      * \brief Constructor.
      */
-    datum_requested_after_complete() throw();
+    datum_requested_after_complete() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~datum_requested_after_complete() throw();
+    ~datum_requested_after_complete() VITAL_NOTHROW;
 };
 
 /**
@@ -124,11 +124,11 @@ class SPROKIT_PIPELINE_EXPORT edge_connection_exception
     /**
      * \brief Constructor.
      */
-    edge_connection_exception() throw();
+    edge_connection_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~edge_connection_exception() throw();
+    virtual ~edge_connection_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -145,11 +145,11 @@ class SPROKIT_PIPELINE_EXPORT null_process_connection_exception
     /**
      * \brief Constructor.
      */
-    null_process_connection_exception() throw();
+    null_process_connection_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~null_process_connection_exception() throw();
+    ~null_process_connection_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -170,11 +170,11 @@ class SPROKIT_PIPELINE_EXPORT duplicate_edge_connection_exception
      * \param new_name The name of the process which was attemted to be connected.
      * \param type The type of connection.
      */
-    duplicate_edge_connection_exception(process::name_t const& name, process::name_t const& new_name, std::string const& type) throw();
+    duplicate_edge_connection_exception(process::name_t const& name, process::name_t const& new_name, std::string const& type) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~duplicate_edge_connection_exception() throw();
+    virtual ~duplicate_edge_connection_exception() VITAL_NOTHROW;
 
     /// The name of the process which was already connected.
     process::name_t const m_name;
@@ -199,11 +199,11 @@ class SPROKIT_PIPELINE_EXPORT input_already_connected_exception
      * \param name The name of the process that was already connected.
      * \param new_name The name of the process which was attemted to be connected.
      */
-    input_already_connected_exception(process::name_t const& name, process::name_t const& new_name) throw();
+    input_already_connected_exception(process::name_t const& name, process::name_t const& new_name) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~input_already_connected_exception() throw();
+    ~input_already_connected_exception() VITAL_NOTHROW;
 };
 
 /**
@@ -223,11 +223,11 @@ class SPROKIT_PIPELINE_EXPORT output_already_connected_exception
      * \param name The name of the process that was already connected.
      * \param new_name The name of the process which was attemted to be connected.
      */
-    output_already_connected_exception(process::name_t const& name, process::name_t const& new_name) throw();
+    output_already_connected_exception(process::name_t const& name, process::name_t const& new_name) VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    ~output_already_connected_exception() throw();
+    ~output_already_connected_exception() VITAL_NOTHROW;
 };
 
 }

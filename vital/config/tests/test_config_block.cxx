@@ -36,6 +36,8 @@
 #include <tests/test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/util/enum_converter.h>
+
 #include <functional>
 
 #define TEST_ARGS ()
@@ -803,6 +805,63 @@ IMPLEMENT_TEST(merge_config)
 
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST(difference_config)
+{
+  kwiver::vital::config_block_sptr const configa = kwiver::vital::config_block::empty_config();
+  kwiver::vital::config_block_sptr const configb = kwiver::vital::config_block::empty_config();
+
+  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
+  kwiver::vital::config_block_key_t const keyc = kwiver::vital::config_block_key_t("keyc");
+
+  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
+  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
+  kwiver::vital::config_block_value_t const valuec = kwiver::vital::config_block_value_t("valuec");
+
+  auto filename = std::make_shared<std::string>(__FILE__);
+  configa->set_value(keya, valuea);
+  configa->set_location(keya, filename, __LINE__);
+
+  configa->set_value(keyb, valueb);
+  configa->set_location(keyb, filename, __LINE__);
+
+  configb->set_value(keyb, valueb);
+  configb->set_location(keyb, filename, __LINE__);
+
+  configb->set_value(keyc, valuec);
+  configb->set_location(keyc, filename, __LINE__);
+
+  {
+    auto diff_config = configa->difference_config(configb);
+    // should be (a - b) => keya
+    if ( ! diff_config->has_value( keya ) )
+    {
+      TEST_ERROR( "(1) keya not present in diff" );
+    }
+
+    if ( diff_config->has_value( keyb ) )
+    {
+      TEST_ERROR( "(1) keyb present in diff" );
+    }
+  }
+
+  {
+    auto diff_config = configb->difference_config(configa);
+    // should be (b - a) => keyc
+    if ( ! diff_config->has_value( keyc ) )
+    {
+      TEST_ERROR( "(2) keyc not present in diff" );
+    }
+
+    if ( diff_config->has_value( keya ) )
+    {
+      TEST_ERROR( "(2) keya present in diff" );
+    }
+  }
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(set_value_description)
 {
   using namespace kwiver::vital;
@@ -843,4 +902,41 @@ IMPLEMENT_TEST(set_value_description)
       config->get_description(keya),
       "accessing description of unset key"
       );
+}
+
+
+// Test macro
+ENUM_CONVERTER( my_ec, int,
+          // init stuff
+          { "one",   1 },
+          { "two",   2 },
+          { "three", 3 },
+          { "four",  4 },
+          { "five",  5 }
+  )
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(enum_conversion)
+{
+  using namespace kwiver::vital;
+
+  config_block_sptr const config = config_block::empty_config();
+
+  config->set_value("keya", "three");
+  config->set_value("keyb", "foo");
+
+  int val = config->get_enum_value < my_ec >( "keya" );
+  TEST_EQUAL("enum value", val, 3 );
+
+  EXPECT_EXCEPTION( std::runtime_error,
+                    config->get_enum_value < my_ec >( "keyb" ),
+                    "enum conversion error");
+
+  EXPECT_EXCEPTION(
+    kwiver::vital::no_such_configuration_value_exception,
+    config->get_enum_value< my_ec >(config_block_key_t("not_a_key")),
+      "accessing description of invalid key"
+      );
+
 }

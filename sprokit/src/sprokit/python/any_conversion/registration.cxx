@@ -28,11 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "registration.h"
-
-#include <vital/vital_foreach.h>
-#include <vital/logger/logger.h>
-
 #include <sprokit/python/util/python_gil.h>
 
 #include <boost/python/converter/registry.hpp>
@@ -45,6 +40,12 @@
 #include <boost/optional.hpp>
 
 #include <map>
+#include <iostream>
+
+#include <vital/vital_foreach.h>
+#include <vital/logger/logger.h>
+
+#include "registration.h"
 
 
 /**

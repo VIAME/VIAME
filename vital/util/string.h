@@ -31,10 +31,11 @@
 #ifndef KWIVER_VITAL_UTIL_STRING_FORMAT_H
 #define KWIVER_VITAL_UTIL_STRING_FORMAT_H
 
+#include <vital/util/vital_util_export.h>
+
 #include <stdarg.h>  // For va_start, etc.
-#include <memory>    // For std::unique_ptr
 #include <string>
-#include <algorithm>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -49,34 +50,8 @@ namespace vital {
  *
  * @return Formatted string.
  */
-inline std::string
-string_format( const std::string fmt_str, ... )
-{
-  int final_n, n = ( (int)fmt_str.size() ) * 2; /* Reserve two times as much as the length of the fmt_str */
-  std::string str;
-  std::unique_ptr< char[] > formatted;
-  va_list ap;
-
-  while ( 1 )
-  {
-    formatted.reset( new char[n] );   /* Wrap the plain char array into the unique_ptr */
-    strcpy( &formatted[0], fmt_str.c_str() );
-    va_start( ap, fmt_str );
-    final_n = vsnprintf( &formatted[0], n, fmt_str.c_str(), ap );
-    va_end( ap );
-    if ( ( final_n < 0 ) || ( final_n >= n ) )
-    {
-      n += abs( final_n - n + 1 );
-    }
-    else
-    {
-      break;
-    }
-  }
-
-  return std::string( formatted.get() );
-}
-
+VITAL_UTIL_EXPORT std::string
+string_format( const std::string fmt_str, ... );
 
 /**
  * @brief Does string start with pattern
@@ -92,8 +67,23 @@ string_format( const std::string fmt_str, ... )
 inline bool
 starts_with( const std::string& input, const std::string& pattern)
 {
-  return input.compare( 0, pattern.size(), pattern );
+  return (0 == input.compare( 0, pattern.size(), pattern ) );
 }
+
+/**
+ * @brief Join a set of strings with specified separator.
+ *
+ * A single string is created and returned from the supplied vector of
+ * strings with the specified separator inserted between
+ * strings. There is no trailing separator.
+ *
+ * @param elements Vector of elements to join
+ * @param str_separator String to be placed between elements
+ *
+ * @return Single string with all elements joined with separator.
+ */
+VITAL_UTIL_EXPORT std::string
+join( const std::vector<std::string>& elements, const std::string& str_separator);
 
 } } // end namespace
 

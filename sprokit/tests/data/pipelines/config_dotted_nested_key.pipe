@@ -1,2 +1,3 @@
 config myblock
   :dotted:nested.key:subkey value
+  dotted:nested.key:subkey = value

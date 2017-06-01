@@ -33,11 +33,16 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
-#include <atomic>
 #include <memory>
 #include <vector>
 #include <fstream>
 #include <time.h>
+
+#if ( __GNUC__ == 4 && __GNUC_MINOR__ < 5 && !defined(__clang__) )
+  #include <cstdatomic>
+#else
+  #include <atomic>
+#endif
 
 
 namespace kwiver {
