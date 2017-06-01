@@ -1,4 +1,4 @@
-Vital 0.1.0 Release Notes
+Vital 1.0.0 Release Notes
 =========================
 
 This is the first formal release of Vital. The features in this
