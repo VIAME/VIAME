@@ -159,29 +159,8 @@ track_features_klt
   track_set_sptr existing_set;
   feature_set_sptr curr_feat;
 
-  // see if there are already existing tracks on this frame
-  if( prev_tracks )
-  {
-    existing_set = prev_tracks->active_tracks(frame_number);
-    if( existing_set && existing_set->size() > 0 )
-    {
-      LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
-      // use existing features
-      curr_feat = existing_set->frame_features(frame_number);
-    }
-  }
-
-  // compute features and descriptors from the image
-  if( !curr_feat || curr_feat->size() == 0 )
-  {
-    LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
-    // detect features on the current frame
-    curr_feat = d_->detector->detect(image_data, mask);
-  }
-
   cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image());
   cv::Mat cv_mask;
-  std::vector<cv::KeyPoint> keypoints;
 
   // Only initialize a mask image if the given mask image container contained
   // valid data.
@@ -210,16 +189,31 @@ track_features_klt
   }
 
 
-
-
-
-  std::vector<feature_sptr> vf = curr_feat->features();
-
   track_id_t next_track_id = 0;
 
-  // special case for the first frame
-  if( !prev_tracks )
+
+  // compute features and descriptors from the image
+  if( d_->prev_points.empty() )
   {
+    // see if there are already existing tracks on this frame
+    if( prev_tracks )
+    {
+      existing_set = prev_tracks->active_tracks(frame_number);
+      if( existing_set && existing_set->size() > 0 )
+      {
+        LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
+        // use existing features
+        curr_feat = existing_set->frame_features(frame_number);
+      }
+    }
+    if( !curr_feat || curr_feat->size() == 0 )
+    {
+      LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
+      // detect features on the current frame
+      curr_feat = d_->detector->detect(image_data, mask);
+    }
+    std::vector<feature_sptr> vf = curr_feat->features();
+
     typedef std::vector<feature_sptr>::const_iterator feat_itr;
     feat_itr fit = vf.begin();
     std::vector<vital::track_sptr> new_tracks;
@@ -246,6 +240,7 @@ track_features_klt
 
   track_set_sptr active_set = prev_tracks->active_tracks();
   std::vector<track_sptr> active_tracks = active_set->tracks();
+  std::vector<feature_sptr> vf = active_set->last_frame_features()->features();
   std::vector<track_sptr> all_tracks = prev_tracks->tracks();
 
   std::vector<cv::Point2f> next_points;
