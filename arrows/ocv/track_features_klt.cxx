@@ -251,12 +251,13 @@ track_features_klt
   std::vector<cv::Point2f> next_points;
   for(unsigned int i=0; i< active_tracks.size(); ++i)
   {
-    if(!status[i])
+    vector_2f np(new_points[i].x, new_points[i].y);
+    if(!status[i] || np.x() < 0 || np.y() < 0 || np.x() > image_data->width() || np.y() > image_data->height())
     {
       continue;
     }
     auto f = std::make_shared<feature_f>(*vf[i]);
-    f->set_loc(vector_2f(new_points[i].x, new_points[i].y));
+    f->set_loc(np);
     track::track_state ts(frame_number, f, nullptr);
     track_sptr t = active_tracks[i];
     t->append(ts);
