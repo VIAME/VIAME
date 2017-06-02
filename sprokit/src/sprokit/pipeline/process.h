@@ -746,6 +746,14 @@ class SPROKIT_PIPELINE_EXPORT process
      * supplied. Only config keys that have the tunable attribute to
      * be reconfigured.
      *
+     * This method call be called at any time to supply the new
+     * configuration, and possibly from a thread that is different
+     * from which is calling the step() method.
+     *
+     * The intent of this method is to provide a way to dynamically
+     * change the behaviour of a process. The process must deal with
+     * any synchronization issues.
+     *
      * \params conf The configuration block to apply.
      */
     virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf);
