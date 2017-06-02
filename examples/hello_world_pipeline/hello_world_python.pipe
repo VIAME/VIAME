@@ -21,4 +21,7 @@ config _pipeline:_edge
 connect from input.image
         to   detector.image
 
+config _scheduler
+   :type pythread_per_process
+
 # -- end of file --
