@@ -22,7 +22,7 @@ To build Fletch, clone the Fletch repository:
 
 Then, create a build directory and run the following `cmake` command:
 
-	cmake -DFLETCH_BUILD_WITH_PYTHON:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -Dfletch_ENABLE_Boost:BOOL=TRUE -Dfletch_ENABLE_OpenCV:BOOL=TRUE  /path/to/fletch/source/directory
+	cmake -Dfletch_BUILD_WITH_PYTHON:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -Dfletch_ENABLE_Boost:BOOL=TRUE -Dfletch_ENABLE_OpenCV:BOOL=TRUE  /path/to/fletch/source/directory
 
 If you have more than one version of Python installed on your system and you want to be sure to use a particular one (for example we here at KWIVER development central use [Anaconda](https://store.continuum.io/cshop/anaconda/) fairly frequently) you'll want to add the following arguments to the `cmake` command:
 
