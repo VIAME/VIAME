@@ -577,6 +577,7 @@ pipeline
     throw reconfigure_before_setup_exception();
   }
 
+  // reconfigure all top level processes
   VITAL_FOREACH (priv::process_map_t::value_type const& proc_entry, d->process_map)
   {
     process::name_t const& name = proc_entry.first;
@@ -595,6 +596,7 @@ pipeline
     proc->reconfigure(proc_conf);
   }
 
+  // reconfigure clusters
   VITAL_FOREACH (priv::cluster_map_t::value_type const& cluster_entry, d->cluster_map)
   {
     process::name_t const& name = cluster_entry.first;
