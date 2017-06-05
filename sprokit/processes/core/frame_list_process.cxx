@@ -57,6 +57,9 @@
 using namespace cv;
 #endif
 
+//+ TODO this process is obsoleted by the image_list_reader
+// implementation of the video_input algorithm
+
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {

@@ -48,6 +48,7 @@ set( public_headers
   data_stream_reader.h
   string.h
   string_editor.h
+  thread_pool.h
   token_expander.h
   token_expand_editor.h
   token_type_env.h
@@ -60,6 +61,13 @@ set( public_headers
   )
 
 # ----------------------
+set( private_headers
+  thread_pool_builtin_backend.h
+  thread_pool_gcd_backend.h
+  thread_pool_sync_backend.h
+  )
+
+# ----------------------
 set( sources
   get_paths.cxx
   demangle.cxx
@@ -68,6 +76,7 @@ set( sources
   data_stream_reader.cxx
   string.cxx
   string_editor.cxx
+  thread_pool.cxx
   token_expander.cxx
   token_expand_editor.cxx
   token_type.cxx
@@ -93,6 +102,7 @@ kwiver_install_headers(
 
 kwiver_add_library( vital_util
   ${public_headers}
+  ${private_headers}
   ${sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h

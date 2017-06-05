@@ -55,7 +55,8 @@ void
 optimize_cameras
 ::optimize(camera_map_sptr & cameras,
            track_set_sptr tracks,
-           landmark_map_sptr landmarks) const
+           landmark_map_sptr landmarks,
+           video_metadata_map_sptr metadata) const
 {
   if (!cameras || !tracks || !landmarks)
   {
@@ -100,10 +101,22 @@ optimize_cameras
   map_camera_t optimized_cameras;
   std::vector< feature_sptr > v_feat;
   std::vector< landmark_sptr > v_lms;
+  video_metadata_map::map_video_metadata_t metadata_map;
+  if(metadata)
+  {
+    metadata_map = metadata->video_metadata();
+  }
   VITAL_FOREACH(map_camera_t::value_type const& p, cams)
   {
     v_feat.clear();
     v_lms.clear();
+    video_metadata_vector v_metadata;
+
+    auto mdv = metadata_map.find(p.first);
+    if(mdv != metadata_map.end())
+    {
+      v_metadata = mdv->second;
+    }
 
     // Construct 2d<->3d correspondences
     VITAL_FOREACH(inner_map_t::value_type const& q, states_map[p.first])
@@ -114,7 +127,7 @@ optimize_cameras
     }
 
     camera_sptr cam = p.second;
-    this->optimize(cam, v_feat, v_lms);
+    this->optimize(cam, v_feat, v_lms, v_metadata);
     optimized_cameras[p.first] = cam;
   }
 

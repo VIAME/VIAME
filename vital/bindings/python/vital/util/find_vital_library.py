@@ -35,7 +35,6 @@ e.g. libvital_c.so
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 import os
@@ -125,13 +124,14 @@ def find_vital_library_path(use_cache=True):
     :raises RuntimeError: If vital library path was not found.
 
     """
+    
     global __LIBRARY_PATH_CACHE__
     if use_cache and __LIBRARY_PATH_CACHE__:
         return __LIBRARY_PATH_CACHE__
 
     # Otherwise, find the Vital C library
     search_dirs = [os.path.dirname(os.path.abspath(__file__))]
-    # NOTE this is not cover all possible systems
+    # NOTE this does not cover all possible systems
     if 'LD_LIBRARY_PATH' in os.environ:
         search_dirs.extend(os.environ['LD_LIBRARY_PATH'].split(_system_path_separator()))
     if 'DYLD_LIBRARY_PATH' in os.environ:

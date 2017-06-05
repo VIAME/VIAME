@@ -81,6 +81,24 @@ public:
    */
   virtual std::vector< double > as_double() const = 0;
 
+  /// Equality operator
+  bool operator==( descriptor const& other ) const
+  {
+    if( this->data_type() != other.data_type() ||
+        this->size() != other.size() )
+    {
+      return false;
+    }
+    std::vector<uint8_t> b1 = this->as_bytes();
+    std::vector<uint8_t> b2 = other.as_bytes();
+    return std::equal(b1.begin(), b1.end(), b2.begin());
+  }
+
+  /// Inequality operator
+  bool operator!=( descriptor const& other ) const
+  {
+    return ! operator==(other);
+  }
 };
 
 /// Shared pointer for base descriptor type
@@ -128,6 +146,24 @@ public:
 
   /// Return an pointer to the raw data array
   virtual const T* raw_data() const = 0;
+
+
+  /// Equality operator
+  bool operator==( descriptor_array_of<T> const& other ) const
+  {
+    if( this->size() != other.size() )
+    {
+      return false;
+    }
+    return std::equal(this->raw_data(), this->raw_data() + this->size(),
+                      other.raw_data());
+  }
+
+  /// Inequality operator
+  bool operator!=( descriptor_array_of<T> const& other ) const
+  {
+    return ! operator==(other);
+  }
 
 };
 

@@ -43,9 +43,6 @@ import nose.tools
 import vital.util.find_vital_library as fvl
 
 
-__author__ = 'paul.tunison@kitware.com'
-
-
 if sys.platform == 'linux2':
 
     class TestVitalLibraryFinding (unittest.TestCase):

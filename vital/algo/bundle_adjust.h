@@ -43,6 +43,7 @@
 #include <vital/types/track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
+#include <vital/video_metadata/video_metadata_map.h>
 
 #include <functional>
 
@@ -67,11 +68,13 @@ public:
    * \param [in,out] cameras the cameras to optimize
    * \param [in,out] landmarks the landmarks to optimize
    * \param [in] tracks the tracks to use as constraints
+   * \param [in] metadata the frame metadata to use as constraints
    */
   virtual void
   optimize(kwiver::vital::camera_map_sptr& cameras,
            kwiver::vital::landmark_map_sptr& landmarks,
-           kwiver::vital::track_set_sptr tracks) const = 0;
+           kwiver::vital::track_set_sptr tracks,
+           kwiver::vital::video_metadata_map_sptr metadata = nullptr) const = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,

@@ -40,9 +40,6 @@ from vital.types import Image
 import ctypes
 
 
-__author__ = 'paul.tunison@kitware.com'
-
-
 class TestVitalImage (object):
 
     def test_new(self):

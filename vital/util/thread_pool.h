@@ -1,0 +1,179 @@
+/*ckwg +29
+ * Copyright 2017 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *  this list of conditions and the following disclaimer in the documentation
+ *  and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *  to endorse or promote products derived from this software without specific
+ *  prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * \brief Interface and implementation of a thread pool
+ *
+ * This design is modeled after an implementation by Jakob Progsch and
+ * Vaclav Zeman found here:
+ *
+ * https://github.com/progschj/ThreadPool
+ */
+
+#ifndef KWIVER_VITAL_THREAD_POOL_H_
+#define KWIVER_VITAL_THREAD_POOL_H_
+
+#include <vital/noncopyable.h>
+#include <vital/util/vital_util_export.h>
+
+#include <functional>
+#include <future>
+#include <memory>
+#include <string>
+#include <vector>
+
+
+namespace kwiver {
+namespace vital {
+
+/// A thread pool class to distribute tasks across a fixed pool of threads
+/**
+ *  This class provides an interface for an application wide thread pool that
+ *  uses a fixed number of threads, each of which executes tasks from a task
+ *  queue.  The scheduling and load balancing is dependent on the chosen
+ *  backend implementation.  Several backends are available depending on
+ *  platform and availability of third-party packages.  When tasks
+ *  are added to the queue the enqueue function returns an std::future
+ *  referring to the future value to be computed by the task.
+ *
+ *  Here is an example of how to use it.
+ *  \code
+
+    // functions to call, lambdas here, but could also be declared functions
+    auto my_func1 = [] (int x) { return static_cast<double>(x) + 2.0; }
+    auto my_func2 = [] (float x, unsigned y) { return x + y; }
+
+    // enqueue function calls (non-blocking)
+    std::future<double> val1 = thread_pool::instance().enqueue( my_func1, 10 );
+    std::future<float> val2 = thread_pool::instance().enqueue( my_func2, 2.1, 3 );
+
+    // get the results (blocks until each task is running)
+    std::cout << "results " << val1.get() << ", " << val2.get() << std::endl;
+
+ *  \endcode
+ */
+class VITAL_UTIL_EXPORT thread_pool
+  : private kwiver::vital::noncopyable
+{
+public:
+  /// Access the singleton instance of this class
+  /**
+   * \returns The reference to the singleton instance.
+   */
+  static thread_pool& instance();
+
+  /// Returns the number of worker threads
+  size_t num_threads() const;
+
+  /// Return the name of the active backend
+  const char* active_backend() const;
+
+  /// Return the names of the available backends
+  std::vector<std::string> available_backends() const;
+
+  /// Set the backend
+  /**
+   * Destroys the current backend and replaces it with a new
+   * one of the specified type.  The \p backend_name must match
+   * one of the names provided by available_backend().
+   */
+  void set_backend(std::string const& backend_name);
+
+  /// Enqueue an arbitrary function as a task to run
+  template<class F, class... Args>
+  auto enqueue(F&& f, Args&&... args)
+    -> std::future<typename std::result_of<F(Args...)>::type>;
+
+
+  /// A base class for thread pool backend implementations
+  class VITAL_UTIL_EXPORT backend
+    : private kwiver::vital::noncopyable
+  {
+  public:
+    /// Constructor
+    backend()  VITAL_DEFAULT_CTOR
+
+    /// Destructor
+    virtual ~backend() VITAL_DEFAULT_DTOR
+
+    /// Returns the number of worker threads
+    virtual size_t num_threads() const = 0;
+
+    /// Returns the name of this backend
+    virtual const char* name() const = 0;
+
+    /// Enqueue a void() task
+    virtual void enqueue_task(std::function<void()> func) = 0;
+  };
+
+
+private:
+
+   /// Constructor - private for signleton
+  thread_pool();
+
+  /// Destructor
+  ~thread_pool() VITAL_DEFAULT_DTOR
+
+  /// Enqueue a void function in the thread pool
+  void enqueue_task(std::function<void()> task);
+
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
+};
+
+
+/// Enqueue an arbitrary function as a task to run
+template<class F, class... Args>
+auto thread_pool::enqueue(F&& f, Args&&... args)
+  -> std::future<typename std::result_of<F(Args...)>::type>
+{
+  // get the return type of the function to be run
+  using return_type = typename std::result_of<F(Args...)>::type;
+
+  // package up the task
+  auto task = std::make_shared< std::packaged_task<return_type()> >(
+      std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+    );
+
+  // get a future to the function result to return to the caller
+  std::future<return_type> res = task->get_future();
+
+  // add the task to the queue using a lambda function to ignore return type
+  this->enqueue_task([task](){ (*task)(); });
+
+  return res;
+}
+
+} }   // end namespace
+
+#endif // KWIVER_VITAL_THREAD_POOL_H_

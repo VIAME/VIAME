@@ -34,7 +34,6 @@ Base VITAL algorithm structure
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 # Convenience imports of algorithm definition types to the module level
 from .algorithm import VitalAlgorithm

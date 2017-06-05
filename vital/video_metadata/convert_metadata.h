@@ -51,11 +51,6 @@
 namespace kwiver {
 namespace vital {
 
-// usage for creating metadata items
-#define NEW_METADATA_ITEM( TAG, DATA )                    \
-  new typed_metadata< TAG, vital_meta_trait<TAG>::type >  \
-  ( vital_meta_trait<TAG>::name(), DATA )
-
 // ----------------------------------------------------------------
 /**
  * @brief
