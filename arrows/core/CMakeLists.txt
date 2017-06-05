@@ -131,6 +131,7 @@ target_link_libraries( kwiver_algo_core
   PRIVATE              kwiversys
                        vital_video_metadata
                        vital_config
+                       ${LIB_UUID}
   )
 
 algorithms_create_plugin( kwiver_algo_core
