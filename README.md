@@ -135,7 +135,7 @@ And for `print_number`, we'll use `processopedia -t print_number -d`:
 
 The output of these commands tells us enough about each process to construct a Sprocket ".pipe" file that defines a processing pipeline.  In particular we'll need to know how to configure each process (the "Configuration") and how they can be hooked together (the input and output "Ports").
 
-KWIVER comes with a sample [kwiver/pipeline_configs/number_flow.pipe](kwiver/pipeline_configs/number_flow.pipe) file that configures and connects the pipeline so that the `numbers` process will generate a set of integers from 1 to 99 and the `print_number` process will write those to a file called `numbers.txt`.  Of particular interest is the section at the end of the file that actually "hooks up" the pipeline.
+KWIVER comes with a sample [kwiver/sprokit/pipelines/number_flow.pipe](kwiver/sprokit/pipelines/number_flow.pipe) file that configures and connects the pipeline so that the `numbers` process will generate a set of integers from 1 to 99 and the `print_number` process will write those to a file called `numbers.txt`.  Of particular interest is the section at the end of the file that actually "hooks up" the pipeline.
 
 To run the pipeline, we'll use the Sprokit `pipeline_runner` command:
 
@@ -145,7 +145,7 @@ After the pipeline completes, you should find a file, `numbers.txt`, in your wor
 
 ### Python Processes
 
-One KWIVER's great strengths (as provided by Sprokit) is the ability to create hybrid pipelines which combine C++ and Python processes in the same pipeline.  This greatly facilitates prototyping complex processing pipelines.  To test this out we'll still use the `numbers` process, but we'll use a Python version of the `print_number` process called `kw_print_number_process` the code for which can be seen in [kwiver/processes/kw_print_number_process.py](kwiver/processes/kw_print_number_process.py).    As usual, we can lean about this process with a `processopedia` command: `processopedia -t kw_print_number_process -d`:
+One KWIVER's great strengths (as provided by Sprokit) is the ability to create hybrid pipelines which combine C++ and Python processes in the same pipeline.  This greatly facilitates prototyping complex processing pipelines.  To test this out we'll still use the `numbers` process, but we'll use a Python version of the `print_number` process called `kw_print_number_process` the code for which can be seen in [kwiver/sprokit/processes/python/kw_print_number_process.py](kwiver/sprokit/processes/python/kw_print_number_process.py).    As usual, we can lean about this process with a `processopedia` command: `processopedia -t kw_print_number_process -d`:
 
 	Process type: kw_print_number_process
 	  Description: A Simple Kwiver Test Process
@@ -164,11 +164,11 @@ One KWIVER's great strengths (as provided by Sprokit) is the ability to create h
 
 	  Output ports:
 
-As you can see, the process is very similar to the C++ `print_number` process.  As a result, the [".pipe" file is very similar](kwiver/pipeline_configs/number_flow_python.pipe).
+As you can see, the process is very similar to the C++ `print_number` process.  As a result, the [".pipe" file is very similar](kwiver/sprokit/pipelines/number_flow_python.pipe).
 
 In order to get around limitations imposed by the Python Global Interpreter Lock, we'll use a different Sprokit scheduler for this pipeline.  The `pythread_per_process` scheduler which does essentially what it says: it creates a Python thread for every process in the pipeline:
 
-	pipeline_runner -S pythread_per_process -p </path/to/kwiver/source>/kwiver/pipeline_configs>/number_flow_python.pipe
+	pipeline_runner -S pythread_per_process -p </path/to/kwiver/source>/kwiver/sprokit/pipelines/number_flow_python.pipe
 
 As with the previous pipeline, the numbers will be written to an output file, this time `numbers_from_python.txt`
 
