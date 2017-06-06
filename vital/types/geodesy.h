@@ -57,14 +57,19 @@ namespace vital {
  * \see https://en.wikipedia.org/wiki/Spatial_reference_system,
  *      http://www.epsg.org/, https://epsg-registry.org/
  */
-enum class SRID : int
+namespace SRID
 {
-  lat_lon_NAD83 = 4269,
-  lat_lon_WGS84 = 4326,
-  UTM_WGS84_north = 32600, // Add zone number to get zoned SRID
-  UTM_WGS84_south = 32700, // Add zone number to get zoned SRID
-  UTM_NAD83_northeast = 3313, // Add zone number (59N - 60N) to get zoned SRID
-  UTM_NAD83_northwest = 26900, // Add zone number (1N - 23N) to get zoned SRID
+  constexpr int lat_lon_NAD83 = 4269;
+  constexpr int lat_lon_WGS84 = 4326;
+
+  // Add zone number to get zoned SRID
+  constexpr int UTM_WGS84_north = 32600;
+  constexpr int UTM_WGS84_south = 32700;
+
+  // Add zone number to get zoned SRID (59N - 60N)
+  constexpr int UTM_NAD83_northeast = 3313;
+  // Add zone number to get zoned SRID (1N - 23N)
+  constexpr int UTM_NAD83_northwest = 26900;
 };
 
 /// Functor for implementing geodetic conversion.
