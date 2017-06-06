@@ -45,6 +45,8 @@
 
 #include <vital/exceptions.h>
 #include <vital/vital_foreach.h>
+#include <vital/types/feature.h>
+#include <vital/types/descriptor.h>
 #include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
@@ -83,7 +85,7 @@ read_track_file( path_t const& file_path )
     frame_id_t fid;
     feature_d feat;
     std::stringstream ss( line );
-    ss >> tid >> fid >> feat;
+    ss >> tid >> fid;
 
     track_sptr t;
     std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
@@ -98,8 +100,7 @@ read_track_file( path_t const& file_path )
     {
       t = it->second;
     }
-    t->append( track::track_state( fid, feature_sptr( new feature_d( feat ) ),
-                                   descriptor_sptr() ) );
+    t->append( track::track_state( fid ) );
   }
 
   return track_set_sptr( new simple_track_set( tracks ) );
@@ -146,10 +147,119 @@ write_track_file( track_set_sptr const& tracks,
   {
     VITAL_FOREACH( vital::track::track_state const& s, *t )
     {
-      ofile << t->id() << " " << s.frame_id << " " << *s.feat << "\n";
+      ofile << t->id() << " " << s.frame_id << "\n";
     }
   }
   ofile.close();
 } // write_track_file
+
+
+/// Read in a track file, producing a track_set
+feature_track_set_sptr
+read_feature_track_file( path_t const& file_path )
+{
+  // Check that file exists
+  if ( ! kwiversys::SystemTools::FileExists( file_path ) )
+  {
+    throw file_not_found_exception( file_path, "File does not exist." );
+  }
+  else if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  {
+    throw file_not_found_exception( file_path,
+         "Path given doesn't point to a regular file!" );
+  }
+
+  // Reading in input file data
+  std::ifstream input_stream( file_path.c_str(), std::fstream::in );
+  if ( ! input_stream )
+  {
+    throw file_not_read_exception( file_path,
+          "Could not open file at given path." );
+  }
+
+  // Read the file
+  std::vector< track_sptr > tracks;
+  std::map< track_id_t, track_sptr > track_map;
+  for ( std::string line; std::getline( input_stream, line ); )
+  {
+    track_id_t tid;
+    frame_id_t fid;
+    auto feat = std::make_shared<feature_d>();
+    std::stringstream ss( line );
+    ss >> tid >> fid >> *feat;
+
+    track_sptr t;
+    std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
+    if ( it == track_map.end() )
+    {
+      t = std::make_shared<track>();
+      t->set_id( tid );
+      tracks.push_back( t );
+      track_map[tid] = t;
+    }
+    else
+    {
+      t = it->second;
+    }
+    auto ftsd = std::make_shared<feature_track_state_data>();
+    ftsd->feature = feat;
+    t->append( track::track_state( fid, ftsd ) );
+  }
+
+  return std::make_shared<simple_feature_track_set>( tracks );
+} // read_track_file
+
+
+/// Output the given \c track_set object to the specified file path
+void
+write_feature_track_file( feature_track_set_sptr const& tracks,
+                          path_t const&                 file_path )
+{
+  // If the track set is empty, throw
+  if ( ! tracks || ( tracks->size() == 0 ) )
+  {
+    throw file_write_exception( file_path,
+          "No tracks in the given track_set!" );
+  }
+
+  // If the given path is a directory, we obviously can't write to it.
+  if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
+  {
+    throw file_write_exception( file_path,
+          "Path given is a directory, can not write file." );
+  }
+
+  // Check that the directory of the given filepath exists, creating necessary
+  // directories where needed.
+  std::string parent_dir = kwiversys::SystemTools::GetFilenamePath(
+    kwiversys::SystemTools::CollapseFullPath( file_path ) );
+  if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
+  {
+    if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
+    {
+      throw file_write_exception( parent_dir,
+            "Attempted directory creation, but no directory created! No idea what happened here..." );
+    }
+  }
+
+
+  // open output file and write the tracks
+  std::ofstream ofile( file_path.c_str() );
+  std::vector< vital::track_sptr > trks = tracks->tracks();
+  VITAL_FOREACH( vital::track_sptr t, trks )
+  {
+    VITAL_FOREACH( vital::track::track_state const& s, *t )
+    {
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(s.data);
+      if( !ftsd || !ftsd->feature )
+      {
+        throw invalid_data( "Provided track doest not contain a valid feature" );
+      }
+      ofile << t->id() << " " << s.frame_id << " " << *ftsd->feature << "\n";
+    }
+  }
+  ofile.close();
+} // write_track_file
+
 
 } } // end namespace
