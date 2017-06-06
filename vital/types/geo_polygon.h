@@ -86,10 +86,6 @@ public:
    */
   bool is_empty() const;
 
-
-  bool operator==( const geo_polygon& rhs ) const;
-  bool operator!=( const geo_polygon& rhs ) const;
-
 protected:
 
   int m_original_crs;
