@@ -238,7 +238,9 @@ turned ON or OFF through CMake variables.
 
 All dependencies are supplied by the Fletch package of 3rd party dependencies.
 
-[Eigen](http://eigen.tuxfamily.org/) (>= 3.0) [log4cxx](https://logging.apache.org/log4cxx/) (>= 0.10.0) [Apache Runtime](https://apr.apache.org/)
+[Eigen](http://eigen.tuxfamily.org/) (>= 3.0)
+[log4cxx](https://logging.apache.org/log4cxx/) (>= 0.10.0)
+[Apache Runtime](https://apr.apache.org/)
 
 # Development #
 
