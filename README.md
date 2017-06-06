@@ -145,7 +145,7 @@ After the pipeline completes, you should find a file, `numbers.txt`, in your wor
 
 ### Python Processes
 
-One KWIVER's great strengths (as provided by Sprokit) is the ability to create hybrid pipelines which combine C++ and Python processes in the same pipeline.  This greatly facilitates prototyping complex processing pipelines.  To test this out we'll still use the `numbers` process, but we'll use a Python version of the `print_number` process called `kw_print_number_process` the code for which can be seen in [sprokit/processes/python/kw_print_number_process.py](sprokit/processes/python/kw_print_number_process.py).    As usual, we can lean about this process with a `processopedia` command: `processopedia -t kw_print_number_process -d`:
+One of KWIVER's great strengths (as provided by Sprokit) is the ability to create hybrid pipelines which combine C++ and Python processes in the same pipeline.  This greatly facilitates prototyping complex processing pipelines.  To test this out we'll still use the `numbers` process, but we'll use a Python version of the `print_number` process called `kw_print_number_process` the code for which can be seen in [sprokit/processes/python/kw_print_number_process.py](sprokit/processes/python/kw_print_number_process.py).    As usual, we can lean about this process with a `processopedia` command: `processopedia -t kw_print_number_process -d`:
 
 	Process type: kw_print_number_process
 	  Description: A Simple Kwiver Test Process
