@@ -559,12 +559,6 @@ priv()
   m_keyword_table["endblock"]     = TK_ENDBLOCK;
   m_keyword_table["process"]      = TK_PROCESS;
 
-  // The original grammar allows flag names as other identifiers, so
-  // as a result, we can not differentiate attributes from identifiers.
-
-  // m_keyword_table["ro"]           = TK_ATTRIBUTE;
-  // m_keyword_table["tunable"]      = TK_ATTRIBUTE;
-
   m_keyword_table["connect"]      = TK_CONNECT;
   m_keyword_table["from"]         = TK_FROM;
   m_keyword_table["to"]           = TK_TO;

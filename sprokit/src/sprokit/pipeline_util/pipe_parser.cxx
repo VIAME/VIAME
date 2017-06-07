@@ -596,8 +596,10 @@ parse_attrs( sprokit::config_value_t& val )
 
   while( true )
   {
-    // The original grammar allows flag names as other identifiers, so
-    // as a result, we can not differentiate attributes from identifiers.
+    // The original grammar does not force flag names to be reserved
+    // words. Since flag names can appear in other contexts where they
+    // are not to be treated as flags, we have to accept an IDENTIFIER
+    // here rather than use an ATTRIBUTE token type.
     if ( t->token_type() != TK_IDENTIFIER )
     {
       PARSE_ERROR( t, "Expecting attribute flag but found \"" << t->text() << "\"" );
