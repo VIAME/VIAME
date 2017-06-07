@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 
 namespace sprokit {
 

@@ -137,7 +137,6 @@ vital_trackset_size( vital_trackset_t const *track_set,
 
 
 /// Write track set to the given filepath
-VITAL_C_EXPORT
 void
 vital_trackset_write_track_file( vital_trackset_t const *ts,
                                  char const *filepath,

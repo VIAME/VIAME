@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@
 #include <arrows/core/estimate_canonical_transform.h>
 #include <arrows/core/feature_descriptor_io.h>
 #include <arrows/core/filter_features_magnitude.h>
+#include <arrows/core/formulate_query_core.h>
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
@@ -62,7 +63,10 @@
 #include <arrows/core/detected_object_set_output_kw18.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
+#include <arrows/core/track_descriptor_set_output_csv.h>
 #include <arrows/core/dynamic_config_none.h>
+#include <arrows/core/uuid_factory_core.h>
+
 
 namespace kwiver {
 namespace arrows {
@@ -233,6 +237,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
+
+  fact = vpm.ADD_ALGORITHM( "core", kwiver::arrows::core::formulate_query_core );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Formulate descriptors for later queries." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
   fact = vpm.ADD_ALGORITHM( "filter", kwiver::arrows::core::video_input_filter );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "A video input that calls another video input and filters the output on "
@@ -361,6 +375,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
+  fact = vpm.ADD_ALGORITHM( "csv", kwiver::arrows::core::track_descriptor_set_output_csv );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Track descriptor csv writer\n")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
 
   fact = vpm.ADD_ALGORITHM( "class_probablity_filter", kwiver::arrows::core::class_probablity_filter );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -378,6 +400,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
+
+#ifdef USE_UUID
+  fact = vpm.ADD_ALGORITHM( "uuid", kwiver::arrows::core::uuid_factory_core );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Global UUID generator" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+#endif
 
 
   vpm.mark_module_as_loaded( module_name );

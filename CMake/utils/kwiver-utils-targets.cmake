@@ -237,6 +237,7 @@ function(kwiver_export_targets file)
   get_property(export_targets GLOBAL PROPERTY kwiver_export_targets)
   export(
     TARGETS ${export_targets}
+    NAMESPACE kwiver::
     ${ARGN}
     FILE "${file}"
     )

@@ -45,12 +45,14 @@
 #include <vital/types/geo_lat_lon.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
-#include <vital/types/uuid.h>
+#include <vital/types/track_descriptor_set.h>
+#include <vital/types/uid.h>
 #include <vital/video_metadata/video_metadata.h>
 
 #include "trait_utils.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace kwiver {
@@ -61,6 +63,8 @@ namespace vital {
 
   typedef std::vector< double >  double_vector;
   typedef std::shared_ptr< double_vector > double_vector_sptr;
+  typedef std::vector< std::string > string_vector;
+  typedef std::shared_ptr< string_vector > string_vector_sptr;
 
 } }
 
@@ -80,16 +84,18 @@ create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
+create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
 create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
 create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vital::detected_object_set_sptr );
+create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::vital::track_descriptor_set_sptr );
 
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video_metadata_vector );
-create_type_trait( uuid, "kwiver:video_uuid", kwiver::vital::uuid );
+create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 
 
 // ================================================================
@@ -106,15 +112,17 @@ create_port_trait( left_image, image, "Single frame left image." );
 create_port_trait( right_image, image, "Single frame right image." );
 create_port_trait( depth_map, image, "Depth map stored in image form." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
-create_port_trait( descriptor_set, descriptor_set, "Set of feature descriptors." );
+create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
+create_port_trait( string_vector, string_vector, "Vector of strings." );
 create_port_trait( track_set, track_set, "Set of feature tracks for stabilization." );
 create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
+create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track descriptors." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. "
                    "The file name may contain leading path components." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 create_port_trait( video_metadata, video_metadata, "Video metadata vector for a frame." );
-create_port_trait( uuid, uuid, "UUID value." );
+create_port_trait( video_uid, video_uid, "Video UID value." );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

@@ -327,6 +327,7 @@ kwiver_install(
 
 kwiver_install(
   EXPORT      ${kwiver_export_name}
+  NAMESPACE   kwiver::
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        kwiver-config-targets.cmake
   )

@@ -66,7 +66,11 @@ class VitalObject (object):
     """
     Basic VITAL python interface class.
 
-    Guarantees that should be maintained after construction:
+    This class defines the ``_new`` and ``_destroy`` abstract methods. These
+    should define how to create create a new C instance and to desctory the
+    current C instance, respectively.
+
+    Guarantees that should be maintained:
         - c_type() and c_ptr_type() should be used when trying to get C types
           from class types.
         - C_TYPE and C_TYPE_PTR should be used when trying to get C types from
@@ -99,10 +103,12 @@ class VitalObject (object):
         Extract function from vital library and call it with a VitalErrorHandle.
 
         This assumes that the C function takes an additional parameter than what
-        is given to this function that is the error handle.
+        is given to this function that is the error handle instance.
 
         This function may raise an exception when the C function call's error
-        handle picked something up.
+        handle picked something up. If an exception map is provided, it should
+        be a dictionary mapping integer error codes to the python exception
+        type that should be thrown.
 
         :param func_name: C function name to pull from library
         :type func_name: str
@@ -140,6 +146,10 @@ class VitalObject (object):
         This initializer should only be called after C_TYPE/C_TYPE_PTR are
         concrete types.
 
+        Additional positional and keyword arguments passed to this constructor
+        are passed to the ``_new`` method, which should be overriden by the
+        child class to create a new C instance handle.
+
         :param from_cptr: Existing C opaque instance pointer to use, preventing
             new instance construction. This should of course be a valid pointer
             to an instance. Only a new instance pointer or a new shared pointer
@@ -158,9 +168,11 @@ class VitalObject (object):
             raise RuntimeError("Derived class did not define opaque handle "
                                "structure types.")
 
-        allow_null_pointer = kwds.get('allow_null_pointer', None)
-        if allow_null_pointer is not None:
+        if 'allow_null_pointer' in kwds:
+            allow_null_pointer = bool(kwds['allow_null_pointer'])
             del kwds['allow_null_pointer']
+        else:
+            allow_null_pointer = False
 
         if from_cptr is not None:
             # if null pointer and we're not allowing them
