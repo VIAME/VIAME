@@ -742,7 +742,17 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Runtime configuration for subclasses.
      *
      * This method is called after the process is initially configured
-     * and started. A config block with updated values is supplied.
+     * and started. A config block with updated values is
+     * supplied. Only config keys that have the tunable attribute to
+     * be reconfigured.
+     *
+     * This method call be called at any time to supply the new
+     * configuration, and possibly from a thread that is different
+     * from which is calling the step() method.
+     *
+     * The intent of this method is to provide a way to dynamically
+     * change the behaviour of a process. The process must deal with
+     * any synchronization issues.
      *
      * \params conf The configuration block to apply.
      */
