@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,48 +30,41 @@
 
 /**
  * \file
- * \brief PROJ algorithm registration implementation
+ * \brief PROJ geo_conversion functor interface
  */
 
-#include <arrows/proj/geo_conv.h>
-#include <arrows/proj/geo_map.h>
+#ifndef KWIVER_ARROWS_PROJ_GEO_CONV_H_
+#define KWIVER_ARROWS_PROJ_GEO_CONV_H_
 
-#include <arrows/proj/kwiver_algo_proj_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
+
+#include <vital/vital_config.h>
+#include <arrows/proj/kwiver_algo_proj_export.h>
+
 #include <vital/types/geodesy.h>
+
+#include <unordered_map>
 
 namespace kwiver {
 namespace arrows {
 namespace proj {
 
-extern "C"
-KWIVER_ALGO_PROJ_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+/// PROJ implementation of geo_conversion functor
+class KWIVER_ALGO_PROJ_EXPORT geo_conversion : public vital::geo_conversion
 {
-  static auto const module_name = std::string( "arrows.proj" );
-  if (vpm.is_module_loaded( module_name ) )
-  {
-    return;
-  }
+public:
+  geo_conversion() {}
+  virtual ~geo_conversion();
 
-  // register geo-conversion functor
-  static auto geo_conv = kwiver::arrows::proj::geo_conversion{};
-  vital::set_geo_conv( &geo_conv );
+  /// Conversion operator
+  virtual vital::vector_2d operator()( vital::vector_2d const& point,
+                                       int from, int to ) override;
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "proj", kwiver::arrows::proj::geo_map );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Map geographic coordinates between UTM and latitude/longitude using PROJ4." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+private:
+  void* projection( int crs );
 
+  std::unordered_map< int, void* > m_projections;
+};
 
-  vpm.mark_module_as_loaded( module_name );
-}
+} } } // end namespace
 
-} // end namespace proj
-} // end namespace arrows
-} // end namespace kwiver
+#endif // KWIVER_ARROWS_PROJ_GEO_CONV_H_

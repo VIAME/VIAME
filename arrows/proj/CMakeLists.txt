@@ -16,6 +16,7 @@ kwiver_install_headers(
   )
 
 set(proj_sources
+  geo_conv.cxx
   geo_map.cxx
   )
 
