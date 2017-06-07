@@ -65,7 +65,6 @@
 #include <arrows/core/detected_object_set_output_csv.h>
 #include <arrows/core/track_descriptor_set_output_csv.h>
 #include <arrows/core/dynamic_config_none.h>
-#include <arrows/core/uuid_factory_core.h>
 
 
 namespace kwiver {
@@ -399,17 +398,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
-
-
-#ifdef USE_UUID
-  fact = vpm.ADD_ALGORITHM( "uuid", kwiver::arrows::core::uuid_factory_core );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Global UUID generator" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-#endif
 
 
   vpm.mark_module_as_loaded( module_name );

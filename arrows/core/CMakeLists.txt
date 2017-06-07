@@ -100,18 +100,6 @@ set( plugin_core_sources
   triangulate_landmarks.cxx
   )
 
-# Need some version of uuid library.
-# This is not optimal way of enabling/disabling UUID
-find_library( LIB_UUID uuid )
-if( NOT LIB_UUID )
-    message( WARNING "UUID library not found. UUID factory not enabled." )
-    set( LIB_UUID "" )
-else()
-    add_definitions(-DUSE_UUID )
-    set( plugin_core_sources ${plugin_core_sources} uuid_factory_core.cxx )
-    set( plugin_core_headers ${plugin_core_headers} uuid_factory_core.h )
-endif()
-
 # Address MSVC fatal error C1128:
 # number of sections exceeded object file format limit
 if(MSVC)
@@ -131,7 +119,6 @@ target_link_libraries( kwiver_algo_core
   PRIVATE              kwiversys
                        vital_video_metadata
                        vital_config
-                       ${LIB_UUID}
   )
 
 algorithms_create_plugin( kwiver_algo_core

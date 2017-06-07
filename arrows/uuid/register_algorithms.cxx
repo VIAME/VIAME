@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,40 +30,41 @@
 
 /**
  * \file
- * \brief Interface to uid factory
+ * \brief Defaults plugin algorithm registration interface impl
  */
 
-#ifndef KWIVER_ARROWS_UUID_FACTORY_H
-#define KWIVER_ARROWS_UUID_FACTORY_H
+#include <arrows/uuid/kwiver_algo_uuid_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <arrows/core/kwiver_algo_core_export.h>
-#include <vital/algo/uuid_factory.h>
+#include <arrows/uuid/uuid_factory_uuid.h>
+
 
 namespace kwiver {
 namespace arrows {
-namespace core {
+namespace uuid {
 
-
-class KWIVER_ALGO_CORE_EXPORT uuid_factory_core
-  : public vital::algorithm_impl<uuid_factory_core, vital::algo::uuid_factory>
+extern "C"
+KWIVER_ALGO_UUID_PLUGIN_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-public:
-  uuid_factory_core();
-  virtual ~uuid_factory_core();
+  static auto const module_name = std::string( "arrows.uuid" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  // add factory                  implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "uuid", kwiver::arrows::uuid::uuid_factory_uuid );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Global UUID generator using system library as source for UUID." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
-  // Main method to generate UUID's
-  virtual kwiver::vital::uid create_uuid();
 
-private:
-  class priv;
-  std::unique_ptr< priv > d;
-};
-
+  vpm.mark_module_as_loaded( module_name );
+}
 
 } } } // end namespace
-
-
-#endif /* KWIVER_ARROWS_UUID_FACTORY_H */

@@ -48,3 +48,8 @@ endif()
 if( KWIVER_ENABLE_BURNOUT )
   add_subdirectory( burnout )
 endif()
+
+# if uuid is enabled
+if( KWIVER_ENABLE_UUID )
+  add_subdirectory( uuid )
+endif()
