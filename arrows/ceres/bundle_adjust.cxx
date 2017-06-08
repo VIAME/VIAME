@@ -290,7 +290,7 @@ bundle_adjust
         continue;
       }
       auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts->data);
-      if( !ftsd || ftsd->feature )
+      if( !ftsd || !ftsd->feature )
       {
         continue;
       }
