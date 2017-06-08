@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -387,13 +387,13 @@ compute_ref_homography_core
 f2f_homography_sptr
 compute_ref_homography_core
 ::estimate( frame_id_t frame_number,
-            track_set_sptr tracks ) const
+            feature_track_set_sptr tracks ) const
 {
   LOG_DEBUG( d_->m_logger,
              "Starting ref homography estimation for frame " << frame_number );
 
   // Get active tracks for the current frame
-  std::vector< track_sptr > active_tracks = tracks->active_tracks( frame_number )->tracks();
+  std::vector< track_sptr > active_tracks = tracks->active_tracks( frame_number );
 
   // This is either the first frame, or a new reference frame
   if( !d_->buffer )
@@ -455,13 +455,18 @@ compute_ref_homography_core
   VITAL_FOREACH ( track_sptr trk , new_tracks )
   {
     track::history_const_itr itr = trk->find( frame_number );
+    if( itr == trk->end() )
+    {
+      continue;
+    }
 
-    if( itr != trk->end() && itr->feat )
+    auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
+    if( ftsd && ftsd->feature )
     {
       track_info_t new_entry;
 
       new_entry.tid = trk->id();
-      new_entry.ref_loc = vector_2d( itr->feat->loc() );
+      new_entry.ref_loc = vector_2d( ftsd->feature->loc() );
       new_entry.ref_id = frame_number;
       new_entry.active = false; // don't want to use this track on this frame
       new_entry.trk = trk;
@@ -494,10 +499,11 @@ compute_ref_homography_core
     {
       track::history_const_itr itr = ti.trk->find( frame_number );
 
-      if( itr->feat )
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
+      if( ftsd && ftsd->feature )
       {
         pts_ref.push_back( ti.ref_loc );
-        pts_cur.push_back( itr->feat->loc() );
+        pts_cur.push_back( ftsd->feature->loc() );
       }
     }
   }
@@ -537,7 +543,12 @@ compute_ref_homography_core
 
     // skip updating track items for tracks that don't have a state on this
     // frame, or a state without a feature (location)
-    if ( itr == ti.trk->end() || !(itr->feat) )
+    if ( itr == ti.trk->end() )
+    {
+      continue;
+    }
+    auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
+    if ( !ftsd || !ftsd->feature )
     {
       continue;
     }
@@ -556,7 +567,7 @@ compute_ref_homography_core
       // of.
       else if( d_->use_backproject_error && ti.active )
       {
-        vector_2d warped = output->homography()->map( itr->feat->loc() );
+        vector_2d warped = output->homography()->map( ftsd->feature->loc() );
         double dist_sqr = ( warped - ti.ref_loc ).squaredNorm();
 
         if( dist_sqr > d_->backproject_threshold_sqr )
@@ -570,7 +581,7 @@ compute_ref_homography_core
     else if ( !d_->allow_ref_frame_regression && ti.active )
     {
       ++ti_reset_count;
-      ti.ref_loc = vector_2d( itr->feat->loc() );
+      ti.ref_loc = vector_2d( ftsd->feature->loc() );
       ti.ref_id = frame_number;
     }
   }

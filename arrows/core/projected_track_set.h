@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 
@@ -53,9 +53,9 @@ namespace arrows {
 /**
  * \param landmarks input landmark locations
  * \param cameras input camera map
- * \return track set generated via the projection
+ * \return feature track set generated via the projection
  */
-vital::track_set_sptr
+vital::feature_track_set_sptr
 KWIVER_ALGO_CORE_EXPORT
 projected_tracks(vital::landmark_map_sptr landmarks,
                  vital::camera_map_sptr cameras);

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 
 #include <vital/algo/close_loops.h>
 #include <vital/config/config_block.h>
@@ -108,15 +108,15 @@ public:
   /// Perform exhaustive stitching
   /**
    * \param [in] frame_number the frame number of the current frame
-   * \param [in] input the input track set to stitch
+   * \param [in] input the input feature track set to stitch
    * \param [in] image image data for the current frame
    * \param [in] mask Optional mask image where positive values indicate
    *                  regions to consider in the input image.
-   * \returns an updated set a tracks after the stitching operation
+   * \returns an updated set of feature tracks after the stitching operation
    */
-  virtual vital::track_set_sptr
+  virtual vital::feature_track_set_sptr
   stitch( vital::frame_id_t frame_number,
-          vital::track_set_sptr input,
+          vital::feature_track_set_sptr input,
           vital::image_container_sptr image,
           vital::image_container_sptr mask = vital::image_container_sptr() ) const;
 
