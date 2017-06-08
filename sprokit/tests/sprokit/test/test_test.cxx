@@ -105,7 +105,7 @@ IMPLEMENT_TEST(environment)
   std::string envvalue;
   kwiversys::SystemTools::GetEnv( envvar, envvalue );
 
-  if ( ! envvalue.empty() )
+  if ( envvalue.empty() )
   {
     TEST_ERROR("failed to get environment from CTest");
   }
