@@ -145,6 +145,10 @@ ExternalProject_Add(fletch
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
 
+    # Disable optional OpenCV build flags, these oft don't build
+    -Dfletch_ENABLE_OpenCV_CUDA:BOOL=FALSE
+    -Dfletch_ENABLE_OpenCV_FFmpeg:BOOL=FALSE
+
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   INSTALL_COMMAND ${CMAKE_COMMAND}
     -DVIAME_CMAKE_DIR:PATH=${CMAKE_SOURCE_DIR}/CMake
