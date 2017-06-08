@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -178,11 +178,11 @@ optimize_cameras
 }
 
 
-/// Optimize camera parameters given sets of landmarks and tracks
+/// Optimize camera parameters given sets of landmarks and feature tracks
 void
 optimize_cameras
 ::optimize(vital::camera_map_sptr & cameras,
-           vital::track_set_sptr tracks,
+           vital::feature_track_set_sptr tracks,
            vital::landmark_map_sptr landmarks,
            vital::video_metadata_map_sptr metadata) const
 {
@@ -253,7 +253,12 @@ optimize_cameras
       }
       unsigned intr_idx = frame_to_intr_map[ts->frame_id];
       double * intr_params_ptr = &camera_intr_params[intr_idx][0];
-      vector_2d pt = ts->feat->loc();
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts->data);
+      if( !ftsd || !ftsd->feature )
+      {
+        continue;
+      }
+      vector_2d pt = ftsd->feature->loc();
       problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
                                                 pt.x(), pt.y()),
                                loss_func,

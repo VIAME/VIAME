@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public:
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
 
-  /// Optimize camera parameters given sets of landmarks and tracks
+  /// Optimize camera parameters given sets of landmarks and feature tracks
   /**
    * We only optimize cameras that have associating tracks and landmarks in
    * the given maps.  The default implementation collects the corresponding
@@ -82,14 +82,14 @@ public:
    * \throws invalid_value When one or more of the given pointer is Null.
    *
    * \param[in,out] cameras   Cameras to optimize.
-   * \param[in]     tracks    The tracks to use as constraints.
+   * \param[in]     tracks    The feature tracks to use as constraints.
    * \param[in]     landmarks The landmarks the cameras are viewing.
    * \param[in]     metadata  The optional metadata to constrain the
    *                          optimization.
    */
   virtual void
   optimize(kwiver::vital::camera_map_sptr & cameras,
-           kwiver::vital::track_set_sptr tracks,
+           kwiver::vital::feature_track_set_sptr tracks,
            kwiver::vital::landmark_map_sptr landmarks,
            kwiver::vital::video_metadata_map_sptr metadata = nullptr) const;
 
