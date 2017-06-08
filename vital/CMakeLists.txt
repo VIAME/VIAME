@@ -145,6 +145,7 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/object_track_set.h
   types/polygon.h
   types/rotation.h
   types/similarity.h
@@ -197,6 +198,7 @@ set( vital_sources
   types/image.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/object_track_set.cxx
   types/polygon.cxx
   types/rotation.cxx
   types/similarity.cxx
