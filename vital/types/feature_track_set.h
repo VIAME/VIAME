@@ -133,4 +133,4 @@ protected:
 
 } } // end namespace vital
 
-#endif // VITAL_TRACK_SET_H_
+#endif // VITAL_FEATURE_TRACK_SET_H_
