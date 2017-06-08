@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -258,10 +258,10 @@ close_loops_homography_guided
 
 
 // Perform stitch operation
-track_set_sptr
+feature_track_set_sptr
 close_loops_homography_guided
 ::stitch( frame_id_t frame_number,
-          track_set_sptr input,
+          feature_track_set_sptr input,
           image_container_sptr image,
           image_container_sptr mask ) const
 {
@@ -351,10 +351,12 @@ close_loops_homography_guided
     const frame_id_t prior_frame = best_frame_to_test->fid;
 
     // Get all tracks on target frame
-    track_set_sptr prior_set = input->active_tracks( prior_frame );
+    auto prior_set = std::make_shared<simple_feature_track_set>(
+                         input->active_tracks( prior_frame ) );
 
     // Get all tracks on the current frame
-    track_set_sptr current_set = input->active_tracks( frame_number );
+    auto current_set = std::make_shared<simple_feature_track_set>(
+                           input->active_tracks( frame_number ) );
 
     // Perform matching operation
     match_set_sptr mset = d_->matcher_->match(
@@ -400,7 +402,7 @@ close_loops_homography_guided
       }
 
       // Return updated set
-      return track_set_sptr( new simple_track_set( all_tracks ) );
+      return std::make_shared<simple_feature_track_set>( all_tracks );
     }
   }
 

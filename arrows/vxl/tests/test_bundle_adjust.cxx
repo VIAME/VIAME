@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ IMPLEMENT_TEST(from_solution)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   double init_rmse = reprojection_rmse(cameras->cameras(),
                                        landmarks->landmarks(),
@@ -126,7 +126,7 @@ IMPLEMENT_TEST(noisy_landmarks)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
@@ -167,7 +167,7 @@ IMPLEMENT_TEST(noisy_landmarks_noisy_cameras)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
@@ -211,7 +211,7 @@ IMPLEMENT_TEST(zero_landmarks)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -253,7 +253,7 @@ IMPLEMENT_TEST(zero_landmarks_same_cameras)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -300,7 +300,7 @@ IMPLEMENT_TEST(subset_cameras)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
@@ -359,7 +359,7 @@ IMPLEMENT_TEST(subset_landmarks)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
@@ -412,7 +412,7 @@ IMPLEMENT_TEST(subset_tracks)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
@@ -421,7 +421,7 @@ IMPLEMENT_TEST(subset_tracks)
   camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1, 0.1);
 
   // remove some tracks/track_states
-  track_set_sptr tracks0 = kwiver::testing::subset_tracks(tracks, 0.5);
+  feature_track_set_sptr tracks0 = kwiver::testing::subset_tracks(tracks, 0.5);
 
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
@@ -460,7 +460,7 @@ IMPLEMENT_TEST(noisy_tracks)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1);
@@ -470,7 +470,7 @@ IMPLEMENT_TEST(noisy_tracks)
 
   // remove some tracks/track_states and add Gaussian noise
   const double track_stdev = 1.0;
-  track_set_sptr tracks0 = kwiver::testing::noisy_tracks(
+  feature_track_set_sptr tracks0 = kwiver::testing::noisy_tracks(
                                kwiver::testing::subset_tracks(tracks, 0.5),
                                track_stdev);
 

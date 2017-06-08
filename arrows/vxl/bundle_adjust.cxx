@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -192,12 +192,12 @@ bundle_adjust
 }
 
 
-/// Optimize the camera and landmark parameters given a set of tracks
+/// Optimize the camera and landmark parameters given a set of feature tracks
 void
 bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
-           track_set_sptr tracks,
+           feature_track_set_sptr tracks,
            video_metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
@@ -252,22 +252,27 @@ bundle_adjust
     VITAL_FOREACH(const map_vcam_t::value_type& p, vcams)
     {
       const frame_id_t& frame = p.first;
-      track_set_sptr ftracks = tracks->active_tracks(static_cast<int>(frame));
-      if (! ftracks || ftracks->size() == 0)
+      auto ftracks = tracks->active_tracks(static_cast<int>(frame));
+      if( ftracks.empty() )
       {
         continue;
       }
       super_map_inner_t frame_lm2feature_map;
 
-      VITAL_FOREACH(const track_sptr& t, ftracks->tracks())
+      VITAL_FOREACH(const track_sptr& t, ftracks)
       {
         const track_id_t id = t->id();
         // make sure the track id has an associated landmark
 
         if( lms.find(id) != lms.end() )
         {
-          frame_lm2feature_map[id] = t->find(frame)->feat;
-          lm_ids.insert(id);
+          auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(
+                          t->find(frame)->data );
+          if( ftsd && ftsd->feature )
+          {
+            frame_lm2feature_map[id] = ftsd->feature;
+            lm_ids.insert(id);
+          }
         }
       }
 
