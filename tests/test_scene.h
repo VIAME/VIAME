@@ -44,7 +44,7 @@
 #include <vital/vital_foreach.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 
 namespace kwiver {
 namespace testing {
@@ -200,8 +200,8 @@ noisy_cameras( kwiver::vital::camera_map_sptr cameras,
 
 
 // randomly drop a fraction of the track states
-kwiver::vital::track_set_sptr
-subset_tracks( kwiver::vital::track_set_sptr in_tracks, double keep_frac = 0.75 )
+kwiver::vital::feature_track_set_sptr
+subset_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double keep_frac = 0.75 )
 {
   using namespace kwiver::vital;
 
@@ -230,13 +230,13 @@ subset_tracks( kwiver::vital::track_set_sptr in_tracks, double keep_frac = 0.75 
     std::cout << std::endl;
     new_tracks.push_back( nt );
   }
-  return track_set_sptr( new simple_track_set( new_tracks ) );
+  return std::make_shared<simple_feature_track_set>( new_tracks );
 }
 
 
 // add Gaussian noise to track feature locations
-kwiver::vital::track_set_sptr
-noisy_tracks( kwiver::vital::track_set_sptr in_tracks, double stdev = 1.0 )
+kwiver::vital::feature_track_set_sptr
+noisy_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double stdev = 1.0 )
 {
   using namespace kwiver::vital;
 
@@ -248,20 +248,28 @@ noisy_tracks( kwiver::vital::track_set_sptr in_tracks, double stdev = 1.0 )
     nt->set_id(t->id());
     for(track::history_const_itr it=t->begin(); it!=t->end(); ++it)
     {
-      vector_2d loc = it->feat->loc() + random_point2d(stdev);
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(it->data);
+      if( !ftsd || !ftsd->feature )
+      {
+        continue;
+      }
+      vector_2d loc = ftsd->feature->loc() + random_point2d(stdev);
       track::track_state ts(*it);
-      ts.feat = feature_sptr(new feature_d(loc));
+      auto new_ftsd = std::make_shared<feature_track_state_data>(*ftsd);
+      new_ftsd->feature = std::make_shared<feature_d>(loc);
+      ts.data = new_ftsd;
       nt->append(ts);
     }
     new_tracks.push_back(nt);
   }
-  return track_set_sptr(new simple_track_set(new_tracks));
+  return std::make_shared<simple_feature_track_set>( new_tracks );
 }
+
 
 // randomly select a fraction of the track states to make outliers
 // outliers are created by adding random noise with large standard deviation
-kwiver::vital::track_set_sptr
-add_outliers_to_tracks(kwiver::vital::track_set_sptr in_tracks,
+kwiver::vital::feature_track_set_sptr
+add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
                        double outlier_frac=0.1,
                        double stdev=20.0)
 {
@@ -277,11 +285,18 @@ add_outliers_to_tracks(kwiver::vital::track_set_sptr in_tracks,
     nt->set_id( t->id() );
     VITAL_FOREACH( const auto &ts, *t )
     {
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts.data);
+      if( !ftsd || !ftsd->feature )
+      {
+        continue;
+      }
       if(std::rand() < rand_thresh)
       {
-        vector_2d loc = ts.feat->loc() + random_point2d( stdev );
+        vector_2d loc = ftsd->feature->loc() + random_point2d( stdev );
         track::track_state new_ts( ts );
-        new_ts.feat = feature_sptr( new feature_d( loc ) );
+        auto new_ftsd = std::make_shared<feature_track_state_data>(*ftsd);
+        new_ftsd->feature = std::make_shared<feature_d>(loc);
+        new_ts.data = new_ftsd;
         nt->append( new_ts );
       }
       else
@@ -293,7 +308,7 @@ add_outliers_to_tracks(kwiver::vital::track_set_sptr in_tracks,
     std::cout << std::endl;
     new_tracks.push_back( nt );
   }
-  return track_set_sptr( new simple_track_set( new_tracks ) );
+  return std::make_shared<simple_feature_track_set>( new_tracks );
 }
 
 
