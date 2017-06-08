@@ -166,7 +166,7 @@ track_set
 }
 
 /// Return all tracks active on a frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::active_tracks(frame_id_t offset)
 {
@@ -182,12 +182,12 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(active_tracks));
+  return active_tracks;
 }
 
 
 /// Return all tracks active on a frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::inactive_tracks(frame_id_t offset)
 {
@@ -203,12 +203,12 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(inactive_tracks));
+  return inactive_tracks;
 }
 
 
 /// Return all new tracks on a given frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::new_tracks(frame_id_t offset)
 {
@@ -224,12 +224,12 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(new_tracks));
+  return new_tracks;
 }
 
 
 /// Return all new tracks on a given frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::terminated_tracks(frame_id_t offset)
 {
@@ -245,7 +245,7 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(terminated_tracks));
+  return terminated_tracks;
 }
 
 

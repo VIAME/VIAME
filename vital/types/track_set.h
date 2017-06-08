@@ -111,9 +111,9 @@ public:
    *                    example, offset of -1 refers to the last frame and is
    *                    the default.
    *
-   * \returns a track set which is the subset of tracks that are active.
+   * \returns a vector of tracks that is the subset of tracks that are active.
    */
-  virtual track_set_sptr active_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 );
 
   /// Return all tracks inactive on a frame.
   /**
@@ -125,9 +125,9 @@ public:
    *                    example, offset of -1 refers to the last frame and is
    *                    the default.
    *
-   * \returns a track set which is the subset of tracks that are inactive.
+   * \returns a vector of tracks that is the subset of tracks that are inactive.
    */
-  virtual track_set_sptr inactive_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr > inactive_tracks( frame_id_t offset = -1 );
 
   /// Return all tracks newly initialized on the given frame.
   /**
@@ -139,9 +139,9 @@ public:
    *                   example, offset of -1 refers to the last frame and is
    *                   the default.
    *
-   * \returns a track set containing all new tracks for the given frame.
+   * \returns a vector of tracks containing all new tracks for the given frame.
    */
-  virtual track_set_sptr new_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr > new_tracks( frame_id_t offset = -1 );
 
   /// Return all tracks terminated on the given frame.
   /**
@@ -153,9 +153,9 @@ public:
    *                   example, offset of -1 refers to the last frame and is
    *                   the default.
    *
-   * \returns a track set containing all terminated tracks for the given frame.
+   * \returns a vector of tracks containing all terminated tracks for the given frame.
    */
-  virtual track_set_sptr terminated_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr > terminated_tracks( frame_id_t offset = -1 );
 
   /// Return the percentage of tracks successfully tracked between the two frames.
   /**
