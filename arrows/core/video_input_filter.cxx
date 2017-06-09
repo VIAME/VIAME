@@ -51,8 +51,8 @@ public:
   { }
 
   // Configuration values
-  unsigned int c_start_at_frame;
-  unsigned int c_stop_after_frame;
+  vital::timestamp::frame_t c_start_at_frame;
+  vital::timestamp::frame_t c_stop_after_frame;
   double c_frame_rate;
 
   // local state

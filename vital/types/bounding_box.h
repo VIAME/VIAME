@@ -246,8 +246,8 @@ bounding_box<T> scale( bounding_box<T> const& bbox,
                        double scale_factor )
 {
   return bounding_box<T>(
-    bbox.upper_left() * scale_factor,
-    bbox.lower_right() * scale_factor );
+    (bbox.upper_left().cast<double>() * scale_factor).cast<T>(),
+    (bbox.lower_right().cast<double>() * scale_factor).cast<T>() );
 }
 
 
