@@ -77,8 +77,8 @@ operator>>( std::istream& s, Matrix< T, M, N >& m )
 
 
 /// Serialization of fixed Eigen matrices
-template < typename Archive, typename T, int M, int N >
-void serialize(Archive & archive, Matrix< T, M, N >& m)
+template < typename Archive, typename T, int M, int N, int O, int MM, int NN >
+void serialize(Archive & archive, Matrix< T, M, N, O, MM, NN >& m)
 {
   for ( int i = 0; i < M; ++i )
   {
