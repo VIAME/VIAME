@@ -4,6 +4,8 @@ set(test_libraries
   sprokit_pipeline_util
   sprokit_pipeline
   vital_config
+  vital_vpm
+  kwiversys
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
