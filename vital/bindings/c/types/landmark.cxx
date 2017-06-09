@@ -235,7 +235,12 @@ vital_landmark_##S##_set_loc( vital_landmark_t *l, \
     REINTERP_TYPE( matrix_t const, loc, loc_ptr ); \
     TRY_DYNAMIC_CAST( vital::landmark_<T>, \
                       vital_c::LANDMARK_SPTR_CACHE.get( l ).get(), \
-                      l_ptr ); \
+                      l_ptr ) \
+    { \
+      POPULATE_EH( eh, 1, "Failed to dynamic cast to '" #S "' type for data " \
+                          "access method." ); \
+      return; \
+    } \
     l_ptr->set_loc( *loc_ptr ); \
   ); \
 } \
@@ -249,7 +254,12 @@ vital_landmark_##S##_set_scale( vital_landmark_t *l, T scale, \
     "vital_landmark_" #S "_set_scale", eh, \
     TRY_DYNAMIC_CAST( vital::landmark_<T>, \
                       vital_c::LANDMARK_SPTR_CACHE.get( l ).get(), \
-                      l_ptr ); \
+                      l_ptr ) \
+    { \
+      POPULATE_EH( eh, 1, "Failed to dynamic cast to '" #S "' type for data " \
+                          "access method." ); \
+      return; \
+    } \
     l_ptr->set_scale( scale );\
   ); \
 } \
@@ -265,7 +275,12 @@ vital_landmark_##S##_set_normal( vital_landmark_t *l, \
     "vital_landmark_" #S "_set_normal", eh, \
     TRY_DYNAMIC_CAST( vital::landmark_<T>, \
                       vital_c::LANDMARK_SPTR_CACHE.get( l ).get(), \
-                      l_ptr ); \
+                      l_ptr ) \
+    { \
+      POPULATE_EH( eh, 1, "Failed to dynamic cast to '" #S "' type for data " \
+                          "access method." ); \
+      return; \
+    } \
     REINTERP_TYPE( matrix_t const, normal, n_ptr ); \
     l_ptr->set_normal( *n_ptr ); \
   ); \
@@ -282,7 +297,12 @@ vital_landmark_##S##_set_covar( vital_landmark_t *l, \
     "vital_landmark_" #S "_set_covar", eh, \
     TRY_DYNAMIC_CAST( vital::landmark_<T>, \
                       vital_c::LANDMARK_SPTR_CACHE.get( l ).get(), \
-                      l_ptr ); \
+                      l_ptr ) \
+    { \
+      POPULATE_EH( eh, 1, "Failed to dynamic cast to '" #S "' type for data " \
+                          "access method." ); \
+      return; \
+    } \
     REINTERP_TYPE( covar_t const, covar, covar_ptr ); \
     l_ptr->set_covar( *covar_ptr ); \
   ); \
@@ -298,7 +318,12 @@ vital_landmark_##S##_set_color( vital_landmark_t *l, \
     "vital_landmark_" #S "_set_color", eh, \
     TRY_DYNAMIC_CAST( vital::landmark_<T>, \
                       vital_c::LANDMARK_SPTR_CACHE.get( l ).get(), \
-                      l_ptr ); \
+                      l_ptr ) \
+    { \
+      POPULATE_EH( eh, 1, "Failed to dynamic cast to '" #S "' type for data " \
+                          "access method." ); \
+      return; \
+    } \
     REINTERP_TYPE( vital::rgb_color const, c, c_ptr ); \
     l_ptr->set_color( *c_ptr ); \
   ); \
@@ -314,7 +339,12 @@ vital_landmark_##S##_set_observations( vital_landmark_t *l, \
     "vital_landmark_" #S "_set_observations", eh, \
     TRY_DYNAMIC_CAST( vital::landmark_<T>, \
                       vital_c::LANDMARK_SPTR_CACHE.get( l ).get(), \
-                      l_ptr ); \
+                      l_ptr ) \
+    { \
+      POPULATE_EH( eh, 1, "Failed to dynamic cast to '" #S "' type for data " \
+                          "access method." ); \
+      return; \
+    } \
     l_ptr->set_observations( observations ); \
   ); \
 }
