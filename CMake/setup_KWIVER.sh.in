@@ -1,7 +1,7 @@
 #
 # Script to source to setup the KWIVER environment
 #
-this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 export VG_PLUGIN_PATH=$this_dir
 export PATH=$this_dir/bin:$PATH
