@@ -41,13 +41,47 @@ from vital.util import VitalObject
 
 
 def _pil_image_to_bytes(p_img):
-    # In recent version of PIL, the tobytes function is the correct thing to
-    # call, but some older versions of PIL do not have this function.
+    """
+    Get the component bytes from the given PIL Image.
+
+    In recent version of PIL, the tobytes function is the correct thing to
+    call, but some older versions of PIL do not have this function.
+
+    :param p_img: PIL Image to get the bytes from.
+    :type p_img: PIL.Image.Image
+
+    :returns: Byte string.
+    :rtype: bytes
+
+    """
     if hasattr(p_img, 'tobytes'):
         return p_img.tobytes()
     else:
         # Older version of the function.
         return p_img.tostring()
+
+
+def _pil_image_from_bytes(mode, size, data, decoder_name='raw', *args):
+    """
+    Creates a copy of an image memory from pixel data in a buffer.
+
+    In recent versionf of PIL, the frombytes function is the correct thing to
+    call, but older version fo PIL only have a fromstring, which is equivalent
+    in function.
+
+    :param mode: The image mode. See: :ref:`concept-modes`.
+    :param size: The image size.
+    :param data: A byte buffer containing raw data for the given mode.
+    :param decoder_name: What decoder to use.
+    :param args: Additional parameters for the given decoder.
+    :returns: An :py:class:`~PIL.Image.Image` object.
+
+    """
+    import PIL.Image
+    if hasattr(PIL.Image, 'frombytes'):
+        return PIL.Image.frombytes(mode, size, data, decoder_name, *args)
+    else:
+        return PIL.Image.fromstring(mode, size, data, decoder_name, *args)
 
 
 class Image (VitalObject):
@@ -361,8 +395,6 @@ class Image (VitalObject):
         :return: array containing image
         :rtype: pil image
         """
-        import PIL.Image as PIM
-
         def pil_mode_from_image(img):
             """
             Determine image format from pixel properties
@@ -410,9 +442,9 @@ class Image (VitalObject):
         pixels.restype = ctypes.py_object
         img_pixels = pixels( img_first_byte, size )
 
-        return PIM.frombytes(mode, (img.width(), img.height()), img_pixels,
-                             "raw", mode,
-                             img.h_step() * img.pixel_num_bytes(), 1)
+        return _pil_image_from_bytes(mode, (img.width(), img.height()),
+                                     img_pixels, "raw", mode,
+                                     img.h_step() * img.pixel_num_bytes(), 1)
 
     # ------------------------------------------------------------------
     # return image as a numpy array
