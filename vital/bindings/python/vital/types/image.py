@@ -70,12 +70,23 @@ class Image (VitalObject):
     @classmethod
     def from_pil(cls, pil_image):
         """
-        Construct Image from supplied PIL image object
+        Construct Image from supplied PIL image object.
+
+        :param pil_image: PIL image object
+        :type pil_image: PIL.Image.Image
+
+        :raises RuntimeError: If the PIL Image provided is not in a recognized
+            mode.
+
+        :returns: New Image instance using the given image's pixels.
+        :rtype: Image
+
         """
 
         (img_width, img_height) = pil_image.size
         mode = pil_image.mode
 
+        # TODO(paul.tunison): Extract this logic out into a utility function.
         if mode == "1":  # boolean
             img_depth = 1
             img_w_step = 1
@@ -128,7 +139,7 @@ class Image (VitalObject):
                             ctypes.c_int32, ctypes.c_size_t]
         img_new.restype = cls.C_TYPE_PTR
 
-        img_data = pil_image.tostring()
+        img_data = pil_image.tobytes()
         # this constructor create a wrapper around img_data which will be invalid
         # when img_data goes out of scope and is deleted
         vital_img = Image(from_cptr=img_new(img_data,
