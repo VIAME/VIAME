@@ -40,6 +40,16 @@ import numpy
 from vital.util import VitalObject
 
 
+def _pil_image_to_bytes(p_img):
+    # In recent version of PIL, the tobytes function is the correct thing to
+    # call, but some older versions of PIL do not have this function.
+    if hasattr(p_img, 'tobytes'):
+        return p_img.tobytes()
+    else:
+        # Older version of the function.
+        return p_img.tostring()
+
+
 class Image (VitalObject):
     """
     vital::image interface class
@@ -139,7 +149,7 @@ class Image (VitalObject):
                             ctypes.c_int32, ctypes.c_size_t]
         img_new.restype = cls.C_TYPE_PTR
 
-        img_data = pil_image.tobytes()
+        img_data = _pil_image_to_bytes(pil_image)
         # this constructor create a wrapper around img_data which will be invalid
         # when img_data goes out of scope and is deleted
         vital_img = Image(from_cptr=img_new(img_data,
