@@ -50,17 +50,17 @@ from .image_container import ImageContainer
 from .rotation import Rotation
 
 # Requires EigenArray
-#from .homography import Homography
+from .homography import Homography
 
 # Requires EigenArray and RGBColor
 from .feature import Feature
 
 # Requires EigenArray and Rotation
-#from .similarity import Similarity
+from .similarity import Similarity
 
 # Requires Covariance
-#from .landmark import Landmark
-#from .landmark_map import LandmarkMap
+from .landmark import Landmark
+from .landmark_map import LandmarkMap
 
 # Requires Descriptor, Feature
 from .track import TrackState, Track

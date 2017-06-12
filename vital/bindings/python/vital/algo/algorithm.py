@@ -205,22 +205,6 @@ class VitalAlgorithm (VitalObject):
         else:
             return None
 
-    def clone(self, new_name=None):
-        """
-        :param new_name: An optional new instance name for the cloned algorithm
-        :type new_name: str
-
-        :return: A new copy of this algorithm
-        :rtype: VitalAlgorithm
-        """
-        clone_cptr = self._call_cfunc(
-            'vital_algorithm_%s_clone' % self.type_name(),
-            [self.C_TYPE_PTR], [self],
-            self.C_TYPE_PTR
-        )
-        return self.__class__(name=(new_name or self.name),
-                              from_cptr=clone_cptr)
-
     def get_config(self, cb=None):
         """
         Return this algorithm's current configuration.
