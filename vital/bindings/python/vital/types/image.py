@@ -329,6 +329,14 @@ class Image (VitalObject):
         img_equal_content.restype = ctypes.c_bool
         return img_equal_content(self, other)
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.equal_content(other)
+        return False
+
+    def __ne__(self, other):
+        # inverse of __eq__ result.
+        return not (self == other)
 
 
     # ------------------------------------------------------------------
@@ -346,7 +354,11 @@ class Image (VitalObject):
         import PIL.Image as PIM
 
         def pil_mode_from_image(img):
-            """ determine image format from pixel properties
+            """
+            Determine image format from pixel properties
+
+            May return None if our current encoding does not map to a PIL image
+            mode.
             """
             if img.pixel_type() == img.PIXEL_UNSIGNED and img.pixel_num_bytes() == 1:
                 if img.depth() == 3 and img.d_step() == 1 and img.w_step() == 3:
@@ -384,13 +396,13 @@ class Image (VitalObject):
             size = (img.h_step() * img.height()) * img.pixel_num_bytes()
         # get buffer from image
         pixels = ctypes.pythonapi.PyBuffer_FromReadWriteMemory
-        pixels.argtypes = [ ctypes.c_void_p, ctypes.c_int ]
+        pixels.argtypes = [ ctypes.c_void_p, ctypes.c_ssize_t ]
         pixels.restype = ctypes.py_object
         img_pixels = pixels( img_first_byte, size )
 
         return PIM.frombytes(mode, (img.width(), img.height()), img_pixels,
-                             "raw", mode, img.h_step() * img.pixel_num_bytes(), 1 )
-
+                             "raw", mode,
+                             img.h_step() * img.pixel_num_bytes(), 1)
 
     # ------------------------------------------------------------------
     # return image as a numpy array
