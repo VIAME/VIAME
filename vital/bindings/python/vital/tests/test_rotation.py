@@ -44,7 +44,7 @@ from vital.types import Rotation
 
 
 def array_normalize(a, dtype=None):
-    a = numpy.asarray(a, None)
+    a = numpy.asarray(a, dtype)
     return a / numpy.linalg.norm(a)
 
 
