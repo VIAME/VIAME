@@ -82,7 +82,7 @@ class Rotation (VitalObject):
     def from_quaternion(cls, q_vec, ctype=ctypes.c_double):
         """
         Create rotation based on the given 4x1 (column-vector) quaternion
-        representation whose format, `[x, y, z, w]`, represents the 
+        representation whose format, `[x, y, z, w]`, represents the
         `w+xi+yj+zk` formula (see Eigen's `Quaternion` class).
 
         Input data is copied.
@@ -98,7 +98,7 @@ class Rotation (VitalObject):
 
         :raises ValueError: The input array-like data did not conform to the
             specified target shape.
-        
+
         """
         q_vec = EigenArray.from_iterable(q_vec, ctype, (4, 1))
         q_vec /= q_vec.norm()
@@ -230,15 +230,15 @@ class Rotation (VitalObject):
         with VitalErrorHandle() as eh:
             r_ptr = r_from_mat(mat, eh)
         return Rotation(ctype, r_ptr)
-    
+
     @classmethod
     def random(cls, ctype=ctypes.c_double):
         """
         Create a random rotation.
-        
-        Note: this is not uniformly random in S03. Eigen has a UnitRandom 
+
+        Note: this is not uniformly random in S03. Eigen has a UnitRandom
         method for Quaternion.
-        
+
         :param datatype: Type to store data in the homography.
         :type datatype: ctypes._SimpleCData
 
@@ -384,18 +384,18 @@ class Rotation (VitalObject):
     def __eq__(self, other):
         """
         Check whether two rotations are equivalent.
-        
+
         :param other: Rotation to compare this rotation to.
         :type other: vital.types.Rotation
-        
+
         :return: Whether this rotation is equal to other.
         :rtype: bool
-        
-        NOTE: the C++ code called by this method compares the two quaternions 
-        elementwise to determine equality. However, it is possible for two 
+
+        NOTE: the C++ code called by this method compares the two quaternions
+        elementwise to determine equality. However, it is possible for two
         quaternions to have different elements but represent the same rotation.
         """
-        
+
         if isinstance(other, Rotation):
             if self._ctype != other._ctype:
                 # raise ValueError("Cannot test equality of two rotations of "
@@ -505,7 +505,6 @@ class Rotation (VitalObject):
         """
         :return: This rotation as a Rodrigues vector.
         :rtype: vital.types.EigenArray
-        
         """
         r2rod = self._get_c_function(self._spec, "rodrigues")
         r2rod.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
@@ -549,7 +548,7 @@ class Rotation (VitalObject):
         """
         Compose this rotation with another (multiply).
 
-        This rotation is considered the left-hand operand and the given 
+        This rotation is considered the left-hand operand and the given
         rotation is considered the right-hand operand.
 
         Result rotation will have the same data type as this rotation.
@@ -575,7 +574,8 @@ class Rotation (VitalObject):
             self._log.debug("Converting input rotation of type %s into "
                             "compatible type %s",
                             other_rot._ctype, self._ctype)
-            other_rot = Rotation.from_quaternion(other_rot.quaternion(), self._ctype)
+            other_rot = Rotation.from_quaternion(other_rot.quaternion(),
+                                                 self._ctype)
 
         r_compose = self._get_c_function(self._spec, "compose")
         r_compose.argtypes = [self.C_TYPE_PTR, other_rot.C_TYPE_PTR,
@@ -617,13 +617,13 @@ class Rotation (VitalObject):
     def angle_from(self, other):
         """
         Return angle between rotations
-        
+
         :param other: the other rotation to compare this rotation to.
         :type other: vital.types.Rotation
-        
+
         :return: This rotation's angle of rotation (radians).
         :rtype: float
-        
+
         """
         # For some reason, the angle method can return negative values.
         return abs((self.inverse()*other).angle())

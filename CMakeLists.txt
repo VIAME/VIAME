@@ -185,6 +185,7 @@ mark_as_advanced( LIB_SUFFIX )
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_SETUP_SCRIPT_FILE}
+  @ONLY
   )
 
 # install set up script

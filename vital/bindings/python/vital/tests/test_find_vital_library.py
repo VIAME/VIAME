@@ -57,7 +57,7 @@ if sys.platform == 'linux2':
 
             # c library should exist since on a linux system
             self.lib_re = re.compile(
-                fvl.__LIBRARY_NAME_RE_BASE__ % "c"
+                fvl.__LIBRARY_FILE_RE_BASE__ % "c"
             )
 
         def tearDown(self):
@@ -81,7 +81,7 @@ if sys.platform == 'linux2':
 
             # Library name that should not exist
             r = re.compile(
-                fvl.__LIBRARY_NAME_RE_BASE__
+                fvl.__LIBRARY_FILE_RE_BASE__
                 % "not_actually_a_library_probably.6"
             )
             p = fvl._search_up_directory("/usr/local", r)
