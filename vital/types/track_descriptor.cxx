@@ -252,12 +252,6 @@ history_entry( const uint64_t& ts,
 }
 
 
-track_descriptor::history_entry::
-~history_entry()
-{
-}
-
-
 uint64_t
 track_descriptor::history_entry::
 get_timestamp() const
