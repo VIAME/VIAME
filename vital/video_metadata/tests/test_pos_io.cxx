@@ -123,7 +123,7 @@ IMPLEMENT_TEST(output_format_test)
     }
     else if ( mdi.second->type() == typeid(int) )
     {
-      int v1, v2;
+      int v1=0, v2=0;
       mdi.second->data(v1);
       other_mdi.data(v2);
       TEST_EQUAL("Value of tag " << mdi.second->name(),
