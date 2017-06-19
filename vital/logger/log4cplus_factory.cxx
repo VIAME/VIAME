@@ -29,7 +29,6 @@
  */
 
 #include "kwiver_logger_factory.h"
-#include <log4cxx/logger.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <log4cplus/configurator.h>
