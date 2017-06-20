@@ -84,6 +84,9 @@ public:
    */
   sprokit::process::ports_t port_list() const;
 
+  virtual adapter::ports_info_t get_ports() = 0;
+
+
 protected:
 
   std::set< sprokit::process::port_t > m_active_ports;
