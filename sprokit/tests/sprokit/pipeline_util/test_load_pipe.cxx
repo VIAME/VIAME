@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
-#include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
 #include <vital/config/config_block.h>
@@ -45,7 +44,7 @@
 
 #include <cstddef>
 
-#define TEST_ARGS (sprokit::path_t const& pipe_file)
+#define TEST_ARGS (kwiver::vital::path_t const& pipe_file)
 
 DECLARE_TEST_MAP();
 
@@ -57,9 +56,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   testname_t const testname = argv[1];
-  sprokit::path_t const pipe_dir = argv[2];
+  kwiver::vital::path_t const pipe_dir = argv[2];
 
-  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  kwiver::vital::path_t const pipe_file = pipe_dir + "/" +  testname + pipe_ext;
 
   RUN_TEST(testname, pipe_file);
 }
@@ -158,6 +157,76 @@ IMPLEMENT_TEST(config_block)
 
 
 // ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_block)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_relativepath)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_long_block)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_nested_block)
+{
+  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+
+  test_visitor v;
+
+  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(v));
+
+  v.expect(1, 0, 0, 0);
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_unclosed_block)
+{
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   "with an expect error");
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(config_block_unopened_block)
+{
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
+                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   "with an expect error");
+}
+
+
+// ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_notalnum)
 {
   sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
@@ -245,15 +314,6 @@ IMPLEMENT_TEST(no_exist)
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(not_a_file)
-{
-  EXPECT_EXCEPTION(sprokit::not_a_file_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
-                   "loading a non-file");
-}
-
-
-// ------------------------------------------------------------------
 IMPLEMENT_TEST(include_no_exist)
 {
   EXPECT_EXCEPTION(sprokit::file_no_exist_exception,
@@ -263,18 +323,9 @@ IMPLEMENT_TEST(include_no_exist)
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(include_not_a_file)
-{
-  EXPECT_EXCEPTION(sprokit::not_a_file_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
-                   "including a non-file");
-}
-
-
-// ------------------------------------------------------------------
 IMPLEMENT_TEST(no_parse)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_pipe_blocks_from_file(pipe_file),
                    "loading an invalid file");
 }
@@ -283,7 +334,7 @@ IMPLEMENT_TEST(no_parse)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(parse_error)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -403,7 +454,7 @@ IMPLEMENT_TEST(cluster_all)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_config_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -412,7 +463,7 @@ IMPLEMENT_TEST(cluster_missing_config_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_input_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -421,7 +472,7 @@ IMPLEMENT_TEST(cluster_missing_input_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_output_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -430,7 +481,7 @@ IMPLEMENT_TEST(cluster_missing_output_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_type)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -439,7 +490,7 @@ IMPLEMENT_TEST(cluster_missing_type)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_missing_type_description)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -448,7 +499,7 @@ IMPLEMENT_TEST(cluster_missing_type_description)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_multiple_clusters)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -457,7 +508,7 @@ IMPLEMENT_TEST(cluster_multiple_clusters)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_not_first)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -466,7 +517,7 @@ IMPLEMENT_TEST(cluster_not_first)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_with_slash)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
@@ -501,7 +552,7 @@ IMPLEMENT_TEST(cluster_output_map_with_slash)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(process_with_slash)
 {
-  EXPECT_EXCEPTION(sprokit::failed_to_parse,
+  EXPECT_EXCEPTION(sprokit::parsing_exception,
                    sprokit::load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }

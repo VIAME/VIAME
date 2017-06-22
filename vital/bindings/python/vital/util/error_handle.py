@@ -34,7 +34,6 @@ Vital Python Error handler class
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
@@ -101,8 +100,9 @@ class VitalErrorHandle (VitalObject):
         Extend the current return code to exception mapping.
 
         :param ec_exception_map: Dictionary mapping integer return code to an
-            exception, or function returning an exception instance, that should
-            be raised.
+            exception type, or function returning an exception instance, that
+            should be raised. If a function is provided it should accept one
+            positional argument that is the string message of the exception.
         :type ec_exception_map: dict[int, BaseException | types.FunctionType]
 
         """

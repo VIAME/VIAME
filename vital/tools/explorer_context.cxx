@@ -90,31 +90,4 @@ bool explorer_context::if_detail() const { return p->opt_detail; }
 bool explorer_context::if_config() const { return p->opt_config; }
 bool explorer_context::if_brief() const { return p->opt_brief; }
 
-
-// ==================================================================
-// -- private implementation methods --
-kwiver::vital::explorer_context::priv::
-priv()
-{
- opt_config = false;
- opt_detail = false;
- opt_help = false;
- opt_path_list = false;
- opt_brief = false;
- opt_modules = false;
- opt_files = false;
- opt_all = false;
- opt_summary = false;
- opt_attrs = false;
-
- opt_attr_filter = false;
- opt_fact_filt = false;
-
- m_out_stream = 0;
-}
-
-kwiver::vital::explorer_context::priv::
-~priv()
-{ }
-
 } } // end namespace

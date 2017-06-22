@@ -23,9 +23,14 @@ set( public_headers
 
 # public headers for explorer
 kwiver_install_headers(
-         ${CMAKE_CURRENT_BINARY_DIR}/explorer_plugin_export.h
          ${public_headers}
-  SUBDIR vital/tools   # is this the best place?
+  SUBDIR vital/tools
+  )
+
+kwiver_install_headers(
+         ${CMAKE_CURRENT_BINARY_DIR}/explorer_plugin_export.h
+  NOPATH
+  SUBDIR vital/tools
   )
 
 kwiver_add_library( explorer_plugin

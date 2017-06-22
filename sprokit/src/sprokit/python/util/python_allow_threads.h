@@ -33,9 +33,9 @@
 
 #include "util-config.h"
 
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 /**
  * \file python_allow_threads.h
@@ -55,7 +55,7 @@ namespace python
  * \brief RAII class for calling into non-Python code.
  */
 class SPROKIT_PYTHON_UTIL_EXPORT python_allow_threads
-  : boost::noncopyable
+  : kwiver::vital::noncopyable
 {
   public:
     /**

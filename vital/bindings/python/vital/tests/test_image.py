@@ -40,9 +40,6 @@ from vital.types import Image
 import ctypes
 
 
-__author__ = 'paul.tunison@kitware.com'
-
-
 class TestVitalImage (object):
 
     def test_new(self):
@@ -101,7 +98,6 @@ class TestVitalImage (object):
         val1 = img[0,0]
         val2 = img[0,0,0]
         nose.tools.assert_equal(val1, val2)
-
 
     def test_pil_L(self):
         # test uint8 image

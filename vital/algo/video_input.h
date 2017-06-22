@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,6 +95,11 @@ namespace algo {
  *     available in the time stamp for that frame. If the frame time
  *     is not supplied, then the timestamp will hot have the time set.
  *
+ * HAS_FRAME_DATA - This capability is set to true if the video source
+ *     supplies frame images. It may seem strange for a video input
+ *     algorithm to not supply image data, but happens with a reader
+ *     that only supplies the metadata.
+ *
  * HAS_ABSOLUTE_FRAME_TIME - This capability is set to true if the
  *     video source supplies an absolute, rather than relative frame
  *     time. This capability is not set if an absolute frame time can
@@ -131,6 +136,7 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_EOV;         // has end of video indication
   static const algorithm_capabilities::capability_name_t HAS_FRAME_NUMBERS;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_TIME;
+  static const algorithm_capabilities::capability_name_t HAS_FRAME_DATA;
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;
@@ -151,6 +157,10 @@ public:
    * Capabilities are set in this call, so they are available after.
    *
    * \param video_name Identifier of the video stream.
+   *
+   * \note Once a video is opened, it starts in an invalid state
+   * (i.e. before the first frame of video). You must call \c next_frame()
+   * to step to the first frame of video before calling \c frame_image().
    *
    * \throws exception if open failed
    */
@@ -184,8 +194,11 @@ public:
    * \brief Check whether state of video stream is good.
    *
    * This method checks the current state of the video stream to see
-   * if it is good. The definition of \a good depends on the concrete
-   * implementation.
+   * if it is good. A stream is good if it refers to a valid frame
+   * such that calls to \c frame_image() and \c frame_metadata()
+   * are expected to return meaningful data.  After calling \c open()
+   * the initial video state is not good until the first call to
+   * \c next_frame().
    *
    * \return \b true if video stream is good, \b false if not good.
    */
@@ -252,7 +265,7 @@ public:
    * Metadata typically occurs less frequently than video frames, so
    * if you call next_frame() and frame_metadata() together while
    * processing a video, there may be times where no metadata is
-   * returned.
+   * returned. In this case an empty metadata vector will be returned.
    *
    * Also note that the metadata collection contains a timestamp that
    * can be used to determine where the metadata fits in the video

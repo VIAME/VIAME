@@ -31,7 +31,7 @@ endif()
 
 ###
 # project specific directories
-#
+##
 set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 
 # root directories
@@ -45,6 +45,23 @@ set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
 set(KWIVER_SETUP_SCRIPT_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.sh" )
 
 LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cmake resources
+
+# ================================================================
+# project global includes
+include_directories("${KWIVER_SOURCE_DIR}")
+include_directories("${KWIVER_SOURCE_DIR}/sprokit/src")
+include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
+# include vital internal headers for private use only
+include_directories("${KWIVER_SOURCE_DIR}/vital/internal")
+
+# kwiversys includes are generated in the binary directory
+include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
+
+# ================================================================
+
+include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
 # ================================================================
 ###
@@ -111,22 +128,6 @@ else()
 endif()
 
 # ================================================================
-# project global includes
-include_directories("${KWIVER_SOURCE_DIR}")
-include_directories("${KWIVER_BINARY_DIR}")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
-
-# include vital internal headers for private use only
-include_directories("${KWIVER_SOURCE_DIR}/vital/internal")
-
-# kwiversys includes are generated in the binary directory
-include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
-
-# ================================================================
-
-include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
-
-# ================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 
 # ================================================================
@@ -184,6 +185,7 @@ mark_as_advanced( LIB_SUFFIX )
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_SETUP_SCRIPT_FILE}
+  @ONLY
   )
 
 # install set up script
@@ -197,20 +199,30 @@ endif()
 
 ###
 # Install the basic logger properties file.
-file( COPY log4cxx.properties
-  DESTINATION  "${KWIVER_BINARY_DIR}" )
-
-install( FILES log4cxx.properties
-  DESTINATION ${CMAKE_INSTALL_PREFIX} )
+file( COPY log4cxx.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
+install( FILES log4cxx.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CXX )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger.so\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
 endif()
 
+###
+file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
+install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
+if ( KWIVER_ENABLE_LOG4CPLUS )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger.so\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CPLUS_CONFIGURATION=$this_dir/log4cplus.properties\n" )
+endif()
+
+###
 if (KWIVER_ENABLE_PYTHON)
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# additional python mudules to load, separated by ':'\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# set to suppress loading python modules/processes\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# export SPROKIT_NO_PYTHON_MODULES\n\n" )
 endif()
 
 if ( KWIVER_ENABLE_MATLAB )
@@ -259,6 +271,21 @@ include( kwiver-install-utils )
 get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
+# setup general paths to includes and libs for packages we use/provide
+set( KWIVER_INCLUDE_DIRS "${EIGEN3_INCLUDE_DIR}")
+set( KWIVER_LIBRARY_DIRS "")
+
+if ( NOT fletch_ENABLED_Boost)
+  list( APPEND KWIVER_INCLUDE_DIRS "${BOOST_ROOT_ARG}/include")
+  list( APPEND KWIVER_LIBRARY_DIRS "${BOOST_ROOT_ARG}/lib")
+endif()
+
+if (fletch_ROOT)
+  # since we have fletch, add include and lib dirs to export
+  list( APPEND KWIVER_INCLUDE_DIRS "${fletch_ROOT}/include")
+  list( APPEND KWIVER_LIBRARY_DIRS "${fletch_ROOT}/lib")
+endif()
+
 kwiver_configure_file(kwiver-config
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-build.cmake.in"
   "${KWIVER_CONFIG_FILE}"
@@ -269,7 +296,8 @@ kwiver_configure_file(kwiver-config
   KWIVER_CMAKE_DIR
   kwiver_libs
   fletch_DIR
-  EIGEN3_INCLUDE_DIR
+  KWIVER_INCLUDE_DIRS
+  KWIVER_LIBRARY_DIRS
   )
 
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
@@ -286,7 +314,10 @@ kwiver_configure_file(kwiver-install-config
   CMAKE_INSTALL_PREFIX
   kwiver_libs
   fletch_DIR
-  EIGEN3_INCLUDE_DIR
+  KWIVER_INCLUDE_DIRS
+  KWIVER_LIBRARY_DIRS
+  LIB_SUFFIX
+  KWIVER_VERSION
   )
 
 kwiver_install(
@@ -297,6 +328,7 @@ kwiver_install(
 
 kwiver_install(
   EXPORT      ${kwiver_export_name}
+  NAMESPACE   kwiver::
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        kwiver-config-targets.cmake
   )

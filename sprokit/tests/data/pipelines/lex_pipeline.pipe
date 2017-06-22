@@ -1,0 +1,33 @@
+#
+# Test pipeline file for lex processor
+#
+
+process src1
+  :: numbers
+  :foo value
+  :foo2:more value.a
+  :foo2:more2 value:a # comment xx
+  relativepath foo=bar
+process src2
+  :: numbers  # comment
+# comment
+process end
+  :: multiplication
+  key = value
+  ket1=value1
+
+process sink
+  :: sink
+
+connect from src1.number
+        to   end.factor1
+
+!include config_block.pipe
+include config_block.pipe
+include
+
+connect from src2.number
+        to   end.factor2
+
+connect from end.product
+        to   sink.sink

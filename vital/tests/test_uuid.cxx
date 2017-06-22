@@ -30,12 +30,12 @@
 
 /**
  * \file
- * \brief test point_2 functionality
+ * \brief test uuid functionality
  */
 
 #include <test_common.h>
 
-#include <vital/types/uuid.h>
+#include <vital/types/uid.h>
 #include <iostream>
 
 #define TEST_ARGS      ()
@@ -55,9 +55,7 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST( test_API )
 {
-  uint8_t init[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-
-  kwiver::vital::uuid foo( init );
+  kwiver::vital::uid foo( "init" );
 
   auto foo_2 = foo;
   auto foo_3( foo );
@@ -66,5 +64,4 @@ IMPLEMENT_TEST( test_API )
   {
     TEST_ERROR("Equal UUID test failed" );
   }
-  std::cout << "uuid ---- " << foo_3.format() << std::endl;
 }

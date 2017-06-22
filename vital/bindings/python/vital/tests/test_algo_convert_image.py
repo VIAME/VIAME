@@ -34,14 +34,10 @@ Tests for vital::algo::convert_image and general algorithm tests
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
-from vital import (
-    apm,
-    ConfigBlock,
-)
+from vital import ConfigBlock
 from vital.algo import ConvertImage
 from vital.exceptions.base import VitalNullPointerException
 
@@ -112,22 +108,6 @@ class TestVitalAlgoConvertImage (object):
     def test_impl_name(self):
         ci_empty = ConvertImage('ci')
         nt.assert_is_none(ci_empty.impl_name())
-
-    def test_clone_empty(self):
-        ci_empty = ConvertImage('ci')
-        ci_empty2 = ci_empty.clone()
-        nt.assert_false(ci_empty)
-        nt.assert_false(ci_empty2)
-
-    def test_clone(self):
-        # inst_ptr will be null for both
-        ci1 = ConvertImage('ci')
-        ci2 = ci1.clone()
-        nt.assert_false(ci1)
-        nt.assert_false(ci2)
-        nt.assert_not_equal(ci1.c_pointer, ci2.c_pointer)
-        # They should both be null
-        nt.assert_equal(mem_address(ci1.c_pointer), mem_address(ci2.c_pointer))
 
     def test_get_conf(self):
         ci = ConvertImage('ci')

@@ -1,3 +1,0 @@
-config myblock
-  :mykey myvalue
-  :mykey[append,append=path] othervalue

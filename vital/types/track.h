@@ -123,6 +123,16 @@ public:
    */
   bool append( const track& to_append );
 
+  /// Insert a track state.
+  /**
+   * The added track state must have a frame_id that is not already
+   * present in the track history.
+   *
+   * \returns true if successful, false if already a state on this frame
+   * \param state track state to add to this track.
+   */
+  bool insert( const track_state& state );
+
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
 

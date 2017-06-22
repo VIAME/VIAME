@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 #include "types.h"
 
 #include <boost/noncopyable.hpp>
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file pipeline.h
@@ -56,7 +55,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT pipeline
-  : boost::noncopyable
+  : private boost::noncopyable
 {
   public:
     /**
@@ -247,6 +246,13 @@ class SPROKIT_PIPELINE_EXPORT pipeline
 
     /**
      * \brief Reconfigure processes within the pipeline.
+     *
+     * This method causes the pipeline to reconfigure all processes by
+     * calling their reconfigure() method. The supplied config block
+     * is used to supply an updated configuration to each process and
+     * cluster in the pipeline.
+     *
+     * This method can be called anytime after the pipeline has been set up.
      *
      * \warning This does not ensure that every process gets reconfigured at the
      * same time; any synchronization is best handled at the cluster level if
@@ -490,7 +496,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     SPROKIT_PIPELINE_NO_EXPORT void stop();
 
     class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

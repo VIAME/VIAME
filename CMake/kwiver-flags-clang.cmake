@@ -3,6 +3,10 @@
 #
 
 kwiver_check_compiler_flag( -std=c++11 -std=c++0x )
+if(NOT APPLE)
+  #MacOS produces warnings with this flag and doesn't seem to need it
+  kwiver_check_compiler_flag( -pthread )
+endif()
 kwiver_check_compiler_flag( -fvisibility=hidden )
 kwiver_check_compiler_flag( -Wall )
 kwiver_check_compiler_flag( -Werror=return-type )

@@ -35,7 +35,7 @@
 #include <test_common.h>
 
 #include <vital/util/any_converter.h>
-#include <vital/types/uuid.h>
+#include <vital/types/uid.h>
 
 #define TEST_ARGS ()
 
@@ -174,49 +174,4 @@ IMPLEMENT_TEST( test_custom_converter )
   TEST_EQUAL( "Convert bool to bool", convert_to_bool.convert( true ), true );
 
   TEST_EQUAL( "UnConvertable string", convert_to_bool.can_convert( std::string( "yup" ) ), false );
-}
-
-
-//
-// Custom converter object
-//
-struct uuid_converter
-  : public kwiver::vital::any_convert::convert_base< std::string >
-{
-  virtual bool can_convert( kwiver::vital::any const& data ) const
-  {
-    return data.type() == typeid( kwiver::vital::uuid );
-  }
-
-  virtual std::string convert( kwiver::vital::any const& data ) const
-  {
-    return  kwiver::vital::any_cast< kwiver::vital::uuid > ( data ).format();
-  }
-};
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(explicit_specialization)
-{
-  kwiver::vital::any_converter<std::string> any_to_string;
-  kwiver::vital::any_converter<std::string> other_to_string;
-
-  other_to_string.add_converter( new uuid_converter() );
-  any_to_string.add_converter<float>();    // add converter from float;
-  any_to_string.add_converter<kwiver::vital::uuid>();
-
-
-  kwiver::vital::uuid::uuid_data_t udata = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-  kwiver::vital::uuid uu(udata);
-  kwiver::vital::any a_uuid(uu);
-  kwiver::vital::any fl = (float) 123.45;
-
-  std::string suu = any_to_string.convert( a_uuid );
-  std::cout << "uuid - " << suu << std::endl;
-
-  suu = other_to_string.convert( a_uuid );
-  std::cout << "other uuid - " << suu << std::endl;
-
-  suu = any_to_string.convert( fl );
-  std::cout << "float - " << suu << std::endl;
 }

@@ -39,7 +39,7 @@
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/process_factory.h>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #define TEST_ARGS ()
 
@@ -171,9 +171,9 @@ IMPLEMENT_TEST(connect_after_init)
 
   const auto config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
-  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>(config);
+  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>(config);
 
   // Only the pipeline can properly initialize a process.
   pipe->add_process(process);
@@ -641,7 +641,7 @@ sprokit::process::port_type_t const remove_ports_process::output_port = sprokit:
 IMPLEMENT_TEST(remove_input_port)
 {
   const auto type = sprokit::process::port_type_t("type");
-  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+  std::unique_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
   proc->_remove_input_port(remove_ports_process::input_port);
 
@@ -655,7 +655,7 @@ IMPLEMENT_TEST(remove_input_port)
 IMPLEMENT_TEST(remove_output_port)
 {
   const auto type = sprokit::process::port_type_t("type");
-  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+  std::unique_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
   proc->_remove_output_port(remove_ports_process::output_port);
 
@@ -670,7 +670,7 @@ IMPLEMENT_TEST(remove_non_exist_input_port)
 {
   const auto port = sprokit::process::port_t("port");
   const auto type = sprokit::process::port_type_t("type");
-  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+  std::unique_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
   EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    proc->_remove_input_port(port),
@@ -683,7 +683,7 @@ IMPLEMENT_TEST(remove_non_exist_output_port)
 {
   const auto port = sprokit::process::port_t("port");
   const auto type = sprokit::process::port_type_t("type");
-  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(type));
+  std::unique_ptr<remove_ports_process> proc(new remove_ports_process(type));
 
   EXPECT_EXCEPTION(sprokit::no_such_port_exception,
                    proc->_remove_output_port(port),
@@ -697,7 +697,7 @@ IMPLEMENT_TEST(remove_only_tagged_flow_dependent_port)
   const auto port = sprokit::process::port_t("port");
   const auto flow_type = sprokit::process::type_flow_dependent + sprokit::process::port_type_t("tag");
   const auto type = sprokit::process::port_type_t("type");
-  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
+  std::unique_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
 
   proc->_remove_input_port(remove_ports_process::input_port);
   proc->set_output_port_type(remove_ports_process::output_port, type);
@@ -719,7 +719,7 @@ IMPLEMENT_TEST(remove_tagged_flow_dependent_port)
 {
   const auto flow_type = sprokit::process::type_flow_dependent + sprokit::process::port_type_t("tag");
   const auto type = sprokit::process::port_type_t("type");
-  boost::scoped_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
+  std::unique_ptr<remove_ports_process> proc(new remove_ports_process(flow_type));
 
   proc->set_output_port_type(remove_ports_process::output_port, type);
   proc->_remove_output_port(remove_ports_process::output_port);
@@ -878,7 +878,7 @@ IMPLEMENT_TEST(reconfigure_tunable)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
@@ -911,7 +911,7 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
@@ -945,7 +945,7 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
@@ -978,7 +978,7 @@ sprokit::edge_t
 create_edge()
 {
   const auto config = kwiver::vital::config_block::empty_config();
-  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
 
   return edge;
 }

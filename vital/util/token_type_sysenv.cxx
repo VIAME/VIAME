@@ -33,6 +33,17 @@
 
 #include <sstream>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <process.h>
+#define HOME_ENV_NAME "UserProfile"
+#define GETPID() _getpid()
+#else
+#include <sys/types.h>
+#include <unistd.h>
+#define HOME_ENV_NAME "HOME"
+#define GETPID() getpid()
+#endif
+
 namespace kwiver {
 namespace vital {
 
@@ -58,8 +69,9 @@ token_type_sysenv::
 // ----------------------------------------------------------------
 bool
 token_type_sysenv::
-lookup_entry (std::string const& name, std::string& result)
+lookup_entry (std::string const& name, std::string& result) const
 {
+  kwiversys::SystemInformation* SI( const_cast< kwiversys::SystemInformation* >(&m_sysinfo) );
 
   if ("cwd" == name) // current directory
   {
@@ -68,98 +80,98 @@ lookup_entry (std::string const& name, std::string& result)
   }
 
   // ----------------------------------------------------------------
-  else if ("numproc" == name)   // number of processors/cores
+  if ("numproc" == name)   // number of processors/cores
   {
     std::stringstream sval;
-    unsigned int numCPU = m_sysinfo.GetNumberOfLogicalCPU();
-    // unsigned int numCPU = m_sysinfo.GetNumberOfPhysicalCPU();
+    unsigned int numCPU = SI->GetNumberOfLogicalCPU();
+    // unsigned int numCPU = SI->GetNumberOfPhysicalCPU();
     sval << numCPU;
     result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("totalvirtualmemory" == name)
+  if ("totalvirtualmemory" == name)
   {
     std::stringstream sval;
-    sval <<  m_sysinfo.GetTotalVirtualMemory();
+    sval <<  SI->GetTotalVirtualMemory();
     result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("availablevirtualmemory" == name)
+  if ("availablevirtualmemory" == name)
   {
     std::stringstream sval;
-    sval << m_sysinfo.GetAvailableVirtualMemory();
+    sval << SI->GetAvailableVirtualMemory();
     result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("totalphysicalmemory" == name)
+  if ("totalphysicalmemory" == name)
   {
     std::stringstream sval;
-    sval << m_sysinfo.GetTotalPhysicalMemory();
+    sval << SI->GetTotalPhysicalMemory();
     result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("availablephysicalmemory" == name)
+  if ("availablephysicalmemory" == name)
   {
     std::stringstream sval;
-    sval << m_sysinfo.GetAvailablePhysicalMemory();
+    sval << SI->GetAvailablePhysicalMemory();
     result = sval.str();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("hostname" == name)   // network name of system
+  if ("hostname" == name)   // network name of system
   {
-    result = m_sysinfo.GetHostname();
+    result = SI->GetHostname();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("domainname" == name)
+  if ("domainname" == name)
   {
-    result = m_sysinfo.GetFullyQualifiedDomainName();
+    result = SI->GetFullyQualifiedDomainName();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osname" == name)
+  if ("osname" == name)
   {
-    result = m_sysinfo.GetOSName();
+    result = SI->GetOSName();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osdescription" == name)
+  if ("osdescription" == name)
   {
-    result = m_sysinfo.GetOSDescription();
+    result = SI->GetOSDescription();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osplatform" == name)
+  if ("osplatform" == name)
   {
-    result = m_sysinfo.GetOSPlatform();
+    result = SI->GetOSPlatform();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("osversion" == name)
+  if ("osversion" == name)
   {
-    result = m_sysinfo.GetOSVersion();
+    result = SI->GetOSVersion();
     return true;
   }
 
   // ----------------------------------------------------------------
-  else if ("is64bits" == name)
+  if ("is64bits" == name)
   {
-    if ( 1 == m_sysinfo.Is64Bits())
+    if ( 1 == SI->Is64Bits())
     {
       result = "TRUE";
     }
@@ -172,9 +184,9 @@ lookup_entry (std::string const& name, std::string& result)
   }
 
   // ----------------------------------------------------------------
-  else if ("iswindows" == name)
+  if ("iswindows" == name)
   {
-    if ( 1 == m_sysinfo.GetOSIsWindows())
+    if ( 1 == SI->GetOSIsWindows())
     {
       result = "TRUE";
     }
@@ -187,9 +199,9 @@ lookup_entry (std::string const& name, std::string& result)
   }
 
   // ----------------------------------------------------------------
-  else if ("islinux" == name)
+  if ("islinux" == name)
   {
-    if ( 1 == m_sysinfo.GetOSIsLinux())
+    if ( 1 == SI->GetOSIsLinux())
     {
       result = "TRUE";
     }
@@ -202,9 +214,9 @@ lookup_entry (std::string const& name, std::string& result)
   }
 
   // ----------------------------------------------------------------
-  else if ("isapple" == name)
+  if ("isapple" == name)
   {
-    if ( 1 == m_sysinfo.GetOSIsApple())
+    if ( 1 == SI->GetOSIsApple())
     {
       result = "TRUE";
     }
@@ -216,15 +228,40 @@ lookup_entry (std::string const& name, std::string& result)
     return true;
   }
 
+  // ------------------------------------------------------------------
+  if ("homedir" == name)
+  {
+    std::string home;
+    kwiversys::SystemTools::GetEnv( HOME_ENV_NAME, home );
 
-  // ----------------------------------------------------------------
-//+  else if ("date" == name)
-//  {
+    if ( ! home.empty() )
+    {
+      result = home;
+    }
 
-//  }
+    return true;
+  }
+
+  // ------------------------------------------------------------------
+  if ("curdir" == name)
+  {
+    result = ST::GetCurrentWorkingDirectory();
+    return true;
+  }
+
+  // ------------------------------------------------------------------
+  if ("pid" == name)
+  {
+    const auto pid = GETPID();
+
+    std::stringstream str;
+    str << pid;
+
+    result = str.str();
+    return true;
+  }
 
   return false;
 }
 
-} // end namespace
-} // end namespace
+} } // end namespace

@@ -1,11 +1,13 @@
 cluster mycluster
-  :# clusterdesc
-  :# configdesc
-  :mykey myvalue
-  :# iport desc
+  -- clusterdesc
+
+:mykey myvalue
+  -- configdesc
   imap from iport
        to   myproc.iport
        to   myproc.iport2
-  :# oport desc
+  -- iport desc
+
   omap from myproc.oport
        to   oport
+  -- oport desc

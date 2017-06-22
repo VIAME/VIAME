@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,22 +37,20 @@
 
 #include "loaded_cluster.h"
 #include "provided_by_cluster.h"
-#include "extract_literal_value.h"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <vital/vital_foreach.h>
+#include <vital/util/tokenize.h>
 
 #include <algorithm>
+#include <memory>
 
 namespace sprokit {
 
 cluster_creator
 ::cluster_creator( cluster_bakery const& bakery )
   : m_bakery( bakery )
+  , m_logger( kwiver::vital::get_logger( "sprokit.create_pipeline" ) )
+
 {
   bakery_base::config_decls_t default_configs = m_bakery.m_configs;
 
@@ -81,7 +79,7 @@ cluster_creator
 
   process::names_t proc_names;
 
-  BOOST_FOREACH( bakery_base::process_decl_t const & proc_decl, m_bakery.m_processes )
+  VITAL_FOREACH( bakery_base::process_decl_t const & proc_decl, m_bakery.m_processes )
   {
     process::name_t const& proc_name = proc_decl.first;
 
@@ -97,28 +95,34 @@ cluster_creator
 
   // Append the given configuration to the declarations from the parsed blocks.
   kwiver::vital::config_block_keys_t const& keys = config->available_values();
-  BOOST_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
   {
     kwiver::vital::config_block_value_t const value = config->get_value< kwiver::vital::config_block_value_t > ( key );
-    bakery_base::config_reference_t const ref = bakery_base::config_reference_t( value );
     bool const is_read_only = config->is_read_only( key );
-    bakery_base::config_info_t const info = bakery_base::config_info_t( ref, is_read_only, bakery_base::config_info_t::append_none );
+
+    kwiver::vital::source_location loc;
+    config->get_location( key, loc );
+    bakery_base::config_info_t const info = bakery_base::config_info_t( value,
+                                                                        is_read_only,
+                                                                        false, // relative path
+                                                                        loc );
+
     kwiver::vital::config_block_key_t const full_key = kwiver::vital::config_block_key_t( type ) +
                                                        kwiver::vital::config_block::block_sep + key;
     bakery_base::config_decl_t const decl = bakery_base::config_decl_t( full_key, info );
 
     all_configs.push_back( decl );
-  }
+  } // end foreach
 
   kwiver::vital::config_block_sptr const full_config = bakery_base::extract_configuration_from_decls( all_configs );
 
-  typedef boost::shared_ptr< loaded_cluster > loaded_cluster_t;
+  typedef std::shared_ptr< loaded_cluster > loaded_cluster_t;
 
   // Pull out the main config block to the top-level.
   kwiver::vital::config_block_sptr const cluster_config = full_config->subblock_view( type );
   full_config->merge_config( cluster_config );
 
-  loaded_cluster_t const cluster = boost::make_shared< loaded_cluster > ( full_config );
+  loaded_cluster_t const cluster = std::make_shared< loaded_cluster > ( full_config );
 
   cluster_bakery::opt_cluster_component_info_t const& opt_info = m_bakery.m_cluster;
 
@@ -133,20 +137,18 @@ cluster_creator
   kwiver::vital::config_block_sptr const main_config = m_default_config->subblock_view( type );
 
   // Declare configuration values.
-  BOOST_FOREACH( cluster_config_t const & conf, info.m_configs )
+  VITAL_FOREACH( cluster_config_t const & conf, info.m_configs )
   {
     config_value_t const& config_value = conf.config_value;
-    config_key_t const& config_key = config_value.key;
-    kwiver::vital::config_block_keys_t const& key_path = config_key.key_path;
+    kwiver::vital::config_block_keys_t const& key_path = config_value.key_path;
     kwiver::vital::config_block_key_t const& key = bakery_base::flatten_keys( key_path );
     kwiver::vital::config_block_value_t const& value = main_config->get_value< kwiver::vital::config_block_value_t > ( key );
     kwiver::vital::config_block_description_t const& description = conf.description;
-    config_key_options_t const& options = config_key.options;
     bool tunable = false;
 
-    if ( options.flags )
+    if ( ! config_value.flags.empty() )
     {
-      config_flags_t const& flags = *options.flags;
+      config_flags_t const& flags = config_value.flags;
       tunable = ( 0 != std::count( flags.begin(), flags.end(), bakery_base::flag_tunable ) );
     }
 
@@ -157,34 +159,31 @@ cluster_creator
       tunable );
   }
 
-  extract_literal_value const literal_value = extract_literal_value();
-
   // Add config mappings.
-  BOOST_FOREACH( bakery_base::config_decl_t const & decl, mapped_decls )
+  VITAL_FOREACH( bakery_base::config_decl_t const & decl, mapped_decls )
   {
     kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& mapping_info = decl.second;
-    bakery_base::config_reference_t const& ref = mapping_info.reference;
 
-    kwiver::vital::config_block_value_t const value = boost::apply_visitor( literal_value, ref );
+    kwiver::vital::config_block_value_t const value = mapping_info.value;
 
     kwiver::vital::config_block_keys_t mapped_key_path;
     kwiver::vital::config_block_keys_t source_key_path;
 
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-    boost::split( mapped_key_path, key, boost::is_any_of( kwiver::vital::config_block::block_sep ) );
+    kwiver::vital::tokenize( key, mapped_key_path, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
     /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-    boost::split( source_key_path, value, boost::is_any_of( kwiver::vital::config_block::block_sep ) );
+    kwiver::vital::tokenize( value, source_key_path, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
 
     if ( mapped_key_path.size() < 2 )
     {
-      /// \todo Error.
+      LOG_WARN( m_logger, "Mapped key path is less than two elements" );
       continue;
     }
 
     if ( source_key_path.size() < 2 )
     {
-      /// \todo Error.
+      LOG_WARN( m_logger, "Source key path is less than two elements" );
       continue;
     }
 
@@ -200,7 +199,7 @@ cluster_creator
   }
 
   // Add processes.
-  BOOST_FOREACH( bakery_base::process_decl_t const & proc_decl, m_bakery.m_processes )
+  VITAL_FOREACH( bakery_base::process_decl_t const & proc_decl, m_bakery.m_processes )
   {
     process::name_t const& proc_name = proc_decl.first;
     process::type_t const& proc_type = proc_decl.second;
@@ -214,7 +213,7 @@ cluster_creator
   {
     process::port_flags_t const input_flags;
 
-    BOOST_FOREACH( cluster_input_t const & input, info.m_inputs )
+    VITAL_FOREACH( cluster_input_t const & input, info.m_inputs )
     {
       process::port_description_t const& description = input.description;
       process::port_t const& port = input.from;
@@ -227,7 +226,7 @@ cluster_creator
 
       process::port_addrs_t const& addrs = input.targets;
 
-      BOOST_FOREACH( process::port_addr_t const & addr, addrs )
+      VITAL_FOREACH( process::port_addr_t const & addr, addrs )
       {
         process::name_t const& mapped_name = addr.first;
         process::port_t const& mapped_port = addr.second;
@@ -244,7 +243,7 @@ cluster_creator
   {
     process::port_flags_t const output_flags;
 
-    BOOST_FOREACH( cluster_output_t const & output, info.m_outputs )
+    VITAL_FOREACH( cluster_output_t const & output, info.m_outputs )
     {
       process::port_description_t const& description = output.description;
       process::port_t const& port = output.to;
@@ -269,7 +268,7 @@ cluster_creator
   }
 
   // Add connections.
-  BOOST_FOREACH( process::connection_t const & connection, m_bakery.m_connections )
+  VITAL_FOREACH( process::connection_t const & connection, m_bakery.m_connections )
   {
     process::port_addr_t const& upstream_addr = connection.first;
     process::port_addr_t const& downstream_addr = connection.second;

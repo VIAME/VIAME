@@ -58,6 +58,58 @@ Arrows - Core
  * Added default version of dynamic_configuration which always returns
    an empty config block.
 
+ * Added a core implementation of "filter_tracks" which applies filters based
+   on track length or based on importance of the track in covering a match matrix.
+
+ * Added a core implementation of "filter_features" which filters features
+   based on keypoint scale.
+
+ * Changed "match_features_homography" to apply feature filtering to both the
+   source and destination frames.  This seems to be more robust when the number
+   of features is very large.  Also adjusted the homography inlier scale with
+   respect to the average scale of the features.
+
+ * Added multi-threaded operation to close_loops_keyframe and
+   close_loops_exhaustive algorithms.  Frame matching tasks are added to the
+   thread pool.
+
+ * Added a video_input algorithm for image lists that treats a sequence of
+   images files like a video, using an image_io algorithm to load each frame.
+
+ * Added a video_input algorithm for POS files that produces a metadata-only
+   stream out of POS files associated with a list of images.  Each image file
+   name is matched to a POS file with the same basename in a specified metadata
+   directory.
+
+ * Added a video_input algorithm that splits imagery and metadata between two
+   other video_input sources.  For example this implementation can combine the
+   images from an image_list video_input and metadata from a POS video_input.
+
+ * Added a video_input filter algorithm that reads data from another
+   video_input instance and reduces the frame range or adjusts frame timing.
+
+ * Updated hierarchical_bundle_adjust and initialize_cameras_landmarks to
+   accept an optional metadata_map and pass it along to nested algorithms.
+
+ * Generalized the track_features_core algorithm to handle tracking on frames
+   that may come out of order and frames that have already been tracked.  Also
+   removed the caching of the next frame id in the algorithm and now retrive it
+   from the existing track set instead.  These changes are to support the
+   MAP-Tk GUI which allows users to stop tracking, change the active frame,
+   and start a new tracker.
+
+ * Loop closure is now an optional component algorithm of the core feature
+   tracker.  Leaving the loop closure algorithm unspecified will cause the
+   tracker to skip loop closure.
+
+ * Updated the core tracking algorithm to read and write features and
+   descriptors to disk if a feature_descriptor_io algorithm is specified.
+
+ * Changed the meaning of the final_reproj_thresh parameter of the core
+   initialize_cameras_landmarks algorithm to be relative to the final median
+   reprojection error rather than an absolute measure.  This adaptive
+   threshold is more robust.
+
 Arrows - OpenCV
 
  * Updated the OpenCV image container functions to handle conversinos between
@@ -89,6 +141,9 @@ Arrows - Darknet
    real-time object detection system. Currently requires an external
    build of the Darknet project - https://gitlab.kitware.com/kwiver/darknet.git
 
+Arrows - Burnout
+
+ * Added burnout descriptors.
 
 Vital
 
@@ -153,6 +208,63 @@ Vital
    is to respond in real-time. A typical parameter that could be
    varied in this manner would be a threshold or a scaling value.
 
+ * Added feature to plugin_explorer to allow filtering by
+   implementation type and factory type when selecting by category.
+
+ * Added method to do a set difference between two config blocks. This
+   can be used to validate config blocks against a known
+   standard. Also added functions to determine both difference sets.
+
+ * Added track descriptor support classes for representation and
+   computation of track based descriptors.
+
+ * Added UID class to represent a unique identifier. These identifiers
+   can be set to an arbitrary set of bytes that represent a unique ID
+   within a smaller universe or use a factory to create a more
+   globally unique ID. Added uuid factory to create universal unique
+   IDs.
+
+ * Added algorithm classes to support query formulation with concrete
+   implementations.
+
+ * Added classes to support track descriptor set input and output.
+
+ * Added geographic point and polygon types.
+
+
+ * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
+
+ * Added a singleton thread pool class in vital/utils to distribute tasks over
+   a fixed number of threads.
+
+ * Added new methods "read_pos_file" and "write_pos_file" in the video_metadata
+   library to read AFRL POS files directly into a video_metadata structure and
+   write POS files from a video_metadata structure.
+
+ * Added new video_metadata tags corresponding to fields that are required for
+   POS files.
+
+ * Added a new metadata_map container to hold a mapping between frame number
+   and video_metadata vectors.  This container is for passing all the metadata
+   through the algorithm APIs.
+
+ * Updated the APIs for various abtract algorithms to accept an optional
+   metadata_map.  This includes initalize_cameras_landmarks, bundle_adjust,
+   and optimize_cameras.
+
+ * Added an "insert" member function to the track data structure to insert
+   track states at any frame position, as long as that frame is not already
+   occupied.
+
+ * Added an optional video_metadata member to the image_container class so that
+   metadata for images can be easily carried along with the image data.
+
+ * Added a utility function to construct a base filename from a metadata packet
+   and frame number in a consistent way for use in naming cache files
+   associated with video frames.
+
+ * Improved Python bindings completeness, added additional Python tests, and
+   extended documentation of Python bindings.
 
 Sprokit
 
@@ -186,6 +298,14 @@ Sprokit
 
  * Added detected_object_set input and output processes and algorithms.
 
+ * Added pipeline export class which writes a fully resolved pipeline
+   to a file in the form where it can be used as input.
+
+ * Replaced pipeline parser to support vital config file syntax in
+   addition to the original sprokit pipeline syntax. Some minor
+   semantic differences were introduced in the process.
+
+ * Added processes to support track descriptor input and output.
 
 Vital Bindings
 
@@ -218,6 +338,15 @@ Vital Bindings
  * Added C/Python interface for estimate_canonical_transform algorithm
    definition
 
+ * Added C/Python interface for vital::bounding_box class
+
+ * Added C/Python interface for vital::detected_object class
+
+ * Added C/Python interface for vital::detected_object_type class
+
+ * Added C/Python interface for vital::detected_object_set class
+
+ * Added python bindings for descriptor sets and detected object sets.
 
 Fixes since v1.0.0
 ------------------
@@ -226,6 +355,14 @@ Arrows
 
  * Fixed plugin export shmbols and include files to fix Windows build
    issues. Generate separete include files for plugin stubs.
+
+Arrows - Core
+
+ * The match_feature_homography class had a bug in which the feature matches
+   used in homography estimation indexed into the source features rather than
+   the filtered features.  As a result, when a filter was used, the feature
+   locations where incorrect causing the algorithm to fail.  The code has now
+   been corrected to properly use the filtered feature list.
 
 Arrows - OpenCV
 
@@ -244,3 +381,8 @@ Vital
    convert BGR to RGB and copied data instead of simply calling the
    corresponding C++ code.  This has been removed.  Another solution
    should be found if this causes problems elsewhere.
+
+ * Moved list copy in detected_object_set to eliminate collisions in
+   select methods.
+
+ * Updated some outdated comments in feature_set and descriptor_set.

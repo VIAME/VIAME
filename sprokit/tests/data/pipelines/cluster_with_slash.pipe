@@ -1,2 +1,2 @@
 cluster mycluster/with_slash
-  :# clusterdesc
+  -- clusterdesc

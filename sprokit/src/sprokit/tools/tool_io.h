@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,23 +31,21 @@
 #ifndef SPROKIT_TOOLS_TOOL_IO_H
 #define SPROKIT_TOOLS_TOOL_IO_H
 
-#include "tools-config.h"
+#include <sprokit/tools/sprokit_tools_export.h>
 
-#include <sprokit/pipeline_util/path.h>
-
-#include <boost/shared_ptr.hpp>
+#include <vital/vital_types.h>
 
 #include <istream>
 #include <ostream>
+#include <memory>
 
-namespace sprokit
-{
+namespace sprokit {
 
-typedef boost::shared_ptr<std::istream> istream_t;
-typedef boost::shared_ptr<std::ostream> ostream_t;
+typedef std::shared_ptr<std::istream> istream_t;
+typedef std::shared_ptr<std::ostream> ostream_t;
 
-SPROKIT_TOOLS_EXPORT istream_t open_istream(sprokit::path_t const& path);
-SPROKIT_TOOLS_EXPORT ostream_t open_ostream(sprokit::path_t const& path);
+SPROKIT_TOOLS_EXPORT istream_t open_istream(kwiver::vital::path_t const& path);
+SPROKIT_TOOLS_EXPORT ostream_t open_ostream(kwiver::vital::path_t const& path);
 
 }
 

@@ -62,6 +62,8 @@ CALL( PLATFORM_INDICATED_AIRSPEED, "Platform Indicated Airspeed",     double) \
 CALL( PLATFORM_DESIGNATION,        "Platform Designation",            std::string) \
 CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::string) \
 CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
+CALL( IMAGE_FILENAME,              "Image Filename",                  std::string) \
+CALL( VIDEO_FILENAME,              "Video Filename",                  std::string) \
 CALL( SENSOR_LOCATION,             "Sensor Location Lat/Lon",         geo_lat_lon) \
 CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
@@ -69,6 +71,8 @@ CALL( SENSOR_VERTICAL_FOV,         "Sensor Vertical Field of View",   double) \
 CALL( SENSOR_REL_AZ_ANGLE,         "Sensor Relative Azimuth Angle",   double) \
 CALL( SENSOR_REL_EL_ANGLE,         "Sensor Relative Elevation Angle", double) \
 CALL( SENSOR_REL_ROLL_ANGLE,       "Sensor Relative Roll Angle",      double) \
+CALL( SENSOR_YAW_ANGLE,            "Sensor yaw angle",                double ) \
+CALL( SENSOR_PITCH_ANGLE,          "Sensor pitch angle",              double ) \
 CALL( SENSOR_ROLL_ANGLE,           "Sensor Roll Angle",               double) \
 CALL( SENSOR_TYPE,                 "Sensor Type",                     std::string) \
 CALL( SLANT_RANGE,                 "Slant Range",                     double) \
@@ -113,7 +117,15 @@ CALL( CLASSIFICATION,              "Classification (0102 lds)",       std::strin
 CALL( SECURITY_LOCAL_MD_SET,       "Security Local Metadata Set",     std::string ) /* really std_0102_lds */ \
 CALL( 0601_WEAPON_LOAD,            "Weapon Load",                     uint64_t) \
 CALL( 0601_WEAPON_FIRED,           "Weapon Fired",                    uint64_t) \
-CALL( AVERAGE_GSD,                 "Average GSD value",               double)
+CALL( AVERAGE_GSD,                 "Average GSD value",               double) \
+CALL( GPS_SEC,                     "GPS seconds",                     double ) \
+CALL( GPS_WEEK,                    "GPS week",                        int ) \
+CALL( NORTHING_VEL,                "Northing velocity",               double ) \
+CALL( EASTING_VEL,                 "Easting velocity",                double ) \
+CALL( UP_VEL,                      "UP velocity",                     double ) \
+CALL( IMU_STATUS,                  "IMU status",                      int ) \
+CALL( LOCAL_ADJ,                   "Local adj",                       int ) \
+CALL( DST_FLAGS,                   "Dst flags",                       int )
 
 // ------------------------------------------------------------------
 //

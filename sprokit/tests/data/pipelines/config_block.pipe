@@ -1,2 +1,6 @@
 config myblock
+# compatibility type entry
   :mykey myvalue
+
+# new style config entry
+otherkey = value

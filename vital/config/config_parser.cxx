@@ -96,8 +96,8 @@ struct token_t
   enum type {
     TK_WORD = 101,              // LHS token
     TK_FLAG,                    // [xxx]
-    TK_ASSIGN,                  // :=
-    TK_LOCAL_ASSIGN,            // =
+    TK_ASSIGN,                  // =
+    TK_LOCAL_ASSIGN,            // :=
     TK_ERROR,
     TK_EOF
   };
@@ -600,7 +600,7 @@ public:
   /**
    * @brief Flush remaining line in parser.
    *
-   * This method causes a new line to be read from the file.
+   * This method skips to the next character after the next new-line.
    */
   void flush_line()
   {

@@ -7,9 +7,6 @@
 #ifndef INCL_TRACK_TMP_UTILS_H
 #define INCL_TRACK_TMP_UTILS_H
 
-#include <vital/vital_config.h>
-#include <track_oracle/data_terms/data_terms_export.h>
-
 //
 // These are some template metaprogramming (TMP) routines to support
 // mixing new-style data_terms with old-style data_field (type, name)

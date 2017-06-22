@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,14 @@ source_location( std::shared_ptr< std::string > f, int l)
 
 // ------------------------------------------------------------------
 source_location::
+source_location( const source_location& other )
+  : m_file_name(other.m_file_name)
+  , m_line_num( other.m_line_num )
+{ }
+
+
+// ------------------------------------------------------------------
+source_location::
 ~source_location()
 { }
 
@@ -66,10 +74,19 @@ format (std::ostream & str) const
 {
   if (m_line_num > 0)
   {
-    str << m_file_name << ":" << m_line_num;
+    str << *m_file_name << ":" << m_line_num;
   }
 
   return str;
+}
+
+
+// ------------------------------------------------------------------
+bool
+source_location::
+valid() const
+{
+  return (  m_line_num > 0) && ( ! m_file_name->empty() );
 }
 
 } } // end namespace

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/functional.hpp>
-#include <boost/make_shared.hpp>
 
 #include <functional>
 #include <map>
@@ -57,7 +56,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
-
+#include <memory>
 #include <cstddef>
 
 /**
@@ -179,8 +178,8 @@ class pipeline::priv
                               process::name_t const& downstream_name,
                               process::port_t const& downstream_port,
                               process::port_type_t const& type,
-                              bool push_upstream) SPROKIT_NOTHROW;
-        ~propagation_exception() SPROKIT_NOTHROW;
+                              bool push_upstream) VITAL_NOTHROW;
+        ~propagation_exception() VITAL_NOTHROW;
 
         process::name_t const m_upstream_name;
         process::port_t const m_upstream_port;
@@ -248,7 +247,7 @@ pipeline
 
   d->check_duplicate_name(name);
 
-  process_cluster_t const cluster = boost::dynamic_pointer_cast<process_cluster>(process);
+  process_cluster_t const cluster = std::dynamic_pointer_cast<process_cluster>(process);
 
   process::name_t parent;
 
@@ -1820,7 +1819,7 @@ pipeline::priv
     }
 
     // Create a new edge
-    edge_t const e = boost::make_shared<edge>(edge_config);
+    edge_t const e = std::make_shared<edge>(edge_config);
 
     edge_map[i] = e;
 
@@ -2280,7 +2279,7 @@ pipeline::priv::propagation_exception
                         process::name_t const& downstream_name,
                         process::port_t const& downstream_port,
                         process::port_type_t const& type,
-                        bool push_upstream) SPROKIT_NOTHROW
+                        bool push_upstream) VITAL_NOTHROW
   : m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
   , m_downstream_name(downstream_name)
@@ -2294,7 +2293,7 @@ pipeline::priv::propagation_exception
 
 // ------------------------------------------------------------------
 pipeline::priv::propagation_exception
-::~propagation_exception() SPROKIT_NOTHROW
+::~propagation_exception() VITAL_NOTHROW
 {
 }
 

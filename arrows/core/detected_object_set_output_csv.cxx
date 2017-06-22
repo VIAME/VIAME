@@ -139,6 +139,11 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
   const auto detections = set->select();
   VITAL_FOREACH( const auto det, detections )
   {
+    if( !det )
+    {
+      continue;
+    }
+
     const kwiver::vital::bounding_box_d bbox( det->bounding_box() );
     stream() << d->m_frame_number << d->m_delim
              << image_name << d->m_delim

@@ -39,6 +39,7 @@
 #include "image.h"
 
 #include <vital/vital_config.h>
+#include <vital/video_metadata/video_metadata.h>
 
 #include <vector>
 
@@ -79,6 +80,15 @@ public:
   /// Get and in-memory image class to access the data
   virtual image get_image() const = 0;
 
+  /// Get metadata associated with this image
+  virtual video_metadata_sptr get_metadata() const { return md_; }
+
+  /// Set metadata associated with this image
+  virtual void set_metadata(video_metadata_sptr md) { md_ = md; }
+
+protected:
+  /// optional metadata
+  video_metadata_sptr md_;
 };
 
 
@@ -98,8 +108,11 @@ class simple_image_container
 public:
 
   /// Constructor
-  explicit simple_image_container(const image& d)
-  : data(d) {}
+  explicit simple_image_container(const image& d, video_metadata_sptr m = nullptr)
+  : data(d)
+  {
+    this->set_metadata(m);
+  }
 
   /// The size of the image data in bytes
   /**

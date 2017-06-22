@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -168,6 +168,11 @@ private:
   template < typename T1 >
   friend bounding_box<T1> & translate( bounding_box<T1>& bbox,
                               typename bounding_box<T1>::vector_type const& pt );
+
+  template < typename T1 >
+  friend bounding_box<T1> scale( bounding_box<T1> const& bbox,
+                                 double scale_factor );
+
   template<typename T2>
   friend bounding_box<T2> intersection( bounding_box<T2> const& one,
                                         bounding_box<T2> const& other );
@@ -215,12 +220,34 @@ typedef bounding_box< double > bounding_box_d;
  * @return The specified parameter box, updated with the new
  * coordinates, is returned.
  */
-  template < typename T >
-  bounding_box<T> & translate( bounding_box<T>& bbox,
-                               typename bounding_box<T>::vector_type const& pt )
+template < typename T >
+bounding_box<T> & translate( bounding_box<T>& bbox,
+                             typename bounding_box<T>::vector_type const& pt )
 {
   bbox.get_eabb().translate( pt );
   return bbox;
+}
+
+
+/**
+ * @brief Scale a box by some scale factor.
+ *
+ * This operator scales bounding_box by the specified
+ * amount.
+ *
+ * @param[in,out] bbox Box to translate
+ * @param[in] scale_factor Scale factor to use
+ *
+ * @return The specified parameter box, updated with the new
+ * coordinates, is returned.
+ */
+template < typename T >
+bounding_box<T> scale( bounding_box<T> const& bbox,
+                       double scale_factor )
+{
+  return bounding_box<T>(
+    (bbox.upper_left().template cast<double>() * scale_factor).template cast<T>(),
+    (bbox.lower_right().template cast<double>() * scale_factor).template cast<T>() );
 }
 
 

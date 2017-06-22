@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 #include <sprokit/pipeline/process_registry_exception.h>
 #include <sprokit/pipeline/types.h>
 
-#include <boost/make_shared.hpp>
+#include <memory>
 
 static void test_process( sprokit::process::type_t const& type );
 
@@ -77,17 +77,29 @@ main()
 
   VITAL_FOREACH( const auto fact, proc_list )
   {
-    // Test to see if this process does not work well with this test.
-    std::string attrib;
-    if ( fact->get_attribute( "no-test", attrib ) && ( attrib == "introspect" ) )
-    {
-      continue;
-    }
-
     sprokit::process::type_t type;
     if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type ) )
     {
       TEST_ERROR( "Factory for this process has no registered name" );
+      continue;
+    }
+
+    // Test to see if this process does not work well with this test.
+    std::string attrib;
+    if ( fact->get_attribute( "no-test", attrib ) && ( attrib == "introspect" ) )
+    {
+      std::cout << "Test " << type << " has been marked for exclusion from this test" << std::endl;
+      continue;
+    }
+
+    //
+    // There are problems with python processes when they throw exceptions.
+    // The type is not the same as in c++ processes which confuses the tests.
+    //
+    if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, attrib )
+         && ( attrib == "python-runtime" ) )
+    {
+      std::cout << "Test " << type << " has been skipped because it is a python process" << std::endl;
       continue;
     }
 
@@ -134,14 +146,14 @@ test_process( sprokit::process::type_t const& type )
 
   if ( process->name() != expected_name )
   {
-    TEST_ERROR( "Name (" << process->name() << ") "
-                                               "does not match expected name: " << expected_name );
+    TEST_ERROR( "Name (" << process->name()
+                << ") does not match expected name: " << expected_name );
   }
 
   if ( process->type() != type )
   {
-    TEST_ERROR( "Type (" << process->type() << ") "
-                                               "does not match registry type: " << type );
+    TEST_ERROR( "Type (" << process->type()
+                << ") does not match registry type: " << type );
   }
 
   test_process_properties( process );
@@ -155,6 +167,7 @@ test_process( sprokit::process::type_t const& type )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_properties( sprokit::process_t const process )
 {
@@ -166,6 +179,7 @@ test_process_properties( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_configuration( sprokit::process_t const process )
 {
@@ -193,6 +207,7 @@ test_process_configuration( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_input_ports( sprokit::process_t const process )
 {
@@ -255,7 +270,7 @@ test_process_input_ports( sprokit::process_t const process )
                   "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
 
     process->connect_input_port( port, edge );
 
@@ -266,6 +281,7 @@ test_process_input_ports( sprokit::process_t const process )
 } // test_process_input_ports
 
 
+// ------------------------------------------------------------------
 void
 test_process_output_ports( sprokit::process_t const process )
 {
@@ -318,8 +334,8 @@ test_process_output_ports( sprokit::process_t const process )
                   "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge1 = boost::make_shared< sprokit::edge > ( config );
-    sprokit::edge_t edge2 = boost::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge1 = std::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge2 = std::make_shared< sprokit::edge > ( config );
 
     process->connect_output_port( port, edge1 );
     process->connect_output_port( port, edge2 );
@@ -327,6 +343,7 @@ test_process_output_ports( sprokit::process_t const process )
 } // test_process_output_ports
 
 
+// ------------------------------------------------------------------
 void
 test_process_invalid_configuration( sprokit::process_t const process )
 {
@@ -338,6 +355,7 @@ test_process_invalid_configuration( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_invalid_input_port( sprokit::process_t const process )
 {
@@ -348,7 +366,7 @@ test_process_invalid_input_port( sprokit::process_t const process )
                     process->input_port_info( non_existent_port ),
                     "requesting the info for a non-existent input port" );
 
-  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
+  sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
 
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->connect_input_port( non_existent_port, edge ),
@@ -356,6 +374,7 @@ test_process_invalid_input_port( sprokit::process_t const process )
 }
 
 
+// ------------------------------------------------------------------
 void
 test_process_invalid_output_port( sprokit::process_t const process )
 {
@@ -367,7 +386,7 @@ test_process_invalid_output_port( sprokit::process_t const process )
                     process->output_port_info( non_existent_port ),
                     "requesting the info for a non-existent output port" );
 
-  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
+  sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
 
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->connect_output_port( non_existent_port, edge ),

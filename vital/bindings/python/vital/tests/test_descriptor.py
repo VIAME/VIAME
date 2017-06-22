@@ -54,12 +54,15 @@ class TestDescriptor (unittest.TestCase):
             Descriptor(n, ctypes.c_double)
             Descriptor(n, ctypes.c_float)
 
+    def test_new_invalid_size(self):
+        # Check that we need to pass an integer size.
         nose.tools.assert_raises(
             ctypes.ArgumentError,
             Descriptor, 42.3
         )
 
     def test_size(self):
+        # Check that we can check the size of the descriptor array.
         random.seed(0)
         for i in xrange(100):
             n = random.randint(1, 4096)
@@ -86,14 +89,18 @@ class TestDescriptor (unittest.TestCase):
         d[:] = 1
         nose.tools.assert_equal(d.sum(), 64)
 
+        # Check that slicing the array data yields an array with the same
+        # values.
         d2 = d[:]
         numpy.testing.assert_almost_equal(d, d2)
 
+        # Check that modifying the sliced array shared the same data as the
+        # parent descriptor.
         d2[:] = 2
         numpy.testing.assert_almost_equal(d, d2)
 
     def test_tobytearray(self):
-        # Expect 0-values descriptor to have 0-valued byte array of the
+        # Expect 0-valued descriptor to have 0-valued byte array of the
         # appropriate size
         d = Descriptor(64)
         d[:] = 0

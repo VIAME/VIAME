@@ -33,11 +33,8 @@
 
 #include "util-config.h"
 
-namespace sprokit
-{
-
-namespace python
-{
+namespace sprokit {
+namespace python {
 
 /// \todo More useful output?
 

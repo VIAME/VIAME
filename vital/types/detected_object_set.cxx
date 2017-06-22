@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 
 #include "detected_object_set.h"
+#include "bounding_box.h"
 
 #include <vital/vital_foreach.h>
 
@@ -45,6 +46,14 @@ struct descending_confidence
 {
   bool operator()( detected_object_sptr const& a, detected_object_sptr const& b ) const
   {
+    if( a && !b )
+    {
+      return true;
+    }
+    else if( !a )
+    {
+      return false;
+    }
     return a->confidence() > b->confidence();
   }
 };
@@ -94,7 +103,10 @@ clone() const
   }
 
   // duplicate attributes
-  new_obj->m_attrs = this->m_attrs->clone();
+  if ( this->m_attrs )
+  {
+    new_obj->m_attrs = this->m_attrs->clone();
+  }
 
   return new_obj;
 }
@@ -105,12 +117,24 @@ void
 detected_object_set::
 add( detected_object_sptr object )
 {
-  // keep list ordered
-  m_detected_objects.insert (
-      std::upper_bound( m_detected_objects.begin(), m_detected_objects.end(),
-                        object, descending_confidence() ),
-      object
-    );
+  if ( ! object )
+  {
+    throw std::runtime_error( "Passing null pointer to detected_object_set::add()" );
+  }
+
+  m_detected_objects.push_back( object );
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+add( detected_object_set_sptr detections )
+{
+  VITAL_FOREACH( auto detection, detections->select() )
+  {
+    this->add( detection );
+  }
 }
 
 
@@ -126,16 +150,10 @@ size() const
 // ------------------------------------------------------------------
 detected_object::vector_t
 detected_object_set::
-select( double threshold )
+select( double threshold ) const
 {
   // The main list can get out of order if somebody updates the
   // confidence value of a detection directly
-
-  ///@todo Find a way of determining if the list needs sorting or is
-  ///already sorted.
-  std::sort( m_detected_objects.begin(), m_detected_objects.end(),
-             descending_confidence() );
-
   detected_object::vector_t vect;
 
   VITAL_FOREACH( auto i, m_detected_objects )
@@ -146,6 +164,7 @@ select( double threshold )
     }
   }
 
+  std::sort( vect.begin(), vect.end(), descending_confidence() );
   return vect;
 }
 
@@ -153,7 +172,7 @@ select( double threshold )
 // ------------------------------------------------------------------
 detected_object::vector_t
 detected_object_set::
-select( const std::string& class_name, double threshold )
+select( const std::string& class_name, double threshold )const
 {
   // Intermediate sortable data structure
   std::vector< std::pair< double, detected_object_sptr > > data;
@@ -201,6 +220,60 @@ select( const std::string& class_name, double threshold )
   }
 
   return vect;
+}
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+scale( double scale_factor )
+{
+  if( scale_factor == 1.0 )
+  {
+    return;
+  }
+
+  VITAL_FOREACH( auto detection, m_detected_objects )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::scale( bbox, scale_factor );
+    detection->set_bounding_box( bbox );
+  }
+}
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+shift( double col_shift, double row_shift )
+{
+  if( col_shift == 0.0 && row_shift == 0.0 )
+  {
+    return;
+  }
+
+  VITAL_FOREACH( auto detection, m_detected_objects )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::translate( bbox,
+      bounding_box_d::vector_type( col_shift, row_shift ) );
+    detection->set_bounding_box( bbox );
+  }
+}
+
+// ------------------------------------------------------------------
+kwiver::vital::attribute_set_sptr
+detected_object_set::
+attributes() const
+{
+  return m_attrs;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object_set::
+set_attributes( attribute_set_sptr attrs )
+{
+  m_attrs = attrs;
 }
 
 } } // end namespace

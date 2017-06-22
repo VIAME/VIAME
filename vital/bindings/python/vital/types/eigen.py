@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,6 @@ from vital.util import (
     VitalObject,
 )
 from vital.util.VitalObject import OpaqueTypeCache
-
-
-__author__ = 'paul.tunison@kitware.com'
 
 
 if ctypes.sizeof(ctypes.c_void_p) == 4:
@@ -121,6 +118,9 @@ class EigenArray (numpy.ndarray, VitalObject):
         """
         Initialize C function naming map for the given shape and type
         information.
+        
+        This method will return names consistent with the convention defined 
+        in <KWIVER_src>/vital/bindings/c/types/eigen.h.
 
         :returns: Function name mapping and associated ctypes data type
         :rtype: (str, dict[str, str], _ctypes._SimpleCData)
@@ -361,7 +361,7 @@ class EigenArray (numpy.ndarray, VitalObject):
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        s = str(self)
+        s = numpy.array2string(self, separator=',')
         # prefix lines based on the length of the class name
         l = s.splitlines()
         l[0] = cls_name + '(' + l[0]
@@ -447,3 +447,17 @@ class EigenArray (numpy.ndarray, VitalObject):
         f.restype = self._c_type
         with VitalErrorHandle() as eh:
             return f(self, row, col, eh)
+    
+    def norm(self, norm_type='L2'):
+        """
+        Return the norm of the array.
+        
+        :norm_type row: Type of norm to use.
+        :norm_type col: 'L2' |
+
+        :return: Norm of the array.
+        :rtype: float
+        
+        """
+        if norm_type == 'L2':
+            return numpy.linalg.norm(self)

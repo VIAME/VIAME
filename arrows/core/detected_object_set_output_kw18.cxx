@@ -33,11 +33,16 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
-#include <atomic>
 #include <memory>
 #include <vector>
 #include <fstream>
 #include <time.h>
+
+#if ( __GNUC__ == 4 && __GNUC_MINOR__ < 5 && !defined(__clang__) )
+  #include <cstdatomic>
+#else
+  #include <atomic>
+#endif
 
 
 namespace kwiver {
@@ -249,7 +254,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
              << "0 "                // 15: world-loc x
              << "0 "                // 16: world-loc y
              << "0 "                // 17: world-loc z
-             << "-1"                // 18: timestamp
+             << "-1 "                // 18: timestamp
              << det->confidence()   // 19: confidence
              << std::endl;
 

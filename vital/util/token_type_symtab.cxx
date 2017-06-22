@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,14 +68,14 @@ remove_entry (std::string const& name)
 // ----------------------------------------------------------------
 bool
 token_type_symtab::
-lookup_entry (std::string const& name, std::string& result)
+lookup_entry (std::string const& name, std::string& result) const
 {
   bool retcode( false );
   result.clear();
 
   if ( m_table.count( name ) )
   {
-    result = m_table[name];
+    result = m_table.at(name);
     retcode = true;
   }
 

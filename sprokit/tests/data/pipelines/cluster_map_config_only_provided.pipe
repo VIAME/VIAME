@@ -1,15 +1,16 @@
 cluster map_config_only_provided
-  :# Cluster for map_config testing.
-  :# A tunable parameter.
-  :tunable[tunable] expected
-  :# The output.
+  -- Cluster for map_config testing.
+  tunable[tunable] = expected
+  -- A tunable parameter.
+
   omap from expect.dummy
        to   pass
+  -- The output.
 
 process expect
   :: expect
-  :tunable[ro] map_config_only_provided:tunable
-  :expect[ro] map_config_only_provided:tunable
+  tunable[ro] = map_config_only_provided:tunable
+  expect[ro] = map_config_only_provided:tunable
 
 process sink_expect
   :: sink

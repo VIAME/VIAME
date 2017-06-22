@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,8 @@
 
 #include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/make_shared.hpp>
 
+#include <memory>
 #include <fstream>
 
 #define TEST_ARGS (sprokit::scheduler::type_t const& scheduler_type)
@@ -630,5 +630,5 @@ create_process(sprokit::process::type_t const& type, sprokit::process::name_t co
 sprokit::pipeline_t
 create_pipeline()
 {
-  return boost::make_shared<sprokit::pipeline>();
+  return std::make_shared<sprokit::pipeline>();
 }

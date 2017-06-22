@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -179,14 +179,14 @@ datum
 
 // ------------------------------------------------------------------
 datum_exception
-::datum_exception() SPROKIT_NOTHROW
+::datum_exception() VITAL_NOTHROW
   : pipeline_exception()
 {
 }
 
 
 datum_exception
-::~datum_exception() SPROKIT_NOTHROW
+::~datum_exception() VITAL_NOTHROW
 {
 }
 
@@ -200,7 +200,7 @@ bad_datum_cast_exception
                            std::string const& typeid_,
                            datum::type_t const& type,
                            datum::error_t const& error,
-                           char const* reason) SPROKIT_NOTHROW
+                           char const* reason) VITAL_NOTHROW
   : datum_exception()
   , m_requested_typeid(requested_typeid)
   , m_typeid(typeid_)
@@ -238,7 +238,7 @@ bad_datum_cast_exception
 
 // ------------------------------------------------------------------
 bad_datum_cast_exception
-::~bad_datum_cast_exception() SPROKIT_NOTHROW
+::~bad_datum_cast_exception() VITAL_NOTHROW
 {
 }
 

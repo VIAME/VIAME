@@ -113,6 +113,18 @@ IMPLEMENT_TEST(logger_factory)
 }
 
 
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(logger_output)
+{
+  kwiver::vital::logger_handle_t log2 = kwiver::vital::get_logger( "main.logger2" );
+
+  log2->set_level(kwiver::vital::kwiver_logger::LEVEL_TRACE);
+
+  LOG_DEBUG( log2, "Test message" );
+
+}
+
+
 //
 // Need to test
 //

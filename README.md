@@ -22,7 +22,7 @@ To build Fletch, clone the Fletch repository:
 
 Then, create a build directory and run the following `cmake` command:
 
-	cmake -DFLETCH_BUILD_WITH_PYTHON:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -Dfletch_ENABLE_Boost:BOOL=TRUE -Dfletch_ENABLE_OpenCV:BOOL=TRUE  /path/to/fletch/source/directory
+	cmake -Dfletch_BUILD_WITH_PYTHON:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -Dfletch_ENABLE_Boost:BOOL=TRUE -Dfletch_ENABLE_OpenCV:BOOL=TRUE  /path/to/fletch/source/directory
 
 If you have more than one version of Python installed on your system and you want to be sure to use a particular one (for example we here at KWIVER development central use [Anaconda](https://store.continuum.io/cshop/anaconda/) fairly frequently) you'll want to add the following arguments to the `cmake` command:
 
@@ -135,17 +135,17 @@ And for `print_number`, we'll use `processopedia -t print_number -d`:
 
 The output of these commands tells us enough about each process to construct a Sprocket ".pipe" file that defines a processing pipeline.  In particular we'll need to know how to configure each process (the "Configuration") and how they can be hooked together (the input and output "Ports").
 
-KWIVER comes with a sample [kwiver/pipeline_configs/number_flow.pipe](kwiver/pipeline_configs/number_flow.pipe) file that configures and connects the pipeline so that the `numbers` process will generate a set of integers from 1 to 99 and the `print_number` process will write those to a file called `numbers.txt`.  Of particular interest is the section at the end of the file that actually "hooks up" the pipeline.
+KWIVER comes with a sample [sprokit/pipelines/number_flow.pipe](sprokit/pipelines/number_flow.pipe) file that configures and connects the pipeline so that the `numbers` process will generate a set of integers from 1 to 99 and the `print_number` process will write those to a file called `numbers.txt`.  Of particular interest is the section at the end of the file that actually "hooks up" the pipeline.
 
 To run the pipeline, we'll use the Sprokit `pipeline_runner` command:
 
-	pipeline_runner -p </path/to/kwiver/source>/kwiver/pipeline_configs>/number_flow.pipe
+	pipeline_runner -p </path/to/kwiver/source>/sprokit/pipelines/number_flow.pipe
 
 After the pipeline completes, you should find a file, `numbers.txt`, in your working directory.
 
 ### Python Processes
 
-One KWIVER's great strengths (as provided by Sprokit) is the ability to create hybrid pipelines which combine C++ and Python processes in the same pipeline.  This greatly facilitates prototyping complex processing pipelines.  To test this out we'll still use the `numbers` process, but we'll use a Python version of the `print_number` process called `kw_print_number_process` the code for which can be seen in [kwiver/processes/kw_print_number_process.py](kwiver/processes/kw_print_number_process.py).    As usual, we can lean about this process with a `processopedia` command: `processopedia -t kw_print_number_process -d`:
+One of KWIVER's great strengths (as provided by Sprokit) is the ability to create hybrid pipelines which combine C++ and Python processes in the same pipeline.  This greatly facilitates prototyping complex processing pipelines.  To test this out we'll still use the `numbers` process, but we'll use a Python version of the `print_number` process called `kw_print_number_process` the code for which can be seen in [sprokit/processes/python/kw_print_number_process.py](sprokit/processes/python/kw_print_number_process.py).    As usual, we can lean about this process with a `processopedia` command: `processopedia -t kw_print_number_process -d`:
 
 	Process type: kw_print_number_process
 	  Description: A Simple Kwiver Test Process
@@ -164,11 +164,11 @@ One KWIVER's great strengths (as provided by Sprokit) is the ability to create h
 
 	  Output ports:
 
-As you can see, the process is very similar to the C++ `print_number` process.  As a result, the [".pipe" file is very similar](kwiver/pipeline_configs/number_flow_python.pipe).
+As you can see, the process is very similar to the C++ `print_number` process.  As a result, the [".pipe" file is very similar](sprokit/pipelines/number_flow_python.pipe).
 
 In order to get around limitations imposed by the Python Global Interpreter Lock, we'll use a different Sprokit scheduler for this pipeline.  The `pythread_per_process` scheduler which does essentially what it says: it creates a Python thread for every process in the pipeline:
 
-	pipeline_runner -S pythread_per_process -p </path/to/kwiver/source>/kwiver/pipeline_configs>/number_flow_python.pipe
+	pipeline_runner -S pythread_per_process -p </path/to/kwiver/source>/sprokit/pipelines/number_flow_python.pipe
 
 As with the previous pipeline, the numbers will be written to an output file, this time `numbers_from_python.txt`
 
@@ -239,8 +239,8 @@ turned ON or OFF through CMake variables.
 All dependencies are supplied by the Fletch package of 3rd party dependencies.
 
 [Eigen](http://eigen.tuxfamily.org/) (>= 3.0)
-[log4cxx] (https://logging.apache.org/log4cxx/) (>= 0.10.0)
-[Apache Runtime] (https://apr.apache.org/)
+[log4cxx](https://logging.apache.org/log4cxx/) (>= 0.10.0)
+[Apache Runtime](https://apr.apache.org/)
 
 # Development #
 
@@ -290,7 +290,6 @@ follows:
   * When catching exceptions, catch the type then use ``sys.exc_info()`` so
     that it works in Python versions from 2.4 to 3.3
   * No metaclasses; they don't work with the same syntax in Python2 and Python3
-  * Avoid 'with' since it doesn't work in Python 2.4
 
 ## Testing ##
 

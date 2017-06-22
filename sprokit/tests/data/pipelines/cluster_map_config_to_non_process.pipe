@@ -1,18 +1,17 @@
 cluster map_config_non_process
-  :# Cluster for map_config testing.
-  :# A tunable parameter.
-  :tunable[tunable] unexpected
-  :# The output.
-  omap from expect.dummy
-       to   pass
+  -- Cluster for map_config testing.
+  tunable[tunable] = unexpected
+  -- A tunable parameter.
+  omap from expect.dummy       to   pass
+  -- The output.
 
 config not_a_process
-  :tunable[ro]{CONF} map_config_non_process:tunable
+  tunable[ro] = $CONFIG{map_config_non_process:tunable}
 
 process expect
   :: expect
-  :tunable[ro] expected
-  :expect[ro] expected
+  tunable[ro] = expected
+  expect[ro] = expected
 
 process sink_expect
   :: sink

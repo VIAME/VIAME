@@ -38,7 +38,7 @@
 #include <boost/python/converter/registry.hpp>
 #include <boost/python/extract.hpp>
 
-#include <Python.h>
+#include <sprokit/python/util/python.h>
 
 /**
  * \file any_conversion/prototypes.h

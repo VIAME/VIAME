@@ -104,6 +104,26 @@ struct converter<std::string, SRC>
   }
 };
 
+// ------------------------------------------------------------------
+/**
+ * This specialization is not strictly needed, but resolves compiler
+ * warning C4800 (forcing value to bool) in Visual Studio.
+ */
+template < typename SRC >
+struct converter<bool, SRC>
+  : public convert_base< bool >
+{
+  virtual bool can_convert(kwiver::vital::any const& data) const
+  {
+    return data.type() == typeid(SRC);
+  }
+
+  virtual bool convert(kwiver::vital::any const& data) const
+  {
+    return kwiver::vital::any_cast< SRC > (data) != SRC(0);
+  }
+};
+
 } // end namespace convert
 
 

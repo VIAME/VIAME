@@ -175,6 +175,19 @@ public:
   T get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW;
 
 
+  /**
+   * \brief Convert string to enum value.
+   *
+   * \param key The index of the configuration value to retrieve.
+   * \tparam E Type of the enum value.
+   * \tparam C Type of the enum converter. Must be derived from
+   * enum_converter struct.
+   * \return
+   */
+  template < typename C>
+  typename C::enum_type get_enum_value( const config_block_key_t& key );
+
+
   /// Get the description associated to a value
   /**
    * If the provided key has no description associated with it, an empty
@@ -306,6 +319,17 @@ public:
   void merge_config( config_block_sptr const& config );
 
 
+  /// Get difference between this and other config block.
+  /**
+   * This method determines the difference between two config blocks
+   * (this - other) and returns a new config block that contains all
+   * entries that are in \b this config block but not in the other.
+   *
+   * \param other The config block to be differenced with.
+   */
+  config_block_sptr difference_config( const config_block_sptr other ) const;
+
+
   ///Return the values available in the configuration.
   /**
    * This method returns a list of all config entry keys available
@@ -326,6 +350,7 @@ public:
    */
   bool has_value( config_block_key_t const& key ) const;
 
+
   /// The separator between blocks.
   static config_block_key_t const block_sep;
 
@@ -341,6 +366,7 @@ public:
    */
   void print( std::ostream & str );
 
+
   /// Set source file location where entry is defined.
   /**
    * This method adds the source file location where a config entry
@@ -351,6 +377,8 @@ public:
    * \param line Line number in file
    */
   void set_location( config_block_key_t const& key, std::shared_ptr< std::string > file, int line );
+  void set_location( config_block_key_t const& key, const kwiver::vital::source_location& loc );
+
 
   /// Get file location where config key was defined.
   /**
@@ -362,12 +390,25 @@ public:
    * \param[out] file Name of the last file where this symbol was defined
    * \param[out] line Line number in file of definition
    *
-   * \return \b true if the symbol definition is available.
+   * \return \b true if the location is available.
    */
   bool get_location( config_block_key_t const& key,
                      std::string& file,
                      int& line) const;
 
+
+  /// Get file location where config key was defined.
+  /**
+   * This method returns the location where the specified config entry
+   * was defined. If it is no location for the definition of the
+   * symbol, the output parameters are unchanged.
+   *
+   * \param[in] key Name of the config entry
+   * \param[out] loc Location of where this entry was defined.
+   *
+   * \return \b true if the location is available.
+   */
+  bool get_location( config_block_key_t const& key, kwiver::vital::source_location& loc ) const;
 
 private:
   /// Internal constructor
@@ -398,6 +439,21 @@ private:
                     config_block_value_t const& value,
                     config_block_description_t const& descr = config_block_key_t() );
 
+  /**
+   * @brief Copies config entry to this config block.
+   *
+   * This function copies one config entry, as specified by the \b key
+   * from the specified config block to this block.
+   *
+   * @param key Specifies the config entry to copy.
+   * @param from The source config block.
+   */
+  void copy_entry( config_block_key_t const& key,
+                   const config_block_sptr from );
+
+  void copy_entry( config_block_key_t const& key,
+                   const config_block* from );
+
   typedef std::map< config_block_key_t, config_block_value_t > store_t;
   typedef std::set< config_block_key_t > ro_list_t;
 
@@ -421,27 +477,8 @@ private:
   // list of keys that are read-only
   ro_list_t m_ro_list;
 
-  /**
-   * This structure contains the source location where a config entry
-   * was defined. The file is managed by smart pointer so that all
-   * entries, and there could be a lot of them, share the same string.
-   */
-  class source_location
-  {
-  public:
-    source_location() : m_line(0) { }
-    source_location( std::shared_ptr< std::string > f, int l )
-      : m_file( f ), m_line( l ) { }
 
-    std::string file() const { return *m_file; }
-    int line() const { return m_line; }
-
-  private:
-    std::shared_ptr< std::string > m_file;
-    int m_line;
-  };
-
-  typedef std::map< config_block_key_t, source_location > location_t;
+  typedef std::map< config_block_key_t, kwiver::vital::source_location > location_t;
 
   // location where key was defined.
   location_t m_def_store;
@@ -595,6 +632,16 @@ config_block
     // Upgrade exception by adding more known details.
     throw bad_config_block_cast_exception( key, value, typeid( T ).name(), e.what() );
   }
+}
+
+
+// ------------------------------------------------------------------
+template < typename C >
+typename C::enum_type
+config_block
+::get_enum_value( const config_block_key_t& key )
+{
+  return C().from_string( get_value < std::string >( key ) );
 }
 
 

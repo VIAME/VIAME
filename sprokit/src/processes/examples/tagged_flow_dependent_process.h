@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 #include "examples-config.h"
 
 #include <sprokit/pipeline/process.h>
-
-#include <boost/scoped_ptr.hpp>
 
 /**
  * \file tagged_flow_dependent_process.h
@@ -93,7 +91,7 @@ class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
     void make_ports();
 
     class priv;
-    boost::scoped_ptr<priv> d;
+    std::unique_ptr<priv> d;
 };
 
 }

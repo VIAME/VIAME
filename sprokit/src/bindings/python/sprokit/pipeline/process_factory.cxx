@@ -42,6 +42,9 @@
 #include <sprokit/python/util/python_gil.h>
 #include <sprokit/python/util/python_threading.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/vital_foreach.h>
+
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
@@ -49,12 +52,35 @@
 #include <boost/python/wrapper.hpp>
 #include <boost/python/def.hpp>
 
+#ifdef WIN32
+ // Windows get_pointer const volatile workaround
+namespace boost
+{
+  template <> inline sprokit::process const volatile*
+  get_pointer(class sprokit::process const volatile* p)
+  {
+    return p;
+  }
+  template <> inline sprokit::process_cluster const volatile*
+  get_pointer(class sprokit::process_cluster const volatile* p)
+  {
+    return p;
+  }
+}
+#endif
+
 using namespace boost::python;
 
 static void register_process( sprokit::process::type_t const& type,
                               sprokit::process::description_t const& desc,
                               object obj );
 
+static bool is_process_loaded( const std::string& name );
+static void mark_process_loaded( const std::string& name );
+static std::string get_description( const std::string& name );
+static std::vector< std::string > process_names();
+
+// ==================================================================
 BOOST_PYTHON_MODULE(process_factory)
 {
   class_<sprokit::process::description_t>("ProcessDescription"
@@ -131,15 +157,16 @@ BOOST_PYTHON_MODULE(process_factory)
     .def(vector_indexing_suite<sprokit::processes_t>())
   ;
 
-  class_<sprokit::process_cluster, sprokit::process_cluster_t, bases<sprokit::process>, boost::noncopyable>("ProcessCluster"
+  class_<sprokit::process_cluster, sprokit::process_cluster_t, bases<sprokit::process>,
+         boost::noncopyable>("ProcessCluster"
     , "The base class of process clusters."
     , no_init);
 
-  def("is_process_module_loaded", &sprokit::is_process_module_loaded
+  def("is_process_module_loaded", &is_process_loaded
       , (arg("module"))
       , "Returns True if the module has already been loaded, False otherwise.");
 
-  def("mark_process_module_as_loaded", &sprokit::mark_process_module_as_loaded
+  def("mark_process_module_as_loaded", &mark_process_loaded
       , (arg("module"))
       , "Marks a module as loaded.");
 
@@ -151,7 +178,29 @@ BOOST_PYTHON_MODULE(process_factory)
       , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
       , "Creates a new process of the given type.");
 
+  // ------------------------------------------------------------------
+  def("is_process_module_loaded", &is_process_loaded
+      , (arg("module"))
+      , "Returns True if the module has already been loaded, False otherwise.");
 
+  def("mark_process_module_as_loaded", &mark_process_loaded
+      , (arg("module"))
+      , "Marks a module as loaded.");
+
+  def("add_process", &register_process
+      , (arg("type"), arg("description"), arg("ctor"))
+      , "Registers a function which creates a process of the given type.");
+
+  def("create_process", &sprokit::create_process
+      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
+      , "Creates a new process of the given type.");
+
+  def("description", &get_description
+      , (arg("type"))
+      , "Returns description for the process");
+
+  def("types", &process_names
+      , "Returns list of process names" );
 
   //+ convert this to process_factory
   class_<sprokit::process_factory, sprokit::process_factory, boost::noncopyable>("ProcessFactory"
@@ -161,6 +210,7 @@ BOOST_PYTHON_MODULE(process_factory)
 }
 
 
+// ==================================================================
 class python_process_wrapper
   : sprokit::python::python_threading
 {
@@ -176,6 +226,7 @@ private:
 };
 
 
+// ------------------------------------------------------------------
 void
 register_process( sprokit::process::type_t const&        type,
                   sprokit::process::description_t const& desc,
@@ -190,15 +241,70 @@ register_process( sprokit::process::type_t const&        type,
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   sprokit::process::type_t derived_type = "python::";
   auto fact = vpm.add_factory( new sprokit::process_factory( derived_type + type, // derived type name string
-                                                             type, // name of the process
+                                                             typeid( sprokit::process ).name(),
                                                              wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc );
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, desc )
+    ;
 }
 
 
+// ------------------------------------------------------------------
+bool is_process_loaded( const std::string& name )
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  return vpm.is_module_loaded( name );
+}
+
+
+// ------------------------------------------------------------------
+void mark_process_loaded( const std::string& name )
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.mark_module_as_loaded( name );
+}
+
+
+// ------------------------------------------------------------------
+std::string get_description( const std::string& type )
+{
+  typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
+  proc_factory ifact;
+
+  kwiver::vital::plugin_factory_handle_t a_fact;
+  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(
+    a_fact = ifact.find_factory( type );
+    )
+
+  std::string buf = "-- Not Set --";
+  a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+
+  return buf;
+}
+
+
+// ------------------------------------------------------------------
+std::vector< std::string > process_names()
+{
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  auto fact_list = vpm.get_factories<sprokit::process>();
+
+  std::vector<std::string> name_list;
+  VITAL_FOREACH( auto fact, fact_list )
+  {
+    std::string buf;
+    if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
+    {
+      name_list.push_back( buf );
+    }
+  } // end foreach
+
+  return name_list;
+}
+
+// ------------------------------------------------------------------
 python_process_wrapper
   ::python_process_wrapper( object obj )
   : m_obj( obj )
