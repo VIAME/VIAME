@@ -30,10 +30,18 @@ typedef char (&no_io_type)[2];
 typedef char yes_io_type;
 
 struct proxy{ template <typename U> proxy(const U&); };
+# if defined(_MSC_VER)
+#  pragma warning( push )
+#  pragma warning( disable : 4172 ) /* returning address of local variable */
+# endif
 
-no_io_type operator>>( const proxy&, const proxy& ) {}
+no_io_type operator>>( const proxy&, const proxy& ) { char tmp[2]; no_io_type not_used(tmp); return not_used; }
+no_io_type check( no_io_type ) { char tmp[2]; no_io_type not_used(tmp); return not_used; }
 
-no_io_type check( no_io_type ) {}
+# if defined(_MSC_VER)
+#  pragma warning( pop )
+# endif
+
 template <typename U> yes_io_type check( const U& );
 
 
