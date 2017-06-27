@@ -1,7 +1,7 @@
 # Optionally find and configure PROJ dependency
 
 option( KWIVER_ENABLE_PROJ
-  "Enable PROJ dependent code and plugins"
+  "Enable PROJ dependent code and plugins (Arrows)"
   ${fletch_ENABLED_PROJ4}
   )
 

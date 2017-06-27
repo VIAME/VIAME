@@ -1,7 +1,7 @@
 # Optionally find and configure Ceres dependency
 
 option( KWIVER_ENABLE_CERES
-  "Enable Ceres dependent code and plugins"
+  "Enable Ceres dependent code and plugins (Arrows)"
   ${fletch_ENABLED_Ceres}
   )
 
