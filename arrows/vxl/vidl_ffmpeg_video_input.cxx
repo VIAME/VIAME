@@ -565,6 +565,7 @@ vidl_ffmpeg_video_input
   set_capability(vital::algo::video_input::HAS_TIMEOUT, false );
 
   set_capability(vital::algo::video_input::HAS_EOV, true );
+  set_capability(vital::algo::video_input::HAS_FRAME_DATA, true);
   set_capability(vital::algo::video_input::HAS_FRAME_NUMBERS, true );
   set_capability(vital::algo::video_input::HAS_FRAME_TIME, d->d_have_frame_time  );
   set_capability(vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME,
