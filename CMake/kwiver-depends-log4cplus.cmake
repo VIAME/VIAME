@@ -2,8 +2,8 @@
 # Optionally find and configure log4cplus
 #
 option( KWIVER_ENABLE_LOG4CPLUS
-  "Enable log4cplus dependent code and plugins"
-  OFF
+  "Enable log4cplus dependent code for a Vital logger plugin"
+  ${fletch_ENABLED_Log4cplus}
   )
 
 if (KWIVER_ENABLE_LOG4CPLUS)

@@ -2,7 +2,7 @@
 
 option( KWIVER_ENABLE_OPENCV
   "Enable OpenCV dependent code and plugins"
-  OFF
+  ${fletch_ENABLED_OpenCV}
   )
 
 set( USE_OPENCV False )

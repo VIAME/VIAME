@@ -1,8 +1,8 @@
 # Optional find and confgure VXL dependency
 
 option( KWIVER_ENABLE_VXL
-  "Enable VXL dependent code and plugins"
-  OFF
+  "Enable VXL dependent code and plugins (Arrows)"
+  ${fletch_ENABLED_VXL}
   )
 
 if( KWIVER_ENABLE_VXL )

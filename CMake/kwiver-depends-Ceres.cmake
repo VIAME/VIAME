@@ -2,7 +2,7 @@
 
 option( KWIVER_ENABLE_CERES
   "Enable Ceres dependent code and plugins"
-  OFF
+  ${fletch_ENABLED_Ceres}
   )
 
 if( KWIVER_ENABLE_CERES )

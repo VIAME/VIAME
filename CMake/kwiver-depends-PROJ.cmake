@@ -2,7 +2,7 @@
 
 option( KWIVER_ENABLE_PROJ
   "Enable PROJ dependent code and plugins"
-  OFF
+  ${fletch_ENABLED_PROJ4}
   )
 
 # Fletch provides the PROJ4 symbols. We need the PROJ symbols.
