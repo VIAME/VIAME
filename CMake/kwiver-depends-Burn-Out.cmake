@@ -4,6 +4,7 @@ option( KWIVER_ENABLE_BURNOUT
   "Enable Burn-Out dependent code and plugins"
   OFF
   )
+mark_as_advanced( KWIVER_ENABLE_BURNOUT )
 
 if( KWIVER_ENABLE_BURNOUT )
   find_package( vidtk REQUIRED )

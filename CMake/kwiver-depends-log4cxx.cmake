@@ -5,6 +5,8 @@ option( KWIVER_ENABLE_LOG4CXX
   "Enable log4cxx dependent code and plugins"
   OFF
   )
+# Not supported by all platforms, so this is an advanced option
+mark_as_advanced( KWIVER_ENABLE_LOG4CXX )
 
 if (KWIVER_ENABLE_LOG4CXX)
 
