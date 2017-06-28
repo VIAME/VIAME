@@ -53,7 +53,9 @@ if (VALGRIND_EXECUTABLE)
   _sprokit_declare_tool_group(bbv)
 endif ()
 
-find_program(GPROF_EXECUTABLE gprof)
+if(NOT MSVC)
+  find_program(GPROF_EXECUTABLE gprof)
+endif()
 
 if (GPROF_EXECUTABLE)
   _sprokit_declare_tool_group(gprof)

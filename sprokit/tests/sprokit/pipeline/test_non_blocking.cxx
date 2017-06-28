@@ -44,7 +44,7 @@
 #include <sprokit/pipeline_util/literal_pipeline.h>
 
 #include <sstream>
-#include <unistd.h>
+#include <thread>
 
 
 class SPROKIT_NO_EXPORT test_non_blocking
@@ -155,7 +155,7 @@ IMPLEMENT_TEST(non_blocking)
     if ( (i % 10) == 0 )
     {
       // pause to let pipeline ketchup
-      sleep(1);
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     std::cout << "sending set: " << i << "\n";
     ep.send( ds );
