@@ -203,20 +203,28 @@ IMPLEMENT_TEST(conversion)
   kwiver::vital::geo_point p_ll{ loc1, crs_ll };
   kwiver::vital::geo_point p_utm{ loc3, crs_utm_18n };
 
-  auto const d1 = p_ll.location( p_utm.crs() ) - p_utm.location();
-  auto const d2 = p_utm.location( p_ll.crs() ) - p_ll.location();
+  auto const d1 = kwiver::vital::vector_2d{ p_ll.location( p_utm.crs() ) - p_utm.location() };
+  auto const d2 = kwiver::vital::vector_2d{ p_utm.location( p_ll.crs() ) - p_ll.location() };
 
   auto const e1 = d1.squaredNorm();
   auto const e2 = d2.squaredNorm();
 
+  auto str = []( kwiver::vital::vector_2d const& p ){
+    return std::to_string( p.x() ) + ", " + std::to_string( p.y() );
+  };
+
   if ( e1 > 1e-4 )
   {
     TEST_ERROR("Result of LL->UTM conversion exceeds tolerance");
+    std::cout << "  expected: " << str( p_utm.location() ) << std::endl;
+    std::cout << "  actual: " << str( p_ll.location( p_utm.crs() ) ) << std::endl;
   }
 
   if ( e2 > 1e-13 )
   {
     TEST_ERROR("Result of UTM->LL conversion exceeds tolerance");
+    std::cout << "  expected: " << str( p_ll.location() ) << std::endl;
+    std::cout << "  actual: " << str( p_utm.location( p_ll.crs() ) ) << std::endl;
   }
 
   std::cout << "LL->UTM epsilon: " << e1 << std::endl;

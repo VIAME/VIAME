@@ -16,6 +16,7 @@ kwiver_discover_tests(core_enumerate_matrix   test_libraries test_enumerate_matr
 kwiver_discover_tests(core_essential_matrix   test_libraries test_essential_matrix.cxx )
 kwiver_discover_tests(core_fundamental_matrix test_libraries test_fundamental_matrix.cxx )
 kwiver_discover_tests(core_geo_point          test_libraries test_geo_point.cxx)
+kwiver_discover_tests(core_geo_polygon        test_libraries test_geo_polygon.cxx)
 kwiver_discover_tests(core_homography         test_libraries test_homography.cxx)
 kwiver_discover_tests(core_image              test_libraries test_image.cxx)
 kwiver_discover_tests(core_rotation           test_libraries test_rotation.cxx)
