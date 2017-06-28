@@ -16,7 +16,6 @@ kwiver_discover_tests(core_enumerate_matrix   test_libraries test_enumerate_matr
 kwiver_discover_tests(core_essential_matrix   test_libraries test_essential_matrix.cxx )
 kwiver_discover_tests(core_fundamental_matrix test_libraries test_fundamental_matrix.cxx )
 kwiver_discover_tests(core_geo_point          test_libraries test_geo_point.cxx)
-kwiver_discover_tests(core_geo_polygon        test_libraries test_geo_polygon.cxx)
 kwiver_discover_tests(core_homography         test_libraries test_homography.cxx)
 kwiver_discover_tests(core_image              test_libraries test_image.cxx)
 kwiver_discover_tests(core_rotation           test_libraries test_rotation.cxx)
@@ -38,3 +37,8 @@ kwiver_discover_tests(core_algorithm_capabilities  test_libraries test_algorithm
 kwiver_discover_tests(core_detected_object_type     test_libraries    test_detected_object_type.cxx)
 kwiver_discover_tests(core_detected_object          test_libraries    test_detected_object.cxx)
 kwiver_discover_tests(core_detected_object_set      test_libraries    test_detected_object_set.cxx)
+
+find_package(GTest REQUIRED)
+add_executable(test-core_geo_polygon test_geo_polygon.cxx)
+target_link_libraries(test-core_geo_polygon vital vital_vpm GTest::GTest)
+gtest_add_tests(test-core_geo_polygon "" AUTO)
