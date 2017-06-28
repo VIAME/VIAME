@@ -30,6 +30,7 @@
 
 #include "kwiver_logger_factory.h"
 #include <kwiversys/SystemTools.hxx>
+#include <vital/logger/vital_log4cplus_logger_export.h>
 
 #include <log4cplus/configurator.h>
 #include <log4cplus/logger.h>
@@ -381,7 +382,7 @@ public:
 /*
  * Shared object bootstrap function
  */
-extern "C" VITAL_LOGGER_EXPORT void* kwiver_logger_factory();
+extern "C" VITAL_LOG4CPLUS_LOGGER_EXPORT void* kwiver_logger_factory();
 
 void* kwiver_logger_factory()
 {
