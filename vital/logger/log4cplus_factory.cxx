@@ -349,9 +349,9 @@ public:
     // Try the environemnt variable if no config file yet
     if ( ! kwiversys::SystemTools::GetEnv( "LOG4CPLUS_CONFIGURATION", config_file ) )
     {
-      if (kwiversys::SystemTools::FileExists( "log4cplus.properties") )
+      if (kwiversys::SystemTools::FileExists( "./log4cplus.properties") )
       {
-        config_file = "log4cplus.properties";
+        config_file = "./log4cplus.properties";
       }
     }
 
@@ -386,6 +386,6 @@ extern "C" VITAL_LOG4CPLUS_LOGGER_EXPORT void* kwiver_logger_factory();
 
 void* kwiver_logger_factory()
 {
-  kwiver::vital::logger_ns::log4cplus_factory* ptr =  new kwiver::vital::logger_ns::log4cplus_factory;
+  kwiver::vital::logger_ns::log4cplus_factory* ptr =  new kwiver::vital::logger_ns::log4cplus_factory();
   return ptr;
 }

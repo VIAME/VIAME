@@ -251,7 +251,6 @@ kwiver_logger_manager
         << DL::LastError();
     throw std::runtime_error( str.str() );
   }
-
   // Get pointer to new logger factory object
   m_impl->m_logFactory.reset( fp() );
 }
