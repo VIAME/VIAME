@@ -72,15 +72,17 @@ def parse_habcam( input_file ):
 
   return output
 
+def filter_h2_string( st ):
+  return st.replace(' ','').replace('[','').replace(']','').replace('"','')
 
 def parse_habcam_v2( input_file ):
   output = dict()
   for line in open( input_file ):
-    parsed_line = filter( None, line.split() )
+    parsed_line = filter( None, line.replace(':',',').split(',') )
 
     if len( parsed_line ) < 1:
       continue
-    if parsed_line[0] == '#' or parsed_line[0:5] == "Image":
+    if parsed_line[0] == '#' or parsed_line[0] == "Image":
       continue
 
     image_name = parsed_line[0]
@@ -109,17 +111,19 @@ def parse_habcam_v2( input_file ):
 
     entry = [ sid, 0.0, 0.0, 0.0, 0.0 ]
 
-    p1x = float( parsed_line[4] )
-    p1y = float( parsed_line[5] )
-    p2x = float( parsed_line[6] )
-    p2y = float( parsed_line[7] )
+    p1x = float( filter_h2_string( parsed_line[4] ) )
+    p1y = float( filter_h2_string( parsed_line[5] ) )
+    p2x = float( filter_h2_string( parsed_line[6] ) )
+    p2y = float( filter_h2_string( parsed_line[7] ) )
 
-    if parsed_line[3] == 'boundingBox':
+    shape_id = parsed_line[3].replace( '"', '' )
+
+    if shape_id == 'boundingBox':
       entry[1] = max( min( p1x, p2x ), 0.0 )
       entry[2] = max( min( p1y, p2y ), 0.0 )
       entry[3] = abs( p2x - p1x )
       entry[4] = abs( p2y - p1y )
-    elif parsed_line[3] == 'line':
+    elif shape_id == 'line':
       cx = ( p1x + p2x ) / 2.0
       cy = ( p1y + p2y ) / 2.0
       r = math.sqrt( math.pow( p2x - p1x, 2 ) + math.pow( p2y - p1y, 2 ) ) / 2.0
@@ -188,7 +192,7 @@ def parse_file( input_file, format_id ):
 
   if format_id == "habcam":
     return parse_habcam( input_file )
-  elif format_id == "habcam_v2":
+  elif format_id == "habcam2":
     return parse_habcam_v2( input_file )
   elif format_id == "clef":
     return parse_clef( input_file )
@@ -227,7 +231,7 @@ if __name__ == "__main__" :
                       help="Folder to store validation imagery")
 
   parser.add_argument("-f", dest="format_type", default="",
-                      help="Groundtruth file format: habcam, habcam_v2, clef, wild, camtrawl.")
+                      help="Groundtruth file format: habcam, habcam2, clef, wild, camtrawl.")
 
   parser.add_argument("-e", dest="exclude_list", default="",
                       help="A txt file containing a list of images to exclude in training.")
@@ -360,7 +364,7 @@ if __name__ == "__main__" :
         if tr_x-br_x <= 1 or tr_y-br_y <= 1:
           continue
 
-        annotation = [ annotation[1], br_x, br_y, tr_x-br_x, tr_y-br_y ]
+        annotation = [ annotation[0], br_x, br_y, tr_x-br_x, tr_y-br_y ]
 
       if args.norm:
         fout.write( str( annotation[0] )
