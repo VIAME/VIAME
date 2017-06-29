@@ -8,13 +8,13 @@ option( KWIVER_ENABLE_LOG4CPLUS
 
 if (KWIVER_ENABLE_LOG4CPLUS)
 
-  find_package (Log4cplus REQUIRED)
+  find_package (log4cplus REQUIRED)
 
 else (KWIVER_ENABLE_LOG4CPLUS)
 
-  unset ( Log4cplus_DIR         CACHE )
-  unset ( Log4cplus_FOUND       CACHE )
-  unset ( Log4cplus_INCLUDE_DIR CACHE )
-  unset ( Log4cplus_LIBRARY     CACHE )
+  unset ( log4cplus_DIR         CACHE )
+  unset ( log4cplus_FOUND       CACHE )
+  unset ( log4cplus_INCLUDE_DIR CACHE )
+  unset ( log4cplus_LIBRARY     CACHE )
 
 endif (KWIVER_ENABLE_LOG4CPLUS)
