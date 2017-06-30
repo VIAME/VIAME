@@ -15,12 +15,12 @@ Arrows
 Arrows - Ceres
 
  * Added a Ceres implementation of the optimize_cameras abstract algorithm.
-   This implmentation is very similar to the bundle_adjust algorithm but
+   This implementation is very similar to the bundle_adjust algorithm but
    does not modify the landmarks.
 
  * Refactored common config options and helper functions between
    optimize_cameras and bundle_adjust into new shared classes in options.h.
-   This makes it much easer to create a new Ceres solver algorihm and
+   This makes it much easer to create a new Ceres solver algorithm and
    reuse the same solver options or camera options.
 
  * Implemented callbacks for the Ceres bundle_adjust to emit the state of
@@ -53,7 +53,7 @@ Arrows - Core
    initialize_cameras_landmarks algorithm.  Previously it was attempted at the
    end after adding all cameras, often too late.  Now it is attempted the
    first time the ratio of reversed to non-reversed RMSE is within a threshold.
-   Necker revsersal is only attempted once.  It is either needed or not.
+   Necker reversal is only attempted once.  It is either needed or not.
 
  * Added default version of dynamic_configuration which always returns
    an empty config block.
@@ -62,7 +62,7 @@ Arrows - Core
    on track length or based on importance of the track in covering a match matrix.
 
  * Added a core implementation of "filter_features" which filters features
-   based on keypoint scale.
+   based on key point scale.
 
  * Changed "match_features_homography" to apply feature filtering to both the
    source and destination frames.  This seems to be more robust when the number
@@ -78,7 +78,7 @@ Arrows - Core
 
  * Added a video_input algorithm for POS files that produces a metadata-only
    stream out of POS files associated with a list of images.  Each image file
-   name is matched to a POS file with the same basename in a specified metadata
+   name is matched to a POS file with the same base name in a specified metadata
    directory.
 
  * Added a video_input algorithm that splits imagery and metadata between two
@@ -93,7 +93,7 @@ Arrows - Core
 
  * Generalized the track_features_core algorithm to handle tracking on frames
    that may come out of order and frames that have already been tracked.  Also
-   removed the caching of the next frame id in the algorithm and now retrive it
+   removed the caching of the next frame id in the algorithm and now retrieve it
    from the existing track set instead.  These changes are to support the
    MAP-Tk GUI which allows users to stop tracking, change the active frame,
    and start a new tracker.
@@ -112,7 +112,7 @@ Arrows - Core
 
 Arrows - OpenCV
 
- * Updated the OpenCV image container functions to handle conversinos between
+ * Updated the OpenCV image container functions to handle conversions between
    vital::image and cv::Mat for all supported pixel types and memory layouts.
 
  * Updated the ocv::image_io algorithm to load images of various pixel types
@@ -136,7 +136,7 @@ Arrows - VXL
 
 Arrows - Darknet
 
- * Added image_object_detector implementation using darkent
+ * Added image_object_detector implementation using Darknet
    implementation of you only look once (YOLO), state-of-the-art,
    real-time object detection system. Currently requires an external
    build of the Darknet project - https://gitlab.kitware.com/kwiver/darknet.git
@@ -162,7 +162,7 @@ Vital
 
  * Added a second transform_image function to transforms one image into another
    image, not in-place like the previous function.  This version can transform
-   one image into another with a differnt pixel type.
+   one image into another with a different pixel type.
 
  * Added a cast_image function which uses the transform_image function to
    apply a static cast between image types.
@@ -201,7 +201,7 @@ Vital
    objects.
 
  * Added abstract algorithm to support dynamic configuration
-   values. An implementation of this intrerface would provide updated
+   values. An implementation of this interface would provide updated
    config values at run time. The use case for this algorithm is
    situations where an external real-time control (e.g. a GUI control)
    is used to vary an algorithm configuration value and the algorithm
@@ -248,7 +248,7 @@ Vital
    and video_metadata vectors.  This container is for passing all the metadata
    through the algorithm APIs.
 
- * Updated the APIs for various abtract algorithms to accept an optional
+ * Updated the APIs for various abstract algorithms to accept an optional
    metadata_map.  This includes initalize_cameras_landmarks, bundle_adjust,
    and optimize_cameras.
 
@@ -323,7 +323,7 @@ Vital Bindings
 
  * Added full C/Python bindings for vital::homography class
 
- * Added C/Python interface for bindle_adjust algorithm definition
+ * Added C/Python interface for bundle_adjust algorithm definition
 
  * Added C/Python interface for initialize_cameras_landmarks algorithm
    definition
@@ -353,8 +353,8 @@ Fixes since v1.0.0
 
 Arrows
 
- * Fixed plugin export shmbols and include files to fix Windows build
-   issues. Generate separete include files for plugin stubs.
+ * Fixed plugin export symbols and include files to fix Windows build
+   issues. Generate separate include files for plugin stubs.
 
 Arrows - Core
 
@@ -370,10 +370,10 @@ Arrows - OpenCV
    object.  If the cv::Mat did not own its data and had no reference counter
    the mat_image_memory would still try to increment it (OpenCV 2.4.X only).
 
- * Reverted a previous workaround to the OpenCV BGR vs RGB issue that was
+ * Reverted a previous workaround to the OpenCV BGR vs. RGB issue that was
    reversing the color channels during every cv::Mat to vital::image conversion
    This was error prone and missed some corner cases.  The conversion will
-   be made explictly elsewhere when needed.
+   be made explicitly elsewhere when needed.
 
 Vital
 
