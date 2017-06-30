@@ -121,7 +121,7 @@ kwiver_logger_manager
 #elif defined(__APPLE__)
     factory += ".so";
 #else
-    factory+ = ".so";
+    factory += ".so";
 #endif
   }
 
