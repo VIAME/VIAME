@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,56 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header defining abstract image object detector
- */
+#ifndef VITAL_ALGO_SPLIT_IMAGE_H_
+#define VITAL_ALGO_SPLIT_IMAGE_H_
 
-#ifndef VITAL_ALGO_REFINE_DETECTIONS_H_
-#define VITAL_ALGO_REFINE_DETECTIONS_H_
+#include <vital/vital_config.h>
+
+#include <string>
+#include <memory>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
-
-#include <vector>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector base class/
- *
- */
-class VITAL_ALGO_EXPORT refine_detections
-: public algorithm_def<refine_detections>
+/// An abstract base class for converting base image type
+class VITAL_ALGO_EXPORT split_image
+  : public kwiver::vital::algorithm_def<split_image>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "refine_detections"; }
+  static std::string static_type_name() { return "split_image"; }
 
-  /// Refine all object detections on the provided image
-  /**
-   * This method analyzes the supplied image and and detections on it,
-   * returning a refined set of detections.
-   *
-   * \param image_data the image pixels
-   * \param detections detected objects
-   * \returns vector of image objects refined
-   */
-  virtual detected_object_set_sptr
-  refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const = 0;
+  /// Set this algorithm's properties via a config block
+  virtual void set_configuration(kwiver::vital::config_block_sptr config);
+  /// Check that the algorithm's currently configuration is valid
+  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+
+  /// Split image
+  virtual std::vector< kwiver::vital::image_container_sptr >
+    split(kwiver::vital::image_container_sptr img) const = 0;
 
 protected:
-  refine_detections();
+  split_image();
+
 };
 
-/// Shared pointer for generic refine_detections definition type.
-typedef std::shared_ptr<refine_detections> refine_detections_sptr;
+typedef std::shared_ptr<split_image> split_image_sptr;
 
 } } } // end namespace
 
-#endif //VITAL_ALGO_REFINE_DETECTIONS_H_
+#endif // VITAL_ALGO_SPLIT_IMAGE_H_

@@ -23,6 +23,7 @@ set( sources
   matcher_process.cxx
   read_descriptor_process.cxx
   refine_detections_process.cxx
+  split_image_process.cxx
   stabilize_image_process.cxx
   video_input_process.cxx
 )
@@ -45,6 +46,7 @@ set( private_headers
   matcher_process.h
   read_descriptor_process.h
   refine_detections_process.h
+  split_image_process.h
   stabilize_image_process.h
   video_input_process.h
 )

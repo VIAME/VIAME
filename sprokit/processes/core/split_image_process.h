@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,56 +28,52 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header defining abstract image object detector
- */
+#ifndef KWIVER_SPLIT_IMAGE_PROCESS_H_
+#define KWIVER_SPLIT_IMAGE_PROCESS_H_
 
-#ifndef VITAL_ALGO_REFINE_DETECTIONS_H_
-#define VITAL_ALGO_REFINE_DETECTIONS_H_
+#include <sprokit/pipeline/process.h>
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
+#include "kwiver_processes_export.h"
 
-#include <vector>
+#include <memory>
 
-namespace kwiver {
-namespace vital {
-namespace algo {
+namespace kwiver
+{
 
 // ----------------------------------------------------------------
 /**
- * @brief Image object detector base class/
+ * \class split_image_process
+ *
+ * \brief Splits an image into multiple smaller images.
+ *
+ * \iports
+ * \iport{image}
+ *
+ * \oports
+ * \oport{image1}
+ * \oport{image2}
  *
  */
-class VITAL_ALGO_EXPORT refine_detections
-: public algorithm_def<refine_detections>
+class KWIVER_PROCESSES_NO_EXPORT split_image_process
+  : public sprokit::process
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "refine_detections"; }
+  public:
+    split_image_process( kwiver::vital::config_block_sptr const& config );
+    virtual ~split_image_process();
 
-  /// Refine all object detections on the provided image
-  /**
-   * This method analyzes the supplied image and and detections on it,
-   * returning a refined set of detections.
-   *
-   * \param image_data the image pixels
-   * \param detections detected objects
-   * \returns vector of image objects refined
-   */
-  virtual detected_object_set_sptr
-  refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const = 0;
+  protected:
+    virtual void _configure();
+    virtual void _step();
 
-protected:
-  refine_detections();
-};
+  private:
+    void make_ports();
+    void make_config();
 
-/// Shared pointer for generic refine_detections definition type.
-typedef std::shared_ptr<refine_detections> refine_detections_sptr;
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class split_image_process
 
-} } } // end namespace
 
-#endif //VITAL_ALGO_REFINE_DETECTIONS_H_
+} // end namespace
+
+#endif /* KWIVER_SPLIT_IMAGE_PROCESS_H_ */

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,8 @@
 #include <arrows/ocv/match_features_bruteforce.h>
 #include <arrows/ocv/match_features_flannbased.h>
 #include <arrows/ocv/hough_circle_detector.h>
+#include <arrows/ocv/refine_detections_draw.h>
+#include <arrows/ocv/split_image.h>
 
 namespace kwiver {
 namespace arrows {
@@ -360,6 +362,22 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 #endif
+
+  fact = vpm.ADD_ALGORITHM( "ocv_draw", kwiver::arrows::ocv::refine_detections_draw );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Debugging process for drawing out detections" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::split_image );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Split an image using opencv functions" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
   vpm.mark_module_as_loaded( module_name );
 }

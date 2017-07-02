@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +30,48 @@
 
 /**
  * \file
- * \brief Header defining abstract image object detector
+ * \brief Implementation of OCV split image algorithm
  */
 
-#ifndef VITAL_ALGO_REFINE_DETECTIONS_H_
-#define VITAL_ALGO_REFINE_DETECTIONS_H_
+#include "split_image.h"
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
+#include <arrows/ocv/image_container.h>
 
-#include <vector>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+using namespace kwiver::vital;
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace ocv {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector base class/
- *
- */
-class VITAL_ALGO_EXPORT refine_detections
-: public algorithm_def<refine_detections>
+/// Constructor
+split_image
+::split_image()
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "refine_detections"; }
+}
 
-  /// Refine all object detections on the provided image
-  /**
-   * This method analyzes the supplied image and and detections on it,
-   * returning a refined set of detections.
-   *
-   * \param image_data the image pixels
-   * \param detections detected objects
-   * \returns vector of image objects refined
-   */
-  virtual detected_object_set_sptr
-  refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const = 0;
+/// Destructor
+split_image
+::~split_image()
+{
+}
 
-protected:
-  refine_detections();
-};
+/// Split image
+std::vector< kwiver::vital::image_container_sptr >
+split_image
+::split(kwiver::vital::image_container_sptr image) const
+{
+  std::vector< kwiver::vital::image_container_sptr > output;
+  cv::Mat cv_image = ocv::image_container::vital_to_ocv( image->get_image() );
+  cv::Mat left_image = cv_image( cv::Rect( 0, 0, cv_img.width/2, cv_img.height ) );
+  cv::Mat right_image = cv_image( cv::Rect( cv_img.width/2, 0, cv_img.width/2, cv_img.height ) );
+  output.push_back( image_container_sptr( new ocv::image_container( left_image ) ) );
+  output.push_back( image_container_sptr( new ocv::image_container( right_image ) ) );
+  return output;
+}
 
-/// Shared pointer for generic refine_detections definition type.
-typedef std::shared_ptr<refine_detections> refine_detections_sptr;
-
-} } } // end namespace
-
-#endif //VITAL_ALGO_REFINE_DETECTIONS_H_
+} // end namespace ocv
+} // end namespace arrows
+} // end namespace kwiver

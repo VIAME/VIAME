@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,33 +30,43 @@
 
 /**
  * \file
- * \brief Header defining abstract image object detector
+ * \brief Header for OCV refine detections draw algorithm
  */
 
-#ifndef VITAL_ALGO_REFINE_DETECTIONS_H_
-#define VITAL_ALGO_REFINE_DETECTIONS_H_
+#ifndef KWIVER_ARROWS_OCV_REFINE_DETECTIONS_DRAW_H_
+#define KWIVER_ARROWS_OCV_REFINE_DETECTIONS_DRAW_H_
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
 
-#include <vector>
+#include <vital/vital_config.h>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
+
+#include <vital/algo/refine_detections.h>
+
+#include <memory>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace ocv {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector base class/
- *
- */
-class VITAL_ALGO_EXPORT refine_detections
-: public algorithm_def<refine_detections>
+/// A class for drawing various information about feature tracks
+class KWIVER_ALGO_OCV_EXPORT refine_detections_draw
+: public vital::algorithm_impl<refine_detections_draw,
+    vital::algo::refine_detections_draw>
 {
 public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "refine_detections"; }
+
+  /// Constructor
+  refine_detections_draw();
+
+  /// Destructor
+  virtual ~refine_detections_draw();
+
+  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
+  virtual vital::config_block_sptr get_configuration() const;
+  /// Set this algorithm's properties via a config block
+  virtual void set_configuration(vital::config_block_sptr config);
+  /// Check that the algorithm's currently configuration is valid
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
   /// Refine all object detections on the provided image
   /**
@@ -69,15 +79,17 @@ public:
    */
   virtual detected_object_set_sptr
   refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const = 0;
+          detected_object_set_sptr detections ) const;
 
-protected:
-  refine_detections();
+private:
+
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
 };
 
-/// Shared pointer for generic refine_detections definition type.
-typedef std::shared_ptr<refine_detections> refine_detections_sptr;
+} // end namespace ocv
+} // end namespace arrows
+} // end namespace kwiver
 
-} } } // end namespace
-
-#endif //VITAL_ALGO_REFINE_DETECTIONS_H_
+#endif // KWIVER_ARROWS_OCV_REFINE_DETECTIONS_DRAW_H_
