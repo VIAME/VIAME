@@ -19,7 +19,7 @@ if( VIAME_ENABLE_YOLO )
       ${CMAKE_CURRENT_SOURCE_DIR} )
 
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/595a6bd18d777f16d01e9936/download
+      https://data.kitware.com/api/v1/item/595a6ccf8d777f16d01e993a/download
       e3a3931b8a802b26c39f2873e91002ba
       ${VIAME_DOWNLOAD_DIR}/habcam_models_v0.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR} )
