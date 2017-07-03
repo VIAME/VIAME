@@ -24,12 +24,18 @@ process yolo_v2
   # Network config, weights, and names
   :detector:darknet:net_config   models/model2.cfg
   :detector:darknet:weight_file  models/model2.weights
-  :detector:darknet:class_names  models/yolo_ids.lbl
+  :detector:darknet:class_names  models/scallop_and_fish.lbl
 
   # Detector parameters
   :detector:darknet:thresh       0.001
   :detector:darknet:hier_thresh  0.001
   :detector:darknet:gpu_index    0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option maintain_ar
+  :detector:darknet:resize_ni     544
+  :detector:darknet:resize_nj     544
+  :detector:darknet:scale         1.0
 
 process yolo_v2_kw18_writer
   :: detected_object_output

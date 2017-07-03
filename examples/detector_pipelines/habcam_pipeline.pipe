@@ -1,0 +1,102 @@
+# Habcam Pipeline
+#
+# Runs multiple object detectors in a pipeline. Un-comment each
+# detector in order to use it:
+#
+#    (a) YOLOv2
+#    (b) Scallop-TK
+#
+# This pipeline assumes stereo imagery together in a composite
+# image as input. The first 'splitting' process selects either
+# the left or right side of the image to perform detection
+# on. Replace 'split.left_image' with 'split.right_image'
+# to perform detection on the other side.
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+# ====================== INPUT FRAME LIST ========================
+process input
+  :: frame_list_input
+  :image_list_file     input_list.txt
+  :frame_time          .03333
+  :image_reader:type   vxl
+
+# ========================= CROP INPUTS ==========================
+process split
+  :: split_image
+  :split_image:type    ocv
+
+connect from input.image
+        to   split.image
+
+# =========================== YOLO v2 ============================
+
+process yolo_v2
+  :: image_object_detector
+  :detector:type    darknet
+
+  # Network config, weights, and names
+  :detector:darknet:net_config    models/model2.cfg
+  :detector:darknet:weight_file   models/scallop_and_fish.weights
+  #:detector:darknet:weight_file   models/skate_and_flatfish.weights
+  :detector:darknet:class_names   models/scallop_and_fish.lbl
+  #:detector:darknet:class_names   models/skate_and_flatfish.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh        0.001
+  :detector:darknet:hier_thresh   0.001
+  :detector:darknet:gpu_index     0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option maintain_ar
+  :detector:darknet:resize_ni     544
+  :detector:darknet:resize_nj     544
+  :detector:darknet:scale         1.0
+
+process yolo_v2_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name     output/yolo_v2_detections.kw18
+  :writer:type   kw18
+
+  # Write out FSO classifications alongside tracks
+  :writer:kw18:write_tot         true
+  :writer:kw18:tot_field1_ids    fish
+  :writer:kw18:tot_field2_ids    scallop
+
+connect from split.left_image
+        to   yolo_v2.image
+
+connect from yolo_v2.detected_object_set
+        to   yolo_v2_writer.detected_object_set
+
+connect from input.image_file_name
+        to   yolo_v2_writer.image_file_name
+
+# ========================== Scallop-TK ==========================
+
+#process scallop_tk
+#  :: image_object_detector
+#  :detector:type    scallop_tk
+#  :detector:scallop_tk:config_file models/SYSTEM_SETTINGS
+#
+#process scallop_tk_writer
+#  :: detected_object_output
+#  :file_name     output/scallop_tk_detections.kw18
+#  :writer:type   kw18
+#
+#connect from split.left_image
+#        to   scallop_tk.image
+#
+#connect from scallop_tk.detected_object_set
+#        to   scallop_tk_writer.detected_object_set
+#
+#connect from input.image_file_name
+#        to   scallop_tk_writer.image_file_name
+
+# -- end of file --

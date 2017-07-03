@@ -8,13 +8,20 @@ set( EXAMPLE_INSTALL_FILES
 if( VIAME_ENABLE_YOLO )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       yolo_v2_detector.pipe )
+       yolo_v2_detector.pipe
+       habcam_detector.pipe )
 
   if( VIAME_DOWNLOAD_MODELS )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/file/58c4b8848d777f0aef5d796b/download
       c10bf3f5be72d3d22a417f5f475604ad
       ${VIAME_DOWNLOAD_DIR}/yolo_models_v0.1.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR} )
+
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/595a6bd18d777f16d01e9936/download
+      e3a3931b8a802b26c39f2873e91002ba
+      ${VIAME_DOWNLOAD_DIR}/habcam_models_v0.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
 
@@ -26,6 +33,12 @@ if( VIAME_ENABLE_YOLO )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          run_yolo.sh )
+  endif()
+
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_habcam.sh )
   endif()
 endif()
 
