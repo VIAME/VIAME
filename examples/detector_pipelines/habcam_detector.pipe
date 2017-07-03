@@ -68,6 +68,8 @@ process yolo_v2_writer
   :writer:kw18:write_tot         true
   :writer:kw18:tot_field1_ids    fish
   :writer:kw18:tot_field2_ids    scallop
+  #:writer:kw18:tot_field1_ids    skate
+  #:writer:kw18:tot_field2_ids    flatfish
 
 connect from split.left_image
         to   yolo_v2.image
