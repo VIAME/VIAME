@@ -306,7 +306,7 @@ detect( vital::image_container_sptr image_data ) const
     detections = d->process_image( cv_resized_image );
 
     // rescales output detections if required
-    detections->scale( scale_factor );
+    detections->scale( 1.0 / scale_factor );
   }
   else
   {
@@ -335,9 +335,9 @@ detect( vital::image_container_sptr image_data ) const
         double scaled_crop_scale = scale_image_maintaining_ar( cropped_image,
           scaled_crop, d->m_resize_i, d->m_resize_j );
         vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
-        new_dets->scale( scaled_crop_scale );
+        new_dets->scale( 1.0 / scaled_crop_scale );
         new_dets->shift( i, j );
-        new_dets->scale( scale_factor );
+        new_dets->scale( 1.0 / scale_factor );
         detections->add( new_dets );
       }
     }
@@ -349,7 +349,7 @@ detect( vital::image_container_sptr image_data ) const
       double scaled_original_scale = scale_image_maintaining_ar( cv_image,
         scaled_original, d->m_resize_i, d->m_resize_j );
       vital::detected_object_set_sptr new_dets = d->process_image( scaled_original );
-      new_dets->scale( scaled_original_scale );
+      new_dets->scale( 1.0 / scaled_original_scale );
       detections->add( new_dets );
     }
   }
