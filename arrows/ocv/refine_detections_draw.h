@@ -51,7 +51,7 @@ namespace ocv {
 /// A class for drawing various information about feature tracks
 class KWIVER_ALGO_OCV_EXPORT refine_detections_draw
 : public vital::algorithm_impl<refine_detections_draw,
-    vital::algo::refine_detections_draw>
+    vital::algo::refine_detections>
 {
 public:
 
@@ -77,9 +77,9 @@ public:
    * \param detections detected objects
    * \returns vector of image objects refined
    */
-  virtual detected_object_set_sptr
-  refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const;
+  virtual vital::detected_object_set_sptr
+  refine( vital::image_container_sptr image_data,
+          vital::detected_object_set_sptr detections ) const;
 
 private:
 

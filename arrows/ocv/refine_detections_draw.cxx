@@ -108,7 +108,7 @@ vital::config_block_sptr
 refine_detections_draw
 ::get_configuration() const
 {
-  vital::config_block_sptr config = vital::algo::refine_detections_draw::get_configuration();
+  vital::config_block_sptr config = vital::algo::refine_detections::get_configuration();
 
   config->set_value( "pattern", d_->pattern,
                      "The output pattern for writing images to disk." );
@@ -137,20 +137,20 @@ refine_detections_draw
 }
 
 /// Output images with tracked features drawn on them
-detected_object_set_sptr
+vital::detected_object_set_sptr
 refine_detections_draw
-::refine( image_container_sptr image_data,
-          detected_object_set_sptr detections )
+::refine( vital::image_container_sptr image_data,
+          vital::detected_object_set_sptr detections ) const
 {
   cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
 
-  VITAL_FOREACH( auto det, detections )
+  VITAL_FOREACH( auto det, detections->select() )
   {
     // Generate output filename
     std::string ofn;
     size_t max_len = d_->pattern.size() + 4096;
     ofn.resize( max_len );
-    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d->id++ );
+    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++ );
 
     if( num_bytes < 0 )
     {

@@ -65,8 +65,8 @@ split_image
 {
   std::vector< kwiver::vital::image_container_sptr > output;
   cv::Mat cv_image = ocv::image_container::vital_to_ocv( image->get_image() );
-  cv::Mat left_image = cv_image( cv::Rect( 0, 0, cv_img.width/2, cv_img.height ) );
-  cv::Mat right_image = cv_image( cv::Rect( cv_img.width/2, 0, cv_img.width/2, cv_img.height ) );
+  cv::Mat left_image = cv_image( cv::Rect( 0, 0, cv_image.cols/2, cv_image.rows ) );
+  cv::Mat right_image = cv_image( cv::Rect( cv_image.cols/2, 0, cv_image.cols/2, cv_image.rows ) );
   output.push_back( image_container_sptr( new ocv::image_container( left_image ) ) );
   output.push_back( image_container_sptr( new ocv::image_container( right_image ) ) );
   return output;

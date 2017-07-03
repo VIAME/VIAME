@@ -63,12 +63,6 @@ public:
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >
   split(kwiver::vital::image_container_sptr img) const;
-
-private:
-
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
 };
 
 } // end namespace ocv

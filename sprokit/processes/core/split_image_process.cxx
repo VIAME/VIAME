@@ -81,20 +81,20 @@ void split_image_process
 {
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  algo::track_features::set_nested_algo_configuration(
+  algo::split_image::set_nested_algo_configuration(
     "split_image", algo_config, d->m_image_splitter );
 
   if( !d->m_image_splitter )
   {
     throw sprokit::invalid_configuration_exception(
-      name(), "Unable to create \"track_features\"" );
+      name(), "Unable to create \"split_image\"" );
   }
-  algo::track_features::get_nested_algo_configuration(
+  algo::split_image::get_nested_algo_configuration(
     "split_image", algo_config, d->m_image_splitter );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::track_features::check_nested_algo_configuration(
-        "track_features", algo_config ) )
+  if( !algo::split_image::check_nested_algo_configuration(
+        "split_image", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(),
       "Configuration check failed." );
@@ -113,7 +113,7 @@ split_image_process
   std::vector< kwiver::vital::image_container_sptr > outputs;
 
   // Get feature tracks
-  d->m_tracks = d->m_image_splitter->split( img, outputs );
+  outputs = d->m_image_splitter->split( img );
 
   // Return by value
   if( outputs.size() >= 1 )
@@ -130,7 +130,7 @@ split_image_process
 
 // ----------------------------------------------------------------
 void split_image_process
-::make_ports(
+::make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
