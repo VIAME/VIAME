@@ -3,7 +3,8 @@
 ##
 
 set( EXAMPLE_INSTALL_FILES
-     input_list.txt )
+     input_list.txt
+     habcam_list.txt )
 
 if( VIAME_ENABLE_YOLO )
   set( EXAMPLE_INSTALL_FILES
