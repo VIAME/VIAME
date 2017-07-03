@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 #include <arrows/vxl/estimate_similarity_transform.h>
 #include <arrows/vxl/image_io.h>
 #include <arrows/vxl/optimize_cameras.h>
+#include <arrows/vxl/split_image.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
@@ -142,6 +143,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::optimize_cameras );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Use VXL (vpgl) to optimize camera parameters for fixed landmarks and tracks." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::split_image );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Split image into multiple smaller images" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
