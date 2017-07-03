@@ -2,7 +2,68 @@ KWIVER v1.1.0 Release Notes
 ===========================
 
 This is a minor release of KWIVER that provides both new functionality and
-fixes over the previous v1.0.0 release.
+fixes over the previous v1.0.0 release.  There are numerous changes in this
+release that have been motivated primarily by three different applications
+of KWIVER.  One is the use of KWIVER in MAP-Tk to provide 3D reconstruction
+algorithms to the MAP-Tk tools and TeleSculptor GUI application.  This
+work has been largery sponsored by the US Air Force Research Laboratories.
+A second driving factor is the use of KWIVER as an evaluation framework for
+video survellience applications in the upcoming IARPA DIVA program.  The
+third driving factor for improvements in this release is the use of KWIVER
+as the basis for the VIAME toolkit for underwater image processing, supported
+by NOAA.  These project needs have improved the general processing framework
+of KWIVER as well as specific algorithm improvements in 3D reconstruction
+and object detection in video.
+
+Vital, the core framework of KWIVER, has been updated in several ways in
+this release.  Previously there were multiple plugin loader mechanisms
+stemming from the origins of KWIVER as the fusion of multiple projects.
+In this release there is now a unified plugin loader framework that provides
+a common mechanism for loading algorithm plugins (Arrows), process and cluster
+plugins (Sprokit), loggers (Vital), and so on.  There is also a single tool,
+plugin_explorer, that allows introspect of these plugins of various types.
+This release also has a new mult-threading API in Vital that provides an
+interface for a thread pool with multiple back ends.  The thread pool API
+allows KWIVER algorithms to more easily leverage parallel processing without
+being tied to a single thread management library.  Additional back ends,
+like Intel TBB, will be added in future releases.  C and Python bindings for
+Vital have also been extended considerably in this release.
+
+Some other changes in Vital enhance the way image data is loaded and stored.
+This release generalizes the image data structure to support images with
+various pixel types.  Previously Vital only supported 8-bit images.  It now
+supports many pixel types including 16 and 32 bit integers and single and
+double precision floating point types.  Also new in this release is a
+video input API for reading image sequences directly from video sources.
+There are implementations of this API in Arrows for reading video files
+directly as well as lists of images.  The video API also supports reading
+video metadata that is encoded with the video.
+
+In support of the MAP-Tk TeleSculptor application, many abstract algorithms
+in Vital and their implementations in Arrows now support callbacks.  These
+callbacks allow the algorithms to report intermediate results or to signal the
+algorithm to terminate early.  These callback are used in GUI applications
+to get live updates of processing results and to allow users to cancel
+processing.  This release also adds binary serialization for feature detectors
+and descriptors, which allows algorithms to cache features and descriptors
+on disk and load them back in later.  The algorithms for matching features
+have also been imporved for better handling of very large images.  Large images
+are best matched by comparing features at a coarse scale before matching fine
+scale features.
+
+In support of the DIVA program, the Sprokit pipeline framework now supports
+frame dropping and processing time-outs.  These changes help prevent the
+pipeline from falling behind in applications that need to keep up with real
+team processing requirements.  A pipeline can be configured to drop frames
+if needed to catch up.
+
+In support of the VIAME toolkit, this release adds new object detection
+APIs and provides and implementation of those APIs use the Darknet YOLO
+(You Only Look Once) network architecture.
+
+There are many other smaller changes in this release.  These are detailed in
+the change log below.
+
 
 
 Updates since v1.0.0
@@ -230,7 +291,6 @@ Vital
  * Added classes to support track descriptor set input and output.
 
  * Added geographic point and polygon types.
-
 
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
 
