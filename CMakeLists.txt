@@ -5,8 +5,6 @@ cmake_minimum_required(VERSION 3.3)
 
 project(KWIVER)
 
-include(CMakeDependentOption)
-
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 1)
@@ -52,7 +50,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   endif()
 endif()
 
-LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cmake resources
+# prepend our CMake resources
+list(INSERT CMAKE_MODULE_PATH 0 ${KWIVER_CMAKE_DIR})
+
+# import CMake future modules
+include(kwiver-cmake-future)
 
 # ================================================================
 # project global includes
@@ -74,6 +76,8 @@ include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 # ================================================================
 ###
 # User options
+include(CMakeDependentOption)
+
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
 MARK_AS_ADVANCED( KWIVER_BUILD_SHARED )
 
