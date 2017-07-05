@@ -1,5 +1,7 @@
 project(kwiver_core_tests)
 
+find_package(GTest REQUIRED)
+
 include(kwiver-test-setup)
 
 set( test_libraries vital vital_vpm vital_algo )
@@ -38,7 +40,4 @@ kwiver_discover_tests(core_detected_object_type     test_libraries    test_detec
 kwiver_discover_tests(core_detected_object          test_libraries    test_detected_object.cxx)
 kwiver_discover_tests(core_detected_object_set      test_libraries    test_detected_object_set.cxx)
 
-find_package(GTest REQUIRED)
-add_executable(test-core_geo_polygon test_geo_polygon.cxx)
-target_link_libraries(test-core_geo_polygon vital vital_vpm GTest::GTest)
-gtest_add_tests(test-core_geo_polygon "" AUTO)
+kwiver_discover_gtests(core     geo_polygon   LIBRARIES ${test_libraries})
