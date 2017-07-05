@@ -18,7 +18,6 @@ install(
         "${utils_dir}/kwiver-configcheck.cmake"
         "${utils_dir}/CommonFindMacros.cmake"
         "${utils_dir}/FindEigen3.cmake"
-        "${utils_dir}/FindLog4cplus.cmake"
         "${utils_dir}/FindLog4cxx.cmake"
         "${utils_dir}/FindPROJ.cmake"
         "${utils_dir}/FindTinyXML.cmake"
