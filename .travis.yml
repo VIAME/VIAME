@@ -58,4 +58,5 @@ script:
           -DKWIVER_USE_BUILD_TREE=ON
           ../
   - make -j2
+  - make install
   - ctest
