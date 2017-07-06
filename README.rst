@@ -12,10 +12,6 @@ Scientific Visualization teams, KWIVER is an ongoing effort to
 transition technology developed over multiple years to the open source
 domain to further research, collaboration, and product development.
 
-The project is structured with the parent `kwiver` repository working
-as CMake "super-build" that pulls in a number of KWIVER and other open
-source projects.
-
 
 Building KWIVER
 ===============
@@ -26,45 +22,26 @@ Fletch
 KWIVER has (and will have more) a number of dependencies on 3rd party
 Open Source libraries.  To make it easier to build KWIVER, especially
 on systems like Microsoft Windows that don't have package manager,
-[Fletch](https://github.com/Kitware/fletch) was developed to gather,
-configure and build those packages for use with KWIVER.  Fletch is a
-[CMake](www.cmake.org) based "super-build" that takes care of most of
-the build details for you.
+Fletch_ was developed to gather, configure and build those packages
+for use with KWIVER.  Fletch is a CMake_ based "super-build" that
+takes care of most of the build details for you.
 
-To build Fletch, clone the Fletch repository:
+.. _Fletch: https://github.com/Kitware/fletch
+.. _CMake: www.cmake.org
 
-	git clone https://github.com/Kitware/fletch.git
+To build Fletch, refer to the README file in that repository.
 
-	git submodule update --init
-
-Then, create a build directory and run the following `cmake` command:
-
-	cmake -Dfletch_BUILD_WITH_PYTHON:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Release -Dfletch_ENABLE_Boost:BOOL=TRUE -Dfletch_ENABLE_OpenCV:BOOL=TRUE /path/to/fletch/source/directory
-
-If you have more than one version of Python installed on your system
-and you want to be sure to use a particular one (for example we here
-at KWIVER development central use
-[Anaconda](https://store.continuum.io/cshop/anaconda/) fairly
-frequently) you'll want to add the following arguments to the `cmake`
-command:
-
-* `-DPYTHON_INCLUDE_DIR=/path/to/python/include/directory`  For example, for a default Python 2.7 Anaconda install on Linux this would be `${HOME}/anaconda/include/python2.7`
-* `-DPYTHON_EXECUTABLE=/path/to/executable/python` For example, for a default Python 2.7 Anaconda install on Linux this would `${HOME}/anaconda/bin/python`
-* `-DPYTHON_LIBRARY=/path/to/python/library` For example, for a default Python 2.7 Anaconda install on Linux, this would be `${HOME}/anaconda/lib/libpython2.7.so`
-
-Once your `cmake` command has completed, you can build with the following command
-
-	make
 
 kwiver
 ------
 
-Once Fletch has been built, it's possible to build the `kwiver` repository as well.  This repo is also a CMake super-build
-and can be fetched with this command:
+Once Fletch has been built, it's possible to build the `kwiver`
+repository as well.  This repo is also a CMake build and can be
+fetched with this command::
 
 	git clone https://github.com/Kitware/kwiver.git
 
-The build can be configured with this command:
+The build can be configured with this command::
 
 	cmake -DKWIVER_ENABLE_PYTHON:BOOL=ON -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_TESTS:BOOL=ON -DKWIVER_ENABLE_TOOLS:BOOL=ON -DKWIVER_USE_BUILD_TREE:BOOL=ON -DKWIVER_ENABLE_VXL:BOOL=ON -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_OPENCV:BOOL=ON -Dfletch_DIR:PATH=/path/to/fletch/build/directory /path/to/kwiver/source/directory
 
@@ -79,25 +56,27 @@ Running KWIVER
 ==============
 
 Once you've built KWIVER, you'll want to test that it's working on
-your system.  From a command prompt execute the following command:
+your system.  From a command prompt execute the following command::
 
 	source </path/to/kwiver/build>/install/setup_KWIVER.sh
 
 Where `</path/to/kwiver/build>` is the actual path of your KWIVER CMake build directory.
 
-This will set up your PATH, PYTHONPATH and other environment variables to allow KWIVER to work conveniently.
+This will set up your PATH, PYTHONPATH and other environment variables
+to allow KWIVER to work conveniently.
 
-The central component of KWIVER is [Sprokit](www.sprokit.org).  We use
-Sprokit's pipelining facilities to manage, integrate and run many of
-KWIVER's modules and capabilities.  To see what modules (called
-processes in Sprocket) are available, run the following command::
+The central component of KWIVER is vital which supplies basic data
+types and fundimental alrogithms.  In addition, we use sprokit's
+pipelining facilities to manage, integrate and run many of KWIVER's
+modules and capabilities.  To see what modules (called processes in
+sprockit) are available, run the following command::
 
     $ plugin_explorer --process -b
 
 Here's a typical list of modules (note that as KWIVER expands, this
 list is likely to grow):
 
----- All process Factories                                                                                                                                                         [80/1993]
+---- All process Factories
 
 Factories that create type "sprokit::process"
     Process type: frame_list_input          Reads a list of image file names and generates stream of images and
@@ -280,7 +259,7 @@ And for `print_number`, we'll use::
 
 
 The output of these commands tells us enough about each process to
-construct a Sprocket ".pipe" file that defines a processing pipeline.
+construct a Sprockit ".pipe" file that defines a processing pipeline.
 In particular we'll need to know how to configure each process (the
 "Configuration") and how they can be hooked together (the input and
 output "Ports").
@@ -398,6 +377,7 @@ CMake Options
 * CMAKE_BUILD_TYPE -- The compiler mode, usually Debug or Release
 * CMAKE_INSTALL_PREFIX -- The path to where you want the kwiver build products to install
 * KWIVER_BUILD_SHARED -- Build shared or static libraries
+* KWIVER_ENABLE_ARROWS -- Enable algorithm implementations
 * KWIVER_ENABLE_DOCS -- Turn on building the Doxygen documentation
 * KWIVER_ENABLE_LOG4CLUS -- Enable log4cplus logger back end
 * KWIVER_ENABLE_PYTHON -- Enable the python bindings
