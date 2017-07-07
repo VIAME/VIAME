@@ -402,7 +402,7 @@ Contributing
 ============
 
 For details on how to contribute to KWIVER, including code style and branch
-naming conventions, please read CONTRIBUTING.rst_.
+naming conventions, please read `<CONTRIBUTING.rst>`_.
 
 
 Getting Help
