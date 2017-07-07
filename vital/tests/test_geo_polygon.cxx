@@ -33,6 +33,8 @@
  * \brief core geo_polygon class tests
  */
 
+#include <test_eigen.h>
+
 #include <vital/types/geo_polygon.h>
 #include <vital/types/geodesy.h>
 #include <vital/types/polygon.h>
@@ -74,22 +76,6 @@ bool operator==( polygon const& a, polygon const& b )
 }
 
 } } // end namespace
-
-namespace Eigen
-{
-
-// ----------------------------------------------------------------------------
-void
-PrintTo( Vector2d const& v, ::std::ostream* os )
-{
-  // This function exists because a) it produces better formatting, and
-  // b) Google Test needs an exact match or it will fall back to the generic
-  // value printer...
-  // TODO move this to a shared header
-  (*os) << v[0] << ", " << v[1];
-}
-
-} // end namespace
 
 // ----------------------------------------------------------------------------
 int
@@ -146,8 +132,8 @@ TEST(geo_polygon, api)
   // Test values of the point as originally constructed
   [=]() {
     ASSERT_EQ( 1, p.polygon().num_vertices() );
-    EXPECT_EQ( loc_ll, p.polygon().at( 0 ) );
     EXPECT_EQ( crs_ll, p.crs() );
+    EXPECT_EQ( loc_ll, p.polygon().at( 0 ) );
     EXPECT_EQ( loc_ll, p.polygon( crs_ll ).at( 0 ) );
   }();
 

@@ -33,15 +33,14 @@
  * \brief core geo_point class tests
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 
 #include <vital/types/geo_point.h>
 #include <vital/types/geodesy.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
 
 static auto const loc1 = kwiver::vital::vector_2d{ -73.759291, 42.849631 };
 static auto const loc2 = kwiver::vital::vector_2d{ -73.757161, 42.849764 };
@@ -54,139 +53,78 @@ static auto constexpr crs_utm_18n = kwiver::vital::SRID::UTM_WGS84_north + 18;
 int
 main(int argc, char* argv[])
 {
-  CHECK_ARGS(1);
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(default_constructor)
+TEST(geo_point, default_constructor)
 {
   kwiver::vital::geo_point p;
-
-  if ( ! p.is_empty() )
-  {
-    TEST_ERROR("The default point is not empty");
-  }
+  EXPECT_TRUE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(constructor_point)
+TEST(geo_point, constructor_point)
 {
   kwiver::vital::geo_point p{ loc1, crs_ll };
-
-  if ( p.is_empty() )
-  {
-    TEST_ERROR("The constructed point is empty");
-  }
+  EXPECT_FALSE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(assignment)
+TEST(geo_point, assignment)
 {
   kwiver::vital::geo_point p;
   kwiver::vital::geo_point const p1{ loc1, crs_ll };
   kwiver::vital::geo_point const p2;
 
-  if ( ! p.is_empty() )
-  {
-    TEST_ERROR("The default point is not empty");
-  }
+  // Paranoia-check initial state
+  EXPECT_TRUE( p.is_empty() );
 
+  // Check assignment from non-empty geo_point
   p = p1;
 
-  if ( p.is_empty() )
-  {
-    TEST_ERROR("The point is empty after assignment from non-empty point");
-  }
+  EXPECT_FALSE( p.is_empty() );
+  EXPECT_EQ( p1.location(), p.location() );
+  EXPECT_EQ( p1.crs(), p.crs() );
 
-  if ( p.location() != p1.location() )
-  {
-    TEST_ERROR("The point has the wrong location after assignment");
-  }
-
-  if ( p.crs() != p1.crs() )
-  {
-    TEST_ERROR("The point has the wrong CRS after assignment");
-  }
-
+  // Check assignment from empty geo_point
   p = p2;
 
-  if ( ! p.is_empty() )
-  {
-    TEST_ERROR("The point is not empty after assignment from empty point");
-  }
+  EXPECT_TRUE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(api)
+TEST(geo_point, api)
 {
   kwiver::vital::geo_point p{ loc1, crs_ll };
 
   // Test values of the point as originally constructed
-  if ( p.location() != loc1 )
-  {
-    TEST_ERROR("The original location is incorrect");
-  }
+  EXPECT_EQ( crs_ll, p.crs() );
+  EXPECT_EQ( loc1, p.location() );
+  EXPECT_EQ( loc1, p.location( crs_ll ) );
 
-  if ( p.crs() != crs_ll )
-  {
-    TEST_ERROR("The original CRS is incorrect");
-  }
-
-  if ( p.location( crs_ll ) != loc1 )
-  {
-    TEST_ERROR("The location (requested in the original CRS) is incorrect");
-  }
-
-  // Modify the location
+  // Modify the location and test the new values
   p.set_location( loc3, crs_utm_18n );
 
-  // Test the new values
-  if ( p.location() != loc3 )
-  {
-    TEST_ERROR("The original location is incorrect");
-  }
+  EXPECT_EQ( crs_utm_18n, p.crs() );
+  EXPECT_EQ( loc3, p.location() );
+  EXPECT_EQ( loc3, p.location( crs_utm_18n ) );
 
-  if ( p.crs() != crs_utm_18n )
-  {
-    TEST_ERROR("The original CRS is incorrect");
-  }
-
-  if ( p.location( crs_utm_18n ) != loc3 )
-  {
-    TEST_ERROR("The location (requested in the original CRS) is incorrect");
-  }
-
-  // Modify the location again
+  // Modify the location again and test the new values
   p.set_location( loc2, crs_ll );
 
-  // Test the new values
-  if ( p.location() != loc2 )
-  {
-    TEST_ERROR("The original location is incorrect");
-  }
-
-  if ( p.crs() != crs_ll )
-  {
-    TEST_ERROR("The original CRS is incorrect");
-  }
-
-  if ( p.location( crs_ll ) != loc2 )
-  {
-    TEST_ERROR("The location (requested in the original CRS) is incorrect");
-  }
+  EXPECT_EQ( crs_ll, p.crs() );
+  EXPECT_EQ( loc2, p.location() );
+  EXPECT_EQ( loc2, p.location( crs_ll ) );
 
   // Test that the old location is not cached
   try
   {
-    if ( p.location( crs_utm_18n ) == loc3 )
-    {
-      TEST_ERROR("Changing the location did not clear the location cache");
-    }
+    EXPECT_NE( loc3, p.location( crs_utm_18n ) )
+      << "Changing the location did not clear the location cache";
   }
   catch (...)
   {
@@ -198,7 +136,7 @@ IMPLEMENT_TEST(api)
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(conversion)
+TEST(geo_point, conversion)
 {
   kwiver::vital::geo_point p_ll{ loc1, crs_ll };
   kwiver::vital::geo_point p_utm{ loc3, crs_utm_18n };
@@ -206,27 +144,16 @@ IMPLEMENT_TEST(conversion)
   auto const d1 = kwiver::vital::vector_2d{ p_ll.location( p_utm.crs() ) - p_utm.location() };
   auto const d2 = kwiver::vital::vector_2d{ p_utm.location( p_ll.crs() ) - p_ll.location() };
 
-  auto const e1 = d1.squaredNorm();
-  auto const e2 = d2.squaredNorm();
+  auto const epsilon_ll_to_utm = d1.squaredNorm();
+  auto const epsilon_utm_to_ll = d2.squaredNorm();
 
-  auto str = []( kwiver::vital::vector_2d const& p ){
-    return std::to_string( p.x() ) + ", " + std::to_string( p.y() );
-  };
+  EXPECT_LT( epsilon_ll_to_utm, 1e-4 )
+    << "Expected " << ::testing::PrintToString( p_utm.location() )
+    << ", got " << ::testing::PrintToString( p_ll.location( p_utm.crs() ) );
+  EXPECT_LT( epsilon_utm_to_ll, 1e-13 )
+    << "Expected " << ::testing::PrintToString( p_ll.location() )
+    << ", got " << ::testing::PrintToString( p_utm.location( p_ll.crs() ) );
 
-  if ( e1 > 1e-4 )
-  {
-    TEST_ERROR("Result of LL->UTM conversion exceeds tolerance");
-    std::cout << "  expected: " << str( p_utm.location() ) << std::endl;
-    std::cout << "  actual: " << str( p_ll.location( p_utm.crs() ) ) << std::endl;
-  }
-
-  if ( e2 > 1e-13 )
-  {
-    TEST_ERROR("Result of UTM->LL conversion exceeds tolerance");
-    std::cout << "  expected: " << str( p_ll.location() ) << std::endl;
-    std::cout << "  actual: " << str( p_utm.location( p_ll.crs() ) ) << std::endl;
-  }
-
-  std::cout << "LL->UTM epsilon: " << e1 << std::endl;
-  std::cout << "UTM->LL epsilon: " << e2 << std::endl;
+  std::cout << "LL->UTM epsilon: " << epsilon_ll_to_utm << std::endl;
+  std::cout << "UTM->LL epsilon: " << epsilon_utm_to_ll << std::endl;
 }
