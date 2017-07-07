@@ -36,13 +36,24 @@
 #include "geodesy.h"
 
 #include <atomic>
+#include <cmath>
 
 namespace kwiver {
 namespace vital {
 
 namespace {
-  static std::atomic< geo_conversion* > s_geo_conv;
+
+static std::atomic< geo_conversion* > s_geo_conv;
+
+// ----------------------------------------------------------------------------
+double fmod( double n, double d )
+{
+  // Return the actual modulo `n % d`; std::fmod does the wrong thing for
+  // negative numbers (rounds to zero, rather than rounding down)
+  return n - ( d * std::floor( n / d ) );
 }
+
+} // end namespace
 
 // ----------------------------------------------------------------------------
 void
@@ -62,6 +73,33 @@ geo_conv( vector_2d const& point, int from, int to )
   }
 
   return ( *c )( point, from, to );
+}
+
+// ----------------------------------------------------------------------------
+utm_ups_zone_t
+utm_ups_zone( vector_2d const& lat_lon )
+{
+  // Get latitude and check for range error
+  auto const lat = lat_lon[1];
+  if ( lat > 90.0 || lat < -90.0 )
+  {
+    throw std::range_error( "Input latitude is out of range" );
+  }
+
+  // Check for UPS zones
+  if ( lat > 84.0 )
+  {
+    return { 0, true }; // UPS north
+  }
+  if ( lat < -80.0 )
+  {
+    return { 0, false }; // UPS south
+  }
+
+  // Get normalized longitude and return UTM zone
+  auto const lon = fmod( lat_lon[0], 360.0 );
+  auto const zone = 1 + ( ( 30 + static_cast<int>( lon / 6.0 ) ) % 60 );
+  return { zone, lat >= 0.0 };
 }
 
 } } // end namespace

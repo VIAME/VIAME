@@ -103,6 +103,36 @@ VITAL_EXPORT void set_geo_conv( geo_conversion* );
  */
 VITAL_EXPORT vector_2d geo_conv( vector_2d const& point, int from, int to );
 
+/// UTM/UPS zone specification.
+struct utm_ups_zone_t
+{
+  int number; /// Zone number; 1-60 is UTM, 0 is UPS.
+  bool north; /// Indicates if zone if north or south.
+};
+
+/**
+ * \brief Determine UTM/UPS zone of lat/lon geo-coordinate.
+ *
+ * This determines the appropriate greater UTM or UPS zone given an input
+ * coordinate in a latitude/longitude coordinate system. "Greater zone" here
+ * means that UTM zones are distinguished only by north/south; the irregular
+ * grid zones in northern Europe are not considered.
+ *
+ * The resulting zone will be appropriate for the input datum; for example,
+ * input in NAD83 lat/lon will produce a result suitable for representing in
+ * NAD83 UTM. The user is responsible for ensuring that the input coordinate is
+ * in a lat/lon system.
+ *
+ * Note that the coordinate values are assumed to be in degrees (not radians),
+ * in the order easting (longitude), northing (latitude), for consistency with
+ * geo_point. Out of range longitude values are normalized.
+ *
+ * \returns The UTM/UPS zone information.
+ * \throws std::range_error
+ *   Thrown if the latitude (northing) value is outside of the range
+ *   <code>[-90, 90]</code>.
+ */
+VITAL_EXPORT utm_ups_zone_t utm_ups_zone( vector_2d const& lat_lon );
 
 } } // end namespace
 
