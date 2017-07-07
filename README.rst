@@ -295,22 +295,22 @@ As usual, we can lean about this process with the following command::
 
     $ plugin_explorer --process --type kw_print_number_process -d --config
 
-	Process type: kw_print_number_process
-	  Description: A Simple Kwiver Test Process
-	  Properties: _no_reentrant, _python
-	  Configuration:
-	    Name       : output
-	    Default    : .
-	    Description: The path for the output file.
-	    Tunable    : no
+    Process type: kw_print_number_process
+      Description: A Simple Kwiver Test Process
+      Properties: _no_reentrant, _python
+    Configuration:
+      Name       : output
+      Default    : .
+      Description: The path for the output file.
+      Tunable    : no
 
-	  Input ports:
-	    Name       : input
-	    Type       : integer
-	    Flags      : _required
-	    Description: Where numbers are read from.
+    Input ports:
+      Name       : input
+      Type       : integer
+      Flags      : _required
+      Description: Where numbers are read from.
 
-	  Output ports:
+    Output ports:
 
 As you can see, the process is very similar to the C++ `print_number`
 process.  As a result, the [".pipe" file is very
