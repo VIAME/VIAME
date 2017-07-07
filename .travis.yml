@@ -41,6 +41,7 @@ script:
   - cd build
   - cmake -DCMAKE_C_COMPILER=$C_COMPILER
           -DCMAKE_CXX_COMPILER=$CXX_COMPILER
+          -DCMAKE_INSTALL_PREFIX=$HOME/install
           -DKWIVER_ENABLE_ARROWS=ON
           -DKWIVER_ENABLE_CERES=ON
           -DKWIVER_ENABLE_C_BINDINGS=ON
@@ -58,4 +59,5 @@ script:
           -DKWIVER_USE_BUILD_TREE=ON
           ../
   - make -j2
+  - make install
   - ctest
