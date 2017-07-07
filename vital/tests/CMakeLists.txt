@@ -40,4 +40,5 @@ kwiver_discover_tests(core_detected_object_type     test_libraries    test_detec
 kwiver_discover_tests(core_detected_object          test_libraries    test_detected_object.cxx)
 kwiver_discover_tests(core_detected_object_set      test_libraries    test_detected_object_set.cxx)
 
+kwiver_discover_gtests(core     geodesy       LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core     geo_polygon   LIBRARIES ${test_libraries})
