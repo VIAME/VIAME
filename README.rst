@@ -84,9 +84,11 @@ Building KWIVER
 Fletch
 ------
 
-KWIVER has (and will have more) a number of dependencies on 3rd party
-Open Source libraries.  To make it easier to build KWIVER, especially
-on systems like Microsoft Windows that don't have package manager,
+KWIVER, especially Arrows, has a number of dependencies on 3rd party
+open source libraries.  Most of these dependencies are optional
+but useful in practice, and the number of dependencies is expected to
+grow as we expand Arrows.  To make it easier to build KWIVER, especially
+on systems like Microsoft Windows that do not have package manager,
 Fletch_ was developed to gather, configure and build those packages
 for use with KWIVER.  Fletch is a CMake_ based "super-build" that
 takes care of most of the build details for you.
@@ -94,27 +96,72 @@ takes care of most of the build details for you.
 .. _Fletch: https://github.com/Kitware/fletch
 .. _CMake: https://www.cmake.org
 
-To build Fletch, refer to the README file in that repository.
+To build Fletch_, refer to the README file in that repository.
+
+Running CMake
+-------------
+
+We recommend building kwiver out of the source directory to prevent
+mixing source files with compiled products.  Create a build directory
+in parallel with the kwiver source directory.  From the command line,
+enter the empty build directory and run::
+
+    $ ccmake /path/to/kwiver/source
+
+where the path above is the location of your kwiver source tree.  The
+ccmake tool allows for interactive selection of CMake options.
+Alternatively, using the CMake GUI you can set the source and build
+directories accordingly and press the "Configure" button.  When
+building with Fletch it is preferable to set the ``fletch_DIR`` on the
+command line like this::
+
+    $ ccmake /path/to/kwiver/source -Dfletch_DIR=/path/to/fletch/install
+
+Other CMake options can also be passed on the command line in this way
+if desired.
+
+CMake Options
+-------------
+
+The following are the most important CMake configuration options for KWIVER.
+
+* CMAKE_BUILD_TYPE -- The compiler mode, usually Debug or Release
+* CMAKE_INSTALL_PREFIX -- The path to where you want the kwiver build products to install
+* KWIVER_ENABLE_ARROWS -- Enable algorithm implementation plugins
+* KWIVER_ENABLE_C_BINDINGS -- Whether to build the Vital C bindings
+* KWIVER_ENABLE_DOCS -- Turn on building the Doxygen documentation
+* KWIVER_ENABLE_LOG4CPLUS -- Enable log4cplus logger back end
+* KWIVER_ENABLE_PYTHON -- Enable the Vital Python bindings (requires KWIVER_ENABLE_C_BINDINGS)
+* KWIVER_ENABLE_SPROKIT -- Enable the Stream Processing Toolkit
+* KWIVER_ENABLE_TESTS -- Build the unit tests
+* KWIVER_ENABLE_TOOLS -- Build the command line tools (e.g. plugin_explorer)
+* fletch_DIR -- Install directory for the Fletch support packages.
+
+There are many more options.  Specifically, there are numerous options
+for third-party projects prefixed with ``KWIVER_ENABLE_`` that enable
+building the Arrows plugins that depend on those projects.  When building
+with the support of Fletch_ (set ``fletch_DIR``) the enable options for
+packages built by Fletch should be turned on by default.
 
 
-kwiver
-------
+Dependencies
+------------
 
-Once Fletch has been built, it's possible to build the `kwiver`
-repository as well.  This repo is also a CMake build and can be
-fetched with this command::
+Vital has minimal required dependencies (only Eigen_).
+Sprokit additionally relies on Boost_.
+Arrows and Sprokit processes are structured so that
+the code that depends on an external package is in a directory with
+the major dependency name (e.g. vxl, ocv). The dependencies can be
+turned ON or OFF through CMake variables.
 
-	git clone https://github.com/Kitware/kwiver.git
+.. _Boost: http://www.boost.org/
 
-The build can be configured with this command::
+Compiling
+---------
 
-	cmake -DKWIVER_ENABLE_PYTHON:BOOL=ON -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_TESTS:BOOL=ON -DKWIVER_ENABLE_TOOLS:BOOL=ON -DKWIVER_USE_BUILD_TREE:BOOL=ON -DKWIVER_ENABLE_VXL:BOOL=ON -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_OPENCV:BOOL=ON -Dfletch_DIR:PATH=/path/to/fletch/build/directory /path/to/kwiver/source/directory
-
-As with Fletch, if you want to specify a particular Python
-installation (such as Anaconda) use the the `-DPYTHON...` command
-arguments as outlined in the Fletch section.
-
-Once your `cmake` command has completed, use `make` (on Linux) to build it.
+Once your CMake command has completed and generated the build files,
+compile in the standard way for your build environment.  On Linux
+this is typically running ``make``.
 
 
 Running KWIVER
@@ -125,7 +172,8 @@ your system.  From a command prompt execute the following command::
 
 	source </path/to/kwiver/build>/install/setup_KWIVER.sh
 
-Where `</path/to/kwiver/build>` is the actual path of your KWIVER CMake build directory.
+Where `</path/to/kwiver/build>` is the actual path of your KWIVER
+CMake build directory.
 
 This will set up your PATH, PYTHONPATH and other environment variables
 to allow KWIVER to work conveniently.
@@ -392,7 +440,7 @@ As with the previous pipeline, the numbers will be written to an output file, th
 
 
 
-vital
+Vital
 =====
 
 Vital is an open source C++ collection of libraries and tools that
@@ -419,48 +467,6 @@ Overview of Directories
 * vital/util --   contains the source for general purpose utilities
 * vital/video_metadata -- contains the classes that support video metadata
 
-
-Running CMake
--------------
-
-We recommend building kwiver out of the source directory to prevent
-mixing source files with compiled products.  Create a build directory
-in parallel with the kwiver source directory.  From the command line,
-enter the empty build directory and run::
-
-    $ ccmake /path/to/kwiver/source
-
-where the path above is the location of your kwiver source tree.  The
-ccmake tool allows for interactive selection of CMake options.
-Alternatively, using the CMake GUI you can set the source and build
-directories accordingly and press the "Configure" button.
-
-
-CMake Options
-=============
-
-* CMAKE_BUILD_TYPE -- The compiler mode, usually Debug or Release
-* CMAKE_INSTALL_PREFIX -- The path to where you want the kwiver build products to install
-* KWIVER_BUILD_SHARED -- Build shared or static libraries
-* KWIVER_ENABLE_ARROWS -- Enable algorithm implementations
-* KWIVER_ENABLE_DOCS -- Turn on building the Doxygen documentation
-* KWIVER_ENABLE_LOG4CLUS -- Enable log4cplus logger back end
-* KWIVER_ENABLE_PYTHON -- Enable the python bindings
-* KWIVER_ENABLE_TESTS -- Build the unit tests
-* KWIVER_USE_BUILD_TREE -- When building the plugin manager, whether to include the build directory in the search path.
-* KWIVER_ENABLE_C_BINDINGS -- Whether to build the C bindings
-* fletch_DIR -- Build directory for the Fletch support packages.
-
-There are many more options
-
-Dependencies
-------------
-
-Vital has minimal required dependencies. Sprokit pipeline framework
-relies on boost.  Arrows and sprokit processes are structured so that
-the code that depends on an external package is in a directory with
-the major dependency name (e.g. vxl, ocv). The dependencies can be
-turned ON or OFF through CMake variables.
 
 Contributing
 ============
