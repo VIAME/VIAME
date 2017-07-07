@@ -1,9 +1,8 @@
 ##################################################
                      KWIVER
 ##################################################
---------------------------------------------------
 Kitware Image and Video Exploitation and Retrieval
---------------------------------------------------
+==================================================
 
 The KWIVER toolkit is a collection of software tools designed to
 tackle challenging image and video analysis problems and other related
