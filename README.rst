@@ -28,7 +28,7 @@ for use with KWIVER.  Fletch is a CMake_ based "super-build" that
 takes care of most of the build details for you.
 
 .. _Fletch: https://github.com/Kitware/fletch
-.. _CMake: www.cmake.org
+.. _CMake: https://www.cmake.org
 
 To build Fletch, refer to the README file in that repository.
 
