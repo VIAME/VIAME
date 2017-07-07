@@ -463,3 +463,30 @@ higher-level use case. In C++, use the ``TEST_`` macros which will
 hook into the testing infrastructure automatically and in Python, name
 functions so that they start with ``test_`` and they will be picked up
 automatically.
+
+
+Getting Help
+============
+
+Please join the
+`kwiver-users <http://public.kitware.com/mailman/listinfo/kwiver-users>`_
+mailing list to discuss KWIVER or to ask for help with using KWIVER.
+For less frequent announcements about KWIVER and projects built on KWIVER,
+please join the
+`kwiver-announce <http://public.kitware.com/mailman/listinfo/kwiver-announce>`_
+mailing list.
+
+
+Acknowledgements
+================
+
+The authors would like to thank AFRL/Sensors Directorate for their support
+of this work via SBIR Contract FA8650-14-C-1820. The portions of this work
+funded by the above contract are approved for public release via case number
+88ABW-2017-2725.
+
+The authors would like to thank IARPA for their support of this work via the
+DIVA program.
+
+The authors would like to thank NOAA for their support of this work via the
+NOAA Fisheries Strategic Initiative on Automated Image Analysis.
