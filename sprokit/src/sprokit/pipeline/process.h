@@ -156,14 +156,20 @@ class SPROKIT_PIPELINE_EXPORT process
     /// The type for a flag on a port.
     ///\todo Add descriptions of predefined port flags.
     typedef std::string port_flag_t;
+
     /// The type for a group of port flags.
     typedef std::set<port_flag_t> port_flags_t;
+
     /// The type for the address of a port within the pipeline.
+    /// Derived from "process.port"
     typedef std::pair<name_t, port_t> port_addr_t;
+
     /// The type for a group of port addresses.
     typedef std::vector<port_addr_t> port_addrs_t;
+
     /// The type for a connection within the pipeline.
     typedef std::pair<port_addr_t, port_addr_t> connection_t;
+
     /// The type for a group of connections.
     typedef std::vector<connection_t> connections_t;
 
@@ -610,7 +616,7 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_flag_t const flag_output_shared;
 
     /**
-     * \brief A flag which indicates that the input may be defined as
+     * \brief A flag which indicates that the input \b may be defined as
      * a configuration value.
      *
      * If this port is not connected, the value supplied is taken from
@@ -625,7 +631,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \code
      process circ
        :: circle_writer
-          :static/foo  3.14159
+          static/radius = 3.14159
      * \endcode
      *
      * This flag may \b not be combined with \ref flag_required because
@@ -736,7 +742,17 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Runtime configuration for subclasses.
      *
      * This method is called after the process is initially configured
-     * and started. A config block with updated values is supplied.
+     * and started. A config block with updated values is
+     * supplied. Only config keys that have the tunable attribute to
+     * be reconfigured.
+     *
+     * This method call be called at any time to supply the new
+     * configuration, and possibly from a thread that is different
+     * from which is calling the step() method.
+     *
+     * The intent of this method is to provide a way to dynamically
+     * change the behaviour of a process. The process must deal with
+     * any synchronization issues.
      *
      * \params conf The configuration block to apply.
      */

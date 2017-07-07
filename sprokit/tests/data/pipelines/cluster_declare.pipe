@@ -1,2 +1,3 @@
 cluster mycluster
-  :# clusterdesc
+  --clusterdesc
+  -- Second line that goes on for a while.

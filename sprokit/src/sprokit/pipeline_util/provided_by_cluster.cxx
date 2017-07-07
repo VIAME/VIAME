@@ -34,14 +34,9 @@
  */
 
 #include "provided_by_cluster.h"
-#include "check_provider.h"
-#include "extract_literal_value.h"
 
-#include <boost/variant.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
-
+#include <vital/util/string.h>
+#include <vital/util/tokenize.h>
 
 namespace sprokit {
 
@@ -62,6 +57,12 @@ provided_by_cluster
 
 
 // ------------------------------------------------------------------
+/**
+ * @brief Determine if config entry is provided by cluster.
+ *
+ *
+ * @return \b true if provided by cluster; \b false otherwise
+ */
 bool
 provided_by_cluster
 ::operator()( bakery_base::config_decl_t const& decl ) const
@@ -75,22 +76,10 @@ provided_by_cluster
   }
 
   // Mapped configurations must be a provider_config request.
-  check_provider const check = check_provider( bakery_base::provider_config );
-
-  bakery_base::config_reference_t const& ref = info.reference;
-  bool const conf_provided = boost::apply_visitor( check, ref );
-
-  if ( ! conf_provided )
-  {
-    return false;
-  }
-
-  extract_literal_value const literal_value = extract_literal_value();
-
-  kwiver::vital::config_block_value_t const value = boost::apply_visitor( literal_value, ref );
+  kwiver::vital::config_block_value_t const value = info.value;
 
   // It must be mapped to the the actual cluster.
-  if ( ! boost::starts_with( value, m_name + kwiver::vital::config_block::block_sep ) )
+  if ( ! kwiver::vital::starts_with( value, m_name + kwiver::vital::config_block::block_sep ) )
   {
     return false;
   }
@@ -102,12 +91,12 @@ provided_by_cluster
    */
 
   kwiver::vital::config_block_key_t const& key = decl.first;
-
   kwiver::vital::config_block_keys_t key_path;
 
-  /// \bug Does not work if (kwiver::vital::config_block::block_sep.size() != 1).
-  boost::split( key_path, key, boost::is_any_of( kwiver::vital::config_block::block_sep ) );
+  // Split path into components
+  kwiver::vital::tokenize( key, key_path, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
 
+  // Is the first component a process name
   bool const is_proc = ( 0 != std::count( m_procs.begin(), m_procs.end(), key_path[0] ) );
 
   if ( ! is_proc )

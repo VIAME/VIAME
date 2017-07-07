@@ -2,9 +2,11 @@
 # Python support
 #
 
-## kwiver_create_python_plugin_init(vital/types)
-
 # Add python modules
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera.py
+  vital/types
+  camera )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera_intrinsics.py
   vital/types
   camera_intrinsics )
@@ -12,10 +14,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera_intrinsics.py
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera_map.py
   vital/types
   camera_map )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera.py
-  vital/types
-  camera )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/color.py
   vital/types
@@ -29,6 +27,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor.py
   vital/types
   descriptor )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor_set.py
+  vital/types
+  descriptor_set )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/eigen.py
   vital/types
   eigen )
@@ -37,17 +39,33 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/feature.py
   vital/types
   feature )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image_container.py
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/homography.py
   vital/types
-  image_container )
+  homography )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image.py
   vital/types
   image )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image_container.py
+  vital/types
+  image_container )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/landmark.py
+  vital/types
+  landmark )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/landmark_map.py
+  vital/types
+  landmark_map )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/rotation.py
   vital/types
   rotation )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/similarity.py
+  vital/types
+  similarity )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track.py
   vital/types

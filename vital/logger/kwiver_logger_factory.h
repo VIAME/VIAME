@@ -48,7 +48,7 @@ namespace logger_ns {
  * execution (i.e. static initializer time), which is before the
  * initialize method is called.
  */
-class kwiver_logger_factory
+class VITAL_LOGGER_EXPORT kwiver_logger_factory
   : private kwiver::vital::noncopyable
 {
 public:

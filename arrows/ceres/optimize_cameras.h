@@ -84,11 +84,14 @@ public:
    * \param[in,out] cameras   Cameras to optimize.
    * \param[in]     tracks    The tracks to use as constraints.
    * \param[in]     landmarks The landmarks the cameras are viewing.
+   * \param[in]     metadata  The optional metadata to constrain the
+   *                          optimization.
    */
   virtual void
   optimize(kwiver::vital::camera_map_sptr & cameras,
            kwiver::vital::track_set_sptr tracks,
-           kwiver::vital::landmark_map_sptr landmarks) const;
+           kwiver::vital::landmark_map_sptr landmarks,
+           kwiver::vital::video_metadata_map_sptr metadata = nullptr) const;
 
 
   /// Optimize a single camera given corresponding features and landmarks
@@ -102,11 +105,15 @@ public:
    *                          to use as constraints.
    * \param[in]     landmarks The vector of landmarks corresponding to
    *                          \p features.
+   * \param[in]     metadata  The optional metadata to constrain the
+   *                          optimization.
    */
   virtual void
   optimize(vital::camera_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
-           const std::vector<vital::landmark_sptr>& landmarks) const;
+           const std::vector<vital::landmark_sptr>& landmarks,
+           kwiver::vital::video_metadata_vector metadata
+             = kwiver::vital::video_metadata_vector()) const;
 
 private:
   /// private implementation class

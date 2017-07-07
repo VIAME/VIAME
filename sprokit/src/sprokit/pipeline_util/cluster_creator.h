@@ -38,6 +38,7 @@
 
 #include "cluster_bakery.h"
 
+#include <vital/logger/logger.h>
 #include <vital/config/config_block.h>
 
 
@@ -71,6 +72,8 @@ public:
 
 private:
   kwiver::vital::config_block_sptr m_default_config;
+
+  kwiver::vital::logger_handle_t m_logger;
 };
 
 } // end namespace sprokit

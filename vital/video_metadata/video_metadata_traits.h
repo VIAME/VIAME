@@ -72,17 +72,23 @@ struct vital_meta_trait_base
 //
 template <vital_metadata_tag tag> struct vital_meta_trait;
 
-#define DEFINE_VITAL_META_TRAIT(TAG, NAME, T)                           \
+
+// Macro to define basic metadata trait
+// This macro is available for others to create separate sets of traits.
+#define DEFINE_VITAL_METADATA_TRAIT(TAG, NAME, T)                       \
   template <>                                                           \
-  struct vital_meta_trait<VITAL_META_ ## TAG>                           \
+  struct vital_meta_trait<TAG>                                          \
   {                                                                     \
     static std::string name() { return NAME; }                          \
     static std::type_info const& tag_type() { return typeid(T); }       \
     static bool is_integral() { return std::is_integral<T>::value; }    \
     static bool is_floating_point() { return std::is_floating_point<T>::value; } \
-    static vital_metadata_tag tag() { return VITAL_META_ ## TAG; }      \
+    static vital_metadata_tag tag() { return TAG; }                     \
     typedef T type;                                                     \
   };
+
+// Macro to define build-in traits.
+#define DEFINE_VITAL_META_TRAIT(TAG, NAME, T)   DEFINE_VITAL_METADATA_TRAIT( VITAL_META_ ## TAG, NAME, T )
 
 //
 // Define all compile time metadata traits
@@ -163,5 +169,10 @@ private:
 }; // end class video_metadata_traits
 
 } } // end namespace
+
+// usage for creating metadata items
+#define NEW_METADATA_ITEM( TAG, DATA )                                  \
+  new kwiver::vital::typed_metadata< TAG, kwiver::vital::vital_meta_trait<TAG>::type > \
+  ( kwiver::vital::vital_meta_trait<TAG>::name(), DATA )
 
 #endif /* KWIVER_VITAL_VIDEO_METADATA_TRAITS_H */

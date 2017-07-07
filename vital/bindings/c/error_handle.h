@@ -47,11 +47,14 @@ extern "C"
 /// Common error handle structure
 /**
  * When an instance of this structure is passed into a Vital API and an error
- * occurs a new string (char*) is allocated for ``message``. If ``message``
- * is already allocated then the previous memory is first freed. A single error
- * handle can be reused between multiple API calls, but one should check the
- * status between calls and copy the message string before reusing the error
- * handle to avoid losing the message.
+ * occurs a new string (char*) is allocated for ``message`` and the error_code
+ * is set to a non-zero value.
+ *
+ * If ``message`` is already allocated then the previous memory is first freed.
+ *
+ * A single error handle can be reused between multiple API calls, but one
+ * should check the status between calls and copy the message string before
+ * reusing the error handle to avoid losing the message.
  */
 typedef struct vital_error_handle_s {
   int error_code;
@@ -67,7 +70,12 @@ VITAL_C_EXPORT
 vital_error_handle_t* vital_eh_new();
 
 
-/// Destroy the given non-null error handle structure pointer
+/// Destroy the given error handle structure pointer
+/**
+ * This function does nothing if passed a NULL pointer.
+ *
+ * \param eh Pointer to the error handle instance to destroy.
+ */
 VITAL_C_EXPORT
 void vital_eh_destroy( vital_error_handle_t *eh );
 

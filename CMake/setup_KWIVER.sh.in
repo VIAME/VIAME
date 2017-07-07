@@ -1,7 +1,7 @@
 #
 # Script to source to setup the KWIVER environment
 #
-this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 export VG_PLUGIN_PATH=$this_dir
 export PATH=$this_dir/bin:$PATH
@@ -10,3 +10,11 @@ export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
 
 # Set default log reporting level for default logger.
 # export KWIVER_DEFAULT_LOG_LEVEL=info
+
+# Additional pipeline include directories can be specified in the following env var.
+# export SPROKIT_PIPE_INCLUDE_PATH=
+
+# Additional config include directories can be specified in the following env var.
+# export KWIVER_CONFIG_PATH=
+
+# Append here

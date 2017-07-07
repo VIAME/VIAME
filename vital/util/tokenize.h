@@ -41,6 +41,11 @@
 namespace kwiver {
 namespace vital {
 
+
+enum {
+  TokenizeTrimEmpty = 1
+};
+
 /**
  * @brief Split string into set of tokens.
  *

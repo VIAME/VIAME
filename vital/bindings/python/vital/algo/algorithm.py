@@ -34,7 +34,6 @@ Base VITAL algorithm structure
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
 
@@ -86,9 +85,9 @@ class VitalAlgorithm (VitalObject):
         names = ctypes.POINTER(ctypes.c_char_p)()
         algo_reg_names(ctypes.byref(length), ctypes.byref(names))
 
-        # Constructing return array
+        # Constructing return array, copying strings.
         r = []
-        for i in xrange(length.value):
+        for i in range(length.value):
             r.append(names[i])
 
         # Free allocated key listing
@@ -205,22 +204,6 @@ class VitalAlgorithm (VitalObject):
             )
         else:
             return None
-
-    def clone(self, new_name=None):
-        """
-        :param new_name: An optional new instance name for the cloned algorithm
-        :type new_name: str
-
-        :return: A new copy of this algorithm
-        :rtype: VitalAlgorithm
-        """
-        clone_cptr = self._call_cfunc(
-            'vital_algorithm_%s_clone' % self.type_name(),
-            [self.C_TYPE_PTR], [self],
-            self.C_TYPE_PTR
-        )
-        return self.__class__(name=(new_name or self.name),
-                              from_cptr=clone_cptr)
 
     def get_config(self, cb=None):
         """

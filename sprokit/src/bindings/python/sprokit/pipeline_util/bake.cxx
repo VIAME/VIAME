@@ -60,9 +60,9 @@ static sprokit::process_t cluster_info_create(sprokit::cluster_info_t const& sel
 static sprokit::process_t cluster_info_create_default(sprokit::cluster_info_t const& self);
 static void register_cluster(sprokit::cluster_info_t const& info);
 static sprokit::pipeline_t bake_pipe_file(std::string const& path);
-static sprokit::pipeline_t bake_pipe(object stream, std::string const& inc_root);
+static sprokit::pipeline_t bake_pipe(object stream);
 static sprokit::cluster_info_t bake_cluster_file(std::string const& path);
-static sprokit::cluster_info_t bake_cluster(object stream, std::string const& inc_root);
+static sprokit::cluster_info_t bake_cluster(object stream);
 
 BOOST_PYTHON_MODULE(bake)
 {
@@ -86,7 +86,7 @@ BOOST_PYTHON_MODULE(bake)
     , (arg("path"))
     , "Build a pipeline from a file.");
   def("bake_pipe", &bake_pipe
-    , (arg("stream"), arg("inc_root") = std::string())
+    , (arg("stream"))
     , "Build a pipeline from a stream.");
   def("bake_pipe_blocks", &sprokit::bake_pipe_blocks
     , (arg("blocks"))
@@ -95,7 +95,7 @@ BOOST_PYTHON_MODULE(bake)
     , (arg("path"))
     , "Build a cluster from a file.");
   def("bake_cluster", &bake_cluster
-    , (arg("stream"), arg("inc_root") = std::string())
+    , (arg("stream"))
     , "Build a cluster from a stream.");
   def("bake_cluster_blocks", &sprokit::bake_cluster_blocks
     , (arg("blocks"))
@@ -174,13 +174,13 @@ register_cluster(sprokit::cluster_info_t const& info)
 sprokit::pipeline_t
 bake_pipe_file(std::string const& path)
 {
-  return sprokit::bake_pipe_from_file(sprokit::path_t(path));
+  return sprokit::bake_pipe_from_file(path);
 }
 
 
 // ------------------------------------------------------------------
 sprokit::pipeline_t
-bake_pipe(object stream, std::string const& inc_root)
+bake_pipe(object stream)
 {
   sprokit::python::python_gil const gil;
 
@@ -188,7 +188,7 @@ bake_pipe(object stream, std::string const& inc_root)
 
   sprokit::python::pyistream istr(stream);
 
-  return sprokit::bake_pipe(istr, sprokit::path_t(inc_root));
+  return sprokit::bake_pipe(istr);
 }
 
 
@@ -196,13 +196,13 @@ bake_pipe(object stream, std::string const& inc_root)
 sprokit::cluster_info_t
 bake_cluster_file(std::string const& path)
 {
-  return sprokit::bake_cluster_from_file(sprokit::path_t(path));
+  return sprokit::bake_cluster_from_file(path);
 }
 
 
 // ------------------------------------------------------------------
 sprokit::cluster_info_t
-bake_cluster(object stream, std::string const& inc_root)
+bake_cluster(object stream)
 {
   sprokit::python::python_gil const gil;
 
@@ -210,5 +210,5 @@ bake_cluster(object stream, std::string const& inc_root)
 
   sprokit::python::pyistream istr(stream);
 
-  return sprokit::bake_cluster(istr, sprokit::path_t(inc_root));
+  return sprokit::bake_cluster(istr);
 }

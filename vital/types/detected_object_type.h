@@ -60,7 +60,7 @@ namespace vital {
  * class captures the set of possible types along with the relative
  * likelyhood or score.
  *
- * Note that score values in this object are not constrained to
+ * Note that score values in this object are *not* constrained to
  * [0.0,1.0] because different detectors use different approaches for
  * scores. These scores can be normalized, but that is up to the user
  * of these values.
@@ -149,7 +149,7 @@ public:
    * @brief Set score for a class.
    *
    * This method sets or updates the score for a type name. Note that
-   * the score value is not constrained to [0.0,1.0].
+   * the score value is *not* constrained to [0.0,1.0].
    *
    * If the class_name specified is not previously associated with
    * this object type, it is added, If it is present, the score is

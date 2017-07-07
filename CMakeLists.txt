@@ -24,11 +24,6 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   list(APPEND CMAKE_PREFIX_PATH "${fletch_ROOT}")
 endif()
 
-# Fletch provides the PROJ4 symbols. We need the PROJ symbols.
-if (PROJ4_ROOT)
-  set(PROJ_ROOT "${PROJ4_ROOT}")
-endif()
-
 ###
 # project specific directories
 ##
@@ -185,6 +180,7 @@ mark_as_advanced( LIB_SUFFIX )
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_SETUP_SCRIPT_FILE}
+  @ONLY
   )
 
 # install set up script
@@ -198,17 +194,24 @@ endif()
 
 ###
 # Install the basic logger properties file.
-file( COPY log4cxx.properties
-  DESTINATION  "${KWIVER_BINARY_DIR}" )
-
-install( FILES log4cxx.properties
-  DESTINATION ${CMAKE_INSTALL_PREFIX} )
+file( COPY log4cxx.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
+install( FILES log4cxx.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CXX )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger.so\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
 endif()
 
+###
+file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
+install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
+
+if ( KWIVER_ENABLE_LOG4CPLUS )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger.so\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CPLUS_CONFIGURATION=$this_dir/log4cplus.properties\n" )
+endif()
+
+###
 if (KWIVER_ENABLE_PYTHON)
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# additional python mudules to load, separated by ':'\n" )
@@ -320,6 +323,7 @@ kwiver_install(
 
 kwiver_install(
   EXPORT      ${kwiver_export_name}
+  NAMESPACE   kwiver::
   DESTINATION "${kwiver_cmake_install_dir}"
   FILE        kwiver-config-targets.cmake
   )

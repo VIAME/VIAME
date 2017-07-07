@@ -25,6 +25,8 @@ set( sources
   refine_detections_process.cxx
   split_image_process.cxx
   stabilize_image_process.cxx
+  track_descriptor_input_process.cxx
+  track_descriptor_output_process.cxx
   video_input_process.cxx
 )
 
@@ -48,6 +50,8 @@ set( private_headers
   refine_detections_process.h
   split_image_process.h
   stabilize_image_process.h
+  track_descriptor_input_process.h
+  track_descriptor_output_process.h
   video_input_process.h
 )
 

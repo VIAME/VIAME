@@ -1,17 +1,16 @@
 cluster multiplier_cluster_test
-  :# Multiply a number by a constant factor.
-  :# The constant factor to multiply by.
-  :factor 20
-  :# The factor to multiply by.
-  imap from factor
-       to   multiply.factor1
-  :# The product.
+  -- Multiply a number by a constant factor.
+  factor = 20
+  -- The constant factor to multiply by.
+  imap from factor       to   multiply.factor1
+  -- The factor to multiply by.
   omap from multiply.product
        to   product
+  -- The product.
 
 process const
   :: const_number
-  :value[ro]{CONF} multiplier_cluster_test:factor
+  value[ro]= $CONFIG{multiplier_cluster_test:factor}
 
 process multiply
   :: multiplication

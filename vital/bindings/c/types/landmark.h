@@ -198,6 +198,9 @@ vital_landmark_##S##_new_default( vital_error_handle_t *eh ); \
 /**
  * Set 3D location of a landmark instance
  *
+ * This may error if the underlying landmark cannot be dynamic cast to the
+ * requested type (error code 1).
+ *
  * \param l landmark instance
  * \param loc New 3D location for the landmark
  * \param eh Vital error handle instance
@@ -211,6 +214,9 @@ vital_landmark_##S##_set_loc( vital_landmark_t *l, \
 /**
  * Set the scale of the landmark
  *
+ * This may error if the underlying landmark cannot be dynamic cast to the
+ * requested type (error code 1).
+ *
  * \param l landmark instance
  * \param scale New scale of the landmark
  * \param eh Vital error handle instance
@@ -222,6 +228,9 @@ vital_landmark_##S##_set_scale( vital_landmark_t *l, T scale, \
 \
 /**
  * Set the normal vector of the landmark
+ *
+ * This may error if the underlying landmark cannot be dynamic cast to the
+ * requested type (error code 1).
  *
  * \param l landmark instance
  * \param normal New 3D normal vector of the landmark
@@ -236,6 +245,9 @@ vital_landmark_##S##_set_normal( vital_landmark_t *l, \
 /**
  * Set the covariance of the landmark
  *
+ * This may error if the underlying landmark cannot be dynamic cast to the
+ * requested type (error code 1).
+ *
  * \param l landmark instance
  * \param covar New 3D covariance of the landmark
  * \param eh Vital error handle instance
@@ -249,6 +261,9 @@ vital_landmark_##S##_set_covar( vital_landmark_t *l, \
 /**
  * Set the color of the landmark
  *
+ * This may error if the underlying landmark cannot be dynamic cast to the
+ * requested type (error code 1).
+ *
  * \param l landmark instance
  * \param c New color of the landmark
  * \param eh Vital error handle instance
@@ -261,6 +276,9 @@ vital_landmark_##S##_set_color( vital_landmark_t *l, \
 \
 /**
  * Set the observations of the landmark
+ *
+ * This may error if the underlying landmark cannot be dynamic cast to the
+ * requested type (error code 1).
  *
  * \param l landmark instance
  * \param observations New observations value for the landmark

@@ -247,6 +247,13 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     /**
      * \brief Reconfigure processes within the pipeline.
      *
+     * This method causes the pipeline to reconfigure all processes by
+     * calling their reconfigure() method. The supplied config block
+     * is used to supply an updated configuration to each process and
+     * cluster in the pipeline.
+     *
+     * This method can be called anytime after the pipeline has been set up.
+     *
      * \warning This does not ensure that every process gets reconfigured at the
      * same time; any synchronization is best handled at the cluster level if
      * needed.

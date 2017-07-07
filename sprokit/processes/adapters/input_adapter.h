@@ -93,7 +93,7 @@ public:
    *
    * @return List of port names and info.
    */
-  adapter::ports_info_t get_ports() const;
+  virtual adapter::ports_info_t get_ports() const;
 
   /**
    * @brief Send data set to input adapter process.

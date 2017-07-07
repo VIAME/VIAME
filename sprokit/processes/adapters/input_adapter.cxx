@@ -60,12 +60,7 @@ input_adapter
   // Find process in pipeline
   auto proc_ptr = pipe->process_by_name( proc ); // throws
 
-  m_process = dynamic_cast< kwiver::input_adapter_process* > ( proc_ptr.get() );
-  if ( m_process == 0 )
-  {
-    throw sprokit::no_such_process_exception( proc );
-  }
-
+  m_process = static_cast< kwiver::input_adapter_process* > ( proc_ptr.get() );
   m_interface_queue = m_process->get_interface_queue();
 }
 
@@ -104,6 +99,5 @@ input_adapter
 {
   return m_interface_queue->Full();
 }
-
 
 } // end namespace

@@ -20,6 +20,7 @@ set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_INCLUDE_DIR  "include")
 set(KWSYS_INSTALL_LIB_DIR      lib)
 set(KWSYS_INCLUDE_DIR          ${CMAKE_CURRENT_BINARY_DIR} CACHE INTERNAL "")
+set(KWSYS_INSTALL_BIN_DIR      bin)
 
 # Save our custom CXX flags and reset so we pass no special flags to kwiversys.
 # Our flags are more strict than expected and causes many warnings and errors.
@@ -120,6 +121,7 @@ set( vital_public_headers
   types/covariance.h
   types/descriptor.h
   types/descriptor_set.h
+  types/descriptor_request.h
   types/detected_object.h
   types/detected_object_set.h
   types/detected_object_type.h
@@ -133,6 +135,8 @@ set( vital_public_headers
   types/geo_UTM.h
   types/geo_corner_points.h
   types/geo_lat_lon.h
+  types/geo_point.h
+  types/geo_polygon.h
   types/homography.h
   types/homography_f2f.h
   types/homography_f2w.h
@@ -144,14 +148,17 @@ set( vital_public_headers
   types/matrix.h
   types/mesh.h
   types/polygon.h
+  types/query_plan.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
   types/timestamp_config.h
   types/track.h
   types/track_set.h
+  types/track_descriptor.h
+  types/track_descriptor_set.h
   types/vector.h
-  types/uuid.h
+  types/uid.h
 
 )
 
@@ -178,6 +185,7 @@ set( vital_sources
   types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
+  types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
   types/detected_object_type.cxx
@@ -188,6 +196,8 @@ set( vital_sources
   types/geo_UTM.cxx
   types/geo_corner_points.cxx
   types/geo_lat_lon.cxx
+  types/geo_point.cxx
+  types/geo_polygon.cxx
   types/homography.cxx
   types/homography_f2f.cxx
   types/homography_f2w.cxx
@@ -195,12 +205,14 @@ set( vital_sources
   types/landmark.cxx
   types/mesh.cxx
   types/polygon.cxx
+  types/query_plan.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
   types/track.cxx
+  types/track_descriptor.cxx
   types/track_set.cxx
-  types/uuid.cxx
+  types/uid.cxx
 )
 
 kwiver_install_headers(

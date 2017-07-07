@@ -15,7 +15,6 @@ set(sprokit_default_cluster_paths
 set(path_prefix)
 
 if (WIN32)
-  set(path_prefix "L")
   set(path_sep ";")
 else ()
   set(path_sep ":")
@@ -49,5 +48,5 @@ target_link_libraries(processes_clusters
                       sprokit_pipeline
                       ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
-                      vital_vpm vital_util
+                      vital_vpm vital_util kwiversys
                       )

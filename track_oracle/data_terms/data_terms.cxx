@@ -12,6 +12,7 @@
 
 #include <track_oracle/core/kwiver_io_helpers.h>
 #include <track_oracle/aries_interface/aries_interface.h>
+#include <track_oracle/core/kwiver_io_base_instantiation.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );

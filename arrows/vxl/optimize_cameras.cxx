@@ -97,8 +97,15 @@ void
 optimize_cameras
 ::optimize(vital::camera_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
-           const std::vector<vital::landmark_sptr>& landmarks) const
+           const std::vector<vital::landmark_sptr>& landmarks,
+           kwiver::vital::video_metadata_vector metadata) const
 {
+  if( !metadata.empty() )
+  {
+    LOG_WARN( vital::get_logger( "arrows.vxl.optimize_cameras" ),
+              "metadata is provided but will be ignored by this algorithm");
+  }
+
   // remove camera intrinsics from the camera and work in normalized coordinates
   // VXL is only optimizing rotation and translation and doesn't model distortion
   vital::simple_camera mcamera(*camera);

@@ -186,7 +186,7 @@ descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set)
     return d->ocv_desc_matrix();
   }
   std::vector<vital::descriptor_sptr> desc = desc_set.descriptors();
-  if( desc.empty() )
+  if( desc.empty() || !desc[0] )
   {
     return cv::Mat();
   }

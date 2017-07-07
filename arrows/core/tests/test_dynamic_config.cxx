@@ -92,7 +92,7 @@ IMPLEMENT_TEST(test_loading)
   algo::dynamic_configuration::set_nested_algo_configuration( "dyn_cfg", cfg, dcs );
   if ( ! dcs )
   {
-    TEST_ERROR( "Unable to create feature_detector" );
+    TEST_ERROR( "Unable to create algorithm" );
   }
   else
   {

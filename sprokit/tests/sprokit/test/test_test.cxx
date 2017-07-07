@@ -32,6 +32,8 @@
 
 #include <sprokit/pipeline/utils.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <iostream>
 #include <stdexcept>
 
@@ -100,17 +102,18 @@ IMPLEMENT_TEST(environment)
 {
   sprokit::envvar_name_t const envvar = "TEST_ENVVAR";
 
-  sprokit::envvar_value_t const envvalue = sprokit::get_envvar(envvar);
+  std::string envvalue;
+  kwiversys::SystemTools::GetEnv( envvar, envvalue );
 
-  if (!envvalue)
+  if ( envvalue.empty() )
   {
     TEST_ERROR("failed to get environment from CTest");
   }
   else
   {
-    sprokit::envvar_value_t const expected = sprokit::envvar_value_t("test_value");
+    const std::string expected = std::string("test_value");
 
-    if (*envvalue != *expected)
+    if (envvalue != expected)
     {
       TEST_ERROR("Did not get expected value: "
                   "Expected: " << expected << " "

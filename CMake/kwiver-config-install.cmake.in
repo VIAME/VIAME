@@ -9,6 +9,8 @@ set(KWIVER_BUILT_SHARED  @BUILD_SHARED_LIBS@)
 
 if (WIN32)
   set(libdir "bin")
+  add_definitions(-DBOOST_ALL_NO_LIB)
+  add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
 else ()
   set(libdir "lib@LIB_SUFFIX@")
 endif ()

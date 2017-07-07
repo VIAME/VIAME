@@ -745,7 +745,7 @@ main( int argc, char* argv[] )
   if (G_context.opt_summary )
   {
     pe_out() << "\n----Summary of factories" << std::endl;
-    int count(0);
+    size_t count(0);
 
     auto plugin_map = vpm.plugin_map();
     pe_out() << "    " << plugin_map.size() << " types of factories registered." << std::endl;
