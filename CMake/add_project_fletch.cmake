@@ -124,6 +124,7 @@ ExternalProject_Add(fletch
     ${VIAME_CUDA_FLAGS}
     ${VIAME_CUDNN_FLAGS}
 
+    -DCMAKE_BUILD_TYPE:STRING=RELEASE
     -DBUILD_SHARED_LIBS:BOOL=ON
 
     # KWIVER Dependencies, Always On
