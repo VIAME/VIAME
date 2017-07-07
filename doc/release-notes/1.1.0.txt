@@ -21,7 +21,7 @@ stemming from the origins of KWIVER as the fusion of multiple projects.
 In this release there is now a unified plugin loader framework that provides
 a common mechanism for loading algorithm plugins (Arrows), process and cluster
 plugins (Sprokit), loggers (Vital), and so on.  There is also a single tool,
-plugin_explorer, that allows introspect of these plugins of various types.
+plugin_explorer, that allows introspection of these plugins of various types.
 This release also has a new mult-threading API in Vital that provides an
 interface for a thread pool with multiple back ends.  The thread pool API
 allows KWIVER algorithms to more easily leverage parallel processing without
