@@ -61,6 +61,7 @@ namespace boost
   {
     return p;
   }
+
   template <> inline sprokit::process_cluster const volatile*
   get_pointer(class sprokit::process_cluster const volatile* p)
   {
@@ -79,6 +80,7 @@ static bool is_process_loaded( const std::string& name );
 static void mark_process_loaded( const std::string& name );
 static std::string get_description( const std::string& name );
 static std::vector< std::string > process_names();
+
 
 // ==================================================================
 BOOST_PYTHON_MODULE(process_factory)
@@ -175,24 +177,7 @@ BOOST_PYTHON_MODULE(process_factory)
       , "Registers a function which creates a process of the given type.");
 
   def("create_process", &sprokit::create_process
-      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
-      , "Creates a new process of the given type.");
-
-  // ------------------------------------------------------------------
-  def("is_process_module_loaded", &is_process_loaded
-      , (arg("module"))
-      , "Returns True if the module has already been loaded, False otherwise.");
-
-  def("mark_process_module_as_loaded", &mark_process_loaded
-      , (arg("module"))
-      , "Marks a module as loaded.");
-
-  def("add_process", &register_process
-      , (arg("type"), arg("description"), arg("ctor"))
-      , "Registers a function which creates a process of the given type.");
-
-  def("create_process", &sprokit::create_process
-      , (arg("type"), arg("config") = kwiver::vital::config_block::empty_config())
+      , (arg("type"), arg("name"), arg("config") = kwiver::vital::config_block::empty_config())
       , "Creates a new process of the given type.");
 
   def("description", &get_description
@@ -239,8 +224,7 @@ register_process( sprokit::process::type_t const&        type,
   python_process_wrapper const wrap( obj );
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  sprokit::process::type_t derived_type = "python::";
-  auto fact = vpm.add_factory( new sprokit::process_factory( derived_type + type, // derived type name string
+  auto fact = vpm.add_factory( new sprokit::process_factory( type, // derived type name string
                                                              typeid( sprokit::process ).name(),
                                                              wrap ) );
 
@@ -318,6 +302,7 @@ python_process_wrapper
 }
 
 
+// ------------------------------------------------------------------
 sprokit::process_t
 python_process_wrapper
   ::operator()( kwiver::vital::config_block_sptr const& config )
@@ -328,7 +313,15 @@ python_process_wrapper
 
   object proc;
 
-  SPROKIT_PYTHON_HANDLE_EXCEPTION( proc = m_obj( config ) )
+  try
+  {
+    proc = m_obj( config );
+    return extract< sprokit::process_t > ( proc );
+  }
+  catch (boost::python::error_already_set const&)
+  {
+    sprokit::python::python_print_exception();
+    throw;
+  }
 
-  return extract< sprokit::process_t > ( proc );
 }
