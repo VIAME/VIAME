@@ -34,10 +34,13 @@
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
+#pragma warning (push)
+#pragma warning (disable : 4244)
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
 #include <boost/python/pure_virtual.hpp>
+#pragma warning (pop)
 
 /**
  * \file scheduler.cxx

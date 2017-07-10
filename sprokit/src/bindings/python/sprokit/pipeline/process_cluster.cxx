@@ -35,12 +35,15 @@
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
+#pragma warning (push)
+#pragma warning (disable : 4244)
 #include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
+#pragma warning (pop)
 
 /**
  * \file process_cluster.cxx

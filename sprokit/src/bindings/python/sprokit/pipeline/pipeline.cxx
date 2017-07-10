@@ -31,8 +31,11 @@
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process_cluster.h>
 
+#pragma warning (push)
+#pragma warning (disable : 4244)
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
+#pragma warning (pop)
 
 /**
  * \file pipeline.cxx

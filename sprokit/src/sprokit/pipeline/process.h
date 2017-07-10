@@ -42,7 +42,10 @@
 #include <boost/noncopyable.hpp>
 
 #include <boost/cstdint.hpp>
+#pragma warning (push)
+#pragma warning (disable : 4146)
 #include <boost/rational.hpp>
+#pragma warning (pop)
 
 #include <set>
 #include <string>
