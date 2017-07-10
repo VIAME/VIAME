@@ -241,9 +241,10 @@ train_from_disk(std::vector< std::string > train_image_names,
       test_image_names, test_groundtruth );
 
     // Generate train/test image list and header information
-    std::string python_cmd = "python";
+    std::string python_cmd = "python -c '";
     std::string import cmd = "import kwiver.arrows.darknet;";
     std::string header_cmd = "generate_header()";
+    std::string end_quote  = "'";
 
     system( python_cmd + " " + import_cmd + " " + header_cmd );
   }
@@ -263,10 +264,7 @@ train_from_disk(std::vector< std::string > train_image_names,
     darknet_args = darknet_args + " " + d->m_seed_weights;
   }
 
-  system( darknet_cmd + darknet_args );
-
-  // Evaluate final models and select best one
-  // [ TODO ]
+  system( darknet_cmd + " " + darknet_args );
 }
 
 // --------------------------------------------------------------------
