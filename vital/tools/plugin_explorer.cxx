@@ -389,6 +389,17 @@ void load_explorer_plugins( const std::string& path )
 
   ST::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
 
+  // Check env variable for path specification
+  const char * env_ptr = kwiversys::SystemTools::GetEnv( "KWIVER_PLUGIN_PATH" );
+  if ( 0 != env_ptr )
+  {
+    LOG_DEBUG( G_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
+    std::string const extra_module_dirs(env_ptr);
+
+    // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
+    ST::Split( extra_module_dirs, pathl, PATH_SEPARATOR_CHAR );
+  }
+
   // Add our subdirectory to each path element
   VITAL_FOREACH( std::string& p, pathl )
   {
