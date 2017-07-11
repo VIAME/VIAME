@@ -28,9 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#endif
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/module.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 #include <sprokit/pipeline/utils.h>
 

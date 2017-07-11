@@ -35,6 +35,7 @@
 #if WIN32
 #pragma warning (push)
 #pragma warning (disable : 4267)
+#pragma warning (disable : 4244)
 #endif
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>

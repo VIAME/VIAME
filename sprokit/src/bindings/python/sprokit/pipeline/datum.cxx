@@ -28,7 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#endif
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/enum.hpp>
@@ -38,6 +41,9 @@
 #include <boost/python/object.hpp>
 #include <boost/any.hpp>
 #include <boost/cstdint.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 #include <sprokit/pipeline/datum.h>
 
