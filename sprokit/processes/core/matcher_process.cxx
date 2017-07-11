@@ -150,7 +150,7 @@ matcher_process
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  unsigned int frame_number = frame_time.get_frame();
+  auto frame_number = frame_time.get_frame();
   std::vector<vital::feature_sptr> vf = curr_feat->features();
   std::vector<vital::descriptor_sptr> df = curr_desc->descriptors();
 

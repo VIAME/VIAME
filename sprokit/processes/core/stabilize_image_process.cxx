@@ -139,7 +139,9 @@ stabilize_image_process
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
   // Get feature tracks
-  d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
+  d->m_tracks = d->m_feature_tracker->track( d->m_tracks,
+                                             static_cast<unsigned int>(frame_time.get_frame()),
+                                             img );
 
   // Get stabilization homography
   src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
