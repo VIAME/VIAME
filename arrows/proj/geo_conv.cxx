@@ -54,6 +54,13 @@ geo_conversion
 }
 
 // ----------------------------------------------------------------------------
+char const* geo_conversion
+::id() const
+{
+  return "proj";
+}
+
+// ----------------------------------------------------------------------------
 vital::vector_2d geo_conversion
 ::operator()( vital::vector_2d const& point, int from, int to )
 {

@@ -56,6 +56,13 @@ double fmod( double n, double d )
 } // end namespace
 
 // ----------------------------------------------------------------------------
+geo_conversion*
+get_geo_conv()
+{
+  return s_geo_conv.load();
+}
+
+// ----------------------------------------------------------------------------
 void
 set_geo_conv( geo_conversion* c )
 {

@@ -76,11 +76,15 @@ namespace SRID
 class geo_conversion
 {
 public:
+  virtual char const* id() const = 0;
   virtual vector_2d operator()( vector_2d const& point, int from, int to ) = 0;
 
 protected:
   virtual ~geo_conversion() VITAL_DEFAULT_DTOR
 };
+
+/// Get the functor used for performing geodetic conversions. \see geo_conv
+VITAL_EXPORT geo_conversion* get_geo_conv();
 
 /// Set the functor used for performing geodetic conversions. \see geo_conv
 VITAL_EXPORT void set_geo_conv( geo_conversion* );
