@@ -638,7 +638,7 @@ current_loc() const
 {
   // Get current location from the include file stack top element
   return kwiver::vital::source_location( m_include_stack.back()->m_filename,
-                                         m_include_stack.back()->m_reader.line_number() );
+           static_cast<int>(m_include_stack.back()->m_reader.line_number()) );
 }
 
 

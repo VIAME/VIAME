@@ -324,7 +324,7 @@ double_vector_to_datum( PyObject* list )
 
   // if ( ! PyList_Check( list )) { log message }
 
-  int num_elem = PyList_Size( list );
+  int num_elem = static_cast<int>( PyList_Size( list ) );
 
   // Copy input values into a new vector.
   for ( int i = 0; i < num_elem; i++ )
