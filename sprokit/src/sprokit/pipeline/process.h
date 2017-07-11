@@ -39,13 +39,17 @@
 
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
-#include <boost/noncopyable.hpp>
 
-#include <boost/cstdint.hpp>
+#ifdef WIN32
 #pragma warning (push)
 #pragma warning (disable : 4146)
+#endif
+#include <boost/noncopyable.hpp>
+#include <boost/cstdint.hpp>
 #include <boost/rational.hpp>
+#ifdef WIN32
 #pragma warning (pop)
+#endif
 
 #include <set>
 #include <string>
