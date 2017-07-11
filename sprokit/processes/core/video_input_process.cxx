@@ -113,7 +113,8 @@ void video_input_process
 
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
-  d->m_config_frame_time     = config_value_using_trait( frame_time ) * 1e6; // in usec
+  d->m_config_frame_time = static_cast<vital::timestamp::time_t>(
+                               config_value_using_trait( frame_time ) * 1e6); // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 

@@ -34,9 +34,17 @@
 
 #include <sprokit/python/util/python_gil.h>
 
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#pragma warning (disable : 4244)
+#endif
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 /**
  * \file edge.cxx

@@ -45,15 +45,19 @@
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/vital_foreach.h>
 
+#if WIN32
 #pragma warning (push)
 #pragma warning (disable : 4267)
+#endif
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/wrapper.hpp>
 #include <boost/python/def.hpp>
+#if WIN32
 #pragma warning (pop)
+#endif
 
 #ifdef WIN32
  // Windows get_pointer const volatile workaround
