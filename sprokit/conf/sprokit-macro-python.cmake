@@ -118,6 +118,14 @@ function (sprokit_add_python_library    name    modpath)
   sprokit_add_library("python-${safe_modpath}-${name}" MODULE
     ${ARGN})
 
+    
+  if(MSVC)
+    # Issues arise with the msvc compiler with some projects where it cannot 
+    # compile bindings without the optimizer expanding some inline functions (i.e. debug builds)
+    # So always have the optimizer expand the inline functions in the python bindings projects
+    target_compile_options("python-${safe_modpath}-${name}" PUBLIC "/Ob2")
+  endif()
+ 
   set(pysuffix "${CMAKE_SHARED_MODULE_SUFFIX}")
   if (WIN32 AND NOT CYTWIN)
     set(pysuffix .pyd)
