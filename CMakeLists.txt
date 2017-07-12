@@ -198,7 +198,7 @@ file( COPY log4cxx.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
 install( FILES log4cxx.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CXX )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger.so\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
 endif()
 
@@ -207,7 +207,7 @@ file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
 install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CPLUS )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger.so\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CPLUS_CONFIGURATION=$this_dir/log4cplus.properties\n" )
 endif()
 
