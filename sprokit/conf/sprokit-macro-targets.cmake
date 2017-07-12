@@ -174,7 +174,7 @@ function (sprokit_add_library name)
   add_dependencies("${name}"    configure-config.h)
 
   foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
-    set(subdir "${library_subdir}/${config}${library_subdir_suffix}")
+    set(subdir "/${config}/${library_subdir}${library_subdir_suffix}")
     string(TOUPPER "${config}" upper_config)
 
     set_target_properties(${name}
