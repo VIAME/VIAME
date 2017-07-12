@@ -290,7 +290,7 @@ public:
   /**
    * @brief Report if input adapter is connected.
    *
-   * This method determines of the input adapter is connected.
+   * This method determines if the input adapter is connected.
    *
    * @return \b true if input adapter is connected.
    */
