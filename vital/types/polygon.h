@@ -46,9 +46,6 @@
 namespace kwiver {
 namespace vital {
 
-class vital_polygon;
-typedef std::shared_ptr<vital_polygon> vital_polygon_sptr;
-
 // ----------------------------------------------------------------
 /**
  * @brief Abstract base polygon class.
