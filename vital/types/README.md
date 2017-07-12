@@ -30,11 +30,13 @@
 
 **geo_corner_points** - 
 
+**geo_point** - 
+
+**geo_polygon** - 
+
 **geo_lat_lon** - 
 
 **geo_MGRS** - 
-
-**geo_UTM** - 
 
 **homography** - Defines a 3x3 homography matrix object allowing 2-D to 2-D point mappings.
 
