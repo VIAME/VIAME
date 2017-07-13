@@ -4,8 +4,8 @@
 set config=%1
 if /I (%1)==(debug) GOTO Start
 if /I (%1)==(release) GOTO Start
-usage: [debug ^| release]
-defaulting to release
+echo usage: [debug ^| release]
+echo defaulting to release
 set config=release
 :Start
 
