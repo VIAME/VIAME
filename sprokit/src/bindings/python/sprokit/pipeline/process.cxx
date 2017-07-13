@@ -37,6 +37,11 @@
 #include <sprokit/python/util/python_wrap_const_shared_ptr.h>
 #include <sprokit/python/util/set_indexing_suite.h>
 
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#pragma warning (disable : 4267)
+#endif
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
@@ -44,6 +49,9 @@
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/operators.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 /**
  * \file process.cxx

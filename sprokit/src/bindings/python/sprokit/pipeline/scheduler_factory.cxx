@@ -169,8 +169,7 @@ register_scheduler( sprokit::scheduler::type_t const& type,
   python_scheduler_wrapper const wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  sprokit::scheduler::type_t derived_type = "python::";
-  auto fact = vpm.add_factory( new sprokit::scheduler_factory( derived_type + type, // derived type name string
+  auto fact = vpm.add_factory( new sprokit::scheduler_factory( type,
                                                                typeid( sprokit::scheduler ).name(),
                                                                wrap ) );
 

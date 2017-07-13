@@ -28,6 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#endif
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 // XXX(python): 2.7
@@ -38,6 +42,9 @@
 // XXX(python): 2.7
 #if PY_VERSION_HEX >= 0x02070000
 #include <boost/python/scope.hpp>
+#endif
+#if WIN32
+#pragma warning (pop)
 #endif
 
 #include <sprokit/pipeline/stamp.h>
