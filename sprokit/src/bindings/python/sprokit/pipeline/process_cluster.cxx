@@ -349,7 +349,7 @@ wrap_process_cluster
 object
 cluster_from_process(sprokit::process_t const& process)
 {
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(process);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(process);
 
   if (!cluster)
   {

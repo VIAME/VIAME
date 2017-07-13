@@ -46,13 +46,13 @@ namespace python
 template <typename T>
 inline
 T*
-get_pointer(std::shared_ptr<T const> const& p)
+get_pointer(boost::shared_ptr<T const> const& p)
 {
   return const_cast<T*>(p.get());
 }
 
 template <typename T>
-struct pointee<std::shared_ptr<T const> >
+struct pointee<boost::shared_ptr<T const> >
 {
   typedef T type;
 };

@@ -91,7 +91,7 @@ IMPLEMENT_TEST(pipeline_empty_name)
   sprokit::process::type_t const type = sprokit::process::type_t("orphan");
   sprokit::process_t const proc = sprokit::create_process(type, sprokit::process::name_t());
 
-  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
   pipe->add_process(proc);
 
@@ -166,7 +166,7 @@ IMPLEMENT_TEST(cluster_empty_name)
   const auto conf = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const proc = info->ctor(conf);
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   std::ostringstream sstr;
 
@@ -188,7 +188,7 @@ IMPLEMENT_TEST(cluster_multiplier)
   conf->set_value(sprokit::process::config_name, name);
 
   sprokit::process_t const proc = info->ctor(conf);
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   std::ostringstream sstr;
 
