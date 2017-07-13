@@ -19,6 +19,7 @@ set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VER
 #
 set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
 if ( IS_DIRECTORY ${fletch_DIR} )
+  find_package( fletch NO_MODULE )
   # Search for libraries in the fletch install root
   list(APPEND CMAKE_PREFIX_PATH "${fletch_DIR}")
 endif()
@@ -214,7 +215,7 @@ if( KWIVER_INSTALL_SET_UP_SCRIPT )
   endif()
 endif()
 
-if ( fletch_DIR )
+if ( fletch_FOUND )
   if(WIN32)
     file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_DIR}/bin\n" )
     file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_DIR}/x64/${_vcVersion}/bin\n" )
@@ -320,7 +321,7 @@ if ( NOT fletch_ENABLED_Boost)
   list( APPEND KWIVER_LIBRARY_DIRS "${BOOST_ROOT_ARG}/lib")
 endif()
 
-if (fletch_DIR)
+if (fletch_FOUND)
   # since we have fletch, add include and lib dirs to export
   list( APPEND KWIVER_INCLUDE_DIRS "${fletch_DIR}/include")
   list( APPEND KWIVER_LIBRARY_DIRS "${fletch_DIR}/lib")
