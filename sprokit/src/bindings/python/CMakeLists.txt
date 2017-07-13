@@ -74,6 +74,6 @@ add_subdirectory(processes)
 add_subdirectory(schedulers)
 add_subdirectory(test)
 
-set (python_both_arch TRUE)
-
+sprokit_create_python_init(sprokit)
+set(python_noarch TRUE)
 sprokit_create_python_init(sprokit)
