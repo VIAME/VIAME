@@ -41,6 +41,8 @@
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
+#include <boost/make_shared.hpp>
+
 #include <algorithm>
 #include <memory>
 
@@ -116,13 +118,13 @@ cluster_creator
 
   kwiver::vital::config_block_sptr const full_config = bakery_base::extract_configuration_from_decls( all_configs );
 
-  typedef std::shared_ptr< loaded_cluster > loaded_cluster_t;
+  typedef boost::shared_ptr< loaded_cluster > loaded_cluster_t;
 
   // Pull out the main config block to the top-level.
   kwiver::vital::config_block_sptr const cluster_config = full_config->subblock_view( type );
   full_config->merge_config( cluster_config );
 
-  loaded_cluster_t const cluster = std::make_shared< loaded_cluster > ( full_config );
+  loaded_cluster_t const cluster = boost::make_shared< loaded_cluster > ( full_config );
 
   cluster_bakery::opt_cluster_component_info_t const& opt_info = m_bakery.m_cluster;
 

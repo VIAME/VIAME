@@ -108,7 +108,7 @@ class edge::priv
     priv(bool depends_, size_t capacity_, bool blocking_);
     ~priv();
 
-    typedef std::weak_ptr<process> process_ref_t;
+    typedef boost::weak_ptr<process> process_ref_t;
 
     bool full_of_data() const;
     void complete_check() const;

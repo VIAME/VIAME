@@ -56,10 +56,10 @@ more python friendly types.
 #include <string>
 
 typedef std::vector< double >  double_vector;
-typedef std::shared_ptr< double_vector > double_vector_sptr;
+typedef boost::shared_ptr< double_vector > double_vector_sptr;
 
 typedef std::vector< std::string > string_vector;
-typedef std::shared_ptr< string_vector > string_vector_sptr;
+typedef boost::shared_ptr< string_vector > string_vector_sptr;
 
 static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.type_converters" ) );
 
