@@ -92,6 +92,8 @@ protected:
   mutable std::unordered_map< int, geo_raw_polygon_t > m_poly;
 };
 
+VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, geo_polygon const& obj );
+
 } } // end namespace
 
 #endif /* KWIVER_VITAL_GEO_POLYGON_H_ */

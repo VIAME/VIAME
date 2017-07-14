@@ -36,6 +36,7 @@
 #include "geo_polygon.h"
 #include "geodesy.h"
 
+#include <iomanip>
 #include <stdexcept>
 
 namespace kwiver {
@@ -106,6 +107,36 @@ void geo_polygon
   m_original_crs = crs;
   m_poly.clear();
   m_poly.insert( std::make_pair( crs, poly ) );
+}
+
+// ----------------------------------------------------------------------------
+std::ostream&
+operator<<( std::ostream& str, vital::geo_polygon const& obj )
+{
+  if ( obj.is_empty() )
+  {
+    str << "{ empty }";
+  }
+  else
+  {
+    auto const old_prec = str.precision();
+    auto const verts = obj.polygon();
+
+    str << std::setprecision(22) << "{";
+    for ( size_t n = 0; n < verts.num_vertices(); ++n )
+    {
+      if ( n ) {
+        str << ",";
+      }
+      auto const& v = verts.at( n );
+      str << " " << v[0] << " / " << v[1];
+    }
+    str << " } @ " << obj.crs();
+
+    str.precision( old_prec );
+  }
+
+  return str;
 }
 
 } } // end namespace
