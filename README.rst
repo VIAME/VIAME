@@ -178,19 +178,19 @@ Note, after clicking the configuration button, new options will be highlighted i
 2. Set the fletch_DIR, the CMAKE_BUILD_TYPE, and these KWIVER options, and press the 'Configuration' button
   a. Note, if compiling with MSVC, you will not have a CMAKE_BUILD_TYPE option
   
-.. image:: doc/manuals/imags/cmake_step_2.png
+.. image:: doc/manuals/images/cmake/cmake_step_2.png
    :alt: KWIVER CMake Configuration Step 2
   
 3. Select these new options, and click 'Generate'
   a. This assumes your fletch was build with python support, if not, do not check that option
 
-.. image:: doc/manuals/imags/cmake_step_3.png
+.. image:: doc/manuals/images/cmake/cmake_step_3.png
    :alt: KWIVER CMake Configuration Step 3
 
 Compiling
 ---------
 
-Once your CMake command has completed and generated the build files,
+Once your CMake generation has completed and created the build files,
 compile in the standard way for your build environment.  On Linux
 this is typically running ``make``.
 
@@ -226,12 +226,17 @@ You can run this simple pipeline to ensure your system is configured properly::
   # on windows, you will need to also be in the configuration folder
   </path/to/kwiver/build>/bin/release/pipeline_runner -p </path/to/kwiver/source>/sprokit/pipelines/number_flow.pipe
 
+This will generate a 'numbers.txt' file in the current directory (/bin or /bin/release).
+
+KWIVER Users
+============
+
 Here are some applications using kwiver that serve as an example of how to leverage kwiver for a specific application
 
-=========== ===================================================================
-``_MAP-Tk``  A collection of libraries and tools for making measurements from aerial video
-``_VIAME``   A computer vision library designed to integrate several image and video processing algorithms together in a common distributed processing framework, majorly targeting marine species analytics
-=========== ===================================================================
+======= ===================================================================
+MAP-Tk_  A collection of libraries and tools for making measurements from aerial video
+VIAME_   A computer vision library designed to integrate several image and video processing algorithms together in a common              distributed processing framework, majorly targeting marine species analytics
+======= ===================================================================
 
 Code Structure and Provided Functionality
 =========================================
@@ -325,7 +330,7 @@ The authors would like to thank NOAA for their support of this work via the
 NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 
 Appendix I: References
-.. ======================
+======================
 
 .. _CMake: http://www.cmake.org/
 .. _Fletch: https://github.com/Kitware/fletch
