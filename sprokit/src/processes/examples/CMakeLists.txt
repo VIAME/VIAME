@@ -48,7 +48,7 @@ set(examples_private_headers
   take_string_process.h
   tunable_process.h)
 
-set(no_install TRUE)
+set(no_install FALSE)
 
 sprokit_private_header_group(${examples_private_headers})
 sprokit_add_plugin(processes_examples
