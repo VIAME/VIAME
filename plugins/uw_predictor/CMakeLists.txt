@@ -47,6 +47,8 @@ kwiver_add_library( viame_uw_predictor
 target_link_libraries( viame_uw_predictor
   PUBLIC               vital
                        kwiver_algo_ocv
+                       opencv_ml
+                       opencv_objdetect
   )
 
 algorithms_create_plugin( viame_uw_predictor
