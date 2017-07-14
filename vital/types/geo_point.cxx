@@ -34,6 +34,7 @@
  */
 
 #include "geo_point.h"
+#include "geodesy.h"
 
 #include <iomanip>
 #include <stdexcept>
@@ -85,8 +86,9 @@ geo_raw_point_t geo_point
   auto const i = m_loc.find( crs );
   if ( i == m_loc.end() )
   {
-    // TODO convert to requested CRS and add to m_loc
-    throw std::runtime_error( "conversion is not implemented" );
+    auto const p = geo_conv( location(), m_original_crs, crs );
+    m_loc.emplace( crs, p );
+    return p;
   }
 
   return i->second;

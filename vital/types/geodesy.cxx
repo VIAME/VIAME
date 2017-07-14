@@ -30,82 +30,83 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a geo polygon.
+ * \brief This file contains the implementation of a geo point.
  */
 
-#include "geo_polygon.h"
 #include "geodesy.h"
 
-#include <stdexcept>
+#include <atomic>
+#include <cmath>
 
 namespace kwiver {
 namespace vital {
 
-using geo_raw_polygon_t = geo_polygon::geo_raw_polygon_t;
+namespace {
+
+static std::atomic< geo_conversion* > s_geo_conv;
 
 // ----------------------------------------------------------------------------
-geo_polygon::
-geo_polygon()
-  : m_original_crs{ -1 }
-{ }
-
-// ----------------------------------------------------------------------------
-geo_polygon::
-geo_polygon( geo_raw_polygon_t const& polygon, int crs )
-  : m_original_crs( crs )
+double fmod( double n, double d )
 {
-  m_poly.insert( std::make_pair( crs, polygon ) );
+  // Return the actual modulo `n % d`; std::fmod does the wrong thing for
+  // negative numbers (rounds to zero, rather than rounding down)
+  return n - ( d * std::floor( n / d ) );
+}
+
+} // end namespace
+
+// ----------------------------------------------------------------------------
+geo_conversion*
+get_geo_conv()
+{
+  return s_geo_conv.load();
 }
 
 // ----------------------------------------------------------------------------
-bool geo_polygon
-::is_empty() const
+void
+set_geo_conv( geo_conversion* c )
 {
-  return m_poly.empty();
+  s_geo_conv.store( c );
 }
 
 // ----------------------------------------------------------------------------
-geo_raw_polygon_t geo_polygon
-::polygon() const
+vector_2d
+geo_conv( vector_2d const& point, int from, int to )
 {
-  return m_poly.at( m_original_crs );
-}
-
-// ----------------------------------------------------------------------------
-int geo_polygon
-::crs() const
-{
-  return m_original_crs;
-}
-
-// ----------------------------------------------------------------------------
-geo_raw_polygon_t geo_polygon
-::polygon( int crs ) const
-{
-  auto const i = m_poly.find( crs );
-  if ( i == m_poly.end() )
+  auto const c = s_geo_conv.load();
+  if ( !c )
   {
-    auto new_poly = geo_raw_polygon_t{};
-    auto const verts = polygon().get_vertices();
-
-    for ( auto& v : verts )
-    {
-      new_poly.push_back( geo_conv( v, m_original_crs, crs ) );
-    }
-    m_poly.emplace( crs, new_poly );
-    return new_poly;
+    throw std::runtime_error( "No geo-conversion functor is registered" );
   }
 
-  return i->second;
+  return ( *c )( point, from, to );
 }
 
 // ----------------------------------------------------------------------------
-void geo_polygon
-::set_polygon( geo_raw_polygon_t const& poly, int crs )
+utm_ups_zone_t
+utm_ups_zone( vector_2d const& lat_lon )
 {
-  m_original_crs = crs;
-  m_poly.clear();
-  m_poly.insert( std::make_pair( crs, poly ) );
+  // Get latitude and check for range error
+  auto const lat = lat_lon[1];
+  if ( lat > 90.0 || lat < -90.0 )
+  {
+    throw std::range_error( "Input latitude is out of range" );
+  }
+
+  // Check for UPS zones
+  if ( lat > 84.0 )
+  {
+    return { 0, true }; // UPS north
+  }
+  if ( lat < -80.0 )
+  {
+    return { 0, false }; // UPS south
+  }
+
+  // Get normalized longitude and return UTM zone
+  auto const lon = fmod( lat_lon[0], 360.0 );
+  auto const zone = 1 + ( ( 30 + static_cast<int>( lon / 6.0 ) ) % 60 );
+  return { zone, lat >= 0.0 };
 }
 
 } } // end namespace

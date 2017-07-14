@@ -41,6 +41,7 @@
 #include <sprokit/pipeline/process_exception.h>
 
 #include <memory>
+#include <boost/make_shared.hpp>
 
 #define TEST_ARGS ()
 

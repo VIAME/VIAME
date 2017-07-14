@@ -30,68 +30,43 @@
 
 /**
  * \file
- * \brief This file contains the interface to a geo polygon.
+ * \brief PROJ geo_conversion functor interface
  */
 
-#ifndef KWIVER_VITAL_GEO_POLYGON_H_
-#define KWIVER_VITAL_GEO_POLYGON_H_
+#ifndef KWIVER_ARROWS_PROJ_GEO_CONV_H_
+#define KWIVER_ARROWS_PROJ_GEO_CONV_H_
+
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
-#include <vital/types/polygon.h>
+#include <arrows/proj/kwiver_algo_proj_export.h>
+
+#include <vital/types/geodesy.h>
 
 #include <unordered_map>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
+namespace proj {
 
-// ----------------------------------------------------------------------------
-/** Geo-polygon.
- *
- * This class represents a geolocated polygon. The polygon is created by
- * specifying a raw polygon and a CRS. The original polygon and original CRS
- * may be directly accessed, or the polygon in a specific CRS may be requested.
- * Requests for a specific CRS are cached, so that CRS conversion does not need
- * to be performed every time.
- */
-class VITAL_EXPORT geo_polygon
+/// PROJ implementation of geo_conversion functor
+class KWIVER_ALGO_PROJ_EXPORT geo_conversion : public vital::geo_conversion
 {
 public:
-  typedef kwiver::vital::polygon geo_raw_polygon_t;
+  geo_conversion() {}
+  virtual ~geo_conversion();
 
-  geo_polygon();
-  geo_polygon( geo_raw_polygon_t const&, int crs );
+  virtual char const* id() const override;
 
-  virtual ~geo_polygon() VITAL_DEFAULT_DTOR
+  /// Conversion operator
+  virtual vital::vector_2d operator()( vital::vector_2d const& point,
+                                       int from, int to ) override;
 
-  /**
-   * \throws std::out_of_range if no location has been set.
-   */
-  geo_raw_polygon_t polygon() const;
-  int crs() const;
+private:
+  void* projection( int crs );
 
-  /**
-   * \throws std::runtime_error if the conversion fails.
-   */
-  geo_raw_polygon_t polygon( int crs ) const;
-
-  void set_polygon( geo_raw_polygon_t const&, int crs );
-
-  /**
-   * @brief Does polygon have a specified location.
-   *
-   * This method checks the object to see if any location data has been set.
-   *
-   * @return \b true if object is default constructed.
-   */
-  bool is_empty() const;
-
-protected:
-
-  int m_original_crs;
-  mutable std::unordered_map< int, geo_raw_polygon_t > m_poly;
+  std::unordered_map< int, void* > m_projections;
 };
 
-} } // end namespace
+} } } // end namespace
 
-#endif /* KWIVER_VITAL_GEO_POLYGON_H_ */
+#endif // KWIVER_ARROWS_PROJ_GEO_CONV_H_
