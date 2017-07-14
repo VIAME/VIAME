@@ -242,11 +242,13 @@ train_from_disk(std::vector< std::string > train_image_names,
 
     // Generate train/test image list and header information
     std::string python_cmd = "python -c '";
-    std::string import cmd = "import kwiver.arrows.darknet;";
+    std::string import_cmd = "import kwiver.arrows.darknet;";
     std::string header_cmd = "generate_header()";
     std::string end_quote  = "'";
 
-    system( python_cmd + " " + import_cmd + " " + header_cmd );
+    std::string full_cmd = python_cmd + " " + import_cmd + " " + header_cmd;
+
+    system( full_cmd.c_str() );
   }
 
   // Run training routine
@@ -255,7 +257,7 @@ train_from_disk(std::vector< std::string > train_image_names,
 #else
   std::string darknet_cmd = "darknet";
 #endif
-  std::string darknet_args = "-i " + d->m_gpu_index +
+  std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
     " detector train " + d->m_train_directory + "/YOLOv2.data " +
     d->m_net_config;
 
@@ -264,7 +266,9 @@ train_from_disk(std::vector< std::string > train_image_names,
     darknet_args = darknet_args + " " + d->m_seed_weights;
   }
 
-  system( darknet_cmd + " " + darknet_args );
+  std::string full_cmd = darknet_cmd + " " + darknet_args;
+
+  system( full_cmd.c_str() );
 }
 
 // --------------------------------------------------------------------
