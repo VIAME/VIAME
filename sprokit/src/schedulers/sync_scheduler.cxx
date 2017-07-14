@@ -46,6 +46,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 #include <deque>
 #include <iterator>
@@ -182,7 +183,7 @@ sync_scheduler::priv
   VITAL_FOREACH (process::name_t const& name, names)
   {
     process_t const proc = pipe->process_by_name(name);
-    edge_t const monitor_edge = std::make_shared<edge>(edge_conf);
+    edge_t const monitor_edge = boost::make_shared<edge>(edge_conf);
 
     proc->connect_output_port(process::port_heartbeat, monitor_edge);
     monitor_edges[name] = monitor_edge;

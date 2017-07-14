@@ -39,10 +39,12 @@
 #include <ostream>
 #include <memory>
 
+#include <boost/shared_ptr.hpp>
+
 namespace sprokit {
 
-typedef std::shared_ptr<std::istream> istream_t;
-typedef std::shared_ptr<std::ostream> ostream_t;
+typedef boost::shared_ptr<std::istream> istream_t;
+typedef boost::shared_ptr<std::ostream> ostream_t;
 
 SPROKIT_TOOLS_EXPORT istream_t open_istream(kwiver::vital::path_t const& path);
 SPROKIT_TOOLS_EXPORT ostream_t open_ostream(kwiver::vital::path_t const& path);

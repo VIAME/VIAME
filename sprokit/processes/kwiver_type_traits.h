@@ -62,9 +62,9 @@ namespace vital {
   class f2f_homography;
 
   typedef std::vector< double >  double_vector;
-  typedef std::shared_ptr< double_vector > double_vector_sptr;
+  typedef boost::shared_ptr< double_vector > double_vector_sptr;
   typedef std::vector< std::string > string_vector;
-  typedef std::shared_ptr< string_vector > string_vector_sptr;
+  typedef boost::shared_ptr< string_vector > string_vector_sptr;
 
 } }
 
