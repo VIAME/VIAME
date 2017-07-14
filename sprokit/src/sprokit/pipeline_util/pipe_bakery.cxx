@@ -109,7 +109,7 @@ bake_pipe_blocks( pipe_blocks const& blocks )
   // Create pipeline.
   kwiver::vital::config_block_sptr const pipeline_conf = global_conf->subblock_view( config_pipeline_key );
 
-  pipe = std::make_shared< pipeline > ( pipeline_conf );
+  pipe = boost::make_shared< pipeline > ( pipeline_conf );
 
   // Create processes.
   {
@@ -194,7 +194,7 @@ bake_cluster_blocks( cluster_blocks const& blocks )
   process::description_t const& description = bakery.m_description;
   process_factory_func_t const ctor = cluster_creator( bakery );
 
-  cluster_info_t const info = std::make_shared< cluster_info > ( type, description, ctor );
+  cluster_info_t const info = boost::make_shared< cluster_info > ( type, description, ctor );
 
   return info;
 }

@@ -164,7 +164,7 @@ IMPLEMENT_TEST(register_cluster)
 
   sprokit::process_t const cluster_from_reg = sprokit::create_process(cluster_type, sprokit::process::name_t(), config);
 
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(cluster_from_reg);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(cluster_from_reg);
 
   if (!cluster)
   {
@@ -175,7 +175,7 @@ IMPLEMENT_TEST(register_cluster)
 
   sprokit::process_t const not_a_cluster_from_reg = sprokit::create_process(type, sprokit::process::name_t(), config);
 
-  sprokit::process_cluster_t const not_a_cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(not_a_cluster_from_reg);
+  sprokit::process_cluster_t const not_a_cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(not_a_cluster_from_reg);
 
   if (not_a_cluster)
   {

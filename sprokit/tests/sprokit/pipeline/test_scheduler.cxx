@@ -254,7 +254,7 @@ IMPLEMENT_TEST(restart)
   sched->start();
   sched->stop();
 
-  std::shared_ptr<null_scheduler> const null_sched = std::dynamic_pointer_cast<null_scheduler>(sched);
+  boost::shared_ptr<null_scheduler> const null_sched = boost::dynamic_pointer_cast<null_scheduler>(sched);
 
   null_sched->reset_pipeline();
 
@@ -265,7 +265,7 @@ IMPLEMENT_TEST(restart)
 sprokit::scheduler_t
 create_scheduler(sprokit::scheduler::type_t const& type)
 {
-  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>();
 
   return sprokit::create_scheduler(type, pipeline);
 }
@@ -282,14 +282,14 @@ create_minimal_scheduler()
 
   sprokit::process_t const proc = sprokit::create_process(type, name);
 
-  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
   pipe->add_process(proc);
   pipe->setup_pipeline();
 
   kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
-  sprokit::scheduler_t const sched = std::make_shared<null_scheduler>(pipe, conf);
+  sprokit::scheduler_t const sched = boost::make_shared<null_scheduler>(pipe, conf);
 
   return sched;
 }
