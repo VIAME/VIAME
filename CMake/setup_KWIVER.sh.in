@@ -5,7 +5,7 @@ this_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 export VG_PLUGIN_PATH=$this_dir
 export PATH=$this_dir/bin:$PATH
-export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
+export @LIBRARY_PATH_VAR@=$this_dir/lib:$@LIBRARY_PATH_VAR@
 export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$this_dir/lib/sprokit:$KWIVER_PLUGIN_PATH
 
 # Set default log reporting level for default logger.

@@ -188,6 +188,11 @@ mark_as_advanced( LIB_SUFFIX )
 
 ###
 # Configure setup script.
+set(LIBRARY_PATH_VAR "LD_LIBRARY_PATH")
+if( APPLE )
+  set(LIBRARY_PATH_VAR "DYLD_FALLBACK_LIBRARY_PATH")
+endif()
+
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
   ${KWIVER_SETUP_SCRIPT_FILE}
@@ -218,7 +223,7 @@ if ( fletch_FOUND )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_DIR}/bin\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_DIR}/x64/${_vcVersion}/bin\n" )
 
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${fletch_DIR}/lib:$LD_LIBRARY_PATH\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_DIR}/lib:$${LIBRARY_PATH_VAR}\n" )
 endif()
 
 ###
