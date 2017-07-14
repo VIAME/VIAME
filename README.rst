@@ -281,18 +281,20 @@ Sprokit
 
 * sprokit/cmake -- contains CMake helper scripts
 * sprokit/conf -- contains configuration files cmake will tailor to the build system machine and directory structured
-* sprokit/doc - further documenation related to sprokit
-* sprokit/extra - general scripts, hooks, and cofigurations for use with 3rd party tools (e.g. git and vim)
-* sprokit/pipelines - contains example pipeline files demonstrating the execution of various arrows through sprokit
-* sprokit/processes - contains general utility processess that encapsulate various arrows for core funcionality
-  - adapters -- 
-  - bindings -- 
-  - core --
-  - examples -- 
-  - matlab --
-  - ocv --
-  - python --
-  - vxl -- 
+* sprokit/doc -- further documenation related to sprokit
+* sprokit/extra -- general scripts, hooks, and cofigurations for use with 3rd party tools (e.g. git and vim)
+* sprokit/pipelines -- contains example pipeline files demonstrating the execution of various arrows through sprokit
+* sprokit/processes-- contains general utility processess that encapsulate various arrows for core funcionality
+
+  - adapters -- adapter stuff
+  - bindings -- binding stuff
+  - core -- core stuff
+  - examples -- An example of how to make your own process class
+  - matlab -- eww
+  - ocv -- opencv stuff
+  - python -- python stuff
+  - vxl -- VXL stuff
+  
 * sprokit/src -- the core infrastructure code for defining, chaining, and executing processes 
 * sprokit/tests - contains the files needed for sprokit unit tests
 
