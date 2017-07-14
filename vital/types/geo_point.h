@@ -119,10 +119,6 @@ public:
    */
   bool is_empty() const;
 
-
-  bool operator==( const geo_point& rhs ) const;
-  bool operator!=( const geo_point& rhs ) const;
-
 protected:
 
   int m_original_crs;

@@ -30,82 +30,94 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a geo polygon.
+ * \brief PROJ geo_conversion functor implementation
  */
 
-#include "geo_polygon.h"
-#include "geodesy.h"
+#include "geo_conv.h"
 
-#include <stdexcept>
+#include <proj_api.h>
+
+#include <string>
 
 namespace kwiver {
-namespace vital {
-
-using geo_raw_polygon_t = geo_polygon::geo_raw_polygon_t;
-
-// ----------------------------------------------------------------------------
-geo_polygon::
-geo_polygon()
-  : m_original_crs{ -1 }
-{ }
+namespace arrows {
+namespace proj {
 
 // ----------------------------------------------------------------------------
-geo_polygon::
-geo_polygon( geo_raw_polygon_t const& polygon, int crs )
-  : m_original_crs( crs )
+geo_conversion
+::~geo_conversion()
 {
-  m_poly.insert( std::make_pair( crs, polygon ) );
-}
-
-// ----------------------------------------------------------------------------
-bool geo_polygon
-::is_empty() const
-{
-  return m_poly.empty();
-}
-
-// ----------------------------------------------------------------------------
-geo_raw_polygon_t geo_polygon
-::polygon() const
-{
-  return m_poly.at( m_original_crs );
-}
-
-// ----------------------------------------------------------------------------
-int geo_polygon
-::crs() const
-{
-  return m_original_crs;
-}
-
-// ----------------------------------------------------------------------------
-geo_raw_polygon_t geo_polygon
-::polygon( int crs ) const
-{
-  auto const i = m_poly.find( crs );
-  if ( i == m_poly.end() )
+  for ( auto i : m_projections )
   {
-    auto new_poly = geo_raw_polygon_t{};
-    auto const verts = polygon().get_vertices();
+    pj_free( i.second );
+  }
+}
 
-    for ( auto& v : verts )
+// ----------------------------------------------------------------------------
+char const* geo_conversion
+::id() const
+{
+  return "proj";
+}
+
+// ----------------------------------------------------------------------------
+vital::vector_2d geo_conversion
+::operator()( vital::vector_2d const& point, int from, int to )
+{
+  auto const proj_from = projection( from );
+  auto const proj_to = projection( to );
+
+  auto x = point[0];
+  auto y = point[1];
+  auto z = 0.0;
+
+  if ( pj_is_latlong( proj_from ) )
+  {
+    x *= DEG_TO_RAD;
+    y *= DEG_TO_RAD;
+  }
+
+  int err = pj_transform( proj_from, proj_to, 1, 1, &x, &y, &z );
+  if ( err )
+  {
+    auto const msg =
+      std::string{ "PROJ conversion failed: error " } + std::to_string( err );
+    throw std::runtime_error( msg );
+  }
+
+  if ( pj_is_latlong( proj_to ) )
+  {
+    x *= RAD_TO_DEG;
+    y *= RAD_TO_DEG;
+  }
+
+  return { x, y };
+}
+
+// ----------------------------------------------------------------------------
+void* geo_conversion
+::projection( int crs )
+{
+  auto const i = m_projections.find( crs );
+
+  if ( i == m_projections.end() )
+  {
+    auto const crs_str = std::to_string( crs );
+    auto const arg = std::string{ "+init=epsg:" } + crs_str;
+    auto const p = pj_init_plus( arg.c_str() );
+
+    if ( ! p )
     {
-      new_poly.push_back( geo_conv( v, m_original_crs, crs ) );
+      auto const msg =
+        "Failed to construct PROJ projection for EPSG:" + crs_str;
+      throw std::runtime_error( msg );
     }
-    m_poly.emplace( crs, new_poly );
-    return new_poly;
+
+    m_projections.emplace( crs, p );
+    return p;
   }
 
   return i->second;
 }
 
-// ----------------------------------------------------------------------------
-void geo_polygon
-::set_polygon( geo_raw_polygon_t const& poly, int crs )
-{
-  m_original_crs = crs;
-  m_poly.clear();
-  m_poly.insert( std::make_pair( crs, poly ) );
-}
-
-} } // end namespace
+} } } // end namespace
