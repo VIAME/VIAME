@@ -19,9 +19,11 @@ set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VER
 #
 set( fletch_DIR "" CACHE PATH "Path to FLETCH packages" )
 if ( IS_DIRECTORY ${fletch_DIR} )
-  # Search for libraries in the fletch install root
-  list(APPEND CMAKE_PREFIX_PATH "${fletch_DIR}")
   find_package( fletch NO_MODULE )
+  if ( fletch_FOUND )
+    # Search for libraries in the fletch install root
+    list(APPEND CMAKE_PREFIX_PATH "${fletch_DIR}")
+  endif()
 endif()
 
 ###
