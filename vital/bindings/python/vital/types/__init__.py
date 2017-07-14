@@ -40,6 +40,7 @@ from .camera_intrinsics import CameraIntrinsics
 from .color import RGBColor
 from .covariance import Covariance
 from .descriptor import Descriptor
+from .descriptor_set import DescriptorSet
 from .detected_object_type import DetectedObjectType
 from .detected_object import DetectedObject
 from .detected_object_set import DetectedObjectSet
@@ -48,18 +49,18 @@ from .image import Image
 from .image_container import ImageContainer
 from .rotation import Rotation
 
-# Required EigenArray
-#from .homography import Homography
+# Requires EigenArray
+from .homography import Homography
 
 # Requires EigenArray and RGBColor
 from .feature import Feature
 
 # Requires EigenArray and Rotation
-#from .similarity import Similarity
+from .similarity import Similarity
 
 # Requires Covariance
-#from .landmark import Landmark
-#from .landmark_map import LandmarkMap
+from .landmark import Landmark
+from .landmark_map import LandmarkMap
 
 # Requires Descriptor, Feature
 from .track import TrackState, Track

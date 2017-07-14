@@ -1,0 +1,5 @@
+config myblock
+  block foo
+    mykey = myvalue
+    :oldkey oldval
+  endblock

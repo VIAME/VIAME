@@ -75,6 +75,20 @@ operator>>( std::istream& s, Matrix< T, M, N >& m )
   return s;
 }
 
+
+/// Serialization of fixed Eigen matrices
+template < typename Archive, typename T, int M, int N, int O, int MM, int NN >
+void serialize(Archive & archive, Matrix< T, M, N, O, MM, NN >& m)
+{
+  for ( int i = 0; i < M; ++i )
+  {
+    for ( int j = 0; j < N; ++j )
+    {
+      archive( m( i, j ) );
+    }
+  }
+}
+
 } // end namespace Eigen
 
 #endif // VITAL_EIGEN_IO_H_

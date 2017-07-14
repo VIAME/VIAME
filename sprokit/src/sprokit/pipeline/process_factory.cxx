@@ -104,7 +104,16 @@ create_process( const sprokit::process::type_t&         type,
     throw no_such_process_type_exception( type );
   }
 
-  return pf->create_object( config );
+  try
+  {
+    return pf->create_object( config );
+  }
+  catch ( const std::exception &e )
+  {
+    auto logger = kwiver::vital::get_logger( "sprokit.process_factory" );
+    LOG_ERROR( logger, "Exception from creating process: " << e.what() );
+    throw;
+  }
 }
 
 

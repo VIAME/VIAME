@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -82,8 +82,8 @@ class Rotation (VitalObject):
     def from_quaternion(cls, q_vec, ctype=ctypes.c_double):
         """
         Create rotation based on the given 4x1 (column-vector) quaternion
-        representation whose format, `[x, y, z, w]`, represents the `w+xi+yj+zk`
-        formula (see Eigen's `Quaternion` class).
+        representation whose format, `[x, y, z, w]`, represents the
+        `w+xi+yj+zk` formula (see Eigen's `Quaternion` class).
 
         Input data is copied.
 
@@ -101,6 +101,7 @@ class Rotation (VitalObject):
 
         """
         q_vec = EigenArray.from_iterable(q_vec, ctype, (4, 1))
+        q_vec /= q_vec.norm()
         s = cls._gen_spec(ctype)
         r_from_q = cls._get_c_function(s, 'new_from_quaternion')
         r_from_q.argtypes = [EigenArray.c_ptr_type(4, 1, ctype),
@@ -148,7 +149,7 @@ class Rotation (VitalObject):
         :param axis: Axis column vector (3x1)
         :type axis: collections.Iterable
 
-        :param angle: Angle of rotation about axis
+        :param angle: Angle of rotation about axis (radians)
         :type angle: float
 
         :param ctype: C data type to store rotation data in.
@@ -175,15 +176,16 @@ class Rotation (VitalObject):
     @classmethod
     def from_ypr(cls, yaw, pitch, roll, ctype=ctypes.c_double):
         """
-        Create rotation based on the given yaw, pitch and roll values.
+        Create rotation based on the given yaw, pitch and roll values with that
+        assumed order.
 
-        :param yaw: yaw value
+        :param yaw: yaw value (radians)
         :type yaw: float
 
-        :param pitch: pitch value
+        :param pitch: pitch value (radians)
         :type pitch: float
 
-        :param roll: roll value
+        :param roll: roll value (radians)
         :type roll: float
 
         :param ctype: C data type to store rotation data in.
@@ -228,6 +230,23 @@ class Rotation (VitalObject):
         with VitalErrorHandle() as eh:
             r_ptr = r_from_mat(mat, eh)
         return Rotation(ctype, r_ptr)
+
+    @classmethod
+    def random(cls, ctype=ctypes.c_double):
+        """
+        Create a random rotation.
+
+        Note: this is not uniformly random in S03. Eigen has a UnitRandom
+        method for Quaternion.
+
+        :param datatype: Type to store data in the homography.
+        :type datatype: ctypes._SimpleCData
+
+        :return: random rotation.
+        :rtype: vital.types.Rotation
+
+        """
+        return cls.from_quaternion(numpy.random.rand(4)*2-1, ctype=ctype)
 
     @classmethod
     def interpolate(cls, a, b, f):
@@ -363,6 +382,20 @@ class Rotation (VitalObject):
         return "%s(%s)" % (self.__class__.__name__, self.quaternion().flatten())
 
     def __eq__(self, other):
+        """
+        Check whether two rotations are equivalent.
+
+        :param other: Rotation to compare this rotation to.
+        :type other: vital.types.Rotation
+
+        :return: Whether this rotation is equal to other.
+        :rtype: bool
+
+        NOTE: the C++ code called by this method compares the two quaternions
+        elementwise to determine equality. However, it is possible for two
+        quaternions to have different elements but represent the same rotation.
+        """
+
         if isinstance(other, Rotation):
             if self._ctype != other._ctype:
                 # raise ValueError("Cannot test equality of two rotations of "
@@ -445,7 +478,7 @@ class Rotation (VitalObject):
 
     def axis(self):
         """
-        :return: This rotation's axis and angle.
+        :return: This rotation's axis of rotation.
         :rtype: (vital.types.EigenArray, float)
         """
         r2axis = self._get_c_function(self._spec, 'axis')
@@ -457,6 +490,11 @@ class Rotation (VitalObject):
                           from_cptr=mat_ptr, owns_data=True)
 
     def angle(self):
+        """
+        :return: This rotation's angle of rotation (radians).
+        :rtype: float
+        TODO: figure out why this sometimes returns negative values.
+        """
         r2angle = self._get_c_function(self._spec, 'angle')
         r2angle.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
         r2angle.restype = self._ctype
@@ -465,7 +503,7 @@ class Rotation (VitalObject):
 
     def rodrigues(self):
         """
-        :return: This rotation as a Rodrigues vector
+        :return: This rotation as a Rodrigues vector.
         :rtype: vital.types.EigenArray
         """
         r2rod = self._get_c_function(self._spec, "rodrigues")
@@ -477,6 +515,10 @@ class Rotation (VitalObject):
                               from_cptr=rod_ptr, owns_data=True)
 
     def yaw_pitch_roll(self):
+        """
+        :return: Convert to yaw, pitch, and roll (radians).
+        :rtype: tuple of three floats
+        """
         r2ypr = self._get_c_function(self._spec, "ypr")
         r2ypr.argtypes = [self.C_TYPE_PTR,
                           ctypes.POINTER(self._ctype),  # yaw
@@ -506,8 +548,8 @@ class Rotation (VitalObject):
         """
         Compose this rotation with another (multiply).
 
-        This rotation is considered the left-hand operand and the given rotation
-        is considered the right-hand operand.
+        This rotation is considered the left-hand operand and the given
+        rotation is considered the right-hand operand.
 
         Result rotation will have the same data type as this rotation.
 
@@ -532,7 +574,8 @@ class Rotation (VitalObject):
             self._log.debug("Converting input rotation of type %s into "
                             "compatible type %s",
                             other_rot._ctype, self._ctype)
-            other_rot = Rotation.from_quaternion(other_rot.quaternion(), self._ctype)
+            other_rot = Rotation.from_quaternion(other_rot.quaternion(),
+                                                 self._ctype)
 
         r_compose = self._get_c_function(self._spec, "compose")
         r_compose.argtypes = [self.C_TYPE_PTR, other_rot.C_TYPE_PTR,
@@ -570,3 +613,17 @@ class Rotation (VitalObject):
             m_ptr = r_rv(self, vec, eh)
         return EigenArray(3, dtype=numpy.dtype(self._ctype), from_cptr=m_ptr,
                           owns_data=True)
+
+    def angle_from(self, other):
+        """
+        Return angle between rotations
+
+        :param other: the other rotation to compare this rotation to.
+        :type other: vital.types.Rotation
+
+        :return: This rotation's angle of rotation (radians).
+        :rtype: float
+
+        """
+        # For some reason, the angle method can return negative values.
+        return abs((self.inverse()*other).angle())

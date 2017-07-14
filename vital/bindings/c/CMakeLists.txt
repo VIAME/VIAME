@@ -24,6 +24,8 @@ set(vital_c_public_headers
   types/color.h
   types/covariance.h
   types/descriptor.h
+  types/descriptor_set.h
+  types/descriptor_set.hxx
   types/detected_object.h
   types/detected_object_type.h
   types/detected_object_set.h
@@ -52,6 +54,7 @@ set(vital_c_private_headers
   helpers/camera_map.h
   helpers/config_block.h
   helpers/descriptor.h
+  helpers/descriptor_set.h
   helpers/detected_object.h
   helpers/detected_object_type.h
   helpers/detected_object_set.h
@@ -88,6 +91,7 @@ set(vital_c_sources
   types/color.cxx
   types/covariance.cxx
   types/descriptor.cxx
+  types/descriptor_set.cxx
   types/detected_object.cxx
   types/detected_object_type.cxx
   types/detected_object_set.cxx

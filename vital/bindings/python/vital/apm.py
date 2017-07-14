@@ -38,9 +38,6 @@ import ctypes
 from vital.util import VitalObject
 
 
-__author__ = 'paul.tunison@kitware.com'
-
-
 def register_plugins(name=None):
     """
     (Re)Load plugin modules found in currently set search paths.

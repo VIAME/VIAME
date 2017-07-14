@@ -39,6 +39,9 @@
 #include "pipe_declaration_types.h"
 
 #include <vital/config/config_block.h>
+#include <vital/util/token_expander.h>
+#include <vital/util/token_type_symtab.h>
+#include <vital/logger/logger.h>
 
 #include <boost/variant.hpp>
 
@@ -63,35 +66,26 @@ public:
   void operator()( process_pipe_block const& process_block );
   void operator()( connect_pipe_block const& connect_block );
 
-  /**
-   * \note We do *not* want std::map for the block management. With a map, we
-   * may hide errors in the blocks (setting ro values, duplicate process
-   * names, etc.)
-   */
 
-  typedef std::pair< config_provider_t, kwiver::vital::config_block_value_t > provider_request_t;
-  typedef boost::variant< kwiver::vital::config_block_value_t, provider_request_t > config_reference_t;
+  /**
+   * @brief Intermediate representation of a contfig entry.
+   */
   class config_info_t
   {
   public:
-    typedef enum
-    {
-      append_none,
-      append_string,
-      append_comma,
-      append_space,
-      append_path
-    } append_t;
 
-    config_info_t( config_reference_t const&  ref,
-                   bool                       ro,
-                   append_t                   app );
+    config_info_t( const kwiver::vital::config_block_value_t&           val,
+                   bool                                  ro,
+                   bool                                  relative_path,
+                   const kwiver::vital::source_location& loc );
     ~config_info_t();
 
-    config_reference_t reference;
+    kwiver::vital::config_block_value_t value;
     bool read_only;
-    append_t append;
+    bool relative_path;
+    kwiver::vital::source_location defined_loc;
   };
+
   typedef std::pair< kwiver::vital::config_block_key_t, config_info_t > config_decl_t;
   typedef std::vector< config_decl_t > config_decls_t;
 
@@ -106,26 +100,26 @@ public:
   // Static methods
   static kwiver::vital::config_block_key_t flatten_keys(kwiver::vital::config_block_keys_t const& keys);
   static kwiver::vital::config_block_sptr extract_configuration_from_decls( bakery_base::config_decls_t& configs );
-  static void dereference_static_providers( bakery_base::config_decls_t& bakery );
 
 
   // static data
   static config_flag_t const flag_read_only;
-  static config_flag_t const flag_append;
-  static config_flag_t const flag_append_prefix;
-  static config_flag_t const flag_append_comma;
-  static config_flag_t const flag_append_space;
-  static config_flag_t const flag_append_path;
   static config_flag_t const flag_tunable;
-
-  static config_provider_t const provider_config;
-  static config_provider_t const provider_environment;
-  static config_provider_t const provider_system;
-
+  static config_flag_t const flag_relativepath;
+  static config_flag_t const flag_local_assign;
 
 protected:
   void register_config_value( kwiver::vital::config_block_key_t const&  root_key,
                               config_value_t const&                     value );
+
+private:
+
+  // macro provider
+  boost::shared_ptr< kwiver::vital::token_expander > m_token_expander;
+  kwiver::vital::token_type_symtab* m_symtab;
+  kwiver::vital::config_block_sptr m_ref_config;
+
+  kwiver::vital::logger_handle_t m_logger;
 };
 
 } // end namespace

@@ -34,10 +34,54 @@ Interface to VITAL image class.
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
 
 import ctypes
+import numpy
 from vital.util import VitalObject
+
+
+def _pil_image_to_bytes(p_img):
+    """
+    Get the component bytes from the given PIL Image.
+
+    In recent version of PIL, the tobytes function is the correct thing to
+    call, but some older versions of PIL do not have this function.
+
+    :param p_img: PIL Image to get the bytes from.
+    :type p_img: PIL.Image.Image
+
+    :returns: Byte string.
+    :rtype: bytes
+
+    """
+    if hasattr(p_img, 'tobytes'):
+        return p_img.tobytes()
+    else:
+        # Older version of the function.
+        return p_img.tostring()
+
+
+def _pil_image_from_bytes(mode, size, data, decoder_name='raw', *args):
+    """
+    Creates a copy of an image memory from pixel data in a buffer.
+
+    In recent versionf of PIL, the frombytes function is the correct thing to
+    call, but older version fo PIL only have a fromstring, which is equivalent
+    in function.
+
+    :param mode: The image mode. See: :ref:`concept-modes`.
+    :param size: The image size.
+    :param data: A byte buffer containing raw data for the given mode.
+    :param decoder_name: What decoder to use.
+    :param args: Additional parameters for the given decoder.
+    :returns: An :py:class:`~PIL.Image.Image` object.
+
+    """
+    import PIL.Image
+    if hasattr(PIL.Image, 'frombytes'):
+        return PIL.Image.frombytes(mode, size, data, decoder_name, *args)
+    else:
+        return PIL.Image.fromstring(mode, size, data, decoder_name, *args)
 
 
 class Image (VitalObject):
@@ -70,12 +114,23 @@ class Image (VitalObject):
     @classmethod
     def from_pil(cls, pil_image):
         """
-        Construct Image from supplied PIL image object
+        Construct Image from supplied PIL image object.
+
+        :param pil_image: PIL image object
+        :type pil_image: PIL.Image.Image
+
+        :raises RuntimeError: If the PIL Image provided is not in a recognized
+            mode.
+
+        :returns: New Image instance using the given image's pixels.
+        :rtype: Image
+
         """
 
         (img_width, img_height) = pil_image.size
         mode = pil_image.mode
 
+        # TODO(paul.tunison): Extract this logic out into a utility function.
         if mode == "1":  # boolean
             img_depth = 1
             img_w_step = 1
@@ -128,7 +183,7 @@ class Image (VitalObject):
                             ctypes.c_int32, ctypes.c_size_t]
         img_new.restype = cls.C_TYPE_PTR
 
-        img_data = pil_image.tostring()
+        img_data = _pil_image_to_bytes(pil_image)
         # this constructor create a wrapper around img_data which will be invalid
         # when img_data goes out of scope and is deleted
         vital_img = Image(from_cptr=img_new(img_data,
@@ -318,6 +373,14 @@ class Image (VitalObject):
         img_equal_content.restype = ctypes.c_bool
         return img_equal_content(self, other)
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.equal_content(other)
+        return False
+
+    def __ne__(self, other):
+        # inverse of __eq__ result.
+        return not (self == other)
 
 
     # ------------------------------------------------------------------
@@ -332,10 +395,12 @@ class Image (VitalObject):
         :return: array containing image
         :rtype: pil image
         """
-        import PIL.Image as PIM
-
         def pil_mode_from_image(img):
-            """ determine image format from pixel properties
+            """
+            Determine image format from pixel properties
+
+            May return None if our current encoding does not map to a PIL image
+            mode.
             """
             if img.pixel_type() == img.PIXEL_UNSIGNED and img.pixel_num_bytes() == 1:
                 if img.depth() == 3 and img.d_step() == 1 and img.w_step() == 3:
@@ -373,13 +438,13 @@ class Image (VitalObject):
             size = (img.h_step() * img.height()) * img.pixel_num_bytes()
         # get buffer from image
         pixels = ctypes.pythonapi.PyBuffer_FromReadWriteMemory
-        pixels.argtypes = [ ctypes.c_void_p, ctypes.c_int ]
+        pixels.argtypes = [ ctypes.c_void_p, ctypes.c_ssize_t ]
         pixels.restype = ctypes.py_object
         img_pixels = pixels( img_first_byte, size )
 
-        return PIM.frombytes(mode, (img.width(), img.height()), img_pixels,
-                             "raw", mode, img.h_step() * img.pixel_num_bytes(), 1 )
-
+        return _pil_image_from_bytes(mode, (img.width(), img.height()),
+                                     img_pixels, "raw", mode,
+                                     img.h_step() * img.pixel_num_bytes(), 1)
 
     # ------------------------------------------------------------------
     # return image as a numpy array
@@ -390,7 +455,7 @@ class Image (VitalObject):
         :return: numpy array containing image
         :rtype: numpy array
         """
-        pil_image = get_pil_image(self)
+        pil_image = self.get_pil_image()
         numpy_array = numpy.array(pil_image)
         return numpy_array
 
@@ -405,7 +470,7 @@ class Image (VitalObject):
         :return: image in openCV format
         :rtype: ocv image
         """
-        numpy_array = get_numpy_array(self)
+        numpy_array = self.get_numpy_array()
         # Convert RGB to BGR
         open_cv_image = numpy_array[:, :, ::-1].copy()
         return open_cv_image

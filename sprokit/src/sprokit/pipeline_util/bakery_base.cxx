@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,91 +36,63 @@
 #include "bakery_base.h"
 
 #include "pipe_bakery_exception.h"
-#include "path.h"
-#include "ensure_provided.h"
-#include "provider_dereferencer.h"
-#include "config_provider_sorter.h"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/foreach.hpp>
+#include <vital/vital_foreach.h>
+#include <vital/util/string.h>
+#include <vital/util/token_type_sysenv.h>
+#include <vital/util/token_type_env.h>
+#include <vital/config/token_type_config.h>
 
+#include <kwiversys/SystemTools.hxx>
+
+#include <boost/make_shared.hpp>
 
 namespace sprokit {
 
-namespace { // anonymous
+namespace {
 
-// ------------------------------------------------------------------
-void
-set_config_value( kwiver::vital::config_block_sptr            conf,
-                  bakery_base::config_info_t const&           flags,
-                  kwiver::vital::config_block_key_t const&    key,
-                  kwiver::vital::config_block_value_t const&  value )
+class expander_bakery
+  : public kwiver::vital::token_expander
 {
-  kwiver::vital::config_block_value_t val = value;
+public:
+  expander_bakery( kwiver::vital::logger_handle_t logger)
+    : kwiver::vital::token_expander()
+    , m_logger( logger )
+  { }
 
-  kwiver::vital::config_block_value_t const cur_val = conf->get_value( key, kwiver::vital::config_block_value_t() );
-  bool const has_cur_val = ! cur_val.empty();
-
-  switch ( flags.append )
+protected:
+  virtual bool handle_missing_entry( const std::string& provider, const std::string& entry )
   {
-  case bakery_base::config_info_t::append_string:
-    val = cur_val + val;
-    break;
+    std::stringstream str;
+    str <<  "Entry for provider \"" << provider << "\" does not have an element \""
+        << entry << "\"";
+    throw provider_error_exception( str.str() );
 
-  case bakery_base::config_info_t::append_comma:
-    if ( has_cur_val )
-    {
-      val = cur_val + "," + val;
-    }
-    break;
-
-  case bakery_base::config_info_t::append_space:
-    if ( has_cur_val )
-    {
-      val = cur_val + " " + val;
-    }
-    break;
-
-  case bakery_base::config_info_t::append_path:
-  {
-    path_t const base_path = path_t( has_cur_val ? cur_val : "." );
-    path_t const val_path = path_t( val );
-    path_t const new_path = base_path / val_path;
-
-    val = new_path.string< kwiver::vital::config_block_value_t > ();
-    break;
+    // Could do a log message instead
+    return true;
   }
 
-  case bakery_base::config_info_t::append_none:
-  default:
-    break;
-  }
 
-  conf->set_value( key, val );
-
-  if ( flags.read_only )
+  virtual bool handle_missing_provider( const std::string& provider, const std::string& entry )
   {
-    conf->mark_read_only( key );
+    std::stringstream str;
+    str << "Provider \"" << provider << "\" is not available";
+    throw provider_error_exception( str.str() );
+
+    // Could do a log message instead
+    return true;
   }
-} // set_config_value
+
+private:
+    kwiver::vital::logger_handle_t m_logger;
+};
 
 } // end namespace
 
 config_flag_t const bakery_base::flag_read_only = config_flag_t("ro");
-config_flag_t const bakery_base::flag_append = config_flag_t("append");
-config_flag_t const bakery_base::flag_append_prefix = config_flag_t("append=");
-config_flag_t const bakery_base::flag_append_comma = config_flag_t("comma");
-config_flag_t const bakery_base::flag_append_space = config_flag_t("space");
-config_flag_t const bakery_base::flag_append_path = config_flag_t("path");
 config_flag_t const bakery_base::flag_tunable = config_flag_t("tunable");
-
-config_provider_t const bakery_base::provider_config = config_provider_t("CONF");
-config_provider_t const bakery_base::provider_environment = config_provider_t("ENV");
-config_provider_t const bakery_base::provider_system = config_provider_t("SYS");
-
+config_flag_t const bakery_base::flag_relativepath = config_flag_t("relativepath");
+config_flag_t const bakery_base::flag_local_assign = config_flag_t("local-assign");
 
 // ------------------------------------------------------------------
 bakery_base
@@ -128,7 +100,15 @@ bakery_base
   : m_configs()
   , m_processes()
   , m_connections()
+  , m_symtab( new kwiver::vital::token_type_symtab("LOCAL") )
+  , m_ref_config( kwiver::vital::config_block::empty_config() )
+  , m_logger( kwiver::vital::get_logger( "sprokit.bakery_base" ) )
 {
+  m_token_expander = boost::make_shared < expander_bakery >(m_logger);
+  m_token_expander->add_token_type( new kwiver::vital::token_type_env() );
+  m_token_expander->add_token_type( new kwiver::vital::token_type_sysenv() );
+  m_token_expander->add_token_type( m_symtab );
+  m_token_expander->add_token_type( new kwiver::vital::token_type_config( m_ref_config ) );
 }
 
 
@@ -147,7 +127,7 @@ bakery_base
 
   config_values_t const& values = config_block.values;
 
-  BOOST_FOREACH (config_value_t const& value, values)
+  VITAL_FOREACH (config_value_t const& value, values)
   {
     register_config_value(root_key, value);
   }
@@ -161,7 +141,7 @@ bakery_base
 {
   config_values_t const& values = process_block.config_values;
 
-  BOOST_FOREACH (config_value_t const& value, values)
+  VITAL_FOREACH (config_value_t const& value, values)
   {
     register_config_value(process_block.name, value);
   }
@@ -180,78 +160,52 @@ bakery_base
 
 
 // ------------------------------------------------------------------
+/**
+ * @brief Create internal config representation.
+ *
+ * This method creates in internal representation of a config
+ * entry. The key portion starts with the supplied root_key and the
+ * individual entry key is appended.
+ *
+ * @param root_key Key from "config" entry
+ * @param value Internal pipe block
+ */
 void
 bakery_base
-::register_config_value(kwiver::vital::config_block_key_t const& root_key, config_value_t const& value)
+::register_config_value(kwiver::vital::config_block_key_t const& root_key,
+                        config_value_t const& value)
 {
-  config_key_t const key = value.key;
-
-  kwiver::vital::config_block_key_t const subkey = flatten_keys(key.key_path);
-
-  config_reference_t c_value;
-
-  if (key.options.provider)
-  {
-    c_value = provider_request_t(*key.options.provider, value.value);
-  }
-  else
-  {
-    c_value = value.value;
-  }
-
+  kwiver::vital::config_block_key_t const subkey = flatten_keys(value.key_path);
   kwiver::vital::config_block_key_t const full_key = root_key + kwiver::vital::config_block::block_sep + subkey;
-
   bool is_readonly = false;
-  config_info_t::append_t append = config_info_t::append_none;
+  bool is_relativepath = false;
+  bool is_local_assign = false;
 
-#define APPEND_CHECK(flag)                                             \
-  do                                                                   \
-  {                                                                    \
-    if (append != config_info_t::append_none)                          \
-    {                                                                  \
-      std::string const reason = "The \'" + flag + "\' flag cannot "   \
-                                 "be used with other appending flags"; \
-                                                                       \
-      throw config_flag_mismatch_exception(full_key, reason);          \
-    }                                                                  \
-  } while (false)
-
-  if (key.options.flags)
+  // If there are options, process each one
+  if ( ! value.flags.empty() )
   {
-    BOOST_FOREACH (config_flag_t const& flag, *key.options.flags)
+    VITAL_FOREACH (config_flag_t const& flag_v, value.flags)
     {
+      // normalize the case of attributes for comparison.
+      std::string flag = kwiversys::SystemTools::LowerCase( flag_v );
       if (flag == flag_read_only)
       {
         is_readonly = true;
       }
-      else if (flag == flag_append)
+      else if (flag == flag_relativepath)
       {
-        APPEND_CHECK(flag_append);
-
-        append = config_info_t::append_string;
+        is_relativepath = true;
       }
-      else if (boost::starts_with(flag, flag_append_prefix))
+      else if (flag == flag_local_assign )
       {
-        APPEND_CHECK(flag);
-
-        config_flag_t const& kind = flag.substr(flag_append_prefix.size());
-
-        if (kind == flag_append_comma)
-        {
-          append = config_info_t::append_comma;
-        }
-        else if (kind == flag_append_space)
-        {
-          append = config_info_t::append_space;
-        }
-        else if (kind == flag_append_path)
-        {
-          append = config_info_t::append_path;
-        }
-        else
-        {
-          throw unrecognized_config_flag_exception(full_key, flag);
-        }
+        // Add key,value to local symbol table
+        //
+        // Note that we do not add full key. The := operator creates a
+        // local symbol definition that is not related to the
+        // surrounding config context.
+        //
+        m_symtab->add_entry( subkey, value.value );
+        is_local_assign = true;
       }
       else if (flag == flag_tunable)
       {
@@ -261,12 +215,38 @@ bakery_base
       {
         throw unrecognized_config_flag_exception(full_key, flag);
       }
+    } // end foreach over flags
+  }
+
+  // If this is not a local assignment, then expand tokens
+  std::string config_value = value.value;
+  if ( ! is_local_assign )
+  {
+    try
+    {
+      config_value = m_token_expander->expand_token( config_value );
+    }
+    catch ( const provider_error_exception &e )
+    {
+      // Rethrow exception after adding location
+      throw provider_error_exception( e.what(), value.loc );
     }
   }
 
-#undef APPEND_CHECK
+  // Add this entry to the ref_config so it is available for the
+  // token_expander.  These config entries must be processed in the
+  // order they were read from the file rather than sorted key order
+  // because they can only do backward references for the config keys
+  // based on file order.
+  //
+  // If the requested config fill-in is not in the ref_config, then it
+  // must be an invalid forward reference.
+  m_ref_config->set_value( full_key, config_value );
 
-  config_info_t const info = config_info_t(c_value, is_readonly, append);
+  config_info_t const info = config_info_t(config_value,
+                                           is_readonly,
+                                           is_relativepath,
+                                           value.loc );
 
   config_decl_t const decl = config_decl_t(full_key, info);
 
@@ -276,12 +256,14 @@ bakery_base
 
 // ------------------------------------------------------------------
 bakery_base::config_info_t
-::config_info_t(config_reference_t const& ref,
-                bool ro,
-                append_t app)
-  : reference(ref)
+::config_info_t(const kwiver::vital::config_block_value_t& val,
+                bool                                  ro,
+                bool                                  rel_path,
+                const kwiver::vital::source_location& loc)
+  : value(val)
   , read_only(ro)
-  , append(app)
+  , relative_path(rel_path)
+  , defined_loc(loc)
 {
 }
 
@@ -298,145 +280,60 @@ kwiver::vital::config_block_key_t
 bakery_base::
 flatten_keys(kwiver::vital::config_block_keys_t const& keys)
 {
-  return boost::join(keys, kwiver::vital::config_block::block_sep);
+  return kwiver::vital::join(keys, kwiver::vital::config_block::block_sep);
 }
 
 
 // ------------------------------------------------------------------
+/**
+ * @brief Convert internal config_info to real config entry
+ *
+ * This method converts the raw config entry taken from the internal
+ * pipe representation and converts it to a config block.
+ *
+ * @param configs List of config_info objects to convert
+ *
+ * @return A config block containing the entries from the input.
+ */
 kwiver::vital::config_block_sptr
 bakery_base::
 extract_configuration_from_decls( bakery_base::config_decls_t& configs )
 {
-  dereference_static_providers( configs );
-
-  kwiver::vital::config_block_sptr tmp_conf = kwiver::vital::config_block::empty_config();
-
-  ensure_provided const ensure;
-
-  {
-    typedef std::set< kwiver::vital::config_block_key_t > unprovided_keys_t;
-
-    unprovided_keys_t unprovided_keys;
-
-    BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
-    {
-      kwiver::vital::config_block_key_t const& key = decl.first;
-
-      if ( unprovided_keys.count( key ) )
-      {
-        continue;
-      }
-
-      bakery_base::config_info_t const& info = decl.second;
-      bakery_base::config_reference_t const& ref = info.reference;
-
-      kwiver::vital::config_block_value_t val;
-
-      // Only add provided configurations to the configuration.
-      try
-      {
-        val = boost::apply_visitor( ensure, ref );
-      }
-      catch ( unrecognized_provider_exception const /*e*/ )
-      {
-        unprovided_keys.insert( key );
-
-        continue;
-      }
-
-      set_config_value( tmp_conf, info, key, val );
-    }
-  }
-
-  // Dereference configuration providers.
-  {
-    config_provider_sorter sorter;
-
-    BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
-    {
-      kwiver::vital::config_block_key_t const& key = decl.first;
-      bakery_base::config_info_t const& info = decl.second;
-      bakery_base::config_reference_t const& ref = info.reference;
-
-      /// \bug Why must this be done?
-      typedef boost::variant< kwiver::vital::config_block_key_t > dummy_variant;
-
-      dummy_variant const var = key;
-
-      boost::apply_visitor( sorter, var, ref );
-    }
-
-    kwiver::vital::config_block_keys_t const keys = sorter.sorted();
-
-    provider_dereferencer const deref( tmp_conf );
-
-    /// \todo This is algorithmically naive, but I'm not sure if there's a better way.
-    BOOST_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
-    {
-      BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
-      {
-        kwiver::vital::config_block_key_t const& cur_key = decl.first;
-
-        if ( key != cur_key )
-        {
-          continue;
-        }
-
-        bakery_base::config_info_t& info = decl.second;
-        bakery_base::config_reference_t& ref = info.reference;
-
-        ref = boost::apply_visitor( deref, ref );
-
-        kwiver::vital::config_block_value_t const val = boost::apply_visitor( ensure, ref );
-
-        set_config_value( tmp_conf, info, key, val );
-      }
-    }
-  }
-
   kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
-  BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
+  VITAL_FOREACH( bakery_base::config_decl_t& decl, configs )
   {
     kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;
-    bakery_base::config_reference_t const& ref = info.reference;
+    kwiver::vital::config_block_value_t val = info.value;
 
-    kwiver::vital::config_block_value_t val;
-
-    try
+    if ( info.relative_path)
     {
-      val = boost::apply_visitor( ensure, ref );
-    }
-    catch ( unrecognized_provider_exception const& e )
-    {
-      throw unrecognized_provider_exception( key, e.m_provider, e.m_index );
+      if ( info.defined_loc.valid() )
+      {
+        // Prepend CWD to val
+        const std::string cwd = kwiversys::SystemTools::GetFilenamePath( info.defined_loc.file() );
+        val = cwd + "/" + val;
+
+        conf->set_location( key, info.defined_loc );
+      }
+      else
+      {
+        throw relativepath_exception( "Can not resolve relative path because original source file is not known.",
+          info.defined_loc );
+      }
     }
 
-    set_config_value( conf, info, key, val );
-  }
+    // create config entry
+    conf->set_value( key, val );
+
+    if ( info.read_only )
+    {
+      conf->mark_read_only( key );
+    }
+  } // end foreach
 
   return conf;
 } // extract_configuration_from_decls
-
-
-// ------------------------------------------------------------------
-void
-bakery_base::
-dereference_static_providers( bakery_base::config_decls_t& configs )
-{
-  provider_dereferencer const deref;
-
-  BOOST_FOREACH( bakery_base::config_decl_t & decl, configs )
-  {
-    bakery_base::config_info_t& info = decl.second;
-    bakery_base::config_reference_t& ref = info.reference;
-
-    ref = boost::apply_visitor( deref, ref );
-  }
-}
-
-
-
 
 } // end namespace

@@ -28,20 +28,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_TYPES_H
-#define SPROKIT_PIPELINE_TYPES_H
-
-#include "pipeline-config.h"
-
-#include <exception>
-#include <string>
-#include <memory>
-
 /**
  * \file types.h
  *
  * \brief Common types used in the pipeline library.
  */
+
+#ifndef SPROKIT_PIPELINE_TYPES_H
+#define SPROKIT_PIPELINE_TYPES_H
+
+#include "pipeline-config.h"
+
+#include <vital/vital_config.h>
+#include <exception>
+#include <string>
+#include <memory>
+
+#include <boost/shared_ptr.hpp>
 
 /**
  * \brief The namespace for all sprokit-related symbols.
@@ -58,31 +61,31 @@ typedef std::string module_t;
 
 class datum;
 /// A typedef used to handle \link datum edge data\endlink.
-typedef std::shared_ptr<datum const> datum_t;
+typedef boost::shared_ptr<datum const> datum_t;
 
 class edge;
 /// A typedef used to handle \link edge edges\endlink.
-typedef std::shared_ptr<edge> edge_t;
+typedef boost::shared_ptr<edge> edge_t;
 
 class pipeline;
 /// A typedef used to handle \link pipeline pipelines\endlink.
-typedef std::shared_ptr<pipeline> pipeline_t;
+typedef boost::shared_ptr<pipeline> pipeline_t;
 
 class process;
 /// A typedef used to handle \link process processes\endlink.
-typedef std::shared_ptr<process> process_t;
+typedef boost::shared_ptr<process> process_t;
 
 class process_cluster;
 /// A typedef used to handle \link process_cluster process clusters\endlink.
-typedef std::shared_ptr<process_cluster> process_cluster_t;
+typedef boost::shared_ptr<process_cluster> process_cluster_t;
 
 class scheduler;
 /// A typedef used to handle \link scheduler schedulers\endlink.
-typedef std::shared_ptr<scheduler> scheduler_t;
+typedef boost::shared_ptr<scheduler> scheduler_t;
 
 class stamp;
 /// A typedef used to handle \link stamp stamps\endlink.
-typedef std::shared_ptr<stamp const> stamp_t;
+typedef boost::shared_ptr<stamp const> stamp_t;
 
 /**
  * \class pipeline_exception types.h <sprokit/pipeline/types.h>
@@ -98,19 +101,20 @@ class SPROKIT_PIPELINE_EXPORT pipeline_exception
     /**
      * \brief Constructor.
      */
-    pipeline_exception() throw();
+    pipeline_exception() VITAL_NOTHROW;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_exception() throw();
+    virtual ~pipeline_exception() VITAL_NOTHROW;
 
     /**
      * \brief A description of the exception.
      *
      * \returns A string describing what went wrong.
      */
-    char const* what() const throw();
-  protected:
+    char const* what() const VITAL_NOTHROW;
+
+protected:
     /// The text of the exception.
     std::string m_what;
 };

@@ -44,7 +44,17 @@ if( KWIVER_ENABLE_DARKNET )
   add_subdirectory( darknet )
 endif()
 
+# if burnout is enabled
+if( KWIVER_ENABLE_BURNOUT )
+  add_subdirectory( burnout )
+endif()
+
+# if uuid is enabled
+if( KWIVER_ENABLE_UUID )
+  add_subdirectory( uuid )
+endif()
+
 # if python is enabled
 if( KWIVER_ENABLE_PYTHON )
-  kwiver_create_python_plugin_init( arrows )
+  kwiver_create_python_plugin_init( kwiver/arrows )
 endif()

@@ -1,17 +1,17 @@
 cluster configuration_provide
-  :# Multiply a number by a constant factor.
-  :# The constant factor to multiply by.
-  :factor 20
-  :# The factor to multiply by.
+  -- Multiply a number by a constant factor.
+  factor = 20
+  -- The constant factor to multiply by.
   imap from factor
        to   multiply.factor1
-  :# The product.
+  -- The factor to multiply by.
   omap from multiply.product
        to   product
+  -- The product.
 
 process const
   :: const_number
-  :value[ro]{CONF} configuration_provide:factor
+  value[ro]= $CONFIG{configuration_provide:factor}
 
 process multiply
   :: multiplication

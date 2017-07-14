@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,8 +65,8 @@ public:
    * This process can either be called in an offline fashion, where all
    * tracks and images are provided to the function on the first call,
    * or in an online fashion where only new images are provided on
-   * sequential calls. This function can additionally consumes a second
-   * track set for which can optionally be used to display additional
+   * sequential calls. This function can additionally consume a second
+   * track set, which can optionally be used to display additional
    * information to provide a comparison between the two track sets.
    *
    * \param display_set the main track set to draw

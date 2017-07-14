@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,18 +42,18 @@ namespace sprokit
 {
 
 process_registry_exception
-::process_registry_exception() SPROKIT_NOTHROW
+::process_registry_exception() VITAL_NOTHROW
   : pipeline_exception()
 {
 }
 
 process_registry_exception
-::~process_registry_exception() SPROKIT_NOTHROW
+::~process_registry_exception() VITAL_NOTHROW
 {
 }
 
 null_process_ctor_exception
-::null_process_ctor_exception(process::type_t const& type) SPROKIT_NOTHROW
+::null_process_ctor_exception(process::type_t const& type) VITAL_NOTHROW
   : process_registry_exception()
   , m_type(type)
 {
@@ -66,12 +66,12 @@ null_process_ctor_exception
 }
 
 null_process_ctor_exception
-::~null_process_ctor_exception() SPROKIT_NOTHROW
+::~null_process_ctor_exception() VITAL_NOTHROW
 {
 }
 
 null_process_registry_config_exception
-::null_process_registry_config_exception() SPROKIT_NOTHROW
+::null_process_registry_config_exception() VITAL_NOTHROW
   : process_registry_exception()
 {
   std::ostringstream sstr;
@@ -82,12 +82,12 @@ null_process_registry_config_exception
 }
 
 null_process_registry_config_exception
-::~null_process_registry_config_exception() SPROKIT_NOTHROW
+::~null_process_registry_config_exception() VITAL_NOTHROW
 {
 }
 
 no_such_process_type_exception
-::no_such_process_type_exception(process::type_t const& type) SPROKIT_NOTHROW
+::no_such_process_type_exception(process::type_t const& type) VITAL_NOTHROW
   : process_registry_exception()
   , m_type(type)
 {
@@ -100,12 +100,12 @@ no_such_process_type_exception
 }
 
 no_such_process_type_exception
-::~no_such_process_type_exception() SPROKIT_NOTHROW
+::~no_such_process_type_exception() VITAL_NOTHROW
 {
 }
 
 process_type_already_exists_exception
-::process_type_already_exists_exception(process::type_t const& type) SPROKIT_NOTHROW
+::process_type_already_exists_exception(process::type_t const& type) VITAL_NOTHROW
   : process_registry_exception()
   , m_type(type)
 {
@@ -118,7 +118,7 @@ process_type_already_exists_exception
 }
 
 process_type_already_exists_exception
-::~process_type_already_exists_exception() SPROKIT_NOTHROW
+::~process_type_already_exists_exception() VITAL_NOTHROW
 {
 }
 

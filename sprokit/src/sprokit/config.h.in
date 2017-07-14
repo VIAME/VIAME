@@ -75,7 +75,7 @@
  * \brief The function may be unreferenced.
  */
 /**
- * \def SPROKIT_NOTHROW
+ * \def VITAL_NOTHROW
  *
  * \brief The function may not throw exceptions.
  */
@@ -137,12 +137,6 @@
 #define SPROKIT_MUST_USE_RESULT
 // Unsupported.
 #define SPROKIT_UNUSED
-#endif
-
-#if __cplusplus < 201103L
-#define SPROKIT_NOTHROW throw ()
-#else
-#define SPROKIT_NOTHROW noexcept
 #endif
 
 #endif // SPROKIT_CONFIG_H

@@ -162,7 +162,7 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   VITAL_C_EXPORT                                                                \
   void                                                                          \
   vital_algorithm_##type##_set_type_config( char const *name,                   \
-                                            vital_config_block_t const *cb,           \
+                                            vital_config_block_t const *cb,     \
                                             vital_algorithm_t **algo,           \
                                             vital_error_handle_t *eh );         \
                                                                                 \
@@ -171,23 +171,7 @@ vital_algorithm_check_impl_configuration( vital_algorithm_t *algo,
   bool                                                                          \
   vital_algorithm_##type##_check_type_config( char const *name,                 \
                                               vital_config_block_t const *cb,   \
-                                              vital_error_handle_t *eh );       \
-                                                                                \
-  /* ==================================================================== */    \
-  /* Functions on algorithm instances                                     */    \
-  /*                                                                      */    \
-  /* These will error if the incorrect algorithm pointer was given.       */    \
-  /* -------------------------------------------------------------------- */    \
-                                                                                \
-  /* Clone the given algorithm instance */                                      \
-  /**
-   * If a NULL algorithm pointer is given, a null pointer is returned.
-   */                                                                           \
-  VITAL_C_EXPORT                                                                \
-  vital_algorithm_t*                                                            \
-  vital_algorithm_##type##_clone( vital_algorithm_t const *algo,                \
-                                  vital_error_handle_t *eh );
-  // TODO: description() method
+                                              vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus

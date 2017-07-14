@@ -270,7 +270,7 @@ test_process_input_ports( sprokit::process_t const process )
                   "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
 
     process->connect_input_port( port, edge );
 
@@ -334,8 +334,8 @@ test_process_output_ports( sprokit::process_t const process )
                   "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge1 = std::make_shared< sprokit::edge > ( config );
-    sprokit::edge_t edge2 = std::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge1 = boost::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge2 = boost::make_shared< sprokit::edge > ( config );
 
     process->connect_output_port( port, edge1 );
     process->connect_output_port( port, edge2 );
@@ -366,7 +366,7 @@ test_process_invalid_input_port( sprokit::process_t const process )
                     process->input_port_info( non_existent_port ),
                     "requesting the info for a non-existent input port" );
 
-  sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
+  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
 
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->connect_input_port( non_existent_port, edge ),
@@ -386,7 +386,7 @@ test_process_invalid_output_port( sprokit::process_t const process )
                     process->output_port_info( non_existent_port ),
                     "requesting the info for a non-existent output port" );
 
-  sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
+  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
 
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->connect_output_port( non_existent_port, edge ),

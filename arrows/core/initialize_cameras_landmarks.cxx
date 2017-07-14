@@ -131,7 +131,7 @@ public:
     next_frame_max_distance(0),
     global_ba_rate(1.5),
     interim_reproj_thresh(5.0),
-    final_reproj_thresh(1.0),
+    final_reproj_thresh(2.0),
     zoom_scale_thresh(0.1),
     base_camera(),
     e_estimator(),
@@ -441,8 +441,10 @@ initialize_cameras_landmarks
                     "error (in pixels) during intermediate processing steps.");
 
   config->set_value("final_reproj_thresh", d_->final_reproj_thresh,
-                    "Threshold for rejecting landmarks based on reprojection "
-                    "error (in pixels) after the final bundle adjustment.");
+                    "Relative threshold for rejecting landmarks based on "
+                    "reprojection error relative to the median error after "
+                    "the final bundle adjustment.  For example, a value of 2 "
+                    "mean twice the median error");
 
   config->set_value("zoom_scale_thresh", d_->zoom_scale_thresh,
                     "Threshold on image scale change used to detect a camera "
@@ -872,7 +874,8 @@ void
 initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
-             track_set_sptr tracks) const
+             track_set_sptr tracks,
+             video_metadata_map_sptr metadata) const
 {
   if( !tracks )
   {
@@ -1058,7 +1061,7 @@ initialize_cameras_landmarks
       camera_map_sptr opt_cams(new simple_camera_map(opt_cam_map));
       landmark_map_sptr landmarks(new simple_landmark_map(flms));
       track_set_sptr tracks(new simple_track_set(trks));
-      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks);
+      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, metadata);
       cams[f] = opt_cams->cameras()[f];
     }
 
@@ -1094,7 +1097,7 @@ initialize_cameras_landmarks
       double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       LOG_INFO(d_->m_logger, "initial reprojection RMSE: " << init_rmse);
 
-      d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
+      d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
       cams = ba_cams->cameras();
       lms = ba_lms->landmarks();
       if (!d_->continue_processing)
@@ -1133,7 +1136,7 @@ initialize_cameras_landmarks
           // Either way we should not have to try this again.
           tried_necker_reverse = true;
           LOG_INFO(d_->m_logger, "Running Necker reversed bundle adjustment for comparison");
-          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks);
+          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, metadata);
           map_cam_t cams2 = ba_cams2->cameras();
           map_landmark_t lms2 = ba_lms2->landmarks();
           double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
@@ -1165,7 +1168,7 @@ initialize_cameras_landmarks
     }
   }
 
-  // try depth reversal at the end
+  // Run a final bundle adjustment
   if( d_->bundle_adjuster && d_->continue_processing )
   {
     LOG_INFO(d_->m_logger, "Running final bundle adjustment");
@@ -1174,22 +1177,25 @@ initialize_cameras_landmarks
     double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
     LOG_DEBUG(d_->m_logger, "initial reprojection RMSE: " << init_rmse);
 
-    d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
+    d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
     map_cam_t cams1 = ba_cams->cameras();
     map_landmark_t lms1 = ba_lms->landmarks();
     double final_rmse1 = kwiver::arrows::reprojection_rmse(cams1, lms1, trks);
     LOG_DEBUG(d_->m_logger, "final reprojection RMSE: " << final_rmse1);
+    double final_med_err = kwiver::arrows::reprojection_median_error(cams1, lms1, trks);
+    LOG_DEBUG(d_->m_logger, "final reprojection Median Error: " << final_med_err);
     cams = ba_cams->cameras();
     lms = ba_lms->landmarks();
 
     // if using bundle adjustment, remove landmarks with large error
     // after optimization
+    const double outlier_thresh = final_med_err * d_->final_reproj_thresh;
     std::set<track_id_t> to_remove = detect_bad_tracks(cams, lms, trks,
-                                                       d_->final_reproj_thresh);
+                                                       outlier_thresh);
     LOG_INFO(d_->m_logger, "removing "<<to_remove.size()
                            << "/" << lms.size()
                            << " landmarks with RMSE > "
-                           << d_->final_reproj_thresh);
+                           << outlier_thresh);
     remove_landmarks(to_remove, lms);
   }
   cameras = camera_map_sptr(new simple_camera_map(cams));

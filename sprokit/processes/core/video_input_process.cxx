@@ -113,7 +113,8 @@ void video_input_process
 
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
-  d->m_config_frame_time     = config_value_using_trait( frame_time ) * 1e6; // in usec
+  d->m_config_frame_time = static_cast<vital::timestamp::time_t>(
+                               config_value_using_trait( frame_time ) * 1e6); // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
@@ -168,6 +169,13 @@ void video_input_process
     //
     // Sometimes the video source can not determine either the frame
     // number or frame time or both.
+    if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
+    {
+      throw sprokit::invalid_configuration_exception( name(),
+            "Video reader selected does not supply image data." );
+    }
+
+
     if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
     {
       d->m_frame_number = ts.get_frame();

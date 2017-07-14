@@ -30,7 +30,14 @@
 
 #include <sprokit/src/bindings/python/modules/modules_python_export.h>
 
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#endif
 #include <boost/python/import.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 #include <sprokit/pipeline/utils.h>
 #include <sprokit/python/util/python_exceptions.h>
@@ -45,8 +52,6 @@
 #endif
 
 using namespace boost::python;
-
-static sprokit::envvar_name_t const python_suppress_envvar = sprokit::envvar_name_t("SPROKIT_NO_PYTHON_MODULES");
 
 static void load();
 static bool is_suppressed();

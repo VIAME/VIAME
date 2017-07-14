@@ -1,5 +1,5 @@
 cluster mycluster
-  :# clusterdesc
-  :# oport desc
+  -- clusterdesc
   omap from myproc/slash.oport
        to   oport
+  -- oport desc

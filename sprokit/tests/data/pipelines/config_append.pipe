@@ -1,3 +1,0 @@
-config myblock
-  :mykey my
-  :mykey[append] value

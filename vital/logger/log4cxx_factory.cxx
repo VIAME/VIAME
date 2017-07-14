@@ -33,7 +33,7 @@
 #include <log4cxx/logger.h>
 #include <memory>
 
-#include <vital/logger/vital_logger_export.h>
+#include <vital/logger/vital_log4cxx_logger_export.h>
 
 namespace kwiver {
 namespace vital {
@@ -301,9 +301,12 @@ class log4cxx_factory
 public:
   log4cxx_factory()
     : kwiver_logger_factory( "log4cxx factory" )
-  { }
+  {
+    // There may actually be some initialization to be done.
+    // Currently following the default init process.
+  }
 
-  virtual ~log4cxx_factory() VITAL_DEFAULT_DTOR
+  virtual ~log4cxx_factory() = default;
 
   virtual logger_handle_t get_logger( std::string const& name )
   {
@@ -319,10 +322,10 @@ public:
 /*
  * Shared object bootstrap function
  */
-extern "C" VITAL_LOGGER_EXPORT void* kwiver_logger_factory();
+extern "C" VITAL_LOG4CXX_LOGGER_EXPORT void* kwiver_logger_factory();
 
 void* kwiver_logger_factory()
 {
-  kwiver::vital::logger_ns::log4cxx_factory* ptr =  new kwiver::vital::logger_ns::log4cxx_factory;
+  kwiver::vital::logger_ns::log4cxx_factory* ptr =  new kwiver::vital::logger_ns::log4cxx_factory();
   return ptr;
 }

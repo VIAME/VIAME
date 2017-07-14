@@ -457,6 +457,15 @@ config_block
 
 
 // ------------------------------------------------------------------
+void
+config_block
+::set_location( config_block_key_t const& key, const kwiver::vital::source_location& sl )
+{
+  m_def_store[key] = sl;
+}
+
+
+// ------------------------------------------------------------------
 bool
 config_block
 ::get_location( config_block_key_t const& key,
@@ -468,6 +477,22 @@ config_block
   {
     f = i->second.file();
     l = i->second.line();
+    return true;
+  }
+
+  return false;
+}
+
+
+// ------------------------------------------------------------------
+bool
+config_block
+::get_location( config_block_key_t const& key, kwiver::vital::source_location& loc ) const
+{
+  location_t::const_iterator i = m_def_store.find( key );
+  if ( i != m_def_store.end() )
+  {
+    loc  = i->second;;
     return true;
   }
 

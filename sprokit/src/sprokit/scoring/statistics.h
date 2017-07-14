@@ -36,6 +36,8 @@
 #include <memory>
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
 /**
  * \file statistics.h
  *
@@ -149,7 +151,7 @@ class SPROKIT_SCORING_EXPORT statistics
 };
 
 /// A handle to statistics class.
-typedef std::shared_ptr<statistics> statistics_t;
+typedef boost::shared_ptr<statistics> statistics_t;
 
 }
 

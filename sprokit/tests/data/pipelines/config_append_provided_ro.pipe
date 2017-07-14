@@ -1,4 +1,3 @@
 config myblock
   :mykeysource my
-  :mykey{CONF} myblock:mykeysource
-  :mykey[ro,append] value
+  mykey[ro] = $CONFIG{myblock:mykeysource}value

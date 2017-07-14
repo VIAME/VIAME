@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,11 @@ import numpy
 from vital.types import Rotation
 
 
+def array_normalize(a, dtype=None):
+    a = numpy.asarray(a, dtype)
+    return a / numpy.linalg.norm(a)
+
+
 class TestVitalRotation (unittest.TestCase):
 
     def test_new_default(self):
@@ -69,6 +74,14 @@ class TestVitalRotation (unittest.TestCase):
         r2 = Rotation(ctypes.c_float)
         # r2 should get converted into a double instance for checking
         nose.tools.assert_equal(r1, r2)
+
+        r1 = Rotation.from_quaternion([1,2,3,4], ctype=ctypes.c_double)
+        r2 = Rotation.from_quaternion([1,2,3,4], ctype=ctypes.c_double)
+        nose.tools.assert_equal(r1, r2)
+
+        r1 = Rotation.from_quaternion([1,2,3,4], ctype=ctypes.c_double)
+        r2 = Rotation.from_quaternion([-1,-2,-3,-4], ctype=ctypes.c_double)
+        assert r1.angle_from(r2) < 1e-12
 
     def test_to_matrix(self):
         # Default value should be identity
@@ -147,13 +160,13 @@ class TestVitalRotation (unittest.TestCase):
         )
 
     def test_from_quaternion(self):
-        q_list = [[+2],
-                  [-1],
-                  [-3],
-                  [+0]]
-        r = Rotation.from_quaternion(q_list)
+        q = array_normalize([[+2],
+                             [-1],
+                             [-3],
+                             [+0]], float)
+        r = Rotation.from_quaternion(q)
         numpy.testing.assert_equal(
-            r.quaternion(), q_list
+            r.quaternion(), q
         )
 
     def test_from_rodrigues(self):
@@ -170,7 +183,7 @@ class TestVitalRotation (unittest.TestCase):
         rod2 = numpy.array([[  2],
                             [ -1],
                             [0.5]])
-        nod2_normed = rod2 / numpy.linalg.norm(rod2)
+        nod2_normed = array_normalize(rod2)
         print 'r2 2-norm:', numpy.linalg.norm(rod2)
         print 'r2-normed:', nod2_normed
 
@@ -186,7 +199,7 @@ class TestVitalRotation (unittest.TestCase):
         axis = numpy.array([[-3],
                             [2],
                             [1]])
-        axis_norm = axis / numpy.linalg.norm(axis)
+        axis_norm = array_normalize(axis)
 
         r = Rotation.from_axis_angle(axis, angle)
         nose.tools.assert_equal(angle, r.angle())
@@ -264,7 +277,7 @@ class TestVitalRotation (unittest.TestCase):
                                           [+0]])
         mat = pre_r.matrix()
         r = Rotation.from_matrix(mat)
-        numpy.testing.assert_equal(mat, r.matrix())
+        numpy.testing.assert_allclose(mat, r.matrix(), 1e-15)
 
     def test_inverse(self):
         # quaternion calc from:
@@ -274,12 +287,14 @@ class TestVitalRotation (unittest.TestCase):
                                       [-3],
                                       [+0]], ctype=ctypes.c_double)
         r_inv = r.inverse()
-        numpy.testing.assert_equal(
+        e_inv = array_normalize([[-1/7.],
+                                 [+1/14.],
+                                 [+3/14.],
+                                 [0]])
+        numpy.testing.assert_allclose(
             r_inv.quaternion(),
-            [[-1/7.],
-             [+1/14.],
-             [+3/14.],
-             [0]]
+            e_inv,
+            1e-15
         )
 
         r = Rotation.from_quaternion([[+2],
@@ -287,19 +302,19 @@ class TestVitalRotation (unittest.TestCase):
                                       [-3],
                                       [+0]], ctype=ctypes.c_float)
         r_inv = r.inverse()
-        numpy.testing.assert_equal(
+        numpy.testing.assert_allclose(
             r_inv.quaternion(),
-            [[numpy.float32(-1/7.)],
-             [numpy.float32(+1/14.)],
-             [numpy.float32(+3/14.)],
-             [0]]
+            e_inv,
+            1e-7
         )
 
     def test_compose(self):
-        expected_quat = [[+2],
-                         [-1],
-                         [-3],
-                         [+0]]
+        # Normalize quaternaion vector.
+        expected_quat = array_normalize([[+2.],
+                                         [-1.],
+                                         [-3.],
+                                         [+0.]])
+
         r_ident_d = Rotation(ctypes.c_double)
         r_ident_f = Rotation(ctypes.c_float)
         r_other_d = Rotation.from_quaternion(expected_quat, ctypes.c_double)
@@ -313,7 +328,8 @@ class TestVitalRotation (unittest.TestCase):
         r_res_f = r_ident_f.compose(r_other_f)
         nose.tools.assert_is_not(r_other_f, r_res_f)
         numpy.testing.assert_equal(r_res_f, r_other_f)
-        numpy.testing.assert_equal(r_res_f.quaternion(), expected_quat)
+        numpy.testing.assert_allclose(r_res_f.quaternion(), expected_quat,
+                                      1e-7)
 
         # Should also work with multiply operator
         r_res_d = r_ident_d * r_other_d
@@ -324,32 +340,42 @@ class TestVitalRotation (unittest.TestCase):
         r_res_f = r_ident_f * r_other_f
         nose.tools.assert_is_not(r_other_f, r_res_f)
         numpy.testing.assert_equal(r_res_f, r_other_f)
-        numpy.testing.assert_equal(r_res_f.quaternion(), expected_quat)
+        numpy.testing.assert_allclose(r_res_f.quaternion(), expected_quat,
+                                      1e-7)
 
         # Rotation of non-congruent types should be converted automatically
         r_res_d = r_ident_d.compose(r_other_f)
         nose.tools.assert_is_not(r_res_d, r_other_f)
-        numpy.testing.assert_equal(r_res_d.quaternion(),
-                                   r_other_f.quaternion())
-        numpy.testing.assert_equal(r_res_d.quaternion(), expected_quat)
+        numpy.testing.assert_allclose(r_res_d.quaternion(),
+                                      r_other_f.quaternion(),
+                                      1e-7)
+        numpy.testing.assert_allclose(r_res_d.quaternion(), expected_quat,
+                                      1e-7)
 
         r_res_f = r_ident_f.compose(r_other_d)
         nose.tools.assert_is_not(r_res_f, r_other_f)
-        numpy.testing.assert_equal(r_res_f.quaternion(),
-                                   r_other_f.quaternion())
-        numpy.testing.assert_equal(r_res_f.quaternion(), expected_quat)
+        numpy.testing.assert_allclose(r_res_f.quaternion(),
+                                      r_other_f.quaternion(),
+                                      1e-7)
+        numpy.testing.assert_allclose(r_res_f.quaternion(), expected_quat,
+                                      1e-7)
 
+        # Equality check between types should pass due to integrety resolution
+        # inside function.
         r_res_d = r_ident_d * r_other_f
         nose.tools.assert_is_not(r_res_d, r_other_f)
-        numpy.testing.assert_equal(r_res_d.quaternion(),
-                                   r_other_f.quaternion())
-        numpy.testing.assert_equal(r_res_d.quaternion(), expected_quat)
+        numpy.testing.assert_allclose(r_res_d.quaternion(),
+                                      r_other_f.quaternion(),
+                                      1e-7)
+        numpy.testing.assert_allclose(r_res_d.quaternion(), expected_quat,
+                                      1e-7)
 
         r_res_f = r_ident_f * r_other_d
         nose.tools.assert_is_not(r_res_f, r_other_f)
         numpy.testing.assert_equal(r_res_f.quaternion(),
                                    r_other_f.quaternion())
-        numpy.testing.assert_equal(r_res_f.quaternion(), expected_quat)
+        numpy.testing.assert_allclose(r_res_f.quaternion(), expected_quat,
+                                      1e-7)
 
     def test_rotation_vector(self):
         vec = [[1],

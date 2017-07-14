@@ -32,10 +32,11 @@
 
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/export_dot_exception.h>
-#include <sprokit/pipeline_util/path.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 
 #include <vital/config/config_block.h>
+#include <vital/vital_types.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
@@ -45,7 +46,7 @@
 #include <memory>
 #include <sstream>
 
-#define TEST_ARGS (sprokit::path_t const& pipe_file)
+#define TEST_ARGS (kwiver::vital::path_t const& pipe_file)
 
 DECLARE_TEST_MAP();
 
@@ -57,9 +58,9 @@ main(int argc, char* argv[])
   CHECK_ARGS(2);
 
   testname_t const testname = argv[1];
-  sprokit::path_t const pipe_dir = argv[2];
+  kwiver::vital::path_t const pipe_dir = argv[2];
 
-  sprokit::path_t const pipe_file = pipe_dir / (testname + pipe_ext);
+  kwiver::vital::path_t const pipe_file = pipe_dir + "/" +  testname + pipe_ext;
 
   RUN_TEST(testname, pipe_file);
 }
@@ -90,7 +91,7 @@ IMPLEMENT_TEST(pipeline_empty_name)
   sprokit::process::type_t const type = sprokit::process::type_t("orphan");
   sprokit::process_t const proc = sprokit::create_process(type, sprokit::process::name_t());
 
-  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
   pipe->add_process(proc);
 
@@ -165,7 +166,7 @@ IMPLEMENT_TEST(cluster_empty_name)
   const auto conf = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const proc = info->ctor(conf);
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   std::ostringstream sstr;
 
@@ -187,7 +188,7 @@ IMPLEMENT_TEST(cluster_multiplier)
   conf->set_value(sprokit::process::config_name, name);
 
   sprokit::process_t const proc = info->ctor(conf);
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
   std::ostringstream sstr;
 

@@ -71,7 +71,8 @@ public:
   /// Optimize the camera and landmark parameters given a set of tracks
   virtual void optimize(vital::camera_map_sptr & cameras,
                         vital::landmark_map_sptr & landmarks,
-                        vital::track_set_sptr tracks) const;
+                        vital::track_set_sptr tracks,
+                        vital::video_metadata_map_sptr metadata = nullptr) const;
 
 private:
   // private implementation class

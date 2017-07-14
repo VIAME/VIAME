@@ -55,8 +55,8 @@ template <class T> class bounded_buffer;
 namespace adapter{
 
 class adapter_data_set;
-typedef std::shared_ptr< adapter_data_set > adapter_data_set_t;
-typedef std::shared_ptr< kwiver::vital::bounded_buffer< kwiver::adapter::adapter_data_set_t > > interface_ref_t;
+typedef boost::shared_ptr< adapter_data_set > adapter_data_set_t;
+typedef boost::shared_ptr< kwiver::vital::bounded_buffer< kwiver::adapter::adapter_data_set_t > > interface_ref_t;
 typedef std::map< sprokit::process::port_t, sprokit::process::port_info_t > ports_info_t;
 
 } } // end namespace

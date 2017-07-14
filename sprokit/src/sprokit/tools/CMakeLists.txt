@@ -26,7 +26,7 @@ target_link_libraries(sprokit_tools
 
   PRIVATE      ${Boost_FILESYSTEM_LIBRARY}
                ${Boost_SYSTEM_LIBRARY}
-               vital_config
+               vital_config vital_util
   )
 
 sprokit_require_tools_fixes(sprokit_tools)

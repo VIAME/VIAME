@@ -36,6 +36,8 @@
 #include <tests/test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/util/enum_converter.h>
+
 #include <functional>
 
 #define TEST_ARGS ()
@@ -900,4 +902,41 @@ IMPLEMENT_TEST(set_value_description)
       config->get_description(keya),
       "accessing description of unset key"
       );
+}
+
+
+// Test macro
+ENUM_CONVERTER( my_ec, int,
+          // init stuff
+          { "one",   1 },
+          { "two",   2 },
+          { "three", 3 },
+          { "four",  4 },
+          { "five",  5 }
+  )
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(enum_conversion)
+{
+  using namespace kwiver::vital;
+
+  config_block_sptr const config = config_block::empty_config();
+
+  config->set_value("keya", "three");
+  config->set_value("keyb", "foo");
+
+  int val = config->get_enum_value < my_ec >( "keya" );
+  TEST_EQUAL("enum value", val, 3 );
+
+  EXPECT_EXCEPTION( std::runtime_error,
+                    config->get_enum_value < my_ec >( "keyb" ),
+                    "enum conversion error");
+
+  EXPECT_EXCEPTION(
+    kwiver::vital::no_such_configuration_value_exception,
+    config->get_enum_value< my_ec >(config_block_key_t("not_a_key")),
+      "accessing description of invalid key"
+      );
+
 }

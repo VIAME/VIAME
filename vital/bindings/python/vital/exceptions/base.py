@@ -34,8 +34,6 @@ VITAL basic exceptions
 
 """
 # -*- coding: utf-8 -*-
-__author__ = 'paul.tunison@kitware.com'
-
 
 class VitalBaseException(Exception):
     """ Base VITAL Exception class """

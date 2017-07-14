@@ -44,6 +44,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/optional.hpp>
+#include <boost/make_shared.hpp>
 
 #include <map>
 #include <utility>
@@ -985,10 +986,15 @@ process
 
   if (static_)
   {
+    // Here is where we create a config key to supply data to this
+    // static port. Note that the config key name is prefixed with
+    // "static/". It is assumed that the person who writes the config
+    // knows to add the static prefix also.
     declare_configuration_key(
       static_input_prefix + port,
       kwiver::vital::config_block_value_t(),
-      kwiver::vital::config_block_description_t("A default value to use for the \'" + port + "\' port if it is not connected."));
+      kwiver::vital::config_block_description_t("A default value to use for the \'"
+                                                + port + "\' port if it is not connected."));
 
     d->static_inputs.insert(port);
   }
@@ -1024,7 +1030,7 @@ process
                      port_description_t const& description_,
                      port_frequency_t const& frequency_)
 {
-  declare_input_port(port, std::make_shared<port_info>(
+  declare_input_port(port, boost::make_shared<port_info>(
     type_,
     flags_,
     description_,
@@ -1088,7 +1094,7 @@ process
                       port_description_t const& description_,
                       port_frequency_t const& frequency_)
 {
-  declare_output_port(port, std::make_shared<port_info>(
+  declare_output_port(port, boost::make_shared<port_info>(
     type_,
     flags_,
     description_,
@@ -1258,7 +1264,7 @@ process
                             kwiver::vital::config_block_description_t const& description_,
                             bool tunable_)
 {
-  declare_configuration_key(key, std::make_shared<conf_info>(
+  declare_configuration_key(key, boost::make_shared<conf_info>(
     def_,
     description_,
     tunable_));
@@ -1544,7 +1550,7 @@ process
     }
   }
 
-  return std::make_shared<data_info>(in_sync, max_type);
+  return boost::make_shared<data_info>(in_sync, max_type);
 }
 
 

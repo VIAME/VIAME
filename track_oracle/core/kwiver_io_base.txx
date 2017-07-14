@@ -31,9 +31,11 @@ typedef char yes_io_type;
 
 struct proxy{ template <typename U> proxy(const U&); };
 
-no_io_type operator>>( const proxy&, const proxy& );
+char tmp[2]; no_io_type not_used(tmp);
+no_io_type operator>>( const proxy&, const proxy& ) { return not_used; }
+no_io_type check( no_io_type ) { return not_used; }
 
-no_io_type check( no_io_type );
+
 template <typename U> yes_io_type check( const U& );
 
 

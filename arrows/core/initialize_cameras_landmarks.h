@@ -78,11 +78,13 @@ public:
    * \param [in,out] cameras the cameras to initialize
    * \param [in,out] landmarks the landmarks to initialize
    * \param [in] tracks the tracks to use as constraints
+   * \param [in] metadata the frame metadata to use as constraints
    */
   virtual void
   initialize(vital::camera_map_sptr& cameras,
              vital::landmark_map_sptr& landmarks,
-             vital::track_set_sptr tracks) const;
+             vital::track_set_sptr tracks,
+             vital::video_metadata_map_sptr metadata = nullptr) const;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,10 @@ public:
    * order (x,y,z,w). Likewise, the constructor for an Eigen:Quaternion from an
    * array assumes the order (x,y,z,w).
    */
+  //TODO: normalize quaternion. If the user provides a non-normalized quaterion,
+  //It will remain so. This can cause problems when converting to other types.
+  //Might want to consider using the actual Eigen::Quaternion constructor. This 
+  //will also resolve the strange order of the coefficients.
   explicit rotation_< T > ( const Eigen::Matrix< T, 4, 1 > &quaternion )
   : q_( quaternion ) { }
 
@@ -153,12 +157,19 @@ public:
   /// Rotate a vector
   /**
    * \note for a large number of vectors, it is more efficient to
-   *       create a rotation matrix and use matrix multiplcation
+   *       create a rotation matrix and use matrix multiplication
    * \param rhs right-hand side vector to operate against
    */
   Eigen::Matrix< T, 3, 1 > operator*( const Eigen::Matrix< T, 3, 1 >& rhs ) const;
 
   /// Equality operator
+  /**
+   * TODO: two quaternions can represent the same rotation but have different 
+   * components. The test is to calculate the product of the first rotation with
+   * the inverse of the second to calculate the difference rotation. Convert the
+   * difference rotation to axis and angle form, and if the angle is greater 
+   * than some threshold, they should not be considered equal.
+   */
   inline bool operator==( const rotation_< T >& rhs ) const
   {
     return this->q_.coeffs() == rhs.q_.coeffs();
@@ -171,7 +182,7 @@ public:
   }
 
 protected:
-  /// rotatation stored internally as a quaternion vector
+  /// rotation stored internally as a quaternion vector
   Eigen::Quaternion< T > q_;
 };
 

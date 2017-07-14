@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ Interface to vital::homography
 
 """
 import ctypes
-
+import collections
 import numpy
 
 from vital.exceptions.math import PointMapsToInfinityException
@@ -45,14 +45,14 @@ from vital.util import VitalObject, TYPE_NAME_MAP
 
 
 class Homography (VitalObject):
-
+    
     @classmethod
     def from_matrix(cls, m, datatype=ctypes.c_double):
         """
         Create a homography from an existing 3x3 matrix.
 
-        If the data type of the matrix given, if an EigenArray, is not the same
-        as ``datatype``, it will be automatically converted.
+        If the data type of the matrix given is not the same as ``datatype``, 
+        it will be automatically converted.
 
         :param m: Matrix to base the new homography on. This should be a 3x3
             matrix.
@@ -75,6 +75,100 @@ class Homography (VitalObject):
             Homography.c_ptr_type()
         )
         return Homography(from_cptr=cptr)
+    
+    @classmethod
+    def from_translation(cls, dx, dy, datatype=ctypes.c_double):
+        """
+        Return homography that represents a translation.
+        
+        :param dx: Homography will displace input points by this amount along 
+            the x-axis.
+        :type dx: float | double | int
+        
+        :param dy: Homography will displace input points by this value along 
+            the y-axis.
+        :type dy: float | double | int
+        
+        :return: New homography instance.
+        :rtype: Homography
+        
+        """
+        m = numpy.matrix([[1, 0, dx], [0, 1, dy], [0, 0, 1]])
+        return cls.from_matrix(m, datatype=datatype)
+    
+    @classmethod
+    def from_scale(cls, scale, datatype=ctypes.c_double):
+        """
+        Return homography that scales inputs.
+        
+        :param scale: Homography will scale input vectors by this multiple.
+        :type s: float | double | int
+        
+        :return: New homography instance.
+        :rtype: Homography
+        
+        """
+        m = numpy.matrix([[scale, 0, 0], [0, scale, 0], [0, 0, 1]]) 
+        return cls.from_matrix(m, datatype=datatype)
+    
+    @classmethod
+    def read_from_file(cls, fin, datatype=ctypes.c_double):
+        """
+        Read homography from ASCII file.
+        
+        If fin is an open file object, the homography will be read from the 
+        next three valid lines of the file, and it will remain open upon 
+        return. If fout is the str full path to a file, the file will be 
+        opened, read from, and closed.
+        
+        If a valid 3x3 matrix can not be extracted, None will be returned.
+        
+        :param fin: open file object or str filename to read from.
+        :type fin: file or str
+        
+        :param datatype: Type to store data in the homography.
+        :type datatype: ctypes.c_float | ctypes.c_double
+        
+        :return: New homography instance read from file.
+        :rtype: Homography | None
+        
+        """
+        if hasattr(fin, 'read'):
+            # Must be an open file.
+            l = 0
+            h = numpy.zeros((3,3), dtype=numpy.float64)
+            for line in fin:
+                linev = numpy.fromstring(line, dtype=numpy.float64, sep=' ')
+                
+                if len(linev) == 3:
+                    h[l] = linev
+                    l += 1
+                
+                if l == 3:
+                    return Homography.from_matrix(h)
+            
+            return None
+        
+        elif isinstance(fin, basestring):
+            with open(fin, 'r') as f:
+                return cls.read_from_file(f)
+        else:
+            raise ValueError("fin must be of type file or str.")
+    
+    @classmethod
+    def random(cls, datatype=ctypes.c_double):
+        """
+        Create a normzlied random homography.
+        
+        :param datatype: Type to store data in the homography.
+        :type datatype: ctypes._SimpleCData
+
+        :return: Normalized random homography.
+        :rtype: Homography
+
+        """
+        h = cls.from_matrix(numpy.random.rand(3,3), datatype=datatype)
+        return h.normalize()
 
     def __init__(self, datatype=ctypes.c_double, from_cptr=None):
         """
@@ -117,6 +211,8 @@ class Homography (VitalObject):
                 self.C_TYPE_PTR
             )
             return Homography(from_cptr=h_cptr)
+        elif isinstance(other, collections.Iterable):
+            return map(self, other)
         else:
             raise ValueError("Not given a homography instance as the rhs "
                              "argument. Given %s type instead."
@@ -134,6 +230,19 @@ class Homography (VitalObject):
 
     def __ne__(self, other):
         return not (self == other)
+    
+    def __repr__(self):
+        cls_name = self.__class__.__name__
+        s = numpy.array2string(self.as_matrix(), separator=',')
+        # prefix lines based on the length of the class name
+        l = s.splitlines()
+        l[0] = cls_name + '(' + l[0]
+        for i in range(1, len(l)):
+            if l[i]:
+                # +1 for the '('
+                l[i] = ' '*(len(cls_name)+1) + l[i]
+        l[-1] += ')'
+        return '\n'.join(l)
 
     @property
     def type_name(self):
@@ -218,4 +327,28 @@ class Homography (VitalObject):
                 1: PointMapsToInfinityException
             }
         )
-        return EigenArray(2, dtype=self._datatype, from_cptr=p_cptr)
+        return EigenArray(2, dtype=self._datatype, from_cptr=p_cptr)    
+        
+    def write_to_file(self, fout):
+        """
+        Write homography in ASCII to file.
+        
+        If fout is an open file object, the homography will be written to the 
+        file, and it will remain open upon return. If fout is the str full path
+        to a file, the file will be opened, written to, and closed.
+        
+        :param fout: open file object or str filename to write to.
+        :type fout: file or str
+        
+        """    
+        if hasattr(fout, 'write'):
+            h = self.as_matrix().tolist()
+            str_rep = ''.join(["%.12g %.12g %.12g\n" % tuple(h[0]),
+                               "%.12g %.12g %.12g\n" % tuple(h[1]),
+                               "%.12g %.12g %.12g\n" % tuple(h[2])])
+            fout.write(str_rep)
+        elif isinstance(fout, basestring):
+            with open(fout, 'w') as f:
+                self.write_to_file(f)
+        else:
+            raise ValueError("fout must be of type file or str.")
