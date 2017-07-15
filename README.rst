@@ -100,7 +100,7 @@ To make it easier to build KWIVER, especially
 on systems like Microsoft Windows that do not have package manager,
 Fletch_ was developed to gather, configure and build dependent packages
 for use with KWIVER.  Fletch is a CMake_ based "super-build" that
-takes care of most of the build details for you.
+takes care of most of the built details for you.
 
 For building Fletch_, refer to the README file in that repository.
 
@@ -154,7 +154,7 @@ Note, This assumes your fletch was build with python support (Turn OFF if not)
 
 You will also need to replace the fletch path with your own::
 
-cmake </path/to/kwiver/source> -Dfletch_DIR:PATH=<path/to/fletch/builds/install> -DCMAKE_BUILD_TYPE=Release -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_CERES:BOOL=ON -DKWIVER_ENABLE_C_BINDINGS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON -DKWIVER_ENABLE_OPENCV:BOOL=ON -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PROJ:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_TESTS:BOOL=OFF -DKWIVER_ENABLE_TOOLS:BOOL=ON -DKWIVER_ENABLE_TRACK_ORACLE:BOOL=OFF -DKWIVER_ENABLE_VISCL:BOOL=OFF -DKWIVER_ENABLE_VXL:BOOL=ON -DKWIVER_USE_BUILD_TREE:BOOL=ON
+cmake </path/to/kwiver/source> -Dfletch_DIR:PATH=<path/to/fletch/builds/install> -DCMAKE_BUILD_TYPE=Release -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_C_BINDINGS:BOOL=ON -DKWIVER_ENABLE_EXTRAS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_TOOLS:BOOL=ON -DKWIVER_USE_BUILD_TREE:BOOL=ON
 
 Basic CMake generation using ccmake
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
