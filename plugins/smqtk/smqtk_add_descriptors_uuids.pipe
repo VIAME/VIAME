@@ -1,0 +1,24 @@
+# =============================================================================
+process input
+  # Needs some input process that reads in descriptors/sets and matching UIDs.
+  # Outputs at least ``descriptor_set`` and ``string_vector``.
+
+# =============================================================================
+process add_descriptors
+  :: smqtk_add_descritpors_uuids
+  :json_config ./smqtk_add_descriptors_uuids.json
+
+# =============================================================================
+# Global pipeline configuration
+
+config _pipeline:_edge
+  :capacity 5
+
+# =============================================================================
+# Process Connections
+
+connect from input.descriptor_set
+        to   add_descriptors.descriptor_set
+
+connect from input.string_vector
+        to   add_descriptors.string_vector
