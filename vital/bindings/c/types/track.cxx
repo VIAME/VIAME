@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,6 @@
 #include "track.h"
 
 #include <vital/bindings/c/helpers/c_utils.h>
-#include <vital/bindings/c/helpers/descriptor.h>
-#include <vital/bindings/c/helpers/feature.h>
 #include <vital/bindings/c/helpers/track.h>
 
 
@@ -48,6 +46,8 @@ namespace vital_c {
 SharedPointerCache< vital::track, vital_track_t >
   TRACK_SPTR_CACHE( "track" );
 
+SharedPointerCache< vital::track_state_data, vital_track_state_data_t >
+  TRACK_STATE_DATA_SPTR_CACHE( "track_state_data" );
 } }
 
 
@@ -56,19 +56,18 @@ using namespace kwiver;
 ////////////////////////////////////////////////////////////////////////////////
 // Track State
 
+
 /// Create a new track state
 vital_track_state_t*
-vital_track_state_new( int64_t frame, vital_feature_t *f,
-                       vital_descriptor_t *d, vital_error_handle_t *eh )
+vital_track_state_new( int64_t frame, vital_track_state_data_t *d,
+                       vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_track_state_new", eh,
-    vital::feature_sptr f_sptr;
-    vital::descriptor_sptr d_sptr;
-    if( f ) f_sptr = vital_c::FEATURE_SPTR_CACHE.get( f );
-    if( d ) d_sptr = vital_c::DESCRIPTOR_SPTR_CACHE.get( d );
-    vital::track::track_state *ts = new vital::track::track_state(frame, f_sptr,
-                                                                  d_sptr);
+    vital::track_state_data_sptr d_sptr;
+    if( d ) d_sptr = vital_c::TRACK_STATE_DATA_SPTR_CACHE.get( d );
+    vital::track::track_state *ts =
+      new vital::track::track_state(frame, d_sptr);
     return reinterpret_cast< vital_track_state_t* >( ts );
   );
   return 0;
@@ -95,42 +94,6 @@ vital_track_state_frame_id( vital_track_state_t *ts, vital_error_handle_t *eh )
     "vital_track_state_frame_id", eh,
     REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
     return ts_ptr->frame_id;
-  );
-  return 0;
-}
-
-
-/// Get a track state's feature
-vital_feature_t*
-vital_track_state_feature( vital_track_state_t *ts, vital_error_handle_t *eh )
-{
-  STANDARD_CATCH(
-    "vital_track_state_feature", eh,
-    REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
-    // increase cross-boundary reference count if non-null
-    if( ts_ptr->feat )
-    {
-      vital_c::FEATURE_SPTR_CACHE.store( ts_ptr->feat );
-    }
-    return reinterpret_cast< vital_feature_t* >( ts_ptr->feat.get() );
-  );
-  return 0;
-}
-
-
-/// Get a track state's descriptor
-vital_descriptor_t*
-vital_track_state_descriptor( vital_track_state_t *ts, vital_error_handle_t *eh )
-{
-  STANDARD_CATCH(
-    "vital_track_state_descriptor", eh,
-    REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
-    // increase cross-boundary reference count if non-null
-    if( ts_ptr->desc )
-    {
-      vital_c::DESCRIPTOR_SPTR_CACHE.store( ts_ptr->desc );
-    }
-    return reinterpret_cast< vital_descriptor_t* >( ts_ptr->desc.get() );
   );
   return 0;
 }
@@ -292,23 +255,20 @@ vital_track_find_state( vital_track_t *t, int64_t frame,
       vital::track::track_state const &ts = *it;
       // Since we're not directly exposing feat/desc (contained underneath track
       //  state), we're not retaining their sptrs.
-      // Temp storing feat/desc sptrs in caches ONLY for retrieval in
+      // Temp storing data sptrs in caches ONLY for retrieval in
       //  vital_track_state_new as there is no guarantee that they are stored
       //  there yet.
       // We will release them from their caches once after creating the state
       //  as their shared pointers will now be references by a track-state
       //  instance on the heap.
-      if( ts.feat ) vital_c::FEATURE_SPTR_CACHE.store( ts.feat );
-      if( ts.desc ) vital_c::DESCRIPTOR_SPTR_CACHE.store( ts.desc );
+      if( ts.data ) vital_c::TRACK_STATE_DATA_SPTR_CACHE.store( ts.data );
       // Not using REINTERP_TYPE because feature/descriptor could be validly null
       vital_track_state_t *c_ts = vital_track_state_new(
         frame,
-        reinterpret_cast< vital_feature_t* >( ts.feat.get() ),
-        reinterpret_cast< vital_descriptor_t* >( ts.desc.get() ),
+        reinterpret_cast< vital_track_state_data_t* >( ts.data.get() ),
         eh
       );
-      if( ts.feat ) vital_c::FEATURE_SPTR_CACHE.erase( ts.feat.get() );
-      if( ts.desc ) vital_c::DESCRIPTOR_SPTR_CACHE.erase( ts.desc.get() );
+      if( ts.data ) vital_c::TRACK_STATE_DATA_SPTR_CACHE.erase( ts.data.get() );
       return c_ts;
     }
   );

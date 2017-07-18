@@ -64,7 +64,8 @@ vital_algorithm_bundle_adjust_optimize( vital_algorithm_t *algo,
     auto lmap_sptr = vital_c::LANDMARK_MAP_SPTR_CACHE.get( *lmap );
     auto tset_sptr = vital_c::TRACK_SET_SPTR_CACHE.get( tset );
 
-    a_sptr->optimize( cmap_sptr, lmap_sptr, tset_sptr );
+    a_sptr->optimize( cmap_sptr, lmap_sptr,
+      std::dynamic_pointer_cast< kwiver::vital::feature_track_set >( tset_sptr ) );
 
     // Check instance pointer for cmap_sptr and lmap_sptr. If they are different
     // than input, which probably are, cache the sptrs and assign casted pointers
