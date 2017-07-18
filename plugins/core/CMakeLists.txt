@@ -24,11 +24,19 @@ kwiver_add_library( viame_core
   )
 
 target_link_libraries( viame_core
-  PUBLIC               vital_algo
+  PUBLIC               vital
+                       vital_algo
+                       vital_config
+                       vital_logger
+                       vital_util
   )
 
 algorithms_create_plugin( viame_core
   register_algorithms.cxx
+  )
+  
+target_link_libraries( viame_core_plugin
+  PUBLIC               vital_vpm
   )
 
 kwiver_add_executable( viame_train_detector

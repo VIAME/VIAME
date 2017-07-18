@@ -27,12 +27,20 @@ kwiver_add_library( viame_hello_world
   )
 
 target_link_libraries( viame_hello_world
-  PUBLIC               vital_algo
+  PUBLIC               vital
+                       vital_algo
+                       vital_config
+                       vital_logger
+                       vital_util
                        ${OpenCV_LIBRARIES}
   )
 
 algorithms_create_plugin( viame_hello_world
   register_algorithms.cxx
+  )
+  
+target_link_libraries( viame_hello_world_plugin
+  PUBLIC               vital_vpm
   )
 
 if( VIAME_ENABLE_PYTHON )
