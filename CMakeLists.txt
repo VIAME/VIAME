@@ -22,7 +22,7 @@ if ( IS_DIRECTORY ${fletch_DIR} )
   find_package( fletch NO_MODULE )
   if ( fletch_FOUND )
     # Search for libraries in the fletch install root
-    list(APPEND CMAKE_PREFIX_PATH "${fletch_DIR}")
+    list(APPEND CMAKE_PREFIX_PATH "${fletch_ROOT}")
   endif()
 endif()
 
@@ -222,10 +222,10 @@ if( KWIVER_INSTALL_SET_UP_SCRIPT )
 endif()
 
 if ( fletch_FOUND )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_DIR}/bin\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_DIR}/x64/${_vcVersion}/bin\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_ROOT}/bin\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_ROOT}/x64/${_vcVersion}/bin\n" )
 
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_DIR}/lib:$${LIBRARY_PATH_VAR}\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_ROOT}/lib:$${LIBRARY_PATH_VAR}\n" )
 endif()
 
 ###
@@ -325,8 +325,8 @@ endif()
 
 if (fletch_FOUND)
   # since we have fletch, add include and lib dirs to export
-  list( APPEND KWIVER_INCLUDE_DIRS "${fletch_DIR}/include")
-  list( APPEND KWIVER_LIBRARY_DIRS "${fletch_DIR}/lib")
+  list( APPEND KWIVER_INCLUDE_DIRS "${fletch_ROOT}/include")
+  list( APPEND KWIVER_LIBRARY_DIRS "${fletch_ROOT}/lib")
 endif()
 
 kwiver_configure_file(kwiver-config
