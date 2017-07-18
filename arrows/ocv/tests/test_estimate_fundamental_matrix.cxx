@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,8 +130,10 @@ IMPLEMENT_TEST(ideal_points)
   std::vector<vector_2d> pts1, pts2;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    pts1.push_back(trks[i]->find(frame1)->feat->loc());
-    pts2.push_back(trks[i]->find(frame2)->feat->loc());
+    auto data1 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame1)->data);
+    auto data2 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame2)->data);
+    pts1.push_back(data1->feature->loc());
+    pts2.push_back(data2->feature->loc());
   }
 
   // print the epipolar distances using this fundamental matrix
@@ -174,7 +176,7 @@ IMPLEMENT_TEST(noisy_points)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.5);
@@ -196,8 +198,10 @@ IMPLEMENT_TEST(noisy_points)
   std::vector<vector_2d> pts1, pts2;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    pts1.push_back(trks[i]->find(frame1)->feat->loc());
-    pts2.push_back(trks[i]->find(frame2)->feat->loc());
+    auto data1 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame1)->data);
+    auto data2 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame2)->data);
+    pts1.push_back(data1->feature->loc());
+    pts2.push_back(data2->feature->loc());
   }
 
   print_epipolar_distances(true_F->matrix(), pts1, pts2);
@@ -241,7 +245,7 @@ IMPLEMENT_TEST(outlier_points)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.5);
@@ -270,8 +274,10 @@ IMPLEMENT_TEST(outlier_points)
     }
     else
     {
-      pts1.push_back(trks[i]->find(frame1)->feat->loc());
-      pts2.push_back(trks[i]->find(frame2)->feat->loc());
+      auto data1 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame1)->data);
+      auto data2 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame2)->data);
+      pts1.push_back(data1->feature->loc());
+      pts2.push_back(data2->feature->loc());
     }
   }
 

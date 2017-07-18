@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,14 +110,14 @@ public:
   /**
    * \param frame_number the frame number of the current frame
    * \param image image data for the current frame
-   * \param input the input track set to stitch
+   * \param input the input feature track set to stitch
    * \param mask Optional mask image where positive values indicate
    *             regions to consider in the input image.
-   * \returns an updated set a tracks after the stitching operation
+   * \returns an updated set of feature tracks after the stitching operation
    */
-  virtual vital::track_set_sptr
+  virtual vital::feature_track_set_sptr
   stitch( vital::frame_id_t frame_number,
-          vital::track_set_sptr input,
+          vital::feature_track_set_sptr input,
           vital::image_container_sptr image,
           vital::image_container_sptr mask = vital::image_container_sptr() ) const;
 

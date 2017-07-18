@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,10 +154,10 @@ bool track_id_in_set( track_sptr trk_ptr, std::set<track_id_t>* set_ptr )
 
 
 /// Handle track bad frame detection if enabled
-vital::track_set_sptr
+vital::feature_track_set_sptr
 close_loops_bad_frames_only
 ::stitch( vital::frame_id_t frame_number,
-          vital::track_set_sptr input,
+          vital::feature_track_set_sptr input,
           vital::image_container_sptr,
           vital::image_container_sptr ) const
 {
@@ -197,11 +197,14 @@ close_loops_bad_frames_only
     last_frame_to_test = frame_to_test - max_search_length_;
   }
 
-  vital::track_set_sptr stitch_frame_set = input->active_tracks( frame_to_stitch );
+  auto stitch_frame_set = std::make_shared<vital::simple_feature_track_set>(
+                              input->active_tracks( frame_to_stitch ) );
+
 
   for( ; frame_to_test > last_frame_to_test; frame_to_test-- )
   {
-    vital::track_set_sptr test_frame_set = input->active_tracks( frame_to_test );
+    auto test_frame_set = std::make_shared<vital::simple_feature_track_set>(
+                              input->active_tracks( frame_to_test ) );
 
     // run matcher alg
     vital::match_set_sptr mset = matcher_->match(test_frame_set->frame_features( frame_to_test ),
@@ -237,7 +240,7 @@ close_loops_bad_frames_only
         );
       }
 
-      return track_set_sptr( new simple_track_set( all_tracks ) );
+      return std::make_shared<simple_feature_track_set>( all_tracks );
     }
   }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,7 +166,7 @@ track_set
 }
 
 /// Return all tracks active on a frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::active_tracks(frame_id_t offset)
 {
@@ -182,12 +182,12 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(active_tracks));
+  return active_tracks;
 }
 
 
 /// Return all tracks active on a frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::inactive_tracks(frame_id_t offset)
 {
@@ -203,12 +203,12 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(inactive_tracks));
+  return inactive_tracks;
 }
 
 
 /// Return all new tracks on a given frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::new_tracks(frame_id_t offset)
 {
@@ -224,12 +224,12 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(new_tracks));
+  return new_tracks;
 }
 
 
 /// Return all new tracks on a given frame.
-track_set_sptr
+std::vector< track_sptr >
 track_set
 ::terminated_tracks(frame_id_t offset)
 {
@@ -245,7 +245,7 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(terminated_tracks));
+  return terminated_tracks;
 }
 
 
@@ -277,89 +277,25 @@ track_set
 }
 
 
-/// Return the set of features in tracks on the last frame
-feature_set_sptr
+/// Return a vector of state data corresponding to the tracks on the given frame.
+std::vector<track_state_data_sptr>
 track_set
-::last_frame_features() const
-{
-  const frame_id_t last_frame = this->last_frame();
-  std::vector<feature_sptr> last_features;
-  const std::vector<track_sptr> all_tracks = this->tracks();
-
-  VITAL_FOREACH( track_sptr t, all_tracks)
-  {
-    if( t->last_frame() == last_frame )
-    {
-      last_features.push_back((t->end()-1)->feat);
-    }
-  }
-
-  return feature_set_sptr(new simple_feature_set(last_features));
-}
-
-
-/// Return the set of descriptors in tracks on the last frame
-descriptor_set_sptr
-track_set
-::last_frame_descriptors() const
-{
-  const frame_id_t last_frame = this->last_frame();
-  std::vector<descriptor_sptr> last_descriptors;
-  const std::vector<track_sptr> all_tracks = this->tracks();
-
-  VITAL_FOREACH( track_sptr t, all_tracks)
-  {
-    if( t->last_frame() == last_frame )
-    {
-      last_descriptors.push_back((t->end()-1)->desc);
-    }
-  }
-
-  return descriptor_set_sptr(new simple_descriptor_set(last_descriptors));
-}
-
-
-/// Return the set of features in all tracks for the given frame.
-feature_set_sptr
-track_set
-::frame_features(frame_id_t offset) const
+::frame_state_data( frame_id_t offset ) const
 {
   const frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
-  std::vector<feature_sptr> features;
+  std::vector<track_state_data_sptr> vdata;
 
   VITAL_FOREACH( track_sptr t, all_tracks)
   {
     track::history_const_itr itr = t->find(frame_number);
     if( itr != t->end() )
     {
-      features.push_back(itr->feat);
+      vdata.push_back(itr->data);
     }
   }
 
-  return feature_set_sptr(new simple_feature_set(features));
-}
-
-
-/// Return the set of descriptors in all tracks for the given frame.
-descriptor_set_sptr
-track_set
-::frame_descriptors(frame_id_t offset) const
-{
-  const frame_id_t frame_number = offset_to_frame(offset);
-  const std::vector<track_sptr> all_tracks = this->tracks();
-  std::vector<descriptor_sptr> descriptors;
-
-  VITAL_FOREACH( track_sptr t, all_tracks)
-  {
-    track::history_const_itr itr = t->find(frame_number);
-    if( itr != t->end() )
-    {
-      descriptors.push_back(itr->desc);
-    }
-  }
-
-  return descriptor_set_sptr(new simple_descriptor_set(descriptors));
+  return vdata;
 }
 
 

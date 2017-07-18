@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,11 +108,11 @@ triangulate_landmarks
 }
 
 
-/// Triangulate the landmark locations given sets of cameras and tracks
+/// Triangulate the landmark locations given sets of cameras and feature tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-              vital::track_set_sptr tracks,
+              vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const
 {
   if( !cameras || !landmarks || !tracks )
@@ -157,7 +157,8 @@ triangulate_landmarks
 
     for (track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(tsi->data);
+      if (!ftsd || !ftsd->feature)
       {
         // there is no valid feature for this track state
         continue;
@@ -169,7 +170,7 @@ triangulate_landmarks
         continue;
       }
       lm_cams.push_back(c_itr->second);
-      vital::vector_2d pt = tsi->feat->loc();
+      vital::vector_2d pt = ftsd->feature->loc();
       lm_image_pts.push_back(vgl_point_2d<double>(pt.x(), pt.y()));
     }
 

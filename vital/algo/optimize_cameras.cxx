@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,11 +50,11 @@ optimize_cameras
 }
 
 
-/// Optimize camera parameters given sets of landmarks and tracks
+/// Optimize camera parameters given sets of landmarks and feature tracks
 void
 optimize_cameras
 ::optimize(camera_map_sptr & cameras,
-           track_set_sptr tracks,
+           feature_track_set_sptr tracks,
            landmark_map_sptr landmarks,
            video_metadata_map_sptr metadata) const
 {
@@ -87,9 +87,10 @@ optimize_cameras
     {
       VITAL_FOREACH (auto const& ts, *t)
       {
-        if (ts.feat && cams.count(ts.frame_id))
+        auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts.data);
+        if (ftsd && ftsd->feature && cams.count(ts.frame_id))
         {
-          states_map[ts.frame_id][t->id()] = ts.feat;
+          states_map[ts.frame_id][t->id()] = ftsd->feature;
         }
       }
     }

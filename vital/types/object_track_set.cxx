@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +30,20 @@
 
 /**
  * \file
- * \brief Header file for functions relating to generating projected
- * tracks from a sequence of landmarks and camera parameters.
+ * \brief Implementation of \link kwiver::vital::track_set track_set \endlink
+ *        member functions
  */
 
-#ifndef ALGORITHMS_PROJECTED_TRACK_SET_H_
-#define ALGORITHMS_PROJECTED_TRACK_SET_H_
+#include "object_track_set.h"
 
+#include <limits>
 
-#include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
-
-#include <vital/types/feature_track_set.h>
-#include <vital/types/camera_map.h>
-#include <vital/types/landmark_map.h>
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
-namespace arrows {
+namespace vital {
+
+//TODO add object_track_set implementations here
 
 
-/// Use the cameras to project the landmarks back into their images.
-/**
- * \param landmarks input landmark locations
- * \param cameras input camera map
- * \return feature track set generated via the projection
- */
-vital::feature_track_set_sptr
-KWIVER_ALGO_CORE_EXPORT
-projected_tracks(vital::landmark_map_sptr landmarks,
-                 vital::camera_map_sptr cameras);
-
-
-} // end namespace arrows
-} // end namespace kwiver
-
-
-#endif // ALGORITHMS_PROJECTED_TRACK_SET_H_
+} } // end namespace vital

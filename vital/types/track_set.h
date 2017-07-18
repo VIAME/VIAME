@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@
 #ifndef VITAL_TRACK_SET_H_
 #define VITAL_TRACK_SET_H_
 
-#include "descriptor_set.h"
-#include "feature_set.h"
 #include "track.h"
 
 #include <vital/vital_export.h>
@@ -57,7 +55,7 @@ class track_set;
 /// Shared pointer for base track_set type
 typedef std::shared_ptr< track_set > track_set_sptr;
 
-/// A collection of 2D feature point tracks
+/// A collection of tracks
 class VITAL_EXPORT track_set
 {
 public:
@@ -113,9 +111,9 @@ public:
    *                    example, offset of -1 refers to the last frame and is
    *                    the default.
    *
-   * \returns a track set which is the subset of tracks that are active.
+   * \returns a vector of tracks that is the subset of tracks that are active.
    */
-  virtual track_set_sptr active_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 );
 
   /// Return all tracks inactive on a frame.
   /**
@@ -127,9 +125,9 @@ public:
    *                    example, offset of -1 refers to the last frame and is
    *                    the default.
    *
-   * \returns a track set which is the subset of tracks that are inactive.
+   * \returns a vector of tracks that is the subset of tracks that are inactive.
    */
-  virtual track_set_sptr inactive_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr > inactive_tracks( frame_id_t offset = -1 );
 
   /// Return all tracks newly initialized on the given frame.
   /**
@@ -141,9 +139,9 @@ public:
    *                   example, offset of -1 refers to the last frame and is
    *                   the default.
    *
-   * \returns a track set containing all new tracks for the given frame.
+   * \returns a vector of tracks containing all new tracks for the given frame.
    */
-  virtual track_set_sptr new_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr > new_tracks( frame_id_t offset = -1 );
 
   /// Return all tracks terminated on the given frame.
   /**
@@ -155,9 +153,9 @@ public:
    *                   example, offset of -1 refers to the last frame and is
    *                   the default.
    *
-   * \returns a track set containing all terminated tracks for the given frame.
+   * \returns a vector of tracks containing all terminated tracks for the given frame.
    */
-  virtual track_set_sptr terminated_tracks( frame_id_t offset = -1 );
+  virtual std::vector< track_sptr > terminated_tracks( frame_id_t offset = -1 );
 
   /// Return the percentage of tracks successfully tracked between the two frames.
   /**
@@ -180,13 +178,7 @@ public:
    */
   virtual double percentage_tracked( frame_id_t offset1 = -2, frame_id_t offset2 = -1 );
 
-  /// Return the set of features in tracks on the last frame
-  virtual feature_set_sptr last_frame_features() const;
-
-  /// Return the set of descriptors in tracks on the last frame
-  virtual descriptor_set_sptr last_frame_descriptors() const;
-
-  /// Return the set of features in all tracks for the given frame.
+  /// Return a vector of state data corresponding to the tracks on the given frame.
   /**
    * \param [in] offset the frame offset for selecting the target frame.
    *                    Positive number are absolute frame numbers while
@@ -194,22 +186,10 @@ public:
    *                    example, offset of -1 refers to the last frame and is
    *                    the default.
    *
-   * \returns a feature_set_sptr for all features on the give frame.
+   * \returns a vector of track_state_data_sptr corresponding to the tracks
+              on this frame and in the same order as active_track(offset)
    */
-  virtual feature_set_sptr frame_features( frame_id_t offset = -1 ) const;
-
-  /// Return the set of descriptors in all tracks for the given frame.
-  /**
-   * \param [in] offset the frame offset for selecting the target frame.
-   *                    Positive number are absolute frame numbers while
-   *                    negative numbers are relative to the last frame.  For
-   *                    example, offset of -1 refers to the last frame and is
-   *                    the default.
-   *
-   * \returns a descriptor_set_sptr for all features on the give frame.
-   */
-  virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
-
+  virtual std::vector<track_state_data_sptr> frame_state_data( frame_id_t offset = -1 ) const;
 
 protected:
   /// Convert an offset number to an absolute frame number

@@ -35,6 +35,7 @@
 
 #include "track.h"
 
+#include <algorithm>
 #include <vital/vital_foreach.h>
 
 namespace {
@@ -57,8 +58,9 @@ namespace vital {
 
 /// Default Constructor
 track
-::track()
+::track(track_data_sptr d)
   : id_( 0 )
+  , data_(d)
 {
 }
 
@@ -66,17 +68,19 @@ track
 /// Copy Constructor
 track
 ::track( const track& other )
-  : history_( other.history_ ),
-  id_( other.id_ )
+  : history_( other.history_ )
+  , id_( other.id_ )
+  , data_( other.data_ )
 {
 }
 
 
 /// Construct a track from a single track state
 track
-::track( const track_state& ts )
-  : history_( 1, ts ),
-  id_( 0 )
+::track( const track_state& ts, track_data_sptr d )
+  : history_( 1, ts )
+  , id_( 0 )
+  , data_( d )
 {
 }
 

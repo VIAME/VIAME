@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,21 +69,21 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// Initialize the camera and landmark parameters given a set of tracks
+  /// Initialize the camera and landmark parameters given a set of feature tracks
   /**
    * The algorithm creates an initial estimate of any missing cameras and
-   * landmarks using the available cameras, landmarks, and tracks.
+   * landmarks using the available cameras, landmarks, and feature tracks.
    * It may optionally revise the estimates of exisiting cameras and landmarks.
    *
    * \param [in,out] cameras the cameras to initialize
    * \param [in,out] landmarks the landmarks to initialize
-   * \param [in] tracks the tracks to use as constraints
+   * \param [in] tracks the feature tracks to use as constraints
    * \param [in] metadata the frame metadata to use as constraints
    */
   virtual void
   initialize(vital::camera_map_sptr& cameras,
              vital::landmark_map_sptr& landmarks,
-             vital::track_set_sptr tracks,
+             vital::feature_track_set_sptr tracks,
              vital::video_metadata_map_sptr metadata = nullptr) const;
 
   /// Set a callback function to report intermediate progress
