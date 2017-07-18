@@ -35,33 +35,39 @@
 #include "accept_descriptor.h"
 #include "smqtk_extract_export.h"
 
-extern "C"
-SMQTK_EXTRACT_EXPORT void register_processes();
-
 // ----------------------------------------------------------------
 /** \brief Regsiter processes
  *
  *
  */
-void register_processes()
+extern "C"
+SMQTK_EXTRACT_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static sprokit::process_registry::module_t const module_name =
-    sprokit::process_registry::module_t( "SMQTK_extract" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "SMQTK_extract" );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
+  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  // ----------------------------------------------------------------
-  registry->register_process( "supply_image", "Supplies a single image",
-                              sprokit::create_process< kwiver::supply_image > );
 
-  registry->register_process( "accept_descriptor", "Reads a single vector",
-                              sprokit::create_process< kwiver::accept_descriptor > );
+  // ----------------------------------------------------------------
+  auto fact = vpm.ADD_PROCESS( kwiver::supply_image );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "supply_image" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "supplies a single image." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::accept_descriptor );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "accept_descriptor" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "reads a single vector." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  registry->mark_module_as_loaded( module_name );
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

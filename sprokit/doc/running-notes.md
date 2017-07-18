@@ -54,10 +54,10 @@ def __sprokit_register__():
 
     reg = process_registry.ProcessRegistry.self()
 
-    if reg.is_module_loaded(module_name):
+    if reg.is_process_module_loaded(module_name):
         return
 
-    reg.register_process(<process type name>, <description>, <class>)
+    reg.add_process(<process type name>, <description>, <class>)
 
     reg.mark_module_as_loaded(module_name)
 ```
