@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,30 +47,28 @@ extern "C"
 
 #include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/error_handle.h>
-#include <vital/bindings/c/types/descriptor.h>
-#include <vital/bindings/c/types/feature.h>
 
 
+/// Opaque structure for vital::track_state_data instances
+typedef struct vital_track_state_data_s vital_track_state_data_t;
 /// Opaque structure for vital::track::track_state instances
 typedef struct vital_track_state_s vital_track_state_t;
 /// Opaque structure for vital::track instances
 typedef struct vital_track_s vital_track_t;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Track State
 
 /// Create a new track state
 /**
  * \param frame Frame the state intersects
- * \param f Feature instance associated with this state. May be null.
- * \param d Descriptor instance associated with this state. May be null.
+ * \param d Data instance associated with this state. May be null.
  * \param eh Vital error handle instance
  * \returns new instance of a track state
  */
 VITAL_C_EXPORT
 vital_track_state_t*
-vital_track_state_new( int64_t frame, vital_feature_t *f,
-                       vital_descriptor_t *d, vital_error_handle_t *eh );
+vital_track_state_new( int64_t frame, vital_track_state_data_t *d,
+                       vital_error_handle_t *eh );
 
 
 /// Destroy a track state instance
@@ -92,28 +90,6 @@ vital_track_state_destroy( vital_track_state_t *ts, vital_error_handle_t *eh );
 VITAL_C_EXPORT
 int64_t
 vital_track_state_frame_id( vital_track_state_t *ts, vital_error_handle_t *eh );
-
-
-/// Get a track state's feature
-/**
- * \param ts Track state instance
- * \param eh Vital error handle instance
- * \returns New reference to the Feature instance of the track state
- */
-VITAL_C_EXPORT
-vital_feature_t*
-vital_track_state_feature( vital_track_state_t *ts, vital_error_handle_t *eh );
-
-
-/// Get a track state's descriptor
-/**
- * \param ts Track state instance
- * \param eh Vital error handle instance
- * \returns New reference to the Descriptor instance of the track state
- */
-VITAL_C_EXPORT
-vital_descriptor_t*
-vital_track_state_descriptor( vital_track_state_t *ts, vital_error_handle_t *eh );
 
 
 ////////////////////////////////////////////////////////////////////////////////

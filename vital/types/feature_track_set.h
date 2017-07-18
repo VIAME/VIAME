@@ -57,6 +57,14 @@ namespace vital {
 class VITAL_EXPORT feature_track_state_data : public track_state_data
 {
 public:
+  /// Constructor
+  feature_track_state_data( feature_sptr f,
+                            descriptor_sptr d )
+  : feature( f ),
+    descriptor( d ) {}
+
+  feature_track_state_data() {}
+
   feature_sptr feature;
   descriptor_sptr descriptor;
 };

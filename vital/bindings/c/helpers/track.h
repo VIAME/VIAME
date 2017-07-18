@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,10 @@ namespace vital_c {
 /// Cache for saving shared pointer references for pointers in use
 extern
 SharedPointerCache< vital::track, vital_track_t > TRACK_SPTR_CACHE;
+
+/// Cache for saving shared pointer references for pointers in use
+extern
+SharedPointerCache< vital::track_state_data, vital_track_state_data_t > TRACK_STATE_DATA_SPTR_CACHE;
 
 }
 }
