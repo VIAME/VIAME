@@ -39,6 +39,7 @@
 #define VITAL_OBJECT_TRACK_SET_H_
 
 #include "track_set.h"
+#include "detected_object.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -55,8 +56,12 @@ namespace vital {
 class VITAL_EXPORT object_track_state : public track_state
 {
 public:
-  //TODO  add object track state data members here 
-  //descriptor_sptr descriptor;
+
+  object_track_state_data( detected_object_sptr d )
+    : detection( d )
+  {}
+
+  detected_object_sptr detection;
 };
 
 
@@ -68,10 +73,9 @@ typedef std::shared_ptr< object_track_set > object_track_set_sptr;
 class VITAL_EXPORT object_track_set : public track_set
 {
 public:
+
   /// Destructor
   virtual ~object_track_set() VITAL_DEFAULT_DTOR
-
-  //TODO Add object track set specific helper functions here if needed
 };
 
 
