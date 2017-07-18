@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/homography.h>
 
 #include <vital/algo/track_features.h>
@@ -119,7 +119,7 @@ compute_homography_process
   kwiver::vital::f2f_homography_sptr src_to_ref_homography;
 
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-  vital::track_set_sptr tracks = grab_from_port_using_trait( track_set );
+  vital::feature_track_set_sptr tracks = grab_from_port_using_trait( feature_track_set );
 
   // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
@@ -143,7 +143,7 @@ void compute_homography_process
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
-  declare_input_port_using_trait( track_set, required );
+  declare_input_port_using_trait( feature_track_set, required );
 
   // -- output --
   declare_output_port_using_trait( homography_src_to_ref, optional );

@@ -36,7 +36,7 @@
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
 #include <vital/types/feature_set.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 
 #include <vital/algo/match_features.h>
 #include <vital/algo/close_loops.h>
@@ -63,7 +63,7 @@ public:
 
   unsigned long m_next_track_id;
 
-  vital::track_set_sptr m_curr_tracks;
+  vital::feature_track_set_sptr m_curr_tracks;
 
   // Configuration values
 
@@ -166,14 +166,15 @@ matcher_process
     std::vector< vital::track_sptr > new_tracks;
     for ( ; fit != vf.end() && dit != df.end(); ++fit, ++dit )
     {
-      vital::track::track_state ts( frame_number, *fit, *dit );
+      vital::track_state_data_sptr tsd( new vital::feature_track_state_data( *fit, *dit ) );
+      vital::track::track_state ts( frame_number, tsd );
       new_tracks.push_back( vital::track_sptr( new vital::track( ts ) ) );
       new_tracks.back()->set_id( d->m_next_track_id++ );
     }
     // call loop closure on the first frame to establish this
     // frame as the first frame for loop closing purposes
     d->m_curr_tracks = d->m_closer->stitch( frame_number,
-                                            vital::track_set_sptr( new vital::simple_track_set( new_tracks ) ),
+                                            vital::feature_track_set_sptr( new vital::simple_feature_track_set( new_tracks ) ),
                                             image_data );
   }
   else
@@ -184,9 +185,8 @@ matcher_process
                                                       curr_feat,
                                                       curr_desc );
 
-    vital::track_set_sptr active_set = d->m_curr_tracks->active_tracks();
-    std::vector< vital::track_sptr > active_tracks = active_set->tracks();
-    std::vector< vital::track_sptr > all_tracks = d->m_curr_tracks->tracks();
+    auto active_tracks = d->m_curr_tracks->active_tracks();
+    auto all_tracks = d->m_curr_tracks->tracks();
     std::vector< vital::match > vm = mset->matches();
     std::set< unsigned > matched;
 
@@ -194,7 +194,8 @@ matcher_process
     {
       matched.insert( m.second );
       vital::track_sptr t = active_tracks[m.first];
-      vital::track::track_state ts( frame_number, vf[m.second], df[m.second] );
+      vital::track_state_data_sptr tsd( new vital::feature_track_state_data( vf[m.second], df[m.second] ) );
+      vital::track::track_state ts( frame_number, tsd );
       t->append( ts );
     }
 
@@ -208,19 +209,20 @@ matcher_process
 
     VITAL_FOREACH( unsigned i, unmatched )
     {
-      vital::track::track_state ts( frame_number, vf[i], df[i] );
+      vital::track_state_data_sptr tsd( new vital::feature_track_state_data( vf[i], df[i] ) );
+      vital::track::track_state ts( frame_number, tsd );
 
       all_tracks.push_back( vital::track_sptr( new vital::track( ts ) ) );
       all_tracks.back()->set_id( d->m_next_track_id++ );
     }
 
     d->m_curr_tracks = d->m_closer->stitch( frame_number,
-                  vital::track_set_sptr( new vital:: simple_track_set( all_tracks ) ),
+                  vital::feature_track_set_sptr( new vital:: simple_feature_track_set( all_tracks ) ),
                   image_data );
   }
 
   // push outputs
-  push_to_port_using_trait( track_set, d->m_curr_tracks );
+  push_to_port_using_trait( feature_track_set, d->m_curr_tracks );
 } // matcher_process::_step
 
 
@@ -240,7 +242,7 @@ void matcher_process
   declare_input_port_using_trait( descriptor_set, required );
 
   // -- output --
-  declare_output_port_using_trait( track_set, optional );
+  declare_output_port_using_trait( feature_track_set, optional );
 }
 
 

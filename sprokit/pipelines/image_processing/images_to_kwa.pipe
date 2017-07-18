@@ -370,8 +370,8 @@ connect from detector.feature_set
 connect from extractor.descriptor_set
         to   matcher.descriptor_set
 
-connect from matcher.track_set
-        to   compute_homog.track_set
+connect from matcher.feature_track_set
+        to   compute_homog.feature_track_set
 connect from input.timestamp
         to   compute_homog.timestamp
 
@@ -385,8 +385,8 @@ connect from input.image
 # -- visualize stabilization tracks
 #connect from input.image
 #        to   draw.image
-#connect from matcher.track_set
-#        to   draw.track_set
+#connect from matcher.feature_track_set
+#        to   draw.feature_track_set
 
 #connect from input.timestamp
 #        to   disp.timestamp
