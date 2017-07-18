@@ -100,7 +100,7 @@ To make it easier to build KWIVER, especially
 on systems like Microsoft Windows that do not have package manager,
 Fletch_ was developed to gather, configure and build dependent packages
 for use with KWIVER.  Fletch is a CMake_ based "super-build" that
-takes care of most of the built details for you.
+takes care of most of the build details for you.
 
 For building Fletch_, refer to the README file in that repository.
 
@@ -150,7 +150,7 @@ The following sections will walk you through the basic options for a minimal kwi
 Basic CMake generation via command line
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note, This assumes your fletch was build with python support (Turn OFF if not)
+Note, This assumes your fletch was built with python support (Turn OFF if not)
 
 You will also need to replace the fletch path with your own::
 
