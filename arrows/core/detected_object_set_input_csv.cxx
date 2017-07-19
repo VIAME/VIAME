@@ -210,7 +210,7 @@ get_input()
   }
 
   m_input_buffer.clear();
-  kwiver::vital::tokenize( line, m_input_buffer, m_delim, true );
+  kwiver::vital::tokenize( line, m_input_buffer, m_delim, false );
 
   // Test the minimum number of fields.
   if ( m_input_buffer.size() < 7 )
