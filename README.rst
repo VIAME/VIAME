@@ -262,40 +262,63 @@ VIAME_     A computer vision library designed to integrate several image and
 Code Structure and Provided Functionality
 =========================================
 
+Below is a summary of the key directories in KWIVER and a brief summary of
+the content they contain.
+
+
+================ ===========================================================
+`<CMake>`_       CMake helper scripts
+`<arrows>`_      The algorithm plugin modules
+`<doc>`_         Documentation, manuals, release notes
+`<examples>`_    Examples for running KWIVER (currently out of date)
+`<extras>`_      Extra utilities (e.g. instrumentation)
+`<sprokit>`_     Stream processing toolkit
+`<tests>`_       Testing related support code
+`<vital>`_       Core libraries source and headers
+================ ===========================================================
+
 Vital
 -----
 
-* CMake -- contains CMake helper scripts
-* tests -- contains testing related support code
-* vital -- contains the core library source and headers
-* vital/algo -- contains abstract algorithm definitions
-* vital/bindings -- contains C and Python bindings
-* vital/config -- contains configuration support code
-* vital/exceptions -- contains the exception class hierarchy
-* vital/io -- contains the classes that support reading and writing core data types
-* vital/kwiversys -- contains the code that supports the OS abstraction layer
-* vital/logger -- contains the classes that provide logging support
-* vital/plugin_loader --   contains the classes that provide plugin loading services
-* vital/tests -- contains the main testing code
-* vital/tools -- contains source for command line utilities
-* vital/types -- contains the source for the core data types
-* vital/util --   contains the source for general purpose utilities
-* vital/video_metadata -- contains the classes that support video metadata
+========================= =========================================================
+`<vital/algo>`_           Abstract algorithm definitions
+`<vital/bindings>`_       C and Python bindings
+`<vital/config>`_         Configuration support code
+`<vital/exceptions>`_     Exception class hierarchy
+`<vital/io>`_             Classes that support reading and writing core data types
+`<vital/kwiversys>`_      Code that supports the OS abstraction layer
+`<vital/logger>`_         Classes that provide logging support
+`<vital/plugin_loader>`_  Classes that provide plugin loading services
+`<vital/tests>`_          Unit tests for vital code
+`<vital/tools>`_          Source for command line utilities
+`<vital/types>`_          Classes for the core data types
+`<vital/util>`_           Source for general purpose utility functions
+`<vital/video_metadata>`_ Classes that support video metadata
+========================= =========================================================
 
 Arrows
 ------
 
-* arrows/burnout -- contains 
-* arrows/ceres -- contains 
-* arrows/core -- contains 
-* arrows/darknet -- contains 
-* arrows/matlab -- contains 
-* arrows/ocv -- contains 
-* arrows/proj -- contains 
-* arrows/test_data -- contains 
-* arrows/uuid -- contains 
-* arrows/viscl -- contains 
-* arrows/vxl -- contains basic algorithms using the VXL_ library for bundle adjustment, homography, and transformations as well as getting frames from image and video files
+===================== =========================================================
+`<arrows/burnout>`_   [*Experimental*] Pixel classifiers for heads-up display
+                      detection an related tasks using Vibrant_.
+`<arrows/ceres>`_     Algorithms for bundle adjustment and optimization using
+                      `Ceres Solver`_.
+`<arrows/core>`_      Algorithms implemented with no additional third party
+                      dependencies beyond what Vital uses (Eigen).
+`<arrows/darknet>`_   [*Experimental*] Object detection with the Darknet_ YOLO CNN.
+`<arrows/matlab>`_    An interface for running Matlab code KWIVER 
+`<arrows/ocv>`_       Algorithms implemented using OpenCV_.
+                      Includes feature detectors and descriptor, homography
+                      and fundamental matrix estimation, image IO, and more.
+`<arrows/proj>`_      Geographic conversion functions implemented with PROJ4_.
+`<arrows/uuid>`_      [*Experimental*] Implementation of unique IDs using libuuid
+`<arrows/viscl>`_     [*Experimental*] Algorithms using VisCL to implement
+                      algorithms in OpenCL 
+`<arrows/vxl>`_       Algorithms implemnted using the VXL_ libraries.
+                      Includes bundle adjustment, homography estimation, video
+                      file reading, and more.
+===================== =========================================================
 
 Sprokit
 -------
@@ -355,9 +378,14 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. Appendix I: References
 .. ======================
 
+.. _`Ceres Solver`: http://ceres-solver.org/
 .. _CMake: http://www.cmake.org/
+.. _Darknet: https://pjreddie.com/darknet/yolo/
 .. _Fletch: https://github.com/Kitware/fletch
 .. _MAP-Tk: https://github.com/Kitware/maptk
+.. _OpenCV: http://opencv.org/
+.. _PROJ4: http://proj4.org/
 .. _VIAME: https://github.com/Kitware/VIAME
+.. _Vibrant: https://github.com/Kitware/vibrant
 .. _Kitware: http://www.kitware.com/
 .. _Boost: http://www.boost.org/
