@@ -154,7 +154,13 @@ Note, This assumes your fletch was built with python support (Turn OFF if not)
 
 You will also need to replace the fletch path with your own::
 
-cmake </path/to/kwiver/source> -Dfletch_DIR:PATH=<path/to/fletch/builds/install> -DCMAKE_BUILD_TYPE=Release -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_C_BINDINGS:BOOL=ON -DKWIVER_ENABLE_EXTRAS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_TOOLS:BOOL=ON -DKWIVER_USE_BUILD_TREE:BOOL=ON
+    $ cmake </path/to/kwiver/source> -DCMAKE_BUILD_TYPE=Release \
+            -Dfletch_DIR:PATH=<path/to/fletch/builds/install> 
+            -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_C_BINDINGS:BOOL=ON \
+            -DKWIVER_ENABLE_EXTRAS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON \
+            -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON \
+            -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_TOOLS:BOOL=ON \
+            -DKWIVER_USE_BUILD_TREE:BOOL=ON
 
 Basic CMake generation using ccmake
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -173,16 +179,19 @@ When running the cmake gui, we recommend selecting the 'Grouped' and 'Advanced' 
 Note, after clicking the configuration button, new options will be highlighted in the red sections.
 
 1. Once the source code and build directories are set, press the 'Configuration' button and select your compiler.
-  a. Configuration will fail, but now we can set option values
+
+   a. Configuration will fail, but now we can set option values
   
 2. Set the fletch_DIR, the CMAKE_BUILD_TYPE, and these KWIVER options, and press the 'Configuration' button
-  a. Note, if compiling with MSVC, you will not have a CMAKE_BUILD_TYPE option
+
+   a. Note, if compiling with MSVC, you will not have a CMAKE_BUILD_TYPE option
   
 .. image:: doc/manuals/images/cmake/cmake_step_2.png
    :alt: KWIVER CMake Configuration Step 2
   
 3. Select these new options, and click 'Generate'
-  a. This assumes your fletch was build with python support, if not, do not check that option
+
+   a. This assumes your fletch was build with python support, if not, do not check that option
 
 .. image:: doc/manuals/images/cmake/cmake_step_3.png
    :alt: KWIVER CMake Configuration Step 3
