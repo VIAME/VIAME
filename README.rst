@@ -165,7 +165,8 @@ You will also need to replace the fletch path with your own::
 Basic CMake generation using ccmake
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When first configuring a kwiver build with ccmake it is preferable to set the build configuration and ``fletch_DIR`` on the command line like this::
+When first configuring a kwiver build with ccmake it is preferable to set the build
+configuration and ``fletch_DIR`` on the command line like this::
 
   $ ccmake /path/to/kwiver/source -DCMAKE_BUILD_TYPE=Release -Dfletch_DIR=/path/to/fletch/install
 
@@ -175,14 +176,17 @@ Follow the recommended option setup using the cmake GUI.
 Basic CMake generation using the CMake GUI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When running the cmake gui, we recommend selecting the 'Grouped' and 'Advanced' options to better organize the options available.
-Note, after clicking the configuration button, new options will be highlighted in the red sections.
+When running the cmake gui, we recommend selecting the 'Grouped' and 'Advanced'
+options to better organize the options available. Note, after clicking the
+configuration button, new options will be highlighted in the red sections.
 
-1. Once the source code and build directories are set, press the 'Configuration' button and select your compiler.
+1. Once the source code and build directories are set, press the 'Configuration'
+   button and select your compiler.
 
    a. Configuration will fail, but now we can set option values
   
-2. Set the fletch_DIR, the CMAKE_BUILD_TYPE, and these KWIVER options, and press the 'Configuration' button
+2. Set the fletch_DIR, the CMAKE_BUILD_TYPE, and these KWIVER options,
+   and press the 'Configuration' button
 
    a. Note, if compiling with MSVC, you will not have a CMAKE_BUILD_TYPE option
   
@@ -191,7 +195,8 @@ Note, after clicking the configuration button, new options will be highlighted i
   
 3. Select these new options, and click 'Generate'
 
-   a. This assumes your fletch was build with python support, if not, do not check that option
+   a. This assumes your fletch was build with python support,
+      if not, do not check that option
 
 .. image:: doc/manuals/images/cmake/cmake_step_3.png
    :alt: KWIVER CMake Configuration Step 3
@@ -203,9 +208,11 @@ Once your CMake generation has completed and created the build files,
 compile in the standard way for your build environment.  On Linux
 this is typically running ``make``.
 
-There is also a build target, INSTALL. This target will build all code, then create an install directory inside the build directory.
-This install folder will be populated with all binaries, libraries, headers, and other files you will need to develop your application with kwiver. 
-MSVC users note, this install directory is for a single build configuration and their will not be configuration 
+There is also a build target, INSTALL. This target will build all code,
+then create an install directory inside the build directory.  This install
+folder will be populated with all binaries, libraries, headers, and other files
+you will need to develop your application with kwiver.  MSVC users note, this
+install directory is for a single build configuration and their will not be configuration 
 named directories in this directory structure. (i.e. no /bin/release, only /bin)
 
 
@@ -240,12 +247,15 @@ This will generate a 'numbers.txt' file in the current directory (/bin or /bin/r
 KWIVER Users
 ============
 
-Here are some applications using kwiver that serve as an example of how to leverage kwiver for a specific application
+Here are some applications using kwiver that serve as an example of how to
+leverage kwiver for a specific application
 
-======= ===================================================================
-MAP-Tk_  A collection of libraries and tools for making measurements from aerial video
-VIAME_   A computer vision library designed to integrate several image and video processing algorithms together in a common              distributed processing framework, majorly targeting marine species analytics
-======= ===================================================================
+========== ================================================================
+MAP-Tk_    A collection of libraries and tools for making measurements from aerial video
+VIAME_     A computer vision library designed to integrate several image and
+           video processing algorithms together in a common distributed
+           processing framework, majorly targeting marine species analytics
+========== ================================================================
 
 Code Structure and Provided Functionality
 =========================================
