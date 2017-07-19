@@ -331,8 +331,8 @@ DIVA program.
 The authors would like to thank NOAA for their support of this work via the
 NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 
-Appendix I: References
-======================
+.. Appendix I: References
+.. ======================
 
 .. _CMake: http://www.cmake.org/
 .. _Fletch: https://github.com/Kitware/fletch
