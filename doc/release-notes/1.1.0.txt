@@ -6,9 +6,9 @@ fixes over the previous v1.0.0 release.  There are numerous changes in this
 release that have been motivated primarily by three different applications
 of KWIVER.  One is the use of KWIVER in MAP-Tk to provide 3D reconstruction
 algorithms to the MAP-Tk tools and TeleSculptor GUI application.  This
-work has been largery sponsored by the US Air Force Research Laboratories.
+work has been largely sponsored by the US Air Force Research Laboratories.
 A second driving factor is the use of KWIVER as an evaluation framework for
-video survellience applications in the upcoming IARPA DIVA program.  The
+video surveillance applications in the upcoming IARPA DIVA program.  The
 third driving factor for improvements in this release is the use of KWIVER
 as the basis for the VIAME toolkit for underwater image processing, supported
 by NOAA.  These project needs have improved the general processing framework
@@ -22,7 +22,7 @@ In this release there is now a unified plugin loader framework that provides
 a common mechanism for loading algorithm plugins (Arrows), process and cluster
 plugins (Sprokit), loggers (Vital), and so on.  There is also a single tool,
 plugin_explorer, that allows introspection of these plugins of various types.
-This release also has a new mult-threading API in Vital that provides an
+This release also has a new multi-threading API in Vital that provides an
 interface for a thread pool with multiple back ends.  The thread pool API
 allows KWIVER algorithms to more easily leverage parallel processing without
 being tied to a single thread management library.  Additional back ends,
@@ -47,7 +47,7 @@ to get live updates of processing results and to allow users to cancel
 processing.  This release also adds binary serialization for feature detectors
 and descriptors, which allows algorithms to cache features and descriptors
 on disk and load them back in later.  The algorithms for matching features
-have also been imporved for better handling of very large images.  Large images
+have also been improved for better handling of very large images.  Large images
 are best matched by comparing features at a coarse scale before matching fine
 scale features.
 
@@ -309,7 +309,7 @@ Vital
    through the algorithm APIs.
 
  * Updated the APIs for various abstract algorithms to accept an optional
-   metadata_map.  This includes initalize_cameras_landmarks, bundle_adjust,
+   metadata_map.  This includes initialize_cameras_landmarks, bundle_adjust,
    and optimize_cameras.
 
  * Added an "insert" member function to the track data structure to insert

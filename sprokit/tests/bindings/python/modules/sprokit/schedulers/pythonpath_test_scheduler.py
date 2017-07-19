@@ -39,15 +39,13 @@ class TestPythonScheduler(scheduler.PythonScheduler):
 
 
 def __sprokit_register__():
-    from sprokit.pipeline import scheduler_registry
+    from sprokit.pipeline import scheduler_factory
 
     module_name = 'python:test.pythonpath.test'
 
-    reg = scheduler_registry.SchedulerRegistry.self()
-
-    if reg.is_module_loaded(module_name):
+    if scheduler_factory.is_scheduler_module_loaded(module_name):
         return
 
-    reg.register_scheduler('pythonpath_test_scheduler', 'A test scheduler.', TestPythonScheduler)
+    scheduler_factory.add_scheduler('pythonpath_test_scheduler', 'A test scheduler.', TestPythonScheduler)
 
-    reg.mark_module_as_loaded(module_name)
+    scheduler_factory.mark_scheduler_module_as_loaded(module_name)
