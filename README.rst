@@ -251,9 +251,9 @@ Here are some applications using kwiver that serve as an example of how to
 leverage kwiver for a specific application
 
 ========== ================================================================
-MAP-Tk_    A collection tools and a GUI application named TeleSculptor for
-           structure-from-motion and dense 3D reconstruction with an emphasis
-           on aerial video.
+MAP-Tk_    A collection tools for structure-from-motion and dense 3D
+           reconstruction from imagery with an emphasis on aerial video.
+           The primary component is a GUI application named TeleSculptor.
 VIAME_     A computer vision library designed to integrate several image and
            video processing algorithms together in a common distributed
            processing framework, majorly targeting marine species analytics
