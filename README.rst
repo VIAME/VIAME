@@ -72,11 +72,6 @@ Sprokit schedules the jobs to run each process and keep data flowing through
 pipeline.  Sprokit also allows processes written in Python to be
 interconnected with those written in C++.
 
-.. _`Ceres Solver`: http://ceres-solver.org/
-.. _Eigen: http://eigen.tuxfamily.org/
-.. _OpenCV: http://opencv.org/
-.. _VXL: https://github.com/vxl/vxl/
-
 
 Building KWIVER
 ===============
@@ -373,17 +368,20 @@ DIVA program.
 The authors would like to thank NOAA for their support of this work via the
 NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 
+
 .. Appendix I: References
 .. ======================
 
+.. _Boost: http://www.boost.org/
 .. _`Ceres Solver`: http://ceres-solver.org/
 .. _CMake: http://www.cmake.org/
 .. _Darknet: https://pjreddie.com/darknet/yolo/
+.. _Eigen: http://eigen.tuxfamily.org/
 .. _Fletch: https://github.com/Kitware/fletch
+.. _Kitware: http://www.kitware.com/
 .. _MAP-Tk: https://github.com/Kitware/maptk
 .. _OpenCV: http://opencv.org/
 .. _PROJ4: http://proj4.org/
 .. _VIAME: https://github.com/Kitware/VIAME
 .. _Vibrant: https://github.com/Kitware/vibrant
-.. _Kitware: http://www.kitware.com/
-.. _Boost: http://www.boost.org/
+.. _VXL: https://github.com/vxl/vxl/
