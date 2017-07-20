@@ -43,11 +43,11 @@ endfunction ()
 ###
 #
 function (sprokit_add_python_test group instance)
-  set(python_module_path    "${sprokit_python_output_path}")
+  set(python_module_path    "${sprokit_python_output_path}/${sprokit_python_subdir}")
   set(python_chdir          ".")
 
   if (CMAKE_CONFIGURATION_TYPES)
-    set(python_module_path      "${python_module_path}/$<CONFIGURATION>")
+    set(python_module_path      "${sprokit_python_output_path}/$<CONFIGURATION>/${sprokit_python_subdir}")
     set(python_chdir           "$<CONFIGURATION>")
   endif ()
 
