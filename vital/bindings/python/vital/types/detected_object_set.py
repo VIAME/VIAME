@@ -34,6 +34,7 @@ Interface to VITAL detected_object_set class.
 
 """
 import ctypes
+
 from vital.types import DetectedObject
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
@@ -84,8 +85,8 @@ class DetectedObjectSet (VitalObject):
         if two is None:
             dos_st = self.VITAL_LIB.vital_detected_object_set_select_threshold
             dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double]
-            dos_st(self, one)
+            return dos_st(self, one)
         else:
             dos_sct = self.VITAL_LIB.vital_detected_object_set_select_class_threshold
             dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double]
-            dos_sct(self, one, two)
+            return dos_sct(self, one, two)

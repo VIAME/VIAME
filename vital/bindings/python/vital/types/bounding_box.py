@@ -67,7 +67,10 @@ class BoundingBox (VitalObject):
             """
             bb_nfv = self.VITAL_LIB.vital_bounding_box_new_from_vectors
             bb_nfv.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
-            bb_nfv(self, one, two)
+            bb_nfv.restype = self.C_TYPE_PTR
+            pt1 = (ctypes.c_double * 2)( *one )
+            pt2 = (ctypes.c_double * 2)( *two )
+            return bb_nfv( pt1, pt2 )
 
         elif four is None:
             """
@@ -75,9 +78,11 @@ class BoundingBox (VitalObject):
             """
             bb_npwh = self.VITAL_LIB.vital_bounding_box_new_from_point_width_height
             bb_npwh.argtypes = [ctypes.POINTER(ctypes.c_double),
-                                ctypes.POINTER(ctypes.c_double),
-                                ctypes.POINTER(ctypes.c_double)]
-            bb_npwh(self, one, two, three)
+                                ctypes.c_double,
+                                ctypes.c_double]
+            bb_npwh.restype = self.C_TYPE_PTR
+            pt1 = (ctypes.c_double * 2)( *one )
+            return bb_npwh( pt1, ctypes.c_double( two ), ctypes.c_double( three ) )
 
         else:
             """
@@ -86,13 +91,16 @@ class BoundingBox (VitalObject):
             bb_nfc = self.VITAL_LIB.vital_bounding_box_new_from_coordinates
             bb_nfc.argtypes = [ctypes.c_double, ctypes.c_double,
                                ctypes.c_double, ctypes.c_double]
-            bb_nfc(self, one, two, three, four)
+            bb_nfc.restype = self.C_TYPE_PTR
+            return bb_nfc( ctypes.c_double( one ),
+                           ctypes.c_double( two ),
+                           ctypes.c_double( three ),
+                           ctypes.c_double( four ) )
 
     def _destroy(self):
         bb_del = self.VITAL_LIB.vital_bounding_box_destroy
-        bb_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        with VitalErrorHandle() as eh:
-            bb_del(self, eh)
+        bb_del.argtypes = [self.C_TYPE_PTR]
+        bb_del( self )
 
     def center(self):
         """
