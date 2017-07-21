@@ -58,11 +58,11 @@ class DetectedObject (VitalObject):
         do_new = self.VITAL_LIB.vital_detected_object_new_with_bbox
         do_new.argtypes = [BoundingBox.C_TYPE_PTR, ctypes.c_double, DetectedObjectType.C_TYPE_PTR]
         do_new.restype = self.C_TYPE_PTR
-        return do_new(bbox, confid, tot)
+        return do_new(bbox, ctypes.c_double( confid ), tot)
 
     def _destroy(self):
         do_del = self.VITAL_LIB.vital_detected_object_destroy
-        do_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
+        do_del.argtypes = [self.C_TYPE_PTR]
         do_del(self)
 
     def bounding_box(self):
