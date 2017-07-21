@@ -81,7 +81,7 @@ class DetectedObjectSet (VitalObject):
         dos_size.restype = ctypes.c_size_t
         return dos_size(self)
 
-    def select(self, one, two = None):
+    def select(self, one = 0.0, two = None):
         if two is None:
             dos_st = self.VITAL_LIB.vital_detected_object_set_select_threshold
             dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double]
