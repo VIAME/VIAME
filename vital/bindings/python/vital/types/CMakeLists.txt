@@ -3,6 +3,10 @@
 #
 
 # Add python modules
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/bounding_box.py
+  vital/types
+  bounding_box )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera.py
   vital/types
   camera )
@@ -31,6 +35,18 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor_set.py
   vital/types
   descriptor_set )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object.py
+  vital/types
+  detected_object )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_type.py
+  vital/types
+  detected_object_type )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_set.py
+  vital/types
+  detected_object_set )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/eigen.py
   vital/types
   eigen )
@@ -38,6 +54,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/eigen.py
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/feature.py
   vital/types
   feature )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/feature_track_set.py
+  vital/types
+  feature_track_set )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/homography.py
   vital/types
@@ -59,6 +79,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/landmark_map.py
   vital/types
   landmark_map )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/object_track_set.py
+  vital/types
+  object_track_set )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/rotation.py
   vital/types
   rotation )
@@ -75,31 +99,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track_set.py
   vital/types
   track_set )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/bounding_box.py          vital/types  bounding_box )
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object.py       vital/types  detected_object )
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_type.py  vital/types  detected_object_type )
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_set.py   vital/types  detected_object_set )
-
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
   vital/types
   __init__ )
-
-#kwiver_create_python_init( vital/exceptions
-#  camera_intrinsics
-#  camera_map
-#  camera
-#  color
-#  covariance
-#  descriptor
-#  eigen
-#  feature
-#  image_container
-#  image
-#  rotation
-#  track
-#  track_set
-#  boundinb_box
-#  detected_object
-#  detected_object_type
-#  detected_object_set
-#  )

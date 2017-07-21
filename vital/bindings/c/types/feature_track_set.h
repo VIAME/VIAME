@@ -33,8 +33,8 @@
  * \brief C Interface to vital::feature_track definition
  */
 
-#ifndef VITAL_C_FEATURE_TRACK_H_
-#define VITAL_C_FEATURE_TRACK_H_
+#ifndef VITAL_C_FEATURE_TRACK_SET_H_
+#define VITAL_C_FEATURE_TRACK_SET_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -90,4 +90,4 @@ vital_track_state_descriptor( vital_track_state_t *ts, vital_error_handle_t *eh 
 }
 #endif
 
-#endif // VITAL_C_FEATURE_TRACK_H_
+#endif // VITAL_C_FEATURE_TRACK_SET_H_
