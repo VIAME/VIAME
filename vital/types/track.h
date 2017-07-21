@@ -49,13 +49,40 @@ namespace kwiver {
 namespace vital {
 
 
+/// Forward declaration of track
+class track;
+/// Shared pointer for general track type
+typedef std::shared_ptr< track > track_sptr;
+typedef std::weak_ptr< track > track_wptr;
+
+
 /// Empty base class for data associated with a track state
-class VITAL_EXPORT track_state_data
+class VITAL_EXPORT track_state
 {
-protected:
-  virtual ~track_state_data() VITAL_DEFAULT_DTOR
+public:
+  friend class track;
+
+  /// Constructor
+  track_state( frame_id_t frame )
+    : frame_id_( frame )
+  { }
+
+  /// Access the frame identifier
+  frame_id_t frame() const { return frame_id_; }
+
+  /// Access the track containing this state
+  track_sptr track() const { return track_.lock(); }
+
+  virtual ~track_state() VITAL_DEFAULT_DTOR
+
+private:
+  /// The frame identifier for this state
+  frame_id_t frame_id_;
+
+  /// A weak reference back to the parent track
+  track_wptr track_;
 };
-typedef std::shared_ptr<track_state_data> track_state_data_sptr;
+typedef std::shared_ptr<track_state> track_state_sptr;
 
 
 /// Empty base class for data associated with a whole track
@@ -76,27 +103,11 @@ typedef std::shared_ptr<track_data> track_data_sptr;
  * The same track structure can be used to represent feature tracks for
  * image registration or moving object tracks.
  */
-class VITAL_EXPORT track
+class VITAL_EXPORT track : public std::enable_shared_from_this<track>
 {
 public:
-  /// A structure to hold the state of a track on a given frame
-  struct track_state
-  {
-    /// Constructor
-    track_state( frame_id_t            frame,
-                 track_state_data_sptr d=nullptr )
-      : frame_id( frame ),
-        data( d )
-    { }
-
-    /// The frame identifier (i.e. frame number)
-    frame_id_t frame_id;
-    /// The optional data structure associated with this state
-    track_state_data_sptr data;
-  };
-
   /// convenience type for the const iterator of the track state vector
-  typedef std::vector< track_state >::const_iterator history_const_itr;
+  typedef std::vector< track_state_sptr >::const_iterator history_const_itr;
 
   /// Default Constructor
   track(track_data_sptr d=nullptr);
@@ -107,7 +118,7 @@ public:
   ~track() VITAL_DEFAULT_DTOR
 
   /// Construct a track from a single track state
-  explicit track( const track_state& ts, track_data_sptr d=nullptr );
+  explicit track( track_state_sptr ts, track_data_sptr d=nullptr );
 
   /// Access the track identification number
   track_id_t id() const { return id_; }
@@ -135,16 +146,18 @@ public:
    * \returns true if successful, false not correctly ordered
    * \param state track state to add to this track.
    */
-  bool append( const track_state& state );
+  bool append( track_state_sptr state );
 
   /// Append the history contents of another track.
   /**
    * The first state of the input track must contain a frame number
-   * greater than the last state of this track.
+   * greater than the last state of this track.  Track states from
+   * \p to_append are reassigned to this track and removed from
+   * \p to_append.
    *
    * \returns true if successful, false not correctly ordered
    */
-  bool append( const track& to_append );
+  bool append( track& to_append );
 
   /// Insert a track state.
   /**
@@ -154,7 +167,7 @@ public:
    * \returns true if successful, false if already a state on this frame
    * \param state track state to add to this track.
    */
-  bool insert( const track_state& state );
+  bool insert( track_state_sptr state );
 
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
@@ -181,16 +194,12 @@ public:
 
 protected:
   /// The ordered array of track states
-  std::vector< track_state > history_;
+  std::vector< track_state_sptr > history_;
   /// The unique track identification number
   track_id_t id_;
   /// The optional data structure associated with this track
   track_data_sptr data_;
 };
-
-
-/// Shared pointer for general track type
-typedef std::shared_ptr< track > track_sptr;
 
 } } // end namespace vital
 

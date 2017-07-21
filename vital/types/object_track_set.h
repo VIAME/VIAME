@@ -51,8 +51,8 @@ namespace kwiver {
 namespace vital {
 
 
-/// A derived track_state_data for object tracks
-class VITAL_EXPORT object_track_state_data : public track_state_data
+/// A derived track_state for object tracks
+class VITAL_EXPORT object_track_state : public track_state
 {
 public:
   //TODO  add object track state data members here 

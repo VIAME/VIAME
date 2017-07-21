@@ -53,10 +53,15 @@ namespace kwiver {
 namespace vital {
 
 
-/// A derived track_state_data for feature tracks
-class VITAL_EXPORT feature_track_state_data : public track_state_data
+/// A derived track_state for feature tracks
+class VITAL_EXPORT feature_track_state : public track_state
 {
 public:
+  /// Constructor
+  feature_track_state( frame_id_t frame )
+    : track_state( frame )
+  { }
+
   feature_sptr feature;
   descriptor_sptr descriptor;
 };

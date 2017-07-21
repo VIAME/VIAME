@@ -278,20 +278,20 @@ track_set
 
 
 /// Return a vector of state data corresponding to the tracks on the given frame.
-std::vector<track_state_data_sptr>
+std::vector<track_state_sptr>
 track_set
-::frame_state_data( frame_id_t offset ) const
+::frame_states( frame_id_t offset ) const
 {
   const frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
-  std::vector<track_state_data_sptr> vdata;
+  std::vector<track_state_sptr> vdata;
 
   VITAL_FOREACH( track_sptr t, all_tracks)
   {
     track::history_const_itr itr = t->find(frame_number);
     if( itr != t->end() )
     {
-      vdata.push_back(itr->data);
+      vdata.push_back(*itr);
     }
   }
 

@@ -87,10 +87,10 @@ optimize_cameras
     {
       VITAL_FOREACH (auto const& ts, *t)
       {
-        auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts.data);
-        if (ftsd && ftsd->feature && cams.count(ts.frame_id))
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+        if (fts && fts->feature && cams.count(ts->frame()))
         {
-          states_map[ts.frame_id][t->id()] = ftsd->feature;
+          states_map[ts->frame()][t->id()] = fts->feature;
         }
       }
     }
