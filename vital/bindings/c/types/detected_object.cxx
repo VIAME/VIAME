@@ -58,17 +58,22 @@ vital_detected_object_t* vital_detected_object_new_with_bbox( vital_bounding_box
                                                               vital_detected_object_type_t* dot)
 {
   STANDARD_CATCH(
-    "vital_detected_object_new_with_bbox", 0,
-    auto dotsp = kwiver::vital_c::DOT_SPTR_CACHE.get( dot );
+    "vital_detected_object_new_with_bbox", 0,;
+    kwiver::vital::detected_object_type_sptr dot_sptr;
+
+    if( dot != NULL )
+    {
+      dot_sptr = kwiver::vital_c::DOT_SPTR_CACHE.get( dot );
+    }
+
     kwiver::vital::bounding_box_d& bbox_ref =
-    * reinterpret_cast< kwiver::vital::bounding_box_d* >( bbox );
+      *reinterpret_cast< kwiver::vital::bounding_box_d* >( bbox );
 
-    auto det_obj_sptr = std::make_shared< kwiver::vital::detected_object> (
-      bbox_ref, confidence, dotsp );
+    kwiver::vital::detected_object_sptr do_sptr =
+      std::make_shared< kwiver::vital::detected_object >( bbox_ref, confidence, dot_sptr );
 
-    kwiver::vital_c::DOBJ_SPTR_CACHE.store( det_obj_sptr );
-
-    return reinterpret_cast<vital_detected_object_t*>( det_obj_sptr.get() );
+    kwiver::vital_c::DOBJ_SPTR_CACHE.store( do_sptr );
+    return reinterpret_cast<vital_detected_object_t*>( do_sptr.get() );
   );
   return 0;
 }
