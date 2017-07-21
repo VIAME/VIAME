@@ -33,7 +33,7 @@
  * \brief C Interface to vital::feature_track implementation
  */
 
-#include "feature_track.h"
+#include "feature_track_set.h"
 
 #include <vital/types/feature_track_set.h>
 
@@ -54,7 +54,7 @@ vital_feature_track_state_new( int64_t frame, vital_feature_t *f,
                                vital_descriptor_t *d, vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
-    "vital_track_state_new", eh,
+    "vital_feature_track_state_new", eh,
     vital::feature_sptr f_sptr;
     vital::descriptor_sptr d_sptr;
     if( f ) f_sptr = vital_c::FEATURE_SPTR_CACHE.get( f );
