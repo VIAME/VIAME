@@ -179,7 +179,8 @@ size_t vital_detected_object_set_size( vital_detected_object_set_t* obj)
 
 // ------------------------------------------------------------------
 vital_detected_object_t** vital_detected_object_set_select_threshold( vital_detected_object_set_t* obj,
-                                                                      double thresh )
+                                                                      double thresh,
+                                                                      size_t* length )
 {
   STANDARD_CATCH(
     "C::detected_object_set::select_threshold", 0,
@@ -188,7 +189,9 @@ vital_detected_object_t** vital_detected_object_set_select_threshold( vital_dete
 
     // select to get vector
     vital_detected_object_t** output_set =
-    (vital_detected_object_t**) calloc( sizeof( vital_detected_object_t* ), sel_set.size()+1 );
+      (vital_detected_object_t**) calloc( sizeof( vital_detected_object_t* ), sel_set.size() );
+
+    *length = sel_set.size();
 
     for ( size_t i = 0; i < sel_set.size(); ++i )
     {
@@ -202,8 +205,9 @@ vital_detected_object_t** vital_detected_object_set_select_threshold( vital_dete
 
 // ------------------------------------------------------------------
 vital_detected_object_t** vital_detected_object_set_select_class_threshold( vital_detected_object_set_t* obj,
-                                                                            char* class_name,
-                                                                            double thresh )
+                                                                            const char* class_name,
+                                                                            double thresh,
+                                                                            size_t* length )
 {
   STANDARD_CATCH(
     "C::detected_object_set::select_class_threshold", 0,
@@ -212,7 +216,9 @@ vital_detected_object_t** vital_detected_object_set_select_class_threshold( vita
 
     // select to get vector
     vital_detected_object_t** output_set =
-    (vital_detected_object_t**) calloc( sizeof( vital_detected_object_t* ), sel_set.size()+1 );
+      (vital_detected_object_t**) calloc( sizeof( vital_detected_object_t* ), sel_set.size() );
+
+    *length = sel_set.size();
 
     for (size_t i = 0; i < sel_set.size(); ++i )
     {

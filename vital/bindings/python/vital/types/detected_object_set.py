@@ -36,6 +36,7 @@ Interface to VITAL detected_object_set class.
 import ctypes
 
 from vital.types import DetectedObject
+from vital.util import free_void_ptr
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
 
@@ -82,11 +83,23 @@ class DetectedObjectSet (VitalObject):
         return dos_size(self)
 
     def select(self, one = 0.0, two = None):
+        
+        length = ctypes.c_size_t() 
+
         if two is None:
             dos_st = self.VITAL_LIB.vital_detected_object_set_select_threshold
-            dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double]
-            return dos_st(self, one)
+            dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double, ctypes.POINTER(ctypes.c_size_t)]
+            dos_st.restype = ctypes.POINTER( DetectedObject.c_ptr_type() )
+            c_output = dos_st( self, one, ctypes.byref(length) )
         else:
             dos_sct = self.VITAL_LIB.vital_detected_object_set_select_class_threshold
-            dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double]
-            return dos_sct(self, one, two)
+            dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double, ctypes.POINTER(ctypes.c_size_t)]
+            dos_sct.restype = ctypes.POINTER( DetectedObject.c_ptr_type() )
+            c_output = dos_sct(self, one, two, ctypes.byref(length) )
+
+        output = []
+        for i in range( length.value ):
+            output.append( DetectedObject( from_cptr=c_output[0] ) )
+        free_void_ptr( c_output )
+        return output
+
