@@ -35,96 +35,22 @@ Interface to VITAL track class.
 """
 import ctypes
 
-from vital.types import (
-    Descriptor,
-    Feature
-)
 from vital.util import VitalObject, free_void_ptr
 
 
 class TrackStateData (VitalObject):
     """
-    vital::track::track_state interface class
+    vital::track::track_state_data interface class
+    
+    Note this is an empty base class, all the work done with
+    interfacing is done in derived versions of this class.
     """
 
-    def __init__(self, frame=0, feature=None, descriptor=None, from_cptr=None):
+    def __init__(self, from_cptr=None):
         """
-        Initialize new track state
-
-        :param frame: Frame the track state intersects
-        :type frame: int
-
-        :param feature: Optional Feature instance associated with this state.
-        :type feature: vital.types.Feature
-
-        :param descriptor: Optional Descriptor instance associated with this
-            state.
-        :type descriptor: vital.types.Descriptor
-
+        Initialize new track state data
         """
-        super(TrackState, self).__init__(from_cptr, frame, feature, descriptor)
-
-    def _new(self, frame, feature, descriptor):
-        """
-        :param frame: Frame the track state intersects
-        :type frame: int
-
-        :param feature: Optional Feature instance associated with this state.
-        :type feature: vital.types.Feature
-
-        :param descriptor: Optional Descriptor instance associated with this
-            state.
-        :type descriptor: vital.types.Descriptor
-        """
-        return self._call_cfunc(
-            "vital_track_state_new",
-            [ctypes.c_int64, Feature.c_ptr_type(), Descriptor.c_ptr_type()],
-            [frame, feature, descriptor],
-            self.C_TYPE_PTR
-        )
-
-    def _destroy(self):
-        self._call_cfunc(
-            "vital_track_state_destroy",
-            [self.C_TYPE_PTR],
-            [self],
-        )
-
-    @property
-    def frame_id(self):
-        return self._call_cfunc(
-            "vital_track_state_frame_id",
-            [self.C_TYPE_PTR],
-            [self],
-            ctypes.c_int64
-        )
-
-    @property
-    def feature(self):
-        f_ptr = self._call_cfunc(
-            "vital_track_state_feature",
-            [self.C_TYPE_PTR],
-            [self],
-            Feature.c_ptr_type()
-        )
-        # f_ptr may be null
-        if f_ptr:
-            return Feature(from_cptr=f_ptr)
-        else:
-            return None
-
-    @property
-    def descriptor(self):
-        d_ptr = self._call_cfunc(
-            "vital_track_state_descriptor",
-            [self.C_TYPE_PTR],
-            [self],
-            Descriptor.c_ptr_type()
-        )
-        if d_ptr:
-            return Descriptor(from_cptr=d_ptr)
-        else:
-            return None
+        super(TrackStateData, self).__init__(from_cptr)
 
 
 class TrackState (VitalObject):
@@ -132,39 +58,30 @@ class TrackState (VitalObject):
     vital::track::track_state interface class
     """
 
-    def __init__(self, frame=0, feature=None, descriptor=None, from_cptr=None):
+    def __init__(self, frame=0, data=None, from_cptr=None):
         """
         Initialize new track state
 
         :param frame: Frame the track state intersects
         :type frame: int
 
-        :param feature: Optional Feature instance associated with this state.
-        :type feature: vital.types.Feature
-
-        :param descriptor: Optional Descriptor instance associated with this
-            state.
-        :type descriptor: vital.types.Descriptor
-
+        :param data: Optional data instance associated with this state.
+        :type data: vital.types.TrackStateData
         """
-        super(TrackState, self).__init__(from_cptr, frame, feature, descriptor)
+        super(TrackState, self).__init__(from_cptr, frame, data)
 
-    def _new(self, frame, feature, descriptor):
+    def _new(self, frame, data):
         """
         :param frame: Frame the track state intersects
         :type frame: int
 
-        :param feature: Optional Feature instance associated with this state.
-        :type feature: vital.types.Feature
-
-        :param descriptor: Optional Descriptor instance associated with this
-            state.
-        :type descriptor: vital.types.Descriptor
+        :param data: Optional Data instance associated with this state.
+        :type TrackStateData: vital.types.TrackStateData
         """
         return self._call_cfunc(
             "vital_track_state_new",
-            [ctypes.c_int64, Feature.c_ptr_type(), Descriptor.c_ptr_type()],
-            [frame, feature, descriptor],
+            [ctypes.c_int64, TrackStateData.c_ptr_type()],
+            [frame, data],
             self.C_TYPE_PTR
         )
 
@@ -183,33 +100,6 @@ class TrackState (VitalObject):
             [self],
             ctypes.c_int64
         )
-
-    @property
-    def feature(self):
-        f_ptr = self._call_cfunc(
-            "vital_track_state_feature",
-            [self.C_TYPE_PTR],
-            [self],
-            Feature.c_ptr_type()
-        )
-        # f_ptr may be null
-        if f_ptr:
-            return Feature(from_cptr=f_ptr)
-        else:
-            return None
-
-    @property
-    def descriptor(self):
-        d_ptr = self._call_cfunc(
-            "vital_track_state_descriptor",
-            [self.C_TYPE_PTR],
-            [self],
-            Descriptor.c_ptr_type()
-        )
-        if d_ptr:
-            return Descriptor(from_cptr=d_ptr)
-        else:
-            return None
 
 
 class Track (VitalObject):
