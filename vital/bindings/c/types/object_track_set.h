@@ -57,20 +57,33 @@ extern "C"
  * \returns new instance of a track state
  */
 VITAL_C_EXPORT
-vital_track_state_t*
-vital_object_track_state_new( int64_t frame, vital_detected_object_t *d,
-                              vital_error_handle_t *eh );
+vital_track_state_data_t*
+vital_object_track_state_data_new( int64_t frame,
+                                   vital_detected_object_t *d,
+                                   vital_error_handle_t *eh );
+
+
+/// Destroy a track state data pointer
+/**
+ * \param data Data instance
+ * \param eh Vital error handle instance
+ */
+VITAL_C_EXPORT
+void
+vital_object_track_state_data_destroy( vital_track_state_data_t *td,
+                                       vital_error_handle_t *eh );
 
 
 /// Get a track state's object detection
 /**
- * \param ts Track state instance
+ * \param td Track state data instance
  * \param eh Vital error handle instance
  * \returns New reference to the object instance of the track state
  */
 VITAL_C_EXPORT
 vital_detected_object_t*
-vital_track_state_object( vital_track_state_t *ts, vital_error_handle_t *eh );
+vital_object_track_state_data_detection( vital_track_state_data_t *td,
+                                         vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus

@@ -48,9 +48,9 @@ extern "C"
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Track State
+// Feature Track State
 
-/// Create a new track state
+/// Create a new feature track state data
 /**
  * \param frame Frame the state intersects
  * \param f Feature instance associated with this state. May be null.
@@ -59,31 +59,45 @@ extern "C"
  * \returns new instance of a track state
  */
 VITAL_C_EXPORT
-vital_track_state_t*
-vital_feature_track_state_new( int64_t frame, vital_feature_t *f,
-                               vital_descriptor_t *d, vital_error_handle_t *eh );
+vital_track_state_data_t*
+vital_feature_track_state_data_new( int64_t frame,
+                                    vital_feature_t *f,
+                                    vital_descriptor_t *d,
+                                    vital_error_handle_t *eh );
+
+/// Destroy a track state data pointer
+/**
+ * \param data Data instance
+ * \param eh Vital error handle instance
+ */
+VITAL_C_EXPORT
+void
+vital_feature_track_state_data_destroy( vital_track_state_data_t *td,
+                                        vital_error_handle_t *eh );
 
 
 /// Get a track state's feature
 /**
- * \param ts Track state instance
+ * \param td Track state instance
  * \param eh Vital error handle instance
  * \returns New reference to the Feature instance of the track state
  */
 VITAL_C_EXPORT
 vital_feature_t*
-vital_track_state_feature( vital_track_state_t *ts, vital_error_handle_t *eh );
+vital_feature_track_state_data_feature( vital_track_state_data_t *td,
+                                        vital_error_handle_t *eh );
 
 
 /// Get a track state's descriptor
 /**
- * \param ts Track state instance
+ * \param td Track state instance
  * \param eh Vital error handle instance
  * \returns New reference to the Descriptor instance of the track state
  */
 VITAL_C_EXPORT
 vital_descriptor_t*
-vital_track_state_descriptor( vital_track_state_t *ts, vital_error_handle_t *eh );
+vital_feature_track_state_data_descriptor( vital_track_state_data_t *td,
+                                           vital_error_handle_t *eh );
 
 
 #ifdef __cplusplus
