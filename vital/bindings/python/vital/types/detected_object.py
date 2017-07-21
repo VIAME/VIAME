@@ -34,10 +34,12 @@ Interface to VITAL detected_object class.
 
 """
 import ctypes
-from vital.types import BoundingBox
-from vital.types import DetectedObjectType
+
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
+
+from vital.types import BoundingBox
+from vital.types import DetectedObjectType
 
 
 class DetectedObject (VitalObject):
@@ -45,24 +47,23 @@ class DetectedObject (VitalObject):
     vital::detected_object interface class
     """
 
-    def __init__(self):
+    def __init__(self, bbox=None, confid=None, tot=None, from_cptr=None):
         """
         Create a simple detected object type
 
          """
-        super(DetectedObject, self).__init__()
+        super(DetectedObject, self).__init__(from_cptr, bbox, confid, tot)
 
-    def _new(self, bbox, confid, type=None):
-        do_new = self.VITAL_LIB.vital_detected_object_new_with_bbox()
+    def _new(self, bbox, confid, tot):
+        do_new = self.VITAL_LIB.vital_detected_object_new_with_bbox
         do_new.argtypes = [BoundingBox.C_TYPE_PTR, ctypes.c_double, DetectedObjectType.C_TYPE_PTR]
         do_new.restype = self.C_TYPE_PTR
-        return do_new()
+        return do_new(bbox, confid, tot)
 
     def _destroy(self):
         do_del = self.VITAL_LIB.vital_detected_object_destroy
         do_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        with VitalErrorHandle() as eh:
-            do_del(self, eh)
+        do_del(self)
 
     def bounding_box(self):
         do_bb = self.VITAL_LIB.vital_detected_object_bounding_box
