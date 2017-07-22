@@ -71,7 +71,7 @@ public:
 
   /// Open a file of detection sets.
   /**
-   * This method opens a detection set file for reading.
+   * This method opens a detection set file for writing.
    *
    * \param filename Name of file to open
    *
@@ -84,8 +84,8 @@ public:
 
   /// Write detections to an existing stream
   /**
-   * This method specifies the output stream to use for reading
-   * detections. Using a stream is handy when the detections are
+   * This method specifies the output stream to use for writing
+   * detections. Using a stream is handy when the detections output is
    * available in a stream format.
    *
    * @param strm output stream to use

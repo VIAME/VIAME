@@ -44,6 +44,7 @@
 
 #include <sprokit/pipeline/types.h>
 
+#include <vital/vital_config.h>
 #include <vital/vital_types.h>
 #include <vital/logger/logger.h>
 
@@ -54,7 +55,7 @@ namespace sprokit {
  * @brief Pipe and cluster parser.
  *
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser final
+class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser VITAL_FINAL
 {
 public:
   // -- CONSTRUCTORS --

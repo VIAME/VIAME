@@ -1,88 +1,83 @@
-/**
-\page pipline_declaration Pipeline declaration files
+# Pipeline Declaration Files
 
 Pipeline declaration files allow a pipeline to be loaded from a plain
-text description from a file. They provide all of the information
-necessary to run a pipeline and may be included from other pipeline
-files.
+text description. They provide all of the information necessary to
+create and run a pipeline and may be composed of files containing
+pipeline specification information that are included into the main
+file
 
-Lines starting with '#' character are considered comments.
+The '#' character is used to introduce a comment. All text from the
+'#' to the end of the line are considered comments.
 
-\par Common rules
+A pipeline declaration file is made up of the following sections:
 
-<pre>
-  <upper>          ::= "A" .. "Z"
-  <lower>          ::= "a" .. "z"
-  <digit>          ::= "0" .. "9"
-  <graph>          ::= any printable character
-  <space>          ::= " "
-  <tab>            ::= "\t"
-  <alpha>          ::= <upper> | <lower>
-  <alnum>          ::= <upper> | <lower> | <digit>
-  <blank>          ::= <space> | <tab>
-  <opt-whitespace> ::= <blank> <opt-whitespace> | ""
-  <whitespace>     ::= <blank> <opt-whitespace>
-  <eol>            ::= "\r\n" | "\n"
-  <line-end>       ::= <eol> <line-end> | <eol>
-</pre>
-
-\section include Includes
-
-\par Specification
-
-<pre>
-  <path>              ::= platform-specific
-  <include-directive> ::= "!include" | "include"
-  <include-spec>      ::= <opt-whitespace> <include-directive> <whitespace> <path>
-</pre>
-
-\par Examples
-
-\todo Add some examples.
-
-<pre>
-</pre>
-
-\section configuration Configuration
-
-Configurations are statements which add an entry to the configuration block
-for the pipeline. Subblocks can be defined by using the <tt>:</tt> string to
-separate key components. The key name is the index to be set within the
-configuration. Key path components may be composed of alphanumeric characters
-as well as the <tt>-</tt> and <tt>_</tt> characters. Values may also have
-flags set as well as be filled in by providers.
-
-Configuration items can have their values replaced or modified by subsequent
-configuration statements, unless the read-only flag is specified (see below).
+- Configuration Section
+- Process Definition Section
+- Connection Definition
 
 
-\subsection configuration_flags Configuration flags
+## Configuration Entries
 
-Configuration keys may have flags set on them. Currently the only understood
-flags are:
+Configuration entries are statements which add an entry to the
+configuration block for the pipeline. The general form for a
+configuration entry is a key / value pair, as shown below:
 
-\cflag{ro} Marks the configuration value as read-only.
-\cflag{tunable} Marks the configuration value as tunable.
+`key = value`
 
-\par Specification
+The key specification can be hierarchical and be specified with
+multiple components separated by a ':' character. Key components are
+described by the following regular expression `[a-zA-Z0-9_-]+`.
 
-<pre>
-  <flag-start>     ::= "["
-  <flag-separator> ::= ","
-  <flag-end>       ::= "]"
-  <key-flag-char>  ::= <alnum> | "-" | "_" | "="
-  <key-flag>       ::= <key-flag-char> <key-flag> | <key-flag-char>
-  <key-flags>      ::= <key-flag> <flag-separator> <key-flag> | <key-flag>
-  <key-flags-decl> ::= <flag-start> <key-flags> <flag-close>
-</pre>
+`key:component:list = value`
+
+Each leading key component (the name before the ':') establishes a
+subblock in the configuration. These subblocks are used to group
+configuration entries for different sections of the application.
+
+The value for a configuration entry is the character string that
+follows the '=' character. The value has leading and trailing blanks
+removed. Embedded blanks are preserved without the addition of
+enclosing quotes. If quotes are used in the value portion of the
+configuration entry, they are not processed in any way and remain part
+of the value string. That is, if you put quotes in the value component
+of a configuration entry, they will be there when the value is
+retrieved in the program.
+
+Configuration items can have their values replaced or modified by
+subsequent configuration statements, unless the read-only flag is
+specified (see below).
+
+The value component may also contain macro references that are
+replaced with other text as the config entry is processed. Macros can
+be used to dynamically adapt a config entry to its operating
+environment without requiring the entry to be hand edited. The macro
+substitution feature is described below.
+
+### Configuration entry attributes
+
+Configuration keys may have attributes associated with them. These
+attributes are specified immediately after the configuration key. All
+attributes are enclosed in a single set of brackets (e.g. []). If a
+configuration key has more than one attribute they are all in the same
+set of brackets separated by a comma.
+
+Currently the only understood flags are:
+
+\cflag{ro} Marks the configuration value as read-only. A configuration
+that is marked as read only may not have the value subsequently
+modified in the pipeline file or programatically by the program.
+
+\cflag{tunable} Marks the configuration value as tunable. A
+configuration entry that is marked as tunable can have a new value
+presented to the process during a reconfigure operation.
 
 \par Examples
 
-<pre>
+```
   foo[ro] = bar
   - results in foo = "bar"
-</pre>
-
+  foo[ro, tunable] = bar
+```
 
 ## Macro Substitution
 
@@ -104,7 +99,6 @@ The macro providers are listed below and discussed in the following sections.
 - ENV - program environment
 - CONFIG - values from current config block
 - SYSENV - system environment
-
 
 ### LOCAL Macro Provider
 
@@ -134,7 +128,8 @@ used by specifying `$ENV{HOME}` in the config file.
 
 This macro provider gives access to previously defined configuration entries. For example
 ```
-foo:bar = baz
+config foo
+  bar = baz
 ```
 makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
 as shown below.
@@ -166,63 +161,20 @@ current host operating system environment.
 - isapple - TRUE if running on Apple system
 - is64bits - TRUE if running on a 64 bit machine
 
-
-\subsection configuration_value Configuration value
-
-\par Specification
-
-<pre>
-  <separator>     ::= ":"
-  <decl-char>     ::= <alnum> | "-" | "_"
-  <symbol-char>   ::= <decl-char> | "/" | "."
-  <decl-name>     ::= <decl-char> <decl-name>
-  <key-component> ::= <symbol-char> <key-component>
-  <key-path>      ::= <key-component> <separator> <key-path> | <key-component>
-  <full-key-path> ::= <key-path> <key-options>
-  <value-char>    ::= <graph> | <blank>
-  <key-value>     ::= <value-char> <key-value> | <value-char>
-  <config-spec>   ::= <full-key-path> "=" <key-value>
-</pre>
-
-\par Examples
-
-\todo Add some examples.
-
-<pre>
-</pre>
-
-\subsection configuration_partial Partial configuration declarations
-
-Configuration lines can also be abbreviated. They are used within other
-blocks to help abbreviate configuration specifications.
-
-\par Specification
-
-<pre>
-  <partial-config-spec> ::= <separator> <config-spec> <line-end>
-  <partial-configs>     ::= <partial-config-spec> <partial-config> | <partial-config-spec>
-</pre>
-
-\par Examples
-
-\todo Add some examples.
-
-<pre>
-</pre>
-
- ### Block Specification
+## Block Specification
 
 In some cases the fully qualified configuration key can become long and unwieldy.
 The block directive can be used to establish a configuration context to be applied
 to the enclosed configuration entries.
 `block alg`
 Starts a block with the *alg* block name and all entries within the block will have `alg:` prepended to the entry name.
+
 ```
 block alg
    mode = red      # becomes alg:mode = red
 endblock
-
 ```
+
 Blocks can be nested to an arbitrary depth with each providing context for the enclosed entries.
 
 ```
@@ -232,7 +184,8 @@ block foo
   endblock
 endblock
 ```
-### Including Files
+
+## Including Files
 
 The include directive logically inserts the contents of the specified
 file into the current file at the point of the include
@@ -269,7 +222,7 @@ places in the overall configuration.
 
 Include files can be nested to an arbitrary depth.
 
-### Relativepath Modifier
+## Relativepath Modifier
 
 There are cases where an algorithm needs an external file containing
 binary data that is tied to a specific configuration.  These data
@@ -280,7 +233,8 @@ different users and systems.
 The solution is to specify the location of these external files
 relative to the configuration file and use the *relativepath* modifier
 construct a full, absolute path at run time by prepending the
-configuration file directory path to the value.
+configuration file directory path to the value. The relativepath keyword
+appears before the *key* component of a configuration entry.
 
 ```
 relativepath data_file = ../data/online_dat.dat
@@ -294,48 +248,51 @@ entry for **data_file** will be
 The *relativepath* modifier can be applied to any configuration entry,
 but it only makes sense to use it with relative file specifications.
 
+# Configuration Section
 
-\subsection configuration_section Configuration section
+Configuration sections introduce a named configuration subblock that
+can provide configuration entries to runtime components or make the
+entries available through the $CONFIG{key} macro.
 
-Configuration blocks make it easy to assign many configuration indices at
-without repeating a common path.
+The configuration blocks for *_pipeline* and *_scheduler* are
+described below.
 
-\par Specification
+The form of a configuration section is as follows:
 
-<pre>
-  <config-block-spec> ::= "config" <key-path> <line-end>
-                          <partial-configs>
-</pre>
+```
+config <key-path> <line-end>
+      <config entries>
+```
 
 \par Examples
 
 \todo Explain examples.
 
-<pre>
+```
   config common
     uncommon = value
     also:uncommon = value
-</pre>
+```
+
 Creates configuration items:
-<pre>
+```
     common:uncommon = value
     common:also:uncommon = value
-</pre>
+```
 
 Another example:
-<pre>
+```
   config a:common:path
     uncommon:path:to:key = value
     other:uncommon:path:to:key = value
-</pre>
+```
 Creates configuration items:
-<pre>
+```
     a:common:path:uncommon:path:to:key = value
     a:common:path:other:uncommon:path:to:key = value
+```
 
-</pre>
-
-\subsection process_block Process block
+# Process definition Section
 
 A process block adds a process to the pipeline with optional
 configuration items. Processes are added as an instance of registered
@@ -345,26 +302,27 @@ made available to that process when it is started.
 
 \par Specification
 
-<pre>
-  process <process-name> :: <process-type>
-                           <partial-configs>
-</pre>
+```
+process <process-name> :: <process-type>
+  <config entries>
+```
 
 \par Examples
 
-
-<pre>
+```
   process my_process
     :: my_process_type
-</pre>
-<pre>
+```
+
+```
   process my_process :: my_process_type
-</pre>
-<pre>
+```
+
+```
   process another_process
     :: awesome_process
        some_param = some_value
-</pre>
+```
 
 ### Non-blocking processes
 
@@ -400,71 +358,181 @@ When a port is declared as static, the value at this port may be
 supplied via the configuration using the special static/ prefix
 before the port name. The syntax for specifying static values is:
 
-<pre>
+```
  :static/<port-name> <key-value>
-</pre>
+```
 
 If a port is connected and also has a static value configured, the
 configured static value is ignored.
 
 The following is an example of configuring a static port value.
 
-<pre>
+```
   process my_process
     :: my_process_type
        static/port = value
-</pre>
+```
+
+### Instrumenting Processes
 
 A process may request to have its instrumentation calls handled by an external provider. This
 is done by adding the _instrumentation block to the process config.
 
-<pre>
+```
   process my_process
     :: my_process_type
        _instrumentation:type = foo
        _instrumentation:foo:file = output.dat
        _instrumentation:foo:buffering = optimal
-</pre>
+```
 
-The type parameter specifies the instrumentation provider, "foo" in this case. If the
-special name "none" is specified, then no instrumentation provider is loaded. This is the same
-as not having the config block present. The remaining configuration items that start with
-"_instrumentation:<type>" are considered configuration data for the provider and are passed to the
-provider after it is loaded.
+The type parameter specifies the instrumentation provider, "foo" in
+this case. If the special name "none" is specified, then no
+instrumentation provider is loaded. This is the same as not having the
+config block present. The remaining configuration items that start
+with "_instrumentation:<type>" are considered configuration data for
+the provider and are passed to the provider after it is loaded.
 
-\subsection connect_block Connect block
+# Connection Definition
 
-Ports on processes are connected to create the data flow pipeline.
-A connection block specifies not two ports will be connected.
+A connection definition specifies how the output ports from a process
+are connected to the input ports of another process. These connections
+define the data flow of the pipeline graph.
 
 \par Specification
 
-<pre>
+```
   connect from <process-name> . <input-port-name> to <process-name> . <output-port-name>
-</pre>
+```
 
 \par Examples
 
 This example connects a timestamp port to two different processes.
-<pre>
+```
  connect from input.timestamp      to   stabilize  .timestamp
  connect from input.timestamp      to   writer     .timestamp
-</pre>
+```
 
-\subsection cluster_block Cluster block
+# Pipeline Edge Configuration
+
+A pipeline edge is a connection between two ports. The behaviour of
+the edges can be configured if the defaults are not appropriate.  Note
+that defining a process as non-blocking overrides all input edge
+configurations for that process only.
+
+Pipeline edges are configured in a hierarchical manner. First there is
+the _pipeline:_edge config block which establishes the basic
+configuration for all edges. This can be specified as follows:
+
+```
+config _pipeline:_edge
+       capacity = 30     # set default edge capacity
+```
+
+Currently the only attribute that can be configured is "capacity".
+
+The config for the edge type overrides the default configuration so
+that edges used to transport specific data types can be configured as
+a group. This edge type configuration is specified as follows:
+
+```
+config _pipeline:_edge_by_type
+       image_container:capacity = 30
+       timestamp:capacity = 4
+```
+
+Where \b image_container and \b timestamp are the type names used when
+defining process ports.
+
+After this set of configurations have been applied, edges can be
+more specifically configured based on their connection description. An
+edge connection is described in the config as follows:
+
+```
+config _pipeline:_edge_by_conn
+        <process>:<up_down>:<port> <value>
+```
+
+Where:
+\li <process> is the name of the process that is being connected.
+\li <up_down> is the direction of the connection. This is either "up" or "down".
+\li <port> is the name of the port.
+
+For the example, the following connection
+
+```
+connect from input.timestamp
+        to   stabilize.timestamp
+```
+
+can be described as follows:
+
+```
+config _pipeline:_edge_by_conn
+   input:up:timestamp:capacity = 20
+   stabilize:down:timestamp:capacity = 20
+```
+
+Both of these entries refer to the same edge, so in real life, you
+would only need one.
+
+These different methods of configuring pipeline edges are applied
+in a hierarchial manner to allow general defaults to be set, and
+overridden using more specific edge attributes. This order is
+default capacity, edge by type, then edge by connection.
+
+# Scheduler configuration
+
+Normally the pipeline is run with a default scheduler that assigns
+one thread to each process. A different scheduler can be specified
+in the config file. Configuration parameters for the scheduler can
+be specified in this section also.
+
+```
+config _scheduler
+   type = <scheduler-type>
+```
+
+Available scheduler types are:
+- sync - Runs the pipeline synchronously in one thread.
+- thread_per_process - Runs the pipeline using one thread per process.
+- pythread_per_process - Runs the pipeline using one thread per process and supports processes written in python.
+- thread_pool - Runs pipeline with a limited number of threads (not implemented).
+
+The pythread_per_process is the only scheduler that supports processes written python.
+
+Scheduler specific configuration entries are in a sub-block named as
+the scheduler.  Currently these schedulers do not have any
+configuration parameters, but when they do, they would be configured
+as shown in the following example.
+
+\par Example
+
+```
+config _scheduler
+   type = thread_per_process
+
+   # Configuration for thread_per_process scheduler
+   thread_per_process:foo = bar
+
+   # Configuration for sync scheduler
+   sync:foos = bars
+```
+
+# Clusters Definition File
 
 A cluster is a collection of processes which can be treated as a
 single process for connection and configuration purposes. Clusters are
 defined in a slngle file with one cluster per file.
 
-A cluster definition starts with the \c cluster keyword followed by
-the name of the cluster. A documentation section must follow thge
+A cluster definition starts with the *cluster* keyword followed by
+the name of the cluster. A documentation section must follow the
 cluster name definition. Here is where you describe the purpose and
 function of the cluster in addition to any other important
 information about limitations or assumptions.
 
 The body of the cluster definition is made up of three types of
-declarations that may appear multiple times and on any order. These
+declarations that may appear multiple times and in any order. These
 are:
   - config specifier
   - input mapping
@@ -514,17 +582,15 @@ and defines how the data is supplied. When a cluster is instantiated,
 these output ports can be connected to downstream processes in the
 usual manner.
 
-
 ```
     omap from proc2.oport   to  cport
     -- Describe output port data type and
     -- all other interesting details.
 ```
 
-
 \par Specification
 
-<pre>
+```
   cluster <name>
     -- Description fo cluster.
     -- May extend to multiple lines.
@@ -535,17 +601,16 @@ usual manner.
     imap from cport
          to   proc1.port
          to   proc2.port
-    -- Describe input port
+    -- Describe input port. Input port can be mapped
+    -- to multiple process ports
 
     omap from proc2.oport    to  coport
     -- describe output port
-</pre>
+```
 
 \par Examples
 
-\todo Add some examples.
-
-<pre>
+```
 cluster configuration_provide
   -- Multiply a number by a constant factor.
 
@@ -567,107 +632,4 @@ process multiply
   :: multiplication
 
 connect from const.number        to   multiply.factor2
-
-</pre>
-
-\subsection edge_config Edge Configuration
-
-Pipeline edges are configured in a hierarchical manner. First there is
-the _pipeline:_edge config block which establishes the basic
-configuration for all edges. This can be specified as follows:
-
-<pre>
-config _pipeline:_edge
-       capacity = 30     # set default edge capacity
-</pre>
-
-Currently the only attribute that can be configured is "capacity".
-
-The config for the edge type overrides the default configuration so
-that edges used to transport specific data types can be configured as
-a group. This edge type configuration is specified as follows:
-
-<pre>
-config _pipeline:_edge_by_type
-       image_container:capacity = 30
-       timestamp:capacity = 4
-</pre>
-
-Where \b image_container and \b timestamp are the type names used when
-defining process ports.
-
-After this set of configurations have been applied, edges can be
-more specifically configured based on their connection description. An
-edge connection is described in the config as follows:
-
-<pre>
-config _pipeline:_edge_by_conn
-        <process>:<up_down>:<port> <value>
-</pre>
-
-Where:
-\li <process> is the name of the process that is being connected.
-\li <up_down> is the direction of the connection. This is either "up" or "down".
-\li <port> is the name of the port.
-
-For the example, the following connection
-
-<pre>
-connect from input.timestamp
-        to   stabilize.timestamp
-</pre>
-
-can be described as follows:
-
-<pre>
-config _pipeline:_edge_by_conn
-   input:up:timestamp:capacity = 20
-   stabilize:down:timestamp:capacity = 20
-</pre>
-
-Both of these entries refer to the same edge, so in real life, you
-would only need one.
-
-These different methods of configuring pipeline edges are applied
-in a hierarchial manner to allow general defaults to be set, and
-overridden using more specific edge attributes. This order is
-default capacity, edge by type, then edge by connection.
-
-\subsection scheduler_config Scheduler Config
-
-Normally the pipeline is run with a default scheduler that assigns
-one thread to each process. A different scheduler can be specified
-in the config file. Configuration parameters for the scheduler can
-be specified in this section also.
-
-<pre>
-config _scheduler
-   type = <scheduler-type>
-</pre>
-
-Available scheduler types are:
-- sync - Runs the pipeline synchronously in one thread.
-- thread_per_process - Runs the pipeline using one thread per process.
-- pythread_per_process - Runs the pipeline using one thread per process and supports processes written in python.
-- thread_pool - Runs pipeline with a limited number of threads.
-
-The pythread_per_process is the only scheduler that supports processes written python.
-
-Scheduler specific configuration entries are in a sub-block named as the scheduler.
-Currently these schedulers do not have any configuration parameters, but when they do,
-they would be configured as shown in the following example.
-
-\par Example
-
-<pre>
-config _scheduler
-   type = thread_per_process
-
-   # Configuration for thread_per_process scheduler
-   thread_per_process:foo = bar
-
-   # Configuration for sync scheduler
-   sync:foos = bars
-</pre>
-
- */
+```

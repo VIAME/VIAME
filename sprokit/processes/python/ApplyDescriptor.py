@@ -143,6 +143,6 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.register_add('ApplyDescriptor', 'Apply descriptor to image', ApplyDescriptor)
+    process_factory.add_process('ApplyDescriptor', 'Apply descriptor to image', ApplyDescriptor)
 
     process_factory.mark_process_module_as_loaded(module_name)

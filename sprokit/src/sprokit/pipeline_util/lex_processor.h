@@ -35,6 +35,7 @@
 
 #include "token.h"
 
+#include <vital/vital_config.h>
 #include <vital/logger/logger.h>
 #include <vital/util/source_location.h>
 #include <vital/config/config_block_types.h>
@@ -59,7 +60,7 @@ namespace sprokit {
  * 5) Quit when EOF token is returned.
  *
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT lex_processor final
+class SPROKIT_PIPELINE_UTIL_EXPORT lex_processor VITAL_FINAL
 {
 public:
   /**
@@ -87,13 +88,13 @@ public:
    */
   void open_file( const std::string& file_name );
 
-/**
- * @brief Read tokens from input stream.
- *
- * @param input Stream to read text from.
- * @param name Name of stream. This could be the name of the file or a
- * marker string for a stream with another source.
- */
+  /**
+   * @brief Read tokens from input stream.
+   *
+   * @param input Stream to read text from.
+   * @param name Name of stream. This could be the name of the file or a
+   * marker string for a stream with another source.
+   */
   void open_stream( std::istream& input, const std::string& name = "" );
 
   /**

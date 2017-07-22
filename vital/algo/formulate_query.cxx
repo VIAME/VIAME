@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2014-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,78 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of vital uuid
- */
+#include <vital/algo/algorithm.txx>
 
-#include "uuid.h"
+#include "formulate_query.h"
 
-#include <sstream>
-#include <cstring>
-#include <iomanip>
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::formulate_query );
 
 namespace kwiver {
 namespace vital {
+namespace algo {
 
-// ------------------------------------------------------------------
-uuid::
-uuid( const uuid::uuid_data_t& data)
+formulate_query
+::formulate_query()
 {
-  memcpy( this->m_uuid, data, sizeof( this->m_uuid) );
+  attach_logger( "formulate_query" );
 }
 
 
-// ------------------------------------------------------------------
-  const kwiver::vital::uuid::uuid_data_t&
-uuid::
-value() const
+/// Set this algorithm's properties via a config block
+void
+formulate_query
+::set_configuration( kwiver::vital::config_block_sptr config )
 {
-  return m_uuid;
+  (void) config;
 }
 
-// ------------------------------------------------------------------
-std::string
-uuid::
-format() const
+/// Check that the algorithm's current configuration is valid
+bool
+formulate_query
+::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
-  std::stringstream str;
-  size_t idx = 0;
-  static VITAL_CONSTEXPR char convert[] = "0123456789abcdef";
-
-#define CONV(B)  str << convert[(B >> 4) & 0x0f] << convert[B & 0x0f]
-
-  for (int i = 0; i < 4; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 2; i++, idx++) { CONV(m_uuid[idx]); } str << "-";
-  for (int i = 0; i < 6; i++, idx++) { CONV(m_uuid[idx]); }
-
-#undef CONV
-
-  return str.str();
-}
-
-
-bool uuid::
-operator==( const uuid& other )
-{
-  for (size_t i = 0; i < sizeof(m_uuid); i++)
-  {
-    if (this->m_uuid[i] != other.m_uuid[i])
-    {
-      return false;
-    }
-  }
+  (void) config;
   return true;
 }
 
-
-bool uuid::
-operator!=( const uuid& other )
-{
-  return ! operator==( other );
-}
-
-
-} } // end namespace
+} } } // end namespace

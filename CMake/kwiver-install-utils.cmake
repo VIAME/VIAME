@@ -16,6 +16,11 @@ install(
         "${utils_dir}/kwiver-flags-msvc.cmake"
         "${utils_dir}/kwiver-flags-clang.cmake"
         "${utils_dir}/kwiver-configcheck.cmake"
+        "${utils_dir}/CommonFindMacros.cmake"
+        "${utils_dir}/FindEigen3.cmake"
+        "${utils_dir}/FindLog4cxx.cmake"
+        "${utils_dir}/FindPROJ.cmake"
+        "${utils_dir}/FindTinyXML.cmake"
   DESTINATION "${kwiver_cmake_install_dir}"
   )
 

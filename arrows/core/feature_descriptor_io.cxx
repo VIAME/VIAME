@@ -252,10 +252,10 @@ constexpr size_t log2(size_t n)
 template <typename T>
 struct type_traits
 {
-  constexpr static uint8_t code =
+  constexpr static uint8_t code = static_cast<uint8_t>(
     (std::numeric_limits<T>::is_integer << 5) +
     (std::numeric_limits<T>::is_signed << 4) +
-    log2(sizeof(T));
+    log2(sizeof(T)));
 };
 
 uint8_t code_from_typeid(std::type_info const& tid)

@@ -200,7 +200,7 @@ close_loops_exhaustive
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
     auto const& matches = all_matches[f].get();
-    int num_matched = static_cast<int>(matches.size());
+    size_t num_matched = matches.size();
     int num_linked = 0;
     if( num_matched >= d_->match_req )
     {

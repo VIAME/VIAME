@@ -630,5 +630,5 @@ create_process(sprokit::process::type_t const& type, sprokit::process::name_t co
 sprokit::pipeline_t
 create_pipeline()
 {
-  return std::make_shared<sprokit::pipeline>();
+  return boost::make_shared<sprokit::pipeline>();
 }

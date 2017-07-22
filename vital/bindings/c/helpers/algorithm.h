@@ -194,7 +194,7 @@ public:
   /** Check the configuration with respect to this algorithm type */    \
   bool                                                                  \
   vital_algorithm_##type##_check_type_config( char const *name,         \
-                                              vital_config_block_t *cb, \
+                                              vital_config_block_t const *cb, \
                                               vital_error_handle_t *eh ) \
   {                                                                     \
     STANDARD_CATCH(                                                     \

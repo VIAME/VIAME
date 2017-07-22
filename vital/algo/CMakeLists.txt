@@ -15,6 +15,7 @@ set( public_headers
   close_loops.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
+  compute_track_descriptors.h
   convert_image.h
   detect_features.h
   detected_object_filter.h
@@ -31,6 +32,7 @@ set( public_headers
   extract_descriptors.h
   feature_descriptor_io.h
   filter_features.h
+  formulate_query.h
   filter_tracks.h
   geo_map.h
   image_filter.h
@@ -42,7 +44,10 @@ set( public_headers
   refine_detections.h
   track_features.h
   train_detector.h
+  track_descriptor_set_input.h
+  track_descriptor_set_output.h
   triangulate_landmarks.h
+  uuid_factory.h
   video_input.h
   )
 
@@ -55,6 +60,7 @@ set( sources
   close_loops.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
+  compute_track_descriptors.cxx
   convert_image.cxx
   detect_features.cxx
   detected_object_filter.cxx
@@ -71,6 +77,7 @@ set( sources
   extract_descriptors.cxx
   feature_descriptor_io.cxx
   filter_features.cxx
+  formulate_query.cxx
   filter_tracks.cxx
   geo_map.cxx
   image_filter.cxx
@@ -82,7 +89,10 @@ set( sources
   refine_detections.cxx
   track_features.cxx
   train_detector.cxx
+  track_descriptor_set_input.cxx
+  track_descriptor_set_output.cxx
   triangulate_landmarks.cxx
+  uuid_factory.cxx
   video_input.cxx
 )
 

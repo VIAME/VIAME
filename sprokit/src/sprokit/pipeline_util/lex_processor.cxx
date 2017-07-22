@@ -46,6 +46,8 @@
 #include <sstream>
 #include <set>
 
+#include <boost/make_shared.hpp>
+
 namespace sprokit {
 
 namespace {
@@ -65,7 +67,7 @@ public:
     : m_fstream( file_name ) // open file stream
     , m_stream( &m_fstream )
     , m_reader( m_fstream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >(file_name) )
+    , m_filename( boost::make_shared< std::string >(file_name) )
   {
     if ( ! m_stream )
     {
@@ -77,7 +79,7 @@ public:
   include_context( std::istream& str, const std::string& file_name )
     : m_stream( &str ) // open file stream
     , m_reader( *m_stream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >(file_name) )
+    , m_filename( boost::make_shared< std::string >(file_name) )
   {
   }
 
@@ -100,7 +102,7 @@ public:
   // This reader operates on the above stream to provide trimmed input
   // with no comments or blank lines
   kwiver::vital::data_stream_reader m_reader;
-  std::shared_ptr< std::string > m_filename;
+  boost::shared_ptr< std::string > m_filename;
 };
 
 } // end namespace
@@ -203,7 +205,7 @@ public:
    * stack at end of file and the previous file is resumed, unless it
    * is the last entry on the stack when a real EOF token is retrned.
    */
-  std::vector< std::shared_ptr< include_context > > m_include_stack;
+  std::vector< boost::shared_ptr< include_context > > m_include_stack;
 
   /**
    * This is used to remove leading and trailing strings.
@@ -236,7 +238,7 @@ lex_processor::
 open_file( const std::string& file_name )
 {
   // open file, throw error if open error
-  m_priv->m_include_stack.push_back( std::make_shared< include_context >( file_name ) );
+  m_priv->m_include_stack.push_back( boost::make_shared< include_context >( file_name ) );
 }
 
 
@@ -245,7 +247,7 @@ void
 lex_processor::
 open_stream( std::istream& input, const std::string& file_name )
 {
-  m_priv->m_include_stack.push_back( std::make_shared< include_context >( input, file_name ) );
+  m_priv->m_include_stack.push_back( boost::make_shared< include_context >( input, file_name ) );
 }
 
 
@@ -342,7 +344,7 @@ get_next_token()
   if ( m_priv->m_include_stack.empty() )
   {
     // return EOF token
-    return std::make_shared< token > ( TK_EOF, "E-O-F" );
+    return boost::make_shared< token > ( TK_EOF, "E-O-F" );
   }
 
   if ( m_priv->m_cur_char == m_priv->m_input_line.end() )
@@ -357,7 +359,7 @@ get_next_token()
       if ( m_priv->m_include_stack.empty() )
       {
         // return EOF token
-        return std::make_shared< token > ( TK_EOF, "E-O-F" );
+        return boost::make_shared< token > ( TK_EOF, "E-O-F" );
       }
     } // end while
 
@@ -392,7 +394,7 @@ get_next_token()
       m_priv->flush_line();
 
       // Push the current location onto the include stack
-      m_priv->m_include_stack.push_back( std::make_shared< include_context >( resolv_filename ) );
+      m_priv->m_include_stack.push_back( boost::make_shared< include_context >( resolv_filename ) );
 
       // Get first line from included file.
       m_priv->get_line();
@@ -400,7 +402,7 @@ get_next_token()
 
     if ( ! m_priv->m_absorb_eol )
     {
-      auto t = std::make_shared< token > ( TK_EOL, "" );
+      auto t = boost::make_shared< token > ( TK_EOL, "" );
       t->set_location( m_priv->current_loc() );
       return t;
     }
@@ -422,7 +424,7 @@ get_next_token()
       {
         // generate a whitespace token collecting all whitespace at
         // this point
-        t = std::make_shared< token > ( TK_WHITESPACE, " " );
+        t = boost::make_shared< token > ( TK_WHITESPACE, " " );
         t->set_location( current_location() );
 
         // Skip over all whitespace. No need to generate more tokens.
@@ -447,7 +449,7 @@ get_next_token()
         // Collect description text from after token to EOL
         std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
         m_priv->trim_string( text );
-        t = std::make_shared< token > ( TK_CLUSTER_DESC, text );
+        t = boost::make_shared< token > ( TK_CLUSTER_DESC, text );
         t->set_location( current_location() );
 
         m_priv->flush_line();
@@ -457,7 +459,7 @@ get_next_token()
       // look for "::"
       if ( c == ':' && n == ':' )
       {
-        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( "::" ), "::" );
+        token_sptr t = boost::make_shared< token > ( m_priv->find_res_word( "::" ), "::" );
         t->set_location( current_location() );
 
         return t;
@@ -468,7 +470,7 @@ get_next_token()
         // Collect rest of line as text
         std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
         m_priv->trim_string( text );
-        token_sptr t = std::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
+        token_sptr t = boost::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
         t->set_location( current_location() );
 
         m_priv->flush_line();
@@ -485,7 +487,7 @@ get_next_token()
       // Collect rest of line as text
       std::string text( m_priv->m_cur_char, m_priv->m_input_line.end() );
       m_priv->trim_string( text );
-      t = std::make_shared< token > ( TK_ASSIGN, text );
+      t = boost::make_shared< token > ( TK_ASSIGN, text );
       t->set_location( m_priv->current_loc() );
 
       m_priv->flush_line();
@@ -494,7 +496,7 @@ get_next_token()
 
     if ( ':' == c )  // old style config line
     {
-      t = std::make_shared< token > ( TK_COLON, ":" );
+      t = boost::make_shared< token > ( TK_COLON, ":" );
       t->set_location( m_priv->current_loc() );
       return t;
     }
@@ -512,7 +514,7 @@ get_next_token()
 
     // At this point,just pass all single characters
     // as tokens.  Let the parser decide what to do.
-    t = std::make_shared< token > ( c );
+    t = boost::make_shared< token > ( c );
     t->set_location( m_priv->current_loc() );
     return t;
   }   // end while
@@ -558,12 +560,6 @@ priv()
   m_keyword_table["block"]        = TK_BLOCK;
   m_keyword_table["endblock"]     = TK_ENDBLOCK;
   m_keyword_table["process"]      = TK_PROCESS;
-
-  // The original grammar allows flag names as other identifiers, so
-  // as a result, we can not differentiate attributes from identifiers.
-
-  // m_keyword_table["ro"]           = TK_ATTRIBUTE;
-  // m_keyword_table["tunable"]      = TK_ATTRIBUTE;
 
   m_keyword_table["connect"]      = TK_CONNECT;
   m_keyword_table["from"]         = TK_FROM;
@@ -611,7 +607,7 @@ process_id()
 
   // Check ident against list of keywords
   // Create the new token
-  token_sptr t = std::make_shared< token > ( find_res_word( ident ), ident );
+  token_sptr t = boost::make_shared< token > ( find_res_word( ident ), ident );
   t->set_location( current_loc() );
 
   return t;
@@ -643,8 +639,8 @@ lex_processor::priv::
 current_loc() const
 {
   // Get current location from the include file stack top element
-  return kwiver::vital::source_location( m_include_stack.back()->m_filename,
-                                         m_include_stack.back()->m_reader.line_number() );
+  return kwiver::vital::source_location( std::make_shared< std::string >( *(m_include_stack.back()->m_filename) ),
+           static_cast<int>(m_include_stack.back()->m_reader.line_number()) );
 }
 
 

@@ -33,10 +33,18 @@
 
 #include "python_gil.h"
 
+#ifdef WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#pragma warning (disable : 4267)
+#endif
 #include <boost/python/suite/indexing/indexing_suite.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/lexical_cast.hpp>
+#ifdef WIN32
+#pragma warning (pop)
+#endif
 
 #include <algorithm>
 #include <iterator>

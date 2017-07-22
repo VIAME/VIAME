@@ -35,12 +35,19 @@
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#endif
 #include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/override.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 /**
  * \file process_cluster.cxx
@@ -342,7 +349,7 @@ wrap_process_cluster
 object
 cluster_from_process(sprokit::process_t const& process)
 {
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(process);
+  sprokit::process_cluster_t const cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(process);
 
   if (!cluster)
   {

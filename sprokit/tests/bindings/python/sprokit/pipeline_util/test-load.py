@@ -42,9 +42,6 @@ def test_create(path_unused):
     load.Token()
     load.ConfigFlag()
     load.ConfigFlags()
-    load.ConfigProvider()
-    load.ConfigKeyOptions()
-    load.ConfigKey()
     load.ConfigValue()
     load.ConfigValues()
     load.ConfigBlock()
@@ -68,28 +65,14 @@ def test_api_calls(path_unused):
     from sprokit.pipeline import process_factory
     from sprokit.pipeline_util import load
 
-    o = load.ConfigKeyOptions()
-    o.flags
-    o.provider
-    o.flags = load.ConfigFlags()
-    o.provider = load.ConfigProvider()
-
-    o = load.ConfigKey()
-    o.key_path
-    o.options
-    o.key_path = config.ConfigKeys()
-    o.options = load.ConfigKeyOptions()
-
     o = load.ConfigValue()
     o.key
     o.value
-    o.key = load.ConfigKey()
     o.value = config.ConfigValue()
 
     o = load.ConfigBlock()
     o.key
     o.values
-    o.key = config.ConfigKeys()
     o.values = load.ConfigValues()
 
     o = load.ProcessBlock()

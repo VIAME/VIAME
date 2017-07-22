@@ -71,7 +71,7 @@ IMPLEMENT_TEST( null_config )
   kwiver::vital::config_block_sptr const config;
 
   EXPECT_EXCEPTION( sprokit::null_pipeline_config_exception,
-                    std::make_shared< sprokit::pipeline > ( config ),
+                    boost::make_shared< sprokit::pipeline > ( config ),
                     "passing a NULL config to the pipeline" );
 }
 
@@ -1825,7 +1825,7 @@ IMPLEMENT_TEST( reconfigure_before_setup )
 
   sprokit::process_t const expect = create_process( proc_type, proc_name );
 
-  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( expect );
 
@@ -1868,9 +1868,9 @@ IMPLEMENT_TEST( reconfigure )
   conf->set_value( check_reconfigure_process::config_should_reconfigure, "true" );
   conf->set_value( sprokit::process::config_name, proc_name );
 
-  sprokit::process_t const check = std::make_shared< check_reconfigure_process > ( conf );
+  sprokit::process_t const check = boost::make_shared< check_reconfigure_process > ( conf );
 
-  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( check );
   pipeline->setup_pipeline();
@@ -1912,18 +1912,18 @@ IMPLEMENT_TEST( reconfigure_only_top_level )
   conf->set_value( check_reconfigure_process::config_should_reconfigure, "false" );
   conf->set_value( sprokit::process::config_name, proc_name );
 
-  typedef std::shared_ptr< sample_cluster > sample_cluster_t;
+  typedef boost::shared_ptr< sample_cluster > sample_cluster_t;
 
   const auto cluster_conf = kwiver::vital::config_block::empty_config();
   const auto cluster_name = sprokit::process::name_t( "cluster" );
 
   conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
 
   cluster->_add_process( proc_name, proc_type, conf );
 
-  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();
@@ -1958,7 +1958,7 @@ create_process( sprokit::process::type_t const&   type,
 sprokit::pipeline_t
 create_pipeline()
 {
-  return std::make_shared< sprokit::pipeline > ();
+  return boost::make_shared< sprokit::pipeline > ();
 }
 
 
@@ -1981,7 +1981,7 @@ create_scheduler( sprokit::pipeline_t const& pipe )
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  return std::make_shared< dummy_scheduler > ( pipe, config );
+  return boost::make_shared< dummy_scheduler > ( pipe, config );
 }
 
 

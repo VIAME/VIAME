@@ -37,6 +37,7 @@ import ctypes
 
 import numpy
 
+from vital.exceptions.base import VitalDynamicCastException
 from vital.types import Covariance
 from vital.types import EigenArray
 from vital.types import RGBColor
@@ -150,7 +151,10 @@ class Landmark (VitalObject):
         self._call_cfunc(
             'vital_landmark_{}_set_loc'.format(self._tchar),
             [self.C_TYPE_PTR, EigenArray.c_ptr_type(3, ctype=self._datatype)],
-            [self, new_loc]
+            [self, new_loc],
+            exception_map={
+                1: VitalDynamicCastException
+            }
         )
 
     @property
@@ -166,7 +170,10 @@ class Landmark (VitalObject):
         self._call_cfunc(
             'vital_landmark_{}_set_scale'.format(self._tchar),
             [self.C_TYPE_PTR, self._datatype],
-            [self, s]
+            [self, s],
+            exception_map={
+                1: VitalDynamicCastException
+            }
         )
 
     @property
@@ -184,7 +191,10 @@ class Landmark (VitalObject):
         self._call_cfunc(
             'vital_landmark_{}_set_normal'.format(self._tchar),
             [self.C_TYPE_PTR, EigenArray.c_ptr_type(3, ctype=self._datatype)],
-            [self, n]
+            [self, n],
+            exception_map={
+                1: VitalDynamicCastException
+            }
         )
 
     @property
@@ -209,7 +219,10 @@ class Landmark (VitalObject):
         self._call_cfunc(
             'vital_landmark_{}_set_covar'.format(self._tchar),
             [self.C_TYPE_PTR, expected_covar_type],
-            [self, c]
+            [self, c],
+            exception_map={
+                1: VitalDynamicCastException
+            }
         )
 
     @property
@@ -226,7 +239,10 @@ class Landmark (VitalObject):
         self._call_cfunc(
             'vital_landmark_{}_set_color'.format(self._tchar),
             [self.C_TYPE_PTR, RGBColor.c_ptr_type()],
-            [self, c]
+            [self, c],
+            exception_map={
+                1: VitalDynamicCastException
+            }
         )
 
     @property
@@ -245,5 +261,8 @@ class Landmark (VitalObject):
         self._call_cfunc(
             'vital_landmark_{}_set_observations'.format(self._tchar),
             [self.C_TYPE_PTR, ctypes.c_uint],
-            [self, o]
+            [self, o],
+            exception_map={
+                1: VitalDynamicCastException
+            }
         )

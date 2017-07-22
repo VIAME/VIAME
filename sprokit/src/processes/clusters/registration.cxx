@@ -85,11 +85,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   kwiver::vital::path_list_t include_dirs;
 
   // Build include directories.
-  {
-    kwiversys::SystemTools::GetPath( include_dirs, sprokit_include_envvar.c_str() );
-
-    kwiver::vital::tokenize( default_include_dirs, include_dirs, path_separator, true );
-  }
+  kwiversys::SystemTools::GetPath( include_dirs, sprokit_include_envvar.c_str() );
+  kwiver::vital::tokenize( default_include_dirs, include_dirs, path_separator, true );
 
   VITAL_FOREACH ( const kwiver::vital::path_t& include_dir, include_dirs)
   {

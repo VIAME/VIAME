@@ -99,7 +99,6 @@ class TestVitalImage (object):
         val2 = img[0,0,0]
         nose.tools.assert_equal(val1, val2)
 
-
     def test_pil_L(self):
         # test uint8 image
         img = Image(720, 480)
