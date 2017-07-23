@@ -99,7 +99,7 @@ class DetectedObjectSet (VitalObject):
 
         output = []
         for i in range( length.value ):
-            output.append( DetectedObject( from_cptr=c_output[0] ) )
+            output.append( DetectedObject( from_cptr=c_output[i] ) )
         free_void_ptr( c_output )
         return output
 

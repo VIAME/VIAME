@@ -52,7 +52,13 @@ class DetectedObject (VitalObject):
         Create a simple detected object type
 
          """
-        super(DetectedObject, self).__init__(from_cptr, bbox, confid, tot)
+        if from_cptr is not None:
+            do_new = self.VITAL_LIB.vital_detected_object_copy
+            do_new.argtypes = [self.C_TYPE_PTR]
+            do_new.restype = self.C_TYPE_PTR
+            VitalObject._inst_ptr = do_new(from_cptr)
+        else:
+            super(DetectedObject, self).__init__(from_cptr, bbox, confid, tot)
 
     def _new(self, bbox, confid, tot):
         do_new = self.VITAL_LIB.vital_detected_object_new_with_bbox

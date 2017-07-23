@@ -62,6 +62,9 @@ vital_detected_object_t* vital_detected_object_new_with_bbox(
   vital_detected_object_type_t* dot); // optional, could be NULL
 
 VITAL_C_EXPORT
+vital_detected_object_t* vital_detected_object_copy(vital_detected_object_t * obj);
+
+VITAL_C_EXPORT
 vital_bounding_box_t* vital_detected_object_bounding_box(vital_detected_object_t * obj);
 
 VITAL_C_EXPORT
