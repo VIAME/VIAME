@@ -44,12 +44,18 @@ class BoundingBox (VitalObject):
     vital::detected_object_ interface class
     """
 
-    def __init__(self, one, two, three = None, four = None, from_cptr=None):
+    def __init__(self, one = None, two = None, three = None, four = None, from_cptr=None):
         """
         Create a simple detected object type
 
          """
-        super(BoundingBox, self).__init__( from_cptr, one, two, three, four )
+        if from_cptr is not None:
+            bb_nfb = self.VITAL_LIB.vital_bounding_box_new_from_box
+            bb_nfb.argtypes = [self.C_TYPE_PTR]
+            bb_nfb.restype = self.C_TYPE_PTR
+            VitalObject._inst_ptr = bb_nfb( from_cptr )
+        else:
+            super(BoundingBox, self).__init__( from_cptr, one, two, three, four )
 
     def _new(self, one, two, three, four):
         """

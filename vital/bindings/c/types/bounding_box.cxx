@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,8 +80,20 @@ vital_bounding_box_t* vital_bounding_box_new_from_coordinates( double xmin,
 {
   STANDARD_CATCH(
     "vital_bounding_box_new_from_coordinates", 0,
-    vital_bounding_box_t* test = reinterpret_cast<vital_bounding_box_t*>(
+    return reinterpret_cast<vital_bounding_box_t*>(
       new kwiver::vital::bounding_box_d( xmin, ymin, xmax, ymax ) );
+  );
+  return 0;
+}
+
+
+// ------------------------------------------------------------------
+vital_bounding_box_t* vital_bounding_box_new_from_box( vital_bounding_box_t* bbox )
+{
+  STANDARD_CATCH(
+    "vital_bounding_box_new_from_box", 0,
+    vital_bounding_box_t* test = reinterpret_cast<vital_bounding_box_t*>(
+      new kwiver::vital::bounding_box_d( *reinterpret_cast<kwiver::vital::bounding_box_d*>(bbox) ) );
     return test;
   );
   return 0;

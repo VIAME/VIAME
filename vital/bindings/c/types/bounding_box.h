@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,10 @@ vital_bounding_box_t* vital_bounding_box_new_from_point_width_height(
 VITAL_C_EXPORT
 vital_bounding_box_t* vital_bounding_box_new_from_coordinates(
   double xmin, double  ymin, double xmax, double ymax);
+
+VITAL_C_EXPORT
+vital_bounding_box_t* vital_bounding_box_new_from_box(
+  vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
 void vital_bounding_box_destroy( vital_bounding_box_t* bbox );
