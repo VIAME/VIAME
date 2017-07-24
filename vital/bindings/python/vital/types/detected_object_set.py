@@ -99,7 +99,11 @@ class DetectedObjectSet (VitalObject):
 
         output = []
         for i in range( length.value ):
-            output.append( DetectedObject( from_cptr=c_output[i] ) )
+            do_new = self.VITAL_LIB.vital_detected_object_copy
+            do_new.argtypes = [DetectedObject.C_TYPE_PTR]
+            do_new.restype = DetectedObject.C_TYPE_PTR
+            output.append( DetectedObject( from_cptr=do_new(c_output[i]) ) )
+
         free_void_ptr( c_output )
         return output
 
