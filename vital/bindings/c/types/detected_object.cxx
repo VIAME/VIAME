@@ -85,7 +85,7 @@ vital_detected_object_t* vital_detected_object_copy(vital_detected_object_t * ob
     "vital_detected_object_copy", 0,;
     kwiver::vital::detected_object_sptr do_sptr =
       std::make_shared< kwiver::vital::detected_object >(
-        *kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj ) );
+        *reinterpret_cast<kwiver::vital::detected_object*>( obj ) );
     kwiver::vital_c::DOBJ_SPTR_CACHE.store( do_sptr );
     return reinterpret_cast<vital_detected_object_t*>( do_sptr.get() );
   );
