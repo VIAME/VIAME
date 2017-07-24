@@ -66,10 +66,16 @@ class DetectedObject (VitalObject):
         do_del(self)
 
     def bounding_box(self):
-        do_bb = self.VITAL_LIB.vital_detected_object_bounding_box
-        do_bb.argtypes = [self.C_TYPE_PTR]
-        do_bb.restype = BoundingBox.C_TYPE_PTR
-        return BoundingBox( from_cptr=do_bb(self) )
+        # Get C pointer to internal bounding box
+        do_get_bb = self.VITAL_LIB.vital_detected_object_bounding_box
+        do_get_bb.argtypes = [self.C_TYPE_PTR]
+        do_get_bb.restype = BoundingBox.C_TYPE_PTR
+        bb_c_ptr = do_get_bb(self)
+        # Make copy of bounding box to return
+        do_bb_cpy = self.VITAL_LIB.vital_bounding_box_new_from_box
+        do_bb_cpy.argtypes = [BoundingBox.C_TYPE_PTR]
+        do_bb_cpy.restype = BoundingBox.C_TYPE_PTR
+        return BoundingBox( from_cptr=do_bb_cpy( bb_c_ptr ) )
 
     def set_bounding_box(self, bbox):
         do_sbb = self.VITAL_LIB.vital_detected_object_set_bounding_box
