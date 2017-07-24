@@ -46,12 +46,12 @@ class DetectedObjectSet (VitalObject):
     vital::detected_object_set interface class
     """
 
-    def __init__(self):
+    def __init__(self, dobjs = None, count = None, from_cptr = None):
         """
         Create a simple detected object type
 
          """
-        super(DetectedObjectSet, self).__init__()
+        super(DetectedObjectSet, self).__init__(from_cptr, dobjs, count)
 
     def _new(self, dobjs = None, count = None):
         if dobjs is None or count is None:

@@ -92,7 +92,7 @@ def _convert_detected_object_set_in(datum_ptr):
     handle = func(datum_ptr)
 
     # convert handle to python object - from c-ptr
-    py_ic_obj = DetectedObjectSet( None, handle )
+    py_ic_obj = DetectedObjectSet( from_cptr=handle )
 
     return py_ic_obj
 
