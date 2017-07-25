@@ -63,10 +63,10 @@ from .landmark import Landmark
 from .landmark_map import LandmarkMap
 
 # Requires Descriptor, DetectedObject, Feature
-from .track import TrackStateData, TrackState, Track
+from .track import TrackState, Track
 from .track_set import TrackSet
-from .feature_track_set import FeatureTrackStateData
-from .object_track_set import ObjectTrackStateData
+from .feature_track_set import FeatureTrackState
+from .object_track_set import ObjectTrackState
 
 # Requires CameraIntrinsics, Covariance, EigenArray, Rotation
 from .camera import Camera

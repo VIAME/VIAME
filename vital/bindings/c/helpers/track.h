@@ -50,7 +50,7 @@ SharedPointerCache< vital::track, vital_track_t > TRACK_SPTR_CACHE;
 
 /// Cache for saving shared pointer references for pointers in use
 extern
-SharedPointerCache< vital::track_state_data, vital_track_state_data_t > TRACK_STATE_DATA_SPTR_CACHE;
+SharedPointerCache< vital::track_state, vital_track_state_t > TRACK_STATE_SPTR_CACHE;
 
 }
 }

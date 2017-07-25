@@ -36,24 +36,24 @@ Interface to VITAL object track class.
 import ctypes
 
 from vital.types import (
-    TrackStateData,
+    TrackState,
     DetectedObject
 )
 from vital.util import VitalObject, free_void_ptr
 
 
-class ObjectTrackStateData (TrackStateData):
+class ObjectTrackState( TrackState ):
     """
-    vital::track::feature_track_state_data interface class
+    vital::track::feature_track_state interface class
     """
-    def __init__(self, detection=None, from_cptr=None):
+    def __init__(self, frame, detection=None, from_cptr=None):
         """
         Initialize new track state
 
         :param detection: Optional DetectedObject instance associated with this state.
         :type detection: vital.types.DetectedObject
         """
-        super(TrackState, self).__init__(from_cptr, detection)
+        super(TrackState, self).__init__(frame, detection, from_cptr=frame_cptr)
 
     def _new(self, detection):
         """
@@ -61,15 +61,15 @@ class ObjectTrackStateData (TrackStateData):
         :type detection: vital.types.DetectedObject
         """
         return self._call_cfunc(
-            "vital_object_track_state_data_new",
-            [DetectedObject.c_ptr_type()],
-            [detection],
+            "vital_object_track_state_new",
+            [ctypes.c_int64, DetectedObject.c_ptr_type()],
+            [frame, detection],
             self.C_TYPE_PTR
         )
 
     def _destroy(self):
         self._call_cfunc(
-            "vital_object_track_state_data_destroy",
+            "vital_track_state_destroy",
             [self.C_TYPE_PTR],
             [self],
         )
@@ -77,7 +77,7 @@ class ObjectTrackStateData (TrackStateData):
     @property
     def detection(self):
         d_ptr = self._call_cfunc(
-            "vital_object_track_state_data_detection",
+            "vital_object_track_state_detection",
             [self.C_TYPE_PTR],
             [self],
             DetectedObject.c_ptr_type()

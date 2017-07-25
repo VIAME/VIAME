@@ -48,44 +48,32 @@ using namespace kwiver;
 // Track State
 
 /// Create a new track state
-vital_track_state_data_t*
-vital_object_track_state_data_new( int64_t frame,
-                                   vital_detected_object_t *d,
-                                   vital_error_handle_t *eh )
+vital_track_state_t*
+vital_object_track_state_new( int64_t frame,
+                              vital_detected_object_t *d,
+                              vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
-    "vital_object_track_state_data_new", eh,
+    "vital_object_track_state_new", eh,
     vital::detected_object_sptr d_sptr;
     if( d ) d_sptr = vital_c::DOBJ_SPTR_CACHE.get( d );
-    vital::track_state_data_sptr td_sptr(
-      new vital::object_track_state_data( d_sptr ) );
-    vital_c::TRACK_STATE_DATA_SPTR_CACHE.store( td_sptr );
-    return reinterpret_cast<vital_track_state_data_t*>( td_sptr.get() );
+    vital::track_state_sptr td_sptr(
+      new vital::object_track_state( frame, d_sptr ) );
+    vital_c::TRACK_STATE_SPTR_CACHE.store( td_sptr );
+    return reinterpret_cast<vital_track_state_t*>( td_sptr.get() );
   );
   return 0;
 }
 
 
-/// Destroy a track data pointer
-void
-vital_object_track_state_data_destroy( vital_track_state_data_t *td,
-                                       vital_error_handle_t *eh )
-{
-  STANDARD_CATCH(
-    "vital_object_track_state_data_destroy", eh,
-    kwiver::vital_c::TRACK_STATE_DATA_SPTR_CACHE.erase( td );
-  );
-}
-
-
 /// Get a track state's object
 vital_detected_object_t*
-vital_object_track_state_data_detection( vital_track_state_data_t *td,
-                                         vital_error_handle_t *eh )
+vital_object_track_state_detection( vital_track_state_t *td,
+                                    vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
-    "vital_object_track_state_data_detection", eh,
-    REINTERP_TYPE( vital::object_track_state_data, td, td_ptr );
+    "vital_object_track_state_detection", eh,
+    REINTERP_TYPE( vital::object_track_state, td, td_ptr );
     // increase cross-boundary reference count if non-null
     if( td_ptr->detection )
     {

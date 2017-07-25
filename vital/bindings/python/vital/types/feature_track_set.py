@@ -36,18 +36,18 @@ Interface to VITAL feature track class.
 import ctypes
 
 from vital.types import (
-    TrackStateData,
+    TrackState,
     Descriptor,
     Feature
 )
 from vital.util import VitalObject, free_void_ptr
 
 
-class FeatureTrackStateData (TrackStateData):
+class FeatureTrackState( TrackState ):
     """
-    vital::track::feature_track_state_data interface class
+    vital::track::feature_track_state interface class
     """
-    def __init__(self, feature=None, descriptor=None, from_cptr=None):
+    def __init__(self, frame, feature=None, descriptor=None, from_cptr=None):
         """
         Initialize new track state
 
@@ -58,9 +58,9 @@ class FeatureTrackStateData (TrackStateData):
             state.
         :type descriptor: vital.types.Descriptor
         """
-        super(TrackState, self).__init__(from_cptr, feature, descriptor)
+        super(TrackState, self).__init__(frame, feature, descriptor, from_cptr=from_cptr)
 
-    def _new(self, feature, descriptor):
+    def _new(self, frame, feature, descriptor):
         """
         :param feature: Optional Feature instance associated with this state.
         :type feature: vital.types.Feature
@@ -70,15 +70,15 @@ class FeatureTrackStateData (TrackStateData):
         :type descriptor: vital.types.Descriptor
         """
         return self._call_cfunc(
-            "vital_feature_track_state_data_new",
-            [Feature.c_ptr_type(), Descriptor.c_ptr_type()],
-            [feature, descriptor],
+            "vital_feature_track_state_new",
+            [ctypes.c_int64, Feature.c_ptr_type(), Descriptor.c_ptr_type()],
+            [frame, feature, descriptor],
             self.C_TYPE_PTR
         )
 
     def _destroy(self):
         self._call_cfunc(
-            "vital_feature_track_state_data_destroy",
+            "vital_track_state_destroy",
             [self.C_TYPE_PTR],
             [self],
         )
@@ -86,7 +86,7 @@ class FeatureTrackStateData (TrackStateData):
     @property
     def feature(self):
         f_ptr = self._call_cfunc(
-            "vital_feature_track_state_data_feature",
+            "vital_feature_track_state_feature",
             [self.C_TYPE_PTR],
             [self],
             Feature.c_ptr_type()
@@ -100,7 +100,7 @@ class FeatureTrackStateData (TrackStateData):
     @property
     def descriptor(self):
         d_ptr = self._call_cfunc(
-            "vital_feature_track_state_data_descriptor",
+            "vital_feature_track_state_descriptor",
             [self.C_TYPE_PTR],
             [self],
             Descriptor.c_ptr_type()

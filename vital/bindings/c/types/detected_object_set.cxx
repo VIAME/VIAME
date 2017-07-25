@@ -195,6 +195,7 @@ vital_detected_object_t** vital_detected_object_set_select_threshold( vital_dete
 
     for ( size_t i = 0; i < sel_set.size(); ++i )
     {
+      kwiver::vital_c::DOBJ_SPTR_CACHE.store( sel_set[i] );
       output_set[i] = reinterpret_cast< vital_detected_object_t* >( sel_set[i].get() );
     }
     return output_set;
@@ -222,6 +223,7 @@ vital_detected_object_t** vital_detected_object_set_select_class_threshold( vita
 
     for (size_t i = 0; i < sel_set.size(); ++i )
     {
+      kwiver::vital_c::DOBJ_SPTR_CACHE.store( sel_set[i] );
       output_set[i] = reinterpret_cast< vital_detected_object_t* >( sel_set[i].get() );
     }
     return output_set;
