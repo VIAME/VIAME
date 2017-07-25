@@ -204,10 +204,10 @@ initialize_cameras_landmarks::priv
   std::vector<landmark_sptr> pts_lm;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    auto frame_data = std::dynamic_pointer_cast<feature_track_state_data>(
-                          trks[i]->find(frame)->data);
-    auto last_frame_data = std::dynamic_pointer_cast<feature_track_state_data>(
-                               trks[i]->find(last_frame)->data);
+    auto frame_data = std::dynamic_pointer_cast<feature_track_state>(
+                          *(trks[i]->find(frame)));
+    auto last_frame_data = std::dynamic_pointer_cast<feature_track_state>(
+                               *(trks[i]->find(last_frame)));
     if( !frame_data || !last_frame_data )
     {
       continue;
@@ -845,11 +845,11 @@ estimate_gsd(const frame_id_t frame,
       auto const& ts_itr = t->find(frame);
       if (ts_itr != t->end())
       {
-        auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts_itr->data);
-        if (ftsd && ftsd->feature)
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts_itr);
+        if (fts && fts->feature)
         {
           pts_3d.push_back(lm_itr->second->loc());
-          pts_2d.push_back(ftsd->feature->loc());
+          pts_2d.push_back(fts->feature->loc());
         }
       }
     }

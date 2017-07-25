@@ -70,10 +70,15 @@ track
 /// Copy Constructor
 track
 ::track( const track& other )
-  : history_( other.history_ )
+  : history_()
   , id_( other.id_ )
   , data_( other.data_ )
 {
+  for( auto const& ts : other.history_ )
+  {
+    this->history_.push_back( ts->clone() );
+    this->history_.back()->track_ = this->shared_from_this();
+  }
 }
 
 

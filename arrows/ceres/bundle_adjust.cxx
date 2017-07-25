@@ -284,20 +284,20 @@ bundle_adjust
 
     for(track::history_const_itr ts = t->begin(); ts != t->end(); ++ts)
     {
-      cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame_id);
+      cam_param_map_t::iterator cam_itr = d_->camera_params.find((*ts)->frame());
       if( cam_itr == d_->camera_params.end() )
       {
         continue;
       }
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts->data);
-      if( !ftsd || !ftsd->feature )
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts);
+      if( !fts || !fts->feature )
       {
         continue;
       }
-      unsigned intr_idx = d_->frame_to_intr_map[ts->frame_id];
+      unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
       double * intr_params_ptr = &d_->camera_intr_params[intr_idx][0];
       used_intrinsics.insert(intr_idx);
-      vector_2d pt = ftsd->feature->loc();
+      vector_2d pt = fts->feature->loc();
       problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
                                                 pt.x(), pt.y()),
                                loss_func,

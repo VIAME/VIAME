@@ -244,21 +244,19 @@ noisy_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double stdev = 1.
   std::vector< track_sptr > new_tracks;
   VITAL_FOREACH( const track_sptr &t, tracks )
   {
-    track_sptr nt( new track );
+    auto nt = std::make_shared<track>();
     nt->set_id(t->id());
     for(track::history_const_itr it=t->begin(); it!=t->end(); ++it)
     {
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(it->data);
-      if( !ftsd || !ftsd->feature )
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*it);
+      if( !fts || !fts->feature )
       {
         continue;
       }
-      vector_2d loc = ftsd->feature->loc() + random_point2d(stdev);
-      track::track_state ts(*it);
-      auto new_ftsd = std::make_shared<feature_track_state_data>(*ftsd);
-      new_ftsd->feature = std::make_shared<feature_d>(loc);
-      ts.data = new_ftsd;
-      nt->append(ts);
+      vector_2d loc = fts->feature->loc() + random_point2d(stdev);
+      auto new_fts = std::make_shared<feature_track_state>(*fts);
+      new_fts->feature = std::make_shared<feature_d>(loc);
+      nt->append(new_fts);
     }
     new_tracks.push_back(nt);
   }
@@ -285,19 +283,17 @@ add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
     nt->set_id( t->id() );
     VITAL_FOREACH( const auto &ts, *t )
     {
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts.data);
-      if( !ftsd || !ftsd->feature )
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+      if( !fts || !fts->feature )
       {
         continue;
       }
       if(std::rand() < rand_thresh)
       {
-        vector_2d loc = ftsd->feature->loc() + random_point2d( stdev );
-        track::track_state new_ts( ts );
-        auto new_ftsd = std::make_shared<feature_track_state_data>(*ftsd);
-        new_ftsd->feature = std::make_shared<feature_d>(loc);
-        new_ts.data = new_ftsd;
-        nt->append( new_ts );
+        vector_2d loc = fts->feature->loc() + random_point2d( stdev );
+        auto new_fts = std::make_shared<feature_track_state>(*fts);
+        new_fts->feature = std::make_shared<feature_d>(loc);
+        nt->append( new_fts );
       }
       else
       {

@@ -51,9 +51,11 @@ namespace vital {
 
 /// Forward declaration of track
 class track;
+class track_state;
 /// Shared pointer for general track type
 typedef std::shared_ptr< track > track_sptr;
 typedef std::weak_ptr< track > track_wptr;
+typedef std::shared_ptr<track_state> track_state_sptr;
 
 
 /// Empty base class for data associated with a track state
@@ -66,6 +68,20 @@ public:
   track_state( frame_id_t frame )
     : frame_id_( frame )
   { }
+
+  /// Copy Constructor
+  track_state( track_state const& other )
+    : frame_id_( other.frame_id_ )
+  { }
+
+  /// Assignment Operator
+  track_state& operator= ( track_state const& rhs ) = delete;
+
+  /// Clone the track state (polymorphic copy constructor)
+  virtual track_state_sptr clone() const
+  {
+    return std::make_shared<track_state>( *this );
+  }
 
   /// Access the frame identifier
   frame_id_t frame() const { return frame_id_; }
@@ -82,7 +98,6 @@ private:
   /// A weak reference back to the parent track
   track_wptr track_;
 };
-typedef std::shared_ptr<track_state> track_state_sptr;
 
 
 /// Empty base class for data associated with a whole track

@@ -59,17 +59,17 @@ IMPLEMENT_TEST(accessor_functions)
 
   std::vector< track_sptr > test_tracks;
 
-  track::track_state test_state1( 1 );
-  track::track_state test_state2( 2 );
-  track::track_state test_state3( 3 );
+  auto test_state1 = std::make_shared<track_state>( 1 );
+  auto test_state2 = std::make_shared<track_state>( 2 );
+  auto test_state3 = std::make_shared<track_state>( 3 );
 
-  test_tracks.push_back( track_sptr( new track( test_state1 ) ) );
+  test_tracks.push_back( std::make_shared<track>( test_state1 ) ) ;
   test_tracks.back()->set_id( track_id++ );
-  test_tracks.push_back( track_sptr( new track( test_state1 ) ) );
+  test_tracks.push_back( std::make_shared<track>( test_state1->clone() ) );
   test_tracks.back()->set_id( track_id++ );
-  test_tracks.push_back( track_sptr( new track( test_state2 ) ) );
+  test_tracks.push_back( std::make_shared<track>( test_state2 ) ) ;
   test_tracks.back()->set_id( track_id++ );
-  test_tracks.push_back( track_sptr( new track( test_state3 ) ) );
+  test_tracks.push_back( std::make_shared<track>( test_state3 ) ) ;
   test_tracks.back()->set_id( track_id++ );
 
   test_tracks[0]->append( test_state2 );

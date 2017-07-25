@@ -44,7 +44,7 @@
 #include <vital/types/geo_corner_points.h>
 #include <vital/types/geo_lat_lon.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
 #include <vital/video_metadata/video_metadata.h>
@@ -85,7 +85,7 @@ create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
-create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
+create_type_trait( feature_track_set, "kwiver:feature_track_set", kwiver::vital::feature_track_set_sptr );
 create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
 create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vital::detected_object_set_sptr );
 create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::vital::track_descriptor_set_sptr );
@@ -114,7 +114,7 @@ create_port_trait( depth_map, image, "Depth map stored in image form." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
 create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
 create_port_trait( string_vector, string_vector, "Vector of strings." );
-create_port_trait( track_set, track_set, "Set of feature tracks for stabilization." );
+create_port_trait( feature_track_set, feature_track_set, "Set of feature tracks for stabilization." );
 create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
 create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track descriptors." );
 

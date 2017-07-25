@@ -369,11 +369,10 @@ track_features_core
     std::vector<vital::track_sptr> new_tracks;
     for(; fit != vf.end() && dit != df.end(); ++fit, ++dit)
     {
-      auto ftsd = std::make_shared<feature_track_state_data>();
-      ftsd->feature = *fit;
-      ftsd->descriptor = *dit;
-      track::track_state ts(frame_number, ftsd);
-      new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = *fit;
+      fts->descriptor = *dit;
+      new_tracks.push_back(std::make_shared<vital::track>(fts));
       new_tracks.back()->set_id(next_track_id++);
     }
     if( d_->closer )
@@ -455,11 +454,10 @@ track_features_core
     VITAL_FOREACH(match m, vm)
     {
       track_sptr t = active_tracks[m.first];
-      auto ftsd = std::make_shared<feature_track_state_data>();
-      ftsd->feature = vf[m.second];
-      ftsd->descriptor = df[m.second];
-      track::track_state ts(frame_number, ftsd);
-      if( t->append(ts) || t->insert(ts) )
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = vf[m.second];
+      fts->descriptor = df[m.second];
+      if( t->append(fts) || t->insert(fts) )
       {
         matched.insert(m.second);
       }
@@ -482,11 +480,10 @@ track_features_core
     std::vector<track_sptr> all_tracks = prev_tracks->tracks();
     VITAL_FOREACH(unsigned i, unmatched)
     {
-      auto ftsd = std::make_shared<feature_track_state_data>();
-      ftsd->feature = vf[i];
-      ftsd->descriptor = df[i];
-      track::track_state ts(frame_number, ftsd);
-      all_tracks.push_back(std::make_shared<vital::track>(ts));
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = vf[i];
+      fts->descriptor = df[i];
+      all_tracks.push_back(std::make_shared<vital::track>(fts));
       all_tracks.back()->set_id(next_track_id++);
     }
     updated_track_set = std::make_shared<simple_feature_track_set>(all_tracks);

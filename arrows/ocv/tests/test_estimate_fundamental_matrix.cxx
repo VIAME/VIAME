@@ -130,10 +130,10 @@ IMPLEMENT_TEST(ideal_points)
   std::vector<vector_2d> pts1, pts2;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    auto data1 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame1)->data);
-    auto data2 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame2)->data);
-    pts1.push_back(data1->feature->loc());
-    pts2.push_back(data2->feature->loc());
+    auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
+    auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
+    pts1.push_back(fts1->feature->loc());
+    pts2.push_back(fts2->feature->loc());
   }
 
   // print the epipolar distances using this fundamental matrix
@@ -198,10 +198,10 @@ IMPLEMENT_TEST(noisy_points)
   std::vector<vector_2d> pts1, pts2;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    auto data1 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame1)->data);
-    auto data2 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame2)->data);
-    pts1.push_back(data1->feature->loc());
-    pts2.push_back(data2->feature->loc());
+    auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
+    auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
+    pts1.push_back(fts1->feature->loc());
+    pts2.push_back(fts2->feature->loc());
   }
 
   print_epipolar_distances(true_F->matrix(), pts1, pts2);
@@ -274,10 +274,10 @@ IMPLEMENT_TEST(outlier_points)
     }
     else
     {
-      auto data1 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame1)->data);
-      auto data2 = std::dynamic_pointer_cast<feature_track_state_data>(trks[i]->find(frame2)->data);
-      pts1.push_back(data1->feature->loc());
-      pts2.push_back(data2->feature->loc());
+      auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
+      auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
+      pts1.push_back(fts1->feature->loc());
+      pts2.push_back(fts2->feature->loc());
     }
   }
 
