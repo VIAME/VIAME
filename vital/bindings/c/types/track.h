@@ -49,9 +49,7 @@ extern "C"
 #include <vital/bindings/c/error_handle.h>
 
 
-/// Opaque structure for vital::track_state_data instances
-typedef struct vital_track_state_data_s vital_track_state_data_t;
-/// Opaque structure for vital::track::track_state instances
+/// Opaque structure for vital::track_state instances
 typedef struct vital_track_state_s vital_track_state_t;
 /// Opaque structure for vital::track instances
 typedef struct vital_track_s vital_track_t;
@@ -61,14 +59,12 @@ typedef struct vital_track_s vital_track_t;
 /// Create a new track state
 /**
  * \param frame Frame the state intersects
- * \param d Data instance associated with this state. May be null.
  * \param eh Vital error handle instance
  * \returns new instance of a track state
  */
 VITAL_C_EXPORT
 vital_track_state_t*
-vital_track_state_new( int64_t frame, vital_track_state_data_t *d,
-                       vital_error_handle_t *eh );
+vital_track_state_new( int64_t frame, vital_error_handle_t *eh );
 
 
 /// Destroy a track state instance

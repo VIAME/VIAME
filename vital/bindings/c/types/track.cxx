@@ -46,8 +46,8 @@ namespace vital_c {
 SharedPointerCache< vital::track, vital_track_t >
   TRACK_SPTR_CACHE( "track" );
 
-SharedPointerCache< vital::track_state_data, vital_track_state_data_t >
-  TRACK_STATE_DATA_SPTR_CACHE( "track_state_data" );
+SharedPointerCache< vital::track_state, vital_track_state_t >
+  TRACK_STATE_SPTR_CACHE( "track_state" );
 } }
 
 
@@ -59,16 +59,13 @@ using namespace kwiver;
 
 /// Create a new track state
 vital_track_state_t*
-vital_track_state_new( int64_t frame, vital_track_state_data_t *d,
-                       vital_error_handle_t *eh )
+vital_track_state_new( int64_t frame, vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_track_state_new", eh,
-    vital::track_state_data_sptr d_sptr;
-    if( d ) d_sptr = vital_c::TRACK_STATE_DATA_SPTR_CACHE.get( d );
-    vital::track::track_state *ts =
-      new vital::track::track_state(frame, d_sptr);
-    return reinterpret_cast< vital_track_state_t* >( ts );
+    vital::track_state_sptr ts_sptr( new vital::track_state( frame ) );
+    kwiver::vital_c::TRACK_STATE_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast< vital_track_state_t* >( ts_sptr.get() );
   );
   return 0;
 }
@@ -80,8 +77,7 @@ vital_track_state_destroy( vital_track_state_t *ts, vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_track_state_destroy", eh,
-    REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
-    delete ts_ptr;
+    kwiver::vital_c::TRACK_STATE_SPTR_CACHE.erase( ts );
   );
 }
 
@@ -92,8 +88,8 @@ vital_track_state_frame_id( vital_track_state_t *ts, vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_track_state_frame_id", eh,
-    REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
-    return ts_ptr->frame_id;
+    REINTERP_TYPE( vital::track_state, ts, ts_ptr );
+    return ts_ptr->frame();
   );
   return 0;
 }
@@ -234,8 +230,11 @@ vital_track_append_state( vital_track_t *t, vital_track_state_t *ts,
   STANDARD_CATCH(
     "vital_track_append_state", eh,
     auto t_sptr = vital_c::TRACK_SPTR_CACHE.get( t );
-    REINTERP_TYPE( vital::track::track_state, ts, ts_ptr );
-    return t_sptr->append( *ts_ptr );
+    auto ts_sptr = vital_c::TRACK_STATE_SPTR_CACHE.get( ts );
+    if( t_sptr and ts_sptr )
+    {
+      return t_sptr->append( ts_sptr );
+    }
   );
   return false;
 }
@@ -252,24 +251,15 @@ vital_track_find_state( vital_track_t *t, int64_t frame,
     auto it = t_sptr->find( frame );
     if( it != t_sptr->end() )
     {
-      vital::track::track_state const &ts = *it;
-      // Since we're not directly exposing feat/desc (contained underneath track
-      //  state), we're not retaining their sptrs.
-      // Temp storing data sptrs in caches ONLY for retrieval in
-      //  vital_track_state_new as there is no guarantee that they are stored
-      //  there yet.
-      // We will release them from their caches once after creating the state
-      //  as their shared pointers will now be references by a track-state
-      //  instance on the heap.
-      if( ts.data ) vital_c::TRACK_STATE_DATA_SPTR_CACHE.store( ts.data );
-      // Not using REINTERP_TYPE because feature/descriptor could be validly null
-      vital_track_state_t *c_ts = vital_track_state_new(
-        frame,
-        reinterpret_cast< vital_track_state_data_t* >( ts.data.get() ),
-        eh
-      );
-      if( ts.data ) vital_c::TRACK_STATE_DATA_SPTR_CACHE.erase( ts.data.get() );
-      return c_ts;
+      vital::track_state_sptr const &ts = *it;
+
+      // Store this state in our cache and return a c_ptr to it. The state already
+      // exists so it doesn't need to be re-created with new, and when this function's
+      // ptr is returned, a new object will be created using the default python c_ptr
+      // VitalObject constructor, that will handle deleting the state sptr from the
+      // cache when that python object goes out of scope.
+      kwiver::vital_c::TRACK_STATE_SPTR_CACHE.store( ts );
+      return reinterpret_cast< vital_track_state_t* >( ts.get() );
     }
   );
   return NULL;
