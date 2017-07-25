@@ -28,13 +28,9 @@
 
 **fundamental_matrix** - 
 
-**geo_corner_points** - 
-
 **geo_point** - 
 
 **geo_polygon** - 
-
-**geo_lat_lon** - 
 
 **geo_MGRS** - 
 
