@@ -83,24 +83,27 @@ class DetectedObjectSet (VitalObject):
         return dos_size(self)
 
     def select(self, one = 0.0, two = None):
-        
+
+        c_output = ctypes.POINTER(DetectedObject.c_ptr_type())()
         length = ctypes.c_size_t() 
 
         if two is None:
             dos_st = self.VITAL_LIB.vital_detected_object_set_select_threshold
-            dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double, ctypes.POINTER(ctypes.c_size_t)]
-            dos_st.restype = ctypes.POINTER( DetectedObject.c_ptr_type() )
-            c_output = dos_st( self, one, ctypes.byref(length) )
+            dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double,
+                               ctypes.POINTER(ctypes.POINTER(DetectedObject.c_ptr_type())),
+                               ctypes.POINTER(ctypes.c_size_t)]
+            dos_st( self, one, ctypes.byref(c_output), ctypes.byref(length) )
         else:
             dos_sct = self.VITAL_LIB.vital_detected_object_set_select_class_threshold
-            dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double, ctypes.POINTER(ctypes.c_size_t)]
-            dos_sct.restype = ctypes.POINTER( DetectedObject.c_ptr_type() )
-            c_output = dos_sct(self, one, two, ctypes.byref(length) )
+            dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double,
+                                ctypes.POINTER(ctypes.POINTER(DetectedObject.c_ptr_type())),
+                                ctypes.POINTER(ctypes.c_size_t)]
+            dos_sct(self, one, two, ctypes.byref(c_output), ctypes.byref(length) )
 
         output = []
         for i in range( length.value ):
             output.append( DetectedObject( from_cptr=c_output[i] ) )
 
-        free_void_ptr( c_output )
+        #free_void_ptr( c_output )
         return output
 
