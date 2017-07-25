@@ -68,15 +68,17 @@ VITAL_C_EXPORT
 size_t vital_detected_object_set_size( vital_detected_object_set_t* obj);
 
 VITAL_C_EXPORT
-vital_detected_object_t** vital_detected_object_set_select_threshold( vital_detected_object_set_t* obj,
-                                                                      double thresh,
-                                                                      size_t* length );
+void vital_detected_object_set_select_threshold( vital_detected_object_set_t* obj,
+                                                 double thresh,
+                                                 vital_detected_object_t*** output,
+                                                 size_t* length );
 
 VITAL_C_EXPORT
-vital_detected_object_t** vital_detected_object_set_select_class_threshold( vital_detected_object_set_t* obj,
-                                                                            const char* class_name,
-                                                                            double thresh,
-                                                                            size_t* length );
+void vital_detected_object_set_select_class_threshold( vital_detected_object_set_t* obj,
+                                                       const char* class_name,
+                                                       double thresh,
+                                                       vital_detected_object_t*** output,
+                                                       size_t* length );
 
 #ifdef __cplusplus
 }
