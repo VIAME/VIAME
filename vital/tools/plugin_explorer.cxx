@@ -157,6 +157,40 @@ struct print_functor
 
 
 // ------------------------------------------------------------------
+void usage()
+{
+    pe_out() << "Usage: " << argv[0] << "[options]\n"
+             << "\nThis tool displays the attributes of plugins. Each plugin file contains one or more factories.\n"
+
+             << "    --help -h     Display usage information\n"
+             << "    --detail -d   Display detailed information about plugins\n"
+             << "    --config      Display configuration information needed by plugins\n"
+             << "    --factory --fact  regexp    Only display factories whose interface type matches specified regexp\n"
+             << "    --type   regexp    Only display factories whose instance name matches the specified regexp\n"
+             << "    --brief -b    Generate brief display\n"
+
+             << "    --files       Display list of loaded files\n"
+             << "    --mod         Display list of loaded modules\n"
+             << "    --all         Display all plugins\n"
+             << "    --algorithm --algo    Display only algorithm type plugins.\n"
+             << "                          --type and --fact can be used to refine the selection\n"
+             << "    --process --proc      Display only sprokit process type plugins.\n"
+             << "                          --type and --fact can be used to refine the selection\n"
+             << "    --scheduler  Display scheduler type plugins\n"
+
+             << "    --filter  attr-name regex    Filter factories based on attribute name and value.\n"
+             << "    --summary       Display summary of all factories loaded\n"
+             << "    --attrs         Display raw attributes for factories without calling any category specific plugins\n"
+
+             << "    --load   file-name   Load only specified plugin file for inspection. No other plugins are loaded\n"
+
+
+             << std::endl;
+
+}
+
+
+// ------------------------------------------------------------------
 std::string
 join( const std::vector< std::string >& vec, const char* delim )
 {
@@ -500,17 +534,19 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
   G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
-                                "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--fact", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
   G_context.m_args.AddArgument( "--type", argT::SPACE_ARGUMENT, &G_context.opt_type_regex,
                                 "Filter factories by instance name based on regexp" );
   G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
-  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
+  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all plugins" );
+  G_context.m_args.AddArgument( "--algo", argT::NO_ARGUMENT, &G_context.opt_algo, "Display all algorithms" );
   G_context.m_args.AddArgument( "--algorithm", argT::NO_ARGUMENT, &G_context.opt_algo, "Display all algorithms" );
   G_context.m_args.AddArgument( "--process",   argT::NO_ARGUMENT, &G_context.opt_process, "Select only processes" );
+  G_context.m_args.AddArgument( "--proc",   argT::NO_ARGUMENT, &G_context.opt_process, "Select only processes" );
   G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Select only schedulers" );
 
   std::vector< std::string > filter_args;
@@ -548,12 +584,7 @@ main( int argc, char* argv[] )
 
   if ( G_context.opt_help )
   {
-    pe_out() << "Usage: " << argv[0] << "[options] [file-names]\n"
-             << "\nThis tool displays the attributes of plugins. The optional file-names specify plugins to explore.\n"
-             << "If these are specified, only these files will be loaded. If no optional files are specified, then \n"
-             << "The search path is traversed, loading all recognizable plugins.\n"
-
-             << G_context.m_args.GetHelp() << std::endl;
+    usage();
     exit( 0 );
   }
 
@@ -618,6 +649,7 @@ main( int argc, char* argv[] )
   char** newArgv = 0;
   int newArgc = 0;
   G_context.m_args.GetUnusedArguments(&newArgc, &newArgv);
+
 
   // Look for plugin file name from command line
   if ( ! G_context.opt_load_module.empty() )
