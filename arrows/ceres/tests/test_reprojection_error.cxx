@@ -138,14 +138,14 @@ test_all_reprojection_errors(const kwiver::vital::camera_map_sptr cameras,
     const landmark& lm = *lmi->second;
     for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(tsi->data);
-      if (!ftsd || !ftsd->feature)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *ftsd->feature;
-      cam_map_itr_t ci = cam_map.find(tsi->frame_id);
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cam_map.find((*tsi)->frame());
       if (ci == cam_map.end() || !ci->second)
       {
         // no camera corresponding to this track state

@@ -53,17 +53,24 @@ namespace kwiver {
 namespace vital {
 
 
-/// A derived track_state_data for feature tracks
-class VITAL_EXPORT feature_track_state_data : public track_state_data
+/// A derived track_state for feature tracks
+class VITAL_EXPORT feature_track_state : public track_state
 {
 public:
   /// Constructor
-  feature_track_state_data( feature_sptr f,
-                            descriptor_sptr d )
-  : feature( f ),
-    descriptor( d ) {}
+  explicit feature_track_state( frame_id_t frame,
+                                feature_sptr f = nullptr,
+                                descriptor_sptr d = nullptr )
+    : track_state( frame )
+    , feature(f)
+    , descriptor(d)
+  { }
 
-  feature_track_state_data() {}
+  /// Clone the track state (polymorphic copy constructor)
+  virtual track_state_sptr clone() const
+  {
+    return std::make_shared<feature_track_state>( *this );
+  }
 
   feature_sptr feature;
   descriptor_sptr descriptor;

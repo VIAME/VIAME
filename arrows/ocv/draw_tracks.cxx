@@ -244,13 +244,13 @@ void subtract_from_all( fid_offset_vec_t& offsets, unsigned value )
 
 
 /// Helper function to convert a track state to an OpenCV point
-cv::Point state_to_cv_point( const track::track_state& ts )
+cv::Point state_to_cv_point( track_state_sptr ts )
 {
-  auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts.data);
-  if( ftsd && ftsd->feature )
+  auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+  if( fts && fts->feature )
   {
-    return cv::Point( static_cast<int>(ftsd->feature->loc()[0]),
-                      static_cast<int>(ftsd->feature->loc()[1]) );
+    return cv::Point( static_cast<int>(fts->feature->loc()[0]),
+                      static_cast<int>(fts->feature->loc()[1]) );
   }
   //TODO Maybe throw an exception here
   return cv::Point();
@@ -275,8 +275,8 @@ void generate_match_lines( const track_sptr trk,
   {
     return;
   }
-  auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(frame_itr->data);
-  if( !ftsd || !ftsd->feature )
+  auto fts = std::dynamic_pointer_cast<feature_track_state>(*frame_itr);
+  if( !fts || !fts->feature )
   {
     return;
   }
@@ -297,8 +297,8 @@ void generate_match_lines( const track_sptr trk,
 
       if( test_itr != trk->end() )
       {
-        ftsd = std::dynamic_pointer_cast<feature_track_state_data>(test_itr->data);
-        if( ftsd && ftsd->feature )
+        fts = std::dynamic_pointer_cast<feature_track_state>(*test_itr);
+        if( fts && fts->feature )
         {
           // add line
           cv::Point test_loc = state_to_cv_point( *test_itr );
@@ -396,10 +396,10 @@ draw_tracks
     // Draw points on input image
     VITAL_FOREACH( track_sptr trk, display_set->active_tracks( fid ) )
     {
-      track::track_state ts = *( trk->find( fid ) );
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(ts.data);
+      auto ts = *( trk->find( fid ) );
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
 
-      if( !ftsd || !ftsd->feature )
+      if( !fts || !fts->feature )
       {
         continue;
       }
@@ -442,8 +442,8 @@ draw_tracks
 
           if( itr != comparison_trk->end() )
           {
-            ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
-            if( ftsd && ftsd->feature )
+            fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+            if( fts && fts->feature )
             {
               cv::Point other_loc = state_to_cv_point( *itr );
               cv::line( img, other_loc, loc, error_color, 2 );
@@ -464,8 +464,8 @@ draw_tracks
 
         if( itr != trk->end() )
         {
-          ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
-          if( ftsd && ftsd->feature )
+          fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+          if( fts && fts->feature )
           {
             cv::Point prior_loc = state_to_cv_point( *itr );
             cv::line( img, prior_loc, loc, color );

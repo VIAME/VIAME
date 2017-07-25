@@ -68,11 +68,11 @@ feature_track_set
 ::frame_features( frame_id_t offset ) const
 {
   std::vector<feature_sptr> features;
-  std::vector<track_state_data_sptr> fsd = this->frame_state_data(offset);
+  std::vector<track_state_sptr> fsd = this->frame_states(offset);
   for( auto const data : fsd )
   {
     feature_sptr f = nullptr;
-    auto fdata = std::dynamic_pointer_cast<feature_track_state_data>(data);
+    auto fdata = std::dynamic_pointer_cast<feature_track_state>(data);
     if( fdata )
     {
       f = fdata->feature;
@@ -89,11 +89,11 @@ feature_track_set
 ::frame_descriptors(frame_id_t offset) const
 {
   std::vector<descriptor_sptr> descriptors;
-  std::vector<track_state_data_sptr> fsd = this->frame_state_data(offset);
+  std::vector<track_state_sptr> fsd = this->frame_states(offset);
   for( auto const data : fsd )
   {
     descriptor_sptr d = nullptr;
-    auto fdata = std::dynamic_pointer_cast<feature_track_state_data>(data);
+    auto fdata = std::dynamic_pointer_cast<feature_track_state>(data);
     if( fdata )
     {
       d = fdata->descriptor;

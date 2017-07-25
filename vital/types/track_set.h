@@ -186,10 +186,10 @@ public:
    *                    example, offset of -1 refers to the last frame and is
    *                    the default.
    *
-   * \returns a vector of track_state_data_sptr corresponding to the tracks
+   * \returns a vector of track_state_sptr corresponding to the tracks
               on this frame and in the same order as active_track(offset)
    */
-  virtual std::vector<track_state_data_sptr> frame_state_data( frame_id_t offset = -1 ) const;
+  virtual std::vector<track_state_sptr> frame_states( frame_id_t offset = -1 ) const;
 
 protected:
   /// Convert an offset number to an absolute frame number

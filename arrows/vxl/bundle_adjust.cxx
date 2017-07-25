@@ -266,11 +266,11 @@ bundle_adjust
 
         if( lms.find(id) != lms.end() )
         {
-          auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(
-                          t->find(frame)->data );
-          if( ftsd && ftsd->feature )
+          auto fts = std::dynamic_pointer_cast<feature_track_state>(
+                          *t->find(frame) );
+          if( fts && fts->feature )
           {
-            frame_lm2feature_map[id] = ftsd->feature;
+            frame_lm2feature_map[id] = fts->feature;
             lm_ids.insert(id);
           }
         }

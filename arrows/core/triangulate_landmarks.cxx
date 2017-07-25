@@ -188,20 +188,20 @@ triangulate_landmarks
     auto lm_observations = unsigned{0};
     for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      auto ftsd = std::dynamic_pointer_cast<vital::feature_track_state_data>(tsi->data);
-      if (!ftsd && !ftsd->feature)
+      auto fts = std::dynamic_pointer_cast<vital::feature_track_state>(*tsi);
+      if (!fts && !fts->feature)
       {
         // there is no valid feature for this track state
         continue;
       }
-      map_camera_t::const_iterator c_itr = cams.find(tsi->frame_id);
+      map_camera_t::const_iterator c_itr = cams.find((*tsi)->frame());
       if (c_itr == cams.end())
       {
         // there is no camera for this track state.
         continue;
       }
       lm_cams.push_back(vital::simple_camera(*c_itr->second));
-      lm_image_pts.push_back(ftsd->feature->loc());
+      lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }
 

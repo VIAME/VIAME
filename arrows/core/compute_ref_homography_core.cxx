@@ -460,13 +460,13 @@ compute_ref_homography_core
       continue;
     }
 
-    auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
-    if( ftsd && ftsd->feature )
+    auto fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+    if( fts && fts->feature )
     {
       track_info_t new_entry;
 
       new_entry.tid = trk->id();
-      new_entry.ref_loc = vector_2d( ftsd->feature->loc() );
+      new_entry.ref_loc = vector_2d( fts->feature->loc() );
       new_entry.ref_id = frame_number;
       new_entry.active = false; // don't want to use this track on this frame
       new_entry.trk = trk;
@@ -499,11 +499,11 @@ compute_ref_homography_core
     {
       track::history_const_itr itr = ti.trk->find( frame_number );
 
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
-      if( ftsd && ftsd->feature )
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+      if( fts && fts->feature )
       {
         pts_ref.push_back( ti.ref_loc );
-        pts_cur.push_back( ftsd->feature->loc() );
+        pts_cur.push_back( fts->feature->loc() );
       }
     }
   }
@@ -547,8 +547,8 @@ compute_ref_homography_core
     {
       continue;
     }
-    auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(itr->data);
-    if ( !ftsd || !ftsd->feature )
+    auto fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+    if ( !fts || !fts->feature )
     {
       continue;
     }
@@ -567,7 +567,7 @@ compute_ref_homography_core
       // of.
       else if( d_->use_backproject_error && ti.active )
       {
-        vector_2d warped = output->homography()->map( ftsd->feature->loc() );
+        vector_2d warped = output->homography()->map( fts->feature->loc() );
         double dist_sqr = ( warped - ti.ref_loc ).squaredNorm();
 
         if( dist_sqr > d_->backproject_threshold_sqr )
@@ -581,7 +581,7 @@ compute_ref_homography_core
     else if ( !d_->allow_ref_frame_regression && ti.active )
     {
       ++ti_reset_count;
-      ti.ref_loc = vector_2d( ftsd->feature->loc() );
+      ti.ref_loc = vector_2d( fts->feature->loc() );
       ti.ref_id = frame_number;
     }
   }

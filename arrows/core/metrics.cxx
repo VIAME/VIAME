@@ -75,14 +75,14 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
     const landmark& lm = *lmi->second;
     for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(tsi->data);
-      if (!ftsd || !ftsd->feature)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *ftsd->feature;
-      cam_map_itr_t ci = cameras.find(tsi->frame_id);
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cameras.find((*tsi)->frame());
       if (ci == cameras.end() || !ci->second)
       {
         // no camera corresponding to this track state
@@ -117,14 +117,14 @@ reprojection_rmse(const std::map<frame_id_t, camera_sptr>& cameras,
     const landmark& lm = *lmi->second;
     for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(tsi->data);
-      if (!ftsd || !ftsd->feature)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *ftsd->feature;
-      cam_map_itr_t ci = cameras.find(tsi->frame_id);
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cameras.find((*tsi)->frame());
       if (ci == cameras.end() || !ci->second)
       {
         // no camera corresponding to this track state

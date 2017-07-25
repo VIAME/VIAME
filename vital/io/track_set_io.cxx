@@ -100,7 +100,7 @@ read_track_file( path_t const& file_path )
     {
       t = it->second;
     }
-    t->append( track::track_state( fid ) );
+    t->append( std::make_shared<track_state>( fid ) );
   }
 
   return track_set_sptr( new simple_track_set( tracks ) );
@@ -145,9 +145,9 @@ write_track_file( track_set_sptr const& tracks,
   std::vector< vital::track_sptr > trks = tracks->tracks();
   VITAL_FOREACH( vital::track_sptr t, trks )
   {
-    VITAL_FOREACH( vital::track::track_state const& s, *t )
+    for( auto const& s : *t )
     {
-      ofile << t->id() << " " << s.frame_id << "\n";
+      ofile << t->id() << " " << s->frame() << "\n";
     }
   }
   ofile.close();
@@ -201,9 +201,9 @@ read_feature_track_file( path_t const& file_path )
     {
       t = it->second;
     }
-    auto ftsd = std::make_shared<feature_track_state_data>();
+    auto ftsd = std::make_shared<feature_track_state>(fid);
     ftsd->feature = feat;
-    t->append( track::track_state( fid, ftsd ) );
+    t->append( ftsd );
   }
 
   return std::make_shared<simple_feature_track_set>( tracks );
@@ -246,16 +246,16 @@ write_feature_track_file( feature_track_set_sptr const& tracks,
   // open output file and write the tracks
   std::ofstream ofile( file_path.c_str() );
   std::vector< vital::track_sptr > trks = tracks->tracks();
-  VITAL_FOREACH( vital::track_sptr t, trks )
+  for( vital::track_sptr t : trks )
   {
-    VITAL_FOREACH( vital::track::track_state const& s, *t )
+    for( auto const& s : *t )
     {
-      auto ftsd = std::dynamic_pointer_cast<feature_track_state_data>(s.data);
+      auto ftsd = std::dynamic_pointer_cast<feature_track_state>(s);
       if( !ftsd || !ftsd->feature )
       {
         throw invalid_data( "Provided track doest not contain a valid feature" );
       }
-      ofile << t->id() << " " << s.frame_id << " " << *ftsd->feature << "\n";
+      ofile << t->id() << " " << s->frame() << " " << *ftsd->feature << "\n";
     }
   }
   ofile.close();
