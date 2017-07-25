@@ -43,18 +43,6 @@ class TrackState (VitalObject):
     vital::track_state interface class
     """
 
-    def __init__(self, frame, from_cptr=None):
-        """
-        Initialize new track state
-
-        :param frame: Frame the track state intersects
-        :type frame: int
-
-        :param data: Optional data instance associated with this state.
-        :type data: vital.types.TrackState
-        """
-        super(TrackState, self).__init__(from_cptr, frame, *args, **kwargs)
-
     def _new(self, frame):
         """
         :param frame: Frame the track state intersects
@@ -85,6 +73,9 @@ class TrackState (VitalObject):
             [self],
             ctypes.c_int64
         )
+
+    def as_track_state_ptr_type(self):
+        return TrackState.c_ptr_type()(self.c_pointer.contents)
 
 
 class Track (VitalObject):
@@ -268,7 +259,7 @@ class Track (VitalObject):
         return self._call_cfunc(
             'vital_track_append_state',
             [Track.c_ptr_type(), TrackState.c_ptr_type()],
-            [self, ts],
+            [self, ts.as_track_state_ptr_type()],
             ctypes.c_bool
         )
 

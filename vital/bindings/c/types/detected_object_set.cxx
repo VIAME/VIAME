@@ -50,7 +50,6 @@ namespace vital_c {
 // Allocate our shared pointer cache object
 SharedPointerCache< kwiver::vital::detected_object_set, vital_detected_object_set_t >
   DOBJ_SET_SPTR_CACHE( "detected_object_set" );
-
 } }
 
 // ==================================================================
