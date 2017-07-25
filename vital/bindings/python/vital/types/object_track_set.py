@@ -53,9 +53,9 @@ class ObjectTrackState( TrackState ):
         :param detection: Optional DetectedObject instance associated with this state.
         :type detection: vital.types.DetectedObject
         """
-        super(TrackState, self).__init__(frame, detection, from_cptr=frame_cptr)
+        super(ObjectTrackState, self).__init__(from_cptr, frame, detection)
 
-    def _new(self, detection):
+    def _new(self, frame, detection):
         """
         :param detection: Optional DetectedObject instance associated with this state.
         :type detection: vital.types.DetectedObject

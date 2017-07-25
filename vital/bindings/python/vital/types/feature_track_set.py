@@ -58,7 +58,7 @@ class FeatureTrackState( TrackState ):
             state.
         :type descriptor: vital.types.Descriptor
         """
-        super(TrackState, self).__init__(frame, feature, descriptor, from_cptr=from_cptr)
+        super(TrackState, self).__init__(from_cptr, frame, feature, descriptor)
 
     def _new(self, frame, feature, descriptor):
         """

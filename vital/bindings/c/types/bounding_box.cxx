@@ -92,9 +92,10 @@ vital_bounding_box_t* vital_bounding_box_new_from_box( vital_bounding_box_t* bbo
 {
   STANDARD_CATCH(
     "vital_bounding_box_new_from_box", 0,
-    vital_bounding_box_t* test = reinterpret_cast<vital_bounding_box_t*>(
-      new kwiver::vital::bounding_box_d( *reinterpret_cast<kwiver::vital::bounding_box_d*>(bbox) ) );
-    return test;
+    vital_bounding_box_t* item = reinterpret_cast<vital_bounding_box_t*>(
+      new kwiver::vital::bounding_box_d(
+        *reinterpret_cast<kwiver::vital::bounding_box_d*>(bbox) ) );
+    return item;
   );
   return 0;
 }
