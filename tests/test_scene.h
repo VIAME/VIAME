@@ -211,7 +211,7 @@ subset_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double keep_frac
   const int rand_thresh = static_cast< int > ( keep_frac * RAND_MAX );
   VITAL_FOREACH( const track_sptr &t, tracks )
   {
-    track_sptr nt( new track );
+    auto nt = std::make_shared<track>();
 
     nt->set_id( t->id() );
     std::cout << "track " << t->id() << ":";
@@ -219,7 +219,7 @@ subset_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double keep_frac
     {
       if ( std::rand() < rand_thresh )
       {
-        nt->append( ts );
+        nt->append( ts->clone() );
         std::cout << " .";
       }
       else
