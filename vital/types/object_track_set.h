@@ -57,8 +57,10 @@ class VITAL_EXPORT object_track_state : public track_state
 {
 public:
 
-  object_track_state_data( detected_object_sptr d )
-    : detection( d )
+  object_track_state( frame_id_t frame,
+                      detected_object_sptr d = nullptr )
+    : track_state( frame )
+    , detection( d )
   {}
 
   detected_object_sptr detection;

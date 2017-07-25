@@ -49,10 +49,12 @@ namespace kwiver {
 namespace vital {
 
 
-/// Forward declaration of track
+/// Forward declaration of track object
 class track;
 class track_state;
-/// Shared pointer for general track type
+
+
+/// Shared pointers for general track type
 typedef std::shared_ptr< track > track_sptr;
 typedef std::weak_ptr< track > track_wptr;
 typedef std::shared_ptr<track_state> track_state_sptr;
