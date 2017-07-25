@@ -38,6 +38,8 @@ import ctypes
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
 
+from vital.util import free_void_ptr
+
 
 class BoundingBox (VitalObject):
     """
@@ -109,7 +111,11 @@ class BoundingBox (VitalObject):
         bb_center = self.VITAL_LIB.vital_bounding_box_center
         bb_center.argtypes = [self.C_TYPE_PTR]
         bb_center.restype = ctypes.POINTER(ctypes.c_double)
-        bb_center(self)
+        output_pt = bb_center(self)
+        l_value = output_pt[0]
+        r_value = output_pt[1]
+        free_void_ptr( output_pt )
+        return l_value, r_value
 
     def upper_left(self):
         """
@@ -118,7 +124,10 @@ class BoundingBox (VitalObject):
         bb_ul = self.VITAL_LIB.vital_bounding_box_upper_left
         bb_ul.argtypes = [self.C_TYPE_PTR]
         bb_ul.restype = ctypes.POINTER(ctypes.c_double)
-        bb_ul(self)
+        l_value = output_pt[0]
+        r_value = output_pt[1]
+        free_void_ptr( output_pt )
+        return l_value, r_value
 
     def lower_right(self):
         """
@@ -127,7 +136,11 @@ class BoundingBox (VitalObject):
         bb_lr = self.VITAL_LIB.vital_bounding_box_lower_right
         bb_lr.argtypes = [self.C_TYPE_PTR]
         bb_lr.restype = ctypes.POINTER(ctypes.c_double)
-        bb_lr(self)
+        output_pt = bb_lr(self)
+        l_value = output_pt[0]
+        r_value = output_pt[1]
+        free_void_ptr( output_pt )
+        return l_value, r_value
 
     def min_x(self):
         bb_minx = self.VITAL_LIB.vital_bounding_box_min_x

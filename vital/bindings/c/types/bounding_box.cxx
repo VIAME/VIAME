@@ -88,10 +88,10 @@ vital_bounding_box_t* vital_bounding_box_new_from_coordinates( double xmin,
 
 
 // ------------------------------------------------------------------
-vital_bounding_box_t* vital_bounding_box_new_from_box( vital_bounding_box_t* bbox )
+vital_bounding_box_t* vital_bounding_box_copy( vital_bounding_box_t* bbox )
 {
   STANDARD_CATCH(
-    "vital_bounding_box_new_from_box", 0,
+    "vital_bounding_box_copy", 0,
     vital_bounding_box_t* item = reinterpret_cast<vital_bounding_box_t*>(
       new kwiver::vital::bounding_box_d(
         *reinterpret_cast<kwiver::vital::bounding_box_d*>(bbox) ) );

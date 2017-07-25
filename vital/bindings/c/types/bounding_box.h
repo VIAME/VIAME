@@ -59,7 +59,7 @@ vital_bounding_box_t* vital_bounding_box_new_from_coordinates(
   double xmin, double  ymin, double xmax, double ymax);
 
 VITAL_C_EXPORT
-vital_bounding_box_t* vital_bounding_box_new_from_box(
+vital_bounding_box_t* vital_bounding_box_copy(
   vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
