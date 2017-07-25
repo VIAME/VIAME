@@ -102,8 +102,8 @@ class DetectedObjectSet (VitalObject):
 
         output = []
         for i in range( length.value ):
-            output.append( DetectedObject( from_cptr=c_output[i] ) )
+            output.append( DetectedObject( from_cptr=DetectedObject.c_ptr_type()( c_output[i].contents ) ) )
 
-        #free_void_ptr( c_output )
+        free_void_ptr( c_output )
         return output
 
