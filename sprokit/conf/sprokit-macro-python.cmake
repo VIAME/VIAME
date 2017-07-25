@@ -169,7 +169,7 @@ function (sprokit_add_python_module_int    path     modpath    module)
     set(sprokit_configure_cmake_args
       "\"-Dconfig=${CMAKE_CFG_INTDIR}/\"")
     set(sprokit_configure_extra_dests
-      "${sprokit_python_output_path}/${python_noarchdir}\${config}${python_sitepath}/${modpath}/${module}.py")
+      "${sprokit_python_output_path}/\${config}/${sprokit_python_subdir}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py")
   endif ()
 
   if( WIN32 )
@@ -184,11 +184,11 @@ function (sprokit_add_python_module_int    path     modpath    module)
   sprokit_configure_file_w_uid("${python_configure_id}"
     "${python_module_id}"
     "${path}"
-    "${sprokit_python_output_path}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
+    "${sprokit_python_output_path}/${sprokit_python_subdir}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
     PYTHON_EXECUTABLE)
 
   sprokit_install(
-    FILES       "${sprokit_python_output_path}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
+    FILES       "${sprokit_python_output_path}/${sprokit_python_subdir}${python_noarchdir}${python_sitepath}/${modpath}/${module}.py"
     DESTINATION "${python_install_path}/${sprokit_python_subdir}${python_sitepath}/${modpath}"
     COMPONENT   runtime)
 

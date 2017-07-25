@@ -42,9 +42,9 @@ def __sprokit_register__():
 
     module_name = 'python:test.pythonpath.test'
 
-    if process_factory.is_module_loaded(module_name):
+    if process_factory.is_process_module_loaded(module_name):
         return
 
     process_factory.add_process('pythonpath_test_process', 'A test process.', TestPythonProcess)
 
-    process_factory.mark_module_as_loaded(module_name)
+    process_factory.mark_process_module_as_loaded(module_name)

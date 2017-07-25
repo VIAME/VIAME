@@ -4,7 +4,7 @@ cmake_dependent_option(SPROKIT_ENABLE_PYTHON3 "Use Python3" OFF
   KWIVER_ENABLE_PYTHON OFF)
 if (KWIVER_ENABLE_PYTHON)
   set(sprokit_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-  set(sprokit_python_output_path "${KWIVER_BINARY_DIR}/lib/${sprokit_python_subdir}")
+  set(sprokit_python_output_path "${KWIVER_BINARY_DIR}/lib")
 
   set(PYTHON_VERSION "2.7"
     CACHE STRING "The version of python to use for bindings")
