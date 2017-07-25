@@ -72,7 +72,7 @@ class DetectedObject (VitalObject):
         do_get_bb.restype = BoundingBox.C_TYPE_PTR
         bb_c_ptr = do_get_bb(self)
         # Make copy of bounding box to return
-        do_bb_cpy = self.VITAL_LIB.vital_bounding_box_new_from_box
+        do_bb_cpy = self.VITAL_LIB.vital_bounding_box_copy
         do_bb_cpy.argtypes = [BoundingBox.C_TYPE_PTR]
         do_bb_cpy.restype = BoundingBox.C_TYPE_PTR
         return BoundingBox( from_cptr=do_bb_cpy( bb_c_ptr ) )
