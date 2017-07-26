@@ -22,7 +22,7 @@ set( sources
   image_filter_process.cxx
   image_object_detector_process.cxx
   image_writer_process.cxx
-  initialize_object_tracks_process.h
+  initialize_object_tracks_process.cxx
   matcher_process.cxx
   read_descriptor_process.cxx
   refine_detections_process.cxx
