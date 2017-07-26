@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
 #include <vital/plugin_loader/plugin_loader.h>
 
 // -- list processes to register --
+#include "associate_detections_to_tracks_process.h"
+#include "compute_association_matrix_process.h"
 #include "compute_homography_process.h"
 #include "compute_stereo_depth_map_process.h"
 #include "detect_features_process.h"
@@ -48,6 +50,7 @@
 #include "image_filter_process.h"
 #include "image_object_detector_process.h"
 #include "image_writer_process.h"
+#include "initialize_object_tracks_process.h"
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
 #include "refine_detections_process.h"
@@ -217,6 +220,27 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Writes track descriptor sets to an output file. All descriptors are written to the same file." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::associate_detections_to_tracks_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "associate_detections_and_tracks" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Associates new detections to existing tracks given a cost matrix." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::compute_association_matrix_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_association_matrix" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Computes cost matrix for adding new detections to existing tracks." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::initialize_object_tracks_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "initalize_object_tracks" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Initialize new object tracks given detections for the current frame." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
