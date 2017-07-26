@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief compute_association_matrix algorithm definition
+ * \brief associate_detections_to_tracks algorithm definition
  */
 
-#ifndef VITAL_ALGO_COMPUTE_ASSOCIATION_MATRIX_H_
-#define VITAL_ALGO_COMPUTE_ASSOCIATION_MATRIX_H_
+#ifndef VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_
+#define VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_
 
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
@@ -49,12 +49,12 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for computing association cost matrices for tracking
-class VITAL_ALGO_EXPORT compute_association_matrix
-  : public kwiver::vital::algorithm_def<compute_association_matrix>
+class VITAL_ALGO_EXPORT associate_detections_to_tracks
+  : public kwiver::vital::algorithm_def<associate_detections_to_tracks>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_association_matrix"; }
+  static std::string static_type_name() { return "associate_detections_to_tracks"; }
 
   /// Compute an association matrix given detections and tracks
   /**
@@ -62,22 +62,24 @@ public:
    * \param image contains the input image for the current frame
    * \param tracks active track set from the last frame
    * \param detections detected object sets from the current frame
-   * \returns an association matrix
+   * \param detections detected object sets from the current frame
+   * \returns a new updated track set
    */
-  virtual kwiver::vital::matrix_2x2d
-  compute( frame_id_t fid,
-           kwiver::vital::image_container_sptr image,          
-           kwiver::vital::object_track_set_sptr tracks,
-           kwiver::vital::detection_set_sptr detections ) const = 0;
+  kwiver::vital::object_track_set_sptr
+  associate( frame_id_t fid,
+             kwiver::vital::image_container_sptr image,          
+             kwiver::vital::object_track_set_sptr tracks,
+             kwiver::vital::detection_set_sptr detections,
+             virtual kwiver::vital::matrix_2x2d matrix ) const = 0;
 
 protected:
-  compute_association_matrix();
+  associate_detections_to_tracks();
 
 };
 
 
-/// Shared pointer for compute_association_matrix algorithm definition class
-typedef std::shared_ptr<compute_association_matrix> compute_association_matrix_sptr;
+/// Shared pointer for associate_detections_to_tracks algorithm definition class
+typedef std::shared_ptr<associate_detections_to_tracks> associate_detections_to_tracks_sptr;
 
 
 } } } // end namespace

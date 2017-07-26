@@ -11,8 +11,10 @@ set( public_headers
   algorithm.h
   algorithm_factory.h
   analyze_tracks.h
+  associate_detections_to_tracks.h
   bundle_adjust.h
   close_loops.h
+  compute_association_matrix.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
   compute_track_descriptors.h
@@ -39,6 +41,7 @@ set( public_headers
   image_io.h
   image_object_detector.h
   initialize_cameras_landmarks.h
+  initialize_object_tracks.h
   match_features.h
   optimize_cameras.h
   refine_detections.h
@@ -57,8 +60,10 @@ set( sources
   algorithm.cxx
   algorithm_factory.cxx
   analyze_tracks.cxx
+  associate_detections_to_tracks.cxx
   bundle_adjust.cxx
   close_loops.cxx
+  compute_association_matrix.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
   compute_track_descriptors.cxx
@@ -84,6 +89,7 @@ set( sources
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx
+  initialize_object_tracks.cxx
   initialize_cameras_landmarks.cxx
   match_features.cxx
   optimize_cameras.cxx
