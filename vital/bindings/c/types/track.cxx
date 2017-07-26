@@ -104,7 +104,7 @@ vital_track_new( vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_track_new", eh,
-    kwiver::vital::track_sptr t_sptr = kwiver::vital::track_sptr( new kwiver::vital::track() );
+    kwiver::vital::track_sptr t_sptr = kwiver::vital::track::make();
     kwiver::vital_c::TRACK_SPTR_CACHE.store( t_sptr );
     return reinterpret_cast<vital_track_t*>( t_sptr.get() );
   );

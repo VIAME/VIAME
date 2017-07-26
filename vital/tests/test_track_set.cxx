@@ -63,19 +63,26 @@ IMPLEMENT_TEST(accessor_functions)
   auto test_state2 = std::make_shared<track_state>( 2 );
   auto test_state3 = std::make_shared<track_state>( 3 );
 
-  test_tracks.push_back( std::make_shared<track>( test_state1 ) ) ;
-  test_tracks.back()->set_id( track_id++ );
-  test_tracks.push_back( std::make_shared<track>( test_state1->clone() ) );
-  test_tracks.back()->set_id( track_id++ );
-  test_tracks.push_back( std::make_shared<track>( test_state2 ) ) ;
-  test_tracks.back()->set_id( track_id++ );
-  test_tracks.push_back( std::make_shared<track>( test_state3 ) ) ;
+  test_tracks.push_back( track::make() ) ;
+  test_tracks.back()->append( test_state1 );
   test_tracks.back()->set_id( track_id++ );
 
-  test_tracks[0]->append( test_state2 );
-  test_tracks[0]->append( test_state3 );
-  test_tracks[1]->append( test_state2 );
-  test_tracks[2]->append( test_state3 );
+  test_tracks.push_back( track::make() ) ;
+  test_tracks.back()->append( test_state1->clone() );
+  test_tracks.back()->set_id( track_id++ );
+
+  test_tracks.push_back( track::make() ) ;
+  test_tracks.back()->append( test_state2 );
+  test_tracks.back()->set_id( track_id++ );
+
+  test_tracks.push_back( track::make() ) ;
+  test_tracks.back()->append( test_state3 );
+  test_tracks.back()->set_id( track_id++ );
+
+  test_tracks[0]->append( test_state2->clone() );
+  test_tracks[0]->append( test_state3->clone() );
+  test_tracks[1]->append( test_state2->clone() );
+  test_tracks[2]->append( test_state3->clone() );
 
   track_set_sptr test_set( new simple_track_set( test_tracks ) );
 
