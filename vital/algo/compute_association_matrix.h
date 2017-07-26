@@ -40,7 +40,7 @@
 #include <vital/algo/algorithm.h>
 
 #include <vital/types/object_track_set.h>
-#include <vital/types/detection_set.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/matrix.h>
 
@@ -68,7 +68,7 @@ public:
   compute( frame_id_t fid,
            kwiver::vital::image_container_sptr image,          
            kwiver::vital::object_track_set_sptr tracks,
-           kwiver::vital::detection_set_sptr detections ) const = 0;
+           kwiver::vital::detected_object_set_sptr detections ) const = 0;
 
 protected:
   compute_association_matrix();
