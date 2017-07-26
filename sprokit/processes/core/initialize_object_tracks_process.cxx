@@ -116,26 +116,48 @@ initialize_object_tracks_process
   vital::timestamp frame_id;
   vital::image_container_sptr image;
   vital::detected_object_set_sptr detections;
-  vital::object_track_set_sptr tracks;
+  vital::object_track_set_sptr old_tracks;
 
-  vital::object_track_set_sptr output;
+  vital::object_track_set_sptr new_tracks;
 
-  frame_id = grab_from_port_using_trait( timestamp );
-  image = grab_from_port_using_trait( image );
+  if( process::has_input_port_edge( "timestamp" ) )
+  {
+    frame_id = grab_from_port_using_trait( timestamp );
+
+    // Output frame ID
+    LOG_DEBUG( logger(), "Processing frame " << frame_id );
+  }
+
+  if( process::has_input_port_edge( "image" ) )
+  {
+    image = grab_from_port_using_trait( image );
+  }
+
   detections = grab_from_port_using_trait( detected_object_set );
-  tracks = grab_from_port_using_trait( object_track_set );
 
-  // Output frame ID
-  LOG_DEBUG( logger(), "Processing frame " << frame_id );
+  if( process::has_input_port_edge( "onject_track_set" ) )
+  {
+    old_tracks = grab_from_port_using_trait( object_track_set );
+  }
 
   // Get stabilization homography
-  output = d->m_track_initializer->initialize( frame_id, image, detections );
+  new_tracks = d->m_track_initializer->initialize( frame_id, image, detections );
 
   // Union optional input tracks if available
-  // [TODO]
+  if( old_tracks )
+  {
+    std::vector< vital::track_sptr > net_tracks = old_tracks->tracks();
+    net_tracks.insert( net_tracks.end(),
+      new_tracks->tracks().begin(), new_tracks->tracks().end() );
 
-  // Return by value
-  push_to_port_using_trait( object_track_set, output );
+    vital::object_track_set_sptr joined_tracks(
+      new vital::simple_object_track_set( net_tracks ) );
+    push_to_port_using_trait( object_track_set, joined_tracks );
+  }
+  else
+  {
+    push_to_port_using_trait( object_track_set, new_tracks );
+  }
 }
 
 
