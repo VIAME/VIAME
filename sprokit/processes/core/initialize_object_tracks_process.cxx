@@ -116,9 +116,9 @@ initialize_object_tracks_process
   vital::timestamp frame_id;
   vital::image_container_sptr image;
   vital::detected_object_set_sptr detections;
-  vital::object_track_set tracks;
+  vital::object_track_set_sptr tracks;
 
-  vital::object_track_set output;
+  vital::object_track_set_sptr output;
 
   frame_id = grab_from_port_using_trait( timestamp );
   image = grab_from_port_using_trait( image );
