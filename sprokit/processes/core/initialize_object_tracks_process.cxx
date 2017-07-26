@@ -140,7 +140,7 @@ initialize_object_tracks_process
     old_tracks = grab_from_port_using_trait( object_track_set );
   }
 
-  // Get stabilization homography
+  // Compute new tracks
   new_tracks = d->m_track_initializer->initialize( frame_id, image, detections );
 
   // Union optional input tracks if available

@@ -48,6 +48,14 @@ namespace kwiver
 
 namespace algo = vital::algo;
 
+create_port_trait( unused_detections,
+  detected_object_set,
+  "Set of detected objects not linked to any tracks." );
+
+create_port_trait( all_detections,
+  detected_object_set,
+  "Set of all detected objects for the given frame." );
+
 //------------------------------------------------------------------------------
 // Private implementation class
 class associate_detections_to_tracks_process::priv
@@ -120,8 +128,19 @@ associate_detections_to_tracks_process
   vital::detected_object_set_sptr detections;
   vital::matrix_2x2d ass_matrix;
 
-  frame_id = grab_from_port_using_trait( timestamp );
-  image = grab_from_port_using_trait( image );
+  if( process::has_input_port_edge( "timestamp" ) )
+  {
+    frame_id = grab_from_port_using_trait( timestamp );
+
+    // Output frame ID
+    LOG_DEBUG( logger(), "Processing frame " << frame_id );
+  }
+
+  if( process::has_input_port_edge( "image" ) )
+  {
+    image = grab_from_port_using_trait( image );
+  }
+
   tracks = grab_from_port_using_trait( object_track_set );
   detections = grab_from_port_using_trait( detected_object_set );
   ass_matrix = grab_from_port_using_trait( matrix_2x2d );
@@ -129,16 +148,14 @@ associate_detections_to_tracks_process
   vital::object_track_set_sptr output;
   vital::detected_object_set_sptr unused;
 
-  // Output frame ID
-  LOG_DEBUG( logger(), "Processing frame " << frame_id );
-
   // Get stabilization homography
   output = d->m_track_associator->associate(
     frame_id, image, tracks, detections, ass_matrix, unused );
 
   // Return by value
   push_to_port_using_trait( object_track_set, output );
-  push_to_port_using_trait( detected_object_set, unused );
+  push_to_port_using_trait( all_detections, detections );
+  push_to_port_using_trait( unused_detections, unused );
 }
 
 
@@ -152,15 +169,16 @@ void associate_detections_to_tracks_process
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, optional );
   declare_input_port_using_trait( object_track_set, required );
   declare_input_port_using_trait( detected_object_set, required );
-  declare_input_port_using_trait( matrix_2x2d, optional );
+  declare_input_port_using_trait( matrix_2x2d, required );
 
   // -- output --
   declare_output_port_using_trait( object_track_set, optional );
-  declare_output_port_using_trait( detected_object_set, optional );
+  declare_output_port_using_trait( all_detections, optional );
+  declare_output_port_using_trait( unused_detections, optional );
 }
 
 

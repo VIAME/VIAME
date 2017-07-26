@@ -121,18 +121,26 @@ compute_association_matrix_process
 
   vital::matrix_2x2d output;
 
-  frame_id = grab_from_port_using_trait( timestamp );
-  image = grab_from_port_using_trait( image );
+  if( process::has_input_port_edge( "timestamp" ) )
+  {
+    frame_id = grab_from_port_using_trait( timestamp );
+
+    // Output frame ID
+    LOG_DEBUG( logger(), "Processing frame " << frame_id );
+  }
+
+  if( process::has_input_port_edge( "image" ) )
+  {
+    image = grab_from_port_using_trait( image );
+  }
+
   tracks = grab_from_port_using_trait( object_track_set );
   detections = grab_from_port_using_trait( detected_object_set );
 
-  // Output frame ID
-  LOG_DEBUG( logger(), "Processing frame " << frame_id );
-
-  // Get stabilization homography
+  // Get output matrix
   output = d->m_matrix_generator->compute( frame_id, image, tracks, detections );
 
-  // return by value
+  // Return all outputs
   push_to_port_using_trait( matrix_2x2d, output );
   push_to_port_using_trait( object_track_set, tracks );
   push_to_port_using_trait( detected_object_set, detections );
@@ -149,7 +157,7 @@ void compute_association_matrix_process
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, optional );
   declare_input_port_using_trait( object_track_set, required );
   declare_input_port_using_trait( detected_object_set, required );
