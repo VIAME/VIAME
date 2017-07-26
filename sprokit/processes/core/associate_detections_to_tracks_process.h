@@ -55,7 +55,8 @@ namespace kwiver
  *
  * \oports
  * \oport{tracks}
- * \oport{detections}
+ * \oport{unused_detections}
+ * \oport{all_detections}
  */
 class KWIVER_PROCESSES_NO_EXPORT associate_detections_to_tracks_process
   : public sprokit::process
