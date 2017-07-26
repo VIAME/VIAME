@@ -39,6 +39,7 @@
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
 
+#include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
@@ -58,15 +59,15 @@ public:
 
   /// Compute an association matrix given detections and tracks
   /**
-   * \param fid frame ID
+   * \param ts frame ID
    * \param image contains the input image for the current frame
    * \param tracks active track set from the last frame
    * \param detections detected object sets from the current frame
    * \returns an association matrix
    */
   virtual kwiver::vital::matrix_2x2d
-  compute( frame_id_t fid,
-           kwiver::vital::image_container_sptr image,          
+  compute( kwiver::vital::timestamp ts,
+           kwiver::vital::image_container_sptr image,
            kwiver::vital::object_track_set_sptr tracks,
            kwiver::vital::detected_object_set_sptr detections ) const = 0;
 
@@ -82,4 +83,4 @@ typedef std::shared_ptr<compute_association_matrix> compute_association_matrix_s
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_
+#endif // VITAL_ALGO_COMPUTE_ASSOCIATION_MATRIX_MAP_H_

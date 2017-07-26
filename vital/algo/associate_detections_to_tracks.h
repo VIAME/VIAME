@@ -48,7 +48,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for computing association cost matrices for tracking
+/// An abstract base class for using cost matrices to assign detections to tracks
 class VITAL_ALGO_EXPORT associate_detections_to_tracks
   : public kwiver::vital::algorithm_def<associate_detections_to_tracks>
 {
@@ -56,18 +56,18 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "associate_detections_to_tracks"; }
 
-  /// Compute an association matrix given detections and tracks
+  /// Use cost matrices to assign detections to existing tracks
   /**
-   * \param fid frame ID
+   * \param ts frame ID
    * \param image contains the input image for the current frame
    * \param tracks active track set from the last frame
    * \param detections detected object sets from the current frame
-   * \param detections detected object sets from the current frame
+   * \param matrix matrix containing detection to track association scores
    * \returns a new updated track set
    */
   virtual kwiver::vital::object_track_set_sptr
-  associate( frame_id_t fid,
-             kwiver::vital::image_container_sptr image,          
+  associate( kwiver::vital::timestamp ts,
+             kwiver::vital::image_container_sptr image,
              kwiver::vital::object_track_set_sptr tracks,
              kwiver::vital::detected_object_set_sptr detections,
              kwiver::vital::matrix_2x2d matrix ) const = 0;
@@ -84,4 +84,4 @@ typedef std::shared_ptr<associate_detections_to_tracks> associate_detections_to_
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_
+#endif // VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_

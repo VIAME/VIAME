@@ -39,10 +39,10 @@
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
 
+#include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
-#include <vital/types/matrix.h>
 
 namespace kwiver {
 namespace vital {
@@ -58,13 +58,13 @@ public:
 
   /// Compute an association matrix given detections and tracks
   /**
-   * \param fid frame ID
+   * \param ts frame ID
    * \param image contains the input image for the current frame
    * \param detections detected object sets from the current frame
    * \returns newly initialized tracks
    */
   virtual kwiver::vital::object_track_set_sptr
-  initialize( frame_id_t fid,
+  initialize( kwiver::vital::timestamp ts,
               kwiver::vital::image_container_sptr image,
               kwiver::vital::detected_object_set_sptr detections ) const = 0;
 
@@ -80,4 +80,4 @@ typedef std::shared_ptr<initialize_object_tracks> initialize_object_tracks_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_COMPUTE_STEREO_DEPTH_MAP_H_
+#endif // VITAL_ALGO_INITIALIZE_OBJECT_TRACKS_H_
