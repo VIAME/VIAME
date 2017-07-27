@@ -43,6 +43,7 @@
 #include <vector>
 #include <atomic>
 #include <algorithm>
+#include <limits>
 
 
 namespace kwiver {
@@ -58,28 +59,22 @@ class associate_detections_to_tracks_threshold::priv
 public:
   /// Constructor
   priv()
-    : max_new_tracks( 10000 )
-    , m_logger( vital::get_logger( "arrows.core.associate_detections_to_tracks_threshold" ))
+    : threshold( 0.50 )
+    , higher_is_better( true )
+    , m_logger( vital::get_logger(
+        "arrows.core.associate_detections_to_tracks_threshold" ) )
   {
   }
 
-  /// Maximum number of tracks to initialize
-  unsigned max_new_tracks;
+  /// Threshold to apply on the matrix
+  double threshold;
 
-  /// Next track ID to assign - make unique across all processes
-  static std::atomic< unsigned > next_track_id;
-
-  /// The feature matching algorithm to use
-  vital::algo::detected_object_filter_sptr filter;
+  /// Whether to take values above or below the threshold
+  bool higher_is_better;
 
   /// Logger handle
   vital::logger_handle_t m_logger;
 };
-
-
-// Initialize statics
-std::atomic< unsigned >
-associate_detections_to_tracks_threshold::priv::next_track_id( 1 );
 
 
 /// Constructor
@@ -101,7 +96,7 @@ std::string
 associate_detections_to_tracks_threshold
 ::description() const
 {
-  return "Initializes new object tracks via simple thresholding";
+  return "Performs track association of new detectionss via simple thresholding";
 }
 
 
@@ -113,13 +108,11 @@ associate_detections_to_tracks_threshold
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  // Sub-algorithm implementation name + sub_config block
-  // - Feature filter algorithm
-  algo::detected_object_filter::get_nested_algo_configuration(
-    "filter", config, d_->filter);
+  config->set_value( "threshold", d_->threshold,
+    "Threshold to apply on the matrix." );
 
-  config->set_value( "max_new_tracks", d_->max_new_tracks,
-    "Maximum number of new tracks to initialize on a single frame." );
+  config->set_value( "higher_is_better", d_->higher_is_better,
+    "Whether values above or below the threshold indicate a better fit." );
 
   return config;
 }
@@ -133,10 +126,8 @@ associate_detections_to_tracks_threshold
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
-  algo::detected_object_filter::set_nested_algo_configuration( "filter",
-    config, d_->filter );
-
-  d_->max_new_tracks = config->get_value<unsigned>( "max_new_tracks" );
+  d_->threshold = config->get_value<double>( "threshold" );
+  d_->higher_is_better = config->get_value<bool>( "higher_is_better" );
 }
 
 
@@ -144,9 +135,7 @@ bool
 associate_detections_to_tracks_threshold
 ::check_configuration(vital::config_block_sptr config) const
 {
-  return (
-    algo::detected_object_filter::check_nested_algo_configuration( "filter", config )
-  );
+  return true;
 }
 
 
@@ -154,30 +143,59 @@ associate_detections_to_tracks_threshold
 kwiver::vital::object_track_set_sptr
 associate_detections_to_tracks_threshold
 ::associate( kwiver::vital::timestamp ts,
-             kwiver::vital::image_container_sptr image,
+             kwiver::vital::image_container_sptr /*image*/,
              kwiver::vital::object_track_set_sptr tracks,
              kwiver::vital::detected_object_set_sptr detections,
              kwiver::vital::matrix_2x2d matrix,
              kwiver::vital::detected_object_set_sptr& unused ) const
 {
-  auto filtered = d_->filter->filter( detections )->select();
+  auto all_detections = detections->select();
+  auto all_tracks = tracks->tracks();
+
   std::vector< vital::track_sptr > output;
 
-  unsigned max_tracks = std::min( static_cast<unsigned>( filtered.size() ), d_->max_new_tracks );
-
-  for( unsigned i = 0; i < max_tracks; i++ )
+  for( unsigned t = 0; t < all_tracks.size(); ++t )
   {
-    unsigned new_id = associate_detections_to_tracks_threshold::priv::next_track_id++;
+    detected_object_sptr best_match;
 
-    vital::track_sptr new_track( new vital::track() );
-    new_track->set_id( new_id );
+    double best_score = ( d_->higher_is_better ? -1 : 1 ) *
+      std::numeric_limits<double>::max();
 
-    vital::track_state_sptr first_track_state(
-      new vital::object_track_state( ts.get_frame(), filtered[i] ) );
+    for( unsigned d = 0; d < all_detections.size(); ++d )
+    {
+      double value = matrix( t, d );
 
-    new_track->append( first_track_state );
+      if( d_->higher_is_better )
+      {
+        if( value >= d_->threshold && value > best_score )
+        {
+          best_score = value;
+          best_match = all_detections[d];
+        }
+      }
+      else
+      {
+        if( value <= d_->threshold && value < best_score )
+        {
+          best_score = value;
+          best_match = all_detections[d];
+        }
+      }
+    }
 
-    output.push_back( new_track );
+    if( best_match )
+    {
+      vital::track_state_sptr new_track_state(
+        new vital::object_track_state( ts.get_frame(), best_match ) );
+
+      vital::track_sptr adj_track( new vital::track( *all_tracks[t] ) );
+      adj_track->append( new_track_state );
+      output.push_back( adj_track );
+    }
+    else
+    {
+      output.push_back( all_tracks[t] );
+    }
   }
 
   return vital::object_track_set_sptr( new simple_object_track_set( output ) );
