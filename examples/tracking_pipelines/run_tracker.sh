@@ -6,4 +6,4 @@ source ../../setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p yolo_v2_detector.pipe
+pipeline_runner -p simple_tracker.pipe

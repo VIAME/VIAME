@@ -51,10 +51,8 @@ process detector_writer
 
 connect from input.image
         to   detector.image
-
 connect from detector.detected_object_set
         to   detector_writer.detected_object_set
-
 connect from input.image_file_name
         to   detector_writer.image_file_name
 
@@ -62,25 +60,59 @@ connect from input.image_file_name
 
 process tracker
  :: compute_association_matrix
-  :compute_association_matrix:type                   from_features
+  :matrix_generator:type                       from_features
+
+  block matrix_generator:from_features:filter
+    type                                       class_probablity_filter
+    class_probablity_filter:threshold          0.001
+    class_probablity_filter:keep_all_classes   false
+    class_probablity_filter:keep_classes       fish;scallop
+  endblock
 
 process track_associator
   :: associate_detections_to_tracks
-  :associate_detections_to_tracks:type               threshold
+  :associate_detections_to_tracks:type         threshold
 
 process track_initializer
   :: initialize_object_tracks
-  :track_initializer:type                            threshold
+  :track_initializer:type                      threshold
 
   block track_initializer:threshold:filter
-    type                                             class_probablity_filter
-    class_probablity_filter:threshold                0.001
-    filter:class_probablity_filter:keep_all_classes  false
-    filter:class_probablity_filter:keep_classes      fish;scallop
+    type                                       class_probablity_filter
+    class_probablity_filter:threshold          0.001
+    class_probablity_filter:keep_all_classes   false
+    class_probablity_filter:keep_classes       fish;scallop
   endblock
 
+# Connect inputs to tracker
 connect from input.image
-        to   faster_rcnn.image
+        to   tracker.image
+connect from input.timestamp
+        to   tracker.timestamp
+connect from detector.detected_object_set
+        to   tracker.detected_object_set
+connect from track_initializer.object_track_set
+        to   tracker.object_track_set
+
+# Connect inputs to track_associator
+connect from input.image
+        to   track_associator.image
+connect from input.timestamp
+        to   track_associator.timestamp
+connect from tracker.matrix_2x2d
+        to   track_associator.matrix_2x2d
+connect from tracker.object_track_set
+        to   track_associator.object_track_set
+connect from tracker.detected_object_set
+        to   track_associator.detected_object_set
+
+# Connect inputs to track_initializer
+connect from input.image
+        to   track_initializer.image
+connect from input.timestamp
+        to   track_initializer.timestamp
+connect from track_associator.unused_detections
+        to   track_initializer.detected_object_set
 
 
 # -- end of file --
