@@ -94,14 +94,18 @@ public:
    * \param ts frame ID
    * \param image contains the input image for the current frame
    * \param tracks active track set from the last frame
-   * \param detections detected object sets from the current frame
-   * \returns an association matrix
+   * \param detections input detected object sets from the current frame
+   * \param matrix output matrix
+   * \param considered output detections used in matrix
+   * \return returns whether a matrix was successfully computed
    */
-  virtual kwiver::vital::matrix_2x2d
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image,
-           kwiver::vital::object_track_set_sptr tracks,
-           kwiver::vital::detected_object_set_sptr detections ) const;
+  virtual bool
+  compute(kwiver::vital::timestamp ts,
+          kwiver::vital::image_container_sptr image,
+          kwiver::vital::object_track_set_sptr tracks,
+          kwiver::vital::detected_object_set_sptr detections,
+          kwiver::vital::matrix_2x2d& matrix,
+          kwiver::vital::detected_object_set_sptr& considered) const;
 
 private:
   /// private implementation class

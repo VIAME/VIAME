@@ -119,7 +119,8 @@ compute_association_matrix_process
   vital::object_track_set_sptr tracks;
   vital::detected_object_set_sptr detections;
 
-  vital::matrix_2x2d output;
+  vital::matrix_2x2d matrix_output;
+  vital::detected_object_set_sptr detection_output;
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
@@ -137,13 +138,14 @@ compute_association_matrix_process
   tracks = grab_from_port_using_trait( object_track_set );
   detections = grab_from_port_using_trait( detected_object_set );
 
-  // Get output matrix
-  output = d->m_matrix_generator->compute( frame_id, image, tracks, detections );
+  // Get output matrix and detections
+  d->m_matrix_generator->compute( frame_id, image, tracks,
+    detections, matrix_output, detection_output );
 
   // Return all outputs
-  push_to_port_using_trait( matrix_2x2d, output );
+  push_to_port_using_trait( matrix_2x2d, matrix_output );
   push_to_port_using_trait( object_track_set, tracks );
-  push_to_port_using_trait( detected_object_set, detections );
+  push_to_port_using_trait( detected_object_set, detection_output );
 }
 
 

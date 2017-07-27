@@ -134,24 +134,31 @@ compute_association_matrix_from_features
 
 
 /// Compute an association matrix given detections and tracks
-kwiver::vital::matrix_2x2d
+bool
 compute_association_matrix_from_features
-::compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image,
-           kwiver::vital::object_track_set_sptr tracks,
-           kwiver::vital::detected_object_set_sptr detections ) const
+::compute(kwiver::vital::timestamp ts,
+          kwiver::vital::image_container_sptr image,
+          kwiver::vital::object_track_set_sptr tracks,
+          kwiver::vital::detected_object_set_sptr detections,
+          kwiver::vital::matrix_2x2d& matrix,
+          kwiver::vital::detected_object_set_sptr& considered) const
 {
-  kwiver::vital::matrix_2x2d output( tracks->size(), detections->size() );
+  considered = d_->filter->filter( detections );
 
-  for( unsigned t = 0; t < tracks->size(); ++t )
+  auto filtered_dets = considered->select();
+  auto filtered_tracks = tracks->tracks();
+
+  matrix = kwiver::vital::matrix_2x2d ( filtered_tracks.size(), filtered_dets.size() );
+
+  for( unsigned t = 0; t < filtered_tracks.size(); ++t )
   {
-    for( unsigned d = 0; d < detections->size(); ++d )
+    for( unsigned d = 0; d < filtered_dets.size(); ++d )
     {
-      output( t, d ) = 0.5;
+      matrix( t, d ) = 0.5;
     }
   }
 
-  return output;
+  return ( matrix.size() > 0 );
 }
 
 
