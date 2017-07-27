@@ -56,7 +56,7 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "initialize_object_tracks"; }
 
-  /// Compute an association matrix given detections and tracks
+  /// Initialize new object tracks given detections.
   /**
    * \param ts frame ID
    * \param image contains the input image for the current frame
