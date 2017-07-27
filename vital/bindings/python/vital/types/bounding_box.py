@@ -168,7 +168,7 @@ class BoundingBox (VitalObject):
 
     def width(self):
         bb_width = self.VITAL_LIB.vital_bounding_box_width
-        bb_maxy.argtypes = [self.C_TYPE_PTR]
+        bb_width.argtypes = [self.C_TYPE_PTR]
         bb_width.restype = ctypes.c_double
         return bb_width(self)
 
