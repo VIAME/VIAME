@@ -211,7 +211,7 @@ subset_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double keep_frac
   const int rand_thresh = static_cast< int > ( keep_frac * RAND_MAX );
   VITAL_FOREACH( const track_sptr &t, tracks )
   {
-    auto nt = std::make_shared<track>();
+    auto nt = track::make();
 
     nt->set_id( t->id() );
     std::cout << "track " << t->id() << ":";
@@ -244,7 +244,7 @@ noisy_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double stdev = 1.
   std::vector< track_sptr > new_tracks;
   VITAL_FOREACH( const track_sptr &t, tracks )
   {
-    auto nt = std::make_shared<track>();
+    auto nt = track::make();
     nt->set_id(t->id());
     for(track::history_const_itr it=t->begin(); it!=t->end(); ++it)
     {
@@ -279,13 +279,14 @@ add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
   const int rand_thresh = static_cast<int>(outlier_frac * RAND_MAX);
   VITAL_FOREACH(const track_sptr& t, tracks)
   {
-    track_sptr nt(new track);
+    track_sptr nt = track::make();
     nt->set_id( t->id() );
     VITAL_FOREACH( const auto &ts, *t )
     {
       auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
       if( !fts || !fts->feature )
       {
+        std::cout << " X";
         continue;
       }
       if(std::rand() < rand_thresh)
@@ -294,11 +295,12 @@ add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
         auto new_fts = std::make_shared<feature_track_state>(*fts);
         new_fts->feature = std::make_shared<feature_d>(loc);
         nt->append( new_fts );
+        std::cout << " M";
       }
       else
       {
         std::cout << " .";
-        nt->append(ts);
+        nt->append(ts->clone());
       }
     }
     std::cout << std::endl;

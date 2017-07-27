@@ -4,9 +4,34 @@ KWIVER v1.2.0 Release Notes
 This is a minor release of KWIVER that provides both new functionality and
 fixes over the previous v1.1.0 release.
 
-.
+
 Updates since v1.1.0
 --------------------
+
+Vital
+
+ * Generalized the track and track_state types to be useful for both feature
+   and object tracks.  Data that is specific to features or objects is now
+   stored in subclasses of track_state.
+
+ * Generalized the track_set to be useful for both feature and object tracks.
+   Added derived classes for feature_track_set and object_track_set to
+   indicate the type of tracks in the set and provide specialized helper
+   functions.  Algorithm APIs previously using track_set now use either
+   feature_track_set or object_track_set.
+
+ * Track states now have a pointer (std::weak_ptr) back to the track object
+   which contains them.  This means that each track state can belong to at
+   most one track, and tracks and track status must now be created and
+   referenced only via shared_ptr.  Constructors for track are now protected
+   and "make()" static member is used for construction.  A "clone()" function
+   is now used for track copy construction.
+
+Vital Bindings
+
+ * Vital C and Python bindings have been updated with respect the refactoring
+   of tracks and track_sets to account for both feature and object tracks.
+
 
 Fixes since v1.1.0
 ------------------

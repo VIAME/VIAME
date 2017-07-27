@@ -126,16 +126,14 @@ public:
   /// convenience type for the const iterator of the track state vector
   typedef std::vector< track_state_sptr >::const_iterator history_const_itr;
 
-  /// Default Constructor
-  track(track_data_sptr d=nullptr);
-
-  /// Copy Constructor
-  track( const track& other );
-
+  /// Destructor
   ~track() VITAL_DEFAULT_DTOR
 
-  /// Construct a track from a single track state
-  explicit track( track_state_sptr ts, track_data_sptr d=nullptr );
+  /// Factory function
+  static track_sptr make(track_data_sptr data = nullptr);
+
+  /// Clone
+  track_sptr clone() const;
 
   /// Access the track identification number
   track_id_t id() const { return id_; }
@@ -210,6 +208,12 @@ public:
 
 
 protected:
+  /// Default Constructor
+  explicit track(track_data_sptr d=nullptr);
+
+  /// Copy Constructor
+  track( const track& other );
+
   /// The ordered array of track states
   std::vector< track_state_sptr > history_;
   /// The unique track identification number
