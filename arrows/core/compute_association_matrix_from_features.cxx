@@ -70,11 +70,6 @@ public:
 };
 
 
-// Initialize statics
-std::atomic< unsigned >
-compute_association_matrix_from_features::priv::next_track_id( 1 );
-
-
 /// Constructor
 compute_association_matrix_from_features
 ::compute_association_matrix_from_features()
