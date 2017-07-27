@@ -188,7 +188,7 @@ associate_detections_to_tracks_threshold
       vital::track_state_sptr new_track_state(
         new vital::object_track_state( ts.get_frame(), best_match ) );
 
-      vital::track_sptr adj_track( new vital::track( *all_tracks[t] ) );
+      vital::track_sptr adj_track( all_tracks[t]->clone() );
       adj_track->append( new_track_state );
       output.push_back( adj_track );
     }
