@@ -1,0 +1,97 @@
+# Multi-Detector CNN Pipeline
+#
+# Runs multiple CNN-based object detectors in the VIAME framework:
+#
+#    (a) Faster R-CNN
+#    (b) YOLOv1
+#    (c) YOLOv2
+#    (d) Scallop-TK
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+# ====================== INPUT FRAME LIST ========================
+process input
+  :: frame_list_input
+  :image_list_file                input_list.txt
+  :frame_time                     0.03333
+  :image_reader:type              vxl
+
+# ========================== DETECTOR ============================
+
+process detector
+  :: image_object_detector
+  :detector:type                  darknet
+
+  # Network config
+  :detector:darknet:net_config    models/model2.cfg
+  :detector:darknet:weight_file   models/model2.weights
+  :detector:darknet:class_names   models/scallop_and_fish.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh        0.001
+  :detector:darknet:hier_thresh   0.001
+  :detector:darknet:gpu_index     0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option maintain_ar
+  :detector:darknet:resize_ni     544
+  :detector:darknet:resize_nj     544
+  :detector:darknet:scale         1.0
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name     output/individual_detections.kw18
+  :writer:type   kw18
+
+  # Write out FSO classifications alongside tracks
+  :writer:kw18:write_tot         true
+  :writer:kw18:tot_field1_ids    fish
+  :writer:kw18:tot_field2_ids    scallop
+
+connect from input.image
+        to   detector.image
+
+connect from detector.detected_object_set
+        to   detector_writer.detected_object_set
+
+connect from input.image_file_name
+        to   detector_writer.image_file_name
+
+# ======================== CORE TRACKER  =========================
+
+process tracker
+ :: image_object_detector
+  :tracker:type    faster_rcnn
+
+process track_associator
+  :: detected_object_filter
+  :associator:type   class_probablity_filter
+
+process track_initializer
+  :: initialize_object_tracks
+  :track_initializer:type                  threshold
+  :track_initializer:threshold:filter:type         class_probablity_filter
+  :filter:class_probablity_filter:threshold        0.001
+  :filter:class_probablity_filter:keep_all_classes false
+  :filter:class_probablity_filter:keep_classes     fish;scallop
+
+connect from input.image
+        to   faster_rcnn.image
+
+connect from faster_rcnn.detected_object_set
+        to   faster_rcnn_filter.detected_object_set
+
+connect from faster_rcnn_filter.detected_object_set
+        to   faster_rcnn_writer.detected_object_set
+
+connect from input.image_file_name
+        to   faster_rcnn_writer.image_fi
+
+
+# -- end of file --
