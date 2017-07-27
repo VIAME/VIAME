@@ -62,7 +62,7 @@ process tracker
  :: compute_association_matrix
   :matrix_generator:type                       from_features
 
-  block matrix_generator:from_features:filter
+  block :matrix_generator:from_features:filter
     type                                       class_probablity_filter
     class_probablity_filter:threshold          0.001
     class_probablity_filter:keep_all_classes   false
@@ -71,7 +71,9 @@ process tracker
 
 process track_associator
   :: associate_detections_to_tracks
-  :associate_detections_to_tracks:type         threshold
+  :track_associator:type                       threshold
+  :track_associator:threshold:threshold        0.50
+  :track_associator:threshold:higher_is_better true
 
 process track_initializer
   :: initialize_object_tracks

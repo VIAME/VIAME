@@ -11,6 +11,7 @@ if( VIAME_INSTALL_EXAMPLES )
   add_subdirectory( external_plugin_creation )
   add_subdirectory( hello_world_pipeline )
   add_subdirectory( scoring_and_roc_generation )
+  add_subdirectory( tracking_pipelines )
   add_subdirectory( using_detectors_in_cxx_code )
   add_subdirectory( visualizing_detections_in_gui )
 
