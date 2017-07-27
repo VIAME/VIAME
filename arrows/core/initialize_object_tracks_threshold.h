@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_CLASS_PROBABLITY_FILTER_H_
-#define KWIVER_ARROWS_CLASS_PROBABLITY_FILTER_H_
+#ifndef KWIVER_ARROWS_INITIALIZE_OBJECT_TRACKS_THRESHOLD_H_
+#define KWIVER_ARROWS_INITIALIZE_OBJECT_TRACKS_THRESHOLD_H_
 
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
@@ -113,4 +113,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_initialize_object_tracks_threshold_H_
+#endif // KWIVER_ARROWS_INITIALIZE_OBJECT_TRACKS_THRESHOLD_H_

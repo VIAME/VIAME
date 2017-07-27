@@ -27,3 +27,163 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/**
+ * \file
+ * \brief Implementation of associate_detections_to_tracks_threshold
+ */
+
+#include "associate_detections_to_tracks_threshold.h"
+
+#include <vital/algo/detected_object_filter.h>
+#include <vital/types/object_track_set.h>
+#include <vital/exceptions/algorithm.h>
+
+#include <string>
+#include <vector>
+#include <atomic>
+#include <algorithm>
+
+
+namespace kwiver {
+namespace arrows {
+namespace core {
+
+using namespace kwiver::vital;
+
+
+/// Private implementation class
+class associate_detections_to_tracks_threshold::priv
+{
+public:
+  /// Constructor
+  priv()
+    : max_new_tracks( 10000 )
+    , m_logger( vital::get_logger( "arrows.core.associate_detections_to_tracks_threshold" ))
+  {
+  }
+
+  /// Maximum number of tracks to initialize
+  unsigned max_new_tracks;
+
+  /// Next track ID to assign - make unique across all processes
+  static std::atomic< unsigned > next_track_id;
+
+  /// The feature matching algorithm to use
+  vital::algo::detected_object_filter_sptr filter;
+
+  /// Logger handle
+  vital::logger_handle_t m_logger;
+};
+
+
+// Initialize statics
+std::atomic< unsigned >
+associate_detections_to_tracks_threshold::priv::next_track_id( 1 );
+
+
+/// Constructor
+associate_detections_to_tracks_threshold
+::associate_detections_to_tracks_threshold()
+  : d_( new priv )
+{
+}
+
+
+/// Destructor
+associate_detections_to_tracks_threshold
+::~associate_detections_to_tracks_threshold() VITAL_NOTHROW
+{
+}
+
+
+std::string
+associate_detections_to_tracks_threshold
+::description() const
+{
+  return "Initializes new object tracks via simple thresholding";
+}
+
+
+/// Get this alg's \link vital::config_block configuration block \endlink
+vital::config_block_sptr
+associate_detections_to_tracks_threshold
+::get_configuration() const
+{
+  // get base config from base class
+  vital::config_block_sptr config = algorithm::get_configuration();
+
+  // Sub-algorithm implementation name + sub_config block
+  // - Feature filter algorithm
+  algo::detected_object_filter::get_nested_algo_configuration(
+    "filter", config, d_->filter);
+
+  config->set_value( "max_new_tracks", d_->max_new_tracks,
+    "Maximum number of new tracks to initialize on a single frame." );
+
+  return config;
+}
+
+
+/// Set this algo's properties via a config block
+void
+associate_detections_to_tracks_threshold
+::set_configuration( vital::config_block_sptr in_config )
+{
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config( in_config );
+
+  algo::detected_object_filter::set_nested_algo_configuration( "filter",
+    config, d_->filter );
+
+  d_->max_new_tracks = config->get_value<unsigned>( "max_new_tracks" );
+}
+
+
+bool
+associate_detections_to_tracks_threshold
+::check_configuration(vital::config_block_sptr config) const
+{
+  return (
+    algo::detected_object_filter::check_nested_algo_configuration( "filter", config )
+  );
+}
+
+
+/// Frame stitching using keyframe-base matching
+kwiver::vital::object_track_set_sptr
+associate_detections_to_tracks_threshold
+::associate( kwiver::vital::timestamp ts,
+             kwiver::vital::image_container_sptr image,
+             kwiver::vital::object_track_set_sptr tracks,
+             kwiver::vital::detected_object_set_sptr detections,
+             kwiver::vital::matrix_2x2d matrix,
+             kwiver::vital::detected_object_set_sptr& unused ) const
+{
+  auto filtered = d_->filter->filter( detections )->select();
+  std::vector< vital::track_sptr > output;
+
+  unsigned max_tracks = std::min( static_cast<unsigned>( filtered.size() ), d_->max_new_tracks );
+
+  for( unsigned i = 0; i < max_tracks; i++ )
+  {
+    unsigned new_id = associate_detections_to_tracks_threshold::priv::next_track_id++;
+
+    vital::track_sptr new_track( new vital::track() );
+    new_track->set_id( new_id );
+
+    vital::track_state_sptr first_track_state(
+      new vital::object_track_state( ts.get_frame(), filtered[i] ) );
+
+    new_track->append( first_track_state );
+
+    output.push_back( new_track );
+  }
+
+  return vital::object_track_set_sptr( new simple_object_track_set( output ) );
+}
+
+
+} // end namespace core
+} // end namespace arrows
+} // end namespace kwiver
