@@ -139,7 +139,7 @@ associate_detections_to_tracks_threshold
 }
 
 
-/// Frame stitching using keyframe-base matching
+/// Associate object detections to object tracks
 kwiver::vital::object_track_set_sptr
 associate_detections_to_tracks_threshold
 ::associate( kwiver::vital::timestamp ts,

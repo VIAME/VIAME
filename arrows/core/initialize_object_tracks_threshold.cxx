@@ -150,7 +150,7 @@ initialize_object_tracks_threshold
 }
 
 
-/// Frame stitching using keyframe-base matching
+/// Initialize object tracks
 kwiver::vital::object_track_set_sptr
 initialize_object_tracks_threshold
 ::initialize( kwiver::vital::timestamp ts,

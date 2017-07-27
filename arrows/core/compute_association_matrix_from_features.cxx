@@ -27,3 +27,139 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/**
+ * \file
+ * \brief Implementation of compute_association_matrix_from_features
+ */
+
+#include "compute_association_matrix_from_features.h"
+
+#include <vital/algo/detected_object_filter.h>
+#include <vital/types/object_track_set.h>
+#include <vital/exceptions/algorithm.h>
+
+#include <string>
+#include <vector>
+#include <atomic>
+#include <algorithm>
+
+
+namespace kwiver {
+namespace arrows {
+namespace core {
+
+using namespace kwiver::vital;
+
+
+/// Private implementation class
+class compute_association_matrix_from_features::priv
+{
+public:
+  /// Constructor
+  priv()
+    : m_logger( vital::get_logger( "arrows.core.compute_association_matrix_from_features" ))
+  {
+  }
+
+  /// The feature matching algorithm to use
+  vital::algo::detected_object_filter_sptr filter;
+
+  /// Logger handle
+  vital::logger_handle_t m_logger;
+};
+
+
+// Initialize statics
+std::atomic< unsigned >
+compute_association_matrix_from_features::priv::next_track_id( 1 );
+
+
+/// Constructor
+compute_association_matrix_from_features
+::compute_association_matrix_from_features()
+  : d_( new priv )
+{
+}
+
+
+/// Destructor
+compute_association_matrix_from_features
+::~compute_association_matrix_from_features() VITAL_NOTHROW
+{
+}
+
+
+std::string
+compute_association_matrix_from_features
+::description() const
+{
+  return "Initializes new object tracks via simple thresholding";
+}
+
+
+/// Get this alg's \link vital::config_block configuration block \endlink
+vital::config_block_sptr
+compute_association_matrix_from_features
+::get_configuration() const
+{
+  // get base config from base class
+  vital::config_block_sptr config = algorithm::get_configuration();
+
+  // Sub-algorithm implementation name + sub_config block
+  // - Feature filter algorithm
+  algo::detected_object_filter::get_nested_algo_configuration(
+    "filter", config, d_->filter);
+
+  return config;
+}
+
+
+/// Set this algo's properties via a config block
+void
+compute_association_matrix_from_features
+::set_configuration( vital::config_block_sptr in_config )
+{
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config( in_config );
+
+  algo::detected_object_filter::set_nested_algo_configuration( "filter",
+    config, d_->filter );
+}
+
+
+bool
+compute_association_matrix_from_features
+::check_configuration(vital::config_block_sptr config) const
+{
+  return (
+    algo::detected_object_filter::check_nested_algo_configuration( "filter", config )
+  );
+}
+
+
+/// Compute an association matrix given detections and tracks
+kwiver::vital::matrix_2x2d
+compute_association_matrix_from_features
+::compute( kwiver::vital::timestamp ts,
+           kwiver::vital::image_container_sptr image,
+           kwiver::vital::object_track_set_sptr tracks,
+           kwiver::vital::detected_object_set_sptr detections ) const
+{
+  kwiver::vital::matrix_2x2d output( tracks->size(), detections->size() );
+
+  for( unsigned t = 0; t < tracks->size(); ++t )
+  {
+    for( unsigned d = 0; d < detections->size(); ++d )
+    {
+      output( t, d ) = 0.5;
+    }
+  }
+
+  return output;
+}
+
+
+} // end namespace core
+} // end namespace arrows
+} // end namespace kwiver
