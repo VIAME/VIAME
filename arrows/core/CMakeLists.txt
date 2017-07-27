@@ -1,11 +1,13 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_core_headers
+  associate_detections_to_tracks_threshold.h
   class_probablity_filter.h
   close_loops_bad_frames_only.h
   close_loops_exhaustive.h
   close_loops_keyframe.h
   close_loops_multi_method.h
+  compute_association_matrix_from_features.h
   compute_ref_homography_core.h
   convert_image_bypass.h
   detected_object_set_input_kw18.h
@@ -21,6 +23,7 @@ set( plugin_core_headers
   filter_tracks.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
+  initialize_object_tracks_threshold.h
   match_features_fundamental_matrix.h
   match_features_homography.h
   track_descriptor_set_output_csv.h
@@ -56,11 +59,13 @@ kwiver_install_headers(
   )
 
 set( plugin_core_sources
+  associate_detections_to_tracks_threshold.cxx
   class_probablity_filter.cxx
   close_loops_bad_frames_only.cxx
   close_loops_exhaustive.cxx
   close_loops_keyframe.cxx
   close_loops_multi_method.cxx
+  compute_association_matrix_from_features.cxx
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
   detected_object_set_input_kw18.cxx
@@ -76,6 +81,7 @@ set( plugin_core_sources
   filter_tracks.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
+  initialize_object_tracks_threshold.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   track_descriptor_set_output_csv.cxx
