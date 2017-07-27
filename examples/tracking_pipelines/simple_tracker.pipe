@@ -1,35 +1,30 @@
-# Multi-Detector CNN Pipeline
+# Example simple tracker pipeline
 #
-# Runs multiple CNN-based object detectors in the VIAME framework:
-#
-#    (a) Faster R-CNN
-#    (b) YOLOv1
-#    (c) YOLOv2
-#    (d) Scallop-TK
+# Runs a 8-node object tracking pipeline
 
-# ===================== GLOBAL PROPERTIES ========================
+# ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
 config _pipeline:_edge
        :capacity 5
 
-# ====================== INPUT FRAME LIST ========================
+# ============================== INPUT FRAME LIST ==================================
 process input
   :: frame_list_input
   :image_list_file                input_list.txt
   :frame_time                     0.03333
   :image_reader:type              vxl
 
-# ========================== DETECTOR ============================
+# ================================== DETECTOR ======================================
 
 process detector
   :: image_object_detector
   :detector:type                  darknet
 
   # Network config
-  :detector:darknet:net_config    models/model2.cfg
-  :detector:darknet:weight_file   models/model2.weights
-  :detector:darknet:class_names   models/scallop_and_fish.lbl
+  :detector:darknet:net_config    ../detector_pipelines/models/model2.cfg
+  :detector:darknet:weight_file   ../detector_pipelines/models/model2.weights
+  :detector:darknet:class_names   ../detector_pipelines/models/scallop_and_fish.lbl
 
   # Detector parameters
   :detector:darknet:thresh        0.001
@@ -63,35 +58,29 @@ connect from detector.detected_object_set
 connect from input.image_file_name
         to   detector_writer.image_file_name
 
-# ======================== CORE TRACKER  =========================
+# ================================ CORE TRACKER  ===================================
 
 process tracker
- :: image_object_detector
-  :tracker:type    faster_rcnn
+ :: compute_association_matrix
+  :compute_association_matrix:type                   from_features
 
 process track_associator
-  :: detected_object_filter
-  :associator:type   class_probablity_filter
+  :: associate_detections_to_tracks
+  :associate_detections_to_tracks:type               threshold
 
 process track_initializer
   :: initialize_object_tracks
-  :track_initializer:type                  threshold
-  :track_initializer:threshold:filter:type         class_probablity_filter
-  :filter:class_probablity_filter:threshold        0.001
-  :filter:class_probablity_filter:keep_all_classes false
-  :filter:class_probablity_filter:keep_classes     fish;scallop
+  :track_initializer:type                            threshold
+
+  block track_initializer:threshold:filter
+    type                                             class_probablity_filter
+    class_probablity_filter:threshold                0.001
+    filter:class_probablity_filter:keep_all_classes  false
+    filter:class_probablity_filter:keep_classes      fish;scallop
+  endblock
 
 connect from input.image
         to   faster_rcnn.image
-
-connect from faster_rcnn.detected_object_set
-        to   faster_rcnn_filter.detected_object_set
-
-connect from faster_rcnn_filter.detected_object_set
-        to   faster_rcnn_writer.detected_object_set
-
-connect from input.image_file_name
-        to   faster_rcnn_writer.image_fi
 
 
 # -- end of file --
