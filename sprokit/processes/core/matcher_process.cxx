@@ -167,7 +167,8 @@ matcher_process
     for ( ; fit != vf.end() && dit != df.end(); ++fit, ++dit )
     {
       auto ts = std::make_shared<vital::feature_track_state>( frame_number, *fit, *dit );
-      new_tracks.push_back( std::make_shared<vital::track>( ts ) );
+      new_tracks.push_back( vital::track::make() );
+      new_tracks.back()->append( ts );
       new_tracks.back()->set_id( d->m_next_track_id++ );
     }
     // call loop closure on the first frame to establish this
@@ -209,7 +210,8 @@ matcher_process
     {
       auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[i], df[i] );
 
-      all_tracks.push_back( std::make_shared<vital::track>( ts ) );
+      all_tracks.push_back( vital::track::make() );
+      all_tracks.back()->append( ts );
       all_tracks.back()->set_id( d->m_next_track_id++ );
     }
 

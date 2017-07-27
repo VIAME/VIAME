@@ -74,31 +74,30 @@ track
   , id_( other.id_ )
   , data_( other.data_ )
 {
-  for( auto const& ts : other.history_ )
-  {
-    this->history_.push_back( ts->clone() );
-    this->history_.back()->track_ = this->shared_from_this();
-  }
 }
 
 
-/// Construct a track from a single track state
+/// Factory function
+track_sptr
 track
-::track( track_state_sptr ts, track_data_sptr d )
-  : history_()
-  , id_( 0 )
-  , data_( d )
+::make(track_data_sptr data)
 {
-  if( !ts )
+  return track_sptr(new track(data));
+}
+
+
+/// Clone
+track_sptr
+track
+::clone() const
+{
+  track_sptr t(new track(*this));
+  for( auto const& ts : this->history_ )
   {
-    throw invalid_value("cannot construct a track from a null track_state");
+    t->history_.push_back( ts->clone() );
+    t->history_.back()->track_ = t->shared_from_this();
   }
-  if( ! ts->track_.expired() )
-  {
-    throw invalid_value("track_state alread belongs to a track");
-  }
-  history_.push_back( ts );
-  ts->track_ = this->shared_from_this();
+  return t;
 }
 
 

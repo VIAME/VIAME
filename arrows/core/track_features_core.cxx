@@ -372,7 +372,8 @@ track_features_core
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
       fts->descriptor = *dit;
-      new_tracks.push_back(std::make_shared<vital::track>(fts));
+      new_tracks.push_back(vital::track::make());
+      new_tracks.back()->append(fts);
       new_tracks.back()->set_id(next_track_id++);
     }
     if( d_->closer )
@@ -483,7 +484,8 @@ track_features_core
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[i];
       fts->descriptor = df[i];
-      all_tracks.push_back(std::make_shared<vital::track>(fts));
+      all_tracks.push_back(vital::track::make());
+      all_tracks.back()->append(fts);
       all_tracks.back()->set_id(next_track_id++);
     }
     updated_track_set = std::make_shared<simple_feature_track_set>(all_tracks);
