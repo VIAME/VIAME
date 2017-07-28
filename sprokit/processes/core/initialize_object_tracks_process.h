@@ -68,6 +68,7 @@ class KWIVER_PROCESSES_NO_EXPORT initialize_object_tracks_process
   protected:
     virtual void _configure();
     virtual void _step();
+    virtual void _init();
 
   private:
     void make_ports();

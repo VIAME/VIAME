@@ -1483,9 +1483,9 @@ process
 
     if (!port_stamp)
     {
-      static std::string const reason = "The stamp for an output port was not initialized";
+      static std::string const reason = "The stamp for an output port was not initialized in ";
 
-      throw std::runtime_error(reason);
+      throw std::runtime_error(reason + this->name());
     }
 
     {
