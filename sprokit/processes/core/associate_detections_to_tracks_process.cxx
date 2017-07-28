@@ -126,7 +126,7 @@ associate_detections_to_tracks_process
   vital::image_container_sptr image;
   vital::object_track_set_sptr tracks;
   vital::detected_object_set_sptr detections;
-  vital::matrix_2x2d ass_matrix;
+  vital::matrix_d ass_matrix;
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
@@ -143,7 +143,7 @@ associate_detections_to_tracks_process
 
   tracks = grab_from_port_using_trait( object_track_set );
   detections = grab_from_port_using_trait( detected_object_set );
-  ass_matrix = grab_from_port_using_trait( matrix_2x2d );
+  ass_matrix = grab_from_port_using_trait( matrix_d );
 
   vital::object_track_set_sptr output;
   vital::detected_object_set_sptr unused;
@@ -173,7 +173,7 @@ void associate_detections_to_tracks_process
   declare_input_port_using_trait( image, optional );
   declare_input_port_using_trait( object_track_set, required );
   declare_input_port_using_trait( detected_object_set, required );
-  declare_input_port_using_trait( matrix_2x2d, required );
+  declare_input_port_using_trait( matrix_d, required );
 
   // -- output --
   declare_output_port_using_trait( object_track_set, optional );

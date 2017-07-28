@@ -275,7 +275,7 @@ simple_camera_intrinsics
     // an alternative is a fixed point iteration as used by OpenCV:
     //   norm_pt = (dist_pt - offset) / scale;
     // Gauss-Newton seems to have faster convergence
-    matrix_2x2d J = distortion_jacobian( norm_pt, dist_coeffs_ );
+    matrix_d J = distortion_jacobian( norm_pt, dist_coeffs_ );
     residual = norm_pt * scale + offset - dist_pt;
     // check the maximum absolution residual to test convergence
     if ( residual.cwiseAbs().maxCoeff() < 1e-12 )

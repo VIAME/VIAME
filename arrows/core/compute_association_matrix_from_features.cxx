@@ -140,7 +140,7 @@ compute_association_matrix_from_features
           kwiver::vital::image_container_sptr image,
           kwiver::vital::object_track_set_sptr tracks,
           kwiver::vital::detected_object_set_sptr detections,
-          kwiver::vital::matrix_2x2d& matrix,
+          kwiver::vital::matrix_d& matrix,
           kwiver::vital::detected_object_set_sptr& considered) const
 {
   considered = d_->filter->filter( detections );
@@ -148,16 +148,24 @@ compute_association_matrix_from_features
   auto filtered_dets = considered->select();
   auto filtered_tracks = tracks->tracks();
 
-  matrix = kwiver::vital::matrix_2x2d ( filtered_tracks.size(), filtered_dets.size() );
-
-  for( unsigned t = 0; t < filtered_tracks.size(); ++t )
+  if( filtered_tracks.empty() || filtered_dets.empty() )
   {
-    for( unsigned d = 0; d < filtered_dets.size(); ++d )
+    matrix = kwiver::vital::matrix_d();
+  }
+  else
+  {
+    matrix = kwiver::vital::matrix_d( filtered_tracks.size(), filtered_dets.size() );
+
+    for( unsigned t = 0; t < filtered_tracks.size(); ++t )
     {
-      matrix( t, d ) = 0.5;
+      for( unsigned d = 0; d < filtered_dets.size(); ++d )
+      {
+        matrix( t, d ) = 0.5;
+      }
     }
   }
 
+  considered = detections;
   return ( matrix.size() > 0 );
 }
 
