@@ -67,7 +67,7 @@ mark_as_advanced( VIAME_CREATE_PACKAGE )
 # Add logic relating to enable flags
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
-    VIAME_ENABLE_FASTER_RCNN )
+    VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_YOLO )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
 endif()
 
