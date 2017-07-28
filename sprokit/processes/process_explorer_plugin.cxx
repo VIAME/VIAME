@@ -178,7 +178,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                   << std::endl;
   }
 
-  out_stream() << "  -- Input ports:" << std::endl;
+  out_stream() << "  -- Input ports --" << std::endl;
 
   sprokit::process::ports_t const iports = proc->input_ports();
 
@@ -205,7 +205,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                   << std::endl;
   }   // end foreach
 
-  out_stream() << "  -- Output ports:" << std::endl;
+  out_stream() << "  -- Output ports --" << std::endl;
 
   sprokit::process::ports_t const oports = proc->output_ports();
 
