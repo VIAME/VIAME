@@ -97,8 +97,8 @@ connect from input.image
         to   track_associator.image
 connect from input.timestamp
         to   track_associator.timestamp
-connect from tracker.matrix_2x2d
-        to   track_associator.matrix_2x2d
+connect from tracker.matrix_d
+        to   track_associator.matrix_d
 connect from tracker.object_track_set
         to   track_associator.object_track_set
 connect from tracker.detected_object_set
