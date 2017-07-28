@@ -54,7 +54,7 @@ namespace kwiver
  * \iport{detections}
  *
  * \oports
- * \oport{matrix_2x2d}
+ * \oport{matrix_d}
  * \oport{tracks}
  * \oport{detections}
  */

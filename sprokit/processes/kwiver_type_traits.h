@@ -92,7 +92,7 @@ create_type_trait( object_track_set, "kwiver:object_track_set", kwiver::vital::o
 create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
 create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vital::detected_object_set_sptr );
 create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::vital::track_descriptor_set_sptr );
-create_type_trait( matrix_2x2d, "kwiver:matrix_2x2d", kwiver::vital::matrix_2x2d );
+create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );
 
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
@@ -123,7 +123,7 @@ create_port_trait( feature_track_set, feature_track_set, "Set of feature tracks.
 create_port_trait( object_track_set, object_track_set, "Set of object tracks." );
 create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
 create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track descriptors." );
-create_port_trait( matrix_2x2d, matrix_2x2d, "2-dimensional double matrix." );
+create_port_trait( matrix_d, matrix_d, "2-dimensional double matrix." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. "

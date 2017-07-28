@@ -146,22 +146,22 @@ associate_detections_to_tracks_threshold
              kwiver::vital::image_container_sptr /*image*/,
              kwiver::vital::object_track_set_sptr tracks,
              kwiver::vital::detected_object_set_sptr detections,
-             kwiver::vital::matrix_2x2d matrix,
+             kwiver::vital::matrix_d matrix,
              kwiver::vital::object_track_set_sptr& output,
              kwiver::vital::detected_object_set_sptr& unused ) const
 {
   auto all_detections = detections->select();
   auto all_tracks = tracks->tracks();
-  bool any_updated = false;
 
   std::vector< vital::track_sptr > tracks_to_output;
+  std::vector< bool > detections_used( all_detections.size(), false );
 
   for( unsigned t = 0; t < all_tracks.size(); ++t )
   {
-    detected_object_sptr best_match;
-
     double best_score = ( d_->higher_is_better ? -1 : 1 ) *
       std::numeric_limits<double>::max();
+
+    unsigned best_index = std::numeric_limits< unsigned >::max();
 
     for( unsigned d = 0; d < all_detections.size(); ++d )
     {
@@ -172,7 +172,7 @@ associate_detections_to_tracks_threshold
         if( value >= d_->threshold && value > best_score )
         {
           best_score = value;
-          best_match = all_detections[d];
+          best_index = d;
         }
       }
       else
@@ -180,21 +180,21 @@ associate_detections_to_tracks_threshold
         if( value <= d_->threshold && value < best_score )
         {
           best_score = value;
-          best_match = all_detections[d];
+          best_index = d;
         }
       }
     }
 
-    if( best_match )
+    if( best_index < all_detections.size() )
     {
       vital::track_state_sptr new_track_state(
-        new vital::object_track_state( ts.get_frame(), best_match ) );
+        new vital::object_track_state( ts.get_frame(), all_detections[best_index] ) );
 
       vital::track_sptr adj_track( all_tracks[t]->clone() );
       adj_track->append( new_track_state );
       tracks_to_output.push_back( adj_track );
 
-      any_updated = true;
+      detections_used[best_index] = true;
     }
     else
     {
@@ -202,10 +202,22 @@ associate_detections_to_tracks_threshold
     }
   }
 
+  std::vector< vital::detected_object_sptr > unused_dets;
+
+  for( unsigned i = 0; i < all_detections.size(); ++i )
+  {
+    if( !detections_used[i] )
+    {
+      unused_dets.push_back( all_detections[i] );
+    }
+  }
+
   output = vital::object_track_set_sptr(
     new simple_object_track_set( tracks_to_output ) );
+  unused = vital::detected_object_set_sptr(
+    new vital::detected_object_set( unused_dets ) );
 
-  return any_updated;
+  return ( unused->size() != all_detections.size() );
 }
 
 

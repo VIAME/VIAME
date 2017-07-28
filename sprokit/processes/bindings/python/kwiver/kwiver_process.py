@@ -177,7 +177,7 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("double_vector", "kwiver:d_vector",
                             VTC._convert_double_vector_in,
                             VTC._convert_double_vector_out)
-        self.add_type_trait("matrix_2x2d", "kwiver:matrix_2x2d")
+        self.add_type_trait("matrix_d", "kwiver:matrix_d")
         self.add_type_trait("string_vector", "kwiver:string_vector",
                             VTC.convert_string_vector_in,
                             VTC.convert_string_vector_out)
@@ -206,7 +206,7 @@ class KwiverProcess(process.PythonProcess):
                             "a video.")
         self.add_port_trait("video_file_name", "video_file_name",
                             "Name of video file.")
-        self.add_port_trait("matrix_2x2d", "matrix_2x2d",
+        self.add_port_trait("matrix_d", "matrix_d",
                             "2-dimensional double matrix.")
 
     def add_type_trait(self, ttn, tn, conv_in=None, conv_out=None):

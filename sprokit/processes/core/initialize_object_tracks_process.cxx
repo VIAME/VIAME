@@ -55,8 +55,6 @@ public:
   priv();
   ~priv();
 
-  unsigned empty_output_count;
-
   algo::initialize_object_tracks_sptr m_track_initializer;
 }; // end priv class
 
@@ -149,8 +147,9 @@ initialize_object_tracks_process
   if( old_tracks )
   {
     std::vector< vital::track_sptr > net_tracks = old_tracks->tracks();
-    net_tracks.insert( net_tracks.end(),
-      new_tracks->tracks().begin(), new_tracks->tracks().end() );
+    std::vector< vital::track_sptr > to_add = new_tracks->tracks();
+
+    net_tracks.insert( net_tracks.end(), to_add.begin(), to_add.end() );
 
     vital::object_track_set_sptr joined_tracks(
       new vital::simple_object_track_set( net_tracks ) );
@@ -187,7 +186,6 @@ void initialize_object_tracks_process
 void initialize_object_tracks_process
 ::make_config()
 {
-
 }
 
 
@@ -195,20 +193,12 @@ void initialize_object_tracks_process
 void initialize_object_tracks_process
 ::_init()
 {
-  for( unsigned i = 0; i < d->empty_output_count; ++i )
-  {
-    vital::object_track_set_sptr empty_set(
-      new vital::simple_object_track_set() );
-
-    push_to_port_using_trait( object_track_set, empty_set );
-  }
 }
 
 
 // =============================================================================
 initialize_object_tracks_process::priv
 ::priv()
-  : empty_output_count( 1 )
 {
 }
 

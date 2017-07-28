@@ -104,7 +104,7 @@ public:
           kwiver::vital::image_container_sptr image,
           kwiver::vital::object_track_set_sptr tracks,
           kwiver::vital::detected_object_set_sptr detections,
-          kwiver::vital::matrix_2x2d& matrix,
+          kwiver::vital::matrix_d& matrix,
           kwiver::vital::detected_object_set_sptr& considered) const;
 
 private:
