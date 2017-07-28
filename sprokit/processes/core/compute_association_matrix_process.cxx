@@ -119,13 +119,29 @@ void
 compute_association_matrix_process
 ::_step()
 {
+  // Check for end of video since we're in manual management mode
+  auto port_info = peek_at_port_using_trait( detected_object_set );
+
+  if( port_info.datum->type() == sprokit::datum::complete )
+  {
+    grab_edge_datum_using_trait( detected_object_set );
+    mark_process_as_complete();
+
+    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+
+    push_datum_to_port_using_trait( matrix_d, dat );
+    push_datum_to_port_using_trait( object_track_set, dat );
+    push_datum_to_port_using_trait( detected_object_set, dat );
+    return;
+  }
+
+  // Retrieve inputs from ports
   vital::timestamp frame_id;
   vital::image_container_sptr image;
   vital::object_track_set_sptr tracks;
   vital::detected_object_set_sptr detections;
 
-  vital::matrix_d matrix_output;
-  vital::detected_object_set_sptr detection_output;
+  detections = grab_from_port_using_trait( detected_object_set );
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
@@ -151,9 +167,10 @@ compute_association_matrix_process
     tracks = grab_from_port_using_trait( object_track_set );
   }
 
-  detections = grab_from_port_using_trait( detected_object_set );
-
   // Get output matrix and detections
+  vital::matrix_d matrix_output;
+  vital::detected_object_set_sptr detection_output;
+
   d->m_matrix_generator->compute( frame_id, image, tracks,
     detections, matrix_output, detection_output );
 
