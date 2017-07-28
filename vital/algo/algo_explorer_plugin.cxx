@@ -120,7 +120,7 @@ algo_explorer::
 
   m_context->display_attr( fact );
 
-  if ( m_context->if_config() )
+  if ( m_context->if_detail() )
   {
     kwiver::vital::algorithm_sptr ptr = pf->create_object();
 

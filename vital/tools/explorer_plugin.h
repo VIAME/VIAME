@@ -100,7 +100,6 @@ public:
   void display_attr( const kwiver::vital::plugin_factory_handle_t fact) const;
 
   bool if_detail() const;
-  bool if_config() const;
   bool if_brief() const;
 
   class priv;

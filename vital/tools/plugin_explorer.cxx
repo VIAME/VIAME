@@ -164,7 +164,6 @@ void usage()
 
              << "    --help -h     Display usage information\n"
              << "    --detail -d   Display detailed information about plugins\n"
-             << "    --config      Display configuration information needed by plugins\n"
              << "    --factory --fact  regexp    Only display factories whose interface type matches specified regexp\n"
              << "    --type   regexp    Only display factories whose instance name matches the specified regexp\n"
              << "    --brief -b    Generate brief display\n"

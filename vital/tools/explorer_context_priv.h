@@ -45,7 +45,6 @@ public:
   kwiversys::CommandLineArguments m_args;
 
   // Global options
-  bool opt_config;
   bool opt_detail;
   bool opt_help;
   bool opt_path_list;
@@ -85,7 +84,6 @@ public:
 
   priv()
   {
-    opt_config = false;
     opt_detail = false;
     opt_help = false;
     opt_path_list = false;

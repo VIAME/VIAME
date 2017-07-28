@@ -152,37 +152,33 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   std::string const properties_str = join( properties, ", " );
 
   out_stream()  << "    Properties: " << properties_str << std::endl;
+  out_stream() << "    -- Configuration --" << std::endl;
 
-  if ( m_context->if_config() )
+  kwiver::vital::config_block_keys_t const keys = proc->available_config();
+
+  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
   {
-    out_stream() << "    -- Configuration --" << std::endl;
-
-    kwiver::vital::config_block_keys_t const keys = proc->available_config();
-
-    VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+    if ( ! opt_hidden && ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
     {
-      if ( ! opt_hidden && ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
-      {
-        // skip hidden items
-        continue;
-      }
-
-      sprokit::process::conf_info_t const info = proc->config_info( key );
-
-      kwiver::vital::config_block_value_t const& def = info->def;
-      kwiver::vital::config_block_description_t const& conf_desc = info->description;
-      bool const& tunable = info->tunable;
-      char const* const tunable_str = tunable ? "yes" : "no";
-
-      out_stream()  << "    Name       : " << key << std::endl
-                    << "    Default    : " << def << std::endl
-                    << "    Description: " << conf_desc << std::endl
-                    << "    Tunable    : " << tunable_str << std::endl
-                    << std::endl;
+      // skip hidden items
+      continue;
     }
-  } // end config
 
-  out_stream() << "  Input ports:" << std::endl;
+    sprokit::process::conf_info_t const info = proc->config_info( key );
+
+    kwiver::vital::config_block_value_t const& def = info->def;
+    kwiver::vital::config_block_description_t const& conf_desc = info->description;
+    bool const& tunable = info->tunable;
+    char const* const tunable_str = tunable ? "yes" : "no";
+
+    out_stream()  << "    Name       : " << key << std::endl
+                  << "    Default    : " << def << std::endl
+                  << "    Description: " << conf_desc << std::endl
+                  << "    Tunable    : " << tunable_str << std::endl
+                  << std::endl;
+  }
+
+  out_stream() << "  -- Input ports:" << std::endl;
 
   sprokit::process::ports_t const iports = proc->input_ports();
 
@@ -209,7 +205,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                   << std::endl;
   }   // end foreach
 
-  out_stream() << "  Output ports:" << std::endl;
+  out_stream() << "  -- Output ports:" << std::endl;
 
   sprokit::process::ports_t const oports = proc->output_ports();
 
