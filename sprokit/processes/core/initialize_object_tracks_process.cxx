@@ -55,8 +55,6 @@ public:
   priv();
   ~priv();
 
-  unsigned empty_output_count;
-
   algo::initialize_object_tracks_sptr m_track_initializer;
 }; // end priv class
 
@@ -187,7 +185,6 @@ void initialize_object_tracks_process
 void initialize_object_tracks_process
 ::make_config()
 {
-
 }
 
 
@@ -195,20 +192,12 @@ void initialize_object_tracks_process
 void initialize_object_tracks_process
 ::_init()
 {
-  for( unsigned i = 0; i < d->empty_output_count; ++i )
-  {
-    vital::object_track_set_sptr empty_set(
-      new vital::simple_object_track_set() );
-
-    push_to_port_using_trait( object_track_set, empty_set );
-  }
 }
 
 
 // =============================================================================
 initialize_object_tracks_process::priv
 ::priv()
-  : empty_output_count( 1 )
 {
 }
 

@@ -56,6 +56,8 @@ public:
   priv();
   ~priv();
 
+  unsigned track_read_delay;
+
   algo::compute_association_matrix_sptr m_matrix_generator;
 }; // end priv class
 
@@ -69,6 +71,9 @@ compute_association_matrix_process
 {
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
+
+  // Required for negative feedback loop
+  set_data_checking_level( check_none );
 
   make_ports();
   make_config();
@@ -135,7 +140,17 @@ compute_association_matrix_process
     image = grab_from_port_using_trait( image );
   }
 
-  tracks = grab_from_port_using_trait( object_track_set );
+  if( d->track_read_delay > 0 )
+  {
+    d->track_read_delay--;
+
+    tracks = vital::object_track_set_sptr( new vital::simple_object_track_set() );
+  }
+  else
+  {
+    tracks = grab_from_port_using_trait( object_track_set );
+  }
+
   detections = grab_from_port_using_trait( detected_object_set );
 
   // Get output matrix and detections
@@ -179,13 +194,13 @@ void compute_association_matrix_process
 void compute_association_matrix_process
 ::make_config()
 {
-
 }
 
 
 // =============================================================================
 compute_association_matrix_process::priv
 ::priv()
+  : track_read_delay( 1 )
 {
 }
 
