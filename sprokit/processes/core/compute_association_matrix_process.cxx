@@ -124,6 +124,7 @@ compute_association_matrix_process
 
   if( port_info.datum->type() == sprokit::datum::complete )
   {
+    grab_edge_datum_using_trait( detected_object_set );
     mark_process_as_complete();
 
     const sprokit::datum_t dat = sprokit::datum::complete_datum();
