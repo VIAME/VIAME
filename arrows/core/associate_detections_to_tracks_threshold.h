@@ -96,16 +96,18 @@ public:
    * \param tracks active track set from the last frame
    * \param detections detected object sets from the current frame
    * \param matrix matrix containing detection to track association scores
+   * \param output the output updated detection set
    * \param unused output detection set for any detections not associated
-   * \returns a new updated track set
+   * \returns whether or not any tracks were updated
    */
-  virtual kwiver::vital::object_track_set_sptr
+  virtual bool
   associate( kwiver::vital::timestamp ts,
              kwiver::vital::image_container_sptr image,
              kwiver::vital::object_track_set_sptr tracks,
              kwiver::vital::detected_object_set_sptr detections,
              kwiver::vital::matrix_2x2d matrix,
-             kwiver::vital::detected_object_set_sptr& unused ) const = 0;
+             kwiver::vital::object_track_set_sptr& output,
+             kwiver::vital::detected_object_set_sptr& unused ) const;
 
 private:
   /// private implementation class

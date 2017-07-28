@@ -148,9 +148,9 @@ associate_detections_to_tracks_process
   vital::object_track_set_sptr output;
   vital::detected_object_set_sptr unused;
 
-  // Get stabilization homography
-  output = d->m_track_associator->associate(
-    frame_id, image, tracks, detections, ass_matrix, unused );
+  // Run associator
+  d->m_track_associator->associate( frame_id, image,
+    tracks, detections, ass_matrix, output, unused );
 
   // Return by value
   push_to_port_using_trait( object_track_set, output );

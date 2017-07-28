@@ -156,12 +156,16 @@ void compute_association_matrix_process
   // Set up for required ports
   sprokit::process::port_flags_t optional;
   sprokit::process::port_flags_t required;
+  sprokit::process::port_flags_t required_no_dep;
+
   required.insert( flag_required );
+  required_no_dep.insert( flag_required );
+  required_no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, optional );
-  declare_input_port_using_trait( object_track_set, required );
+  declare_input_port_using_trait( object_track_set, required_no_dep );
   declare_input_port_using_trait( detected_object_set, required );
 
   // -- output --
