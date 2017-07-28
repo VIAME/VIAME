@@ -243,8 +243,16 @@ extern "C"
 PROCESS_EXPLORER_PLUGIN_EXPORT
 void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
 {
+  static std::string module("process_explorer_plugin" );
+  if ( vpm.is_module_loaded( module ) )
+  {
+    return;
+  }
+
   auto fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::process_explorer );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "process" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Plugin explorer for process category." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  vpm.mark_module_as_loaded( module );
 }

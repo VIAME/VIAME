@@ -151,8 +151,16 @@ extern "C"
 ALGO_EXPLORER_PLUGIN_EXPORT
 void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
 {
+  static std::string module("algo_explorer_plugin" );
+  if ( vpm.is_module_loaded( module ) )
+  {
+    return;
+  }
+
   auto fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::algo_explorer );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "algorithm" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Plugin explorer for algorithm category." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+    vpm.mark_module_as_loaded( module );
 }
