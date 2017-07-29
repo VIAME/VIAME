@@ -59,9 +59,15 @@ option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugin"           OFF )
 ###
 # Add external package build instructions
 ##
-option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
-option( VIAME_CREATE_PACKAGE      "Build a binary package at the end of build"      OFF )
+option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
+option( VIAME_CREATE_PACKAGE        "Build a binary package at the end of build"      OFF )
 mark_as_advanced( VIAME_CREATE_PACKAGE )
+
+###
+# Add extra options
+##
+option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libtiff and libjpeg" ON )
+mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
 ###
 # Add logic relating to enable flags

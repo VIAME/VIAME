@@ -25,9 +25,9 @@ if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_ZLib:BOOL=ON
-    -Dfletch_ENABLE_libjpeg-turbo:BOOL=ON
-    -Dfletch_ENABLE_libtiff:BOOL=ON
-    -Dfletch_ENABLE_PNG:BOOL=ON
+    -Dfletch_ENABLE_libjpeg-turbo:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
+    -Dfletch_ENABLE_libtiff:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
+    -Dfletch_ENABLE_PNG:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
   )
 endif()
 
