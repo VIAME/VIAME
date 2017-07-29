@@ -143,6 +143,11 @@ endif()
 
 if( VIAME_ENABLE_CUDA )
   find_package( CUDA QUIET REQUIRED )
+
+  option(VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE)
+  mark_as_advanced(VIAME_FORCE_CUDA_CSTD98)
+else()
+  set(VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE)
 endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )

@@ -141,6 +141,7 @@ ExternalProject_Add(fletch
     -DAUTO_ENABLE_CAFFE_DEPENDENCY:BOOL=${VIAME_ENABLE_CAFFE}
 
     -Dfletch_BUILD_WITH_PYTHON:BOOL=${VIAME_ENABLE_PYTHON}
+    -Dfletch_FORCE_CUDA_CSTD98:BOOL=${VIAME_FORCE_CUDA_CSTD98}
 
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
