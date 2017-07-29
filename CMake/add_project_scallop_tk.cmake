@@ -29,6 +29,13 @@ else()
   set( SCALLOP_TK_CPU_ONLY ON )
 endif()
 
+if(VIAME_FORCE_CUDA_CSTD98)
+  set( ScallopTK_CXXFLAGS_OVERRIDE
+    -DCMAKE_CXX_FLAGS=-std=c++98 )
+else()
+  set( ScallopTK_CXXFLAGS_OVERRIDE )
+endif()
+
 ExternalProject_Add(scallop_tk
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -39,6 +46,7 @@ ExternalProject_Add(scallop_tk
     ${VIAME_ARGS_fletch}
     ${ScallopTK_BUILD_SHARED}
     ${ScallopTK_HDF5_DIRS}
+    ${ScallopTK_CXXFLAGS_OVERRIDE}
     -DVC_TOOLNAMES:BOOL=ON
     -DBUILD_TOOLS:BOOL=ON
     -DBUILD_TESTS:BOOL=OFF
