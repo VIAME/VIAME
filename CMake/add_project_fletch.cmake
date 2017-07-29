@@ -149,6 +149,7 @@ ExternalProject_Add(fletch
     # Disable optional OpenCV build flags, these oft don't build
     -Dfletch_ENABLE_OpenCV_CUDA:BOOL=FALSE
     -Dfletch_ENABLE_OpenCV_FFmpeg:BOOL=FALSE
+    -Dfletch_ENABLE_OpenCV_TIFF:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   INSTALL_COMMAND ${CMAKE_COMMAND}
