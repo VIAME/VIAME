@@ -85,7 +85,7 @@ if( VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
 endif()
 
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA )
+if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
 
@@ -228,9 +228,13 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Hard VIAME requirements
   include( add_project_fletch )
 
-  # Add optional YOLO build
+  # Add optional projects
   if( VIAME_ENABLE_YOLO )
     include( add_project_darknet )
+  endif()
+
+  if( VIAME_ENABLE_BURNOUT )
+    include( add_project_burnout )
   endif()
 
   # Add core (required) kwiver requirement
@@ -239,10 +243,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Add other optional libraries
   if( VIAME_ENABLE_SCALLOP_TK )
     include( add_project_scallop_tk )
-  endif()
-
-  if( VIAME_ENABLE_BURNOUT )
-    include( add_project_burnout )
   endif()
 
   if( VIAME_ENABLE_VIVIA )

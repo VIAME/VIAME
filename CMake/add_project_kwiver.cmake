@@ -35,6 +35,10 @@ if( VIAME_ENABLE_YOLO )
   set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} darknet )
 endif()
 
+if( VIAME_ENABLE_BURNOUT )
+  set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} burnout )
+endif()
+
 ExternalProject_Add(kwiver
   DEPENDS ${VIAME_KWIVER_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}
