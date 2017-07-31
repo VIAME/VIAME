@@ -39,7 +39,7 @@
 #include <vital/vital_config.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_descriptor_set.h>
 
@@ -64,7 +64,7 @@ public:
    */
   virtual kwiver::vital::track_descriptor_set_sptr
   compute( kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::track_set_sptr tracks ) = 0;
+           kwiver::vital::object_track_set_sptr tracks ) = 0;
 
 protected:
   compute_track_descriptors();

@@ -123,7 +123,7 @@ check_configuration( vital::config_block_sptr config ) const
 kwiver::vital::track_descriptor_set_sptr
 burnout_track_descriptors::
 compute( kwiver::vital::image_container_sptr image_data,
-         kwiver::vital::track_set_sptr tracks )
+         kwiver::vital::object_track_set_sptr tracks )
 {
 
   return kwiver::vital::track_descriptor_set_sptr();
