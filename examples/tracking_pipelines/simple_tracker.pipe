@@ -63,10 +63,10 @@ process tracker
   :matrix_generator:type                       from_features
 
   block matrix_generator:from_features:filter
-    :type                                       class_probablity_filter
-    :class_probablity_filter:threshold          0.001
-    :class_probablity_filter:keep_all_classes   false
-    :class_probablity_filter:keep_classes       fish;scallop
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  false
+    :class_probablity_filter:keep_classes      fish;scallop
   endblock
 
 process track_associator
