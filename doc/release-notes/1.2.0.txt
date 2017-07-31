@@ -22,7 +22,7 @@ Vital
 
  * Track states now have a pointer (std::weak_ptr) back to the track object
    which contains them.  This means that each track state can belong to at
-   most one track, and tracks and track status must now be created and
+   most one track, and tracks and track states must now be created and
    referenced only via shared_ptr.  Constructors for track are now protected
    and "make()" static member is used for construction.  A "clone()" function
    is now used for track copy construction.
