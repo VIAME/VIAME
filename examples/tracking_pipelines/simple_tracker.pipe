@@ -62,10 +62,12 @@ process tracker
  :: compute_association_matrix
   :matrix_generator:type                       from_features
 
-  :matrix_generator:from_features:filter:type                                       class_probablity_filter
-  :matrix_generator:from_features:filter:class_probablity_filter:threshold          0.001
-  :matrix_generator:from_features:filter:class_probablity_filter:keep_all_classes   false
-  :matrix_generator:from_features:filter:class_probablity_filter:keep_classes       fish;scallop
+  block matrix_generator:from_features:filter
+    :type                                       class_probablity_filter
+    :class_probablity_filter:threshold          0.001
+    :class_probablity_filter:keep_all_classes   false
+    :class_probablity_filter:keep_classes       fish;scallop
+  endblock
 
 process track_associator
   :: associate_detections_to_tracks
@@ -77,10 +79,12 @@ process track_initializer
   :: initialize_object_tracks
   :track_initializer:type                      threshold
 
-  :track_initializer:threshold:filter:type                                       class_probablity_filter
-  :track_initializer:threshold:filter:class_probablity_filter:threshold          0.001
-  :track_initializer:threshold:filter:class_probablity_filter:keep_all_classes   false
-  :track_initializer:threshold:filter:class_probablity_filter:keep_classes       fish;scallop
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  false
+    :class_probablity_filter:keep_classes      fish;scallop
+  endblock
 
 # Connect inputs to tracker
 connect from input.image
@@ -113,6 +117,5 @@ connect from track_associator.object_track_set
         to   track_initializer.object_track_set
 connect from track_associator.unused_detections
         to   track_initializer.detected_object_set
-
 
 # -- end of file --
