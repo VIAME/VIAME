@@ -53,8 +53,8 @@ namespace vital {
 // ----------------------------------------------------------------------------
 /// A representation of a descriptor request.
 ///
-/// This is used by some arbitrary GUI to request and return computed
-/// descriptors on some region of the input imagery.
+/// This is used by some arbitrary GUI or other input to request and return
+/// computed descriptors on some region of the input imagery.
 class descriptor_request
 {
 public:
