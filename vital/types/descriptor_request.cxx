@@ -39,40 +39,46 @@ namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-descriptor_request::
-descriptor_request()
-{ }
+descriptor_request
+::descriptor_request()
+{
+}
 
 // ----------------------------------------------------------------------------
-uid descriptor_request
+uid
+descriptor_request
 ::id() const
 {
   return m_id;
 }
 
 // ----------------------------------------------------------------------------
-void descriptor_request
+void
+descriptor_request
 ::set_id( uid const& id )
 {
   m_id = id;
 }
 
 // ----------------------------------------------------------------------------
-timestamp descriptor_request
+timestamp
+descriptor_request
 ::temporal_lower_bound() const
 {
   return m_temporal_lower;
 }
 
 // ----------------------------------------------------------------------------
-timestamp descriptor_request
+timestamp
+descriptor_request
 ::temporal_upper_bound() const
 {
   return m_temporal_upper;
 }
 
 // ----------------------------------------------------------------------------
-void descriptor_request
+void
+descriptor_request
 ::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
 {
   m_temporal_lower = lower;
@@ -80,42 +86,48 @@ void descriptor_request
 }
 
 // ----------------------------------------------------------------------------
-std::vector< bounding_box_i > descriptor_request
+std::vector< bounding_box_i >
+descriptor_request
 ::spatial_regions() const
 {
   return m_spatial_regions;
 }
 
 // ----------------------------------------------------------------------------
-void descriptor_request
+void
+descriptor_request
 ::set_spatial_regions( std::vector< bounding_box_i > const& r )
 {
   m_spatial_regions = r;
 }
 
 // ----------------------------------------------------------------------------
-std::string descriptor_request
+std::string
+descriptor_request
 ::data_location() const
 {
   return m_data_location;
 }
 
 // ----------------------------------------------------------------------------
-void descriptor_request
+void
+descriptor_request
 ::set_data_location( std::string const& l )
 {
   m_data_location = l;
 }
 
 // ----------------------------------------------------------------------------
-std::vector< image > descriptor_request
+std::vector< image >
+descriptor_request
 ::image_data() const
 {
   return m_image_data;
 }
 
 // ----------------------------------------------------------------------------
-void descriptor_request
+void
+descriptor_request
 ::set_image_data( std::vector< image > const& i )
 {
   m_image_data = i;
