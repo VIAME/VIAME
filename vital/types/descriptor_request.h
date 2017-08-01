@@ -46,6 +46,7 @@
 #include <vital/vital_config.h>
 
 #include <memory>
+#include <string>
 
 namespace kwiver {
 namespace vital {
@@ -55,7 +56,7 @@ namespace vital {
 ///
 /// This is used by some arbitrary GUI or other input to request and return
 /// computed descriptors on some region of the input imagery.
-class descriptor_request
+class VITAL_EXPORT descriptor_request
 {
 public:
 
@@ -81,9 +82,9 @@ public:
 
 protected:
 
-  uid m_id;
-  timestamp m_temporal_lower;
-  timestamp m_temporal_upper;
+  vital::uid m_id;
+  vital::timestamp m_temporal_lower;
+  vital::timestamp m_temporal_upper;
   std::vector< bounding_box_i > m_spatial_regions;
   std::vector< image > m_image_data;
   std::string m_data_location;
