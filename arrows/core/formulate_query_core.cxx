@@ -136,7 +136,6 @@ formulate_query_core
 
   // extract descriptors on the current frame
   kwiver::vital::object_track_set_sptr tracks;
-
   kwiver::vital::track_descriptor_set_sptr descs = extractor_->compute( image, tracks );
 
   return descs;
