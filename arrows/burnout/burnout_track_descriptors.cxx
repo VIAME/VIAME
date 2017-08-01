@@ -54,7 +54,7 @@ public:
   // Items from the config
   std::string m_config;
 
-  kwiver::vital::logger_handle_t m_logger;
+  vital::logger_handle_t m_logger;
 };
 
 
@@ -120,13 +120,31 @@ check_configuration( vital::config_block_sptr config ) const
 
 
 // --------------------------------------------------------------------
-kwiver::vital::track_descriptor_set_sptr
+vital::track_descriptor_set_sptr
 burnout_track_descriptors::
-compute( kwiver::vital::image_container_sptr image_data,
-         kwiver::vital::object_track_set_sptr tracks )
+compute( vital::image_container_sptr image_data,
+         vital::object_track_set_sptr tracks )
 {
+  typedef vital::track_descriptor td;
 
-  return kwiver::vital::track_descriptor_set_sptr();
+  vital::track_descriptor_set_sptr output( new vital::track_descriptor_set() );
+  vital::track_descriptor_sptr new_desc = td::create( "cnn_descriptor" );
+
+  td::descriptor_data_sptr_t data( new td::descriptor_data_t( 100 ) );
+
+  for( unsigned i = 0; i < 100; i++ )
+  {
+    (data->raw_data())[i] = static_cast<double>( i );
+  }
+
+  new_desc->set_descriptor( data );
+
+  td::history_entry::image_bbox_t region( 0, 0, image_data->width(), image_data->height() );
+  td::history_entry hist_entry( 0, region );
+  new_desc->add_history_entry( hist_entry );
+
+  output->push_back( new_desc );
+  return output;
 }
 
 
