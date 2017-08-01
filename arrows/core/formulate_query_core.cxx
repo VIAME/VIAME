@@ -44,6 +44,7 @@
 #include <iterator>
 
 #include <vital/vital_foreach.h>
+#include <vital/types/descriptor_request.h>
 #include <vital/algo/algorithm.h>
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
@@ -121,13 +122,7 @@ kwiver::vital::track_descriptor_set_sptr
 formulate_query_core
 ::formulate( kwiver::vital::descriptor_request_sptr request )
 {
-  kwiver::vital::track_descriptor_set_sptr descs;
-
-  // Input dummy variable for now
-  kwiver::vital::track_descriptor_sptr example;
-  descs->push_back( example );
-
-  /*// verify that all dependent algorithms have been initialized
+  // Verify that all dependent algorithms have been initialized
   if( !reader_ || !extractor_ )
   {
     // Something did not initialize
@@ -136,10 +131,13 @@ formulate_query_core
   }
 
   // load images or video if required by query plan
-  kwiver::vital::image_container_sptr curr_feat = reader_->load( "" );
+  std::string data_path = request->data_location();
+  kwiver::vital::image_container_sptr image = reader_->load( data_path );
 
   // extract descriptors on the current frame
-  kwiver::vital::track_descriptor_set_sptr descs = extractor_->compute(  );*/
+  kwiver::vital::object_track_set_sptr tracks;
+
+  kwiver::vital::track_descriptor_set_sptr descs = extractor_->compute( image, tracks );
 
   return descs;
 }

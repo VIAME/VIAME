@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a geo polygon.
+ * \brief This file contains the implementation of a descriptor request.
  */
 
 #include "descriptor_request.h"
@@ -41,7 +41,6 @@ namespace vital {
 // ----------------------------------------------------------------------------
 descriptor_request::
 descriptor_request()
-//  : m_id{ nullptr, 0 }
 { }
 
 // ----------------------------------------------------------------------------
