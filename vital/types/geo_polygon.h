@@ -66,16 +66,38 @@ public:
   virtual ~geo_polygon() VITAL_DEFAULT_DTOR
 
   /**
-   * \throws std::out_of_range if no location has been set.
+   * \brief Accessor for polygon in original CRS.
+   *
+   * \returns The polygon in the CRS that was used to set the polygon.
+   * \throws std::out_of_range Thrown if no polygon has been set.
+   *
+   * \see crs()
    */
   geo_raw_polygon_t polygon() const;
+
+  /**
+   * \brief Accessor for original CRS.
+   *
+   * \returns The CRS used to set the polygon.
+   *
+   * \see polygon()
+   */
   int crs() const;
 
   /**
+   * \brief Accessor for the polygon.
+   *
+   * \returns The polygon in the requested CRS.
    * \throws std::runtime_error if the conversion fails.
    */
   geo_raw_polygon_t polygon( int crs ) const;
 
+  /**
+   * \brief Set polygon.
+   *
+   * This sets the geolocated polygon to the specified polygon, which is
+   * defined by the raw polygon and specified CRS.
+   */
   void set_polygon( geo_raw_polygon_t const&, int crs );
 
   /**
