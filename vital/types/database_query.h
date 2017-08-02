@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief This file contains the interface to a query plan.
+ * \brief This file contains the interface to a database query.
  */
 
 #ifndef VITAL_DATABASE_QUERY_H_

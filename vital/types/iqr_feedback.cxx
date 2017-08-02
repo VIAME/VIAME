@@ -30,154 +30,107 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a database query.
+ * \brief This file contains the implementation of a query result.
  */
 
-#include "database_query.h"
+#include "query_result.h"
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-database_query::
-database_query()
-  : m_id{ nullptr, 0 },
-    m_type{ SIMILARITY },
-    m_threshold{ 0.0 }
-{ }
-
-// ----------------------------------------------------------------------------
-uid database_query
-::id() const
+query_result
+::query_result()
 {
-  return m_id;
 }
 
 // ----------------------------------------------------------------------------
-void database_query
-::set_id( uid const& id )
+uid
+query_result
+::query_id() const
 {
-  m_id = id;
+  return m_query_id;
 }
 
 // ----------------------------------------------------------------------------
-database_query::query_type database_query
-::type() const
+void
+query_result
+::set_query_id( uid const& id )
 {
-  return m_type;
+  m_query_id = id;
 }
 
 // ----------------------------------------------------------------------------
-void database_query
-::set_type( query_type type )
+timestamp
+query_result
+::start_time() const
 {
-  m_type = type;
+  return m_start_time;
 }
 
 // ----------------------------------------------------------------------------
-query_filter database_query
-::temporal_filter() const
+timestamp
+query_result
+::end_time() const
 {
-  return m_temporal_filter;
+  return m_end_time;
 }
 
 // ----------------------------------------------------------------------------
-void database_query
-::set_temporal_filter( query_filter f )
-{
-  m_temporal_filter = f;
-}
-
-// ----------------------------------------------------------------------------
-timestamp database_query
-::temporal_lower_bound() const
-{
-  return m_temporal_lower;
-}
-
-// ----------------------------------------------------------------------------
-timestamp database_query
-::temporal_upper_bound() const
-{
-  return m_temporal_upper;
-}
-
-// ----------------------------------------------------------------------------
-void database_query
+void
+query_result
 ::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
 {
-  m_temporal_lower = lower;
-  m_temporal_upper = upper;
+  m_start_time = lower;
+  m_end_time = upper;
 }
 
 // ----------------------------------------------------------------------------
-query_filter database_query
-::spatial_filter() const
+std::vector< bounding_box_i >
+query_result
+::spatial_regions() const
 {
-  return m_spatial_filter;
+  return m_spatial_regions;
 }
 
 // ----------------------------------------------------------------------------
-void database_query
-::set_spatial_filter( query_filter f )
+void
+query_result
+::set_spatial_regions( std::vector< bounding_box_i > const& r )
 {
-  m_spatial_filter = f;
+  m_spatial_regions = r;
 }
 
 // ----------------------------------------------------------------------------
-geo_polygon database_query
-::spatial_region() const
+std::string
+query_result
+::stream_query_id() const
 {
-  return m_spatial_region;
+  return m_stream_query_id;
 }
 
 // ----------------------------------------------------------------------------
-void database_query
-::set_spatial_region( geo_polygon const& r )
+void
+query_result
+::set_stream_query_id( std::string const& l )
 {
-  m_spatial_region = r;
+  m_stream_query_id = l;
 }
 
 // ----------------------------------------------------------------------------
-std::string database_query
-::stream_filter() const
+std::vector< image >
+query_result
+::image_data() const
 {
-  return m_stream_filter;
+  return m_image_data;
 }
 
 // ----------------------------------------------------------------------------
-void database_query
-::set_stream_filter( std::string const& f )
+void
+query_result
+::set_image_data( std::vector< image > const& i )
 {
-  m_stream_filter = f;
-}
-
-// ----------------------------------------------------------------------------
-track_descriptor_set_sptr database_query
-::descriptors() const
-{
-  return m_descriptors;
-}
-
-// ----------------------------------------------------------------------------
-void database_query
-::set_descriptors( track_descriptor_set_sptr d )
-{
-  m_descriptors = d;
-}
-
-// ----------------------------------------------------------------------------
-double database_query
-::threshold() const
-{
-  return m_threshold;
-}
-
-// ----------------------------------------------------------------------------
-void database_query
-::set_threshold( double threshold )
-{
-  m_threshold = threshold;
+  m_image_data = i;
 }
 
 } } // end namespace
