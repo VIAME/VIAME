@@ -2,9 +2,11 @@
 set -e
 
 INSTALL_DIR=$HOME/deps
-export PATH=$INSTALL_DIR/bin:$PATH
+FLETCH_DIR=/opt/fletch
+export PATH=$INSTALL_DIR/bin:$FLETCH_DIR/bin:$PATH
 HASH_DIR=$INSTALL_DIR/hashes
 mkdir -p $HASH_DIR
+mkdir -p $FLETCH_DIR
 
 # Make a directory to test installation of KWIVER into
 mkdir -p $HOME/install
@@ -16,6 +18,15 @@ if [ ! -f "$INSTALL_DIR/bin/cmake" ]; then
   bash cmake-3.4.0-Linux-x86_64.sh --skip-license --prefix="$INSTALL_DIR/"
 else
   echo 'Using cached CMake directory.';
+fi
+
+if [ ! -f "$HASH_DIR/fletch.md5" ]; then
+  cd /tmp
+  wget https://data.kitware.com/api/v1/item/59822a8d8d777f16d01ea13f/download -O fletch.tgz
+  tar -xzf fletch.tgz -C $FLETCH_DIR
+  md5sum fletch.tgz > $HASH_DIR/fletch.md5
+else
+  echo 'Using cached Fletch build.';
 fi
 
 # Build and install a repository from source only.
@@ -95,4 +106,4 @@ fletch_cmake_opts="\
  -Dfletch_ENABLE_VTK=ON
  -Dfletch_ENABLE_VXL=ON
  -Dfletch_ENABLE_OpenCV_highgui=ON"
-build_repo fletch https://github.com/Kitware/fletch.git
+# build_repo fletch https://github.com/Kitware/fletch.git
