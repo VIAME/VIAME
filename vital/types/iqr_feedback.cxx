@@ -33,20 +33,20 @@
  * \brief This file contains the implementation of a query result.
  */
 
-#include "query_result.h"
+#include "iqr_feedback.h"
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-query_result
-::query_result()
+iqr_feedback
+::iqr_feedback()
 {
 }
 
 // ----------------------------------------------------------------------------
 uid
-query_result
+iqr_feedback
 ::query_id() const
 {
   return m_query_id;
@@ -54,83 +54,42 @@ query_result
 
 // ----------------------------------------------------------------------------
 void
-query_result
+iqr_feedback
 ::set_query_id( uid const& id )
 {
   m_query_id = id;
 }
 
 // ----------------------------------------------------------------------------
-timestamp
-query_result
-::start_time() const
+std::vector< unsigned >
+iqr_feedback
+::positive_ids() const
 {
-  return m_start_time;
-}
-
-// ----------------------------------------------------------------------------
-timestamp
-query_result
-::end_time() const
-{
-  return m_end_time;
+  return m_positive_ids;
 }
 
 // ----------------------------------------------------------------------------
 void
-query_result
-::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
+iqr_feedback
+::set_positive_ids( std::vector< unsigned > const& ids )
 {
-  m_start_time = lower;
-  m_end_time = upper;
+  m_positive_ids = ids;
 }
 
 // ----------------------------------------------------------------------------
-std::vector< bounding_box_i >
-query_result
-::spatial_regions() const
+std::vector< unsigned >
+iqr_feedback
+::negative_ids() const
 {
-  return m_spatial_regions;
-}
-
-// ----------------------------------------------------------------------------
-void
-query_result
-::set_spatial_regions( std::vector< bounding_box_i > const& r )
-{
-  m_spatial_regions = r;
-}
-
-// ----------------------------------------------------------------------------
-std::string
-query_result
-::stream_query_id() const
-{
-  return m_stream_query_id;
+  return m_negative_ids;
 }
 
 // ----------------------------------------------------------------------------
 void
-query_result
-::set_stream_query_id( std::string const& l )
+iqr_feedback
+::set_negative_ids( std::vector< unsigned > const& ids )
 {
-  m_stream_query_id = l;
-}
-
-// ----------------------------------------------------------------------------
-std::vector< image >
-query_result
-::image_data() const
-{
-  return m_image_data;
-}
-
-// ----------------------------------------------------------------------------
-void
-query_result
-::set_image_data( std::vector< image > const& i )
-{
-  m_image_data = i;
+  m_negative_ids = ids;
 }
 
 } } // end namespace

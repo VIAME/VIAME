@@ -86,22 +86,6 @@ query_result
 }
 
 // ----------------------------------------------------------------------------
-std::vector< bounding_box_i >
-query_result
-::spatial_regions() const
-{
-  return m_spatial_regions;
-}
-
-// ----------------------------------------------------------------------------
-void
-query_result
-::set_spatial_regions( std::vector< bounding_box_i > const& r )
-{
-  m_spatial_regions = r;
-}
-
-// ----------------------------------------------------------------------------
 std::string
 query_result
 ::stream_query_id() const

@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief This file contains the interface for a query result.
+ * \brief This file contains the interface for iterative query refinement feedback.
  */
 
 #ifndef VITAL_QUERY_RESULT_H_
@@ -51,51 +51,34 @@ namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-/// A representation of a database query result.
-///
-/// This structure is used as the response to a query, for communication with
-/// either a GUI or other entity. It contains many optional fields which only
-/// need be filled based on the application.
-class VITAL_EXPORT query_result
+/// A representation of iterative query refinement feedback.
+class VITAL_EXPORT iqr_feedback
 {
 public:
 
-  query_result();
-  ~query_result() VITAL_DEFAULT_DTOR
+  iqr_feedback();
+  ~iqr_feedback() VITAL_DEFAULT_DTOR
 
   uid query_id() const;
-  std::string stream_id() const;
 
-  unsigned instance_id() const;
-  double relevancy_score() const;
-
-  vital::timestamp start_time() const;
-  vital::timestamp end_time() const;
-
-  std::vector< image_container_sptr > image_data() const;
+  std::vector< unsigned >& positive_ids() const;
+  std::vector< unsigned >& negative_ids() const;
 
   void set_query_id( uid const& );
-  void set_stream_id( std::string const& );
 
-  void set_temporal_bounds( timestamp const&, timestamp const& );
-  void set_image_data( std::vector< image_container_sptr > const& );
+  void set_positive_ids( std::vector< unsigned > const& );
+  void set_negative_ids( std::vector< unsigned > const& );
 
 protected:
 
   vital::uid m_query_id;
-  std::string m_stream_id;
 
-  unsigned m_instance_id;
-  double m_relevancy_score;
-
-  vital::timestamp m_start_time;
-  vital::timestamp m_end_time;
-
-  std::vector< image_container_sptr > m_image_data;
+  std::vector< unsigned > m_positive_ids;
+  std::vector< unsigned > m_negative_ids;
 };
 
 /// Shared pointer for query plan
-typedef std::shared_ptr< query_result > query_result_sptr;
+typedef std::shared_ptr< iqr_feedback > iqr_feedback_sptr;
 
 } } // end namespace vital
 
