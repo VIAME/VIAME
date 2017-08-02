@@ -62,7 +62,7 @@ enum class filter
 
 // ----------------------------------------------------------------------------
 /// A representation of a query plan.
-class query_plan
+class VITAL_EXPORT query_plan
 {
 public:
   enum query_type
@@ -186,8 +186,6 @@ protected:
   std::string m_stream_filter;
   track_descriptor_set_sptr m_descriptors;
   double m_threshold;
-
-
 };
 
 /// Shared pointer for query plan
