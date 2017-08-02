@@ -58,7 +58,7 @@ Code Review
 
 Pull requests are reviewed by one or more of the core KWIVER maintainers
 using the Github tools for discussions.  Maintainers should not merge
-accept a PR until it conforms to the requirements described here (e.g.
+a PR until it conforms to the requirements described here (e.g.
 coding style, release notes, etc.) and it is confirmed that the code
 has sufficient unit tests and does not break any existing unit tests.
 
