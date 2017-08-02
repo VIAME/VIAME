@@ -38,7 +38,10 @@
 
 #include "image_container.h"
 #include "timestamp.h"
+#include "object_track_set.h"
+#include "track_descriptor_set.h"
 #include "track_descriptor.h"
+#include "geo_point.h"
 #include "uid.h"
 
 #include <vital/vital_export.h>
@@ -72,12 +75,26 @@ public:
   vital::timestamp start_time() const;
   vital::timestamp end_time() const;
 
+  vital::geo_point location() const;
+
+  object_track_set_sptr tracks() const;
+  track_descriptor_set_sptr descriptors() const;
+
   std::vector< image_container_sptr > image_data() const;
 
   void set_query_id( uid const& );
   void set_stream_id( std::string const& );
 
+  void set_instance_id( unsigned );
+  void set_relevancy_score( double );
+
   void set_temporal_bounds( timestamp const&, timestamp const& );
+
+  void set_location( vital::geo_point );
+
+  void set_tracks( object_track_set_sptr );
+  void set_descriptors( track_descriptor_set_sptr );
+
   void set_image_data( std::vector< image_container_sptr > const& );
 
 protected:
@@ -90,6 +107,11 @@ protected:
 
   vital::timestamp m_start_time;
   vital::timestamp m_end_time;
+
+  vital::geo_point m_location;
+
+  object_track_set_sptr m_tracks;
+  track_descriptor_set_sptr m_descriptors;
 
   std::vector< image_container_sptr > m_image_data;
 };

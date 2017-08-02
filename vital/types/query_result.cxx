@@ -61,6 +61,54 @@ query_result
 }
 
 // ----------------------------------------------------------------------------
+std::string
+query_result
+::stream_id() const
+{
+  return m_stream_id;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_stream_id( std::string const& id )
+{
+  m_stream_id = id;
+}
+
+// ----------------------------------------------------------------------------
+unsigned
+query_result
+::instance_id() const
+{
+  return m_instance_id;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_instance_id( unsigned id )
+{
+  m_instance_id = id;
+}
+
+// ----------------------------------------------------------------------------
+double
+query_result
+::relevancy_score() const
+{
+  return m_relevancy_score;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_relevancy_score( double s )
+{
+  m_relevancy_score = s;
+}
+
+// ----------------------------------------------------------------------------
 timestamp
 query_result
 ::start_time() const
@@ -86,19 +134,51 @@ query_result
 }
 
 // ----------------------------------------------------------------------------
-std::string
+vital::geo_point
 query_result
-::stream_id() const
+::location() const
 {
-  return m_stream_id;
+  return m_location;
 }
 
 // ----------------------------------------------------------------------------
 void
 query_result
-::set_stream_id( std::string const& l )
+::set_location( vital::geo_point l )
 {
-  m_stream_id = l;
+  m_location = l;
+}
+
+// ----------------------------------------------------------------------------
+vital::object_track_set_sptr
+query_result
+::tracks() const
+{
+  return m_tracks;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_tracks( vital::object_track_set_sptr t )
+{
+  m_tracks = t;
+}
+
+// ----------------------------------------------------------------------------
+vital::track_descriptor_set_sptr
+query_result
+::descriptors() const
+{
+  return m_descriptors;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_descriptors( vital::track_descriptor_set_sptr d )
+{
+  m_descriptors = d;
 }
 
 // ----------------------------------------------------------------------------
