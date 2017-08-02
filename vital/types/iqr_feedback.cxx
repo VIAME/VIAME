@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a query result.
+ * \brief This file contains the implementation of iqr feedback
  */
 
 #include "iqr_feedback.h"
@@ -61,7 +61,7 @@ iqr_feedback
 }
 
 // ----------------------------------------------------------------------------
-std::vector< unsigned >
+std::vector< unsigned > const&
 iqr_feedback
 ::positive_ids() const
 {
@@ -77,7 +77,7 @@ iqr_feedback
 }
 
 // ----------------------------------------------------------------------------
-std::vector< unsigned >
+std::vector< unsigned > const&
 iqr_feedback
 ::negative_ids() const
 {

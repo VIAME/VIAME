@@ -33,8 +33,8 @@
  * \brief This file contains the interface for iterative query refinement feedback.
  */
 
-#ifndef VITAL_QUERY_RESULT_H_
-#define VITAL_QUERY_RESULT_H_
+#ifndef VITAL_IQR_FEEDBACK_H_
+#define VITAL_IQR_FEEDBACK_H_
 
 #include "image_container.h"
 #include "timestamp.h"
@@ -61,8 +61,8 @@ public:
 
   uid query_id() const;
 
-  std::vector< unsigned >& positive_ids() const;
-  std::vector< unsigned >& negative_ids() const;
+  std::vector< unsigned > const& positive_ids() const;
+  std::vector< unsigned > const& negative_ids() const;
 
   void set_query_id( uid const& );
 
@@ -82,4 +82,4 @@ typedef std::shared_ptr< iqr_feedback > iqr_feedback_sptr;
 
 } } // end namespace vital
 
-#endif // VITAL_DESCRIPTOR_REQUEST_H_
+#endif // VITAL_IQR_FEEDBACK_H_

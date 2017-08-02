@@ -88,21 +88,21 @@ query_result
 // ----------------------------------------------------------------------------
 std::string
 query_result
-::stream_query_id() const
+::stream_id() const
 {
-  return m_stream_query_id;
+  return m_stream_id;
 }
 
 // ----------------------------------------------------------------------------
 void
 query_result
-::set_stream_query_id( std::string const& l )
+::set_stream_id( std::string const& l )
 {
-  m_stream_query_id = l;
+  m_stream_id = l;
 }
 
 // ----------------------------------------------------------------------------
-std::vector< image >
+std::vector< image_container_sptr >
 query_result
 ::image_data() const
 {
@@ -112,7 +112,7 @@ query_result
 // ----------------------------------------------------------------------------
 void
 query_result
-::set_image_data( std::vector< image > const& i )
+::set_image_data( std::vector< image_container_sptr > const& i )
 {
   m_image_data = i;
 }
