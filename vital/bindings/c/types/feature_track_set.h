@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,73 +30,68 @@
 
 /**
  * \file
- * \brief Interface for bounding box class
+ * \brief C Interface to vital::feature_track definition
  */
 
-#ifndef VITAL_C_BOUNDING_BOX_H_
-#define VITAL_C_BOUNDING_BOX_H_
-
-#include <vital/bindings/c/vital_c_export.h>
+#ifndef VITAL_C_FEATURE_TRACK_SET_H_
+#define VITAL_C_FEATURE_TRACK_SET_H_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-/// VITAL bounding_box opaque structure
-typedef struct vital_bounding_box_s vital_bounding_box_t;
+#include "track.h"
 
-VITAL_C_EXPORT
-vital_bounding_box_t* vital_bounding_box_new_from_vectors(
-  double* ul, double* lr);
+#include <vital/bindings/c/types/descriptor.h>
+#include <vital/bindings/c/types/feature.h>
 
-VITAL_C_EXPORT
-vital_bounding_box_t* vital_bounding_box_new_from_point_width_height(
-  double* ul, double  width, double height);
 
-VITAL_C_EXPORT
-vital_bounding_box_t* vital_bounding_box_new_from_coordinates(
-  double xmin, double  ymin, double xmax, double ymax);
+////////////////////////////////////////////////////////////////////////////////
+// Feature Track State
 
+/// Create a new feature track state
+/**
+ * \param frame Frame ID for the state
+ * \param f Feature instance associated with this state. May be null.
+ * \param d Descriptor instance associated with this state. May be null.
+ * \param eh Vital error handle instance
+ * \returns new instance of a track state
+ */
 VITAL_C_EXPORT
-vital_bounding_box_t* vital_bounding_box_copy(
-  vital_bounding_box_t* bbox );
+vital_track_state_t*
+vital_feature_track_state_new( int64_t frame,
+                               vital_feature_t *f,
+                               vital_descriptor_t *d,
+                               vital_error_handle_t *eh );
 
-VITAL_C_EXPORT
-void vital_bounding_box_destroy( vital_bounding_box_t* bbox );
 
+/// Get a track state's feature
+/**
+ * \param td Track state instance
+ * \param eh Vital error handle instance
+ * \returns New reference to the Feature instance of the track state
+ */
 VITAL_C_EXPORT
-double* vital_bounding_box_center( vital_bounding_box_t* bbox );
+vital_feature_t*
+vital_feature_track_state_feature( vital_track_state_t *td,
+                                   vital_error_handle_t *eh );
 
-VITAL_C_EXPORT
-double* vital_bounding_box_upper_left( vital_bounding_box_t* bbox );
 
+/// Get a track state's descriptor
+/**
+ * \param td Track state instance
+ * \param eh Vital error handle instance
+ * \returns New reference to the Descriptor instance of the track state
+ */
 VITAL_C_EXPORT
-double* vital_bounding_box_lower_right( vital_bounding_box_t* bbox );
+vital_descriptor_t*
+vital_feature_track_state_descriptor( vital_track_state_t *td,
+                                      vital_error_handle_t *eh );
 
-VITAL_C_EXPORT
-double vital_bounding_box_min_x( vital_bounding_box_t* bbox );
-
-VITAL_C_EXPORT
-double vital_bounding_box_max_x( vital_bounding_box_t* bbox );
-
-VITAL_C_EXPORT
-double vital_bounding_box_min_y( vital_bounding_box_t* bbox );
-
-VITAL_C_EXPORT
-double vital_bounding_box_max_y( vital_bounding_box_t* bbox );
-
-VITAL_C_EXPORT
-double vital_bounding_box_width( vital_bounding_box_t* bbox );
-
-VITAL_C_EXPORT
-double vital_bounding_box_height( vital_bounding_box_t* bbox );
-
-VITAL_C_EXPORT
-double vital_bounding_box_area( vital_bounding_box_t* bbox );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* VITAL_C_BOUNDING_BOX_H_ */
+#endif // VITAL_C_FEATURE_TRACK_SET_H_

@@ -41,7 +41,7 @@
 #include <vector>
 
 #include <vital/algo/match_features.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 
 
 namespace kwiver {
@@ -54,27 +54,27 @@ typedef std::vector<std::pair<vital::track_sptr, vital::track_sptr> > track_pair
 typedef std::map<vital::track_sptr, vital::track_sptr> track_map_t;
 
 
-/// Compute matching track pairs between two frames
+/// Compute matching feature track pairs between two frames
 /**
- * This function extracts all the tracks found on \p current_frame and
+ * This function extracts all the feature tracks found on \p current_frame and
  * \p target_frame.  It then extracts the corresponding features and descriptors
  * and uses the provided matcher algorithm to identify matching tracks
  *
  *  \param matcher The matcher algorithm to use in feature/descriptor matching
- *  \param all_tracks The set of all tracks on which to detect matches
+ *  \param all_tracks The set of all feature tracks on which to detect matches
  *  \param current_frame The index of the source frame to match
  *  \param target_frame The index of the destination frame to match
  *  \return A vector of matching track pairs of the form (current, target)
  */
 track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
-                            vital::track_set_sptr all_tracks,
+                            vital::feature_track_set_sptr all_tracks,
                             vital::frame_id_t current_frame,
                             vital::frame_id_t target_frame );
 
 
-/// Compute matching track pairs between two frames
+/// Compute matching feature track pairs between two frames
 /**
- * This function extracts all the tracks found on \p target_frame.
+ * This function extracts all the feature tracks found on \p target_frame.
  * It then extracts the corresponding features and descriptors
  * and uses the provided matcher algorithm to identify matching tracks between
  * the set of provided current tracks, features, and descriptors.  This version
@@ -83,7 +83,7 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
  * multiple target frames.
  *
  *  \param matcher The matcher algorithm to use in feature/descriptor matching
- *  \param all_tracks The set of all tracks on which to detect matches
+ *  \param all_tracks The set of all feature tracks on which to detect matches
  *  \param current_tracks A subset of \p all_tracks intersecting the source frame
  *  \param current_features The features corresponding to \p current_tracks on the source frame
  *  \param current_descriptors The descriptors corresponding to \p current_tracks on the source frame
@@ -91,14 +91,14 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
  *  \return A vector of matching track pairs of the form (current, target)
  */
 track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
-                            vital::track_set_sptr all_tracks,
-                            vital::track_set_sptr current_tracks,
+                            vital::feature_track_set_sptr all_tracks,
+                            vital::feature_track_set_sptr current_tracks,
                             vital::feature_set_sptr current_features,
                             vital::descriptor_set_sptr current_descriptors,
                             vital::frame_id_t target_frame );
 
 
-/// Compute matching track pairs between two frames
+/// Compute matching feature track pairs between two frames
 /**
  * This function uses the provide matcher algorithm to identify matching tracks
  * between the sets of provided tracks, features, and descriptors.
@@ -110,19 +110,19 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
  * extracted each time if matching multiple frame combinations.
  *
  *  \param matcher The matcher algorithm to use in feature/descriptor matching
- *  \param current_tracks A set of tracks intersecting the source frame
+ *  \param current_tracks A set of feature tracks intersecting the source frame
  *  \param current_features The features corresponding to \p current_tracks on the source frame
  *  \param current_descriptors The descriptors corresponding to \p current_tracks on the source frame
- *  \param target_tracks A set of tracks intersecting the target frame
+ *  \param target_tracks A set of feature tracks intersecting the target frame
  *  \param target_features The features corresponding to \p target_tracks on the target frame
  *  \param target_descriptors The descriptors corresponding to \p target_tracks on the target frame
  *  \return A vector of matching track pairs of the form (current, target)
  */
 track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
-                            vital::track_set_sptr current_tracks,
+                            vital::feature_track_set_sptr current_tracks,
                             vital::feature_set_sptr current_features,
                             vital::descriptor_set_sptr current_descriptors,
-                            vital::track_set_sptr target_tracks,
+                            vital::feature_track_set_sptr target_tracks,
                             vital::feature_set_sptr target_features,
                             vital::descriptor_set_sptr target_descriptors);
 
@@ -149,12 +149,12 @@ int merge_tracks( track_pairs_t const& matches,
  * This function takes the set of all tracks and removes those tracks
  * that have been replaced by merging into another track.
  *
- * \param all_tracks The set of all tracks to process
+ * \param all_tracks The set of all feature tracks to process
  * \param track_replacement The keys of this map are removed from \p all_tracks
- * \return A track set in which the replaced tracks have been removed
+ * \return A feature track set in which the replaced tracks have been removed
  */
-vital::track_set_sptr
-remove_replaced_tracks( vital::track_set_sptr all_tracks,
+vital::feature_track_set_sptr
+remove_replaced_tracks( vital::feature_track_set_sptr all_tracks,
                         track_map_t const& track_replacement );
 
 } // end namespace core

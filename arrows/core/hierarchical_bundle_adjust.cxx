@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -263,7 +263,7 @@ hierarchical_bundle_adjust
 }
 
 
-/// Optimize the camera and landmark parameters given a set of tracks
+/// Optimize the camera and landmark parameters given a set of feature tracks
 /**
  * Making naive assuptions:
  *  - cameras we are given are in sequence (no previous sub-sampling and no frame gaps)
@@ -275,7 +275,7 @@ void
 hierarchical_bundle_adjust
 ::optimize(camera_map_sptr & cameras,
            landmark_map_sptr & landmarks,
-           track_set_sptr tracks,
+           feature_track_set_sptr tracks,
            video_metadata_map_sptr metadata) const
 {
   using namespace std;

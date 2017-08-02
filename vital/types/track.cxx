@@ -35,6 +35,9 @@
 
 #include "track.h"
 
+#include <algorithm>
+
+#include <vital/exceptions.h>
 #include <vital/vital_foreach.h>
 
 namespace {
@@ -42,9 +45,9 @@ namespace {
 class compare_state_frame
 {
 public:
-  bool operator()( const kwiver::vital::track::track_state& ts, kwiver::vital::frame_id_t frame )
+  bool operator()( const kwiver::vital::track_state_sptr& ts, kwiver::vital::frame_id_t frame )
   {
-    return ts.frame_id < frame;
+    return ts && ts->frame() < frame;
   }
 };
 
@@ -57,8 +60,9 @@ namespace vital {
 
 /// Default Constructor
 track
-::track()
+::track(track_data_sptr d)
   : id_( 0 )
+  , data_(d)
 {
 }
 
@@ -66,18 +70,34 @@ track
 /// Copy Constructor
 track
 ::track( const track& other )
-  : history_( other.history_ ),
-  id_( other.id_ )
+  : history_()
+  , id_( other.id_ )
+  , data_( other.data_ )
 {
 }
 
 
-/// Construct a track from a single track state
+/// Factory function
+track_sptr
 track
-::track( const track_state& ts )
-  : history_( 1, ts ),
-  id_( 0 )
+::make(track_data_sptr data)
 {
+  return track_sptr(new track(data));
+}
+
+
+/// Clone
+track_sptr
+track
+::clone() const
+{
+  track_sptr t(new track(*this));
+  for( auto const& ts : this->history_ )
+  {
+    t->history_.push_back( ts->clone() );
+    t->history_.back()->track_ = t->shared_from_this();
+  }
+  return t;
 }
 
 
@@ -90,7 +110,7 @@ track
   {
     return 0;
   }
-  return this->history_.begin()->frame_id;
+  return (*this->history_.begin())->frame();
 }
 
 
@@ -103,21 +123,24 @@ track
   {
     return 0;
   }
-  return this->history_.rbegin()->frame_id;
+  return (*this->history_.rbegin())->frame();
 }
 
 
 /// Append a track state.
 bool
 track
-::append( const track_state& state )
+::append( track_state_sptr state )
 {
-  if ( ! this->history_.empty() &&
-       ( this->last_frame() >= state.frame_id ) )
+  if ( ! state ||
+       ! state->track_.expired() ||
+       ( ! this->history_.empty() &&
+       ( this->last_frame() >= state->frame() ) ) )
   {
     return false;
   }
   this->history_.push_back( state );
+  state->track_ = this->shared_from_this();
   return true;
 }
 
@@ -125,14 +148,19 @@ track
 /// Append an entire other track.
 bool
 track
-::append( const track& to_append )
+::append( track& to_append )
 {
   if ( ! this->history_.empty() && ! to_append.empty() &&
        ( this->last_frame() >= to_append.first_frame() ) )
   {
     return false;
   }
-  this->history_.insert( this->history_.end(), to_append.begin(), to_append.end() );
+  for( auto ts : to_append.history_ )
+  {
+    ts->track_ = this->shared_from_this();
+    this->history_.push_back(ts);
+  }
+  to_append.history_.clear();
   return true;
 }
 
@@ -140,15 +168,20 @@ track
 /// Insert a track state.
 bool
 track
-::insert( const track_state& state )
+::insert( track_state_sptr state )
 {
+  if ( ! state || ! state->track_.expired() )
+  {
+    return false;
+  }
   auto pos = std::lower_bound( this->history_.begin(), this->history_.end(),
-                               state.frame_id, compare_state_frame() );
-  if( pos != this->history_.end() && pos->frame_id == state.frame_id )
+                               state->frame(), compare_state_frame() );
+  if( pos != this->history_.end() && (*pos)->frame() == state->frame() )
   {
     return false;
   }
   this->history_.insert(pos, state);
+  state->track_ = this->shared_from_this();
   return true;
 }
 
@@ -165,7 +198,7 @@ track
   }
   history_const_itr it = std::lower_bound( this->begin(), this->end(),
                                            frame, compare_state_frame() );
-  if ( ( it != this->end() ) && ( it->frame_id == frame ) )
+  if ( ( it != this->end() ) && ( (*it)->frame() == frame ) )
   {
     return it;
   }
@@ -180,9 +213,9 @@ track
 {
   std::set< frame_id_t > ids;
 
-  VITAL_FOREACH( track_state const& ts, this->history_ )
+  for( track_state_sptr const ts : this->history_ )
   {
-    ids.insert( ts.frame_id );
+    ids.insert( ts->frame() );
   }
   return ids;
 }

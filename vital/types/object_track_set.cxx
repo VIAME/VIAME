@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,20 @@
 
 /**
  * \file
- * \brief C Interface vital::track helpers
+ * \brief Implementation of \link kwiver::vital::track_set track_set \endlink
+ *        member functions
  */
 
-#ifndef VITAL_C_HELPERS_TRACK_H_
-#define VITAL_C_HELPERS_TRACK_H_
+#include "object_track_set.h"
 
-#include <vital/types/track.h>
+#include <limits>
 
-#include <vital/bindings/c/types/track.h>
-#include <vital/bindings/c/helpers/c_utils.h>
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
-namespace vital_c {
+namespace vital {
 
-/// Cache for saving shared pointer references for pointers in use
-extern
-SharedPointerCache< vital::track, vital_track_t > TRACK_SPTR_CACHE;
+//TODO add object_track_set implementations here
 
-/// Cache for saving shared pointer references for pointers in use
-extern
-SharedPointerCache< vital::track_state, vital_track_state_t > TRACK_STATE_SPTR_CACHE;
 
-}
-}
-
-#endif // VITAL_C_HELPERS_TRACK_H_
+} } // end namespace vital

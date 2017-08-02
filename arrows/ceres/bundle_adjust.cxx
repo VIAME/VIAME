@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -223,7 +223,7 @@ void
 bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
-           track_set_sptr tracks,
+           feature_track_set_sptr tracks,
            video_metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
@@ -284,15 +284,20 @@ bundle_adjust
 
     for(track::history_const_itr ts = t->begin(); ts != t->end(); ++ts)
     {
-      cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame_id);
+      cam_param_map_t::iterator cam_itr = d_->camera_params.find((*ts)->frame());
       if( cam_itr == d_->camera_params.end() )
       {
         continue;
       }
-      unsigned intr_idx = d_->frame_to_intr_map[ts->frame_id];
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts);
+      if( !fts || !fts->feature )
+      {
+        continue;
+      }
+      unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
       double * intr_params_ptr = &d_->camera_intr_params[intr_idx][0];
       used_intrinsics.insert(intr_idx);
-      vector_2d pt = ts->feat->loc();
+      vector_2d pt = fts->feature->loc();
       problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
                                                 pt.x(), pt.y()),
                                loss_func,

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -202,7 +202,7 @@ analyze_tracks
   for( frame_id_t fid = first_frame; fid <= last_frame; fid++ )
   {
     data.at<double>( static_cast<int>(fid), 0 ) = static_cast<double>(fid);
-    data.at<double>( static_cast<int>(fid), 1 ) = static_cast<double>(track_set->active_tracks( fid )->size());
+    data.at<double>( static_cast<int>(fid), 1 ) = static_cast<double>(track_set->active_tracks( fid ).size());
 
     for( unsigned i = 0; i < d_->frames_to_compare.size(); i++ )
     {
