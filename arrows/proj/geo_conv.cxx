@@ -37,6 +37,7 @@
 
 #include <proj_api.h>
 
+#include <regex>
 #include <string>
 
 namespace kwiver {
@@ -58,6 +59,57 @@ char const* geo_conversion
 ::id() const
 {
   return "proj";
+}
+
+// ----------------------------------------------------------------------------
+vital::geo_crs_description_t geo_conversion
+::describe( int crs )
+{
+  static const auto prop_re =
+    std::regex{ "[+]([^= ]+)(=([^ ]+))?( |$)", std::regex_constants::extended };
+
+  static const auto prop_map =
+    std::unordered_map< std::string, std::string >{
+      { "datum", "datum" },
+      { "ellps", "ellipse" },
+      { "proj", "projection" },
+      { "units", "units" },
+    };
+
+  // Get CRS init string
+  auto const proj = projection( crs );
+  auto const text = std::string{ pj_get_def( proj, 0 ) };
+
+  // Parse init string into property key/value pairs
+  std::unordered_map< std::string, std::string > props;
+  auto const begin = std::sregex_iterator{ text.begin(), text.end(), prop_re };
+  auto const end = std::sregex_iterator{};
+  for ( auto iter = begin; iter != end; ++iter )
+  {
+    props.emplace( iter->str( 1 ), iter->str( 3 ) );
+  }
+
+  // Convert to human-readable result
+  vital::geo_crs_description_t result;
+  for ( auto const iter : props )
+  {
+    if ( iter.first == "zone" )
+    {
+      result.emplace( "zone", iter.second );
+      result.emplace( "hemisphere",
+                      props.count( "south" ) ? "south" : "north" );
+    }
+    else
+    {
+      auto const prop_map_iter = prop_map.find( iter.first );
+      if ( prop_map_iter != prop_map.end() )
+      {
+        result.emplace( prop_map_iter->second, iter.second );
+      }
+    }
+  }
+
+  return result;
 }
 
 // ----------------------------------------------------------------------------

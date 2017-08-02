@@ -40,6 +40,9 @@
 #include <vital/vital_config.h>
 #include <vital/vital_export.h>
 
+#include <map>
+#include <string>
+
 namespace kwiver {
 namespace vital {
 
@@ -72,11 +75,14 @@ namespace SRID
   constexpr int UTM_NAD83_northwest = 26900;
 };
 
+using geo_crs_description_t = std::map< std::string, std::string >;
+
 /// Functor for implementing geodetic conversion.
 class geo_conversion
 {
 public:
   virtual char const* id() const = 0;
+  virtual geo_crs_description_t describe( int crs ) = 0;
   virtual vector_2d operator()( vector_2d const& point, int from, int to ) = 0;
 
 protected:
@@ -88,6 +94,9 @@ VITAL_EXPORT geo_conversion* get_geo_conv();
 
 /// Set the functor used for performing geodetic conversions. \see geo_conv
 VITAL_EXPORT void set_geo_conv( geo_conversion* );
+
+/// Get the description of a geodetic CRS.
+VITAL_EXPORT geo_crs_description_t geo_crs_description( int crs );
 
 /**
  * \brief Convert geo-coordinate.
