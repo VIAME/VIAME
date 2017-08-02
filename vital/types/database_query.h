@@ -64,6 +64,10 @@ enum class query_filter
 
 // ----------------------------------------------------------------------------
 /// A representation of a database query.
+///
+/// This structure is used to initialize a query, for communication with
+/// either a GUI or other entity. It contains many optional fields which only
+/// need be filled based on the application and query type.
 class VITAL_EXPORT database_query
 {
 public:
