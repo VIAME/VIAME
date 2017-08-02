@@ -2,7 +2,7 @@ KWIVER v1.1.1 Release Notes
 ===========================
 
 This is a patch release of KWIVER that provides bug fixes and documentation
-improvements over the previous v1.0.0 release. 
+improvements over the previous v1.1.0 release.
 
 
 Updates since v1.1.0
@@ -10,3 +10,9 @@ Updates since v1.1.0
 
 Fixes since v1.1.0
 ------------------
+
+Sprokit
+ * Previously the Python path used in Sprokit Python tests was incorrect due to
+   the missing Python version subdirectory (e.g. 'python2.7/') in the directory
+   structure.  This has now been corrected, meaning the tests should pass
+   without needing to explicity set the PYTHONPATH environment variable first.
