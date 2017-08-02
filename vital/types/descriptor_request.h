@@ -71,14 +71,14 @@ public:
   std::vector< bounding_box_i > spatial_regions() const;
 
   std::string data_location() const;
-  std::vector< image > image_data() const;
+  std::vector< image_container_sptr> image_data() const;
 
   void set_id( uid const& );
   void set_temporal_bounds( timestamp const& lower, timestamp const& upper );
   void set_spatial_regions( std::vector< bounding_box_i > const& );
 
   void set_data_location( std::string const& );
-  void set_image_data( std::vector< image > const& );
+  void set_image_data( std::vector< image_container_sptr > const& );
 
 protected:
 
@@ -86,7 +86,7 @@ protected:
   vital::timestamp m_temporal_lower;
   vital::timestamp m_temporal_upper;
   std::vector< bounding_box_i > m_spatial_regions;
-  std::vector< image > m_image_data;
+  std::vector< image_container_sptr > m_image_data;
   std::string m_data_location;
 };
 

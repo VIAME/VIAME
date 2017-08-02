@@ -118,7 +118,7 @@ descriptor_request
 }
 
 // ----------------------------------------------------------------------------
-std::vector< image >
+std::vector< image_container_sptr>
 descriptor_request
 ::image_data() const
 {
@@ -128,7 +128,7 @@ descriptor_request
 // ----------------------------------------------------------------------------
 void
 descriptor_request
-::set_image_data( std::vector< image > const& i )
+::set_image_data( std::vector< image_container_sptr> const& i )
 {
   m_image_data = i;
 }
