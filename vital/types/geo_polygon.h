@@ -39,6 +39,7 @@
 #include <vital/vital_config.h>
 #include <vital/vital_export.h>
 #include <vital/types/polygon.h>
+#include <vital/config/config_block.h>
 
 #include <unordered_map>
 
@@ -91,6 +92,10 @@ protected:
   int m_original_crs;
   mutable std::unordered_map< int, geo_raw_polygon_t > m_poly;
 };
+
+template<> VITAL_EXPORT geo_polygon config_block_get_value_cast( config_block_value_t const& value );
+
+template<> VITAL_EXPORT config_block_value_t config_block_set_value_cast( geo_polygon const& value );
 
 VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, geo_polygon const& obj );
 
