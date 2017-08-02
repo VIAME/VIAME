@@ -119,6 +119,7 @@ set( vital_public_headers
   types/camera_map.h
   types/color.h
   types/covariance.h
+  types/database_query.h
   types/descriptor.h
   types/descriptor_set.h
   types/descriptor_request.h
@@ -151,7 +152,6 @@ set( vital_public_headers
   types/mesh.h
   types/object_track_set.h
   types/polygon.h
-  types/query_plan.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
@@ -188,6 +188,7 @@ set( vital_sources
   types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
+  types/database_query.cxx
   types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
@@ -211,7 +212,6 @@ set( vital_sources
   types/mesh.cxx
   types/object_track_set.cxx
   types/polygon.cxx
-  types/query_plan.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
