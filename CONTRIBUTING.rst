@@ -8,18 +8,18 @@ Pull Requests
 Integration Branches
 --------------------
 
-There a two primary integration branches named `release` and `master`.
-Generally, the `release` branch contains that last versioned stable release
-plus a few patches in preparation for the next patch release.  The `master`
+There a two primary integration branches named ``release`` and ``master``.
+Generally, the ``release`` branch contains that last versioned stable release
+plus a few patches in preparation for the next patch release.  The ``master``
 branch contains new features and API changes since the last release and is
 preparing for the next major or minor versioned release.
 
 If your PR is a bug fix, unit testing improvement, or documentation enhancement
-that applies to the last release, please branch off of `release` and submit
-your PR to the `release` branch. If your PR is a new feature or bug fix
-that applies to `master` but not to `release` then submit your PR to the
-`master` branch.  Any PR accepted in `release` is also accepted into `master`,
-but not vice versa.
+that applies to the last release, please branch off of ``release`` and submit
+your PR to the ``release`` branch. If your PR is a new feature or bug fix
+that applies to ``master`` but not to ``release`` then submit your PR to the
+``master`` branch.  Any PR accepted in ``release`` is also accepted into
+``master``, but not vice versa.
 
 Release Notes
 -------------
@@ -27,18 +27,18 @@ Release Notes
 When making a PR, the topic branch should almost always include a commit which
 updates the relevant release notes text file found in `<doc/release-notes>`_.
 The relevant release notes file differs depending on whether you are targeting
-`release` or `master`, but generally this is the file with the most recent
+``release`` or ``master``, but generally this is the file with the highest
 version number assuming you have branched from the correct location.  That is,
-the `release` branch will not contain the later-versioned release notes file
-found on the `master` branch.
+the ``release`` branch will not contain the later-versioned release notes file
+found on the ``master`` branch.
 
 The changes to the release notes files should, at a very high level, describe
 the changes that the PR is introducing.  Usually you would add one or more
 bullet points to describe the changes.  Bullet points should be entered in
 the appropriate section.  There are sections for Updates (enhancements) as
 well as Fixes.  There are subsection for different components of the code.
-Most changes on the `release` branch go under Fixes, and most changes on
-the `master` branch go under Updates.
+Most changes on the ``release`` branch go under Fixes, and most changes on
+the ``master`` branch go under Updates.
 
 If the code change on the topic branch impacts an existing release note
 then the release note should be updated.  If the PR is to fix a bug
@@ -50,8 +50,8 @@ where release notes updates are not required on a PR.
 Branch Naming
 -------------
 
-Topic branches should be named starting with a `dev/` prefix to distinguish
-them from integration branches like `master` and `release`.
+Topic branches should be named starting with a ``dev/`` prefix to distinguish
+them from integration branches like ``master`` and ``release``.
 
 Code Review
 -----------
