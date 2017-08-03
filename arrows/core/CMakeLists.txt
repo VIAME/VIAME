@@ -18,9 +18,9 @@ set( plugin_core_headers
   estimate_canonical_transform.h
   feature_descriptor_io.h
   filter_features_magnitude.h
-  formulate_query_core.h
   filter_features_scale.h
   filter_tracks.h
+  handle_descriptor_request_core.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
   initialize_object_tracks_threshold.h
@@ -76,9 +76,9 @@ set( plugin_core_sources
   estimate_canonical_transform.cxx
   feature_descriptor_io.cxx
   filter_features_magnitude.cxx
-  formulate_query_core.cxx
   filter_features_scale.cxx
   filter_tracks.cxx
+  handle_descriptor_request_core.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
   initialize_object_tracks_threshold.cxx

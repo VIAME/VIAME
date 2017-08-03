@@ -46,12 +46,12 @@ namespace vital {
 namespace algo {
 
 /// An abstract base class for formulating descriptors for queries
-class VITAL_ALGO_EXPORT formulate_query
-  : public kwiver::vital::algorithm_def<formulate_query>
+class VITAL_ALGO_EXPORT handle_descriptor_request
+  : public kwiver::vital::algorithm_def<handle_descriptor_request>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "formulate_query"; }
+  static std::string static_type_name() { return "handle_descriptor_request"; }
 
   /// Set this algorithm's properties via a config block
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
@@ -59,15 +59,15 @@ public:
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr formulate(
+  virtual kwiver::vital::track_descriptor_set_sptr handle(
     kwiver::vital::descriptor_request_sptr request ) = 0;
 
 protected:
-  formulate_query();
+  handle_descriptor_request();
 
 };
 
-typedef std::shared_ptr<formulate_query> formulate_query_sptr;
+typedef std::shared_ptr<handle_descriptor_request> handle_descriptor_request_sptr;
 
 } } } // end namespace
 

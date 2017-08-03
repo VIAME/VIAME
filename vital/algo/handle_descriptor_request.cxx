@@ -30,24 +30,24 @@
 
 #include <vital/algo/algorithm.txx>
 
-#include "formulate_query.h"
+#include "handle_descriptor_request.h"
 
-INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::formulate_query );
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::handle_descriptor_request );
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-formulate_query
-::formulate_query()
+handle_descriptor_request
+::handle_descriptor_request()
 {
-  attach_logger( "formulate_query" );
+  attach_logger( "handle_descriptor_request" );
 }
 
 
 /// Set this algorithm's properties via a config block
 void
-formulate_query
+handle_descriptor_request
 ::set_configuration( kwiver::vital::config_block_sptr config )
 {
   (void) config;
@@ -55,7 +55,7 @@ formulate_query
 
 /// Check that the algorithm's current configuration is valid
 bool
-formulate_query
+handle_descriptor_request
 ::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   (void) config;
