@@ -19,6 +19,7 @@ matrix:
 cache:
   directories:
   - $HOME/deps
+  - /opt/fletch
 
 before_script:
   - bash .travis/install-deps.sh
