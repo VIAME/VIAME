@@ -122,7 +122,7 @@ handle_descriptor_request_process
   // Retrieve inputs from ports
   vital::descriptor_request_sptr request;
 
-  detections = grab_from_port_using_trait( descriptor_request );
+  request = grab_from_port_using_trait( descriptor_request );
 
   // Get output matrix and detections
   vital::track_descriptor_set_sptr output;
@@ -130,7 +130,7 @@ handle_descriptor_request_process
   output = d->m_handler->handle( request );
 
   // Return all outputs
-  push_to_port_using_trait( track_descriptor_set_sptr, output );
+  push_to_port_using_trait( track_descriptor_set, output );
 }
 
 
@@ -143,7 +143,6 @@ void handle_descriptor_request_process
   sprokit::process::port_flags_t required;
 
   required.insert( flag_required );
-  required_no_dep.insert( flag_required );
 
   // -- input --
   declare_input_port_using_trait( descriptor_request, required );
