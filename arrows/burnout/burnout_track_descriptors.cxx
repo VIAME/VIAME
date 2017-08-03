@@ -44,7 +44,7 @@ class burnout_track_descriptors::priv
 {
 public:
   priv()
-    : m_config( "" )
+    : m_config( "burnout_descriptors.conf" )
   {}
 
   ~priv()
@@ -80,8 +80,7 @@ get_configuration() const
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
-  config->set_value( "config", d->m_config,
-    "Name of config file." );
+  config->set_value( "config", d->m_config,  "Name of config file." );
 
   return config;
 }
