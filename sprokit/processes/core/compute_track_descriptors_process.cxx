@@ -148,7 +148,10 @@ compute_track_descriptors_process
   // Process optional input track set
   vital::track_descriptor_set_sptr output;
 
-  output = d->m_computer->compute( image, tracks );
+  if( process::has_input_port_edge( "object_track_set" ) )
+  {
+    output = d->m_computer->compute( image, tracks );
+  }
 
   // Process optional input detection set
   // [TODO]
