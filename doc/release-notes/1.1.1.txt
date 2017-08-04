@@ -8,6 +8,15 @@ improvements over the previous v1.1.0 release.
 Updates since v1.1.0
 --------------------
 
+Testing
+
+ * The Travis CI framework was updated to download a pre-built Fletch instead
+   of building Fletch from source.  This change helps to avoid the Travis CI
+   time out.  It also allows us to build all of Fletch and all of KWIVER
+   without hitting the time limit, so Sprokit, Python, and track oracle have
+   now been enabled in Travis CI testing.
+
+
 Fixes since v1.1.0
 ------------------
 
