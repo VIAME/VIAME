@@ -1,0 +1,27 @@
+{
+    "plugins": {
+        "descriptor_index": {
+            "MemoryDescriptorIndex": {
+                "file_cache": "models/descriptors.alexnet_fc7.mdi_cache",
+                "pickle_protocol": -1
+            },
+            "type": "MemoryDescriptorIndex"
+        },
+        "lsh_functor": {
+            "ItqFunctor": {
+                "bit_length": 256,
+                "itq_iterations": 100,
+                "mean_vec_filepath": "models/itq.model.b256_i100_r0.mean_vec.npy",
+                "normalize": null,
+                "random_seed": 0,
+                "rotation_filepath": "models/itq.model.b256_i100_r0.rotation.npy"
+            },
+            "type": "ItqFunctor"
+        }
+    },
+    "utility": {
+        "pickle_protocol": -1,
+        "report_interval": 1.0,
+        "use_multiprocessing": false
+    }
+}

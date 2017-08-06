@@ -1,0 +1,51 @@
+{
+    "descriptor_factory": {
+        "DescriptorFileElement": {
+            "save_dir": "models/descriptors",
+            "subdir_split": null
+        },
+        "PostgresDescriptorElement": {
+            "binary_col": "vector",
+            "db_host": "/dev/shm",
+            "db_name": "postgres",
+            "db_pass": null,
+            "db_port": 5432,
+            "db_user": "smqtk",
+            "table_name": "descriptors_alexnet_fc7",
+            "type_col": "type_str",
+            "uuid_col": "uid"
+        },
+        "type": "DescriptorFileElement"
+    },
+    "descriptor_generator": {
+        "CaffeDescriptorGenerator": {
+            "batch_size": 100,
+            "data_layer": "data",
+            "gpu_device_id": 0,
+            "image_mean_filepath": "configs/imagenet_mean.binaryproto",
+            "input_scale": null,
+            "load_truncated_images": true,
+            "network_is_bgr": true,
+            "network_model_filepath": "configs/bvlc_alexnet.caffemodel",
+            "network_prototxt_filepath": "configs/deploy.prototxt",
+            "pixel_rescale": null,
+            "return_layer": "fc7",
+            "use_gpu": false
+        },
+        "type": "CaffeDescriptorGenerator"
+    },
+    "descriptor_index": {
+        "MemoryDescriptorIndex": {
+            "file_cache": "models/descriptors.alexnet_fc7.mdi_cache",
+            "pickle_protocol": -1
+        },
+        "type": "MemoryDescriptorIndex"
+    },
+    "optional_data_set": {
+        "DataMemorySet": {
+            "file_cache": "models/image_elements.dms_cache",
+            "pickle_protocol": -1
+        },
+        "type": "DataMemorySet"
+    }
+}
