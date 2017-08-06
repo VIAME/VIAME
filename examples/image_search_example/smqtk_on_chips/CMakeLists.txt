@@ -3,21 +3,13 @@
 ##
 
 set( example_files
-  plotroc.py
-  detections.kw18
-  groundtruth.kw18 )
+  chip_pipeline.pipe
+  ingest_data.sh
+  initialize_database.sh
+  launch_iqr_session.sh
+  reset_database.sh )
 
-if( VIAME_ENABLE_KWANT )
-  if( WIN32 )
-    set( example_files
-         ${example_files}
-         run_scoring.bat )
-  else()
-    set( example_files
-         ${example_files}
-         run_scoring.sh )
-  endif()
-endif()
-
-install( FILES       ${example_files}
-         DESTINATION examples/scoring_and_roc_generation )
+install( FILES      ${example_files}
+   DESTINATION      examples/image_search_example/smqtk_on_chips )
+install( DIRECTORY  configs
+   DESTINATION      examples/image_search_example/smqtk_on_chips )
