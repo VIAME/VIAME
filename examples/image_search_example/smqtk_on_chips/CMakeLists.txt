@@ -5,6 +5,7 @@
 if( VIAME_ENABLE_SMQTK AND NOT WIN32 )
 
   set( example_files
+    input_list.txt
     ingest_chip_folder.sh
     ingest_using_detections.sh
     ingest_using_windowing.sh

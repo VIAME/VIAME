@@ -17,7 +17,7 @@ IMAGE_TILES_DIR="tiles"
 # Compute tiles using KWIVER pipeline
 echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
 mkdir -p "${IMAGE_TILES_DIR}"
-pipeline -p configs/chip_extractor_pipeline.pipe
+pipeline_runner -p configs/chip_extractor_pipeline.pipe
 
 # Ingest descriptors around each chip
 #bash ingest_chip_folder.sh ${IMAGE_TILES_DIR}
