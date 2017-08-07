@@ -1,5 +1,8 @@
 # Build/install plugin for darknet CNN support
 #
+find_package(Darknet REQUIRED)
+include_directories( SYSTEM ${Darknet_INCLUDE_DIR})
+
 
 set( headers
   darknet_custom_resize.h
@@ -13,8 +16,8 @@ set( sources
   darknet_trainer.cxx
   )
 
-set( darknet_linked_libs
-  ${darknet_LIBRARIES}
+set( Darknet_linked_libs
+  ${Darknet_LIBRARIES}
   kwiversys
   ${OpenCV_LIBS}
   ${Boost_SYSTEM_LIBRARY}
@@ -22,24 +25,40 @@ set( darknet_linked_libs
   kwiver_algo_ocv )
 
 # if darknet was built with the GPU support
-if (DARKNET_USE_GPU)
+if (Darknet_USING_GPU)
   find_package(CUDA QUIET REQUIRED)
   include_directories( ${CUDA_TOOLKIT_ROOT_DIR}/include )
-  add_definitions( -DDARKNET_USE_GPU )  # needed by darknet includes
+  add_definitions( -DDARKNET_USE_GPU )  # needed by darknet detector
+endif()
+if (Darknet_USING_CUDNN)
+  find_library( CUDNN_LIBRARIES
+    NAMES cudnn libcudnn
+    HINTS ${CUDNN_ROOT_DIR}
+    PATH_SUFFIXES lib lib64 lib/x64 lib/x86 targets/aarch64-linux
+  )
+  if(NOT CUDNN_LIBRARIES)
+    message(FATAL_ERROR "Unable to find cudnn libraries")
+  endif()
+  include_directories( ${CUDNN_ROOT_DIR}/include )
 endif()
 
 # Visual Studio fix until project has better exports
 if (WIN32)
-  include_directories( SYSTEM ${darknet_INCLUDE_DIR}/../3rdparty/include )
+  include_directories( SYSTEM ${Darknet_INCLUDE_DIR}/../3rdparty/include )
   add_definitions( -D_TIMESPEC_DEFINED )
-  set( darknet_linked_libs ${darknet_linked_libs} pthreadVC2 )
-  if (KWIVER_ENABLE_CUDA)
-    set( darknet_linked_libs
-         ${darknet_linked_libs}
+  set( Darknet_linked_libs ${Darknet_linked_libs} pthreadVC2 )
+  if (Darknet_USING_GPU)
+    set( Darknet_linked_libs
+         ${Darknet_linked_libs}
          ${CUDA_CUDA_LIBRARY}
          ${CUDA_LIBRARIES}
          ${CUDA_CUBLAS_LIBRARIES}
          ${CUDA_curand_LIBRARY} )
+  endif()
+  if (Darknet_USING_CUDNN)
+    set( Darknet_linked_libs
+         ${darknet_linked_libs}
+         ${CUDA_CUDA_LIBRARY} )
   endif()
 endif()
 
@@ -60,7 +79,7 @@ kwiver_add_library( kwiver_algo_darknet
 
 target_link_libraries( kwiver_algo_darknet
   PUBLIC               vital_algo
-  PRIVATE              ${darknet_linked_libs}
+  PRIVATE              ${Darknet_linked_libs}
   )
 
 algorithms_create_plugin( kwiver_algo_darknet
