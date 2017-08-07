@@ -61,7 +61,7 @@ connect from input.image
 process chipper
   :: refine_detections
   :refiner:type                ocv_draw
-  :refiner:ocv_draw:pattern    feature_tracks_%05d.png
+  :refiner:ocv_draw:pattern    chips/feature_tracks_%05d.png
 
 #connect from downsampler.image
 #        to   chipper.image
