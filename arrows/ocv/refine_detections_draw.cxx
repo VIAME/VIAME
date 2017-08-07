@@ -172,7 +172,7 @@ refine_detections_draw
       bbox.width(), bbox.height() );
 
     cv::Mat crop = img( r );
-    cv::imwrite( ofn, img );
+    cv::imwrite( ofn, crop );
   }
 
   return detections;
