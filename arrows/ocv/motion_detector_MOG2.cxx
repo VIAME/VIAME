@@ -69,7 +69,7 @@ public:
   /// Constructor
   priv()
      : history(100),
-       var_threshold(16.0)
+       var_threshold(36.0)
   {
   }
   
@@ -143,6 +143,7 @@ motion_detector_MOG2
   }
 
   cv::Mat cv_src = ocv::image_container::vital_to_ocv(image->get_image());
+  cv::blur(cv_src, cv_src, cv::Size(5,5) );
   
   std::cout << "Running MOG2 motion detector";
   cv::Mat fgmask;
