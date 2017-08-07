@@ -4,14 +4,13 @@
 # and existing configs.
 #
 # This assumes the use of the LSH nearest-neighbor index as it builds ITQ model.
-# This could be triggered in the future by introspecting configs?
 #
 set -e
 
 # PARAMETERS ###################################################################
 
-IMAGE_DIR="images"
-IMG_TILES_DIR="tiles"
+IMAGE_LIST="input_list.txt"
+IMAGE_TILES_DIR="tiles"
 
 SMQTK_GEN_IMG_TILES="configs/generate_image_transform.tiles.json"
 
@@ -29,22 +28,23 @@ SMQTK_HCODE_BTREE_LEAFSIZE=40
 SMQTK_HCODE_BTREE_RAND=0
 SMQTK_HCODE_BTREE_OUTPUT="models/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz"
 
-IMAGE_DIR_FILELIST="${IMAGE_DIR}.filelist.txt"
-find "${IMAGE_DIR}" -type f >"${IMAGE_DIR_FILELIST}"
+# Compute tiles using KWIVER pipeline
+echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
+mkdir -p "${IMAGE_TILES_DIR}"
 
-echo "Generating tiles for images ($(wc -l "${IMAGE_DIR_FILELIST}" | cut -d' ' -f1) images)"
-mkdir -p "${IMG_TILES_DIR}"
+pipeline -p chip_pipeline.pipe
 
-if [ -n "$(which parallel 2>/dev/null)" ]
-then
-    cat "${IMAGE_DIR_FILELIST}" | parallel "
-        generate_image_transform -c \"${SMQTK_GEN_IMG_TILES}\" \
-            -i \"{}\" -o \"${IMG_TILES_DIR}\"
-    "
-else
-    cat "${IMAGE_DIR_FILELIST}" | \
-        xargs -I '{}' generate_image_transform -c "${SMQTK_GEN_IMG_TILES}" -i '{}' -o "${IMG_TILES_DIR}"
-fi
+# Old method, tiles up input images without doing any detection
+#if [ -n "$(which parallel 2>/dev/null)" ]
+#then
+#    cat "${IMAGE_DIR_FILELIST}" | parallel "
+#        generate_image_transform -c \"${SMQTK_GEN_IMG_TILES}\" \
+#            -i \"{}\" -o \"${IMG_TILES_DIR}\"
+#    "
+#else
+#    cat "${IMAGE_DIR_FILELIST}" | \
+#        xargs -I '{}' generate_image_transform -c "${SMQTK_GEN_IMG_TILES}" -i '{}' -o "${IMG_TILES_DIR}"
+#fi
 
 # Use these tiles for new imagelist
 mv "${IMAGE_DIR_FILELIST}" "${IMAGE_DIR_FILELIST}.ORIG"
