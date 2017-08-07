@@ -9,8 +9,7 @@ set -e
 
 # PARAMETERS ###################################################################
 
-IMAGE_LIST="input_list.txt"
-IMAGE_TILES_DIR="tiles"
+IMAGE_TILES_DIR=$1
 
 SMQTK_GEN_IMG_TILES="configs/generate_image_transform.tiles.json"
 
@@ -28,27 +27,9 @@ SMQTK_HCODE_BTREE_LEAFSIZE=40
 SMQTK_HCODE_BTREE_RAND=0
 SMQTK_HCODE_BTREE_OUTPUT="models/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz"
 
-# Compute tiles using KWIVER pipeline
-echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
-mkdir -p "${IMAGE_TILES_DIR}"
-
-pipeline -p chip_pipeline.pipe
-
-# Old method, tiles up input images without doing any detection
-#if [ -n "$(which parallel 2>/dev/null)" ]
-#then
-#    cat "${IMAGE_DIR_FILELIST}" | parallel "
-#        generate_image_transform -c \"${SMQTK_GEN_IMG_TILES}\" \
-#            -i \"{}\" -o \"${IMG_TILES_DIR}\"
-#    "
-#else
-#    cat "${IMAGE_DIR_FILELIST}" | \
-#        xargs -I '{}' generate_image_transform -c "${SMQTK_GEN_IMG_TILES}" -i '{}' -o "${IMG_TILES_DIR}"
-#fi
-
 # Use these tiles for new imagelist
 mv "${IMAGE_DIR_FILELIST}" "${IMAGE_DIR_FILELIST}.ORIG"
-find "${IMG_TILES_DIR}" -type f >"${IMAGE_DIR_FILELIST}"
+find "${IMAGE_TILES_DIR}" -type f >"${IMAGE_DIR_FILELIST}"
 
 # Compute descriptors
 compute_many_descriptors \

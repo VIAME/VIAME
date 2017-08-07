@@ -9,61 +9,25 @@ set -e
 
 # PARAMETERS ###################################################################
 
+source ../../../setup_viame.sh
+
 IMAGE_LIST="input_list.txt"
 IMAGE_TILES_DIR="tiles"
 
 SMQTK_GEN_IMG_TILES="configs/generate_image_transform.tiles.json"
 
-SMQTK_CMD_CONFIG="configs/compute_many_descriptors.json"
-SMQTK_CMD_BATCH_SIZE=1000
-SMQTK_CMD_PROCESSED_CSV="models/alexnet_fc7.cmd.processed.csv"
+# Compute tiles via chipping up the input images in a grid-like pattern
+if [ -n "$(which parallel 2>/dev/null)" ]
+then
+    cat "${IMAGE_DIR_FILELIST}" | parallel "
+        generate_image_transform -c \"${SMQTK_GEN_IMG_TILES}\" \
+            -i \"{}\" -o \"${IMAGE_TILES_DIR}\"
+    "
+else
+    cat "${IMAGE_DIR_FILELIST}" | \
+        xargs -I '{}' generate_image_transform -c "${SMQTK_GEN_IMG_TILES}" \
+           -i '{}' -o "${IMAGE_TILES_DIR}"
+fi
 
-SMQTK_ITQ_TRAIN_CONFIG="configs/train_itq.json"
-SMQTK_ITQ_BIT_SIZE=256
-
-SMQTK_HCODE_CONFIG="configs/compute_hash_codes.json"
-SMQTK_HCODE_PICKLE="models/alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle"
-
-SMQTK_HCODE_BTREE_LEAFSIZE=40
-SMQTK_HCODE_BTREE_RAND=0
-SMQTK_HCODE_BTREE_OUTPUT="models/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz"
-
-# Compute tiles using KWIVER pipeline
-echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
-mkdir -p "${IMAGE_TILES_DIR}"
-
-pipeline -p chip_pipeline.pipe
-
-# Old method, tiles up input images without doing any detection
-#if [ -n "$(which parallel 2>/dev/null)" ]
-#then
-#    cat "${IMAGE_DIR_FILELIST}" | parallel "
-#        generate_image_transform -c \"${SMQTK_GEN_IMG_TILES}\" \
-#            -i \"{}\" -o \"${IMG_TILES_DIR}\"
-#    "
-#else
-#    cat "${IMAGE_DIR_FILELIST}" | \
-#        xargs -I '{}' generate_image_transform -c "${SMQTK_GEN_IMG_TILES}" -i '{}' -o "${IMG_TILES_DIR}"
-#fi
-
-# Use these tiles for new imagelist
-mv "${IMAGE_DIR_FILELIST}" "${IMAGE_DIR_FILELIST}.ORIG"
-find "${IMG_TILES_DIR}" -type f >"${IMAGE_DIR_FILELIST}"
-
-# Compute descriptors
-compute_many_descriptors \
-    -v -b ${SMQTK_CMD_BATCH_SIZE} --check-image -c "${SMQTK_CMD_CONFIG}" \
-    -f "${IMAGE_DIR_FILELIST}" -p "${SMQTK_CMD_PROCESSED_CSV}"
-
-# Train ITQ models
-train_itq -vc "${SMQTK_ITQ_TRAIN_CONFIG}"
-
-# Compute hash codes for descriptors
-compute_hash_codes \
-    -vc "${SMQTK_HCODE_CONFIG}" \
-    --output-hash2uuids "${SMQTK_HCODE_PICKLE}"
-
-# Compute balltree hash index
-make_balltree "${SMQTK_HCODE_PICKLE}" ${SMQTK_ITQ_BIT_SIZE} \
-    ${SMQTK_HCODE_BTREE_LEAFSIZE} ${SMQTK_HCODE_BTREE_RAND} \
-    ${SMQTK_HCODE_BTREE_OUTPUT}
+# Ingest descriptors around each chip
+#bash ingest_chip_folder.sh ${IMAGE_TILES_DIR}
