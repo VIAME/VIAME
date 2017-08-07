@@ -72,9 +72,6 @@ handle_descriptor_request_process
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
 
-  // Required for negative feedback loop
-  set_data_checking_level( check_none );
-
   make_ports();
   make_config();
 }
