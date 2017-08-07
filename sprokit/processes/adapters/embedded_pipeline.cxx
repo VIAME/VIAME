@@ -137,11 +137,11 @@ embedded_pipeline
 // ------------------------------------------------------------------
 void
 embedded_pipeline
-::build_pipeline( std::istream& istr )
+::build_pipeline( std::istream& istr, std::string const& def_dir )
 {
   // create a pipeline
   sprokit::pipeline_builder builder;
-  builder.load_pipeline( istr );
+  builder.load_pipeline( istr, def_dir );
 
   // build pipeline
   m_priv->m_pipeline = builder.pipeline();

@@ -60,11 +60,11 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks_from_file( kwiver::vit
  * \brief Convert a pipeline description into a pipeline.
  *
  * \param istr The stream to load the pipeline from.
- * \param inc_root The root directory to search for includes from.
+ * \param def_dir The root directory to search for includes from.
  *
  * \returns A new set of pipeline blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr );
+SPROKIT_PIPELINE_UTIL_EXPORT pipe_blocks load_pipe_blocks(std::istream& istr, std::string const& def_dir = "" );
 
 /**
  * \brief Convert a cluster description file into a collection of cluster blocks.
@@ -79,11 +79,11 @@ SPROKIT_PIPELINE_UTIL_EXPORT cluster_blocks load_cluster_blocks_from_file( kwive
  * \brief Convert a cluster description into a cluster.
  *
  * \param istr The stream to load the cluster from.
- * \param inc_root The root directory to search for includes from.
+ * \param def_dir The root directory to search for includes from.
  *
  * \returns A new set of cluster blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT cluster_blocks load_cluster_blocks(std::istream& istr );
+SPROKIT_PIPELINE_UTIL_EXPORT cluster_blocks load_cluster_blocks(std::istream& istr, std::string const& def_dir = "" );
 
 }
 

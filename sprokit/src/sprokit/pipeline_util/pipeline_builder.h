@@ -76,8 +76,9 @@ public:
    * to the internal pipeline representation.
    *
    * \param istr Stream containing the textual pipeline definition.
+   * \param def_dir Directory to use for resolving inclues and relativepath specifications.
    */
-  void load_pipeline(std::istream& istr);
+  void load_pipeline(std::istream& istr, std::string const& def_dir = "" );
 
   /**
    * \brief Load supplemental data into pipeline description.

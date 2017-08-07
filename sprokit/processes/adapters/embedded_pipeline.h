@@ -1,4 +1,3 @@
-
 /*ckwg +29
  * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
@@ -141,8 +140,11 @@ public:
    * supplied stream.
    *
    * @param istr Input stream containing the pipeline description.
+   * @param def_dir Directory to be used as the current directory
+   * for the specified input stream. This directory is used to resolve
+   * relpath.
    */
-  void build_pipeline( std::istream& istr );
+  void build_pipeline( std::istream& istr, std::string const& def_dir = "" );
 
   /**
    * @brief Send data set to input adapter.
