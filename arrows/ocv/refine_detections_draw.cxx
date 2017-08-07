@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of OCV draw tracks algorithm
+ * \brief Implementation of OCV refine detections draw debugging algorithm
  */
 
 #include "refine_detections_draw.h"
@@ -70,7 +70,7 @@ public:
 
   /// Constructor
   priv()
-  : pattern( "feature_tracks_%05d.png" ),
+  : pattern( "detection_%10d.png" ),
     id( 0 )
   {
   }
@@ -172,7 +172,7 @@ refine_detections_draw
       bbox.width(), bbox.height() );
 
     cv::Mat crop = img( r );
-    cv::imwrite( ofn, img );
+    cv::imwrite( ofn, crop );
   }
 
   return detections;
