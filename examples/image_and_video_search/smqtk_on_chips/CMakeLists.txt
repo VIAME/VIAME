@@ -13,8 +13,8 @@ if( VIAME_ENABLE_SMQTK AND NOT WIN32 )
     reset_database.sh )
 
   install( FILES      ${example_files}
-     DESTINATION      examples/image_search_example/smqtk_on_chips )
+     DESTINATION      examples/image_and_video_search/smqtk_on_chips )
   install( DIRECTORY  configs
-     DESTINATION      examples/image_search_example/smqtk_on_chips )
+     DESTINATION      examples/image_and_video_search/smqtk_on_chips )
 
 endif()
