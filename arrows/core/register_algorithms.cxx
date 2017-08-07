@@ -48,7 +48,7 @@
 #include <arrows/core/estimate_canonical_transform.h>
 #include <arrows/core/feature_descriptor_io.h>
 #include <arrows/core/filter_features_magnitude.h>
-#include <arrows/core/formulate_query_core.h>
+#include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
@@ -240,7 +240,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "core", kwiver::arrows::core::formulate_query_core );
+  fact = vpm.ADD_ALGORITHM( "core", kwiver::arrows::core::handle_descriptor_request_core );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Formulate descriptors for later queries." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )

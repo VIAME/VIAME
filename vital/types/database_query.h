@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief This file contains the interface to a query plan.
+ * \brief This file contains the interface to a database query.
  */
 
-#ifndef VITAL_QUERY_PLAN_H_
-#define VITAL_QUERY_PLAN_H_
+#ifndef VITAL_DATABASE_QUERY_H_
+#define VITAL_DATABASE_QUERY_H_
 
 #include "geo_polygon.h"
 #include "timestamp.h"
@@ -49,7 +49,9 @@
 namespace kwiver {
 namespace vital {
 
-enum class filter
+// ----------------------------------------------------------------------------
+/// A representation of a filter used within database queries.
+enum class query_filter
 {
   IGNORE = 0,
   CONTAINS_WHOLLY,
@@ -61,8 +63,12 @@ enum class filter
 };
 
 // ----------------------------------------------------------------------------
-/// A representation of a query plan.
-class query_plan
+/// A representation of a database query.
+///
+/// This structure is used to initialize a query, for communication with
+/// either a GUI or other entity. It contains many optional fields which only
+/// need be filled based on the application and query type.
+class VITAL_EXPORT database_query
 {
 public:
   enum query_type
@@ -71,8 +77,8 @@ public:
     // TODO add other types
   };
 
-  query_plan();
-  ~query_plan() VITAL_DEFAULT_DTOR
+  database_query();
+  ~database_query() VITAL_DEFAULT_DTOR
 
   /// Accessor for query plan unique identifier. \see set_id
   uid id() const;
@@ -80,14 +86,14 @@ public:
   query_type type() const;
 
   /// Accessor for temporal filter. \see set_temporal_filter
-  filter temporal_filter() const;
+  query_filter temporal_filter() const;
   /// Accessor for temporal lower bound. \see set_temporal_bounds
   timestamp temporal_lower_bound() const;
   /// Accessor for temporal upper bound. \see set_temporal_bounds
   timestamp temporal_upper_bound() const;
 
   /// Accessor for spatial filter. \see set_spatial_filter
-  filter spatial_filter() const;
+  query_filter spatial_filter() const;
   /// Accessor for spatial region. \see set_spatial_region
   geo_polygon spatial_region() const;
 
@@ -118,7 +124,7 @@ public:
    * bounds are applied to decide if a potential result is applicable to the
    * query.
    */
-  void set_temporal_filter( filter );
+  void set_temporal_filter( query_filter );
 
   /**
    * \brief Set the temporal bounds.
@@ -138,7 +144,7 @@ public:
    * region is applied to decide if a potential result is applicable to the
    * query.
    */
-  void set_spatial_filter( filter );
+  void set_spatial_filter( query_filter );
 
   /**
    * \brief Set the spatial region.
@@ -178,21 +184,19 @@ protected:
 
   uid m_id;
   query_type m_type;
-  filter m_temporal_filter;
+  query_filter m_temporal_filter;
   timestamp m_temporal_lower;
   timestamp m_temporal_upper;
-  filter m_spatial_filter;
+  query_filter m_spatial_filter;
   geo_polygon m_spatial_region;
   std::string m_stream_filter;
   track_descriptor_set_sptr m_descriptors;
   double m_threshold;
-
-
 };
 
 /// Shared pointer for query plan
-typedef std::shared_ptr< query_plan > query_plan_sptr;
+typedef std::shared_ptr< database_query > database_query_sptr;
 
 } } // end namespace vital
 
-#endif // VITAL_QUERY_PLAN_H_
+#endif // VITAL_DATABASE_QUERY_H_

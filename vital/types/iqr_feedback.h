@@ -30,14 +30,13 @@
 
 /**
  * \file
- * \brief This file contains the interface for a descriptor request.
+ * \brief This file contains the interface for iterative query refinement feedback.
  */
 
-#ifndef VITAL_DESCRIPTOR_REQUEST_H_
-#define VITAL_DESCRIPTOR_REQUEST_H_
+#ifndef VITAL_IQR_FEEDBACK_H_
+#define VITAL_IQR_FEEDBACK_H_
 
 #include "image_container.h"
-#include "bounding_box.h"
 #include "timestamp.h"
 #include "track_descriptor.h"
 #include "uid.h"
@@ -52,47 +51,35 @@ namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-/// A representation of a descriptor request.
-///
-/// This is used by some arbitrary GUI or other input to request and return
-/// computed descriptors on some region of arbitrary input imagery.
-class VITAL_EXPORT descriptor_request
+/// A representation of iterative query refinement feedback.
+class VITAL_EXPORT iqr_feedback
 {
 public:
 
-  descriptor_request();
-  ~descriptor_request() VITAL_DEFAULT_DTOR
+  iqr_feedback();
+  ~iqr_feedback() VITAL_DEFAULT_DTOR
 
-  uid id() const;
+  uid query_id() const;
 
-  timestamp temporal_lower_bound() const;
-  timestamp temporal_upper_bound() const;
+  std::vector< unsigned > const& positive_ids() const;
+  std::vector< unsigned > const& negative_ids() const;
 
-  std::vector< bounding_box_i > spatial_regions() const;
+  void set_query_id( uid const& );
 
-  std::string data_location() const;
-  std::vector< image_container_sptr> image_data() const;
-
-  void set_id( uid const& );
-  void set_temporal_bounds( timestamp const& lower, timestamp const& upper );
-  void set_spatial_regions( std::vector< bounding_box_i > const& );
-
-  void set_data_location( std::string const& );
-  void set_image_data( std::vector< image_container_sptr > const& );
+  void set_positive_ids( std::vector< unsigned > const& );
+  void set_negative_ids( std::vector< unsigned > const& );
 
 protected:
 
-  vital::uid m_id;
-  vital::timestamp m_temporal_lower;
-  vital::timestamp m_temporal_upper;
-  std::vector< bounding_box_i > m_spatial_regions;
-  std::vector< image_container_sptr > m_image_data;
-  std::string m_data_location;
+  vital::uid m_query_id;
+
+  std::vector< unsigned > m_positive_ids;
+  std::vector< unsigned > m_negative_ids;
 };
 
 /// Shared pointer for query plan
-typedef std::shared_ptr< descriptor_request > descriptor_request_sptr;
+typedef std::shared_ptr< iqr_feedback > iqr_feedback_sptr;
 
 } } // end namespace vital
 
-#endif // VITAL_DESCRIPTOR_REQUEST_H_
+#endif // VITAL_IQR_FEEDBACK_H_

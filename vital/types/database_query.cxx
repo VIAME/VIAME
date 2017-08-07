@@ -30,80 +30,80 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a geo polygon.
+ * \brief This file contains the implementation of a database query.
  */
 
-#include "query_plan.h"
+#include "database_query.h"
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-query_plan::
-query_plan()
+database_query::
+database_query()
   : m_id{ nullptr, 0 },
     m_type{ SIMILARITY },
     m_threshold{ 0.0 }
 { }
 
 // ----------------------------------------------------------------------------
-uid query_plan
+uid database_query
 ::id() const
 {
   return m_id;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_id( uid const& id )
 {
   m_id = id;
 }
 
 // ----------------------------------------------------------------------------
-query_plan::query_type query_plan
+database_query::query_type database_query
 ::type() const
 {
   return m_type;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_type( query_type type )
 {
   m_type = type;
 }
 
 // ----------------------------------------------------------------------------
-filter query_plan
+query_filter database_query
 ::temporal_filter() const
 {
   return m_temporal_filter;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
-::set_temporal_filter( filter f )
+void database_query
+::set_temporal_filter( query_filter f )
 {
   m_temporal_filter = f;
 }
 
 // ----------------------------------------------------------------------------
-timestamp query_plan
+timestamp database_query
 ::temporal_lower_bound() const
 {
   return m_temporal_lower;
 }
 
 // ----------------------------------------------------------------------------
-timestamp query_plan
+timestamp database_query
 ::temporal_upper_bound() const
 {
   return m_temporal_upper;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
 {
   m_temporal_lower = lower;
@@ -111,70 +111,70 @@ void query_plan
 }
 
 // ----------------------------------------------------------------------------
-filter query_plan
+query_filter database_query
 ::spatial_filter() const
 {
   return m_spatial_filter;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
-::set_spatial_filter( filter f )
+void database_query
+::set_spatial_filter( query_filter f )
 {
   m_spatial_filter = f;
 }
 
 // ----------------------------------------------------------------------------
-geo_polygon query_plan
+geo_polygon database_query
 ::spatial_region() const
 {
   return m_spatial_region;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_spatial_region( geo_polygon const& r )
 {
   m_spatial_region = r;
 }
 
 // ----------------------------------------------------------------------------
-std::string query_plan
+std::string database_query
 ::stream_filter() const
 {
   return m_stream_filter;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_stream_filter( std::string const& f )
 {
   m_stream_filter = f;
 }
 
 // ----------------------------------------------------------------------------
-track_descriptor_set_sptr query_plan
+track_descriptor_set_sptr database_query
 ::descriptors() const
 {
   return m_descriptors;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_descriptors( track_descriptor_set_sptr d )
 {
   m_descriptors = d;
 }
 
 // ----------------------------------------------------------------------------
-double query_plan
+double database_query
 ::threshold() const
 {
   return m_threshold;
 }
 
 // ----------------------------------------------------------------------------
-void query_plan
+void database_query
 ::set_threshold( double threshold )
 {
   m_threshold = threshold;

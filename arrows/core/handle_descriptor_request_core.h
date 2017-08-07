@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header defining the formulate_query_core algorithm
+ * \brief Header defining the handle_descriptor_request_core algorithm
  */
 
 #ifndef ARROWS_PLUGINS_CORE_FORMULATE_QUERY_CORE_H_
@@ -41,7 +41,7 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/algo/formulate_query.h>
+#include <vital/algo/handle_descriptor_request.h>
 
 #include <vital/algo/image_io.h>
 #include <vital/algo/compute_track_descriptors.h>
@@ -52,13 +52,13 @@ namespace arrows {
 namespace core {
 
 /// A basic query formulator
-class KWIVER_ALGO_CORE_EXPORT formulate_query_core
-  : public vital::algorithm_impl<formulate_query_core, vital::algo::formulate_query>
+class KWIVER_ALGO_CORE_EXPORT handle_descriptor_request_core
+  : public vital::algorithm_impl<handle_descriptor_request_core, vital::algo::handle_descriptor_request>
 {
 public:
 
   /// Default Constructor
-  formulate_query_core();
+  handle_descriptor_request_core();
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
@@ -97,7 +97,7 @@ public:
 
   /// Formulate query
   virtual kwiver::vital::track_descriptor_set_sptr
-  formulate( kwiver::vital::descriptor_request_sptr request );
+  handle( kwiver::vital::descriptor_request_sptr request );
 
 
 private:

@@ -38,6 +38,7 @@
 #include "compute_association_matrix_process.h"
 #include "compute_homography_process.h"
 #include "compute_stereo_depth_map_process.h"
+#include "compute_track_descriptors_process.h"
 #include "detect_features_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
@@ -46,6 +47,7 @@
 #include "draw_tracks_process.h"
 #include "extract_descriptors_process.h"
 #include "frame_list_process.h"
+#include "handle_descriptor_request_process.h"
 #include "image_file_reader_process.h"
 #include "image_filter_process.h"
 #include "image_object_detector_process.h"
@@ -241,6 +243,20 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Initialize new object tracks given detections for the current frame." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::handle_descriptor_request_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "handle_descriptor_request" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Handle a new descriptor request, producing desired descriptors on the input." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::compute_track_descriptors_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_track_descriptors" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Compute track descriptors on the input tracks or detections." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -

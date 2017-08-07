@@ -30,107 +30,66 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a descriptor request.
+ * \brief This file contains the implementation of iqr feedback
  */
 
-#include "descriptor_request.h"
+#include "iqr_feedback.h"
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-descriptor_request
-::descriptor_request()
+iqr_feedback
+::iqr_feedback()
 {
 }
 
 // ----------------------------------------------------------------------------
 uid
-descriptor_request
-::id() const
+iqr_feedback
+::query_id() const
 {
-  return m_id;
+  return m_query_id;
 }
 
 // ----------------------------------------------------------------------------
 void
-descriptor_request
-::set_id( uid const& id )
+iqr_feedback
+::set_query_id( uid const& id )
 {
-  m_id = id;
+  m_query_id = id;
 }
 
 // ----------------------------------------------------------------------------
-timestamp
-descriptor_request
-::temporal_lower_bound() const
+std::vector< unsigned > const&
+iqr_feedback
+::positive_ids() const
 {
-  return m_temporal_lower;
-}
-
-// ----------------------------------------------------------------------------
-timestamp
-descriptor_request
-::temporal_upper_bound() const
-{
-  return m_temporal_upper;
+  return m_positive_ids;
 }
 
 // ----------------------------------------------------------------------------
 void
-descriptor_request
-::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
+iqr_feedback
+::set_positive_ids( std::vector< unsigned > const& ids )
 {
-  m_temporal_lower = lower;
-  m_temporal_upper = upper;
+  m_positive_ids = ids;
 }
 
 // ----------------------------------------------------------------------------
-std::vector< bounding_box_i >
-descriptor_request
-::spatial_regions() const
+std::vector< unsigned > const&
+iqr_feedback
+::negative_ids() const
 {
-  return m_spatial_regions;
-}
-
-// ----------------------------------------------------------------------------
-void
-descriptor_request
-::set_spatial_regions( std::vector< bounding_box_i > const& r )
-{
-  m_spatial_regions = r;
-}
-
-// ----------------------------------------------------------------------------
-std::string
-descriptor_request
-::data_location() const
-{
-  return m_data_location;
+  return m_negative_ids;
 }
 
 // ----------------------------------------------------------------------------
 void
-descriptor_request
-::set_data_location( std::string const& l )
+iqr_feedback
+::set_negative_ids( std::vector< unsigned > const& ids )
 {
-  m_data_location = l;
-}
-
-// ----------------------------------------------------------------------------
-std::vector< image_container_sptr>
-descriptor_request
-::image_data() const
-{
-  return m_image_data;
-}
-
-// ----------------------------------------------------------------------------
-void
-descriptor_request
-::set_image_data( std::vector< image_container_sptr> const& i )
-{
-  m_image_data = i;
+  m_negative_ids = ids;
 }
 
 } } // end namespace

@@ -33,6 +33,7 @@ kwiver_add_library( kwiver_algo_burnout
 target_link_libraries( kwiver_algo_burnout
   PUBLIC               vital_algo
   PRIVATE              ${burnout_linked_libs}
+                       vil vidtk_descriptor
   )
 
 algorithms_create_plugin( kwiver_algo_burnout

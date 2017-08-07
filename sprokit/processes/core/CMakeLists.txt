@@ -10,6 +10,7 @@ set( sources
   compute_association_matrix_process.cxx
   compute_homography_process.cxx
   compute_stereo_depth_map_process.cxx
+  compute_track_descriptors_process.cxx
   detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
@@ -18,6 +19,7 @@ set( sources
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
   frame_list_process.cxx
+  handle_descriptor_request_process.cxx
   image_file_reader_process.cxx
   image_filter_process.cxx
   image_object_detector_process.cxx
@@ -38,6 +40,7 @@ set( private_headers
   compute_association_matrix_process.h
   compute_homography_process.h
   compute_stereo_depth_map_process.h
+  compute_track_descriptors_process.h
   detect_features_process.h
   detected_object_output_process.h
   detected_object_input_process.h
@@ -46,6 +49,7 @@ set( private_headers
   draw_tracks_process.h
   extract_descriptors_process.h
   frame_list_process.h
+  handle_descriptor_request_process.h
   image_file_reader_process.h
   image_filter_process.h
   image_object_detector_process.h
