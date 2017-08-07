@@ -42,6 +42,7 @@ set( ocv_headers_public
   split_image.h
   track_features_klt.h
   three_frame_differencing.h
+  motion_detector_MOG2.h
   )
 kwiver_install_headers(
   SUBDIR     arrows/ocv
@@ -93,6 +94,7 @@ set( ocv_sources
   split_image.cxx
   track_features_klt.cxx
   three_frame_differencing.cxx
+  motion_detector_MOG2.cxx
   )
 
 if( KWIVER_HAS_OPENCV_VER_3 )

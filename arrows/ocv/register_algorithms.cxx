@@ -72,6 +72,7 @@
 #include <arrows/ocv/split_image.h>
 #include <arrows/ocv/track_features_klt.h>
 #include <arrows/ocv/three_frame_differencing.h>
+#include <arrows/ocv/motion_detector_MOG2.h>
 
 namespace kwiver {
 namespace arrows {
@@ -115,6 +116,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   reg.register_algorithm< hough_circle_detector >();
   reg.register_algorithm< three_frame_differencing >();
+
+  fact = vpm.ADD_ALGORITHM( "ocv_MOG2", kwiver::arrows::ocv::motion_detector_MOG2 );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "OpenCV Gaussian mixture-based background segmentation." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
 
   // Conditional algorithms
   // Source ``KWIVER_OCV_HAS_*`` symbol definitions can be found in the header
