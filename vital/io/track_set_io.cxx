@@ -206,7 +206,7 @@ read_feature_track_file( path_t const& file_path )
     t->append( ftsd );
   }
 
-  return std::make_shared<simple_feature_track_set>( tracks );
+  return std::make_shared<feature_track_set>( tracks );
 } // read_track_file
 
 

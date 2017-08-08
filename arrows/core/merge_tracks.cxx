@@ -52,7 +52,7 @@ match_tracks( vital::algo::match_features_sptr matcher,
               vital::frame_id_t target_frame )
 {
   // extract the subset of tracks on the current frame
-  auto current_tracks = std::make_shared<simple_feature_track_set>(
+  auto current_tracks = std::make_shared<feature_track_set>(
                             all_tracks->active_tracks(current_frame) );
   // extract the set of features on the current frame
   feature_set_sptr current_features = current_tracks->frame_features(current_frame);
@@ -75,7 +75,7 @@ match_tracks( vital::algo::match_features_sptr matcher,
               vital::frame_id_t target_frame )
 {
   // extract the subset of tracks on the target frame
-  auto target_tracks = std::make_shared<simple_feature_track_set>(
+  auto target_tracks = std::make_shared<feature_track_set>(
                            all_tracks->active_tracks(target_frame) );
   // extract the set of features on the target frame
   feature_set_sptr target_features = target_tracks->frame_features(target_frame);
@@ -178,7 +178,7 @@ remove_replaced_tracks( vital::feature_track_set_sptr all_tracks,
     at.end()
   );
   // recreate the track set with the new filtered tracks
-  return std::make_shared<simple_feature_track_set>( at );
+  return std::make_shared<feature_track_set>( at );
 }
 
 

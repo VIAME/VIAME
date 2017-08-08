@@ -107,7 +107,7 @@ IMPLEMENT_TEST(empty_input)
 
   camera_map_sptr cam_map(new simple_camera_map());
   landmark_map_sptr lm_map(new simple_landmark_map());
-  feature_track_set_sptr trk_set(new simple_feature_track_set());
+  feature_track_set_sptr trk_set(new feature_track_set());
 
   ceres::optimize_cameras optimizer;
   config_block_sptr cfg = optimizer.get_configuration();

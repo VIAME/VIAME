@@ -197,13 +197,13 @@ close_loops_bad_frames_only
     last_frame_to_test = frame_to_test - max_search_length_;
   }
 
-  auto stitch_frame_set = std::make_shared<vital::simple_feature_track_set>(
+  auto stitch_frame_set = std::make_shared<vital::feature_track_set>(
                               input->active_tracks( frame_to_stitch ) );
 
 
   for( ; frame_to_test > last_frame_to_test; frame_to_test-- )
   {
-    auto test_frame_set = std::make_shared<vital::simple_feature_track_set>(
+    auto test_frame_set = std::make_shared<vital::feature_track_set>(
                               input->active_tracks( frame_to_test ) );
 
     // run matcher alg
@@ -240,7 +240,7 @@ close_loops_bad_frames_only
         );
       }
 
-      return std::make_shared<simple_feature_track_set>( all_tracks );
+      return std::make_shared<feature_track_set>( all_tracks );
     }
   }
 
