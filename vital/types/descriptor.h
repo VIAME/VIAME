@@ -148,6 +148,11 @@ public:
   virtual const T* raw_data() const = 0;
 
 
+  // Iterator interface
+  T const* begin() const { return this->raw_data(); }
+  T const* end() const { return this->raw_data() + this->size(); }
+
+
   /// Equality operator
   bool operator==( descriptor_array_of<T> const& other ) const
   {
