@@ -100,7 +100,7 @@ set(test_python_path)
 
 if (KWIVER_ENABLE_PYTHON)
   set(python_module_path
-    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}")
+    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}/${sprokit_python_subdir}")
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")
