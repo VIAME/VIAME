@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -72,7 +72,7 @@ namespace vital {
 } }
 
 
-// ================================================================
+// ==================================================================================
 //
 // Create type traits for common pipeline types.
 // These are types that are passed through the pipeline.
@@ -87,6 +87,7 @@ create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( descriptor_request, "kwiver:descriptor_request", kwiver::vital::descriptor_request_sptr );
+create_type_trait( string, "kwiver:string", kwiver::vital::string_t );
 create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
 create_type_trait( feature_track_set, "kwiver:feature_track_set", kwiver::vital::feature_track_set_sptr );
@@ -105,7 +106,7 @@ create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 
 
-// ================================================================
+// ==================================================================================
 //
 // Create port traits for common port types.
 // ( port-name, type-trait-name, "port-description" )
