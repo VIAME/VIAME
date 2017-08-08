@@ -41,6 +41,9 @@ Vital
    and "make()" static member is used for construction.  A "clone()" function
    is now used for track copy construction.
 
+ * Array descriptors are now iterable (have begin/end methods), allowing them
+   to be used in standard algorithms, range-based for, etc.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
