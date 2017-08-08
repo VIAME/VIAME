@@ -10,17 +10,16 @@ set(flow_srcs
 set(flow_private_headers
   collate_process.h
   distribute_process.h
-  flow-config.h
   pass_process.h
   sink_process.h)
 
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+
 sprokit_private_header_group(${flow_private_headers})
-sprokit_add_plugin(processes_flow
-  MAKE_SPROKIT_PROCESSES_FLOW_LIB
-  ${flow_srcs}
-  ${flow_private_headers}
-  )
-target_link_libraries(processes_flow
-  PRIVATE         sprokit_pipeline
-                  vital_vpm
+kwiver_add_plugin(processes_flow
+  SUBDIR      sprokit
+  SOURCES     ${flow_srcs}
+              ${flow_private_headers}
+  PRIVATE     sprokit_pipeline
+              vital_vpm
   )

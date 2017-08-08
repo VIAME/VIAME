@@ -30,13 +30,12 @@ sprokit_discover_tests(edge edge_libraries test_edge.cxx)
 ##############################
 # Modules tests
 ##############################
-function (sprokit_add_test_plugin name directory)
-  sprokit_add_plugin("${name}" MAKE_TEST_PLUGIN
-    ${ARGN})
-  target_link_libraries("${name}"
-    LINK_PRIVATE
-    vital_vpm
-    sprokit_pipeline)
+function (sprokit_add_test_plugin    name    directory)
+  kwiver_add_plugin("${name}"
+    SUBDIR   sprokit
+    SOURCES  ${ARGN}
+    PRIVATE    vital_vpm
+               sprokit_pipeline)
 
   set(output_dir
     "${CMAKE_CURRENT_BINARY_DIR}/${directory}")
@@ -76,6 +75,7 @@ sprokit_discover_tests(process test_libraries test_process.cxx)
 
 set( non_b_libs ${test_libraries} kwiver_adapter)
 sprokit_discover_tests(non_blocking non_b_libs test_non_blocking.cxx)
+
 ##############################
 # Process cluster tests
 ##############################

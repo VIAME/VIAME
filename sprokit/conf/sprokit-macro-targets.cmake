@@ -4,7 +4,6 @@
 #   sprokit_install
 #   sprokit_add_executable
 #   sprokit_add_library
-#   sprokit_add_plugin
 #   sprokit_private_header_group
 #   sprokit_private_template_group
 #   sprokit_install_headers
@@ -60,9 +59,6 @@
 #     is installed. Additionally, the 'library_subdir' variable can be set to
 #     put the library in the correct place on DLL systems (see the CMake
 #     documentation on LIBRARY_OUTPUT_DIRECTORY).
-#
-#   sprokit_add_plugin(name define [source ...])
-#     Creates a plugin for sprokit and installs it to the correct directory.
 #
 #   sprokit_private_header_group([source ...])
 #   sprokit_private_template_group([source ...])
@@ -213,23 +209,6 @@ function (sprokit_add_library name)
     LIBRARY      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
     RUNTIME      DESTINATION "bin${library_subdir}${library_subdir_suffix}"
     COMPONENT     "${component}")
-endfunction ()
-
-###
-# replace with kwiver_add_plugin()
-function (sprokit_add_plugin     name define)
-  set(library_subdir /sprokit)
-
-  set(no_export ON)
-
-  sprokit_add_library(${name} MODULE
-    ${ARGN})
-
-  set_target_properties(${name}
-    PROPERTIES
-      DEFINE_SYMBOL    ${define}
-      PREFIX           ""
-      SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX})
 endfunction ()
 
 ###

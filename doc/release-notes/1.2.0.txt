@@ -46,6 +46,11 @@ Vital Bindings
  * Vital C and Python bindings have been updated with respect the refactoring
    of tracks and track_sets to account for both feature and object tracks.
 
+Sprokit
+
+ * Removed the CMake function sprokit_add_plugin and replaced it with the more
+   general kwiver_add_plugin function that is used elsewhere in KWIVER.
+
 
 Fixes since v1.1.0
 ------------------

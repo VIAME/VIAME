@@ -30,7 +30,6 @@ set(examples_private_headers
   const_number_process.h
   data_dependent_process.h
   duplicate_process.h
-  examples-config.h
   expect_process.h
   feedback_process.h
   flow_dependent_process.h
@@ -51,11 +50,13 @@ set(examples_private_headers
 set(no_install FALSE)
 
 sprokit_private_header_group(${examples_private_headers})
-sprokit_add_plugin(processes_examples
-  MAKE_SPROKIT_PROCESSES_EXAMPLES_LIB
-  ${examples_srcs}
-  ${examples_private_headers})
-target_link_libraries(processes_examples
+
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+
+kwiver_add_plugin(processes_examples
+  SUBDIR         sprokit
+  SOURCES        ${examples_srcs}
+                 ${examples_private_headers}
   PRIVATE        sprokit_pipeline
                  ${Boost_FILESYSTEM_LIBRARY}
                  ${Boost_SYSTEM_LIBRARY}

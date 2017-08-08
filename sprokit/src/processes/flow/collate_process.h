@@ -37,13 +37,13 @@
 #ifndef SPROKIT_PROCESSES_FLOW_COLLATE_PROCESS_H
 #define SPROKIT_PROCESSES_FLOW_COLLATE_PROCESS_H
 
-#include "flow-config.h"
+#include "processes_flow_export.h"
 
 #include <sprokit/pipeline/process.h>
 
 namespace sprokit {
 
-class SPROKIT_PROCESSES_FLOW_NO_EXPORT collate_process
+class PROCESSES_FLOW_NO_EXPORT collate_process
   : public process
 {
   public:
