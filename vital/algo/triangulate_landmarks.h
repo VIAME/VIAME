@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 #include <vital/vital_config.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 
@@ -57,18 +57,18 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "triangulate_landmarks"; }
 
-  /// Triangulate the landmark locations given sets of cameras and tracks
+  /// Triangulate the landmark locations given sets of cameras and feature tracks
   /**
    * \param [in] cameras the cameras viewing the landmarks
-   * \param [in] tracks the tracks to use as constraints
+   * \param [in] tracks the feature tracks to use as constraints
    * \param [in,out] landmarks the landmarks to triangulate
    *
    * This function only triangulates the landmarks with indices in the
-   * landmark map and which have support in the tracks and cameras
+   * landmark map and which have support in the feature tracks and cameras
    */
   virtual void
   triangulate(kwiver::vital::camera_map_sptr cameras,
-              kwiver::vital::track_set_sptr tracks,
+              kwiver::vital::feature_track_set_sptr tracks,
               kwiver::vital::landmark_map_sptr& landmarks) const = 0;
 
 protected:

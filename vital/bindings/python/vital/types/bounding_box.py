@@ -34,8 +34,11 @@ Interface to VITAL bounding_box class.
 
 """
 import ctypes
+
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
+
+from vital.util import free_void_ptr
 
 
 class BoundingBox (VitalObject):
@@ -43,14 +46,14 @@ class BoundingBox (VitalObject):
     vital::detected_object_ interface class
     """
 
-    def __init__(self):
+    def __init__(self, one = None, two = None, three = None, four = None, from_cptr=None):
         """
         Create a simple detected object type
 
          """
-        super(BoundingBox, self).__init__()
+        super(BoundingBox, self).__init__( from_cptr, one, two, three, four )
 
-    def _new(self, one, two, three = None, four = None):
+    def _new(self, one, two, three, four):
         """
         Has several signatures:
         1 -(double* ul, double* lr)
@@ -65,33 +68,41 @@ class BoundingBox (VitalObject):
             signature 1
             """
             bb_nfv = self.VITAL_LIB.vital_bounding_box_new_from_vectors
-            bb_nfv.argtypes = [ctype.POINTER(ctype.c_double), ctype.POINTER(ctype.c_double)]
-            bb_nfv(self, one, two)
+            bb_nfv.argtypes = [ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double)]
+            bb_nfv.restype = self.C_TYPE_PTR
+            pt1 = (ctypes.c_double * 2)( *one )
+            pt2 = (ctypes.c_double * 2)( *two )
+            return bb_nfv( pt1, pt2 )
 
         elif four is None:
             """
             signature 2
             """
             bb_npwh = self.VITAL_LIB.vital_bounding_box_new_from_point_width_height
-            bb_npwh.argtypes = [ctype.POINTER(ctype.c_double),
-                                ctype.POINTER(ctype.c_double),
-                                ctype.POINTER(ctype.c_double)]
-            bb_npwh(self, one, two, three)
+            bb_npwh.argtypes = [ctypes.POINTER(ctypes.c_double),
+                                ctypes.c_double,
+                                ctypes.c_double]
+            bb_npwh.restype = self.C_TYPE_PTR
+            pt1 = (ctypes.c_double * 2)( *one )
+            return bb_npwh( pt1, ctypes.c_double( two ), ctypes.c_double( three ) )
 
         else:
             """
             signature 3
             """
             bb_nfc = self.VITAL_LIB.vital_bounding_box_new_from_coordinates
-            bb_nfc.argtypes = [ctype.c_double, ctype.c_double,
-                               ctype.c_double, ctype.c_double]
-            bb_nfc(self, one, two, three, four)
+            bb_nfc.argtypes = [ctypes.c_double, ctypes.c_double,
+                               ctypes.c_double, ctypes.c_double]
+            bb_nfc.restype = self.C_TYPE_PTR
+            return bb_nfc( ctypes.c_double( one ),
+                           ctypes.c_double( two ),
+                           ctypes.c_double( three ),
+                           ctypes.c_double( four ) )
 
     def _destroy(self):
         bb_del = self.VITAL_LIB.vital_bounding_box_destroy
-        bb_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        with VitalErrorHandle() as eh:
-            bb_del(self, eh)
+        bb_del.argtypes = [self.C_TYPE_PTR]
+        bb_del( self )
 
     def center(self):
         """
@@ -99,8 +110,12 @@ class BoundingBox (VitalObject):
         """
         bb_center = self.VITAL_LIB.vital_bounding_box_center
         bb_center.argtypes = [self.C_TYPE_PTR]
-        bb_center.restype = ctype.POINTER(ctype.c_double)
-        bb_center(self)
+        bb_center.restype = ctypes.POINTER(ctypes.c_double)
+        output_pt = bb_center(self)
+        l_value = output_pt[0]
+        r_value = output_pt[1]
+        free_void_ptr( output_pt )
+        return l_value, r_value
 
     def upper_left(self):
         """
@@ -108,8 +123,11 @@ class BoundingBox (VitalObject):
         """
         bb_ul = self.VITAL_LIB.vital_bounding_box_upper_left
         bb_ul.argtypes = [self.C_TYPE_PTR]
-        bb_ul.restype = ctype.POINTER(ctype.c_double)
-        bb_ul(self)
+        bb_ul.restype = ctypes.POINTER(ctypes.c_double)
+        l_value = output_pt[0]
+        r_value = output_pt[1]
+        free_void_ptr( output_pt )
+        return l_value, r_value
 
     def lower_right(self):
         """
@@ -117,8 +135,12 @@ class BoundingBox (VitalObject):
         """
         bb_lr = self.VITAL_LIB.vital_bounding_box_lower_right
         bb_lr.argtypes = [self.C_TYPE_PTR]
-        bb_lr.restype = ctype.POINTER(ctype.c_double)
-        bb_lr(self)
+        bb_lr.restype = ctypes.POINTER(ctypes.c_double)
+        output_pt = bb_lr(self)
+        l_value = output_pt[0]
+        r_value = output_pt[1]
+        free_void_ptr( output_pt )
+        return l_value, r_value
 
     def min_x(self):
         bb_minx = self.VITAL_LIB.vital_bounding_box_min_x
@@ -146,7 +168,7 @@ class BoundingBox (VitalObject):
 
     def width(self):
         bb_width = self.VITAL_LIB.vital_bounding_box_width
-        bb_maxy.argtypes = [self.C_TYPE_PTR]
+        bb_width.argtypes = [self.C_TYPE_PTR]
         bb_width.restype = ctypes.c_double
         return bb_width(self)
 

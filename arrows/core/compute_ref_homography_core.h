@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@
 #include <vital/algo/compute_ref_homography.h>
 #include <vital/types/homography.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 
 #include <memory>
 
@@ -125,7 +125,7 @@ public:
    */
   virtual vital::f2f_homography_sptr
   estimate( vital::frame_id_t frame_number,
-            vital::track_set_sptr tracks ) const;
+            vital::feature_track_set_sptr tracks ) const;
 
 private:
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 
 #include "metrics.h"
 #include <vital/vital_foreach.h>
+#include <vital/types/feature_track_set.h>
 
 
 namespace kwiver {
@@ -74,13 +75,14 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
     const landmark& lm = *lmi->second;
     for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *tsi->feat;
-      cam_map_itr_t ci = cameras.find(tsi->frame_id);
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cameras.find((*tsi)->frame());
       if (ci == cameras.end() || !ci->second)
       {
         // no camera corresponding to this track state
@@ -115,13 +117,14 @@ reprojection_rmse(const std::map<frame_id_t, camera_sptr>& cameras,
     const landmark& lm = *lmi->second;
     for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *tsi->feat;
-      cam_map_itr_t ci = cameras.find(tsi->frame_id);
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cameras.find((*tsi)->frame());
       if (ci == cameras.end() || !ci->second)
       {
         // no camera corresponding to this track state

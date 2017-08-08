@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -151,7 +151,7 @@ IMPLEMENT_TEST(ideal_points)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
   configure_algo(init, K);
@@ -179,7 +179,7 @@ IMPLEMENT_TEST(ideal_points_from_last)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
@@ -212,7 +212,7 @@ IMPLEMENT_TEST(noisy_points)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
@@ -244,7 +244,7 @@ IMPLEMENT_TEST(noisy_points_from_last)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
@@ -280,7 +280,7 @@ IMPLEMENT_TEST(subset_init)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
   configure_algo(init, K);

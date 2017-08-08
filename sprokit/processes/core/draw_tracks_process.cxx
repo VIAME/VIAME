@@ -37,7 +37,7 @@
 
 #include <vital/vital_types.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 
 #include <vital/algo/draw_tracks.h>
 
@@ -117,7 +117,7 @@ draw_tracks_process
 ::_step()
 {
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
-  vital::track_set_sptr tracks = grab_from_port_using_trait( track_set );
+  vital::feature_track_set_sptr tracks = grab_from_port_using_trait( feature_track_set );
   kwiver::vital::image_container_sptr_list image_list;
   image_list.push_back( img );
 
@@ -143,7 +143,7 @@ draw_tracks_process
 
   // -- input --
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( track_set, required );
+  declare_input_port_using_trait( feature_track_set, required );
 
   // -- output --
   declare_output_port_using_trait( output_image, optional );

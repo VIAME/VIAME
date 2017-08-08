@@ -47,12 +47,13 @@ using namespace kwiver::vital;
 /// Compute matching track pairs between two frames
 track_pairs_t
 match_tracks( vital::algo::match_features_sptr matcher,
-              vital::track_set_sptr all_tracks,
+              vital::feature_track_set_sptr all_tracks,
               vital::frame_id_t current_frame,
               vital::frame_id_t target_frame )
 {
   // extract the subset of tracks on the current frame
-  track_set_sptr current_tracks = all_tracks->active_tracks(current_frame);
+  auto current_tracks = std::make_shared<simple_feature_track_set>(
+                            all_tracks->active_tracks(current_frame) );
   // extract the set of features on the current frame
   feature_set_sptr current_features = current_tracks->frame_features(current_frame);
   // extract the set of descriptor on the current frame
@@ -67,14 +68,15 @@ match_tracks( vital::algo::match_features_sptr matcher,
 /// Compute matching track pairs between two frames
 track_pairs_t
 match_tracks( vital::algo::match_features_sptr matcher,
-              vital::track_set_sptr all_tracks,
-              vital::track_set_sptr current_tracks,
+              vital::feature_track_set_sptr all_tracks,
+              vital::feature_track_set_sptr current_tracks,
               vital::feature_set_sptr current_features,
               vital::descriptor_set_sptr current_descriptors,
               vital::frame_id_t target_frame )
 {
   // extract the subset of tracks on the target frame
-  track_set_sptr target_tracks = all_tracks->active_tracks(target_frame);
+  auto target_tracks = std::make_shared<simple_feature_track_set>(
+                           all_tracks->active_tracks(target_frame) );
   // extract the set of features on the target frame
   feature_set_sptr target_features = target_tracks->frame_features(target_frame);
   // extract the set of descriptor on the target frame
@@ -89,10 +91,10 @@ match_tracks( vital::algo::match_features_sptr matcher,
 /// Compute matching track pairs between two frames
 track_pairs_t
 match_tracks( vital::algo::match_features_sptr matcher,
-              vital::track_set_sptr current_tracks,
+              vital::feature_track_set_sptr current_tracks,
               vital::feature_set_sptr current_features,
               vital::descriptor_set_sptr current_descriptors,
-              vital::track_set_sptr target_tracks,
+              vital::feature_track_set_sptr target_tracks,
               vital::feature_set_sptr target_features,
               vital::descriptor_set_sptr target_descriptors)
 {
@@ -156,8 +158,8 @@ merge_tracks( track_pairs_t const& matches,
 
 
 /// Remove all track with keys in the \p track_replacement map
-track_set_sptr
-remove_replaced_tracks( vital::track_set_sptr all_tracks,
+feature_track_set_sptr
+remove_replaced_tracks( vital::feature_track_set_sptr all_tracks,
                         track_map_t const& track_replacement )
 {
   if( track_replacement.empty() )
@@ -176,7 +178,7 @@ remove_replaced_tracks( vital::track_set_sptr all_tracks,
     at.end()
   );
   // recreate the track set with the new filtered tracks
-  return std::make_shared<simple_track_set>( at );
+  return std::make_shared<simple_feature_track_set>( at );
 }
 
 

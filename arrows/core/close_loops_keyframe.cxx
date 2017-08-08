@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -187,10 +187,10 @@ close_loops_keyframe
 
 
 /// Frame stitching using keyframe-base matching
-vital::track_set_sptr
+vital::feature_track_set_sptr
 close_loops_keyframe
 ::stitch( vital::frame_id_t frame_number,
-          vital::track_set_sptr input,
+          vital::feature_track_set_sptr input,
           vital::image_container_sptr,
           vital::image_container_sptr ) const
 {
@@ -220,7 +220,8 @@ close_loops_keyframe
 
   // extract the subset of tracks on the current frame and their
   // features and descriptors
-  vital::track_set_sptr current_set = input->active_tracks( frame_number );
+  auto current_set = std::make_shared<vital::simple_feature_track_set>(
+                         input->active_tracks( frame_number ) );
   std::vector<vital::track_sptr> current_tracks = current_set->tracks();
   vital::descriptor_set_sptr current_descriptors =
       current_set->frame_descriptors( frame_number );
@@ -238,7 +239,7 @@ close_loops_keyframe
   // between the current and previous frames.  This matching was done outside
   // of loop closure as part of the standard frame-to-frame tracking
   d_->frame_matches[frame_number] =
-      static_cast<unsigned int>(current_set->active_tracks( frame_number-1 )->size());
+      static_cast<unsigned int>(current_set->active_tracks( frame_number-1 ).size());
 
   // used to compute the maximum number of matches between the current frame
   // and any of the key frames

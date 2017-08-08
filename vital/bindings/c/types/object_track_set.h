@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,53 @@
 
 /**
  * \file
- * \brief C Interface vital::track helpers
+ * \brief C Interface to vital::object_track definition
  */
 
-#ifndef VITAL_C_HELPERS_TRACK_H_
-#define VITAL_C_HELPERS_TRACK_H_
+#ifndef VITAL_C_OBJECT_TRACK_SET_H_
+#define VITAL_C_OBJECT_TRACK_SET_H_
 
-#include <vital/types/track.h>
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-#include <vital/bindings/c/types/track.h>
-#include <vital/bindings/c/helpers/c_utils.h>
+#include "track.h"
 
-namespace kwiver {
-namespace vital_c {
+#include <vital/bindings/c/types/detected_object.h>
 
-/// Cache for saving shared pointer references for pointers in use
-extern
-SharedPointerCache< vital::track, vital_track_t > TRACK_SPTR_CACHE;
 
-/// Cache for saving shared pointer references for pointers in use
-extern
-SharedPointerCache< vital::track_state, vital_track_state_t > TRACK_STATE_SPTR_CACHE;
+////////////////////////////////////////////////////////////////////////////////
+// Track State
 
+/// Create a new track state
+/**
+ * \param frame Frame the state intersects
+ * \param d Detection instance associated with this state. May be null.
+ * \param eh Vital error handle instance
+ * \returns new instance of a track state
+ */
+VITAL_C_EXPORT
+vital_track_state_t*
+vital_object_track_state_new( int64_t frame,
+                              vital_detected_object_t *d,
+                              vital_error_handle_t *eh );
+
+
+/// Get a track state's object detection
+/**
+ * \param td Track state data instance
+ * \param eh Vital error handle instance
+ * \returns New reference to the object instance of the track state
+ */
+VITAL_C_EXPORT
+vital_detected_object_t*
+vital_object_track_state_detection( vital_track_state_t *td,
+                                    vital_error_handle_t *eh );
+
+
+#ifdef __cplusplus
 }
-}
+#endif
 
-#endif // VITAL_C_HELPERS_TRACK_H_
+#endif // VITAL_C_OBJECT_TRACK_SET_H_

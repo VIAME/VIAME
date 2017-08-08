@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,7 @@ triangulate_landmarks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-              vital::track_set_sptr tracks,
+              vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const
 {
   using namespace kwiver;
@@ -188,19 +188,20 @@ triangulate_landmarks
     auto lm_observations = unsigned{0};
     for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto fts = std::dynamic_pointer_cast<vital::feature_track_state>(*tsi);
+      if (!fts && !fts->feature)
       {
         // there is no valid feature for this track state
         continue;
       }
-      map_camera_t::const_iterator c_itr = cams.find(tsi->frame_id);
+      map_camera_t::const_iterator c_itr = cams.find((*tsi)->frame());
       if (c_itr == cams.end())
       {
         // there is no camera for this track state.
         continue;
       }
       lm_cams.push_back(vital::simple_camera(*c_itr->second));
-      lm_image_pts.push_back(tsi->feat->loc());
+      lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }
 

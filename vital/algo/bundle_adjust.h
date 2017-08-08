@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 #include <vital/vital_config.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/video_metadata/video_metadata_map.h>
@@ -51,7 +51,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for bundle adjustment using tracks
+/// An abstract base class for bundle adjustment using feature tracks
 class VITAL_ALGO_EXPORT bundle_adjust
   : public kwiver::vital::algorithm_def<bundle_adjust>
 {
@@ -59,7 +59,7 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "bundle_adjust"; }
 
-  /// Optimize the camera and landmark parameters given a set of tracks
+  /// Optimize the camera and landmark parameters given a set of feature tracks
   /**
    * Implementations of this function should not modify the underlying objects
    * contained in the input structures. Output references should either be new
@@ -67,13 +67,13 @@ public:
    *
    * \param [in,out] cameras the cameras to optimize
    * \param [in,out] landmarks the landmarks to optimize
-   * \param [in] tracks the tracks to use as constraints
+   * \param [in] tracks the feature tracks to use as constraints
    * \param [in] metadata the frame metadata to use as constraints
    */
   virtual void
   optimize(kwiver::vital::camera_map_sptr& cameras,
            kwiver::vital::landmark_map_sptr& landmarks,
-           kwiver::vital::track_set_sptr tracks,
+           kwiver::vital::feature_track_set_sptr tracks,
            kwiver::vital::video_metadata_map_sptr metadata = nullptr) const = 0;
 
   /// Typedef for the callback function signature

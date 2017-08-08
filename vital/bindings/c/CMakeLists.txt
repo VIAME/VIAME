@@ -32,12 +32,14 @@ set(vital_c_public_headers
   types/detected_object_set.hxx
   types/eigen.h
   types/feature.h
+  types/feature_track_set.h
   types/homography.h
   types/image.h
   types/image_container.h
   types/image_container.hxx
   types/landmark.h
   types/landmark_map.h
+  types/object_track_set.h
   types/rotation.h
   types/similarity.h
   types/track.h
@@ -97,11 +99,13 @@ set(vital_c_sources
   types/detected_object_set.cxx
   types/eigen.cxx
   types/feature.cxx
+  types/feature_track_set.cxx
   types/homography.cxx
   types/image.cxx
   types/image_container.cxx
   types/landmark.cxx
   types/landmark_map.cxx
+  types/object_track_set.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/track.cxx

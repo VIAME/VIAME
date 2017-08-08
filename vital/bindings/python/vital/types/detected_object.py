@@ -34,10 +34,12 @@ Interface to VITAL detected_object class.
 
 """
 import ctypes
-from vital.types import BoundingBox
-from vital.types import DetectedObjectType
+
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
+
+from vital.types import BoundingBox
+from vital.types import DetectedObjectType
 
 
 class DetectedObject (VitalObject):
@@ -45,54 +47,59 @@ class DetectedObject (VitalObject):
     vital::detected_object interface class
     """
 
-    def __init__(self):
+    def __init__(self, bbox=None, confid=None, tot=None, from_cptr=None):
         """
         Create a simple detected object type
 
          """
-        super(DetectedObject, self).__init__()
+        super(DetectedObject, self).__init__(from_cptr, bbox, confid, tot)
 
-    def _new(self, bbox, confid, type=None):
-        do_new = self.VITAL_LIB.vital_detected_object_new_with_bbox()
+    def _new(self, bbox, confid, tot):
+        do_new = self.VITAL_LIB.vital_detected_object_new_with_bbox
         do_new.argtypes = [BoundingBox.C_TYPE_PTR, ctypes.c_double, DetectedObjectType.C_TYPE_PTR]
         do_new.restype = self.C_TYPE_PTR
-        return do_new()
+        return do_new(bbox, ctypes.c_double( confid ), tot)
 
     def _destroy(self):
         do_del = self.VITAL_LIB.vital_detected_object_destroy
-        do_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
-        with VitalErrorHandle() as eh:
-            do_del(self, eh)
+        do_del.argtypes = [self.C_TYPE_PTR]
+        do_del(self)
 
     def bounding_box(self):
-        do_bb = self.VITAL_LIB.vital_detected_object_bounding_box
-        do_bb.argtypes[self.C_TYPE_PTR]
-        do_bb.restype = BoundingBox.C_TYPE_PTR
-        return do_bb(self)
+        # Get C pointer to internal bounding box
+        do_get_bb = self.VITAL_LIB.vital_detected_object_bounding_box
+        do_get_bb.argtypes = [self.C_TYPE_PTR]
+        do_get_bb.restype = BoundingBox.C_TYPE_PTR
+        bb_c_ptr = do_get_bb(self)
+        # Make copy of bounding box to return
+        do_bb_cpy = self.VITAL_LIB.vital_bounding_box_copy
+        do_bb_cpy.argtypes = [BoundingBox.C_TYPE_PTR]
+        do_bb_cpy.restype = BoundingBox.C_TYPE_PTR
+        return BoundingBox( from_cptr=do_bb_cpy( bb_c_ptr ) )
 
     def set_bounding_box(self, bbox):
         do_sbb = self.VITAL_LIB.vital_detected_object_set_bounding_box
-        do_sbb.argtypes[self.C_TYPE_PTR, BoundingBox.C_TYPE_PTR]
+        do_sbb.argtypes = [self.C_TYPE_PTR, BoundingBox.C_TYPE_PTR]
         return do_sbb(self, bbox)
 
     def confidence(self):
         do_conf = self.VITAL_LIB.vital_detected_object_confidence
-        do_conf.argtypes[self.C_TYPE_PTR]
+        do_conf.argtypes = [self.C_TYPE_PTR]
         do_conf.restype = ctypes.c_double
         return do_sbb(self)
 
     def set_confidence(self, confid):
         do_sc = self.VITAL_LIB.vital_detected_object_set_confidence
-        do_sc.argtypes[self.C_TYPE_PTR, ctypes.c_double]
+        do_sc.argtypes = [self.C_TYPE_PTR, ctypes.c_double]
         do_sbb(self, confid)
 
     def type(self):
         do_ty = self.VITAL_LIB.vital_detected_object_get_type
-        do_ty.argtypes[self.C_TYPE_PTR]
+        do_ty.argtypes = [self.C_TYPE_PTR]
         do_ty.restype = DetectedObjectType.C_TYPE_PTR
         return do_ty(self)
 
     def set_type(self, ob_type):
         do_ty = self.VITAL_LIB.vital_detected_object_set_type
-        do_ty.argtypes[self.C_TYPE_PTR, DetectedObjectType.C_TYPE_PTR]
+        do_ty.argtypes = [self.C_TYPE_PTR, DetectedObjectType.C_TYPE_PTR]
         do_ty(self, ob_type)

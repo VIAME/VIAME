@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,57 @@
 
 /**
  * \file
- * \brief C Interface vital::track helpers
+ * \brief C Interface to vital::object_track implementation
  */
 
-#ifndef VITAL_C_HELPERS_TRACK_H_
-#define VITAL_C_HELPERS_TRACK_H_
+#include "object_track_set.h"
 
-#include <vital/types/track.h>
+#include <vital/types/object_track_set.h>
 
-#include <vital/bindings/c/types/track.h>
 #include <vital/bindings/c/helpers/c_utils.h>
+#include <vital/bindings/c/helpers/detected_object.h>
+#include <vital/bindings/c/helpers/track.h>
 
-namespace kwiver {
-namespace vital_c {
 
-/// Cache for saving shared pointer references for pointers in use
-extern
-SharedPointerCache< vital::track, vital_track_t > TRACK_SPTR_CACHE;
+using namespace kwiver;
 
-/// Cache for saving shared pointer references for pointers in use
-extern
-SharedPointerCache< vital::track_state, vital_track_state_t > TRACK_STATE_SPTR_CACHE;
+////////////////////////////////////////////////////////////////////////////////
+// Track State
 
+/// Create a new track state
+vital_track_state_t*
+vital_object_track_state_new( int64_t frame,
+                              vital_detected_object_t *d,
+                              vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_object_track_state_new", eh,
+    vital::detected_object_sptr d_sptr;
+    if( d ) d_sptr = vital_c::DOBJ_SPTR_CACHE.get( d );
+    vital::track_state_sptr td_sptr(
+      new vital::object_track_state( frame, d_sptr ) );
+    vital_c::TRACK_STATE_SPTR_CACHE.store( td_sptr );
+    return reinterpret_cast<vital_track_state_t*>( td_sptr.get() );
+  );
+  return 0;
 }
+
+
+/// Get a track state's object
+vital_detected_object_t*
+vital_object_track_state_detection( vital_track_state_t *td,
+                                    vital_error_handle_t *eh )
+{
+  STANDARD_CATCH(
+    "vital_object_track_state_detection", eh,
+    REINTERP_TYPE( vital::object_track_state, td, td_ptr );
+    // increase cross-boundary reference count if non-null
+    if( td_ptr->detection )
+    {
+      vital_c::DOBJ_SPTR_CACHE.store( td_ptr->detection );
+    }
+    return reinterpret_cast< vital_detected_object_t* >( td_ptr->detection.get() );
+  );
+  return 0;
 }
 
-#endif // VITAL_C_HELPERS_TRACK_H_

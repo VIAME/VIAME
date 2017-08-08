@@ -36,8 +36,6 @@
 #ifndef VITAL_TRACK_H_
 #define VITAL_TRACK_H_
 
-#include "descriptor.h"
-#include "feature.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -50,53 +48,104 @@
 namespace kwiver {
 namespace vital {
 
-/// A representation of a feature track.
-/**
- * A track is a sequence of feature points and their descriptors
- * that represent a sequence of observations of the same world location.
- * A track is required to construct a landmark in 3D.
- */
-class VITAL_EXPORT track
+
+/// Forward declaration of track object
+class track;
+class track_state;
+
+
+/// Shared pointers for general track type
+typedef std::shared_ptr< track > track_sptr;
+typedef std::weak_ptr< track > track_wptr;
+typedef std::shared_ptr<track_state> track_state_sptr;
+
+
+/// Empty base class for data associated with a track state
+class VITAL_EXPORT track_state
 {
 public:
-  /// A structure to hold the state of a track on a given frame
-  struct track_state
-  {
-    /// Constructor
-    track_state( frame_id_t       frame,
-                 feature_sptr     feature,
-                 descriptor_sptr  descriptor )
-      : frame_id( frame ),
-      feat( feature ),
-      desc( descriptor ) { }
+  friend class track;
 
-    /// The frame identifier (i.e. frame number)
-    frame_id_t frame_id;
-    /// The feature detected on frame \a frame_id
-    feature_sptr feat;
-    /// The descriptor extracted on frame \a frame_id
-    descriptor_sptr desc;
-  };
-
-  /// convenience type for the const iterator of the track state vector
-  typedef std::vector< track_state >::const_iterator history_const_itr;
-
-  /// Default Constructor
-  track();
+  /// Constructor
+  track_state( frame_id_t frame )
+    : frame_id_( frame )
+  { }
 
   /// Copy Constructor
-  track( const track& other );
+  track_state( track_state const& other )
+    : frame_id_( other.frame_id_ )
+  { }
 
+  /// Assignment Operator
+  track_state& operator= ( track_state const& rhs ) = delete;
+
+  /// Clone the track state (polymorphic copy constructor)
+  virtual track_state_sptr clone() const
+  {
+    return std::make_shared<track_state>( *this );
+  }
+
+  /// Access the frame identifier
+  frame_id_t frame() const { return frame_id_; }
+
+  /// Access the track containing this state
+  track_sptr track() const { return track_.lock(); }
+
+  virtual ~track_state() VITAL_DEFAULT_DTOR
+
+private:
+  /// The frame identifier for this state
+  frame_id_t frame_id_;
+
+  /// A weak reference back to the parent track
+  track_wptr track_;
+};
+
+
+/// Empty base class for data associated with a whole track
+class VITAL_EXPORT track_data
+{
+protected:
+  virtual ~track_data() VITAL_DEFAULT_DTOR
+};
+typedef std::shared_ptr<track_data> track_data_sptr;
+
+
+/// A representation of a track.
+/**
+ * A track is a sequence of corresponding identifiers associated with each
+ * other across time (i.e. frames indicies).  Each track consists of a
+ * sequence of track states each with a frame id and optional data field.
+ * Frame ids are in monotonically increasing order but need not be sequential.
+ * The same track structure can be used to represent feature tracks for
+ * image registration or moving object tracks.
+ */
+class VITAL_EXPORT track : public std::enable_shared_from_this<track>
+{
+public:
+  /// convenience type for the const iterator of the track state vector
+  typedef std::vector< track_state_sptr >::const_iterator history_const_itr;
+
+  /// Destructor
   ~track() VITAL_DEFAULT_DTOR
 
-  /// Construct a track from a single track state
-  explicit track( const track_state& ts );
+  /// Factory function
+  static track_sptr make(track_data_sptr data = nullptr);
+
+  /// Clone
+  track_sptr clone() const;
 
   /// Access the track identification number
   track_id_t id() const { return id_; }
 
+  /// Access the track data
+  track_data_sptr data() const { return data_; }
+
   /// Set the track identification number
   void set_id( track_id_t id ) { id_ = id; }
+
+  /// Set the track data
+  void set_data( track_data_sptr d ) { data_ = d; }
 
   /// Access the first frame number covered by this track
   frame_id_t first_frame() const;
@@ -112,16 +161,18 @@ public:
    * \returns true if successful, false not correctly ordered
    * \param state track state to add to this track.
    */
-  bool append( const track_state& state );
+  bool append( track_state_sptr state );
 
   /// Append the history contents of another track.
   /**
    * The first state of the input track must contain a frame number
-   * greater than the last state of this track.
+   * greater than the last state of this track.  Track states from
+   * \p to_append are reassigned to this track and removed from
+   * \p to_append.
    *
    * \returns true if successful, false not correctly ordered
    */
-  bool append( const track& to_append );
+  bool append( track& to_append );
 
   /// Insert a track state.
   /**
@@ -131,7 +182,7 @@ public:
    * \returns true if successful, false if already a state on this frame
    * \param state track state to add to this track.
    */
-  bool insert( const track_state& state );
+  bool insert( track_state_sptr state );
 
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
@@ -157,15 +208,19 @@ public:
 
 
 protected:
+  /// Default Constructor
+  explicit track(track_data_sptr d=nullptr);
+
+  /// Copy Constructor
+  track( const track& other );
+
   /// The ordered array of track states
-  std::vector< track_state > history_;
+  std::vector< track_state_sptr > history_;
   /// The unique track identification number
   track_id_t id_;
+  /// The optional data structure associated with this track
+  track_data_sptr data_;
 };
-
-
-/// Shared pointer for general track type
-typedef std::shared_ptr< track > track_sptr;
 
 } } // end namespace vital
 

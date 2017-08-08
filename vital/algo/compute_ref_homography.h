@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <vector>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/homography_f2f.h>
 
@@ -85,7 +85,7 @@ public:
    */
   virtual kwiver::vital::f2f_homography_sptr
   estimate( kwiver::vital::frame_id_t frame_number,
-            kwiver::vital::track_set_sptr tracks ) const = 0;
+            kwiver::vital::feature_track_set_sptr tracks ) const = 0;
 
 protected:
   compute_ref_homography();
