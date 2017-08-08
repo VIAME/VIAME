@@ -44,6 +44,8 @@ namespace kwiver {
 namespace arrows {
 namespace burnout {
 
+#define DUMMY_OUTPUT 1
+
 // ==================================================================================
 class burnout_track_descriptors::priv
 {
@@ -105,6 +107,7 @@ burnout_track_descriptors
   config->merge_config( config_in );
   d->m_config_file = config->get_value< std::string >( "config" );
 
+#ifndef DUMMY_OUTPUT
   vidtk::config_block vidtk_config = d->m_process.params();
   vidtk_config.parse( d->m_config_file );
 
@@ -119,6 +122,7 @@ burnout_track_descriptors
     std::string reason = "Failed to initialize pipeline";
     throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
   }
+#endif
 }
 
 
@@ -144,9 +148,7 @@ burnout_track_descriptors
 ::compute( vital::image_container_sptr image_data,
            vital::object_track_set_sptr tracks )
 {
-#define EXAMPLE_OUTPUT 1
-
-#ifdef EXAMPLE_OUTPUT
+#ifdef DUMMY_OUTPUT
   typedef vital::track_descriptor td;
 
   vital::track_descriptor_set_sptr output( new vital::track_descriptor_set() );
