@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,35 +74,43 @@ VSL_VECTOR_IO_INSTANTIATE( char );
 namespace kwiver
 {
 
-  // -- config items --
-  create_config_trait( output_directory, std::string, ".", "Output directory where KWA will be written" );
-  create_config_trait( base_filename, std::string, "", "Base file name (no extension) for KWA component files" );
-  create_config_trait( separate_meta, bool, "true", "Whether to write separate .meta file" );
-  create_config_trait( mission_id, std::string, "", "Mission ID to store in archive" );
-  create_config_trait( stream_id, std::string, "", "Stream ID to store in archive" );
-  create_config_trait( compress_image, bool, "true", "Whether to compress image data stored in archive" );
+// -- Configuration Items --
+create_config_trait( output_directory, std::string,
+  ".", "Output directory where KWA will be written" );
+create_config_trait( base_filename, std::string,
+  "", "Base file name (no extension) for KWA component files" );
+create_config_trait( separate_meta, bool,
+  "true", "Whether to write separate .meta file" );
+create_config_trait( mission_id, std::string,
+  "", "Mission ID to store in archive" );
+create_config_trait( stream_id, std::string,
+  "", "Stream ID to store in archive" );
+create_config_trait( compress_image, bool,
+  "true", "Whether to compress image data stored in archive" );
 
-//----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 // Private implementation class
 class kw_archive_writer_process::priv
 {
 public:
-  priv(kw_archive_writer_process* parent);
+  priv( kw_archive_writer_process* parent );
   ~priv();
 
-  void write_frame_data(vsl_b_ostream& stream,
-                        bool write_image,
-                        kwiver::vital::timestamp const& time,
-                        kwiver::vital::geo_corner_points const& corners,
-                        kwiver::vital::image const& img,
-                        kwiver::vital::f2f_homography const& homog,
-                        kwiver::vital::gsd_t gsd);
+  void write_frame_data( vsl_b_ostream& stream,
+                         bool write_image,
+                         kwiver::vital::timestamp const& time,
+                         kwiver::vital::geo_corner_points const& corners,
+                         kwiver::vital::image const& img,
+                         kwiver::vital::f2f_homography const& homog,
+                         kwiver::vital::gsd_t gsd );
 
   static sprokit::process::port_t const port_timestamp;
   static sprokit::process::port_t const port_image;
   static sprokit::process::port_t const port_src_to_ref_homography;
   static sprokit::process::port_t const port_corner_points;
   static sprokit::process::port_t const port_gsd;
+  static sprokit::process::port_t const port_stream_id;
+  static sprokit::process::port_t const port_filename;
 
   kw_archive_writer_process* m_parent;
 
@@ -128,15 +136,15 @@ public:
 
 #define priv_t kw_archive_writer_process::priv
 
-// ================================================================
+// ==================================================================================
 
 kw_archive_writer_process
 ::kw_archive_writer_process( kwiver::vital::config_block_sptr const& config )
-  : process(config),
+  : process( config ),
     d( new kw_archive_writer_process::priv( this ) )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  attach_logger( kwiver::vital::get_logger( name() ) );
+
   make_ports();
   make_config();
 }
@@ -148,7 +156,7 @@ kw_archive_writer_process
 }
 
 
-// ----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::_configure()
@@ -160,11 +168,10 @@ kw_archive_writer_process
   d->m_mission_id       = config_value_using_trait( mission_id );
   d->m_stream_id        = config_value_using_trait( stream_id );
   d->m_compress_image   = config_value_using_trait( compress_image );
-
 }
 
 
-// ----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 // Post connection initialization
 void
 kw_archive_writer_process
@@ -181,19 +188,19 @@ kw_archive_writer_process
 
   d->m_index_stream = new std::ofstream( index_filename.c_str(),
                                 std::ios::out | std::ios::trunc );
-  if ( ! *d->m_index_stream )
+  if( ! *d->m_index_stream )
   {
     std::string const reason = "Failed to open " + index_filename + " for writing";
     throw sprokit::invalid_configuration_exception( name(), reason );
   }
 
-  if ( d->m_separate_meta )
+  if( d->m_separate_meta )
   {
     // open metadata stream
     d->m_meta_stream = new std::ofstream( meta_filename.c_str(),
              std::ios::out | std::ios::trunc | std::ios::binary );
 
-    if ( ! *d->m_meta_stream )
+    if( ! *d->m_meta_stream )
     {
       std::string const reason = "Failed to open " + meta_filename + " for writing";
       throw sprokit::invalid_configuration_exception( name(), reason );
@@ -204,8 +211,10 @@ kw_archive_writer_process
 
   d->m_data_stream = new std::ofstream( data_filename.c_str(),
              std::ios::out | std::ios::trunc | std::ios::binary );
+
   d->m_data_bstream = new vsl_b_ostream( d->m_data_stream );
-  if ( ! *d->m_data_stream )
+
+  if( ! *d->m_data_stream )
   {
     std::string const reason = "Failed to open " + data_filename + " for writing";
     throw sprokit::invalid_configuration_exception( name(), reason );
@@ -216,7 +225,7 @@ kw_archive_writer_process
     << "4\n" // Version number
     << vul_file::basename( data_filename ) << "\n";
 
-  if ( d->m_data_bstream != NULL )
+  if( d->m_data_bstream != NULL )
   {
     *d->m_index_stream << vul_file::basename( meta_filename ) << "\n";
   }
@@ -230,7 +239,7 @@ kw_archive_writer_process
     << d->m_stream_id << "\n";
 
   // version depends on compression option
-  if ( d->m_compress_image )
+  if( d->m_compress_image )
   {
     d->m_data_version = 3;
   }
@@ -241,13 +250,13 @@ kw_archive_writer_process
 
   vsl_b_write( *d->m_data_bstream, d->m_data_version ); // version number
 
-  if ( d->m_meta_bstream )
+  if( d->m_meta_bstream )
   {
     vsl_b_write( *d->m_meta_bstream, static_cast< int > ( 2 ) ); // version number
   }
 
-  if ( ! *d->m_index_stream || ! *d->m_data_stream ||
-       ( d->m_separate_meta && ! *d->m_meta_stream ) )
+  if( ! *d->m_index_stream || ! *d->m_data_stream ||
+      ( d->m_separate_meta && ! *d->m_meta_stream ) )
   {
     static std::string const reason = "Failed while writing file headers";
     throw sprokit::invalid_configuration_exception( name(), reason );
@@ -255,7 +264,7 @@ kw_archive_writer_process
 } // kw_archive_writer_process::_init
 
 
-// ----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::_step()
@@ -264,12 +273,10 @@ kw_archive_writer_process
   kwiver::vital::timestamp frame_time = grab_input_using_trait( timestamp );
 
   // image
-  //+ kwiver::vital::image_container_sptr img = grab_input_as< kwiver::vital::image_container_sptr > ( priv::port_image );
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
   kwiver::vital::image image = img->get_image();
 
   // homography
-  //+ kwiver::f2f_homography homog = grab_input_as< kwiver::vital::f2f_homography > ( priv::port_src_to_ref_homography );
   kwiver::vital::f2f_homography homog = grab_from_port_using_trait( homography_src_to_ref );
 
   // corners
@@ -288,18 +295,20 @@ kw_archive_writer_process
   d->write_frame_data( *d->m_data_bstream,
                        /*write image=*/ true,
                        frame_time, corners, image, homog, gsd );
-  if ( ! d->m_data_stream )
+
+  if( ! d->m_data_stream )
   {
     // throw ( ); //+ need general runtime exception
     // LOG_DEBUG("Failed while writing to .data stream");
   }
 
-  if ( d->m_meta_bstream )
+  if( d->m_meta_bstream )
   {
     d->write_frame_data( *d->m_meta_bstream,
                          /*write48 image=*/ false,
                          frame_time, corners, image, homog, gsd );
-    if ( ! d->m_meta_stream )
+
+    if( ! d->m_meta_stream )
     {
       // throw ( );
       // LOG_DEBUG("Failed while writing to .meta stream");
@@ -308,7 +317,7 @@ kw_archive_writer_process
 } // kw_archive_writer_process::_step
 
 
-// ----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::make_ports()
@@ -323,13 +332,14 @@ kw_archive_writer_process
   // declare input ports
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( homography_src_to_ref, required );
+  declare_input_port_using_trait( homography_src_to_ref, opt_static );
   declare_input_port_using_trait( corner_points, opt_static );
+  declare_input_port_using_trait( gsd, opt_static );
   declare_input_port_using_trait( gsd, opt_static );
 }
 
 
-// ----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::make_config()
@@ -343,7 +353,7 @@ kw_archive_writer_process
 }
 
 
-// ----------------------------------------------------------------
+//-----------------------------------------------------------------------------------
 void
 priv_t
 ::write_frame_data(vsl_b_ostream& stream,
@@ -360,7 +370,7 @@ priv_t
 
   // Validate expected image type
   auto trait = img.pixel_traits();
-  if ( trait.type != kwiver::vital::image_pixel_traits::UNSIGNED || trait.num_bytes != 1 )
+  if( trait.type != kwiver::vital::image_pixel_traits::UNSIGNED || trait.num_bytes != 1 )
   {
     LOG_ERROR( m_parent->logger(), "Input image type is not of unsigned char pixel type" );
     return;
@@ -381,9 +391,9 @@ priv_t
   vnl_matrix_fixed< double, 3, 3 > homog;
 
   // Copy matrix into vnl format
-  for ( int x = 0; x < 3; ++x )
+  for( int x = 0; x < 3; ++x )
   {
-    for ( int y = 0; y < 3; ++y )
+    for( int y = 0; y < 3; ++y )
     {
       homog( x, y ) = matrix( x, y );
     }
@@ -398,9 +408,9 @@ priv_t
   stream.clear_serialisation_records();
   vsl_b_write( stream, u_seconds );
 
-  if ( write_image )
+  if( write_image )
   {
-    if ( this->m_data_version == 3 )
+    if( this->m_data_version == 3 )
     {
       vsl_b_write( stream, 'J' ); // J=jpeg
       vil_stream* mem_stream = new vil_stream_core();
@@ -418,7 +428,7 @@ priv_t
       vsl_b_write( stream, this->m_image_write_cache );
       mem_stream->unref(); // allow for automatic delete
     }
-    else if ( this->m_data_version == 2 )
+    else if( this->m_data_version == 2 )
     {
       vsl_b_write( stream, image );
     }
@@ -437,7 +447,7 @@ priv_t
   vsl_b_write( stream, static_cast< vxl_int_64 > ( image.nj() ) );
 }
 
-// ================================================================
+// ==================================================================================
 kw_archive_writer_process::priv
 ::priv(kw_archive_writer_process* parent)
   : m_parent( parent ),
