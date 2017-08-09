@@ -136,7 +136,7 @@ handle_descriptor_request_process
   vital::string_t filename;
   vital::string_t stream_id;
 
-  if( !d->m_handler->handle( request, descriptors, images ) )
+  if( request && !d->m_handler->handle( request, descriptors, images ) )
   {
     //LOG_ERROR( name(), "Could not handle descriptor request" );
   }
