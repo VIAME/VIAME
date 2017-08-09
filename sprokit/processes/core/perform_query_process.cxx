@@ -93,14 +93,19 @@ perform_query_process
   {
     vital::query_result_sptr entry( new vital::query_result() );
 
+    vital::timestamp ts1( 1375007280949983, 7 );
+    vital::timestamp ts2( 1375007281050083, 8 );
+    vital::timestamp ts3( 1375007281150183, 9 );
+
+    vital::timestamp ts4( 1375007477946783, 1975 );
+    vital::timestamp ts5( 1375007478046883, 1976 );
+    vital::timestamp ts6( 1375007281150183, 1977 );
+
     entry->set_stream_id( "/data/virat/video/aphill/09172008flight1tape1_5.mpg" );
     entry->set_instance_id( i );
     entry->set_relevancy_score( ( 4 - i ) * 0.30 );
 
     typedef vital::track_descriptor td;
-
-    vital::track_descriptor_set_sptr output( new vital::track_descriptor_set() );
-    vital::track_descriptor_sptr new_desc = td::create( "cnn_descriptor" );
 
     td::descriptor_data_sptr_t data( new td::descriptor_data_t( 100 ) );
 
@@ -109,26 +114,64 @@ perform_query_process
       (data->raw_data())[i] = static_cast<double>( i );
     }
 
-    new_desc->set_descriptor( data );
+    td::history_entry::image_bbox_t region1( 40, 40, 100, 100 );
+    td::history_entry::image_bbox_t region2( 140, 140, 200, 200 );
 
-    td::history_entry::image_bbox_t region( 0, 0, 400, 400 );
-    td::history_entry hist_entry( vital::timestamp( 0, 0 ), region );
-    new_desc->add_history_entry( hist_entry );
+    td::history_entry hist_entry1( ts1, region1 );
+    td::history_entry hist_entry2( ts2, region1 );
+    td::history_entry hist_entry3( ts3, region1 );
+
+    td::history_entry hist_entry4( ts4, region2 );
+    td::history_entry hist_entry5( ts5, region2 );
+    td::history_entry hist_entry6( ts6, region2 );
 
     if( i == 1 )
     {
+      vital::track_descriptor_set_sptr desc_set( new vital::track_descriptor_set() );
+      vital::track_descriptor_sptr new_desc = td::create( "cnn_descriptor" );
 
+      new_desc->set_descriptor( data );
+
+      new_desc->add_history_entry( hist_entry1 );
+      new_desc->add_history_entry( hist_entry2 );
+      new_desc->add_history_entry( hist_entry3 );
+
+      desc_set->push_back( new_desc );
+      entry->set_descriptors( desc_set );
+      entry->set_temporal_bounds( ts1, ts3 );
     }
     else if( i == 2 )
     {
-      
+      vital::track_descriptor_set_sptr desc_set( new vital::track_descriptor_set() );
+      vital::track_descriptor_sptr new_desc = td::create( "cnn_descriptor" );
+
+      new_desc->set_descriptor( data );
+
+      new_desc->add_history_entry( hist_entry4 );
+      new_desc->add_history_entry( hist_entry5 );
+      new_desc->add_history_entry( hist_entry6 );
+
+      desc_set->push_back( new_desc );
+
+      entry->set_descriptors( desc_set );
+      entry->set_temporal_bounds( ts4, ts6 );
+
+      vital::track_sptr trk = vital::track::make();
+
+      std::vector< vital::track_sptr > trk_vec;
+      trk_vec.push_back( trk );
+    
+      vital::object_track_set_sptr trk_set(
+        new vital::simple_object_track_set( trk_vec ) );
+
+      entry->set_tracks( trk_set );
     }
     else if( i == 3 )
     {
-      
+      entry->set_temporal_bounds( ts1, ts6 );
     }
 
-    //output->push_back( entry );
+    output->push_back( entry );
   }
 
   push_to_port_using_trait( query_result, output );
