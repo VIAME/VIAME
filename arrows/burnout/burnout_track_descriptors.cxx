@@ -164,7 +164,7 @@ burnout_track_descriptors
   new_desc->set_descriptor( data );
 
   td::history_entry::image_bbox_t region( 0, 0, image_data->width(), image_data->height() );
-  td::history_entry hist_entry( 0, region );
+  td::history_entry hist_entry( vital::timestamp( 0, 0 ), region );
   new_desc->add_history_entry( hist_entry );
 
   output->push_back( new_desc );

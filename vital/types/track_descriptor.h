@@ -114,7 +114,7 @@ public:
      *
      * @return timestamp for this entry
      */
-    uint64_t get_timestamp() const;
+    vital::timestamp get_timestamp() const;
 
 
     /**

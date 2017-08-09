@@ -252,7 +252,7 @@ history_entry( const vital::timestamp& ts,
 }
 
 
-uint64_t
+vital::timestamp
 track_descriptor::history_entry::
 get_timestamp() const
 {
