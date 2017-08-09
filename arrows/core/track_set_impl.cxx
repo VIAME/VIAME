@@ -33,7 +33,7 @@
  * \brief Implementation of customized track set implementations
  */
 
-#include "track_set.h"
+#include "track_set_impl.h"
 
 #include <limits>
 

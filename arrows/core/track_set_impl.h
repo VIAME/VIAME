@@ -33,8 +33,8 @@
  * \brief Header file for customized track set definitions
  */
 
-#ifndef KWIVER_ARROWS_CORE_TRACK_SET_H_
-#define KWIVER_ARROWS_CORE_TRACK_SET_H_
+#ifndef KWIVER_ARROWS_CORE_TRACK_SET_IMPL_H_
+#define KWIVER_ARROWS_CORE_TRACK_SET_IMPL_H_
 
 
 #include <vital/vital_export.h>
@@ -143,4 +143,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_TRACK_SET_H_
+#endif // KWIVER_ARROWS_CORE_TRACK_SET_IMPL_H_

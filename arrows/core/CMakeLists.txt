@@ -40,7 +40,7 @@ set( plugin_core_headers
   metrics.h
   projected_track_set.h
   track_features_core.h
-  track_set.h
+  track_set_impl.h
   transform.h
   triangulate.h
   triangulate_landmarks.h
@@ -96,7 +96,7 @@ set( plugin_core_sources
   metrics.cxx
   projected_track_set.cxx
   track_features_core.cxx
-  track_set.cxx
+  track_set_impl.cxx
   transform.cxx
   triangulate.cxx
   triangulate_landmarks.cxx
