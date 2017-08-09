@@ -288,19 +288,44 @@ kw_archive_writer_process
   kwiver::vital::image image = img->get_image();
 
   // homography
-  kwiver::vital::f2f_homography homog = grab_from_port_using_trait( homography_src_to_ref );
+  kwiver::vital::f2f_homography homog( Eigen::Matrix< double, 3, 3 >(), -1, -1 );
+
+  if( process::has_input_port_edge( "homography_src_to_ref" ) )
+  {
+    homog = grab_from_port_using_trait( homography_src_to_ref );
+  }
 
   // corners
-  kwiver::vital::geo_corner_points corners = grab_input_using_trait( corner_points );
+  kwiver::vital::geo_corner_points corners;
+
+  if( process::has_input_port_edge( "corner_points" ) )
+  {
+    corners = grab_input_using_trait( corner_points );
+  }
 
   // gsd
-  kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
+  kwiver::vital::gsd_t gsd = -1.0;
+
+  if( process::has_input_port_edge( "gsd" ) )
+  {
+    gsd = grab_input_using_trait( gsd );
+  }
 
   // filename
-  kwiver::vital::string_t filename = grab_input_using_trait( filename );
+  kwiver::vital::string_t filename;
+
+  if( process::has_input_port_edge( "filename" ) )
+  {
+    filename = grab_input_using_trait( filename );
+  }
 
   // stream id
-  kwiver::vital::string_t stream_id = grab_input_using_trait( stream_id );
+  kwiver::vital::string_t stream_id;
+
+  if( process::has_input_port_edge( "stream_id" ) )
+  {
+    stream_id = grab_input_using_trait( stream_id );
+  }
 
   // Check to see if filename or stream id updated
   if( !stream_id.empty() && d->m_stream_id != stream_id )
