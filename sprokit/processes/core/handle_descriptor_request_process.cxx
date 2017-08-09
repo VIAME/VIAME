@@ -129,9 +129,11 @@ handle_descriptor_request_process
 
   request = grab_from_port_using_trait( descriptor_request );
 
-  // Special case, output empty image
+  // Special case, output empty results
   if( !request )
   {
+    push_to_port_using_trait( track_descriptor_set, vital::track_descriptor_set_sptr() );
+
     push_to_port_using_trait( image, vital::image_container_sptr() );
     push_to_port_using_trait( timestamp, vital::timestamp() );
     push_to_port_using_trait( filename, "" );
