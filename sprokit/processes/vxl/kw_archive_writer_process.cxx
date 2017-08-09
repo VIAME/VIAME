@@ -87,11 +87,15 @@ create_config_trait( stream_id, std::string,
   "", "Stream ID to store in archive" );
 create_config_trait( compress_image, bool,
   "true", "Whether to compress image data stored in archive" );
-  
+
+create_type_trait( bool,
+  "kwiver:bool", bool );
 create_port_trait( filename, file_name,
   "KWA input filename" );
 create_port_trait( stream_id, string,
   "Stream ID to place in file" );
+create_port_trait( complete_flag, bool,
+  "KWA complete flag" );
 
 
 //-----------------------------------------------------------------------------------
@@ -376,6 +380,8 @@ kw_archive_writer_process
       // LOG_DEBUG("Failed while writing to .meta stream");
     }
   }
+
+  push_to_port_using_trait( complete_flag, true );
 } // kw_archive_writer_process::_step
 
 
@@ -400,6 +406,8 @@ kw_archive_writer_process
   declare_input_port_using_trait( gsd, opt_static );
   declare_input_port_using_trait( filename, opt_static );
   declare_input_port_using_trait( stream_id, opt_static );
+
+  declare_output_port_using_trait( complete_flag, opt_static );
 }
 
 
