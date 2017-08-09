@@ -133,11 +133,11 @@ public:
   bool m_compress_image;
 
   // local storage
-  std::shared_ptr< std::ofstream > m_index_stream;
-  std::shared_ptr< std::ofstream > m_meta_stream;
-  std::shared_ptr< vsl_b_ostream > m_meta_bstream;
-  std::shared_ptr< std::ofstream > m_data_stream;
-  std::shared_ptr< vsl_b_ostream > m_data_bstream;
+  std::unique_ptr< std::ofstream > m_index_stream;
+  std::unique_ptr< std::ofstream > m_meta_stream;
+  std::unique_ptr< vsl_b_ostream > m_meta_bstream;
+  std::unique_ptr< std::ofstream > m_data_stream;
+  std::unique_ptr< vsl_b_ostream > m_data_bstream;
 
   int m_data_version;
   std::vector < char > m_image_write_cache;
@@ -388,6 +388,9 @@ kw_archive_writer_process
       // LOG_DEBUG("Failed while writing to .meta stream");
     }
   }
+
+  d->m_meta_stream->flush();
+  d->m_data_stream->flush();
 
   push_to_port_using_trait( complete_flag, true );
 } // kw_archive_writer_process::_step
