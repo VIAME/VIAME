@@ -34,6 +34,7 @@
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
+#include <vital/types/timestamp.h>
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object.h>
@@ -94,7 +95,7 @@ public:
      * @param img_loc Image location for object
      * @param world_loc World location for image
      */
-    history_entry( const uint64_t& ts,
+    history_entry( const vital::timestamp& ts,
                    const image_bbox_t& img_loc,
                    const world_bbox_t& world_loc );
 
@@ -104,7 +105,7 @@ public:
      * @param ts Timestamp for object.
      * @param img_loc Image location for object.
      */
-    history_entry( const uint64_t& ts,
+    history_entry( const vital::timestamp& ts,
                    const image_bbox_t& img_loc );
 
     /**
@@ -138,7 +139,7 @@ public:
     history_entry(); /* not implemented */
 
     /// Frame ID and timestamp of the current frame
-    uint64_t ts_;
+    vital::timestamp ts_;
 
     /// Image location (pixels)
     image_bbox_t img_loc_;
