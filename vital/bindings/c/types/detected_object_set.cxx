@@ -191,17 +191,17 @@ void vital_detected_object_set_select_threshold( vital_detected_object_set_t* ob
     auto sel_set = kwiver::vital_c::DOBJ_SET_SPTR_CACHE.get( obj )->select( thresh );
 
     // select to get vector
-    *output = (vital_detected_object_t**) malloc( sizeof( vital_detected_object_t* ) * sel_set.size() );
-    *length = sel_set.size();
+    *output = (vital_detected_object_t**) malloc( sizeof( vital_detected_object_t* ) * sel_set->size() );
+    *length = sel_set->size();
 
     auto ie = sel_set->cend();
     size_t i = 0;
     for ( auto ix = sel_set->cbegin(); ix != ie; ++ix )
     {
-      kwiver::vital_c::DOBJ_SPTR_CACHE.store( sel_set[i] );
-      (*output)[i] = reinterpret_cast< vital_detected_object_t* >( sel_set[i].get() );
+      kwiver::vital_c::DOBJ_SPTR_CACHE.store( *ix );
+      (*output)[i] = reinterpret_cast< vital_detected_object_t* >( (*ix).get() );
     }
-  );
+    );
 }
 
 
@@ -218,15 +218,15 @@ void vital_detected_object_set_select_class_threshold( vital_detected_object_set
     auto sel_set = kwiver::vital_c::DOBJ_SET_SPTR_CACHE.get( obj )->select( std::string (class_name), thresh );
 
     // select to get vector
-    *output = (vital_detected_object_t**) malloc( sizeof( vital_detected_object_t* ) * sel_set.size() );
-    *length = sel_set.size();
+    *output = (vital_detected_object_t**) malloc( sizeof( vital_detected_object_t* ) * sel_set->size() );
+    *length = sel_set->size();
 
     auto ie = sel_set->cend();
     size_t i = 0;
     for ( auto ix = sel_set->cbegin(); ix != ie; ++ix )
     {
-      kwiver::vital_c::DOBJ_SPTR_CACHE.store( sel_set[i] );
-      (*output)[i] = reinterpret_cast< vital_detected_object_t* >( sel_set[i].get() );
+      kwiver::vital_c::DOBJ_SPTR_CACHE.store( *ix );
+      (*output)[i] = reinterpret_cast< vital_detected_object_t* >( (*ix).get() );
     }
   );
 }

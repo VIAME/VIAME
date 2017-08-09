@@ -134,7 +134,9 @@ public:
   /**
    * @brief Detected object set iterators;
    *
-   * This method returns an iterator for the set of detected objects.
+   * This method returns an iterator for the set of detected
+   * objects. The iterator points to a shared pointer to a detected
+   * object.
    *
    * @return An iterator over the objects in this set;
    */
@@ -204,6 +206,11 @@ public:
    *
    * This method shifts the bounding boxes within all stored detections
    * by a supplied column and row shift.
+   *
+   * Note: Detections in this set can be shared by multiple sets, so
+   * shifting the detections in this set will also shift the detection
+   * in other sets that share this detection. If this is going to be a
+   * problem, clone() this set before shifting.
    *
    * @param col_shift Column  (a.k.a. x, i, width) translation factor
    * @param row_shift Row (a.k.a. y, j, height) translation factor
