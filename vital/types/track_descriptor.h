@@ -82,8 +82,8 @@ public:
   {
   public:
     // -- TYPES --
-    typedef bounding_box< unsigned > image_bbox_t;
-    typedef bounding_box< double > world_bbox_t;
+    typedef bounding_box_d image_bbox_t;
+    typedef bounding_box_d world_bbox_t;
 
     /// Constructors
     ~history_entry() VITAL_DEFAULT_DTOR

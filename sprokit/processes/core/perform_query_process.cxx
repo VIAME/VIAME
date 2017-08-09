@@ -158,11 +158,33 @@ perform_query_process
 
       vital::track_sptr trk = vital::track::make();
 
+      vital::detected_object_sptr det1(
+        new vital::detected_object( region2 ) );
+      vital::detected_object_sptr det2(
+        new vital::detected_object( region2 ) );
+      vital::detected_object_sptr det3(
+        new vital::detected_object( region2 ) );
+
+      vital::track_state_sptr state1(
+        new vital::object_track_state( ts4.get_frame(), det1 ) );
+      vital::track_state_sptr state2(
+        new vital::object_track_state( ts5.get_frame(), det2 ) );
+      vital::track_state_sptr state3(
+        new vital::object_track_state( ts6.get_frame(), det3 ) );
+
+      trk->set_id( 13 );
+
+      trk->append( state1 );
+      trk->append( state2 );
+      trk->append( state3 );
+
       std::vector< vital::track_sptr > trk_vec;
       trk_vec.push_back( trk );
     
       vital::object_track_set_sptr trk_set(
         new vital::simple_object_track_set( trk_vec ) );
+
+      new_desc->add_track_id( 13 );
 
       entry->set_tracks( trk_set );
     }
