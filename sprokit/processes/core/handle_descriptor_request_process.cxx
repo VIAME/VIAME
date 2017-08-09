@@ -138,6 +138,7 @@ handle_descriptor_request_process
     push_to_port_using_trait( timestamp, vital::timestamp() );
     push_to_port_using_trait( filename, "" );
     push_to_port_using_trait( stream_id, "" );
+    return;
   }
 
   // Get output matrix and detections
