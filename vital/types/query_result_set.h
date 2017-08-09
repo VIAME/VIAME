@@ -42,7 +42,7 @@ namespace kwiver {
 namespace vital {
 
 /// Shared pointer to query result set
-typedef std::vector< query_result > query_result_set;
+typedef std::vector< query_result_sptr > query_result_set;
 
 /// Shared pointer to query result set
 typedef std::shared_ptr< query_result_set > query_result_set_sptr;

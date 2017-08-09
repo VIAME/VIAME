@@ -89,6 +89,48 @@ perform_query_process
 
   vital::query_result_set_sptr output( new vital::query_result_set() );
 
+  for( unsigned i = 1; i < 4; i++ )
+  {
+    vital::query_result_sptr entry( new vital::query_result() );
+
+    entry->set_stream_id( "/data/virat/video/aphill/09172008flight1tape1_5.mpg" );
+    entry->set_instance_id( i );
+    entry->set_relevancy_score( ( 4 - i ) * 0.30 );
+
+    typedef vital::track_descriptor td;
+
+    vital::track_descriptor_set_sptr output( new vital::track_descriptor_set() );
+    vital::track_descriptor_sptr new_desc = td::create( "cnn_descriptor" );
+
+    td::descriptor_data_sptr_t data( new td::descriptor_data_t( 100 ) );
+
+    for( unsigned i = 0; i < 100; i++ )
+    {
+      (data->raw_data())[i] = static_cast<double>( i );
+    }
+
+    new_desc->set_descriptor( data );
+
+    td::history_entry::image_bbox_t region( 0, 0, 400, 400 );
+    td::history_entry hist_entry( 0, region );
+    new_desc->add_history_entry( hist_entry );
+
+    if( i == 1 )
+    {
+
+    }
+    else if( i == 2 )
+    {
+      
+    }
+    else if( i == 3 )
+    {
+      
+    }
+
+    //output->push_back( entry );
+  }
+
   push_to_port_using_trait( query_result, output );
 }
 
