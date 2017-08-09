@@ -116,9 +116,9 @@ protected:
   std::vector< image_container_sptr > m_image_data;
 };
 
-/// Shared pointer for query plan
+/// Shared pointer for query result
 typedef std::shared_ptr< query_result > query_result_sptr;
 
 } } // end namespace vital
 
-#endif // VITAL_DESCRIPTOR_REQUEST_H_
+#endif // VITAL_QUERY_RESULT_H_

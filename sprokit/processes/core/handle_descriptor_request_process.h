@@ -52,6 +52,9 @@ namespace kwiver
  *
  * \oports
  * \oport{track_descriptor_set}
+ * \oport{image_container}
+ * \oport{filename}
+ * \oport{stream_id}
  */
 class KWIVER_PROCESSES_NO_EXPORT handle_descriptor_request_process
   : public sprokit::process

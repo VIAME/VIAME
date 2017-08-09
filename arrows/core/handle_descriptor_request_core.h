@@ -53,7 +53,8 @@ namespace core {
 
 /// A basic query formulator
 class KWIVER_ALGO_CORE_EXPORT handle_descriptor_request_core
-  : public vital::algorithm_impl<handle_descriptor_request_core, vital::algo::handle_descriptor_request>
+  : public vital::algorithm_impl< handle_descriptor_request_core,
+      vital::algo::handle_descriptor_request >
 {
 public:
 
@@ -96,8 +97,10 @@ public:
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
   /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr
-  handle( kwiver::vital::descriptor_request_sptr request );
+  virtual bool handle(
+    kwiver::vital::descriptor_request_sptr request,
+    kwiver::vital::track_descriptor_set_sptr& desc,
+    std::vector< kwiver::vital::image_container_sptr >& imgs );
 
 
 private:

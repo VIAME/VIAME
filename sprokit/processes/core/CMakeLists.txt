@@ -26,6 +26,7 @@ set( sources
   image_writer_process.cxx
   initialize_object_tracks_process.cxx
   matcher_process.cxx
+  perform_query_process.cxx
   read_descriptor_process.cxx
   refine_detections_process.cxx
   split_image_process.cxx
@@ -56,6 +57,7 @@ set( private_headers
   image_writer_process.h
   initialize_object_tracks_process.h
   matcher_process.h
+  perform_query_process.h
   read_descriptor_process.h
   refine_detections_process.h
   split_image_process.h

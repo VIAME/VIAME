@@ -38,6 +38,7 @@
 
 #include <vital/vital_types.h>
 
+#include <vital/types/database_query.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/descriptor_request.h>
 #include <vital/types/detected_object_set.h>
@@ -46,8 +47,10 @@
 #include <vital/types/geo_corner_points.h>
 #include <vital/types/geo_lat_lon.h>
 #include <vital/types/image_container.h>
+#include <vital/types/iqr_feedback.h>
 #include <vital/types/matrix.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/query_result_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
 #include <vital/video_metadata/video_metadata.h>
@@ -85,8 +88,11 @@ create_type_trait( corner_points, "corner_points", kwiver::vital::geo_corner_poi
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
+create_type_trait( database_query, "kwiver:database_query", kwiver::vital::database_query_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( descriptor_request, "kwiver:descriptor_request", kwiver::vital::descriptor_request_sptr );
+create_type_trait( query_result, "kwiver:query_result", kwiver::vital::query_result_set_sptr );
+create_type_trait( iqr_feedback, "kwiver:iqr_feedback", kwiver::vital::iqr_feedback_sptr );
 create_type_trait( string, "kwiver:string", kwiver::vital::string_t );
 create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
@@ -120,8 +126,11 @@ create_port_trait( left_image, image, "Single frame left image." );
 create_port_trait( right_image, image, "Single frame right image." );
 create_port_trait( depth_map, image, "Depth map stored in image form." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
+create_port_trait( database_query, database_query, "A database query." );
 create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
 create_port_trait( descriptor_request, descriptor_request, "A request to compute descriptors." );
+create_port_trait( iqr_feedback, iqr_feedback, "IQR feedback." );
+create_port_trait( query_result, query_result, "Set of query results." );
 create_port_trait( string_vector, string_vector, "Vector of strings." );
 create_port_trait( track_set, track_set, "Set of arbitrary tracks." );
 create_port_trait( feature_track_set, feature_track_set, "Set of feature tracks." );

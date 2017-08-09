@@ -87,6 +87,12 @@ create_config_trait( stream_id, std::string,
   "", "Stream ID to store in archive" );
 create_config_trait( compress_image, bool,
   "true", "Whether to compress image data stored in archive" );
+  
+create_port_trait( filename, file_name,
+  "KWA input filename" );
+create_port_trait( stream_id, string,
+  "Stream ID to place in file" );
+
 
 //-----------------------------------------------------------------------------------
 // Private implementation class
@@ -123,11 +129,11 @@ public:
   bool m_compress_image;
 
   // local storage
-  std::ofstream* m_index_stream;
-  std::ofstream* m_meta_stream;
-  vsl_b_ostream* m_meta_bstream;
-  std::ofstream* m_data_stream;
-  vsl_b_ostream* m_data_bstream;
+  std::shared_ptr< std::ofstream > m_index_stream;
+  std::shared_ptr< std::ofstream > m_meta_stream;
+  std::shared_ptr< vsl_b_ostream > m_meta_bstream;
+  std::shared_ptr< std::ofstream > m_data_stream;
+  std::shared_ptr< vsl_b_ostream > m_data_bstream;
 
   int m_data_version;
   std::vector < char > m_image_write_cache;
@@ -177,6 +183,11 @@ void
 kw_archive_writer_process
 ::_init()
 {
+  if( d->m_base_filename.empty() )
+  {
+    return;
+  }
+
   std::string path = d->m_output_directory + "/" + d->m_base_filename;
 
   // Make sure directory exists
@@ -186,8 +197,8 @@ kw_archive_writer_process
   std::string meta_filename  = path + ".meta";
   std::string data_filename  = path + ".data";
 
-  d->m_index_stream = new std::ofstream( index_filename.c_str(),
-                                std::ios::out | std::ios::trunc );
+  d->m_index_stream.reset( new std::ofstream( index_filename.c_str(),
+                                std::ios::out | std::ios::trunc ) );
   if( ! *d->m_index_stream )
   {
     std::string const reason = "Failed to open " + index_filename + " for writing";
@@ -197,8 +208,8 @@ kw_archive_writer_process
   if( d->m_separate_meta )
   {
     // open metadata stream
-    d->m_meta_stream = new std::ofstream( meta_filename.c_str(),
-             std::ios::out | std::ios::trunc | std::ios::binary );
+    d->m_meta_stream.reset( new std::ofstream( meta_filename.c_str(),
+             std::ios::out | std::ios::trunc | std::ios::binary ) );
 
     if( ! *d->m_meta_stream )
     {
@@ -206,13 +217,13 @@ kw_archive_writer_process
       throw sprokit::invalid_configuration_exception( name(), reason );
     }
 
-    d->m_meta_bstream = new vsl_b_ostream( d->m_meta_stream );
+    d->m_meta_bstream.reset( new vsl_b_ostream( d->m_meta_stream.get() ) );
   }
 
-  d->m_data_stream = new std::ofstream( data_filename.c_str(),
-             std::ios::out | std::ios::trunc | std::ios::binary );
+  d->m_data_stream.reset( new std::ofstream( data_filename.c_str(),
+             std::ios::out | std::ios::trunc | std::ios::binary ) );
 
-  d->m_data_bstream = new vsl_b_ostream( d->m_data_stream );
+  d->m_data_bstream.reset( new vsl_b_ostream( d->m_data_stream.get() ) );
 
   if( ! *d->m_data_stream )
   {
@@ -285,6 +296,32 @@ kw_archive_writer_process
   // gsd
   kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
+  // filename
+  kwiver::vital::string_t filename = grab_input_using_trait( filename );
+
+  // stream id
+  kwiver::vital::string_t stream_id = grab_input_using_trait( stream_id );
+
+  // Check to see if filename or stream id updated
+  if( !stream_id.empty() && d->m_stream_id != stream_id )
+  {
+    d->m_stream_id = stream_id;
+  }
+
+  if( !filename.empty() && d->m_base_filename != filename )
+  {
+    d->m_base_filename = filename;
+
+    _init();
+  }
+
+  if( d->m_base_filename.empty() )
+  {
+    static std::string const reason = "No output filename specified";
+    throw sprokit::invalid_configuration_exception( name(), reason );
+  }
+
+  // Beginning writing this frame to KWA
   LOG_DEBUG( logger(), "processing frame " << frame_time );
 
   *d->m_index_stream
@@ -326,16 +363,18 @@ kw_archive_writer_process
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
+  sprokit::process::port_flags_t optional;
   sprokit::process::port_flags_t opt_static;
   opt_static.insert( flag_input_static );
 
   // declare input ports
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( homography_src_to_ref, opt_static );
+  declare_input_port_using_trait( homography_src_to_ref, optional );
   declare_input_port_using_trait( corner_points, opt_static );
   declare_input_port_using_trait( gsd, opt_static );
-  declare_input_port_using_trait( gsd, opt_static );
+  declare_input_port_using_trait( filename, opt_static );
+  declare_input_port_using_trait( stream_id, opt_static );
 }
 
 
@@ -356,13 +395,13 @@ kw_archive_writer_process
 //-----------------------------------------------------------------------------------
 void
 priv_t
-::write_frame_data(vsl_b_ostream& stream,
-                   bool write_image,
-                   kwiver::vital::timestamp const& time,
-                   kwiver::vital::geo_corner_points const& corner_pts,
-                   kwiver::vital::image const& img,
-                   kwiver::vital::f2f_homography const& s2r_homog,
-                   double gsd)
+::write_frame_data( vsl_b_ostream& stream,
+                    bool write_image,
+                    kwiver::vital::timestamp const& time,
+                    kwiver::vital::geo_corner_points const& corner_pts,
+                    kwiver::vital::image const& img,
+                    kwiver::vital::f2f_homography const& s2r_homog,
+                    double gsd )
 {
   vxl_int_64 u_seconds = static_cast< vxl_int_64 > ( time.get_time_usec() );
   vxl_int_64 frame_num = static_cast< vxl_int_64 > ( time.get_frame() );
@@ -450,12 +489,7 @@ priv_t
 // ==================================================================================
 kw_archive_writer_process::priv
 ::priv(kw_archive_writer_process* parent)
-  : m_parent( parent ),
-    m_index_stream(0),
-    m_meta_stream(0),
-    m_meta_bstream(0),
-    m_data_stream(0),
-    m_data_bstream(0)
+  : m_parent( parent )
 {
 }
 
@@ -463,22 +497,6 @@ kw_archive_writer_process::priv
 kw_archive_writer_process::priv
 ::~priv()
 {
-  // Must set pointers to zero to prevent multiple calls from doing
-  // bad things.
-  delete m_index_stream;
-  m_index_stream = 0;
-
-  delete m_meta_bstream;
-  m_meta_bstream = 0;
-
-  delete m_meta_stream;
-  m_meta_stream = 0;
-
-  delete m_data_bstream;
-  m_data_bstream = 0;
-
-  delete m_data_stream;
-  m_data_stream = 0;
 }
 
 
