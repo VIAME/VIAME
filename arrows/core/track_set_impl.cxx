@@ -45,8 +45,8 @@ using namespace kwiver::vital;
 
 
 /// Constructor from a vector of tracks
-frame_index_track_set_implementation
-::frame_index_track_set_implementation( const std::vector< track_sptr >& tracks )
+frame_index_track_set_impl
+::frame_index_track_set_impl( const std::vector< track_sptr >& tracks )
   : all_tracks_( tracks )
 {
   populate_frame_map();
@@ -55,7 +55,7 @@ frame_index_track_set_implementation
 
 /// Populate frame_map_ with data from all_tracks_
 void
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::populate_frame_map()
 {
   frame_map_.clear();
@@ -71,7 +71,7 @@ frame_index_track_set_implementation
 
 /// Return the number of tracks in the set
 size_t
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::size() const
 {
   return this->all_tracks_.size();
@@ -80,7 +80,7 @@ frame_index_track_set_implementation
 
 /// Assign a vector of track shared pointers to this container
 void
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::set_tracks( std::vector< vital::track_sptr > const& tracks )
 {
   all_tracks_ = tracks;
@@ -90,7 +90,7 @@ frame_index_track_set_implementation
 
 /// Return whether or not there are any tracks in the set
 bool
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::empty() const
 {
   return this->all_tracks_.empty();
@@ -99,7 +99,7 @@ frame_index_track_set_implementation
 
 /// Return a vector of track shared pointers
 std::vector< track_sptr >
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::tracks() const
 {
   return all_tracks_;
@@ -108,7 +108,7 @@ frame_index_track_set_implementation
 
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::all_frame_ids() const
 {
   std::set<frame_id_t> ids;
@@ -123,7 +123,7 @@ frame_index_track_set_implementation
 
 /// Return the set of all track IDs in this track set
 std::set<track_id_t>
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::all_track_ids() const
 {
   std::set<track_id_t> ids;
@@ -137,7 +137,7 @@ frame_index_track_set_implementation
 
 /// Return the last (largest) frame number containing tracks
 frame_id_t
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::last_frame() const
 {
   if( frame_map_.empty() )
@@ -150,7 +150,7 @@ frame_index_track_set_implementation
 
 /// Return the first (smallest) frame number containing tracks
 frame_id_t
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::first_frame() const
 {
   if( frame_map_.empty() )
@@ -163,7 +163,7 @@ frame_index_track_set_implementation
 
 /// Return the track in the set with the specified id.
 track_sptr const
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::get_track(track_id_t tid) const
 {
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -181,7 +181,7 @@ frame_index_track_set_implementation
 
 /// Return all tracks active on a frame.
 std::vector< track_sptr >
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::active_tracks(frame_id_t offset) const
 {
   std::vector<track_sptr> active_tracks;
@@ -200,7 +200,7 @@ frame_index_track_set_implementation
 
 /// Return all tracks not active on a frame.
 std::vector< track_sptr >
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::inactive_tracks(frame_id_t offset) const
 {
   std::vector<track_sptr> inactive_tracks;
@@ -220,7 +220,7 @@ frame_index_track_set_implementation
 
 /// Return all new tracks on a given frame.
 std::vector< track_sptr >
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::new_tracks(frame_id_t offset) const
 {
   std::vector<track_sptr> new_tracks;
@@ -243,7 +243,7 @@ frame_index_track_set_implementation
 
 /// Return all terminated tracks on a given frame.
 std::vector< track_sptr >
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::terminated_tracks(frame_id_t offset) const
 {
   std::vector<track_sptr> terminated_tracks;
@@ -266,7 +266,7 @@ frame_index_track_set_implementation
 
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::percentage_tracked(frame_id_t offset1, frame_id_t offset2) const
 {
   std::vector<track_sptr> tracks1 = this->active_tracks(offset1);
@@ -294,7 +294,7 @@ frame_index_track_set_implementation
 
 /// Return a vector of state data corresponding to the tracks on the given frame.
 std::vector<track_state_sptr>
-frame_index_track_set_implementation
+frame_index_track_set_impl
 ::frame_states( frame_id_t offset ) const
 {
   std::vector<track_state_sptr> vdata;

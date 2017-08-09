@@ -61,18 +61,18 @@ namespace core {
  * implementation caches the mapping from frames to track states for faster
  * retrieval.
  */
-class VITAL_EXPORT frame_index_track_set_implementation
+class VITAL_EXPORT frame_index_track_set_impl
   : public vital::track_set_implementation
 {
 public:
   /// Default Constructor
-  frame_index_track_set_implementation() { }
+  frame_index_track_set_impl() { }
 
   /// Constructor from a vector of tracks
-  explicit frame_index_track_set_implementation( const std::vector< vital::track_sptr >& tracks );
+  explicit frame_index_track_set_impl( const std::vector< vital::track_sptr >& tracks );
 
   /// Destructor
-  virtual ~frame_index_track_set_implementation() VITAL_DEFAULT_DTOR
+  virtual ~frame_index_track_set_impl() VITAL_DEFAULT_DTOR
 
   /// Return the number of tracks in the set
   virtual size_t size() const;
