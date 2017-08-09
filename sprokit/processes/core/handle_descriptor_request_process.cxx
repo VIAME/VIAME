@@ -154,7 +154,10 @@ handle_descriptor_request_process
   // Step image output pipeline if connected
   VITAL_FOREACH( auto image, images )
   {
+    vital::timestamp ts;
+
     push_to_port_using_trait( image, image );
+    push_to_port_using_trait( timestamp, ts );
     push_to_port_using_trait( filename, filename );
     push_to_port_using_trait( stream_id, stream_id );
   }
@@ -176,6 +179,11 @@ void handle_descriptor_request_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
+
+  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( timestamp, optional );
+  declare_output_port_using_trait( filename, optional );
+  declare_output_port_using_trait( stream_id, optional );
 }
 
 
