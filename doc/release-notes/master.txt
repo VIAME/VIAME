@@ -64,6 +64,13 @@ Vital
 
  * Added macros to access low level datum objects using port traits.
 
+ * Select operations on detected_object_set now return the selected
+   subset as a new detected_object_set.
+
+ * Detected object set is iterable. begin() and end() methods have
+   been added in place of returning the vector of detections. This
+   allows iteration over arbitrarily large detection sets.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
