@@ -289,6 +289,14 @@ kw_archive_writer_process
 
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
+
+  // check for empty image
+  if( !img || img->width() == 0 || img->height() == 0 )
+  {
+    push_to_port_using_trait( complete_flag, true );
+    return;
+  }
+
   kwiver::vital::image image = img->get_image();
 
   // homography

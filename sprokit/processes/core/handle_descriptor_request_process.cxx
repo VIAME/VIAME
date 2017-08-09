@@ -129,6 +129,15 @@ handle_descriptor_request_process
 
   request = grab_from_port_using_trait( descriptor_request );
 
+  // Special case, output empty image
+  if( !request )
+  {
+    push_to_port_using_trait( image, vital::image_container_sptr() );
+    push_to_port_using_trait( timestamp, vital::timestamp() );
+    push_to_port_using_trait( filename, "" );
+    push_to_port_using_trait( stream_id, "" );
+  }
+
   // Get output matrix and detections
   vital::track_descriptor_set_sptr descriptors;
   std::vector< vital::image_container_sptr > images;
