@@ -46,7 +46,7 @@ namespace kwiver {
 //+ Define a config entry for the main algorithm configuration
 //+ subblock. A name other than "algorithm" can be used if it is more
 //+ descriptive. If so, change name throughout the rest of this file also.
-create_config_trait( algorithm, std::string, "", "Algorithm configuration subblock" );
+create_config_trait( algo, std::string, "", "Algorithm configuration subblock" );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -95,16 +95,16 @@ _configure()
   // Call check_nested_algo_configuration() first so that it will display a list of
   // concrete instances of the desired algorithms that are available if the config
   // does not select a valid one.
-  if ( ! vital::algo::refine_detections::check_nested_algo_configuration( "algorithm", algo_config ) )
+  if ( ! vital::algo::refine_detections::check_nested_algo_configuration( "algo", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
-  vital::algo::refine_detections::set_nested_algo_configuration( "algorithm", algo_config, d->m_algo );
+  vital::algo::refine_detections::set_nested_algo_configuration( "algo", algo_config, d->m_algo );
 
   if ( ! d->m_algo )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create refiner" );
+    throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm" );
   }
 
   stop_configure_processing();
@@ -120,14 +120,14 @@ _step()
   vital::image_container_sptr image = grab_from_port_using_trait( image );
   vital::detected_object_set_sptr dets = grab_from_port_using_trait( detected_object_set );
 
-  start_step_processing();
+  start_step_processing();      // Mark start of productive processing
 
   // Send inputs to algorithm
 
   //+ This call must correspond to the wrapped algorithm.
   vital::detected_object_set_sptr results = d->m_algo->process( image, dets );
 
-  stop_step_processing();
+  stop_step_processing();       // Mark end of productive processing
 
   //+ push output as needed
   push_to_port_using_trait( detected_object_set, results );
@@ -159,7 +159,7 @@ void
 algo_wrapper_process::
 make_config()
 {
-  declare_config_using_trait( refiner );
+  declare_config_using_trait( slgorithm );
 }
 
 
