@@ -49,14 +49,13 @@ frame_index_track_set_impl
 ::frame_index_track_set_impl( const std::vector< track_sptr >& tracks )
   : all_tracks_( tracks )
 {
-  populate_frame_map();
 }
 
 
 /// Populate frame_map_ with data from all_tracks_
 void
 frame_index_track_set_impl
-::populate_frame_map()
+::populate_frame_map() const
 {
   frame_map_.clear();
   for(auto const& track : all_tracks_)
@@ -65,6 +64,18 @@ frame_index_track_set_impl
     {
       frame_map_[ts->frame()].insert(ts);
     }
+  }
+}
+
+
+/// Populate frame_map_ only if it is empty
+void
+frame_index_track_set_impl
+::populate_frame_map_on_demand() const
+{
+  if(frame_map_.empty() && !all_tracks_.empty())
+  {
+    populate_frame_map();
   }
 }
 
@@ -84,7 +95,7 @@ frame_index_track_set_impl
 ::set_tracks( std::vector< vital::track_sptr > const& tracks )
 {
   all_tracks_ = tracks;
-  populate_frame_map();
+  frame_map_.clear();
 }
 
 
@@ -111,6 +122,9 @@ std::set<frame_id_t>
 frame_index_track_set_impl
 ::all_frame_ids() const
 {
+  // populate the frame map if empty
+  populate_frame_map_on_demand();
+
   std::set<frame_id_t> ids;
   // extract all the keys from frame_map_
   for(auto const& fmi : frame_map_)
@@ -142,7 +156,7 @@ frame_index_track_set_impl
 {
   if( frame_map_.empty() )
   {
-    return 0;
+    return track_set_implementation::last_frame();
   }
   return frame_map_.rbegin()->first;
 }
@@ -155,7 +169,7 @@ frame_index_track_set_impl
 {
   if( frame_map_.empty() )
   {
-    return 0;
+    return track_set_implementation::first_frame();
   }
   return frame_map_.begin()->first;
 }
@@ -184,6 +198,9 @@ std::vector< track_sptr >
 frame_index_track_set_impl
 ::active_tracks(frame_id_t offset) const
 {
+  // populate the frame map if empty
+  populate_frame_map_on_demand();
+
   std::vector<track_sptr> active_tracks;
   frame_id_t frame_number = offset_to_frame(offset);
   auto const& map_itr = frame_map_.find(frame_number);
@@ -223,6 +240,9 @@ std::vector< track_sptr >
 frame_index_track_set_impl
 ::new_tracks(frame_id_t offset) const
 {
+  // populate the frame map if empty
+  populate_frame_map_on_demand();
+
   std::vector<track_sptr> new_tracks;
   frame_id_t frame_number = offset_to_frame(offset);
   auto const& map_itr = frame_map_.find(frame_number);
@@ -246,6 +266,9 @@ std::vector< track_sptr >
 frame_index_track_set_impl
 ::terminated_tracks(frame_id_t offset) const
 {
+  // populate the frame map if empty
+  populate_frame_map_on_demand();
+
   std::vector<track_sptr> terminated_tracks;
   frame_id_t frame_number = offset_to_frame(offset);
   auto const& map_itr = frame_map_.find(frame_number);
@@ -269,6 +292,9 @@ double
 frame_index_track_set_impl
 ::percentage_tracked(frame_id_t offset1, frame_id_t offset2) const
 {
+  // populate the frame map if empty
+  populate_frame_map_on_demand();
+
   std::vector<track_sptr> tracks1 = this->active_tracks(offset1);
   std::sort(tracks1.begin(), tracks1.end());
   std::vector<track_sptr> tracks2 = this->active_tracks(offset2);
@@ -297,6 +323,9 @@ std::vector<track_state_sptr>
 frame_index_track_set_impl
 ::frame_states( frame_id_t offset ) const
 {
+  // populate the frame map if empty
+  populate_frame_map_on_demand();
+
   std::vector<track_state_sptr> vdata;
   frame_id_t frame_number = offset_to_frame(offset);
   auto const& map_itr = frame_map_.find(frame_number);

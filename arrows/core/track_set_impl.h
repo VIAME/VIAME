@@ -127,14 +127,17 @@ public:
 
 protected:
   /// Populate frame_map_ with data from all_tracks_
-  void populate_frame_map();
+  void populate_frame_map() const;
+
+  /// Populate frame_map_ only if it is empty
+  void populate_frame_map_on_demand() const;
 
 private:
   /// The vector of all tracks
   std::vector< vital::track_sptr > all_tracks_;
 
   /// The mapping from frames to track states
-  std::map<vital::frame_id_t, std::set<vital::track_state_sptr> > frame_map_;
+  mutable std::map<vital::frame_id_t, std::set<vital::track_state_sptr> > frame_map_;
 };
 
 
