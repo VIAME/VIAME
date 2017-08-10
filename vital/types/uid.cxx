@@ -68,11 +68,11 @@ is_valid() const
 
 
 // ------------------------------------------------------------------
-const char*
+std::string const&
 uid::
 value() const
 {
-  return m_uid.data();
+  return m_uid;
 }
 
 
