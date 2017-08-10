@@ -16,6 +16,9 @@ Testing
    without hitting the time limit, so Sprokit, Python, and track oracle have
    now been enabled in Travis CI testing.
 
+ * Removed duplicate testing headers from kwiver/vital/tests that were unused.
+   The copies in kwiver/tests/ are still used.
+
 
 Fixes since v1.1.0
 ------------------
