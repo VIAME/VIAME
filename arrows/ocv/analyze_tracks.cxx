@@ -42,6 +42,8 @@
 #include <set>
 #include <vector>
 
+#include <arrows/core/track_set_impl.h>
+
 #include <opencv2/core/core.hpp>
 using namespace kwiver::vital;
 
@@ -172,6 +174,12 @@ analyze_tracks
   {
     return;
   }
+
+  // Convert this track set to one with a frame-indexed implementation,
+  // which is much more efficient for the operations below
+  typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+  track_set = std::make_shared<vital::track_set>(
+                tsi_uptr(new core::frame_index_track_set_impl(track_set->tracks()) ) );
 
   // Constants
   const unsigned num_tracks = static_cast<unsigned>(track_set->size());
