@@ -30,6 +30,7 @@
 
 #include <test_common.h>
 
+#include <algorithm>
 #include <iostream>
 
 #include <arrows/core/track_set_impl.h>

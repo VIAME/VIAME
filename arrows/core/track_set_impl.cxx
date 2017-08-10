@@ -35,6 +35,7 @@
 
 #include "track_set_impl.h"
 
+#include <algorithm>
 #include <limits>
 
 namespace kwiver {
