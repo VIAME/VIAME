@@ -141,7 +141,7 @@ embedded_pipeline
 {
   // create a pipeline
   sprokit::pipeline_builder builder;
-  builder.load_pipeline( istr, def_dir );
+  builder.load_pipeline( istr, def_dir + "/in-stream" );
 
   // build pipeline
   m_priv->m_pipeline = builder.pipeline();
