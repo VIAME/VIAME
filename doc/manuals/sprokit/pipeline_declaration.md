@@ -381,9 +381,13 @@ is done by adding the _instrumentation block to the process config.
 ```
   process my_process
     :: my_process_type
-       _instrumentation:type = foo
-       _instrumentation:foo:file = output.dat
-       _instrumentation:foo:buffering = optimal
+    block _instrumentation
+       type = foo
+       block  foo
+         file = output.dat
+         buffering = optimal
+       endblock
+    endblock
 ```
 
 The type parameter specifies the instrumentation provider, "foo" in
