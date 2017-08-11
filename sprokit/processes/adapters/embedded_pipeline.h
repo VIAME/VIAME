@@ -145,7 +145,8 @@ public:
    * includes and to resolve relpath. Since the input stream being
    * processed has no file name, the name "in-stream" is appended to
    * the directory supplied so that errors in the stream can be
-   * differentiated from errors from other files.
+   * differentiated from errors from other files. If this parameter is
+   * not supplied, the current directory is used.
    */
   void build_pipeline( std::istream& istr, std::string const& def_dir = "" );
 

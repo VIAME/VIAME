@@ -41,6 +41,7 @@ target_link_libraries( kwiver_adapter
                    vital_logger
   PRIVATE          sprokit_pipeline
                    sprokit_tools
+                   kwiversys
 
   )
 

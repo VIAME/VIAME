@@ -52,6 +52,8 @@
 #include <sprokit/processes/adapters/output_adapter.h>
 #include <sprokit/processes/adapters/output_adapter_process.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <sstream>
 #include <stdexcept>
 
@@ -64,6 +66,8 @@ static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::
 
 
 namespace kwiver {
+
+typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------
 class embedded_pipeline::priv
@@ -141,7 +145,14 @@ embedded_pipeline
 {
   // create a pipeline
   sprokit::pipeline_builder builder;
-  builder.load_pipeline( istr, def_dir + "/in-stream" );
+
+  std::string cur_file( def_dir );
+  if ( def_dir.empty() )
+  {
+    cur_file = ST::GetCurrentWorkingDirectory();
+  }
+
+  builder.load_pipeline( istr, cur_file + "/in-stream" );
 
   // build pipeline
   m_priv->m_pipeline = builder.pipeline();
