@@ -43,6 +43,32 @@
 namespace kwiver {
 namespace vital {
 
+typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+
+
+/// Default Constructor
+feature_track_set
+::feature_track_set()
+  : track_set(tsi_uptr(new simple_track_set_implementation))
+{
+}
+
+
+/// Constructor specifying the implementation
+feature_track_set
+::feature_track_set(std::unique_ptr<track_set_implementation> impl)
+  : track_set(std::move(impl))
+{
+}
+
+
+/// Constructor from a vector of tracks
+feature_track_set
+::feature_track_set(std::vector< track_sptr > const& tracks)
+  : track_set(tsi_uptr(new simple_track_set_implementation(tracks)))
+{
+}
+
 
 /// Return the set of features in tracks on the last frame
 feature_set_sptr

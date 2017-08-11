@@ -43,7 +43,31 @@
 namespace kwiver {
 namespace vital {
 
-//TODO add object_track_set implementations here
+typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+
+
+/// Default Constructor
+object_track_set
+::object_track_set()
+  : track_set(tsi_uptr(new simple_track_set_implementation))
+{
+}
+
+
+/// Constructor specifying the implementation
+object_track_set
+::object_track_set(std::unique_ptr<track_set_implementation> impl)
+  : track_set(std::move(impl))
+{
+}
+
+
+/// Constructor from a vector of tracks
+object_track_set
+::object_track_set(std::vector< track_sptr > const& tracks)
+  : track_set(tsi_uptr(new simple_track_set_implementation(tracks)))
+{
+}
 
 
 } } // end namespace vital

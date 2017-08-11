@@ -31,8 +31,7 @@
 /**
  * \file
  * \brief Header file for \link kwiver::vital::feature_track_set feature_track_set
- *        \endlink and a concrete \link kwiver::vital::simple_feature_track_set
- *        simple_feature_track_set \endlink
+ *        \endlink
  */
 
 #ifndef VITAL_FEATURE_TRACK_SET_H_
@@ -85,6 +84,21 @@ typedef std::shared_ptr< feature_track_set > feature_track_set_sptr;
 class VITAL_EXPORT feature_track_set : public track_set
 {
 public:
+  /// Default Constructor
+  /**
+   * \note implementation defaults to simple_track_set_implementation
+   */
+  feature_track_set();
+
+  /// Constructor specifying the implementation
+  feature_track_set(std::unique_ptr<track_set_implementation> impl);
+
+  /// Constructor from a vector of tracks
+  /**
+   * \note implementation defaults to simple_track_set_implementation
+   */
+  feature_track_set(std::vector< track_sptr > const& tracks);
+
   /// Destructor
   virtual ~feature_track_set() VITAL_DEFAULT_DTOR
 
@@ -118,31 +132,6 @@ public:
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
 
-};
-
-
-/// A concrete feature track set that simply wraps a vector of tracks.
-class simple_feature_track_set :
-  public feature_track_set
-{
-public:
-  /// Default Constructor
-  simple_feature_track_set() VITAL_DEFAULT_CTOR
-
-  /// Constructor from a vector of tracks
-  explicit simple_feature_track_set( const std::vector< track_sptr >& tracks )
-    : data_( tracks ) { }
-
-  /// Return the number of tracks in the set
-  virtual size_t size() const { return data_.size(); }
-
-  /// Return a vector of track shared pointers
-  virtual std::vector< track_sptr > tracks() const { return data_; }
-
-
-protected:
-  /// The vector of tracks
-  std::vector< track_sptr > data_;
 };
 
 
