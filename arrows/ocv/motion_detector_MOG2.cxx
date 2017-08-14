@@ -65,18 +65,22 @@ public:
   double var_threshold;
   cv::Ptr<cv::BackgroundSubtractor> bg_model;
   image_container_sptr motion_heat_map;
-  
+
   /// Constructor
   priv()
      : history(100),
        var_threshold(36.0)
   {
   }
-  
+
   /// Create new impl instance based on current parameters
   void reset()
   {
+#ifdef KWIVER_HAS_OPENCV_VER_3
+    bg_model = cv::createBackgroundSubtractorMOG2( history, var_threshold, false );
+#else
     bg_model = new cv::BackgroundSubtractorMOG2(history, var_threshold, false);
+#endif
   }
 };
 
@@ -130,7 +134,7 @@ motion_detector_MOG2
 }
 
 
-/// Return homography to stabilize the image_src relative to the key frame 
+/// Return homography to stabilize the image_src relative to the key frame
 image_container_sptr
 motion_detector_MOG2
 ::process_image( const timestamp& ts,
@@ -144,17 +148,21 @@ motion_detector_MOG2
 
   cv::Mat cv_src = ocv::image_container::vital_to_ocv(image->get_image());
   cv::blur(cv_src, cv_src, cv::Size(5,5) );
-  
+
   std::cout << "Running MOG2 motion detector";
   cv::Mat fgmask;
+#ifdef KWIVER_HAS_OPENCV_VER_3
+  d_->bg_model->apply( cv_src, fgmask, learning_rate );
+#else
   d_->bg_model->operator()(cv_src, fgmask, learning_rate);
+#endif
   std::cout << "Finished MOG2 motion detector for this iteration";
-  
+
   //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
   //cv::imshow("Display window", fgmask);
   d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask);
   //d_->motion_heat_map = image;
-          
+
   return d_->motion_heat_map;
 }
 
