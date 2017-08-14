@@ -5,7 +5,7 @@
 
 # paths for loading algorithms
 export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
-export VIAME_PLUGIN_PATH=$this_dir/lib/modules:$VIAME_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/sprokit:$KWIVER_PLUGIN_PATH
 
 # paths for loading processes
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
