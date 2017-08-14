@@ -529,8 +529,8 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
                                 "Display raw attributes for factories without calling any category specific plugins" );
 
-    G_context.m_args.AddArgument( "--load", argT::SPACE_ARGUMENT, &G_context.opt_load_module,
-                                  "Load only specified plugin file for inspection." );
+  G_context.m_args.AddArgument( "--load", argT::SPACE_ARGUMENT, &G_context.opt_load_module,
+                                "Load only specified plugin file for inspection." );
 
   // Save some time by not loading the plugins if we know we will not
   // be using them.
