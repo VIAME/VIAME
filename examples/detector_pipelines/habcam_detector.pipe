@@ -4,7 +4,7 @@
 # detector in order to use it:
 #
 #    (a) YOLOv2
-#    (b) Scallop-TK
+#    (b) Scallop-TK (commented by default)
 #
 # This pipeline assumes stereo imagery together in a composite
 # image as input. The first 'splitting' process selects either
@@ -35,7 +35,7 @@ connect from input.image
 
 # =========================== YOLO v2 ============================
 
-process yolo_v2
+process yolo_v2_detector
   :: image_object_detector
   :detector:type    darknet
 
@@ -57,7 +57,17 @@ process yolo_v2
   :detector:darknet:resize_nj     544
   :detector:darknet:scale         1.0
 
-process yolo_v2_writer
+process yolo_v2_filter
+  :: detected_object_filter
+  :filter:type       class_probablity_filter
+
+  # Filter parameters
+  :filter:class_probablity_filter:threshold        0.001
+  :filter:class_probablity_filter:keep_all_classes false
+  :filter:class_probablity_filter:keep_classes     fish;scallop
+  #:filter:class_probablity_filter:keep_classes     skate;flatfish
+
+process yolo_v2_kw18_writer
   :: detected_object_output
 
   # Type of file to output
@@ -71,34 +81,85 @@ process yolo_v2_writer
   #:writer:kw18:tot_field1_ids    skate
   #:writer:kw18:tot_field2_ids    flatfish
 
-connect from split.left_image
-        to   yolo_v2.image
+process yolo_v2_csv_writer
+  :: detected_object_output
 
-connect from yolo_v2.detected_object_set
-        to   yolo_v2_writer.detected_object_set
+  # Type of file to output
+  :file_name     output/yolo_v2_detections.csv
+  :writer:type   csv
+
+connect from split.left_image
+        to   yolo_v2_detector.image
+
+connect from yolo_v2_detector.detected_object_set
+        to   yolo_v2_filter.detected_object_set
+
+connect from yolo_v2_filter.detected_object_set
+        to   yolo_v2_kw18_writer.detected_object_set
 
 connect from input.image_file_name
-        to   yolo_v2_writer.image_file_name
+        to   yolo_v2_kw18_writer.image_file_name
+
+connect from yolo_v2_filter.detected_object_set
+        to   yolo_v2_csv_writer.detected_object_set
+
+connect from input.image_file_name
+        to   yolo_v2_csv_writer.image_file_name
 
 # ========================== Scallop-TK ==========================
 
-#process scallop_tk
+#process scallop_tk_detector
 #  :: image_object_detector
 #  :detector:type    scallop_tk
-#  :detector:scallop_tk:config_file models/SYSTEM_SETTINGS
+#  :detector:scallop_tk:config_file models/scallop_tk/SYSTEM_SETTINGS
 #
-#process scallop_tk_writer
+#process scallop_tk_filter
+#  :: detected_object_filter
+#  :filter:type       class_probablity_filter
+#
+#  # Filter parameters
+#  :filter:class_probablity_filter:threshold        0.001
+#  :filter:class_probablity_filter:keep_all_classes false
+#  :filter:class_probablity_filter:keep_classes     fish;scallop
+#  #:filter:class_probablity_filter:keep_classes     skate;flatfish
+#
+#process scallop_tk_kw18_writer
 #  :: detected_object_output
+#
+#  # Type of file to output
 #  :file_name     output/scallop_tk_detections.kw18
 #  :writer:type   kw18
 #
-#connect from split.left_image
-#        to   scallop_tk.image
+#  # Write out FSO classifications alongside tracks
+#  :writer:kw18:write_tot         true
+#  :writer:kw18:tot_field1_ids    fish
+#  :writer:kw18:tot_field2_ids    scallop
+#  #:writer:kw18:tot_field1_ids    skate
+#  #:writer:kw18:tot_field2_ids    flatfish
 #
-#connect from scallop_tk.detected_object_set
-#        to   scallop_tk_writer.detected_object_set
+#process scallop_tk_csv_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name     output/scallop_tk_detections.csv
+#  :writer:type   csv
+#
+#connect from split.left_image
+#        to   scallop_tk_detector.image
+#
+#connect from scallop_tk_detector.detected_object_set
+#        to   scallop_tk_filter.detected_object_set
+#
+#connect from scallop_tk_filter.detected_object_set
+#        to   scallop_tk_kw18_writer.detected_object_set
 #
 #connect from input.image_file_name
-#        to   scallop_tk_writer.image_file_name
-
+#        to   scallop_tk_kw18_writer.image_file_name
+#
+#connect from scallop_tk_filter.detected_object_set
+#        to   scallop_tk_csv_writer.detected_object_set
+#
+#connect from input.image_file_name
+#        to   scallop_tk_csv_writer.image_file_name
+#
 # -- end of file --
