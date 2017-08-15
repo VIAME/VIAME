@@ -98,7 +98,7 @@ connect from input.image_file_name
 #process scallop_tk
 #  :: image_object_detector
 #  :detector:type    scallop_tk
-#  :detector:scallop_tk:config_file models/SYSTEM_SETTINGS
+#  :detector:scallop_tk:config_file models/scallop_tk/SYSTEM_SETTINGS
 #
 #process scallop_tk_writer
 #  :: detected_object_output
