@@ -113,16 +113,6 @@ connect from input.image_file_name
 #  :detector:type    scallop_tk
 #  :detector:scallop_tk:config_file models/scallop_tk/SYSTEM_SETTINGS
 #
-#process scallop_tk_filter
-#  :: detected_object_filter
-#  :filter:type       class_probablity_filter
-#
-#  # Filter parameters
-#  :filter:class_probablity_filter:threshold        0.001
-#  :filter:class_probablity_filter:keep_all_classes false
-#  :filter:class_probablity_filter:keep_classes     fish;scallop
-#  #:filter:class_probablity_filter:keep_classes     skate;flatfish
-#
 #process scallop_tk_kw18_writer
 #  :: detected_object_output
 #
@@ -134,8 +124,6 @@ connect from input.image_file_name
 #  :writer:kw18:write_tot         true
 #  :writer:kw18:tot_field1_ids    fish
 #  :writer:kw18:tot_field2_ids    scallop
-#  #:writer:kw18:tot_field1_ids    skate
-#  #:writer:kw18:tot_field2_ids    flatfish
 #
 #process scallop_tk_csv_writer
 #  :: detected_object_output
@@ -148,15 +136,12 @@ connect from input.image_file_name
 #        to   scallop_tk_detector.image
 #
 #connect from scallop_tk_detector.detected_object_set
-#        to   scallop_tk_filter.detected_object_set
-#
-#connect from scallop_tk_filter.detected_object_set
 #        to   scallop_tk_kw18_writer.detected_object_set
 #
 #connect from input.image_file_name
 #        to   scallop_tk_kw18_writer.image_file_name
 #
-#connect from scallop_tk_filter.detected_object_set
+#connect from scallop_tk_detector.detected_object_set
 #        to   scallop_tk_csv_writer.detected_object_set
 #
 #connect from input.image_file_name
