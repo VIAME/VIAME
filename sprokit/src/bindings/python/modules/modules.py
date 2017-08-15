@@ -48,14 +48,15 @@ def _load_python_module(mod):
             mod.__sprokit_register__()
 
     else:
-        print "[WARN] Python module", mod, "does not have __sprokit_register__ method"
+        print(('[WARN] Python module {} does not have '
+               '__sprokit_register__ method').format(mod))
+
 
 def load_python_modules():
     import os
 
-    packages = [ 'sprokit.processes'
-               , 'sprokit.schedulers'
-               ]
+    packages = ['sprokit.processes',
+                'sprokit.schedulers']
 
     envvar = 'SPROKIT_PYTHON_MODULES'
 
@@ -71,7 +72,7 @@ def load_python_modules():
         all_modules += modules
 
     for module in all_modules:
-        print "[DEBUG] Loading python module:", module
+        print('[DEBUG] Loading python module: {}'.format(module))
 
         try:
             _load_python_module(module)

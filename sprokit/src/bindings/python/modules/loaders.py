@@ -84,15 +84,26 @@ class ModuleLoader(Loader):
         return False
 
     def _findPluginFilePaths(self, namespace):
+        """
+        Searches for modules in `namespace` that are reachable from the paths
+        defined in the PYTHONPATH environment variable.
+        """
         already_seen = set()
+
+        for ext in ['.py', '.pyc']:
+            if namespace.endswith(ext):
+                print(('[WARNING] do not specify .py extension for '
+                       'the {} sprokit python module').format(namespace))
+                namespace = namespace[:-len(ext)]
+
+        namespace_rel_path = namespace.replace('.', os.path.sep)
 
         # Look in each location in the path
         for path in sys.path:
-
             # Within this, we want to look for a package for the namespace
-            namespace_rel_path = namespace.replace(".", os.path.sep)
             namespace_path = os.path.join(path, namespace_rel_path)
-            if os.path.exists(namespace_path):
+            # TODO: make sure we handle symbolic links correctly
+            if os.path.isdir(namespace_path):
                 for possible in os.listdir(namespace_path):
 
                     poss_path = os.path.join(namespace_path, possible)
@@ -107,7 +118,18 @@ class ModuleLoader(Loader):
 
                     if base not in already_seen:
                         already_seen.add(base)
-                        yield os.path.join(namespace, possible)
+                        mod_rel_path = os.path.join(namespace_rel_path,
+                                                    possible)
+                        yield mod_rel_path
+            else:
+                # namespace was not a package, check if it was a pyfile
+                mod_fpath = namespace_path + '.py'
+                if os.path.isfile(mod_fpath):
+                    base, ext = os.path.splitext(mod_fpath)
+                    if base not in already_seen:
+                        already_seen.add(base)
+                        mod_rel_path = namespace_rel_path + '.py'
+                        yield mod_rel_path
 
     def _findPluginModules(self, namespace):
         for filepath in self._findPluginFilePaths(namespace):
@@ -119,7 +141,8 @@ class ModuleLoader(Loader):
             try:
                 module = import_module(import_path)
             except ImportError as e:
-                print "[DEBUG] Could not import:", import_path, " Reason: ", e
+                print('[DEBUG] Could not import: {} Reason: {}'.format(
+                    import_path, e))
                 module = None
 
             if module is not None:
