@@ -86,7 +86,7 @@ load_pipe_blocks_from_file( kwiver::vital::path_t const& fname )
 
 // ------------------------------------------------------------------
 pipe_blocks
-load_pipe_blocks( std::istream& istr )
+load_pipe_blocks( std::istream& istr, std::string const& def_file )
 {
   sprokit::pipe_parser the_parser;
 
@@ -97,7 +97,7 @@ load_pipe_blocks( std::istream& istr )
     the_parser.add_search_path( path_list );
   }
 
-  return the_parser.parse_pipeline( istr );
+  return the_parser.parse_pipeline( istr, def_file );
 }
 
 
@@ -126,7 +126,7 @@ load_cluster_blocks_from_file( kwiver::vital::path_t const& fname )
 
 // ------------------------------------------------------------------
 cluster_blocks
-load_cluster_blocks( std::istream& istr )
+load_cluster_blocks( std::istream& istr, std::string const& def_file )
 {
   sprokit::pipe_parser the_parser;
 
@@ -137,7 +137,7 @@ load_cluster_blocks( std::istream& istr )
     the_parser.add_search_path( path_list );
   }
 
-  return the_parser.parse_cluster( istr );
+  return the_parser.parse_cluster( istr, def_file );
 }
 
 } // end namespace

@@ -66,9 +66,9 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::load_pipeline(std::istream& istr)
+::load_pipeline(std::istream& istr, std::string const& def_file )
 {
-  m_blocks = sprokit::load_pipe_blocks(istr);
+  m_blocks = sprokit::load_pipe_blocks(istr, def_file);
 }
 
 
