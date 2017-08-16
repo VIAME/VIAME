@@ -44,6 +44,11 @@ Vital
  * Array descriptors are now iterable (have begin/end methods), allowing them
    to be used in standard algorithms, range-based for, etc.
 
+ * Detected object classifications (detected_object_type) are now iterable
+   (have begin/end methods), allowing them to be used in standard algorithms,
+   range-based for, etc.  This provides a much more efficient mechanism for
+   visiting all classifications.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
