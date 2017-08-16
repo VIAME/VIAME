@@ -198,7 +198,7 @@ perform_query_process
     output->push_back( entry );
   }
 
-  if( !feedback->positive_ids().empty() || !feedback->negative_ids().empty() )
+  if( feedback && ( !feedback->positive_ids().empty() || !feedback->negative_ids().empty() ) )
   {
     std::reverse( output->begin(), output->end() );
 
