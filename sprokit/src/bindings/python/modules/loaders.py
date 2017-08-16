@@ -134,11 +134,12 @@ class ModuleLoader(Loader):
                 base = namespace_path
                 if base not in already_seen:
                     for ext in py_exts:
-                        mod_fpath = base + '.py'
+                        mod_fpath = base + ext
                         if os.path.isfile(mod_fpath):
                             already_seen.add(base)
-                            mod_rel_path = namespace_rel_path + '.py'
+                            mod_rel_path = namespace_rel_path + ext
                             yield mod_rel_path
+                            # Dont test remaining pyo / pyc extensions.
                             break
 
     def _findPluginModules(self, namespace):
