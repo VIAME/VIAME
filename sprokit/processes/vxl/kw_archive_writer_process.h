@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #define _KWIVER_KW_ARCHIVE_WRITER_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
+
 #include "kwiver_processes_vxl_export.h"
 
 #include <memory>
@@ -64,6 +65,12 @@ namespace kwiver
  *
  * \iport{gsd}
  * Scaling of the image in meters per pixel.
+ * 
+ * \iport{stream_id}
+ * Optional input stream ID to put in the KWA file.
+ *
+ * \iport{filename}
+ * Optional input filename (no extension) to write the KWA to.
  */
 
 class KWIVER_PROCESSES_VXL_NO_EXPORT kw_archive_writer_process

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011, 2013-2014 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PROCESSES_FLOW_FLOW_CONFIG_H
-#define SPROKIT_PROCESSES_FLOW_FLOW_CONFIG_H
-
-#include <sprokit/config.h>
-
 /**
- * \file flow-config.h
- *
- * \brief Defines for symbol visibility in the flow processes.
+ * \file
+ * \brief This file contains the interface for a query result set.
  */
 
-#ifdef MAKE_SPROKIT_PROCESSES_FLOW_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_PROCESSES_FLOW_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_PROCESSES_FLOW_EXPORT SPROKIT_IMPORT
-#endif
+#ifndef VITAL_QUERY_RESULT_SET_H_
+#define VITAL_QUERY_RESULT_SET_H_
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_PROCESSES_FLOW_NO_EXPORT SPROKIT_NO_EXPORT
+#include "query_result.h"
 
-/// Mark as deprecated.
-#define SPROKIT_PROCESSES_FLOW_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_PROCESSES_FLOW_EXPORT
+namespace kwiver {
+namespace vital {
 
-#endif // SPROKIT_PROCESSES_FLOW_FLOW_CONFIG_H
+/// Shared pointer to query result set
+typedef std::vector< query_result_sptr > query_result_set;
+
+/// Shared pointer to query result set
+typedef std::shared_ptr< query_result_set > query_result_set_sptr;
+
+} } // end namespace vital
+
+#endif // VITAL_QUERY_RESULT_SET_H_

@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -38,6 +38,7 @@
 
 #include <vital/vital_types.h>
 
+#include <vital/types/database_query.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/descriptor_request.h>
 #include <vital/types/detected_object_set.h>
@@ -46,8 +47,10 @@
 #include <vital/types/geo_corner_points.h>
 #include <vital/types/geo_lat_lon.h>
 #include <vital/types/image_container.h>
+#include <vital/types/iqr_feedback.h>
 #include <vital/types/matrix.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/query_result_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
 #include <vital/video_metadata/video_metadata.h>
@@ -72,7 +75,7 @@ namespace vital {
 } }
 
 
-// ================================================================
+// ==================================================================================
 //
 // Create type traits for common pipeline types.
 // These are types that are passed through the pipeline.
@@ -85,8 +88,12 @@ create_type_trait( corner_points, "corner_points", kwiver::vital::geo_corner_poi
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
+create_type_trait( database_query, "kwiver:database_query", kwiver::vital::database_query_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( descriptor_request, "kwiver:descriptor_request", kwiver::vital::descriptor_request_sptr );
+create_type_trait( query_result, "kwiver:query_result", kwiver::vital::query_result_set_sptr );
+create_type_trait( iqr_feedback, "kwiver:iqr_feedback", kwiver::vital::iqr_feedback_sptr );
+create_type_trait( string, "kwiver:string", kwiver::vital::string_t );
 create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
 create_type_trait( feature_track_set, "kwiver:feature_track_set", kwiver::vital::feature_track_set_sptr );
@@ -98,13 +105,14 @@ create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );
 
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
+create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video_metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 
 
-// ================================================================
+// ==================================================================================
 //
 // Create port traits for common port types.
 // ( port-name, type-trait-name, "port-description" )
@@ -118,8 +126,11 @@ create_port_trait( left_image, image, "Single frame left image." );
 create_port_trait( right_image, image, "Single frame right image." );
 create_port_trait( depth_map, image, "Depth map stored in image form." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
+create_port_trait( database_query, database_query, "A database query." );
 create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
 create_port_trait( descriptor_request, descriptor_request, "A request to compute descriptors." );
+create_port_trait( iqr_feedback, iqr_feedback, "IQR feedback." );
+create_port_trait( query_result, query_result, "Set of query results." );
 create_port_trait( string_vector, string_vector, "Vector of strings." );
 create_port_trait( track_set, track_set, "Set of arbitrary tracks." );
 create_port_trait( feature_track_set, feature_track_set, "Set of feature tracks." );
@@ -129,9 +140,9 @@ create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track des
 create_port_trait( matrix_d, matrix_d, "2-dimensional double matrix." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
-create_port_trait( image_file_name, image_file_name, "Name of an image file. "
-                   "The file name may contain leading path components." );
-create_port_trait( video_file_name, video_file_name, "Name of video file." );
+create_port_trait( file_name, file_name, "Name of an arbitrary data file." );
+create_port_trait( image_file_name, image_file_name, "Name of an image file." );
+create_port_trait( video_file_name, video_file_name, "Name of a video file." );
 create_port_trait( video_metadata, video_metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
 

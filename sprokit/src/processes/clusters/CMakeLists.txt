@@ -6,7 +6,6 @@ set(clusters_srcs
 
 set(clusters_private_headers
   cluster-paths.h.in
-  clusters-config.h
   )
 
 set(sprokit_default_cluster_paths
@@ -35,18 +34,17 @@ sprokit_configure_file(cluster-paths.h
   path_prefix
   path_sep)
 
-sprokit_private_header_group(${clusters_private_headers})
-sprokit_add_plugin(processes_clusters
-  MAKE_SPROKIT_PROCESSES_CLUSTERS_LIB
-  ${clusters_srcs}
-  ${clusters_private_headers}
-  )
+include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-target_link_libraries(processes_clusters
-  PUBLIC              vital_logger
-  PRIVATE             sprokit_pipeline_util
-                      sprokit_pipeline
-                      ${Boost_FILESYSTEM_LIBRARY}
-                      ${Boost_SYSTEM_LIBRARY}
-                      vital_vpm vital_util kwiversys
-                      )
+sprokit_private_header_group(${clusters_private_headers})
+kwiver_add_plugin(processes_clusters
+  SUBDIR       sprokit
+  SOURCES      ${clusters_srcs}
+               ${clusters_private_headers}
+  PUBLIC       vital_logger
+  PRIVATE      sprokit_pipeline_util
+               sprokit_pipeline
+               ${Boost_FILESYSTEM_LIBRARY}
+               ${Boost_SYSTEM_LIBRARY}
+               vital_vpm vital_util kwiversys
+  )

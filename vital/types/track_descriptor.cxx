@@ -232,7 +232,7 @@ track_descriptor
 
 // ================================================================
 track_descriptor::history_entry::
-history_entry( const uint64_t& ts,
+history_entry( const vital::timestamp& ts,
                const image_bbox_t& img_loc,
                const world_bbox_t& world_loc )
   : ts_(ts),
@@ -243,7 +243,7 @@ history_entry( const uint64_t& ts,
 
 
 track_descriptor::history_entry::
-history_entry( const uint64_t& ts,
+history_entry( const vital::timestamp& ts,
                const image_bbox_t& img_loc )
   : ts_( ts ),
     img_loc_( img_loc ),
@@ -252,7 +252,7 @@ history_entry( const uint64_t& ts,
 }
 
 
-uint64_t
+vital::timestamp
 track_descriptor::history_entry::
 get_timestamp() const
 {

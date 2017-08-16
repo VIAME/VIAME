@@ -118,9 +118,12 @@ handle_descriptor_request_core
 
 
 /// Extend a previous set of tracks using the current frame
-kwiver::vital::track_descriptor_set_sptr
+bool
 handle_descriptor_request_core
-::handle( kwiver::vital::descriptor_request_sptr request )
+::handle(
+  kwiver::vital::descriptor_request_sptr request,
+  kwiver::vital::track_descriptor_set_sptr& descs,
+  std::vector< kwiver::vital::image_container_sptr >& imgs )
 {
   // Verify that all dependent algorithms have been initialized
   if( !reader_ || !extractor_ )
@@ -136,9 +139,12 @@ handle_descriptor_request_core
 
   // extract descriptors on the current frame
   kwiver::vital::object_track_set_sptr tracks;
-  kwiver::vital::track_descriptor_set_sptr descs = extractor_->compute( image, tracks );
 
-  return descs;
+  descs = extractor_->compute( image, tracks );
+
+  imgs.clear();
+  imgs.push_back( image );
+  return true;
 }
 
 } // end namespace core

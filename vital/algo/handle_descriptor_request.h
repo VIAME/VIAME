@@ -59,8 +59,10 @@ public:
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr handle(
-    kwiver::vital::descriptor_request_sptr request ) = 0;
+  virtual bool handle(
+    kwiver::vital::descriptor_request_sptr request,
+    kwiver::vital::track_descriptor_set_sptr& desc,
+    std::vector< kwiver::vital::image_container_sptr >& imgs ) = 0;
 
 protected:
   handle_descriptor_request();

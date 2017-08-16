@@ -231,7 +231,7 @@ vital_track_append_state( vital_track_t *t, vital_track_state_t *ts,
     "vital_track_append_state", eh,
     auto t_sptr = vital_c::TRACK_SPTR_CACHE.get( t );
     auto ts_sptr = vital_c::TRACK_STATE_SPTR_CACHE.get( ts );
-    if( t_sptr and ts_sptr )
+    if( t_sptr && ts_sptr )
     {
       return t_sptr->append( ts_sptr );
     }

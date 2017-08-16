@@ -31,6 +31,7 @@
 #include "handle_descriptor_request_process.h"
 
 #include <vital/vital_types.h>
+#include <vital/vital_foreach.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
@@ -43,10 +44,17 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
+#include <boost/filesystem/path.hpp>
+
 namespace kwiver
 {
 
 namespace algo = vital::algo;
+
+create_port_trait( filename, file_name,
+  "KWA input filename" );
+create_port_trait( stream_id, string,
+  "Stream ID to place in file" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -121,13 +129,50 @@ handle_descriptor_request_process
 
   request = grab_from_port_using_trait( descriptor_request );
 
-  // Get output matrix and detections
-  vital::track_descriptor_set_sptr output;
+  // Special case, output empty results
+  if( !request )
+  {
+    push_to_port_using_trait( track_descriptor_set, vital::track_descriptor_set_sptr() );
 
-  output = d->m_handler->handle( request );
+    push_to_port_using_trait( image, vital::image_container_sptr() );
+    push_to_port_using_trait( timestamp, vital::timestamp() );
+    push_to_port_using_trait( filename, "" );
+    push_to_port_using_trait( stream_id, "" );
+    return;
+  }
+
+  // Get output matrix and detections
+  vital::track_descriptor_set_sptr descriptors;
+  std::vector< vital::image_container_sptr > images;
+
+  vital::string_t filename;
+  vital::string_t stream_id;
+
+  if( request && !d->m_handler->handle( request, descriptors, images ) )
+  {
+    //LOG_ERROR( name(), "Could not handle descriptor request" );
+  }
 
   // Return all outputs
-  push_to_port_using_trait( track_descriptor_set, output );
+  push_to_port_using_trait( track_descriptor_set, descriptors );
+
+  if( request )
+  {
+    boost::filesystem::path p( request->data_location() );
+    filename = p.stem().string();
+    stream_id = filename;
+  }
+
+  // Step image output pipeline if connected
+  VITAL_FOREACH( auto image, images )
+  {
+    vital::timestamp ts;
+
+    push_to_port_using_trait( image, image );
+    push_to_port_using_trait( timestamp, ts );
+    push_to_port_using_trait( filename, filename );
+    push_to_port_using_trait( stream_id, stream_id );
+  }
 }
 
 
@@ -146,6 +191,11 @@ void handle_descriptor_request_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
+
+  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( timestamp, optional );
+  declare_output_port_using_trait( filename, optional );
+  declare_output_port_using_trait( stream_id, optional );
 }
 
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011, 2013-2014 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PROCESSES_CLUSTERS_CLUSTERS_CONFIG_H
-#define SPROKIT_PROCESSES_CLUSTERS_CLUSTERS_CONFIG_H
+#ifndef _KWIVER_PERFORM_QUERY_PROCESS_H_
+#define _KWIVER_PERFORM_QUERY_PROCESS_H_
 
-#include <sprokit/config.h>
+#include "kwiver_processes_export.h"
 
+#include <sprokit/pipeline/process.h>
+
+#include <memory>
+
+namespace kwiver
+{
+
+// -----------------------------------------------------------------------------
 /**
- * \file clusters-config.h
+ * \class perform_query_process
  *
- * \brief Defines for symbol visibility in cluster processes.
+ * \brief Runs a database query and produces an output result
+ *
+ * \iports
+ * \iport{database_query}
+ * \iport{iqr_feedback}
+ *
+ * \oports
+ * \oport{query_result}
  */
+class KWIVER_PROCESSES_NO_EXPORT perform_query_process
+  : public sprokit::process
+{
+public:
+  perform_query_process( vital::config_block_sptr const& config );
+  virtual ~perform_query_process();
 
-#ifdef MAKE_SPROKIT_PROCESSES_CLUSTERS_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_PROCESSES_CLUSTERS_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_PROCESSES_CLUSTERS_EXPORT SPROKIT_IMPORT
-#endif
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_PROCESSES_CLUSTERS_NO_EXPORT SPROKIT_NO_EXPORT
+private:
+  void make_ports();
+  void make_config();
 
-/// Mark as deprecated.
-#define SPROKIT_PROCESSES_CLUSTERS_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_PROCESSES_CLUSTERS_EXPORT
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class perform_query_process
 
-#endif // SPROKIT_PROCESSES_CLUSTERS_CLUSTERS_CONFIG_H
+} // end namespace
+
+#endif /* _KWIVER_PERFORM_QUERY_PROCESS_H_ */

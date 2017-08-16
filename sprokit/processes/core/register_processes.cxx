@@ -54,6 +54,7 @@
 #include "image_writer_process.h"
 #include "initialize_object_tracks_process.h"
 #include "matcher_process.h"
+#include "perform_query_process.h"
 #include "read_descriptor_process.h"
 #include "refine_detections_process.h"
 #include "split_image_process.h"
@@ -258,6 +259,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Compute track descriptors on the input tracks or detections." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::perform_query_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "perform_query" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Perform a query." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

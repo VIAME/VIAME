@@ -154,6 +154,7 @@ set( vital_public_headers
   types/object_track_set.h
   types/polygon.h
   types/query_result.h
+  types/query_result_set.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
