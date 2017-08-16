@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from __future__ import print_function
 try:
     from . import loaders
 except:
@@ -53,6 +54,14 @@ def _load_python_module(mod):
 
 
 def load_python_modules():
+    """
+    Loads Sprokit python plugins
+
+    Searches for modules specified in the `SPROKIT_PYTHON_MODULES` environment
+    variable that are importable from `PYTHONPATH`. Then these modules are
+    imported and their `__sprokit_register__` function is called to register
+    them with the C++ backend.
+    """
     import os
 
     packages = ['sprokit.processes',

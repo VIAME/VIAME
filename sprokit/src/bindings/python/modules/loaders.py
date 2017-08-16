@@ -30,6 +30,7 @@
 
 """Facility to load plugins."""
 
+from __future__ import print_function
 import sys
 import os
 
@@ -86,11 +87,20 @@ class ModuleLoader(Loader):
     def _findPluginFilePaths(self, namespace):
         """
         Searches for modules in `namespace` that are reachable from the paths
-        defined in the PYTHONPATH environment variable.
+        defined in the `PYTHONPATH` environment variable.
+
+        Args:
+            namespace (str): the importable name of a python module or package
+
+        Yields:
+            str: mod_rel_path - the paths (relative to PYTHONPATH) of
+                the modules in the namespace.
         """
         already_seen = set()
 
-        for ext in ['.py', '.pyc']:
+        py_exts = ['.py', '.pyc', '.pyo']
+
+        for ext in py_exts:
             if namespace.endswith(ext):
                 print(('[WARNING] do not specify .py extension for '
                        'the {} sprokit python module').format(namespace))
@@ -102,10 +112,9 @@ class ModuleLoader(Loader):
         for path in sys.path:
             # Within this, we want to look for a package for the namespace
             namespace_path = os.path.join(path, namespace_rel_path)
-            # TODO: make sure we handle symbolic links correctly
             if os.path.isdir(namespace_path):
+                # Find all top-level modules in the namespace package
                 for possible in os.listdir(namespace_path):
-
                     poss_path = os.path.join(namespace_path, possible)
                     if os.path.isdir(poss_path):
                         if not self._isPackage(poss_path):
@@ -115,7 +124,6 @@ class ModuleLoader(Loader):
                         base, ext = os.path.splitext(possible)
                         if base == '__init__' or ext != '.py':
                             continue
-
                     if base not in already_seen:
                         already_seen.add(base)
                         mod_rel_path = os.path.join(namespace_rel_path,
@@ -123,13 +131,15 @@ class ModuleLoader(Loader):
                         yield mod_rel_path
             else:
                 # namespace was not a package, check if it was a pyfile
-                mod_fpath = namespace_path + '.py'
-                if os.path.isfile(mod_fpath):
-                    base, ext = os.path.splitext(mod_fpath)
-                    if base not in already_seen:
-                        already_seen.add(base)
-                        mod_rel_path = namespace_rel_path + '.py'
-                        yield mod_rel_path
+                base = namespace_path
+                if base not in already_seen:
+                    for ext in py_exts:
+                        mod_fpath = base + '.py'
+                        if os.path.isfile(mod_fpath):
+                            already_seen.add(base)
+                            mod_rel_path = namespace_rel_path + '.py'
+                            yield mod_rel_path
+                            break
 
     def _findPluginModules(self, namespace):
         for filepath in self._findPluginFilePaths(namespace):
