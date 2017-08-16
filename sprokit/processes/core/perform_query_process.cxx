@@ -34,6 +34,8 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
+#include <vital/vital_foreach.h>
+
 namespace kwiver
 {
 
@@ -99,7 +101,7 @@ perform_query_process
 
     vital::timestamp ts4( 1375007477946783, 1975 );
     vital::timestamp ts5( 1375007478046883, 1976 );
-    vital::timestamp ts6( 1375007281150183, 1977 );
+    vital::timestamp ts6( 1375007478146883, 1977 );
 
     entry->set_stream_id( "/data/virat/video/aphill/09172008flight1tape1_5.mpg" );
     entry->set_instance_id( i );
@@ -194,6 +196,19 @@ perform_query_process
     }
 
     output->push_back( entry );
+  }
+
+  if( !feedback->positive_ids().empty() || !feedback->negative_ids().empty() )
+  {
+    std::reverse( output->begin(), output->end() );
+
+    double count = 0.90 + ( 0.1 * (double)rand() / (double)RAND_MAX );
+
+    VITAL_FOREACH( auto item, *output )
+    {
+      item->set_relevancy_score( count );
+      count -= ( 0.4 * (double)rand() / (double)RAND_MAX );
+    }
   }
 
   push_to_port_using_trait( query_result, output );
