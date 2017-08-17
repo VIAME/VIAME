@@ -230,7 +230,7 @@ subset_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double keep_frac
     std::cout << std::endl;
     new_tracks.push_back( nt );
   }
-  return std::make_shared<simple_feature_track_set>( new_tracks );
+  return std::make_shared<feature_track_set>( new_tracks );
 }
 
 
@@ -260,7 +260,7 @@ noisy_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double stdev = 1.
     }
     new_tracks.push_back(nt);
   }
-  return std::make_shared<simple_feature_track_set>( new_tracks );
+  return std::make_shared<feature_track_set>( new_tracks );
 }
 
 
@@ -306,7 +306,7 @@ add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
     std::cout << std::endl;
     new_tracks.push_back( nt );
   }
-  return std::make_shared<simple_feature_track_set>( new_tracks );
+  return std::make_shared<feature_track_set>( new_tracks );
 }
 
 

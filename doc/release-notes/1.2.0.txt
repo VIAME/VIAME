@@ -10,6 +10,20 @@ Updates since v1.1.0
 
 Vital
 
+ * Added a new mechanism for geodetic conversion functions that does not
+   rely on the geo_map abstract algorithm.  The new approach still loads
+   a backend implementation (e.g. PROJ4) from a plugin, but now uses that
+   single implementation globally throughout KWIVER.  This means that a geo_map
+   instance no longer needs to be explicitly instantiated and passed around.
+   It also means that lower level constructs, like vital types, can do
+   geodetic conversions.  The new API is also more general and supports
+   arbitrary datums, not just WGS84.
+
+ * Added new data types geo_point and geo_polygon for representing points
+   and polygons in geographic coordinates.  These new types use the new
+   geodetic conversion function and know how to convert themselves into
+   different coordinate systems.
+
  * Generalized the track and track_state types to be useful for both feature
    and object tracks.  Data that is specific to features or objects is now
    stored in subclasses of track_state.
@@ -22,15 +36,23 @@ Vital
 
  * Track states now have a pointer (std::weak_ptr) back to the track object
    which contains them.  This means that each track state can belong to at
-   most one track, and tracks and track status must now be created and
+   most one track, and tracks and track states must now be created and
    referenced only via shared_ptr.  Constructors for track are now protected
    and "make()" static member is used for construction.  A "clone()" function
    is now used for track copy construction.
+
+ * Array descriptors are now iterable (have begin/end methods), allowing them
+   to be used in standard algorithms, range-based for, etc.
 
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
    of tracks and track_sets to account for both feature and object tracks.
+
+Sprokit
+
+ * Removed the CMake function sprokit_add_plugin and replaced it with the more
+   general kwiver_add_plugin function that is used elsewhere in KWIVER.
 
 
 Fixes since v1.1.0

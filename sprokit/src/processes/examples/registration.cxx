@@ -59,7 +59,7 @@
 #include "tunable_process.h"
 
 extern "C"
-SPROKIT_PROCESSES_EXAMPLES_EXPORT
+PROCESSES_EXAMPLES_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

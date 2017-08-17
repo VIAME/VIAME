@@ -351,11 +351,11 @@ close_loops_homography_guided
     const frame_id_t prior_frame = best_frame_to_test->fid;
 
     // Get all tracks on target frame
-    auto prior_set = std::make_shared<simple_feature_track_set>(
+    auto prior_set = std::make_shared<feature_track_set>(
                          input->active_tracks( prior_frame ) );
 
     // Get all tracks on the current frame
-    auto current_set = std::make_shared<simple_feature_track_set>(
+    auto current_set = std::make_shared<feature_track_set>(
                            input->active_tracks( frame_number ) );
 
     // Perform matching operation
@@ -402,7 +402,7 @@ close_loops_homography_guided
       }
 
       // Return updated set
-      return std::make_shared<simple_feature_track_set>( all_tracks );
+      return std::make_shared<feature_track_set>( all_tracks );
     }
   }
 

@@ -42,7 +42,7 @@
  */
 
 extern "C"
-SPROKIT_PROCESSES_FLOW_EXPORT
+PROCESSES_FLOW_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

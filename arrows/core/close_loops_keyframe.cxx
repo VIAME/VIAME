@@ -220,7 +220,7 @@ close_loops_keyframe
 
   // extract the subset of tracks on the current frame and their
   // features and descriptors
-  auto current_set = std::make_shared<vital::simple_feature_track_set>(
+  auto current_set = std::make_shared<vital::feature_track_set>(
                          input->active_tracks( frame_number ) );
   std::vector<vital::track_sptr> current_tracks = current_set->tracks();
   vital::descriptor_set_sptr current_descriptors =

@@ -84,7 +84,7 @@ IMPLEMENT_TEST(accessor_functions)
   test_tracks[1]->append( test_state2->clone() );
   test_tracks[2]->append( test_state3->clone() );
 
-  track_set_sptr test_set( new simple_track_set( test_tracks ) );
+  track_set_sptr test_set( new track_set( test_tracks ) );
 
   TEST_EQUAL("Total set size", test_set->size(), 4);
 

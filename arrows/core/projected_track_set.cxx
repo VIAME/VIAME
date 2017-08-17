@@ -66,7 +66,7 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
       t->append( fts );
     }
   }
-  return std::make_shared<simple_feature_track_set>( tracks );
+  return std::make_shared<feature_track_set>( tracks );
 }
 
 

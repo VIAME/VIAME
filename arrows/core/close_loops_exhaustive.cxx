@@ -169,7 +169,7 @@ close_loops_exhaustive
   }
 
   std::vector< vital::track_sptr > all_tracks = input->tracks();
-  auto current_set = std::make_shared<vital::simple_feature_track_set>(
+  auto current_set = std::make_shared<vital::feature_track_set>(
                          input->active_tracks( frame_number ) );
 
   std::vector<vital::track_sptr> current_tracks = current_set->tracks();

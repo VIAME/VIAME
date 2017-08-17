@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
 #define SPROKIT_PROCESSES_EXAMPLES_ORPHAN_CLUSTER_H
 
-#include "examples-config.h"
+#include "processes_examples_export.h"
 
 #include <sprokit/pipeline/process_cluster.h>
 
@@ -53,7 +53,7 @@ namespace sprokit
  *
  * \ingroup examples
  */
-class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
+class PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
   : public process_cluster
 {
   public:

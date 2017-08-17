@@ -45,7 +45,7 @@ namespace vital {
 
 /// Return the number of tracks in the set
 size_t
-track_set
+track_set_implementation
 ::size() const
 {
   return this->tracks().size();
@@ -54,7 +54,7 @@ track_set
 
 /// Return whether or not there are any tracks in the set
 bool
-track_set
+track_set_implementation
 ::empty() const
 {
   return this->tracks().empty();
@@ -63,7 +63,7 @@ track_set
 
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
-track_set
+track_set_implementation
 ::all_frame_ids() const
 {
   std::set<frame_id_t> ids;
@@ -81,7 +81,7 @@ track_set
 
 /// Return the set of all track IDs in this track set
 std::set<track_id_t>
-track_set
+track_set_implementation
 ::all_track_ids() const
 {
   std::set<track_id_t> ids;
@@ -98,7 +98,7 @@ track_set
 
 /// Return the last (largest) frame number containing tracks
 frame_id_t
-track_set
+track_set_implementation
 ::last_frame() const
 {
   frame_id_t last_frame = 0;
@@ -120,7 +120,7 @@ track_set
 
 /// Return the first (smallest) frame number containing tracks
 frame_id_t
-track_set
+track_set_implementation
 ::first_frame() const
 {
   frame_id_t first_frame = std::numeric_limits<frame_id_t>::max();
@@ -149,7 +149,7 @@ track_set
 
 /// Return the track in the set with the specified id.
 track_sptr const
-track_set
+track_set_implementation
 ::get_track(track_id_t tid) const
 {
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -167,8 +167,8 @@ track_set
 
 /// Return all tracks active on a frame.
 std::vector< track_sptr >
-track_set
-::active_tracks(frame_id_t offset)
+track_set_implementation
+::active_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -188,8 +188,8 @@ track_set
 
 /// Return all tracks active on a frame.
 std::vector< track_sptr >
-track_set
-::inactive_tracks(frame_id_t offset)
+track_set_implementation
+::inactive_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -209,8 +209,8 @@ track_set
 
 /// Return all new tracks on a given frame.
 std::vector< track_sptr >
-track_set
-::new_tracks(frame_id_t offset)
+track_set_implementation
+::new_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -230,8 +230,8 @@ track_set
 
 /// Return all new tracks on a given frame.
 std::vector< track_sptr >
-track_set
-::terminated_tracks(frame_id_t offset)
+track_set_implementation
+::terminated_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
@@ -251,8 +251,8 @@ track_set
 
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
-track_set
-::percentage_tracked(frame_id_t offset1, frame_id_t offset2)
+track_set_implementation
+::percentage_tracked(frame_id_t offset1, frame_id_t offset2) const
 {
   const frame_id_t frame_number1 = offset_to_frame(offset1);
   const frame_id_t frame_number2 = offset_to_frame(offset2);
@@ -279,7 +279,7 @@ track_set
 
 /// Return a vector of state data corresponding to the tracks on the given frame.
 std::vector<track_state_sptr>
-track_set
+track_set_implementation
 ::frame_states( frame_id_t offset ) const
 {
   const frame_id_t frame_number = offset_to_frame(offset);
@@ -301,7 +301,7 @@ track_set
 
 /// Convert an offset number to an absolute frame number
 frame_id_t
-track_set
+track_set_implementation
 ::offset_to_frame(frame_id_t offset) const
 {
   if( offset >= 0 )
@@ -317,5 +317,32 @@ track_set
   }
   return frame_number;
 }
+
+
+
+/// Default Constructor
+track_set
+::track_set()
+  : impl_(new simple_track_set_implementation)
+{
+}
+
+
+/// Constructor specifying the implementation
+track_set
+::track_set(std::unique_ptr<track_set_implementation> impl)
+  : impl_(std::move(impl))
+{
+}
+
+
+/// Constructor from a vector of tracks
+track_set
+::track_set(std::vector< track_sptr > const& tracks)
+  : impl_(new simple_track_set_implementation(tracks))
+{
+}
+
+
 
 } } // end namespace vital

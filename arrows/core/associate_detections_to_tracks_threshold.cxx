@@ -213,7 +213,7 @@ associate_detections_to_tracks_threshold
   }
 
   output = vital::object_track_set_sptr(
-    new simple_object_track_set( tracks_to_output ) );
+    new object_track_set( tracks_to_output ) );
   unused = vital::detected_object_set_sptr(
     new vital::detected_object_set( unused_dets ) );
 

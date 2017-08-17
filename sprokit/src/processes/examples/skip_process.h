@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PROCESSES_EXAMPLES_SKIP_PROCESS_H
 #define SPROKIT_PROCESSES_EXAMPLES_SKIP_PROCESS_H
 
-#include "examples-config.h"
+#include "processes_examples_export.h"
 
 #include <sprokit/pipeline/process.h>
 
@@ -70,7 +70,7 @@ namespace sprokit
  *
  * \ingroup examples
  */
-class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT skip_process
+class PROCESSES_EXAMPLES_NO_EXPORT skip_process
   : public process
 {
   public:

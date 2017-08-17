@@ -34,7 +34,7 @@
  * \brief Register processes for use.
  */
 
-#include "clusters-config.h"
+#include "processes_clusters_export.h"
 
 #include <processes/clusters/cluster-paths.h>
 
@@ -69,7 +69,7 @@ static const std::string path_separator( 1, PATH_SEPARATOR_CHAR );
  * This function loads and instantiates cluster processes.
  */
 extern "C"
-SPROKIT_PROCESSES_CLUSTERS_EXPORT
+PROCESSES_CLUSTERS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
