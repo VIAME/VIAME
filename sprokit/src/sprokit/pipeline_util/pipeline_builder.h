@@ -76,8 +76,11 @@ public:
    * to the internal pipeline representation.
    *
    * \param istr Stream containing the textual pipeline definition.
+   * \param def_file The default file name used when reporting errors
+   * from the stream. The directory portion is used when resolving
+   * included files and relpath specifiers.
    */
-  void load_pipeline(std::istream& istr);
+  void load_pipeline(std::istream& istr, std::string const& def_file = "" );
 
   /**
    * \brief Load supplemental data into pipeline description.

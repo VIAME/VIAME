@@ -74,6 +74,7 @@ public:
   enum query_type
   {
     SIMILARITY = 0,
+    RETRIEVAL = 1
     // TODO add other types
   };
 
