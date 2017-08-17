@@ -184,7 +184,7 @@ perform_query_process
       trk_vec.push_back( trk );
     
       vital::object_track_set_sptr trk_set(
-        new vital::simple_object_track_set( trk_vec ) );
+        new vital::object_track_set( trk_vec ) );
 
       new_desc->add_track_id( 13 );
 
