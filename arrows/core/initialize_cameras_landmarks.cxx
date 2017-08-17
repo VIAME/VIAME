@@ -339,7 +339,7 @@ initialize_cameras_landmarks::priv
 
   landmark_map_sptr lm_map = std::make_shared<simple_landmark_map>(init_lms);
   camera_map_sptr cam_map = std::make_shared<simple_camera_map>(cams);
-  auto tracks = std::make_shared<simple_feature_track_set>(trks);
+  auto tracks = std::make_shared<feature_track_set>(trks);
   this->lm_triangulator->triangulate(cam_map, tracks, lm_map);
 
   // detect and remove landmarks with large triangulation error
@@ -1008,7 +1008,7 @@ initialize_cameras_landmarks
     }
 
     // get the subset of tracks that have features on frame f
-    auto ftracks = std::make_shared<simple_feature_track_set>(
+    auto ftracks = std::make_shared<feature_track_set>(
                        tracks->active_tracks(static_cast<int>(f)));
 
     // find existing landmarks for tracks also having features on the other frame
@@ -1071,7 +1071,7 @@ initialize_cameras_landmarks
       opt_cam_map[f] = cams[f];
       camera_map_sptr opt_cams = std::make_shared<simple_camera_map>(opt_cam_map);
       landmark_map_sptr landmarks = std::make_shared<simple_landmark_map>(flms);
-      auto tracks = std::make_shared<simple_feature_track_set>(trks);
+      auto tracks = std::make_shared<feature_track_set>(trks);
       d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, metadata);
       cams[f] = opt_cams->cameras()[f];
     }
@@ -1125,7 +1125,7 @@ initialize_cameras_landmarks
       remove_landmarks(to_remove, lms);
       std::vector<track_sptr> all_trks = tracks->tracks();
       remove_tracks(to_remove, all_trks);
-      tracks = std::make_shared<simple_feature_track_set>(all_trks);
+      tracks = std::make_shared<feature_track_set>(all_trks);
       double final_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       LOG_INFO(d_->m_logger, "final reprojection RMSE: " << final_rmse);
       LOG_DEBUG(d_->m_logger, "updated focal length "

@@ -2,11 +2,36 @@ KWIVER v1.1.1 Release Notes
 ===========================
 
 This is a patch release of KWIVER that provides bug fixes and documentation
-improvements over the previous v1.0.0 release. 
+improvements over the previous v1.1.0 release.
 
 
 Updates since v1.1.0
 --------------------
 
+Testing
+
+ * The Travis CI framework was updated to download a pre-built Fletch instead
+   of building Fletch from source.  This change helps to avoid the Travis CI
+   time out.  It also allows us to build all of Fletch and all of KWIVER
+   without hitting the time limit, so Sprokit, Python, and track oracle have
+   now been enabled in Travis CI testing.
+
+ * Removed duplicate testing headers from kwiver/vital/tests that were unused.
+   The copies in kwiver/tests/ are still used.
+
+
 Fixes since v1.1.0
 ------------------
+
+Sprokit
+
+ * Previously the Python path used in Sprokit Python tests was incorrect due to
+   the missing Python version subdirectory (e.g. 'python2.7/') in the directory
+   structure.  This has now been corrected, meaning the tests should pass
+   without needing to explicitly set the PYTHONPATH environment variable first.
+
+Testing
+
+ * The sprokit non-blocking pipeline test was failing intermittently and
+   taking a long time to run.  Adjustments to the process timing using short
+   sleep calls make this test more reliable and run faster.

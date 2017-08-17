@@ -89,6 +89,8 @@ protected:
 
     dat = grab_datum_from_port( "input" );
     std::cout << "----- received data value: " << dat->get_datum<int>() << std::endl;
+    // simulate a small amount of processing time
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     push_datum_to_port( "output", dat );
   }
 
@@ -152,10 +154,10 @@ IMPLEMENT_TEST(non_blocking)
     auto ds = kwiver::adapter::adapter_data_set::create();
     ds->add_value( "number", i );
 
-    if ( (i % 10) == 0 )
+    // inject the data in bursts of 5 frames with a short delay between
+    if ( (i % 5) == 0 )
     {
-      // pause to let pipeline ketchup
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     std::cout << "sending set: " << i << "\n";
     ep.send( ds );

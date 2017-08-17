@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PROCESSES_EXAMPLES_FLOW_DEPENDENT_PROCESS_H
 #define SPROKIT_PROCESSES_EXAMPLES_FLOW_DEPENDENT_PROCESS_H
 
-#include "examples-config.h"
+#include "processes_examples_export.h"
 
 #include <sprokit/pipeline/process.h>
 
@@ -64,7 +64,7 @@ namespace sprokit {
  *
  * \ingroup examples
  */
-class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT flow_dependent_process
+class PROCESSES_EXAMPLES_NO_EXPORT flow_dependent_process
   : public process
 {
   public:
