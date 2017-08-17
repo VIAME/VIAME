@@ -30,14 +30,14 @@
 
 /**
  * \file
- * \brief Implementation for write_track_descriptor_set process
+ * \brief Implementation for read_object_track_set process
  */
 
-#include "write_track_descriptor_process.h"
+#include "read_object_track_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
-#include <vital/algo/write_track_descriptor_set.h>
+#include <vital/algo/read_object_track_set.h>
 
 #include <kwiver_type_traits.h>
 
@@ -45,18 +45,17 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver {
+namespace kwiver
+{
 
-// (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "",
-  "Name of the track descriptor set file to write." );
-create_config_trait( writer, std::string , "",
-  "Block name for algorithm parameters. "
-  "e.g. writer:type would be used to specify the algorithm type." );
+  "Name of the track descriptor set file to read." );
+create_config_trait( reader, std::string , "",
+  "Algorithm type to use as the reader." );
 
 //--------------------------------------------------------------------------------
 // Private implementation class
-class write_track_descriptor_process::priv
+class read_object_track_process::priv
 {
 public:
   priv();
@@ -65,16 +64,16 @@ public:
   // Configuration values
   std::string m_file_name;
 
-  algo::write_track_descriptor_set_sptr m_writer;
+  algo::read_object_track_set_sptr m_reader;
 }; // end priv class
 
 
 // ===============================================================================
 
-write_track_descriptor_process
-::write_track_descriptor_process( kwiver::vital::config_block_sptr const& config )
+read_object_track_process
+::read_object_track_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new write_track_descriptor_process::priv )
+    d( new read_object_track_process::priv )
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) );
@@ -84,101 +83,111 @@ write_track_descriptor_process
 }
 
 
-write_track_descriptor_process
-::~write_track_descriptor_process()
+read_object_track_process
+::~read_object_track_process()
 {
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void read_object_track_process
 ::_configure()
 {
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
-  if ( d->m_file_name.empty() )
+
+  if( d->m_file_name.empty() )
   {
     throw sprokit::invalid_configuration_exception( name(),
-             "Required file name not specified." );
+      "Required file name not specified." );
   }
 
-  // Get algo conrig entries
+  // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if ( ! algo::write_track_descriptor_set::check_nested_algo_configuration( "writer", algo_config ) )
+  if(  algo::read_object_track_set::check_nested_algo_configuration(
+         "reader",
+         algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    throw sprokit::invalid_configuration_exception( name(),
+      "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::write_track_descriptor_set::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
-  if ( ! d->m_writer )
+  algo::read_object_track_set::set_nested_algo_configuration(
+    "reader",
+    algo_config,
+    d->m_reader );
+
+  if( ! d->m_reader )
   {
     throw sprokit::invalid_configuration_exception( name(),
-             "Unable to create writer." );
+      "Unable to create reader." );
   }
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void read_object_track_process
 ::_init()
 {
-  d->m_writer->open( d->m_file_name ); // throws
+  d->m_reader->open( d->m_file_name ); // throws
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void read_object_track_process
 ::_step()
 {
-  std::string file_name;
+  std::string image_name;
+  kwiver::vital::object_track_set_sptr set;
 
-  // image name is optional
-  if ( has_input_port_edge_using_trait( image_file_name ) )
+  if( d->m_reader->read_set( set ) )
   {
-    file_name = grab_from_port_using_trait( image_file_name );
+    push_to_port_using_trait( object_track_set, set );
   }
+  else
+  {
+    LOG_DEBUG( logger(), "End of input reached, process terminating" );
 
-  kwiver::vital::track_descriptor_set_sptr input
-    = grab_from_port_using_trait( track_descriptor_set );
+    // indicate done
+    mark_process_as_complete();
+    const sprokit::datum_t dat= sprokit::datum::complete_datum();
 
-  d->m_writer->write_set( input );
+    push_datum_to_port_using_trait( object_track_set, dat );
+  }
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void read_object_track_process
 ::make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
-  required.insert( flag_required );
 
-  declare_input_port_using_trait( image_file_name, optional );
-  declare_input_port_using_trait( track_descriptor_set, required );
+  declare_output_port_using_trait( object_track_set, optional );
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void read_object_track_process
 ::make_config()
 {
   declare_config_using_trait( file_name );
-  declare_config_using_trait( writer );
+  declare_config_using_trait( reader );
 }
 
 
 // ===============================================================================
-write_track_descriptor_process::priv
+read_object_track_process::priv
 ::priv()
 {
 }
 
 
-write_track_descriptor_process::priv
+read_object_track_process::priv
 ::~priv()
 {
 }

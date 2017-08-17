@@ -30,14 +30,14 @@
 
 /**
  * \file
- * \brief Implementation for write_track_descriptor_set process
+ * \brief Implementation for write_object_track_set process
  */
 
-#include "write_track_descriptor_process.h"
+#include "write_object_track_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
-#include <vital/algo/write_track_descriptor_set.h>
+#include <vital/algo/write_object_track_set.h>
 
 #include <kwiver_type_traits.h>
 
@@ -56,7 +56,7 @@ create_config_trait( writer, std::string , "",
 
 //--------------------------------------------------------------------------------
 // Private implementation class
-class write_track_descriptor_process::priv
+class write_object_track_process::priv
 {
 public:
   priv();
@@ -65,16 +65,16 @@ public:
   // Configuration values
   std::string m_file_name;
 
-  algo::write_track_descriptor_set_sptr m_writer;
+  algo::write_object_track_set_sptr m_writer;
 }; // end priv class
 
 
 // ===============================================================================
 
-write_track_descriptor_process
-::write_track_descriptor_process( kwiver::vital::config_block_sptr const& config )
+write_object_track_process
+::write_object_track_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new write_track_descriptor_process::priv )
+    d( new write_object_track_process::priv )
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) );
@@ -84,14 +84,14 @@ write_track_descriptor_process
 }
 
 
-write_track_descriptor_process
-::~write_track_descriptor_process()
+write_object_track_process
+::~write_object_track_process()
 {
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void write_object_track_process
 ::_configure()
 {
   // Get process config entries
@@ -106,13 +106,13 @@ void write_track_descriptor_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if ( ! algo::write_track_descriptor_set::check_nested_algo_configuration( "writer", algo_config ) )
+  if ( ! algo::write_object_track_set::check_nested_algo_configuration( "writer", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::write_track_descriptor_set::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
+  algo::write_object_track_set::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
   if ( ! d->m_writer )
   {
     throw sprokit::invalid_configuration_exception( name(),
@@ -122,7 +122,7 @@ void write_track_descriptor_process
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void write_object_track_process
 ::_init()
 {
   d->m_writer->open( d->m_file_name ); // throws
@@ -130,7 +130,7 @@ void write_track_descriptor_process
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void write_object_track_process
 ::_step()
 {
   std::string file_name;
@@ -141,15 +141,15 @@ void write_track_descriptor_process
     file_name = grab_from_port_using_trait( image_file_name );
   }
 
-  kwiver::vital::track_descriptor_set_sptr input
-    = grab_from_port_using_trait( track_descriptor_set );
+  kwiver::vital::object_track_set_sptr input
+    = grab_from_port_using_trait( object_track_set );
 
   d->m_writer->write_set( input );
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void write_object_track_process
 ::make_ports()
 {
   // Set up for required ports
@@ -158,12 +158,12 @@ void write_track_descriptor_process
   required.insert( flag_required );
 
   declare_input_port_using_trait( image_file_name, optional );
-  declare_input_port_using_trait( track_descriptor_set, required );
+  declare_input_port_using_trait( object_track_set, required );
 }
 
 
 // -------------------------------------------------------------------------------
-void write_track_descriptor_process
+void write_object_track_process
 ::make_config()
 {
   declare_config_using_trait( file_name );
@@ -172,13 +172,13 @@ void write_track_descriptor_process
 
 
 // ===============================================================================
-write_track_descriptor_process::priv
+write_object_track_process::priv
 ::priv()
 {
 }
 
 
-write_track_descriptor_process::priv
+write_object_track_process::priv
 ::~priv()
 {
 }
