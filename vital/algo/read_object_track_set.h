@@ -48,16 +48,16 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 /**
- * @brief Read detected object sets
+ * @brief Read object track sets
  *
- * This class is the abstract base class for the detected object set
- * writer.
+ * This class is the abstract base class for the object track set writer.
  *
- * Detection sets from multiple images are stored in a single file
- * with enough information to recreate a unique image identifier,
- * usually the file name, and an associated set of track descriptors.
+ * Track sets from multiple images are stored in a single file with enough
+ * information to recreate a unique image identifier, usually the frame number,
+ * and an associated set of object tracks. Alternatively, tracks can be read in
+ * batch mode.
  */
 class VITAL_ALGO_EXPORT read_object_track_set
   : public kwiver::vital::algorithm_def<read_object_track_set>
@@ -68,9 +68,9 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "read_object_track_set"; }
 
-  /// Open a file of track descriptor sets.
+  /// Open a file of object track sets.
   /**
-   * This method opens a track descriptor set file for reading.
+   * This method opens a object track set file for reading.
    *
    * \param filename Name of file to open
    *
@@ -83,39 +83,34 @@ public:
    */
   void open( std::string const& filename );
 
-  /// Read track descriptors from an existing stream
+  /// Read object tracks from an existing stream
   /**
    * This method specifies the input stream to use for reading
-   * track descriptors. Using a stream is handy when the track descriptors are
+   * object tracks. Using a stream is handy when the object tracks are
    * available in a stream format.
    *
    * @param strm input stream to use
    */
   void use_stream( std::istream* strm );
 
-  /// Close track descriptor set file.
+  /// Close object track set file.
   /**
-   * The currently open track descriptor set file is closed. If there is no
+   * The currently open object track set file is closed. If there is no
    * currently open file, then this method does nothing.
    */
   void close();
 
-  /// Read next detected object set
+  /// Read next object track set
   /**
-   * This method reads the next set of detected objects from the
+   * This method reads the next set of track objects from the
    * file. \b False is returned when the end of file is reached.
    *
-   * \param[out] set Pointer to the new set of track descriptors. Set may be
-   * empty if there are no track descriptors on an image.
+   * \param[out] set Pointer to the new set of object tracks. Set may be
+   * empty if there are no object tracks on an image.
    *
-   * \param[out] image_name Name of the image that goes with the
-   * track descriptors. This string may be empty depending on the source
-   * format.
-   *
-   * @return \b true if track descriptors are returned, \b false if end of file.
+   * @return \b true if object tracks are returned, \b false if end of file.
    */
-  virtual bool read_set( kwiver::vital::object_track_set_sptr& set,
-    std::string& image_name ) = 0;
+  virtual bool read_set( kwiver::vital::object_track_set_sptr& set ) = 0;
 
   /// Determine if input file is at end of file.
   /**

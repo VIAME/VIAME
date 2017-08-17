@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Implementation of save wrapping functionality.
  */
 
 #include "write_object_track_set.h"
@@ -65,14 +65,15 @@ write_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 write_object_track_set
 ::open( std::string const& filename )
 {
   // try to open the file
   std::ostream* file( new std::ofstream( filename ) );
-  if ( ! file )
+
+  if( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
@@ -83,7 +84,7 @@ write_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 write_object_track_set
 ::use_stream( std::ostream* strm )
@@ -93,12 +94,12 @@ write_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 write_object_track_set
 ::close()
 {
-  if ( m_stream_owned )
+  if( m_stream_owned )
   {
     delete m_stream;
   }
@@ -107,7 +108,7 @@ write_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::ostream&
 write_object_track_set
 ::stream()
@@ -116,7 +117,7 @@ write_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::string const&
 write_object_track_set
 ::filename()

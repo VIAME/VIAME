@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Interface for track_descriptor_set input
+ * \brief Interface for read_track_descriptor_set
  */
 
 #ifndef VITAL_READ_TRACK_DESCRIPTOR_SET_H
@@ -48,7 +48,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 /**
  * @brief Read detected object sets
  *
@@ -108,14 +108,9 @@ public:
    * \param[out] set Pointer to the new set of track descriptors. Set may be
    * empty if there are no track descriptors on an image.
    *
-   * \param[out] image_name Name of the image that goes with the
-   * track descriptors. This string may be empty depending on the source
-   * format.
-   *
    * @return \b true if track descriptors are returned, \b false if end of file.
    */
-  virtual bool read_set( kwiver::vital::track_descriptor_set_sptr& set,
-    std::string& image_name ) = 0;
+  virtual bool read_set( kwiver::vital::track_descriptor_set_sptr& set ) = 0;
 
   /// Determine if input file is at end of file.
   /**
@@ -130,8 +125,7 @@ protected:
 
   std::istream& stream();
 
-  // Called when a new stream is specified. Allows derived classes to
-  // reinitialize.
+  // Called when a new stream is specified. Allows derived classes to reinitialize.
   virtual void new_stream();
 
 private:

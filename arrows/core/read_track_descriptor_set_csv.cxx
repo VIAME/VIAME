@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of detected object set csv output
+ * \brief Implementation of read_track_descriptor_set_csv
  */
 
-#include "track_descriptor_set_output_csv.h"
+#include "read_track_descriptor_set_csv.h"
 
 #include <time.h>
 
@@ -43,13 +43,13 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-// ------------------------------------------------------------------
-class track_descriptor_set_output_csv::priv
+// -------------------------------------------------------------------------------
+class read_track_descriptor_set_csv::priv
 {
 public:
-  priv( track_descriptor_set_output_csv* parent)
+  priv( read_track_descriptor_set_csv* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "track_descriptor_set_output_csv" ) )
+    , m_logger( kwiver::vital::get_logger( "read_track_descriptor_set_csv" ) )
     , m_first( true )
     , m_frame_number( 1 )
     , m_delim( "," )
@@ -57,7 +57,7 @@ public:
 
   ~priv() { }
 
-  track_descriptor_set_output_csv* m_parent;
+  read_track_descriptor_set_csv* m_parent;
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
@@ -65,82 +65,44 @@ public:
 };
 
 
-// ==================================================================
-track_descriptor_set_output_csv::
-track_descriptor_set_output_csv()
-  : d( new track_descriptor_set_output_csv::priv( this ) )
+// ===============================================================================
+read_track_descriptor_set_csv
+::read_track_descriptor_set_csv()
+  : d( new read_track_descriptor_set_csv::priv( this ) )
 {
 }
 
 
-track_descriptor_set_output_csv::
-~track_descriptor_set_output_csv()
+read_track_descriptor_set_csv
+::~read_track_descriptor_set_csv()
 {
 }
 
 
-// ------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 void
-track_descriptor_set_output_csv::
-set_configuration(vital::config_block_sptr config)
+read_track_descriptor_set_csv
+::set_configuration(vital::config_block_sptr config)
 {
   d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
 }
 
 
-// ------------------------------------------------------------------
+// -------------------------------------------------------------------------------
 bool
-track_descriptor_set_output_csv::
-check_configuration(vital::config_block_sptr config) const
+read_track_descriptor_set_csv
+::check_configuration(vital::config_block_sptr config) const
 {
   return true;
 }
 
 
-// ------------------------------------------------------------------
-void
-track_descriptor_set_output_csv::
-write_set( const kwiver::vital::track_descriptor_set_sptr set,
-  std::string const& image_name )
+// -------------------------------------------------------------------------------
+bool
+read_track_descriptor_set_csv
+::read_set( kwiver::vital::track_descriptor_set_sptr& set )
 {
-
-  if( d->m_first )
-  {
-    // Write file header(s)
-    stream() << "# 1:descriptor_id, "
-             << "2:descriptor_type, "
-             << "3:track_references, "
-             << "4:descriptor_data_vector, "
-             << "5:history_vector"
-             << std::endl;
-
-    d->m_first = false;
-  } // end first
-
-  // Get detections from set
-  VITAL_FOREACH( auto desc, *set )
-  {
-    if( !desc )
-    {
-      continue;
-    }
-
-    stream() << "" << d->m_delim;
-    stream() << desc->get_type() << d->m_delim;
-    stream() << "" << d->m_delim;
-    stream() << desc->get_descriptor() << d->m_delim;
-
-    // Process classifications if there are any
-    VITAL_FOREACH( auto hist, desc->get_history() )
-    {
-      // TODO
-    }
-
-    stream() << std::endl;
-  }
-
-  // Put each set on a new frame
-  ++d->m_frame_number;
+  return true;
 }
 
 } } } // end namespace

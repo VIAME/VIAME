@@ -71,25 +71,25 @@ read_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_track_descriptor_set
 ::open( std::string const& filename )
 {
     // Make sure that the given file path exists and is a file.
-  if ( ! kwiversys::SystemTools::FileExists( filename ) )
+  if( ! kwiversys::SystemTools::FileExists( filename ) )
   {
     throw path_not_exists(filename);
   }
 
-  if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  if( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
     throw path_not_a_file(filename);
   }
 
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
-  if ( ! file )
+  if( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
@@ -101,7 +101,7 @@ read_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_track_descriptor_set
 ::use_stream( std::istream* strm )
@@ -113,12 +113,12 @@ read_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_track_descriptor_set
 ::close()
 {
-  if ( m_stream_owned )
+  if( m_stream_owned )
   {
     delete m_stream;
   }
@@ -127,12 +127,12 @@ read_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 bool
 read_track_descriptor_set
 ::at_eof() const
 {
-  if ( m_stream )
+  if( m_stream )
   {
     return m_stream->eof();
   }
@@ -143,7 +143,7 @@ read_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::istream&
 read_track_descriptor_set
 ::stream()
@@ -152,10 +152,11 @@ read_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_track_descriptor_set
 ::new_stream()
-{ }
+{
+}
 
 } } } // end namespace

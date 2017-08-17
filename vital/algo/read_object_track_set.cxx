@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Implementation of load wrapping functionality.
  */
 
 #include "read_object_track_set.h"
@@ -42,7 +42,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::read_object_track_set);
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::read_object_track_set );
 /// \endcond
 
 
@@ -62,7 +62,7 @@ read_object_track_set
 read_object_track_set
 ::~read_object_track_set()
 {
-  if ( m_stream && m_stream_owned )
+  if( m_stream && m_stream_owned )
   {
     delete m_stream;
   }
@@ -71,25 +71,26 @@ read_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_object_track_set
 ::open( std::string const& filename )
 {
-    // Make sure that the given file path exists and is a file.
-  if ( ! kwiversys::SystemTools::FileExists( filename ) )
+  // Make sure that the given file path exists and is a file.
+  if( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists(filename);
+    throw path_not_exists( filename );
   }
 
-  if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  if( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file(filename);
+    throw path_not_a_file( filename );
   }
 
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
-  if ( ! file )
+
+  if( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
@@ -101,7 +102,7 @@ read_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_object_track_set
 ::use_stream( std::istream* strm )
@@ -113,7 +114,7 @@ read_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_object_track_set
 ::close()
@@ -127,7 +128,7 @@ read_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 bool
 read_object_track_set
 ::at_eof() const
@@ -138,12 +139,12 @@ read_object_track_set
   }
   else
   {
-    return true; // really error
+    return true;
   }
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::istream&
 read_object_track_set
 ::stream()
@@ -152,10 +153,11 @@ read_object_track_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 read_object_track_set
 ::new_stream()
-{ }
+{
+}
 
 } } } // end namespace

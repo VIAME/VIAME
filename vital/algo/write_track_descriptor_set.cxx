@@ -65,14 +65,15 @@ write_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 write_track_descriptor_set
 ::open( std::string const& filename )
 {
   // try to open the file
   std::ostream* file( new std::ofstream( filename ) );
-  if ( ! file )
+
+  if( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
@@ -83,7 +84,7 @@ write_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 write_track_descriptor_set
 ::use_stream( std::ostream* strm )
@@ -93,12 +94,12 @@ write_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
 write_track_descriptor_set
 ::close()
 {
-  if ( m_stream_owned )
+  if( m_stream_owned )
   {
     delete m_stream;
   }
@@ -107,7 +108,7 @@ write_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::ostream&
 write_track_descriptor_set
 ::stream()
@@ -116,7 +117,7 @@ write_track_descriptor_set
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::string const&
 write_track_descriptor_set
 ::filename()

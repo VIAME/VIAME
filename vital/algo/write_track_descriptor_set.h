@@ -48,7 +48,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 /**
  * @brief Read and write detected object sets
  *
@@ -101,14 +101,11 @@ public:
 
   /// Write detected object set.
   /**
-   * This method writes the specified detected object set and image
-   * name to the currently open file.
+   * This method writes the specified detected object to file.
    *
    * \param set Detected object set
-   * \param image_path File path to image associated with the track descriptors.
    */
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
-                          std::string const& image_path ) = 0;
+  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set ) = 0;
 
 
 protected:

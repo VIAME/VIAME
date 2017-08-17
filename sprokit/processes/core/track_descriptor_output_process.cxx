@@ -30,14 +30,14 @@
 
 /**
  * \file
- * \brief Implementation for track_descriptor_set_output process
+ * \brief Implementation for write_track_descriptor_set process
  */
 
 #include "track_descriptor_output_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
-#include <vital/algo/track_descriptor_set_output.h>
+#include <vital/algo/write_track_descriptor_set.h>
 
 #include <kwiver_type_traits.h>
 
@@ -52,7 +52,7 @@ create_config_trait( file_name, std::string, "", "Name of the track descriptor s
 create_config_trait( writer, std::string , "", "Block name for algorithm parameters. "
                      "e.g. writer:type would be used to specify the algorithm type." );
 
-//----------------------------------------------------------------
+//--------------------------------------------------------------------------------
 // Private implementation class
 class track_descriptor_output_process::priv
 {
@@ -63,11 +63,11 @@ public:
   // Configuration values
   std::string m_file_name;
 
-  algo::track_descriptor_set_output_sptr m_writer;
+  algo::write_track_descriptor_set_sptr m_writer;
 }; // end priv class
 
 
-// ================================================================
+// ===============================================================================
 
 track_descriptor_output_process
 ::track_descriptor_output_process( kwiver::vital::config_block_sptr const& config )
@@ -88,7 +88,7 @@ track_descriptor_output_process
 }
 
 
-// ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 void track_descriptor_output_process
 ::_configure()
 {
@@ -104,13 +104,13 @@ void track_descriptor_output_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if ( ! algo::track_descriptor_set_output::check_nested_algo_configuration( "writer", algo_config ) )
+  if ( ! algo::write_track_descriptor_set::check_nested_algo_configuration( "writer", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::track_descriptor_set_output::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
+  algo::write_track_descriptor_set::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
   if ( ! d->m_writer )
   {
     throw sprokit::invalid_configuration_exception( name(),
@@ -119,7 +119,7 @@ void track_descriptor_output_process
 }
 
 
-// ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 void track_descriptor_output_process
 ::_init()
 {
@@ -127,7 +127,7 @@ void track_descriptor_output_process
 }
 
 
-// ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 void track_descriptor_output_process
 ::_step()
 {
@@ -146,7 +146,7 @@ void track_descriptor_output_process
 }
 
 
-// ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 void track_descriptor_output_process
 ::make_ports()
 {
@@ -160,7 +160,7 @@ void track_descriptor_output_process
 }
 
 
-// ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 void track_descriptor_output_process
 ::make_config()
 {
@@ -169,7 +169,7 @@ void track_descriptor_output_process
 }
 
 
-// ================================================================
+// ===============================================================================
 track_descriptor_output_process::priv
 ::priv()
 {
