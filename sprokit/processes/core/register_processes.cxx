@@ -53,12 +53,14 @@
 #include "initialize_object_tracks_process.h"
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
+#include "read_object_track_process.h"
+#include "read_track_descriptor_process.h"
 #include "refine_detections_process.h"
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
-#include "track_descriptor_input_process.h"
-#include "track_descriptor_output_process.h"
 #include "video_input_process.h"
+#include "write_object_track_process.h"
+#include "write_track_descriptor_process.h"
 
 // ---------------------------------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -220,18 +222,32 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     "Split a image into multiple smaller images." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::track_descriptor_input_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "track_descriptor_input" );
+  fact = vpm.ADD_PROCESS( kwiver::read_track_descriptor_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_track_descriptor" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Reads track descriptor sets from an input file." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  fact = vpm.ADD_PROCESS( kwiver::track_descriptor_output_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "track_descriptor_output" );
+  fact = vpm.ADD_PROCESS( kwiver::write_track_descriptor_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "write_track_descriptor" );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Writes track descriptor sets to an output file. All descriptors are written to the same file." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::read_object_track_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_object_track" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Reads object track sets from an input file." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::write_object_track_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "write_object_track" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Writes object track sets to an output file. All descriptors are written to the same file." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   fact = vpm.ADD_PROCESS( kwiver::associate_detections_to_tracks_process );
