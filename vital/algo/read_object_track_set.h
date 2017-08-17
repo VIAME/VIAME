@@ -30,16 +30,16 @@
 
 /**
  * \file
- * \brief Interface for track_descriptor_set output
+ * \brief Interface for read_object_track_set
  */
 
-#ifndef VITAL_TRACK_DESCRIPTOR_SET_OUTPUT_H
-#define VITAL_TRACK_DESCRIPTOR_SET_OUTPUT_H
+#ifndef VITAL_READ_OBJECT_TRACK_SET_H
+#define VITAL_READ_OBJECT_TRACK_SET_H
 
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
 
-#include <vital/types/track_descriptor_set.h>
+#include <vital/types/object_track_set.h>
 
 #include <string>
 #include <fstream>
@@ -50,24 +50,23 @@ namespace algo {
 
 // ----------------------------------------------------------------
 /**
- * @brief Read and write detected object sets
+ * @brief Read detected object sets
  *
  * This class is the abstract base class for the detected object set
- * reader and writer.
+ * writer.
  *
  * Detection sets from multiple images are stored in a single file
  * with enough information to recreate a unique image identifier,
- * usually the file name, and an associated wet of track descriptors.
- *
+ * usually the file name, and an associated set of track descriptors.
  */
-class VITAL_ALGO_EXPORT track_descriptor_set_output
-  : public kwiver::vital::algorithm_def<track_descriptor_set_output>
+class VITAL_ALGO_EXPORT read_object_track_set
+  : public kwiver::vital::algorithm_def<read_object_track_set>
 {
 public:
-  virtual ~track_descriptor_set_output();
+  virtual ~read_object_track_set();
 
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "track_descriptor_set_output"; }
+  static std::string static_type_name() { return "read_object_track_set"; }
 
   /// Open a file of track descriptor sets.
   /**
@@ -79,18 +78,20 @@ public:
    *
    * \throws kwiver::vital::path_not_a_file Thrown when the given path does
    *    not point to a file (i.e. it points to a directory).
+   *
+   * \throws kwiver::vital::file_not_found_exception
    */
   void open( std::string const& filename );
 
-  /// Write track descriptors to an existing stream
+  /// Read track descriptors from an existing stream
   /**
-   * This method specifies the output stream to use for reading
+   * This method specifies the input stream to use for reading
    * track descriptors. Using a stream is handy when the track descriptors are
    * available in a stream format.
    *
-   * @param strm output stream to use
+   * @param strm input stream to use
    */
-  void use_stream( std::ostream* strm );
+  void use_stream( std::istream* strm );
 
   /// Close track descriptor set file.
   /**
@@ -99,35 +100,49 @@ public:
    */
   void close();
 
-  /// Write detected object set.
+  /// Read next detected object set
   /**
-   * This method writes the specified detected object set and image
-   * name to the currently open file.
+   * This method reads the next set of detected objects from the
+   * file. \b False is returned when the end of file is reached.
    *
-   * \param set Detected object set
-   * \param image_path File path to image associated with the track descriptors.
+   * \param[out] set Pointer to the new set of track descriptors. Set may be
+   * empty if there are no track descriptors on an image.
+   *
+   * \param[out] image_name Name of the image that goes with the
+   * track descriptors. This string may be empty depending on the source
+   * format.
+   *
+   * @return \b true if track descriptors are returned, \b false if end of file.
    */
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
-                          std::string const& image_path ) = 0;
+  virtual bool read_set( kwiver::vital::object_track_set_sptr& set,
+    std::string& image_name ) = 0;
 
+  /// Determine if input file is at end of file.
+  /**
+   * This method reports the end of file status for a file open for reading.
+   *
+   * @return \b true if file is at end.
+   */
+  bool at_eof() const;
 
 protected:
-  track_descriptor_set_output();
+  read_object_track_set();
 
-  std::ostream& stream();
-  std::string const& filename();
+  std::istream& stream();
+
+  // Called when a new stream is specified. Allows derived classes to
+  // reinitialize.
+  virtual void new_stream();
 
 private:
-  std::ostream* m_stream;
+  std::istream* m_stream;
   bool m_stream_owned;
-
-  std::string m_filename;
 };
 
 
-/// Shared pointer type for generic track_descriptor_set_output definition type.
-typedef std::shared_ptr<track_descriptor_set_output> track_descriptor_set_output_sptr;
+/// Shared pointer type for generic read_object_track_set definition type.
+typedef std::shared_ptr<read_object_track_set> read_object_track_set_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_TRACK_DESCRIPTOR_SET_OUTPUT_H
+#endif // VITAL_READ_OBJECT_TRACK_SET_H

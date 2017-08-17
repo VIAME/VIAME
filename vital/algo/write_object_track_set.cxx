@@ -33,7 +33,7 @@
  * \brief Implementation of load/save wrapping functionality.
  */
 
-#include "track_descriptor_set_input.h"
+#include "write_object_track_set.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
@@ -42,7 +42,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::track_descriptor_set_input);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::write_object_track_set);
 /// \endcond
 
 
@@ -50,45 +50,28 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-track_descriptor_set_input
-::track_descriptor_set_input()
+write_object_track_set
+::write_object_track_set()
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "track_descriptor_set_input" );
+  attach_logger( "write_object_track_set" );
 }
 
 
-track_descriptor_set_input
-::~track_descriptor_set_input()
+write_object_track_set
+::~write_object_track_set()
 {
-  if ( m_stream && m_stream_owned )
-  {
-    delete m_stream;
-  }
-
-  m_stream = 0;
 }
 
 
 // ------------------------------------------------------------------
 void
-track_descriptor_set_input
+write_object_track_set
 ::open( std::string const& filename )
 {
-    // Make sure that the given file path exists and is a file.
-  if ( ! kwiversys::SystemTools::FileExists( filename ) )
-  {
-    throw path_not_exists(filename);
-  }
-
-  if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
-  {
-    throw path_not_a_file(filename);
-  }
-
   // try to open the file
-  std::istream* file( new std::ifstream( filename ) );
+  std::ostream* file( new std::ofstream( filename ) );
   if ( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
@@ -96,26 +79,23 @@ track_descriptor_set_input
 
   m_stream = file;
   m_stream_owned = true;
-
-  new_stream();
+  m_filename = filename;
 }
 
 
 // ------------------------------------------------------------------
 void
-track_descriptor_set_input
-::use_stream( std::istream* strm )
+write_object_track_set
+::use_stream( std::ostream* strm )
 {
   m_stream = strm;
   m_stream_owned = false;
-
-  new_stream();
 }
 
 
 // ------------------------------------------------------------------
 void
-track_descriptor_set_input
+write_object_track_set
 ::close()
 {
   if ( m_stream_owned )
@@ -128,24 +108,8 @@ track_descriptor_set_input
 
 
 // ------------------------------------------------------------------
-bool
-track_descriptor_set_input
-::at_eof() const
-{
-  if ( m_stream )
-  {
-    return m_stream->eof();
-  }
-  else
-  {
-    return true; // really error
-  }
-}
-
-
-// ------------------------------------------------------------------
-std::istream&
-track_descriptor_set_input
+std::ostream&
+write_object_track_set
 ::stream()
 {
   return *m_stream;
@@ -153,9 +117,12 @@ track_descriptor_set_input
 
 
 // ------------------------------------------------------------------
-void
-track_descriptor_set_input
-::new_stream()
-{ }
+std::string const&
+write_object_track_set
+::filename()
+{
+  return m_filename;
+}
+
 
 } } } // end namespace

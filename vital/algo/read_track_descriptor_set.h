@@ -33,8 +33,8 @@
  * \brief Interface for track_descriptor_set input
  */
 
-#ifndef VITAL_TRACK_DESCRIPTOR_SET_INPUT_H
-#define VITAL_TRACK_DESCRIPTOR_SET_INPUT_H
+#ifndef VITAL_READ_TRACK_DESCRIPTOR_SET_H
+#define VITAL_READ_TRACK_DESCRIPTOR_SET_H
 
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
@@ -59,14 +59,14 @@ namespace algo {
  * with enough information to recreate a unique image identifier,
  * usually the file name, and an associated set of track descriptors.
  */
-class VITAL_ALGO_EXPORT track_descriptor_set_input
-  : public kwiver::vital::algorithm_def<track_descriptor_set_input>
+class VITAL_ALGO_EXPORT read_track_descriptor_set
+  : public kwiver::vital::algorithm_def<read_track_descriptor_set>
 {
 public:
-  virtual ~track_descriptor_set_input();
+  virtual ~read_track_descriptor_set();
 
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "track_descriptor_set_input"; }
+  static std::string static_type_name() { return "read_track_descriptor_set"; }
 
   /// Open a file of track descriptor sets.
   /**
@@ -126,7 +126,7 @@ public:
   bool at_eof() const;
 
 protected:
-  track_descriptor_set_input();
+  read_track_descriptor_set();
 
   std::istream& stream();
 
@@ -140,9 +140,9 @@ private:
 };
 
 
-/// Shared pointer type for generic track_descriptor_set_input definition type.
-typedef std::shared_ptr<track_descriptor_set_input> track_descriptor_set_input_sptr;
+/// Shared pointer type for generic read_track_descriptor_set definition type.
+typedef std::shared_ptr<read_track_descriptor_set> read_track_descriptor_set_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_TRACK_DESCRIPTOR_SET_INPUT_H
+#endif // VITAL_READ_TRACK_DESCRIPTOR_SET_H
