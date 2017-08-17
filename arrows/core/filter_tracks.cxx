@@ -147,7 +147,7 @@ filter_tracks
         good_trks.push_back(t);
       }
     }
-    tracks = std::make_shared<kwiver::vital::simple_track_set>(good_trks);
+    tracks = std::make_shared<kwiver::vital::track_set>(good_trks);
   }
 
   if( d_->min_mm_importance > 0 )
@@ -172,7 +172,7 @@ filter_tracks
       }
     }
 
-    tracks = std::make_shared<kwiver::vital::simple_track_set>(good_trks);
+    tracks = std::make_shared<kwiver::vital::track_set>(good_trks);
   }
   return tracks;
 }

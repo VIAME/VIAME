@@ -334,6 +334,27 @@ Sprokit
 `<sprokit/tests>`_     Sprokit unit tests
 ====================== =========================================================
 
+Testing
+========
+Continuous integration testing is provided by CDash_.
+Our `KWIVER dashboard <https://open.cdash.org/index.php?project=KWIVER>`_
+hosts nightly build and test results across multiple platforms including
+Windows, Mac, and Linux.
+
+Anyone can contribute a build to this dashboard using the
+`dashboard script <CMake/dashboard-scripts/KWIVER_common.cmake>`_
+provided.  Follow the instructions in the comments.
+
+
+`Travis CI`_ is also used for continued integration testing.
+Travis CI is limited to a single platform (Ubuntu Linux), but provides
+automated testing of all topic branches and pull requests whenever they are created.
+
+============================= =============
+Travis CI **master** branch:  |CI:master|_
+Travis CI **release** branch: |CI:release|_
+============================= =============
+
 
 Contributing
 ============
@@ -374,6 +395,7 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 
 .. _Boost: http://www.boost.org/
 .. _`Ceres Solver`: http://ceres-solver.org/
+.. _CDash: http://www.cdash.org/
 .. _CMake: http://www.cmake.org/
 .. _Darknet: https://pjreddie.com/darknet/yolo/
 .. _Eigen: http://eigen.tuxfamily.org/
@@ -382,6 +404,18 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. _MAP-Tk: https://github.com/Kitware/maptk
 .. _OpenCV: http://opencv.org/
 .. _PROJ4: http://proj4.org/
+.. _Travis CI: https://travis-ci.org/
 .. _VIAME: https://github.com/Kitware/VIAME
 .. _Vibrant: https://github.com/Kitware/vibrant
 .. _VXL: https://github.com/vxl/vxl/
+
+.. Appendix II: Text Substitutions
+.. ===============================
+
+.. |>=| unicode:: U+02265 .. greater or equal sign
+
+.. |CI:master| image:: https://travis-ci.org/Kitware/kwiver.svg?branch=master
+.. |CI:release| image:: https://travis-ci.org/Kitware/kwiver.svg?branch=release
+
+.. _CI:master: https://travis-ci.org/Kitware/kwiver
+.. _CI:release: https://travis-ci.org/Kitware/kwiver

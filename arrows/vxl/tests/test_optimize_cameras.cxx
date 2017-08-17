@@ -106,7 +106,7 @@ IMPLEMENT_TEST(empty_input)
 
   camera_map_sptr cam_map(new simple_camera_map());
   landmark_map_sptr lm_map(new simple_landmark_map());
-  auto trk_set = std::make_shared<simple_feature_track_set>();
+  auto trk_set = std::make_shared<feature_track_set>();
 
   vxl::optimize_cameras optimizer;
 

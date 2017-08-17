@@ -152,7 +152,7 @@ initialize_object_tracks_process
     net_tracks.insert( net_tracks.end(), to_add.begin(), to_add.end() );
 
     vital::object_track_set_sptr joined_tracks(
-      new vital::simple_object_track_set( net_tracks ) );
+      new vital::object_track_set( net_tracks ) );
     push_to_port_using_trait( object_track_set, joined_tracks );
   }
   else

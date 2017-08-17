@@ -75,34 +75,23 @@ typedef std::shared_ptr< object_track_set > object_track_set_sptr;
 class VITAL_EXPORT object_track_set : public track_set
 {
 public:
+  /// Default Constructor
+  /**
+   * \note implementation defaults to simple_track_set_implementation
+   */
+  object_track_set();
+
+  /// Constructor specifying the implementation
+  object_track_set(std::unique_ptr<track_set_implementation> impl);
+
+  /// Constructor from a vector of tracks
+  /**
+   * \note implementation defaults to simple_track_set_implementation
+   */
+  object_track_set(std::vector< track_sptr > const& tracks);
 
   /// Destructor
   virtual ~object_track_set() VITAL_DEFAULT_DTOR
-};
-
-
-/// A concrete object track set that simply wraps a vector of tracks.
-class simple_object_track_set :
-  public object_track_set
-{
-public:
-  /// Default Constructor
-  simple_object_track_set() VITAL_DEFAULT_CTOR
-
-  /// Constructor from a vector of tracks
-  explicit simple_object_track_set( const std::vector< track_sptr >& tracks )
-    : data_( tracks ) { }
-
-  /// Return the number of tracks in the set
-  virtual size_t size() const { return data_.size(); }
-
-  /// Return a vector of track shared pointers
-  virtual std::vector< track_sptr > tracks() const { return data_; }
-
-
-protected:
-  /// The vector of tracks
-  std::vector< track_sptr > data_;
 };
 
 

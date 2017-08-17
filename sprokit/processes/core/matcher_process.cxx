@@ -174,7 +174,7 @@ matcher_process
     // call loop closure on the first frame to establish this
     // frame as the first frame for loop closing purposes
     d->m_curr_tracks = d->m_closer->stitch( frame_number,
-                                            std::make_shared<vital::simple_feature_track_set>( new_tracks ),
+                                            std::make_shared<vital::feature_track_set>( new_tracks ),
                                             image_data );
   }
   else
@@ -216,7 +216,7 @@ matcher_process
     }
 
     d->m_curr_tracks = d->m_closer->stitch( frame_number,
-                  std::make_shared<vital::simple_feature_track_set>( all_tracks ),
+                  std::make_shared<vital::feature_track_set>( all_tracks ),
                   image_data );
   }
 

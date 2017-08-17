@@ -177,7 +177,7 @@ initialize_object_tracks_threshold
     output.push_back( new_track );
   }
 
-  return vital::object_track_set_sptr( new simple_object_track_set( output ) );
+  return vital::object_track_set_sptr( new object_track_set( output ) );
 }
 
 
