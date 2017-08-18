@@ -40,11 +40,13 @@ more python friendly types.
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
 
 #include <vital/bindings/c/error_handle.h>
 #include <vital/bindings/c/types/image_container.hxx>
 #include <vital/bindings/c/types/descriptor_set.hxx>
 #include <vital/bindings/c/types/detected_object_set.hxx>
+#include <vital/bindings/c/types/track_set.hxx>
 
 #include <sprokit/pipeline/datum.h>
 
@@ -356,13 +358,13 @@ vital_trackset_from_datum( PyObject* args )
   try
   {
     boost::any const any = dptr->get_datum< boost::any > ();
-    kwiver::vital::track_set_sptr sptr = boost::any_cast< kwiver::vital::track_set_sptr > ( any );
+    kwiver::vital::track_set_sptr sptr = boost::any_cast< kwiver::vital::track_set_sptr >( any );
 
     // Register this object with the main track_set interface
-    vital_trackset_t* ptr =  vital_trackset_from_sptr( reinterpret_cast< void* > ( &sptr ) );
+    vital_trackset_t* ptr = vital_trackset_from_sptr( reinterpret_cast< void* >( &sptr ) );
     return ptr;
   }
-  catch ( boost::bad_any_cast const& e )
+  catch( boost::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
@@ -371,6 +373,99 @@ vital_trackset_from_datum( PyObject* args )
   }
 
   return 0;
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Convert track set container handle to PyCapsule
+ *
+ * @param handle Opaque handle to detected object set container
+ *
+ * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ */
+PyObject*
+vital_trackset_to_datum( vital_trackset_t* handle )
+{
+  // Get sptr from handle. Use sptr cache access interface
+  kwiver::vital::track_set_sptr sptr = vital_track_set_to_sptr( handle, 0 );
+
+  if( !sptr )
+  {
+    // Could not find sptr for supplied handle.
+    Py_RETURN_NONE;
+  }
+
+  // Return address of datum through PyCapsule object.
+  // The caller now owns the datum.
+  PyObject* cap = put_in_datum_capsule( sptr );
+  return cap;
+}
+
+
+// ==================================================================
+/**
+ * @brief Convert from datum to track_set handle.
+ *
+ * @param args PyCapsule object
+ *
+ * @return track_set handle
+ */
+vital_trackset_t*
+vital_object_trackset_from_datum( PyObject* args )
+{
+  // Get capsule from args - or arg may be the capsule
+  sprokit::datum* dptr = (sprokit::datum*) PyCapsule_GetPointer( args, "sprokit::datum" );
+
+  try
+  {
+    boost::any const any = dptr->get_datum< boost::any > ();
+    kwiver::vital::track_set_sptr sptr =
+      std::static_pointer_cast< kwiver::vital::track_set >(
+        boost::any_cast< kwiver::vital::object_track_set_sptr >( any ) );
+
+    // Register this object with the main track_set interface
+    vital_trackset_t* ptr = vital_trackset_from_sptr( reinterpret_cast< void* >( &sptr ) );
+    return ptr;
+  }
+  catch( boost::bad_any_cast const& e )
+  {
+    // This is a warning because this converter should only be called
+    // if there is good reason to believe that the object really is an
+    // track_set.
+    LOG_WARN( logger, "Conversion error " << e.what() );
+  }
+
+  return 0;
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Convert track set container handle to PyCapsule
+ *
+ * @param handle Opaque handle to detected object set container
+ *
+ * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ */
+PyObject*
+vital_object_trackset_to_datum( vital_trackset_t* handle )
+{
+  // Get sptr from handle. Use sptr cache access interface
+  kwiver::vital::object_track_set_sptr sptr =
+    std::dynamic_pointer_cast< kwiver::vital::object_track_set >(
+      vital_track_set_to_sptr( handle, 0 ) );
+
+  if( !sptr )
+  {
+    // Could not find sptr for supplied handle.
+    Py_RETURN_NONE;
+  }
+
+  // Return address of datum through PyCapsule object.
+  // The caller now owns the datum.
+  PyObject* cap = put_in_datum_capsule( sptr );
+  return cap;
 }
 
 

@@ -34,6 +34,7 @@
  */
 
 #include "track_set.h"
+#include "track_set.hxx"
 
 #include <vector>
 
@@ -260,4 +261,33 @@ vital_trackset_get_track( vital_trackset_t const *trackset, int64_t tid,
     return reinterpret_cast< vital_track_t* >( t_sptr.get() );
   );
   return 0;
+}
+
+
+/// Create a vital_track_set_t around an existing shared pointer.
+vital_trackset_t*
+vital_track_set_new_from_sptr( kwiver::vital::track_set_sptr ts_sptr,
+                               vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "vital_track_set_new_from_sptr", eh,
+    // Store the shared pointer in our cache and return the handle.
+    vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast< vital_trackset_t* >( ts_sptr.get() );
+  );
+  return NULL;
+}
+
+
+/// Get the vital::track_set shared pointer for a handle.
+kwiver::vital::track_set_sptr
+vital_track_set_to_sptr( vital_trackset_t* ts,
+                         vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "vital_track_set_to_sptr", eh,
+    // Return the cached shared pointer.
+    return vital_c::TRACK_SET_SPTR_CACHE.get( ts );
+  );
+  return kwiver::vital::track_set_sptr();
 }

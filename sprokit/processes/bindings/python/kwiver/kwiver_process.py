@@ -164,11 +164,14 @@ class KwiverProcess(process.PythonProcess):
                             VTC._convert_detected_object_set_in,
                             VTC._convert_detected_object_set_out)
         self.add_type_trait("track_set", "kwiver:track_set",
-                            VTC._convert_track_set_handle)
+                            VTC._convert_track_set_in,
+                            VTC._convert_track_set_out)
         self.add_type_trait("feature_track_set", "kwiver:feature_track_set",
-                            VTC._convert_track_set_handle)
+                            VTC._convert_track_set_in,
+                            VTC._convert_track_set_out)
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
-                            VTC._convert_track_set_handle)
+                            VTC._convert_object_track_set_in,
+                            VTC._convert_object_track_set_out)
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
         self.add_type_trait("image_file_name", "kwiver:image_file_name")
