@@ -1,0 +1,53 @@
+# ================================================================
+# ---- pipeline config ----
+config _pipeline:_edge
+       :capacity 5
+
+# ================================================================
+process in_adapt
+ :: input_adapter
+
+# ================================================================
+process query_formulator
+ :: handle_descriptor_request
+
+  :handler:type                             core
+  :handler:core:image_reader:type           vxl
+  :handler:core:descriptor_extractor:type   burnout
+
+connect from in_adapt.descriptor_request
+        to   query_formulator.descriptor_request
+
+# ================================================================
+process query_handler
+ :: perform_query
+
+connect from in_adapt.database_query
+        to   query_handler.database_query
+connect from in_adapt.iqr_feedback
+        to   query_handler.iqr_feedback
+
+# ================================================================
+process kwa_writer
+ :: kw_archive_writer
+
+  :output_directory    /home/matt/Desktop/KWA_Test
+  :mission_id          0
+
+connect from query_formulator.image
+        to   kwa_writer.image
+connect from query_formulator.timestamp
+        to   kwa_writer.timestamp
+connect from query_formulator.filename
+        to   kwa_writer.filename
+connect from query_formulator.stream_id
+        to   kwa_writer.stream_id
+
+# ================================================================
+process out_adapt
+ :: output_adapter
+
+connect from query_formulator.track_descriptor_set
+        to   out_adapt.track_descriptor_set
+connect from query_handler.query_result
+        to   out_adapt.query_result
