@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,14 @@
 
 /**
  * \file
- * \brief Image display process interface.
+ * \brief Interface for object_track_set_output process
  */
 
-#ifndef _KWIVER_READ_DESCRIPTOR_PROCESS_H
-#define _KWIVER_READ_DESCRIPTOR_PROCESS_H
+#ifndef _KWIVER_WRITE_OBJECT_TRACK_PROCESS_H
+#define _KWIVER_WRITE_OBJECT_TRACK_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
+
 #include "kwiver_processes_export.h"
 
 #include <memory>
@@ -44,33 +45,37 @@
 namespace kwiver
 {
 
-// -------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------
 /**
- * @brief Display images
+ * \class write_object_track_process
+ *
+ * \brief Write a set of track descriptors to a file
+ *
+ * \iports
+ * \iport{track descriptor_set}
  *
  */
-class KWIVER_PROCESSES_NO_EXPORT read_descriptor_process
+class KWIVER_PROCESSES_NO_EXPORT write_object_track_process
   : public sprokit::process
 {
 public:
-  // -- CONSTRUCTORS --
-  read_descriptor_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_descriptor_process();
+  write_object_track_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~write_object_track_process();
 
 protected:
   virtual void _configure();
+  virtual void _init();
   virtual void _step();
 
 private:
   void make_ports();
   void make_config();
 
-
   class priv;
   const std::unique_ptr<priv> d;
+}; // end class write_object_track_process
 
-}; // end class read_descriptor_process
 
 } // end namespace
 
-#endif /* _KWIVER_READ_DESCRIPTOR_PROCESS_H */
+#endif // _KWIVER_WRITE_OBJECT_TRACK_PROCESS_H

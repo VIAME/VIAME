@@ -44,15 +44,17 @@ set( public_headers
   initialize_object_tracks.h
   match_features.h
   optimize_cameras.h
+  read_object_track_set.h
+  read_track_descriptor_set.h
   refine_detections.h
   split_image.h
   track_features.h
   train_detector.h
-  track_descriptor_set_input.h
-  track_descriptor_set_output.h
   triangulate_landmarks.h
   uuid_factory.h
   video_input.h
+  write_object_track_set.h
+  write_track_descriptor_set.h
   )
 
 set( sources
@@ -93,15 +95,17 @@ set( sources
   initialize_cameras_landmarks.cxx
   match_features.cxx
   optimize_cameras.cxx
+  read_object_track_set.cxx
+  read_track_descriptor_set.cxx
   refine_detections.cxx
   split_image.cxx
   track_features.cxx
   train_detector.cxx
-  track_descriptor_set_input.cxx
-  track_descriptor_set_output.cxx
   triangulate_landmarks.cxx
   uuid_factory.cxx
   video_input.cxx
+  write_object_track_set.cxx
+  write_track_descriptor_set.cxx
 )
 
 kwiver_install_headers(

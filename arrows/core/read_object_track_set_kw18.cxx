@@ -30,42 +30,79 @@
 
 /**
  * \file
- * \brief Interface for track_descriptor_set_output_csv
+ * \brief Implementation of read_object_track_set_kw18
  */
 
-#ifndef KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
-#define KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
+#include "read_object_track_set_kw18.h"
 
-#include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <time.h>
 
-#include <vital/algo/track_descriptor_set_output.h>
-
-#include <memory>
+#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-class KWIVER_ALGO_CORE_EXPORT track_descriptor_set_output_csv
-  : public vital::algorithm_impl<track_descriptor_set_output_csv,
-      vital::algo::track_descriptor_set_output>
+// -------------------------------------------------------------------------------
+class read_object_track_set_kw18::priv
 {
 public:
-  track_descriptor_set_output_csv();
-  virtual ~track_descriptor_set_output_csv();
+  priv( read_object_track_set_kw18* parent)
+    : m_parent( parent )
+    , m_logger( kwiver::vital::get_logger( "read_object_track_set_kw18" ) )
+    , m_first( true )
+    , m_frame_number( 1 )
+    , m_delim( "," )
+  {}
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  ~priv() {}
 
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
-    std::string const& image_name );
-
-private:
-  class priv;
-  std::unique_ptr< priv > d;
+  read_object_track_set_kw18* m_parent;
+  kwiver::vital::logger_handle_t m_logger;
+  bool m_first;
+  int m_frame_number;
+  std::string m_delim;
 };
 
-} } } // end namespace
 
-#endif // KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
+// ===============================================================================
+read_object_track_set_kw18
+::read_object_track_set_kw18()
+  : d( new read_object_track_set_kw18::priv( this ) )
+{
+}
+
+
+read_object_track_set_kw18
+::~read_object_track_set_kw18()
+{
+}
+
+
+// -------------------------------------------------------------------------------
+void
+read_object_track_set_kw18
+::set_configuration(vital::config_block_sptr config)
+{
+  d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
+}
+
+
+// -------------------------------------------------------------------------------
+bool
+read_object_track_set_kw18
+::check_configuration( vital::config_block_sptr config ) const
+{
+  return true;
+}
+
+
+// -------------------------------------------------------------------------------
+bool
+read_object_track_set_kw18
+::read_set( kwiver::vital::object_track_set_sptr& set )
+{
+  return false;
+}
+
+} } } // end namespace

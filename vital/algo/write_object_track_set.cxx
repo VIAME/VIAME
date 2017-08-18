@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of load/save wrapping functionality.
+ * \brief Implementation of save wrapping functionality.
  */
 
-#include "track_descriptor_set_output.h"
+#include "write_object_track_set.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
@@ -42,7 +42,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::track_descriptor_set_output);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::write_object_track_set);
 /// \endcond
 
 
@@ -50,29 +50,30 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-track_descriptor_set_output
-::track_descriptor_set_output()
+write_object_track_set
+::write_object_track_set()
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "track_descriptor_set_output" );
+  attach_logger( "write_object_track_set" );
 }
 
 
-track_descriptor_set_output
-::~track_descriptor_set_output()
+write_object_track_set
+::~write_object_track_set()
 {
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
-track_descriptor_set_output
+write_object_track_set
 ::open( std::string const& filename )
 {
   // try to open the file
   std::ostream* file( new std::ofstream( filename ) );
-  if ( ! file )
+
+  if( ! file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
@@ -83,9 +84,9 @@ track_descriptor_set_output
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
-track_descriptor_set_output
+write_object_track_set
 ::use_stream( std::ostream* strm )
 {
   m_stream = strm;
@@ -93,12 +94,12 @@ track_descriptor_set_output
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 void
-track_descriptor_set_output
+write_object_track_set
 ::close()
 {
-  if ( m_stream_owned )
+  if( m_stream_owned )
   {
     delete m_stream;
   }
@@ -107,18 +108,18 @@ track_descriptor_set_output
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::ostream&
-track_descriptor_set_output
+write_object_track_set
 ::stream()
 {
   return *m_stream;
 }
 
 
-// ------------------------------------------------------------------
+// ------------------------------------------------------------------------------------
 std::string const&
-track_descriptor_set_output
+write_object_track_set
 ::filename()
 {
   return m_filename;

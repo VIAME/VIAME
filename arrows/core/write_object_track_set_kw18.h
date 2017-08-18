@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,47 +30,41 @@
 
 /**
  * \file
- * \brief Image display process interface.
+ * \brief Interface for write_object_track_set_kw18
  */
 
-#ifndef _KWIVER_READ_DESCRIPTOR_PROCESS_H
-#define _KWIVER_READ_DESCRIPTOR_PROCESS_H
+#ifndef KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
+#define KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include <vital/vital_config.h>
+#include <arrows/core/kwiver_algo_core_export.h>
+
+#include <vital/algo/write_object_track_set.h>
 
 #include <memory>
 
-namespace kwiver
-{
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-// -------------------------------------------------------------------------------
-/**
- * @brief Display images
- *
- */
-class KWIVER_PROCESSES_NO_EXPORT read_descriptor_process
-  : public sprokit::process
+class KWIVER_ALGO_CORE_EXPORT write_object_track_set_kw18
+  : public vital::algorithm_impl< write_object_track_set_kw18,
+      vital::algo::write_object_track_set >
 {
 public:
-  // -- CONSTRUCTORS --
-  read_descriptor_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_descriptor_process();
+  write_object_track_set_kw18();
+  virtual ~write_object_track_set_kw18();
 
-protected:
-  virtual void _configure();
-  virtual void _step();
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
+
+  virtual void write_set( const kwiver::vital::object_track_set_sptr set );
 
 private:
-  void make_ports();
-  void make_config();
-
-
   class priv;
-  const std::unique_ptr<priv> d;
+  std::unique_ptr< priv > d;
+};
 
-}; // end class read_descriptor_process
+} } } // end namespace
 
-} // end namespace
-
-#endif /* _KWIVER_READ_DESCRIPTOR_PROCESS_H */
+#endif // KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
