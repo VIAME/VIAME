@@ -44,6 +44,7 @@ set(vital_c_public_headers
   types/similarity.h
   types/track.h
   types/track_set.h
+  types/track_set.hxx
   )
 
 set(vital_c_private_headers
