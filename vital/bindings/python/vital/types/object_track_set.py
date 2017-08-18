@@ -37,7 +37,9 @@ import ctypes
 
 from vital.types import (
     TrackState,
-    DetectedObject
+    DetectedObject,
+    Track,
+    TrackSet
 )
 from vital.util import VitalObject, free_void_ptr
 
