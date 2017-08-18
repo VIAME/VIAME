@@ -108,6 +108,7 @@ class VITAL_EXPORT track_data
 protected:
   virtual ~track_data() VITAL_DEFAULT_DTOR
 };
+
 typedef std::shared_ptr<track_data> track_data_sptr;
 
 
@@ -130,7 +131,7 @@ public:
   ~track() VITAL_DEFAULT_DTOR
 
   /// Factory function
-  static track_sptr make(track_data_sptr data = nullptr);
+  static track_sptr create( track_data_sptr data = nullptr );
 
   /// Clone
   track_sptr clone() const;
@@ -209,7 +210,7 @@ public:
 
 protected:
   /// Default Constructor
-  explicit track(track_data_sptr d=nullptr);
+  explicit track( track_data_sptr d = nullptr );
 
   /// Copy Constructor
   track( const track& other );

@@ -167,14 +167,14 @@ matcher_process
     for ( ; fit != vf.end() && dit != df.end(); ++fit, ++dit )
     {
       auto ts = std::make_shared<vital::feature_track_state>( frame_number, *fit, *dit );
-      new_tracks.push_back( vital::track::make() );
+      new_tracks.push_back( vital::track::create() );
       new_tracks.back()->append( ts );
       new_tracks.back()->set_id( d->m_next_track_id++ );
     }
     // call loop closure on the first frame to establish this
     // frame as the first frame for loop closing purposes
     d->m_curr_tracks = d->m_closer->stitch( frame_number,
-                                            std::make_shared<vital::simple_feature_track_set>( new_tracks ),
+                                            std::make_shared<vital::feature_track_set>( new_tracks ),
                                             image_data );
   }
   else
@@ -210,13 +210,13 @@ matcher_process
     {
       auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[i], df[i] );
 
-      all_tracks.push_back( vital::track::make() );
+      all_tracks.push_back( vital::track::create() );
       all_tracks.back()->append( ts );
       all_tracks.back()->set_id( d->m_next_track_id++ );
     }
 
     d->m_curr_tracks = d->m_closer->stitch( frame_number,
-                  std::make_shared<vital::simple_feature_track_set>( all_tracks ),
+                  std::make_shared<vital::feature_track_set>( all_tracks ),
                   image_data );
   }
 

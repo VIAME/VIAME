@@ -30,52 +30,41 @@
 
 /**
  * \file
- * \brief Interface for track_descriptor_set_output process
+ * \brief Interface for read_track_descriptor_set_csv
  */
 
-#ifndef _KWIVER_TRACK_DESCRIPTOR_OUTPUT_PROCESS_H
-#define _KWIVER_TRACK_DESCRIPTOR_OUTPUT_PROCESS_H
+#ifndef KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
+#define KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include <vital/vital_config.h>
+#include <arrows/core/kwiver_algo_core_export.h>
+
+#include <vital/algo/read_track_descriptor_set.h>
 
 #include <memory>
 
-namespace kwiver
-{
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-  // ----------------------------------------------------------------
-/**
- * \class track_descriptor_output_process
- *
- * \brief Reads a series of images
- *
- * \iports
- * \iport{image_name}
- * \iport{track descriptor_set}
- *
- */
-class KWIVER_PROCESSES_NO_EXPORT track_descriptor_output_process
-  : public sprokit::process
+class KWIVER_ALGO_CORE_EXPORT read_track_descriptor_set_csv
+  : public vital::algorithm_impl< read_track_descriptor_set_csv,
+      vital::algo::read_track_descriptor_set >
 {
 public:
-  track_descriptor_output_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~track_descriptor_output_process();
+  read_track_descriptor_set_csv();
+  virtual ~read_track_descriptor_set_csv();
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
+
+  virtual bool read_set( kwiver::vital::track_descriptor_set_sptr& set );
 
 private:
-  void make_ports();
-  void make_config();
-
   class priv;
-  const std::unique_ptr<priv> d;
-}; // end class track_descriptor_output_process
+  std::unique_ptr< priv > d;
+};
 
+} } } // end namespace
 
-} // end namespace
-
-#endif // _KWIVER_TRACK_DESCRIPTOR_OUTPUT_PROCESS_H
+#endif // KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H

@@ -160,7 +160,7 @@ compute_association_matrix_process
   {
     d->track_read_delay--;
 
-    tracks = vital::object_track_set_sptr( new vital::simple_object_track_set() );
+    tracks = vital::object_track_set_sptr( new vital::object_track_set() );
   }
   else
   {

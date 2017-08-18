@@ -44,10 +44,11 @@ extern "C"
 #include "track.h"
 
 #include <vital/bindings/c/types/detected_object.h>
+#include <vital/bindings/c/types/track_set.h>
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Track State
+// Object Track State
 
 /// Create a new track state
 /**
@@ -74,6 +75,26 @@ vital_detected_object_t*
 vital_object_track_state_detection( vital_track_state_t *td,
                                     vital_error_handle_t *eh );
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Object Track Set
+
+/// Create a new object track set from an array of track instances
+/**
+ * The given track array may be freed after calling this function as the
+ * underlying instance references are shared into the track set.
+ *
+ * This may be given a length of 0 and a null pointer to create an empty track
+ * set.
+ *
+ * \param length The number of tracks in the given array
+ * \param tracks The array of tracks to create a set out of
+ * \returns New track set instance containing the provided tracks
+ */
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_object_trackset_new( size_t length, vital_track_t **tracks,
+                           vital_error_handle_t *eh );
 
 #ifdef __cplusplus
 }

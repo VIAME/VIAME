@@ -267,7 +267,7 @@ track_features_core
   // see if there are already existing tracks on this frame
   if( prev_tracks )
   {
-    existing_set = std::make_shared<simple_feature_track_set>(
+    existing_set = std::make_shared<feature_track_set>(
                        prev_tracks->active_tracks(frame_number));
     if( existing_set && existing_set->size() > 0 )
     {
@@ -372,7 +372,7 @@ track_features_core
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
       fts->descriptor = *dit;
-      new_tracks.push_back(vital::track::make());
+      new_tracks.push_back(vital::track::create());
       new_tracks.back()->append(fts);
       new_tracks.back()->set_id(next_track_id++);
     }
@@ -381,10 +381,10 @@ track_features_core
       // call loop closure on the first frame to establish this
       // frame as the first frame for loop closing purposes
       return d_->closer->stitch(frame_number,
-                                std::make_shared<simple_feature_track_set>(new_tracks),
+                                std::make_shared<feature_track_set>(new_tracks),
                                 image_data, mask);
     }
-    return std::make_shared<simple_feature_track_set>(new_tracks);
+    return std::make_shared<feature_track_set>(new_tracks);
   }
 
   // get the last track id in the existing set of tracks and increment it
@@ -398,7 +398,7 @@ track_features_core
   // and prefer those over the last frame (i.e. largest frame number)
   if( prev_frame >= frame_number && frame_number > 0 )
   {
-    active_set = std::make_shared<simple_feature_track_set>(
+    active_set = std::make_shared<feature_track_set>(
                      prev_tracks->active_tracks(frame_number - 1) );
     if( active_set && active_set->size() > 0 )
     {
@@ -407,7 +407,7 @@ track_features_core
   }
   if( !active_set )
   {
-    active_set = std::make_shared<simple_feature_track_set>(
+    active_set = std::make_shared<feature_track_set>(
                      prev_tracks->active_tracks(prev_frame) );
   }
 
@@ -484,11 +484,11 @@ track_features_core
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[i];
       fts->descriptor = df[i];
-      all_tracks.push_back(vital::track::make());
+      all_tracks.push_back(vital::track::create());
       all_tracks.back()->append(fts);
       all_tracks.back()->set_id(next_track_id++);
     }
-    updated_track_set = std::make_shared<simple_feature_track_set>(all_tracks);
+    updated_track_set = std::make_shared<feature_track_set>(all_tracks);
   }
 
   // run loop closure if enabled

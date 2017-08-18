@@ -71,7 +71,7 @@ vital_trackset_new( size_t length, vital_track_t **tracks,
       track_vec.push_back( vital_c::TRACK_SPTR_CACHE.get( tracks[i] ) );
     }
 
-    kwiver::vital::track_set_sptr ts_sptr( new kwiver::vital::simple_track_set( track_vec )
+    kwiver::vital::track_set_sptr ts_sptr( new kwiver::vital::track_set( track_vec )
                                          );
 
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
@@ -86,7 +86,7 @@ vital_trackset_t*
 vital_trackset_from_sptr( void* sptr )
 {
   STANDARD_CATCH(
-    "C::track_set::from_sptr", NULL,
+    "vital_trackset_from_sptr", NULL,
 
     kwiver::vital::track_set_sptr ts_sptr = *reinterpret_cast< kwiver::vital::track_set_sptr* >(sptr);
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );

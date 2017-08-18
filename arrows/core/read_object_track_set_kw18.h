@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,36 +30,41 @@
 
 /**
  * \file
- * \brief test core track class
+ * \brief Interface for read_object_track_set_kw18
  */
 
-#include <test_common.h>
+#ifndef KWIVER_ARROWS_READ_OBJECT_TRACK_SET_KW18_H
+#define KWIVER_ARROWS_READ_OBJECT_TRACK_SET_KW18_H
 
-#include <iostream>
-#include <vector>
-#include <vital/types/track.h>
+#include <vital/vital_config.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
-#define TEST_ARGS ()
+#include <vital/algo/read_object_track_set.h>
 
-DECLARE_TEST_MAP();
+#include <memory>
 
-int
-main(int argc, char* argv[])
+namespace kwiver {
+namespace arrows {
+namespace core {
+
+class KWIVER_ALGO_CORE_EXPORT read_object_track_set_kw18
+  : public vital::algorithm_impl< read_object_track_set_kw18,
+      vital::algo::read_object_track_set >
 {
-  CHECK_ARGS(1);
+public:
+  read_object_track_set_kw18();
+  virtual ~read_object_track_set_kw18();
 
-  testname_t const testname = argv[1];
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  RUN_TEST(testname);
-}
+  virtual bool read_set( kwiver::vital::object_track_set_sptr& set );
 
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
 
-IMPLEMENT_TEST(track_id)
-{
-  using namespace kwiver::vital;
-  auto t = track::create();
-  TEST_EQUAL("Initial Track ID", t->id(), 0);
+} } } // end namespace
 
-  t->set_id(25);
-  TEST_EQUAL("Get/Set Track ID", t->id(), 25);
-}
+#endif // KWIVER_ARROWS_READ_OBJECT_TRACK_SET_KW18_H

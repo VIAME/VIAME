@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,36 +30,52 @@
 
 /**
  * \file
- * \brief test core track class
+ * \brief Interface for track_descriptor_set_output process
  */
 
-#include <test_common.h>
+#ifndef _KWIVER_WRITE_TRACK_DESCRIPTOR_PROCESS_H
+#define _KWIVER_WRITE_TRACK_DESCRIPTOR_PROCESS_H
 
-#include <iostream>
-#include <vector>
-#include <vital/types/track.h>
+#include <sprokit/pipeline/process.h>
 
-#define TEST_ARGS ()
+#include "kwiver_processes_export.h"
 
-DECLARE_TEST_MAP();
+#include <memory>
 
-int
-main(int argc, char* argv[])
+namespace kwiver
 {
-  CHECK_ARGS(1);
 
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
-
-IMPLEMENT_TEST(track_id)
+  // -----------------------------------------------------------------------------
+/**
+ * \class write_track_descriptor_process
+ *
+ * \brief Write a set of track descriptors to a file
+ *
+ * \iports
+ * \iport{track descriptor_set}
+ *
+ */
+class KWIVER_PROCESSES_NO_EXPORT write_track_descriptor_process
+  : public sprokit::process
 {
-  using namespace kwiver::vital;
-  auto t = track::create();
-  TEST_EQUAL("Initial Track ID", t->id(), 0);
+public:
+  write_track_descriptor_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~write_track_descriptor_process();
 
-  t->set_id(25);
-  TEST_EQUAL("Get/Set Track ID", t->id(), 25);
-}
+protected:
+  virtual void _configure();
+  virtual void _init();
+  virtual void _step();
+
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class write_track_descriptor_process
+
+
+} // end namespace
+
+#endif // _KWIVER_WRITE_TRACK_DESCRIPTOR_PROCESS_H

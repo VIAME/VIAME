@@ -166,7 +166,7 @@ initialize_object_tracks_threshold
   {
     unsigned new_id = initialize_object_tracks_threshold::priv::next_track_id++;
 
-    vital::track_sptr new_track( vital::track::make() );
+    vital::track_sptr new_track( vital::track::create() );
     new_track->set_id( new_id );
 
     vital::track_state_sptr first_track_state(
@@ -177,7 +177,7 @@ initialize_object_tracks_threshold
     output.push_back( new_track );
   }
 
-  return vital::object_track_set_sptr( new simple_object_track_set( output ) );
+  return vital::object_track_set_sptr( new object_track_set( output ) );
 }
 
 

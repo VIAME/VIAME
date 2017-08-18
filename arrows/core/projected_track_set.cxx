@@ -54,7 +54,7 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
 
   for( landmark_map::map_landmark_t::iterator l = lm_map.begin(); l != lm_map.end(); l++ )
   {
-    track_sptr t = track::make();
+    track_sptr t = track::create();
     t->set_id( l->first );
     tracks.push_back( t );
 
@@ -66,7 +66,7 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
       t->append( fts );
     }
   }
-  return std::make_shared<simple_feature_track_set>( tracks );
+  return std::make_shared<feature_track_set>( tracks );
 }
 
 
