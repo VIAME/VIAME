@@ -158,7 +158,7 @@ perform_query_process
       entry->set_descriptors( desc_set );
       entry->set_temporal_bounds( ts4, ts6 );
 
-      vital::track_sptr trk = vital::track::make();
+      vital::track_sptr trk = vital::track::create();
 
       vital::detected_object_sptr det1(
         new vital::detected_object( region2 ) );

@@ -295,6 +295,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     "Perform a query." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
+
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
 } // register_processes
