@@ -91,45 +91,26 @@ write_object_track_set_kw18
 write_object_track_set_kw18
 ::~write_object_track_set_kw18()
 {
-  // Flush output
-  stream() << "# 1:Track-id "
-           << "2:Track-length "
-           << "3:Frame-number "
-           << "4:Tracking-plane-loc(x) "
-           << "5:Tracking-plane-loc(y) "
-           << "6:velocity(x) "
-           << "7:velocity(y) "
-
-           << "8:Image-loc(x)"
-           << " 9:Image-loc(y)"
-           << " 10:Img-bbox(TL_x)"
-           << " 11:Img-bbox(TL_y)"
-           << " 12:Img-bbox(BR_x)"
-           << " 13:Img-bbox(BR_y)"
-           << " 14:Area"
-
-           << " 15:World-loc(x)"
-           << " 16:World-loc(y)"
-           << " 17:World-loc(z)"
-           << " 18:timestamp"
-           << " 19:track-confidence"
-           << std::endl;
-
   VITAL_FOREACH( auto trk_pair, d->m_tracks )
   {
     auto trk_ptr = trk_pair.second;
 
     VITAL_FOREACH( auto ts_ptr, *trk_ptr )
     {
-      vital::object_track_state& ts =
-        *dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
+      vital::object_track_state* ts =
+        dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
 
-      auto det = ts.detection;
+      if( !ts || !ts->detection )
+      {
+        continue;
+      }
+
+      auto det = ts->detection;
       auto bbox = det->bounding_box();
 
       stream() << trk_ptr->id() << " "     // 1: track id
                << trk_ptr->size() << " "   // 2: track length
-               << ts.frame() << " "        // 3: frame number
+               << ts->frame() << " "       // 3: frame number
                << "0 "                     // 4: tracking plane x
                << "0 "                     // 5: tracking plane y
                << "0 "                     // 6: velocity x
@@ -175,6 +156,35 @@ void
 write_object_track_set_kw18
 ::write_set( const kwiver::vital::object_track_set_sptr set )
 {
+  if (d->m_first)
+  {
+    // Write file header(s)
+    stream() << "# 1:Track-id "
+             << "2:Track-length "
+             << "3:Frame-number "
+             << "4:Tracking-plane-loc(x) "
+             << "5:Tracking-plane-loc(y) "
+             << "6:velocity(x) "
+             << "7:velocity(y) "
+
+             << "8:Image-loc(x)"
+             << " 9:Image-loc(y)"
+             << " 10:Img-bbox(TL_x)"
+             << " 11:Img-bbox(TL_y)"
+             << " 12:Img-bbox(BR_x)"
+             << " 13:Img-bbox(BR_y)"
+             << " 14:Area"
+
+             << " 15:World-loc(x)"
+             << " 16:World-loc(y)"
+             << " 17:World-loc(z)"
+             << " 18:timestamp"
+             << " 19:track-confidence"
+             << std::endl;
+
+    d->m_first = false;
+  }
+
   VITAL_FOREACH( auto trk, set->tracks() )
   {
     d->m_tracks[ trk->id() ] = trk;
