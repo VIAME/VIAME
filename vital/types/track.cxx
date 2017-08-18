@@ -80,9 +80,9 @@ track
 /// Factory function
 track_sptr
 track
-::make(track_data_sptr data)
+::create( track_data_sptr data )
 {
-  return track_sptr(new track(data));
+  return track_sptr( new track(data) );
 }
 
 

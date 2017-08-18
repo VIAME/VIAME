@@ -57,7 +57,7 @@ main(int argc, char* argv[])
 IMPLEMENT_TEST(track_id)
 {
   using namespace kwiver::vital;
-  auto t = track::make();
+  auto t = track::create();
   TEST_EQUAL("Initial Track ID", t->id(), 0);
 
   t->set_id(25);
