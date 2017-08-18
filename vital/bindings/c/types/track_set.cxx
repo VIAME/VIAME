@@ -86,7 +86,7 @@ vital_trackset_t*
 vital_trackset_from_sptr( void* sptr )
 {
   STANDARD_CATCH(
-    "C::track_set::from_sptr", NULL,
+    "vital_trackset_from_sptr", NULL,
 
     kwiver::vital::track_set_sptr ts_sptr = *reinterpret_cast< kwiver::vital::track_set_sptr* >(sptr);
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );

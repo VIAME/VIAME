@@ -100,13 +100,15 @@ write_object_track_set_kw18
       vital::object_track_state* ts =
         dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
 
-      if( !ts || !ts->detection )
+      if( !ts )
       {
+        LOG_ERROR( d->m_logger, "MISSED STATE " << trk_ptr->id() << " " << trk_ptr->size() );
         continue;
       }
 
-      auto det = ts->detection;
-      auto bbox = det->bounding_box();
+      vital::detected_object_sptr det = ts->detection;
+      const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
+      vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       stream() << trk_ptr->id() << " "     // 1: track id
                << trk_ptr->size() << " "   // 2: track length
@@ -156,7 +158,7 @@ void
 write_object_track_set_kw18
 ::write_set( const kwiver::vital::object_track_set_sptr set )
 {
-  if (d->m_first)
+  if( d->m_first )
   {
     // Write file header(s)
     stream() << "# 1:Track-id "
