@@ -66,7 +66,7 @@ public:
 
   /// Copy constructor
   object_track_state( object_track_state const& ot )
-    : track_state( *this )
+    : track_state( ot.frame() )
     , detection( ot.detection )
   {}
 
