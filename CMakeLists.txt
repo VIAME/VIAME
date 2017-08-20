@@ -53,8 +53,8 @@ option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugin"           OFF )
+option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
 ###
 # Add external package build instructions
