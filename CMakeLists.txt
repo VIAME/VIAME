@@ -129,6 +129,9 @@ if( VIAME_ENABLE_PYTHON )
     message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
       make sure the variable is set correctly and you have python-dev installed." )
   endif()
+
+  set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+       CACHE STRING "Python version number" )
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
