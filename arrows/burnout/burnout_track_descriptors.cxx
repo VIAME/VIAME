@@ -52,53 +52,53 @@ class burnout_track_descriptors::priv
 {
 public:
   priv()
-    : m_config( "" )
+    : m_config_file( "burnout_descriptors.conf" )
+    , m_process( "descriptor_computer" )
   {}
 
   ~priv()
-  {
-  }
+  {}
 
   // Items from the config
-  std::string m_config;
+  std::string m_config_file;
 
-  kwiver::vital::logger_handle_t m_logger;
+  vidtk::online_descriptor_computer_process< vxl_byte > m_process;
+  vital::logger_handle_t m_logger;
 };
 
 
-// ==================================================================
-burnout_track_descriptors::
-burnout_track_descriptors()
+// ==================================================================================
+burnout_track_descriptors
+::burnout_track_descriptors()
   : d( new priv() )
 {
-
 
 }
 
 
-burnout_track_descriptors::
-~burnout_track_descriptors()
+burnout_track_descriptors
+::~burnout_track_descriptors()
 {}
 
 
-// --------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 vital::config_block_sptr
-burnout_track_descriptors::
-get_configuration() const
+burnout_track_descriptors
+::get_configuration() const
 {
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
-  config->set_value( "config", d->m_config, "Name of config file." );
+  config->set_value( "config", d->m_config_file,  "Name of config file." );
 
   return config;
 }
 
 
-// --------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 void
-burnout_track_descriptors::
-set_configuration( vital::config_block_sptr config_in )
+burnout_track_descriptors
+::set_configuration( vital::config_block_sptr config_in )
 {
   // Starting with our generated config_block to ensure that assumed values
   // are present. An alternative is to check for key presence before performing
@@ -106,15 +106,31 @@ set_configuration( vital::config_block_sptr config_in )
   vital::config_block_sptr config = this->get_configuration();
 
   config->merge_config( config_in );
+  d->m_config_file = config->get_value< std::string >( "config" );
 
-  this->d->m_config = config->get_value< std::string >( "config" );
+#ifndef DUMMY_OUTPUT
+  vidtk::config_block vidtk_config = d->m_process.params();
+  vidtk_config.parse( d->m_config_file );
+
+  if( !d->m_process.set_params( vidtk_config ) )
+  {
+    std::string reason = "Failed to set pipeline parameters";
+    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
+  }
+
+  if( !d->m_process.initialize() )
+  {
+    std::string reason = "Failed to initialize pipeline";
+    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
+  }
+#endif
 }
 
 
-// --------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 bool
-burnout_track_descriptors::
-check_configuration( vital::config_block_sptr config ) const
+burnout_track_descriptors
+::check_configuration( vital::config_block_sptr config ) const
 {
   std::string config_fn = config->get_value< std::string >( "config" );
 
