@@ -14,7 +14,8 @@ set( burnout_linked_libs
   kwiversys
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
-  kwiver_algo_ocv )
+  kwiver_algo_ocv
+  kwiver_algo_vxl )
 
 kwiver_install_headers(
   SUBDIR     arrows/burnout

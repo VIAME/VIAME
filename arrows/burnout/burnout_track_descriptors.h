@@ -61,8 +61,9 @@ public:
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
   virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::track_set_sptr tracks );
+  compute( kwiver::vital::timestamp ts,
+           kwiver::vital::image_container_sptr image_data,
+           kwiver::vital::object_track_set_sptr tracks );
 
 private:
 

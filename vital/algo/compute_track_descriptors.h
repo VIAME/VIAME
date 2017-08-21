@@ -57,14 +57,16 @@ public:
 
   /// Compute track descriptors given an image and tracks
   /**
+   * \param ts timestamp for the current frame
    * \param image_data contains the image data to process
    * \param tracks the tracks to extract descriptors around
    *
    * \returns a set of track descriptors
    */
   virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::track_set_sptr tracks ) = 0;
+  compute( kwiver::vital::timestamp ts,
+           kwiver::vital::image_container_sptr image_data,
+           kwiver::vital::object_track_set_sptr tracks ) = 0;
 
 protected:
   compute_track_descriptors();

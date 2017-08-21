@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,8 @@ detected_object::detected_object( const bounding_box_d& bbox,
 
 // ------------------------------------------------------------------
 detected_object_sptr
-detected_object::
-clone() const
+detected_object
+::clone() const
 {
   detected_object_type_sptr new_type;
   if (this->m_type )
@@ -74,8 +74,8 @@ clone() const
 
 // ------------------------------------------------------------------
 bounding_box_d
-detected_object::
-bounding_box() const
+detected_object
+::bounding_box() const
 {
   return *m_bounding_box;
 }
@@ -83,8 +83,8 @@ bounding_box() const
 
 // ------------------------------------------------------------------
 void
-detected_object::
-set_bounding_box( const bounding_box_d& bbox )
+detected_object
+::set_bounding_box( const bounding_box_d& bbox )
 {
   m_bounding_box = std::make_shared< bounding_box_d >( bbox );
 }
@@ -92,8 +92,8 @@ set_bounding_box( const bounding_box_d& bbox )
 
 // ------------------------------------------------------------------
 double
-detected_object::
-confidence() const
+detected_object
+::confidence() const
 {
   return m_confidence;
 }
@@ -101,8 +101,8 @@ confidence() const
 
 // ------------------------------------------------------------------
 void
-detected_object::
-set_confidence( double d )
+detected_object
+::set_confidence( double d )
 {
   m_confidence = d;
 }
@@ -110,8 +110,8 @@ set_confidence( double d )
 
 // ------------------------------------------------------------------
 image_container_sptr
-detected_object::
-mask()
+detected_object
+::mask()
 {
   return m_mask_image;
 }
@@ -119,8 +119,8 @@ mask()
 
 // ------------------------------------------------------------------
 void
-detected_object::
-set_mask( image_container_sptr m )
+detected_object
+::set_mask( image_container_sptr m )
 {
   m_mask_image = m;
 }
@@ -128,8 +128,8 @@ set_mask( image_container_sptr m )
 
 // ------------------------------------------------------------------
 detected_object_type_sptr
-detected_object::
-type()
+detected_object
+::type()
 {
   return m_type;
 }
@@ -137,16 +137,16 @@ type()
 
 // ------------------------------------------------------------------
 void
-detected_object::
-set_type( detected_object_type_sptr c )
+detected_object
+::set_type( detected_object_type_sptr c )
 {
   m_type = c;
 }
 
 // ------------------------------------------------------------------
 uint64_t
-detected_object::
-index() const
+detected_object
+::index() const
 {
   return m_index;
 }
@@ -154,8 +154,8 @@ index() const
 
 // ------------------------------------------------------------------
 void
-detected_object::
-set_index( uint64_t idx )
+detected_object
+::set_index( uint64_t idx )
 {
   m_index = idx;
 }
@@ -163,8 +163,8 @@ set_index( uint64_t idx )
 
 // ------------------------------------------------------------------
 const std::string&
-detected_object::
-detector_name() const
+detected_object
+::detector_name() const
 {
   return m_detector_name;
 }
@@ -172,10 +172,28 @@ detector_name() const
 
 // ------------------------------------------------------------------
 void
-detected_object::
-set_detector_name( const std::string& name )
+detected_object
+::set_detector_name( const std::string& name )
 {
   m_detector_name = name;
+}
+
+
+// ------------------------------------------------------------------
+detected_object::descriptor_sptr
+detected_object
+::descriptor() const
+{
+  return m_descriptor;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object
+::set_descriptor( descriptor_sptr d )
+{
+  m_descriptor = d;
 }
 
 
