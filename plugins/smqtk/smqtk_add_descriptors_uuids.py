@@ -29,6 +29,7 @@
 from __future__ import print_function
 
 import itertools
+import json
 
 from sprokit.pipeline import process
 
@@ -54,34 +55,32 @@ class SmqtkAddDescriptorsUuids (KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        # TODO: Summarize what to expect in input JSON config.
+        # register python config file
         self.add_config_trait(
-            'json_config', 'json_config', '',
-            'Path to the configuration file for the descriptor index to add to.'
+            'config_file', 'config_file', '',
+            'Path to the json configuration file for the descriptor index to add to.'
         )
-        self.declare_config_using_trait('json_config')
+        self.declare_config_using_trait('config_file')
 
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        #  declare our input port ( port-name,flags)
+        # declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('descriptor_set', required)
         self.declare_input_port_using_trait('string_vector', required)
         self.declare_output_port_using_trait('descriptor_set', optional)
         self.declare_output_port_using_trait('string_vector', optional)
 
-        # Or do the following to declare custom port names with an existing
-        # type.
-        # self.add_port_trait("custom_port_name", "descriptor_set",
-        #                     "some new description")
-        # self.declare_input_port_using_trait("custom_port_name", ...)
-
     def _configure(self):
-        self.json_config = self.config_value('json_config')
-        # TODO: Check json_config contents?
+        self.config_file = self.config_value('config_file')
 
+        # parse json file
+        with open(self.config_file) as data_file:
+          self.json_config = json.load(data_file)
+
+        # setup smqtk elements
         self.smqtk_descriptor_element_factory = \
             smqtk.representation.DescriptorElementFactory.from_config(
                 self.json_config['descriptor_factory']
@@ -101,9 +100,12 @@ class SmqtkAddDescriptorsUuids (KwiverProcess):
         #
         # Set/vector of descriptors to add to the SMQTK descriptor index with
         #   the paired UID strings.
+        #
         #: :type: vital.types.DescriptorSet
         vital_descriptor_set = self.grab_input_using_trait('descriptor_set')
+        #
         # Vector of UIDs for vector of descriptors in descriptor_set.
+        #
         #: :type: list[str]
         string_tuple = self.grap_input_using_trait('string_vector')
 
@@ -124,11 +126,13 @@ class SmqtkAddDescriptorsUuids (KwiverProcess):
             smqtk_descr.set_vector(vital_descr)
             # Queue up element for adding to set.
             smqtk_descriptor_elements.append(smqtk_descr)
+
+        # Ingest descriptors in batch
         self.smqtk_descriptor_index.add_many_descriptors(
             smqtk_descriptor_elements
         )
 
-        # Pass on input descriptors/UIDs
+        # Pass on input descriptors and UIDs
         self.push_to_port_using_trait('descriptor_set', vital_descriptor_set)
         self.push_to_port_using_trait('string_vector', string_tuple)
 
