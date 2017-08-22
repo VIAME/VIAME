@@ -181,7 +181,7 @@ compute_association_matrix_from_features
         if( !trk->empty() )
         {
           object_track_state* trk_state =
-            dynamic_cast< object_track_state* >( trk->end()->get() );
+            dynamic_cast< object_track_state* >( trk->back().get() );
 
           if( trk_state->detection )
           {

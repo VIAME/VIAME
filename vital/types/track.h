@@ -191,6 +191,9 @@ public:
   /// Access a const iterator to the end of the history
   history_const_itr end() const { return history_.end(); }
 
+  /// Access the last entry of the history
+  track_state_sptr back() const { return history_.back(); }
+
   /// Find the track state iterator matching \a frame
   /**
    *  \param [in] frame the frame number to access
