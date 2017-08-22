@@ -87,6 +87,22 @@ track_descriptor
 
 void
 track_descriptor
+::set_uid( const vital::uid& id )
+{
+  this->uid_ = id;
+}
+
+
+vital::uid const&
+track_descriptor
+::get_uid() const
+{
+  return this->uid_;
+}
+
+
+void
+track_descriptor
 ::add_track_id( uint64_t id )
 {
   this->track_ids_.push_back( id );
