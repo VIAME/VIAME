@@ -211,6 +211,8 @@ class KwiverProcess(process.PythonProcess):
                             "Name of video file.")
         self.add_port_trait("matrix_d", "matrix_d",
                             "2-dimensional double matrix.")
+        self.add_port_trait("string_vector", "string_vector",
+                            "Vector of strings.")
 
     def add_type_trait(self, ttn, tn, conv_in=None, conv_out=None):
         """
@@ -299,7 +301,7 @@ class KwiverProcess(process.PythonProcess):
         function. If there is no converter regietered, then the raw datum is
         returned.
 
-        This call is used to return managed types such as image_container, 
+        This call is used to return managed types such as image_container,
         track_set.
 
         The raw datum contains the port data and other metadata.
@@ -367,12 +369,12 @@ class KwiverProcess(process.PythonProcess):
         :param ptn: port trait name
         :param val: value to put on port
 
-        If the trait has a converter function, the supplied value will be 
+        If the trait has a converter function, the supplied value will be
         converted by that function to a datum which will be pushed to the port.
 
-        If no converter is associated with the trait, the raw value supplied 
-        will be pushed to the port. If the value is already a datum, then all is 
-        well. If it is some other data type, such as a fundamental type, it will 
+        If no converter is associated with the trait, the raw value supplied
+        will be pushed to the port. If the value is already a datum, then all is
+        well. If it is some other data type, such as a fundamental type, it will
         be automatically be converted to a datum.
 
         """
