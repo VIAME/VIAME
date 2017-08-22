@@ -219,7 +219,39 @@ compute_track_descriptors_process
 
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, output );
-  push_to_port_using_trait( detected_object_set, detections );
+
+  if( process::count_output_port_edges( "string_vector" ) > 0 )
+  {
+    vital::string_vector_sptr uids( new vital::string_vector() );
+
+    VITAL_FOREACH( auto desc, *output )
+    {
+      uids->push_back( desc->get_uid().value() );
+    }
+
+    push_to_port_using_trait( string_vector, uids );
+  }
+
+  if( process::count_output_port_edges( "descriptor_set" ) > 0 )
+  {
+    std::vector< vital::descriptor_sptr > raw_descs;
+
+    VITAL_FOREACH( auto desc, *output )
+    {
+      raw_descs.push_back( desc->get_descriptor() );
+    }
+
+    vital::descriptor_set_sptr dset(
+      new vital::simple_descriptor_set( raw_descs ) );
+
+    push_to_port_using_trait( descriptor_set, dset );
+  }
+
+  if( process::count_output_port_edges( "detected_object_set" ) > 0 )
+  {
+    push_to_port_using_trait( detected_object_set, detections );
+  }
+
 }
 
 
@@ -241,6 +273,8 @@ void compute_track_descriptors_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
+  declare_output_port_using_trait( descriptor_set, optional );
+  declare_output_port_using_trait( string_vector, optional );
   declare_output_port_using_trait( detected_object_set, optional );
 }
 
