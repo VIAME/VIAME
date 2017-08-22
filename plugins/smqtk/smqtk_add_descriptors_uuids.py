@@ -56,7 +56,7 @@ class SmqtkAddDescriptorsUuids (KwiverProcess):
 
         # TODO: Summarize what to expect in input JSON config.
         self.add_config_trait(
-            'json_config', 'text', 'CHANGE_ME',
+            'json_config', 'json_config', '',
             'Path to the configuration file for the descriptor index to add to.'
         )
         self.declare_config_using_trait('json_config')

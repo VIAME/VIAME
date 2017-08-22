@@ -32,13 +32,13 @@ from viame.processes.smqtk import smqtk_add_descriptors_uuids
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:smqtk.smqtk_add_descritpors_uuids'
+    module_name = 'python:smqtk.smqtk_add_descriptors_uuids'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
     process_factory.add_process(
-        'smqtk_add_descritpors_uuids',
+        'smqtk_add_descriptors_uuids',
         'Add descriptors and parallel UUIDs to a SMQTK descriptor index',
         smqtk_add_descriptors_uuids.SmqtkAddDescriptorsUuids
     )
