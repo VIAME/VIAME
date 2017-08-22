@@ -111,13 +111,13 @@ track_descriptor
 
 void
 track_descriptor
-::set_descriptor( descriptor_data_sptr_t const& data )
+::set_descriptor( descriptor_data_sptr const& data )
 {
   this->data_ = data;
 }
 
 
-track_descriptor::descriptor_data_sptr_t const&
+track_descriptor::descriptor_data_sptr const&
 track_descriptor
 ::get_descriptor() const
 {
@@ -125,7 +125,7 @@ track_descriptor
 }
 
 
-track_descriptor::descriptor_data_sptr_t&
+track_descriptor::descriptor_data_sptr&
 track_descriptor
 ::get_descriptor()
 {
@@ -181,7 +181,7 @@ void
 track_descriptor
 ::resize_descriptor( size_t s )
 {
-  this->data_ = descriptor_data_sptr_t(
+  this->data_ = descriptor_data_sptr(
     new descriptor_data_t( s ) );
 }
 
@@ -190,7 +190,7 @@ void
 track_descriptor
 ::resize_descriptor( size_t s, double v )
 {
-  this->data_ = descriptor_data_sptr_t(
+  this->data_ = descriptor_data_sptr(
     new descriptor_data_t( s ) );
 
   std::fill( this->data_->raw_data(),

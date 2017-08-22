@@ -168,8 +168,7 @@ if (KWIVER_ENABLE_PYTHON)
       message(STATUS "Python site-packages to install into: ${python_site_packages}")
     endif()
 
-    # TODO Get version from above
-    set(PYTHON_VERSION "2.7"
+    set(PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
       CACHE STRING "The version of python to use for bindings")
     set(PYTHON_ABIFLAGS ""
       CACHE STRING "The ABI flags for the version of Python being used")
@@ -239,7 +238,7 @@ if ( KWIVER_ENABLE_LOG4CXX )
   if(WIN32)
     message(STATUS "Log4CXX is not supported on windows, if no other logger is provided, the default will be used")
   endif()
-  
+
 endif()
 
 ###
@@ -271,7 +270,7 @@ endif()
 
 if ( KWIVER_ENABLE_MATLAB )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
-  
+
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${Matlab_LIBRARY_DIR}\n" )
 endif()
 

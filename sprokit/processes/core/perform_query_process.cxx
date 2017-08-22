@@ -109,7 +109,7 @@ perform_query_process
 
     typedef vital::track_descriptor td;
 
-    td::descriptor_data_sptr_t data( new td::descriptor_data_t( 100 ) );
+    td::descriptor_data_sptr data( new td::descriptor_data_t( 100 ) );
 
     for( unsigned i = 0; i < 100; i++ )
     {
@@ -182,7 +182,7 @@ perform_query_process
 
       std::vector< vital::track_sptr > trk_vec;
       trk_vec.push_back( trk );
-    
+
       vital::object_track_set_sptr trk_set(
         new vital::object_track_set( trk_vec ) );
 

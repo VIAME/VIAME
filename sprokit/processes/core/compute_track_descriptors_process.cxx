@@ -31,6 +31,8 @@
 #include "compute_track_descriptors_process.h"
 
 #include <vital/vital_types.h>
+#include <vital/vital_foreach.h>
+
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
@@ -48,6 +50,10 @@ namespace kwiver
 
 namespace algo = vital::algo;
 
+create_config_trait( inject_to_detections, bool, "true",
+  "If the input are single frame detections (not tracks) then "
+  "put the computed descriptors into the detection objects." );
+
 //------------------------------------------------------------------------------
 // Private implementation class
 class compute_track_descriptors_process::priv
@@ -56,7 +62,7 @@ public:
   priv();
   ~priv();
 
-  unsigned track_read_delay;
+  bool inject_to_detections;
 
   algo::compute_track_descriptors_sptr m_computer;
 }; // end priv class
@@ -108,6 +114,8 @@ void compute_track_descriptors_process
     throw sprokit::invalid_configuration_exception(
       name(), "Configuration check failed." );
   }
+
+  d->inject_to_detections = config_value_using_trait( inject_to_detections );
 }
 
 
@@ -117,17 +125,17 @@ compute_track_descriptors_process
 ::_step()
 {
   // Retrieve inputs from ports
-  vital::timestamp frame_id;
+  vital::timestamp ts;
   vital::image_container_sptr image;
   vital::object_track_set_sptr tracks;
   vital::detected_object_set_sptr detections;
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
-    frame_id = grab_from_port_using_trait( timestamp );
+    ts = grab_from_port_using_trait( timestamp );
 
     // Output frame ID
-    LOG_DEBUG( logger(), "Processing frame " << frame_id );
+    LOG_DEBUG( logger(), "Processing frame " << ts );
   }
 
   if( process::has_input_port_edge( "image" ) )
@@ -145,19 +153,73 @@ compute_track_descriptors_process
     tracks = grab_from_port_using_trait( object_track_set );
   }
 
-  // Process optional input track set
-  vital::track_descriptor_set_sptr output;
-
-  if( process::has_input_port_edge( "object_track_set" ) )
+  if( detections && tracks )
   {
-    output = d->m_computer->compute( image, tracks );
+    throw sprokit::invalid_configuration_exception(
+      name(), "Cannot connect both detections and tracks to process" );
   }
 
-  // Process optional input detection set
-  // [TODO]
+  // Process optional input track set - this is the standard use case
+  vital::track_descriptor_set_sptr output;
+
+  if( tracks )
+  {
+    output = d->m_computer->compute( ts, image, tracks );
+  }
+
+  // Process optional input detection set - this is an optional use case
+  //  for when we might want to generate descriptors around detects, not
+  //  tracks. To re-use code, detections are added to single frame tracks
+  //  in order to compute the descriptors.
+  if( detections )
+  {
+    std::vector< vital::track_sptr > det_tracks;
+    std::vector< vital::detected_object_sptr > det_objects = detections->select();
+
+    for( unsigned i = 0; i < detections->size(); ++i )
+    {
+      vital::track_sptr new_track( vital::track::create() );
+      new_track->set_id( i );
+
+      vital::track_state_sptr first_track_state(
+        new vital::object_track_state( ts.get_frame(), det_objects[i] ) );
+
+      new_track->append( first_track_state );
+
+      det_tracks.push_back( new_track );
+    }
+
+    vital::object_track_set_sptr det_track_set(
+      new vital::object_track_set( det_tracks ) );
+
+    output = d->m_computer->compute( ts, image, det_track_set );
+
+    if( d->inject_to_detections )
+    {
+      // Reset all descriptors stored in detections
+      auto detection_sptrs = detections->select();
+
+      VITAL_FOREACH( vital::detected_object_sptr det, detection_sptrs )
+      {
+        det->set_descriptor( vital::detected_object::descriptor_sptr() );
+      }
+
+      // Inject computed descriptors
+      VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
+      {
+        auto ids = desc->get_track_ids();
+
+        VITAL_FOREACH( auto id, ids )
+        {
+          detection_sptrs[id]->set_descriptor( desc->get_descriptor() );
+        }
+      }
+    }
+  }
 
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, output );
+  push_to_port_using_trait( detected_object_set, detections );
 }
 
 
@@ -179,6 +241,7 @@ void compute_track_descriptors_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
+  declare_output_port_using_trait( detected_object_set, optional );
 }
 
 
@@ -186,12 +249,14 @@ void compute_track_descriptors_process
 void compute_track_descriptors_process
 ::make_config()
 {
+  declare_config_using_trait( inject_to_detections );
 }
 
 
 // =============================================================================
 compute_track_descriptors_process::priv
 ::priv()
+  : inject_to_detections( true )
 {
 }
 

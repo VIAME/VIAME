@@ -140,7 +140,7 @@ handle_descriptor_request_core
   // extract descriptors on the current frame
   kwiver::vital::object_track_set_sptr tracks;
 
-  descs = extractor_->compute( image, tracks );
+  descs = extractor_->compute( vital::timestamp(), image, tracks );
 
   imgs.clear();
   imgs.push_back( image );
