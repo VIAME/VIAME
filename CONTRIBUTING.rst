@@ -27,10 +27,11 @@ Release Notes
 When making a PR, the topic branch should almost always include a commit which
 updates the relevant release notes text file found in `<doc/release-notes>`_.
 The relevant release notes file differs depending on whether you are targeting
-``release`` or ``master``, but generally this is the file with the highest
-version number assuming you have branched from the correct location.  That is,
-the ``release`` branch will not contain the later-versioned release notes file
-found on the ``master`` branch.
+``release`` or ``master``.  For the ``release`` branch notes should be added
+to ``release.txt``.  For the ``master`` branch notes should be added to
+``master.txt``.  Note that the ``master.txt`` file should not exist if you
+have branched off of ``release``, but both files will exist if you have
+branched off of ``master``.
 
 The changes to the release notes files should, at a very high level, describe
 the changes that the PR is introducing.  Usually you would add one or more
