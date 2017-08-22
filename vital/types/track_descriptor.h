@@ -151,7 +151,7 @@ public:
   // -- TYPES --
   typedef std::vector< track_descriptor_sptr > vector_t;
   typedef kwiver::vital::descriptor_dynamic< double > descriptor_data_t;
-  typedef std::shared_ptr< descriptor_data_t > descriptor_data_sptr_t;
+  typedef std::shared_ptr< descriptor_data_t > descriptor_data_sptr;
   typedef std::vector< history_entry > descriptor_history_t;
   typedef std::string descriptor_id_t;
 
@@ -244,7 +244,7 @@ public:
    *
    * @param data Descriptor data vector
    */
-  void set_descriptor( descriptor_data_sptr_t const& data );
+  void set_descriptor( descriptor_data_sptr const& data );
 
 
   /**
@@ -255,7 +255,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_sptr_t const& get_descriptor() const;
+  descriptor_data_sptr const& get_descriptor() const;
 
 
   /**
@@ -270,7 +270,7 @@ public:
    *
    * @return Reference to descriptor data vector.
    */
-  descriptor_data_sptr_t& get_descriptor();
+  descriptor_data_sptr& get_descriptor();
 
 
   //@{
@@ -408,7 +408,7 @@ private:
   std::vector< uint64_t > track_ids_;
 
   /// Actual descriptor data contents
-  descriptor_data_sptr_t data_;
+  descriptor_data_sptr data_;
 
   /// History of descriptor, if known
   descriptor_history_t history_;

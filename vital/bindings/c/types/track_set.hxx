@@ -30,56 +30,48 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief C/C++ interface to vital::track_set class
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#ifndef VITAL_C_TRACK_SET_HXX_
+#define VITAL_C_TRACK_SET_HXX_
 
-#include <vital/vital_config.h>
-
-#include <vital/algo/algorithm.h>
-
-#include <vital/types/timestamp.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
-
-namespace kwiver {
-namespace vital {
-namespace algo {
-
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
-{
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
-
-  /// Compute track descriptors given an image and tracks
-  /**
-   * \param ts timestamp for the current frame
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
-   */
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks ) = 0;
-
-protected:
-  compute_track_descriptors();
-
-};
+#include <vital/bindings/c/vital_c_export.h>
+#include <vital/bindings/c/types/track_set.h>
+#include <vital/types/track_set.h>
 
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
+// -----------------------------------------------------------------------------
+// These two functions are a bridge between C++ and the internal C smart pointer
+// management.
+// -----------------------------------------------------------------------------
 
 
-} } } // end namespace
+/// Create a vital_trackset_t around an existing shared pointer.
+/**
+ * If an error occurs, a NULL pointer is returned.
+ *
+ * \param ds Shared pointer to a vital::track_set instance.
+ * \param eh Vital error handle instance. May be null to ignore errors.
+ */
+VITAL_C_EXPORT
+vital_trackset_t*
+vital_track_set_new_from_sptr( kwiver::vital::track_set_sptr ts_sptr,
+                               vital_error_handle_t* eh );
 
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+
+/// Get the vital::track_set shared pointer for a handle.
+/**
+ * If an error occurs, an empty shared pointer is returned.
+ *
+ * \param ds Vital C handle to the track_set instance to get the shared
+ *   pointer reference of.
+ * \param eh Vital error handle instance. May be null to ignore errors.
+ */
+VITAL_C_EXPORT
+kwiver::vital::track_set_sptr
+vital_track_set_to_sptr( vital_trackset_t* ts,
+                         vital_error_handle_t* eh );
+
+
+#endif // VITAL_C_TRACK_SET_HXX_

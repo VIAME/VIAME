@@ -14,7 +14,10 @@ set( burnout_linked_libs
   kwiversys
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
-  kwiver_algo_ocv )
+  kwiver_algo_ocv
+  kwiver_algo_vxl )
+
+include_directories( SYSTEM ${VIDTK_INCLUDE_DIRS} )
 
 include_directories( SYSTEM ${VIDTK_INCLUDE_DIRS} )
 

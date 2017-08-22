@@ -297,6 +297,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
->>>>>>> dev/tracking-framework
   sprokit::mark_process_module_as_loaded( vpm, module_name );
 } // register_processes

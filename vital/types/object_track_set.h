@@ -57,11 +57,24 @@ class VITAL_EXPORT object_track_state : public track_state
 {
 public:
 
+  /// Default constructor
   object_track_state( frame_id_t frame,
                       detected_object_sptr d = nullptr )
     : track_state( frame )
     , detection( d )
   {}
+
+  /// Copy constructor
+  object_track_state( object_track_state const& ot )
+    : track_state( ot.frame() )
+    , detection( ot.detection )
+  {}
+
+  /// Clone the track state (polymorphic copy constructor)
+  virtual track_state_sptr clone() const
+  {
+    return std::make_shared< object_track_state >( *this );
+  }
 
   detected_object_sptr detection;
 };

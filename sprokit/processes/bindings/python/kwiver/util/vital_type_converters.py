@@ -136,12 +136,9 @@ def _convert_double_vector_out(dlist):
 
 
 # ------------------------------------------------------------------
-def _convert_track_set_handle(datum_ptr):
+def _convert_track_set_in(datum_ptr):
     """
     Convert datum to track set.
-
-    Note: not tested so code is surely wrong. See above for
-    template code.
     """
     _VCL = find_vital_library.find_vital_type_converter_library()
     func = _VCL.vital_trackset_from_datum
@@ -149,6 +146,42 @@ def _convert_track_set_handle(datum_ptr):
     func.restype = TrackSet.C_TYPE_PTR
     return func(datum_ptr)
 
+
+# ------------------------------------------------------------------
+def _convert_track_set_out(handle):
+    """
+    Convert track set to datum
+    """
+    _VCL = find_vital_library.find_vital_type_converter_library()
+    func = _VCL.vital_trackset_to_datum
+    func.argtypes = [ TrackSet.C_TYPE_PTR ]
+    func.restype = ctypes.py_object
+    return func(handle)
+
+
+# ------------------------------------------------------------------
+def _convert_object_track_set_in(datum_ptr):
+    """
+    Convert datum to track set.
+    """
+    _VCL = find_vital_library.find_vital_type_converter_library()
+    func = _VCL.vital_object_trackset_from_datum
+    func.argtypes = [ ctypes.py_object ]
+    func.restype = TrackSet.C_TYPE_PTR
+    return func(datum_ptr)
+
+
+# ------------------------------------------------------------------
+def _convert_object_track_set_out(handle):
+    """
+    Convert track set to datum
+    """
+    _VCL = find_vital_library.find_vital_type_converter_library()
+    func = _VCL.vital_object_trackset_to_datum
+    func.argtypes = [ TrackSet.C_TYPE_PTR ]
+    func.restype = ctypes.py_object
+    return func(handle)
+    
 
 # ------------------------------------------------------------------
 def convert_string_vector_in(datum_ptr):
