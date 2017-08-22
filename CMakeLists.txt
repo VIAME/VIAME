@@ -11,7 +11,7 @@ include( CMakeDependentOption )
 ###
 # Add paths used throughout CMakeLists files
 ##
-list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${KWIVER_CMAKE_DIR}" )
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVER_CMAKE_DIR}" )
 
 set( VIAME_SOURCE_DIR            "${CMAKE_SOURCE_DIR}" )
 set( VIAME_BINARY_DIR            "${CMAKE_BINARY_DIR}/build" )
@@ -342,19 +342,19 @@ else()
     set( VIAME_SETUP_SCRIPT             "${VIAME_BINARY_DIR}/setup_viame.bat" )
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/pipeline_runner.bat.in
       ${VIAME_PIPELINE_RUNNER_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/processopedia.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/processopedia.bat.in
       ${VIAME_PROCESSOPEDIA_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/plugin_explorer.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/plugin_explorer.bat.in
       ${VIAME_PLUGIN_EXPLORER_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/setup_viame.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/setup_viame.bat.in
       ${VIAME_SETUP_SCRIPT}
     )
 
@@ -367,7 +367,7 @@ else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
+      ${CMAKE_SOURCE_DIR}/cmake/setup_viame.sh.in
       ${VIAME_SETUP_SCRIPT_FILE}
     )
 
