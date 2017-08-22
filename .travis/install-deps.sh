@@ -24,7 +24,14 @@ fi
 # download and unpack Fletch
 HASH_FILE="$HASH_DIR/fletch.sha512"
 cd /tmp
-TAR_FILE_ID=59822a8e8d777f16d01ea140
+if [ -f $TRAVIS_BUILD_DIR/doc/release-notes/master.txt ]; then
+  TAR_FILE_ID=599c39468d777f7d33e9cbe5
+  echo "Using master branch of Fletch"
+else
+  TAR_FILE_ID=59822a8e8d777f16d01ea140
+  echo "Using release branch of Fletch"
+fi
+
 wget https://data.kitware.com/api/v1/file/$TAR_FILE_ID/hashsum_file/sha512 -O fletch.sha512
 RHASH=`cat fletch.sha512`
 echo "Current Fletch tarball hash: " $RHASH
