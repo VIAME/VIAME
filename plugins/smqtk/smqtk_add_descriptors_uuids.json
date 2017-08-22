@@ -1,86 +1,22 @@
 {
     "descriptor_factory": {
-        "type": null,
-        "DescriptorFileElement": {
-            "save_dir": null,
-            "subdir_split": null
-        },
-        "DescriptorMemoryElement": {},
-        "PostgresDescriptorElement": {
-            "binary_col": "vector",
-            "create_table": true,
-            "db_host": null,
-            "db_name": "postgres",
-            "db_pass": null,
-            "db_port": null,
-            "db_user": null,
-            "table_name": "descriptors",
-            "type_col": "type_str",
-            "uuid_col": "uid"
-        },
-        "SolrDescriptorElement": {
-            "commit_on_set": true,
-            "persistent_connection": false,
-            "solr_conn_addr": null,
-            "timeout": 10,
-            "timestamp_field": null,
-            "type_field": null,
-            "uuid_field": null,
-            "vector_field": null
-        }
+        "type": "DescriptorMemoryElement",
+        "DescriptorMemoryElement": {}
     },
     "descriptor_index": {
-        "type": null,
-        "MemoryDescriptorIndex": {
-            "cache_element": {
-                "DataFileElement": {
-                    "explicit_mimetype": null,
-                    "filepath": null,
-                    "readonly": false
-                },
-                "DataMemoryElement": {
-                    "bytes": null,
-                    "content_type": null,
-                    "readonly": false
-                },
-                "DataUrlElement": {
-                    "url_address": null
-                },
-                "GirderDataElement": {
-                    "api_key": null,
-                    "api_root": "http://localhost:8080/api/v1",
-                    "file_id": null,
-                    "token": null
-                },
-                "type": null
-            },
-            "pickle_protocol": -1
-        },
+        "type": "PostgresDescriptorIndex",
         "PostgresDescriptorIndex": {
-            "create_table": true,
-            "db_host": null,
-            "db_name": "postgres",
+            "db_host": "CHANGE ME",
+            "db_name": "CHANGE ME",
             "db_pass": null,
-            "db_port": null,
-            "db_user": null,
+            "db_port": 5432,
+            "db_user": "CHANGE ME",
             "element_col": "element",
             "multiquery_batch_size": 1000,
             "pickle_protocol": -1,
             "read_only": false,
-            "table_name": "descriptor_index",
+            "table_name": "CHANGE_ME",
             "uuid_col": "uid"
-        },
-        "SolrDescriptorIndex": {
-            "commit_on_add": true,
-            "d_uid_field": null,
-            "descriptor_field": null,
-            "index_uuid": null,
-            "index_uuid_field": null,
-            "max_boolean_clauses": 1024,
-            "pickle_protocol": -1,
-            "solr_conn_addr": null,
-            "solr_params": null,
-            "timestamp_field": null
         }
     }
 }
