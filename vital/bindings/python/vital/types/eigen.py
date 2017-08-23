@@ -419,7 +419,6 @@ class EigenArray (numpy.ndarray, VitalObject):
         # Not smart-pointer controlled in C++. We might not own the data we're
         # viewing.
         if self.c_pointer and self._owns_data:
-            # print("Destroying")
             m_del = self.VITAL_LIB[self._func_map['destroy']]
             m_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
             with VitalErrorHandle() as eh:

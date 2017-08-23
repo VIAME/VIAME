@@ -112,7 +112,6 @@ class ConfigBlock (VitalObject):
             return cb_new()
 
     def _destroy(self):
-        # print("Destroying CB: \"%s\" %d" % (self.name, self._inst_ptr))
         if self.c_pointer:
             self.VITAL_LIB.vital_config_block_destroy(self)
 
