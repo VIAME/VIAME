@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Landmark interface
 
 """
+from __future__ import print_function
 import ctypes
 import unittest
 
@@ -66,7 +67,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_get_loc(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
 
             l = Landmark(c_type=ct)
             numpy.testing.assert_equal(l.loc, [[0],
@@ -80,7 +81,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_set_loc(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
 
             l = Landmark(c_type=ct)
             l.loc = [[1],
@@ -98,7 +99,7 @@ class TestLandmark (unittest.TestCase):
     def test_get_scale(self):
         for ct in self.C_TYPES:
             l = Landmark(c_type=ct)
-            print ct
+            print(ct)
 
             nose.tools.assert_equal(l.scale, 1)
 
@@ -113,7 +114,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_set_scale(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
 
             l = Landmark(c_type=ct)
             l.scale = 1
@@ -134,7 +135,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_normal(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
             l = Landmark(c_type=ct)
 
             # check default
@@ -151,7 +152,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_covariance(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
             l = Landmark(c_type=ct)
 
             # check default
@@ -169,7 +170,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_color(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
             l = Landmark(c_type=ct)
 
             # default
@@ -185,7 +186,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_observations(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
             l = Landmark(c_type=ct)
 
             # default
@@ -222,7 +223,7 @@ class TestLandmark (unittest.TestCase):
 
     def test_equal(self):
         for ct in self.C_TYPES:
-            print ct
+            print(ct)
 
             l = Landmark(c_type=ct)
             l2 = Landmark(c_type=ct)

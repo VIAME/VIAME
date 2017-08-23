@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for python Homography interface
 
 """
+from __future__ import print_function
 import ctypes
 import sys
 import os
@@ -69,7 +70,7 @@ class TestHomography (unittest.TestCase):
         Homography.from_matrix(m2_d, ctypes.c_float)
         Homography.from_matrix(m2_f, ctypes.c_double)
         Homography.from_matrix(m2_f, ctypes.c_float)
-    
+
     def random(self):
         Homography.random(ctypes.c_double)
         Homography.random(ctypes.c_float)
@@ -210,7 +211,7 @@ class TestHomography (unittest.TestCase):
         numpy.testing.assert_almost_equal(
             h_d.map(p_d), p_d
         )
-        
+
         # Code to generate truth
         h = numpy.random.rand(3,3)
         h = h/numpy.linalg.norm(h)
@@ -218,18 +219,18 @@ class TestHomography (unittest.TestCase):
         p1 = numpy.dot(h, p0)
         p1 = p1[:2]/p1[2]
         h_d = Homography.from_matrix(h, ctypes.c_double)
-        
+
         # map from Numpy array.
         numpy.testing.assert_almost_equal(
             h_d.map(p0[:2]).ravel(), p1
         )
-        
+
         # map from EigenArray
         p0 = EigenArray.from_iterable(p0[:2])
         numpy.testing.assert_almost_equal(
             h_d.map(p0).ravel(), p1
         )
-        
+
         # Another explicit case.
         p0 = numpy.array([1923.47,645.676,1])
         h = numpy.array([[5.491496261770000276e-01,-1.125428185150000038e-01,
@@ -244,15 +245,15 @@ class TestHomography (unittest.TestCase):
         numpy.testing.assert_almost_equal(
             H.map(P).ravel(), p1
         )
-        
+
 
     def test_point_map_zero_div(self):
         test_p = [1, 1]
 
         for dtype, e in [[ctypes.c_float, numpy.finfo(ctypes.c_float).min],
                          [ctypes.c_double, sys.float_info.min]]:
-            print "Dtype:", dtype
-            print "E:", e
+            print("Dtype:", dtype)
+            print("E:", e)
 
             # where [2,2] = 0
             h = Homography.from_matrix([[1, 0, 1],
@@ -270,7 +271,7 @@ class TestHomography (unittest.TestCase):
                                         [0, 1, 1],
                                         [0, 0, e]],
                                        dtype)
-            print "E Matrix:", h.as_matrix()
+            print("E Matrix:", h.as_matrix())
             nose.tools.assert_raises(
                 PointMapsToInfinityException,
                 h.map, test_p
@@ -313,19 +314,19 @@ class TestHomography (unittest.TestCase):
             TypeError,
             h_mult, h_ident, 'a string'
         )
-    
+
     def test_write_to_file(self):
         # Use a random string filename to avoid name collision.
         fname = 'temp_homography_test_write_to_file.txt'
-        
+
         h = Homography.from_matrix([[1, 0,  1],
                                     [0, 12.01321561,  1],
                                     [0, 0, .5]])
-        
+
         try:
             # Try writing with the string filename.
             h.write_to_file(fname)
-            
+
             # Try writing with an open file.
             with open(fname, 'w') as f:
                 h.write_to_file(f)
@@ -336,24 +337,24 @@ class TestHomography (unittest.TestCase):
     def test_read_from_file(self):
         # Use a random string filename to avoid name collision.
         fname = 'temp_homography_test_read_from_file.txt'
-        
+
         # Reference homography
         h = Homography.from_matrix([[1, 0,  1],
                                     [0, 12.01321561,  1],
                                     [0, 0, .5]])
-        
+
         try:
             h.write_to_file(fname)
-            
+
             # Try reading with the string filename.
             h2 = Homography.read_from_file(fname)
             assert h == h2
-            
+
             # Try reading from an open file.
             with open(fname, 'r') as f:
                 h2 = Homography.read_from_file(f)
-            
-            numpy.testing.assert_almost_equal(h.as_matrix(), 
+
+            numpy.testing.assert_almost_equal(h.as_matrix(),
                                               h2.as_matrix())
         finally:
             if os.path.isfile(fname):

@@ -27,6 +27,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
@@ -43,7 +44,7 @@ class ProcessImage(KwiverProcess):
         KwiverProcess.__init__(self, conf)
 
         self.add_config_trait("output", "output", '.',
-        'The path of the file to output to.')
+                              'The path of the file to output to.')
 
         self.declare_config_using_trait( 'output' )
 
@@ -61,14 +62,14 @@ class ProcessImage(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
-        print "[DEBUG] ----- configure"
+        print("[DEBUG] ----- configure")
         path = self.config_value('output')
 
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-        print "[DEBUG] ----- start step"
+        print("[DEBUG] ----- start step")
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
