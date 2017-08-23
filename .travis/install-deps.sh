@@ -2,9 +2,10 @@
 set -e
 
 INSTALL_DIR=$HOME/deps
-FLETCH_DIR=/opt/fletch
+FLETCH_DIR=/opt/kitware/fletch
 export PATH=$INSTALL_DIR/bin:$FLETCH_DIR/bin:$PATH
-HASH_DIR=$FLETCH_DIR/hashes
+HASH_DIR=/opt/kitware/hashes
+mkdir -p $FLETCH_DIR
 mkdir -p $HASH_DIR
 mkdir -p $INSTALL_DIR
 
