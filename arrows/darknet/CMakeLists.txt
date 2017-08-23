@@ -1,8 +1,5 @@
 # Build/install plugin for darknet CNN support
 #
-find_package(Darknet REQUIRED)
-include_directories( SYSTEM ${Darknet_INCLUDE_DIR})
-
 
 set( headers
   darknet_custom_resize.h
