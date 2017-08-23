@@ -61,26 +61,40 @@ class motion_detector_MOG2::priv
 {
 public:
   /// Parameters
-  int history;
-  double var_threshold;
+  int m_frame_count;
+  int m_history;
+  double m_var_threshold;
+  double m_learning_rate;
+  int m_blur_kernel_size;
+  int m_min_frames;
+  int m_nmixtures;
   cv::Ptr<cv::BackgroundSubtractor> bg_model;
   image_container_sptr motion_heat_map;
+  kwiver::vital::logger_handle_t m_logger;
 
   /// Constructor
   priv()
-     : history(100),
-       var_threshold(36.0)
+     : 
+       m_frame_count(0),
+       m_history(100),
+       m_var_threshold(36.0),
+       m_learning_rate(0.01),
+       m_blur_kernel_size(3),
+       m_min_frames(1),
+       m_nmixtures(3)
   {
   }
 
   /// Create new impl instance based on current parameters
   void reset()
   {
+    m_frame_count = 0;
 #ifdef KWIVER_HAS_OPENCV_VER_3
-    bg_model = cv::createBackgroundSubtractorMOG2( history, var_threshold, false );
+    bg_model = cv::createBackgroundSubtractorMOG2( m_history, m_var_threshold, false );
 #else
-    bg_model = new cv::BackgroundSubtractorMOG2(history, var_threshold, false);
+    bg_model = new cv::BackgroundSubtractorMOG2(m_history, m_var_threshold, false);
 #endif
+    bg_model->set("nmixtures", m_nmixtures);
   }
 };
 
@@ -91,6 +105,7 @@ motion_detector_MOG2
 : d_(new priv)
 {
   attach_logger( "arrows.ocv.motion_detector_MOG2" );
+  d_->m_logger = logger();
   d_->reset();
 }
 
@@ -109,7 +124,24 @@ motion_detector_MOG2
 {
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
-
+  
+  config->set_value( "var_threshold", d_->m_var_threshold,
+                     "Threshold on the squared Mahalanobis distance between "
+                     "the pixel and the model to decide whether a pixel is "
+                     "well described by the background model. This parameter "
+                     "does not affect the background update." );
+  config->set_value( "history", d_->m_history,
+                     "Length of the history." );
+  config->set_value( "learning_rate", d_->m_learning_rate,
+                     "determines how quickly features are “forgotten” from "
+                     "histograms (range 0-1)." );
+  config->set_value( "blur_kernel_size", d_->m_blur_kernel_size,
+                     "Diameter of the normalized box filter blurring "
+                     "kernel (positive integer)." );
+  config->set_value( "min_frames", d_->m_min_frames,
+                     "Minimum frames that need to be included in the "
+                     "background model before detections are emmited." );
+  
   return config;
 }
 
@@ -123,6 +155,18 @@ motion_detector_MOG2
   // An alternative is to check for key presence before performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
+  
+  d_->m_var_threshold          = config->get_value<double>( "var_threshold" );
+  d_->m_history                = config->get_value<int>( "history" );
+  d_->m_learning_rate          = config->get_value<double>( "learning_rate" );
+  d_->m_blur_kernel_size       = config->get_value<int>( "blur_kernel_size" );
+  d_->m_min_frames             = config->get_value<int>( "min_frames" );
+  
+  LOG_DEBUG( logger(), "var_threshold: " << std::to_string(d_->m_var_threshold));
+  LOG_DEBUG( logger(), "history: " << std::to_string(d_->m_history));
+  LOG_DEBUG( logger(), "learning_rate: " << std::to_string(d_->m_learning_rate));
+  LOG_DEBUG( logger(), "blur_kernel_size: " << std::to_string(d_->m_blur_kernel_size));
+  LOG_DEBUG( logger(), "min_frames: " << std::to_string(d_->m_min_frames));
 }
 
 
@@ -148,21 +192,28 @@ motion_detector_MOG2
 
   cv::Mat cv_src;
   ocv::image_container::vital_to_ocv(image->get_image()).copyTo(cv_src);
-  cv::blur(cv_src, cv_src, cv::Size(5,5) );
+  cv::blur(cv_src, cv_src, cv::Size(d_->m_blur_kernel_size, d_->m_blur_kernel_size) );
 
-  std::cout << "Running MOG2 motion detector";
   cv::Mat fgmask;
 #ifdef KWIVER_HAS_OPENCV_VER_3
-  d_->bg_model->apply( cv_src, fgmask, learning_rate );
+  d_->bg_model->apply( cv_src, fgmask, d_->m_learning_rate );
 #else
-  d_->bg_model->operator()(cv_src, fgmask, learning_rate);
+  d_->bg_model->operator()(cv_src, fgmask, d_->m_learning_rate);
 #endif
-  std::cout << "Finished MOG2 motion detector for this iteration";
+  LOG_TRACE( logger(), "Finished MOG2 motion detector for this iteration");
+  
+  ++ d_->m_frame_count;
+  
+  if( d_->m_frame_count < d_->m_min_frames )
+  {
+    // Haven't collected enough frames for an accurate motion assessment
+    fgmask = cv::Scalar(0);
+  }
 
   //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
   //cv::imshow("Display window", fgmask);
   d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask);
-  //d_->motion_heat_map = image;
+  //d->motion_heat_map = image;
 
   return d_->motion_heat_map;
 }
