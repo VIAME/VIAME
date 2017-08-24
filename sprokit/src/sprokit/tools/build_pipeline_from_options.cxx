@@ -49,17 +49,15 @@ build_pipeline_from_options( boost::program_options::variables_map const& vm,
   if (!vm.count("pipeline"))
   {
     std::cerr << "Error: pipeline option not set" << std::endl;
-
     tool_usage(EXIT_FAILURE, desc);
   }
 
   kwiver::vital::path_t const ipath = vm["pipeline"].as<kwiver::vital::path_t>();
-
   istream_t const istr = open_istream(ipath);
 
   /// \todo Include paths?
 
-  this->load_pipeline(*istr);
+  this->load_pipeline(*istr, ipath);
   this->load_from_options(vm);
 }
 
