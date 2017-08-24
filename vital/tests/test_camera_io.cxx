@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,29 +33,35 @@
  * \brief core camera_io tests
  */
 
-#include <test_common.h>
-
-#include <iostream>
-#include <sstream>
+#include <tests/test_eigen.h>
+#include <tests/test_gtest.h>
 
 #include <vital/io/camera_io.h>
 #include <vital/exceptions.h>
 
+#include <iostream>
+#include <sstream>
 
-#define TEST_ARGS ( kwiver::vital::path_t const &data_dir )
-DECLARE_TEST_MAP();
+kwiver::vital::path_t g_data_dir;
 
-
+// ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-  CHECK_ARGS(2);
-  testname_t const testname = argv[1];
-  kwiver::vital::path_t data_dir( argv[2] );
-  RUN_TEST( testname, data_dir );
+  ::testing::InitGoogleTest( &argc, argv );
+
+  GET_ARG(1, g_data_dir);
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+class camera_io : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
 
-IMPLEMENT_TEST(KRTD_format_read)
+// ----------------------------------------------------------------------------
+TEST_F(camera_io, KRTD_format_read)
 {
   kwiver::vital::path_t test_read_file = data_dir + "/test_camera_io-valid_format.krtd";
   kwiver::vital::camera_sptr read_camera = kwiver::vital::read_krtd_file( test_read_file );
@@ -65,59 +71,45 @@ IMPLEMENT_TEST(KRTD_format_read)
                          0, 5, 6,
                          0, 0, 1;
   Eigen::Matrix<double,3,3> K( read_camera->intrinsics()->as_matrix() );
-  std::cerr << "Read in K: " << K << std::endl;
-  TEST_EQUAL( "read camera intrinsics",
-              K.isApprox( expected_intrinsics ), true );
+  EXPECT_MATRIX_EQ( expected_intrinsics, K );
 
   Eigen::Matrix<double,3,3> expected_rotation;
   expected_rotation << 1, 0, 0,
                        0, 1, 0,
                        0, 0, 1;
   Eigen::Matrix<double,3,3> R( read_camera->rotation().matrix() );
-  std::cerr << "Read in R: " << R << std::endl;
-  TEST_EQUAL( "read camera rotation",
-              R.isApprox( expected_rotation ), true );
+  EXPECT_MATRIX_EQ( expected_rotation, R );
 
   Eigen::Matrix<double,3,1> expected_translation;
   expected_translation << 1, 2, 3;
   Eigen::Matrix<double,3,1> T( read_camera->translation() );
-  std::cerr << "Read in T: " << T << std::endl;
-  TEST_EQUAL( "read camera translation",
-              T.isApprox( expected_translation ), true );
+  EXPECT_MATRIX_EQ( expected_translation, T );
   std::vector<double> expected_distortion = {1, 2, 3, 4, 5};
   std::vector<double> D = read_camera->intrinsics()->dist_coeffs() ;
-  std::cerr << "Read in D: ";
-  for (size_t i = 0; i < D.size(); ++i)
-  {
-    std::cerr << D[i] << std::endl;
-  }
-  TEST_EQUAL( "read camera distortion",
-              D == expected_distortion, true );
+  EXPECT_EQ( expected_distortion, D );
 }
 
-
-IMPLEMENT_TEST(invalid_file_path)
+// ----------------------------------------------------------------------------
+TEST_F(camera_io, invalid_file_path)
 {
-  EXPECT_EXCEPTION(
-      kwiver::vital::file_not_found_exception,
-      kwiver::vital::read_krtd_file( data_dir + "/not_a_file.blob" ),
-      "tried loading an invalid file path"
-      );
+  EXPECT_THROW(
+    kwiver::vital::read_krtd_file( data_dir + "/not_a_file.blob" ),
+    kwiver::vital::file_not_found_exception )
+    << "Tried loading an invalid file path";
 }
 
-
-IMPLEMENT_TEST(invalid_file_content)
+// ----------------------------------------------------------------------------
+TEST_F(camera_io, invalid_file_content)
 {
   kwiver::vital::path_t invalid_content_file = data_dir + "/test_camera_io-invalid_file.krtd";
-  EXPECT_EXCEPTION(
-      kwiver::vital::invalid_data,
-      kwiver::vital::camera_sptr cam = kwiver::vital::read_krtd_file( invalid_content_file ),
-      "tried loading a file with invalid data"
-      );
+  EXPECT_THROW(
+    kwiver::vital::camera_sptr cam = kwiver::vital::read_krtd_file( invalid_content_file ),
+    kwiver::vital::invalid_data )
+    << "Tried loading a file with invalid data";
 }
 
-
-IMPLEMENT_TEST(output_format_test)
+// ----------------------------------------------------------------------------
+TEST_F(camera_io, output_format_test)
 {
   kwiver::vital::simple_camera cam;
   std::cerr << "Default constructed camera\n" << cam << std::endl;
@@ -129,19 +121,18 @@ IMPLEMENT_TEST(output_format_test)
   // vector is negated.
   std::stringstream ss;
   ss << cam;
-  TEST_EQUAL(
-      "camera output string test",
-      ss.str(),
-      "1 0 0\n"
-      "0 1 0\n"
-      "0 0 1\n"
-      "\n"
-      "1 0 0\n"
-      "0 1 0\n"
-      "0 0 1\n"
-      "\n"
-      "-0 -0 -0\n"
-      "\n"
-      "0\n"
-      );
+  EXPECT_EQ(
+    "1 0 0\n"
+    "0 1 0\n"
+    "0 0 1\n"
+    "\n"
+    "1 0 0\n"
+    "0 1 0\n"
+    "0 0 1\n"
+    "\n"
+    "-0 -0 -0\n"
+    "\n"
+    "0\n",
+    ss.str() )
+    << "Camera output string test";
 }

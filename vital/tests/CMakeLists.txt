@@ -11,7 +11,6 @@ set( test_libraries vital vital_vpm vital_algo )
 ##############################
 
 kwiver_discover_tests(core_camera             test_libraries test_camera.cxx)
-kwiver_discover_tests(core_camera_io          test_libraries test_camera_io.cxx  "${kwiver_test_data_directory}"  )
 kwiver_discover_tests(core_camera_intrinsics  test_libraries test_camera_intrinsics.cxx)
 kwiver_discover_tests(core_config             test_libraries test_config.cxx )
 kwiver_discover_tests(core_enumerate_matrix   test_libraries test_enumerate_matrix.cxx )
@@ -39,6 +38,7 @@ kwiver_discover_tests(core_detected_object_type     test_libraries    test_detec
 kwiver_discover_tests(core_detected_object          test_libraries    test_detected_object.cxx)
 kwiver_discover_tests(core_detected_object_set      test_libraries    test_detected_object_set.cxx)
 
+kwiver_discover_gtests(core     camera_io     LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}" )
 kwiver_discover_gtests(core     geodesy       LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core     geo_point     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core     geo_polygon   LIBRARIES ${test_libraries})
