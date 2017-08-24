@@ -1,7 +1,5 @@
 project(kwiver_config_tests)
 
-find_package(GTest REQUIRED)
-
 include(kwiver-test-setup)
 
 set( test_libraries vital_config kwiversys )

@@ -1,7 +1,5 @@
 project(kwiver_vital_metadata_tests)
 
-find_package(GTest REQUIRED)
-
 include(kwiver-test-setup)
 
 set(test_libraries vital vital_vpm vital_algo vital_video_metadata )

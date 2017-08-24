@@ -1,7 +1,5 @@
 project(kwiver_core_tests)
 
-find_package(GTest REQUIRED)
-
 include(kwiver-test-setup)
 
 set( test_libraries vital vital_vpm vital_algo )
