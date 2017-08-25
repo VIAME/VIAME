@@ -226,6 +226,8 @@ burnout_track_descriptors
         vidtk_t->add_state( vital_to_vidtk( ots ) );
       }
     }
+
+    input_tracks.push_back( vidtk_t );
   }
 
   if( image_data )
