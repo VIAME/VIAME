@@ -1,4 +1,13 @@
 # =============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+config _scheduler
+   :type pythread_per_process
+
+# =============================================================================
 process input
   :: frame_list_input
   :image_list_file     input_list.txt
@@ -11,17 +20,8 @@ process detector
   :text                Hello World!! (from python)
 
 # =============================================================================
-# global pipeline config
-#
-config _pipeline:_edge
-       :capacity 5
-
-# =============================================================================
 # connections
 connect from input.image
         to   detector.image
-
-config _scheduler
-   :type pythread_per_process
 
 # -- end of file --
