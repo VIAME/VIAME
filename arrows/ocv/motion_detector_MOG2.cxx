@@ -207,9 +207,11 @@ motion_detector_MOG2
   if( d_->m_frame_count < d_->m_min_frames )
   {
     // Haven't collected enough frames for an accurate motion assessment
+    LOG_TRACE( logger(), "Haven't collected enough frames yet, so setting "
+                         "foreground mask to all zeros.");
     fgmask = cv::Scalar(0);
   }
-
+  
   //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
   //cv::imshow("Display window", fgmask);
   d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask);
