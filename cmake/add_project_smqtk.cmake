@@ -16,9 +16,13 @@ else()
     ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
   set( CUSTOM_PYTHONPATH
     ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages:$ENV{PYTHONPATH} )
+  set( CUSTOM_PATH
+    ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
   set( SMQTK_PYTHON_INSTALL
     ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
-      ${PYTHON_EXECUTABLE} setup.py install --prefix=${VIAME_BUILD_INSTALL_PREFIX} )
+                        env PATH=${CUSTOM_PATH}
+                        env PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
+      ${PYTHON_EXECUTABLE} -m pip install --user -e .[postgres] )
 endif()
 
 ExternalProject_Add( smqtk
