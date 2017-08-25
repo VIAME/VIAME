@@ -107,7 +107,7 @@ class SmqtkAddDescriptorsUuids (KwiverProcess):
         # Vector of UIDs for vector of descriptors in descriptor_set.
         #
         #: :type: list[str]
-        string_tuple = self.grap_input_using_trait('string_vector')
+        string_tuple = self.grab_input_using_trait('string_vector')
 
         if len(vital_descriptor_set) != len(string_tuple):
             raise RuntimeError("Received an incongruent pair of descriptors "
