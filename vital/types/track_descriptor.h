@@ -79,7 +79,7 @@ public:
    * track_descriptor documentation). Only quanities which get used
    * downstream need be filled.
    */
-  class history_entry
+  class VITAL_EXPORT history_entry
   {
   public:
     // -- TYPES --

@@ -53,7 +53,7 @@ namespace vital {
 /// A representation of a filter used within database queries.
 enum class query_filter
 {
-  IGNORE = 0,
+  IGNORE_FILTER = 0,
   CONTAINS_WHOLLY,
   CONTAINS_PARTLY,
   INTERSECTS, // partly but not wholly contained
