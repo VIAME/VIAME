@@ -189,6 +189,11 @@ motion_detector_MOG2
   {
     throw vital::invalid_data("Inputs to ocv::motion_detector_MOG2 are null");
   }
+  
+  if( reset_model )
+  {
+    d_->reset();
+  }
 
   cv::Mat cv_src;
   ocv::image_container::vital_to_ocv(image->get_image()).copyTo(cv_src);
