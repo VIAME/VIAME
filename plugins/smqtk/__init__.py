@@ -26,21 +26,21 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from viame.processes.smqtk import smqtk_add_descriptors_uuids
+from viame.processes.smqtk import smqtk_ingest_descriptors
 
 
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:smqtk.smqtk_add_descriptors_uuids'
+    module_name = 'python:smqtk.smqtk_ingest_descriptors'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
     process_factory.add_process(
-        'smqtk_add_descriptors_uuids',
+        'smqtk_ingest_descriptors',
         'Add descriptors and parallel UUIDs to a SMQTK descriptor index',
-        smqtk_add_descriptors_uuids.SmqtkAddDescriptorsUuids
+        smqtk_ingest_descriptors.SmqtkIngestDescriptors
     )
 
     process_factory.mark_process_module_as_loaded(module_name)

@@ -39,7 +39,7 @@ import smqtk.representation
 import smqtk.utils.plugin
 
 
-class SmqtkAddDescriptorsUuids (KwiverProcess):
+class SmqtkIngestDescriptors (KwiverProcess):
     """
     Process for taking in descriptor sets and matching UIDs, converting them
     into SMQTK descriptor elements (variable backend) and adding them to a SMQTK
