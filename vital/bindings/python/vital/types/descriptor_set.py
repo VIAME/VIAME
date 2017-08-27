@@ -112,7 +112,8 @@ class DescriptorSet (VitalObject):
 
         d_list = []
         for i in range(out_d_array_size.value):
-            d_list.append(Descriptor(from_cptr=out_d_array[i]))
+            cptr = Descriptor.c_ptr_type()(out_d_array[i].contents)
+            d_list.append(Descriptor(from_cptr = cptr))
         free_void_ptr(out_d_array)
 
         return d_list
