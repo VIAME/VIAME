@@ -34,6 +34,7 @@
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
+#include <vital/types/uid.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
@@ -78,7 +79,7 @@ public:
    * track_descriptor documentation). Only quanities which get used
    * downstream need be filled.
    */
-  class history_entry
+  class VITAL_EXPORT history_entry
   {
   public:
     // -- TYPES --
@@ -202,6 +203,26 @@ public:
    * @return The descriptor identifier.
    */
   descriptor_id_t const& get_type() const;
+
+
+  /**
+   * \brief Override the descriptor uid for this descriptor.
+   *
+   * Sets a new identifier for this descriptor.
+   *
+   * @param id The descriptor identifier
+   */
+  void set_uid( const vital::uid& id );
+
+
+  /**
+   * \brief Returns the descriptor uid.
+   *
+   * This function returns the descriptor uid.
+   *
+   * @return The descriptor unique identifier.
+   */
+  vital::uid const& get_uid() const;
 
 
   /**
@@ -403,6 +424,9 @@ private:
 
   /// Descriptor type ID
   descriptor_id_t type_;
+
+  /// Descriptor unique ID
+  vital::uid uid_;
 
   /// IDs of tracks this descriptor came from, if exists.
   std::vector< uint64_t > track_ids_;

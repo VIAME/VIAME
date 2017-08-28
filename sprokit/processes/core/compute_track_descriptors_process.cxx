@@ -50,9 +50,12 @@ namespace kwiver
 
 namespace algo = vital::algo;
 
-create_config_trait( inject_to_detections, bool, "true",
+create_config_trait( inject_to_detections, bool, "false",
   "If the input are single frame detections (not tracks) then "
   "put the computed descriptors into the detection objects." );
+create_config_trait( add_file_name_uid, bool, "false",
+  "Compute a unique UID comprised of filename, timestamp, and "
+  "descriptor index, over-writing the default in each descriptor." );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -63,6 +66,7 @@ public:
   ~priv();
 
   bool inject_to_detections;
+  bool add_file_name_uid;
 
   algo::compute_track_descriptors_sptr m_computer;
 }; // end priv class
@@ -116,6 +120,7 @@ void compute_track_descriptors_process
   }
 
   d->inject_to_detections = config_value_using_trait( inject_to_detections );
+  d->add_file_name_uid = config_value_using_trait( add_file_name_uid );
 }
 
 
@@ -129,6 +134,7 @@ compute_track_descriptors_process
   vital::image_container_sptr image;
   vital::object_track_set_sptr tracks;
   vital::detected_object_set_sptr detections;
+  std::string file_name;
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
@@ -151,6 +157,11 @@ compute_track_descriptors_process
   if( process::has_input_port_edge( "object_track_set" ) )
   {
     tracks = grab_from_port_using_trait( object_track_set );
+  }
+
+  if( process::has_input_port_edge( "file_name" ) )
+  {
+    file_name = grab_from_port_using_trait( file_name );
   }
 
   if( detections && tracks )
@@ -217,9 +228,57 @@ compute_track_descriptors_process
     }
   }
 
+  if( d->add_file_name_uid )
+  {
+    unsigned counter = 1;
+
+    VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
+    {
+      std::string new_uid = file_name +
+        "_ts_" + std::to_string( ts.get_frame() ) +
+        "_id_" + std::to_string( counter );
+
+      desc->set_uid( vital::uid( new_uid ) );
+
+      counter++;
+    }
+  }
+
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, output );
-  push_to_port_using_trait( detected_object_set, detections );
+
+  if( process::count_output_port_edges( "string_vector" ) > 0 )
+  {
+    vital::string_vector_sptr uids( new vital::string_vector() );
+
+    VITAL_FOREACH( auto desc, *output )
+    {
+      uids->push_back( desc->get_uid().value() );
+    }
+
+    push_to_port_using_trait( string_vector, uids );
+  }
+
+  if( process::count_output_port_edges( "descriptor_set" ) > 0 )
+  {
+    std::vector< vital::descriptor_sptr > raw_descs;
+
+    VITAL_FOREACH( auto desc, *output )
+    {
+      raw_descs.push_back( desc->get_descriptor() );
+    }
+
+    vital::descriptor_set_sptr dset(
+      new vital::simple_descriptor_set( raw_descs ) );
+
+    push_to_port_using_trait( descriptor_set, dset );
+  }
+
+  if( process::count_output_port_edges( "detected_object_set" ) > 0 )
+  {
+    push_to_port_using_trait( detected_object_set, detections );
+  }
+
 }
 
 
@@ -238,9 +297,12 @@ void compute_track_descriptors_process
   declare_input_port_using_trait( image, required );
   declare_input_port_using_trait( object_track_set, optional );
   declare_input_port_using_trait( detected_object_set, optional );
+  declare_input_port_using_trait( file_name, optional );
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
+  declare_output_port_using_trait( descriptor_set, optional );
+  declare_output_port_using_trait( string_vector, optional );
   declare_output_port_using_trait( detected_object_set, optional );
 }
 
@@ -250,6 +312,7 @@ void compute_track_descriptors_process
 ::make_config()
 {
   declare_config_using_trait( inject_to_detections );
+  declare_config_using_trait( add_file_name_uid );
 }
 
 
@@ -257,6 +320,7 @@ void compute_track_descriptors_process
 compute_track_descriptors_process::priv
 ::priv()
   : inject_to_detections( true )
+  , add_file_name_uid( false )
 {
 }
 

@@ -89,7 +89,7 @@ burnout_track_descriptors
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
-  config->set_value( "config", d->m_config_file,  "Name of config file." );
+  config->set_value( "config_file", d->m_config_file,  "Name of config file." );
 
   return config;
 }
@@ -106,7 +106,7 @@ burnout_track_descriptors
   vital::config_block_sptr config = this->get_configuration();
 
   config->merge_config( config_in );
-  d->m_config_file = config->get_value< std::string >( "config" );
+  d->m_config_file = config->get_value< std::string >( "config_file" );
 
 #ifndef DUMMY_OUTPUT
   vidtk::config_block vidtk_config = d->m_process.params();
@@ -132,7 +132,7 @@ bool
 burnout_track_descriptors
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  std::string config_fn = config->get_value< std::string >( "config" );
+  std::string config_fn = config->get_value< std::string >( "config_file" );
 
   if( config_fn.empty() )
   {
@@ -226,6 +226,8 @@ burnout_track_descriptors
         vidtk_t->add_state( vital_to_vidtk( ots ) );
       }
     }
+
+    input_tracks.push_back( vidtk_t );
   }
 
   if( image_data )
