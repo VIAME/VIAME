@@ -116,7 +116,8 @@ detected_object_set_input_kw18::
 void
 detected_object_set_input_kw18::
 set_configuration(vital::config_block_sptr config)
-{ }
+{
+}
 
 
 // ------------------------------------------------------------------
