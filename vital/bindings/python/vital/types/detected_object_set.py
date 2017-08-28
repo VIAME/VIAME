@@ -85,7 +85,7 @@ class DetectedObjectSet (VitalObject):
     def select(self, one = 0.0, two = None):
 
         c_output = ctypes.POINTER(DetectedObject.c_ptr_type())()
-        length = ctypes.c_size_t() 
+        length = ctypes.c_size_t()
 
         if two is None:
             dos_st = self.VITAL_LIB.vital_detected_object_set_select_threshold
@@ -102,7 +102,8 @@ class DetectedObjectSet (VitalObject):
 
         output = []
         for i in range( length.value ):
-            output.append( DetectedObject( from_cptr=DetectedObject.c_ptr_type()( c_output[i].contents ) ) )
+            cptr = DetectedObject.c_ptr_type()(c_output[i].contents)
+            output.append( DetectedObject(from_cptr = cptr) )
 
         free_void_ptr( c_output )
         return output

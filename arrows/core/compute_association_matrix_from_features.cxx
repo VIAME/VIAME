@@ -58,12 +58,16 @@ class compute_association_matrix_from_features::priv
 public:
   /// Constructor
   priv()
-    : m_logger( vital::get_logger( "arrows.core.compute_association_matrix_from_features" ))
+    : m_max_distance( -1.0 )
+    , m_logger( vital::get_logger( "compute_association_matrix_from_features" ) )
   {
   }
 
+  /// Raw pixel distance threshold
+  double m_max_distance;
+
   /// The feature matching algorithm to use
-  vital::algo::detected_object_filter_sptr filter;
+  vital::algo::detected_object_filter_sptr m_filter;
 
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -101,10 +105,15 @@ compute_association_matrix_from_features
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
+  // Maximum allowed pixel distance for matches
+  config->set_value( "max_distance", d_->m_max_distance,
+    "Maximum allowed pixel distance for matches. Is expressed "
+    "in raw pixel distance." );
+
   // Sub-algorithm implementation name + sub_config block
   // - Feature filter algorithm
   algo::detected_object_filter::get_nested_algo_configuration(
-    "filter", config, d_->filter);
+    "filter", config, d_->m_filter );
 
   return config;
 }
@@ -119,13 +128,15 @@ compute_association_matrix_from_features
   config->merge_config( in_config );
 
   algo::detected_object_filter::set_nested_algo_configuration( "filter",
-    config, d_->filter );
+    config, d_->m_filter );
+
+  d_->m_max_distance = config->get_value< double >( "max_distance" );
 }
 
 
 bool
 compute_association_matrix_from_features
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration( vital::config_block_sptr config ) const
 {
   return (
     algo::detected_object_filter::check_nested_algo_configuration( "filter", config )
@@ -136,17 +147,19 @@ compute_association_matrix_from_features
 /// Compute an association matrix given detections and tracks
 bool
 compute_association_matrix_from_features
-::compute(kwiver::vital::timestamp ts,
-          kwiver::vital::image_container_sptr image,
-          kwiver::vital::object_track_set_sptr tracks,
-          kwiver::vital::detected_object_set_sptr detections,
-          kwiver::vital::matrix_d& matrix,
-          kwiver::vital::detected_object_set_sptr& considered) const
+::compute( kwiver::vital::timestamp ts,
+           kwiver::vital::image_container_sptr image,
+           kwiver::vital::object_track_set_sptr tracks,
+           kwiver::vital::detected_object_set_sptr detections,
+           kwiver::vital::matrix_d& matrix,
+           kwiver::vital::detected_object_set_sptr& considered ) const
 {
-  considered = d_->filter->filter( detections );
+  considered = d_->m_filter->filter( detections );
 
   auto filtered_dets = considered->select();
   auto filtered_tracks = tracks->tracks();
+
+  const double invalid_value = std::numeric_limits< double >::max();
 
   if( filtered_tracks.empty() || filtered_dets.empty() )
   {
@@ -160,7 +173,59 @@ compute_association_matrix_from_features
     {
       for( unsigned d = 0; d < filtered_dets.size(); ++d )
       {
-        matrix( t, d ) = 0.5;
+        track_sptr trk = filtered_tracks[t];
+
+        detected_object::descriptor_sptr det_features = filtered_dets[d]->descriptor();
+        detected_object::descriptor_sptr trk_features;
+
+        if( !trk->empty() )
+        {
+          object_track_state* trk_state =
+            dynamic_cast< object_track_state* >( trk->back().get() );
+
+          if( trk_state->detection )
+          {
+            double dist = d_->m_max_distance;
+
+            if( d_->m_max_distance > 0.0 )
+            {
+              auto center1 = trk_state->detection->bounding_box().center();
+              auto center2 = filtered_dets[d]->bounding_box().center();
+
+              double dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
+              dist += ( ( center1[1] - center2[1] ) * ( center1[1] - center2[1] ) );
+              dist = std::sqrt( dist );
+            }
+
+            if( dist <= d_->m_max_distance )
+            {
+              trk_features = trk_state->detection->descriptor();
+            }
+          }
+        }
+
+        if( det_features && trk_features )
+        {
+          if( det_features->size() != trk_features->size() )
+          {
+            throw std::runtime_error( "Invalid descriptor dimensions" );
+          }
+
+          double sum_sqr = 0.0;
+
+          for( double *pos1 = det_features->raw_data(),
+                      *pos2 = trk_features->raw_data();
+               pos1 != pos1 + det_features->size(); ++pos1, ++pos2 )
+          {
+            sum_sqr += ( ( *pos1 - *pos2 ) * ( *pos1 - *pos2 ) );
+          }
+
+          matrix( t, d ) = std::sqrt( sum_sqr );
+        }
+        else
+        {
+          matrix( t, d ) = invalid_value;
+        }
       }
     }
   }

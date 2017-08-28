@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Interface for track_descriptor_set_input process
+ * \brief Interface for read_track_descriptor process
  */
 
-#ifndef _KWIVER_TRACK_DESCRIPTOR_INPUT_PROCESS_H
-#define _KWIVER_TRACK_DESCRIPTOR_INPUT_PROCESS_H
+#ifndef _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H
+#define _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 
@@ -45,23 +45,22 @@
 namespace kwiver
 {
 
-  // ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 /**
- * \class track_descriptor_input_process
+ * \class read_track_descriptor_process
  *
- * \brief Reads a series of images
+ * \brief Reads a series or single set of track descriptors
  *
  * \iports
  * \iport{image_name}
- * \iport{track descriptor_set}
- *
+ * \oport{track descriptor_set}
  */
-class KWIVER_PROCESSES_NO_EXPORT track_descriptor_input_process
+class KWIVER_PROCESSES_NO_EXPORT read_track_descriptor_process
   : public sprokit::process
 {
 public:
-  track_descriptor_input_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~track_descriptor_input_process();
+  read_track_descriptor_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~read_track_descriptor_process();
 
 protected:
   virtual void _configure();
@@ -74,9 +73,9 @@ private:
 
   class priv;
   const std::unique_ptr<priv> d;
-}; // end class track_descriptor_input_process
+}; // end class read_track_descriptor_process
 
 
 } // end namespace
 
-#endif // _KWIVER_TRACK_DESCRIPTOR_INPUT_PROCESS_H
+#endif // _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H

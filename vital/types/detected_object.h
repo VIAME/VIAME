@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
+#include <vital/types/descriptor.h>
 #include <vital/types/image_container.h>
 
 #include <vital/io/eigen_io.h>
@@ -75,6 +76,9 @@ class VITAL_EXPORT detected_object
 {
 public:
   typedef std::vector< detected_object_sptr > vector_t;
+  typedef descriptor_dynamic< double > descriptor_t;
+  typedef std::shared_ptr< descriptor_t > descriptor_sptr;
+  typedef std::shared_ptr< bounding_box_d > bounding_box_sptr;
 
 
   /**
@@ -224,10 +228,32 @@ public:
    */
   void set_mask( image_container_sptr m );
 
+  /**
+   * @brief Get descriptor vector.
+   *
+   * This method returns an optional descriptor vector that was used
+   * to create this detection. This is only set for certain object
+   * detectors.
+   *
+   * @return Pointer to the descriptor vector.
+   */
+  descriptor_sptr descriptor() const;
+
+  /**
+   * @brief Set descriptor for this detection.
+   *
+   * This method sets a descriptor vector that was used to create this
+   * detection. This is only set for certain object detectors.
+   *
+   * @param d Descriptor vector
+   */
+  void set_descriptor( descriptor_sptr d );
+
 private:
-  std::shared_ptr< bounding_box_d > m_bounding_box;
+  bounding_box_sptr m_bounding_box;
   double m_confidence;
   image_container_sptr m_mask_image;
+  descriptor_sptr m_descriptor;
 
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;

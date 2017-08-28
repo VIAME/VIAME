@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Interface for track_descriptor_set_output_csv
+ * \brief Interface for read_track_descriptor_set_csv
  */
 
 #ifndef KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
@@ -39,7 +39,7 @@
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/algo/track_descriptor_set_output.h>
+#include <vital/algo/read_track_descriptor_set.h>
 
 #include <memory>
 
@@ -47,19 +47,18 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class KWIVER_ALGO_CORE_EXPORT track_descriptor_set_output_csv
-  : public vital::algorithm_impl<track_descriptor_set_output_csv,
-      vital::algo::track_descriptor_set_output>
+class KWIVER_ALGO_CORE_EXPORT read_track_descriptor_set_csv
+  : public vital::algorithm_impl< read_track_descriptor_set_csv,
+      vital::algo::read_track_descriptor_set >
 {
 public:
-  track_descriptor_set_output_csv();
-  virtual ~track_descriptor_set_output_csv();
+  read_track_descriptor_set_csv();
+  virtual ~read_track_descriptor_set_csv();
 
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
-    std::string const& image_name );
+  virtual bool read_set( kwiver::vital::track_descriptor_set_sptr& set );
 
 private:
   class priv;
