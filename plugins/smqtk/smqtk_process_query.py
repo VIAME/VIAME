@@ -44,9 +44,9 @@ import smqtk.utils.plugin
 
 class SmqtkProcessQuery (KwiverProcess):
     """
-    Process for taking in a query descriptor set, alongside any known positive and negative UUIDs,
-    converting them into SMQTK descriptor elements (variable backend) performing a query off of
-    them.
+    Process for taking in a query descriptor set, alongside any known positive
+    and negative UUIDs, converting them into SMQTK descriptor elements (variable
+    backend), and performing a query off of them.
 
     """
 
