@@ -81,10 +81,13 @@ ExternalProject_Add(kwiver
     -DKWIVER_SYMLINK_PYTHON:BOOL=${VIAME_SYMLINK_PYTHON}
     -DKWIVER_INSTALL_DOCS:BOOL=${VIAME_ENABLE_DOCS}
     -DKWIVER_ENABLE_TRACK_ORACLE:BOOL=${VIAME_ENABLE_KWANT}
+    -D KWIVER_ENABLE_TESTS:BOOL=On
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+
+# Why must we force kwiver to build on every make?
 ExternalProject_Add_Step(kwiver forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
