@@ -374,8 +374,8 @@ class StereoCameras(object):
         """
         P1, P2 = stereo.projection_matrices()
 
-        pts3d_homog = cv2.triangulatePoints(P1, P2, pts1, pts2)
-        world_pts = (pts3d_homog[0:3] / pts3d_homog[3][None, :])
+        world_pts_homog = cv2.triangulatePoints(P1, P2, pts1, pts2)
+        world_pts = (world_pts_homog[0:3] / world_pts_homog[3][None, :])
         return world_pts
         # np.linalg.norm(world_pts1 - world_pts2)
 
@@ -392,14 +392,21 @@ class FishStereo(object):
 
     def find_match(self, detections1, detections2, cal, dsize):
         """
+
+        References:
+            http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
+            http://answers.opencv.org/question/117141/triangulate-3d-points-from-a-stereo-camera-and-chessboard/
+            https://gist.github.com/royshil/7087bc2560c581d443bc#file-simpleadhoctracker-cpp-L93
         """
         for det1, det2 in it.product(detections1, detections2):
+            print('----')
             box_points1 = det1['box_points']
             box_points2 = det2['box_points']
             pts1 = box_points1[[0, 2]]
             pts2 = box_points2[[0, 2]]
-            print('pts1 =\n{!r}'.format(pts1))
-            print('pts2 =\n{!r}'.format(pts2))
+
+            pts1 = np.vstack([box_points1, det1['oriented_bbox'].center])
+            pts2 = np.vstack([box_points2, det2['oriented_bbox'].center])
 
             stereo = StereoCameras(cal)
 
@@ -415,17 +422,59 @@ class FishStereo(object):
             R = np.diag(cal['extrinsic']['om'])
             T = cal['extrinsic']['T']
 
+            def to_homog(xys):
+                """ converts [:, N] -> [:, N + 1] """
+                zs = np.ones((xys.shape[0], 1), dtype=xys.dtype)
+                xyzs = np.hstack((xys, zs))
+                return xyzs
+
+            def from_homog(xyzs):
+                """ converts [:, N + 1] -> [:, N] """
+                xys = np.divide(xyzs[:, :-1], xyzs.T[-1][:, None])
+                return xys
+
+            unpts1 = cv2.undistortPoints(pts1[:, None, :], K1, kc1)[:, 0, :]
+            unpts2 = cv2.undistortPoints(pts2[:, None, :], K2, kc2)[:, 0, :]
+
             rectified = cv2.stereoRectify(K1, kc1, K2, kc2, dsize, R, T)
             (R1, R2, P1, P2, Q, validPixROI1, validPixROI2) = rectified
+            print('validPixROI1 = {!r}'.format(validPixROI1))
+            print('validPixROI2 = {!r}'.format(validPixROI2))
 
-            world_pts = stereo.triangulate(pts1, pts2)
+            # In [176]: print(ut.repr2(P2, precision=3))
+            # np.array([[  1.018e+03,   0.000e+00,   6.354e+02,   0.000e+00],
+            #           [  0.000e+00,   1.018e+03,   7.804e+02,   2.131e+05],
+            #           [  0.000e+00,   0.000e+00,   1.000e+00,   0.000e+00]])
 
-            proj_pt_h = P1.dot(np.vstack([world_pts, [1] * len(world_pts.T)]))
-            proj_pt = proj_pt_h[0:2] / proj_pt_h[2]
-            print('pts1 =\n{!r}'.format(pts1))
-            print('proj_pt =\n{!r}'.format(proj_pt))
+            # In [177]: print(ut.repr2(P1, precision=3))
+            # np.array([[  1.018e+03,   0.000e+00,   6.354e+02,   0.000e+00],
+            #           [  0.000e+00,   1.018e+03,   7.804e+02,   0.000e+00],
+            #           [  0.000e+00,   0.000e+00,   1.000e+00,   0.000e+00]])
+
+            world_pts_homog = cv2.triangulatePoints(P1, P2, pts1.T, pts2.T).T
+            world_pts = from_homog(world_pts_homog)
+
+            # xys = world_pts
+
+            rvec1 = cv2.Rodrigues(R1)[0]
+            rvec2 = cv2.Rodrigues(R2)[0]
+
+            # list(map(cv2.convertPointsFromHomogeneous, world_pts_homog.T))
+            # world_pts = (world_pts_homog[0:3] / world_pts_homog[3][None, :])
+
+            # world_pts = stereo.triangulate(pts1, pts2)
+
+            proj_pts1 = cv2.projectPoints(world_pts, rvec1, np.zeros((1, 3)), K1, kc1)[0][:, 0, :]
+            proj_pts2 = cv2.projectPoints(world_pts, rvec2, T, K2, kc2)[0][:, 0, :]
+
+            err1 = ((proj_pts1 - pts1) ** 2).sum(axis=1)
+            print('err1 = {!r}'.format(err1))
+            err2 = ((proj_pts2 - pts2) ** 2).sum(axis=1)
+            print('err2 = {!r}'.format(err2))
             print('----')
 
+            # proj_pts_h = P1.dot(to_homog(world_pts).T).T
+            # proj_pts = from_homog(proj_pt_h)
             om = cal['extrinsic']['om']
             R = cv2.Rodrigues(om)
 
