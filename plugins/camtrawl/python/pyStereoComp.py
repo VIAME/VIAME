@@ -10,6 +10,20 @@ import cv2
 
 class pyStereoComp(object):
 
+    """
+
+    import sys
+    sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
+    from pyStereoComp import *
+    import glob
+    from os.path import expanduser, join
+    data_fpath = expanduser('~/data/autoprocess_test_set')
+    fname = join(data_fpath, 'cal_201608.mat')
+
+    self = pyStereoComp()
+    self.importCalData(cal_fpath)
+    """
+
     def __init__(self):
         self.calData = {}
         self.mode = 'matlab'  # teh default
@@ -25,15 +39,72 @@ class pyStereoComp(object):
 
                 return True,  self.calData
             except Exception as e:
-                msg = ''.join(s for s in str(e) if s in string.printable)
-                return False,  msg
+                try:
+                    import scipy.io
+                    cal_data = scipy.io.loadmat(fname)
+                    cal = cal_data['Cal']
+
+                    (om, T, fc_left, fc_right, cc_left, cc_right, kc_left, kc_right,
+                     alpha_c_left, alpha_c_right) = cal[0][0]
+
+                    self.calData = {
+                        'om': om,
+                        'T': T,
+                        'fc_left': fc_left,
+                        'fc_right': fc_right,
+                        'cc_left': cc_left,
+                        'cc_right': cc_right,
+                        'kc_left': kc_left,
+                        'kc_right': kc_right,
+                        'alpha_c_left': alpha_c_left,
+                        'alpha_c_right': alpha_c_right,
+                    }
+
+                    #--- Rotation matrix corresponding to the rigid motion between left and right cameras:
+                    om = self.calData['om']
+                    R = self.rodrigues(om)
+                    self.calData.update({'R': R})
+                    return True,  self.calData
+                except Exception as ex:
+                    msg = ''.join(s for s in str(e) if s in string.printable)
+                    return False,  msg
+
+            fc = self.calData['fc_left'].ravel()
+            cc = self.calData['cc_left'].ravel()
+            alpha_c = self.calData['alpha_c_left'].ravel()
+            KL = np.array([
+                [fc[0], alpha_c * fc[0], cc[0]],
+                [    0,           fc[1], cc[1]],
+                [    0,               0,     1],
+            ])
+
+            fc = self.calData['fc_right'].ravel()
+            cc = self.calData['cc_right'].ravel()
+            alpha_c = self.calData['alpha_c_right'].ravel()
+            KR = np.array([
+                [fc[0], alpha_c * fc[0], cc[0]],
+                [    0,           fc[1], cc[1]],
+                [    0,               0,     1],
+            ])
+            self.calData['cameraMatrixL'] = KL
+            self.calData['cameraMatrixR'] = KR
+
+            self.calData['distCoeffsL'] = self.calData['kc_left'].ravel()
+            self.calData['distCoeffsR'] = self.calData['kc_right'].ravel()
+
         elif self.mode == 'openCV':
             try:
                 npzfileData = np.load(fname)
-                self.calData = {'cameraMatrixL': npzfileData['cameraMatrixL'], 'distCoeffsL': npzfileData['distCoeffsL'],
-                                'kc_left': npzfileData['distCoeffsL'][0], 'kc_right': npzfileData['distCoeffsR'][0],
-                                'cameraMatrixR': npzfileData['cameraMatrixR'], 'distCoeffsR': npzfileData['distCoeffsR'],
-                                'R': npzfileData['R'], 'T': npzfileData['T']}
+                self.calData = {
+                    'cameraMatrixL': npzfileData['cameraMatrixL'],
+                    'distCoeffsL': npzfileData['distCoeffsL'],
+                    'kc_left': npzfileData['distCoeffsL'][0],
+                    'kc_right': npzfileData['distCoeffsR'][0],
+                    'cameraMatrixR': npzfileData['cameraMatrixR'],
+                    'distCoeffsR': npzfileData['distCoeffsR'],
+                    'R': npzfileData['R'],
+                    'T': npzfileData['T']
+                }
                 if 'F' in npzfileData:
                     self.calData.update({'F': npzfileData['F']})
                 R = self.calData['R']
@@ -60,28 +131,55 @@ class pyStereoComp(object):
         else:
             return False,  'mode unrecognized'
 
-    def triangulatePoint(self, xL, xR):
-        if self.mode == 'openCV':
-            hxL = np.zeros((xL.shape[1], 1, 2))
-            hxR = np.zeros((xL.shape[1], 1, 2))
-            for i in range(xL.shape[1]):
-                hxL[i, 0, 0] = xL[0, i]
-                hxL[i, 0, 1] = xL[1, i]
-                hxR[i, 0, 0] = xR[0, i]
-                hxR[i, 0, 1] = xR[1, i]
-            PL = np.hstack((np.eye(3).astype('float32'), np.zeros((3, 1)).astype('float32')))
-            PR = np.hstack((self.calData['R'], self.calData['T']))
-            imgptsL = cv2.undistortPoints(
-                hxL, self.calData['cameraMatrixL'], self.calData['distCoeffsL'])
-            imgptsR = cv2.undistortPoints(
-                hxR, self.calData['cameraMatrixR'], self.calData['distCoeffsR'])
+    def triangulatePoint(self, xL, xR, mode=None):
+        """
+        Args:
+            xL (ndarray): [2 x N] array of N 2D points in left cam pixels
+            xR (ndarray): [2 x N] array of N 2D points in right cam pixels
+        """
+        if mode is None:
+            mode = self.mode
+
+        if mode.lower() == 'opencv':
+            if False:
+                hxL = np.zeros((xL.shape[1], 1, 2))
+                hxR = np.zeros((xL.shape[1], 1, 2))
+                for i in range(xL.shape[1]):
+                    hxL[i, 0, 0] = xL[0, i]
+                    hxL[i, 0, 1] = xL[1, i]
+                    hxR[i, 0, 0] = xR[0, i]
+                    hxR[i, 0, 1] = xR[1, i]
+            else:
+                # Much easier way to do above code
+                hxL = xL.T[:, None, :]
+                hxR = xR.T[:, None, :]
+
+            KL = self.calData['cameraMatrixL']
+            KR = self.calData['cameraMatrixR']
+            kcR = self.calData['distCoeffsR']
+            kcL = self.calData['distCoeffsL']
+
+            R, T = self.calData['R'], self.calData['T']
+
+            # THIS SEEMS WRONG
+            PL = np.hstack((np.eye(3), np.zeros((3, 1))))
+            PR = np.hstack((R, T))
+            # PL = KL.dot(np.hstack((np.eye(3), np.zeros((3, 1)))))
+            # PR = KR.dot(np.hstack((R, T)))
+
+            imgptsL = cv2.undistortPoints(hxL, KL, kcL)
+            imgptsR = cv2.undistortPoints(hxR, KR, kcR)
+
+            import utool as ut
+            print('imgptsL =\n{}'.format(ut.repr2(imgptsL[:, 0, :].T, precision=3)))
+            print('imgptsR =\n{}'.format(ut.repr2(imgptsR[:, 0, :].T, precision=3)))
+
             XL = cv2.triangulatePoints(PL, PR, imgptsL, imgptsR)
             XL /= XL[3]
             XL = XL[0:3]
-            T_vect = np.tile(self.calData['T'], (1, xL.shape[1]))
-            XR = np.dot(self.calData['R'], XL) + T_vect
+            XR = np.dot(R, XL) + T
 
-        elif self.mode == 'matlab':
+        elif mode == 'matlab':
             '''% [XL,XR] = stereo_triangulation(xL,xR,om,T,fc_left,cc_left,kc_left,alpha_c_left,fc_right,cc_right,kc_right,alpha_c_right),
                 %
                 % Function that computes the position of a set on N points given the left and right image projections.
@@ -110,6 +208,11 @@ class pyStereoComp(object):
                 xL, self.calData['fc_left'], self.calData['cc_left'], self.calData['kc_left'], self.calData['alpha_c_left'])
             xtt = self.normalizePixel(
                 xR, self.calData['fc_right'], self.calData['cc_right'], self.calData['kc_right'], self.calData['alpha_c_right'])
+
+            import utool as ut
+            print('xt =\n{}'.format(ut.repr2(xt, precision=3)))
+            print('xtt =\n{}'.format(ut.repr2(xtt, precision=3)))
+
             T = self.calData['T']
             R = self.calData['R']
             #R=np.array([[0.982261529882744,       -0.0231885098133093,         0.186076811895112],[0.0236366236373557,         0.999720597968969,      -0.00018978828345735],[-0.186020420748467,       0.00458464930006644,          0.98253518209546]])
@@ -151,6 +254,10 @@ class pyStereoComp(object):
             #--- Right coordinates:
             XR = np.dot(R, XL) + T_vect
 
+        import utool as ut
+        print('XL =\n{}'.format(ut.repr2(XL, precision=3)))
+        print('XR =\n{}'.format(ut.repr2(XR, precision=3)))
+        print('----')
         return (XL, XR)
 
     def normalizePixel(self, x_kk, fc, cc, kc, alpha_c):
@@ -192,6 +299,9 @@ class pyStereoComp(object):
             return x
 
     def rodrigues(self, om):
+        """
+        This works exactly the same as `cv2.Rodrigues(om)[0]`
+        """
 
         (m, n) = om.shape
         eps = 2.22044604925031e-016
