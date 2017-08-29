@@ -78,6 +78,9 @@ public:
   unsigned detection_offset;
 
   algo::compute_track_descriptors_sptr m_computer;
+
+  void add_custom_uids( vital::track_descriptor_set_sptr& output,
+                        const std::string& frame_id_stamp );
 };
 
 
@@ -155,6 +158,7 @@ compute_track_descriptors_process
     {
       vital::track_descriptor_set_sptr output;
       output = d->m_computer->flush();
+      d->add_custom_uids( output, "final" );
       push_outputs( output );
     }
 
@@ -261,21 +265,8 @@ compute_track_descriptors_process
     d->detection_offset = d->detection_offset + detections->size();
   }
 
-  if( d->add_custom_uid )
-  {
-    unsigned counter = 1;
-
-    VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
-    {
-      std::string new_uid = d->uid_basename +
-        "_frame_" + std::to_string( ts.get_frame() ) +
-        "_item_" + std::to_string( counter );
-
-      desc->set_uid( vital::uid( new_uid ) );
-
-      counter++;
-    }
-  }
+  // Add custom uids
+  d->add_custom_uids( output, std::to_string( ts.get_frame() ) );
 
   // Return all outputs
   push_outputs( output );
@@ -373,6 +364,28 @@ compute_track_descriptors_process::priv
 compute_track_descriptors_process::priv
 ::~priv()
 {
+}
+
+
+void compute_track_descriptors_process::priv
+::add_custom_uids( vital::track_descriptor_set_sptr& output,
+                   const std::string& frame_id_stamp )
+{
+  if( add_custom_uid )
+  {
+    unsigned counter = 1;
+
+    VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
+    {
+      std::string new_uid = uid_basename +
+        "_frame_" + frame_id_stamp +
+        "_item_" + std::to_string( counter );
+
+      desc->set_uid( vital::uid( new_uid ) );
+
+      counter++;
+    }
+  }
 }
 
 
