@@ -100,7 +100,7 @@ public:
   unsigned result_counter;
   bool database_populated;
 
-  algo::read_track_descriptor_set_sptr desc_reader;
+  algo::read_track_descriptor_set_sptr descriptor_reader;
   algo::read_object_track_set_sptr track_reader;
 
   // Video name <=> descriptor sptr pair
@@ -156,19 +156,19 @@ void perform_query_process
   if( d->external_handler )
   {
     algo::read_track_descriptor_set::set_nested_algo_configuration(
-      "desc_reader", algo_config, d->desc_reader );
+      "descriptor_reader", algo_config, d->descriptor_reader );
 
-    if( !d->desc_reader )
+    if( !d->descriptor_reader )
     {
       throw sprokit::invalid_configuration_exception(
         name(), "Unable to create descriptor reader" );
     }
 
     algo::read_track_descriptor_set::get_nested_algo_configuration(
-      "desc_reader", algo_config, d->desc_reader );
+      "descriptor_reader", algo_config, d->descriptor_reader );
 
     if( !algo::read_track_descriptor_set::check_nested_algo_configuration(
-      "desc_reader", algo_config ) )
+      "descriptor_reader", algo_config ) )
     {
       throw sprokit::invalid_configuration_exception(
         name(), "Configuration check failed." );
@@ -313,6 +313,11 @@ perform_query_process
 
     for( unsigned i = 0; i < result_uids->size(); ++i )
     {
+      if( i > d->max_result_count )
+      {
+        break;
+      }
+
       auto result_uid = (*result_uids)[i];
       auto result_score = (*result_scores)[i];
 
@@ -372,9 +377,11 @@ void perform_query_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t optional_no_dep;
   sprokit::process::port_flags_t required;
 
   required.insert( flag_required );
+  optional_no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( database_query, required );
@@ -389,8 +396,8 @@ void perform_query_process
   declare_output_port_using_trait( external_positive_uids, optional );
   declare_output_port_using_trait( external_negative_uids, optional );
 
-  declare_input_port_using_trait( result_descriptor_uids, optional );
-  declare_input_port_using_trait( result_descriptor_scores, optional );
+  declare_input_port_using_trait( result_descriptor_uids, optional_no_dep );
+  declare_input_port_using_trait( result_descriptor_scores, optional_no_dep );
 }
 
 
@@ -450,13 +457,13 @@ void perform_query_process::priv
     std::string track_file = database_folder + "/" + name + track_postfix;
     std::string desc_file = database_folder + "/" + name + descriptor_postfix;
 
-    desc_reader->open( desc_file );
+    descriptor_reader->open( desc_file );
     track_reader->open( track_file );
 
     vital::track_descriptor_set_sptr descs;
     vital::object_track_set_sptr tracks;
 
-    if( !desc_reader->read_set( descs ) )
+    if( !descriptor_reader->read_set( descs ) )
     {
       LOG_ERROR( parent->logger(), "Unable to load desc set " << desc_file );
       continue;
