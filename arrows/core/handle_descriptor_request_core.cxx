@@ -155,6 +155,8 @@ handle_descriptor_request_core
   vital::track_state_sptr state1(
     new vital::object_track_state( fake_ts.get_frame(), det ) );
 
+  ff_track->append( state1 );
+
   std::vector< vital::track_sptr > trk_vec;
   trk_vec.push_back( ff_track );
 
