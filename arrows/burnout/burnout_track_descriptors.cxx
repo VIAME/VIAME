@@ -318,4 +318,13 @@ burnout_track_descriptors
 }
 
 
+vital::track_descriptor_set_sptr
+burnout_track_descriptors
+::flush()
+{
+  return compute( vital::timestamp(),
+    vital::image_container_sptr(),
+    vital::object_track_set_sptr() );
+}
+
 } } } // end namespace
