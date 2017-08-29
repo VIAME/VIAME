@@ -210,24 +210,27 @@ burnout_track_descriptors
   vil_image_view< vxl_byte > input_image;
   std::vector< vidtk::track_sptr > input_tracks;
 
-  VITAL_FOREACH( auto vital_t, tracks->tracks() )
+  if( tracks )
   {
-    vidtk::track_sptr vidtk_t( new vidtk::track() );
-
-    vidtk_t->set_id( vital_t->id() );
-
-    VITAL_FOREACH( auto vital_ts, *vital_t )
+    VITAL_FOREACH( auto vital_t, tracks->tracks() )
     {
-      vital::object_track_state* ots =
-        dynamic_cast< vital::object_track_state* >( vital_ts.get() );
+      vidtk::track_sptr vidtk_t( new vidtk::track() );
 
-      if( ots )
+      vidtk_t->set_id( vital_t->id() );
+
+      VITAL_FOREACH( auto vital_ts, *vital_t )
       {
-        vidtk_t->add_state( vital_to_vidtk( ots ) );
-      }
-    }
+        vital::object_track_state* ots =
+          dynamic_cast< vital::object_track_state* >( vital_ts.get() );
 
-    input_tracks.push_back( vidtk_t );
+        if( ots )
+        {
+          vidtk_t->add_state( vital_to_vidtk( ots ) );
+        }
+      }
+
+      input_tracks.push_back( vidtk_t );
+    }
   }
 
   if( image_data )
