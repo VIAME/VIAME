@@ -41,6 +41,6 @@ if [ -f $HASH_FILE ] && [ -n "$RHASH" ] && grep -q $RHASH $HASH_FILE ; then
 else
   wget https://data.kitware.com/api/v1/file/$TAR_FILE_ID/download -O fletch.tgz
   rm -rf $FLETCH_DIR/*
-  tar -xzf fletch.tgz -C $FLETCH_DIR
+  tar -xzf fletch.tgz -C /opt/kitware
   cp fletch.sha512 $HASH_FILE
 fi
