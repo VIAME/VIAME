@@ -246,6 +246,7 @@ burnout_track_descriptors
   if( !image_data )
   {
     d->m_process.flush();
+    LOG_ERROR( logger(), "!!!! FLUSH" );
   }
   else if( !d->m_process.step() )
   {
@@ -255,6 +256,8 @@ burnout_track_descriptors
   // Convert outputs to kwiver vital types
   vital::track_descriptor_set_sptr output( new vital::track_descriptor_set() );
   vidtk::raw_descriptor::vector_t computed_desc = d->m_process.descriptors();
+
+  LOG_ERROR( logger(), "!!!! COUNT " << computed_desc.size() );
 
   VITAL_FOREACH( auto vidtk_d, computed_desc )
   {

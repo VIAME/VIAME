@@ -75,6 +75,7 @@ public:
   bool add_custom_uid;
   std::string uid_basename;
   bool flush_on_last;
+  unsigned detection_offset;
 
   algo::compute_track_descriptors_sptr m_computer;
 };
@@ -219,7 +220,7 @@ compute_track_descriptors_process
     for( unsigned i = 0; i < detections->size(); ++i )
     {
       vital::track_sptr new_track( vital::track::create() );
-      new_track->set_id( i );
+      new_track->set_id( i + d->detection_offset );
 
       vital::track_state_sptr first_track_state(
         new vital::object_track_state( ts.get_frame(), det_objects[i] ) );
@@ -251,10 +252,13 @@ compute_track_descriptors_process
 
         VITAL_FOREACH( auto id, ids )
         {
-          detection_sptrs[id]->set_descriptor( desc->get_descriptor() );
+          detection_sptrs[ id - d->detection_offset ]->set_descriptor(
+            desc->get_descriptor() );
         }
       }
     }
+
+    d->detection_offset = d->detection_offset + detections->size();
   }
 
   if( d->add_custom_uid )
@@ -361,6 +365,7 @@ compute_track_descriptors_process::priv
   , add_custom_uid( false )
   , uid_basename( "" )
   , flush_on_last( true )
+  , detection_offset( 0 )
 {
 }
 
