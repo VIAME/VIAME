@@ -150,7 +150,7 @@ handle_descriptor_request_process
 
   if( request && !d->m_handler->handle( request, descriptors, images ) )
   {
-    //LOG_ERROR( name(), "Could not handle descriptor request" );
+    LOG_ERROR( logger(), "Could not handle descriptor request" );
   }
 
   // Return all outputs

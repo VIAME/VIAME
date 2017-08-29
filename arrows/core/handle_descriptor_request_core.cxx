@@ -42,6 +42,7 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include <exception>
 
 #include <vital/vital_foreach.h>
 #include <vital/types/descriptor_request.h>
@@ -137,10 +138,30 @@ handle_descriptor_request_core
   std::string data_path = request->data_location();
   kwiver::vital::image_container_sptr image = reader_->load( data_path );
 
-  // extract descriptors on the current frame
-  kwiver::vital::object_track_set_sptr tracks;
+  if( !image )
+  {
+    throw std::runtime_error( "Handler unable to load image" );
+  }
 
-  descs = extractor_->compute( vital::timestamp(), image, tracks );
+  // extract descriptors on the current frame
+  vital::timestamp fake_ts( 0, 0 );
+  vital::track_sptr ff_track = vital::track::create();
+  ff_track->set_id( 0 );
+
+  vital::bounding_box_d dims( 0, 0, image->width(), image->height() );
+
+  vital::detected_object_sptr det(
+    new vital::detected_object( dims ) );
+  vital::track_state_sptr state1(
+    new vital::object_track_state( fake_ts.get_frame(), det ) );
+
+  std::vector< vital::track_sptr > trk_vec;
+  trk_vec.push_back( ff_track );
+
+  vital::object_track_set_sptr tracks(
+    new vital::object_track_set( trk_vec ) );
+
+  descs = extractor_->compute( fake_ts, image, tracks );
 
   imgs.clear();
   imgs.push_back( image );
