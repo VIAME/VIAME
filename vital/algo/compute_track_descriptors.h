@@ -70,6 +70,16 @@ public:
            kwiver::vital::image_container_sptr image_data,
            kwiver::vital::object_track_set_sptr tracks ) = 0;
 
+  /// Flush any remaining in-progress descriptors
+  /**
+   * This is typically called at the end of a video, in case
+   * any temporal descriptors and currently in progress and
+   * still need to be output.
+   *
+   * \returns a set of track descriptors
+   */
+  virtual kwiver::vital::track_descriptor_set_sptr flush() = 0;
+
 protected:
   compute_track_descriptors();
 
