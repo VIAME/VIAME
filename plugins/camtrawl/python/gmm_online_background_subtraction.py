@@ -356,10 +356,12 @@ class FishStereo(object):
         pass
 
     def method2(self, cal, detections1, detections2):
-        for det1, det2 in it.product(detections1, detections2):
+        for (i, det1), (j, det2) in it.product(enumerate(detections1),
+                                               enumerate(detections2)):
             print('----')
             pts1 = np.vstack([det1['box_points'], det1['oriented_bbox'].center])
             pts2 = np.vstack([det2['box_points'], det2['oriented_bbox'].center])
+
             stereo = StereoCameras(cal)
             # Camera Matrix 1/2
             K1, K2 = stereo.camera_intrinsic_matrices()
@@ -377,15 +379,21 @@ class FishStereo(object):
             RT2 = np.hstack([R2, T2])
 
             # Make projection matrices
-            P1 = K1.dot(RT1)
-            P2 = K2.dot(RT2)
+            # P1 = K1.dot(RT1)
+            # P2 = K2.dot(RT2)
+            # Try not using these when working with undistored coords?
 
             # Undistort points
             unpts1 = cv2.undistortPoints(pts1[:, None, :], K1, kc1)[:, 0, :]
             unpts2 = cv2.undistortPoints(pts2[:, None, :], K2, kc2)[:, 0, :]
 
-            world_pts_homog = cv2.triangulatePoints(P1, P2, unpts1.T, unpts2.T).T
+            # NOTE: trinagulatePoints docs say that it wants a 3x4 projection
+            # matrix, but it seems that we really just need to pass the RT
+            # extrinsic matrix once we have undistorted the points (which seems
+            # to account for the K intrinsic matrix)
+            world_pts_homog = cv2.triangulatePoints(RT1, RT2, unpts1.T, unpts2.T).T
             world_pts = from_homog(world_pts_homog)
+            print('world_pts = {!r}'.format(world_pts))
 
             corner1, corner2 = world_pts[[0, 2]]
             fishlen = np.linalg.norm(corner1 - corner2)
@@ -399,29 +407,9 @@ class FishStereo(object):
             err1 = ((proj_pts1 - pts1) ** 2).sum(axis=1)
             err2 = ((proj_pts2 - pts2) ** 2).sum(axis=1)
             import utool as ut
-            print('DISTORT err1 = {}'.format(ut.repr2(err1, precision=2)))
-            print('DISTORT err2 = {}'.format(ut.repr2(err2, precision=2)))
+            print('err1 = {}'.format(ut.repr2(err1, precision=2)))
+            print('err2 = {}'.format(ut.repr2(err2, precision=2)))
             print('----')
-
-            if True:
-                # Weird do it again without distortion
-                world_pts_homog = cv2.triangulatePoints(P1, P2, pts1.T, pts2.T).T
-                world_pts = from_homog(world_pts_homog)
-
-                corner1, corner2 = world_pts[[0, 2]]
-                fishlen = np.linalg.norm(corner1 - corner2)
-                print('fishlen = {!r}'.format(fishlen))
-
-                # Reproject points
-                proj_pts1 = cv2.projectPoints(world_pts, rvec1, tvec1, K1, kc1)[0][:, 0, :]
-                proj_pts2 = cv2.projectPoints(world_pts, rvec2, tvec2, K2, kc2)[0][:, 0, :]
-
-                # Check error
-                err1 = ((proj_pts1 - pts1) ** 2).sum(axis=1)
-                err2 = ((proj_pts2 - pts2) ** 2).sum(axis=1)
-                print('RAW err1 = {}'.format(ut.repr2(err1, precision=2)))
-                print('RAW err2 = {}'.format(ut.repr2(err2, precision=2)))
-                print('----')
 
     def find_match(self, detections1, detections2, cal, dsize):
         """
@@ -430,6 +418,7 @@ class FishStereo(object):
             http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html
             http://answers.opencv.org/question/117141/triangulate-3d-points-from-a-stereo-camera-and-chessboard/
             https://gist.github.com/royshil/7087bc2560c581d443bc#file-simpleadhoctracker-cpp-L93
+            https://stackoverflow.com/a/29820184/887074
         """
         for det1, det2 in it.product(detections1, detections2):
             print('----')
@@ -454,8 +443,11 @@ class FishStereo(object):
             K1, K2 = stereo.camera_intrinsic_matrices()
             kc1, kc2 = stereo.camera_distortions()
 
+            KL, KR = K1, K2
+            kcL, kcR = kc1, kc2
+
             R = np.diag(stereo.extrinsic['om'])
-            T = stereo.extrinsic['T']
+            T = stereo.extrinsic['T'][:, None]
 
             # undistort_img1 = cv2.undistort(img1, K1, kc1)
             # cv2.imwrite('img1_distort.png', img1)
@@ -549,8 +541,14 @@ def demo_triangulate():
             # return detections1, detections2
 
             FishStereo().method2(cal, detections1, detections2)
-            # if frame_id == 6:
-            #     break
+            if frame_id == 7:
+                break
+                for det1, det2 in it.product(detections1, detections2):
+                    print('----')
+                    pts1 = np.vstack([det1['box_points'], det1['oriented_bbox'].center])
+                    pts2 = np.vstack([det2['box_points'], det2['oriented_bbox'].center])
+                    # xL = pts1.T
+                    # xR = pts2.T
 
 
 def demo():
