@@ -28,76 +28,24 @@ factor = 2
 from __future__ import division, print_function
 import itertools as it
 from collections import namedtuple
+from imutils import imscale
 import numpy as np
 import cv2
 
 OrientedBBox = namedtuple('OrientedBBox', ('center', 'extent', 'angle'))
 
 
-def get_rounded_scaled_dsize(dsize, scale):
-    """
-    Returns an integer size and scale that best approximates
-    the floating point scale on the original size
-
-    Args:
-        dsize (tuple): original width height
-        scale (float or tuple): desired floating point scale factor
-    """
-    try:
-        sx, sy = scale
-    except TypeError:
-        sx = sy = scale
-    w, h = dsize
-    new_w = int(round(w * sx))
-    new_h = int(round(h * sy))
-    new_scale = new_w / w, new_h / h
-    new_dsize = (new_w, new_h)
-    return new_dsize, new_scale
+def to_homog(xys):
+    """ converts [:, N] -> [:, N + 1] """
+    zs = np.ones((xys.shape[0], 1), dtype=xys.dtype)
+    xyzs = np.hstack([xys, zs])
+    return xyzs
 
 
-def imscale(img, scale):
-    """
-    Resizes an image by a scale factor (returns the rounded scale factor)
-    """
-    dsize = img.shape[0:2][::-1]
-    new_dsize, new_scale = get_rounded_scaled_dsize(dsize, scale)
-    new_img = cv2.resize(img, new_dsize, interpolation=cv2.INTER_LANCZOS4)
-    return new_img, new_scale
-
-
-def atleast_3channels(arr, copy=True):
-    r"""
-    Ensures that there are 3 channels in the image
-
-    Args:
-        arr (ndarray[N, M, ...]): the image
-        copy (bool): Always copies if True, if False, then copies only when the
-            size of the array must change.
-
-    Returns:
-        ndarray: with shape (N, M, C), where C in {3, 4}
-
-    Doctest:
-        >>> assert atleast_3channels(np.zeros((10, 10))).shape[-1] == 3
-        >>> assert atleast_3channels(np.zeros((10, 10, 1))).shape[-1] == 3
-        >>> assert atleast_3channels(np.zeros((10, 10, 3))).shape[-1] == 3
-        >>> assert atleast_3channels(np.zeros((10, 10, 4))).shape[-1] == 4
-    """
-    ndims = len(arr.shape)
-    if ndims == 2:
-        res = np.tile(arr[:, :, None], 3)
-        return res
-    elif ndims == 3:
-        h, w, c = arr.shape
-        if c == 1:
-            res = np.tile(arr, 3)
-        elif c in [3, 4]:
-            res = arr.copy() if copy else arr
-        else:
-            raise ValueError('Cannot handle ndims={}'.format(ndims))
-    else:
-        raise ValueError('Cannot handle arr.shape={}'.format(arr.shape))
-    return res
+def from_homog(xyzs):
+    """ converts [:, N + 1] -> [:, N] """
+    xys = np.divide(xyzs[:, :-1], xyzs.T[-1][:, None])
+    return xys
 
 
 class FishDetector(object):
@@ -111,11 +59,10 @@ class FishDetector(object):
             'min_aspect': 3.5,
             # minimum number of pixels to keep a section, after sections
             # are found by component function
-            # 'min_size': 1500,
             'min_size': 2000,
-
+            # Resize factor
             'factor': 2.0,
-
+            # Params for background subtraction
             'gmm.n_training_frames': 30,
             'gmm.initial_variance': 30,
         }
@@ -287,16 +234,36 @@ class StereoCameras(object):
     """
     def __init__(stereo, cal):
         stereo.cal = cal
+        stereo.extrinsic = stereo.cal['extrinsic']
+        stereo.units = 'cm'
 
-    def camera_matrices(stereo):
-        K1 = stereo.get_camera_matrix(stereo.cal['intrinsic_left'])
-        K2 = stereo.get_camera_matrix(stereo.cal['intrinsic_right'])
-        return K1, K2
-
-    def distortions(stereo):
+    def camera_distortions(stereo):
         kc1 = stereo.cal['intrinsic_left']['kc']
         kc2 = stereo.cal['intrinsic_right']['kc']
         return kc1, kc2
+
+    def camera_intrinsic_matrices(stereo):
+        K1 = stereo._get_intrinsic_matrix('intrinsic_left')
+        K2 = stereo._get_intrinsic_matrix('intrinsic_right')
+        return K1, K2
+
+    def camera_extrinsic_vecs(stereo):
+        rvec1 = np.zeros((3,))
+        tvec1 = np.zeros((3,))
+
+        rvec2 = stereo.extrinsic['om']
+        tvec2 = stereo.extrinsic['T']
+        return rvec1, tvec1, rvec2, tvec2
+
+    def camera_extrinsic_matrices(stereo):
+        rvec1, tvec1, rvec2, tvec2 = stereo.camera_extrinsic_vecs()
+        R1 = cv2.Rodrigues(rvec1)[0]
+        R2 = cv2.Rodrigues(rvec2)[0]
+        T1 = tvec1[:, None]
+        T2 = tvec2[:, None]
+        RT1 = np.hstack([R1, T1])
+        RT2 = np.hstack([R2, T2])
+        return RT1, RT2
 
     def projection_matrices(stereo):
         """ Build the projection matrix (maps world-coord ==> pixels-coord) for
@@ -306,16 +273,14 @@ class StereoCameras(object):
             `P1 = K1 * [I3 | 0]`
             `P2 = K2 * [R12 | t12]`
         """
-        K1 = stereo.get_camera_matrix(stereo.cal['intrinsic_left'])
-        K2 = stereo.get_camera_matrix(stereo.cal['intrinsic_right'])
-        P1 = K1.dot(np.hstack([np.eye(3), np.zeros((3, 1))]))
-
-        R = np.diag(stereo.cal['extrinsic']['om'])
-        T = stereo.cal['extrinsic']['T'][:, None]
-        P2 = K2.dot(np.hstack([R, T]))
+        K1, K2 = stereo.camera_intrinsic_matrices()
+        RT1, RT2 = stereo.camera_extrinsic_matrices()
+        P1 = K1.dot(RT1)
+        P2 = K2.dot(RT2)
         return P1, P2
 
-    def get_camera_matrix(stereo, intrin):
+    def _get_intrinsic_matrix(stereo, key):
+        intrin = stereo.cal[key]
         fc = intrin['fc']
         cc = intrin['cc']
         alpha_c = intrin['alpha_c']
@@ -390,6 +355,74 @@ class FishStereo(object):
     def stereo_triangulation():
         pass
 
+    def method2(self, cal, detections1, detections2):
+        for det1, det2 in it.product(detections1, detections2):
+            print('----')
+            pts1 = np.vstack([det1['box_points'], det1['oriented_bbox'].center])
+            pts2 = np.vstack([det2['box_points'], det2['oriented_bbox'].center])
+            stereo = StereoCameras(cal)
+            # Camera Matrix 1/2
+            K1, K2 = stereo.camera_intrinsic_matrices()
+            # distortion Coefficients 1/2
+            kc1, kc2 = stereo.camera_distortions()
+            # rotation / translation vecs 1/2
+            rvec1, tvec1, rvec2, tvec2 = stereo.camera_extrinsic_vecs()
+
+            # Make extrincic matrices
+            R1 = cv2.Rodrigues(rvec1)[0]
+            R2 = cv2.Rodrigues(rvec2)[0]
+            T1 = tvec1[:, None]
+            T2 = tvec2[:, None]
+            RT1 = np.hstack([R1, T1])
+            RT2 = np.hstack([R2, T2])
+
+            # Make projection matrices
+            P1 = K1.dot(RT1)
+            P2 = K2.dot(RT2)
+
+            # Undistort points
+            unpts1 = cv2.undistortPoints(pts1[:, None, :], K1, kc1)[:, 0, :]
+            unpts2 = cv2.undistortPoints(pts2[:, None, :], K2, kc2)[:, 0, :]
+
+            world_pts_homog = cv2.triangulatePoints(P1, P2, unpts1.T, unpts2.T).T
+            world_pts = from_homog(world_pts_homog)
+
+            corner1, corner2 = world_pts[[0, 2]]
+            fishlen = np.linalg.norm(corner1 - corner2)
+            print('fishlen = {!r}'.format(fishlen))
+
+            # Reproject points
+            proj_pts1 = cv2.projectPoints(world_pts, rvec1, tvec1, K1, kc1)[0][:, 0, :]
+            proj_pts2 = cv2.projectPoints(world_pts, rvec2, tvec2, K2, kc2)[0][:, 0, :]
+
+            # Check error
+            err1 = ((proj_pts1 - pts1) ** 2).sum(axis=1)
+            err2 = ((proj_pts2 - pts2) ** 2).sum(axis=1)
+            import utool as ut
+            print('DISTORT err1 = {}'.format(ut.repr2(err1, precision=2)))
+            print('DISTORT err2 = {}'.format(ut.repr2(err2, precision=2)))
+            print('----')
+
+            if True:
+                # Weird do it again without distortion
+                world_pts_homog = cv2.triangulatePoints(P1, P2, pts1.T, pts2.T).T
+                world_pts = from_homog(world_pts_homog)
+
+                corner1, corner2 = world_pts[[0, 2]]
+                fishlen = np.linalg.norm(corner1 - corner2)
+                print('fishlen = {!r}'.format(fishlen))
+
+                # Reproject points
+                proj_pts1 = cv2.projectPoints(world_pts, rvec1, tvec1, K1, kc1)[0][:, 0, :]
+                proj_pts2 = cv2.projectPoints(world_pts, rvec2, tvec2, K2, kc2)[0][:, 0, :]
+
+                # Check error
+                err1 = ((proj_pts1 - pts1) ** 2).sum(axis=1)
+                err2 = ((proj_pts2 - pts2) ** 2).sum(axis=1)
+                print('RAW err1 = {}'.format(ut.repr2(err1, precision=2)))
+                print('RAW err2 = {}'.format(ut.repr2(err2, precision=2)))
+                print('----')
+
     def find_match(self, detections1, detections2, cal, dsize):
         """
 
@@ -400,10 +433,12 @@ class FishStereo(object):
         """
         for det1, det2 in it.product(detections1, detections2):
             print('----')
+
             box_points1 = det1['box_points']
             box_points2 = det2['box_points']
-            pts1 = box_points1[[0, 2]]
-            pts2 = box_points2[[0, 2]]
+
+            # pts1 = box_points1[[0, 2]]
+            # pts2 = box_points2[[0, 2]]
 
             pts1 = np.vstack([box_points1, det1['oriented_bbox'].center])
             pts2 = np.vstack([box_points2, det2['oriented_bbox'].center])
@@ -416,22 +451,15 @@ class FishStereo(object):
             # pts1_norm = stereo.normalize_pixel(pts1, 'left')
             # pts2_norm = stereo.normalize_pixel(pts2, 'right')
 
-            K1, K2 = stereo.camera_matrices()
-            kc1, kc2 = stereo.distortions()
+            K1, K2 = stereo.camera_intrinsic_matrices()
+            kc1, kc2 = stereo.camera_distortions()
 
-            R = np.diag(cal['extrinsic']['om'])
-            T = cal['extrinsic']['T']
+            R = np.diag(stereo.extrinsic['om'])
+            T = stereo.extrinsic['T']
 
-            def to_homog(xys):
-                """ converts [:, N] -> [:, N + 1] """
-                zs = np.ones((xys.shape[0], 1), dtype=xys.dtype)
-                xyzs = np.hstack((xys, zs))
-                return xyzs
-
-            def from_homog(xyzs):
-                """ converts [:, N + 1] -> [:, N] """
-                xys = np.divide(xyzs[:, :-1], xyzs.T[-1][:, None])
-                return xys
+            # undistort_img1 = cv2.undistort(img1, K1, kc1)
+            # cv2.imwrite('img1_distort.png', img1)
+            # cv2.imwrite('img1_undistort.png', undistort_img1)
 
             unpts1 = cv2.undistortPoints(pts1[:, None, :], K1, kc1)[:, 0, :]
             unpts2 = cv2.undistortPoints(pts2[:, None, :], K2, kc2)[:, 0, :]
@@ -482,14 +510,11 @@ class FishStereo(object):
             np.linalg.norm(pts2[0] - pts2[1])
 
 
-def demo():
+def demodata():
     import glob
     from os.path import expanduser, join
-    import cv2
-    import ubelt as ub
     data_fpath = expanduser('~/data/autoprocess_test_set')
     cal_fpath = join(data_fpath, 'cal_201608.mat')
-
     cal = read_matlab_stereo_camera(cal_fpath)
 
     img_path1 = join(data_fpath, 'image_data/left')
@@ -497,6 +522,40 @@ def demo():
 
     img_path2 = join(data_fpath, 'image_data/right')
     image_path_list2 = sorted(glob.glob(join(img_path2, '*.jpg')))
+
+    return image_path_list1, image_path_list2, cal
+
+
+def demo_triangulate():
+    image_path_list1, image_path_list2, cal = demodata()
+
+    detector1 = FishDetector()
+    detector2 = FishDetector()
+    for frame_id, (img_fpath1, img_fpath2) in enumerate(zip(image_path_list1,
+                                                            image_path_list2)):
+        img1 = cv2.imread(img_fpath1)
+        img2 = cv2.imread(img_fpath2)
+
+        detections1, masks1 = detector1.apply(img1)
+        detections2, masks2 = detector2.apply(img2)
+
+        if len(detections1) > 0 and len(detections2) > 0:
+
+            import vtool as vt
+            import ubelt as ub
+            stacked = vt.stack_images(masks1['draw'], masks2['draw'], vert=False)[0]
+            dpath = ub.ensuredir('out')
+            cv2.imwrite(dpath + '/mask{}_draw.png'.format(frame_id), stacked)
+            # return detections1, detections2
+
+            FishStereo().method2(cal, detections1, detections2)
+            # if frame_id == 6:
+            #     break
+
+
+def demo():
+    import ubelt as ub
+    image_path_list1, image_path_list2, cal = demodata()
 
     img_fpath1 = image_path_list1[0]
 
@@ -527,9 +586,11 @@ def demo():
         cv2.imwrite(dpath + '/mask{}_draw.png'.format(frame_id), stacked)
         if len(detections1) > 0 and len(detections2) > 0:
             dsize = img1.shape[0:2]
+
+            stereo = StereoCameras(cal)
             import utool
             utool.embed()
             FishStereo().find_match(detections1, detections2, cal, dsize)
 
 if __name__ == '__main__':
-    demo()
+    demo_triangulate()
