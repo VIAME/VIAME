@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,54 +33,37 @@
  * \brief test VXL homography estimation algorithm
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 #include <test_random_point.h>
+
+#include <arrows/vxl/estimate_homography.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/vxl/estimate_homography.h>
+#include <gtest/gtest.h>
 
 using namespace kwiver::vital;
 using namespace kwiver::arrows;
 using namespace kwiver::testing;
 
-kwiver::vital::matrix_3x3d sample_homography()
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  kwiver::vital::matrix_3x3d H;
-  H << 2.0, 0.0, -1.5,
-       0.0, 3.0, 5.0,
-       0.0, 0.0, 1.0;
-  return H;
-}
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
+  ::testing::InitGoogleTest( &argc, argv );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+TEST(estimate_homography, create)
 {
-  algo::estimate_homography_sptr est_H = algo::estimate_homography::create("vxl");
-  if (!est_H)
-  {
-    TEST_ERROR("Unable to create vxl::estimate_homography by name");
-  }
+  EXPECT_NE( nullptr, algo::estimate_homography::create("vxl") );
 }
 
-
-IMPLEMENT_TEST(not_enough_points)
+// ----------------------------------------------------------------------------
+TEST(estimate_homography, not_enough_points)
 {
   vxl::estimate_homography estimator;
 
@@ -88,10 +71,8 @@ IMPLEMENT_TEST(not_enough_points)
   std::vector<bool> inliers;
 
   homography_sptr H = estimator.estimate(pts1, pts2, inliers);
-  if ( H )
-  {
-    TEST_ERROR("Estimation with no points should produce a NULL homography");
-  }
+  EXPECT_EQ( nullptr, H )
+    << "Estimation with no points should produce a NULL homography";
 
   pts1.push_back(vector_2d(0.0, 0.0));
   pts1.push_back(vector_2d(2.0, 0.0));
@@ -102,14 +83,22 @@ IMPLEMENT_TEST(not_enough_points)
   pts2.push_back(vector_2d(1.0, 4.0));
 
   H = estimator.estimate(pts1, pts2, inliers);
-  if ( H )
-  {
-    TEST_ERROR("Estimation with < 4 points should produce a NULL homography");
-  }
+  EXPECT_EQ( nullptr, H )
+    << "Estimation with < 4 points should produce a NULL homography";
 }
 
+// ----------------------------------------------------------------------------
+static kwiver::vital::matrix_3x3d sample_homography()
+{
+  kwiver::vital::matrix_3x3d H;
+  H << 2.0, 0.0, -1.5,
+       0.0, 3.0, 5.0,
+       0.0, 0.0, 1.0;
+  return H;
+}
 
-IMPLEMENT_TEST(four_points)
+// ----------------------------------------------------------------------------
+TEST(estimate_homography, four_points)
 {
   vxl::estimate_homography estimator;
 
@@ -130,18 +119,18 @@ IMPLEMENT_TEST(four_points)
     pts2.push_back(vector_2d(v.x()/v.z(), v.y()/v.z()));
   }
 
-  homography_sptr H = estimator.estimate(pts1, pts2, inliers);
-  H = H->normalize();
+  homography_sptr estimated_H = estimator.estimate(pts1, pts2, inliers);
+  estimated_H = estimated_H->normalize();
 
-  double H_error = (true_H - H->matrix()).norm();
+  double H_error = (true_H - estimated_H->matrix()).norm();
   std::cout << "Homography estimation error: "<< H_error << std::endl;
 
-  TEST_NEAR("Frobenius norm between estimated and true homography",
-            H_error, 0.0, 1e-14);
+  EXPECT_MATRIX_NEAR( true_H, estimated_H->matrix(), 1e-14 );
+  EXPECT_LT( H_error, 1e-14 );
 }
 
-
-IMPLEMENT_TEST(ideal_points)
+// ----------------------------------------------------------------------------
+TEST(estimate_homography, ideal_points)
 {
   vxl::estimate_homography estimator;
 
@@ -158,22 +147,20 @@ IMPLEMENT_TEST(ideal_points)
   }
 
   std::vector<bool> inliers;
-  homography_sptr H = estimator.estimate(pts1, pts2, inliers);
-  H = H->normalize();
+  homography_sptr estimated_H = estimator.estimate(pts1, pts2, inliers);
+  estimated_H = estimated_H->normalize();
 
-  double H_error = (true_H - H->matrix()).norm();
+  double H_error = (true_H - estimated_H->matrix()).norm();
   std::cout << "Homography estimation error: "<< H_error << std::endl;
-  TEST_NEAR("Frobenius norm between estimated and true homography",
-            H_error, 0.0, 1e-8);
+  EXPECT_MATRIX_NEAR( true_H, estimated_H->matrix(), 1e-9 );
+  EXPECT_LT( H_error, 1e-8 );
 
-  unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                          inliers.end(), true));
-  std::cout << "num inliers "<<num_inliers<<std::endl;
-  TEST_EQUAL("All points are inliers", num_inliers, 100);
+  std::cout << "num inliers " << inliers.size() << std::endl;
+  EXPECT_EQ( 100, inliers.size() ) << "All points should be inliers";
 }
 
-
-IMPLEMENT_TEST(noisy_points)
+// ----------------------------------------------------------------------------
+TEST(estimate_homography, noisy_points)
 {
   vxl::estimate_homography estimator;
 
@@ -191,25 +178,21 @@ IMPLEMENT_TEST(noisy_points)
   }
 
   std::vector<bool> inliers;
-  homography_sptr H = estimator.estimate(pts1, pts2, inliers);
-  H = H->normalize();
+  homography_sptr estimated_H = estimator.estimate(pts1, pts2, inliers);
+  estimated_H = estimated_H->normalize();
 
-  double H_error = (true_H - H->matrix()).norm();
+  double H_error = (true_H - estimated_H->matrix()).norm();
   std::cout << "Homography estimation error: "<< H_error << std::endl;
-  TEST_NEAR("Frobenius norm between estimated and true homography",
-            H_error, 0.0, 0.2);
+  EXPECT_MATRIX_NEAR( true_H, estimated_H->matrix(), 0.05 );
+  EXPECT_LT( H_error, 0.2 );
 
-  unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                          inliers.end(), true));
-  std::cout << "num inliers "<<num_inliers<<std::endl;
-  if (num_inliers < 90)
-  {
-    TEST_ERROR("Fewer than 90% of points detected as inliers");
-  }
+  std::cout << "num inliers " << inliers.size() << std::endl;
+  EXPECT_GE( inliers.size(), 90 )
+    << "At least 90% of points should be inliers";
 }
 
-
-IMPLEMENT_TEST(outlier_points)
+// ----------------------------------------------------------------------------
+TEST(estimate_homography, outlier_points)
 {
   vxl::estimate_homography estimator;
 
@@ -233,17 +216,15 @@ IMPLEMENT_TEST(outlier_points)
   }
 
   std::vector<bool> inliers;
-  homography_sptr H = estimator.estimate(pts1, pts2, inliers);
-  H = H->normalize();
+  homography_sptr estimated_H = estimator.estimate(pts1, pts2, inliers);
+  estimated_H = estimated_H->normalize();
 
-  double H_error = (true_H - H->matrix()).norm();
+  double H_error = (true_H - estimated_H->matrix()).norm();
   std::cout << "Homography estimation error: "<< H_error << std::endl;
-  TEST_NEAR("Frobenius norm between estimated and true homography",
-            H_error, 0.0, 1e-8);
+  EXPECT_MATRIX_NEAR( true_H, estimated_H->matrix(), 1e-11 );
+  EXPECT_LT( H_error, 1e-8 );
 
-  unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                          inliers.end(), true));
-  std::cout << "num inliers "<<num_inliers<<std::endl;
+  std::cout << "num inliers " << inliers.size() << std::endl;
 
   unsigned correct_inliers = 0;
   for( unsigned i=0; i<inliers.size(); ++i )
@@ -253,10 +234,7 @@ IMPLEMENT_TEST(outlier_points)
       ++correct_inliers;
     }
   }
-  std::cout << "correct inliers "<<correct_inliers<<std::endl;
-
-  if (correct_inliers < 90)
-  {
-    TEST_ERROR("Fewer than 90% of points have correct inlier status");
-  }
+  std::cout << "correct inliers " << correct_inliers << std::endl;
+  EXPECT_GE( correct_inliers, 90 )
+    << "At least 90% of points should be correct inliers";
 }
