@@ -53,20 +53,9 @@ class SmqtkProcessQuery (KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        self.add_config_trait()
-
-        # register port traits
-        self.add_port_trait("exemplar_uids", "string_vector",
-                            "Positive exemplar descriptor UUIDs")
-        self.add_port_trait("positive_uids", "string_vector",
-                            "Positive sample UIDs")
-        self.add_port_trait("negative_uids", "string_vector",
-                            "Negative sample UIDs")
-        self.add_port_trait("result_descriptor_uids", "string_vector",
-                            "Result ranked descriptor UUIDs in rank order.")
-        self.add_port_trait("result_descriptor_scores", "double_vector",
-                            "Result ranked descriptor distance score values "
-                            "in rank order.")
+        # register port and config traits
+        self.add_port_traits()
+        self.add_config_traits()
 
         # set up required flags
         optional = process.PortFlags()
@@ -109,6 +98,19 @@ class SmqtkProcessQuery (KwiverProcess):
             {}
         )
 
+    def add_port_traits(self):
+        self.add_port_trait("exemplar_uids", "string_vector",
+                            "Positive exemplar descriptor UUIDs")
+        self.add_port_trait("positive_uids", "string_vector",
+                            "Positive sample UIDs")
+        self.add_port_trait("negative_uids", "string_vector",
+                            "Negative sample UIDs")
+        self.add_port_trait("result_descriptor_uids", "string_vector",
+                            "Result ranked descriptor UUIDs in rank order.")
+        self.add_port_trait("result_descriptor_scores", "double_vector",
+                            "Result ranked descriptor distance score values "
+                            "in rank order.")
+
     def add_config_traits(self):
         # register python config file
         self.add_config_trait(
@@ -122,6 +124,7 @@ class SmqtkProcessQuery (KwiverProcess):
             'Path to the json configuration file for the nearest-neighbors '
             'algorithm configuration file.'
         )
+        self.declare_config_using_trait('neighbor_index_config_file')
 
         self.add_config_trait(
             'pos_seed_neighbors', 'pos_seed_neighbors', '500',
