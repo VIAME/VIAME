@@ -68,7 +68,7 @@ public:
   int m_blur_kernel_size;
   int m_min_frames;
   int m_nmixtures;
-  cv::Ptr<cv::BackgroundSubtractor> bg_model;
+  cv::Ptr<cv::BackgroundSubtractorMOG2> bg_model;
   image_container_sptr motion_heat_map;
   kwiver::vital::logger_handle_t m_logger;
 
@@ -91,10 +91,11 @@ public:
     m_frame_count = 0;
 #ifdef KWIVER_HAS_OPENCV_VER_3
     bg_model = cv::createBackgroundSubtractorMOG2( m_history, m_var_threshold, false );
+    bg_model->setNMixtures( m_nmixtures );
 #else
     bg_model = new cv::BackgroundSubtractorMOG2(m_history, m_var_threshold, false);
-#endif
     bg_model->set("nmixtures", m_nmixtures);
+#endif
   }
 };
 
