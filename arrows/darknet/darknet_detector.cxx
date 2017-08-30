@@ -41,6 +41,7 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <string>
 #include <sstream>
@@ -325,16 +326,17 @@ detect( vital::image_container_sptr image_data ) const
         int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
 
         cv::Mat cropped_image = cv_resized_image( cv::Rect( li, lj, ti-li, tj-lj ) );
-        cv::Mat scaled_crop;
+        cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
           cropped_image, scaled_crop, d->m_resize_i, d->m_resize_j );
+        cv::cvtColor(scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB);
 
-        vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
-
+        vital::detected_object_set_sptr new_dets = d->process_image( tmp_cropped );
         new_dets->scale( 1.0 / scaled_crop_scale );
         new_dets->shift( li, lj );
         new_dets->scale( 1.0 / scale_factor );
+
 
         detections->add( new_dets );
       }
