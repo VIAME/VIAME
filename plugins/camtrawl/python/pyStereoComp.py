@@ -271,7 +271,6 @@ class pyStereoComp(object):
         return xn
 
     def compDistortion(self, xd, k):
-
         if len(k) == 1:  # original comp_distortion_oulu
             r_2 = xd[:, 0]**2 + xd[:, 1]**2
             radial_d = 1 + np.dot(np.ones((2, 1)), np.array([(k * r_2)]))
@@ -295,7 +294,6 @@ class pyStereoComp(object):
                 delta_x = np.array([2 * p1 * x[0, :] * x[1, :] + p2 * (r_2 + 2 * x[0, :]**2),
                                     p1 * (r_2 + 2 * x[0, :]**2) + 2 * p2 * x[0, :] * x[1, :]])
                 x = (xd - delta_x) / (np.dot(np.ones((2, 1)), np.array([k_radial])))
-
             return x
 
     def rodrigues(self, om):

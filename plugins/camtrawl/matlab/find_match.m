@@ -57,6 +57,11 @@ for i=1:numL
         clear x1 x2 y1 y2
         
 
+        % Triangulation output:
+        %   XL: 3xN matrix of coordinates of the points in the left camera reference frame
+        %   XR: 3xN matrix of coordinates of the points in the right camera reference frame
+        % Note: XR and XL are related to each other through the rigid motion equation: XR = R * XL + T, where R = rodrigues(om)
+        %
         [XL,XR] = stereo_triangulation(xL,xR,...
             Cal.om,Cal.T,Cal.fc_left,Cal.cc_left,...
             Cal.kc_left,Cal.alpha_c_left,Cal.fc_right,...
@@ -64,9 +69,17 @@ for i=1:numL
         
         xlp = project_points2(XL,[0,0,0]',[0 0 0]',Cal.fc_left,Cal.cc_left,Cal.kc_left,Cal.alpha_c_left);
         xrp = project_points2(XR,[0,0,0]',[0 0 0]',Cal.fc_right,Cal.cc_right,Cal.kc_right,Cal.alpha_c_right);
+
+        % Average reprojection error.
+        %  xL and xR both contain two points, hence xL makes 2 errors and xR
+        %  makes 2 errors.  So there are a total of 4 errors -> divide by 4.
         E(i,j)=(sum(sqrt((xL(1,:)-xlp(1,:)).^2+(xL(2,:)-xlp(2,:)).^2)+...
-            sqrt((xR(1,:)-xrp(1,:)).^2+(xR(2,:)-xrp(2,:)).^2)))/4;
+                    sqrt((xR(1,:)-xrp(1,:)).^2+(xR(2,:)-xrp(2,:)).^2)))/4;
+
         
+        % Compute the length on the diagonal (using only the left coords) of
+        % the of the 3D bounding box This approximates the fish length. (Not
+        % sure why we are dividing by 10 here, units?)
         len=sqrt((XL(1,1)-XL(1,2))^2+(XL(2,1)-XL(2,2))^2+(XL(3,1)-XL(3,2))^2)/10;
         z=mean([XL(3,1),XL(3,2)]);
         dz=abs(XL(3,2)-XL(3,1));
