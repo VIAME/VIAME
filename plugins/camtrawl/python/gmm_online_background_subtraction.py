@@ -1258,5 +1258,5 @@ def demo():
 
 if __name__ == '__main__':
     demo()
-    import utool as ut
-    ut.dump_profile_text()
+    # import utool as ut
+    # ut.dump_profile_text()
