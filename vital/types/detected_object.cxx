@@ -67,6 +67,7 @@ detected_object
   new_obj->m_mask_image = this->m_mask_image; // being cheap - not copying image mask
   new_obj->m_index = this->m_index;
   new_obj->m_detector_name = this->m_detector_name;
+  new_obj->m_descriptor = this->m_descriptor;
 
   return new_obj;
 }
