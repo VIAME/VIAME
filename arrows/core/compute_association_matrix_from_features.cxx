@@ -197,7 +197,7 @@ compute_association_matrix_from_features
               dist = std::sqrt( dist );
             }
 
-            if( dist <= d_->m_max_distance )
+            if( d_->m_max_distance <= 0.0 || dist <= d_->m_max_distance )
             {
               trk_features = trk_state->detection->descriptor();
             }
