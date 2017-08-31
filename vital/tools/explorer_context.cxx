@@ -88,5 +88,6 @@ display_attr( const kwiver::vital::plugin_factory_handle_t fact ) const
 // ------------------------------------------------------------------
 bool explorer_context::if_detail() const { return p->opt_detail; }
 bool explorer_context::if_brief() const { return p->opt_brief; }
+bool explorer_context::if_pipeline_format() const { return p->opt_pipe_format; }
 
 } } // end namespace

@@ -186,6 +186,7 @@ void usage( const std::string& prog_name )
              << "    -Ipath       Add path to loadable module search path\n"
              << "    --path       Display loadable module search path list\n"
              << "    --load   file-name   Load only specified plugin file for inspection. No other plugins are loaded\n"
+             << "    --pipe       Display output in pipeline definition file format\n"
 
              << std::endl;
 
@@ -200,6 +201,74 @@ join( const std::vector< std::string >& vec, const char* delim )
   std::copy( vec.begin(), vec.end(), std::ostream_iterator< std::string > ( res, delim ) );
 
   return res.str();
+}
+
+
+/*
+  for an abstract algorithm -
+  print config for all variants in a pipeline suitable format.
+  Takes a list of factories for a base class type.
+ */
+
+// ------------------------------------------------------------------
+void gen_pipefile_algo( kwiver::vital::plugin_factory_vector_t vect )
+{
+  if (vect.empty())
+  {
+    return;
+  }
+
+  kwiver::vital::wrap_text_block wtb;
+  wtb.set_indent_string( "#      " );
+
+  // display something about the base class
+  std::string type = "-- not set --";
+  vect[0]->get_attribute( kwiver::vital::plugin_factory::INTERFACE_TYPE, type );
+  pe_out() << "# Available implementations for algorithm \"" << type << "\"" << std::endl;
+
+  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, vect )
+  {
+    // downcast to correct factory type.
+    kwiver::vital::algorithm_factory* pf = dynamic_cast< kwiver::vital::algorithm_factory* > ( fact.get() );
+
+    if ( 0 == pf )
+    {
+      // Wrong type of factory returned.
+      pe_out() << "Factory for algorithm could not be converted to algorithm_factory type.";
+      return;
+    }
+
+    std::string descrip = "-- Not_Set --";
+    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+    descrip = wtb.wrap_text( descrip );
+
+    std::string impl = "-- not set --";
+    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
+
+    // algo.type = impl
+    pe_out() << "type = " << impl << std::endl
+             << descrip << std::endl
+             << "block " << impl << std::endl;
+
+    kwiver::vital::algorithm_sptr ptr = pf->create_object();
+
+    // Get configuration
+    auto config = ptr->get_configuration();
+    auto all_keys = config->available_values();
+
+    VITAL_FOREACH( auto  key, all_keys )
+    {
+      auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+
+      pe_out() << "    " << key << " = " << val << std::endl;
+
+      kwiver::vital::config_block_description_t descr = config->get_description( key );
+      pe_out() << wtb.wrap_text( descr ) << std::endl;
+    } // end foreach over config
+
+    pe_out() << "endblock\n" << std::endl;
+
+  } // end foreach over factory
 }
 
 
@@ -251,7 +320,7 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
 
   buf = "-- Not Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
-  pe_out() << "      Description: " << G_context.m_wtb.wrap_text( buf );
+  pe_out() << G_context.m_wtb.wrap_text( buf );
 
   // Stop here if attributes not enabled
   if ( ! G_context.opt_attrs )
@@ -312,7 +381,8 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 
 
 // ------------------------------------------------------------------
-void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category )
+void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
+                          const std::string& category )
 {
   pe_out() << "\n---- All " << category << " Factories\n";
 
@@ -350,6 +420,8 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const s
 
     pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
 
+    gen_pipefile_algo( facts ); //+ TEMP
+
     // Get vector of factories
     VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
     {
@@ -386,7 +458,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const s
 void print_config( kwiver::vital::config_block_sptr const config )
 {
   kwiver::vital::config_block_keys_t all_keys = config->available_values();
-  std::string indent( "    " );
+  const std::string indent( "    " );
 
   pe_out() << indent << "Configuration block contents\n";
 
@@ -561,8 +633,10 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
                                 "Display raw attributes for factories without calling any category specific plugins" );
 
-    G_context.m_args.AddArgument( "--load", argT::SPACE_ARGUMENT, &G_context.opt_load_module,
-                                  "Load only specified plugin file for inspection." );
+  G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
+                                "Load only specified plugin file for inspection." );
+
+  G_context.m_args.AddArgument( "--pipe",     argT::NO_ARGUMENT, &G_context.opt_pipe_format, "Generate output in pipeline format" );
 
   // See if there are no args specified. If so, then default to full listing
   if ( argc == 1 )

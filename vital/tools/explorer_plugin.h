@@ -101,6 +101,7 @@ public:
 
   bool if_detail() const;
   bool if_brief() const;
+  bool if_pipeline_format() const;
 
   class priv;
 
