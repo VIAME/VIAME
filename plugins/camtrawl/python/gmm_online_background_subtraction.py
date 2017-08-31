@@ -179,7 +179,7 @@ class FishDetector(object):
         if return_info:
             masks['orig'] = mask.copy()
 
-        if self.n_iters < 3:
+        if self.n_iters < 6:
             # Skip the first few frames while the model is learning
             detections = []
         else:
@@ -1146,14 +1146,14 @@ def demo():
     image_path_list1, image_path_list2, cal_fpath = demodata_input(dataset=dataset)
     cal = StereoCalibration.from_matfile(cal_fpath)
 
-    dpath = ub.ensuredir('out')
+    dpath = ub.ensuredir('out_{}'.format(dataset))
 
     bg_algo = 'median'
     bg_algo = 'gmm'
 
     if bg_algo == 'gmm':
         # Use GMM based model
-        stride = 2
+        stride = 1
         gmm_params = {
             'bg_algo': bg_algo,
             'n_training_frames': 9999,
@@ -1237,7 +1237,7 @@ def demo():
             assignment, assign_data = None, None
 
         # if assignment:
-        DRAWING = 0
+        DRAWING = 1
         if DRAWING:
             stacked = DrawHelper.draw_stereo_detections(img1, detections1, masks1,
                                                         img2, detections2, masks2,
