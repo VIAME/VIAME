@@ -214,8 +214,9 @@ compute_association_matrix_from_features
           double sum_sqr = 0.0;
 
           for( double *pos1 = det_features->raw_data(),
-                      *pos2 = trk_features->raw_data();
-               pos1 != pos1 + det_features->size(); ++pos1, ++pos2 )
+                      *pos2 = trk_features->raw_data(),
+                      *end = pos1 + det_features->size();
+               pos1 != end; ++pos1, ++pos2 )
           {
             sum_sqr += ( ( *pos1 - *pos2 ) * ( *pos1 - *pos2 ) );
           }
