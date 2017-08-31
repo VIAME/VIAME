@@ -33,3 +33,6 @@ _build
 
 # Custom IDE
 /.project
+# Compiled Python
+*.pyc
+__pycache__
