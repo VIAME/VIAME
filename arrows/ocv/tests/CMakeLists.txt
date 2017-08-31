@@ -14,5 +14,5 @@ kwiver_discover_tests(ocv_distortion          test_libraries test_distortion.cxx
 kwiver_discover_gtests(ocv estimate_fundamental_matrix LIBRARIES ${test_libraries})
 kwiver_discover_gtests(ocv estimate_homography         LIBRARIES ${test_libraries})
 kwiver_discover_tests(ocv_feature_set         test_libraries test_feature_set.cxx)
-kwiver_discover_tests(ocv_image               test_libraries test_image.cxx)
+kwiver_discover_gtests(ocv image                       LIBRARIES ${test_libraries})
 kwiver_discover_tests(ocv_match_set           test_libraries test_match_set.cxx)

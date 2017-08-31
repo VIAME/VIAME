@@ -35,6 +35,8 @@
 
 #include <test_tmpfn.h>
 
+#include <arrows/tests/test_image.h>
+
 #include <arrows/vxl/image_container.h>
 #include <arrows/vxl/image_io.h>
 
@@ -121,9 +123,7 @@ populate_vil_image(vil_image_view<T>& img, T minv, T maxv)
     {
       for( unsigned int i=0; i<img.ni(); ++i )
       {
-        const double pi = 3.14159265358979323846;
-        double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;
-        img(i,j,p) = static_cast<T>(val * range + offset);
+        img(i,j,p) = static_cast<T>(value_at(i, j, p) * range + offset);
       }
     }
   }
@@ -140,51 +140,15 @@ populate_vil_image(vil_image_view<T>& img)
   populate_vil_image(img, minv, maxv);
 }
 
-// ----------------------------------------------------------------------------
-// Helper function to populate the image with a pattern; the dynamic range is
-// stretched between minv and maxv
-template <typename T>
-void
-populate_vital_image(kwiver::vital::image& img, T minv, T maxv)
-{
-  const double range = static_cast<double>(maxv) - static_cast<double>(minv);
-  const double offset = - static_cast<double>(minv);
-  for( unsigned int p=0; p<img.depth(); ++p )
-  {
-    for( unsigned int j=0; j<img.height(); ++j )
-    {
-      for( unsigned int i=0; i<img.width(); ++i )
-      {
-        const double pi = 3.14159265358979323846;
-        double val = ((std::sin(pi*double(i)*(p+1)/10) * std::sin(pi*double(j)*(p+1)/10))+1) / 2;
-        img.at<T>(i,j,p) = static_cast<T>(val * range + offset);
-      }
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
-// helper function to populate the image with a pattern
-template <typename T>
-void
-populate_vital_image(kwiver::vital::image& img)
-{
-  const T minv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::min() : T(0);
-  const T maxv = std::numeric_limits<T>::is_integer ? std::numeric_limits<T>::max() : T(1);
-  populate_vital_image<T>(img, minv, maxv);
-}
-
-// ----------------------------------------------------------------------------
-// TODO replace with template variable when we require C++14
-template <typename T> constexpr size_t depth_for_type() { return 3; }
-
-// currently VXL support only single channel double TIFFs
-template <> constexpr size_t depth_for_type<double>() { return 1; }
-
-// currently VXL support only single channel boolean TIFFs
-template <> constexpr size_t depth_for_type<bool>() { return 1; }
-
 } // end anonymous namespace
+
+// ----------------------------------------------------------------------------
+template <typename T, int Depth>
+struct image_type
+{
+  using pixel_type = T;
+  static constexpr int depth = Depth;
+};
 
 // ----------------------------------------------------------------------------
 template <typename T>
@@ -192,16 +156,27 @@ class image_io : public ::testing::Test
 {
 };
 
-using io_types =
-  ::testing::Types<kwiver::vital::byte, float, double, uint16_t, bool>;
+using io_types = ::testing::Types<
+  image_type<byte, 1>,
+  image_type<byte, 3>,
+  image_type<byte, 4>,
+  image_type<uint16_t, 1>,
+  image_type<uint16_t, 3>,
+  image_type<uint16_t, 4>,
+  image_type<float, 1>,
+  image_type<float, 3>,
+  image_type<double, 1>, // current VXL supports only one channel double TIFFs
+  image_type<bool, 1>   // current VXL supports only one channel boolean TIFFs
+  >;
+
 TYPED_TEST_CASE(image_io, io_types);
 
 // ----------------------------------------------------------------------------
 TYPED_TEST(image_io, type)
 {
-  constexpr auto depth = depth_for_type<TypeParam>();
-  kwiver::vital::image_of<TypeParam> img( 200, 300, depth );
-  populate_vital_image<TypeParam>( img );
+  using pix_t = typename TypeParam::pixel_type;
+  kwiver::vital::image_of<pix_t> img( 200, 300, TypeParam::depth );
+  populate_vital_image<pix_t>( img );
 
   auto const image_path = kwiver::testing::temp_file_name( "test-", ".tiff" );
 
@@ -482,7 +457,16 @@ using conversion_types =
 TYPED_TEST_CASE(image_conversion, conversion_types);
 
 // ----------------------------------------------------------------------------
-TYPED_TEST(image_conversion, vxl_to_vital)
+TYPED_TEST(image_conversion, vxl_to_vital_single_channel)
+{
+  // Create vil_image_view and convert to and from vital images
+  vil_image_view<TypeParam> img{ 100, 200, 1 };
+  populate_vil_image( img );
+  run_vil_conversion_tests( img );
+}
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(image_conversion, vxl_to_vital_multi_channel)
 {
   // Create vil_image_view and convert to and from vital images
   vil_image_view<TypeParam> img{ 100, 200, 3 };
@@ -510,7 +494,18 @@ TYPED_TEST(image_conversion, vxl_to_vital_cropped)
 }
 
 // ----------------------------------------------------------------------------
-TYPED_TEST(image_conversion, vital_to_vxl)
+TYPED_TEST(image_conversion, vital_to_vxl_single_channel)
+{
+  // Create vital images and convert to and from vil_image_view
+  // (note: different code paths are taken depending on whether the image
+  // is natively created as vil or vital, so we need to test both ways)
+  kwiver::vital::image_of<TypeParam> img{ 200, 300, 1 };
+  populate_vital_image<TypeParam>( img );
+  run_vital_conversion_tests( img );
+}
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(image_conversion, vital_to_vxl_multi_channel)
 {
   // Create vital images and convert to and from vil_image_view
   // (note: different code paths are taken depending on whether the image
