@@ -49,8 +49,11 @@ def imscale(img, scale):
     new_scale = new_w / w, new_h / h
     new_dsize = (new_w, new_h)
 
-    # new_img = cv2.resize(img, new_dsize, interpolation=cv2.INTER_LANCZOS4)
-    new_img = cv2.resize(img, new_dsize, interpolation=cv2.INTER_LINEAR)
+    interpolation = cv2.INTER_LINEAR
+    # interpolation = cv2.INTER_CUBIC
+    # interpolation = cv2.INTER_LANCZOS4
+
+    new_img = cv2.resize(img, new_dsize, interpolation=interpolation)
     return new_img, new_scale
 
 
@@ -219,7 +222,6 @@ def overlay_alpha_images(img1, img2):
     c1 = get_num_channels(img1)
     c2 = get_num_channels(img2)
     if c1 == 4:
-        # alpha1 = np.ascontiguousarray(img1[:, :, 3])
         alpha1 = img1[:, :, 3]
     else:
         alpha1 = np.ones(img1.shape[0:2], dtype=img1.dtype)
@@ -235,8 +237,6 @@ def overlay_alpha_images(img1, img2):
     alpha1_ = alpha1[..., None]
     alpha2_ = alpha2[..., None]
     alpha3_ = alpha1_ + alpha2_ * (1 - alpha1_)
-
-    # rgb3 = rgb1 * alpha1_ + rgb2 * alpha2_
 
     numer1 = (rgb1 * alpha1_)
     numer2 = (rgb2 * alpha2_ * (1.0 - alpha1_))
@@ -280,3 +280,23 @@ def overlay_heatmask(img, mask, alpha=.9, cmap='plasma'):
     draw_img = overlay_alpha_images(heat_mask, img)
     draw_img = ensure_uint8(draw_img)
     return draw_img
+
+
+def putMultiLineText(img, text, org, **kwargs):
+    """
+    References:
+        https://stackoverflow.com/questions/27647424/
+    """
+    getsize_kw = {
+        k: kwargs[k]
+        for k in ['fontFace', 'fontScale', 'thickness']
+        if k in kwargs
+    }
+    x0, y0 = org
+    ypad = kwargs.get('thickness', 2) + 4
+    y = y0
+    for i, line in enumerate(text.split('\n')):
+        (w, h), text_sz = cv2.getTextSize(text, **getsize_kw)
+        img = cv2.putText(img, line, (x0, y), **kwargs)
+        y += (h + ypad)
+    return img

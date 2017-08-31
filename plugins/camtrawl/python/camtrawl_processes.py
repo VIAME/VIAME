@@ -37,12 +37,15 @@ CommandLine:
     feat2 = Feature(loc=(2, 3))
 
     np.sum((feat1.location - feat2.location) ** 2)
+
+SeeAlso
+    ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types
 """
 from __future__ import print_function
 import numpy as np
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
-from vital.types import (
+from vital.types import (  # NOQA
     Image,
     BoundingBox,
     DetectedObjectSet,
