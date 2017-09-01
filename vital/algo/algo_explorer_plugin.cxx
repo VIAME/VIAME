@@ -185,7 +185,8 @@ gen_pipefile_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
 
   // algo.type = impl
-  m_context->output_stream() << "type = " << impl << std::endl
+  m_context->output_stream() << "# ---------------------------------" << std::endl
+                             << "type = " << impl << std::endl
                              << descrip << std::endl
                              << "block " << impl << std::endl;
 
