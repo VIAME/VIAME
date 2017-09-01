@@ -92,6 +92,27 @@ struct matrix_comparator
     }
     return true;
   }
+
+  // --------------------------------------------------------------------------
+  template <typename T>
+  bool operator()( Eigen::Matrix<T, Eigen::Dynamic, 1> const& a,
+                   Eigen::Matrix<T, Eigen::Dynamic, 1> const& b,
+                   double epsilon )
+  {
+    if ( a.size() != b.size() )
+    {
+      return false;
+    }
+
+    for ( unsigned i = 0; i < a.size(); ++i )
+    {
+      if ( std::abs( a[i] - b[i] ) > epsilon )
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 };
 
 #define EXPECT_MATRIX_EQ(a, b) \

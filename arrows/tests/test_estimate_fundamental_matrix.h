@@ -31,8 +31,6 @@
 #include <test_eigen.h>
 #include <test_scene.h>
 
-#include <vital/plugin_loader/plugin_manager.h>
-
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/epipolar_geometry.h>
