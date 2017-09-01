@@ -97,7 +97,7 @@ public:
 
     opt_attr_filter = false;
     opt_fact_filt = false;
-    opt_pipe_format - false;
+    opt_pipe_format = false;
 
     m_out_stream = 0;
   }
