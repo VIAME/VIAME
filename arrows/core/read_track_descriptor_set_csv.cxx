@@ -243,8 +243,8 @@ read_track_descriptor_set_csv::priv
       unsigned start_ind = i * ( contains_world_info ? 10 : 6 );
 
       vital::timestamp ts(
-        std::stoi( hist_tokens[ start_ind + 0 ] ),
-        std::stoi( hist_tokens[ start_ind + 1 ] ) );
+        std::stoi( hist_tokens[ start_ind + 1 ] ),
+        std::stoi( hist_tokens[ start_ind + 0 ] ) );
 
       vital::bounding_box_d bbox(
         std::stof( hist_tokens[ start_ind + 2 ] ),
@@ -279,6 +279,8 @@ read_track_descriptor_set_csv::priv
       m_descs_by_frame_id[ frame_index ].push_back( desc );
       m_last_idx = std::max( m_last_idx, frame_index );
     }
+
+    m_all_descs.push_back( desc );
   }
 }
 
