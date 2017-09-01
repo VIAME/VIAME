@@ -157,6 +157,43 @@ struct print_functor
 
 
 // ------------------------------------------------------------------
+void usage( const std::string& prog_name )
+{
+    pe_out() << "Usage: " << prog_name << "[options]\n"
+             << "\nThis tool displays the attributes of plugins. Each plugin file contains one or more factories.\n"
+
+             << "    --help -h     Display usage information\n"
+             << "    --detail -d   Display detailed information about plugins\n"
+             << "    --factory --fact  regexp    Only display factories whose interface type matches specified regexp\n"
+             << "    --type   regexp    Only display factories whose instance name matches the specified regexp\n"
+             << "    --brief -b    Generate brief display\n"
+
+             << "    --files       Display list of loaded files\n"
+             << "    --mod         Display list of loaded modules\n"
+             << "    --all         Display all plugins\n"
+             << "    --algorithm --algo type   Display only algorithm type plugins.\n"
+             << "                  If type is specified as \"all\", then all algorithms are listed. Otherwise, the type\n"
+             << "                  will be treated as a regexp and only algorithm types that match the regexp will be displayed.\n"
+             << "    --process --proc type     Display only sprokit process type plugins.\n"
+             << "                  If type is specified as \"all\", then all processes are listed. Otherwise, the type\n"
+             << "                  will be treated as a regexp and only processes names that match the regexp will be displayed.\n"
+             << "    --scheduler  Display scheduler type plugins\n"
+
+             << "    --filter  attr-name regex    Filter factories based on attribute name and value.\n"
+             << "    --summary       Display summary of all factories loaded\n"
+             << "    --attrs         Display raw attributes for factories without calling any category specific plugins\n"
+
+             << "    -Ipath       Add path to loadable module search path\n"
+             << "    --path       Display loadable module search path list\n"
+             << "    --load   file-name   Load only specified plugin file for inspection. No other plugins are loaded\n"
+             << "    --pipe       Display output in pipeline definition file format\n"
+
+             << std::endl;
+
+}
+
+
+// ------------------------------------------------------------------
 std::string
 join( const std::vector< std::string >& vec, const char* delim )
 {
@@ -215,9 +252,10 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
 
   buf = "-- Not Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
-  pe_out() << "      Description: " << G_context.m_wtb.wrap_text( buf );
+  pe_out() << G_context.m_wtb.wrap_text( buf );
 
-  if ( ! G_context.opt_detail )
+  // Stop here if attributes not enabled
+  if ( ! G_context.opt_attrs )
   {
     return;
   }
@@ -237,12 +275,9 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, buf );
   pe_out() << "      Plugin module name: " << buf << std::endl;
 
-  if ( G_context.opt_attrs )
-  {
-    // print all the rest of the attributes
-    print_functor pf( pe_out() );
-    fact->for_each_attr( pf );
-  }
+  // print all the rest of the attributes
+  print_functor pf( pe_out() );
+  fact->for_each_attr( pf );
 
   pe_out() << std::endl;
 }
@@ -273,13 +308,13 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 
   } // end attr filter
 
-
   display_attributes( fact );
 }
 
 
 // ------------------------------------------------------------------
-void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category )
+void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
+                          const std::string& category )
 {
   pe_out() << "\n---- All " << category << " Factories\n";
 
@@ -315,7 +350,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const s
       continue;
     }
 
-    pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
+    pe_out() << "\nPlugins that implement type \"" << ds << "\"" << std::endl;
 
     // Get vector of factories
     VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
@@ -353,7 +388,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const s
 void print_config( kwiver::vital::config_block_sptr const config )
 {
   kwiver::vital::config_block_keys_t all_keys = config->available_values();
-  std::string indent( "    " );
+  const std::string indent( "    " );
 
   pe_out() << indent << "Configuration block contents\n";
 
@@ -497,20 +532,25 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "-h",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
   G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
   G_context.m_args.AddArgument( "-d",        argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
-  G_context.m_args.AddArgument( "--config",  argT::NO_ARGUMENT, &G_context.opt_config, "Display configuration information needed by plugins" );
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
   G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
-                                "Filter factories by interface type based on regexp" );
-  G_context.m_args.AddArgument( "--type", argT::SPACE_ARGUMENT, &G_context.opt_type_regex,
-                                "Filter factories by instance name based on regexp" );
+  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
+  G_context.m_args.AddArgument( "--type",    argT::SPACE_ARGUMENT, &G_context.opt_type_regex, "Filter factories by instance name based on regexp" );
   G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
-  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all factories" );
-  G_context.m_args.AddArgument( "--algorithm", argT::NO_ARGUMENT, &G_context.opt_algo, "Display all algorithms" );
-  G_context.m_args.AddArgument( "--process",   argT::NO_ARGUMENT, &G_context.opt_process, "Select only processes" );
+  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all plugins" );
+
+  std::string algo_arg;
+  G_context.m_args.AddArgument( "--algorithm", argT::SPACE_ARGUMENT, &algo_arg, "Display all algorithms" );
+  G_context.m_args.AddArgument( "--algo",    argT::SPACE_ARGUMENT, &algo_arg, "Display all algorithms" );
+
+  std::string proc_arg;
+  G_context.m_args.AddArgument( "--process",   argT::SPACE_ARGUMENT, &proc_arg, "Select only processes" );
+  G_context.m_args.AddArgument( "--proc",      argT::SPACE_ARGUMENT, &proc_arg, "Select only processes" );
+
   G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Select only schedulers" );
 
   std::vector< std::string > filter_args;
@@ -523,15 +563,10 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
                                 "Display raw attributes for factories without calling any category specific plugins" );
 
-    G_context.m_args.AddArgument( "--load", argT::SPACE_ARGUMENT, &G_context.opt_load_module,
-                                  "Load only specified plugin file for inspection." );
+  G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
+                                "Load only specified plugin file for inspection." );
 
-  // Save some time by not loading the plugins if we know we will not
-  // be using them.
-  if ( ! G_context.opt_attrs )
-  {
-    load_explorer_plugins( DEFAULT_MODULE_PATHS );
-  }
+  G_context.m_args.AddArgument( "--pipe",     argT::NO_ARGUMENT, &G_context.opt_pipe_format, "Generate output in pipeline format" );
 
   // See if there are no args specified. If so, then default to full listing
   if ( argc == 1 )
@@ -548,13 +583,51 @@ main( int argc, char* argv[] )
 
   if ( G_context.opt_help )
   {
-    pe_out() << "Usage: " << argv[0] << "[options] [file-names]\n"
-             << "\nThis tool displays the attributes of plugins. The optional file-names specify plugins to explore.\n"
-             << "If these are specified, only these files will be loaded. If no optional files are specified, then \n"
-             << "The search path is traversed, loading all recognizable plugins.\n"
-
-             << G_context.m_args.GetHelp() << std::endl;
+    usage( argv[0] );
     exit( 0 );
+  }
+
+  // Save some time by not loading the plugins if we know we will not
+  // be using them.
+  if ( ! G_context.opt_attrs )
+  {
+    load_explorer_plugins( DEFAULT_MODULE_PATHS );
+  }
+
+  // Handle process type parameter
+  if ( ! proc_arg.empty() )
+  {
+    G_context.opt_process = true;
+
+    // Handle process type string
+    if ( proc_arg != "all" )
+    {
+      // if not all, then use as type selector regexp
+      G_context.opt_type_filt = true; // do type filtering
+      if ( ! type_regex.compile( proc_arg) )
+      {
+        std::cerr << "Invalid regular expression for type filter \"" << proc_arg << "\"" << std::endl;
+        return 1;
+      }
+    }
+  }
+
+  if (! algo_arg.empty() )
+  {
+    G_context.opt_algo = true;
+
+    // Handle algorithm type string
+    if ( algo_arg != "all" )
+    {
+      // if not all, then use as type selector regexp
+      G_context.opt_fact_filt = true; // do factory filtering
+      if ( ! fact_regex.compile( algo_arg) )
+      {
+        std::cerr << "Invalid regular expression for type filter \"" << algo_arg << "\"" << std::endl;
+        return 1;
+      }
+    }
+
   }
 
   // If a factory filtering regex specified, then compile it.
@@ -574,7 +647,7 @@ main( int argc, char* argv[] )
     G_context.opt_type_filt = true;
     if ( ! type_regex.compile( G_context.opt_type_regex) )
     {
-      std::cerr << "Invalid regular expression for instance type filter \"" << G_context.opt_type_regex << "\"" << std::endl;
+      std::cerr << "Invalid regular expression for type filter \"" << G_context.opt_type_regex << "\"" << std::endl;
       return 1;
     }
   }
@@ -609,7 +682,13 @@ main( int argc, char* argv[] )
     return 1;
   }
 
-  //+ test for one of --algorithm or --process allowed
+  // test for one of --algorithm or --process allowed
+  if ( G_context.opt_algo && G_context.opt_process )
+  {
+    std::cerr << "Only one of --process or --algorithm allowed" << std::endl;
+    return 1;
+  }
+
   //+ test for one of --factory or --type (is this desired?)
 
   // ========
@@ -618,6 +697,7 @@ main( int argc, char* argv[] )
   char** newArgv = 0;
   int newArgc = 0;
   G_context.m_args.GetUnusedArguments(&newArgc, &newArgv);
+
 
   // Look for plugin file name from command line
   if ( ! G_context.opt_load_module.empty() )
@@ -690,6 +770,7 @@ main( int argc, char* argv[] )
             || G_context.opt_type_filt
             || G_context.opt_detail
             || G_context.opt_brief
+            || G_context.opt_attrs
             || G_context.opt_attr_filter )
   {
     auto plugin_map = vpm.plugin_map();
@@ -748,7 +829,6 @@ main( int argc, char* argv[] )
 
     pe_out() << std::endl;
   }
-
 
   //
   // display summary

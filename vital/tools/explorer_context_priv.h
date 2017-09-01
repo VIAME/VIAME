@@ -45,7 +45,6 @@ public:
   kwiversys::CommandLineArguments m_args;
 
   // Global options
-  bool opt_config;
   bool opt_detail;
   bool opt_help;
   bool opt_path_list;
@@ -58,6 +57,7 @@ public:
   bool opt_scheduler;
   bool opt_summary;
   bool opt_attrs;
+  bool opt_pipe_format;
 
   std::ostream* m_out_stream;
 
@@ -85,7 +85,6 @@ public:
 
   priv()
   {
-    opt_config = false;
     opt_detail = false;
     opt_help = false;
     opt_path_list = false;
@@ -98,6 +97,7 @@ public:
 
     opt_attr_filter = false;
     opt_fact_filt = false;
+    opt_pipe_format = false;
 
     m_out_stream = 0;
   }
