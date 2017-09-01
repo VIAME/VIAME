@@ -43,6 +43,12 @@ namespace kwiver {
 /**
  * @brief Object detection refiner process.
  *
+ * \iports
+ * \iport{image}
+ * \iport{detected_object_set}
+ *
+ * \oports
+ * \oport{detected_object_set}
  */
 class KWIVER_PROCESSES_NO_EXPORT refine_detections_process
   : public sprokit::process
