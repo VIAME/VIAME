@@ -157,7 +157,7 @@ write_track_descriptor_set_csv
     }
     else
     {
-      stream() << 0 << d->m_delim << d->m_delim;
+      stream() << 0 << d->m_delim << " " << d->m_delim;
     }
 
     // Process classifications if there are any

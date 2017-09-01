@@ -127,7 +127,7 @@ write_object_track_set_kw18
                << "0 "                     // 15: world-loc x
                << "0 "                     // 16: world-loc y
                << "0 "                     // 17: world-loc z
-               << "-1 "                    // 18: timestamp
+               << ts->frame()              // 18: timestamp
                << det->confidence()        // 19: confidence
                << std::endl;
     }

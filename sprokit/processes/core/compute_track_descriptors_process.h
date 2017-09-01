@@ -28,51 +28,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+#ifndef _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
+#define _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
 
-#include <arrows/burnout/kwiver_algo_burnout_export.h>
+#include "kwiver_processes_export.h"
 
-#include <vital/vital_config.h>
+#include <sprokit/pipeline/process.h>
 
-#include <vital/algo/compute_track_descriptors.h>
+#include <vital/types/track_descriptor_set.h>
 
-namespace kwiver {
-namespace arrows {
-namespace burnout {
+#include <memory>
 
-// ----------------------------------------------------------------
-/**
- * @brief burnout_track_descriptors
- *
- */
-class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+namespace kwiver
 {
-public:
 
-  burnout_track_descriptors();
-  virtual ~burnout_track_descriptors();
+// -----------------------------------------------------------------------------
+/**
+ * \class compute_track_descriptors_process
+ *
+ * \brief Computes track descriptors along object tracks or object detections.
+ *
+ * \iports
+ * \iport{timestamp}
+ * \iport{image}
+ * \iport{tracks}
+ * \iport{detections}
+ *
+ * \oports
+ * \oport{track_descriptor_set}
+ */
+class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
+  : public sprokit::process
+{
+  public:
+  compute_track_descriptors_process( vital::config_block_sptr const& config );
+  virtual ~compute_track_descriptors_process();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  protected:
+    virtual void _configure();
+    virtual void _step();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  private:
+    void make_ports();
+    void make_config();
 
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
+    void push_outputs( vital::track_descriptor_set_sptr& to_output );
 
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class compute_track_descriptors_process
 
-private:
 
-  class priv;
-  const std::unique_ptr<priv> d;
-};
-
-} } }
-
-#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */
+} // end namespace
+#endif /* _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_ */

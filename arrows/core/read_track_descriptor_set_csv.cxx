@@ -55,6 +55,7 @@ public:
     , m_logger( kwiver::vital::get_logger( "read_track_descriptor_set_csv" ) )
     , m_first( true )
     , m_batch_load( true )
+    , m_read_raw_descriptor( true )
     , m_delim( "," )
     , m_sub_delim( " " )
     , m_current_idx( 0 )
@@ -68,6 +69,8 @@ public:
 
   bool m_first;
   bool m_batch_load;
+
+  bool m_read_raw_descriptor;
 
   std::string m_delim;
   std::string m_sub_delim;
@@ -105,7 +108,10 @@ void
 read_track_descriptor_set_csv
 ::set_configuration(vital::config_block_sptr config)
 {
-  d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
+  d->m_batch_load =
+    config->get_value<bool>( "batch_load", d->m_batch_load );
+  d->m_read_raw_descriptor =
+    config->get_value<bool>( "read_raw_descriptor", d->m_batch_load );
 }
 
 
@@ -197,8 +203,12 @@ read_track_descriptor_set_csv::priv
     std::vector< std::string > tid_tokens, raw_tokens, hist_tokens;
 
     vital::tokenize( tokens[3], tid_tokens, m_sub_delim, true );
-    vital::tokenize( tokens[5], raw_tokens, m_sub_delim, true );
     vital::tokenize( tokens[7], hist_tokens, m_sub_delim, true );
+
+    if( m_read_raw_descriptor )
+    {
+      vital::tokenize( tokens[5], raw_tokens, m_sub_delim, true );
+    }
 
     unsigned tid_size = std::stoi( tokens[2] );
     unsigned desc_size = std::stoi( tokens[4] );
@@ -207,7 +217,7 @@ read_track_descriptor_set_csv::priv
     bool contains_world_info = ( hist_size == hist_tokens.size() / 10 );
 
     if( tid_size != tid_tokens.size() ||
-        desc_size != raw_tokens.size() ||
+        ( m_read_raw_descriptor && desc_size != raw_tokens.size() ) ||
         ( !contains_world_info && hist_size != hist_tokens.size() / 6 ) )
     {
       throw vital::invalid_data( "Track descriptor reading size checksum failed" );
@@ -218,11 +228,14 @@ read_track_descriptor_set_csv::priv
       desc->add_track_id( std::stoi( id ) );
     }
 
-    desc->resize_descriptor( desc_size );
-
-    for( unsigned i = 0; i < desc_size; ++i )
+    if( m_read_raw_descriptor )
     {
-      desc->at( i ) = std::stod( raw_tokens[i] );
+      desc->resize_descriptor( desc_size );
+
+      for( unsigned i = 0; i < desc_size; ++i )
+      {
+        desc->at( i ) = std::stod( raw_tokens[i] );
+      }
     }
 
     for( unsigned i = 0; i < hist_size; ++i )
@@ -230,8 +243,8 @@ read_track_descriptor_set_csv::priv
       unsigned start_ind = i * ( contains_world_info ? 10 : 6 );
 
       vital::timestamp ts(
-        std::stoi( hist_tokens[ start_ind + 0 ] ),
-        std::stoi( hist_tokens[ start_ind + 1 ] ) );
+        std::stoi( hist_tokens[ start_ind + 1 ] ),
+        std::stoi( hist_tokens[ start_ind + 0 ] ) );
 
       vital::bounding_box_d bbox(
         std::stof( hist_tokens[ start_ind + 2 ] ),
@@ -266,6 +279,8 @@ read_track_descriptor_set_csv::priv
       m_descs_by_frame_id[ frame_index ].push_back( desc );
       m_last_idx = std::max( m_last_idx, frame_index );
     }
+
+    m_all_descs.push_back( desc );
   }
 }
 
