@@ -204,74 +204,6 @@ join( const std::vector< std::string >& vec, const char* delim )
 }
 
 
-/*
-  for an abstract algorithm -
-  print config for all variants in a pipeline suitable format.
-  Takes a list of factories for a base class type.
- */
-
-// ------------------------------------------------------------------
-void gen_pipefile_algo( kwiver::vital::plugin_factory_vector_t vect )
-{
-  if (vect.empty())
-  {
-    return;
-  }
-
-  kwiver::vital::wrap_text_block wtb;
-  wtb.set_indent_string( "#      " );
-
-  // display something about the base class
-  std::string type = "-- not set --";
-  vect[0]->get_attribute( kwiver::vital::plugin_factory::INTERFACE_TYPE, type );
-  pe_out() << "# Available implementations for algorithm \"" << type << "\"" << std::endl;
-
-  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, vect )
-  {
-    // downcast to correct factory type.
-    kwiver::vital::algorithm_factory* pf = dynamic_cast< kwiver::vital::algorithm_factory* > ( fact.get() );
-
-    if ( 0 == pf )
-    {
-      // Wrong type of factory returned.
-      pe_out() << "Factory for algorithm could not be converted to algorithm_factory type.";
-      return;
-    }
-
-    std::string descrip = "-- Not_Set --";
-    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
-    descrip = wtb.wrap_text( descrip );
-
-    std::string impl = "-- not set --";
-    fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
-
-    // algo.type = impl
-    pe_out() << "type = " << impl << std::endl
-             << descrip << std::endl
-             << "block " << impl << std::endl;
-
-    kwiver::vital::algorithm_sptr ptr = pf->create_object();
-
-    // Get configuration
-    auto config = ptr->get_configuration();
-    auto all_keys = config->available_values();
-
-    VITAL_FOREACH( auto  key, all_keys )
-    {
-      auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
-
-      pe_out() << "    " << key << " = " << val << std::endl;
-
-      kwiver::vital::config_block_description_t descr = config->get_description( key );
-      pe_out() << wtb.wrap_text( descr ) << std::endl;
-    } // end foreach over config
-
-    pe_out() << "endblock\n" << std::endl;
-
-  } // end foreach over factory
-}
-
-
 // ------------------------------------------------------------------
 void
 display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
@@ -418,9 +350,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
       continue;
     }
 
-    pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
-
-    gen_pipefile_algo( facts ); //+ TEMP
+    pe_out() << "\nPlugins that implement type \"" << ds << "\"" << std::endl;
 
     // Get vector of factories
     VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
