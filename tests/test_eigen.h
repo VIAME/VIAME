@@ -115,11 +115,30 @@ struct matrix_comparator
   }
 };
 
+// ----------------------------------------------------------------------------
+struct similar_matrix_comparator : matrix_comparator
+{
+  template <typename T, int M, int N>
+  bool operator()( Eigen::Matrix<T, M, N> const& a,
+                   Eigen::Matrix<T, M, N> const& b,
+                   double epsilon )
+  {
+    if ( a.cwiseProduct( b ).sum() < 0.0 )
+    {
+      return matrix_comparator::operator()( a, ( b * -1.0 ).eval(), epsilon );
+    }
+    return matrix_comparator::operator()( a, b, epsilon );
+  }
+};
+
 #define EXPECT_MATRIX_EQ(a, b) \
   EXPECT_PRED2(::kwiver::testing::matrix_comparator{}, a, b)
 
 #define EXPECT_MATRIX_NEAR(a, b, eps) \
   EXPECT_PRED3(::kwiver::testing::matrix_comparator{}, a, b, eps)
+
+#define EXPECT_MATRIX_SIMILAR(a, b, eps) \
+  EXPECT_PRED3(::kwiver::testing::similar_matrix_comparator{}, a, b, eps)
 
 } // end namespace testing
 } // end namespace kwiver
