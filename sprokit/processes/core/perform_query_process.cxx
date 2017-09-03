@@ -152,6 +152,7 @@ void perform_query_process
   d->max_result_count = config_value_using_trait( max_result_count );
   d->track_postfix = config_value_using_trait( track_postfix );
   d->descriptor_postfix = config_value_using_trait( descriptor_postfix );
+  d->index_postfix = config_value_using_trait( index_postfix );
 
   if( d->external_handler )
   {
@@ -253,6 +254,9 @@ perform_query_process
   // Call external feedback loop if enabled
   if( d->external_handler )
   {
+    d->populate_database();
+
+#ifndef DUMMY_OUTPUT
     // Format data to simplified format for external
     std::vector< vital::descriptor_sptr > exemplar_raw_descs;
 
@@ -307,7 +311,34 @@ perform_query_process
     // Receive data from external process (halts until finished)
     result_uids = grab_from_port_using_trait( result_descriptor_uids );
     result_scores = grab_from_port_using_trait( result_descriptor_scores );
+#else
+    // Format data to simplified format for external
+    vital::string_vector_sptr result_uids( new vital::string_vector() );
+    vital::double_vector_sptr result_scores( new vital::double_vector() );
 
+    result_uids->push_back( "output_frame_final_item_14" );
+    result_uids->push_back( "output_frame_final_item_13" );
+    result_uids->push_back( "output_frame_final_item_12" );
+    result_uids->push_back( "output_frame_final_item_11" );
+    result_uids->push_back( "output_frame_final_item_10" );
+    result_uids->push_back( "output_frame_final_item_9" );
+    result_uids->push_back( "output_frame_final_item_8" );
+    result_uids->push_back( "output_frame_final_item_7" );
+    result_uids->push_back( "output_frame_final_item_21" );
+    result_uids->push_back( "output_frame_final_item_24" );
+
+    result_scores->push_back( 0.98 );
+    result_scores->push_back( 0.95 );
+    result_scores->push_back( 0.92 );
+    result_scores->push_back( 0.91 );
+    result_scores->push_back( 0.90 );
+    result_scores->push_back( 0.80 );
+    result_scores->push_back( 0.79 );
+    result_scores->push_back( 0.69 );
+    result_scores->push_back( 0.68 );
+    result_scores->push_back( 0.50 );
+    result_scores->push_back( 0.45 );
+#endif
     // Formulate final query result package for each result
     std::set< unsigned > added_ids;
 
@@ -333,6 +364,8 @@ perform_query_process
       entry->set_stream_id( std::get<0>( db_res->second ) );
       entry->set_instance_id( d->get_instance_id( result_uid ) );
       entry->set_relevancy_score( result_score );
+
+      entry->set_temporal_bounds( vital::timestamp( 0, 0 ), vital::timestamp( 1000000, 2 ) );
 
       vital::track_descriptor_set_sptr desc_set(
         new vital::track_descriptor_set() );
@@ -435,6 +468,11 @@ perform_query_process::priv
 void perform_query_process::priv
 ::populate_database()
 {
+  if( database_populated )
+  {
+    return;
+  }
+
   // List all files to check
   std::vector< std::string > basenames;
 
