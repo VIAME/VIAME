@@ -276,6 +276,13 @@ perform_query_process
         }
 
         d->forced_positives[ id ] = d->previous_results[ id ];
+
+        auto negative_itr = d->forced_negatives.find( id );
+
+        if( negative_itr != d->forced_negatives.end() )
+        {
+          d->forced_negatives.erase( negative_itr );
+        }
       }
     }
 
@@ -290,6 +297,13 @@ perform_query_process
         }
 
         d->forced_negatives[ id ] = d->previous_results[ id ];
+
+        auto positive_itr = d->forced_positives.find( id );
+
+        if( positive_itr != d->forced_positives.end() )
+        {
+          d->forced_positives.erase( positive_itr );
+        }
       }
     }
 
