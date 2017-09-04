@@ -10,11 +10,11 @@ set( EXAMPLE_INSTALL_FILES
      launch_gui.sh )
 
 if( VIAME_DOWNLOAD_MODELS )
-#  DownloadAndExtract(
-#    https://data.kitware.com/api/v1/file/58c4b8848d777f0aef5d796b/download
-#    c10bf3f5be72d3d22a417f5f475604ad
-#    ${VIAME_DOWNLOAD_DIR}/yolo_models_v0.1.0.tar.gz
-#    ${CMAKE_CURRENT_SOURCE_DIR} )
+  DownloadAndExtract(
+    https://data.kitware.com/api/v1/item/59adcadc8d777f7d33e9cf2d/download
+    4bbb8608f979fdbb00683b5ef689573d
+    ${VIAME_DOWNLOAD_DIR}/video_search_models_v0.1.0.tar.gz
+    ${CMAKE_CURRENT_SOURCE_DIR}/configs )
 endif()
 
 ###
