@@ -85,6 +85,7 @@ public:
     , m_resize_i( 0 )
     , m_resize_j( 0 )
     , m_chip_step( 100 )
+    , m_gs_to_rgb( true )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -109,6 +110,7 @@ public:
   int m_resize_i;
   int m_resize_j;
   int m_chip_step;
+  bool m_gs_to_rgb;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -171,6 +173,8 @@ get_configuration() const
     "Height resolution after resizing" );
   config->set_value( "chip_step", d->m_chip_step,
     "When in chip mode, the chip step size between chips." );
+  config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
+    "Convert input greyscale images to rgb before processing." );
 
   return config;
 }
@@ -199,6 +203,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
   this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
+  this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -232,7 +237,6 @@ bool
 darknet_detector::
 check_configuration( vital::config_block_sptr config ) const
 {
-
   std::string net_config = config->get_value<std::string>( "net_config" );
   std::string class_file = config->get_value<std::string>( "class_names" );
 
@@ -302,6 +306,13 @@ detect( vital::image_container_sptr image_data ) const
   else
   {
     cv_resized_image = cv_image;
+  }
+
+  if( d->m_gs_to_rgb && cv_resized_image.channels() == 1 )
+  {
+    cv::Mat color_image;
+    cv::cvtColor( cv_resized_image, color_image, CV_GRAY2BGR );
+    cv_resized_image = color_image;
   }
 
   // run detector
