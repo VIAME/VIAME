@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/Dev/viame/build/install/setup_viame.sh
+source ../../../setup_viame.sh
 
 DATABASE_DIR=database
 SQL_DIR=${DATABASE_DIR}/SQL

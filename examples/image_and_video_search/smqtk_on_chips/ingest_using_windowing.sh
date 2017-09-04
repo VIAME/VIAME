@@ -7,9 +7,9 @@
 #
 set -e
 
-# PARAMETERS ###################################################################
-
 source ../../../setup_viame.sh
+
+# PARAMETERS ###################################################################
 
 IMAGE_LIST="input_list.txt"
 IMAGE_TILES_DIR="tiles"

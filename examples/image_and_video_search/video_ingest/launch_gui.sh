@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 # Setup VIAME Paths (no need to run multiple times if you already ran it)
 
-source ~/Dev/viame/build/install/setup_viame.sh
+source ../../../setup_viame.sh
 
 # Make directory for query KWAs
 mkdir -p database/Queries

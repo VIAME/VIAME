@@ -7,9 +7,9 @@
 #
 set -e
 
-# PARAMETERS ###################################################################
-
 source ../../../setup_viame.sh
+
+# PARAMETERS ###################################################################
 
 IMAGE_LIST="input_list.txt"
 IMAGE_TILES_DIR="tiles"
@@ -18,6 +18,3 @@ IMAGE_TILES_DIR="tiles"
 echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
 mkdir -p "${IMAGE_TILES_DIR}"
 pipeline_runner -p configs/chip_extractor_pipeline.pipe
-
-# Ingest descriptors around each chip
-#bash ingest_chip_folder.sh ${IMAGE_TILES_DIR}

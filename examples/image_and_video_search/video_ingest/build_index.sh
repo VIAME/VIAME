@@ -1,5 +1,6 @@
+#!/bin/bash
 
-source ~/Dev/viame/build/install/setup_viame.sh
+source ../../../setup_viame.sh
 
 mkdir -p database/ITQ
 

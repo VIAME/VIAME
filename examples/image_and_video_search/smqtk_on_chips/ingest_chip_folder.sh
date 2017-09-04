@@ -7,6 +7,8 @@
 #
 set -e
 
+source ../../../setup_viame.sh
+
 # PARAMETERS ###################################################################
 
 IMAGE_TILES_DIR=$1
