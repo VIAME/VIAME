@@ -73,7 +73,7 @@ process detection_descriptor
  :: compute_track_descriptors
   :inject_to_detections                        true
   :computer:type                               burnout
-  relativepath computer:burnout:config_file =  detection_descriptors.conf
+  relativepath computer:burnout:config_file =  burnout_det_descriptors.conf
 
 process tracker
  :: compute_association_matrix
@@ -174,7 +174,7 @@ process track_descriptor
   :add_custom_uid                             true
   :uid_basename                               $CONFIG{global:output_basename}
   :computer:type                              burnout
-  relativepath computer:burnout:config_file = track_descriptors.conf
+  relativepath computer:burnout:config_file = burnout_trk_descriptors.conf
 
 connect from input.image
         to   track_descriptor.image
@@ -195,7 +195,7 @@ connect from track_descriptor.track_descriptor_set
 
 process smqtk_indexer
   :: smqtk_ingest_descriptors
-  relativepath config_file =                  smqtk_ingest.json
+  relativepath config_file =                  smqtk_postgres_ingest.json
 
 connect from track_descriptor.descriptor_set
         to   smqtk_indexer.descriptor_set
