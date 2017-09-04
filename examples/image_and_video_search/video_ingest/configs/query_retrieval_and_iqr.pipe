@@ -27,7 +27,7 @@ process query_formulator
   :handler:core:descriptor_extractor:type      burnout
 
   block handler:core:descriptor_extractor:burnout
-    relativepath config_file =                 detection_descriptors.conf
+    relativepath config_file =                 burnout_det_descriptors.conf
   endblock
 
 process kwa_writer
