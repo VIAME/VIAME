@@ -122,8 +122,10 @@ if( VIAME_ENABLE_PYTHON )
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
-  option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
-  mark_as_advanced( VIAME_SYMLINK_PYTHON )
+  if (NOT WIN32)
+    option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
+    mark_as_advanced( VIAME_SYMLINK_PYTHON )
+  endif()
 
   find_package( PythonInterp REQUIRED )
   find_package( PythonLibs REQUIRED )
