@@ -12,7 +12,7 @@ set( EXAMPLE_INSTALL_FILES
 if( VIAME_DOWNLOAD_MODELS )
   DownloadAndExtract(
     https://data.kitware.com/api/v1/item/59adcadc8d777f7d33e9cf2d/download
-    4bbb8608f979fdbb00683b5ef689573d
+    acc8a8badf2635ba273c238aa71efb6c
     ${VIAME_DOWNLOAD_DIR}/video_search_models_v0.1.0.tar.gz
     ${CMAKE_CURRENT_SOURCE_DIR}/configs )
 endif()

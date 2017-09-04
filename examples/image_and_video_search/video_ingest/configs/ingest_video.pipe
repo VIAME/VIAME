@@ -33,8 +33,8 @@ process detector
   :detector:type                               darknet
 
   # Network config
-  relativepath detector:darknet:net_config  =  models/model2.cfg
-  relativepath detector:darknet:weight_file =  models/model2.weights
+  relativepath detector:darknet:net_config  =  models/scallop_and_fish.cfg
+  relativepath detector:darknet:weight_file =  models/scallop_and_fish.weights
   relativepath detector:darknet:class_names =  models/scallop_and_fish.lbl
 
   # Detector parameters
@@ -55,7 +55,7 @@ process detector_writer
   :file_name                                   $CONFIG{global:output_detection_file}
   :writer:type                                 kw18
 
-  # Write out FSO classifications              alongside tracks
+  # Write out FSO classifications alongside tracks
   :writer:kw18:write_tot                       true
   :writer:kw18:tot_field1_ids                  fish
   :writer:kw18:tot_field2_ids                  scallop

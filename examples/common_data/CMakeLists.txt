@@ -22,5 +22,14 @@ if( VIAME_DOWNLOAD_MODELS )
     examples/common_data
     habcam_example_image_set1 )
 
+  # Download mouss image set 1
+  DownloadExtractAndInstall(
+    https://data.kitware.com/api/v1/item/59ae1b2d8d777f7d33e9cf30/download
+    ea8f4f37d14c4a3e3efead045effe23b
+    ${VIAME_DOWNLOAD_DIR}/mouss_example_image_set1.tar.gz
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    examples/common_data
+    mouss_example_image_set1 )
+
 endif()
-  
+
