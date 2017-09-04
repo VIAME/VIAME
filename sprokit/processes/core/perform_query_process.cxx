@@ -46,6 +46,8 @@
 namespace kwiver
 {
 
+#define DUMMY_OUTPUT 1
+
 namespace algo = vital::algo;
 
 create_port_trait( external_descriptor_set, descriptor_set,
@@ -93,9 +95,12 @@ public:
 
   unsigned max_result_count;
 
+  bool is_first;
   std::map< unsigned, vital::query_result_sptr > previous_results;
   std::map< std::string, unsigned > instance_ids;
+  std::map< unsigned, vital::query_result_sptr > forced_positives;
   std::map< unsigned, vital::query_result_sptr > forced_negatives;
+  vital::uid active_uid;
 
   unsigned result_counter;
   bool database_populated;
@@ -103,7 +108,7 @@ public:
   algo::read_track_descriptor_set_sptr descriptor_reader;
   algo::read_object_track_set_sptr track_reader;
 
-  // Video name <=> descriptor sptr pair
+  // Video name <=> descriptor sptr <=> track sptr tuple
   typedef std::tuple< std::string,
                       vital::track_descriptor_sptr,
                       std::vector< vital::track_sptr > > desc_tuple_t;
@@ -112,7 +117,7 @@ public:
 
   void populate_database();
 
-  void reset_query();
+  void reset_query( const vital::database_query_sptr& query );
   unsigned get_instance_id( const std::string& uid );
 }; // end priv class
 
@@ -237,18 +242,19 @@ perform_query_process
   vital::query_result_set_sptr output( new vital::query_result_set() );
 
   // No query received, do nothing, return no results
-  if( !query )
+  if( !query && !feedback )
   {
     push_to_port_using_trait( query_result, output );
     return;
   }
 
   // Reset query when no IQR information is provided
-  if( !feedback ||
+  if( d->is_first || !feedback ||
     ( feedback->positive_ids().empty() &&
       feedback->negative_ids().empty() ) )
   {
-    d->reset_query();
+    d->reset_query( query );
+    d->is_first = false;
   }
 
   // Call external feedback loop if enabled
@@ -256,25 +262,8 @@ perform_query_process
   {
     d->populate_database();
 
-#ifndef DUMMY_OUTPUT
-    // Format data to simplified format for external
-    std::vector< vital::descriptor_sptr > exemplar_raw_descs;
-
-    vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
     vital::string_vector_sptr positive_uids( new vital::string_vector() );
     vital::string_vector_sptr negative_uids( new vital::string_vector() );
-
-    VITAL_FOREACH( auto track_desc, *query->descriptors() )
-    {
-      exemplar_uids->push_back( track_desc->get_uid().value() );
-      exemplar_raw_descs.push_back( track_desc->get_descriptor() );
-    }
-
-    vital::descriptor_set_sptr exemplar_descs(
-      new vital::simple_descriptor_set( exemplar_raw_descs ) );
-
-    vital::string_vector_sptr result_uids;
-    vital::double_vector_sptr result_scores;
 
     if( feedback &&
       ( !feedback->positive_ids().empty() ) )
@@ -285,6 +274,8 @@ perform_query_process
         {
           positive_uids->push_back( desc_sptr->get_uid().value() );
         }
+
+        d->forced_positives[ id ] = d->previous_results[ id ];
       }
     }
 
@@ -298,9 +289,27 @@ perform_query_process
           negative_uids->push_back( desc_sptr->get_uid().value() );
         }
 
-        d->forced_negatives[ id ] = d->previous_results[id];
+        d->forced_negatives[ id ] = d->previous_results[ id ];
       }
     }
+
+#ifndef DUMMY_OUTPUT
+    // Format data to simplified format for external
+    std::vector< vital::descriptor_sptr > exemplar_raw_descs;
+
+    vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
+
+    VITAL_FOREACH( auto track_desc, *query->descriptors() )
+    {
+      exemplar_uids->push_back( track_desc->get_uid().value() );
+      exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+    }
+
+    vital::descriptor_set_sptr exemplar_descs(
+      new vital::simple_descriptor_set( exemplar_raw_descs ) );
+
+    vital::string_vector_sptr result_uids;
+    vital::double_vector_sptr result_scores;
 
     // Send data to external process
     push_to_port_using_trait( external_descriptor_set, exemplar_descs );
@@ -339,9 +348,16 @@ perform_query_process
     result_scores->push_back( 0.50 );
     result_scores->push_back( 0.45 );
 #endif
-    // Formulate final query result package for each result
-    std::set< unsigned > added_ids;
 
+    // Handle forced positive examples, set score to 1, make sure at front
+    for( auto itr = d->forced_positives.begin();
+         itr != d->forced_positives.end(); itr++ )
+    {
+      itr->second->set_relevancy_score( 1.0 );
+      output->push_back( itr->second );
+    }
+
+    // Handle all new or unadjudacted results
     for( unsigned i = 0; i < result_uids->size(); ++i )
     {
       if( i > d->max_result_count )
@@ -359,39 +375,75 @@ perform_query_process
         continue;
       }
 
+      // Create result set and set relevant IDs
+      auto iid = d->get_instance_id( result_uid );
+
+      // Check if result is forced positive or negative (e.g. annotated by user)
+      if( d->forced_positives.find( iid ) != d->forced_positives.end() ||
+          d->forced_negatives.find( iid ) != d->forced_negatives.end() )
+      {
+        continue;
+      }
+
       vital::query_result_sptr entry( new vital::query_result() );
 
+      entry->set_query_id( d->active_uid );
       entry->set_stream_id( std::get<0>( db_res->second ) );
-      entry->set_instance_id( d->get_instance_id( result_uid ) );
+      entry->set_instance_id( iid );
       entry->set_relevancy_score( result_score );
 
-      entry->set_temporal_bounds( vital::timestamp( 0, 0 ), vital::timestamp( 1000000, 2 ) );
-
+      // Assign track descriptor set to result
       vital::track_descriptor_set_sptr desc_set(
         new vital::track_descriptor_set() );
 
       desc_set->push_back( std::get<1>( db_res->second ) );
+      entry->set_descriptors( desc_set );
 
+      // Assign temporal bounds to this query result
+      vital::timestamp ts1, ts2;
+      bool is_first = true;
+
+      VITAL_FOREACH( auto desc, *desc_set )
+      {
+        VITAL_FOREACH( auto hist, desc->get_history() )
+        {
+          if( is_first )
+          {
+            ts1 = hist.get_timestamp();
+            ts2 = hist.get_timestamp();
+
+            is_first = false;
+          }
+          else if( hist.get_timestamp().get_frame() < ts1.get_frame() )
+          {
+            ts1 = hist.get_timestamp();
+          }
+          else if( hist.get_timestamp().get_frame() > ts2.get_frame() )
+          {
+            ts2 = hist.get_timestamp();
+          }
+        }
+      }
+      entry->set_temporal_bounds( ts1, ts2 );
+
+      // Assign track set to result
       vital::object_track_set_sptr trk_set(
         new vital::object_track_set( std::get<2>( db_res->second ) ) );
 
       entry->set_tracks( trk_set );
 
+      // Remember this descriptor result for future iterations
       d->previous_results[ entry->instance_id() ] = entry;
-      added_ids.insert( entry->instance_id() );
 
       output->push_back( entry );
     }
 
+    // Handle forced negative examples, set score to 0, make sure at end of result set
     for( auto itr = d->forced_negatives.begin();
          itr != d->forced_negatives.end(); itr++ )
     {
       itr->second->set_relevancy_score( 0.0 );
-
-      if( added_ids.find( itr->first ) == added_ids.end() )
-      {
-        output->push_back( itr->second );
-      }
+      output->push_back( itr->second );
     }
   }
   else
@@ -454,6 +506,7 @@ perform_query_process::priv
  , external_handler( true )
  , database_folder( "" )
  , max_result_count( 100 )
+ , is_first( true )
  , database_populated( false )
 {
 }
@@ -541,12 +594,14 @@ void perform_query_process::priv
 
 
 void perform_query_process::priv
-::reset_query()
+::reset_query( const vital::database_query_sptr& query )
 {
   result_counter = 0;
   instance_ids.clear();
   previous_results.clear();
+  forced_positives.clear();
   forced_negatives.clear();
+  active_uid = query->id();
 }
 
 
