@@ -53,6 +53,8 @@ namespace vital {
 class track;
 class track_state;
 
+constexpr track_id_t invalid_track_id = -1;
+
 
 /// Shared pointers for general track type
 typedef std::shared_ptr< track > track_sptr;

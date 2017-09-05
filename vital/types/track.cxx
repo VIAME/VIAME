@@ -61,7 +61,7 @@ namespace vital {
 /// Default Constructor
 track
 ::track(track_data_sptr d)
-  : id_( 0 )
+  : id_( invalid_track_id )
   , data_(d)
 {
 }
