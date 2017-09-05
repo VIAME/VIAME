@@ -38,6 +38,18 @@ CommandLine:
 
     np.sum((feat1.location - feat2.location) ** 2)
 
+CommandLine:
+    workon_py2
+    cd ~/code/VIAME/plugins/camtrawl/python
+
+    source ~/code/VIAME/build/install/setup_viame.sh
+    export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
+    export PYTHONPATH=$(pwd):$PYTHONPATH
+
+    python run_camtrawl.py
+
+    ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
+
 SeeAlso
     ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types
 """
@@ -56,11 +68,29 @@ from vital.types import (  # NOQA
 import logging
 import os
 
+import camtrawl_algos as ctalgo
+
 logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
 log = logging.getLogger(__name__)
 print = log.info
 
 
+# TODO: add something similar in sprokit proper
+TMP_SPROKIT_PROCESS_REGISTRY = []
+
+
+def tmp_sprokit_register_process(name=None, doc=''):
+    def _wrp(cls):
+        name_ = name
+        if name is None:
+            name_ = cls.__name__
+        TMP_SPROKIT_PROCESS_REGISTRY.append((name_, doc, cls))
+        return cls
+    return _wrp
+
+
+@tmp_sprokit_register_process(name='camtrawl_detect_fish',
+                              doc='preliminatry fish detection')
 class CamtrawlDetectFishProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
@@ -90,101 +120,53 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         print(' ----- configure ' + self.__class__.__name__)
         self.text = self.config_value('text')
 
+        # gmm_params = {
+        #     'n_training_frames': 9999,
+        #     # 'gmm_thresh': 20,
+        #     'gmm_thresh': 30,
+        #     'min_size': 800,
+        #     'edge_trim': [40, 40],
+        #     'n_startup_frames': 3,
+        #     'factor': 2,
+        #     'smooth_ksize': None,
+        #     # 'smooth_ksize': (3, 3),
+        #     # 'smooth_ksize': (10, 10),  # wrt original image size
+        # }
+
+        gmm_params = {}
+        filter_config = {}
+        self.detector = ctalgo.GMMForegroundObjectDetector(config=gmm_params)
+        self.dfilter = ctalgo.FishDetectionFilter(config=filter_config)
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
         print(' ----- step ' + self.__class__.__name__)
         # grab image container from port using traits
-        in_img_c = self.grab_input_using_trait('image')
+        img_container = self.grab_input_using_trait('image')
+        img = img_container.asarray()
 
-        # Get python image from conatiner (just for show)
-        in_img = in_img_c.get_image()
-        print('in_img = {!r}'.format(in_img))
+        img_dsize = tuple(img.shape[0:2][::-1])
 
-        # Print out text to screen
-        print("Text: " + str( self.text ))
-
-        bbox = BoundingBox.from_coords(0, 0, 10, 10)
-        obj1 = DetectedObject(bbox, 1.0)
-        obj2 = DetectedObject([1, 2, 3, 5], 0.5)
+        _detect_gen = self.detector.detect(img)
+        detect_gen = self.dfilter.filter_detections(_detect_gen, img_dsize)
 
         objset = DetectedObjectSet()
-        objset.add(obj1)
-        objset.add(obj2)
+        for detection in detect_gen:
+            bbox = BoundingBox.from_coords(*detection.bbox.coords)
+            mask = detection.mask
+            obj = DetectedObject(bbox, 1.0, mask=mask)
+            objset.add(obj)
+        print('objset = {!r}'.format(objset))
 
-        # feat = Feature(loc=(0, 0), mag=0, scale=1, angle=0, rgb_color=None)
-        # featset = [feat]
         # # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('detected_object_set', objset)
 
         self._base_step()
 
 
-class CamtrawlDetectBiomarkerProcess(KwiverProcess):
-    """
-    This process gets an image and detection_set as input, extracts each chip,
-    does postprocessing and then sends the extracted chip to the output port.
-    """
-    # ----------------------------------------------
-    def __init__(self, conf):
-        print(' ----- init ' + self.__class__.__name__)
-        KwiverProcess.__init__(self, conf)
-
-        self.add_config_trait('text', 'text', 'some default value',
-                              'A description of this param')
-        self.declare_config_using_trait('text')
-
-        # set up required flags
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
-
-        #  declare our input port ( port-name,flags)
-        self.declare_input_port_using_trait('image', required)
-        self.declare_input_port_using_trait('detected_object_set', required)
-
-        self.declare_output_port_using_trait('feature_set', optional )
-
-    # ----------------------------------------------
-    def _configure(self):
-        print(' ----- configure ' + self.__class__.__name__)
-        self.text = self.config_value('text')
-
-        self._base_configure()
-
-    # ----------------------------------------------
-    def _step(self):
-        print(' ----- step ' + self.__class__.__name__)
-
-        # grab image container from port using traits
-        in_img_c = self.grab_input_using_trait('image')
-        detected_object_set_c = self.grab_input_using_trait('detected_object_set')
-
-        feat = Feature((0, 1))
-        featset = {feat}
-
-        print('in_img_c = {!r}'.format(in_img_c))
-        print('detected_object_set_c = {!r}'.format(detected_object_set_c))
-        print('featset = {!r}'.format(featset))
-
-        # Get python image from conatiner (just for show)
-        # in_img = in_img_c.get_image()
-        # print('in_img = {!r}'.format(in_img))
-
-        # # Print out text to screen
-        # print("Text: " + str( self.text ))
-
-        # feat = Feature(loc=(0, 0), mag=0, scale=1, angle=0, rgb_color=None)
-
-        # featset = [feat]
-
-        # # push dummy image object (same as input) to output port
-        self.push_to_port_using_trait('feature_set', featset)
-
-        self._base_step()
-
-
+@tmp_sprokit_register_process(name='camtrawl_measure',
+                              doc='preliminatry fish length measurement')
 class CamtrawlMeasureProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
@@ -205,14 +187,12 @@ class CamtrawlMeasureProcess(KwiverProcess):
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        self.add_port_trait('feature_set' + '1', 'feature_set', 'Feature from camera1')
-        self.add_port_trait('feature_set' + '2', 'feature_set', 'Feature from camera2')
+        self.add_port_trait('detected_object_set' + '1', 'detected_object_set', 'Detections from camera1')
+        self.add_port_trait('detected_object_set' + '2', 'detected_object_set', 'Detections from camera2')
 
         #  declare our input port ( port-name,flags)
-        self.declare_input_port_using_trait('feature_set' + '1', required)
-        self.declare_input_port_using_trait('feature_set' + '2', required)
-
-        # self.declare_output_port_using_trait('feature_set', optional )
+        self.declare_input_port_using_trait('detected_object_set' + '1', required)
+        self.declare_input_port_using_trait('detected_object_set' + '2', required)
 
     # ----------------------------------------------
     def _configure(self):
@@ -226,11 +206,11 @@ class CamtrawlMeasureProcess(KwiverProcess):
         print(' ----- step ' + self.__class__.__name__)
 
         # grab image container from port using traits
-        feat1 = self.grab_input_using_trait('feature_set' + '1')
-        feat2 = self.grab_input_using_trait('feature_set' + '2')
+        detections1 = self.grab_input_using_trait('detected_object_set' + '1')
+        detections2 = self.grab_input_using_trait('detected_object_set' + '2')
 
-        distance = np.sum((feat1.location - feat2.location) ** 2)
-        print('distance = {!r}'.format(distance))
+        # distance = np.sum((feat1.location - feat2.location) ** 2)
+        # print('distance = {!r}'.format(distance))
 
         # Get python image from conatiner (just for show)
         # Print out text to screen
@@ -238,39 +218,27 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         # push dummy image object (same as input) to output port
         # self.push_to_port_using_trait('out_image', ImageContainer(in_img))
-
         self._base_step()
 
 
 def __sprokit_register__():
-    """
-    workon_py2
-    source ~/code/VIAME/build/install/setup_viame.sh
-    export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
-    export PYTHONPATH=$(pwd):$PYTHONPATH
-
-    cd ~/code/VIAME/plugins/camtrawl
-    # python camtrawl_pipeline_def.py
-    ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
-    """
 
     from sprokit.pipeline import process_factory
 
     # module_name = 'python:camtrawl.camtrawl_processes'
-    module_name = 'python:camtrawl_processes'
+    module_name = 'python' + __name__
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('camtrawl_detect_fish',
-                                'preliminatry detection / feature extraction',
-                                CamtrawlDetectFishProcess)
+    for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
+        process_factory.add_process(name, doc, cls)
 
-    process_factory.add_process('camtrawl_detect_biomarker',
-                                'preliminatry feature extraction',
-                                CamtrawlDetectBiomarkerProcess)
+    # process_factory.add_process('camtrawl_detect_fish',
+    #                             'preliminatry detection / feature extraction',
+    #                             CamtrawlDetectFishProcess)
 
-    process_factory.add_process('camtrawl_measure',
-                                'preliminatry measurement',
-                                CamtrawlMeasureProcess)
+    # process_factory.add_process('camtrawl_measure',
+    #                             'preliminatry measurement',
+    #                             CamtrawlMeasureProcess)
 
     process_factory.mark_process_module_as_loaded(module_name)

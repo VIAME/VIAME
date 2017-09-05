@@ -4,13 +4,6 @@ import itertools as it
 import numpy as np
 import cv2
 
-try:
-    import utool as ut
-    print, rrr, profile = ut.inject2(__name__)
-except ImportError:
-    def profile(func):
-        return func
-
 
 def downsample_average_blocks(img, factor):
     """
@@ -99,7 +92,6 @@ def from_homog(homog_pts):
     return pts
 
 
-@profile
 def ensure_grayscale(img):
     """
     Checks if an image is grayscale.
@@ -118,7 +110,6 @@ def ensure_grayscale(img):
     return img_gray
 
 
-@profile
 def ensure_float01(img, dtype=np.float32):
     """ Ensure that an image is encoded using a float properly """
     if img.dtype.kind in ('i', 'u'):
@@ -158,7 +149,6 @@ def get_num_channels(img):
     return nChannels
 
 
-@profile
 def make_channels_comparable(img1, img2):
     """
     Broadcasts image arrays so they can have elementwise operations applied
@@ -206,7 +196,6 @@ def make_channels_comparable(img1, img2):
     return img1, img2
 
 
-@profile
 def overlay_alpha_images(img1, img2):
     """
     places img1 on top of img2 respecting alpha channels
@@ -244,7 +233,6 @@ def overlay_alpha_images(img1, img2):
     return rgb3
 
 
-@profile
 def make_heatmask(mask, cmap='plasma'):
     """
     Colorizes a single-channel intensity mask (with an alpha channel)
@@ -266,7 +254,6 @@ def make_heatmask(mask, cmap='plasma'):
     return heatmask
 
 
-@profile
 def overlay_heatmask(img, mask, alpha=.9, cmap='plasma'):
     """
     Draws a heatmask on an image using a single-channel intensity mask.

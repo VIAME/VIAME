@@ -18,13 +18,6 @@ from imutils import (
 from os.path import expanduser, basename, join, splitext
 import ubelt as ub
 
-try:
-    import utool as ut
-    print, rrr, profile = ut.inject2(__name__)
-except ImportError:
-    def profile(func):
-        return func
-
 
 OrientedBBox = namedtuple('OrientedBBox', ('center', 'extent', 'angle'))
 
@@ -77,7 +70,7 @@ class BoundingBox(ub.NiceRepr):
         inplace upscaling of bounding boxes and points
         (masks are not upscaled)
         """
-        self.coords = self.coords * factor
+        self.coords = np.array(self.coords) * factor
         # center = upfactor * detection['oriented_bbox'].center
         # extent = upfactor * detection['oriented_bbox'].extent
         # angle = detection['oriented_bbox'].angle
@@ -89,7 +82,10 @@ class BoundingBox(ub.NiceRepr):
 
 class DetectedObject(ub.NiceRepr):
     def __init__(self, bbox, mask):
-        self.bbox = BoundingBox(bbox)
+        if isinstance(bbox, BoundingBox):
+            self.bbox = bbox
+        else:
+            self.bbox = BoundingBox(bbox)
         self.mask = mask
 
     def __nice__(self):
@@ -196,7 +192,7 @@ class GMMForegroundObjectDetector(object):
             # Upscale back to input img coordinates (to agree with camera calib)
             if detector.config['factor'] != 1.0:
                 for detection in detections:
-                    detection.scale(upfactor)
+                    detection.bbox.scale(upfactor)
 
         detector.n_iters += 1
         return detections
@@ -262,7 +258,7 @@ class GMMForegroundObjectDetector(object):
 
 
 class FishDetectionFilter(object):
-    def __init__(self, config={}):
+    def __init__(self, **kwargs):
         self.config = {
             'edge_trim': [12, 12],
             # Min/Max aspect ratio for filtering out non-fish objects
@@ -270,12 +266,12 @@ class FishDetectionFilter(object):
             'min_n_pixels': 100,
         }
 
-    def filter_detections(self, detections):
+    def filter_detections(self, detections, img_dsize):
         for detection in detections:
-            if self.is_valid(detections):
+            if self.is_valid(detection, img_dsize):
                 yield detection
 
-    def is_valid(self, detection):
+    def is_valid(self, detection, img_dsize):
         """
         Checks if the detection passes filtering constraints
 
@@ -291,7 +287,7 @@ class FishDetectionFilter(object):
         if self.config['min_n_pixels'] is not None:
             # Remove small regions
             n_pixels = (detection.mask > 0).sum()
-            factor = self.config['factor']
+            factor = 2  # HACK
             min_n_pixels = self.config['min_n_pixels'] / (factor ** 2)
             if n_pixels < min_n_pixels:
                 return False
@@ -301,13 +297,15 @@ class FishDetectionFilter(object):
         if self.config['edge_trim'] is not None:
             # Define thresholds to filter edges
             # img_width, img_height = img_dsize
-            factor = self.config['factor']
+            # factor = self.config['factor']
+            factor = 2  # HACK
             xmin_lim, ymin_lim = self.config['edge_trim']
+            img_width, img_height = img_dsize
             xmax_lim = img_width - (xmin_lim / factor)
             ymax_lim = img_height - (ymin_lim / factor)
 
             # Filter objects detected on the edge of the image region
-            (xmin, ymin, xmax, ymax) = detection.bbox_corners
+            (xmin, ymin, xmax, ymax) = detection.bbox.coords
             if any([xmin < xmin_lim, xmax > xmax_lim,
                     ymin < ymin_lim, ymax > ymax_lim]):
                 return None
@@ -321,23 +319,15 @@ class FishDetectionFilter(object):
         w, h = oriented_bbox.extent
 
         if w == 0 or h == 0:
-            return None
+            return False
 
         # Filter objects without fishy aspect ratios
-        if filter_aspect:
-            ar = max([(w / h), (h / w)])
-            min_aspect, max_aspect = self.config['aspect_thresh']
-            if any([ar < min_aspect, ar > max_aspect]):
-                return None
+        ar = max([(w / h), (h / w)])
+        min_aspect, max_aspect = self.config['aspect_thresh']
+        if any([ar < min_aspect, ar > max_aspect]):
+            return False
 
-        detection = {
-            # 'points': points,
-            'box_points': cv2.boxPoints(oriented_bbox),
-            'oriented_bbox': oriented_bbox,
-            'cc': cc,
-            'hull': hull[:, 0, :],
-        }
-        return detection
+        return True
 
 
 class FishStereoTriangulationAssignment(object):
@@ -992,7 +982,7 @@ def demo():
     }
     stride = 2
 
-    DRAWING = 1
+    DRAWING = 0
 
     # ----
     # Initialize algorithms
@@ -1000,6 +990,8 @@ def demo():
 
     detector1 = GMMForegroundObjectDetector(**gmm_params)
     detector2 = GMMForegroundObjectDetector(**gmm_params)
+    dfilter1 = FishDetectionFilter(**gmm_params)
+    dfilter2 = FishDetectionFilter(**gmm_params)
     triangulator = FishStereoTriangulationAssignment(**triangulate_params)
 
     import pprint
@@ -1027,12 +1019,21 @@ def demo():
                        adjust=False)
     _iter = prog
 
+    print('begin iteration')
     for frame_num, ((frame_id1, img1), (frame_id2, img2)) in _iter:
         assert frame_id1 == frame_id2
         frame_id = frame_id1
 
-        detections1, masks1 = detector1.detect(img1)
-        detections2, masks2 = detector2.detect(img2)
+        detections1_ = list(detector1.detect(img1))
+        detections2_ = list(detector2.detect(img2))
+        masks1 = detector1._masks
+        masks2 = detector2._masks
+
+        dsize1 = tuple(img1.shape[:2][::-1])
+        dsize2 = tuple(img2.shape[:2][::-1])
+
+        detections1 = list(dfilter1.filter_detections(detections1_, dsize1))
+        detections2 = list(dfilter2.filter_detections(detections2_, dsize2))
 
         if len(detections1) > 0 or len(detections2) > 0:
             assignment, assign_data, cand_errors = triangulator.find_matches(

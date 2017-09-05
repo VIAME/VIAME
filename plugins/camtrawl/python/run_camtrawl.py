@@ -11,62 +11,6 @@ log = logging.getLogger(__name__)
 print = log.info
 
 
-def read_matlab_stereo_camera(cal_fpath):
-        import itertools as it
-        import itertools as it
-    """
-    References:
-        http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/parameters.html
-        http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example5.html
-
-    Ignore:
-        from os.path import expanduser
-        cal_fpath = expanduser('~/data/autoprocess_test_set/cal_201608.mat')
-
-        import sys
-        sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl')
-        from camtrawl_pipeline_def import *
-
-        stereo_camera = read_matlab_stereo_camera(cal_fpath)
-
-        intrin = stereo_camera['intrinsic_left']
-        fc = intrin['fc']
-        cc = intrin['cc']
-        alpha_c = intrin['alpha_c']
-        kc = intrin['kc']
-        KK = np.array([
-            [fc[0], alpha_c * fc[0], cc[0]],
-            [    0,           fc[1], cc[1]],
-            [    0,               0,     1],
-        ])
-    """
-    import scipy.io
-    cal_data = scipy.io.loadmat(cal_fpath)
-    cal = cal_data['Cal']
-
-    (om, T, fc_left, fc_right, cc_left, cc_right, kc_left, kc_right,
-     alpha_c_left, alpha_c_right) = cal[0][0]
-    stereo_camera = {
-        'extrinsic': {
-            'om': om.ravel(),  # rotation vector
-            'T': T.ravel(),  # translation vector
-        },
-        'intrinsic_left': {
-            'fc': fc_left.ravel(),  # focal point
-            'cc': cc_left.ravel(),  # principle point
-            'alpha_c': alpha_c_left.ravel()[0],  # skew
-            'kc': kc_left.ravel(),  # distortion
-        },
-        'intrinsic_right': {
-            'fc': fc_right.ravel(),
-            'cc': cc_right.ravel(),
-            'alpha_c': alpha_c_right.ravel()[0],
-            'kc': kc_right.ravel(),
-        },
-    }
-    return stereo_camera
-
-
 def make_image_input_files(data_fpath):
     left_fpath = join(data_fpath, 'image_data/left')
     right_fpath = join(data_fpath, 'image_data/right')
@@ -74,7 +18,7 @@ def make_image_input_files(data_fpath):
     cam2_image_fpaths = sorted(glob.glob(join(right_fpath, '*.jpg')))
 
     # Just use the first n for testing
-    n = 1
+    n = 10
     cam1_image_fpaths = cam1_image_fpaths[0:n]
     cam2_image_fpaths = cam2_image_fpaths[0:n]
 
@@ -103,9 +47,9 @@ def simple_pipeline():
     # Setup the input files
 
     data_fpath = expanduser('~/data/autoprocess_test_set')
-    cal_fpath = join(data_fpath, 'cal_201608.mat')
+    # cal_fpath = join(data_fpath, 'cal_201608.mat')
 
-    stereo_camera = read_matlab_stereo_camera(cal_fpath)  # NOQA
+    # stereo_camera = read_matlab_stereo_camera(cal_fpath)  # NOQA
     make_image_input_files(data_fpath)
 
     def add_stereo_camera_branch(pipe, prefix):
@@ -113,6 +57,7 @@ def simple_pipeline():
         Helper that defines a single branch, so it can easilly be duplicated.
         """
         image_list_file = join(data_fpath, prefix + 'images.txt')
+        cam = {}
 
         # --- Node ---
         input_image = pipe.add_process(
@@ -125,33 +70,25 @@ def simple_pipeline():
         # ------------
 
         # --- Node ---
-        detect = pipe.add_process(
+        cam['detect'] = detect = pipe.add_process(
             name=prefix + 'detect', type='camtrawl_detect_fish', config={ })
         detect.iports.connect({
             'image': input_image.oports['image']
         })
         # ------------
-
-        # --- Node ---
-        biomarker = pipe.add_process(
-            name=prefix + 'biomarker', type='camtrawl_detect_biomarker', config={ })
-        biomarker.iports.connect({
-            'image': input_image.oports['image'],
-            'detected_object_set': detect.oports['detected_object_set'],
-        })
-        # ------------
+        return cam
 
     pipe = sprokit_pipeline.Pipeline()
-    add_stereo_camera_branch(pipe, 'cam1_')
-    add_stereo_camera_branch(pipe, 'cam2_')
+    cam1 = add_stereo_camera_branch(pipe, 'cam1_')
+    cam2 = add_stereo_camera_branch(pipe, 'cam2_')
 
     # ------
     pipe.add_process(name='measure', type='camtrawl_measure', config={})
     pipe['measure'].iports.connect({
         # 'camera1': pipe['cam1_input_camera'].oports['camera'],
         # 'camera2': pipe['cam2_input_camera'].oports['camera'],
-        'feature_set1': pipe['cam1_biomarker'].oports['feature_set'],
-        'feature_set2': pipe['cam2_biomarker'].oports['feature_set'],
+        'detected_object_set1': cam1['detect'].oports['detected_object_set'],
+        'detected_object_set2': cam2['detect'].oports['detected_object_set'],
     })
     # ------
 
