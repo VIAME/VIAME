@@ -199,6 +199,14 @@ class CamtrawlMeasureProcess(KwiverProcess):
         print(' ----- configure ' + self.__class__.__name__)
 
         self.text = self.config_value('text')
+
+        triangulate_params = {}
+        self.triangulator = ctalgo.FishStereoTriangulationAssignment(**triangulate_params)
+        cal_fpath = ''
+
+        # NEED TO LOAD CALIBRATION DATA
+        # IDEALLY THIS IS A PIPELINE INPUT NOT A CONFIG
+        self.cal = ctalgo.StereoCalibration.from_file(cal_fpath)
         self._base_configure()
 
     # ----------------------------------------------
@@ -208,6 +216,9 @@ class CamtrawlMeasureProcess(KwiverProcess):
         # grab image container from port using traits
         detections1 = self.grab_input_using_trait('detected_object_set' + '1')
         detections2 = self.grab_input_using_trait('detected_object_set' + '2')
+
+        assignment, assign_data, cand_errors = self.triangulator.find_matches(
+            self.cal, detections1, detections2)
 
         # distance = np.sum((feat1.location - feat2.location) ** 2)
         # print('distance = {!r}'.format(distance))
