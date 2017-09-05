@@ -7,7 +7,10 @@ set( EXAMPLE_INSTALL_FILES
      build_index.sh
      db_tool.sh
      ingest_video.sh
-     launch_gui.sh )
+     launch_gui.sh
+     launch_viewer.sh
+     view_tracks.prj
+     view_detections.prj )
 
 if( VIAME_DOWNLOAD_MODELS )
   DownloadAndExtract(
