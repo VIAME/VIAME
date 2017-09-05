@@ -78,6 +78,7 @@ process detection_descriptor
 process tracker
  :: compute_association_matrix
   :matrix_generator:type                       from_features
+  :matrix_generator:from_features:max_distance 50
 
   block matrix_generator:from_features:filter
     :type                                      class_probablity_filter
@@ -89,7 +90,7 @@ process tracker
 process track_associator
   :: associate_detections_to_tracks
   :track_associator:type                       threshold
-  :track_associator:threshold:threshold        0.50
+  :track_associator:threshold:threshold        100.0
   :track_associator:threshold:higher_is_better false
 
 process track_initializer
@@ -158,7 +159,6 @@ process kwa_writer
   :output_directory                           $CONFIG{global:output_folder}
   :base_filename                              $CONFIG{global:output_basename}
   :separate_meta                              true
-  :mission_id                                 none
   :stream_id                                  $CONFIG{global:output_basename}
   :compress_image                             true
   :static/gsd[ro]                             common:fixed_gsd
