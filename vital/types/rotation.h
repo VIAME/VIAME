@@ -137,7 +137,7 @@ public:
   /**
    * The first component is real, the last 3 are imaginary (i,j,k)
    */
-  const Eigen::Quaternion< T >& quaternion() const { return q_; }
+  Eigen::Quaternion< T > quaternion() const { return q_; }
 
   /// Return the rotation as a Rodrigues vector
   Eigen::Matrix< T, 3, 1 > rodrigues() const;
