@@ -143,7 +143,7 @@ simple_camera
 camera_sptr
 simple_camera
 ::clone_look_at( const vector_3d &stare_point,
-                 const vector_3d &up_direction = vector_3d::UnitZ() ) const
+                 const vector_3d &up_direction ) const
 {
   camera_sptr c_sptr = this->clone();
   dynamic_cast<simple_camera *>(c_sptr.get())->look_at( stare_point,
