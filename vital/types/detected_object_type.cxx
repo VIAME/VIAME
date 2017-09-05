@@ -233,6 +233,24 @@ size() const
 
 
 // ------------------------------------------------------------------
+detected_object_type::class_const_iterator_t
+detected_object_type::
+begin() const
+{
+  return m_classes.begin();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_type::class_const_iterator_t
+detected_object_type::
+end() const
+{
+  return m_classes.end();
+}
+
+
+// ------------------------------------------------------------------
 /**
  * @brief Resolve string to pointer.
  *
