@@ -48,9 +48,11 @@ namespace kwiver
  * \iports
  * \iport{timestamp}
  * \iport{image}
+ * \iport{feature_set}
+ * \iport{descriptor_set}
  *
  * \oports
- * \oport{src_to_ref_homography}
+ * \oport{feature_track_set}
  *
  */
 class KWIVER_PROCESSES_NO_EXPORT matcher_process

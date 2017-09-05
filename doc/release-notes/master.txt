@@ -49,6 +49,20 @@ Vital
    range-based for, etc.  This provides a much more efficient mechanism for
    visiting all classifications.
 
+ * Improved plugin explorer so it is easier to get information ahout
+   processes and algorithms. Typicl usage for locating processes would
+   be to enter the following command to find which processes have to
+   do with reading.
+
+   $ plugin_explorer --proc read
+
+   Then enter the following command when the specific process has been
+   identified to get a detailed output about the process.
+
+   $ plugin_explorer --proc image_file_reader -d
+
+ * Added macros to access low level datum objects using port traits.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
