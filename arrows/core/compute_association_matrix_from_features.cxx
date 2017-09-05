@@ -192,7 +192,7 @@ compute_association_matrix_from_features
               auto center1 = trk_state->detection->bounding_box().center();
               auto center2 = filtered_dets[d]->bounding_box().center();
 
-              double dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
+              dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
               dist += ( ( center1[1] - center2[1] ) * ( center1[1] - center2[1] ) );
               dist = std::sqrt( dist );
             }
