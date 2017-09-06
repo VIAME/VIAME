@@ -84,6 +84,9 @@ public:
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< vital::track_sptr > const& tracks );
 
+  /// Insert a vector of track shared pointers into this container
+  virtual void insert_tracks( std::vector< vital::track_sptr > const& tracks );
+
   /// Return a vector of track shared pointers
   virtual std::vector< vital::track_sptr > tracks() const;
 

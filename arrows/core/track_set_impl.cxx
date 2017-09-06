@@ -101,6 +101,24 @@ frame_index_track_set_impl
 }
 
 
+/// Insert a vector of track shared pointers into this container
+void
+frame_index_track_set_impl
+::insert_tracks( std::vector< vital::track_sptr > const& tracks )
+{
+  all_tracks_.insert(all_tracks_.end(), tracks.begin(), tracks.end());
+
+  // update the frame map with the new tracks
+  for(auto const& track : tracks)
+  {
+    for(auto const& ts : *track)
+    {
+      frame_map_[ts->frame()].insert(ts);
+    }
+  }
+}
+
+
 /// Return whether or not there are any tracks in the set
 bool
 frame_index_track_set_impl
