@@ -12,14 +12,34 @@ import cv2
 import itertools as it
 import numpy as np
 import scipy.optimize
-from imutils import (
-    imscale, ensure_grayscale, overlay_heatmask, from_homog, to_homog,
-    putMultiLineText)
-from os.path import expanduser, basename, join, splitext
+from imutils import (imscale, ensure_grayscale, from_homog, to_homog)
+from os.path import splitext
 import ubelt as ub
 
 
 OrientedBBox = namedtuple('OrientedBBox', ('center', 'extent', 'angle'))
+
+
+def dict_subset(dict_, keys):
+    return {k: dict_[k] for k in keys}
+
+
+def dict_update_subset(dict_, other):
+    """
+    updates items in `dict_` based on `other`. `other` is not allowed to
+    specify any keys that do not already exist in `dict_`.
+    """
+    for k, v in other.items():
+        if k not in dict_:
+            raise KeyError(k)
+        dict_[k] = v
+
+
+class ParamInfo(object):
+    def __init__(self, name, default, doc=None):
+        self.name = name
+        self.default = default
+        self.doc = doc
 
 
 class BoundingBox(ub.NiceRepr):
@@ -35,12 +55,20 @@ class BoundingBox(ub.NiceRepr):
         return BoundingBox(coords)
 
     @property
-    def lower_left(bbox):
-        return bbox.coords[0:2]
+    def xmin(bbox):
+        return bbox.coords[0]
 
     @property
-    def upper_right(bbox):
-        return bbox.coords[2:4]
+    def ymin(bbox):
+        return bbox.coords[1]
+
+    @property
+    def xmax(bbox):
+        return bbox.coords[2]
+
+    @property
+    def ymax(bbox):
+        return bbox.coords[3]
 
     @property
     def center(self):
@@ -51,62 +79,78 @@ class BoundingBox(ub.NiceRepr):
         cy = (ymax + ymin) / 2
         return cx, cy
 
-    @property
-    def size(self):
-        if self.coords is None:
-            return None
-        (xmin, ymin, xmax, ymax) = self.coords
-        width = xmax - xmin
-        height = ymax - ymin
-        return width, height
-
-    def polygon_points(self):
-        (xmin, ymin, xmax, ymax) = self.coords
-        return np.array([(xmin, ymin), (xmin, ymax),
-                         (xmax, ymax), (xmax, ymin)])
-
     def scale(self, factor):
         """
         inplace upscaling of bounding boxes and points
         (masks are not upscaled)
         """
         self.coords = np.array(self.coords) * factor
-        # center = upfactor * detection['oriented_bbox'].center
-        # extent = upfactor * detection['oriented_bbox'].extent
-        # angle = detection['oriented_bbox'].angle
-        # detection['oriented_bbox'] = OrientedBBox(
-        #     tuple(center), tuple(extent), angle)
-        # detection['hull'] = upfactor * detection['hull']
-        # detection['box_points'] = upfactor * detection['box_points']
 
 
 class DetectedObject(ub.NiceRepr):
+    """
+    Example:
+        >>> import sys
+        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
+        >>> from camtrawl_algos import *
+        >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
+        >>> cc_mask[3:5, 2:7] = 1
+        >>> self = DetectedObject.from_connected_component(cc_mask)
+    """
+
     def __init__(self, bbox, mask):
-        if isinstance(bbox, BoundingBox):
-            self.bbox = bbox
-        else:
-            self.bbox = BoundingBox(bbox)
+        # bbox is kept in the image coordinate frame
+        self.bbox = bbox
+        # mask is kept in its own coordinate frame
         self.mask = mask
+        # keep track of the scale factor from mask to bbox
+        self.bbox_factor = 1.0
 
     def __nice__(self):
         return self.bbox.__nice__()
 
+    def num_pixels(self):
+        # number of pixels in the mask
+        # scale to the number that would be in the original image
+        n_pixels = (self.mask > 0).sum() * (self.bbox_factor ** 2)
+        return n_pixels
+
+    def hull(self):
+        cc_y, cc_x = np.where(self.mask)
+        points = np.vstack([cc_x, cc_y]).T
+        # Find a minimum oriented bounding box around the points
+        hull = cv2.convexHull(points)
+        # move points from mask coordinates to image coordinates
+        if self.bbox_factor != 1.0:
+            hull = hull * self.bbox_factor
+        hull = hull + [[self.bbox.xmin, self.bbox.ymin]]
+        hull = np.round(hull).astype(np.int)
+        return hull
+
+    def oriented_bbox(self):
+        hull = self.hull()
+        oriented_bbox = OrientedBBox(*cv2.minAreaRect(hull))
+        return oriented_bbox
+
+    def box_points(self):
+        return cv2.boxPoints(self.oriented_bbox())
+
+    def scale(self, factor):
+        """ inplace """
+        if factor != 1.0:
+            self.bbox_factor *= factor
+            self.bbox.scale(factor)
+
     @classmethod
     def from_connected_component(DetectedObject, cc_mask):
-        """
-        Example:
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
-            >>> rng = np.random.RandomState(0)
-            >>> cc_mask = rng.rand(7, 7) < .1
-            >>> DetectedObject.from_connected_component(cc_mask)
-        """
+        # note, `np.where` returns coords in (r, c)
         ys, xs = np.where(cc_mask)
         xmin, xmax = xs.min(), xs.max()
         ymin, ymax = ys.min(), ys.max()
         bbox = BoundingBox.from_coords(xmin, ymin, xmax, ymax)
-        mask = cc_mask[xmin:xmax, ymin:ymax]
+        yslice = slice(bbox.ymin, bbox.ymax + 1)
+        xslice = slice(bbox.xmin, bbox.xmax + 1)
+        mask = cc_mask[yslice, xslice]
         self = DetectedObject(bbox, mask)
         return self
 
@@ -121,27 +165,62 @@ class GMMForegroundObjectDetector(object):
         https://stackoverflow.com/questions/37300698/gaussian-mixture-model
         http://docs.opencv.org/trunk/db/d5c/tutorial_py_bg_subtraction.html
     """
-    def __init__(detector, **kwargs):
-        detector.config = {
-            'factor': 2.0,
-            'smooth_ksize': (10, 10),  # wrt original image size
-            # number of frames before the background model is ready
-            'n_startup_frames': 1,
-            'min_num_pixels': 100,  # wrt original image
-            'n_training_frames': 30,
-            'gmm_thresh': 30,
-            # limits accepable targets to be within this region [padx, pady]
-            # These are wrt the original image size
-            'edge_trim': [12, 12],
-            'aspect_thresh': (3.5, 7.5,),
+
+    @staticmethod
+    def default_params():
+        default_params = {
+            'preproc': [
+
+                ParamInfo(name='factor', default=1.0,
+                          doc='image downsample factor'),
+
+                ParamInfo(name='smooth_ksize', default=(10, 10),
+                          doc=('postprocessing filter size for noise removal '
+                               '(wrt orig image size)'))
+
+            ],
+
+            'gmm': [
+
+                ParamInfo(name='n_startup_frames', default=3,
+                          doc=('number of frames before the background model '
+                               'will wait before returning any detections')),
+
+                ParamInfo(name='n_training_frames', default=300,
+                          doc='number of frames to use for training'),
+
+                ParamInfo(name='gmm_thresh', default=30,
+                          doc='GMM variance threshold'),
+
+            ],
+
+            'filter': DetectionShapeFilter.default_params()['filter'],
         }
-        detector.config.update(kwargs)
+        return default_params
+
+    def __init__(detector, **kwargs):
+        # setup default config
+        detector.config = {}
+        default_params = detector.default_params()
+        for pinfos in default_params.values():
+            detector.config.update({pi.name: pi.default for pi in pinfos})
+        # modify based on user args
+        dict_update_subset(detector.config, kwargs)
+
+        # Setup GMM background subtraction algorithm
         detector.background_model = cv2.createBackgroundSubtractorMOG2(
             history=detector.config['n_training_frames'],
             varThreshold=detector.config['gmm_thresh'],
             detectShadows=False)
+
+        # Setup detection filter algorithm
+        filter_config = dict_subset(
+            detector.config, [pi.name for pi in default_params['filter']])
+        detector.filter = DetectionShapeFilter(**filter_config)
+
         detector.n_iters = 0
-        detector._masks = {}  # kept in memory for visualization
+        # masks from previous iter are kept in memory for visualization
+        detector._masks = {}
 
     def detect(detector, img):
         """
@@ -159,6 +238,7 @@ class GMMForegroundObjectDetector(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
+            >>> from camtrawl_demo import *
             >>> detector, img = demodata_detections(target_step='detect', target_frame_num=7)
             >>> detections = detector.detect(img)
             >>> print('detections = {!r}'.format(detections))
@@ -170,6 +250,7 @@ class GMMForegroundObjectDetector(object):
             >>> plt.show()
         """
         detector._masks = {}
+
         # Downsample and convert to grayscale
         img_, upfactor = detector.preprocess_image(img)
 
@@ -187,12 +268,14 @@ class GMMForegroundObjectDetector(object):
                 detector._masks['post'] = mask.copy()
 
             # Find detections using CC algorithm
-            detections = list(detector.detections_in_mask(mask))
+            detectgen = detector.detections_in_mask(mask)
 
-            # Upscale back to input img coordinates (to agree with camera calib)
-            if detector.config['factor'] != 1.0:
-                for detection in detections:
-                    detection.bbox.scale(upfactor)
+            # Filter detections by shape and size
+            img_dsize = tuple(img.shape[0:2][::-1])
+            detectgen = detector.filter.filter_detections(detectgen, img_dsize)
+
+            # return detections in a list
+            detections = list(detectgen)
 
         detector.n_iters += 1
         return detections
@@ -235,74 +318,93 @@ class GMMForegroundObjectDetector(object):
         """
         # 4-way connected compoment algorithm
         n_ccs, cc_mask = cv2.connectedComponents(mask, connectivity=8)
+        factor = detector.config['factor']
 
         # Process only labels with enough points
         min_num_pixels = detector.config['min_num_pixels']
         if min_num_pixels is None:
-            valid_labels = np.arange(1, n_ccs)
+            valid_labels = np.arange(1, n_ccs + 1)
         else:
             # speed optimization: quickly determine num pixels for each cc
             # using a histogram instead of checking in the filter func
             hist, bins = np.histogram(cc_mask[cc_mask > 0].ravel(),
                                       bins=np.arange(1, n_ccs + 1))
-            factor = detector.config['factor']
-            min_num_pixels = min_num_pixels / (factor ** 2)
+            min_num_pixels_ = min_num_pixels / (factor ** 2)
             # only consider large enough regions
-            valid_labels = bins[0:-1][hist >= min_num_pixels]
+            valid_labels = bins[0:-1][hist >= min_num_pixels_]
 
         # Filter ccs to generate only "good" detections
         for cc_label in valid_labels:
             cc = (cc_mask == cc_label)
             detection = DetectedObject.from_connected_component(cc)
+            # Upscale back to input img coords (to agree with camera calib)
+            detection.scale(factor)
             yield detection
 
 
-class FishDetectionFilter(object):
-    def __init__(self, **kwargs):
-        self.config = {
-            'edge_trim': [12, 12],
-            # Min/Max aspect ratio for filtering out non-fish objects
-            'aspect_thresh': (3.5, 7.5,),
-            'min_n_pixels': 100,
-        }
+class DetectionShapeFilter(object):
+    """
+    Filters masked detections based on their size and shape
+    """
 
-    def filter_detections(self, detections, img_dsize):
+    @staticmethod
+    def default_params():
+        default_params = {
+            'filter': [
+
+                ParamInfo(name='min_num_pixels', default=800,
+                          doc=('keep detections only with the number of pixels '
+                               'wrt original image size')),
+
+                ParamInfo(name='edge_trim', default=(12, 12),
+                          doc=('limits accepable targets to be within the region '
+                               '[padx, pady, img_w - padx, img_h - pady]. '
+                               'These are wrt the original image size')),
+
+                ParamInfo(name='aspect_thresh', default=(3.5, 7.5,),
+                          doc='range of valid aspect ratios for detections')
+
+            ]
+        }
+        return default_params
+
+    def __init__(self, **kwargs):
+        # setup default config
+        self.config = {}
+        default_params = self.default_params()
+        for pinfos in default_params.values():
+            self.config.update({pi.name: pi.default for pi in pinfos})
+        # modify based on user args
+        dict_update_subset(self.config, kwargs)
+
+    def filter_detections(self, detections, img_dsize=None):
         for detection in detections:
             if self.is_valid(detection, img_dsize):
                 yield detection
 
-    def is_valid(self, detection, img_dsize):
+    def is_valid(self, detection, img_dsize=None):
         """
         Checks if the detection passes filtering constraints
 
         Args:
             detection (DetectedObject): mask where non-zero pixels indicate a single
                 candidate object
+            img_dsize (tuple): w/h of the original image
 
         Returns:
             bool: True if the detection is valid else False
         """
-        # note, `np.where` returns coords in (r, c)
-
-        if self.config['min_n_pixels'] is not None:
+        if self.config['min_num_pixels'] is not None:
             # Remove small regions
-            n_pixels = (detection.mask > 0).sum()
-            factor = 2  # HACK
-            min_n_pixels = self.config['min_n_pixels'] / (factor ** 2)
-            if n_pixels < min_n_pixels:
+            if detection.num_pixels() < self.config['min_num_pixels']:
                 return False
-
-        cc_y, cc_x = np.where(detection.mask)
 
         if self.config['edge_trim'] is not None:
             # Define thresholds to filter edges
-            # img_width, img_height = img_dsize
-            # factor = self.config['factor']
-            factor = 2  # HACK
-            xmin_lim, ymin_lim = self.config['edge_trim']
             img_width, img_height = img_dsize
-            xmax_lim = img_width - (xmin_lim / factor)
-            ymax_lim = img_height - (ymin_lim / factor)
+            xmin_lim, ymin_lim = self.config['edge_trim']
+            xmax_lim = img_width - (xmin_lim)
+            ymax_lim = img_height - (ymin_lim)
 
             # Filter objects detected on the edge of the image region
             (xmin, ymin, xmax, ymax) = detection.bbox.coords
@@ -310,15 +412,10 @@ class FishDetectionFilter(object):
                     ymin < ymin_lim, ymax > ymax_lim]):
                 return None
 
-        # generate the valid detection
-        points = np.vstack([cc_x, cc_y]).T
-
         # Find a minimum oriented bounding box around the points
-        hull = cv2.convexHull(points)
-        oriented_bbox = OrientedBBox(*cv2.minAreaRect(hull))
-        w, h = oriented_bbox.extent
-
+        w, h = detection.oriented_bbox().extent
         if w == 0 or h == 0:
+            # assert w == 0 or h == 0, 'detection has no width or height'
             return False
 
         # Filter objects without fishy aspect ratios
@@ -326,20 +423,38 @@ class FishDetectionFilter(object):
         min_aspect, max_aspect = self.config['aspect_thresh']
         if any([ar < min_aspect, ar > max_aspect]):
             return False
-
         return True
 
 
-class FishStereoTriangulationAssignment(object):
-    def __init__(self, **kwargs):
-        self.config = {
-            # Threshold for errors between before & after projected
-            # points to make matches between left and right
-            'max_err': [6, 14],
-            # 'max_err': [300, 300],
-            'small_len': 150,  # in milimeters
+class FishStereoMeasurments(object):
+    """
+    Algo for matching detections in left and right camera and determening the
+    fish length in milimeters.
+    """
+
+    @staticmethod
+    def default_params():
+        default_params = {
+            'thresholds': [
+                ParamInfo('max_err', (6, 14), doc=(
+                    'Threshold for errors between before & after projected '
+                    'points to make matches between left and right')),
+
+                ParamInfo('small_len', 150, doc=(
+                    'length (in milimeters) to switch between high and low '
+                    'max error thresholds ')),
+            ]
         }
-        self.config.update(kwargs)
+        return default_params
+
+    def __init__(self, **kwargs):
+        # setup default config
+        self.config = {}
+        default_params = self.default_params()
+        for pinfos in default_params.values():
+            self.config.update({pi.name: pi.default for pi in pinfos})
+        # modify based on user args
+        dict_update_subset(self.config, kwargs)
 
     def triangulate(self, cal, det1, det2):
         """
@@ -356,21 +471,22 @@ class FishStereoTriangulationAssignment(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
+            >>> from camtrawl_demo import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
             >>> det1, det2 = detections1[0], detections2[0]
-            >>> self = FishStereoTriangulationAssignment()
+            >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.triangulate(cal, det1, det2)
         """
         _debug = 0
         if _debug:
             # Use 4 corners and center to ensure matrix math is good
             # (hard to debug when ndims == npts, so make npts >> ndims)
-            pts1 = np.vstack([det1['box_points'], det1['oriented_bbox'].center])
-            pts2 = np.vstack([det2['box_points'], det2['oriented_bbox'].center])
+            pts1 = np.vstack([det1.box_points(), det1.oriented_bbox().center])
+            pts2 = np.vstack([det2.box_points(), det2.oriented_bbox().center])
         else:
             # Use only the corners of the bbox
-            pts1 = det1['box_points'][[0, 2]]
-            pts2 = det2['box_points'][[0, 2]]
+            pts1 = det1.box_points()[[0, 2]]
+            pts2 = det2.box_points()[[0, 2]]
 
         # Move into opencv point format (num x 1 x dim)
         pts1_cv = pts1[:, None, :]
@@ -438,7 +554,8 @@ class FishStereoTriangulationAssignment(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
-            >>> self = FishStereoTriangulationAssignment()
+            >>> from camtrawl_demo import *
+            >>> self = FishStereoMeasurments()
             >>> cost_errors = np.array([
             >>>     [9, 2, 1, 9],
             >>>     [4, 1, 5, 5],
@@ -477,8 +594,9 @@ class FishStereoTriangulationAssignment(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
+            >>> from camtrawl_demo import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
-            >>> self = FishStereoTriangulationAssignment()
+            >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.find_matches(cal, detections1, detections2)
         """
         n_detect1, n_detect2 = len(detections1), len(detections2)
@@ -548,9 +666,16 @@ class FishStereoTriangulationAssignment(object):
 class StereoCalibration(object):
     """
     Helper class for reading / accessing stereo camera calibration params
+
+    Doctest:
+        >>> import sys
+        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
+        >>> from camtrawl_algos import *
+        >>> cal_fpath = '/home/joncrall/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz'
+        >>> cal = StereoCalibration.from_file(cal_fpath)
     """
-    def __init__(cal):
-        cal.data = None
+    def __init__(cal, data=None):
+        cal.data = data
         cal.unit = 'milimeters'
 
     def __str__(cal):
@@ -611,14 +736,6 @@ class StereoCalibration(object):
 
     @classmethod
     def from_npzfile(StereoCalibration, cal_fpath):
-        """
-        Doctest:
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
-            >>> cal_fpath = '/home/joncrall/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz'
-            >>> cal = StereoCalibration.from_npzfile(cal_fpath)
-        """
         data = dict(np.load(cal_fpath))
         flat_dict = {}
         flat_dict['om'] = cv2.Rodrigues(data['R'])[0].ravel()
@@ -639,6 +756,9 @@ class StereoCalibration(object):
         flat_dict['kc_right'] = data['distCoeffsR'].ravel()
         return StereoCalibration._from_flat_dict(flat_dict)
 
+    def from_cameras(StereoCalibration, camera1, camera2):
+        pass
+
     @classmethod
     def from_matfile(StereoCalibration, cal_fpath):
         """
@@ -652,6 +772,7 @@ class StereoCalibration(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
+            >>> from camtrawl_demo import *
             >>> _, _, cal_fpath = demodata_input(dataset='test')
             >>> cal = StereoCalibration.from_matfile(cal_fpath)
             >>> print('cal = {}'.format(cal))
@@ -704,370 +825,6 @@ class StereoCalibration(object):
         return cal
 
 
-class DrawHelper(object):
-    """
-    Visualization of the algorithm stages
-    """
-
-    @staticmethod
-    def draw_detections(img, detections, masks):
-        """
-        Draws heatmasks showing where detector was triggered.
-        Bounding boxes and contours are drawn over accepted detections.
-        """
-        # Upscale masks to original image size
-        dsize = tuple(img.shape[0:2][::-1])
-        shape = img.shape[0:2]
-
-        # Align all masks with the image size
-        masks2 = {
-            k: cv2.resize(v, dsize, interpolation=cv2.INTER_NEAREST)
-            for k, v in masks.items()
-        }
-
-        # Create a heatmap for detections
-        draw_mask = np.zeros(shape, dtype=np.float)
-
-        if 'orig' in masks2:
-            draw_mask[masks2['orig'] > 0] = .4
-        if 'local' in masks2:
-            draw_mask[masks2['local'] > 0] = .65
-        if 'post' in masks2:
-            draw_mask[masks2['post'] > 0] = .85
-
-        for n, detection in enumerate(detections, start=1):
-            cc = cv2.resize(detection['cc'].astype(np.uint8), dsize)
-            draw_mask[cc > 0] = 1.0
-        draw_img = overlay_heatmask(img, draw_mask, alpha=.7)
-
-        # Draw bounding boxes and contours
-        for detection in detections:
-            # Points come back in (x, y), but we want to draw in (r, c)
-            box_points = np.round(detection['box_points']).astype(np.int)
-            hull_points = np.round(detection['hull']).astype(np.int)
-            draw_img = cv2.drawContours(
-                image=draw_img, contours=[hull_points], contourIdx=-1,
-                color=(255, 0, 0), thickness=2)
-            draw_img = cv2.drawContours(
-                image=draw_img, contours=[box_points], contourIdx=-1,
-                color=(0, 255, 0), thickness=2)
-        return draw_img
-
-    @staticmethod
-    def draw_stereo_detections(img1, detections1, masks1,
-                               img2, detections2, masks2,
-                               assignment=None, assign_data=None,
-                               cand_errors=None):
-        """
-        Draws stereo detections side-by-side and draws lines indicating
-        assignments (and near-assignments for debugging)
-        """
-        import textwrap
-        BGR_RED = (0, 0, 255)
-        BGR_PURPLE = (255, 0, 255)
-
-        accepted_color = BGR_RED
-        rejected_color = BGR_PURPLE
-
-        draw1 = DrawHelper.draw_detections(img1, detections1, masks1)
-        draw2 = DrawHelper.draw_detections(img2, detections2, masks2)
-        stacked = np.hstack([draw1, draw2])
-
-        if assignment is not None and len(cand_errors) > 0:
-
-            # Draw candidate assignments that did not pass the thresholds
-            for j in range(cand_errors.shape[1]):
-                i = np.argmin(cand_errors[:, j])
-                if (i, j) in assignment or (j, i) in assignment:
-                    continue
-                error = cand_errors[i, j]
-                # if not np.isinf(error):
-                center1 = np.array(detections1[i]['oriented_bbox'].center)
-                center2 = np.array(detections2[j]['oriented_bbox'].center)
-
-                # Offset center2 to the right image
-                center2_ = center2 + [draw1.shape[1], 0]
-
-                center1 = tuple(center1.astype(np.int))
-                center2_ = tuple(center2_.astype(np.int))
-
-                stacked = cv2.line(stacked, center1, center2_,
-                                   color=rejected_color, lineType=cv2.LINE_AA,
-                                   thickness=1)
-                text = textwrap.dedent(
-                    '''
-                    error = {error:.2f}
-                    '''
-                ).strip().format(error=error)
-
-                stacked = putMultiLineText(stacked, text, org=center2_,
-                                           fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                           fontScale=1.5, color=rejected_color,
-                                           thickness=2, lineType=cv2.LINE_AA)
-
-            # Draw accepted assignments
-            for (i, j), info in zip(assignment, assign_data):
-
-                center1 = np.array(detections1[i]['oriented_bbox'].center)
-                center2 = np.array(detections2[j]['oriented_bbox'].center)
-
-                # Offset center2 to the right image
-                center2_ = center2 + [draw1.shape[1], 0]
-
-                center1 = tuple(center1.astype(np.int))
-                center2_ = tuple(center2_.astype(np.int))
-
-                stacked = cv2.line(stacked, center1, center2_,
-                                   color=accepted_color, lineType=cv2.LINE_AA,
-                                   thickness=2)
-
-                text = textwrap.dedent(
-                    '''
-                    len = {fishlen:.2f}mm
-                    error = {error:.2f}
-                    range = {range:.2f}mm
-                    '''
-                ).strip().format(**info)
-
-                stacked = putMultiLineText(stacked, text, org=center1,
-                                           fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                           fontScale=1.5, color=accepted_color,
-                                           thickness=2, lineType=cv2.LINE_AA)
-
-        with_orig = False
-        if with_orig:
-            # Put in the original images
-            bottom = np.hstack([img1, img2])
-            stacked = np.vstack([stacked, bottom])
-
-        return stacked
-
-
-# -----------------
-# Testing functions
-# -----------------
-
-
-class FrameStream(object):
-    """
-    Helper for iterating through a sequence of image frames.
-    This will be replaced by KWIVER.
-    """
-    def __init__(stream, image_path_list, stride=1):
-        stream.image_path_list = image_path_list
-        stream.stride = stride
-        stream.length = len(image_path_list)
-
-    def __len__(stream):
-        return stream.length
-
-    def __getitem__(stream, index):
-        img_fpath = stream.image_path_list[index]
-        frame_id = basename(img_fpath).split('_')[0]
-        img = cv2.imread(img_fpath)
-        return frame_id, img
-
-    def __iter__(stream):
-        for i in range(0, len(stream), stream.stride):
-            yield stream[i]
-
-
-def demodata_input(dataset='test'):
-    """
-    Specifies the input files for testing and demos
-    """
-    import glob
-
-    if dataset == 'test':
-        data_fpath = expanduser('~/data/autoprocess_test_set')
-        cal_fpath = join(data_fpath, 'cal_201608.mat')
-        img_path1 = join(data_fpath, 'image_data/left')
-        img_path2 = join(data_fpath, 'image_data/right')
-    elif dataset == 'haul83':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data/')
-        # cal_fpath = join(data_fpath, 'code/Calib_Results_stereo_1608.mat')
-        # cal_fpath = join(data_fpath, 'code/cal_201608.mat')
-        cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
-        img_path1 = join(data_fpath, 'Haul_83/left')
-        img_path2 = join(data_fpath, 'Haul_83/right')
-    else:
-        assert False, 'bad dataset'
-
-    image_path_list1 = sorted(glob.glob(join(img_path1, '*.jpg')))
-    image_path_list2 = sorted(glob.glob(join(img_path2, '*.jpg')))
-    assert len(image_path_list1) == len(image_path_list2)
-    return image_path_list1, image_path_list2, cal_fpath
-
-
-def demodata_detections(dataset='haul83', target_step='detect', target_frame_num=7):
-    """
-    Helper for doctests. Gets test data at different points in the pipeline.
-    """
-    # <ipython hacks>
-    if 'target_step' not in vars():
-        target_step = 'detect'
-    if 'target_frame_num' not in vars():
-        target_frame_num = 7
-    # </ipython hacks>
-    image_path_list1, image_path_list2, cal_fpath = demodata_input(dataset=dataset)
-
-    cal = StereoCalibration.from_file(cal_fpath)
-
-    detector1 = GMMForegroundObjectDetector()
-    detector2 = GMMForegroundObjectDetector()
-    for frame_num, (img_fpath1, img_fpath2) in enumerate(zip(image_path_list1,
-                                                             image_path_list2)):
-
-        frame_id1 = basename(img_fpath1).split('_')[0]
-        frame_id2 = basename(img_fpath2).split('_')[0]
-        assert frame_id1 == frame_id2
-        frame_id = frame_id1
-        img1 = cv2.imread(img_fpath1)
-        img2 = cv2.imread(img_fpath2)
-
-        if frame_num == target_frame_num:
-            if target_step == 'detect':
-                return detector1, img1
-
-        detections1 = detector1.detect(img1)
-        detections2 = detector2.detect(img2)
-        masks1 = detector1._masks
-        masks2 = detector2._masks
-
-        n_detect1, n_detect2 = len(detections1), len(detections2)
-        print('frame_num, (n_detect1, n_detect2) = {} ({}, {})'.format(
-            frame_num, n_detect1, n_detect2))
-
-        if frame_num == target_frame_num:
-            stacked = DrawHelper.draw_stereo_detections(img1, detections1, masks1,
-                                                        img2, detections2, masks2)
-            dpath = ub.ensuredir('out')
-            cv2.imwrite(dpath + '/mask{}_draw.png'.format(frame_id), stacked)
-            break
-
-    return detections1, detections2, cal
-
-
-def demo():
-    """
-    Runs the algorithm end-to-end.
-    """
-    # dataset = 'test'
-    dataset = 'haul83'
-
-    image_path_list1, image_path_list2, cal_fpath = demodata_input(dataset=dataset)
-
-    dpath = ub.ensuredir('out_{}'.format(dataset))
-
-    # ----
-    # Choose parameter configurations
-    # ----
-
-    # Use GMM based model
-    gmm_params = {
-        'n_training_frames': 9999,
-        # 'gmm_thresh': 20,
-        'gmm_thresh': 30,
-        'min_size': 800,
-        'edge_trim': [40, 40],
-        'n_startup_frames': 3,
-        'factor': 2,
-        'smooth_ksize': None,
-        # 'smooth_ksize': (3, 3),
-        # 'smooth_ksize': (10, 10),  # wrt original image size
-    }
-    triangulate_params = {
-        'max_err': [6, 14],
-        # 'max_err': [200, 200],
-    }
-    stride = 2
-
-    DRAWING = 0
-
-    # ----
-    # Initialize algorithms
-    # ----
-
-    detector1 = GMMForegroundObjectDetector(**gmm_params)
-    detector2 = GMMForegroundObjectDetector(**gmm_params)
-    dfilter1 = FishDetectionFilter(**gmm_params)
-    dfilter2 = FishDetectionFilter(**gmm_params)
-    triangulator = FishStereoTriangulationAssignment(**triangulate_params)
-
-    import pprint
-    print('dataset = {!r}'.format(dataset))
-    print('Detector1 Config: ' + pprint.pformat(detector1.config, indent=4))
-    print('Detector2 Config: ' + pprint.pformat(detector2.config, indent=4))
-    print('Triangulate Config: ' + pprint.pformat(triangulator.config, indent=4))
-    pprint.pformat(detector2.config)
-
-    cal = StereoCalibration.from_file(cal_fpath)
-    stream1 = FrameStream(image_path_list1, stride=stride)
-    stream2 = FrameStream(image_path_list2, stride=stride)
-
-    # ----
-    # Run the algorithm
-    # ----
-
-    n_total = 0
-    all_errors = []
-    all_lengths = []
-
-    prog = ub.ProgIter(enumerate(zip(stream1, stream2)),
-                       clearline=True,
-                       length=len(stream1) // stride,
-                       adjust=False)
-    _iter = prog
-
-    print('begin iteration')
-    for frame_num, ((frame_id1, img1), (frame_id2, img2)) in _iter:
-        assert frame_id1 == frame_id2
-        frame_id = frame_id1
-
-        detections1_ = list(detector1.detect(img1))
-        detections2_ = list(detector2.detect(img2))
-        masks1 = detector1._masks
-        masks2 = detector2._masks
-
-        dsize1 = tuple(img1.shape[:2][::-1])
-        dsize2 = tuple(img2.shape[:2][::-1])
-
-        detections1 = list(dfilter1.filter_detections(detections1_, dsize1))
-        detections2 = list(dfilter2.filter_detections(detections2_, dsize2))
-
-        if len(detections1) > 0 or len(detections2) > 0:
-            assignment, assign_data, cand_errors = triangulator.find_matches(
-                cal, detections1, detections2)
-            all_errors += [d['error'] for d in assign_data]
-            all_lengths += [d['fishlen'] for d in assign_data]
-            n_total += len(assignment)
-            # if len(assignment):
-            #     prog.ensure_newline()
-            #     print('n_total = {!r}'.format(n_total))
-        else:
-            cand_errors = None
-            assignment, assign_data = None, None
-
-        if DRAWING:
-            stacked = DrawHelper.draw_stereo_detections(img1, detections1, masks1,
-                                                        img2, detections2, masks2,
-                                                        assignment, assign_data,
-                                                        cand_errors)
-            stacked = cv2.putText(stacked,
-                                  text='frame {}'.format(frame_id),
-                                  org=(10, 50),
-                                  fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                  fontScale=1, color=(255, 0, 0),
-                                  thickness=2, lineType=cv2.LINE_AA)
-            cv2.imwrite(dpath + '/mask{}_draw.png'.format(frame_id), stacked)
-
-    all_errors = np.array(all_errors)
-    all_lengths = np.array(all_lengths)
-    print('n_total = {!r}'.format(n_total))
-    print('ave_error = {:.2f} +- {:.2f}'.format(all_errors.mean(), all_errors.std()))
-    print('ave_lengths = {:.2f} +- {:.2f} '.format(all_lengths.mean(), all_lengths.std()))
-
-
 if __name__ == '__main__':
     r"""
     CommandLine:
@@ -1077,11 +834,12 @@ if __name__ == '__main__':
         export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
         export PYTHONPATH=$(pwd):$PYTHONPATH
 
-        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_algos.py
+        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
 
         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """
-    demo()
+    import camtrawl_demo
+    camtrawl_demo.demo()
     # import utool as ut
     # ut.dump_profile_text()
     # import pytest
