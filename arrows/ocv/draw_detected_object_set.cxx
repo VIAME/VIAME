@@ -220,20 +220,21 @@ public:
                                                vital::detected_object_set_sptr  in_set ) const
   {
     cv::Mat image = image_container_to_ocv_matrix( *image_data ).clone();
-    auto det_list = in_set->select( );
 
-    VITAL_FOREACH( auto det, det_list )
+    // process the detection set
+    auto ie =  in_set->cend();
+    for ( auto det = in_set->cbegin(); det != ie; ++det )
     {
-      auto det_type = det->type();
+      auto det_type = (*det)->type();
       if ( ! det_type )
       {
         // No type has been assigned. Just filter on threshold
-        if (det->confidence() < m_threshold )
+        if ((*det)->confidence() < m_threshold )
         {
           continue;
         }
 
-        draw_box( image, det, "", det->confidence() );
+        draw_box( image, *det, "", (*det)->confidence() );
         continue;
       }
 
@@ -254,7 +255,7 @@ public:
         }
 
         LOG_TRACE( m_parent->logger(), "Drawing box for class: " << n << "   score: " << score );
-        draw_box( image, det, n, score, text_only, count );
+        draw_box( image, *det, n, score, text_only, count );
         text_only = true; // skip box on all subsequent calls
       }
     } // end foreach

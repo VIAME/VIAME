@@ -136,17 +136,15 @@ filter( const vital::detected_object_set_sptr input_set ) const
 {
   auto ret_set = std::make_shared<vital::detected_object_set>();
 
-  // Get list of all detections from the set.
-  auto detections = input_set->select();
-
   // loop over all detections
-  VITAL_FOREACH( auto det, detections )
+  auto ie = input_set->cend();
+  for ( auto det = input_set->cbegin(); det != ie; ++det )
   {
     bool det_selected( false );
     auto out_dot = std::make_shared<vital::detected_object_type>( );
 
     // Make sure that there is an associated DOT
-    auto input_dot = det->type();
+    auto input_dot = (*det)->type();
     if ( ! input_dot )
     {
       // This is unexpected - maybe log something
@@ -173,7 +171,7 @@ filter( const vital::detected_object_set_sptr input_set ) const
     // Add to returned set
     if (det_selected)
     {
-      auto out_det = det->clone();
+      auto out_det = (*det)->clone();
       out_det->set_type( out_dot );
       ret_set->add( out_det );
     }
