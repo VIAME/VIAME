@@ -10,19 +10,20 @@ Updates since v1.1.0
 
 Vital
 
- * Added a new mechanism for geodetic conversion functions that does not
-   rely on the geo_map abstract algorithm.  The new approach still loads
-   a backend implementation (e.g. PROJ4) from a plugin, but now uses that
-   single implementation globally throughout KWIVER.  This means that a geo_map
-   instance no longer needs to be explicitly instantiated and passed around.
-   It also means that lower level constructs, like vital types, can do
-   geodetic conversions.  The new API is also more general and supports
-   arbitrary datums, not just WGS84.
-
  * Added new data types geo_point and geo_polygon for representing points
    and polygons in geographic coordinates.  These new types use the new
    geodetic conversion function and know how to convert themselves into
-   different coordinate systems.
+   different coordinate systems.  These replace the old geo_UTM, geo_lat_lon
+   and geo_corner_points types.
+
+ * The geo_map algorithm has been replaced with a new non-algorithm mechanism
+   for geodetic conversion.  The new approach uses member functions on the new
+   geodetic types to request conversions in combination with a conversion
+   algorithm that must be provided and registered by a suitable plugin (e.g.
+   the PROJ.4 arrow).  Registration is automatic when the plugin is loaded,
+   with a mechanism in place for users to register their own algorithm if
+   desired.  The new API is also more general and supports arbitrary datums,
+   not just WGS84.
 
  * Generalized the track and track_state types to be useful for both feature
    and object tracks.  Data that is specific to features or objects is now
