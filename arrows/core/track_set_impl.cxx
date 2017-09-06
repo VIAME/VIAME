@@ -119,20 +119,17 @@ frame_index_track_set_impl
 }
 
 
-/// Insert a vector of track shared pointers into this container
+/// Insert a track shared pointer into this container
 void
 frame_index_track_set_impl
-::insert_tracks( std::vector< vital::track_sptr > const& tracks )
+::insert( vital::track_sptr t )
 {
-  all_tracks_.insert(all_tracks_.end(), tracks.begin(), tracks.end());
+  all_tracks_.push_back( t );
 
-  // update the frame map with the new tracks
-  for(auto const& track : tracks)
+  // update the frame map with the new track
+  for(auto const& ts : *t)
   {
-    for(auto const& ts : *track)
-    {
-      frame_map_[ts->frame()].insert(ts);
-    }
+    frame_map_[ts->frame()].insert(ts);
   }
 }
 

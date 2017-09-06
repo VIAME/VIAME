@@ -76,8 +76,8 @@ public:
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< track_sptr > const& tracks ) = 0;
 
-  /// Insert a vector of track shared pointers into this container
-  virtual void insert_tracks( std::vector< track_sptr > const& tracks ) = 0;
+  /// Insert a track shared pointer into this container
+  virtual void insert( track_sptr t ) = 0;
 
   /// Remove a track from the set and return true if successful
   virtual bool remove( track_sptr t ) = 0;
@@ -350,10 +350,10 @@ public:
     impl_->set_tracks(tracks);
   }
 
-  /// Insert a vector of track shared pointers into this container
-  virtual void insert_tracks( std::vector< track_sptr > const& tracks )
+  /// Insert a track shared pointer into this container
+  virtual void insert( track_sptr t )
   {
-    impl_->insert_tracks(tracks);
+    impl_->insert( t );
   }
 
   /// Remove a track from the set and return true if successful
@@ -481,10 +481,10 @@ public:
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< track_sptr > const& tracks ) { data_ = tracks; }
 
-  /// Insert a vector of track shared pointers into this container
-  virtual void insert_tracks( std::vector< track_sptr > const& tracks )
+  /// Insert a track shared pointer into this container
+  virtual void insert( track_sptr t )
   {
-    data_.insert(data_.end(), tracks.begin(), tracks.end());
+    data_.push_back( t );
   }
 
   /// Remove a track from the set and return true if successful
