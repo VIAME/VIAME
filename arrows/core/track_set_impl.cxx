@@ -91,6 +91,24 @@ frame_index_track_set_impl
 }
 
 
+/// Return whether or not there are any tracks in the set
+bool
+frame_index_track_set_impl
+::empty() const
+{
+  return this->all_tracks_.empty();
+}
+
+
+/// Return true if the set contains a specific track
+bool
+frame_index_track_set_impl
+::contains( vital::track_sptr t ) const
+{
+  return std::find(all_tracks_.begin(), all_tracks_.end(), t) != all_tracks_.end();
+}
+
+
 /// Assign a vector of track shared pointers to this container
 void
 frame_index_track_set_impl
@@ -119,12 +137,25 @@ frame_index_track_set_impl
 }
 
 
-/// Return whether or not there are any tracks in the set
+/// Remove a track from the set and return true if successful
 bool
 frame_index_track_set_impl
-::empty() const
+::remove( vital::track_sptr t )
 {
-  return this->all_tracks_.empty();
+  auto itr = std::find(all_tracks_.begin(), all_tracks_.end(), t);
+  if ( itr == all_tracks_.end() )
+  {
+    return false;
+  }
+  all_tracks_.erase(itr);
+
+  // remove from the frame map
+  for(auto const& ts : *t)
+  {
+    frame_map_[ts->frame()].erase(ts);
+  }
+
+  return true;
 }
 
 

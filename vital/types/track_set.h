@@ -70,11 +70,37 @@ public:
   /// Return whether or not there are any tracks in the set
   virtual bool empty() const = 0;
 
+  /// Return true if the set contains a specific track
+  virtual bool contains( track_sptr t ) const = 0;
+
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< track_sptr > const& tracks ) = 0;
 
   /// Insert a vector of track shared pointers into this container
   virtual void insert_tracks( std::vector< track_sptr > const& tracks ) = 0;
+
+  /// Remove a track from the set and return true if successful
+  virtual bool remove( track_sptr t ) = 0;
+
+  /// Merge the pair of tracks \p t1 and \p t2, if possible
+  /**
+   * Try to merge \p t1 into \p t2 if both tracks are found in this set.
+   * Merging copies the track states from t1 into t2 and is only allowed if
+   * the tracks do not overlap temporally.
+   *
+   * Internally this uses \c t2->append(*t1) However, it also allows the
+   * track set to update its internal bookkeeping about which tracks it
+   * contains and on which frames.
+   *
+   * \note if successful \p t1 is emptied and removed from the set.
+   * However, the empty \p t1 is left with a track_data_redirect pointing
+   * to \p t2 in case other track matches still refer to \p t1.
+   *
+   * \param t1  The track to merge from
+   * \param t2  The track to merge into
+   * \returns   True if the merge is sucessful
+   */
+  virtual bool merge_tracks( track_sptr t1, track_sptr t2 ) = 0;
 
   /// Return a vector of track shared pointers
   virtual std::vector< track_sptr > tracks() const = 0;
@@ -226,6 +252,9 @@ public:
   /// Return whether or not there are any tracks in the set
   virtual bool empty() const;
 
+  /// Merge the pair of tracks \p t1 and \p t2, if possible
+  virtual bool merge_tracks( track_sptr t1, track_sptr t2 );
+
   /// Return the set of all frame IDs covered by these tracks
   virtual std::set< frame_id_t > all_frame_ids() const;
 
@@ -306,6 +335,12 @@ public:
     return impl_->empty();
   }
 
+  /// Return true if the set contains a specific track
+  virtual bool contains( track_sptr t ) const
+  {
+    return impl_->contains( t );
+  }
+
   /// Assign a vector of track shared pointers to this container
   /**
    * \note this replaces any track that are already in the set
@@ -319,6 +354,18 @@ public:
   virtual void insert_tracks( std::vector< track_sptr > const& tracks )
   {
     impl_->insert_tracks(tracks);
+  }
+
+  /// Remove a track from the set and return true if successful
+  virtual bool remove( track_sptr t )
+  {
+    return impl_->remove( t );
+  }
+
+  /// Merge the pair of tracks \p t1 and \p t2, if possible
+  virtual bool merge_tracks( track_sptr t1, track_sptr t2 )
+  {
+    return impl_->merge_tracks( t1, t2 );
   }
 
   /// Return a vector of track shared pointers
@@ -425,6 +472,12 @@ public:
   /// Return whether or not there are any tracks in the set
   virtual bool empty() const { return data_.empty(); }
 
+  /// Return true if the set contains a specific track
+  virtual bool contains( track_sptr t ) const
+  {
+    return std::find(data_.begin(), data_.end(), t) != data_.end();
+  }
+
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< track_sptr > const& tracks ) { data_ = tracks; }
 
@@ -432,6 +485,18 @@ public:
   virtual void insert_tracks( std::vector< track_sptr > const& tracks )
   {
     data_.insert(data_.end(), tracks.begin(), tracks.end());
+  }
+
+  /// Remove a track from the set and return true if successful
+  virtual bool remove( track_sptr t )
+  {
+    auto itr = std::find(data_.begin(), data_.end(), t);
+    if ( itr == data_.end() )
+    {
+      return false;
+    }
+    data_.erase(itr);
+    return true;
   }
 
   /// Return a vector of track shared pointers

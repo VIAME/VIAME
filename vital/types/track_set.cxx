@@ -61,6 +61,38 @@ track_set_implementation
 }
 
 
+/// merge the pair of tracks \p t1 and \p t2, if possible
+bool
+track_set_implementation
+::merge_tracks( track_sptr t1, track_sptr t2 )
+{
+  // follow track redirects as needed
+  std::shared_ptr<track_data_redirect> tdr;
+  while( t1 && t1->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t1->data())) )
+  {
+    t1 = tdr->redirect_track;
+  }
+  while( t2 && t2->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t2->data())) )
+  {
+    t2 = tdr->redirect_track;
+  }
+  if( !t1 || !t2 || !this->contains(t1) || !this->contains(t2) )
+  {
+    return false;
+  }
+
+  if( !t2->append(*t1) )
+  {
+    return false;
+  }
+
+  this->remove(t1);
+  return true;
+}
+
+
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
 track_set_implementation

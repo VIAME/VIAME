@@ -81,11 +81,17 @@ public:
   /// Return whether or not there are any tracks in the set
   virtual bool empty() const;
 
+  /// Return true if the set contains a specific track
+  virtual bool contains( vital::track_sptr t ) const;
+
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< vital::track_sptr > const& tracks );
 
   /// Insert a vector of track shared pointers into this container
   virtual void insert_tracks( std::vector< vital::track_sptr > const& tracks );
+
+  /// Remove a track from the set and return true if successful
+  virtual bool remove( vital::track_sptr t );
 
   /// Return a vector of track shared pointers
   virtual std::vector< vital::track_sptr > tracks() const;
