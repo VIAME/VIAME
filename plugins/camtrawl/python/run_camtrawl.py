@@ -18,7 +18,8 @@ def make_image_input_files(data_fpath):
     cam2_image_fpaths = sorted(glob.glob(join(right_fpath, '*.jpg')))
 
     # Just use the first n for testing
-    n = 10
+    # n = 10
+    n = len(cam1_image_fpaths)
     cam1_image_fpaths = cam1_image_fpaths[0:n]
     cam2_image_fpaths = cam2_image_fpaths[0:n]
 
@@ -92,7 +93,7 @@ def simple_pipeline():
     })
     # ------
 
-    pipe.config['_pipeline:_edge']['capacity'] = 1
+    pipe.config['_pipeline:_edge']['capacity'] = 40
     pipe.config['_scheduler']['type'] = 'pythread_per_process'
 
     # pipe.draw_graph('pipeline.png')
@@ -100,7 +101,9 @@ def simple_pipeline():
     # ub.startfile('pipeline.png')
 
     print('  --- RUN PIPELINE ---')
-    pipe.run()
+    import ubelt as ub
+    with ub.Timer('Running Pipeline'):
+        pipe.run()
 
     return pipe
 
