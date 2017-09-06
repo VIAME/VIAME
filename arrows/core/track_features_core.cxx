@@ -429,24 +429,24 @@ track_features_core
   std::vector<track_sptr> active_tracks = active_set->tracks();
   std::vector<match> vm = mset->matches();
 
-  feature_track_set_sptr updated_track_set;
+  feature_track_set_sptr updated_track_set = prev_tracks;
   // if we previously had tracks on this frame, stitch to a previous frame
   if( existing_set && existing_set->size() > 0 )
   {
     std::vector<track_sptr> existing_tracks = existing_set->tracks();
-    track_pairs_t track_matches;
+    int num_linked = 0;
     VITAL_FOREACH(match m, vm)
     {
       track_sptr tp = active_tracks[m.first];
       track_sptr tc = existing_tracks[m.second];
-      track_matches.push_back( std::make_pair(tc, tp) );
+      if( updated_track_set->merge_tracks(tc, tp) )
+      {
+        ++num_linked;
+      }
     }
-    track_map_t track_replacement;
-    int num_linked = merge_tracks(track_matches, track_replacement);
     LOG_DEBUG( logger(), "Stitched " << num_linked <<
                          " existing tracks from frame " << frame_number <<
                          " to " << prev_frame );
-    updated_track_set = remove_replaced_tracks(prev_tracks, track_replacement);
   }
   else
   {
@@ -478,17 +478,16 @@ track_features_core
                          matched.begin(), matched.end(),
                          unmatched_insert_itr );
 
-    std::vector<track_sptr> all_tracks = prev_tracks->tracks();
     VITAL_FOREACH(unsigned i, unmatched)
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[i];
       fts->descriptor = df[i];
-      all_tracks.push_back(vital::track::make());
-      all_tracks.back()->append(fts);
-      all_tracks.back()->set_id(next_track_id++);
+      auto t = vital::track::make();
+      t->append(fts);
+      t->set_id(next_track_id++);
+      updated_track_set->insert(t);
     }
-    updated_track_set = std::make_shared<feature_track_set>(all_tracks);
   }
 
   // run loop closure if enabled

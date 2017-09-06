@@ -196,7 +196,6 @@ close_loops_exhaustive
   }
 
   // retrieve match results and stitch frames together
-  track_map_t track_replacement;
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
     auto const& matches = all_matches[f].get();
@@ -204,17 +203,19 @@ close_loops_exhaustive
     int num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = merge_tracks(matches, track_replacement);
+      for( auto const& m : matches )
+      {
+        if( input->merge_tracks(m.first, m.second) )
+        {
+          ++num_linked;
+        }
+      }
     }
 
     LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to " << f
                            << " has "<< num_matched << " matches and "
                            << num_linked << " joined tracks");
   }
-
-  // remove all tracks from 'input' that have now been replaced by
-  // merging with another track
-  input = remove_replaced_tracks(input, track_replacement);
 
   return input;
 }
