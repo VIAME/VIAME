@@ -61,6 +61,15 @@ track_set_implementation
 }
 
 
+/// Notify the container that a new state has been added to an existing track
+void
+track_set_implementation
+::notify_new_state( track_state_sptr ts )
+{
+  // by default, notification does nothing
+}
+
+
 /// merge the pair of tracks \p t1 and \p t2, if possible
 bool
 track_set_implementation

@@ -461,6 +461,9 @@ track_features_core
       if( t->append(fts) || t->insert(fts) )
       {
         matched.insert(m.second);
+        // need to notify the track_set of new states appended to
+        // tracks that were previously added
+        updated_track_set->notify_new_state( fts );
       }
     }
 

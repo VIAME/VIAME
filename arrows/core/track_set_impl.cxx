@@ -134,6 +134,16 @@ frame_index_track_set_impl
 }
 
 
+/// Notify the container that a new state has been added to an existing track
+void
+frame_index_track_set_impl
+::notify_new_state( vital::track_state_sptr ts )
+{
+  // update the frame map with the new state
+  frame_map_[ts->frame()].insert(ts);
+}
+
+
 /// Remove a track from the set and return true if successful
 bool
 frame_index_track_set_impl

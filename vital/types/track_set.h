@@ -79,6 +79,14 @@ public:
   /// Insert a track shared pointer into this container
   virtual void insert( track_sptr t ) = 0;
 
+  /// Notify the container that a new state has been added to an existing track
+  /**
+   * Some containers need to know if an existing track was extended with new
+   * states.  This function should be called after calling \c t->append(ts) or
+   * \c t->insert(ts) if \c t is already a member of this set.
+   */
+  virtual void notify_new_state( track_state_sptr ts ) = 0;
+
   /// Remove a track from the set and return true if successful
   virtual bool remove( track_sptr t ) = 0;
 
@@ -252,6 +260,9 @@ public:
   /// Return whether or not there are any tracks in the set
   virtual bool empty() const;
 
+  /// Notify the container that a new state has been added to an existing track
+  virtual void notify_new_state( track_state_sptr ts );
+
   /// Merge the pair of tracks \p t1 and \p t2, if possible
   virtual bool merge_tracks( track_sptr t1, track_sptr t2 );
 
@@ -354,6 +365,12 @@ public:
   virtual void insert( track_sptr t )
   {
     impl_->insert( t );
+  }
+
+  /// Notify the container that a new state has been added to an existing track
+  virtual void notify_new_state( track_state_sptr ts )
+  {
+    return impl_->notify_new_state( ts );
   }
 
   /// Remove a track from the set and return true if successful
