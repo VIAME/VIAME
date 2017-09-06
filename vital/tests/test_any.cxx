@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,65 +33,54 @@
  * \brief test core any class
  */
 
-#include <test_common.h>
 #include <vital/any.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(any_api)
+// ----------------------------------------------------------------------------
+TEST(any, api)
 {
   kwiver::vital::any any_one;
-  TEST_EQUAL( "Empty any", any_one.empty(), true );
+  EXPECT_TRUE( any_one.empty() );
 
   kwiver::vital::any any_string( std::string ("this is a string") );
-  TEST_EQUAL( "Not empty any", any_string.empty(), false );
+  EXPECT_FALSE( any_string.empty() );
 
+  // Clear any and test it
   any_string.clear();
-  TEST_EQUAL( "Cleared ant is empty any", any_one.empty(), true );
-
-  TEST_EQUAL( "Type of cleared any", (any_string.type() == any_one.type()), true );
+  EXPECT_TRUE( any_string.empty() );
+  EXPECT_EQ( any_one.type(), any_string.type() );
 
   kwiver::vital::any any_double(3.14159);
-  double dval = kwiver::vital::any_cast<double>( any_double );
-  TEST_EQUAL( "Cast to double", dval, 3.14159 );
+  EXPECT_FLOAT_EQ( 3.14159, kwiver::vital::any_cast<double>( any_double ) );
+  EXPECT_FLOAT_EQ( 3.14159, *kwiver::vital::any_cast<double>( &any_double ) );
 
-  EXPECT_EXCEPTION( kwiver::vital::bad_any_cast,
-                    std::string sval = kwiver::vital::any_cast<std::string >( any_double ),
-                    "converting incompatible types" );
+  EXPECT_THROW(
+    kwiver::vital::any_cast<std::string >( any_double ),
+    kwiver::vital::bad_any_cast );
 
   kwiver::vital::any new_double = any_double;
-  TEST_EQUAL( "Type of copied double any", (new_double.type() == any_double.type()), true );
+  EXPECT_EQ( any_double.type(), new_double.type() );
 
+  // Update through pointer
   double* dptr = kwiver::vital::any_cast<double>( &any_double );
-  TEST_EQUAL( "Pointer to any", *dptr, 3.14159 );
+  EXPECT_FLOAT_EQ( 3.14159, *dptr );
+  *dptr = 6.28318;
+  EXPECT_FLOAT_EQ( 6.28318, kwiver::vital::any_cast<double>( any_double ) );
+  EXPECT_FLOAT_EQ( 6.28318, *dptr );
 
-  // Extract pointer to value in any
-  *dptr = 6.28;
-  dval = kwiver::vital::any_cast<double>( any_double );
-  TEST_EQUAL( "Update pointer to any", *dptr, 6.28 );
-
-  double const* cdptr = kwiver::vital::any_cast<double>( &any_double );
-  TEST_EQUAL( "CONST Pointer to any", *cdptr, 6.28 );
-
+  // Update through assignment
   any_double = 3.14159;
-  dval = kwiver::vital::any_cast<double>( any_double );
-  TEST_EQUAL( "Assign new value to any double", dval, 3.14159 );
+  EXPECT_FLOAT_EQ( 3.14159, kwiver::vital::any_cast<double>( any_double ) );
 
-  // reset value and type of any
+  // Reset value and type of any
   any_double = 3456; // convert to int
-  dval = kwiver::vital::any_cast<int>( any_double );
-  TEST_EQUAL( "Assign int value", dval, 3456.0 );
+  EXPECT_EQ( 3456, kwiver::vital::any_cast<int>( any_double ) );
 }
