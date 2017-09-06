@@ -34,7 +34,6 @@ set( public_headers
   filter_features.h
   formulate_query.h
   filter_tracks.h
-  geo_map.h
   image_filter.h
   image_io.h
   image_object_detector.h
@@ -79,7 +78,6 @@ set( sources
   filter_features.cxx
   formulate_query.cxx
   filter_tracks.cxx
-  geo_map.cxx
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx

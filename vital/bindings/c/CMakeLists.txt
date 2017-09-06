@@ -11,7 +11,6 @@ set(vital_c_public_headers
   algo_def/convert_image.h
   algo_def/estimate_canonical_transform.h
   algo_def/estimate_similarity_transform.h
-  algo_def/geo_map.h
   algo_def/image_io.h
   algo_def/initialize_cameras_landmarks.h
   algo_def/track_features.h
@@ -78,7 +77,6 @@ set(vital_c_sources
   algo_def/convert_image.cxx
   algo_def/estimate_canonical_transform.cxx
   algo_def/estimate_similarity_transform.cxx
-  algo_def/geo_map.cxx
   algo_def/image_io.cxx
   algo_def/initialize_cameras_landmarks.cxx
   algo_def/track_features.cxx

@@ -133,9 +133,6 @@ set( vital_public_headers
   types/feature_track_set.h
   types/fundamental_matrix.h
   types/geo_MGRS.h
-  types/geo_UTM.h
-  types/geo_corner_points.h
-  types/geo_lat_lon.h
   types/geo_point.h
   types/geo_polygon.h
   types/geodesy.h
@@ -197,9 +194,6 @@ set( vital_sources
   types/feature_track_set.cxx
   types/fundamental_matrix.cxx
   types/geo_MGRS.cxx
-  types/geo_UTM.cxx
-  types/geo_corner_points.cxx
-  types/geo_lat_lon.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
   types/geodesy.cxx

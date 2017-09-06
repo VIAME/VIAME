@@ -64,8 +64,8 @@ CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::strin
 CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
 CALL( IMAGE_FILENAME,              "Image Filename",                  std::string) \
 CALL( VIDEO_FILENAME,              "Video Filename",                  std::string) \
-CALL( SENSOR_LOCATION,             "Sensor Location Lat/Lon",         geo_lat_lon) \
-CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) \
+CALL( SENSOR_LOCATION,             "Sensor Geodetic Location",        geo_point) \
+CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) /* TODO: merge with previous? */ \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
 CALL( SENSOR_VERTICAL_FOV,         "Sensor Vertical Field of View",   double) \
 CALL( SENSOR_REL_AZ_ANGLE,         "Sensor Relative Azimuth Angle",   double) \
@@ -77,17 +77,17 @@ CALL( SENSOR_ROLL_ANGLE,           "Sensor Roll Angle",               double) \
 CALL( SENSOR_TYPE,                 "Sensor Type",                     std::string) \
 CALL( SLANT_RANGE,                 "Slant Range",                     double) \
 CALL( TARGET_WIDTH,                "Target Width",                    double) \
-CALL( FRAME_CENTER,                "Frame Center Lat/Lon",            geo_lat_lon) \
-CALL( FRAME_CENTER_ELEV,           "Frame Center Elevation",          double) \
-CALL( CORNER_POINTS,               "Corner points in lat/lon",        geo_corner_points) \
+CALL( FRAME_CENTER,                "Geodetic Frame Center",           geo_point) \
+CALL( FRAME_CENTER_ELEV,           "Frame Center Elevation",          double) /* TODO: merge with previous? */ \
+CALL( CORNER_POINTS,               "Corner points",                   geo_polygon) \
 CALL( ICING_DETECTED,              "Icing Detected",                  uint64_t) \
 CALL( WIND_DIRECTION,              "Wind Direction",                  double) \
 CALL( WIND_SPEED,                  "Wind Speed",                      double) \
 CALL( STATIC_PRESSURE,             "Static Pressure",                 double) \
 CALL( DENSITY_ALTITUDE,            "Density Altitude",                double) \
 CALL( OUTSIDE_AIR_TEMPERATURE,     "Outside Air Temperature",         double) \
-CALL( TARGET_LOCATION,             "Target Location Lat/Lon",         geo_lat_lon) \
-CALL( TARGET_LOCATION_ELEV,        "Target Location Elevation",       double) \
+CALL( TARGET_LOCATION,             "Target Geodetic Location",        geo_point) \
+CALL( TARGET_LOCATION_ELEV,        "Target Location Elevation",       double) /* TODO: merge with previous? */ \
 CALL( TARGET_TRK_GATE_WIDTH,       "Target Track Gate Width",         double) \
 CALL( TARGET_TRK_GATE_HEIGHT,      "Target Track Gate Height",        double) \
 CALL( TARGET_ERROR_EST_CE90,       "Target Error Estimate - CE90",    double) \

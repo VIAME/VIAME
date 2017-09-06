@@ -8,11 +8,9 @@ namespace proj { }
 /** \page plugin_proj PROJ Plugin
 \section sec-proj-contents Contents
 The ARROWS proj library provides geographic transformations by building on
-               <a href="http://trac.osgeo.org/proj/">PROJ.4</a>
-
-
-\subsection sec-proj-algorithm-impls Algorithm Implementations
-- \ref proj::geo_map : convert geographic coordinates between Lat-Long and UTM
+<a href="http://trac.osgeo.org/proj/">PROJ.4</a>. In particular, it provides an
+implementation of \ref geo_conversion which can be used by the geodetic data
+types to convert between coordinate systems.
 */
 }
 }
