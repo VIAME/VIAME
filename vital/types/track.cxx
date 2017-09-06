@@ -161,6 +161,9 @@ track
     this->history_.push_back(ts);
   }
   to_append.history_.clear();
+  to_append.data_ = std::make_shared<track_data_redirect>(
+                        this->shared_from_this(),
+                        to_append.data_ );
   return true;
 }
 

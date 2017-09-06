@@ -113,6 +113,40 @@ protected:
 typedef std::shared_ptr<track_data> track_data_sptr;
 
 
+/// A special type of track data that redirects to another track
+/**
+ * The primary use case for this class is to aid bookkeeping for track merging.
+ * When you merge one track into another and transfer all of its states it
+ * leaves behind an invalid track with no states.  A track may appear in
+ * multiple matches and merging one match may invalidate another match if one
+ * of the tracks is invalidated.  This class allows the merging function
+ * to insert a redirect into an invalidated track such that later matches
+ * can find the new version of the track.
+ *
+ * Example: assume a matcher returns matches (A,B) and (B,C).  The merge
+ * function merges B into A producing a longer A and an empty B.  B uses this
+ * class to redirect to A.  The merge function tries to merge C into B, but B
+ * is now invalid.  However, B redirects to A, so the function tries to merge
+ * C into A instead.
+ */
+class VITAL_EXPORT track_data_redirect : public track_data
+{
+public:
+  // Constructor
+  track_data_redirect(track_sptr t, track_data_sptr d)
+    : redirect_track(t)
+    , old_track_data(d)
+  {
+  }
+
+  // A redirect to another track
+  track_sptr redirect_track;
+  // The track data that used to be associated with this track
+  track_data_sptr old_track_data;
+};
+
+
+
 /// A representation of a track.
 /**
  * A track is a sequence of corresponding identifiers associated with each
@@ -170,7 +204,8 @@ public:
    * The first state of the input track must contain a frame number
    * greater than the last state of this track.  Track states from
    * \p to_append are reassigned to this track and removed from
-   * \p to_append.
+   * \p to_append.  The track data in \p to_append is modified to redirect
+   * to this track using \p track_data_redirect.
    *
    * \returns true if successful, false not correctly ordered
    */
