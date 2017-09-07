@@ -37,6 +37,7 @@
 #include "geodesy.h"
 
 #include <algorithm>
+#include <cctype>
 #include <iomanip>
 #include <numeric>
 #include <stdexcept>
