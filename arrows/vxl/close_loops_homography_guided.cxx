@@ -342,20 +342,12 @@ close_loops_homography_guided
   {
     const frame_id_t prior_frame = best_frame_to_test->fid;
 
-    // Get all tracks on target frame
-    auto prior_set = std::make_shared<feature_track_set>(
-                         input->active_tracks( prior_frame ) );
-
-    // Get all tracks on the current frame
-    auto current_set = std::make_shared<feature_track_set>(
-                           input->active_tracks( frame_number ) );
-
     // Perform matching operation
     match_set_sptr mset = d_->matcher_->match(
-      current_set->frame_features( frame_number ),
-      current_set->frame_descriptors( frame_number ),
-      prior_set->frame_features( prior_frame ),
-      prior_set->frame_descriptors( prior_frame ) );
+      input->frame_features( frame_number ),
+      input->frame_descriptors( frame_number ),
+      input->frame_features( prior_frame ),
+      input->frame_descriptors( prior_frame ) );
 
     // Test matcher results
     if( mset->size() > 0 ) // If matches are good
@@ -363,14 +355,11 @@ close_loops_homography_guided
       // Logging
       LOG_INFO(d_->m_logger, "Stitching frames " << prior_frame << " and " << frame_number);
 
-      // Get all tracks, we will modify this
-      std::vector< track_sptr > all_tracks = input->tracks();
-
       // Get all tracks on the past frame
-      std::vector< track_sptr > prior_trks = prior_set->tracks();
+      std::vector< track_sptr > prior_trks = input->active_tracks( prior_frame );
 
       // Get all tracks on the current frame
-      std::vector< track_sptr > current_trks = current_set->tracks();
+      std::vector< track_sptr > current_trks = input->active_tracks( frame_number );
 
       // Get all matches
       std::vector<match> matches = mset->matches();

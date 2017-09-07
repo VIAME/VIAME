@@ -260,23 +260,22 @@ track_features_core
         );
   }
 
-  feature_track_set_sptr existing_set;
+  std::vector<track_sptr> existing_tracks;
   feature_set_sptr curr_feat;
   descriptor_set_sptr curr_desc;
 
   // see if there are already existing tracks on this frame
   if( prev_tracks )
   {
-    existing_set = std::make_shared<feature_track_set>(
-                       prev_tracks->active_tracks(frame_number));
-    if( existing_set && existing_set->size() > 0 )
+    existing_tracks = prev_tracks->active_tracks(frame_number);
+    if( !existing_tracks.empty() )
     {
       LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
       // use existing features
-      curr_feat = existing_set->frame_features(frame_number);
+      curr_feat = prev_tracks->frame_features(frame_number);
 
       // use existng descriptors
-      curr_desc = existing_set->frame_descriptors(frame_number);
+      curr_desc = prev_tracks->frame_descriptors(frame_number);
     }
   }
 
@@ -431,9 +430,8 @@ track_features_core
 
   feature_track_set_sptr updated_track_set = prev_tracks;
   // if we previously had tracks on this frame, stitch to a previous frame
-  if( existing_set && existing_set->size() > 0 )
+  if( !existing_tracks.empty() )
   {
-    std::vector<track_sptr> existing_tracks = existing_set->tracks();
     int num_linked = 0;
     VITAL_FOREACH(match m, vm)
     {
