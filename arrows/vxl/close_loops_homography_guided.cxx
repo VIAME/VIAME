@@ -91,14 +91,6 @@ typedef std::deque< checkpoint_entry_t > checkpoint_buffer_t;
 typedef checkpoint_buffer_t::reverse_iterator buffer_ritr;
 
 
-// Functor to help remove tracks from vector
-bool
-track_id_in_set( track_sptr trk_ptr, std::set<track_id_t>* set_ptr )
-{
-  return set_ptr->find( trk_ptr->id() ) != set_ptr->end();
-}
-
-
 // If possible convert a src1 to ref and src2 to ref homography to a src2 to src1 homography
 bool
 convert( const f2f_homography_sptr &src1_to_ref,
@@ -382,27 +374,15 @@ close_loops_homography_guided
 
       // Get all matches
       std::vector<match> matches = mset->matches();
-      std::set<track_id_t> to_remove;
 
       for( unsigned i = 0; i < matches.size(); i++ )
       {
-        if( prior_trks[ matches[i].second ]->append( *current_trks[ matches[i].first ] ) )
-        {
-          to_remove.insert( current_trks[ matches[i].first ]->id() );
-        }
-      }
-
-      if( !to_remove.empty() )
-      {
-        all_tracks.erase(
-          std::remove_if( all_tracks.begin(), all_tracks.end(),
-                          std::bind( track_id_in_set, std::placeholders::_1, &to_remove ) ),
-          all_tracks.end()
-        );
+        input->merge_tracks( current_trks[ matches[i].first ],
+                             prior_trks[ matches[i].second ] );
       }
 
       // Return updated set
-      return std::make_shared<feature_track_set>( all_tracks );
+      return input;
     }
   }
 

@@ -146,13 +146,6 @@ close_loops_bad_frames_only
 }
 
 
-/// Functor to help remove tracks from vector
-bool track_id_in_set( track_sptr trk_ptr, std::set<track_id_t>* set_ptr )
-{
-  return set_ptr->find( trk_ptr->id() ) != set_ptr->end();
-}
-
-
 /// Handle track bad frame detection if enabled
 vital::feature_track_set_sptr
 close_loops_bad_frames_only
@@ -221,26 +214,14 @@ close_loops_bad_frames_only
       std::vector<vital::track_sptr> test_frame_trks = test_frame_set->tracks();
       std::vector<vital::track_sptr> stitch_frame_trks = stitch_frame_set->tracks();
       std::vector<vital::match> matches = mset->matches();
-      std::set<vital::track_id_t> to_remove;
 
       for( unsigned i = 0; i < matches.size(); i++ )
       {
-        if( test_frame_trks[ matches[i].first ]->append( *stitch_frame_trks[ matches[i].second ] ) )
-        {
-          to_remove.insert( stitch_frame_trks[ matches[i].second ]->id() );
-        }
+        input->merge_tracks( stitch_frame_trks[ matches[i].second ],
+                             test_frame_trks[ matches[i].first] );
       }
 
-      if( !to_remove.empty() )
-      {
-        all_tracks.erase(
-          std::remove_if( all_tracks.begin(), all_tracks.end(),
-                          std::bind( track_id_in_set, std::placeholders::_1, &to_remove ) ),
-          all_tracks.end()
-        );
-      }
-
-      return std::make_shared<feature_track_set>( all_tracks );
+      return input;
     }
   }
 
