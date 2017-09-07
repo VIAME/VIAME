@@ -39,6 +39,7 @@
 #include <vital/vital_config.h>
 #include <vital/vital_export.h>
 #include <vital/types/polygon.h>
+#include <vital/config/config_block.h>
 
 #include <unordered_map>
 
@@ -65,16 +66,38 @@ public:
   virtual ~geo_polygon() VITAL_DEFAULT_DTOR
 
   /**
-   * \throws std::out_of_range if no location has been set.
+   * \brief Accessor for polygon in original CRS.
+   *
+   * \returns The polygon in the CRS that was used to set the polygon.
+   * \throws std::out_of_range Thrown if no polygon has been set.
+   *
+   * \see crs()
    */
   geo_raw_polygon_t polygon() const;
+
+  /**
+   * \brief Accessor for original CRS.
+   *
+   * \returns The CRS used to set the polygon.
+   *
+   * \see polygon()
+   */
   int crs() const;
 
   /**
+   * \brief Accessor for the polygon.
+   *
+   * \returns The polygon in the requested CRS.
    * \throws std::runtime_error if the conversion fails.
    */
   geo_raw_polygon_t polygon( int crs ) const;
 
+  /**
+   * \brief Set polygon.
+   *
+   * This sets the geolocated polygon to the specified polygon, which is
+   * defined by the raw polygon and specified CRS.
+   */
   void set_polygon( geo_raw_polygon_t const&, int crs );
 
   /**
@@ -91,6 +114,12 @@ protected:
   int m_original_crs;
   mutable std::unordered_map< int, geo_raw_polygon_t > m_poly;
 };
+
+template<> VITAL_EXPORT geo_polygon config_block_get_value_cast( config_block_value_t const& value );
+
+template<> VITAL_EXPORT config_block_value_t config_block_set_value_cast( geo_polygon const& value );
+
+VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, geo_polygon const& obj );
 
 } } // end namespace
 

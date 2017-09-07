@@ -74,9 +74,6 @@ typedef std::shared_ptr< detected_object > detected_object_sptr;
 class VITAL_EXPORT detected_object
 {
 public:
-  typedef std::vector< detected_object_sptr > vector_t;
-
-
   /**
    * @brief Create detected object with bounding box and other attributes.
    *

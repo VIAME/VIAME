@@ -41,7 +41,6 @@
 #include <vital/any.h>
 
 #include <vital/types/timestamp.h>
-#include <vital/types/geo_lat_lon.h>
 #include <vital/exceptions/base.h>
 #include <vital/video_metadata/video_metadata_tags.h>
 

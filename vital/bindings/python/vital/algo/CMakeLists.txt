@@ -23,10 +23,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/estimate_similarity_transf
   vital/algo
   estimate_similarity_transform )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/geo_map.py
-  vital/algo
-  geo_map )
-
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image_io.py
   vital/algo
   image_io )

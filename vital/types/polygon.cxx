@@ -55,6 +55,14 @@ polygon( const std::vector< point_t > &dat )
 }
 
 
+polygon::
+polygon( std::initializer_list< point_t > dat )
+  : m_polygon( dat )
+{
+
+}
+
+
 // ------------------------------------------------------------------
 polygon::
 ~polygon()

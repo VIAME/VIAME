@@ -48,6 +48,10 @@
 
 #include <boost/make_shared.hpp>
 
+// Make value evaluate to true to enable low level lexer debugging of
+// token traffic
+#define LEX_DEBUG 0
+
 namespace sprokit {
 
 namespace {
@@ -311,7 +315,10 @@ lex_processor::
 unget_token( token_sptr token )
 {
   m_priv->m_token_stack.push_back( token );
+
+#if LEX_DEBUG
   LOG_TRACE( m_logger, "Ungetting " << *token );
+#endif
 }
 
 
@@ -321,7 +328,10 @@ lex_processor::
 get_token()
 {
   auto t = get_next_token();
+
+#if LEX_DEBUG
   LOG_TRACE( m_logger, *t );
+#endif
 
   return t;
 }

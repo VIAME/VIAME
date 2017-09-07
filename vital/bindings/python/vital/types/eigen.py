@@ -118,8 +118,8 @@ class EigenArray (numpy.ndarray, VitalObject):
         """
         Initialize C function naming map for the given shape and type
         information.
-        
-        This method will return names consistent with the convention defined 
+
+        This method will return names consistent with the convention defined
         in <KWIVER_src>/vital/bindings/c/types/eigen.h.
 
         :returns: Function name mapping and associated ctypes data type
@@ -419,7 +419,6 @@ class EigenArray (numpy.ndarray, VitalObject):
         # Not smart-pointer controlled in C++. We might not own the data we're
         # viewing.
         if self.c_pointer and self._owns_data:
-            # print "Destroying"
             m_del = self.VITAL_LIB[self._func_map['destroy']]
             m_del.argtypes = [self.C_TYPE_PTR, VitalErrorHandle.C_TYPE_PTR]
             with VitalErrorHandle() as eh:
@@ -447,17 +446,17 @@ class EigenArray (numpy.ndarray, VitalObject):
         f.restype = self._c_type
         with VitalErrorHandle() as eh:
             return f(self, row, col, eh)
-    
+
     def norm(self, norm_type='L2'):
         """
         Return the norm of the array.
-        
+
         :norm_type row: Type of norm to use.
         :norm_type col: 'L2' |
 
         :return: Norm of the array.
         :rtype: float
-        
+
         """
         if norm_type == 'L2':
             return numpy.linalg.norm(self)
