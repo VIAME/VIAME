@@ -35,22 +35,30 @@
 
 #include <test_eigen.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
+
+#include <vital/config/config_block.h>
+
 #include <vital/types/geo_polygon.h>
 #include <vital/types/geodesy.h>
 #include <vital/types/polygon.h>
-#include <vital/plugin_loader/plugin_manager.h>
 
 #include <gtest/gtest.h>
 
+using namespace kwiver::vital;
+
+namespace {
 
 // "It's a magical place." -- P.C.
-static auto const loc_ll = kwiver::vital::vector_2d{ -149.484444, -17.619482 };
-static auto const loc_utm = kwiver::vital::vector_2d{ 236363.98, 8050181.74 };
+auto const loc_ll = vector_2d{ -149.484444, -17.619482 };
+auto const loc_utm = vector_2d{ 236363.98, 8050181.74 };
 
-static auto const loc2_ll = kwiver::vital::vector_2d{ -73.759291, 42.849631 };
+auto const loc2_ll = vector_2d{ -73.759291, 42.849631 };
 
-static auto constexpr crs_ll = kwiver::vital::SRID::lat_lon_WGS84;
-static auto constexpr crs_utm_6s = kwiver::vital::SRID::UTM_WGS84_south + 6;
+auto constexpr crs_ll = SRID::lat_lon_WGS84;
+auto constexpr crs_utm_6s = SRID::UTM_WGS84_south + 6;
+
+}
 
 namespace kwiver {
 namespace vital {
@@ -75,13 +83,24 @@ bool operator==( polygon const& a, polygon const& b )
   return true;
 }
 
+// ----------------------------------------------------------------------------
+void PrintTo( polygon const& v, ::std::ostream* os )
+{
+  auto const k = v.num_vertices();
+  (*os) << "(polygon with " << k << " vertices)";
+  for ( auto i = decltype(k){ 0 }; i < k; ++i )
+  {
+    (*os) << "\n  " << i << ": " << ::testing::PrintToString( v.at( i ) );
+  }
+}
+
 } } // end namespace
 
 // ----------------------------------------------------------------------------
 int
 main( int argc, char* argv[] )
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  plugin_manager::instance().load_all_plugins();
 
   ::testing::InitGoogleTest( &argc, argv );
   return RUN_ALL_TESTS();
@@ -90,23 +109,23 @@ main( int argc, char* argv[] )
 // ----------------------------------------------------------------------------
 TEST(geo_polygon, default_constructor)
 {
-  kwiver::vital::geo_polygon p;
+  geo_polygon p;
   EXPECT_TRUE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
 TEST(geo_polygon, constructor_polygon)
 {
-  kwiver::vital::geo_polygon p{ { loc_ll }, crs_ll };
+  geo_polygon p{ { loc_ll }, crs_ll };
   EXPECT_FALSE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
 TEST(geo_polygon, assignment)
 {
-  kwiver::vital::geo_polygon p;
-  kwiver::vital::geo_polygon const p1{ { loc_ll }, crs_ll };
-  kwiver::vital::geo_polygon const p2;
+  geo_polygon p;
+  geo_polygon const p1{ { loc_ll }, crs_ll };
+  geo_polygon const p2;
 
   // Paranoia-check initial state
   EXPECT_TRUE( p.is_empty() );
@@ -127,7 +146,7 @@ TEST(geo_polygon, assignment)
 // ----------------------------------------------------------------------------
 TEST(geo_polygon, api)
 {
-  kwiver::vital::geo_polygon p{ { loc_ll }, crs_ll };
+  geo_polygon p{ { loc_ll }, crs_ll };
 
   // Test values of the point as originally constructed
   [=]() {
@@ -175,8 +194,8 @@ TEST(geo_polygon, api)
 // ----------------------------------------------------------------------------
 TEST(geo_polygon, conversion)
 {
-  kwiver::vital::geo_polygon p_ll{ { loc_ll }, crs_ll };
-  kwiver::vital::geo_polygon p_utm{ { loc_utm }, crs_utm_6s };
+  geo_polygon p_ll{ { loc_ll }, crs_ll };
+  geo_polygon p_utm{ { loc_utm }, crs_utm_6s };
 
   auto const d1 =
     p_ll.polygon( p_utm.crs() ).at( 0 )  - p_utm.polygon().at( 0 );
@@ -191,4 +210,24 @@ TEST(geo_polygon, conversion)
 
   std::cout << "LL->UTM epsilon: " << epsilon_ll_to_utm << std::endl;
   std::cout << "UTM->LL epsilon: " << epsilon_utm_to_ll << std::endl;
+}
+
+// ----------------------------------------------------------------------------
+TEST(geo_polygon, config_block_io)
+{
+  static auto constexpr crs = SRID::lat_lon_NAD83;
+  static auto const loc1 = vector_2d{ -77.397577, 38.179969 };
+  static auto const loc2 = vector_2d{ -77.329127, 38.181347 };
+  static auto const loc3 = vector_2d{ -77.327408, 38.127313 };
+  static auto const loc4 = vector_2d{ -77.395808, 38.125938 };
+
+  auto const loc = polygon{ { loc1, loc2, loc3, loc4 } };
+
+  auto const config = config_block::empty_config();
+  auto const key = config_block_key_t{ "key" };
+  auto const value_in = geo_polygon{ loc, crs };
+
+  config->set_value( key, value_in );
+
+  EXPECT_EQ( loc, config->get_value<geo_polygon>( key ).polygon( crs ) );
 }
