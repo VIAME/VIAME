@@ -45,6 +45,8 @@
 #include <vector>
 #include <iterator>
 
+#include <arrows/core/track_set_impl.h>
+
 #include <vital/vital_foreach.h>
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
@@ -375,15 +377,23 @@ track_features_core
       new_tracks.back()->append(fts);
       new_tracks.back()->set_id(next_track_id++);
     }
+
+    // create a new track set since one was not provided
+    // use the frame-indexed track_set implementation, which is more efficient
+    // for querying tracks by frame number
+    typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+    auto new_track_set = std::make_shared<feature_track_set>(
+                tsi_uptr(new frame_index_track_set_impl(new_tracks) ) );
+
     if( d_->closer )
     {
       // call loop closure on the first frame to establish this
       // frame as the first frame for loop closing purposes
       return d_->closer->stitch(frame_number,
-                                std::make_shared<feature_track_set>(new_tracks),
+                                new_track_set,
                                 image_data, mask);
     }
-    return std::make_shared<feature_track_set>(new_tracks);
+    return new_track_set;
   }
 
   // get the last track id in the existing set of tracks and increment it
