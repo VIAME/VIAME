@@ -306,7 +306,20 @@ track_features_core
             (curr_feat->size() == feat->size() ) )
         {
           curr_desc = desc;
-          //TODO: assign these descriptors to the existing track states
+          // assign these descriptors to the existing track states
+          auto track_states = prev_tracks->frame_states(frame_number);
+          if( curr_desc->size() == track_states.size() )
+          {
+            auto vdesc = curr_desc->descriptors();
+            for( size_t i=0; i<track_states.size(); ++i )
+            {
+              auto fts = std::dynamic_pointer_cast<feature_track_state>(track_states[i]);
+              if (fts)
+              {
+                fts->descriptor = vdesc[i];
+              }
+            }
+          }
         }
         else
         {
