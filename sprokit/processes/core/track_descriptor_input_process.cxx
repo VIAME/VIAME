@@ -91,6 +91,8 @@ track_descriptor_input_process
 void track_descriptor_input_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -130,9 +132,17 @@ void track_descriptor_input_process
 void track_descriptor_input_process
 ::_step()
 {
+  bool status(false);
+
   std::string image_name;
   kwiver::vital::track_descriptor_set_sptr set;
-  if ( d->m_reader->read_set( set, image_name ) )
+  {
+    scoped_step_instrumentation();
+
+    status = d->m_reader->read_set( set, image_name );
+  }
+
+  if ( status )
   {
     push_to_port_using_trait( image_file_name, image_name );
     push_to_port_using_trait( track_descriptor_set, set );

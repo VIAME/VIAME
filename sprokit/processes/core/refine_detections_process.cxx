@@ -77,7 +77,7 @@ void
 refine_detections_process::
 _configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   vital::config_block_sptr algo_config = get_config();
 
@@ -93,8 +93,6 @@ _configure()
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create refiner" );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -106,8 +104,13 @@ _step()
   vital::image_container_sptr image = grab_from_port_using_trait( image );
   vital::detected_object_set_sptr dets = grab_from_port_using_trait( detected_object_set );
 
-  // Get detections from refiner on image
-  vital::detected_object_set_sptr results = d->m_refiner->refine( image, dets );
+  vital::detected_object_set_sptr results;
+  {
+    scoped_step_instrumentation();
+
+    // Get detections from refiner on image
+    results = d->m_refiner->refine( image, dets );
+  }
 
   push_to_port_using_trait( detected_object_set, results );
 }

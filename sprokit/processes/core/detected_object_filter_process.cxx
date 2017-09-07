@@ -85,7 +85,7 @@ void
 detected_object_filter_process
 ::_configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   vital::config_block_sptr algo_config = get_config();
 
@@ -100,8 +100,6 @@ detected_object_filter_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create filter" );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -112,11 +110,13 @@ detected_object_filter_process
 {
   vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
 
-  start_step_processing();
+  vital::detected_object_set_sptr result;
 
-  vital::detected_object_set_sptr result = d->m_filter->filter( input );
+  {
+    scoped_step_instrumentation();
 
-  stop_step_processing();
+    result = d->m_filter->filter( input );
+  }
 
   push_to_port_using_trait( detected_object_set, result );
 }

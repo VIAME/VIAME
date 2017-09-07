@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ stabilize_image_process
 void stabilize_image_process
 ::_configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   kwiver::vital::config_block_sptr algo_config = get_config();
 
@@ -120,8 +120,6 @@ void stabilize_image_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -138,20 +136,20 @@ stabilize_image_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  start_step_processing();
+  {
+    scoped_step_instrumentation();
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+    // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  // Get feature tracks
-  d->m_tracks = d->m_feature_tracker->track( d->m_tracks,
-                                             static_cast<unsigned int>(frame_time.get_frame()),
-                                             img );
+    // Get feature tracks
+    d->m_tracks = d->m_feature_tracker->track( d->m_tracks,
+                                               static_cast<unsigned int>(frame_time.get_frame()),
+                                               img );
 
-  // Get stabilization homography
-  src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
-
-  stop_step_processing();
+    // Get stabilization homography
+    src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
+  }
 
   // return by value
   push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );

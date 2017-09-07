@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ void
 image_filter_process::
 _configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   vital::config_block_sptr algo_config = get_config();
 
@@ -95,8 +95,6 @@ _configure()
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -107,12 +105,14 @@ _step()
 {
   vital::image_container_sptr input = grab_from_port_using_trait( image );
 
-  start_step_processing();
+  vital::image_container_sptr result;
 
-  // Get detections from filter on image
-  vital::image_container_sptr result = d->m_filter->filter( input );
+  {
+    scoped_step_instrumentation();
 
-  stop_step_processing();
+    // Get detections from filter on image
+    result = d->m_filter->filter( input );
+  }
 
   push_to_port_using_trait( image, result );
 }

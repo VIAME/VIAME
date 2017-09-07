@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,7 @@ detected_object_input_process
 void detected_object_input_process
 ::_configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
@@ -117,8 +117,6 @@ void detected_object_input_process
     throw sprokit::invalid_configuration_exception( name(),
              "Unable to create reader." );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -126,11 +124,9 @@ void detected_object_input_process
 void detected_object_input_process
 ::_init()
 {
-  start_init_processing();
+  scoped_init_instrumentation();
 
   d->m_reader->open( d->m_file_name ); // throws
-
-  stop_init_processing();
 }
 
 
@@ -140,12 +136,12 @@ void detected_object_input_process
 {
   std::string image_name;
   kwiver::vital::detected_object_set_sptr set;
+  bool result(false);
+  {
+    scoped_step_instrumentation();
 
-  start_step_processing();
-
-  bool result = d->m_reader->read_set( set, image_name );
-
-  stop_step_processing();
+    result = d->m_reader->read_set( set, image_name );
+  }
 
   if ( result )
   {

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,7 @@ image_file_reader_process
 void image_file_reader_process
 ::_configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   // Examine the configuration
   std::string mode = config_value_using_trait( error_mode );
@@ -173,8 +173,6 @@ void image_file_reader_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -204,34 +202,36 @@ void image_file_reader_process
     }
   }
 
-  start_step_processing();
-
-  LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );
-
-  // read image file
-  //
-  // This call returns a *new* image container. This is good since
-  // we are going to pass it downstream using the sptr.
   kwiver::vital::image_container_sptr img_c;
-  img_c = d->m_image_reader->load( resolved_file );
+  kwiver::vital::timestamp frame_ts;
 
-  // --- debug
+  {
+    scoped_step_instrumentation();
+
+    LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );
+
+    // read image file
+    //
+    // This call returns a *new* image container. This is good since
+    // we are going to pass it downstream using the sptr.
+    img_c = d->m_image_reader->load( resolved_file );
+
+    // --- debug
 #if defined DEBUG
-  cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( img_c->get_image() );
-  namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
-  imshow( "Display window", image );                   // Show our image inside it.
+    cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( img_c->get_image() );
+    namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
+    imshow( "Display window", image );                   // Show our image inside it.
 
-  waitKey(0);                 // Wait for a keystroke in the window
+    waitKey(0);                 // Wait for a keystroke in the window
 #endif
-  // -- end debug
+    // -- end debug
 
-  kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
+    frame_ts = kwiver::vital::timestamp( d->m_frame_time, d->m_frame_number );
 
-  // update timestamp
-  ++d->m_frame_number;
-  d->m_frame_time += d->m_config_frame_time;
-
-  stop_step_processing();
+    // update timestamp
+    ++d->m_frame_number;
+    d->m_frame_time += d->m_config_frame_time;
+  }
 
   push_to_port_using_trait( timestamp, frame_ts );
   push_to_port_using_trait( image, img_c );

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,7 +130,7 @@ frame_list_process
 void frame_list_process
 ::_configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   // Examine the configuration
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
@@ -156,8 +156,6 @@ void frame_list_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-
-  stop_configure_processing();
 }
 
 
@@ -166,7 +164,7 @@ void frame_list_process
 void frame_list_process
 ::_init()
 {
-  start_init_processing();
+  scoped_init_instrumentation();
 
   // open file and read lines
   std::ifstream ifs( d->m_config_image_list_filename.c_str() );
@@ -198,8 +196,6 @@ void frame_list_process
 
   d->m_current_file = d->m_files.begin();
   d->m_frame_number = 1;
-
-  stop_init_processing();
 }
 
 
@@ -209,7 +205,7 @@ void frame_list_process
 {
   if ( d->m_current_file != d->m_files.end() )
   {
-    start_step_processing();
+    scoped_step_instrumentation();
 
     // still have an image to read
     std::string a_file = *d->m_current_file;
@@ -243,8 +239,6 @@ void frame_list_process
     push_to_port_using_trait( image_file_name, a_file );
 
     ++d->m_current_file;
-
-    stop_step_processing();
   }
   else
   {
