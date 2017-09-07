@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ empty_vector()
 // ----------------------------------------------------------------------------
 template < int N = 2 >
 bool
-is_empty( Eigen::Matrix< double, N, 1 > const& vec )
+is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
 {
   for ( int i = 0; i < N; ++i )
   {
