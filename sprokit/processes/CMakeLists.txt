@@ -11,6 +11,7 @@ add_subdirectory( adapters )
 add_subdirectory( bindings )
 add_subdirectory( core )
 add_subdirectory( examples )
+add_subdirectory( flow )
 
 if (KWIVER_ENABLE_VXL)
   add_subdirectory( vxl )
