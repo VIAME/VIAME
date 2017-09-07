@@ -35,6 +35,12 @@ Vital
    functions.  Algorithm APIs previously using track_set now use either
    feature_track_set or object_track_set.
 
+ * The track_set class now has a separate implementation class named
+   track_set_implementation.  Using a bridge design pattern this allows
+   any combination of implementations and derived track_set types.  Custom
+   track_set implementations allow alternative storage and query mechanisms
+   for better scalability and speed under different use cases.
+
  * Track states now have a pointer (std::weak_ptr) back to the track object
    which contains them.  This means that each track state can belong to at
    most one track, and tracks and track states must now be created and
@@ -77,6 +83,13 @@ Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
    of tracks and track_sets to account for both feature and object tracks.
+
+Arrows: Core
+
+ * Added a new frame-indexed track_set_implementation.  When used in place of
+   the default track_set_implementation this implemenation will cache a mapping
+   from frame number to the set of track states on that frame.  This makes it
+   substantially faster to query tracks by frame ID.
 
 Sprokit
 
