@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,6 +131,8 @@ void
 matlab_process
 ::_configure()
 {
+  scoped_configure_instrumentation()
+
   // Need to delay creating engine because it is heavyweight
   d->m_matlab_engine = boost::make_shared< kwiver::arrows::matlab::matlab_engine >();
 
@@ -178,21 +180,26 @@ matlab_process
 
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  kwiver::vital::image_container_sptr out_image;
+  {
+    scoped_step_instrumentation();
 
-  // Convert inputs to matlab format and send to matlab engine
-  // Need to establish an interface to the matlab function.
-  // Could use parameters or well known names.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  // Sending an image to matlab
-  kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( img );
-  d->m_matlab_engine->put_variable( "in_image", mx_image );
+    // Convert inputs to matlab format and send to matlab engine
+    // Need to establish an interface to the matlab function.
+    // Could use parameters or well known names.
 
-  // Call matlab step function
-  d->eval( "step( in_image );" );
+    // Sending an image to matlab
+    kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( img );
+    d->m_matlab_engine->put_variable( "in_image", mx_image );
 
-  kwiver::arrows::matlab::MxArraySptr mx_out_image = d->m_matlab_engine->get_variable( "out_image" );
-  kwiver::vital::image_container_sptr out_image = kwiver::arrows::matlab::convert_mx_image( mx_out_image );
+    // Call matlab step function
+    d->eval( "step( in_image );" );
+
+    kwiver::arrows::matlab::MxArraySptr mx_out_image = d->m_matlab_engine->get_variable( "out_image" );
+    out_image = kwiver::arrows::matlab::convert_mx_image( mx_out_image );
+  }
 
   push_to_port_using_trait( image, out_image );
 }

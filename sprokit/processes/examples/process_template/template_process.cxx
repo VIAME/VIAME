@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,7 +131,7 @@ void
 template_process
 ::_configure()
 {
-  start_configure_processing();
+  scoped_configure_instrumentation();
 
   //++ Use config traits to access the value for the parameters.
   //++ Values are usually stored in the private structure.
@@ -140,8 +140,6 @@ template_process
   d->m_header = config_value_using_trait( header );
   d->m_footer = config_value_using_trait( footer );
   d->m_gsd    = config_value_using_trait( gsd ); // converted to double
-
-  stop_configure_processing();
 }
 
 
@@ -162,22 +160,22 @@ template_process
 
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  kwiver::vital::image_container_sptr out_image;
 
   // Process Instrumentation call should be just before the real core
   // of the process step processing. It must be after getting the
   // inputs because those calls can stall until inputs are available.
-  start_step_processing();
+  {
+    scoped_step_instrumentation();
 
-  cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  //++ Here is where the process does its work.
-  kwiver::vital::image_container_sptr out_image (new kwiver::arrows::ocv::image_container( d->process_image( in_image ) ) );
+    cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
 
-  // Process Instrumentation call should be after all step core
-  // processing is complete. It must be before pushing the outputs
-  // because those calls can stall.
-  stop_step_processing();
+    //++ Here is where the process does its work.
+    out_image = std::make_shared<kwiver::arrows::ocv::image_container>( d->process_image( in_image ) );
+  }
+
 
   push_to_port_using_trait( image, out_image );
 }
@@ -192,11 +190,10 @@ void
 template_process
 ::_init()
 {
-  start_init_processing();
+  scoped_init_instrumentation();
 
   // do initialization, if applicable.
 
-  stop_init_processing();
 }
 
 
@@ -206,11 +203,10 @@ void
 template_process
 ::_reset()
 {
-  start_reset_processing();
+  scoped_reset_instrumentation();
 
   // do reset processing if applicable.
 
-  stop_reset_processing();
 }
 
 
@@ -222,11 +218,10 @@ void
 template_process
 ::_flush()
 {
-  start_flush_processing();
+  scoped_flush_instrumentation();
 
   // perform flush processing if applicable.
 
-  stop_flush_processing();
 }
 
 
@@ -238,11 +233,10 @@ void
 template_process
 ::_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
-  start_reconfigure_processing();
+  scoped_reconfigure_instrumentation();
 
   // perform reconfigure processing if applicable.
 
-  stop_reconfigure_processing();
 }
 
 
