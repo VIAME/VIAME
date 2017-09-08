@@ -33,7 +33,7 @@
  * \brief Implementation of OCV refine detections draw debugging algorithm
  */
 
-#include "refine_detections_draw.h"
+#include "refine_detections_write_to_disk.h"
 
 #include <fstream>
 #include <sstream>
@@ -43,7 +43,6 @@
 #include <deque>
 
 #include <vital/vital_config.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 
@@ -64,7 +63,7 @@ namespace ocv {
 typedef kwiversys::SystemTools ST;
 
 /// Private implementation class
-class refine_detections_draw::priv
+class refine_detections_write_to_disk::priv
 {
 public:
 
@@ -89,23 +88,23 @@ public:
 
 
 /// Constructor
-refine_detections_draw
-::refine_detections_draw()
+refine_detections_write_to_disk
+::refine_detections_write_to_disk()
 : d_( new priv() )
 {
 }
 
 
 /// Destructor
-refine_detections_draw
-::~refine_detections_draw()
+refine_detections_write_to_disk
+::~refine_detections_write_to_disk()
 {
 }
 
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-refine_detections_draw
+refine_detections_write_to_disk
 ::get_configuration() const
 {
   vital::config_block_sptr config = vital::algo::refine_detections::get_configuration();
@@ -119,7 +118,7 @@ refine_detections_draw
 
 /// Set this algorithm's properties via a config block
 void
-refine_detections_draw
+refine_detections_write_to_disk
 ::set_configuration( vital::config_block_sptr in_config )
 {
   vital::config_block_sptr config = this->get_configuration();
@@ -130,7 +129,7 @@ refine_detections_draw
 
 /// Check that the algorithm's currently configuration is valid
 bool
-refine_detections_draw
+refine_detections_write_to_disk
 ::check_configuration(vital::config_block_sptr config) const
 {
   return true;
@@ -138,13 +137,13 @@ refine_detections_draw
 
 /// Output images with tracked features drawn on them
 vital::detected_object_set_sptr
-refine_detections_draw
+refine_detections_write_to_disk
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
   cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
 
-  VITAL_FOREACH( auto det, detections->select() )
+  for( auto det : detections->select() )
   {
     // Generate output filename
     std::string ofn;
@@ -154,8 +153,7 @@ refine_detections_draw
 
     if( num_bytes < 0 )
     {
-      LOG_WARN( logger(), "Could not format output file name: \"" <<
-        d_->pattern << "\". Disabling writing to disk." );
+      LOG_ERROR( logger(), "Could not format output file name: \"" << d_->pattern << "\"" );
     }
 
     // Output image to file
