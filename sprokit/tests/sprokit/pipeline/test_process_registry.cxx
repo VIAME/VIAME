@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/pipeline/process_cluster.h>
@@ -74,7 +73,7 @@ IMPLEMENT_TEST(load_processes)
 
   auto factories =  kwiver::vital::plugin_manager::instance().get_factories<sprokit::process>();
 
-  VITAL_FOREACH( auto fact, factories )
+  for( auto fact : factories )
   {
     sprokit::process::type_t type; // process name
     if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type ) )

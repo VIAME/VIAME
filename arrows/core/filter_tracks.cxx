@@ -35,7 +35,6 @@
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/match_matrix.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <algorithm>
@@ -140,7 +139,7 @@ filter_tracks
   {
     std::vector<kwiver::vital::track_sptr> trks = tracks->tracks();
     std::vector<kwiver::vital::track_sptr> good_trks;
-    VITAL_FOREACH(kwiver::vital::track_sptr t, trks)
+    for(kwiver::vital::track_sptr t : trks)
     {
       if( t->size() >= d_->min_track_length )
       {
@@ -162,7 +161,7 @@ filter_tracks
 
     std::vector<kwiver::vital::track_sptr> trks = tracks->tracks();
     std::vector<vital::track_sptr> good_trks;
-    VITAL_FOREACH(kwiver::vital::track_sptr t, trks)
+    for(kwiver::vital::track_sptr t : trks)
     {
       std::map<vital::track_id_t, double>::const_iterator itr;
       if( (itr = importance.find(t->id())) != importance.end() &&

@@ -30,7 +30,6 @@
 
 #include "detected_object_set_output_kw18.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <memory>
@@ -265,14 +264,14 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
       double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
-      VITAL_FOREACH( const std::string id, d->m_parsed_tot_ids1 )
+      for( const std::string id : d->m_parsed_tot_ids1 )
       {
         if( clf->has_class_name( id ) )
         {
           f1 = std::max( f1, clf->score( id ) );
         }
       }
-      VITAL_FOREACH( const std::string id, d->m_parsed_tot_ids2 )
+      for( const std::string id : d->m_parsed_tot_ids2 )
       {
         if( clf->has_class_name( id ) )
         {

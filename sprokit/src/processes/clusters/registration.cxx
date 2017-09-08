@@ -39,7 +39,6 @@
 #include <processes/clusters/cluster-paths.h>
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -88,7 +87,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   kwiversys::SystemTools::GetPath( include_dirs, sprokit_include_envvar.c_str() );
   kwiver::vital::tokenize( default_include_dirs, include_dirs, path_separator, true );
 
-  VITAL_FOREACH ( const kwiver::vital::path_t& include_dir, include_dirs)
+  for ( const kwiver::vital::path_t& include_dir : include_dirs)
   {
     // log file
     LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );

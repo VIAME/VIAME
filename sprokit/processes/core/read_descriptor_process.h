@@ -58,7 +58,6 @@ public:
   virtual ~read_descriptor_process();
 
 protected:
-  virtual void _configure();
   virtual void _step();
 
 private:

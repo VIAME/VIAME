@@ -46,7 +46,6 @@
 
 #include <arrows/core/track_set_impl.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/feature_descriptor_io.h>
@@ -455,7 +454,7 @@ track_features_core
   if( !existing_tracks.empty() )
   {
     int num_linked = 0;
-    VITAL_FOREACH(match m, vm)
+    for(match m : vm)
     {
       track_sptr tp = active_tracks[m.first];
       track_sptr tc = existing_tracks[m.second];
@@ -472,7 +471,7 @@ track_features_core
   {
     std::set<unsigned> matched;
 
-    VITAL_FOREACH(match m, vm)
+    for(match m : vm)
     {
       track_sptr t = active_tracks[m.first];
       auto fts = std::make_shared<feature_track_state>(frame_number);
@@ -501,7 +500,7 @@ track_features_core
                          matched.begin(), matched.end(),
                          unmatched_insert_itr );
 
-    VITAL_FOREACH(unsigned i, unmatched)
+    for(unsigned i : unmatched)
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[i];

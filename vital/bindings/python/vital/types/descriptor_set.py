@@ -35,6 +35,7 @@ Interface to the VITAL descriptor_set class.
 """
 import ctypes
 
+from six.moves import range
 from vital.types import Descriptor
 from vital.util import VitalObject, free_void_ptr
 

@@ -40,7 +40,6 @@
 #include <vital/exceptions.h>
 
 #include <vital/algo/video_input.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/klv/klv_data.h>
 #include <vital/klv/klv_parse.h>
@@ -193,7 +192,7 @@ int main( int argc, char** argv )
               << " (index " << count << ") ==========" << std::endl;
 
     kwiver::vital::video_metadata_vector metadata = video_reader->frame_metadata();
-    VITAL_FOREACH( auto meta, metadata )
+    for( auto meta : metadata )
     {
       std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;
       print_metadata( std::cout, *meta );

@@ -36,7 +36,6 @@
 
 #include "distribute_process.h"
 
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
@@ -198,7 +197,7 @@ distribute_process
 ::_init()
 {
   // Loop over all connected tags
-  VITAL_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
+  for (priv::tag_data_t::value_type& tag_data : d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     priv::tag_info& info = tag_data.second;
@@ -217,7 +216,7 @@ distribute_process
     frequency_component_t const ratio = ports.size();
     port_frequency_t const freq = port_frequency_t(1, ratio);
 
-    VITAL_FOREACH (port_t const& port, ports)
+    for (port_t const& port : ports)
     {
       set_output_port_frequency(port, freq);
     }
@@ -234,7 +233,7 @@ void
 distribute_process
 ::_reset()
 {
-  VITAL_FOREACH (priv::tag_data_t::value_type const& tag_data, d->tag_data)
+  for (priv::tag_data_t::value_type const& tag_data : d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const input_port = priv::port_src_prefix + tag;
@@ -242,7 +241,7 @@ distribute_process
     priv::tag_info const& info = tag_data.second;
     ports_t const& ports = info.ports;
 
-    VITAL_FOREACH (port_t const& port, ports)
+    for (port_t const& port : ports)
     {
       remove_output_port(port);
     }
@@ -265,7 +264,7 @@ distribute_process
   ports_t complete_ports;
 
   // Loop over all tags to handle all distribution sets.
-  VITAL_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
+  for (priv::tag_data_t::value_type& tag_data : d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const input_port = priv::port_src_prefix + tag;
@@ -288,7 +287,7 @@ distribute_process
       push_to_port(status_port, src_edat);
 
       // echo to all output ports in this set.
-      VITAL_FOREACH (port_t const& port, info.ports)
+      for (port_t const& port : info.ports)
       {
         push_to_port(port, src_edat);
       }
@@ -321,7 +320,7 @@ distribute_process
   // Process all ports/tags that have completed. When a status port
   // reports complete on a tag, that tag is erased from the local
   // map. When that map is empty, then we are all done and can complete.
-  VITAL_FOREACH (port_t const& port, complete_ports)
+  for (port_t const& port : complete_ports)
   {
     d->tag_data.erase(port);
   }
@@ -435,7 +434,7 @@ distribute_process::priv
   {
     port_t const no_prefix = port.substr(priv::port_dist_prefix.size());
 
-    VITAL_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
+    for (priv::tag_data_t::value_type const& data : tag_data)
     {
       tag_t const& tag = data.first;
       port_t const tag_prefix = tag + priv::src_sep;

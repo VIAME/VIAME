@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,6 +154,8 @@ void
 kw_archive_writer_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Examine the configuration
   d->m_output_directory = config_value_using_trait( output_directory );
   d->m_base_filename    = config_value_using_trait( base_filename );
@@ -171,6 +173,8 @@ void
 kw_archive_writer_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   std::string path = d->m_output_directory + "/" + d->m_base_filename;
 
   // Make sure directory exists
@@ -279,31 +283,35 @@ kw_archive_writer_process
   // gsd
   kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
-  LOG_DEBUG( logger(), "processing frame " << frame_time );
-
-  *d->m_index_stream
-    << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
-    << static_cast< int64_t > ( d->m_data_stream->tellp() )
-    << std::endl;
-
-  d->write_frame_data( *d->m_data_bstream,
-                       /*write image=*/ true,
-                       frame_time, corners, image, homog, gsd );
-  if ( ! d->m_data_stream )
   {
-    // throw ( ); //+ need general runtime exception
-    // LOG_DEBUG("Failed while writing to .data stream");
-  }
+    scoped_step_instrumentation();
 
-  if ( d->m_meta_bstream )
-  {
-    d->write_frame_data( *d->m_meta_bstream,
-                         /*write48 image=*/ false,
+    LOG_DEBUG( logger(), "processing frame " << frame_time );
+
+    *d->m_index_stream
+      << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
+      << static_cast< int64_t > ( d->m_data_stream->tellp() )
+      << std::endl;
+
+    d->write_frame_data( *d->m_data_bstream,
+                         /*write image=*/ true,
                          frame_time, corners, image, homog, gsd );
-    if ( ! d->m_meta_stream )
+    if ( ! d->m_data_stream )
     {
-      // throw ( );
-      // LOG_DEBUG("Failed while writing to .meta stream");
+      // throw ( ); //+ need general runtime exception
+      // LOG_DEBUG("Failed while writing to .data stream");
+    }
+
+    if ( d->m_meta_bstream )
+    {
+      d->write_frame_data( *d->m_meta_bstream,
+                           /*write48 image=*/ false,
+                           frame_time, corners, image, homog, gsd );
+      if ( ! d->m_meta_stream )
+      {
+        // throw ( );
+        // LOG_DEBUG("Failed while writing to .meta stream");
+      }
     }
   }
 } // kw_archive_writer_process::_step

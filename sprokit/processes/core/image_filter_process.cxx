@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,8 @@ void
 image_filter_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   vital::algo::image_filter::set_nested_algo_configuration( "filter", algo_config, d->m_filter );
@@ -103,8 +105,14 @@ _step()
 {
   vital::image_container_sptr input = grab_from_port_using_trait( image );
 
-  // Get detections from filter on image
-  vital::image_container_sptr result = d->m_filter->filter( input );
+  vital::image_container_sptr result;
+
+  {
+    scoped_step_instrumentation();
+
+    // Get detections from filter on image
+    result = d->m_filter->filter( input );
+  }
 
   push_to_port_using_trait( image, result );
 }

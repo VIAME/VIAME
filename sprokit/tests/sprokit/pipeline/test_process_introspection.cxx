@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/process.h>
@@ -75,7 +74,7 @@ main()
   //+ Check attribute kwiver::vital::plugin_factory::PLUGIN_NAME for duplicates
   // within the list
 
-  VITAL_FOREACH( const auto fact, proc_list )
+  for( const auto fact : proc_list )
   {
     sprokit::process::type_t type;
     if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type ) )
@@ -185,7 +184,7 @@ test_process_configuration( sprokit::process_t const process )
 {
   kwiver::vital::config_block_keys_t const keys = process->available_config();
 
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  for( kwiver::vital::config_block_key_t const & key : keys )
   {
     try
     {
@@ -215,7 +214,7 @@ test_process_input_ports( sprokit::process_t const process )
 
   sprokit::process::ports_t const ports = process->input_ports();
 
-  VITAL_FOREACH( sprokit::process::port_t const & port, ports )
+  for( sprokit::process::port_t const & port : ports )
   {
     sprokit::process::port_info_t info;
 
@@ -289,7 +288,7 @@ test_process_output_ports( sprokit::process_t const process )
 
   sprokit::process::ports_t const ports = process->output_ports();
 
-  VITAL_FOREACH( sprokit::process::port_t const & port, ports )
+  for( sprokit::process::port_t const & port : ports )
   {
     sprokit::process::port_info_t info;
 

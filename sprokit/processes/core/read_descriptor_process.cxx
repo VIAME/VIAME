@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,25 +86,21 @@ read_descriptor_process
 // ----------------------------------------------------------------
 void
 read_descriptor_process
-::_configure()
-{
-}
-
-
-// ----------------------------------------------------------------
-void
-read_descriptor_process
 ::_step()
 {
   kwiver::vital::double_vector_sptr vect = grab_from_port_using_trait( d_vector );
 
-  std::cout << "Vector size: " << vect->size() << " -- " << std::endl;
-
-  for (int i = 0; i < 50; i++)
   {
-    std::cout << " " << vect->at(i);
+    scoped_step_instrumentation();
+
+    std::cout << "Vector size: " << vect->size() << " -- " << std::endl;
+
+    for (int i = 0; i < 50; i++)
+    {
+      std::cout << " " << vect->at(i);
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
 }
 
 

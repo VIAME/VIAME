@@ -35,6 +35,7 @@ Interface to VITAL algorithm_plugin_manager class.
 """
 # -*- coding: utf-8 -*-
 import ctypes
+from six.moves import range
 from vital.util import VitalObject
 
 
@@ -122,7 +123,7 @@ def registered_module_names():
 
     # Constructing return array
     r = []
-    for i in xrange(length.value):
+    for i in range(length.value):
         r.append(keys[i])
 
     # Free allocated key listing

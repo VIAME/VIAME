@@ -37,7 +37,6 @@
 
 #include <time.h>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {
@@ -154,7 +153,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     if ( dot )
     {
       const auto name_list( dot->class_names() );
-      VITAL_FOREACH( auto name, name_list )
+      for( auto name : name_list )
       {
         // Write out the <name> <score> pair
         stream() << d->m_delim << name << d->m_delim << dot->score( name );

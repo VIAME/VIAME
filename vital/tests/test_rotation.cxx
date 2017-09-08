@@ -48,7 +48,6 @@
 #endif
 
 
-#include <vital/vital_foreach.h>
 #include <vital/types/rotation.h>
 
 
@@ -277,7 +276,7 @@ IMPLEMENT_TEST(multiple_interpolations)
 
   cerr << "Vector size: " << rots.size() << endl;
   TEST_EQUAL("vector size", rots.size(), 5);
-  VITAL_FOREACH( rotation_d rot, rots)
+  for( rotation_d rot : rots)
   {
     cerr << "\t" << rot.axis() << ' ' << rot.angle() << endl;
   }

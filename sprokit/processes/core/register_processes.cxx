@@ -51,6 +51,7 @@
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
 #include "refine_detections_process.h"
+#include "split_image_process.h"
 #include "stabilize_image_process.h"
 #include "track_descriptor_input_process.h"
 #include "track_descriptor_output_process.h"
@@ -195,6 +196,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Draws border around detected objects in the set using the selected algorithm." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::split_image_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "split_image" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Split a image into multiple smaller images." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   fact = vpm.ADD_PROCESS( kwiver::track_descriptor_input_process );

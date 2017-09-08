@@ -34,7 +34,6 @@
  */
 
 #include "epipolar_geometry.h"
-#include <vital/vital_foreach.h>
 #include <arrows/core/triangulate.h>
 
 

@@ -37,6 +37,7 @@ Interface to vital::camera_map class.
 
 import ctypes
 
+from six.moves import range
 from vital.types import Camera
 from vital.util import VitalObject, VitalErrorHandle
 
@@ -128,7 +129,7 @@ class CameraMap (VitalObject):
                        eh)
 
         m = {}
-        for i in xrange(length.value):
+        for i in range(length.value):
             # copy camera cptr so we don't
             cptr = Camera.c_ptr_type()(cameras[i].contents)
             m[frame_numbers[i]] = Camera(from_cptr=cptr)

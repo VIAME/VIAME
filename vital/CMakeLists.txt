@@ -90,7 +90,6 @@ endif()
 #
 set( vital_public_headers
   vital_types.h
-  vital_foreach.h
   noncopyable.h
   any.h
   algorithm_capabilities.h

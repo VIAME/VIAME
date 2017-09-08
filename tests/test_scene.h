@@ -41,7 +41,6 @@
 
 #include "test_random_point.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/feature_track_set.h>
@@ -96,7 +95,7 @@ noisy_landmarks( kwiver::vital::landmark_map_sptr  landmarks,
   using namespace kwiver::vital;
 
   landmark_map::map_landmark_t lm_map = landmarks->landmarks();
-  VITAL_FOREACH( landmark_map::map_landmark_t::value_type& p, lm_map )
+  for( landmark_map::map_landmark_t::value_type& p : lm_map )
   {
     landmark_sptr l = p.second->clone();
     landmark_d& lm = dynamic_cast<landmark_d&>(*l);
@@ -183,7 +182,7 @@ noisy_cameras( kwiver::vital::camera_map_sptr cameras,
   using namespace kwiver::vital;
 
   camera_map::map_camera_t cam_map;
-  VITAL_FOREACH( camera_map::map_camera_t::value_type const& p, cameras->cameras() )
+  for( camera_map::map_camera_t::value_type const& p : cameras->cameras() )
   {
     camera_sptr c = p.second->clone();
 
@@ -209,13 +208,13 @@ subset_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double keep_frac
   std::vector< track_sptr > tracks = in_tracks->tracks();
   std::vector< track_sptr > new_tracks;
   const int rand_thresh = static_cast< int > ( keep_frac * RAND_MAX );
-  VITAL_FOREACH( const track_sptr &t, tracks )
+  for( const track_sptr &t : tracks )
   {
     auto nt = track::make();
 
     nt->set_id( t->id() );
     std::cout << "track " << t->id() << ":";
-    VITAL_FOREACH( auto const& ts, *t )
+    for( auto const& ts : *t )
     {
       if ( std::rand() < rand_thresh )
       {
@@ -242,7 +241,7 @@ noisy_tracks( kwiver::vital::feature_track_set_sptr in_tracks, double stdev = 1.
 
   std::vector< track_sptr > tracks = in_tracks->tracks();
   std::vector< track_sptr > new_tracks;
-  VITAL_FOREACH( const track_sptr &t, tracks )
+  for( const track_sptr &t : tracks )
   {
     auto nt = track::make();
     nt->set_id(t->id());
@@ -277,11 +276,11 @@ add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
   std::vector<track_sptr> tracks = in_tracks->tracks();
   std::vector<track_sptr> new_tracks;
   const int rand_thresh = static_cast<int>(outlier_frac * RAND_MAX);
-  VITAL_FOREACH(const track_sptr& t, tracks)
+  for(const track_sptr& t : tracks)
   {
     track_sptr nt = track::make();
     nt->set_id( t->id() );
-    VITAL_FOREACH( const auto &ts, *t )
+    for( const auto &ts : *t )
     {
       auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
       if( !fts || !fts->feature )

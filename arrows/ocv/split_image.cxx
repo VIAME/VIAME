@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,29 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_FOREACH_H
-#define VITAL_FOREACH_H
+/**
+ * \file
+ * \brief Implementation of OCV split image algorithm
+ */
 
-#include <vital/vital_config.h>
+#include "split_image.h"
 
-#if VITAL_USE_CPP_RANGE_FOR
+#include <arrows/ocv/image_container.h>
 
-#define VITAL_FOREACH(decl, container)    for( decl : container )
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-#elif VITAL_USE_BOOST_FOREACH
+using namespace kwiver::vital;
 
-#include <boost/foreach.hpp>
-#define VITAL_FOREACH(decl, container)    BOOST_FOREACH(decl, container)
+namespace kwiver {
+namespace arrows {
+namespace ocv {
 
-#else
+/// Constructor
+split_image
+::split_image()
+{
+}
 
-#define VITAL_FOREACH(decl, container)                                  \
-  for (auto _oguard = 1; _oguard;)                                      \
-    for (auto&& _container = (container); _oguard; _oguard = 0)         \
-      for (auto _iter = _container.begin(), _end = _container.end(),    \
-             _iguard = _container.begin(); _iguard != _end; ++_iguard)  \
-        for (decl = *_iter; _iter == _iguard; ++_iter)
+/// Destructor
+split_image
+::~split_image()
+{
+}
 
-#endif
+/// Split image
+std::vector< kwiver::vital::image_container_sptr >
+split_image
+::split(kwiver::vital::image_container_sptr image) const
+{
+  std::vector< kwiver::vital::image_container_sptr > output;
+  cv::Mat cv_image = ocv::image_container::vital_to_ocv( image->get_image() );
+  cv::Mat left_image = cv_image( cv::Rect( 0, 0, cv_image.cols/2, cv_image.rows ) );
+  cv::Mat right_image = cv_image( cv::Rect( cv_image.cols/2, 0, cv_image.cols/2, cv_image.rows ) );
+  output.push_back( image_container_sptr( new ocv::image_container( left_image.clone() ) ) );
+  output.push_back( image_container_sptr( new ocv::image_container( right_image.clone() ) ) );
+  return output;
+}
 
-#endif /* VITAL_FOREACH_H */
+} // end namespace ocv
+} // end namespace arrows
+} // end namespace kwiver

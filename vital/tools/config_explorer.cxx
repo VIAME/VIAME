@@ -41,7 +41,6 @@
 #include <vital/config/config_block_io.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_parser.h>
-#include <vital/vital_foreach.h>
 #include <kwiversys/CommandLineArguments.hxx>
 
 #include <cstdlib>
@@ -168,7 +167,7 @@ main( int argc, char* argv[] )
               << " Install Prefix: " << opt_install_prefix << std::endl
               << std::endl;
 
-    VITAL_FOREACH( auto path, search_path )
+    for( auto path : search_path )
     {
       std::cout << path << std::endl;
     }

@@ -1272,15 +1272,22 @@ class SPROKIT_PIPELINE_EXPORT process
      * The start call is used to indicate the beginning of substantial processing.
      * The end call is used to indicate the end of substantial processing.
      *
+     * The \c data parameter, if specified, is passed to the
+     * instrumentation provider. How this data is used is
+     * implementation dependent.
+     *
      * Instrumentation is enabled by supplying the following config
      * entries in the pipeline definition file for each process that
      * is to be instrumented.
      *
      * process process_type
      *   :: my_proc
-     *     : _instrumentation:type  none   # default value. disabled
-     *     : _instrumentation:type  RightTrack  # enables RightTrack instrumentation for this process
-     *     : _instrumentation:RightTrack:foo   value    # instrumentation provider specific config.
+     *     block _instrumentation
+     *       type =  none   # default value. disabled
+     *       # optionally specify instrumentation provider
+     *       type =  RightTrack  # enables RightTrack instrumentation for this process
+     *       RightTrack:foo   value    # instrumentation provider specific config.
+     *     endblock
      *
      */
     void start_init_processing( std::string const& data );
@@ -1307,6 +1314,52 @@ class SPROKIT_PIPELINE_EXPORT process
     void start_reconfigure_processing();
     void stop_reconfigure_processing( );
 //@}
+
+/*
+ * Helper macro and structure to make scoped instrumentation using the
+ * allocation is acquisition pattern.
+ */
+#define SCOPED_INSTRUMENTATION(T)                                       \
+struct scoped_ ## T ## _instrumentation_                                \
+{                                                                       \
+  scoped_ ## T ## _instrumentation_(process* proc)                      \
+  : m_process(proc)                                                     \
+  {                                                                     \
+    m_process->start_ ## T ## _processing();                            \
+  }                                                                     \
+  scoped_ ## T ## _instrumentation_(process* proc, const std::string& data) \
+  : m_process(proc)                                                     \
+  {                                                                     \
+    m_process->start_ ## T ## _processing(data);                        \
+  }                                                                     \
+  ~scoped_ ## T ## _instrumentation_() { m_process->stop_ ## T ## _processing(); } \
+private:                                                                \
+  process* m_process;                                                   \
+}
+
+SCOPED_INSTRUMENTATION(init);
+SCOPED_INSTRUMENTATION(reset);
+SCOPED_INSTRUMENTATION(flush);
+SCOPED_INSTRUMENTATION(step);
+SCOPED_INSTRUMENTATION(configure);
+SCOPED_INSTRUMENTATION(reconfigure);
+
+#undef SCOPED_INSTRUMENTATION
+
+///@{
+/**
+ * Scoped instrumetation macros provide an alternative to inserting
+ * individual start and stop calls in the process methods. The start
+ * call is made when the scope is entered and the stop call is made
+ * when the scope is exited.
+ */
+#define scoped_init_instrumentation()        scoped_init_instrumentation_( this )
+#define scoped_reset_instrumentation()       scoped_reset_instrumentation_( this )
+#define scoped_flush_instrumentation()       scoped_flush_instrumentation_( this )
+#define scoped_step_instrumentation()        scoped_step_instrumentation_( this )
+#define scoped_configure_instrumentation()   scoped_configure_instrumentation_( this )
+#define scoped_reconfigure_instrumentation() scoped_reconfigure_instrumentation_( this )
+///@}
 
   private:
     kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;

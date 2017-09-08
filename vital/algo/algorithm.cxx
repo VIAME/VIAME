@@ -35,7 +35,6 @@
 
 #include "algorithm.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
 
@@ -116,7 +115,7 @@ algorithm
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact_list = vpm.get_factories( type_name );
 
-  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+  for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string reg_name;
     if ( ! a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )
@@ -215,7 +214,7 @@ algorithm
     auto fact_list = vpm.get_factories( type_name );
 
     // Find the one that provides the impl_name
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+    for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
     {
       std::string reg_name;
       if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )

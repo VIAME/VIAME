@@ -42,7 +42,6 @@
 #include <sprokit/python/util/python_exceptions.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/vital_foreach.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -220,7 +219,7 @@ std::vector< std::string > scheduler_names()
   auto fact_list = vpm.get_factories<sprokit::scheduler>();
 
   std::vector<std::string> name_list;
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string buf;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))

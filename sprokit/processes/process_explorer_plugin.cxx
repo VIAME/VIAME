@@ -156,7 +156,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  for( kwiver::vital::config_block_key_t const & key : keys )
   {
     if ( ! opt_hidden && ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
     {
@@ -182,7 +182,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   sprokit::process::ports_t const iports = proc->input_ports();
 
-  VITAL_FOREACH( sprokit::process::port_t const & port, iports )
+  for( sprokit::process::port_t const & port : iports )
   {
     if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
     {
@@ -209,7 +209,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   sprokit::process::ports_t const oports = proc->output_ports();
 
-  VITAL_FOREACH( sprokit::process::port_t const & port, oports )
+  for( sprokit::process::port_t const & port : oports )
   {
     if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
     {

@@ -38,7 +38,6 @@
 #include <algorithm>
 
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 
 namespace {
 
