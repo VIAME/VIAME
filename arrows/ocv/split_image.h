@@ -48,7 +48,8 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// A class for drawing various information about feature tracks
+/// A class for writing out image chips around detections, useful as a debugging process
+/// for ensuring that the refine detections process is running on desired ROIs.
 class KWIVER_ALGO_OCV_EXPORT split_image
 : public vital::algorithm_impl<split_image, vital::algo::split_image>
 {

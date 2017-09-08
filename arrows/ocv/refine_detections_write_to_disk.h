@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Header for OCV refine detections draw algorithm
+ * \brief Header for OCV refine detections write to disk algorithm
  */
 
-#ifndef KWIVER_ARROWS_OCV_REFINE_DETECTIONS_DRAW_H_
-#define KWIVER_ARROWS_OCV_REFINE_DETECTIONS_DRAW_H_
+#ifndef KWIVER_ARROWS_OCV_REFINE_DETECTIONS_WRITE_TO_DISK_H_
+#define KWIVER_ARROWS_OCV_REFINE_DETECTIONS_WRITE_TO_DISK_H_
 
 
 #include <vital/vital_config.h>
@@ -49,17 +49,17 @@ namespace arrows {
 namespace ocv {
 
 /// A class for drawing various information about feature tracks
-class KWIVER_ALGO_OCV_EXPORT refine_detections_draw
-: public vital::algorithm_impl<refine_detections_draw,
+class KWIVER_ALGO_OCV_EXPORT refine_detections_write_to_disk
+: public vital::algorithm_impl<refine_detections_write_to_disk,
     vital::algo::refine_detections>
 {
 public:
 
   /// Constructor
-  refine_detections_draw();
+  refine_detections_write_to_disk();
 
   /// Destructor
-  virtual ~refine_detections_draw();
+  virtual ~refine_detections_write_to_disk();
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -92,4 +92,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_REFINE_DETECTIONS_DRAW_H_
+#endif // KWIVER_ARROWS_OCV_REFINE_DETECTIONS_WRITE_TO_DISK_H_

@@ -42,8 +42,6 @@
 
 #include <vital/algo/split_image.h>
 
-#include <memory>
-
 namespace kwiver {
 namespace arrows {
 namespace vxl {

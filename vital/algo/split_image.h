@@ -34,7 +34,6 @@
 #include <vital/vital_config.h>
 
 #include <string>
-#include <memory>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
