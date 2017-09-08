@@ -324,7 +324,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
     cat_handler = category_map[category];
   }
 
-  VITAL_FOREACH( auto it, plugin_map )
+  for( auto it : plugin_map )
   {
     std::string ds = kwiver::vital::demangle( it.first );
 
@@ -353,7 +353,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
     pe_out() << "\nPlugins that implement type \"" << ds << "\"" << std::endl;
 
     // Get vector of factories
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
+    for( kwiver::vital::plugin_factory_handle_t const fact : facts )
     {
       // If regexp matching is enabled, and this does not match, skip it
       if ( G_context.opt_type_filt )
@@ -392,7 +392,7 @@ void print_config( kwiver::vital::config_block_sptr const config )
 
   pe_out() << indent << "Configuration block contents\n";
 
-  VITAL_FOREACH( kwiver::vital::config_block_key_t key, all_keys )
+  for( kwiver::vital::config_block_key_t key : all_keys )
   {
     kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t > ( key );
     pe_out() << std::endl
@@ -436,7 +436,7 @@ void load_explorer_plugins( const std::string& path )
   }
 
   // Add our subdirectory to each path element
-  VITAL_FOREACH( std::string& p, pathl )
+  for( std::string& p : pathl )
   {
     // This subdirectory must match what is specified in the build system.
     p.append( "/plugin_explorer" );
@@ -446,7 +446,7 @@ void load_explorer_plugins( const std::string& path )
 
   auto fact_list = pl.get_factories( typeid( kwiver::vital::category_explorer ).name() );
 
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string name;
     if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
@@ -711,7 +711,7 @@ main( int argc, char* argv[] )
   else
   {
     // Load from supplied paths and build in paths.
-    VITAL_FOREACH( std::string const& path, G_context.opt_path )
+    for( std::string const& path : G_context.opt_path )
     {
       vpm.add_search_path( path );
     }
@@ -725,7 +725,7 @@ main( int argc, char* argv[] )
 
     std::string path_string;
     std::vector< kwiver::vital::path_t > const search_path( vpm.search_path() );
-    VITAL_FOREACH( auto module_dir, search_path )
+    for( auto module_dir : search_path )
     {
       pe_out() << "    " << module_dir << std::endl;
     }
@@ -736,7 +736,7 @@ main( int argc, char* argv[] )
   {
     pe_out() << "---- Registered module names:\n";
     auto module_list = vpm.module_map();
-    VITAL_FOREACH( auto const name, module_list )
+    for( auto const name : module_list )
     {
       pe_out() << "   " << name.first << "  loaded from: " << name.second << std::endl;
     }
@@ -777,7 +777,7 @@ main( int argc, char* argv[] )
 
     pe_out() << "\n---- All Registered Factories\n";
 
-    VITAL_FOREACH( auto it, plugin_map )
+    for( auto it : plugin_map )
     {
       std::string ds = kwiver::vital::demangle( it.first );
       bool first_fact( true );
@@ -790,7 +790,7 @@ main( int argc, char* argv[] )
 
       // Get vector of factories
       kwiver::vital::plugin_factory_vector_t const& facts = it.second;
-      VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t const fact, facts )
+      for( kwiver::vital::plugin_factory_handle_t const fact : facts )
       {
         // If regexp matching is enabled, and this does not match, skip it
         if ( G_context.opt_type_filt )
@@ -841,7 +841,7 @@ main( int argc, char* argv[] )
     auto plugin_map = vpm.plugin_map();
     pe_out() << "    " << plugin_map.size() << " types of factories registered." << std::endl;
 
-    VITAL_FOREACH( auto it, plugin_map )
+    for( auto it : plugin_map )
     {
       std::string ds = kwiver::vital::demangle( it.first );
 
@@ -865,7 +865,7 @@ main( int argc, char* argv[] )
     const auto file_list = vpm.file_list();
 
     pe_out() << "\n---- Files Successfully Opened" << std::endl;
-    VITAL_FOREACH( std::string const& name, file_list )
+    for( std::string const& name : file_list )
     {
       pe_out() << "  " << name << std::endl;
     } // end foreach

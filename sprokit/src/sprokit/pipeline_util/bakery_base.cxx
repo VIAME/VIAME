@@ -127,7 +127,7 @@ bakery_base
 
   config_values_t const& values = config_block.values;
 
-  VITAL_FOREACH (config_value_t const& value, values)
+  for (config_value_t const& value : values)
   {
     register_config_value(root_key, value);
   }
@@ -141,7 +141,7 @@ bakery_base
 {
   config_values_t const& values = process_block.config_values;
 
-  VITAL_FOREACH (config_value_t const& value, values)
+  for (config_value_t const& value : values)
   {
     register_config_value(process_block.name, value);
   }
@@ -184,7 +184,7 @@ bakery_base
   // If there are options, process each one
   if ( ! value.flags.empty() )
   {
-    VITAL_FOREACH (config_flag_t const& flag_v, value.flags)
+    for (config_flag_t const& flag_v : value.flags)
     {
       // normalize the case of attributes for comparison.
       std::string flag = kwiversys::SystemTools::LowerCase( flag_v );
@@ -301,7 +301,7 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
 {
   kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
 
-  VITAL_FOREACH( bakery_base::config_decl_t& decl, configs )
+  for( bakery_base::config_decl_t& decl : configs )
   {
     kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& info = decl.second;

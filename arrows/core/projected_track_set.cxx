@@ -58,7 +58,7 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
     t->set_id( l->first );
     tracks.push_back( t );
 
-    VITAL_FOREACH( const camera_map::map_camera_t::value_type& p, cam_map )
+    for( const camera_map::map_camera_t::value_type& p : cam_map )
     {
       const camera_sptr cam = p.second;
       auto fts = std::make_shared<feature_track_state>(p.first);

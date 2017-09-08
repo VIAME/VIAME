@@ -381,7 +381,7 @@ embedded_pipeline::priv::
 connect_input_adapter()
 {
   auto names = m_pipeline->process_names();
-  VITAL_FOREACH( auto n, names )
+  for( auto n : names )
   {
     auto proc = m_pipeline->process_by_name( n );
     if ( proc->type() == "input_adapter" )
@@ -401,7 +401,7 @@ embedded_pipeline::priv::
 connect_output_adapter()
 {
   auto names = m_pipeline->process_names();
-  VITAL_FOREACH( auto n, names )
+  for( auto n : names )
   {
     auto proc = m_pipeline->process_by_name( n );
     if (proc->type() == "output_adapter" )

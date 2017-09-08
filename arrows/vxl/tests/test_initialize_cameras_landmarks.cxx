@@ -115,7 +115,7 @@ void evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
 
   vital::camera_map::map_camera_t orig_cams = true_cams->cameras();
   vital::camera_map::map_camera_t new_cams = est_cams->cameras();
-  VITAL_FOREACH(vital::camera_map::map_camera_t::value_type p, orig_cams)
+  for(vital::camera_map::map_camera_t::value_type p : orig_cams)
   {
     vital::camera_sptr new_cam_t = arrows::transform(new_cams[p.first], global_sim);
     vital::rotation_d dR = new_cam_t->rotation().inverse() * p.second->rotation();
@@ -127,7 +127,7 @@ void evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
 
   vital::landmark_map::map_landmark_t orig_lms = true_landmarks->landmarks();
   vital::landmark_map::map_landmark_t new_lms = est_landmarks->landmarks();
-  VITAL_FOREACH(landmark_map::map_landmark_t::value_type p, orig_lms)
+  for(landmark_map::map_landmark_t::value_type p : orig_lms)
   {
     vital::landmark_sptr new_lm_tr = arrows::transform(new_lms[p.first], global_sim);
 
@@ -310,12 +310,12 @@ IMPLEMENT_TEST(subset_init)
   init.initialize(new_cameras, new_landmarks, tracks);
 
   // test that we only initialized the requested objects
-  VITAL_FOREACH(vital::camera_map::map_camera_t::value_type p, new_cameras->cameras())
+  for(vital::camera_map::map_camera_t::value_type p : new_cameras->cameras())
   {
     TEST_EQUAL("Camera initialized", bool(p.second), true);
     TEST_EQUAL("Expected camera id", p.first % 3, 0);
   }
-  VITAL_FOREACH(vital::landmark_map::map_landmark_t::value_type p, new_landmarks->landmarks())
+  for(vital::landmark_map::map_landmark_t::value_type p : new_landmarks->landmarks())
   {
     TEST_EQUAL("Landmark initialized", bool(p.second), true);
     TEST_EQUAL("Expected landmark id", p.first % 5, 0);

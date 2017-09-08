@@ -127,7 +127,7 @@ find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
 void
 reset_active_flags( track_info_buffer_sptr buffer )
 {
-  VITAL_FOREACH ( track_info_t& ti , *buffer )
+  for ( track_info_t& ti : *buffer )
   {
     ti.active = false;
   }
@@ -231,7 +231,7 @@ public:
 
       // Check for positive inlier count
       unsigned inlier_count = 0;
-      VITAL_FOREACH (bool b , inliers)
+      for (bool b : inliers)
       {
         if ( b )
         {
@@ -408,7 +408,7 @@ compute_ref_homography_core
 
   // Flag tracks on this frame as new tracks, or "active" tracks, or tracks
   // that are not new.
-  VITAL_FOREACH ( track_sptr trk , active_tracks )
+  for ( track_sptr trk : active_tracks )
   {
     track_info_buffer_t::iterator p = find_track( trk, d_->buffer );
 
@@ -433,7 +433,7 @@ compute_ref_homography_core
   // a while.
   frame_id_t earliest_ref = std::numeric_limits<frame_id_t>::max();
 
-  VITAL_FOREACH ( track_info_t& ti , *(d_->buffer) )
+  for ( track_info_t& ti : *(d_->buffer) )
   {
     if( ti.active || ++ti.missed_count < d_->forget_track_threshold )
     {
@@ -452,7 +452,7 @@ compute_ref_homography_core
              "Earliest Ref: " << earliest_ref );
 
   // Add new tracks to buffer.
-  VITAL_FOREACH ( track_sptr trk , new_tracks )
+  for ( track_sptr trk : new_tracks )
   {
     track::history_const_itr itr = trk->find( frame_number );
     if( itr == trk->end() )
@@ -489,7 +489,7 @@ compute_ref_homography_core
   size_t track_size_thresh = std::min( d_->min_track_length, d_->frames_since_reset + 1 );
 
   // Collect cur/ref points from track infos that have earliest-frame references
-  VITAL_FOREACH ( track_info_t& ti , *new_buffer )
+  for ( track_info_t& ti : *new_buffer )
   {
     // If the track is active and have a state on the earliest ref frame,
     // also include those points for homography estimation.
@@ -537,7 +537,7 @@ compute_ref_homography_core
   //  - With a valid homography, transform the reference location of active
   //    tracks with a different reference frame than the current earliest_ref
   unsigned int ti_reset_count = 0;
-  VITAL_FOREACH ( track_info_t& ti , *new_buffer )
+  for ( track_info_t& ti : *new_buffer )
   {
     track::history_const_itr itr = ti.trk->find( frame_number );
 

@@ -78,7 +78,7 @@ public:
       stop = true;
     }
     condition.notify_all();
-    VITAL_FOREACH(std::thread &worker, workers)
+    for(std::thread &worker : workers)
     {
       worker.join();
     }

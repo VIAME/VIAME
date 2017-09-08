@@ -77,7 +77,7 @@ optimize_cameras
 
   states_map_t states_map;
   // O( len(trks) * avg_t_len )
-  VITAL_FOREACH(track_sptr const& t, trks)
+  for(track_sptr const& t : trks)
   {
     // Only record a state if there is a corresponding landmark for the
     // track (constant-time check), the track state has a feature and thus a
@@ -85,7 +85,7 @@ optimize_cameras
     // state's frame (constant-time check).
     if (lms.count(t->id()))
     {
-      VITAL_FOREACH (auto const& ts, *t)
+      for (auto const& ts : *t)
       {
         auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
         if (fts && fts->feature && cams.count(ts->frame()))
@@ -107,7 +107,7 @@ optimize_cameras
   {
     metadata_map = metadata->video_metadata();
   }
-  VITAL_FOREACH(map_camera_t::value_type const& p, cams)
+  for(map_camera_t::value_type const& p : cams)
   {
     v_feat.clear();
     v_lms.clear();
@@ -120,7 +120,7 @@ optimize_cameras
     }
 
     // Construct 2d<->3d correspondences
-    VITAL_FOREACH(inner_map_t::value_type const& q, states_map[p.first])
+    for(inner_map_t::value_type const& q : states_map[p.first])
     {
       // Already guaranteed that feat and landmark exists above.
       v_feat.push_back(q.second);

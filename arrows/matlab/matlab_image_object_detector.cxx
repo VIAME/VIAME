@@ -172,7 +172,7 @@ public:
     // Iterate over all values in this config block and pass the values
     // to the matlab as variable assignments.
     auto keys = algo_config->available_values();
-    VITAL_FOREACH( auto k, keys )
+    for( auto k : keys )
     {
       std::stringstream config_command;
       config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";

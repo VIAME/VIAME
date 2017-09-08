@@ -155,7 +155,7 @@ filter( const vital::detected_object_set_sptr input_set ) const
     auto selected_names = input_dot->class_names( m_threshold );
 
     // Loop over all selected class names
-    VITAL_FOREACH( const std::string& a_name, selected_names )
+    for( const std::string& a_name : selected_names )
     {
       if ( m_keep_all_classes || m_keep_classes.count( a_name ) )
       {

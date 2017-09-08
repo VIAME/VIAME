@@ -120,7 +120,7 @@ IMPLEMENT_TEST(multiple_interpolations)
 
   cerr << "Vector size: " << cams.size() << endl;
   TEST_EQUAL("vector size", cams.size(), 5);
-  VITAL_FOREACH(simple_camera cam, cams)
+  for(simple_camera cam : cams)
   {
     cerr << "\t" << cam.center() << " :: " << cam.rotation().axis() << " " << cam.rotation().angle() << endl;
   }

@@ -323,7 +323,7 @@ public:
         // A metadata collection was created
         // check to see if it is of the desired type.
         std::string collection_type;
-        VITAL_FOREACH( auto meta, this->metadata_collection)
+        for( auto meta : this->metadata_collection)
         {
           // Test to see if the collection is from the specified standard (0104/0601)
           if (meta->has( kwiver::vital::VITAL_META_METADATA_ORIGIN ) )
@@ -455,7 +455,7 @@ vidl_ffmpeg_video_input
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
             time_source, " ,", true );
 
-  VITAL_FOREACH( auto source, time_source )
+  for( auto source : time_source )
   {
     if (source != "none"
         && source != "misp"
@@ -544,7 +544,7 @@ vidl_ffmpeg_video_input
   // See if we can generate a time base
   d->d_have_frame = true;
   bool time_found( false );
-  VITAL_FOREACH( auto time_source, d->c_time_source_list )
+  for( auto time_source : d->c_time_source_list )
   {
     LOG_DEBUG( d->d_logger, "Looking for " << time_source << " as time source" );
     if( d->init_timestamp( time_source ) )  // will call advance()

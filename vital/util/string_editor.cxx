@@ -62,7 +62,7 @@ edit( std::string& str )
 {
   bool result( true );
 
-  VITAL_FOREACH( auto op, m_editor_list )
+  for( auto op : m_editor_list )
   {
     if ( ! op->process( str ) )
     {

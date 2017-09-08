@@ -71,7 +71,7 @@ main()
 
   sprokit::pipeline_t const pipe = sprokit::pipeline_t(new sprokit::pipeline(config));
 
-  VITAL_FOREACH (sprokit::scheduler_registry::type_t const& type, types)
+  for (sprokit::scheduler_registry::type_t const& type : types)
   {
     sprokit::scheduler_t scheduler;
 

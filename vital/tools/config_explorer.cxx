@@ -168,7 +168,7 @@ main( int argc, char* argv[] )
               << " Install Prefix: " << opt_install_prefix << std::endl
               << std::endl;
 
-    VITAL_FOREACH( auto path, search_path )
+    for( auto path : search_path )
     {
       std::cout << path << std::endl;
     }

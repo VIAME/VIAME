@@ -64,12 +64,12 @@ estimate_similarity_transform
                      std::vector<camera_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  VITAL_FOREACH( camera_sptr c, from)
+  for( camera_sptr c : from)
   {
     from_pts.push_back(c->center());
   }
 
-  VITAL_FOREACH(camera_sptr c, to)
+  for(camera_sptr c : to)
   {
     to_pts.push_back(c->center());
   }
@@ -85,12 +85,12 @@ estimate_similarity_transform
                      std::vector<landmark_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  VITAL_FOREACH(landmark_sptr l, from)
+  for(landmark_sptr l : from)
   {
     from_pts.push_back(l->loc());
   }
 
-  VITAL_FOREACH( landmark_sptr l, to)
+  for( landmark_sptr l : to)
   {
     to_pts.push_back(l->loc());
   }

@@ -141,11 +141,11 @@ estimate_essential_matrix
   vital_to_vpgl_calibration(*cal2, vcal2);
 
   vcl_vector<vgl_point_2d<double> > right_points, left_points;
-  VITAL_FOREACH(const vector_2d& v, pts1)
+  for(const vector_2d& v : pts1)
   {
     right_points.push_back(vgl_point_2d<double>(v.x(), v.y()));
   }
-  VITAL_FOREACH(const vector_2d& v, pts2)
+  for(const vector_2d& v : pts2)
   {
     left_points.push_back(vgl_point_2d<double>(v.x(), v.y()));
   }

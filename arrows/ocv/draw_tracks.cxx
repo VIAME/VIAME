@@ -366,7 +366,7 @@ draw_tracks
   const cv::Scalar uncompared_color( 240, 32, 160 );
 
   // Iterate over all images
-  VITAL_FOREACH( image_container_sptr ctr_sptr, image_data )
+  for( image_container_sptr ctr_sptr : image_data )
   {
     // Should the current frame be written to disk?
     bool write_image_to_disk = d_->write_images_to_disk;
@@ -394,7 +394,7 @@ draw_tracks
     bool comparison_track_found = false;
 
     // Draw points on input image
-    VITAL_FOREACH( track_sptr trk, display_set->active_tracks( fid ) )
+    for( track_sptr trk : display_set->active_tracks( fid ) )
     {
       auto ts = *( trk->find( fid ) );
       auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);

@@ -118,7 +118,7 @@ write_set( const kwiver::vital::track_descriptor_set_sptr set,
   } // end first
 
   // Get detections from set
-  VITAL_FOREACH( auto desc, *set )
+  for( auto desc : *set )
   {
     if( !desc )
     {
@@ -131,7 +131,7 @@ write_set( const kwiver::vital::track_descriptor_set_sptr set,
     stream() << desc->get_descriptor() << d->m_delim;
 
     // Process classifications if there are any
-    VITAL_FOREACH( auto hist, desc->get_history() )
+    for( auto hist : desc->get_history() )
     {
       // TODO
     }

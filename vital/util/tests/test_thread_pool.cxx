@@ -95,7 +95,7 @@ void run_jobs_impl()
 IMPLEMENT_TEST(run_jobs)
 {
   using namespace kwiver::vital;
-  VITAL_FOREACH( std::string const& backend,
+  for ( std::string const& backend :
                  thread_pool::instance().available_backends() )
   {
     std::cout << "Testing with thread pool backend: " << backend << std::endl;

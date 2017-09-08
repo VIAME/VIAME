@@ -154,7 +154,7 @@ typedef std::string testname_t;
   do                                                                    \
   {                                                                     \
     std::cerr << "Available tests:" << std::endl;                       \
-    VITAL_FOREACH( test_map_t::value_type const& p, __all_tests )       \
+    for( test_map_t::value_type const& p : __all_tests )       \
     {                                                                   \
       std::cerr << "\t" << p.first << std::endl;                        \
     }                                                                   \

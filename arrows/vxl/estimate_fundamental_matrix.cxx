@@ -150,11 +150,11 @@ estimate_fundamental_matrix
            double inlier_scale) const
 {
   vcl_vector<vgl_homg_point_2d<double> > right_points, left_points;
-  VITAL_FOREACH(const vector_2d& v, pts1)
+  for(const vector_2d& v : pts1)
   {
     right_points.push_back(vgl_homg_point_2d<double>(v.x(), v.y()));
   }
-  VITAL_FOREACH(const vector_2d& v, pts2)
+  for(const vector_2d& v : pts2)
   {
     left_points.push_back(vgl_homg_point_2d<double>(v.x(), v.y()));
   }
@@ -173,7 +173,7 @@ estimate_fundamental_matrix
     // TODO use the multiple solutions in a RANSAC framework
     // For now, only keep the first solution
     vfm = *vfms[0];
-    VITAL_FOREACH(auto v, vfms)
+    for(auto v : vfms)
     {
       delete v;
     }

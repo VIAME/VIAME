@@ -226,7 +226,7 @@ void
 collate_process
 ::_init()
 {
-  VITAL_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
+  for (priv::tag_data_t::value_type& tag_data : d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     priv::tag_info& info = tag_data.second;
@@ -245,7 +245,7 @@ collate_process
     port_frequency_t const freq = port_frequency_t(1, ratio);
 
     // Set port frequency for all input ports.
-    VITAL_FOREACH (port_t const& port, ports)
+    for (port_t const& port : ports)
     {
       set_input_port_frequency(port, freq);
     }
@@ -263,7 +263,7 @@ void
 collate_process
 ::_reset()
 {
-  VITAL_FOREACH (priv::tag_data_t::value_type const& tag_data, d->tag_data)
+  for (priv::tag_data_t::value_type const& tag_data : d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
@@ -271,7 +271,7 @@ collate_process
     priv::tag_info const& info = tag_data.second;
     ports_t const& ports = info.ports;
 
-    VITAL_FOREACH (port_t const& port, ports)
+    for (port_t const& port : ports)
     {
       remove_input_port(port);
     }
@@ -294,7 +294,7 @@ collate_process
   ports_t complete_ports;
 
   // Loop over all tags (input groups)
-  VITAL_FOREACH (priv::tag_data_t::value_type& tag_data, d->tag_data)
+  for (priv::tag_data_t::value_type& tag_data : d->tag_data)
   {
     priv::tag_t const& tag = tag_data.first;
     port_t const output_port = priv::port_res_prefix + tag;
@@ -316,7 +316,7 @@ collate_process
       push_to_port(output_port, status_edat);
 
       // Flush this set of inputs
-      VITAL_FOREACH (port_t const& port, info.ports)
+      for (port_t const& port : info.ports)
       {
         (void)grab_from_port(port);
       }
@@ -349,7 +349,7 @@ collate_process
   // Process all ports/tags that have completed. When a status port
   // reports complete on a tag, that tag is erased from the local
   // map. When that map is empty, then we are all done and can complete.
-  VITAL_FOREACH (port_t const& port, complete_ports)
+  for (port_t const& port : complete_ports)
   {
     d->tag_data.erase(port);
   }
@@ -478,7 +478,7 @@ collate_process::priv
     port_t const no_prefix = port.substr(priv::port_coll_prefix.size());
 
     // loop over all tags seen so far
-    VITAL_FOREACH (priv::tag_data_t::value_type const& data, tag_data)
+    for (priv::tag_data_t::value_type const& data : tag_data)
     {
       tag_t const& tag = data.first; // tag string
       port_t const tag_prefix = tag + priv::res_sep;

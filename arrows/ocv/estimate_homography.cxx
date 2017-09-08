@@ -66,12 +66,12 @@ estimate_homography
   }
 
   std::vector<cv::Point2f> points1, points2;
-  VITAL_FOREACH(const vital::vector_2d& v, pts1)
+  for(const vital::vector_2d& v : pts1)
   {
     points1.push_back(cv::Point2f(static_cast<float>(v.x()),
                                   static_cast<float>(v.y())));
   }
-  VITAL_FOREACH(const vital::vector_2d& v, pts2)
+  for(const vital::vector_2d& v : pts2)
   {
     points2.push_back(cv::Point2f(static_cast<float>(v.x()),
                                   static_cast<float>(v.y())));

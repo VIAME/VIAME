@@ -214,7 +214,7 @@ select( const std::string& class_name, double threshold )const
   // Create new vector for return
   std::vector< detected_object_sptr > vect;
 
-  VITAL_FOREACH( auto i, data )
+  for( auto i : data )
   {
     vect.push_back( i.second );
   }
@@ -232,7 +232,7 @@ scale( double scale_factor )
     return;
   }
 
-  VITAL_FOREACH( auto detection, m_detected_objects )
+  for( auto detection : m_detected_objects )
   {
     auto bbox = detection->bounding_box();
     bbox = kwiver::vital::scale( bbox, scale_factor );
@@ -250,7 +250,7 @@ shift( double col_shift, double row_shift )
     return;
   }
 
-  VITAL_FOREACH( auto detection, m_detected_objects )
+  for( auto detection : m_detected_objects )
   {
     auto bbox = detection->bounding_box();
     bbox = kwiver::vital::translate( bbox,

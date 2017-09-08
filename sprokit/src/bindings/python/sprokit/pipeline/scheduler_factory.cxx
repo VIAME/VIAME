@@ -220,7 +220,7 @@ std::vector< std::string > scheduler_names()
   auto fact_list = vpm.get_factories<sprokit::scheduler>();
 
   std::vector<std::string> name_list;
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string buf;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))

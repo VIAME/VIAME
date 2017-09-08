@@ -85,7 +85,7 @@ sprokit_tool_main(int argc, char const* argv[])
     auto const& paths = vpm.search_path();
     std::cout << "Modules will be loaded from the following directories, in order:\n";
 
-    VITAL_FOREACH ( const auto& module_dir, paths)
+    for ( const auto& module_dir : paths)
     {
       std::cout << "    " << module_dir << std::endl;
     }
@@ -99,7 +99,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     std::cout << "\nScheduler registry" << std::endl;
 
-    VITAL_FOREACH (const auto & fact, sched_fact)
+    for (const auto & fact : sched_fact)
     {
         std::string sched_type = "-- Not Set --";
         fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, sched_type );
@@ -117,7 +117,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
   if (vm.count("list"))
   {
-    VITAL_FOREACH (const auto& fact, process_fact)
+    for (const auto& fact : process_fact)
     {
       std::string proc_type = "-- Not Set --";
       fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
@@ -130,8 +130,8 @@ sprokit_tool_main(int argc, char const* argv[])
 
   bool const hidden = (0 != vm.count("hidden"));
 
-  // VITAL_FOREACH (sprokit::process::type_t const& proc_type, types)
-  VITAL_FOREACH (const auto & fact, process_fact)
+  // for (sprokit::process::type_t const& proc_type : types)
+  for (const auto & fact : process_fact)
   {
     std::string proc_type = "-- Not Set --";
     fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
@@ -159,7 +159,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
-    VITAL_FOREACH (kwiver::vital::config_block_key_t const& key, keys)
+    for (kwiver::vital::config_block_key_t const& key : keys)
     {
       if ( ! hidden && ( key.substr(0, hidden_prefix.size()) == hidden_prefix ))
       {
@@ -185,7 +185,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     sprokit::process::ports_t const iports = proc->input_ports();
 
-    VITAL_FOREACH (sprokit::process::port_t const& port, iports)
+    for (sprokit::process::port_t const& port : iports)
     {
       if ( ! hidden && ( port.substr(0, hidden_prefix.size()) == hidden_prefix ))
       {
@@ -212,7 +212,7 @@ sprokit_tool_main(int argc, char const* argv[])
 
     sprokit::process::ports_t const oports = proc->output_ports();
 
-    VITAL_FOREACH (sprokit::process::port_t const& port, oports)
+    for (sprokit::process::port_t const& port : oports)
     {
       if (!hidden && boost::starts_with(port, hidden_prefix))
       {

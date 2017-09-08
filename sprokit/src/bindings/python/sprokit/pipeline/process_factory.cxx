@@ -283,7 +283,7 @@ std::vector< std::string > process_names()
   auto fact_list = vpm.get_factories<sprokit::process>();
 
   std::vector<std::string> name_list;
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string buf;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))

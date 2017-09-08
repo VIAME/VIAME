@@ -121,7 +121,7 @@ IMPLEMENT_TEST(reprojection_100pts)
 
   cerr << "Transforming original points by crafted transformation" << endl;
   vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  for(vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -146,7 +146,7 @@ IMPLEMENT_TEST(reprojection_100pts)
 
   cerr << "Transforming original points by crafted transformation" << endl;
   transformed_points.clear();
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  for(vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -188,7 +188,7 @@ IMPLEMENT_TEST(reprojection_4pts)
 
   cerr << "Transforming original points by crafted transformation" << endl;
   vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  for(vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -232,7 +232,7 @@ IMPLEMENT_TEST(reprojection_3pts)
 
   cerr << "Transforming original points by crafted transformation" << endl;
   vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  for(vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -274,7 +274,7 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
 
   cerr << "Transforming original points by crafted transformation" << endl;
   vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  for(vector_3d o_vec : original_points)
   {
     transformed_points.push_back((m_sim * o_vec) + kwiver::testing::random_point3d(0.01));
   }

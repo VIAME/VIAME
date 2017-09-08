@@ -193,7 +193,7 @@ int main( int argc, char** argv )
               << " (index " << count << ") ==========" << std::endl;
 
     kwiver::vital::video_metadata_vector metadata = video_reader->frame_metadata();
-    VITAL_FOREACH( auto meta, metadata )
+    for( auto meta : metadata )
     {
       std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;
       print_metadata( std::cout, *meta );

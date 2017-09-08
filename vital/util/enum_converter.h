@@ -164,7 +164,7 @@ struct enum_converter
    */
   T from_string( const std::string& name )
   {
-    VITAL_FOREACH( const auto& elem, m_table )
+    for( const auto& elem : m_table )
     {
       if ( elem.first == name ) return elem.second;
     }
@@ -189,7 +189,7 @@ struct enum_converter
    */
   std::string to_string( T val )
   {
-    VITAL_FOREACH( const auto& elem, m_table )
+    for( const auto& elem : m_table )
     {
       if ( elem.second == val ) return elem.first;
     }
@@ -212,7 +212,7 @@ struct enum_converter
     bool first(true);
     std::stringstream str;
 
-    VITAL_FOREACH( const auto& elem, m_table )
+    for( const auto& elem : m_table )
     {
       if ( ! first )
       {

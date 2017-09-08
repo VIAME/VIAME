@@ -186,8 +186,8 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
 /// Create adaptor to iterate over non-zero cells in a sparse matrix
 /**
  *  This creates an adaptor () on an Eigen::SparseMatrix that can be iterated
- *  over with e.g. VITAL_FOREACH in order to visit each non-zero cell in the
- *  matrix.
+ *  over with e.g. a range-based for loop in order to visit each non-zero cell
+ *  in the matrix.
  */
 template < typename ValueT, int Options, typename IndexT >
 sparse_matrix_enumerator< ValueT, Options, IndexT > enumerate(

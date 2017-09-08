@@ -433,7 +433,7 @@ print_detections(
   {
     std::ofstream fout( filename.c_str() );
 
-    VITAL_FOREACH( std::string line, to_write )
+    for( std::string line : to_write )
     {
       fout << line << std::endl;
     }

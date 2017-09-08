@@ -260,7 +260,7 @@ IMPLEMENT_TEST(subset_cameras)
 
   camera_map::map_camera_t cam_map = cameras0->cameras();
   camera_map::map_camera_t cam_map2;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type& p, cam_map)
+  for(camera_map::map_camera_t::value_type& p : cam_map)
   {
     /// take every third camera
     if(p.first % 3 == 0)
@@ -858,8 +858,7 @@ test_ba_intrinsic_sharing(camera_map_sptr cameras,
   TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
 
   std::set<camera_intrinsics_sptr> intrin_set;
-  VITAL_FOREACH(const camera_map::map_camera_t::value_type& ci,
-                cameras0->cameras())
+  for (const camera_map::map_camera_t::value_type& ci : cameras0->cameras())
   {
     intrin_set.insert(ci.second->intrinsics());
   }
@@ -927,7 +926,7 @@ IMPLEMENT_TEST(auto_share_intrinsics)
   // combine the camera maps and offset the frame numbers
   const unsigned int offset = static_cast<unsigned int>(cameras1->size());
   camera_map::map_camera_t cams = cameras1->cameras();
-  VITAL_FOREACH(camera_map::map_camera_t::value_type ci, cameras2->cameras())
+  for(camera_map::map_camera_t::value_type ci : cameras2->cameras())
   {
     cams[ci.first + offset] = ci.second;
   }

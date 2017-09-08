@@ -81,7 +81,7 @@ thread_per_process_scheduler
   pipeline_t const p = pipeline();
   process::names_t const names = p->process_names();
 
-  VITAL_FOREACH (process::name_t const& name, names)
+  for (process::name_t const& name : names)
   {
     process_t const proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
@@ -114,7 +114,7 @@ thread_per_process_scheduler
 
   d->process_threads.reset(new boost::thread_group);
 
-  VITAL_FOREACH (process::name_t const& name, names)
+  for (process::name_t const& name : names)
   {
     process_t const process = pipeline()->process_by_name(name);
 

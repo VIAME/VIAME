@@ -435,7 +435,7 @@ track_features_core
   {
     std::vector<track_sptr> existing_tracks = existing_set->tracks();
     track_pairs_t track_matches;
-    VITAL_FOREACH(match m, vm)
+    for(match m : vm)
     {
       track_sptr tp = active_tracks[m.first];
       track_sptr tc = existing_tracks[m.second];
@@ -452,7 +452,7 @@ track_features_core
   {
     std::set<unsigned> matched;
 
-    VITAL_FOREACH(match m, vm)
+    for(match m : vm)
     {
       track_sptr t = active_tracks[m.first];
       auto fts = std::make_shared<feature_track_state>(frame_number);
@@ -479,7 +479,7 @@ track_features_core
                          unmatched_insert_itr );
 
     std::vector<track_sptr> all_tracks = prev_tracks->tracks();
-    VITAL_FOREACH(unsigned i, unmatched)
+    for(unsigned i : unmatched)
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[i];

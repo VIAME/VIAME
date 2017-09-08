@@ -94,7 +94,7 @@ IMPLEMENT_TEST(load_schedulers)
 
   sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
-  VITAL_FOREACH( auto fact, factories )
+  for( auto fact : factories )
   {
     sprokit::scheduler_t scheduler;
 

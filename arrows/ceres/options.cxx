@@ -407,7 +407,7 @@ camera_options
   // number of lens distortion parameters in the selected model
   const unsigned int ndp = num_distortion_params(this->lens_distortion_type);
   std::vector<double> intrinsic_params(5 + ndp, 0.0);
-  VITAL_FOREACH(const camera_map::map_camera_t::value_type& c, cameras)
+  for(const camera_map::map_camera_t::value_type& c : cameras)
   {
     std::vector<double> params(6);
     this->extract_camera_extrinsics(c.second, &params[0]);
@@ -456,7 +456,7 @@ camera_options
   if( this->optimize_intrinsics() )
   {
     // Update the camera intrinics with optimized values
-    VITAL_FOREACH(const std::vector<double>& cip, int_params)
+    for(const std::vector<double>& cip : int_params)
     {
       auto K = std::make_shared<simple_camera_intrinsics>();
       this->update_camera_intrinsics(K, &cip[0]);
@@ -466,7 +466,7 @@ camera_options
 
   // Update the cameras with the optimized values
   typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
-  VITAL_FOREACH(const cam_param_map_t::value_type& cp, ext_params)
+  for(const cam_param_map_t::value_type& cp : ext_params)
   {
     auto orig_cam = cameras[cp.first];
     auto simp_cam = std::dynamic_pointer_cast<simple_camera>(orig_cam);

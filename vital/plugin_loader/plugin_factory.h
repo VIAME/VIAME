@@ -151,7 +151,7 @@ public:
    */
   template < class T > void for_each_attr( T& f )
   {
-    VITAL_FOREACH( auto val, m_attribute_map )
+    for( auto val : m_attribute_map )
     {
       f( val.first, val.second );
     }
@@ -159,7 +159,7 @@ public:
 
   template < class T > void for_each_attr( T const& f ) const
   {
-    VITAL_FOREACH( auto const val, m_attribute_map )
+    for( auto const val : m_attribute_map )
     {
       f( val.first, val.second );
     }

@@ -153,7 +153,7 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
 
     m_context->output_stream() << indent << "-- Configuration --" << std::endl;
 
-    VITAL_FOREACH( auto  key, all_keys )
+    for( auto  key : all_keys )
     {
       auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
 
@@ -196,7 +196,7 @@ gen_pipefile_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
   auto config = ptr->get_configuration();
   auto all_keys = config->available_values();
 
-  VITAL_FOREACH( auto  key, all_keys )
+  for( auto  key : all_keys )
   {
     auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
 

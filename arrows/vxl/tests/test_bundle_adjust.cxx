@@ -310,7 +310,7 @@ IMPLEMENT_TEST(subset_cameras)
 
   camera_map::map_camera_t cam_map = cameras0->cameras();
   camera_map::map_camera_t cam_map2;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type& p, cam_map)
+  for(camera_map::map_camera_t::value_type& p : cam_map)
   {
     /// take every third camera
     if(p.first % 3 == 0)

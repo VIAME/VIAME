@@ -185,7 +185,7 @@ any_converter
 
   (void)lock;
 
-  VITAL_FOREACH (to_map_t::value_type const& to, s_to)
+  for (to_map_t::value_type const& to : s_to)
   {
     to_any_func_t const& func = to.second;
 
@@ -232,7 +232,7 @@ any_converter
     (void)lock;
 
     LOG_TRACE( s_logger, "FROM Conversions to try: " << s_from.size() );
-    VITAL_FOREACH (from_map_t::value_type const& from, s_from)
+    for (from_map_t::value_type const& from : s_from)
     {
       from_any_func_t const& func = from.second;
 
