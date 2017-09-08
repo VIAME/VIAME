@@ -36,6 +36,7 @@
 
 #include "track_set.h"
 
+#include <algorithm>
 #include <limits>
 
 #include <vital/vital_foreach.h>
@@ -384,6 +385,32 @@ track_set
 {
 }
 
+
+//===================================================================
+
+
+/// Return true if the set contains a specific track
+bool
+simple_track_set_implementation
+::contains( track_sptr t ) const
+{
+  return std::find(data_.begin(), data_.end(), t) != data_.end();
+}
+
+
+/// Remove a track from the set and return true if successful
+bool
+simple_track_set_implementation
+::remove( track_sptr t )
+{
+  auto itr = std::find(data_.begin(), data_.end(), t);
+  if ( itr == data_.end() )
+  {
+    return false;
+  }
+  data_.erase(itr);
+  return true;
+}
 
 
 } } // end namespace vital

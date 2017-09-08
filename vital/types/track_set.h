@@ -490,31 +490,16 @@ public:
   virtual bool empty() const { return data_.empty(); }
 
   /// Return true if the set contains a specific track
-  virtual bool contains( track_sptr t ) const
-  {
-    return std::find(data_.begin(), data_.end(), t) != data_.end();
-  }
+  virtual bool contains( track_sptr t ) const;
 
   /// Assign a vector of track shared pointers to this container
   virtual void set_tracks( std::vector< track_sptr > const& tracks ) { data_ = tracks; }
 
   /// Insert a track shared pointer into this container
-  virtual void insert( track_sptr t )
-  {
-    data_.push_back( t );
-  }
+  virtual void insert( track_sptr t ) { data_.push_back( t ); }
 
   /// Remove a track from the set and return true if successful
-  virtual bool remove( track_sptr t )
-  {
-    auto itr = std::find(data_.begin(), data_.end(), t);
-    if ( itr == data_.end() )
-    {
-      return false;
-    }
-    data_.erase(itr);
-    return true;
-  }
+  virtual bool remove( track_sptr t );
 
   /// Return a vector of track shared pointers
   virtual std::vector< track_sptr > tracks() const { return data_; }
