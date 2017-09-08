@@ -74,7 +74,7 @@ public:
   virtual void start()
   {
     m_active = true;
-    m_start = std::chrono::system_clock::now();
+    m_start = std::chrono::steady_clock::now();
   }
 
 
@@ -87,7 +87,7 @@ public:
   virtual void stop()
   {
     m_active = false;
-    m_end = std::chrono::system_clock::now();
+    m_end = std::chrono::steady_clock::now();
   }
 
 
@@ -104,7 +104,7 @@ public:
     if (m_active)
     {
       // Take a snapshot of the interval.
-      std::chrono::duration< double > elapsed_seconds = std::chrono::system_clock::now() - m_start;
+      std::chrono::duration< double > elapsed_seconds = std::chrono::steady_clock::now() - m_start;
       return elapsed_seconds.count();
     }
     else
@@ -116,8 +116,8 @@ public:
 
 private:
 
-  std::chrono::time_point< std::chrono::system_clock > m_start;
-  std::chrono::time_point< std::chrono::system_clock > m_end;
+  std::chrono::time_point< std::chrono::steady_clock > m_start;
+  std::chrono::time_point< std::chrono::steady_clock > m_end;
 
 }; // end class wall_timer
 
