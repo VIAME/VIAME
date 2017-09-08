@@ -99,3 +99,12 @@ Sprokit
 
 Fixes since v1.1.0
 ------------------
+
+Sprokit
+
+ * Top level pipeline descriptions that are sourced from a stream do
+   not have a file name to use when relativepath config entries are
+   specified. The fix is to add an optional parameter supplying the
+   directory and file name that represent the location of the pipeline
+   definition and can be used to supply needed directory for
+   relativepath.
