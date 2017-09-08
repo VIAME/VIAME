@@ -18,8 +18,8 @@ def make_image_input_files(data_fpath):
     cam2_image_fpaths = sorted(glob.glob(join(right_fpath, '*.jpg')))
 
     # Just use the first n for testing
-    # n = 10
-    n = len(cam1_image_fpaths)
+    # n = len(cam1_image_fpaths)
+    n = 1
     cam1_image_fpaths = cam1_image_fpaths[0:n]
     cam2_image_fpaths = cam2_image_fpaths[0:n]
 
@@ -42,7 +42,7 @@ def simple_pipeline():
         export PYTHONPATH=$(pwd):$PYTHONPATH
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
-        python ~/code/VIAME/plugins/camtrawl/camtrawl_pipeline_def.py
+        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
     """
 
     # Setup the input files
@@ -83,17 +83,25 @@ def simple_pipeline():
     cam1 = add_stereo_camera_branch(pipe, 'cam1_')
     cam2 = add_stereo_camera_branch(pipe, 'cam2_')
 
+    stereo_cameras = pipe.add_process(
+        name='stereo_cameras', type='stereo_calibration_camera_reader',
+        config={
+            # 'image_list_file': image_list_file,
+            # 'frame_time': 0.03333333,
+            # 'image_reader:type': 'ocv',
+        })
+
     # ------
     pipe.add_process(name='measure', type='camtrawl_measure', config={})
     pipe['measure'].iports.connect({
-        # 'camera1': pipe['cam1_input_camera'].oports['camera'],
-        # 'camera2': pipe['cam2_input_camera'].oports['camera'],
+        'camera1': stereo_cameras.oports['camera1'],
+        'camera2': stereo_cameras.oports['camera2'],
         'detected_object_set1': cam1['detect'].oports['detected_object_set'],
         'detected_object_set2': cam2['detect'].oports['detected_object_set'],
     })
     # ------
 
-    pipe.config['_pipeline:_edge']['capacity'] = 40
+    pipe.config['_pipeline:_edge']['capacity'] = 1
     pipe.config['_scheduler']['type'] = 'pythread_per_process'
 
     # pipe.draw_graph('pipeline.png')
@@ -118,7 +126,7 @@ if __name__ == '__main__':
         export PYTHONPATH=$HOME/code/VIAME/plugins/camtrawl:$PYTHONPATH
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
-        python ~/code/VIAME/plugins/camtrawl/camtrawl_pipeline_def.py
+        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
 
     Testing:
         # export SPROKIT_MODULE_PATH=$(pwd):$SPROKIT_MODULE_PATH
@@ -133,11 +141,10 @@ if __name__ == '__main__':
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
         cd ~/code/VIAME/plugins/camtrawl/
 
-        python ~/code/VIAME/plugins/camtrawl/camtrawl_pipeline_def.py
+        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
 
         cd ~/code/VIAME/plugins/camtrawl/
         cls && python -c "from sprokit import pipeline; print(pipeline.process_factory.types())"
-
 
         # Issue with sprokit python
         ```python
@@ -151,7 +158,5 @@ if __name__ == '__main__':
         # calling help results in a SEGFAULT
         help(ports)
         ```
-
-
     """
     simple_pipeline()

@@ -44,10 +44,12 @@ CommandLine:
 
     source ~/code/VIAME/build/install/setup_viame.sh
     export KWIVER_DEFAULT_LOG_LEVEL=info
+    export KWIVER_DEFAULT_LOG_LEVEL=debug
     export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
     python run_camtrawl.py
+    python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
 
     ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
 
@@ -107,10 +109,10 @@ def tmp_smart_cast_config(self):
         strval = self.config_value(key)
         val = ut.smart_cast2(strval)
         config[key] = val
+    return config
 
 
-@tmp_sprokit_register_process(name='camtrawl_stereo_calibration_reader',
-                              doc='preliminatry fish detection')
+@tmp_sprokit_register_process(name='stereo_calibration_camera_reader', doc='preliminatry fish detection')
 class CamtrawlStereoCalibrationReaderProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
@@ -295,8 +297,11 @@ class CamtrawlMeasureProcess(KwiverProcess):
         log.debug(' ----- step ' + self.__class__.__name__)
 
         if self.cal is None:
+            self.cal = True
+            log.debug(' ----- grab cam1 ' + self.__class__.__name__)
             # grab camera only if we dont have one yet
             camera1 = self.grab_input_using_trait('camera' + '1')
+            log.debug(' ----- grab cam2 ' + self.__class__.__name__)
             camera2 = self.grab_input_using_trait('camera' + '2')
 
             def _cal_from_vital(vital_camera):
@@ -315,10 +320,12 @@ class CamtrawlMeasureProcess(KwiverProcess):
                 }
                 return cam_dict
 
+            log.debug(' ----- parse cameras ' + self.__class__.__name__)
             self.cal = ctalgo.StereoCalibration({
                 'left': _cal_from_vital(camera1),
                 'right': _cal_from_vital(camera2),
             })
+            log.debug(' ----- no more need for cameras ' + self.__class__.__name__)
 
         detection_set1 = self.grab_input_using_trait('detected_object_set' + '1')
         detection_set2 = self.grab_input_using_trait('detected_object_set' + '2')
@@ -349,12 +356,17 @@ def __sprokit_register__():
 
     from sprokit.pipeline import process_factory
 
+    print("REGISTER THIS MODULE :", __name__)
+
     # module_name = 'python:camtrawl.camtrawl_processes'
     module_name = 'python' + __name__
     if process_factory.is_process_module_loaded(module_name):
         return
 
     for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
+        print("REGISTER:")
+        print('name = {!r}'.format(name))
+        print('cls = {!r}'.format(cls))
         process_factory.add_process(name, doc, cls)
 
     # process_factory.add_process('camtrawl_detect_fish',
