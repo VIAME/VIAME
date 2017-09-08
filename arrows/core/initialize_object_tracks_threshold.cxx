@@ -157,10 +157,10 @@ initialize_object_tracks_threshold
               kwiver::vital::image_container_sptr /*image*/,
               kwiver::vital::detected_object_set_sptr detections ) const
 {
-  auto filtered = d_->filter->filter( detections )->select();
+  auto filtered = d_->filter->filter( detections );
   std::vector< vital::track_sptr > output;
 
-  unsigned max_tracks = std::min( static_cast<unsigned>( filtered.size() ), d_->max_new_tracks );
+  unsigned max_tracks = std::min( static_cast<unsigned>( filtered->size() ), d_->max_new_tracks );
 
   for( unsigned i = 0; i < max_tracks; i++ )
   {
@@ -170,7 +170,7 @@ initialize_object_tracks_threshold
     new_track->set_id( new_id );
 
     vital::track_state_sptr first_track_state(
-      new vital::object_track_state( ts.get_frame(), filtered[i] ) );
+      new vital::object_track_state( ts.get_frame(), filtered->begin()[i] ) );
 
     new_track->append( first_track_state );
 

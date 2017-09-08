@@ -146,9 +146,10 @@ void read_track_descriptor_process
 
   std::string image_name;
   kwiver::vital::track_descriptor_set_sptr set;
+
   {
     scoped_step_instrumentation();
-    status = d->m_reader->read_set( set, image_name );
+    status = d->m_reader->read_set( set );
   }
 
   if( status )

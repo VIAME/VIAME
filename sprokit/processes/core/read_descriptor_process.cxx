@@ -86,14 +86,6 @@ read_descriptor_process
 // -------------------------------------------------------------------------------
 void
 read_descriptor_process
-::_configure()
-{
-}
-
-
-// -------------------------------------------------------------------------------
-void
-read_descriptor_process
 ::_step()
 {
   kwiver::vital::double_vector_sptr vect = grab_from_port_using_trait( d_vector );

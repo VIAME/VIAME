@@ -154,7 +154,7 @@ associate_detections_to_tracks_threshold
   auto all_tracks = tracks->tracks();
 
   std::vector< vital::track_sptr > tracks_to_output;
-  std::vector< bool > detections_used( all_detections.size(), false );
+  std::vector< bool > detections_used( all_detections->size(), false );
 
   for( unsigned t = 0; t < all_tracks.size(); ++t )
   {
@@ -163,7 +163,7 @@ associate_detections_to_tracks_threshold
 
     unsigned best_index = std::numeric_limits< unsigned >::max();
 
-    for( unsigned d = 0; d < all_detections.size(); ++d )
+    for( unsigned d = 0; d < all_detections->size(); ++d )
     {
       double value = matrix( t, d );
 
@@ -185,10 +185,11 @@ associate_detections_to_tracks_threshold
       }
     }
 
-    if( best_index < all_detections.size() )
+    if( best_index < all_detections->size() )
     {
       vital::track_state_sptr new_track_state(
-        new vital::object_track_state( ts.get_frame(), all_detections[best_index] ) );
+        new vital::object_track_state( ts.get_frame(),
+          all_detections->begin()[best_index] ) );
 
       vital::track_sptr adj_track( all_tracks[t]->clone() );
       adj_track->append( new_track_state );
@@ -204,11 +205,11 @@ associate_detections_to_tracks_threshold
 
   std::vector< vital::detected_object_sptr > unused_dets;
 
-  for( unsigned i = 0; i < all_detections.size(); ++i )
+  for( unsigned i = 0; i < all_detections->size(); ++i )
   {
     if( !detections_used[i] )
     {
-      unused_dets.push_back( all_detections[i] );
+      unused_dets.push_back( all_detections->begin()[i] );
     }
   }
 
@@ -217,7 +218,7 @@ associate_detections_to_tracks_threshold
   unused = vital::detected_object_set_sptr(
     new vital::detected_object_set( unused_dets ) );
 
-  return ( unused->size() != all_detections.size() );
+  return ( unused->size() != all_detections->size() );
 }
 
 
