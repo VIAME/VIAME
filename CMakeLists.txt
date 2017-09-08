@@ -126,6 +126,7 @@ if( VIAME_ENABLE_PYTHON )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
     mark_as_advanced( VIAME_SYMLINK_PYTHON )
   endif()
+  set(KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON})
 
   find_package( PythonInterp REQUIRED )
   find_package( PythonLibs REQUIRED )
