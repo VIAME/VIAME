@@ -46,6 +46,33 @@ namespace kwiver {
 
 create_config_trait( filter, std::string, "", "Algorithm configuration subblock." )
 
+// ----------------------------------------------------------------
+/**
+ * \class detected_object_filter_process
+ *
+ * \brief Filter detected image object sets.
+ *
+ * \process This process filters a set of detected image objects and
+ * produces a new set of detected image objects. The actual processing
+ * is done by the selected \b detected_object_filter algorithm
+ * implementation.
+ *
+ * \iports
+ *
+ * \iport{detected_object_set} Set of objects to be passed to the
+ * filtering algorithm.
+ *
+ * \oports
+ *
+ * \oport{detected_object_set} SEt of objects produced by the
+ * filtering algorithm.
+ *
+ * \configs
+ *
+ * \config{filter} Name of the configuration subblock that selects
+ * and configures the drawing algorithm.
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class detected_object_filter_process::priv
