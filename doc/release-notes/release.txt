@@ -29,6 +29,11 @@ Vital
     base method, allowing it to be called with one parameter from an instance
     whose static type is simple_camera.
 
+  * rotation::quaternion no longer returns the quaternion by reference.  This
+    fixes a potential dangling reference problem if this method is called on a
+    temporary object.  (In particular, this was causing several VXL arrow tests
+    to fail.)
+
 Sprokit
 
  * Previously the Python path used in Sprokit Python tests was incorrect due to
