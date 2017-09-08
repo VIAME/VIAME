@@ -96,6 +96,29 @@ Sprokit
  * Removed the CMake function sprokit_add_plugin and replaced it with the more
    general kwiver_add_plugin function that is used elsewhere in KWIVER.
 
+ * Process instrumentation calls have been added to all
+   processes. Process instrumentation provides the ability to monitor
+   the activity of processes on a per-process basis. It can be used to
+   trace process execution when debugging a pipeline hang or to
+   collect performance data. These instrumentation calls are handled
+   by an instrumentation provider selected at runtime on a per process
+   basis with the default implementation doing nothing. The following
+   is an example for how to specify a instrumentation handler.
+
+   process my_process :: process_type
+     block _instrumentation
+       type = logger    # select logger implementation
+       block  logger
+          # add config items for specific implementaion
+          # currently the logger has no additional configuration
+       endblock
+     endblock
+
+   The list of available implementations can be determined using the
+   following command:
+
+     $plugin_explorer --fact instrumentation
+
 
 Fixes since v1.1.0
 ------------------
