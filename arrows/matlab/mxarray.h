@@ -130,8 +130,6 @@ public:
     , m_owner( false )
   { }
 
-#if VITAL_USE_STD_NULLPTR
-
   /** NULL assignment.
    */
   MxArray& operator=( std::nullptr_t )
@@ -139,8 +137,6 @@ public:
     reset();
     return *this;
   }
-
-#endif
 
   /** Move constructor.
    */
