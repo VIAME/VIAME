@@ -38,7 +38,6 @@
 #include <iostream>
 #include <set>
 
-#include <vital/vital_foreach.h>
 #include <vital/util/cpu_timer.h>
 
 #include <arrows/vxl/camera_map.h>

@@ -41,7 +41,6 @@
 #include <vital/config/config_block_io.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_parser.h>
-#include <vital/vital_foreach.h>
 #include <kwiversys/CommandLineArguments.hxx>
 
 #include <cstdlib>

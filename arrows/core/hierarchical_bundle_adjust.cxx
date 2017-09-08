@@ -43,7 +43,6 @@
 
 #include <math.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/util/cpu_timer.h>
 
 #include <vital/algo/optimize_cameras.h>

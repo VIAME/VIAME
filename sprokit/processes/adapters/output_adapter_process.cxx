@@ -35,7 +35,6 @@
 
 #include "output_adapter_process.h"
 
-#include <vital/vital_foreach.h>
 #include <kwiver_type_traits.h>
 
 #include <stdexcept>

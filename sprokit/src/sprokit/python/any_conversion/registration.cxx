@@ -42,7 +42,6 @@
 #include <map>
 #include <iostream>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include "registration.h"

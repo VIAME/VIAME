@@ -44,7 +44,6 @@
 #include <map>
 
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 #include <vital/types/feature.h>
 #include <vital/types/descriptor.h>
 #include <kwiversys/SystemTools.hxx>

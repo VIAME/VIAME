@@ -36,7 +36,6 @@
 #include "embedded_pipeline.h"
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_manager.h>
 

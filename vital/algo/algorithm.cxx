@@ -35,7 +35,6 @@
 
 #include "algorithm.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
 

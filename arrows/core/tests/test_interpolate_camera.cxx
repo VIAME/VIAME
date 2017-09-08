@@ -46,7 +46,6 @@
 #define LOCAL_PI M_PI
 #endif
 
-#include <vital/vital_foreach.h>
 #include <arrows/core/interpolate_camera.h>
 
 #define TEST_ARGS ()

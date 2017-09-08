@@ -38,7 +38,6 @@
 #include <iostream>
 #include <set>
 
-#include <vital/vital_foreach.h>
 
 #include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>

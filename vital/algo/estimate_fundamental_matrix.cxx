@@ -35,7 +35,6 @@
 
 #include <vital/algo/estimate_fundamental_matrix.h>
 #include <vital/algo/algorithm.txx>
-#include <vital/vital_foreach.h>
 
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::estimate_fundamental_matrix);

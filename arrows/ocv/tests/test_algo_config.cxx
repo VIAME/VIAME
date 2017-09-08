@@ -43,7 +43,6 @@
 #include <vital/exceptions.h>
 #include <vital/logger/logger.h>
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/ocv/detect_features.h>

@@ -46,7 +46,6 @@
 #include <arrows/core/metrics.h>
 #include <vital/algo/triangulate_landmarks.h>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace testing {

@@ -37,7 +37,6 @@
 
 #include <time.h>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {

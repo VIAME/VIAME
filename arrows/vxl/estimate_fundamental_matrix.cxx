@@ -36,7 +36,6 @@
 
 #include "estimate_fundamental_matrix.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/enum_converter.h>
 #include <vital/types/feature.h>
 

@@ -30,7 +30,6 @@
 
 #include "input_adapter_process.h"
 
-#include <vital/vital_foreach.h>
 
 #include <stdexcept>
 #include <sstream>

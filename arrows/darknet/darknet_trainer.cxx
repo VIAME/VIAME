@@ -33,7 +33,6 @@
 
 #include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>

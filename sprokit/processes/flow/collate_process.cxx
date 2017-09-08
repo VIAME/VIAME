@@ -36,7 +36,6 @@
 
 #include "collate_process.h"
 
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>

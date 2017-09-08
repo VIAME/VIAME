@@ -38,7 +38,6 @@
 #include <vital/config/config_block.h>
 #include <vital/util/demangle.h>
 #include <vital/util/wrap_text_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
 

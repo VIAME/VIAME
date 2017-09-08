@@ -37,7 +37,6 @@
 
 #include <set>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <arrows/core/triangulate.h>

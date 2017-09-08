@@ -37,7 +37,6 @@
 
 #include <fstream>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 #include <cereal/archives/portable_binary.hpp>

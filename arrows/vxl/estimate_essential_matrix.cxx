@@ -36,7 +36,6 @@
 
 #include "estimate_essential_matrix.h"
 
-#include <vital/vital_foreach.h>
 
 #include <vital/types/feature.h>
 #include <arrows/vxl/camera.h>

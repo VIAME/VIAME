@@ -37,7 +37,6 @@
 
 #include "pipe_bakery_exception.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/string.h>
 #include <vital/util/token_type_sysenv.h>
 #include <vital/util/token_type_env.h>

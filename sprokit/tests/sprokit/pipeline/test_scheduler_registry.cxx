@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/pipeline/pipeline.h>

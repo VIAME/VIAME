@@ -45,7 +45,6 @@
 
 #include <vital/algo/estimate_homography.h>
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 
 #include <Eigen/LU>
 

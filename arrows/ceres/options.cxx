@@ -35,7 +35,6 @@
 
 #include "options.h"
 
-#include <vital/vital_foreach.h>
 #include <arrows/ceres/camera_smoothness.h>
 
 using namespace kwiver::vital;

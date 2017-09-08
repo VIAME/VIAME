@@ -36,7 +36,6 @@
 
 #include "estimate_homography.h"
 
-#include <vital/vital_foreach.h>
 
 #include <rrel/rrel_homography2d_est.h>
 #include <rrel/rrel_irls.h>

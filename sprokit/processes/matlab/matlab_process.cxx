@@ -37,7 +37,6 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <vital/types/timestamp.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/matlab/matlab_engine.h>
 #include <arrows/matlab/matlab_util.h>

@@ -31,7 +31,6 @@
 #include "export_dot.h"
 #include "export_dot_exception.h"
 
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>

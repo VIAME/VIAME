@@ -37,7 +37,6 @@
 
 #include <vital/logger/logger.h>
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>

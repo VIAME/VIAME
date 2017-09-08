@@ -30,7 +30,6 @@
 
 #include "class_probablity_filter.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/config/config_difference.h>
 #include <vital/util/string.h>
 

@@ -43,7 +43,6 @@
 #include <sprokit/python/util/python_threading.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/vital_foreach.h>
 
 #if WIN32
 #pragma warning (push)

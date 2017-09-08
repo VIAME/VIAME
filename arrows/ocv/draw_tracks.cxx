@@ -45,7 +45,6 @@
 #include <deque>
 
 #include <vital/vital_config.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 #include <vital/types/feature_track_set.h>

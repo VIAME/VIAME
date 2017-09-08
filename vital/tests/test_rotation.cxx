@@ -48,7 +48,6 @@
 #endif
 
 
-#include <vital/vital_foreach.h>
 #include <vital/types/rotation.h>
 
 

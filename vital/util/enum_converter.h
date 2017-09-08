@@ -31,7 +31,6 @@
 #ifndef VITAL_UTIL_ENUM_CONVERTER_H
 #define VITAL_UTIL_ENUM_CONVERTER_H
 
-#include <vital/vital_foreach.h>
 
 #include <vector>
 #include <utility>

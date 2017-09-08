@@ -35,7 +35,6 @@
 
 #include "landmark_map.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/types/landmark_map.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>

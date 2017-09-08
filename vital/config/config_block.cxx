@@ -36,7 +36,6 @@
 
 #include "config_block.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/string.h>
 
 #include <algorithm>

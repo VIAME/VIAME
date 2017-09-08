@@ -35,7 +35,6 @@
 
 #include "match_set.h"
 
-#include <vital/vital_foreach.h>
 
 
 namespace kwiver {

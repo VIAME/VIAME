@@ -39,7 +39,6 @@
 #include "pipe_declaration_types.h"
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>

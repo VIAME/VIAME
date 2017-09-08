@@ -45,7 +45,6 @@
 #include <vector>
 #include <iterator>
 
-#include <vital/vital_foreach.h>
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/feature_descriptor_io.h>

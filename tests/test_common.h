@@ -40,7 +40,6 @@
 #ifndef KWIVER_TEST_TEST_COMMON_H_
 #define KWIVER_TEST_TEST_COMMON_H_
 
-#include <vital/vital_foreach.h>
 
 #include <functional>
 #include <exception>

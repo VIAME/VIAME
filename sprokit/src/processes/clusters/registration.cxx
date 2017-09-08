@@ -39,7 +39,6 @@
 #include <processes/clusters/cluster-paths.h>
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <sprokit/pipeline_util/load_pipe_exception.h>

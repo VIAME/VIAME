@@ -41,7 +41,6 @@
 
 #include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
-#include <vital/vital_foreach.h>
 
 #include <kwiversys/SystemTools.hxx>
 #include <functional>

@@ -39,7 +39,6 @@
 
 #include <vital/types/track_set.h>
 #include <vital/io/track_set_io.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/track.h>

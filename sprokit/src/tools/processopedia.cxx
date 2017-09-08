@@ -32,7 +32,6 @@
 #include <sprokit/tools/tool_usage.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>

@@ -38,7 +38,6 @@
 #include "pipe_bakery_exception.h"
 #include "cluster_splitter.h"
 
-#include <vital/vital_foreach.h>
 
 
 namespace sprokit {

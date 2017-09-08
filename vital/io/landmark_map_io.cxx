@@ -38,7 +38,6 @@
 #include "landmark_map_io.h"
 
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <algorithm>

@@ -34,7 +34,6 @@
  */
 
 #include "match_matrix.h"
-#include <vital/vital_foreach.h>
 
 #include <map>
 

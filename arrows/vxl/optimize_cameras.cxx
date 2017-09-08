@@ -39,7 +39,6 @@
 #include <vector>
 #include <utility>
 
-#include <vital/vital_foreach.h>
 
 #include <vital/exceptions.h>
 

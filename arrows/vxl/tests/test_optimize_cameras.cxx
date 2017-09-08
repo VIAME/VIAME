@@ -45,7 +45,6 @@
 #include <arrows/core/projected_track_set.h>
 #include <arrows/vxl/optimize_cameras.h>
 
-#include <vital/vital_foreach.h>
 
 
 #define TEST_ARGS ()

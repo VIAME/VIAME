@@ -43,7 +43,6 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/demangle.h>
 #include <vital/noncopyable.h>
 

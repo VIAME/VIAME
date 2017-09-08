@@ -38,7 +38,6 @@
 #include "loaded_cluster.h"
 #include "provided_by_cluster.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <boost/make_shared.hpp>

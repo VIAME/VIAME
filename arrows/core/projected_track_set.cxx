@@ -35,7 +35,6 @@
 
 #include "projected_track_set.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/types/feature.h>
 
 namespace kwiver {

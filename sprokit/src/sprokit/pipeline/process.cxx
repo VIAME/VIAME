@@ -35,7 +35,6 @@
 #include "stamp.h"
 
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/vital_foreach.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/assign/ptr_map_inserter.hpp>

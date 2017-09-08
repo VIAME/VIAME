@@ -38,7 +38,6 @@
 #include <Eigen/Geometry>
 #include <Eigen/SVD>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {

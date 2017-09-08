@@ -35,7 +35,6 @@
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/match_matrix.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <algorithm>

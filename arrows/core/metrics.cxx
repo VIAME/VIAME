@@ -34,7 +34,6 @@
  */
 
 #include "metrics.h"
-#include <vital/vital_foreach.h>
 #include <vital/types/feature_track_set.h>
 
 

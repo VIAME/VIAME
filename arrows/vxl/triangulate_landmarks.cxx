@@ -37,7 +37,6 @@
 
 #include <set>
 
-#include <vital/vital_foreach.h>
 
 #include <arrows/vxl/camera_map.h>
 

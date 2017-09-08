@@ -30,7 +30,6 @@
 
 #include "detected_object_set_output_kw18.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <memory>

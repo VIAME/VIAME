@@ -37,7 +37,6 @@
 
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/optimize_cameras.h>
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {

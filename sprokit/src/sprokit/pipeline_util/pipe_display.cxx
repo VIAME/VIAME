@@ -31,7 +31,6 @@
 #include "pipe_display.h"
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/string.h>
 #include <vital/util/wrap_text_block.h>
 

@@ -41,7 +41,6 @@
 
 #include "test_random_point.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/feature_track_set.h>

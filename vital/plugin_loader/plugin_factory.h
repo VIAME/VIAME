@@ -35,7 +35,6 @@
 #include <vital/plugin_loader/vital_vpm_export.h>
 
 #include <vital/noncopyable.h>
-#include <vital/vital_foreach.h>
 #include <vital/exceptions/plugin.h>
 #include <string>
 #include <sstream>

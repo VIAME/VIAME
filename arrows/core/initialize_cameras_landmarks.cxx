@@ -38,7 +38,6 @@
 #include <deque>
 #include <iterator>
 
-#include <vital/vital_foreach.h>
 
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>

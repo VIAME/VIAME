@@ -38,7 +38,6 @@
 #include "config_parser.h"
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/wrap_text_block.h>
 
 #include <kwiversys/SystemTools.hxx>

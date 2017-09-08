@@ -40,7 +40,6 @@
 #include <vital/exceptions.h>
 
 #include <vital/algo/video_input.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/klv/klv_data.h>
 #include <vital/klv/klv_parse.h>

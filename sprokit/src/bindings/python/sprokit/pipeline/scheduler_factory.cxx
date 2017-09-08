@@ -42,7 +42,6 @@
 #include <sprokit/python/util/python_exceptions.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/vital_foreach.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>

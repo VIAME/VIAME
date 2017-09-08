@@ -36,7 +36,6 @@
 #include <test_common.h>
 #include <test_scene.h>
 
-#include <vital/vital_foreach.h>
 
 #include <arrows/core/metrics.h>
 #include <arrows/ceres/reprojection_error.h>

@@ -31,7 +31,6 @@
 #include "sync_scheduler.h"
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>

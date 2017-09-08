@@ -36,7 +36,6 @@
 #include <test_common.h>
 #include <test_scene.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/core/metrics.h>

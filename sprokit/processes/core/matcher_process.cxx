@@ -31,7 +31,6 @@
 #include "matcher_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>

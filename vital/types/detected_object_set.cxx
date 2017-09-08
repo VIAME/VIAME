@@ -31,7 +31,6 @@
 #include "detected_object_set.h"
 #include "bounding_box.h"
 
-#include <vital/vital_foreach.h>
 
 #include <algorithm>
 #include <stdexcept>

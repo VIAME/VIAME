@@ -35,7 +35,6 @@
 
 #include <vital/algo/estimate_homography.h>
 #include <vital/algo/algorithm.txx>
-#include <vital/vital_foreach.h>
 
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::estimate_homography);

@@ -36,7 +36,6 @@
 #include "estimate_canonical_transform.h"
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 
 #include <algorithm>
 

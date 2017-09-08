@@ -43,7 +43,6 @@
 
 #include <arrows/vxl/estimate_similarity_transform.h>
 
-#include <vital/vital_foreach.h>
 
 
 #define TEST_ARGS ()

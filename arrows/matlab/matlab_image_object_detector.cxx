@@ -37,7 +37,6 @@
 #include "matlab_engine.h"
 #include "matlab_util.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
 

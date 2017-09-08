@@ -36,7 +36,6 @@
 #include "process_factory.h"
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 
 #include <algorithm>
 #include <map>

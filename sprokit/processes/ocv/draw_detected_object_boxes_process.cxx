@@ -36,7 +36,6 @@
 #include "draw_detected_object_boxes_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <kwiversys/RegularExpression.hxx>
