@@ -34,7 +34,6 @@
  */
 
 #include "track_features_core.h"
-#include "merge_tracks.h"
 
 #include <algorithm>
 #include <numeric>

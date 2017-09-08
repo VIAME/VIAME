@@ -34,7 +34,7 @@
  */
 
 #include "close_loops_exhaustive.h"
-#include "merge_tracks.h"
+#include "match_tracks.h"
 
 #include <algorithm>
 #include <set>

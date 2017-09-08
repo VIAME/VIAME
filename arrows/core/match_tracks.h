@@ -30,11 +30,17 @@
 
 /**
  * \file
- * \brief Header defining functions to match and merge tracks
+ * \brief Header defining functions to match tracks
+ *
+ * This file contains various convenience functions that apply an algorithm
+ * designed to match features to a set of feature tracks which contain
+ * features.  In short, these functions extract features from the tracks,
+ * match them with the provided algorithm, and then map those feature
+ * matches back to the corresponding track matches.
  */
 
-#ifndef KWIVER_ARROWS_CORE_MERGE_TRACKS_H_
-#define KWIVER_ARROWS_CORE_MERGE_TRACKS_H_
+#ifndef KWIVER_ARROWS_CORE_MATCH_TRACKS_H_
+#define KWIVER_ARROWS_CORE_MATCH_TRACKS_H_
 
 
 #include <map>
@@ -131,4 +137,4 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_CORE_MERGE_TRACKS_H_
+#endif // KWIVER_ARROWS_CORE_MATCH_TRACKS_H_

@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of functions to match and merge tracks
+ * \brief Implementation of functions to match tracks
  */
 
-#include "merge_tracks.h"
+#include "match_tracks.h"
 
 
 namespace kwiver {

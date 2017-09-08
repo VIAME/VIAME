@@ -34,7 +34,7 @@
  */
 
 #include "close_loops_keyframe.h"
-#include "merge_tracks.h"
+#include "match_tracks.h"
 
 #include <set>
 #include <string>
