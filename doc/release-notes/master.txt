@@ -10,6 +10,10 @@ Updates since v1.1.0
 
 Vital
 
+ * Removed the VITAL_FOREACH macro and vital_foreach.h.  This was left over
+   from a time before C++11 was required.  You should now use a standard
+   C++11 range-based for loop instead.
+
  * Added new data types geo_point and geo_polygon for representing points
    and polygons in geographic coordinates.  These new types use the new
    geodetic conversion function and know how to convert themselves into
