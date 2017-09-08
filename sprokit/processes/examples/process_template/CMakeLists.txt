@@ -11,10 +11,12 @@ set( sources
   register_processes.cxx
 
   template_process.cxx
+  template_algo_wrapper.cxx
 )
 
 set( private_headers
   template_process.h
+  template_algo_wrapper.h
 )
 
 kwiver_private_header_group( ${private_headers} )
