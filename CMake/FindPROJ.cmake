@@ -33,7 +33,7 @@ elseif(NOT PROJ_FOUND)
     set(_PROJ_LIB_PATH_HINT HINTS "${proj_lib_dir}" "${proj_lib_dir}64" NO_CMAKE_SYSTEM_PATH)
   endif()
 
-  find_library(PROJ_LIBRARY proj
+  find_library(PROJ_LIBRARY NAMES proj proj_4_9 proj_4_9_d
     ${_PROJ_LIB_PATH_HINT}
     ${PROJ_FIND_OPTS}
     DOC "Path to the PROJ library."

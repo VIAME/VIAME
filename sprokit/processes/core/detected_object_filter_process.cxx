@@ -85,6 +85,8 @@ void
 detected_object_filter_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -107,7 +109,14 @@ detected_object_filter_process
 ::_step()
 {
   vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
-  vital::detected_object_set_sptr result = d->m_filter->filter( input );
+
+  vital::detected_object_set_sptr result;
+
+  {
+    scoped_step_instrumentation();
+
+    result = d->m_filter->filter( input );
+  }
 
   push_to_port_using_trait( detected_object_set, result );
 }
@@ -152,6 +161,5 @@ detected_object_filter_process::priv
 ::~priv()
 {
 }
-
 
 } //end namespace

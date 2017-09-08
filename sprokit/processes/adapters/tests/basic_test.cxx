@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/literal_pipeline.h>
@@ -121,7 +120,7 @@ IMPLEMENT_TEST( basic_pipeline )
   auto input_list = input_ad.port_list();
   TEST_EQUAL( "Number of input ports", input_list.size(), 3 );
   std::cout << "Input adapter ports:\n";
-  VITAL_FOREACH( auto port, input_list )
+  for( auto port : input_list )
   {
     std::cout << "    " << port << "\n";
   }
@@ -129,7 +128,7 @@ IMPLEMENT_TEST( basic_pipeline )
   auto output_list = output_ad.port_list();
   TEST_EQUAL( "Number of output ports", output_list.size(), 3 );
   std::cout << "\nOutput adapter ports:\n";
-  VITAL_FOREACH( auto port, output_list )
+  for( auto port : output_list )
   {
     std::cout << "    " << port << "\n";
   }
@@ -154,7 +153,7 @@ IMPLEMENT_TEST( basic_pipeline )
     auto ds = kwiver::adapter::adapter_data_set::create();
     int val = i;
 
-    VITAL_FOREACH( auto port, input_list )
+    for( auto port : input_list )
     {
       ds->add_value( port, (val++) );
     }
@@ -214,7 +213,7 @@ IMPLEMENT_TEST( embedded_pipeline )
   TEST_EQUAL( "Number of input ports", input_list.size(), 3 );
 
   std::cout << "Input adapter ports:\n";
-  VITAL_FOREACH( auto port, input_list )
+  for( auto port : input_list )
   {
     std::cout << "    " << port << "\n";
   }
@@ -223,7 +222,7 @@ IMPLEMENT_TEST( embedded_pipeline )
   TEST_EQUAL( "Number of output ports", output_list.size(), 3 );
 
   std::cout << "\nOutput adapter ports:\n";
-  VITAL_FOREACH( auto port, output_list )
+  for( auto port : output_list )
   {
     std::cout << "    " << port << "\n";
   }
@@ -237,7 +236,7 @@ IMPLEMENT_TEST( embedded_pipeline )
     auto ds = kwiver::adapter::adapter_data_set::create();
     int val = i;
 
-    VITAL_FOREACH( auto port, input_list )
+    for( auto port : input_list )
     {
       ds->add_value( port, (val++) );
     }

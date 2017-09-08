@@ -41,6 +41,7 @@
 #include <vital/exceptions.h>
 #include <vital/util/tokenize.h>
 #include <vital/video_metadata/video_metadata_traits.h>
+#include <vital/types/geodesy.h>
 #include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
@@ -111,7 +112,8 @@ read_pos_file( path_t const& file_path )
   md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_PITCH_ANGLE, std::stod( tokens[ base + 1] ) ) );
   md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_ROLL_ANGLE, std::stod( tokens[base + 2] ) ) );
 
-  kwiver::vital::geo_lat_lon latlon( std::stod( tokens[ base + 3]), std::stod( tokens[ base + 4 ] ) );
+  kwiver::vital::vector_2d raw_latlon{ std::stod( tokens[ base + 4 ]), std::stod( tokens[ base + 3 ] ) };
+  kwiver::vital::geo_point latlon{ raw_latlon, SRID::lat_lon_WGS84 };
   md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, latlon ) );
 
   // altitude is in feet in a POS file and needs to be converted to meters
@@ -183,9 +185,10 @@ write_pos_file( video_metadata const& md,
 
   if ( md.has( VITAL_META_SENSOR_LOCATION ) )
   {
-    kwiver::vital::geo_lat_lon latlon;
+    kwiver::vital::geo_point latlon;
     md.find( VITAL_META_SENSOR_LOCATION ).data( latlon );
-    ofile << latlon.latitude() << ", " << latlon.longitude() << ", ";
+    auto const& raw_latlon = latlon.location( SRID::lat_lon_WGS84 );
+    ofile << raw_latlon[1] << ", " << raw_latlon[0] << ", ";
   }
   else
   {
@@ -208,7 +211,7 @@ write_pos_file( video_metadata const& md,
   print_default( ofile, VITAL_META_IMU_STATUS,    "-1" ) << ", ";
   print_default( ofile, VITAL_META_LOCAL_ADJ,     "0" ) << ", ";
   print_default( ofile, VITAL_META_DST_FLAGS,     "0" );
- 
+
   ofile.close();
 }
 

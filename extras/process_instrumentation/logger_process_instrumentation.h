@@ -46,11 +46,10 @@ namespace sprokit {
 
 // -----------------------------------------------------------------
 /**
- * \brief Base class for process instrumentation.
+ * \brief Process instrumentation using the logger.
  *
- * This class is the abstract base class for process instrumentation.
- * It defines the interface processes can use to access an
- * instrumentation package using the strategy pattern.
+ * This class provides an implementation of process instrumentation
+ * where each event is recorded to the logger.
  */
 class logger_process_instrumentation
   : public process_instrumentation

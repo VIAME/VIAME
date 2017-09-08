@@ -77,6 +77,8 @@ void
 compute_stereo_depth_map_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   vital::algo::compute_stereo_depth_map::set_nested_algo_configuration( "computer", algo_config, d->m_computer );
@@ -104,8 +106,14 @@ _step()
   vital::image_container_sptr left_image = grab_from_port_using_trait( left_image );
   vital::image_container_sptr right_image = grab_from_port_using_trait( right_image );
 
-  // Get detections from computer on image
-  vital::image_container_sptr depth_map = d->m_computer->compute( left_image, right_image );
+  vital::image_container_sptr depth_map;
+
+  {
+    scoped_step_instrumentation();
+
+    // Get detections from computer on image
+    depth_map = d->m_computer->compute( left_image, right_image );
+  }
 
   push_to_port_using_trait( depth_map, depth_map );
 }

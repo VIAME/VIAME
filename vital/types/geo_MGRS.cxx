@@ -73,7 +73,7 @@ geo_MGRS
     return false;
   }
 
-  // TODO - what constututes a valid MGRS?
+  // TODO - what constitutes a valid MGRS?
   return true;
 }
 

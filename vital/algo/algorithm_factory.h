@@ -36,7 +36,6 @@
 #include <vital/algo/algorithm.h>
 
 #include <vital/vital_config.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 

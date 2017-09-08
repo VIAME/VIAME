@@ -43,7 +43,6 @@
 #include <vital/exceptions.h>
 #include <vital/logger/logger.h>
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/ocv/detect_features.h>
@@ -83,7 +82,7 @@ main(int argc, char* argv[])
 /// Logs configuration entries given a logging function that takes a single std::string argument
 #define log_config(lfunc, config) \
   std::stringstream lcss; \
-  VITAL_FOREACH( kwiver::vital::config_block_key_t key, config->available_values() ) \
+  for( kwiver::vital::config_block_key_t key : config->available_values() ) \
   { \
     lcss.str(""); \
     lcss << "\t// " << config->get_description(key) << "\n" \
@@ -176,7 +175,7 @@ IMPLEMENT_TEST(ocv_algo_config_defaults)
       "arrows.test.plugins.ocv.ocv_algo_config_defaults"
   );
 
-  VITAL_FOREACH( algorithm_sptr a, get_ocv_algos() )
+  for( algorithm_sptr a : get_ocv_algos() )
   {
     LOG_INFO(log, "Testing configuration for algorithm instance @" << a.get() );
     LOG_INFO(log, "-- Algorithm info: " << a->type_name() << "::"
@@ -216,7 +215,7 @@ IMPLEMENT_TEST(ocv_algo_empty_config)
       "arrows.test.plugins.ocv.algo_empty_config"
   );
 
-  VITAL_FOREACH( algorithm_sptr a, get_ocv_algos() )
+  for( algorithm_sptr a : get_ocv_algos() )
   {
     // Checking an empty config. Since there is literally nothing in the config,
     // we should pass here, as the default configuration should be used which

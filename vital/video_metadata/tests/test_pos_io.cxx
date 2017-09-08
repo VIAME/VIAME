@@ -39,8 +39,9 @@
 #include <sstream>
 
 #include <vital/video_metadata/pos_metadata_io.h>
+#include <vital/types/geo_point.h>
+#include <vital/types/geodesy.h>
 #include <vital/exceptions.h>
-
 
 #define TEST_ARGS ( kwiver::vital::path_t const &data_dir )
 DECLARE_TEST_MAP();
@@ -134,15 +135,17 @@ IMPLEMENT_TEST(output_format_test)
       TEST_EQUAL("Value of tag " << mdi.second->name(),
                  mdi.second->as_string(), other_mdi.as_string());
     }
-    else if ( mdi.second->type() == typeid(kwiver::vital::geo_lat_lon) )
+    else if ( mdi.second->type() == typeid(kwiver::vital::geo_point) )
     {
-      kwiver::vital::geo_lat_lon v1, v2;
+      kwiver::vital::geo_point v1, v2;
       mdi.second->data(v1);
       other_mdi.data(v2);
+      auto const& rv1 = v1.location( kwiver::vital::SRID::lat_lon_WGS84 );
+      auto const& rv2 = v2.location( kwiver::vital::SRID::lat_lon_WGS84 );
       TEST_NEAR("Value of tag " << mdi.second->name() << " (lat)",
-                v1.latitude(), v2.latitude(), epsilon);
+                rv1[1], rv2[1], epsilon);
       TEST_NEAR("Value of tag " << mdi.second->name() << " (long)",
-                v1.longitude(), v2.longitude(), epsilon);
+                rv1[0], rv2[0], epsilon);
     }
     else
     {

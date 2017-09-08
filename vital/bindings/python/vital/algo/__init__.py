@@ -41,7 +41,6 @@ from .bundle_adjust import BundleAdjust
 from .convert_image import ConvertImage
 from .estimate_canonical_transform import EstimateCanonicalTransform
 from .estimate_similarity_transform import EstimateSimilarityTransform
-from .geo_map import GeoMap
 from .image_io import ImageIo
 from .initialize_cameras_landmarks import InitializeCamerasLandmarks
 from .track_features import TrackFeatures

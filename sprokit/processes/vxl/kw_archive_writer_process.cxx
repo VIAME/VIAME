@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/vital_types.h>
+#include <vital/types/geodesy.h>
 #include <vital/types/image_container.h>
 #include <vital/types/image.h>
 #include <vital/types/timestamp.h>
@@ -93,7 +94,7 @@ public:
   void write_frame_data(vsl_b_ostream& stream,
                         bool write_image,
                         kwiver::vital::timestamp const& time,
-                        kwiver::vital::geo_corner_points const& corners,
+                        kwiver::vital::geo_polygon const& corners,
                         kwiver::vital::image const& img,
                         kwiver::vital::f2f_homography const& homog,
                         kwiver::vital::gsd_t gsd);
@@ -153,6 +154,8 @@ void
 kw_archive_writer_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Examine the configuration
   d->m_output_directory = config_value_using_trait( output_directory );
   d->m_base_filename    = config_value_using_trait( base_filename );
@@ -170,6 +173,8 @@ void
 kw_archive_writer_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   std::string path = d->m_output_directory + "/" + d->m_base_filename;
 
   // Make sure directory exists
@@ -273,36 +278,40 @@ kw_archive_writer_process
   kwiver::vital::f2f_homography homog = grab_from_port_using_trait( homography_src_to_ref );
 
   // corners
-  kwiver::vital::geo_corner_points corners = grab_input_using_trait( corner_points );
+  kwiver::vital::geo_polygon corners = grab_input_using_trait( corner_points );
 
   // gsd
   kwiver::vital::gsd_t gsd = grab_input_using_trait( gsd );
 
-  LOG_DEBUG( logger(), "processing frame " << frame_time );
-
-  *d->m_index_stream
-    << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
-    << static_cast< int64_t > ( d->m_data_stream->tellp() )
-    << std::endl;
-
-  d->write_frame_data( *d->m_data_bstream,
-                       /*write image=*/ true,
-                       frame_time, corners, image, homog, gsd );
-  if ( ! d->m_data_stream )
   {
-    // throw ( ); //+ need general runtime exception
-    // LOG_DEBUG("Failed while writing to .data stream");
-  }
+    scoped_step_instrumentation();
 
-  if ( d->m_meta_bstream )
-  {
-    d->write_frame_data( *d->m_meta_bstream,
-                         /*write48 image=*/ false,
+    LOG_DEBUG( logger(), "processing frame " << frame_time );
+
+    *d->m_index_stream
+      << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
+      << static_cast< int64_t > ( d->m_data_stream->tellp() )
+      << std::endl;
+
+    d->write_frame_data( *d->m_data_bstream,
+                         /*write image=*/ true,
                          frame_time, corners, image, homog, gsd );
-    if ( ! d->m_meta_stream )
+    if ( ! d->m_data_stream )
     {
-      // throw ( );
-      // LOG_DEBUG("Failed while writing to .meta stream");
+      // throw ( ); //+ need general runtime exception
+      // LOG_DEBUG("Failed while writing to .data stream");
+    }
+
+    if ( d->m_meta_bstream )
+    {
+      d->write_frame_data( *d->m_meta_bstream,
+                           /*write48 image=*/ false,
+                           frame_time, corners, image, homog, gsd );
+      if ( ! d->m_meta_stream )
+      {
+        // throw ( );
+        // LOG_DEBUG("Failed while writing to .meta stream");
+      }
     }
   }
 } // kw_archive_writer_process::_step
@@ -349,7 +358,7 @@ priv_t
 ::write_frame_data(vsl_b_ostream& stream,
                    bool write_image,
                    kwiver::vital::timestamp const& time,
-                   kwiver::vital::geo_corner_points const& corner_pts,
+                   kwiver::vital::geo_polygon const& corner_pts,
                    kwiver::vital::image const& img,
                    kwiver::vital::f2f_homography const& s2r_homog,
                    double gsd)
@@ -390,10 +399,12 @@ priv_t
   }
 
   std::vector< vnl_vector_fixed< double, 2 > > corners; // (x,y)
-  corners.push_back( vnl_double_2( corner_pts.p1.longitude(), corner_pts.p1.latitude() ) ); // ul
-  corners.push_back( vnl_double_2( corner_pts.p2.longitude(), corner_pts.p2.latitude() ) ); // ur
-  corners.push_back( vnl_double_2( corner_pts.p3.longitude(), corner_pts.p3.latitude() ) ); // lr
-  corners.push_back( vnl_double_2( corner_pts.p4.longitude(), corner_pts.p4.latitude() ) ); // ll
+  auto const pts = corner_pts.polygon( kwiver::vital::SRID::lat_lon_WGS84 );
+  for ( auto n = 0; n < pts.num_vertices(); ++n )
+  {
+    auto const& pt = pts.at( n );
+    corners.push_back( vnl_double_2( pt[0], pt[1] ) );
+  }
 
   stream.clear_serialisation_records();
   vsl_b_write( stream, u_seconds );

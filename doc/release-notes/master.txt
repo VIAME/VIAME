@@ -1,0 +1,137 @@
+KWIVER v1.2.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.1.0 release.
+
+
+Updates since v1.1.0
+--------------------
+
+Vital
+
+ * Removed the VITAL_FOREACH macro and vital_foreach.h.  This was left over
+   from a time before C++11 was required.  You should now use a standard
+   C++11 range-based for loop instead.
+
+ * Added new data types geo_point and geo_polygon for representing points
+   and polygons in geographic coordinates.  These new types use the new
+   geodetic conversion function and know how to convert themselves into
+   different coordinate systems.  These replace the old geo_UTM, geo_lat_lon
+   and geo_corner_points types.
+
+ * The geo_map algorithm has been replaced with a new non-algorithm mechanism
+   for geodetic conversion.  The new approach uses member functions on the new
+   geodetic types to request conversions in combination with a conversion
+   algorithm that must be provided and registered by a suitable plugin (e.g.
+   the PROJ.4 arrow).  Registration is automatic when the plugin is loaded,
+   with a mechanism in place for users to register their own algorithm if
+   desired.  The new API is also more general and supports arbitrary datums,
+   not just WGS84.
+
+ * Generalized the track and track_state types to be useful for both feature
+   and object tracks.  Data that is specific to features or objects is now
+   stored in subclasses of track_state.
+
+ * Generalized the track_set to be useful for both feature and object tracks.
+   Added derived classes for feature_track_set and object_track_set to
+   indicate the type of tracks in the set and provide specialized helper
+   functions.  Algorithm APIs previously using track_set now use either
+   feature_track_set or object_track_set.
+
+ * The track_set class now has a separate implementation class named
+   track_set_implementation.  Using a bridge design pattern this allows
+   any combination of implementations and derived track_set types.  Custom
+   track_set implementations allow alternative storage and query mechanisms
+   for better scalability and speed under different use cases.
+
+ * Track states now have a pointer (std::weak_ptr) back to the track object
+   which contains them.  This means that each track state can belong to at
+   most one track, and tracks and track states must now be created and
+   referenced only via shared_ptr.  Constructors for track are now protected
+   and "make()" static member is used for construction.  A "clone()" function
+   is now used for track copy construction.
+
+ * Array descriptors are now iterable (have begin/end methods), allowing them
+   to be used in standard algorithms, range-based for, etc.
+
+ * Detected object classifications (detected_object_type) are now iterable
+   (have begin/end methods), allowing them to be used in standard algorithms,
+   range-based for, etc.  This provides a much more efficient mechanism for
+   visiting all classifications.
+
+ * Improved plugin explorer so it is easier to get information ahout
+   processes and algorithms. Typicl usage for locating processes would
+   be to enter the following command to find which processes have to
+   do with reading.
+
+   $ plugin_explorer --proc read
+
+   Then enter the following command when the specific process has been
+   identified to get a detailed output about the process.
+
+   $ plugin_explorer --proc image_file_reader -d
+
+ * Added macros to access low level datum objects using port traits.
+
+ * Select operations on detected_object_set now return the selected
+   subset as a new detected_object_set.
+
+ * Detected object set is iterable. begin() and end() methods have
+   been added in place of returning the vector of detections. This
+   allows iteration over arbitrarily large detection sets. Also
+   simplifies the select methods that now return a detected_object_set
+   rather than a vector of detections.
+
+Vital Bindings
+
+ * Vital C and Python bindings have been updated with respect the refactoring
+   of tracks and track_sets to account for both feature and object tracks.
+
+Arrows: Core
+
+ * Added a new frame-indexed track_set_implementation.  When used in place of
+   the default track_set_implementation this implemenation will cache a mapping
+   from frame number to the set of track states on that frame.  This makes it
+   substantially faster to query tracks by frame ID.
+
+Sprokit
+
+ * Removed the CMake function sprokit_add_plugin and replaced it with the more
+   general kwiver_add_plugin function that is used elsewhere in KWIVER.
+
+ * Process instrumentation calls have been added to all
+   processes. Process instrumentation provides the ability to monitor
+   the activity of processes on a per-process basis. It can be used to
+   trace process execution when debugging a pipeline hang or to
+   collect performance data. These instrumentation calls are handled
+   by an instrumentation provider selected at runtime on a per process
+   basis with the default implementation doing nothing. The following
+   is an example for how to specify a instrumentation handler.
+
+   process my_process :: process_type
+     block _instrumentation
+       type = logger    # select logger implementation
+       block  logger
+          # add config items for specific implementaion
+          # currently the logger has no additional configuration
+       endblock
+     endblock
+
+   The list of available implementations can be determined using the
+   following command:
+
+     $plugin_explorer --fact instrumentation
+
+
+Fixes since v1.1.0
+------------------
+
+Sprokit
+
+ * Top level pipeline descriptions that are sourced from a stream do
+   not have a file name to use when relativepath config entries are
+   specified. The fix is to add an optional parameter supplying the
+   directory and file name that represent the location of the pipeline
+   definition and can be used to supply needed directory for
+   relativepath.

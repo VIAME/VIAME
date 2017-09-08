@@ -75,6 +75,7 @@ typedef std::shared_ptr< detected_object > detected_object_sptr;
 class VITAL_EXPORT detected_object
 {
 public:
+
   typedef std::vector< detected_object_sptr > vector_t;
   typedef descriptor_dynamic< double > descriptor_t;
   typedef std::shared_ptr< descriptor_t > descriptor_sptr;

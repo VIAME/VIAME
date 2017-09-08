@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 vital::feature class interface
 
 """
+from __future__ import print_function
 import ctypes
 
 import numpy
@@ -218,7 +219,7 @@ class Feature (VitalObject):
         if not isinstance(covar, Covariance):
             # Try an make a covariance out of whatever was provided
             covar = Covariance(2, self._datatype, covar)
-        print "Setting covar:", covar
+        print("Setting covar:", covar)
         self._call_cfunc(
             "vital_feature_{}_set_covar".format(self._tchar),
             [self.C_TYPE_PTR, Covariance.c_ptr_type(2, self._datatype)],

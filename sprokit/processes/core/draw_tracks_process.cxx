@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,8 @@ void
 draw_tracks_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   algo::draw_tracks::set_nested_algo_configuration( "draw_tracks", algo_config, d->m_draw_tracks );
@@ -118,11 +120,16 @@ draw_tracks_process
 {
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
   vital::feature_track_set_sptr tracks = grab_from_port_using_trait( feature_track_set );
-  kwiver::vital::image_container_sptr_list image_list;
-  image_list.push_back( img );
 
-  kwiver::vital::image_container_sptr annotated_image =
-    d->m_draw_tracks->draw( tracks, image_list );
+  kwiver::vital::image_container_sptr annotated_image;
+  {
+    scoped_step_instrumentation();
+
+    kwiver::vital::image_container_sptr_list image_list;
+    image_list.push_back( img );
+
+    annotated_image = d->m_draw_tracks->draw( tracks, image_list );
+  }
 
   // ( port, value )
   push_to_port_using_trait( output_image, annotated_image );

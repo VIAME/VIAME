@@ -40,7 +40,6 @@
 
 #include <vital/types/track_set.h>
 #include <vital/io/track_set_io.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/track.h>
@@ -187,7 +186,7 @@ vital_trackset_all_frame_ids( vital_trackset_t const *trackset, size_t *length,
     *length = fid_set.size();
     int64_t *frame_ids = (int64_t*)malloc(sizeof(int64_t) * (*length));
     size_t i=0;
-    VITAL_FOREACH( int64_t const &fid, fid_set )
+    for( int64_t const &fid : fid_set )
     {
       frame_ids[i] = fid;
       ++i;
@@ -210,7 +209,7 @@ vital_trackset_all_track_ids( vital_trackset_t const *trackset, size_t *length,
     *length = tid_set.size();
     int64_t *track_ids = (int64_t*)malloc( sizeof(int64_t) * (*length));
     size_t i = 0;
-    VITAL_FOREACH( int64_t const &tid, tid_set )
+    for( int64_t const &tid : tid_set )
     {
       track_ids[i] = tid;
       ++i;

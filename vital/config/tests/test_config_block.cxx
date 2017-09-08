@@ -38,6 +38,7 @@
 #include <vital/config/config_block.h>
 #include <vital/util/enum_converter.h>
 
+#include <vector>
 #include <functional>
 
 #define TEST_ARGS ()
@@ -939,4 +940,30 @@ IMPLEMENT_TEST(enum_conversion)
       "accessing description of invalid key"
       );
 
+}
+
+
+// ------------------------------------------------------------------
+IMPLEMENT_TEST(as_vector)
+{
+  using namespace kwiver::vital;
+
+  config_block_sptr const config = config_block::empty_config();
+
+  config->set_value("keya", "0.0 1.0 2.0 3.0");
+  config->set_value("keyb", "1, 2, 3, 4, 5, 6");
+
+  std::vector<double>dv = config->get_value_as_vector< double  >("keya");
+  TEST_EQUAL("dv size", dv.size(), 4 );
+  TEST_EQUAL("first value", dv[0], 0.0 );
+  TEST_EQUAL("second value", dv[1], 1.0 );
+  TEST_EQUAL("third value", dv[2], 2.0 );
+  TEST_EQUAL("4th value", dv[3], 3.0 );
+
+  std::vector<double>iv = config->get_value_as_vector< double  >("keyb", ", ");
+  TEST_EQUAL("iv size", iv.size(), 6 );
+  for ( auto i = 0; i < 6; ++i )
+  {
+    TEST_EQUAL("iv element", iv[i], i+1);
+  }
 }

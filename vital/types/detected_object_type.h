@@ -74,6 +74,9 @@ class VITAL_EXPORT detected_object_type
 public:
   static const double INVALID_SCORE;
 
+  using class_map_t = std::map< std::string const*, double >;
+  using class_const_iterator_t = class_map_t::const_iterator;
+
   /**
    * @brief Create an empty object.
    *
@@ -200,6 +203,31 @@ public:
   size_t size() const;
 
   /**
+   * @brief Get start iterator to all class/score pairs.
+   *
+   * This method returns an iterator that may be used to iterate over all
+   * class/score pairs. The order in which items will be seen by this iterator
+   * is unspecified.
+   *
+   * @return Start iterator to all class/score pairs.
+   *
+   * @sa end
+   */
+  class_const_iterator_t begin() const;
+
+  /**
+   * @brief Get end iterator to all class/score pairs.
+   *
+   * This method returns an iterator that may be used to end iteration over all
+   * class/score pairs.
+   *
+   * @return End iterator to all class/score pairs.
+   *
+   * @sa begin
+   */
+  class_const_iterator_t end() const;
+
+  /**
    * @brief Get list of all class_names in use.
    *
    * This method returns an ordered vector of all class_name strings.
@@ -217,7 +245,7 @@ private:
    * This map represents the ordered set of possibilities for this
    * object along with the class names.
    */
-  std::map< const std::string*, double > m_classes;
+  class_map_t m_classes;
 
   /**
    * @brief Set of all class_names used.

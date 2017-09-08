@@ -35,6 +35,7 @@ Interface to the vital::rotation_ class
 """
 import collections
 import ctypes
+from six.moves import range
 
 import numpy
 
@@ -339,7 +340,7 @@ class Rotation (VitalObject):
         with VitalErrorHandle() as eh:
             r_arr_ptr = r_interp(a, b, n, eh)
         r_list = []
-        for i in xrange(n):
+        for i in range(n):
             # Have to create a new pointer instance and copy the pointer value
             # at r_arr_ptr[i] into it.
             # the pointer content at index `i` in the ptr array

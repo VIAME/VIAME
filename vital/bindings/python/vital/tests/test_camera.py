@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Camera interface class.
 
 """
+from __future__ import print_function
 import ctypes
 import math
 import unittest
@@ -131,8 +132,8 @@ class TestVitalCamera (unittest.TestCase):
         m_expected = numpy.matrix("1 0 0 0;"
                                   "0 1 0 0;"
                                   "0 0 1 0")
-        print cam.as_matrix()
-        print m_expected
+        print(cam.as_matrix())
+        print(m_expected)
         numpy.testing.assert_array_equal(
             cam.as_matrix(),
             m_expected
@@ -170,8 +171,8 @@ class TestVitalCamera (unittest.TestCase):
         cam = Camera()
         cam_s = cam.as_string()
         cam2 = Camera.from_string(cam_s)
-        print "Default camera string:\n%s" % cam_s
-        print "Default newcam string:\n%s" % cam2.as_string()
+        print("Default camera string:\n%s" % cam_s)
+        print("Default newcam string:\n%s" % cam2.as_string())
         nose.tools.assert_equal(cam, cam2)
 
         center = EigenArray.from_iterable([[1],
@@ -181,8 +182,8 @@ class TestVitalCamera (unittest.TestCase):
         cam = Camera(center, rotation)
         cam_s = cam.as_string()
         cam2 = Camera.from_string(cam_s)
-        print "Custom camera string:\n%s" % cam_s
-        print "Custom newcam string:\n%s" % cam2.as_string()
+        print("Custom camera string:\n%s" % cam_s)
+        print("Custom newcam string:\n%s" % cam2.as_string())
         nose.tools.assert_equal(cam, cam2)
 
     def test_clone_look_at(self):
@@ -224,29 +225,29 @@ class TestVitalCamera (unittest.TestCase):
     def test_read_write_krtd_file(self):
         # Use a random string filename to avoid name collision.
         fname = 'temp_camera_test_read_write_krtd_file.txt'
-        
+
         try:
             for _ in range(100):
                 c = (rand(3)*2-1)*100
                 center = EigenArray.from_iterable(c)
                 rotation = Rotation.random()
-                intrinsics = CameraIntrinsics(focal_length=rand(1)*1e4, 
+                intrinsics = CameraIntrinsics(focal_length=rand(1)*1e4,
                                               principle_point=rand(2)*1000,
-                                              aspect_ratio=rand(1), 
-                                              skew=0., 
+                                              aspect_ratio=rand(1),
+                                              skew=0.,
                                               dist_coeffs=rand(3))
-                c1 = Camera(center=center, rotation=rotation, 
+                c1 = Camera(center=center, rotation=rotation,
                             intrinsics=intrinsics)
-        
+
                 c1.write_krtd_file(fname)
                 c2 = Camera.from_krtd_file(fname)
-                
+
                 err = numpy.linalg.norm(c1.center-c2.center)
                 assert err < 1e-9, ''.join(['Centers are different by ',
                                             str(err)])
-                
+
                 c1.rotation.angle_from(c2.rotation) < 1e-12
-                            
+
                 attr = ['focal_length','aspect_ratio','principle_point','skew',
                         'dist_coeffs']
                 for att in attr:

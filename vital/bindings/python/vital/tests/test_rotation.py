@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for vital.types.Rotation class
 
 """
+from __future__ import print_function
 import ctypes
 import math
 import unittest
@@ -144,7 +145,7 @@ class TestVitalRotation (unittest.TestCase):
     def test_to_ypr(self):
         # ypr identity: (pi/2, 0, pi)
         ident_ypr = (math.pi / 2, 0, -math.pi)
-        ident_ypr_float = map(lambda v: ctypes.c_float(v).value, ident_ypr)
+        ident_ypr_float = [ctypes.c_float(v).value for v in ident_ypr]
 
         rot_d = Rotation(ctypes.c_double)
         rot_f = Rotation(ctypes.c_float)
@@ -184,8 +185,8 @@ class TestVitalRotation (unittest.TestCase):
                             [ -1],
                             [0.5]])
         nod2_normed = array_normalize(rod2)
-        print 'r2 2-norm:', numpy.linalg.norm(rod2)
-        print 'r2-normed:', nod2_normed
+        print('r2 2-norm:', numpy.linalg.norm(rod2))
+        print('r2-normed:', nod2_normed)
 
         r2 = Rotation.from_rodrigues(rod2)
         numpy.testing.assert_array_almost_equal(

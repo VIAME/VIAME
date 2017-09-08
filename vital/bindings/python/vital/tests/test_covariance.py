@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Vital python Covariance class
 
 """
+from __future__ import print_function
 import ctypes
 import unittest
 
@@ -48,40 +49,40 @@ class TestVitalCovariance (unittest.TestCase):
     def test_new_identity(self):
         # Valid dimensions and types
         c = Covariance(2, ctypes.c_double)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(3, ctypes.c_double)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(2, ctypes.c_float)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(3, ctypes.c_float)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
 
     def test_new_scalar(self):
         c = Covariance(2, ctypes.c_double, 2.)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(3, ctypes.c_double, 2.)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(2, ctypes.c_float, 2.)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(3, ctypes.c_float, 2.)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
 
         c = Covariance(2, ctypes.c_double, 14.675)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(3, ctypes.c_double, 14.675)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(2, ctypes.c_float, 14.675)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
         c = Covariance(3, ctypes.c_float, 14.675)
-        print 'constructed matrix:\n', c.to_matrix()
+        print('constructed matrix:\n', c.to_matrix())
 
     def test_new_matrix(self):
         m = EigenArray(2, 2, dtype=numpy.double)
         m[:] = 1.
         c = Covariance(2, ctypes.c_double, m)
         m_out = c.to_matrix()
-        print 'input matrix:\n', m
-        print 'output matrix:\n', m_out
+        print('input matrix:\n', m)
+        print('output matrix:\n', m_out)
         numpy.testing.assert_array_equal(m_out, m)
 
         # Type casting should be handled
@@ -89,8 +90,8 @@ class TestVitalCovariance (unittest.TestCase):
         m[:] = 1.
         c = Covariance(2, ctypes.c_double, m)
         m_out = c.to_matrix()
-        print 'input matrix:\n', m
-        print 'output matrix:\n', m_out
+        print('input matrix:\n', m)
+        print('output matrix:\n', m_out)
         numpy.testing.assert_array_equal(m_out, m)
 
         # Any other numpy array of the correct shape should be acceptable
@@ -98,8 +99,8 @@ class TestVitalCovariance (unittest.TestCase):
         m[:] = 3.
         c = Covariance(2, ctypes.c_float, init_scalar_or_matrix=m)
         m_out = c.to_matrix()
-        print 'input matrix:\n', m
-        print 'output matrix:\n', m_out
+        print('input matrix:\n', m)
+        print('output matrix:\n', m_out)
         numpy.testing.assert_array_equal(m_out, m)
 
         # Diagonally congruent values should be averages when initializing with
@@ -111,8 +112,8 @@ class TestVitalCovariance (unittest.TestCase):
         m_expected[2,0] = 1.
         c = Covariance(3, init_scalar_or_matrix=m)
         m_out = c.to_matrix()
-        print 'input matrix:\n', m
-        print 'output matrix:\n', m_out
+        print('input matrix:\n', m)
+        print('output matrix:\n', m_out)
         numpy.testing.assert_array_equal(m_out, m_expected)
 
     def test_get_value(self):
@@ -120,7 +121,7 @@ class TestVitalCovariance (unittest.TestCase):
         # [[ 0 1 2 ]               [[ 0 2 4 ]
         #  [ 3 4 5 ]  -> should ->  [ 2 4 6 ]
         #  [ 6 7 8 ]]               [ 4 6 8 ]]
-        m.reshape((9,))[:] = range(9)
+        m.reshape((9,))[:] = list(range(9))
 
         c = Covariance(3, c_type=ctypes.c_double, init_scalar_or_matrix=m)
         # Test matrix upper triangle locations
@@ -169,7 +170,7 @@ class TestVitalCovariance (unittest.TestCase):
         # [[ 0 1 2 ]                      [[ 0 2 4 ]
         #  [ 3 4 5 ]  -> should become ->  [ 2 4 6 ]
         #  [ 6 7 8 ]]                      [ 4 6 8 ]]
-        m.reshape((9,))[:] = range(9)
+        m.reshape((9,))[:] = list(range(9))
         c = Covariance(3, c_type=ctypes.c_double, init_scalar_or_matrix=m)
 
         # modify some locations

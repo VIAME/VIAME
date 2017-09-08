@@ -40,6 +40,7 @@ interface usage.
 import logging
 import os
 import os.path
+from six.moves import range
 
 from vital import (
     apm,
@@ -255,7 +256,7 @@ class TrackFeaturesTool (object):
         test_f.close()
 
         tracks = TrackSet()
-        for frame_num in xrange(len(input_filepaths)):
+        for frame_num in range(len(input_filepaths)):
             input_img = self.algo_convert_img.convert(
                 self.algo_image_io.load(input_filepaths[frame_num])
             )

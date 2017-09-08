@@ -30,7 +30,6 @@
 
 #include "input_adapter_process.h"
 
-#include <vital/vital_foreach.h>
 
 #include <stdexcept>
 #include <sstream>
@@ -84,7 +83,7 @@ input_adapter_process
 
   // formulate list of current input ports
   auto ports = this->output_ports();
-  VITAL_FOREACH( auto port, ports )
+  for( auto port : ports )
   {
     port_info[port] = this->input_port_info( port );
   }
@@ -141,7 +140,7 @@ input_adapter_process
     mark_process_as_complete();
     const auto dat( sprokit::datum::complete_datum() );
 
-    VITAL_FOREACH( auto p, m_active_ports )
+    for( auto p : m_active_ports )
     {
       // Push each datum to their port
       push_datum_to_port( p, dat );

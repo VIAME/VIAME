@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,42 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief geo_map algorithm general helper function
- */
+#ifndef ARROWS_PROCESSES_ALGO_WRAPPER_PROCESS_H
+#define ARROWS_PROCESSES_ALGO_WRAPPER_PROCESS_H
 
-#include "geo_map.h"
-#include <vital/algo/algorithm.txx>
+#include <sprokit/pipeline/process.h>
 
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::geo_map);
-/// \endcond
+//+ use correct export include file
+#include "kwiver_processes_export.h"
+
+#include <vital/config/config_block.h>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
 
-
-geo_map
-::geo_map()
+// ----------------------------------------------------------------
+class KWIVER_PROCESSES_NO_EXPORT algo_wrapper_process
+  : public sprokit::process
 {
-  attach_logger( "geo_map" );
-}
+public:
+  algo_wrapper_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~algo_wrapper_process();
 
 
-/// Return the standard zone number for a Latitude and Longitude
-int
-geo_map
-::latlon_zone(double /*lat*/, double lon) const
-{
-  while(lon < -180)
-  {
-    lon += 360;
-  }
-  // this simplifed implementation ignores the exceptions to the
-  // standard UTM zone rules (e.g. around Norway)
-  return (static_cast<int>((lon + 180) / 6) % 60) + 1;
-}
+protected:
+  virtual void _configure();
+  virtual void _step();
+  //+ Implement other process base class methods as needed
 
-} } } // end namespace
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+};
+
+} // end namespace
+
+#endif // ARROWS_PROCESSES_ALGO_WRAPPER_PROCESS_H

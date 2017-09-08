@@ -35,6 +35,7 @@ Helper functions for testing various Vital components
 """
 import logging
 import math
+from six.moves import range
 
 import numpy
 
@@ -91,7 +92,7 @@ def init_landmarks(num_lm, c=None):
     if c is None:
         c = EigenArray.from_iterable([0, 0, 0])
     d = {}
-    for i in xrange(num_lm):
+    for i in range(num_lm):
         d[i] = Landmark(loc=c)
     return LandmarkMap.from_dict(d)
 
@@ -123,7 +124,7 @@ def camera_seq(num_cams=20, k=None):
         k = CameraIntrinsics(1000, [640, 480])
     d = {}
     r = Rotation()  # identity
-    for i in xrange(num_cams):
+    for i in range(num_cams):
         frac = float(i) / num_cams
         x = 4 * math.cos(2*frac)
         y = 3 * math.sin(2*frac)

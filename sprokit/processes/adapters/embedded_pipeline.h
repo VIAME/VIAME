@@ -1,4 +1,3 @@
-
 /*ckwg +29
  * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
@@ -141,8 +140,15 @@ public:
    * supplied stream.
    *
    * @param istr Input stream containing the pipeline description.
+   * @param def_dir The directory name used to report errors in the
+   * input stream and is used as the current directory to locate
+   * includes and to resolve relpath. Since the input stream being
+   * processed has no file name, the name "in-stream" is appended to
+   * the directory supplied so that errors in the stream can be
+   * differentiated from errors from other files. If this parameter is
+   * not supplied, the current directory is used.
    */
-  void build_pipeline( std::istream& istr );
+  void build_pipeline( std::istream& istr, std::string const& def_dir = "" );
 
   /**
    * @brief Send data set to input adapter.
