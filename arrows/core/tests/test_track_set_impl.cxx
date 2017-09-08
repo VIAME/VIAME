@@ -68,6 +68,22 @@ IMPLEMENT_TEST(frame_index_accessor_functions)
 }
 
 
+IMPLEMENT_TEST(frame_index_modifier_functions)
+{
+  using namespace kwiver::vital;
+  using namespace kwiver::vital::testing;
+  using kwiver::arrows::core::frame_index_track_set_impl;
+
+  auto test_set = make_simple_track_set();
+
+  typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+  test_set = std::make_shared<track_set>(
+               tsi_uptr(new frame_index_track_set_impl(test_set->tracks() ) ) );
+
+  test_track_set_modifiers(test_set);
+}
+
+
 IMPLEMENT_TEST(frame_index_matches_simple)
 {
   using namespace kwiver::vital;
