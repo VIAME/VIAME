@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,99 +28,115 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "image_filter_process.h"
+#include "algo_wrapper_process.h"
 
-#include <vital/algo/image_filter.h>
+#include <vital/algo/refine_detections.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 
+/*
+ * Note that the //+ comments are intended for the person who is
+ * adapting this template and should be removed from the final
+ * product.
+ */
+
 namespace kwiver {
 
-create_config_trait( filter, std::string, "", "Algorithm configuration subblock" );
+//+ Define a config entry for the main algorithm configuration
+//+ subblock. A name other than "algorithm" can be used if it is more
+//+ descriptive. If so, change name throughout the rest of this file also.
+create_config_trait( algo, std::string, "", "Algorithm configuration subblock" );
 
 //----------------------------------------------------------------
 // Private implementation class
-class image_filter_process::priv
+class algo_wrapper_process::priv
 {
 public:
   priv();
   ~priv();
 
-   vital::algo::image_filter_sptr m_filter;
+  //+ define sptr to specific algorithm type
+  vital::algo::algo_type_sptr m_algo;
 
 }; // end priv class
 
 
 // ==================================================================
-image_filter_process::
-image_filter_process( kwiver::vital::config_block_sptr const& config )
+algo_wrapper_process::
+algo_wrapper_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new image_filter_process::priv )
+    d( new algo_wrapper_process::priv )
 {
   // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  attach_logger( kwiver::vital::get_logger( name() ) );
 
   make_ports();
   make_config();
 }
 
 
-image_filter_process::
-~image_filter_process()
+algo_wrapper_process::
+~algo_wrapper_process()
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-image_filter_process::
+algo_wrapper_process::
 _configure()
 {
-  scoped_configure_instrumentation();
+  start_configure_processing();
 
   vital::config_block_sptr algo_config = get_config();
 
-  vital::algo::image_filter::set_nested_algo_configuration( "filter", algo_config, d->m_filter );
-
-  if ( ! d->m_filter )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create filter" );
-  }
-
-  vital::algo::image_filter::get_nested_algo_configuration( "filter", algo_config, d->m_filter );
-
-  // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::image_filter::check_nested_algo_configuration( "filter", algo_config ) )
+  // Check config so it will give run-time diagnostic of config problems.
+  // Call check_nested_algo_configuration() first so that it will display a list of
+  // concrete instances of the desired algorithms that are available if the config
+  // does not select a valid one.
+  if ( ! vital::algo::refine_detections::check_nested_algo_configuration( "algo", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-}
 
+  vital::algo::refine_detections::set_nested_algo_configuration( "algo", algo_config, d->m_algo );
 
-// ------------------------------------------------------------------
-void
-image_filter_process::
-_step()
-{
-  vital::image_container_sptr input = grab_from_port_using_trait( image );
-
-  vital::image_container_sptr result;
-
+  if ( ! d->m_algo )
   {
-    scoped_step_instrumentation();
-
-    // Get detections from filter on image
-    result = d->m_filter->filter( input );
+    throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm" );
   }
 
-  push_to_port_using_trait( image, result );
+  stop_configure_processing();
 }
 
 
 // ------------------------------------------------------------------
 void
-image_filter_process::
+algo_wrapper_process::
+_step()
+{
+  //+ get inputs as needed
+  vital::image_container_sptr image = grab_from_port_using_trait( image );
+  vital::detected_object_set_sptr dets = grab_from_port_using_trait( detected_object_set );
+
+  start_step_processing();      // Mark start of productive processing
+
+  // Send inputs to algorithm
+
+  //+ This call must correspond to the wrapped algorithm.
+  vital::detected_object_set_sptr results = d->m_algo->process( image, dets );
+
+  stop_step_processing();       // Mark end of productive processing
+
+  //+ push output as needed
+  push_to_port_using_trait( detected_object_set, results );
+}
+
+
+// ------------------------------------------------------------------
+void
+algo_wrapper_process::
 make_ports()
 {
   // Set up for required ports
@@ -130,30 +146,31 @@ make_ports()
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port_using_trait( image, required );
+  declare_input_port_using_trait( image, optional );
+  declare_input_port_using_trait( detected_object_set, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( detected_object_set, optional );
 }
 
 
 // ------------------------------------------------------------------
 void
-image_filter_process::
+algo_wrapper_process::
 make_config()
 {
-  declare_config_using_trait( filter );
+  declare_config_using_trait( slgorithm );
 }
 
 
 // ================================================================
-image_filter_process::priv
+algo_wrapper_process::priv
 ::priv()
 {
 }
 
 
-image_filter_process::priv
+algo_wrapper_process::priv
 ::~priv()
 {
 }

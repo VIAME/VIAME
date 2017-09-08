@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Image display process interface.
- */
-
-#ifndef _KWIVER_READ_DESCRIPTOR_PROCESS_H
-#define _KWIVER_READ_DESCRIPTOR_PROCESS_H
+#ifndef ARROWS_PROCESSES_ALGO_WRAPPER_PROCESS_H
+#define ARROWS_PROCESSES_ALGO_WRAPPER_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
+
+//+ use correct export include file
 #include "kwiver_processes_export.h"
 
-#include <memory>
+#include <vital/config/config_block.h>
 
-namespace kwiver
-{
+namespace kwiver {
 
 // ----------------------------------------------------------------
-/**
- * @brief Display images
- *
- */
-class KWIVER_PROCESSES_NO_EXPORT read_descriptor_process
+class KWIVER_PROCESSES_NO_EXPORT algo_wrapper_process
   : public sprokit::process
 {
 public:
-  // -- CONSTRUCTORS --
-  read_descriptor_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_descriptor_process();
+  algo_wrapper_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~algo_wrapper_process();
+
 
 protected:
+  virtual void _configure();
   virtual void _step();
+  //+ Implement other process base class methods as needed
 
 private:
   void make_ports();
   void make_config();
 
-
   class priv;
   const std::unique_ptr<priv> d;
-
-}; // end class read_descriptor_process
+};
 
 } // end namespace
 
-#endif /* _KWIVER_READ_DESCRIPTOR_PROCESS_H */
+#endif // ARROWS_PROCESSES_ALGO_WRAPPER_PROCESS_H

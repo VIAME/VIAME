@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,8 @@ detected_object_output_process
 void detected_object_output_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -123,6 +125,8 @@ void detected_object_output_process
 void detected_object_output_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   d->m_writer->open( d->m_file_name ); // throws
 }
 
@@ -141,7 +145,11 @@ void detected_object_output_process
 
   kwiver::vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
 
-  d->m_writer->write_set( input, file_name );
+  {
+    scoped_step_instrumentation();
+
+    d->m_writer->write_set( input, file_name );
+  }
 }
 
 

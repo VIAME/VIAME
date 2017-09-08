@@ -80,6 +80,8 @@ draw_detected_object_set_process
 void draw_detected_object_set_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -103,7 +105,13 @@ void draw_detected_object_set_process
   auto input_image = grab_from_port_using_trait( image );
   auto obj_set = grab_from_port_using_trait( detected_object_set );
 
-  auto out_image = d->m_algo->draw( obj_set, input_image );
+  kwiver::vital::image_container_sptr out_image;
+
+  {
+    scoped_step_instrumentation();
+
+    out_image = d->m_algo->draw( obj_set, input_image );
+  }
 
   push_to_port_using_trait( image, out_image );
 }

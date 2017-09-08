@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -337,6 +337,8 @@ void
 draw_detected_object_boxes_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   d->m_do_alpha                 = config_value_using_trait( alpha_blend_prob );
   d->m_clip_box_to_image        = config_value_using_trait( clip_box_to_image );
   d->m_tmp_custom               = config_value_using_trait( custom_class_color );
@@ -357,6 +359,8 @@ void
 draw_detected_object_boxes_process::
 _reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
+  scoped_reconfigure_instrumentation();
+
   d->m_do_alpha                 = reconfig_value_using_trait( conf, alpha_blend_prob );
   d->m_clip_box_to_image        = reconfig_value_using_trait( conf, clip_box_to_image );
   d->m_tmp_custom               = reconfig_value_using_trait( conf, custom_class_color );
@@ -377,6 +381,8 @@ void
 draw_detected_object_boxes_process::
 process_config()
 {
+  scoped_configure_instrumentation();
+
   // Parse custom class color specification
   // class/line-thickness/color-rgb;class/line-thickness/color-rgc
   // e.g. person/3.5/0 0 255;
@@ -449,9 +455,14 @@ _step()
   vital::image_container_sptr img = grab_from_port_using_trait( image );
   vital::detected_object_set_sptr detections = grab_from_port_using_trait( detected_object_set );
 
-  LOG_DEBUG( logger(), "Processing " << detections->size() << " detections" );
+  vital::image_container_sptr result;
+  {
+    scoped_step_instrumentation();
 
-  vital::image_container_sptr result = d->draw_detections( img, detections );
+    LOG_DEBUG( logger(), "Processing " << detections->size() << " detections" );
+
+    result = d->draw_detections( img, detections );
+  }
 
   push_to_port_using_trait( image, result );
 }

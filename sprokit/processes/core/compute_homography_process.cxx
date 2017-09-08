@@ -91,7 +91,15 @@ compute_homography_process
 void compute_homography_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   kwiver::vital::config_block_sptr algo_config = get_config();
+
+  // Check config so it will give run-time diagnostic of config problems
+  if ( ! algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config ) )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+  }
 
   algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )
@@ -101,13 +109,6 @@ void compute_homography_process
   }
 
   algo::compute_ref_homography::get_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
-
-  // Check config so it will give run-time diagnostic of config problems
-  if ( ! algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config ) )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
-  }
-
 }
 
 
@@ -121,11 +122,15 @@ compute_homography_process
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
   vital::feature_track_set_sptr tracks = grab_from_port_using_trait( feature_track_set );
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  {
+    scoped_step_instrumentation();
 
-  // Get stabilization homography
-  src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), tracks );
+    // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
+
+    // Get stabilization homography
+    src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), tracks );
+  }
 
   // return by value
   push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );
@@ -154,7 +159,6 @@ void compute_homography_process
 void compute_homography_process
 ::make_config()
 {
-
 }
 
 
