@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +30,54 @@
 
 /**
  * \file
- * \brief Header defining abstract image object detector
+ * \brief Implementation of VXL split image algorithm
  */
 
-#ifndef VITAL_ALGO_REFINE_DETECTIONS_H_
-#define VITAL_ALGO_REFINE_DETECTIONS_H_
+#include "split_image.h"
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
+#include <arrows/vxl/image_container.h>
 
-#include <vector>
+#include <vil/vil_crop.h>
+#include <vil/vil_copy.h>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace vxl {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector base class/
- *
- */
-class VITAL_ALGO_EXPORT refine_detections
-: public algorithm_def<refine_detections>
+/// Constructor
+split_image
+::split_image()
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "refine_detections"; }
+}
 
-  /// Refine all object detections on the provided image
-  /**
-   * This method analyzes the supplied image and and detections on it,
-   * returning a refined set of detections.
-   *
-   * \param image_data the image pixels
-   * \param detections detected objects
-   * \returns vector of image objects refined
-   */
-  virtual detected_object_set_sptr
-  refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const = 0;
+/// Destructor
+split_image
+::~split_image()
+{
+}
 
-protected:
-  refine_detections();
-};
+/// Split image
+std::vector< kwiver::vital::image_container_sptr >
+split_image
+::split(kwiver::vital::image_container_sptr image) const
+{
+  std::vector< kwiver::vital::image_container_sptr > output;
+  vil_image_view< vxl_byte > vxl_image = vxl::image_container::vital_to_vxl( image->get_image() );
 
-/// Shared pointer for generic refine_detections definition type.
-typedef std::shared_ptr<refine_detections> refine_detections_sptr;
+  vil_image_view< vxl_byte > left_image_copy, left_image
+    = vil_crop( vxl_image, 0, vxl_image.ni()/2, 0, vxl_image.nj() );
+  vil_image_view< vxl_byte > right_image_copy, right_image
+    = vil_crop( vxl_image, vxl_image.ni()/2, vxl_image.ni()/2, 0, vxl_image.nj() );
 
-} } } // end namespace
+  vil_copy_deep( left_image, left_image_copy );
+  vil_copy_deep( right_image, right_image_copy );
 
-#endif //VITAL_ALGO_REFINE_DETECTIONS_H_
+  output.push_back( vital::image_container_sptr( new vxl::image_container( left_image_copy ) ) );
+  output.push_back( vital::image_container_sptr( new vxl::image_container( right_image_copy ) ) );
+
+  return output;
+}
+
+} // end namespace vxl
+} // end namespace arrows
+} // end namespace kwiver

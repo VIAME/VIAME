@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,56 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header defining abstract image object detector
- */
+#include <vital/algo/algorithm.txx>
 
-#ifndef VITAL_ALGO_REFINE_DETECTIONS_H_
-#define VITAL_ALGO_REFINE_DETECTIONS_H_
+#include "split_image.h"
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/detected_object_set.h>
-
-#include <vector>
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::split_image);
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector base class/
- *
- */
-class VITAL_ALGO_EXPORT refine_detections
-: public algorithm_def<refine_detections>
+split_image
+::split_image()
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "refine_detections"; }
+  attach_logger( "split_image" );
+}
 
-  /// Refine all object detections on the provided image
-  /**
-   * This method analyzes the supplied image and and detections on it,
-   * returning a refined set of detections.
-   *
-   * \param image_data the image pixels
-   * \param detections detected objects
-   * \returns vector of image objects refined
-   */
-  virtual detected_object_set_sptr
-  refine( image_container_sptr image_data,
-          detected_object_set_sptr detections ) const = 0;
 
-protected:
-  refine_detections();
-};
+/// Set this algorithm's properties via a config block
+void
+split_image
+::set_configuration(kwiver::vital::config_block_sptr config)
+{
+  (void) config;
+}
 
-/// Shared pointer for generic refine_detections definition type.
-typedef std::shared_ptr<refine_detections> refine_detections_sptr;
+/// Check that the algorithm's current configuration is valid
+bool
+split_image
+::check_configuration(kwiver::vital::config_block_sptr config) const
+{
+  (void) config;
+  return true;
+}
+
 
 } } } // end namespace
-
-#endif //VITAL_ALGO_REFINE_DETECTIONS_H_
