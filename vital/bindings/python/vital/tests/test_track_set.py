@@ -34,6 +34,7 @@ Tests for Python interface to vital::track_set
 
 """
 import ctypes
+from six.moves import range
 
 from vital.types import Track, TrackState
 from vital.types import TrackSet
@@ -57,7 +58,7 @@ class TestVitalTrackSet (object):
 
     def test_new_nonempty(self):
         n = 10
-        tracks = [Track(i) for i in xrange(n)]
+        tracks = [Track(i) for i in range(n)]
         ts = TrackSet(tracks)
         nt.assert_true(ts, "Invalid track set instance constructed")
         nt.assert_equal(len(ts), n)
@@ -65,7 +66,7 @@ class TestVitalTrackSet (object):
 
     def test_tracklist_accessor(self):
         n = 10
-        tracks = [Track(i) for i in xrange(n)]
+        tracks = [Track(i) for i in range(n)]
         ts = TrackSet(tracks)
         ts_tracks = ts.tracks()
 
@@ -78,7 +79,7 @@ class TestVitalTrackSet (object):
         # (same C/C++ instances).
         ts2 = TrackSet(ts_tracks)
         ts2_tracks = ts2.tracks()
-        for i in xrange(n):
+        for i in range(n):
             ctypes.addressof(ts2_tracks[0].c_pointer.contents) \
                 == ctypes.addressof(ts2_tracks[0].c_pointer.contents)
 

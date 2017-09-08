@@ -49,6 +49,7 @@ from vital.exceptions.config_block_io import (
 from vital.util import VitalObject, VitalErrorHandle, free_void_ptr
 
 import os
+from six.moves import range
 import tempfile
 
 
@@ -422,7 +423,7 @@ class ConfigBlock (VitalObject):
 
         # Constructing return array
         r = []
-        for i in xrange(length.value):
+        for i in range(length.value):
             r.append(keys[i])
 
         # Free allocated key listing

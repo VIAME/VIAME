@@ -34,6 +34,7 @@ Interface to VITAL track class.
 
 """
 import ctypes
+from six.moves import range
 
 from vital.util import VitalObject, free_void_ptr
 
@@ -235,7 +236,7 @@ class Track (VitalObject):
             ctypes.POINTER(ctypes.c_int64)
         )
         r = set()
-        for i in xrange(n.value):
+        for i in range(n.value):
             r.add(s[i])
         free_void_ptr(s)
         return r
