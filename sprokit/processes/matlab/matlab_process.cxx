@@ -37,7 +37,6 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <vital/types/timestamp.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/matlab/matlab_engine.h>
 #include <arrows/matlab/matlab_util.h>
@@ -150,7 +149,7 @@ matlab_process
   // Iterate over all values in this config block and pass the values
   // to the matlab as variable assignments.
   auto keys = algo_config->available_values();
-  VITAL_FOREACH( auto k, keys )
+  for( auto k : keys )
   {
     std::stringstream config_command;
     config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";

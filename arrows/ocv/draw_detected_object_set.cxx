@@ -36,7 +36,6 @@
 #include "draw_detected_object_set.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <kwiversys/RegularExpression.hxx>
@@ -246,7 +245,7 @@ public:
       int count( 0 );
 
       // Draw once for each selected class_name
-      VITAL_FOREACH( auto n, names )
+      for( auto n : names )
       {
         double score = det_type->score( n );
         if ( score < m_threshold || ! name_selected( n ) )
@@ -294,7 +293,7 @@ process_config()
     std::vector< std::string > cspec;
     kwiver::vital::tokenize( m_tmp_custom, cspec, ";", true );
 
-    VITAL_FOREACH( auto cs, cspec )
+    for( auto cs : cspec )
     {
       kwiversys::RegularExpression exp( "\\$([^/]+)/([0-9.]+)/([0-9]+) ([0-9]+) ([0-9]+)" );
 

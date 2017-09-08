@@ -30,7 +30,6 @@
 
 #include "detected_object_type.h"
 
-#include <vital/vital_foreach.h>
 
 #include <stdexcept>
 #include <limits>

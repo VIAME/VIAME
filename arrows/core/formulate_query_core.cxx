@@ -43,7 +43,6 @@
 #include <vector>
 #include <iterator>
 
-#include <vital/vital_foreach.h>
 #include <vital/algo/algorithm.h>
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>

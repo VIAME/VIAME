@@ -36,7 +36,6 @@
 
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/estimate_canonical_transform.h>
-#include <vital/vital_foreach.h>
 
 
 /// \cond DoxygenSuppress

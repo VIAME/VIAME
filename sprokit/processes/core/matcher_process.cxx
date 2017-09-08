@@ -31,7 +31,6 @@
 #include "matcher_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
@@ -195,7 +194,7 @@ matcher_process
       std::vector< vital::match > vm = mset->matches();
       std::set< unsigned > matched;
 
-      VITAL_FOREACH( vital::match m, vm )
+      for( vital::match m : vm )
       {
         matched.insert( m.second );
         vital::track_sptr t = active_tracks[m.first];
@@ -211,7 +210,7 @@ matcher_process
                            matched.begin(), matched.end(),
                            unmatched_insert_itr );
 
-      VITAL_FOREACH( unsigned i, unmatched )
+      for( unsigned i : unmatched )
       {
         auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[i], df[i] );
 

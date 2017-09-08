@@ -38,7 +38,6 @@
 
 #include <limits>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {

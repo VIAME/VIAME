@@ -117,11 +117,11 @@ IMPLEMENT_TEST(ideal_points)
   }
 
   std::vector<vector_2d> norm_pts1, norm_pts2;
-  VITAL_FOREACH(const vector_2d& p, pts1)
+  for(const vector_2d& p : pts1)
   {
     norm_pts1.push_back(cal1->unmap(p));
   }
-  VITAL_FOREACH(const vector_2d& p, pts2)
+  for(const vector_2d& p : pts2)
   {
     norm_pts2.push_back(cal2->unmap(p));
   }

@@ -36,7 +36,6 @@
 #include "estimate_canonical_transform.h"
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 
 #include <algorithm>
 
@@ -78,7 +77,7 @@ public:
   vector_4d estimate_plane(std::vector<vector_3d> const& points) const
   {
     std::vector< vnl_vector<double> > vnl_points;
-    VITAL_FOREACH(vector_3d const& p, points)
+    for(vector_3d const& p : points)
     {
       vnl_points.push_back(vnl_vector<double>(vnl_double_3(p[0], p[1], p[2])));
     }
@@ -277,7 +276,7 @@ estimate_canonical_transform
 {
   using namespace arrows;
   std::vector<vector_3d> points;
-  VITAL_FOREACH(auto const& p, landmarks->landmarks())
+  for(auto const& p : landmarks->landmarks())
   {
     points.push_back(p.second->loc());
   }
@@ -286,7 +285,7 @@ estimate_canonical_transform
   vector_3d normal = plane.head<3>();
 
   //project the points onto the plane
-  VITAL_FOREACH(vector_3d& p, points)
+  for(vector_3d& p : points)
   {
     p -= (normal.dot(p) + plane[3]) * normal;
   }
@@ -295,7 +294,7 @@ estimate_canonical_transform
   vital::vector_3d center(0,0,0);
   double s=0.0;
   vital::matrix_3x3d covar = vital::matrix_3x3d::Zero();
-  VITAL_FOREACH(vector_3d const& p, points)
+  for(vector_3d const& p : points)
   {
     center += p;
     covar += p * p.transpose();
@@ -320,7 +319,7 @@ estimate_canonical_transform
     vital::vector_3d cam_center(0,0,0);
     vital::vector_3d cam_up(0,0,0);
     typedef vital::camera_map::map_camera_t cam_map_t;
-    VITAL_FOREACH(const cam_map_t::value_type& p, cameras->cameras())
+    for(const cam_map_t::value_type& p : cameras->cameras())
     {
       cam_center += p.second->center();
     }

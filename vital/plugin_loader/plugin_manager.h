@@ -43,7 +43,6 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/demangle.h>
 #include <vital/noncopyable.h>
 
@@ -350,7 +349,7 @@ public:
 
     auto fact_list = pm.get_factories( typeid( I ).name() );
     // Scan fact_list for CONCRETE_TYPE
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+    for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
     {
       std::string attr_val;
       if ( a_fact->get_attribute( m_attr, attr_val ) && ( attr_val == value ) )

@@ -33,7 +33,6 @@
 
 #include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -447,7 +446,7 @@ print_detections(
   {
     std::ofstream fout( filename.c_str() );
 
-    VITAL_FOREACH( std::string line, to_write )
+    for( std::string line : to_write )
     {
       fout << line << std::endl;
     }

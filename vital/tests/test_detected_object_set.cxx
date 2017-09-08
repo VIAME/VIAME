@@ -36,7 +36,6 @@
 #include <test_common.h>
 
 #include <vital/types/detected_object_set.h>
-#include <vital/vital_foreach.h>
 
 #define TEST_ARGS       ()
 

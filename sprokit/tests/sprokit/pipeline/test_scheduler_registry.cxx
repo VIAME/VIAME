@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/pipeline/pipeline.h>
@@ -94,7 +93,7 @@ IMPLEMENT_TEST(load_schedulers)
 
   sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
-  VITAL_FOREACH( auto fact, factories )
+  for( auto fact : factories )
   {
     sprokit::scheduler_t scheduler;
 
