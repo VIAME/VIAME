@@ -86,7 +86,7 @@ generate_tracks( unsigned frames=100,
       // create tracks as needed to get enough on this frame
       while( active_tracks.size() < max_tracks_per_frame )
       {
-        auto t = track::make();
+        auto t = track::create();
         t->set_id(track_id++);
         active_tracks.push_back(t);
         all_tracks.push_back(t);

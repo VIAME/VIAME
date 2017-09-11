@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Typedefs for Eigen fixed sized matrices
+ * \brief Typedefs for Eigen matrices
  */
 
 #ifndef VITAL_MATRIX_H_
@@ -42,6 +42,9 @@ namespace kwiver {
 namespace vital {
 
 /// \cond DoxygenSuppress
+typedef Eigen::MatrixXd matrix_d;
+typedef Eigen::MatrixXf matrix_f;
+
 typedef Eigen::Matrix< double, 2, 2 > matrix_2x2d;
 typedef Eigen::Matrix< float, 2, 2 >  matrix_2x2f;
 typedef Eigen::Matrix< double, 2, 3 > matrix_2x3d;

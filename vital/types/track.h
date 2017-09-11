@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,6 +108,7 @@ class VITAL_EXPORT track_data
 protected:
   virtual ~track_data() VITAL_DEFAULT_DTOR
 };
+
 typedef std::shared_ptr<track_data> track_data_sptr;
 
 
@@ -130,7 +131,7 @@ public:
   ~track() VITAL_DEFAULT_DTOR
 
   /// Factory function
-  static track_sptr make(track_data_sptr data = nullptr);
+  static track_sptr create( track_data_sptr data = nullptr );
 
   /// Clone
   track_sptr clone() const;
@@ -190,6 +191,9 @@ public:
   /// Access a const iterator to the end of the history
   history_const_itr end() const { return history_.end(); }
 
+  /// Access the last entry of the history
+  track_state_sptr back() const { return history_.back(); }
+
   /// Find the track state iterator matching \a frame
   /**
    *  \param [in] frame the frame number to access
@@ -209,7 +213,7 @@ public:
 
 protected:
   /// Default Constructor
-  explicit track(track_data_sptr d=nullptr);
+  explicit track( track_data_sptr d = nullptr );
 
   /// Copy Constructor
   track( const track& other );
