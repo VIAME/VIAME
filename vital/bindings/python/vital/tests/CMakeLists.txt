@@ -39,3 +39,11 @@ foreach (modname IN LISTS __all_modnames)
     vital/tests
     ${modname})
 endforeach()
+
+if (KWIVER_ENABLE_TESTS)
+  include(kwiver-test-setup)
+  # Register individual tests with ctest
+  foreach (modname IN LISTS __testable_modnames)
+    kwiver_discover_python_tests(${modname} ${modname}.py)
+  endforeach()
+endif()
