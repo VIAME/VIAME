@@ -31,7 +31,6 @@
 #include "compute_track_descriptors_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
@@ -244,17 +243,17 @@ compute_track_descriptors_process
       // Reset all descriptors stored in detections
       auto detection_sptrs = detections->select();
 
-      VITAL_FOREACH( vital::detected_object_sptr det, detection_sptrs )
+      for( vital::detected_object_sptr det : detection_sptrs )
       {
         det->set_descriptor( vital::detected_object::descriptor_sptr() );
       }
 
       // Inject computed descriptors
-      VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
+      for( vital::track_descriptor_sptr desc : *output )
       {
         auto ids = desc->get_track_ids();
 
-        VITAL_FOREACH( auto id, ids )
+        for( auto id, ids )
         {
           detection_sptrs[ id - d->detection_offset ]->set_descriptor(
             desc->get_descriptor() );
@@ -324,7 +323,7 @@ void compute_track_descriptors_process
   {
     vital::string_vector_sptr uids( new vital::string_vector() );
 
-    VITAL_FOREACH( auto desc, *output )
+    for( auto desc, *output )
     {
       uids->push_back( desc->get_uid().value() );
     }
@@ -336,7 +335,7 @@ void compute_track_descriptors_process
   {
     std::vector< vital::descriptor_sptr > raw_descs;
 
-    VITAL_FOREACH( auto desc, *output )
+    for( auto desc, *output )
     {
       raw_descs.push_back( desc->get_descriptor() );
     }
@@ -375,7 +374,7 @@ void compute_track_descriptors_process::priv
   {
     unsigned counter = 1;
 
-    VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
+    for( vital::track_descriptor_sptr desc : *output )
     {
       std::string new_uid = uid_basename +
         "_frame_" + frame_id_stamp +
