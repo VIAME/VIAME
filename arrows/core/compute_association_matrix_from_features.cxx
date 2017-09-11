@@ -156,7 +156,7 @@ compute_association_matrix_from_features
 {
   considered = d_->m_filter->filter( detections );
 
-  auto filtered_dets = considered->select();
+  auto filtered_dets = considered;
   auto filtered_tracks = tracks->tracks();
 
   const double invalid_value = std::numeric_limits< double >::max();

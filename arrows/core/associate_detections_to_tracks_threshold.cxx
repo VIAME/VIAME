@@ -150,7 +150,7 @@ associate_detections_to_tracks_threshold
              kwiver::vital::object_track_set_sptr& output,
              kwiver::vital::detected_object_set_sptr& unused ) const
 {
-  auto all_detections = detections->select();
+  auto all_detections = detections;
   auto all_tracks = tracks->tracks();
 
   std::vector< vital::track_sptr > tracks_to_output;
