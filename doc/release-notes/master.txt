@@ -10,9 +10,13 @@ Updates since v1.1.0
 
 Vital
 
- * Removed the VITAL_FOREACH macro and vital_foreach.h.  This was left over
-   from a time before C++11 was required.  You should now use a standard
-   C++11 range-based for loop instead.
+ * C++11 feature test macros have been removed.  The current version of KWIVER
+   assumes a fully C++11 compliant compiler; C++11 features should be used
+   directly.  VITAL_FOREACH (and the header vital_foreach.h which provided
+   this), has also been removed.  Remaining compatibility shims are deprecated
+   and should not be used in new code and will eventually be removed also.
+   Note also that [[noreturn]] must appear before <lib>_EXPORT; this was not
+   the case with the old definition of VITAL_NO_RETURN.
 
  * Added new data types geo_point and geo_polygon for representing points
    and polygons in geographic coordinates.  These new types use the new
