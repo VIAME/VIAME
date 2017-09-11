@@ -59,6 +59,7 @@ SeeAlso
 from __future__ import print_function, division
 import numpy as np
 from sprokit.pipeline import process
+from sprokit.pipeline import datum
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import (  # NOQA
     Image,
@@ -69,9 +70,11 @@ from vital.types import (  # NOQA
     Feature,
 )
 import logging
-import utool as ut
+from os.path import expanduser
+import ubelt as ub
 import os
 import camtrawl_algos as ctalgo
+import itertools as it
 
 logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
 log = logging.getLogger(__name__)
@@ -94,7 +97,7 @@ def tmp_sprokit_register_process(name=None, doc=''):
 
 def camtrawl_setup_config(self, default_params):
     if isinstance(default_params, dict):
-        default_params = ut.flatten(default_params.values())
+        default_params = list(it.chain(*default_params.values()))
     for pi in default_params:
         self.add_config_trait(pi.name, pi.name, str(pi.default),
                               pi.doc)
@@ -102,6 +105,8 @@ def camtrawl_setup_config(self, default_params):
 
 
 def tmp_smart_cast_config(self):
+    # import ubelt as ub
+    import utool as ut
     config = {}
     keys = [k for k in list(self.available_config())
             if not k.startswith('_')]
@@ -117,15 +122,21 @@ class CamtrawlStereoCalibrationReaderProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
     does postprocessing and then sends the extracted chip to the output port.
+
+    Developer:
+        >>> import sys
+        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
+        >>> from camtrawl_processes import *
+        >>> conf = config.empty_config()
+        >>> #conf = vital.config_block.ConfigBlock()  # FIXME: should work with vital config
+        >>> self = CamtrawlStereoCalibrationReaderProcess(conf)
     """
     # ----------------------------------------------
     def __init__(self, conf):
         log.debug(' ----- init ' + self.__class__.__name__)
         KwiverProcess.__init__(self, conf)
 
-        from os.path import expanduser
         cal_fpath = expanduser('~/data/autoprocess_test_set/cal_201608.mat')
-
         default_params = [
             ctalgo.ParamInfo('cal_fpath', default=cal_fpath, doc=(
                 'path to a file holding stereo calibration data')),
@@ -140,11 +151,14 @@ class CamtrawlStereoCalibrationReaderProcess(KwiverProcess):
         self.declare_output_port_using_trait('camera' + '1', optional)
         self.declare_output_port_using_trait('camera' + '2', optional)
 
+        # State used to cache camera loading
+        self.cameras = None
+
     # ----------------------------------------------
     def _configure(self):
         log.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
-        print('camera config = {}'.format(ut.repr4(config)))
+        print('camera config = {}'.format(ub.repr2(config, nl=2)))
         self._base_configure()
 
     def load_calibrations(self, cal_fpath):
@@ -186,7 +200,13 @@ class CamtrawlStereoCalibrationReaderProcess(KwiverProcess):
         config = tmp_smart_cast_config(self)
         cal_fpath = config['cal_fpath']
 
-        camera1, camera2 = self.load_calibrations(cal_fpath)
+        if self.cameras is None:
+            self.cameras = self.load_calibrations(cal_fpath)
+
+            camera1, camera2 = self.cameras
+        else:
+            camera1, camera2 = datum.complete(), datum.complete()
+            self.mark_process_as_complete()
 
         self.push_to_port_using_trait('camera1', camera1)
         self.push_to_port_using_trait('camera2', camera2)
@@ -223,7 +243,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
     def _configure(self):
         log.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
-        print('detector config = {}'.format(ut.repr4(config)))
+        print('detector config = {}'.format(ub.repr2(config, nl=2)))
         self.detector = ctalgo.GMMForegroundObjectDetector(**config)
         self._base_configure()
 
@@ -262,17 +282,18 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         camtrawl_setup_config(self, ctalgo.FishStereoMeasurments.default_params())
 
+        # optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        self.add_port_trait('camera' + '1', 'camera', 'Left camera calibration')
-        self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
+        # self.add_port_trait('camera' + '1', 'camera', 'Left camera calibration')
+        # self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
         self.add_port_trait('detected_object_set' + '1', 'detected_object_set', 'Detections from camera1')
         self.add_port_trait('detected_object_set' + '2', 'detected_object_set', 'Detections from camera2')
 
         #  declare our input port ( port-name,flags)
-        self.declare_input_port_using_trait('camera' + '1', required)
-        self.declare_input_port_using_trait('camera' + '2', required)
+        # self.declare_input_port_using_trait('camera' + '1', optional)
+        # self.declare_input_port_using_trait('camera' + '2', optional)
         self.declare_input_port_using_trait('detected_object_set' + '1', required)
         self.declare_input_port_using_trait('detected_object_set' + '2', required)
 
@@ -280,15 +301,15 @@ class CamtrawlMeasureProcess(KwiverProcess):
     def _configure(self):
         log.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
-        print('triangulator config = {}'.format(ut.repr4(config)))
+        print('triangulator config = {}'.format(ub.repr2(config, nl=2)))
         self.triangulator = ctalgo.FishStereoMeasurments(**config)
 
-        # NEED TO LOAD CALIBRATION DATA
-        # IDEALLY THIS IS A PIPELINE INPUT NOT A CONFIG
-        # from os.path import expanduser
-        # cal_fpath = expanduser('~/data/autoprocess_test_set/cal_201608.mat')
-        # self.cal = ctalgo.StereoCalibration.from_file(cal_fpath)
-        self.cal = None
+        # Camera loading process is not working correctly.
+        # Load camera calibration data here for now.
+        #
+        cal_fpath = expanduser('~/data/autoprocess_test_set/cal_201608.mat')
+        self.cal = ctalgo.StereoCalibration.from_file(cal_fpath)
+        # self.cal = None
         print('self.cal = {!r}'.format(self.cal))
         self._base_configure()
 
@@ -327,8 +348,10 @@ class CamtrawlMeasureProcess(KwiverProcess):
             })
             log.debug(' ----- no more need for cameras ' + self.__class__.__name__)
 
+        log.debug(' ----- grab do ' + self.__class__.__name__)
         detection_set1 = self.grab_input_using_trait('detected_object_set' + '1')
         detection_set2 = self.grab_input_using_trait('detected_object_set' + '2')
+        log.debug(' ----- done grab do ' + self.__class__.__name__)
 
         # Convert back to the format the algorithm understands
         def _detections_from_vital(detection_set):
@@ -349,7 +372,9 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         # push dummy image object (same as input) to output port
         # self.push_to_port_using_trait('out_image', ImageContainer(in_img))
+        log.debug(' ----- base step about to finish' + self.__class__.__name__)
         self._base_step()
+        log.debug(' ----- base step finish ' + self.__class__.__name__)
 
 
 def __sprokit_register__():
