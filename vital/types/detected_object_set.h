@@ -92,7 +92,7 @@ public:
    *
    * @param objs Vector of detected objects.
    */
-    detected_object_set( std::vector< detected_object_sptr > const& objs );
+  detected_object_set( std::vector< detected_object_sptr > const& objs );
 
   /**
    * @brief Create deep copy.
@@ -129,6 +129,15 @@ public:
    * @return Number of detections.
    */
   size_t size() const;
+
+  /**
+   * @brief Returns whether or not this set is empty.
+   *
+   * This method returns true if the set is empty, false otherwise.
+   *
+   * @return Whether or not the set is empty.
+   */
+  bool empty() const;
 
   //@{
   /**

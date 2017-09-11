@@ -67,6 +67,7 @@ from .track import TrackState, Track
 from .track_set import TrackSet
 from .feature_track_set import FeatureTrackState
 from .object_track_set import ObjectTrackState
+from .object_track_set import ObjectTrackSet
 
 # Requires CameraIntrinsics, Covariance, EigenArray, Rotation
 from .camera import Camera

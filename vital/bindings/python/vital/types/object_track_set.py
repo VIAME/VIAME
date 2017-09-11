@@ -37,7 +37,9 @@ import ctypes
 
 from vital.types import (
     TrackState,
-    DetectedObject
+    DetectedObject,
+    Track,
+    TrackSet
 )
 from vital.util import VitalObject, free_void_ptr
 
@@ -88,3 +90,25 @@ class ObjectTrackState( TrackState ):
         else:
             return None
 
+class ObjectTrackSet( TrackSet ):
+    """
+    vital::track::object_track_set interface class
+    """
+    def _new(self, track_list):
+        """
+        :param track_list: List of tracks to initialize the set with
+        :type track_list: collections.Iterable[Track] | None
+        """
+        if track_list is None:
+            track_list = []
+        # noinspection PyCallingNonCallable
+        c_track_array = (Track.c_ptr_type() * len(track_list))(
+            *(t.c_pointer for t in track_list)
+        )
+
+        return self._call_cfunc(
+            'vital_object_trackset_new',
+            [ctypes.c_size_t, ctypes.POINTER(Track.c_ptr_type())],
+            [len(track_list), c_track_array],
+            self.C_TYPE_PTR
+        )

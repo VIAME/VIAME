@@ -145,6 +145,15 @@ size() const
 
 
 // ------------------------------------------------------------------
+bool
+detected_object_set::
+empty() const
+{
+  return m_detected_objects.empty();
+}
+
+
+// ------------------------------------------------------------------
 detected_object_set_sptr
 detected_object_set::
 select( double threshold ) const
