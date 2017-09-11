@@ -35,7 +35,7 @@ def simple_pipeline():
     Processing_with_species_id.m is their main file
 
     CommandLine:
-        cd ~/code/VIAME/plugins/camtrawl
+        cd ~/code/VIAME/plugins/camtrawl/python
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
         # Ensure python and sprokit knows about our module
@@ -50,7 +50,6 @@ def simple_pipeline():
     data_fpath = expanduser('~/data/autoprocess_test_set')
     # cal_fpath = join(data_fpath, 'cal_201608.mat')
 
-    # stereo_camera = read_matlab_stereo_camera(cal_fpath)  # NOQA
     make_image_input_files(data_fpath)
 
     def add_stereo_camera_branch(pipe, prefix):
@@ -83,19 +82,17 @@ def simple_pipeline():
     cam1 = add_stereo_camera_branch(pipe, 'cam1_')
     cam2 = add_stereo_camera_branch(pipe, 'cam2_')
 
-    stereo_cameras = pipe.add_process(
-        name='stereo_cameras', type='stereo_calibration_camera_reader',
-        config={
-            # 'image_list_file': image_list_file,
-            # 'frame_time': 0.03333333,
-            # 'image_reader:type': 'ocv',
-        })
+    # stereo_cameras = pipe.add_process(
+    #     name='stereo_cameras', type='stereo_calibration_camera_reader',
+    #     config={
+    #         # 'cal_fpath': cal_fpath,
+    #     })
 
     # ------
     pipe.add_process(name='measure', type='camtrawl_measure', config={})
     pipe['measure'].iports.connect({
-        'camera1': stereo_cameras.oports['camera1'],
-        'camera2': stereo_cameras.oports['camera2'],
+        # 'camera1': stereo_cameras.oports['camera1'],
+        # 'camera2': stereo_cameras.oports['camera2'],
         'detected_object_set1': cam1['detect'].oports['detected_object_set'],
         'detected_object_set2': cam2['detect'].oports['detected_object_set'],
     })
