@@ -227,6 +227,15 @@ include( common_macros )
 ##
 if( VIAME_BUILD_DEPENDENCIES )
 
+  # Early error checking in case user did not run submodule init
+  file( GLOB fletch_files ${VIAME_PACKAGES_DIR}/fletch/* )
+  list( LENGTH fletch_files fletch_length )
+
+  if( ${fletch_length} LESS 3 )
+    message( FATAL_ERROR "Fletch directory empty, did you not run the following in your source tree: \n\
+     git submodule update --init --recursive" )
+  endif()
+
   # Include for CMake external project add command
   include( ExternalProject )
 
