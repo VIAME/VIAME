@@ -120,14 +120,29 @@ function (kwiver_add_python_module_int    path     modpath    module)
     set(kwiver_configure_extra_dests
       "${kwiver_python_output_path}/${python_noarchdir}\${config}/${python_sitename}/${modpath}/${module}.py")
   endif ()
-  kwiver_configure_file("python${python_arch}-${safe_modpath}-${module}"
-    "${path}"
-    "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py"
-    PYTHON_EXECUTABLE)
 
+  set(pyfile_src "${path}")
+  set(pyfile_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py")
+  # installation path for this module
+  set(pypkg_install_path "${python_install_path}/${kwiver_python_subdir}/${python_sitename}/${modpath}")
+
+  # copy and configure the source file into the binary directory
+  if (KWIVER_SYMLINK_PYTHON)
+    kwiver_symlink_file("python${python_arch}-${safe_modpath}-${module}"
+      "${pyfile_src}"
+      "${pyfile_dst}"
+      PYTHON_EXECUTABLE)
+  else()
+    kwiver_configure_file("python${python_arch}-${safe_modpath}-${module}"
+      "${pyfile_src}"
+      "${pyfile_dst}"
+      PYTHON_EXECUTABLE)
+  endif()
+
+  # install the configured binary to the kwiver python install path
   kwiver_install(
-    FILES       "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py"
-    DESTINATION "${python_install_path}/${kwiver_python_subdir}/${python_sitename}/${modpath}"
+    FILES       "${pyfile_dst}"
+    DESTINATION "${pypkg_install_path}"
     COMPONENT   runtime)
 
   add_dependencies(python

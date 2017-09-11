@@ -128,16 +128,32 @@ function (sprokit_add_python_module_int    path     modpath    module)
     set(python_module_id "python${python_arch}-${safe_modpath}-${module}")
   endif()
 
-  sprokit_configure_file_w_uid("${python_configure_id}"
-    "${python_module_id}"
-    "${path}"
-    "${sprokit_python_output_path}/${kwiver_python_subdir}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py"
-    PYTHON_EXECUTABLE)
+  set(pyfile_src "${path}")
+  set(pyfile_dst "${sprokit_python_output_path}/${kwiver_python_subdir}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py")
+  set(pypkg_install_path "${python_install_path}/${kwiver_python_subdir}/${python_sitename}/${modpath}")
 
+  if (KWIVER_SYMLINK_PYTHON)
+      sprokit_symlink_file_w_uid("${python_configure_id}"
+        "${python_module_id}"
+        "${pyfile_src}"
+        "${pyfile_dst}"
+        PYTHON_EXECUTABLE)
+  else()
+      sprokit_configure_file_w_uid("${python_configure_id}"
+        "${python_module_id}"
+        "${pyfile_src}"
+        "${pyfile_dst}"
+        PYTHON_EXECUTABLE)
+  endif()
+
+  # Force installation of the test into the tests module
+  # FIXME: (there was a merge conflict between sprokit_install/install, which
+  # should this be?)
   sprokit_install(
-    FILES       "${sprokit_python_output_path}/${kwiver_python_subdir}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py"
-    DESTINATION "${python_install_path}/${kwiver_python_subdir}/${python_sitename}/${modpath}"
-    COMPONENT   runtime)
+      FILES       "${pyfile_dst}"
+      DESTINATION "${pypkg_install_path}"
+      COMPONENT   runtime
+      )
 
   add_dependencies(python
     "configure-${python_configure_id}")

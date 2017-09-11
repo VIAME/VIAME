@@ -105,6 +105,61 @@ function (sprokit_configure_file_w_uid uid name source dest)
   endif ()
 endfunction ()
 
+
+###
+#
+# Mimics a sprokit_configure_file_w_uid, but will symlink `source` to `dest`
+# directly without any configureation. This should only be used for interpreted
+# languages like python to prevent the need to re-make the project after making
+# small changes to these interpreted files.
+#
+# TODO: this should be eventually replaced by `kwiver_symlink_file`. Either the
+# kwiver version should take a uid, or the uid is not necessary.
+#
+# SeeAlso:
+#     kwiver/CMake/utils/kwiver-utils-configuration.cmake
+#
+function (sprokit_symlink_file_w_uid uid name source dest)
+
+  if(EXISTS ${dest} AND NOT IS_SYMLINK ${dest})
+    # If our target it not a symlink, then remove it so we can replace it
+    file(REMOVE ${dest})
+  endif()
+
+  # Need to ensure the directory exists before we create a symlink there
+  get_filename_component(dest_dir ${dest} DIRECTORY)
+  add_custom_command(
+    OUTPUT  "${dest_dir}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory ${dest_dir}
+    )
+
+  add_custom_command(
+    OUTPUT  "${dest}"
+    COMMAND "${CMAKE_COMMAND}" -E create_symlink ${source} ${dest}
+    DEPENDS "${source}" "${dest_dir}"
+    COMMENT "Symlink-configuring ${name} file \"${source}\" -> \"${dest}\""
+    )
+
+  if (NOT no_configure_target)
+    add_custom_target(configure-${uid} ${all}
+      DEPENDS "${dest}"
+      SOURCES "${source}")
+    source_group("Configured Files"
+      FILES "${source}")
+    add_dependencies(configure
+      configure-${uid})
+  endif()
+endfunction ()
+
+
+###
+# Mirrors sprokit_configure_file. Simply calls sprokit_symlink_file_w_uid with
+# the name being the uid
+function (sprokit_symlink_file name source dest)
+  sprokit_symlink_file_w_uid(${name} ${name} "${source}" "${dest}" ${ARGN})
+endfunction ()
+
+
 function (sprokit_configure_file name source dest)
   sprokit_configure_file_w_uid(${name} ${name} "${source}" "${dest}" ${ARGN})
 endfunction ()
