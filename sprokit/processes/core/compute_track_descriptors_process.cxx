@@ -253,7 +253,7 @@ compute_track_descriptors_process
       {
         auto ids = desc->get_track_ids();
 
-        for( auto id, ids )
+        for( auto id : ids )
         {
           detection_sptrs[ id - d->detection_offset ]->set_descriptor(
             desc->get_descriptor() );
@@ -323,7 +323,7 @@ void compute_track_descriptors_process
   {
     vital::string_vector_sptr uids( new vital::string_vector() );
 
-    for( auto desc, *output )
+    for( auto desc : *output )
     {
       uids->push_back( desc->get_uid().value() );
     }
@@ -335,7 +335,7 @@ void compute_track_descriptors_process
   {
     std::vector< vital::descriptor_sptr > raw_descs;
 
-    for( auto desc, *output )
+    for( auto desc : *output )
     {
       raw_descs.push_back( desc->get_descriptor() );
     }
