@@ -79,9 +79,9 @@ track
 /// Factory function
 track_sptr
 track
-::make(track_data_sptr data)
+::create( track_data_sptr data )
 {
-  return track_sptr(new track(data));
+  return track_sptr( new track( data ) );
 }
 
 
@@ -90,7 +90,7 @@ track_sptr
 track
 ::clone() const
 {
-  track_sptr t(new track(*this));
+  track_sptr t( new track( *this ) );
   for( auto const& ts : this->history_ )
   {
     t->history_.push_back( ts->clone() );
@@ -105,11 +105,11 @@ frame_id_t
 track
 ::first_frame() const
 {
-  if ( this->history_.empty() )
+  if( this->history_.empty() )
   {
     return 0;
   }
-  return (*this->history_.begin())->frame();
+  return( *this->history_.begin() )->frame();
 }
 
 
@@ -118,11 +118,11 @@ frame_id_t
 track
 ::last_frame() const
 {
-  if ( this->history_.empty() )
+  if( this->history_.empty() )
   {
     return 0;
   }
-  return (*this->history_.rbegin())->frame();
+  return( *this->history_.rbegin() )->frame();
 }
 
 

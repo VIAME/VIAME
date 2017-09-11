@@ -64,7 +64,9 @@ public:
   virtual std::vector< descriptor_sptr > descriptors() const = 0;
 
 protected:
-  descriptor_set() : m_logger( kwiver::vital::get_logger( "vital.descriptor_set" ) ) { }
+  descriptor_set()
+   : m_logger( kwiver::vital::get_logger( "vital.descriptor_set" ) )
+  {}
 
   kwiver::vital::logger_handle_t m_logger;
 };

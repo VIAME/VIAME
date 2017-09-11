@@ -59,22 +59,22 @@ make_simple_track_set()
   auto test_state2 = std::make_shared<track_state>( 4 );
   auto test_state3 = std::make_shared<track_state>( 9 );
 
-  test_tracks.push_back( track::make() ) ;
+  test_tracks.push_back( track::create() ) ;
   test_tracks.back()->append( test_state1 );
   test_tracks.back()->set_id( track_id++ );
 
-  test_tracks.push_back( track::make() ) ;
+  test_tracks.push_back( track::create() ) ;
   test_tracks.back()->append( test_state1->clone() );
   test_tracks.back()->set_id( track_id++ );
 
   // skip some track ids
   track_id = 5;
 
-  test_tracks.push_back( track::make() ) ;
+  test_tracks.push_back( track::create() ) ;
   test_tracks.back()->append( test_state2 );
   test_tracks.back()->set_id( track_id++ );
 
-  test_tracks.push_back( track::make() ) ;
+  test_tracks.push_back( track::create() ) ;
   test_tracks.back()->append( test_state3 );
   test_tracks.back()->set_id( track_id++ );
 
@@ -139,7 +139,7 @@ test_track_set_modifiers(track_set_sptr test_set)
 {
   auto tracks = test_set->tracks();
 
-  auto new_track = track::make();
+  auto new_track = track::create();
   new_track->set_id( 10 );
   new_track->append( std::make_shared<track_state>( 10 ) );
   new_track->append( std::make_shared<track_state>( 11 ) );
@@ -177,7 +177,7 @@ test_track_set_modifiers(track_set_sptr test_set)
   std::cout << "redirect ID: "<<tdr->redirect_track->id() <<std::endl;
   TEST_EQUAL("Merged target track is bigger", tracks[0]->size(), 5);
 
-  auto new_track2 = track::make();
+  auto new_track2 = track::create();
   new_track2->set_id( 11 );
   new_track2->append( std::make_shared<track_state>( 12 ) );
   new_track2->append( std::make_shared<track_state>( 13 ) );

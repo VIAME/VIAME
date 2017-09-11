@@ -90,7 +90,7 @@ read_track_file( path_t const& file_path )
     std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
     if ( it == track_map.end() )
     {
-      t = track::make();
+      t = track::create();
       t->set_id( tid );
       tracks.push_back( t );
       track_map[tid] = t;
@@ -191,7 +191,7 @@ read_feature_track_file( path_t const& file_path )
     std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
     if ( it == track_map.end() )
     {
-      t = track::make();
+      t = track::create();
       t->set_id( tid );
       tracks.push_back( t );
       track_map[tid] = t;

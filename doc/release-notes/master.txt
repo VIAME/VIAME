@@ -91,6 +91,9 @@ Vital
    simplifies the select methods that now return a detected_object_set
    rather than a vector of detections.
 
+ * Added method to return a vector of values from a single config
+   entry. The method is templated on the vector element type.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring

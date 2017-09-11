@@ -87,6 +87,22 @@ track_descriptor
 
 void
 track_descriptor
+::set_uid( const vital::uid& id )
+{
+  this->uid_ = id;
+}
+
+
+vital::uid const&
+track_descriptor
+::get_uid() const
+{
+  return this->uid_;
+}
+
+
+void
+track_descriptor
 ::add_track_id( uint64_t id )
 {
   this->track_ids_.push_back( id );
@@ -111,13 +127,13 @@ track_descriptor
 
 void
 track_descriptor
-::set_descriptor( descriptor_data_sptr_t const& data )
+::set_descriptor( descriptor_data_sptr const& data )
 {
   this->data_ = data;
 }
 
 
-track_descriptor::descriptor_data_sptr_t const&
+track_descriptor::descriptor_data_sptr const&
 track_descriptor
 ::get_descriptor() const
 {
@@ -125,7 +141,7 @@ track_descriptor
 }
 
 
-track_descriptor::descriptor_data_sptr_t&
+track_descriptor::descriptor_data_sptr&
 track_descriptor
 ::get_descriptor()
 {
@@ -181,7 +197,7 @@ void
 track_descriptor
 ::resize_descriptor( size_t s )
 {
-  this->data_ = descriptor_data_sptr_t(
+  this->data_ = descriptor_data_sptr(
     new descriptor_data_t( s ) );
 }
 
@@ -190,7 +206,7 @@ void
 track_descriptor
 ::resize_descriptor( size_t s, double v )
 {
-  this->data_ = descriptor_data_sptr_t(
+  this->data_ = descriptor_data_sptr(
     new descriptor_data_t( s ) );
 
   std::fill( this->data_->raw_data(),
@@ -232,7 +248,7 @@ track_descriptor
 
 // ================================================================
 track_descriptor::history_entry::
-history_entry( const uint64_t& ts,
+history_entry( const vital::timestamp& ts,
                const image_bbox_t& img_loc,
                const world_bbox_t& world_loc )
   : ts_(ts),
@@ -243,7 +259,7 @@ history_entry( const uint64_t& ts,
 
 
 track_descriptor::history_entry::
-history_entry( const uint64_t& ts,
+history_entry( const vital::timestamp& ts,
                const image_bbox_t& img_loc )
   : ts_( ts ),
     img_loc_( img_loc ),
@@ -252,7 +268,7 @@ history_entry( const uint64_t& ts,
 }
 
 
-uint64_t
+vital::timestamp
 track_descriptor::history_entry::
 get_timestamp() const
 {
