@@ -130,6 +130,13 @@ Sprokit
 
      $plugin_explorer --fact instrumentation
 
+Unit Tests
+
+ * KWIVER is in the process of transitioning to Google Test as its primary
+   testing framework.  This means that Google Test is now a hard dependency
+   when KWIVER_ENABLE_TESTS is ON.  (Recent versions of Fletch include Google
+   Test.)  The Sprokit tests will continue to use their own framework.
+
 
 Fixes since v1.1.0
 ------------------
