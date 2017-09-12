@@ -545,7 +545,8 @@ class FishStereoMeasurments(object):
         pts2_3d = RT2.dot(to_homog(world_pts)).T
         return pts1_3d, pts2_3d, errors, fishlen
 
-    def minimum_weight_assignment(self, cost_errors):
+    @staticmethod
+    def minimum_weight_assignment(cost_errors):
         """
         Finds optimal assignment of left-camera to right-camera detections
 
@@ -554,7 +555,6 @@ class FishStereoMeasurments(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
-            >>> from camtrawl_demo import *
             >>> self = FishStereoMeasurments()
             >>> cost_errors = np.array([
             >>>     [9, 2, 1, 9],
@@ -594,15 +594,12 @@ class FishStereoMeasurments(object):
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
-            >>> from camtrawl_demo import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
             >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.find_matches(cal, detections1, detections2)
         """
         n_detect1, n_detect2 = len(detections1), len(detections2)
-        cand_world_pts = {}
-        cand_fishlen = {}
-        cand_rang = {}
+        cand_data = {}
 
         # Initialize matrix of reprojection errors
         cost_errors = np.full((n_detect1, n_detect2), fill_value=np.inf)
@@ -618,10 +615,18 @@ class FishStereoMeasurments(object):
             error = errors.mean()
 
             # Mark the pair (i, j) as a potential candidate match
-            cand_world_pts[(i, j)] = pts1_3d
             cand_errors[i, j] = error
-            cand_fishlen[(i, j)] = fishlen
-            cand_rang[(i, j)] = pts1_3d.T[2].mean()
+
+            # Record information about this candidate match
+            cand_data[(i, j)] = {
+                'world_pts': pts1_3d,
+                'error': error,
+                'fishlen': fishlen,
+                'range': pts1_3d.T[2].mean(),
+                'dz': np.abs(np.diff(pts1_3d.T[2]))[0],
+                'box_pts1': det1.box_points(),
+                'box_pts2': det2.box_points(),
+            }
 
             # Check chirality
             # Both Z-coordinates must be positive (i.e. in front the cameras)
@@ -651,15 +656,11 @@ class FishStereoMeasurments(object):
         assignment = self.minimum_weight_assignment(cost_errors)
 
         # get associated data with each assignment
-        assign_data = [
-            {
-                'ij': (i, j),
-                'fishlen': cand_fishlen[(i, j)],
-                'error': cand_errors[(i, j)],
-                'range': cand_rang[(i, j)],
-            }
-            for i, j in assignment
-        ]
+        assign_data = []
+        for i, j in assignment:
+            data = {'ij': (i, j)}
+            data.update(cand_data[(i, j)])
+            assign_data.append(data)
         return assignment, assign_data, cand_errors
 
 
@@ -773,7 +774,7 @@ class StereoCalibration(object):
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl_algos import *
             >>> from camtrawl_demo import *
-            >>> _, _, cal_fpath = demodata_input(dataset='test')
+            >>> cal_fpath = '/home/joncrall/data/autoprocess_test_set/cal_201608.mat'
             >>> cal = StereoCalibration.from_matfile(cal_fpath)
             >>> print('cal = {}'.format(cal))
         """

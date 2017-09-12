@@ -44,12 +44,11 @@ CommandLine:
 
     source ~/code/VIAME/build/install/setup_viame.sh
     export KWIVER_DEFAULT_LOG_LEVEL=info
-    export KWIVER_DEFAULT_LOG_LEVEL=debug
     export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
-    python run_camtrawl.py
     python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
+    python run_camtrawl.py
 
     ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
 
@@ -59,7 +58,7 @@ SeeAlso
 from __future__ import print_function, division
 import numpy as np
 from sprokit.pipeline import process
-from sprokit.pipeline import datum
+from sprokit.pipeline import datum  # NOQA
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import (  # NOQA
     Image,
@@ -99,8 +98,7 @@ def camtrawl_setup_config(self, default_params):
     if isinstance(default_params, dict):
         default_params = list(it.chain(*default_params.values()))
     for pi in default_params:
-        self.add_config_trait(pi.name, pi.name, str(pi.default),
-                              pi.doc)
+        self.add_config_trait(pi.name, pi.name, str(pi.default), pi.doc)
         self.declare_config_using_trait(pi.name)
 
 
@@ -115,103 +113,6 @@ def tmp_smart_cast_config(self):
         val = ut.smart_cast2(strval)
         config[key] = val
     return config
-
-
-@tmp_sprokit_register_process(name='stereo_calibration_camera_reader', doc='preliminatry fish detection')
-class CamtrawlStereoCalibrationReaderProcess(KwiverProcess):
-    """
-    This process gets an image and detection_set as input, extracts each chip,
-    does postprocessing and then sends the extracted chip to the output port.
-
-    Developer:
-        >>> import sys
-        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-        >>> from camtrawl_processes import *
-        >>> conf = config.empty_config()
-        >>> #conf = vital.config_block.ConfigBlock()  # FIXME: should work with vital config
-        >>> self = CamtrawlStereoCalibrationReaderProcess(conf)
-    """
-    # ----------------------------------------------
-    def __init__(self, conf):
-        log.debug(' ----- init ' + self.__class__.__name__)
-        KwiverProcess.__init__(self, conf)
-
-        cal_fpath = expanduser('~/data/autoprocess_test_set/cal_201608.mat')
-        default_params = [
-            ctalgo.ParamInfo('cal_fpath', default=cal_fpath, doc=(
-                'path to a file holding stereo calibration data')),
-        ]
-        camtrawl_setup_config(self, default_params)
-
-        self.add_port_trait('camera' + '1', 'camera', 'Left camera calibration')
-        self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
-
-        #  declare our input port ( port-name,flags)
-        optional = process.PortFlags()
-        self.declare_output_port_using_trait('camera' + '1', optional)
-        self.declare_output_port_using_trait('camera' + '2', optional)
-
-        # State used to cache camera loading
-        self.cameras = None
-
-    # ----------------------------------------------
-    def _configure(self):
-        log.debug(' ----- configure ' + self.__class__.__name__)
-        config = tmp_smart_cast_config(self)
-        print('camera config = {}'.format(ub.repr2(config, nl=2)))
-        self._base_configure()
-
-    def load_calibrations(self, cal_fpath):
-        cal = ctalgo.StereoCalibration.from_file(cal_fpath)
-        def _to_vital(cam_dict):
-            from vital.types import camera
-            extrinsic = cam_dict['extrinsic']
-            intrinsic = cam_dict['intrinsic']
-            fx, fy = intrinsic['fc']
-            aspect_ratio = fx / fy
-
-            vital_intrinsics = camera.CameraIntrinsics(
-                focal_length=fx,
-                principle_point=intrinsic['cc'],
-                aspect_ratio=aspect_ratio,
-                skew=intrinsic['alpha_c'],
-                dist_coeffs=intrinsic['kc'],
-            )
-
-            tvec = extrinsic['T']
-            rvec = extrinsic['om']
-
-            vital_camera = camera.Camera(
-                center=tvec,
-                rotation=camera.Rotation.from_rodrigues(rvec),
-                intrinsics=vital_intrinsics,
-            )
-            return vital_camera
-
-        camera1 = _to_vital(cal.data['left'])
-        camera2 = _to_vital(cal.data['right'])
-        return camera1, camera2
-
-    # ----------------------------------------------
-    def _step(self):
-        log.debug(' ----- step ' + self.__class__.__name__)
-        # grab image container from port using traits
-
-        config = tmp_smart_cast_config(self)
-        cal_fpath = config['cal_fpath']
-
-        if self.cameras is None:
-            self.cameras = self.load_calibrations(cal_fpath)
-
-            camera1, camera2 = self.cameras
-        else:
-            camera1, camera2 = datum.complete(), datum.complete()
-            self.mark_process_as_complete()
-
-        self.push_to_port_using_trait('camera1', camera1)
-        self.push_to_port_using_trait('camera2', camera2)
-
-        self._base_step()
 
 
 @tmp_sprokit_register_process(name='camtrawl_detect_fish',
@@ -236,8 +137,12 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
+        self.declare_input_port_using_trait('image_file_name', optional)
+
+        self.add_port_trait('frame_id', 'int', 'frame id')
 
         self.declare_output_port_using_trait('detected_object_set', optional )
+        self.declare_output_port_using_trait('frame_id', optional )
 
     # ----------------------------------------------
     def _configure(self):
@@ -252,6 +157,11 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         log.debug(' ----- step ' + self.__class__.__name__)
         # grab image container from port using traits
         img_container = self.grab_input_using_trait('image')
+        image_file_name = self.grab_input_using_trait('image_file_name').get_datum()
+
+        # if image_file_name is not None:
+        frame_id = int(os.path.basename(image_file_name).split('_')[0])
+
         img = img_container.asarray()
 
         detection_set = DetectedObjectSet()
@@ -263,6 +173,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
             detection_set.add(obj)
         # # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('detected_object_set', detection_set)
+        self.push_to_port_using_trait('frame_id', frame_id)
 
         self._base_step()
 
@@ -282,6 +193,13 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         camtrawl_setup_config(self, ctalgo.FishStereoMeasurments.default_params())
 
+        self.add_config_trait('output_fpath', 'output_fpath', 'camtrawl_out.csv',
+                              'output file to write detection measurements')
+        self.declare_config_using_trait('output_fpath')
+        self.add_config_trait('cal_fpath', 'cal_fpath', 'cal_201608.mat',
+                              'matlab or npz file with calibration info')
+        self.declare_config_using_trait('cal_fpath')
+
         # optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
@@ -290,10 +208,14 @@ class CamtrawlMeasureProcess(KwiverProcess):
         # self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
         self.add_port_trait('detected_object_set' + '1', 'detected_object_set', 'Detections from camera1')
         self.add_port_trait('detected_object_set' + '2', 'detected_object_set', 'Detections from camera2')
+        self.add_port_trait('frame_id1', 'int', 'frame id')
+        self.add_port_trait('frame_id2', 'int', 'frame id')
 
         #  declare our input port ( port-name,flags)
         # self.declare_input_port_using_trait('camera' + '1', optional)
         # self.declare_input_port_using_trait('camera' + '2', optional)
+        self.declare_input_port_using_trait('frame_id' + '1', required)
+        self.declare_input_port_using_trait('frame_id' + '2', required)
         self.declare_input_port_using_trait('detected_object_set' + '1', required)
         self.declare_input_port_using_trait('detected_object_set' + '2', required)
 
@@ -301,16 +223,27 @@ class CamtrawlMeasureProcess(KwiverProcess):
     def _configure(self):
         log.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
+
         print('triangulator config = {}'.format(ub.repr2(config, nl=2)))
+        output_fpath = config.pop('output_fpath')
+        cal_fpath = config.pop('cal_fpath')
         self.triangulator = ctalgo.FishStereoMeasurments(**config)
 
         # Camera loading process is not working correctly.
         # Load camera calibration data here for now.
         #
-        cal_fpath = expanduser('~/data/autoprocess_test_set/cal_201608.mat')
+        if not os.path.exists(cal_fpath):
+            raise KeyError('must specify a valid camera calibration path')
         self.cal = ctalgo.StereoCalibration.from_file(cal_fpath)
-        # self.cal = None
         print('self.cal = {!r}'.format(self.cal))
+
+        self.headers = ['current_frame', 'fishlen', 'range', 'error', 'dz',
+                        'box_pts1', 'box_pts2']
+        self.output_file = open(output_fpath, 'w')
+        self.output_file.write(','.join(self.headers) + '\n')
+        self.output_file.close()
+
+        self.output_file = open(output_fpath, 'a')
         self._base_configure()
 
     # ----------------------------------------------
@@ -348,10 +281,13 @@ class CamtrawlMeasureProcess(KwiverProcess):
             })
             log.debug(' ----- no more need for cameras ' + self.__class__.__name__)
 
-        log.debug(' ----- grab do ' + self.__class__.__name__)
+        frame_id1 = self.grab_input_using_trait('frame_id' + '1')
+        frame_id2 = self.grab_input_using_trait('frame_id' + '2')
         detection_set1 = self.grab_input_using_trait('detected_object_set' + '1')
         detection_set2 = self.grab_input_using_trait('detected_object_set' + '2')
-        log.debug(' ----- done grab do ' + self.__class__.__name__)
+
+        print('frame_id1 = {!r}'.format(frame_id1))
+        print('frame_id2 = {!r}'.format(frame_id2))
 
         # Convert back to the format the algorithm understands
         def _detections_from_vital(detection_set):
@@ -367,14 +303,19 @@ class CamtrawlMeasureProcess(KwiverProcess):
         assignment, assign_data, cand_errors = self.triangulator.find_matches(
             self.cal, detections1, detections2)
 
+        # Append assignments to the measurements
+        for data in assign_data:
+            data['current_frame'] = '?'
+            line = ','.join([repr(d).replace('\n', ' ').replace(',', ';')
+                             for d in ub.take(data, self.headers)])
+            self.output_file.write(line + '\n')
+
         if assign_data:
-            print('assign_data = {!r}'.format(assign_data))
+            self.output_file.flush()
 
         # push dummy image object (same as input) to output port
         # self.push_to_port_using_trait('out_image', ImageContainer(in_img))
-        log.debug(' ----- base step about to finish' + self.__class__.__name__)
         self._base_step()
-        log.debug(' ----- base step finish ' + self.__class__.__name__)
 
 
 def __sprokit_register__():
