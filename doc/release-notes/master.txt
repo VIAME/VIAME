@@ -49,6 +49,14 @@ Vital
    track_set implementations allow alternative storage and query mechanisms
    for better scalability and speed under different use cases.
 
+ * The track_set is now a mutable class and has new member functions including
+   'insert', 'remove', and 'merge_tracks' to allow in place modification.
+   The intent is that most algorithms will now modify a track_set in place
+   and return it rather than creating a new track_set from the tracks.  This
+   is important for a track_set because it is often a very large structure
+   and may now have backend implementations with bookkeeping that we would
+   like to persist.
+
  * Track states now have a pointer (std::weak_ptr) back to the track object
    which contains them.  This means that each track state can belong to at
    most one track, and tracks and track states must now be created and
@@ -101,6 +109,12 @@ Arrows: Core
    the default track_set_implementation this implemenation will cache a mapping
    from frame number to the set of track states on that frame.  This makes it
    substantially faster to query tracks by frame ID.
+
+ * Modified feature tracking and loop closure algorithms to modify the
+   track_set object in place and return the same object.
+
+ * Renamed merge_tracks.h to match_tracks.h and removed all track merging
+   functions.  Track merging is now a function of the track_set itself.
 
 Sprokit
 

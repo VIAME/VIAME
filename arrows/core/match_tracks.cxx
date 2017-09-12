@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of functions to match and merge tracks
+ * \brief Implementation of functions to match tracks
  */
 
-#include "merge_tracks.h"
+#include "match_tracks.h"
 
 
 namespace kwiver {
@@ -121,64 +121,6 @@ match_tracks( vital::algo::match_features_sptr matcher,
   }
 
   return track_matches;
-}
-
-
-/// Merge the pairs of tracks provided by \p matches if possible
-int
-merge_tracks( track_pairs_t const& matches,
-              track_map_t& track_replacement )
-{
-  int num_merged = 0;
-
-  // merge the tracks
-  for( auto match : matches )
-  {
-    track_sptr t1 = match.first;
-    track_sptr t2 = match.second;
-    // if t1 has already been merged, look-up the new merged track
-    auto itr = track_replacement.find(t1);
-    if (itr != track_replacement.end())
-    {
-      t1 = itr->second;
-    }
-    if( t2->append( *t1 ) )
-    {
-      ++num_merged;
-      // update the look up table for merged track replacement
-      track_replacement[ match.first ] = t2;
-      if( t1 != match.first )
-      {
-        track_replacement[ t1 ] = t2;
-      }
-    }
-  }
-  return num_merged;
-}
-
-
-/// Remove all track with keys in the \p track_replacement map
-feature_track_set_sptr
-remove_replaced_tracks( vital::feature_track_set_sptr all_tracks,
-                        track_map_t const& track_replacement )
-{
-  if( track_replacement.empty() )
-  {
-    return all_tracks;
-  }
-
-  // remove tracks which have been replaced by the merger into another track
-  std::vector<track_sptr> at = all_tracks->tracks();
-  at.erase(
-    std::remove_if( at.begin(), at.end(), [&track_replacement] ( track_sptr t )
-      {
-        return track_replacement.find( t ) != track_replacement.end();
-      }
-    ),
-    at.end()
-  );
-  // recreate the track set with the new filtered tracks
-  return std::make_shared<feature_track_set>( at );
 }
 
 

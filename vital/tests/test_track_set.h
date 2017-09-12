@@ -97,6 +97,10 @@ test_track_set_accessors(track_set_sptr test_set)
   TEST_EQUAL("Set empty", test_set->empty(), false);
   TEST_EQUAL("Total set size", test_set->size(), 4);
 
+  auto tracks = test_set->tracks();
+  TEST_EQUAL("Contains tracks", test_set->contains(tracks[0]), true);
+  TEST_EQUAL("Contains tracks", test_set->contains(tracks[1]->clone()), false);
+
   TEST_EQUAL("Active set size (-1)", test_set->active_tracks(-1).size(), 3);
   TEST_EQUAL("Active set size (4)", test_set->active_tracks(4).size(), 3);
   TEST_EQUAL("Active set size (1)", test_set->active_tracks(1).size(), 2);
@@ -123,6 +127,63 @@ test_track_set_accessors(track_set_sptr test_set)
   TEST_EQUAL("New set size (-2)", test_set->new_tracks(-2).size(), 0);
 
   TEST_EQUAL("Percentage tracked", test_set->percentage_tracked(-1,-6), 0.5);
+}
+
+
+// Run the unit tests for track_set modifier functions
+//
+// This test assumes the tracks in the set correspond to those
+// generated in the above make_simple_track_set() function.
+void
+test_track_set_modifiers(track_set_sptr test_set)
+{
+  auto tracks = test_set->tracks();
+
+  auto new_track = track::create();
+  new_track->set_id( 10 );
+  new_track->append( std::make_shared<track_state>( 10 ) );
+  new_track->append( std::make_shared<track_state>( 11 ) );
+
+  TEST_EQUAL("Try to merge tracks with temporal overlap",
+             test_set->merge_tracks(tracks[0], tracks[1]), false);
+
+  TEST_EQUAL("Try to remove a track not in the set",
+             test_set->remove( new_track ), false);
+  TEST_EQUAL("Try to remove a track in the set",
+             test_set->remove( tracks[1] ), true);
+  TEST_EQUAL("Total set size after removal", test_set->size(), 3);
+  TEST_EQUAL("Removed track not in set", test_set->contains(tracks[1]), false);
+
+  TEST_EQUAL("Try to merge a track not in the set",
+             test_set->merge_tracks(new_track, tracks[0]), false);
+
+  test_set->insert( new_track );
+  TEST_EQUAL("Contains inserted track", test_set->contains(new_track), true);
+  TEST_EQUAL("Total set size after insertion", test_set->size(), 4);
+
+  TEST_EQUAL("Try to merge tracks in the wrong order",
+             test_set->merge_tracks(tracks[0], new_track), false);
+  TEST_EQUAL("Merge tracks",
+             test_set->merge_tracks(new_track, tracks[0]), true);
+  TEST_EQUAL("Total set size after merge", test_set->size(), 3);
+  TEST_EQUAL("Merged source track not in set",
+             test_set->contains(new_track), false);
+  TEST_EQUAL("Merged source track is empty", new_track->empty(), true);
+
+  TEST_EQUAL("Merged source track has data", !new_track->data(), false);
+  auto tdr = std::dynamic_pointer_cast<track_data_redirect>(new_track->data());
+  TEST_EQUAL("Merged source track has redirect",
+             tdr && tdr->redirect_track == tracks[0], true);
+  std::cout << "redirect ID: "<<tdr->redirect_track->id() <<std::endl;
+  TEST_EQUAL("Merged target track is bigger", tracks[0]->size(), 5);
+
+  auto new_track2 = track::create();
+  new_track2->set_id( 11 );
+  new_track2->append( std::make_shared<track_state>( 12 ) );
+  new_track2->append( std::make_shared<track_state>( 13 ) );
+  test_set->insert(new_track2);
+  TEST_EQUAL("Merge tracks with redirect",
+             test_set->merge_tracks(new_track2, new_track), true);
 }
 
 

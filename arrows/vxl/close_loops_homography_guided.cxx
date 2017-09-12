@@ -91,14 +91,6 @@ typedef std::deque< checkpoint_entry_t > checkpoint_buffer_t;
 typedef checkpoint_buffer_t::reverse_iterator buffer_ritr;
 
 
-// Functor to help remove tracks from vector
-bool
-track_id_in_set( track_sptr trk_ptr, std::set<track_id_t>* set_ptr )
-{
-  return set_ptr->find( trk_ptr->id() ) != set_ptr->end();
-}
-
-
 // If possible convert a src1 to ref and src2 to ref homography to a src2 to src1 homography
 bool
 convert( const f2f_homography_sptr &src1_to_ref,
@@ -350,20 +342,12 @@ close_loops_homography_guided
   {
     const frame_id_t prior_frame = best_frame_to_test->fid;
 
-    // Get all tracks on target frame
-    auto prior_set = std::make_shared<feature_track_set>(
-                         input->active_tracks( prior_frame ) );
-
-    // Get all tracks on the current frame
-    auto current_set = std::make_shared<feature_track_set>(
-                           input->active_tracks( frame_number ) );
-
     // Perform matching operation
     match_set_sptr mset = d_->matcher_->match(
-      current_set->frame_features( frame_number ),
-      current_set->frame_descriptors( frame_number ),
-      prior_set->frame_features( prior_frame ),
-      prior_set->frame_descriptors( prior_frame ) );
+      input->frame_features( frame_number ),
+      input->frame_descriptors( frame_number ),
+      input->frame_features( prior_frame ),
+      input->frame_descriptors( prior_frame ) );
 
     // Test matcher results
     if( mset->size() > 0 ) // If matches are good
@@ -371,38 +355,23 @@ close_loops_homography_guided
       // Logging
       LOG_INFO(d_->m_logger, "Stitching frames " << prior_frame << " and " << frame_number);
 
-      // Get all tracks, we will modify this
-      std::vector< track_sptr > all_tracks = input->tracks();
-
       // Get all tracks on the past frame
-      std::vector< track_sptr > prior_trks = prior_set->tracks();
+      std::vector< track_sptr > prior_trks = input->active_tracks( prior_frame );
 
       // Get all tracks on the current frame
-      std::vector< track_sptr > current_trks = current_set->tracks();
+      std::vector< track_sptr > current_trks = input->active_tracks( frame_number );
 
       // Get all matches
       std::vector<match> matches = mset->matches();
-      std::set<track_id_t> to_remove;
 
       for( unsigned i = 0; i < matches.size(); i++ )
       {
-        if( prior_trks[ matches[i].second ]->append( *current_trks[ matches[i].first ] ) )
-        {
-          to_remove.insert( current_trks[ matches[i].first ]->id() );
-        }
-      }
-
-      if( !to_remove.empty() )
-      {
-        all_tracks.erase(
-          std::remove_if( all_tracks.begin(), all_tracks.end(),
-                          std::bind( track_id_in_set, std::placeholders::_1, &to_remove ) ),
-          all_tracks.end()
-        );
+        input->merge_tracks( current_trks[ matches[i].first ],
+                             prior_trks[ matches[i].second ] );
       }
 
       // Return updated set
-      return std::make_shared<feature_track_set>( all_tracks );
+      return input;
     }
   }
 
