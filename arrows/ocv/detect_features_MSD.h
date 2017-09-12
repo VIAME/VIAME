@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,9 +64,6 @@ public:
 
   /// Destructor
   virtual ~detect_features_MSD();
-
-  /// Return the name of this implementation
-  virtual std::string impl_name() const { return "ocv_MSD"; }
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
