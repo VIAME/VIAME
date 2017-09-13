@@ -54,8 +54,8 @@ if (WIN32)
   endif()
   if (Darknet_USING_CUDNN)
     set( Darknet_linked_libs
-         ${darknet_linked_libs}
-         ${CUDA_CUDA_LIBRARY} )
+         ${Darknet_linked_libs}
+         ${CUDNN_LIBRARIES} )
   endif()
 endif()
 
