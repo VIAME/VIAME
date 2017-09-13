@@ -38,8 +38,6 @@
 #include <vital/types/camera.h>
 #include <vital/io/camera_io.h>
 
-#include <gtest/gtest.h>
-
 #include <iostream>
 
 using namespace kwiver::vital;

@@ -43,8 +43,6 @@
 
 #include <vital/types/similarity.h>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------

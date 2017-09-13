@@ -40,9 +40,6 @@
 #include <vital/types/geodesy.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <gtest/gtest.h>
-
-
 static auto const loc1 = kwiver::vital::vector_2d{ -73.759291, 42.849631 };
 static auto const loc2 = kwiver::vital::vector_2d{ -73.757161, 42.849764 };
 static auto const loc3 = kwiver::vital::vector_2d{ 601375.01, 4744863.31 };

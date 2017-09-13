@@ -42,6 +42,8 @@
 
 #include <Eigen/Core>
 
+#include <gtest/gtest.h>
+
 // ----------------------------------------------------------------------------
 //
 // Testing helper functions
@@ -155,14 +157,18 @@ struct similar_matrix_comparator : matrix_comparator
   }
 };
 
+// ----------------------------------------------------------------------------
+static auto compare_matrices = matrix_comparator{};
+static auto compare_similar_matrices = similar_matrix_comparator{};
+
 #define EXPECT_MATRIX_EQ(a, b) \
-  EXPECT_PRED2(::kwiver::testing::matrix_comparator{}, a, b)
+  EXPECT_PRED2(::kwiver::testing::compare_matrices, a, b)
 
 #define EXPECT_MATRIX_NEAR(a, b, eps) \
-  EXPECT_PRED3(::kwiver::testing::matrix_comparator{}, a, b, eps)
+  EXPECT_PRED3(::kwiver::testing::compare_matrices, a, b, eps)
 
 #define EXPECT_MATRIX_SIMILAR(a, b, eps) \
-  EXPECT_PRED3(::kwiver::testing::similar_matrix_comparator{}, a, b, eps)
+  EXPECT_PRED3(::kwiver::testing::compare_similar_matrices, a, b, eps)
 
 } // end namespace testing
 } // end namespace kwiver

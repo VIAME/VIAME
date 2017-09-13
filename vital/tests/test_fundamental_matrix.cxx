@@ -39,8 +39,6 @@
 
 #include <Eigen/SVD>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------

@@ -40,8 +40,6 @@
 #include <vital/types/similarity.h>
 #include <vital/types/vector.h>
 
-#include <gtest/gtest.h>
-
 #include <iostream>
 #include <vector>
 

@@ -39,8 +39,6 @@
 #include <vital/io/eigen_io.h>
 #include <vital/types/vector.h>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------

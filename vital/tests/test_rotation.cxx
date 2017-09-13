@@ -37,8 +37,6 @@
 
 #include <vital/types/rotation.h>
 
-#include <gtest/gtest.h>
-
 #include <iostream>
 #include <vector>
 
