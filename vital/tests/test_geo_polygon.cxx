@@ -197,16 +197,16 @@ TEST(geo_polygon, conversion)
   geo_polygon p_ll{ { loc_ll }, crs_ll };
   geo_polygon p_utm{ { loc_utm }, crs_utm_6s };
 
-  auto const d1 =
-    p_ll.polygon( p_utm.crs() ).at( 0 )  - p_utm.polygon().at( 0 );
-  auto const d2 =
-    p_utm.polygon( p_ll.crs() ).at( 0 ) - p_ll.polygon().at( 0 );
+  auto const conv_loc_utm = p_ll.polygon( p_utm.crs() ).at( 0 );
+  auto const conv_loc_ll = p_utm.polygon( p_ll.crs() ).at( 0 );
 
-  auto const epsilon_ll_to_utm = d1.squaredNorm();
-  auto const epsilon_utm_to_ll = d2.squaredNorm();
+  auto const epsilon_ll_to_utm = ( loc_utm - conv_loc_utm ).norm();
+  auto const epsilon_utm_to_ll = ( loc_ll - conv_loc_ll ).norm();
 
-  EXPECT_LT( epsilon_ll_to_utm, 1e-4 );
-  EXPECT_LT( epsilon_utm_to_ll, 1e-13 );
+  EXPECT_MATRIX_NEAR( p_ll.polygon().at( 0 ), conv_loc_ll, 1e-7 );
+  EXPECT_MATRIX_NEAR( p_utm.polygon().at( 0 ), conv_loc_utm, 1e-2 );
+  EXPECT_LT( epsilon_ll_to_utm, 1e-2 );
+  EXPECT_LT( epsilon_utm_to_ll, 1e-7 );
 
   std::cout << "LL->UTM epsilon: " << epsilon_ll_to_utm << std::endl;
   std::cout << "UTM->LL epsilon: " << epsilon_utm_to_ll << std::endl;
