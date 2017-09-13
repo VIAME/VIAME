@@ -134,8 +134,8 @@ CONFIG Macro Provider
 This macro provider gives access to previously defined configuration entries.
 For example::
 
-config foo
-  bar = baz
+  config foo
+    bar = baz
 
 makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
 as shown below.::

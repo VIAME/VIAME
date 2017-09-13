@@ -26,7 +26,7 @@ immutable through their respective ``typedef`` and can only be created with
 static methods of the respective class which enforce that they can only be
 constructed in specific ways.
 
-.. doxygenclass:: sprokit::datum
+  doxygenclass:: sprokit::datum
                   :project: kwiver
                   :members:
 

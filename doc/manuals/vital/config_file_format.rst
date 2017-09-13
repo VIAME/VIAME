@@ -20,18 +20,14 @@ retained.
 If the *value* string is enclosed in quotes, the quotes will become
 part of the value and passed to the program.
 
-The simplest form of a config entry is:
-
-.. code-block:: c++
+The simplest form of a config entry is:::
 
   simple = value
 
 
 Configuration entries can be grouped so that entries for a specific
 can be specified as a subblock. For example configuration items for
-the *foo* algorithm can be specified as
-
-.. code-block:: c++
+the *foo* algorithm can be specified as::
 
   foo:mode = red
   foo:sync = false
@@ -40,17 +36,13 @@ the *foo* algorithm can be specified as
 by prepending the block/subblock name before the name with a ":"
 separator. All conrig entries for *foo* can be extracted from the
 larger config into a subblock that is expected by the
-algorithm. Blocks can be nested to an arbitrary depth, as shown below.
-
-.. code-block:: c++
+algorithm. Blocks can be nested to an arbitrary depth, as shown below.::
 
   foo:bar:baz:arf:mode = blue
 
 A configuration entry can be made read-only bp appending *[RO]* to the
 key string. Once an entry has been declared a read only, it cannot be
-assigned another value or deleted from the config.
-
-.. code-block:: c++
+assigned another value or deleted from the config.::
 
   simple[RO] = value
 
@@ -63,23 +55,19 @@ Block Specification
 '''''''''''''''''''
 In some cases the fully qualified configuration key can become long and unwieldy.
 The block directive can be used to establish a configuration context to be applied
-to the enclosed configuration entries.
+to the enclosed configuration entries.::
 
-`block alg`
+  block alg
 
 Starts a block with the *alg* block name and all entries within the block will
-have `alg:` prepended to the entry name.
-
-
-.. code-block:: c++
+have ``alg:`` prepended to the entry name.::
 
   block alg
      mode = red      # becomes alg:mode = red
   endblock
 
-Blocks can be nested to an arbitrary depth with each providing context for the enclosed entries.
-
-.. code-block:: c++
+Blocks can be nested to an arbitrary depth with each providing context
+for the enclosed entries.::
 
   block foo
     block bar:fizzle
@@ -95,7 +83,7 @@ file into the current file at the point of the include
 directive. Include files provide an easy way to break up large
 configurations into smaller reusable pieces.
 
-`include filename`
+``include filename``
 
 If the file name is not an absolute path, it is located by scanning
 the current config search path.  The manner in which the config
@@ -106,9 +94,7 @@ substitution, as described below, is performed on the file name string
 before the searching is done.
 
 Block specifications and include directives can be used together to
-build reusable and shareable configuration snippets.
-
-.. code-block:: c++
+build reusable and shareable configuration snippets.::
 
   block main
     block alg_one
@@ -136,11 +122,9 @@ different users and systems.
 The solution is to specify the location of these external files
 relative to the configuration file and use the *relativepath* modifier
 construct a full, absolute path at run time by prepending the
-configuration file directory path to the value.
+configuration file directory path to the value.::
 
-.. code-block:: c++
-
-relativepath data_file = ../data/online_dat.dat
+  relativepath data_file = ../data/online_dat.dat
 
 If the current configuration file is
 ``/home/vital/project/config/blue/foo.config``, the resulting config
@@ -205,7 +189,7 @@ If <install-dir> is not `/usr` or `/usr/local`:
 
 The environment variable \c KWIVER_CONFIG_PATH can be set with a list
 of one or more directories, in the same manner as the native execution
- `PATH` variable, to be searched for config files.
+`PATH` variable, to be searched for config files.
 
 Macro Substitution
 ------------------
@@ -235,9 +219,7 @@ This macro provider supplies values that have been stored previously
 in the config file.  Local values are specified in the config file
 using the ":=" operator. For example the config entry `mode := online`
 makes `$LOCAL{mode}` available in subsequent configuration
-entries.
-
-.. code-block:: c++
+entries.::
 
   mode := online
   ...
@@ -255,16 +237,13 @@ used by specifying `$ENV{HOME}` in the config file.
 
 CONFIG Macro Provider
 '''''''''''''''''''''
-This macro provider gives access to previously defined configuration entries. For example
-
-.. code-block:: c++
+This macro provider gives access to previously defined configuration
+entries. For example::
 
   foo:bar = baz
 
 makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
-as shown below.
-
-.. code-block:: c++
+as shown below.::
 
   value = mode-$CONFIG{foo:bar}ify
 

@@ -300,7 +300,7 @@ multi-threaded.
 
 The source code for the ``call_SMQTK_pipeline`` provides an example of how to use this call in your own programs:
 
-.. literalinclude:: /../examples/call_SMQTK_pipeline/SMQTK_Descriptor_test.cxx
+.. literalinclude:: /../../sprokit/processes/examples/call_SMQTK_pipeline/SMQTK_Descriptor_test.cxx
    :language: c++
    :lines: 31-71
    :emphasize-lines: 27
