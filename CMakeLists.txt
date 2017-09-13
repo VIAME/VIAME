@@ -160,7 +160,7 @@ if (KWIVER_ENABLE_PYTHON)
     find_package(PythonLibs)
 
     execute_process(
-      COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
+      COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(prefix=''))"
       RESULT_VARIABLE proc_success
       OUTPUT_VARIABLE python_site_packages
       )
@@ -243,7 +243,7 @@ if ( KWIVER_ENABLE_LOG4CXX )
   if(WIN32)
     message(STATUS "Log4CXX is not supported on windows, if no other logger is provided, the default will be used")
   endif()
-  
+
 endif()
 
 ###
@@ -275,7 +275,7 @@ endif()
 
 if ( KWIVER_ENABLE_MATLAB )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
-  
+
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${Matlab_LIBRARY_DIR}\n" )
 endif()
 
