@@ -55,7 +55,7 @@ CommandLine:
 SeeAlso
     ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types
 """
-from __future__ import print_function, division
+from __future__ import absolute_import, print_function, division
 import numpy as np
 from sprokit.pipeline import process
 from sprokit.pipeline import datum  # NOQA
@@ -137,12 +137,8 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
-        self.declare_input_port_using_trait('image_file_name', optional)
-
-        self.add_port_trait('frame_id', 'int', 'frame id')
 
         self.declare_output_port_using_trait('detected_object_set', optional )
-        self.declare_output_port_using_trait('frame_id', optional )
 
     # ----------------------------------------------
     def _configure(self):
@@ -157,10 +153,6 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         log.debug(' ----- step ' + self.__class__.__name__)
         # grab image container from port using traits
         img_container = self.grab_input_using_trait('image')
-        image_file_name = self.grab_input_using_trait('image_file_name').get_datum()
-
-        # if image_file_name is not None:
-        frame_id = int(os.path.basename(image_file_name).split('_')[0])
 
         img = img_container.asarray()
 
@@ -173,7 +165,6 @@ class CamtrawlDetectFishProcess(KwiverProcess):
             detection_set.add(obj)
         # # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('detected_object_set', detection_set)
-        self.push_to_port_using_trait('frame_id', frame_id)
 
         self._base_step()
 
@@ -208,14 +199,16 @@ class CamtrawlMeasureProcess(KwiverProcess):
         # self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
         self.add_port_trait('detected_object_set' + '1', 'detected_object_set', 'Detections from camera1')
         self.add_port_trait('detected_object_set' + '2', 'detected_object_set', 'Detections from camera2')
-        self.add_port_trait('frame_id1', 'int', 'frame id')
-        self.add_port_trait('frame_id2', 'int', 'frame id')
+        self.add_port_trait('image_file_name' + '1', 'image_file_name', 'desc1')
+        self.add_port_trait('image_file_name' + '2', 'image_file_name', 'desc2')
+        # self.add_port_trait('frame_id1', 'int', 'frame id')
+        # self.add_port_trait('frame_id2', 'int', 'frame id')
 
         #  declare our input port ( port-name,flags)
         # self.declare_input_port_using_trait('camera' + '1', optional)
         # self.declare_input_port_using_trait('camera' + '2', optional)
-        self.declare_input_port_using_trait('frame_id' + '1', required)
-        self.declare_input_port_using_trait('frame_id' + '2', required)
+        self.declare_input_port_using_trait('image_file_name' + '1', required)
+        self.declare_input_port_using_trait('image_file_name' + '2', required)
         self.declare_input_port_using_trait('detected_object_set' + '1', required)
         self.declare_input_port_using_trait('detected_object_set' + '2', required)
 
@@ -246,9 +239,13 @@ class CamtrawlMeasureProcess(KwiverProcess):
         self.output_file = open(output_fpath, 'a')
         self._base_configure()
 
+        self.prog = ub.ProgIter(verbose=3)
+        self.prog.begin()
+
     # ----------------------------------------------
     def _step(self):
         log.debug(' ----- step ' + self.__class__.__name__)
+        self.prog.step()
 
         if self.cal is None:
             self.cal = True
@@ -281,13 +278,21 @@ class CamtrawlMeasureProcess(KwiverProcess):
             })
             log.debug(' ----- no more need for cameras ' + self.__class__.__name__)
 
-        frame_id1 = self.grab_input_using_trait('frame_id' + '1')
-        frame_id2 = self.grab_input_using_trait('frame_id' + '2')
+        image_file_name1 = self.grab_input_using_trait('image_file_name1').get_datum()
+        image_file_name2 = self.grab_input_using_trait('image_file_name2').get_datum()
+
+        def _parse_frameid(fname):
+            return int(os.path.basename(fname).split('_')[0])
+
+        frame_id1 = _parse_frameid(image_file_name1)
+        frame_id2 = _parse_frameid(image_file_name2)
+        assert frame_id1 == frame_id2
+        frame_id = frame_id1
+
+        # frame_id1 = self.grab_input_using_trait('frame_id' + '1')
+        # frame_id2 = self.grab_input_using_trait('frame_id' + '2')
         detection_set1 = self.grab_input_using_trait('detected_object_set' + '1')
         detection_set2 = self.grab_input_using_trait('detected_object_set' + '2')
-
-        print('frame_id1 = {!r}'.format(frame_id1))
-        print('frame_id2 = {!r}'.format(frame_id2))
 
         # Convert back to the format the algorithm understands
         def _detections_from_vital(detection_set):
@@ -305,7 +310,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         # Append assignments to the measurements
         for data in assign_data:
-            data['current_frame'] = '?'
+            data['current_frame'] = frame_id
             line = ','.join([repr(d).replace('\n', ' ').replace(',', ';')
                              for d in ub.take(data, self.headers)])
             self.output_file.write(line + '\n')
@@ -322,17 +327,20 @@ def __sprokit_register__():
 
     from sprokit.pipeline import process_factory
 
-    print("REGISTER THIS MODULE :", __name__)
+    module_name = 'python_' + __name__
+    print("REGISTER THIS MODULE: {}, {}".format(module_name, __file__))
 
     # module_name = 'python:camtrawl.camtrawl_processes'
-    module_name = 'python' + __name__
+    # module_name = 'python' + __name__
     if process_factory.is_process_module_loaded(module_name):
         return
 
+    print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
+
     for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
-        print("REGISTER:")
-        print('name = {!r}'.format(name))
-        print('cls = {!r}'.format(cls))
+        print("REGISTER PROCESS:")
+        print(' * name = {!r}'.format(name))
+        print(' * cls = {!r}'.format(cls))
         process_factory.add_process(name, doc, cls)
 
     # process_factory.add_process('camtrawl_detect_fish',
