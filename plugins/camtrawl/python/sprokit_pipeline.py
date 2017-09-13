@@ -428,13 +428,37 @@ class Pipeline(object):
         A.draw(fpath)
 
 
+def find_pipeline_runner():
+    """
+    Search for the sprokit pipeline_runner executable
+    """
+    # First check if pipeline_runner is specified as an environment variable
+    runner_fpath = os.environ.get('SPROKIT_PIPELINE_RUNNER', None)
+    if runner_fpath is not None:
+        return runner_fpath
+
+    # If not, then search for the binary in the current dir and the PATH
+    fnames = ['pipeline_runner']
+    if WIN32:
+        fnames.insert(0, 'pipeline_runner.exe')
+
+    search_paths = ['.']
+    search_paths = os.environ.get('PATH', '').split(os.pathsep)
+
+    for fname in fnames:
+        for dpath in search_paths:
+            fpath = join(dpath, fname)
+            if os.path.isfile(fpath):
+                return fpath
+
+
 def run_pipe_file(pipe_fpath, dry=False):
     """
     Executes pipeline_runner with a specific pipe file.
     """
     import os
-    # TODO: determine where this executable lives
-    runner_fpath = '/home/joncrall/code/VIAME/build/install/bin/pipeline_runner'
+    runner_fpath = find_pipeline_runner()
+    # '/home/joncrall/code/VIAME/build/install/bin/pipeline_runner'
 
     if not exists(pipe_fpath):
         raise IOError('Pipeline file {} does not exist'.format(pipe_fpath))
