@@ -49,6 +49,32 @@ namespace kwiver
 
   create_config_trait( feature_detector, std::string, "", "Algorithm configuration subblock." )
 
+/**
+ * \class detect_features_process
+ *
+ * \brief Detect feature points in supplied images.
+ *
+ * \process This process generates a list of detected features that
+ * can be used to determine coordinate transforms between images. The
+ * actual rendering is done by the selected \b detect_features
+ * algorithm implementation
+ *
+ * \iports
+ *
+ * \iport{timestamp} time stamp for incoming images.
+ *
+ * \iport{image} Input image to be processed.
+ *
+ * \oports
+ *
+ * \oport{feature_set} Set of detected features for input image.
+ *
+ * \configs
+ *
+ * \config{feature_detector} Name of the configuration subblock that selects
+ * and configures the feature detector algorithm
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class detect_features_process::priv

@@ -41,6 +41,32 @@ namespace kwiver {
 // (config-key, value-type, default-value, description )
   create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block." );
 
+// ----------------------------------------------------------------
+/**
+ * \class draw_detected_object_set_process
+ *
+ * \brief Draw detected objects on reference imagery.
+ *
+ * \process This process draws the bounding box outlines of the
+ * detections in the supplied set on the supplied reference
+ * imagery. The actual rendering is done by the selected \b
+ * draw_detected_object_set algorithm implementation.
+ *
+ * \iports
+ *
+ * \iport{detected_object_set} Set of detected objects to render on reference image.
+ *
+ * \iport{image} Reference image for rendering.
+ *
+ * \oports
+ *
+ * \oport{image} A copy of the input image with bounding boxes rendered.
+ *
+ * \configs
+ *
+ * \config{draw_algo} Name of the configuration subblock that selects
+ * and configures the drawing algorithm.
+ */
 
 //----------------------------------------------------------------
 // Private implementation class

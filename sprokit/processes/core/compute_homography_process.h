@@ -40,19 +40,6 @@ namespace kwiver
 {
 
 // ----------------------------------------------------------------
-/**
- * \class compute_homography_process
- *
- * \brief Stabilizes a series of image.
- *
- * \iports
- * \iport{timestamp}
- * \iport{image}
- *
- * \oports
- * \oport{src_to_ref_homography}
- *
- */
 class KWIVER_PROCESSES_NO_EXPORT compute_homography_process
   : public sprokit::process
 {

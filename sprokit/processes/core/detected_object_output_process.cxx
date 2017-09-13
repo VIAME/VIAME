@@ -52,6 +52,31 @@ create_config_trait( file_name, std::string, "", "Name of the detection set file
 create_config_trait( writer, std::string , "", "Block name for algorithm parameters. "
                      "e.g. writer:type would be used to specify the algorithm type." );
 
+/**
+ * \class detected_object_output_process
+ *
+ * \brief Writes detected objects to a file.
+ *
+ * \process This process writes the detected objecs in the set to a
+ * file. The actual renderingwriting is done by the selected \b
+ * detected_object_set_output algorithm implementation.
+ *
+ * \iports
+ *
+ * \iport{image_file_name} Optional name of an image file to associate
+ * with the set of detections.
+ *
+ * \iport{detected_object_set} Set ob objects to pass to writer
+ * algorithm.
+ *
+ * \configs
+ *
+ * \config{file_name} Name of the file that the detections are written.
+ *
+ * \config{writer} Name of the configuration subblock that selects
+ * and configures the writing algorithm
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class detected_object_output_process::priv
