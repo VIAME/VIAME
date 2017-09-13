@@ -63,7 +63,7 @@ from vital.types import DetectedObjectSet
 import logging
 import os
 import sprokit_pipeline
-# import ubelt as ub
+import ubelt as ub
 
 logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
 log = logging.getLogger(__name__)
@@ -144,13 +144,13 @@ class MeasureDOSProcess(KwiverProcess):
             self.add_port_trait('detected_object_set' + str(i), 'detected_object_set', 'Detections from camera1')
             self.declare_input_port_using_trait('detected_object_set' + str(i), required)
 
-        # self.prog = ub.ProgIter(verbose=3)
-        # self.prog.begin()
+        self.prog = ub.ProgIter(verbose=3)
+        self.prog.begin()
 
     # ----------------------------------------------
     def _step(self):
         log.debug(' ----- step ' + self.__class__.__name__)
-        # self.prog.step()
+        self.prog.step()
 
         detection_sets = {}
         for i in range(N_SOURCE_NODES):
@@ -167,6 +167,11 @@ def main():
         cd ~/code/VIAME/plugins/camtrawl/python
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
+
+        workon_py2
+        source ~/code/VIAME/build-relwithdeb/install/setup_viame.sh
+
+        cd ~/code/VIAME/plugins/camtrawl/python
         # Ensure python and sprokit knows about our module
         export PYTHONPATH=$(pwd):$PYTHONPATH
         export KWIVER_DEFAULT_LOG_LEVEL=info
@@ -210,7 +215,7 @@ def main():
 
     print('  --- RUN PIPELINE ---')
     print(pipe.make_pipeline_text())
-    pipe.draw_graph('mwe_segfault.png')
+    # pipe.draw_graph('mwe_segfault.png')
     # ub.startfile('mwe_segfault.png')
     pipe.run()
     return pipe
@@ -225,7 +230,7 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    # print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
+    print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
 
     for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
         print("REGISTER PROCESS:")
