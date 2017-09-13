@@ -41,9 +41,10 @@ with all the expected keys, default values, and entry description.
 Don't be shy with the entry description. This description serves as
 the design specification for the entry. The expected format is a short
 description followed by a longer detailed description separated by two
-new-lines.
+new-lines.::
 
-std::string description = "Short description\n\n\"
+
+  std::string description = "Short description\\n\\n"
                           "Longer description which contains all information needed "
                           "to correctly specify this parameter including any range "
                           "limitations etc.";
@@ -65,8 +66,10 @@ Config comes from a file that is read by an application
 (usually). General structure of a config block for an algorithm. This
 may have changed with the addition of the block/endblock features.
 
-- correct sequence of calls when dealing with algorithms. There seems
-  to be some disagreement about this.
+  - correct sequence of calls when dealing with algorithms. There seems
+    to be some disagreement about this.
+
+.. code-block:: c++
 
   check_config();
   set_config();
@@ -94,12 +97,15 @@ or best practices for config files
 How to use include and block to make reusable config
 sections. Starting with the example config section that follows.
 
+.. code-block:: c++
 
     algorithm_instance_name:type = type_name
     algorithm_instance_name:type_name:algo_param = value
     algorithm_instance_name:type_name:threshold = 234
 
 alteratively
+
+.. code-block:: c++
 
     algorithm_instance_name:type = type_name
     block  algorithm_instance_name:type_name
@@ -110,22 +116,25 @@ alteratively
 
 or
 
+.. code-block:: c++
+
     algorithm_instance_name:type = type_name
     block  algorithm_instance_name
       include type_name.conf
     endblock
 
-where type_name.conf contains
+where ``type_name.conf`` contains
+
+.. code-block:: c++
 
     block   type_name
       algo_param = value
       threshold = 234
       ...
-    endblock
 
 
-### Macros Available in Configuration ###
-
+Macros Available in Configuration
+---------------------------------
 
 Config entry provider (Macro) - how to specify the key name in a
 stand-alone file.  in a pipeline file. (unbound config blocks,

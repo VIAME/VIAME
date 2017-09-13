@@ -1,7 +1,6 @@
-vital Configuration File Format
-===============================
-Introduction
-------------
+Configuration File Format
+=========================
+
 Configuration files are used to establish a key, value store that is
 available within a program. The entries can be grouped in a hierarchy
 or blocks to aide in constructing complex configurations. This
@@ -23,37 +22,37 @@ part of the value and passed to the program.
 
 The simplest form of a config entry is:
 
-```
-simple = value
-```
+.. code-block:: c++
+
+  simple = value
+
 
 Configuration entries can be grouped so that entries for a specific
 can be specified as a subblock. For example configuration items for
 the *foo* algorithm can be specified as
 
-```
-foo:mode = red
-foo:sync = false
-foo:debug = false
-```
+.. code-block:: c++
+
+  foo:mode = red
+  foo:sync = false
+  foo:debug = false
 
 by prepending the block/subblock name before the name with a ":"
 separator. All conrig entries for *foo* can be extracted from the
 larger config into a subblock that is expected by the
 algorithm. Blocks can be nested to an arbitrary depth, as shown below.
 
-```
-foo:bar:baz:arf:mode = blue
-```
+.. code-block:: c++
+
+  foo:bar:baz:arf:mode = blue
 
 A configuration entry can be made read-only bp appending *[RO]* to the
 key string. Once an entry has been declared a read only, it cannot be
 assigned another value or deleted from the config.
 
-```
-simple[RO] = value
-```
+.. code-block:: c++
 
+  simple[RO] = value
 
 Comments
 ''''''''
@@ -65,23 +64,30 @@ Block Specification
 In some cases the fully qualified configuration key can become long and unwieldy.
 The block directive can be used to establish a configuration context to be applied
 to the enclosed configuration entries.
-`block alg`
-Starts a block with the *alg* block name and all entries within the block will have `alg:` prepended to the entry name.
-```
-block alg
-   mode = red      # becomes alg:mode = red
-endblock
 
-```
+`block alg`
+
+Starts a block with the *alg* block name and all entries within the block will
+have `alg:` prepended to the entry name.
+
+
+.. code-block:: c++
+
+  block alg
+     mode = red      # becomes alg:mode = red
+  endblock
+
 Blocks can be nested to an arbitrary depth with each providing context for the enclosed entries.
 
-```
-block foo
-  block bar:fizzle
-    mode = yellow     # becomes foo:bar:fizzle:mode = yellow
+.. code-block:: c++
+
+  block foo
+    block bar:fizzle
+      mode = yellow     # becomes foo:bar:fizzle:mode = yellow
+    endblock
   endblock
-endblock
-```
+
+
 Including Files
 '''''''''''''''
 The include directive logically inserts the contents of the specified
@@ -102,17 +108,17 @@ before the searching is done.
 Block specifications and include directives can be used together to
 build reusable and shareable configuration snippets.
 
-```
-block main
-  block alg_one
-    include alg_foo.config
-  endblock
+.. code-block:: c++
 
-  block alg_two
-    include alg_foo.config
+  block main
+    block alg_one
+      include alg_foo.config
+    endblock
+
+    block alg_two
+      include alg_foo.config
+    endblock
   endblock
-endblock
-```
 
 In this case the same configuration structure can be used in two
 places in the overall configuration.
@@ -132,14 +138,14 @@ relative to the configuration file and use the *relativepath* modifier
 construct a full, absolute path at run time by prepending the
 configuration file directory path to the value.
 
-```
+.. code-block:: c++
+
 relativepath data_file = ../data/online_dat.dat
-```
 
 If the current configuration file is
-`/home/vital/project/config/blue/foo.config`, the resulting config
+``/home/vital/project/config/blue/foo.config``, the resulting config
 entry for **data_file** will be
-`/home/vital/project/config/blue/../data/online.dat`
+``/home/vital/project/config/blue/../data/online.dat``
 
 The *relativepath* modifier can be applied to any configuration entry,
 but it only makes sense to use it with relative file specifications.
@@ -231,11 +237,11 @@ using the ":=" operator. For example the config entry `mode := online`
 makes `$LOCAL{mode}` available in subsequent configuration
 entries.
 
-```
-mode := online
-...
-config_file = data/$LOCAL{mode}/model.dat
-```
+.. code-block:: c++
+
+  mode := online
+  ...
+ config_file = data/$LOCAL{mode}/model.dat
 
 This type of macro definition can appear anywhere in a config file and
 becomes available for use on the next line.  The current block context
@@ -250,14 +256,17 @@ used by specifying `$ENV{HOME}` in the config file.
 CONFIG Macro Provider
 '''''''''''''''''''''
 This macro provider gives access to previously defined configuration entries. For example
-```
-foo:bar = baz
-```
+
+.. code-block:: c++
+
+  foo:bar = baz
+
 makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
 as shown below.
-```
-value = mode-$CONFIG{foo:bar}ify
-```
+
+.. code-block:: c++
+
+  value = mode-$CONFIG{foo:bar}ify
 
 SYSENV Macro Provider
 '''''''''''''''''''''
