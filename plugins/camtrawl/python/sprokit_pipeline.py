@@ -341,7 +341,7 @@ class Pipeline(object):
         with open(fpath, 'w') as file:
             file.write(text)
 
-    def run(self):
+    def run(self, dry=False):
         """
         Executes this pipeline.
 
@@ -352,7 +352,7 @@ class Pipeline(object):
         # TODO make a name based on a hash of the text to avoid race conditions
         pipe_fpath = join(cache_dir, 'temp_pipeline_file.pipe')
         self.write(pipe_fpath)
-        run_pipe_file(pipe_fpath)
+        run_pipe_file(pipe_fpath, dry=dry)
 
     def to_networkx(self):
         """
@@ -428,7 +428,7 @@ class Pipeline(object):
         A.draw(fpath)
 
 
-def run_pipe_file(pipe_fpath):
+def run_pipe_file(pipe_fpath, dry=False):
     """
     Executes pipeline_runner with a specific pipe file.
     """
@@ -442,4 +442,7 @@ def run_pipe_file(pipe_fpath):
     if not exists(runner_fpath):
         raise NotImplementedError('Cannot find pipeline_runner')
 
-    os.system('{} -p {}'.format(runner_fpath, pipe_fpath))
+    command = '{} -p {}'.format(runner_fpath, pipe_fpath)
+    print('command = "{}"'.format(command))
+    if not dry:
+        os.system(command)
