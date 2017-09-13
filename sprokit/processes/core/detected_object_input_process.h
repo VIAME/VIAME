@@ -40,20 +40,9 @@
 
 #include <memory>
 
-namespace kwiver
-{
+namespace kwiver {
 
-  // ----------------------------------------------------------------
-/**
- * \class detected_object_input_process
- *
- * \brief Reads a series of images
- *
- * \iports
- * \iport{image_name}
- * \iport{detection_set}
- *
- */
+// ----------------------------------------------------------------
 class KWIVER_PROCESSES_NO_EXPORT detected_object_input_process
   : public sprokit::process
 {

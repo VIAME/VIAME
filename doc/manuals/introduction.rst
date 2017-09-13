@@ -12,9 +12,12 @@ development.
 
 KWIVER contains the following components.
 
-`VITAL`_
+VITAL
+-----
+
   A core library of abstractions and data types used by various KWIVER components.
   Major elements of VITAL are:
+
   - Basic data types used throughout Kwiver.
   - Provides abstract algorithm interfaces for implementations in the ARROWS component.
   - Configuration support library providing a common approach to run time configuration of the components.
@@ -22,10 +25,12 @@ KWIVER contains the following components.
   - flexible logging support that can interface to different logging back ends.
   - General purpose plugin architecture.
 
-`Stream Processing Toolkit (sprokit)`_
-  Sprokit is the “Stream Processing Toolkit”, a library aiming to
-  make processing a stream of data with various algorithms easy.
-  It supports divergent and convergent data flows with synchronization
+Stream Processing Toolkit (sprokit)
+-----------------------------------
+
+  Sprokit is the “Stream Processing Toolkit”, a library aiming to make
+  processing a stream of data with various algorithms easy.  It
+  supports divergent and convergent data flows with synchronization
   between them, connection type checking, all with full, first-class
   Python bindings.
 
@@ -33,20 +38,23 @@ KWIVER contains the following components.
   support basic operations such as image and video input and display,
   wrappers for common algorithms.
 
-`ARROWS`_
-  ARROWS is an open source C++ collection of algorithms
-  for making measurements from aerial video. Initial capability
-  focuses on estimating the camera flight trajectory and a sparse
-  3D point cloud of the scene.
+ARROWS
+------
+
+  ARROWS is an open source C++ collection of algorithms for making
+  measurements from aerial video. Initial capability focuses on
+  estimating the camera flight trajectory and a sparse 3D point cloud
+  of the scene.
 
 Additionally, a separate repository, Fletch, is a CMake based project
 that assists with acquiring and building common Open Source libraries
 useful for developing video exploitation tools.
 
-There is no single "correct"
-way to build KWIVER.  Rather, depending on your use case you will configure and build KWIVER
-in ways that make the tools and libraries you require avaialable to you.  In this documentation
-we'll detail and document some of the more common and useful usecases.
+There is no single "correct" way to build KWIVER.  Rather, depending
+on your use case you will configure and build KWIVER in ways that make
+the tools and libraries you require avaialable to you.  In this
+documentation we'll detail and document some of the more common and
+useful usecases.
 
 .. toctree::
    :maxdepth: 3

@@ -39,6 +39,32 @@ namespace kwiver {
 
 create_config_trait( computer, std::string, "", "Algorithm configuration subblock" );
 
+// ----------------------------------------------------------------
+/**
+ * \class compute_stereo_depth_map_process
+ *
+ * \brief Compute stereo depth map image.
+ *
+ * \process This process generates a depth map image from a pair of
+ * stereo images. The actual calculation is done by the selected \b
+ * compute_stereo_depth_map algorithm implementation.
+ *
+ * \iports
+ *
+ * \iport{left_image} Left image of the stereo image pair.
+ *
+ * \iport{right_image} Right image if the stereo pair.
+ *
+ * \oports
+ *
+ * \oport{depth_map} Resulting depth map.
+ *
+ * \configs
+ *
+ * \config{computer} Name of the configuration subblock that selects
+ * and configures the algorithm.
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class compute_stereo_depth_map_process::priv

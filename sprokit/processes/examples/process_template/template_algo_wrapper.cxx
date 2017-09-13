@@ -36,13 +36,16 @@
  */
 
 //++ include process class/interface
-#include "template_process.h"
+#include "template_algo_wrapper.h"
 
 #include <sprokit/processes/kwiver_type_traits.h>
+#include <sprokit/pipeline/process_exception.h>
 #include <vital/types/timestamp.h>
 #include <arrows/ocv/image_container.h>
 
-#include <opencv2/core/core.hpp>
+//++ include definition of abstract base algorithm.
+#include <vital/algo/image_object_detector.h>
+
 
 //++ You can put all of your processes in the same namespace
 namespace group_ns {
@@ -53,7 +56,7 @@ namespace group_ns {
 //++ is in the implementation file where it is more likely to be read and updated.
 // ----------------------------------------------------------------
 /**
- * \class template_process
+ * \class template_algo_wrapper
  *
  * \brief Process template
  *
@@ -83,32 +86,30 @@ namespace group_ns {
 //++ Define configurable items here.
 // config items
 // <name>, <type>, <default string>, <description string>
-create_config_trait( header, std::string, "top", "Header text for image display." );
-create_config_trait( footer, std::string, "bottom", "Footer text for image display. Displayed centered at bottom of image." );
-create_config_trait( gsd, double, "3.14159", "Meters per pixel scaling." );
+create_config_trait( algo_name, std::string, "", "Name of algorithm config block." );
 
 //----------------------------------------------------------------
 // Private implementation class
-class template_process::priv
+class template_algo_wrapper::priv
 {
 public:
   priv();
   ~priv();
 
-  cv::Mat process_image( cv::Mat img ) { return img; }
+  //++ This is a pointer to the abstract base class of the algorithm
+  //++ type that this process wraps. The base class pointer is needed
+  //++ here because the actual derived class is determined from the run
+  //++ time config entries.
+  kwiver::vital::algo::image_object_detector_sptr m_algo;
 
-  // Configuration values
-  std::string m_header;
-  std::string m_footer;
-  double m_gsd;
 }; // end priv class
 
 // ================================================================
 //++ This is the standard form for a constructor.
-template_process
-::template_process( kwiver::vital::config_block_sptr const& config )
+template_algo_wrapper
+::template_algo_wrapper( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new template_process::priv )
+    d( new template_algo_wrapper::priv )
 {
   attach_logger( kwiver::vital::get_logger( name() ) );
   make_ports(); // create process ports
@@ -116,8 +117,8 @@ template_process
 }
 
 
-template_process
-::~template_process()
+template_algo_wrapper
+::~template_algo_wrapper()
 {
 }
 
@@ -130,24 +131,33 @@ template_process
  * process to configure itself.
  */
 void
-template_process
+template_algo_wrapper
 ::_configure()
 {
   scoped_configure_instrumentation();
 
-  //++ Use config traits to access the value for the parameters.
-  //++ Values are usually stored in the private structure.
-  //++ These config items are not really used in this process.
-  //++ There are shown here as an example.
-  d->m_header = config_value_using_trait( header );
-  d->m_footer = config_value_using_trait( footer );
-  d->m_gsd    = config_value_using_trait( gsd ); // converted to double
+  // Get process configurartion block.
+  kwiver::vital::config_block_sptr algo_config = get_config();
+
+  // Check config so it will give run-time diagnostic of config problems
+  //++ The name supplied here must match the one defined in the coinfig_trait defined above.
+  //++ Note that these methods are static on the abstract base algorithm type.
+  if ( ! kwiver::vital::algo::image_object_detector::check_nested_algo_configuration( "algo_name", algo_config ) )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+  }
+
+  kwiver::vital::algo::image_object_detector::set_nested_algo_configuration( "algo_name", algo_config, d->m_algo );
+  if ( ! d->m_algo )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm." );
+  }
 }
 
 
 // ----------------------------------------------------------------
 void
-template_process
+template_algo_wrapper
 ::_step()
 {
   kwiver::vital::timestamp frame_time;
@@ -155,14 +165,16 @@ template_process
   // See if optional input port has been connected.
   // Get input only if connected.
   //++ Best practice - checking if an optional input port is connected.
+  //++ This example does not actually use the timestamp, but it is here
+  //++ to show how optional inputs are handled.
   if ( has_input_port_edge_using_trait( timestamp ) )
   {
     frame_time = grab_from_port_using_trait( timestamp );
   }
 
-  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
+  kwiver::vital::image_container_sptr in_image = grab_from_port_using_trait( image );
 
-  kwiver::vital::image_container_sptr out_image;
+  kwiver::vital::detected_object_set_sptr out_set;
 
   // Process Instrumentation call should be just before the real core
   // of the process step processing. It must be after getting the
@@ -170,16 +182,11 @@ template_process
   {
     scoped_step_instrumentation();
 
-    LOG_DEBUG( logger(), "Processing frame " << frame_time );
-
-    cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
-
     //++ Here is where the process does its work.
-    out_image = std::make_shared<kwiver::arrows::ocv::image_container>( d->process_image( in_image ) );
+    out_set = d->m_algo->detect( in_image );
   }
 
-
-  push_to_port_using_trait( image, out_image );
+  push_to_port_using_trait( detected_object_set, out_set );
 }
 
 
@@ -189,7 +196,7 @@ template_process
 //++ processing if needed. This is not usually needed for basic processes.
 //++ If post-connection processing is not needed, delete this method.
 void
-template_process
+template_algo_wrapper
 ::_init()
 {
   scoped_init_instrumentation();
@@ -202,7 +209,7 @@ template_process
 // ------------------------------------------------------------------
 //++ This method is called when the pipeline is reset.
 void
-template_process
+template_algo_wrapper
 ::_reset()
 {
   scoped_reset_instrumentation();
@@ -217,7 +224,7 @@ template_process
 //++ Flush usually indicates a break in the data flow; an end of one stream
 //++ and start of a new one.
 void
-template_process
+template_algo_wrapper
 ::_flush()
 {
   scoped_flush_instrumentation();
@@ -232,7 +239,7 @@ template_process
 //++ configuration values are supplied to the process. Use reconfig_value_using_trait( conf, ... )
 //++ to get the new config values from the supplied config
 void
-template_process
+template_algo_wrapper
 ::_reconfigure(kwiver::vital::config_block_sptr const& conf)
 {
   scoped_reconfigure_instrumentation();
@@ -244,7 +251,7 @@ template_process
 
 // ----------------------------------------------------------------
 void
-template_process
+template_algo_wrapper
 ::make_ports()
 {
   // Set up for required ports
@@ -253,37 +260,33 @@ template_process
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( detected_object_set, optional );
 }
 
 
 // ----------------------------------------------------------------
 void
-template_process
+template_algo_wrapper
 ::make_config()
 {
   //++ Declaring config items using the traits created at the top of the file.
   //++ This makes the configuration items visible to sprokit pipeline framework.
-  declare_config_using_trait( header );
-  declare_config_using_trait( footer );
-  declare_config_using_trait( gsd );
+  declare_config_using_trait( algo_name );
 }
 
 
 // ================================================================ ++
 //Initialize any private data here
-template_process::priv
+template_algo_wrapper::priv
 ::priv()
-  : m_gsd( 0.1122 )
 {
 }
 
 
-template_process::priv
+template_algo_wrapper::priv
 ::~priv()
 {
 }
