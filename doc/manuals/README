@@ -30,6 +30,10 @@ Enter the virtual environment:
 #Windows, execute this script in your python cmd window
 kwiver_env/bin/Scripts/activate.bat
 
+This call will tell you what environment python is currently in
+
+pip -V
+
 
 Now install your packages, they will only be assocated with the kwiver_env virtualenv
 
