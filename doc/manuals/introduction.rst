@@ -70,83 +70,15 @@ Sprokit schedules the jobs to run each process and keep data flowing through
 pipeline.  Sprokit also allows processes written in Python to be
 interconnected with those written in C++.
 
-Code Structure and Provided Functionality
-=========================================
 
-Below is a summary of the key directories in KWIVER and a brief summary of
-the content they contain.
-
-
-================ ===========================================================
-`<CMake>`_       CMake helper scripts
-`<arrows>`_      The algorithm plugin modules
-`<doc>`_         Documentation, manuals, release notes
-`<examples>`_    Examples for running KWIVER (currently out of date)
-`<extras>`_      Extra utilities (e.g. instrumentation)
-`<sprokit>`_     Stream processing toolkit
-`<tests>`_       Testing related support code
-`<vital>`_       Core libraries source and headers
-================ ===========================================================
-
-Vital
------
-
-========================= =========================================================
-`<vital/algo>`_           Abstract algorithm definitions
-`<vital/bindings>`_       C and Python bindings
-`<vital/config>`_         Configuration support code
-`<vital/exceptions>`_     Exception class hierarchy
-`<vital/io>`_             Classes that support reading and writing core data types
-`<vital/kwiversys>`_      Code that supports the OS abstraction layer
-`<vital/logger>`_         Classes that provide logging support
-`<vital/plugin_loader>`_  Classes that provide plugin loading services
-`<vital/tests>`_          Unit tests for vital code
-`<vital/tools>`_          Source for command line utilities
-`<vital/types>`_          Classes for the core data types
-`<vital/util>`_           Source for general purpose utility functions
-`<vital/video_metadata>`_ Classes that support video metadata
-========================= =========================================================
-
-Arrows
-------
-
-===================== =========================================================
-`<arrows/burnout>`_   [*Experimental*] Pixel classifiers for heads-up display
-                      detection an related tasks using Vibrant_.
-`<arrows/ceres>`_     Algorithms for bundle adjustment and optimization using
-                      `Ceres Solver`_.
-`<arrows/core>`_      Algorithms implemented with no additional third party
-                      dependencies beyond what Vital uses (Eigen).
-`<arrows/darknet>`_   [*Experimental*] Object detection with the Darknet_ YOLO CNN.
-`<arrows/matlab>`_    An interface for running Matlab code KWIVER 
-`<arrows/ocv>`_       Algorithms implemented using OpenCV_.
-                      Includes feature detectors and descriptor, homography
-                      and fundamental matrix estimation, image IO, and more.
-`<arrows/proj>`_      Geographic conversion functions implemented with PROJ4_.
-`<arrows/uuid>`_      [*Experimental*] Implementation of unique IDs using libuuid
-`<arrows/viscl>`_     [*Experimental*] Algorithms using VisCL to implement
-                      algorithms in OpenCL 
-`<arrows/vxl>`_       Algorithms implemnted using the VXL_ libraries.
-                      Includes bundle adjustment, homography estimation, video
-                      file reading, and more.
-===================== =========================================================
-
-Sprokit
--------
-
-====================== =========================================================
-`<sprokit/cmake>`_     CMake helper scripts specific to Sprokit
-`<sprokit/conf>`_      Configuration files CMake will tailor to the build system
-                       machine and directory structure
-`<sprokit/doc>`_       Further documenation related to sprokit
-`<sprokit/extra>`_     General scripts, hooks, and cofigurations for use with 3rd
-                       party tools (e.g. git and vim)
-`<sprokit/pipelines>`_ Example pipeline files demonstrating the execution of
-                       various arrows through sprokit
-`<sprokit/processes>`_ General utility processess that encapsulate various arrows
-                       for core funcionality  
-`<sprokit/src>`_       Core infrastructure code for defining, chaining, and
-                       executing Sprokit processes 
-`<sprokit/tests>`_     Sprokit unit tests
-====================== =========================================================
-
+.. _Boost: http://www.boost.org/
+.. _CDash: http://www.cdash.org/
+.. _Eigen: http://eigen.tuxfamily.org/
+.. _Fletch: https://github.com/Kitware/fletch
+.. _Kitware: http://www.kitware.com/
+.. _MAP-Tk: https://github.com/Kitware/maptk
+.. _Travis CI: https://travis-ci.org/
+.. _VIAME: https://github.com/Kitware/VIAME
+.. _`Ceres Solver`: http://ceres-solver.org/
+.. _OpenCV: http://opencv.org/
+.. _VXL: https://github.com/vxl/vxl/

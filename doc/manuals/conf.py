@@ -37,8 +37,12 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
-    'breathe'
+    'breathe',
 ]
+
+# Breathe support - need to make directory name more flexible
+breathe_projects = { "kwiver": "../doxygen" }
+breathe_default_project = "kwiver"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -366,6 +370,3 @@ epub_exclude_files = ['search.html']
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
 
-# Breathe support - need to make directory name more flexible
-breathe_projects = { "kwiver": "../doxygen" }
-breathe_default_project = "kwiver"
