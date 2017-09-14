@@ -1,0 +1,30 @@
+Vital Architecture
+==================
+
+Vital is core of KWIVER and is designed to provide data and algorithm
+abstractions with minimal library dependencies.  Vital only depends on
+the C++ standard library and the header-only Eigen_ library.  Vital defines
+the core data types and abstract interfaces for core vision algorithms
+using these types.  Vital also provides various system utility functions
+like logging, plugin management, and configuration file handling.  Vital
+does **not** provide implementations of the abstract algorithms.
+Implementations are found in Arrows and are loaded dynamically at run-time
+via plugins.
+
+The design of KWIVER allows end-user applications to link only against
+the Vital libraries and have minimal hard dependencies.  One can then
+dynamically add algorithmic capabilities, with new dependencies, via
+plugins without needing to recompile Vital or the application code.
+Only Vital is built by default when building KWIVER without enabling
+any options in CMake.
+
+.. toctree::
+   :maxdepth: 3
+
+   types
+   algorithms
+   config_file_format
+   config_usage
+   
+
+.. _Eigen: http://eigen.tuxfamily.org/

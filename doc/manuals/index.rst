@@ -12,15 +12,10 @@ Contents:
    :maxdepth: 2
 
    introduction
-   getting_code
-   tutorial
-   overview_of_components
-   algorithms
-   plugins
-   plugin_explorer
-   pipeline_example
-   sprokit_architecture
-   how_to_pipeline
+   vital/vital_architecture
+   arrows/arrow_architecture
+   sprokit/sprokit_architecture
+   using_kwiver
    extending_kwiver
    doxy-bridge
 

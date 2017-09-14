@@ -21,6 +21,23 @@ modular, run-time configurable systems.
 For more information on how KWIVER achieves this goal,
 and how to use KWIVER visit our `documentation site <kwiver.readthedocs.io>`_
 
+Directory Structure and Provided Functionality
+==============================================
+
+Below is a summary of the key directories in KWIVER and a brief summary of
+the content they contain.
+
+
+================ ===========================================================
+`<CMake>`_       CMake helper scripts
+`<arrows>`_      The algorithm plugin modules
+`<doc>`_         Documentation, manuals, release notes
+`<examples>`_    Examples for running KWIVER (currently out of date)
+`<extras>`_      Extra utilities (e.g. instrumentation)
+`<sprokit>`_     Stream processing toolkit
+`<tests>`_       Testing related support code
+`<vital>`_       Core libraries source and headers
+================ ===========================================================
 
 Building KWIVER
 ===============
