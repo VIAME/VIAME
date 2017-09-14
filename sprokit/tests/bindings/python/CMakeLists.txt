@@ -43,17 +43,16 @@ endfunction ()
 ###
 #
 function (sprokit_add_python_test group instance)
-  set(python_module_path    "${sprokit_python_output_path}/${sprokit_python_subdir}")
+  set(python_module_path    "${sprokit_python_output_path}/${kwiver_python_subdir}")
   set(python_chdir          ".")
 
   if (CMAKE_CONFIGURATION_TYPES)
-    set(python_module_path      "${sprokit_python_output_path}/$<CONFIGURATION>/${sprokit_python_subdir}")
+    set(python_module_path      "${sprokit_python_output_path}/$<CONFIGURATION>/${kwiver_python_subdir}")
     set(python_chdir           "$<CONFIGURATION>")
   endif ()
 
-  _sprokit_python_site_package_dir( site_dir )
   sprokit_add_tooled_test(python-${group} ${instance}
-    "${python_chdir}" "${python_module_path}/${site_dir}" ${ARGN})
+    "${python_chdir}" "${python_module_path}/${python_sitename}" ${ARGN})
 endfunction ()
 
 ###
