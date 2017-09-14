@@ -1,4 +1,4 @@
-.. image:: doc/kwiver_Logo-300x78.png
+.. image:: ../doc/kwiver_Logo-300x78.png
    :alt: KWIVER
    
 Directory Structure and Provided Functionality
