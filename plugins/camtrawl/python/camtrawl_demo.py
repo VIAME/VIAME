@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Runs camtrawl algos with no dependency on kwiver
@@ -460,7 +461,7 @@ def demo():
     triangulate_params = {
     }
 
-    DRAWING = 1
+    DRAWING = 0
 
     # ----
     # Initialize algorithms
@@ -482,6 +483,8 @@ def demo():
 
     stream = StereoFrameStream(img_path1, img_path2)
     stream.preload()
+
+    # HACK IN A BEGIN FRAME
     stream.seek(2200)
 
     # ----
@@ -562,184 +565,12 @@ def demo():
     return measurements
 
 
-def to_mat_format():
-    import pandas as pd
-    measure_fpath = ub.ensuredir('measurements_haul83.csv')
-    py_df = pd.DataFrame.from_csv(measure_fpath, index_col=None)
-    py_df['fishlen'] = py_df['fishlen'] / 10
-    bbox_pts1 = py_df['box_pts1'].map(lambda p: eval(p.replace(';', ','), np.__dict__))
-    bbox_pts2 = py_df['box_pts2'].map(lambda p: eval(p.replace(';', ','), np.__dict__))
-
-    bbox_pts1 = np.array(bbox_pts1.values.tolist())
-    bbox_pts2 = np.array(bbox_pts2.values.tolist())
-
-    X = bbox_pts1.T[0].T
-    Y = bbox_pts1.T[1].T
-    X = pd.DataFrame(X, columns=['LX1', 'LX2', 'LX3', 'LX4'])
-    Y = pd.DataFrame(Y, columns=['LY1', 'LY2', 'LY3', 'LY4'])
-    py_df.join(X.join(Y))
-
-    X = bbox_pts2.T[0].T
-    Y = bbox_pts2.T[1].T
-    X = pd.DataFrame(X, columns=['RX1', 'RX2', 'RX3', 'RX4'])
-    Y = pd.DataFrame(Y, columns=['RY1', 'RY2', 'RY3', 'RY4'])
-    py_df = py_df.join(X.join(Y))
-
-    py_df = py_df.rename(columns={
-        'error': 'Err',
-        'fishlen': 'fishLength',
-        'range': 'fishRange',
-    })
-    py_df.drop(['box_pts1', 'box_pts2'], axis=1, inplace=True)
-    py_df.to_csv('haul83_py_results.csv')
-    pass
-
-
-def compare_results():
-    print('Comparing results')
-    import pandas as pd
-    from tabulate import tabulate
-    measure_fpath = ub.ensuredir('measurements_haul83.csv')
-    py_df = pd.DataFrame.from_csv(measure_fpath, index_col=None)
-    py_df['fishlen'] = py_df['fishlen'] / 10
-    py_df['box_pts1'] = py_df['box_pts1'].map(lambda p: eval(p.replace(';', ','), np.__dict__))
-    py_df['box_pts2'] = py_df['box_pts2'].map(lambda p: eval(p.replace(';', ','), np.__dict__))
-
-    py_df['obox1'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int))) for pts in py_df['box_pts1']]
-    py_df['obox2'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int))) for pts in py_df['box_pts2']]
-    py_df.drop(['box_pts1', 'box_pts2'], axis=1, inplace=True)
-
-    py_df['current_frame'] = py_df['current_frame'].astype(np.int)
-    py_df = py_df.rename(columns={
-        'error': 'Err',
-        'fishlen': 'fishLength',
-        'range': 'fishRange',
-    })
-
-    mat_df = _read_kresimir_results()
-
-    intersect_frames = np.intersect1d(mat_df.current_frame, py_df.current_frame)
-    print('intersecting frames = {} / {} (matlab)'.format(len(intersect_frames), len(set(mat_df.current_frame))))
-    print('intersecting frames = {} / {} (python)'.format(len(intersect_frames), len(set(py_df.current_frame))))
-
-    min_assign = ctalgo.FishStereoMeasurments.minimum_weight_assignment
-
-    correspond = []
-    for f in intersect_frames:
-        pidxs = np.where(py_df.current_frame == f)[0]
-        midxs = np.where(mat_df.current_frame == f)[0]
-
-        pdf = py_df.iloc[pidxs]
-        mdf = mat_df.iloc[midxs]
-
-        ppts1 = np.array([o.center for o in pdf['obox1']])
-        mpts1 = np.array([o.center for o in mdf['obox1']])
-
-        ppts2 = np.array([o.center for o in pdf['obox2']])
-        mpts2 = np.array([o.center for o in mdf['obox2']])
-
-        import sklearn.metrics
-        dists1 = sklearn.metrics.pairwise.pairwise_distances(ppts1, mpts1)
-        dists2 = sklearn.metrics.pairwise.pairwise_distances(ppts2, mpts2)
-        thresh = 100
-        for i, j in min_assign(dists1):
-            d1 = dists1[i, j]
-            d2 = dists2[i, j]
-            if d1 < thresh and d2 < thresh and abs(d1 - d2) < thresh / 4:
-                correspond.append((pidxs[i], midxs[j]))
-    correspond = np.array(correspond)
-
-    # pflags = np.array(ub.boolmask(correspond.T[0], len(py_df)))
-    mflags = np.array(ub.boolmask(correspond.T[1], len(mat_df)))
-    print('there are {} detections that seem to be in common'.format(len(correspond)))
-    print('The QC flags of the common detections are:       {}'.format(ub.dict_hist(mat_df[mflags]['QC'].values)))
-    print('The QC flags of the other matlab detections are: {}'.format(ub.dict_hist(mat_df[~mflags]['QC'].values)))
-
-    min_frame = py_df.current_frame.min()
-    max_frame = py_df.current_frame.max()
-
-    py_df = py_df[(py_df.current_frame >= min_frame) & (py_df.current_frame <= max_frame)]
-    mat_df = mat_df[(mat_df.current_frame >= min_frame) & (mat_df.current_frame <= max_frame)]
-
-    print('All stats')
-    stats = pd.DataFrame(columns=['python', 'matlab'])
-    for key in ['fishLength', 'fishRange', 'Err']:
-        stats.loc[key, 'python'] = '{:6.2f} ± {:6.2f}'.format(py_df[key].mean(), py_df[key].std())
-        stats.loc[key, 'matlab'] = '{:6.2f} ± {:6.2f}'.format(mat_df[key].mean(), mat_df[key].std())
-
-    stats.loc['nTotal', 'python'] = '{}'.format(len(py_df))
-    stats.loc['nTotal', 'matlab'] = '{}'.format(len(mat_df))
-    print(tabulate(stats, headers='keys', tablefmt='psql', stralign='right'))
-
-    print('Only COMMON detections')
-    py_df_c = py_df.iloc[correspond.T[0]]
-    mat_df_c = mat_df.iloc[correspond.T[1]]
-    stats = pd.DataFrame(columns=['python', 'matlab'])
-    for key in ['fishLength', 'fishRange', 'Err']:
-        stats.loc[key, 'python'] = '{:6.2f} ± {:6.2f}'.format(py_df_c[key].mean(), py_df_c[key].std())
-        stats.loc[key, 'matlab'] = '{:6.2f} ± {:6.2f}'.format(mat_df_c[key].mean(), mat_df_c[key].std())
-
-    stats.loc['nTotal', 'python'] = '{}'.format(len(py_df_c))
-    stats.loc['nTotal', 'matlab'] = '{}'.format(len(mat_df_c))
-    print(tabulate(stats, headers='keys', tablefmt='psql', stralign='right'))
-
-    print('Only QC > 0')
-    is_qc = (mat_df_c['QC'] > 0).values
-    mat_df_c = mat_df_c[is_qc]
-    py_df_c = py_df_c[is_qc]
-    stats = pd.DataFrame(columns=['python', 'matlab'])
-    for key in ['fishLength', 'fishRange', 'Err']:
-        stats.loc[key, 'python'] = '{:6.2f} ± {:6.2f}'.format(py_df_c[key].mean(), py_df_c[key].std())
-        stats.loc[key, 'matlab'] = '{:6.2f} ± {:6.2f}'.format(mat_df_c[key].mean(), mat_df_c[key].std())
-
-    stats.loc['nTotal', 'python'] = '{}'.format(len(py_df_c))
-    stats.loc['nTotal', 'matlab'] = '{}'.format(len(mat_df_c))
-    print(tabulate(stats, headers='keys', tablefmt='psql', stralign='right'))
-
-
-def _read_kresimir_results():
-    import scipy.io
-    import pandas as pd
-    mat = scipy.io.loadmat(expanduser('~/data/camtrawl_stereo_sample_data/Haul_83/Haul_083_qcresult.mat'))
-    header = ub.readfrom(expanduser('~/data/camtrawl_stereo_sample_data/Haul_83/mat_file_header.csv')).strip().split(',')
-    data = mat['lengthsqc']
-
-    mat_df = pd.DataFrame(data, columns=header)
-    mat_df['current_frame'] = mat_df['current_frame'].astype(np.int)
-    mat_df['Species'] = mat_df['Species'].astype(np.int)
-    mat_df['QC'] = mat_df['QC'].astype(np.int)
-
-    # Transform so each row corresponds to one set of (x, y) points per detection
-    bbox_cols1 = ['LX1', 'LX2', 'LX3', 'LX4', 'LY1', 'LY2', 'LY3', 'LY4', 'Lar', 'LboxL', 'WboxL', 'aveL']
-    bbox_pts1 = mat_df[bbox_cols1[0:8]]  # NOQA
-    bbox_pts1_ = bbox_pts1.values
-    bbox_pts1_ = bbox_pts1_.reshape(len(bbox_pts1_), 2, 4).transpose((0, 2, 1))
-    # mat_df['box_pts1'] = [pts for pts in bbox_pts1_]
-
-    bbox_cols2 = ['RX1', 'RX2', 'RX3', 'RX4', 'RY1', 'RY2', 'RY3', 'RY4', 'Rar', 'LboxR', 'WboxR', 'aveW']
-    bbox_pts2 = mat_df[bbox_cols2]  # NOQA
-    bbox_pts2 = mat_df[bbox_cols2[0:8]]  # NOQA
-    bbox_pts2_ = bbox_pts2.values
-    bbox_pts2_ = bbox_pts2_.reshape(len(bbox_pts2_), 2, 4).transpose((0, 2, 1))
-    # mat_df['box_pts2'] = [pts for pts in bbox_pts2_]
-
-    mat_df['obox1'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int))) for pts in bbox_pts1_]
-    mat_df['obox2'] = [ctalgo.OrientedBBox(*cv2.minAreaRect(pts[:, None, :].astype(np.int))) for pts in bbox_pts2_]
-
-    mat_df.drop(bbox_cols2, axis=1, inplace=True)
-    mat_df.drop(bbox_cols1, axis=1, inplace=True)
-
-    return mat_df
-
-
 if __name__ == '__main__':
     r"""
     CommandLine:
 
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
-        export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
-        export PYTHONPATH=$(pwd):$PYTHONPATH
 
         python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
 

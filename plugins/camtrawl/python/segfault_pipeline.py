@@ -164,11 +164,13 @@ def main():
     Processing_with_species_id.m is their main file
 
     CommandLine:
+        # SPROKIT_PIPELINE_RUNNER=pipeline_runner
         cd ~/code/VIAME/plugins/camtrawl/python
+
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
 
-        workon_py2
+        we-py2debug
         source ~/code/VIAME/build-relwithdeb/install/setup_viame.sh
 
         cd ~/code/VIAME/plugins/camtrawl/python
