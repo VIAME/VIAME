@@ -142,7 +142,7 @@ html_theme = 'sphinx_rtd_theme'
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = '../favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -367,5 +367,5 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 # Breathe support - need to make directory name more flexible
-breathe_projects = { "kwiver": "/disk2/projects/KWIVER/kwgitlab/build/doc/kwiver/xml" }
+breathe_projects = { "kwiver": "../doxygen" }
 breathe_default_project = "kwiver"

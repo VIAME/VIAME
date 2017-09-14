@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
 
    introduction
-   install_guide
+   getting_code
    tutorial
    overview_of_components
    algorithms
