@@ -33,46 +33,39 @@
  * \brief test dynamic configuration
  */
 
-#include <test_common.h>
-#include <vital/plugin_loader/plugin_manager.h>
-
 #include <arrows/core/dynamic_config_none.h>
 
+#include <vital/plugin_loader/plugin_manager.h>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
+#include <gtest/gtest.h>
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(test_api)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
+
+// ----------------------------------------------------------------------------
+TEST(dynamic_configuration, test_api)
 {
   kac::dynamic_config_none dcn;
 
   auto cfg = kwiver::vital::config_block::empty_config();
 
-  TEST_EQUAL( "check_configuration return", dcn.check_configuration( cfg ), true );
+  EXPECT_TRUE( dcn.check_configuration( cfg ) );
 
   cfg = dcn.get_dynamic_configuration();
   const auto values = cfg->available_values();
-  TEST_EQUAL( "empty config", values.size(), 0 );
+  EXPECT_EQ( 0, values.size() );
 }
 
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(test_loading)
+// ----------------------------------------------------------------------------
+TEST(dynamic_configuration, test_loading)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -83,19 +76,10 @@ IMPLEMENT_TEST(test_loading)
   algo::dynamic_configuration_sptr dcs;
 
   // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::dynamic_configuration::check_nested_algo_configuration( "dyn_cfg", cfg ) )
-  {
-    TEST_ERROR( "Configuration check failed." );
-  }
+  EXPECT_TRUE( algo::dynamic_configuration::check_nested_algo_configuration( "dyn_cfg", cfg ) );
 
   // Instantiate the configured algorithm
   algo::dynamic_configuration::set_nested_algo_configuration( "dyn_cfg", cfg, dcs );
-  if ( ! dcs )
-  {
-    TEST_ERROR( "Unable to create algorithm" );
-  }
-  else
-  {
-    TEST_EQUAL( "algorithm name", dcs->impl_name(), "none" );
-  }
+  ASSERT_NE( nullptr, dcs ) << "Failed to create algorithm";
+  EXPECT_EQ( "none", dcs->impl_name() );
 }
