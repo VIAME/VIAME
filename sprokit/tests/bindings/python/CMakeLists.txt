@@ -1,7 +1,5 @@
 project(sprokit_test_python)
 
-find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
-
 # TODO: Use "$<CONFIGURATION>" and remove chdir below when generator
 # expressions are supported in test properties.
 if (WIN32)
