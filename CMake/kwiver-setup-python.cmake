@@ -8,7 +8,7 @@
 #
 # User options defined in this file:
 #
-#    KWIVER_PYTHON_VERSION
+#    KWIVER_PYTHON_MAJOR_VERSION
 #      The major python version to target (either 2 or 3)
 #
 #
@@ -60,46 +60,12 @@
 #      Set to either python or python3. Needed for find_package(Boost)
 
 
-set(KWIVER_PYTHON_VERSION "2" CACHE STRING "Python version to use: 3 or 2")
-set_property(CACHE KWIVER_PYTHON_VERSION PROPERTY STRINGS "3" "2")
-
-
-
 ###
-# Logic to determine if we have changed python versions
-# When this happens, we need to re-find the bin, include, and libs
-if (NOT __prev_kwiver_pyversion STREQUAL KWIVER_PYTHON_VERSION)
-  # but dont clobber initial settings in the instance they are specified via
-  # commandline (e.g  cmake -DPYTHON_EXECUTABLE=/my/special/python)
-  if (__prev_kwiver_pyversion)
-    message(STATUS "The Python version changed; refinding the interpreter")
-    unset(PYTHON_EXECUTABLE CACHE)
-    unset(PYTHON_INCLUDE_DIR CACHE)
-    unset(PYTHON_LIBRARY CACHE)
-    unset(PYTHON_LIBRARY_DEBUG CACHE)
-    unset(PYTHON_ABIFLAGS CACHE)
-  endif()
-endif()
-
-
-
-###
-# Python interpreter and libraries
+# Private helper function to execute `python -c "<cmd>"`
 #
-if (KWIVER_PYTHON_VERSION STREQUAL "3")
-  # note, 3.4 is a minimum version
-  find_package(PythonInterp 3.4 REQUIRED)
-  find_package(PythonLibs 3.4 REQUIRED)
-else()
-  find_package(PythonInterp 2.7 REQUIRED)
-  find_package(PythonLibs 2.7 REQUIRED)
-endif()
-include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
-
-
-###
-# Private helper function that runs a python command and populates an outvar
-# with the result of stdout
+# Runs a python command and populates an outvar with the result of stdout.
+# Be careful of indentation if `cmd` is multiline.
+#
 function(_pycmd outvar cmd)
   execute_process(
     COMMAND "${PYTHON_EXECUTABLE}" -c "${cmd}"
@@ -114,6 +80,47 @@ ${cmd}\"\"\"")
   string(STRIP "${_output}" _output)
   set(${outvar} "${_output}" PARENT_SCOPE)
 endfunction()
+
+
+###
+# Python major version user option
+#
+set(KWIVER_PYTHON_MAJOR_VERSION "2" CACHE STRING "Python version to use: 3 or 2")
+set_property(CACHE KWIVER_PYTHON_MAJOR_VERSION PROPERTY STRINGS "3" "2")
+
+
+###
+# Detect major version change (part1)
+#
+# Clear cached variables when the user changes major python versions.
+# When this happens, we need to re-find the bin, include, and libs
+#
+if (NOT __prev_kwiver_pyversion STREQUAL KWIVER_PYTHON_MAJOR_VERSION)
+  # but dont clobber initial settings in the instance they are specified via
+  # commandline (e.g  cmake -DPYTHON_EXECUTABLE=/my/special/python)
+  if (__prev_kwiver_pyversion)
+    message(STATUS "The Python version changed; refinding the interpreter")
+    unset(PYTHON_EXECUTABLE CACHE)
+    unset(PYTHON_INCLUDE_DIR CACHE)
+    unset(PYTHON_LIBRARY CACHE)
+    unset(PYTHON_LIBRARY_DEBUG CACHE)
+    unset(PYTHON_ABIFLAGS CACHE)
+  endif()
+endif()
+
+
+###
+# Python interpreter and libraries
+#
+if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
+  # note, 3.4 is a minimum version
+  find_package(PythonInterp 3.4 REQUIRED)
+  find_package(PythonLibs 3.4 REQUIRED)
+else()
+  find_package(PythonInterp 2.7 REQUIRED)
+  find_package(PythonLibs 2.7 REQUIRED)
+endif()
+include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 
 
 ###
@@ -143,6 +150,10 @@ _pycmd(PYTHON_VERSION "\
 import sys
 print(sys.version[0:3])
 ")
+# assert that the right python version was found
+if(NOT _python_version MATCHES "^${fletch_PYTHON_MAJOR_VERSION}.*")
+  message(FATAL_ERROR "Requested python \"${fletch_PYTHON_MAJOR_VERSION}\" but got \"${_python_version}\"")
+endif()
 
 
 ###
@@ -150,7 +161,8 @@ print(sys.version[0:3])
 #
 # See PEP 3149 - ABI (application binary interface) version tagged .so files
 # https://www.python.org/dev/peps/pep-3149/
-if (KWIVER_PYTHON_VERSION STREQUAL "3")
+#
+if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
   # In python 3, we can determine what the ABI flags are
   _pycmd(_python_abi_flags "\
 from distutils import sysconfig
@@ -168,7 +180,7 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 ###
 # Boost-Python linker definitions
 #
-if (KWIVER_PYTHON_VERSION STREQUAL "3")
+if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
   set(boost_python_library python3)
 else()
   set(boost_python_library python)
@@ -199,18 +211,21 @@ set(sprokit_python_output_path "${KWIVER_BINARY_DIR}/lib")
 
 
 ###
-# Mark the previous version so we can determine if the user changes the python
-# versions
-set(__prev_kwiver_pyversion "${KWIVER_PYTHON_VERSION}" CACHE INTERNAL
+# Detect major version change (part2)
+#
+# Mark the previous version so we can determine when python versions change
+#
+set(__prev_kwiver_pyversion "${KWIVER_PYTHON_MAJOR_VERSION}" CACHE INTERNAL
   "allows us to determine if the user changes python version")
 
 
 ###
 # Status string for debugging
+#
 set(PYTHON_CONFIG_STATUS "
 PYTHON_CONFIG_STATUS
 
-  * KWIVER_PYTHON_VERSION = \"${KWIVER_PYTHON_VERSION}\"
+  * KWIVER_PYTHON_MAJOR_VERSION = \"${KWIVER_PYTHON_MAJOR_VERSION}\"
 
   * PYTHON_EXECUTABLE = \"${PYTHON_EXECUTABLE}\"
   * PYTHON_INCLUDE_DIR = \"${PYTHON_INCLUDE_DIR}\"
