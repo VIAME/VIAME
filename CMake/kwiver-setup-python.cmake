@@ -245,8 +245,9 @@ PYTHON_CONFIG_STATUS
   * python_site_packages = \"${python_site_packages}\"
   * python_sitename = \"${python_sitename}\"
 
+  * boost_python_library_var = \"${boost_python_library_var}\"
+
   * kwiver_python_subdir = \"${kwiver_python_subdir}\"
   * kwiver_python_output_path = \"${kwiver_python_output_path}\"
   * sprokit_python_output_path = \"${sprokit_python_output_path}\"
 ")
-#message(FATAL_ERROR ${PYTHON_CONFIG_STATUS})
