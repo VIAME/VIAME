@@ -41,8 +41,13 @@ extensions = [
 ]
 
 # Breathe support - need to make directory name more flexible
-breathe_projects = { "kwiver": "../doxygen" }
+breathe_projects = { "kwiver": "./_build/xml" }
 breathe_default_project = "kwiver"
+
+import subprocess, os
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+if read_the_docs_build:
+    subprocess.call('cd ../doxygen; doxygen', shell=True)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

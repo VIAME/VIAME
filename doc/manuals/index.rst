@@ -17,7 +17,6 @@ Contents:
    sprokit/sprokit_architecture
    using_kwiver
    extending_kwiver
-   doxy-bridge
 
 Indices and tables
 ==================
