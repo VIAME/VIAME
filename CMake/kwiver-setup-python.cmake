@@ -100,7 +100,19 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 ###
 # Private helper function that runs a python command and populates an outvar
 # with the result of stdout
-function(_pythonc)
+function(_pycmd outvar cmd)
+  execute_process(
+    COMMAND "${PYTHON_EXECUTABLE}" -c "${cmd}"
+    RESULT_VARIABLE _exitcode
+    OUTPUT_VARIABLE _output)
+  if(NOT ${_exitcode} EQUAL 0)
+    message(ERROR "Failed when running python code: \"\"\"
+${cmd}\"\"\"")
+    message(FATAL_ERROR "Python command failed with error code: ${_exitcode}")
+  endif()
+  # Remove supurflous newlines (artifacts of print)
+  string(STRIP "${_output}" _output)
+  set(${outvar} "${_output}" PARENT_SCOPE)
 endfunction()
 
 
@@ -110,17 +122,14 @@ endfunction()
 # Get canonical directory for python site packages (relative to install
 # location).  It varys from system to system.
 #
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix=''))"
-  RESULT_VARIABLE proc_success
-  OUTPUT_VARIABLE python_site_packages)
-if(NOT ${proc_success} EQUAL 0)
-  message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
-endif()
+_pycmd(python_site_packages "\
+from distutils import sysconfig
+print(sysconfig.get_python_lib(prefix=''))
+")
+message(STATUS "python_site_packages = ${python_site_packages}")
 # Current usage determines most of the path in alternate ways.
 # All we need to supply is the '*-packages' directory name.
 # Customers could be converted to accept a larger part of the path from this function.
-string(STRIP "${python_site_packages}" python_site_packages)
 get_filename_component(python_sitename ${python_site_packages} NAME)
 
 
@@ -130,14 +139,10 @@ get_filename_component(python_sitename ${python_site_packages} NAME)
 # Use the executable to find the major/minor version.
 # If you want to change this, then change the executable.
 #
-execute_process(
-  COMMAND "${PYTHON_EXECUTABLE}" -c "import sys; print(sys.version[0:3])"
-  RESULT_VARIABLE proc_success
-  OUTPUT_VARIABLE PYTHON_VERSION)
-if(NOT ${proc_success} EQUAL 0)
-  message(FATAL_ERROR "Request for python version failed with error code: ${proc_success}")
-endif()
-string(STRIP "${PYTHON_VERSION}" PYTHON_VERSION)
+_pycmd(PYTHON_VERSION "\
+import sys
+print(sys.version[0:3])
+")
 
 
 ###
@@ -147,13 +152,10 @@ string(STRIP "${PYTHON_VERSION}" PYTHON_VERSION)
 # https://www.python.org/dev/peps/pep-3149/
 if (KWIVER_PYTHON_VERSION STREQUAL "3")
   # In python 3, we can determine what the ABI flags are
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" -c "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix=''))"
-    RESULT_VARIABLE proc_success
-    OUTPUT_VARIABLE _python_abi_flags)
-  if(NOT ${proc_success} EQUAL 0)
-    message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
-  endif()
+  _pycmd(_python_abi_flags "\
+from distutils import sysconfig
+print(sysconfig.get_config_var('ABIFLAGS'))
+")
 else()
   # Not sure if ABI flags are easilly found (or are even used in python2)
   set(_python_abi_flags, "")
@@ -225,3 +227,4 @@ PYTHON_CONFIG_STATUS
   * kwiver_python_output_path = \"${kwiver_python_output_path}\"
   * sprokit_python_output_path = \"${sprokit_python_output_path}\"
 ")
+#message(FATAL_ERROR ${PYTHON_CONFIG_STATUS})
