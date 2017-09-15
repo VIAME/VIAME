@@ -56,8 +56,8 @@
 #      python output paths. This may be removed in the future.
 #      (e.g. build/lib)
 #
-#    boost_python_library
-#      Set to either python or python3. Needed for find_package(Boost)
+#    boost_python_library_var
+#      Set to either Boost_PYTHON_LIBRARY or Boost_PYTHON3_LIBRARY.
 
 
 ###
@@ -178,13 +178,20 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 
 
 ###
-# Boost-Python linker definitions
+# Boost-Python (to be replaced by PyBind11)
+#
+# linker definitions
 #
 if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
   set(boost_python_library python3)
 else()
   set(boost_python_library python)
 endif ()
+
+string(TOUPPER ${boost_python_library} boost_python_library_upper)
+set(boost_python_library_var
+  Boost_${boost_python_library_upper}_LIBRARY)
+
 # This is to avoid Boost.Python's headers to have __declspec(dllimport) in
 # the headers which confuses Visual Studio's linker.
 cmake_dependent_option(SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON

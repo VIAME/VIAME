@@ -107,7 +107,6 @@ if (KWIVER_ENABLE_PYTHON)
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
   include( kwiver-setup-python )
-  set(kwiver_boost_python_package     python)
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
