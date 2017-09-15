@@ -68,20 +68,22 @@ public:
   int m_blur_kernel_size;
   int m_min_frames;
   int m_nmixtures;
+  double m_max_foreground_fract;
   cv::Ptr<cv::BackgroundSubtractorMOG2> bg_model;
   image_container_sptr motion_heat_map;
   kwiver::vital::logger_handle_t m_logger;
 
   /// Constructor
   priv()
-     : 
+     :
        m_frame_count(0),
        m_history(100),
        m_var_threshold(36.0),
        m_learning_rate(0.01),
        m_blur_kernel_size(3),
        m_min_frames(1),
-       m_nmixtures(3)
+       m_nmixtures(3),
+       m_max_foreground_fract(1)
   {
   }
 
@@ -125,7 +127,7 @@ motion_detector_MOG2
 {
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
-  
+
   config->set_value( "var_threshold", d_->m_var_threshold,
                      "Threshold on the squared Mahalanobis distance between "
                      "the pixel and the model to decide whether a pixel is "
@@ -142,7 +144,15 @@ motion_detector_MOG2
   config->set_value( "min_frames", d_->m_min_frames,
                      "Minimum frames that need to be included in the "
                      "background model before detections are emmited." );
-  
+  config->set_value( "max_foreground_fract", d_->m_max_foreground_fract,
+                     "Specifies the maximum expected fraction of the scene "
+                     "that may contain foreground movers at any time. When the "
+                     "fraction of pixels determined to be in motion exceeds "
+                     "this value, the background model is assumed to be "
+                     "invalid (e.g., due to excessive camera motion) and is "
+                     "reset. The default value of 1 indicates that no checking "
+                     "is done." );
+
   return config;
 }
 
@@ -156,18 +166,32 @@ motion_detector_MOG2
   // An alternative is to check for key presence before performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
-  
+
   d_->m_var_threshold          = config->get_value<double>( "var_threshold" );
   d_->m_history                = config->get_value<int>( "history" );
   d_->m_learning_rate          = config->get_value<double>( "learning_rate" );
   d_->m_blur_kernel_size       = config->get_value<int>( "blur_kernel_size" );
   d_->m_min_frames             = config->get_value<int>( "min_frames" );
-  
+  d_->m_max_foreground_fract   = config->get_value<int>( "max_foreground_fract" );
+
+  if( d_->m_max_foreground_fract < 0 || d_->m_max_foreground_fract > 1 )
+  {
+    throw algorithm_configuration_exception( type_name(), impl_name(),
+                                             "max_foreground_fract must be in "
+                                             "the range 0-1." );
+  }
+
+  if( d_->m_min_frames < 0 )
+  {
+    throw algorithm_configuration_exception( type_name(), impl_name(),
+                                             "min_frames must be greater than zero." );
+  }
+
   LOG_DEBUG( logger(), "var_threshold: " << std::to_string(d_->m_var_threshold));
   LOG_DEBUG( logger(), "history: " << std::to_string(d_->m_history));
   LOG_DEBUG( logger(), "learning_rate: " << std::to_string(d_->m_learning_rate));
   LOG_DEBUG( logger(), "blur_kernel_size: " << std::to_string(d_->m_blur_kernel_size));
-  LOG_DEBUG( logger(), "min_frames: " << std::to_string(d_->m_min_frames));
+  LOG_DEBUG( logger(), "max_foreground_fract: " << std::to_string(d_->m_max_foreground_fract));
 }
 
 
@@ -190,7 +214,7 @@ motion_detector_MOG2
   {
     throw vital::invalid_data("Inputs to ocv::motion_detector_MOG2 are null");
   }
-  
+
   if( reset_model )
   {
     d_->reset();
@@ -207,17 +231,32 @@ motion_detector_MOG2
   d_->bg_model->operator()(cv_src, fgmask, d_->m_learning_rate);
 #endif
   LOG_TRACE( logger(), "Finished MOG2 motion detector for this iteration");
-  
+
   ++ d_->m_frame_count;
-  
+
   if( d_->m_frame_count < d_->m_min_frames )
   {
-    // Haven't collected enough frames for an accurate motion assessment
     LOG_TRACE( logger(), "Haven't collected enough frames yet, so setting "
                          "foreground mask to all zeros.");
     fgmask = cv::Scalar(0);
   }
-  
+  else
+  {
+    if( d_->m_max_foreground_fract < 1)
+    {
+      int max_pixels = fgmask.rows*fgmask.cols*d_->m_max_foreground_fract;
+      if( cv::countNonZero(fgmask) > max_pixels )
+      {
+        LOG_TRACE( logger(), "Too many moving pixels, something must have failed.");
+
+        // Reset background model, but wait until next iteration to start
+        // updating it because the current frame might be bad.
+        d_->reset();
+        fgmask = cv::Scalar(0);
+      }
+    }
+  }
+
   //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
   //cv::imshow("Display window", fgmask);
   d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask);
