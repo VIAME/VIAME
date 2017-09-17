@@ -172,8 +172,7 @@ motion_detector_MOG2
   d_->m_learning_rate          = config->get_value<double>( "learning_rate" );
   d_->m_blur_kernel_size       = config->get_value<int>( "blur_kernel_size" );
   d_->m_min_frames             = config->get_value<int>( "min_frames" );
-  d_->m_max_foreground_fract   = config->get_value<int>( "max_foreground_fract" );
-
+  d_->m_max_foreground_fract   = config->get_value<double>( "max_foreground_fract" );
   if( d_->m_max_foreground_fract < 0 || d_->m_max_foreground_fract > 1 )
   {
     throw algorithm_configuration_exception( type_name(), impl_name(),
@@ -244,10 +243,16 @@ motion_detector_MOG2
   {
     if( d_->m_max_foreground_fract < 1)
     {
-      int max_pixels = fgmask.rows*fgmask.cols*d_->m_max_foreground_fract;
-      if( cv::countNonZero(fgmask) > max_pixels )
+      int total_pixels = fgmask.rows*fgmask.cols;
+      int max_fg_pixels = total_pixels*d_->m_max_foreground_fract;
+      int nonzero_pixels = cv::countNonZero(fgmask);
+      LOG_TRACE( logger(), (double)nonzero_pixels/(double)total_pixels*100 <<
+                 "% foreground pixels." );
+      if( nonzero_pixels > max_fg_pixels )
       {
-        LOG_TRACE( logger(), "Too many moving pixels, something must have failed.");
+        LOG_DEBUG( logger(), "Foreground pixels exceed maximum set to " <<
+                   d_->m_max_foreground_fract*100 << "%, something must have "
+                   "failed. Resetting background model." );
 
         // Reset background model, but wait until next iteration to start
         // updating it because the current frame might be bad.
