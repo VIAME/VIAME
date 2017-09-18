@@ -17,6 +17,7 @@ Contents:
    sprokit/sprokit_architecture
    using_kwiver
    extending_kwiver
+   doxygen
 
 Indices and tables
 ==================
