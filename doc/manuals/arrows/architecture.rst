@@ -13,17 +13,20 @@ from different arrows using Vital types as the intermediary.
 Capabilities are currently organized into Arrows based on what third
 party library they require.  However, this arrangement is not required
 and may change as the number of algorithms and arrows grows.  Some
-arrows, like `core <arrows/core>`_, require no additional dependencies.
-Some examples of the provided Arrows are:
-
-* `ocv <arrows/ocv>`__ - provides algorithms from OpenCV_
-* `ceres <arrows/ceres>`__ - provides algorithms from `Ceres Solver`_
-* `vxl <arrow/vxl>`__ - provides algorithms from VXL_
+arrows, like core , require no additional dependencies.
+The provided Arrows are:
 
 .. toctree::
    :maxdepth: 3
 
-
-.. _`Ceres Solver`: http://ceres-solver.org/
-.. _OpenCV: http://opencv.org/
-.. _VXL: https://github.com/vxl/vxl/
+   core
+   burnout
+   ceres
+   darknet
+   matlab
+   opencv
+   proj
+   uuid
+   viscl
+   vxl
+   

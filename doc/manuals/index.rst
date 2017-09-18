@@ -12,12 +12,11 @@ Contents:
    :maxdepth: 2
 
    introduction
-   vital/vital_architecture
-   arrows/arrow_architecture
-   sprokit/sprokit_architecture
+   vital/architecture
+   arrows/architecture
+   sprokit/architecture
    using_kwiver
    extending_kwiver
-   doxygen
 
 Indices and tables
 ==================
