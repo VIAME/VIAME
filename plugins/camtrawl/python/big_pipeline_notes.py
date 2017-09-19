@@ -57,7 +57,7 @@ Useful Type Collections:
           typedef int64_t landmark_id_t;
 """
 # import numpy as np
-import sprokit_pipeline
+import define_pipeline
 
 
 def notes_about_nodes_that_turned_out_to_be_less_useful_than_i_thought(pipe):
@@ -169,7 +169,7 @@ def define_fishlen_pipeline():
     # Initialize a new pipeline.
     # The main idea is that pipeline will register and store all information,
     # and (for now) sipmly write a .pipe file that can be fed to sprokit.
-    pipe = sprokit_pipeline.Pipeline()
+    pipe = define_pipeline.Pipeline()
 
     # =====
     # Nodes
@@ -337,7 +337,7 @@ def dummy_pipeline():
             'image': input_image.oports['image']
         })
 
-    pipe = sprokit_pipeline.Pipeline()
+    pipe = define_pipeline.Pipeline()
     add_stereo_camera_branch(pipe, 'cam1_')
     # add_stereo_camera_branch(pipe, 'cam2_')
 
@@ -359,7 +359,7 @@ def main():
     pipe = dummy_pipeline()
     # pipe = define_fishlen_pipeline()
 
-    # Initially the main way to use the sprokit_pipeline module will be to
+    # Initially the main way to use the define_pipeline module will be to
     # generate and dump the pipeline file to disk.
     pipe.write('camtrawl.pipe')
 
@@ -379,8 +379,8 @@ def main():
     ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe
     '''
 
-    # Maybe sprokit_pipeline can have a convinience function to run a pipline
-    # sprokit_pipeline.run('auto_fishlen.pipe')
+    # Maybe define_pipeline can have a convinience function to run a pipline
+    # define_pipeline.run('auto_fishlen.pipe')
 
     # Maybe the Pipeline can run itself as well?
     # pipe.run()

@@ -2,7 +2,7 @@
 from __future__ import absolute_import, print_function, division
 import glob
 import numpy as np
-import sprokit_pipeline
+import define_pipeline
 from os.path import expanduser, join, basename
 import logging
 import os
@@ -120,7 +120,7 @@ def simple_pipeline():
         # ------------
         return cam
 
-    pipe = sprokit_pipeline.Pipeline()
+    pipe = define_pipeline.Pipeline()
     cam1 = add_stereo_camera_branch(pipe, 'cam1_')
     cam2 = add_stereo_camera_branch(pipe, 'cam2_')
 
