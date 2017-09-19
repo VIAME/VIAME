@@ -160,11 +160,11 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         detection_set = DetectedObjectSet()
         ct_detections = self.detector.detect(img)
 
-        # for detection in ct_detections:
-        #     bbox = BoundingBox.from_coords(*detection.bbox.coords)
-        #     mask = detection.mask.astype(np.uint8)
-        #     obj = DetectedObject(bbox, 1.0, mask=mask)
-        #     detection_set.add(obj)
+        for detection in ct_detections:
+            bbox = BoundingBox.from_coords(*detection.bbox.coords)
+            mask = detection.mask.astype(np.uint8)
+            obj = DetectedObject(bbox, 1.0, mask=mask)
+            detection_set.add(obj)
 
         # # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('detected_object_set', detection_set)

@@ -62,8 +62,13 @@ from kwiver.kwiver_process import KwiverProcess
 from vital.types import DetectedObjectSet
 import logging
 import os
-import sprokit_pipeline
-import ubelt as ub
+import define_pipeline
+
+try:
+    import ubelt as ub
+except ImportError:
+    print('Warning: pip install ubelt')
+    ub = None
 
 logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
 log = logging.getLogger(__name__)
@@ -144,8 +149,9 @@ class MeasureDOSProcess(KwiverProcess):
             self.add_port_trait('detected_object_set' + str(i), 'detected_object_set', 'Detections from camera1')
             self.declare_input_port_using_trait('detected_object_set' + str(i), required)
 
-        self.prog = ub.ProgIter(verbose=3)
-        self.prog.begin()
+        if ub is not None:
+            self.prog = ub.ProgIter(verbose=3)
+            self.prog.begin()
 
     # ----------------------------------------------
     def _step(self):
@@ -196,7 +202,7 @@ def main():
         detect.iports.connect({})
         return cam
 
-    pipe = sprokit_pipeline.Pipeline()
+    pipe = define_pipeline.Pipeline()
 
     # Make an arbitrary number of source nodes
     camera_branches = {
@@ -232,7 +238,8 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
+    if ub is not None:
+        print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
 
     for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
         print("REGISTER PROCESS:")

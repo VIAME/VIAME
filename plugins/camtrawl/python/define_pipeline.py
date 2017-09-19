@@ -16,21 +16,16 @@ __all__ = ['Pipeline']
 # Utilities (from ubelt)
 
 
-WIN32  = sys.platform.startswith('win32')
-LINUX  = sys.platform.startswith('linux')
-DARWIN = sys.platform.startswith('darwin')
-
-
 def platform_cache_dir():
     """
     Returns a directory which should be writable for any application
     This should be used for temporary deletable data.
     """
-    if WIN32:  # nocover
+    if sys.platform.startswith('win32'):  # nocover
         dpath_ = '~/AppData/Local'
-    elif LINUX:  # nocover
+    elif sys.platform.startswith('linux'):  # nocover
         dpath_ = '~/.cache'
-    elif DARWIN:  # nocover
+    elif sys.platform.startswith('darwin'):  # nocover
         dpath_  = '~/Library/Caches'
     else:  # nocover
         raise NotImplementedError('Unknown Platform  %r' % (sys.platform,))
@@ -221,23 +216,23 @@ class Pipeline(object):
     Defines a Sprokit pipeline
 
     Example:
-        >>> from sprokit_pipeline import *  # NOQA
+        >>> from define_pipeline import *  # NOQA
         >>> pipe = Pipeline()
         >>> # Pipeline nodes
         >>> input_image = pipe.add_process(
-        >>>     name='input_image', type='frame_list_input', config={
-        >>>         'image_list_file': 'input_list.txt',
-        >>>         'frame_time': 0.03333333,
-        >>>         'image_reader:type': 'ocv',
-        >>>     })
+        ...     name='input_image', type='frame_list_input', config={
+        ...         'image_list_file': 'input_list.txt',
+        ...         'frame_time': 0.03333333,
+        ...         'image_reader:type': 'ocv',
+        ...     })
         >>> detector = pipe.add_process(
-        >>>     name='detector', type='hello_world_detector', config={
-        >>>         'text': 'Hello World!! (from python)',
-        >>>     })
+        ...     name='detector', type='hello_world_detector', config={
+        ...         'text': 'Hello World!! (from python)',
+        ...     })
         >>> # Connections
         >>> detector.iports.connect({
-        >>>     'image': detector.oports['image'],
-        >>> })
+        ...     'image': detector.oports['image'],
+        ... })
         >>> # Global config
         >>> pipe.config['_pipeline:_edge']['capacity'] = 5
         >>> pipe.config['_scheduler']['type'] = 'pythread_per_process'
@@ -439,7 +434,7 @@ def find_pipeline_runner():
 
     # If not, then search for the binary in the current dir and the PATH
     fnames = ['pipeline_runner']
-    if WIN32:
+    if sys.platform.startswith('win32'):
         fnames.insert(0, 'pipeline_runner.exe')
 
     search_paths = ['.']
