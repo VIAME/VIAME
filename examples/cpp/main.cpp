@@ -29,12 +29,14 @@
  */
  
 // Predefine methods that show off various functionality in kwiver
-void how_to_use_images();
+void how_to_part_01_images();
+void how_to_part_02_detections();
 
  int main()
 {
-  // Uncomment a method to execute fuctionality!
+  // use comments to execute a particular method
 
-  how_to_use_images();
+   how_to_part_01_images();
+   how_to_part_02_detections();
   
 }
