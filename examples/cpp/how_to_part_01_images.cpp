@@ -32,6 +32,8 @@
 #include "vital/types/image_container.h"
 
 #include "vital/algo/image_io.h"
+#include "vital/algo/image_filter.h"
+#include "vital/algo/split_image.h"
 
 #include "vital/plugin_loader/plugin_manager.h"
 
@@ -67,15 +69,20 @@ void how_to_part_01_images()
   // The first thing to do is to tell kwiver to load up all it's plugins (which includes all the algorithms)
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  // The main image libraries used in KWIVER are the OpenCV and VXL libraries
-  kwiver::vital::algo::image_io_sptr ocv_io = kwiver::vital::algo::image_io::create("ocv");
-  kwiver::vital::algo::image_io_sptr vxl_io = kwiver::vital::algo::image_io::create("vxl");
-  // Refer to this page : http://kwiver.readthedocs.io/en/latest/vital/algorithms.html 
-  // Documenting the algorithm interfaces with :
+  // Refer to this page : http://kwiver.readthedocs.io/en/latest/vital/images.html 
+  // Documenting the types and algorithms associated with images:
   //               Various implementations of the algorithm,
   //               The string to use to specify creation of a specific implementation, 
   //               The KWIVER CMake option that builds the specific implementation
 
+  ///////////////
+  // Image I/O //
+  ///////////////
+
+  // The main image libraries used in KWIVER are the OpenCV and VXL libraries
+  kwiver::vital::algo::image_io_sptr ocv_io = kwiver::vital::algo::image_io::create("ocv");
+  kwiver::vital::algo::image_io_sptr vxl_io = kwiver::vital::algo::image_io::create("vxl");
+  
   // The image_io interface is simple, and has a load and save method
   // These methods will operate on the vital object image_container
   // The image_container is intended to be a wrapper for image to facilitate conversion between
@@ -92,11 +99,53 @@ void how_to_part_01_images()
   mat = kwiver::arrows::ocv::image_container::vital_to_ocv(ocv_img->get_image());
   cv::namedWindow("Image loaded by OpenCV", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Image loaded by OpenCV", mat);                     // Show our image inside it.
-  cv::waitKey(0);                                                // Wait for a keystroke in the window
+  cv::waitKey(5);
+  Sleep(2000);                                                   // Wait for 2s
+  cvDestroyWindow("Image loaded by OpenCV");
 
   // We can do the same, even if the image was originally loaded with VXL
   mat = kwiver::arrows::ocv::image_container::vital_to_ocv(vxl_img->get_image());
   cv::namedWindow("Image loaded by VXL", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Image loaded by VXL", mat);                     // Show our image inside it.
-  cv::waitKey(0);                                             // Wait for a keystroke in the window
+  cv::waitKey(5);
+  Sleep(2000);                                                // Wait for 2s
+  cvDestroyWindow("Image loaded by VXL");
+
+  //////////////////
+  // Image Filter //
+  //////////////////
+
+  // Currently, there is no arrow implementing image filtering
+  //kwiver::vital::algo::image_filter_sptr _filter = kwiver::vital::algo::image_filter::create("<impl_name>");
+  
+  /////////////////
+  // Split Image //
+  /////////////////
+
+  // These algorithms split an image in half (left and right)
+  kwiver::vital::algo::split_image_sptr ocv_split = kwiver::vital::algo::split_image::create("ocv");
+  kwiver::vital::algo::split_image_sptr vxl_split = kwiver::vital::algo::split_image::create("vxl");
+
+  std::vector<kwiver::vital::image_container_sptr> ocv_imgs = ocv_split->split(vxl_img);
+  for (kwiver::vital::image_container_sptr i : ocv_imgs)
+  {
+    mat = kwiver::arrows::ocv::image_container::vital_to_ocv(i->get_image());
+    cv::namedWindow("OpenCV Split Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
+    cv::imshow("OpenCV Split Image", mat);                     // Show our image inside it.
+    cv::waitKey(5);
+    Sleep(2000);                                               // Wait for 2s
+    cvDestroyWindow("OpenCV Split Image");
+  }
+
+  std::vector<kwiver::vital::image_container_sptr> vxl_imgs = ocv_split->split(ocv_img);
+  for (kwiver::vital::image_container_sptr i : vxl_imgs)
+  {
+    mat = kwiver::arrows::ocv::image_container::vital_to_ocv(i->get_image());
+    cv::namedWindow("VXL Split Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
+    cv::imshow("VXL Split Image", mat);                     // Show our image inside it.
+    cv::waitKey(5);
+    Sleep(2000);                                            // Wait for 2s
+    cvDestroyWindow("VXL Split Image");
+  }
+
 }

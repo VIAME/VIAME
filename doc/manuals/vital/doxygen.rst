@@ -4,6 +4,17 @@ Vital Doxygen
 Types
 -----
 
+Other
+-----
+
+There are various other vital types that are also used to help direct algorithms or hold specific data associated with an image.
+
+============================================= =========================================== ===========================================
+:ref:`camera<camera>`                         :ref:`camera_intrinsics<camera_intrinsics>`                                            
+:ref:`rgb_color<rgb_color>`                   :ref:`covariance<covariance>`               :ref:`descriptor<descriptor>`              
+:ref:`descriptor_request<descriptor_request>` :ref:`descriptor_set<descriptor_set>`                                                  
+============================================= =========================================== ===========================================
+
 
 Image
 ~~~~~
@@ -281,6 +292,10 @@ Functionality
     :project: kwiver
     :members:
 
+.. _split_image:
+..  doxygenclass:: kwiver::vital::algo::split_image
+    :project: kwiver
+    :members:
 
 .. _track_descriptor_set_input:
 ..  doxygenclass:: kwiver::vital::algo::track_descriptor_set_input

@@ -89,8 +89,8 @@ void how_to_part_02_detections()
   cv::Mat mat = kwiver::arrows::ocv::image_container::vital_to_ocv(img_detections->get_image());
   cv::namedWindow("Detections", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Detections", mat);                     // Show our image inside it.
-  cv::waitKey(0);                                    // Wait for a keystroke in the window
-
-
+  cv::waitKey(5);
+  Sleep(2000);                                       // Wait for 2s
+  cvDestroyWindow("Detections");
 
 }
