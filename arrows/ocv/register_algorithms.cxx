@@ -71,6 +71,7 @@
 #include <arrows/ocv/refine_detections_write_to_disk.h>
 #include <arrows/ocv/split_image.h>
 #include <arrows/ocv/track_features_klt.h>
+#include <arrows/ocv/three_frame_differencing.h>
 
 namespace kwiver {
 namespace arrows {
@@ -113,6 +114,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< match_features_flannbased >();
 
   reg.register_algorithm< hough_circle_detector >();
+  reg.register_algorithm< three_frame_differencing >();
 
   // Conditional algorithms
   // Source ``KWIVER_OCV_HAS_*`` symbol definitions can be found in the header
