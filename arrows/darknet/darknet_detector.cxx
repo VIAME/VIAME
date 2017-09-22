@@ -391,12 +391,14 @@ process_image( const cv::Mat& cv_image )
   /* get boxes around detected objects */
   get_region_boxes( l,        /* i: network output layer */
                     1, 1,     /* i: w, h -  */
+                    m_net.w, m_net.h,
                     m_thresh, /* i: caller supplied threshold */
                     m_probs,  /* o: probability vector */
                     m_boxes,  /* o: list of boxes */
+                    0,        /** masks */
                     0,        /* i: only objectness (false) */
                     0,        /* i: map */
-                    m_hier_thresh ); /* i: caller supplied value */
+                    m_hier_thresh, 1); /* i: caller supplied value */
 
   const float nms( 0.4 );       // don't know what this is
 
