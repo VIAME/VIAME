@@ -106,7 +106,7 @@ if (KWIVER_ENABLE_PYTHON)
   if ( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
-  set(kwiver_boost_python_package     python)
+  include( kwiver-setup-python )
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
@@ -154,33 +154,6 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
   include_directories( tests )
 endif()
-
-if (KWIVER_ENABLE_PYTHON)
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs)
-
-    execute_process(
-      COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(prefix=''))"
-      RESULT_VARIABLE proc_success
-      OUTPUT_VARIABLE python_site_packages
-      )
-
-    if(NOT ${proc_success} EQUAL 0)
-      message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
-    else()
-      string(STRIP "${python_site_packages}" python_site_packages)
-      message(STATUS "Python site-packages to install into: ${python_site_packages}")
-    endif()
-
-    # TODO Get version from above
-    set(PYTHON_VERSION "2.7"
-      CACHE STRING "The version of python to use for bindings")
-    set(PYTHON_ABIFLAGS ""
-      CACHE STRING "The ABI flags for the version of Python being used")
-
-  include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
-
-endif(KWIVER_ENABLE_PYTHON)
 
 if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
   message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
