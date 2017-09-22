@@ -40,10 +40,10 @@ download.
   cd ~/Downloads
   tar zxfv cmake-3.6.1.tar.gz
   cd cmake-3.6.1
-  ./bootstrap --system-curl --no-system-libs
+  ./bootstrap --system-curl --no-system-libs --prefix=/opt/kitware/cmake/3.6.1
   make
   sudo make install
-  sudo ln -s /usr/local/bin/cmake /bin/cmake`
+  sudo ln -s /opt/kitware/cmake/3.6.1/bin/cmake /bin/cmake
 
 These instructions build the source code into a working executable,
 installs the executable into a personal directory, and then lets the
