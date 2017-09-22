@@ -77,6 +77,11 @@ the last couple of steps, Fletch should build without any issues.
 
 `make`
 
+.. note::
+
+  If you are on Windows, you should ensure that both KWIVER and Fletch use the
+  same values of `CMAKE_BUILD_TYPE` and `BUILD_SHARED_LIBS`. If these do not
+  match, you may experience link errors or other issues.
 
 Install Kwiver
 **************
