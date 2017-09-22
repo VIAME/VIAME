@@ -34,6 +34,7 @@
  */
 
 #include <test_gtest.h>
+#include <test_tmpfn.h>
 
 #include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
@@ -44,27 +45,6 @@
 #include <functional>
 #include <iostream>
 #include <string>
-
-#if defined _WIN32
-
-#include <fcntl.h>
-#include <io.h>
-#include <sys/stat.h>
-int mkstemp(char *tmpl)
-{
-  int ret=-1;
-
-  _mktemp(tmpl);
-  ret=open(tmpl,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED,
-           _S_IREAD|_S_IWRITE);
-  return ret;
-}
-
-#else
-
-#include <unistd.h>
-
-#endif
 
 kwiver::vital::config_path_t g_data_dir;
 
@@ -374,18 +354,14 @@ TEST_F( config_block_io, write_config_simple_success )
 
   print_config( orig_config, false, "ConfigBlock for writing" );
 
-  char output_path_1[128] = "test_config_output_1.conf.XXXXXX";
-  int fd1 = mkstemp( output_path_1 );
-  close( fd1 );
-  ST::RemoveFile( output_path_1 );
+  auto const& output_path_1 =
+    kwiver::testing::temp_file_name("test_config_output_1-", ".conf");
 
   cerr << "Writing config_block to: " << output_path_1 << endl;
   write_config_file( orig_config, std::string( output_path_1 ) );
 
-  char output_path_2[128] =  "test_config_output_2.conf.XXXXXX";
-  int fd2 = mkstemp( output_path_2 );
-  close( fd2 );
-  ST::RemoveFile( output_path_2 );
+  auto const& output_path_2 =
+    kwiver::testing::temp_file_name("test_config_output_2-", ".conf");
 
   cerr << "Writing config_block to: " << output_path_2 << endl;
   write_config_file( orig_config, std::string( output_path_2 ) );
@@ -445,18 +421,16 @@ TEST_F( config_block_io, empty_config_write_failure )
   using namespace std;
 
   config_block_sptr config = config_block::empty_config( "empty" );
-  char output_file[128] = "test_config_output_1.conf.XXXXXX";
-  int fd1 = mkstemp( output_file );
-  close( fd1 );
-  ST::RemoveFile( output_file );
+  auto const& output_path =
+    kwiver::testing::temp_file_name("test_config_output_empty-", ".conf");
 
   EXPECT_THROW(
-    write_config_file( config, output_file ),
+    write_config_file( config, output_path ),
     config_file_write_exception )
     << "Attempting write of a config with nothing in it";
 
   // If the test failed, clean-up the file created.
-  if ( 0 == ST::RemoveFile( output_file ) )
+  if ( 0 == ST::RemoveFile( output_path ) )
   {
     cerr << "Test failed and output file created. Removing." << endl;
   }
