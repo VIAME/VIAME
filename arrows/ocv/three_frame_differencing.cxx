@@ -54,8 +54,8 @@ using namespace kwiver::vital;
 
 //-----------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// ------------------------------ Sprokit ------------------------------------
+// ----------------------------------------------------------------------------
+// ------------------------------- Sprokit ------------------------------------
 
 
 /// Private implementation class
@@ -64,8 +64,10 @@ class three_frame_differencing::priv
 public:
   /// Parameters
   std::size_t m_frame_separation;
+  int m_jitter_radius;
   double m_max_foreground_fract;
   double m_max_foreground_fract_thresh;
+  cv::Mat m_jitter_struct_el;
   std::deque<cv::Mat> m_frames;
   kwiver::vital::logger_handle_t m_logger;
 
@@ -73,6 +75,7 @@ public:
   priv()
      :
        m_frame_separation(1),
+       m_jitter_radius(0),
        m_max_foreground_fract(1),
        m_max_foreground_fract_thresh(-1)
   {
@@ -81,6 +84,51 @@ public:
   /// Flush the image queue.
   void reset()
   {
+    m_frames.clear();
+  }
+
+  ///
+  /**
+  * @brief Calculates a jittered difference img1 and img2
+  *
+  * For each pixel in img1, the minimum absolute difference ||img1-b|| is
+  * calculated, where b is drawn from a neighborhood (defined by
+  * m_jitter_radius) around the equivalent pixel in img2.
+  *
+  * @param img1 first image
+  * @param img2 second image
+  * @param img_diff difference image
+  */
+  void
+  image_difference( cv::Mat &img1, cv::Mat &img2, cv::Mat &img_diff )
+  {
+    if( m_jitter_radius == 0 )
+    {
+      cv::absdiff( img1, img2, img_diff );
+    }
+    else
+    {
+      if( m_jitter_struct_el.empty() )
+      {
+        cv::Size el_size(2*m_jitter_radius+1,2*m_jitter_radius+1);
+        m_jitter_struct_el = cv::getStructuringElement( cv::MORPH_RECT, el_size);
+      }
+      cv::Mat local_max, local_min;
+      cv::dilate( img2, local_max, m_jitter_struct_el );
+      cv::erode( img2, local_min, m_jitter_struct_el );
+
+      // Following the reference "Detecting and Tracking All Moving Objects in
+      // Wide-Area Aerial Video" equation 2
+      cv::Mat img2_min_minus_img1, img1_minus_img2_max;
+      cv::subtract( local_min, img1, img2_min_minus_img1, cv::noArray(), CV_32F );
+      cv::subtract( img1, local_max, img1_minus_img2_max, cv::noArray(), CV_32F );
+
+      // Set negative values to zero
+      cv::threshold( img2_min_minus_img1, img2_min_minus_img1, 0, 1, cv::THRESH_TOZERO );
+      cv::threshold( img1_minus_img2_max, img1_minus_img2_max, 0, 1, cv::THRESH_TOZERO );
+
+      img_diff = cv::max( img2_min_minus_img1, img1_minus_img2_max );
+    }
   }
 
   void
@@ -116,9 +164,9 @@ public:
     // unsigned_sum (default)
     ///  = | | A - C | + | C - B | - | A - B | |
     cv::Mat AminusC, CminusB, AminusB;
-    cv::absdiff( imgA, imgC, AminusC );
-    cv::absdiff( imgC, imgB, CminusB );
-    cv::absdiff( imgA, imgB, AminusB );
+    image_difference( imgA, imgC, AminusC );
+    image_difference( imgC, imgB, CminusB );
+    image_difference( imgA, imgB, AminusB );
     fgmask = cv::abs( AminusC + CminusB - AminusB );
 
     //cv::cvtColor(fgmask, fgmask, CV_RGB2GRAY, 1);
@@ -208,7 +256,13 @@ three_frame_differencing
   config->set_value( "frame_separation", d_->m_frame_separation,
                      "Number of frames of separation for difference "
                      "calculation. Queue of collected images must be twice this"
-                     "value before a three-frame difference can be calculated." );
+                     "value before a three-frame difference can be "
+                     "calculated." );
+  config->set_value( "jitter_radius", d_->m_jitter_radius,
+                     "Radius of jitter (pixels) expected in the image "
+                     "stabilization. Frame to frame displacement due to "
+                     "stabilization errors is expected to be bounded in "
+                     "magnitude by this value." );
   config->set_value( "max_foreground_fract", d_->m_max_foreground_fract,
                      "Specifies the maximum expected fraction of the scene "
                      "that may contain foreground movers at any time. When the "
@@ -239,6 +293,7 @@ three_frame_differencing
   config->merge_config(in_config);
 
   d_->m_frame_separation   = config->get_value<int>( "frame_separation" );
+  d_->m_jitter_radius   = config->get_value<int>( "jitter_radius" );
   d_->m_max_foreground_fract   = config->get_value<double>( "max_foreground_fract" );
   d_->m_max_foreground_fract_thresh   = config->get_value<double>( "max_foreground_fract_thresh" );
 
@@ -246,6 +301,13 @@ three_frame_differencing
   {
     throw algorithm_configuration_exception( type_name(), impl_name(),
                                              "frame_separation must be an "
+                                             "integer greater than 0." );
+  }
+
+  if( d_->m_jitter_radius < 0 )
+  {
+    throw algorithm_configuration_exception( type_name(), impl_name(),
+                                             "m_jitter_radius must be an "
                                              "integer greater than 0." );
   }
 
@@ -264,6 +326,7 @@ three_frame_differencing
   }
 
   LOG_DEBUG( logger(), "frame_separation: " << std::to_string(d_->m_frame_separation));
+  LOG_DEBUG( logger(), "jitter_radius: " << std::to_string(d_->m_jitter_radius));
   LOG_DEBUG( logger(), "max_foreground_fract: " << std::to_string(d_->m_max_foreground_fract));
   LOG_DEBUG( logger(), "max_foreground_fract_thresh: " << std::to_string(d_->m_max_foreground_fract_thresh));
 }
