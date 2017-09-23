@@ -65,6 +65,7 @@ public:
   /// Parameters
   std::size_t m_frame_separation;
   double m_max_foreground_fract;
+  double m_max_foreground_fract_thresh;
   std::deque<cv::Mat> m_frames;
   kwiver::vital::logger_handle_t m_logger;
 
@@ -72,7 +73,8 @@ public:
   priv()
      :
        m_frame_separation(1),
-       m_max_foreground_fract(1)
+       m_max_foreground_fract(1),
+       m_max_foreground_fract_thresh(-1)
   {
   }
 
@@ -119,6 +121,8 @@ public:
     cv::absdiff( imgA, imgB, AminusB );
     fgmask = cv::abs( AminusC + CminusB - AminusB );
 
+    //cv::cvtColor(fgmask, fgmask, CV_RGB2GRAY, 1);
+
     if( fgmask.channels() > 1 )
     {
       LOG_TRACE( m_logger, "Converting multichannel foreground mask to single "
@@ -131,15 +135,17 @@ public:
       {
         cv::Mat temp;
         fgmask_split[i].convertTo(temp, CV_32F);
-        cv::multiply( temp, temp, temp );
-        cv::multiply( temp, temp, temp );
+
+        // Divide the result by 3^2 so that the difference has the same scale as
+        // a mono image
+        cv::multiply( temp, temp, temp, 1/9.0 );
         accum += temp;
       }
       cv::sqrt(accum, accum);
-      accum.convertTo(fgmask, fgmask.type());
+      accum.convertTo(fgmask, CV_8UC1);
     }
 
-    if( false )
+    if( true )
     {
       double min_val, max_val;
       cv::minMaxLoc(fgmask, &min_val, &max_val);
@@ -151,7 +157,10 @@ public:
     {
       int total_pixels = fgmask.rows*fgmask.cols;
       int max_fg_pixels = total_pixels*m_max_foreground_fract;
-      int nonzero_pixels = cv::countNonZero(fgmask);
+      cv::Mat mask;
+      cv::threshold( fgmask, mask, m_max_foreground_fract_thresh, 1,
+                     cv::THRESH_BINARY );
+      int nonzero_pixels = cv::sum(mask).val[0];
       LOG_TRACE( m_logger, (double)nonzero_pixels/(double)total_pixels*100 <<
                  "% foreground pixels." );
       if( nonzero_pixels > max_fg_pixels )
@@ -208,6 +217,12 @@ three_frame_differencing
                      "invalid (e.g., due to excessive camera motion) and is "
                      "reset. The default value of 1 indicates that no checking "
                      "is done." );
+  config->set_value( "max_foreground_fract_thresh",
+                     d_->m_max_foreground_fract_thresh,
+                     "To be used in conjunction with max_foreground_fract, this"
+                     "parameter defines the threshold for foreground in order "
+                     "to determine if the maximum fraction of foreground has "
+                     "been exceeded." );
 
   return config;
 }
@@ -225,6 +240,7 @@ three_frame_differencing
 
   d_->m_frame_separation   = config->get_value<int>( "frame_separation" );
   d_->m_max_foreground_fract   = config->get_value<double>( "max_foreground_fract" );
+  d_->m_max_foreground_fract_thresh   = config->get_value<double>( "max_foreground_fract_thresh" );
 
   if( d_->m_frame_separation < 0 )
   {
@@ -240,8 +256,16 @@ three_frame_differencing
                                              "the range 0-1." );
   }
 
+  if( d_->m_max_foreground_fract != 1 && d_->m_max_foreground_fract_thresh < 0 )
+  {
+    throw algorithm_configuration_exception( type_name(), impl_name(),
+                                             "max_foreground_fract_thresh must "
+                                             "be set as a positive value." );
+  }
+
   LOG_DEBUG( logger(), "frame_separation: " << std::to_string(d_->m_frame_separation));
   LOG_DEBUG( logger(), "max_foreground_fract: " << std::to_string(d_->m_max_foreground_fract));
+  LOG_DEBUG( logger(), "max_foreground_fract_thresh: " << std::to_string(d_->m_max_foreground_fract_thresh));
 }
 
 
