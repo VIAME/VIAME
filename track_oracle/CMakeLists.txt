@@ -13,6 +13,7 @@ else()
 endif()
 
 find_package( TinyXML REQUIRED )
+find_package( vxl REQUIRED )
 
 add_subdirectory( aries_interface )
 add_subdirectory( utils )
