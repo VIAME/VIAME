@@ -103,6 +103,11 @@ CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON    "Enable python code" OFF
   KWIVER_ENABLE_C_BINDINGS OFF )
 
 if (KWIVER_ENABLE_PYTHON)
+
+  if (NOT WIN32)
+    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying. Allows for more dynamic python development." Off)
+  endif()
+
   if ( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
