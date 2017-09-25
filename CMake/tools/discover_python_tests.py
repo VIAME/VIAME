@@ -20,7 +20,6 @@ class TopLevelVisitor(ast.NodeVisitor):
         http://greentreesnakes.readthedocs.io/en/latest/nodes.html
 
     Example:
-        >>> from discover_tests import *
         >>> import ubelt as ub
         >>> source = ub.codeblock(
             '''
