@@ -15,6 +15,7 @@ endif()
 # Required for Track Oracle
 if(KWIVER_ENABLE_TRACK_ORACLE)
 include( kwiver-depends-TinyXML )
+include( kwiver-depends-VXL )
 endif()
 
 # Optional for Arrows
