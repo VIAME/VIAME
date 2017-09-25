@@ -1,37 +1,72 @@
-# Should these functions be rectified with the kwiver versions
-# in kwiver/CMake/utils/kwiver-utils-python-tests.cmake ?
+# Defines functions for registering python tests
+# The following functions are defined:
+#
+#     sprokit_build_python_test
+#     sprokit_add_python_test
+#     sprokit_discover_python_tests
+#
+# The following variables may be used to control the behavior of the functions:
+#
+#     The same variables described in ./sprokit-macro-tests.cmake
+#         of these `sprokit_test_runner` should be set to some command that
+#         runs a python script in
+#         kwiver/sprokit/tests/bindings/python/CMakeLists.txt
+#
+# For specific usage see documentation bellow
 
 
 ###
 #
-# Configures the python test file to the ctest bin directory
+# Registers a python tests and configures it to the ctest bin directory.
 #
 # Args:
-#     group: the suffix of the python file.
-#     input: filename of the test .py file (includes the extension)
+#     group: A key that will point to the input file.
+#     input: filename of the test .py file
+#
+# Notes:
+#     The input file is typically the group with the prefix `test-` and the
+#     suffix `.py. In other words: `input="test-%s.py" % group`.
 #
 # SeeAlso:
 #     sprokit-macro-tests.cmake
 #     sprokit-macro-python.cmake
 #     sprokit-macro-configure.cmake
-#     ../support/test.cmake
+#     ..cmake/support/test.cmake
 #
 function (sprokit_build_python_test group input)
   if (CMAKE_CONFIGURATION_TYPES)
     set(sprokit_configure_cmake_args
       "\"-Dconfig=${CMAKE_CFG_INTDIR}/\"")
   endif ()
-  sprokit_configure_file(test-python-${group}
-    "${CMAKE_CURRENT_SOURCE_DIR}/${input}"
-    "${sprokit_test_output_path}/\${config}test-python-${group}"
-    PYTHON_EXECUTABLE)
 
+  set(name test-python-${group})
+  set(source "${CMAKE_CURRENT_SOURCE_DIR}/${input}")
+  set(dest "${sprokit_test_output_path}/\${config}test-python-${group}")
+
+  if (KWIVER_SYMLINK_PYTHON)
+    sprokit_symlink_file(${name} ${source} ${dest} PYTHON_EXECUTABLE)
+  else()
+    sprokit_configure_file(${name} ${source} ${dest} PYTHON_EXECUTABLE)
+  endif()
   sprokit_declare_tooled_test(python-${group})
 endfunction ()
 
 
 ###
-# Calls CMake `add_test` function under the hood
+# Registers a "built" python test with ctest
+#
+# Arg:
+#     group: a group key previously registered with `sprokit_build_python_test`
+#     instance: the name of the function to be tested.
+#
+# In most cases you should call sprokit_discover_python_tests instead.  The
+# only exception is if you must paramaterizations via the commandline.
+# Currently only `test-run` does this. In the future this will be removed in
+# favor of pytest paramaterization.
+#
+# SeeAlso:
+#     sprokit/tests/bindings/python/sprokit/pipeline/CMakeLists.txt - uses this func
+#
 function (sprokit_add_python_test group instance)
   set(python_module_path    "${sprokit_python_output_path}/${kwiver_python_subdir}")
   set(python_chdir          ".")
@@ -49,12 +84,16 @@ endfunction ()
 ###
 #
 # Searches test .py files for functions that begin with "test" and creates a
-# separate `ctest` for each. Ideally we would just map the output from
-# something like `py.test` to `ctest` instead.
+# separate `ctest` for each.
 #
 # Arg:
 #     group: the test is registered with this ctests group
 #     file: filename of the test .py file (includes the extension)
+#
+# Notes:
+#     The `group` argument is typically the name of the module being tested
+#     The `file` argument is the actual name of the python file to be tested, which
+#     typically looks like `test-<group>.py`
 #
 # SeeAlso:
 #     kwiver/CMake/utils/kwiver-utils-python-tests.cmake - defines kwiver_discover_python_tests
@@ -66,6 +105,8 @@ function (sprokit_discover_python_tests group file)
 
   sprokit_build_python_test("${group}" "${file}")
 
+  # NOTE: most of this logic can be replaced by
+  # `parse_python_testables` when PR #302 lands
   foreach (test_line IN LISTS test_lines)
     set(test_name)
     set(property)
@@ -100,3 +141,4 @@ function (sprokit_discover_python_tests group file)
     endif ()
   endforeach ()
 endfunction ()
+
