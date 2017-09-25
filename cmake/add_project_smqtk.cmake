@@ -12,6 +12,15 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} smqtk )
 if( WIN32 )
   message( FATAL_ERROR "SMQTK not yet supported on WIN32" )
 else()
+  if( VIAME_SYMLINK_PYTHON )
+    set( SMQTK_PIP_CMD
+      pip install --user -e .[postgres] )
+  else()
+    # This is only required for no symlink install without a -e with older
+    # versions of pip, for never versions the above command works with no -e
+    set( SMQTK_PIP_CMD
+      pip install --user file://${VIAME_PACKAGES_DIR}/smqtk\#egg=smqtk[postgres] )
+  endif()
   set( PYTHON_BASEPATH
     ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
   set( CUSTOM_PYTHONPATH
@@ -22,7 +31,7 @@ else()
     ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
                         env PATH=${CUSTOM_PATH}
                         env PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
-      ${PYTHON_EXECUTABLE} -m pip install --user -e .[postgres] )
+      ${PYTHON_EXECUTABLE} -m ${SMQTK_PIP_CMD} )
 endif()
 
 ExternalProject_Add( smqtk
