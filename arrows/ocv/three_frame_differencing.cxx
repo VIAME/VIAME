@@ -37,6 +37,7 @@
 
 #include "three_frame_differencing.h"
 
+#include <kwiversys/SystemTools.hxx>
 #include <vital/exceptions.h>
 
 #include <arrows/ocv/image_container.h>
@@ -53,22 +54,55 @@ using namespace kwiver::vital;
 
 
 //-----------------------------------------------------------------------------
+  ///
+  /**
+  * @brief Converts a multi-channel image into a single channel image
+  *
+  * Replace multi-channel image with a single channel image equal to the root
+  * mean square over the channels.
+  *
+  * @param src first image
+  * @param dst second image
+  * @param dst_type OpenCV data type
+  */
+static
+void
+rms_over_channels( const cv::Mat &src, cv::Mat &dst, int dst_type)
+{
+  cv::Mat src_split[src.channels()];
+  cv::split(src, src_split);
+  cv::Mat accum = cv::Mat(src.rows, src.cols, CV_32F, cvScalar(0));
+  for( int i=0; i<src.channels(); ++i)
+  {
+    cv::Mat temp;
+    src_split[i].convertTo(temp, CV_32F);
+
+    // Divide the result by 3^2 so that the difference has the same scale as
+    // a mono image
+    cv::multiply( temp, temp, temp, 1/9.0 );
+    accum += temp;
+  }
+  cv::sqrt(accum, accum);
+  accum.convertTo(dst, CV_8UC1);
+}
+
 
 // ----------------------------------------------------------------------------
-// ------------------------------- Sprokit ------------------------------------
-
-
 /// Private implementation class
 class three_frame_differencing::priv
 {
+  cv::Mat m_jitter_struct_el;
+  std::deque<cv::Mat> m_frames;
+  int m_debug_counter = 0;
+
 public:
   /// Parameters
+  std::string m_debug_dir;
+  bool m_output_to_debug_dir = false;
   std::size_t m_frame_separation;
   int m_jitter_radius;
   double m_max_foreground_fract;
   double m_max_foreground_fract_thresh;
-  cv::Mat m_jitter_struct_el;
-  std::deque<cv::Mat> m_frames;
   kwiver::vital::logger_handle_t m_logger;
 
   /// Constructor
@@ -100,7 +134,7 @@ public:
   * @param img_diff difference image
   */
   void
-  image_difference( cv::Mat &img1, cv::Mat &img2, cv::Mat &img_diff )
+  image_difference( const cv::Mat &img1, const cv::Mat &img2, cv::Mat &img_diff )
   {
     if( m_jitter_radius == 0 )
     {
@@ -137,9 +171,6 @@ public:
     // Images are in temporal order A (oldest), B, C (newest).
     cv::Mat imgA, imgB, imgC;
     cv_src.copyTo(imgC);
-
-    // Do whatever pre-processing
-
     m_frames.push_front(imgC);
 
     if( m_frames.size() < 2*m_frame_separation )
@@ -167,7 +198,36 @@ public:
     image_difference( imgA, imgC, AminusC );
     image_difference( imgC, imgB, CminusB );
     image_difference( imgA, imgB, AminusB );
+
     fgmask = cv::abs( AminusC + CminusB - AminusB );
+
+    if( m_output_to_debug_dir )
+    {
+      std::string fname;
+      cv::Mat img;
+      imgA.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "imgA" + ".tif";
+      cv::imwrite( fname, img );
+      imgB.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "imgB" + ".tif";
+      cv::imwrite( fname, img );
+      imgC.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "imgC" + ".tif";
+      cv::imwrite( fname, img );
+      AminusC.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "AminusC" + ".tif";
+      cv::imwrite( fname, img );
+      CminusB.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "CminusB" + ".tif";
+      cv::imwrite( fname, img );
+      AminusB.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "AminusB" + ".tif";
+      cv::imwrite( fname, img );
+      fgmask.convertTo(img, CV_8UC1);
+      fname = m_debug_dir + "/" + std::to_string(m_debug_counter) + "fgmask" + ".tif";
+      cv::imwrite( fname, img );
+      ++m_debug_counter;
+    }
 
     //cv::cvtColor(fgmask, fgmask, CV_RGB2GRAY, 1);
 
@@ -175,22 +235,7 @@ public:
     {
       LOG_TRACE( m_logger, "Converting multichannel foreground mask to single "
                  "channel");
-      // Calculate RMS value over channels to create a single channel fgmask.
-      cv::Mat fgmask_split[fgmask.channels()];
-      cv::split(fgmask, fgmask_split);
-      cv::Mat accum = cv::Mat(fgmask.rows, fgmask.cols, CV_32F, cvScalar(0));
-      for( int i=0; i<fgmask.channels(); ++i)
-      {
-        cv::Mat temp;
-        fgmask_split[i].convertTo(temp, CV_32F);
-
-        // Divide the result by 3^2 so that the difference has the same scale as
-        // a mono image
-        cv::multiply( temp, temp, temp, 1/9.0 );
-        accum += temp;
-      }
-      cv::sqrt(accum, accum);
-      accum.convertTo(fgmask, CV_8UC1);
+      rms_over_channels( fgmask, fgmask, CV_8UC1);
     }
 
     if( true )
@@ -223,6 +268,15 @@ public:
         fgmask = cv::Scalar(0);
       }
     }
+  }
+
+  /// Set up debug directory
+  void
+  setup_debug_dir()
+  {
+    LOG_DEBUG( m_logger, "Creating debug directory: " + m_debug_dir);
+    kwiversys::SystemTools::MakeDirectory(m_debug_dir);
+    m_output_to_debug_dir = true;
   }
 };
 
@@ -259,10 +313,11 @@ three_frame_differencing
                      "value before a three-frame difference can be "
                      "calculated." );
   config->set_value( "jitter_radius", d_->m_jitter_radius,
-                     "Radius of jitter (pixels) expected in the image "
-                     "stabilization. Frame to frame displacement due to "
-                     "stabilization errors is expected to be bounded in "
-                     "magnitude by this value." );
+                     "Radius of jitter displacement (pixels) expected in the "
+                     "image due to imperfect stabilization. The image "
+                     "differencing process will search for the lowest-magnitude "
+                     "difference in a neighborhood with radius equal to "
+                     "jitter_radius." );
   config->set_value( "max_foreground_fract", d_->m_max_foreground_fract,
                      "Specifies the maximum expected fraction of the scene "
                      "that may contain foreground movers at any time. When the "
@@ -277,6 +332,8 @@ three_frame_differencing
                      "parameter defines the threshold for foreground in order "
                      "to determine if the maximum fraction of foreground has "
                      "been exceeded." );
+  config->set_value( "debug_dir", d_->m_debug_dir,
+                     "Output debug images to this directory.");
 
   return config;
 }
@@ -296,6 +353,7 @@ three_frame_differencing
   d_->m_jitter_radius   = config->get_value<int>( "jitter_radius" );
   d_->m_max_foreground_fract   = config->get_value<double>( "max_foreground_fract" );
   d_->m_max_foreground_fract_thresh   = config->get_value<double>( "max_foreground_fract_thresh" );
+  d_->m_debug_dir         = config->get_value<std::string>( "debug_dir" );
 
   if( d_->m_frame_separation < 0 )
   {
@@ -325,10 +383,16 @@ three_frame_differencing
                                              "be set as a positive value." );
   }
 
-  LOG_DEBUG( logger(), "frame_separation: " << std::to_string(d_->m_frame_separation));
-  LOG_DEBUG( logger(), "jitter_radius: " << std::to_string(d_->m_jitter_radius));
-  LOG_DEBUG( logger(), "max_foreground_fract: " << std::to_string(d_->m_max_foreground_fract));
-  LOG_DEBUG( logger(), "max_foreground_fract_thresh: " << std::to_string(d_->m_max_foreground_fract_thresh));
+  if ( !(d_->m_debug_dir.empty() || d_->m_debug_dir == "" ) )
+  {
+    d_->setup_debug_dir();
+  }
+
+  LOG_DEBUG( logger(), "frame_separation: " << std::to_string(d_->m_frame_separation) );
+  LOG_DEBUG( logger(), "jitter_radius: " << std::to_string(d_->m_jitter_radius) );
+  LOG_DEBUG( logger(), "max_foreground_fract: " << std::to_string(d_->m_max_foreground_fract) );
+  LOG_DEBUG( logger(), "max_foreground_fract_thresh: " << std::to_string(d_->m_max_foreground_fract_thresh) );
+  LOG_DEBUG( logger(), "debug_dir: " << d_->m_debug_dir );
 }
 
 
