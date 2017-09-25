@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ namespace adapter{
  * process. Each element in the set is labeled with the port name as
  * specified in the pipeline configuration file.
  */
-class KWIVER_ADAPTER_EXPORT adapter_data_set VITAL_FINAL
+class KWIVER_ADAPTER_EXPORT adapter_data_set
 {
 public:
   typedef std::map< sprokit::process::port_t, sprokit::datum_t > datum_map_t;

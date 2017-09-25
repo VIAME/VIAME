@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/homography.h>
 
 #include <vital/algo/track_features.h>
@@ -67,7 +67,7 @@ public:
   algo::track_features_sptr         m_feature_tracker;
   algo::compute_ref_homography_sptr m_compute_homog;
 
-  vital::track_set_sptr m_tracks; // last set of tracks
+  vital::feature_track_set_sptr m_tracks; // last set of tracks
 
 }; // end priv class
 
@@ -95,6 +95,8 @@ stabilize_image_process
 void stabilize_image_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   algo::track_features::set_nested_algo_configuration( "track_features", algo_config, d->m_feature_tracker );
@@ -118,7 +120,6 @@ void stabilize_image_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-
 }
 
 
@@ -135,14 +136,20 @@ stabilize_image_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  {
+    scoped_step_instrumentation();
 
-  // Get feature tracks
-  d->m_tracks = d->m_feature_tracker->track( d->m_tracks, frame_time.get_frame(), img );
+    // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  // Get stabilization homography
-  src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
+    // Get feature tracks
+    d->m_tracks = d->m_feature_tracker->track( d->m_tracks,
+                                               static_cast<unsigned int>(frame_time.get_frame()),
+                                               img );
+
+    // Get stabilization homography
+    src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
+  }
 
   // return by value
   push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );

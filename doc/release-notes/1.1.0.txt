@@ -2,7 +2,68 @@ KWIVER v1.1.0 Release Notes
 ===========================
 
 This is a minor release of KWIVER that provides both new functionality and
-fixes over the previous v1.0.0 release.
+fixes over the previous v1.0.0 release.  There are numerous changes in this
+release that have been motivated primarily by three different applications
+of KWIVER.  One is the use of KWIVER in MAP-Tk to provide 3D reconstruction
+algorithms to the MAP-Tk tools and TeleSculptor GUI application.  This
+work has been largely sponsored by the US Air Force Research Laboratories.
+A second driving factor is the use of KWIVER as an evaluation framework for
+video surveillance applications in the upcoming IARPA DIVA program.  The
+third driving factor for improvements in this release is the use of KWIVER
+as the basis for the VIAME toolkit for underwater image processing, supported
+by NOAA.  These project needs have improved the general processing framework
+of KWIVER as well as specific algorithm improvements in 3D reconstruction
+and object detection in video.
+
+Vital, the core framework of KWIVER, has been updated in several ways in
+this release.  Previously there were multiple plugin loader mechanisms
+stemming from the origins of KWIVER as the fusion of multiple projects.
+In this release there is now a unified plugin loader framework that provides
+a common mechanism for loading algorithm plugins (Arrows), process and cluster
+plugins (Sprokit), loggers (Vital), and so on.  There is also a single tool,
+plugin_explorer, that allows introspection of these plugins of various types.
+This release also has a new multi-threading API in Vital that provides an
+interface for a thread pool with multiple back ends.  The thread pool API
+allows KWIVER algorithms to more easily leverage parallel processing without
+being tied to a single thread management library.  Additional back ends,
+like Intel TBB, will be added in future releases.  C and Python bindings for
+Vital have also been extended considerably in this release.
+
+Some other changes in Vital enhance the way image data is loaded and stored.
+This release generalizes the image data structure to support images with
+various pixel types.  Previously Vital only supported 8-bit images.  It now
+supports many pixel types including 16 and 32 bit integers and single and
+double precision floating point types.  Also new in this release is a
+video input API for reading image sequences directly from video sources.
+There are implementations of this API in Arrows for reading video files
+directly as well as lists of images.  The video API also supports reading
+video metadata that is encoded with the video.
+
+In support of the MAP-Tk TeleSculptor application, many abstract algorithms
+in Vital and their implementations in Arrows now support callbacks.  These
+callbacks allow the algorithms to report intermediate results or to signal the
+algorithm to terminate early.  These callback are used in GUI applications
+to get live updates of processing results and to allow users to cancel
+processing.  This release also adds binary serialization for feature detectors
+and descriptors, which allows algorithms to cache features and descriptors
+on disk and load them back in later.  The algorithms for matching features
+have also been improved for better handling of very large images.  Large images
+are best matched by comparing features at a coarse scale before matching fine
+scale features.
+
+In support of the DIVA program, the Sprokit pipeline framework now supports
+frame dropping and processing time-outs.  These changes help prevent the
+pipeline from falling behind in applications that need to keep up with real
+team processing requirements.  A pipeline can be configured to drop frames
+if needed to catch up.
+
+In support of the VIAME toolkit, this release adds new object detection
+APIs and provides and implementation of those APIs use the Darknet YOLO
+(You Only Look Once) network architecture.
+
+There are many other smaller changes in this release.  These are detailed in
+the change log below.
+
 
 
 Updates since v1.0.0
@@ -15,12 +76,12 @@ Arrows
 Arrows - Ceres
 
  * Added a Ceres implementation of the optimize_cameras abstract algorithm.
-   This implmentation is very similar to the bundle_adjust algorithm but
+   This implementation is very similar to the bundle_adjust algorithm but
    does not modify the landmarks.
 
  * Refactored common config options and helper functions between
    optimize_cameras and bundle_adjust into new shared classes in options.h.
-   This makes it much easer to create a new Ceres solver algorihm and
+   This makes it much easer to create a new Ceres solver algorithm and
    reuse the same solver options or camera options.
 
  * Implemented callbacks for the Ceres bundle_adjust to emit the state of
@@ -53,7 +114,7 @@ Arrows - Core
    initialize_cameras_landmarks algorithm.  Previously it was attempted at the
    end after adding all cameras, often too late.  Now it is attempted the
    first time the ratio of reversed to non-reversed RMSE is within a threshold.
-   Necker revsersal is only attempted once.  It is either needed or not.
+   Necker reversal is only attempted once.  It is either needed or not.
 
  * Added default version of dynamic_configuration which always returns
    an empty config block.
@@ -62,7 +123,7 @@ Arrows - Core
    on track length or based on importance of the track in covering a match matrix.
 
  * Added a core implementation of "filter_features" which filters features
-   based on keypoint scale.
+   based on key point scale.
 
  * Changed "match_features_homography" to apply feature filtering to both the
    source and destination frames.  This seems to be more robust when the number
@@ -78,7 +139,7 @@ Arrows - Core
 
  * Added a video_input algorithm for POS files that produces a metadata-only
    stream out of POS files associated with a list of images.  Each image file
-   name is matched to a POS file with the same basename in a specified metadata
+   name is matched to a POS file with the same base name in a specified metadata
    directory.
 
  * Added a video_input algorithm that splits imagery and metadata between two
@@ -93,7 +154,7 @@ Arrows - Core
 
  * Generalized the track_features_core algorithm to handle tracking on frames
    that may come out of order and frames that have already been tracked.  Also
-   removed the caching of the next frame id in the algorithm and now retrive it
+   removed the caching of the next frame id in the algorithm and now retrieve it
    from the existing track set instead.  These changes are to support the
    MAP-Tk GUI which allows users to stop tracking, change the active frame,
    and start a new tracker.
@@ -112,7 +173,7 @@ Arrows - Core
 
 Arrows - OpenCV
 
- * Updated the OpenCV image container functions to handle conversinos between
+ * Updated the OpenCV image container functions to handle conversions between
    vital::image and cv::Mat for all supported pixel types and memory layouts.
 
  * Updated the ocv::image_io algorithm to load images of various pixel types
@@ -136,7 +197,7 @@ Arrows - VXL
 
 Arrows - Darknet
 
- * Added image_object_detector implementation using darkent
+ * Added image_object_detector implementation using Darknet
    implementation of you only look once (YOLO), state-of-the-art,
    real-time object detection system. Currently requires an external
    build of the Darknet project - https://gitlab.kitware.com/kwiver/darknet.git
@@ -162,7 +223,7 @@ Vital
 
  * Added a second transform_image function to transforms one image into another
    image, not in-place like the previous function.  This version can transform
-   one image into another with a differnt pixel type.
+   one image into another with a different pixel type.
 
  * Added a cast_image function which uses the transform_image function to
    apply a static cast between image types.
@@ -201,7 +262,7 @@ Vital
    objects.
 
  * Added abstract algorithm to support dynamic configuration
-   values. An implementation of this intrerface would provide updated
+   values. An implementation of this interface would provide updated
    config values at run time. The use case for this algorithm is
    situations where an external real-time control (e.g. a GUI control)
    is used to vary an algorithm configuration value and the algorithm
@@ -231,7 +292,6 @@ Vital
 
  * Added geographic point and polygon types.
 
-
  * Added a "filter_tracks" abstract algorithm to apply filters to feature tracks
 
  * Added a singleton thread pool class in vital/utils to distribute tasks over
@@ -248,8 +308,8 @@ Vital
    and video_metadata vectors.  This container is for passing all the metadata
    through the algorithm APIs.
 
- * Updated the APIs for various abtract algorithms to accept an optional
-   metadata_map.  This includes initalize_cameras_landmarks, bundle_adjust,
+ * Updated the APIs for various abstract algorithms to accept an optional
+   metadata_map.  This includes initialize_cameras_landmarks, bundle_adjust,
    and optimize_cameras.
 
  * Added an "insert" member function to the track data structure to insert
@@ -323,7 +383,7 @@ Vital Bindings
 
  * Added full C/Python bindings for vital::homography class
 
- * Added C/Python interface for bindle_adjust algorithm definition
+ * Added C/Python interface for bundle_adjust algorithm definition
 
  * Added C/Python interface for initialize_cameras_landmarks algorithm
    definition
@@ -353,8 +413,8 @@ Fixes since v1.0.0
 
 Arrows
 
- * Fixed plugin export shmbols and include files to fix Windows build
-   issues. Generate separete include files for plugin stubs.
+ * Fixed plugin export symbols and include files to fix Windows build
+   issues. Generate separate include files for plugin stubs.
 
 Arrows - Core
 
@@ -370,10 +430,10 @@ Arrows - OpenCV
    object.  If the cv::Mat did not own its data and had no reference counter
    the mat_image_memory would still try to increment it (OpenCV 2.4.X only).
 
- * Reverted a previous workaround to the OpenCV BGR vs RGB issue that was
+ * Reverted a previous workaround to the OpenCV BGR vs. RGB issue that was
    reversing the color channels during every cv::Mat to vital::image conversion
    This was error prone and missed some corner cases.  The conversion will
-   be made explictly elsewhere when needed.
+   be made explicitly elsewhere when needed.
 
 Vital
 

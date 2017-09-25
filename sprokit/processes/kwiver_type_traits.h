@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,10 +41,10 @@
 #include <vital/types/descriptor_set.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/feature_set.h>
-#include <vital/types/geo_corner_points.h>
-#include <vital/types/geo_lat_lon.h>
+#include <vital/types/feature_track_set.h>
+#include <vital/types/geo_polygon.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
 #include <vital/video_metadata/video_metadata.h>
@@ -62,9 +62,9 @@ namespace vital {
   class f2f_homography;
 
   typedef std::vector< double >  double_vector;
-  typedef std::shared_ptr< double_vector > double_vector_sptr;
+  typedef boost::shared_ptr< double_vector > double_vector_sptr;
   typedef std::vector< std::string > string_vector;
-  typedef std::shared_ptr< string_vector > string_vector_sptr;
+  typedef boost::shared_ptr< string_vector > string_vector_sptr;
 
 } }
 
@@ -79,13 +79,15 @@ create_type_trait( bounding_box, "kwiver:bounding_box",
                    kwiver::vital::bounding_box_d);
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
-create_type_trait( corner_points, "corner_points", kwiver::vital::geo_corner_points );
+create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
 create_type_trait( string_vector, "kwiver:string_vector", kwiver::vital::string_vector_sptr );
 create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr );
+create_type_trait( feature_track_set, "kwiver:feature_track_set", kwiver::vital::feature_track_set_sptr );
+create_type_trait( object_track_set, "kwiver:object_track_set", kwiver::vital::object_track_set_sptr );
 create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
 create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vital::detected_object_set_sptr );
 create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::vital::track_descriptor_set_sptr );
@@ -114,7 +116,9 @@ create_port_trait( depth_map, image, "Depth map stored in image form." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
 create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
 create_port_trait( string_vector, string_vector, "Vector of strings." );
-create_port_trait( track_set, track_set, "Set of feature tracks for stabilization." );
+create_port_trait( track_set, track_set, "Set of arbitrary tracks." );
+create_port_trait( feature_track_set, feature_track_set, "Set of feature tracks." );
+create_port_trait( object_track_set, object_track_set, "Set of object tracks." );
 create_port_trait( detected_object_set, detected_object_set, "Set of detected objects." );
 create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track descriptors." );
 

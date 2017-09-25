@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@
 #include <deque>
 #include <iterator>
 
-#include <vital/vital_foreach.h>
 
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>
@@ -67,7 +66,7 @@ detect_bad_tracks(const camera_map::map_camera_t& cams,
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   std::set<track_id_t> to_remove;
-  VITAL_FOREACH(const lm_map_t::value_type& p, lms)
+  for(const lm_map_t::value_type& p : lms)
   {
     landmark_map::map_landmark_t lm_single;
     lm_single.insert(p);
@@ -85,7 +84,7 @@ void
 remove_landmarks(const std::set<track_id_t>& to_remove,
                  landmark_map::map_landmark_t& lms)
 {
-  VITAL_FOREACH(const track_id_t& tid, to_remove)
+  for(const track_id_t& tid : to_remove)
   {
     lms.erase(tid);
   }
@@ -98,7 +97,7 @@ remove_tracks(const std::set<track_id_t>& to_remove,
               std::vector<track_sptr>& trks)
 {
   std::vector<track_sptr> kept_tracks;
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     const track_id_t& tid = t->id();
     if( !to_remove.count(tid) )
@@ -204,8 +203,16 @@ initialize_cameras_landmarks::priv
   std::vector<landmark_sptr> pts_lm;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    pts_right.push_back(trks[i]->find(last_frame)->feat->loc());
-    pts_left.push_back(trks[i]->find(frame)->feat->loc());
+    auto frame_data = std::dynamic_pointer_cast<feature_track_state>(
+                          *(trks[i]->find(frame)));
+    auto last_frame_data = std::dynamic_pointer_cast<feature_track_state>(
+                               *(trks[i]->find(last_frame)));
+    if( !frame_data || !last_frame_data )
+    {
+      continue;
+    }
+    pts_right.push_back(last_frame_data->feature->loc());
+    pts_left.push_back(frame_data->feature->loc());
     lm_map_t::const_iterator li = lms.find(trks[i]->id());
     if( li != lms.end() )
     {
@@ -309,7 +316,7 @@ initialize_cameras_landmarks::priv
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     const track_id_t& tid = t->id();
     if( !this->retriangulate_all &&
@@ -320,7 +327,7 @@ initialize_cameras_landmarks::priv
     lm_map_t::const_iterator li = lms.find(tid);
     if( li == lms.end() )
     {
-      landmark_sptr lm(new landmark_d(vector_3d(0,0,0)));
+      auto lm = std::make_shared<landmark_d>(vector_3d(0,0,0));
       init_lms[static_cast<landmark_id_t>(tid)] = lm;
     }
     else
@@ -329,16 +336,16 @@ initialize_cameras_landmarks::priv
     }
   }
 
-  landmark_map_sptr lm_map(new simple_landmark_map(init_lms));
-  camera_map_sptr cam_map(new simple_camera_map(cams));
-  track_set_sptr tracks(new simple_track_set(trks));
+  landmark_map_sptr lm_map = std::make_shared<simple_landmark_map>(init_lms);
+  camera_map_sptr cam_map = std::make_shared<simple_camera_map>(cams);
+  auto tracks = std::make_shared<feature_track_set>(trks);
   this->lm_triangulator->triangulate(cam_map, tracks, lm_map);
 
   // detect and remove landmarks with large triangulation error
   std::set<track_id_t> to_remove = detect_bad_tracks(cams,
                                                      lm_map->landmarks(),
                                                      trks, interim_reproj_thresh);
-  VITAL_FOREACH(const lm_map_t::value_type& p, lm_map->landmarks())
+  for(const lm_map_t::value_type& p : lm_map->landmarks())
   {
     lms[p.first] = p.second;
   }
@@ -610,7 +617,7 @@ void extract_cameras(const camera_map_sptr& cameras,
 
   // Find the set of all cameras that need to be initialized
   std::set<frame_id_t> new_frames;
-  VITAL_FOREACH(const map_cam_t::value_type& p, all_cams)
+  for(const map_cam_t::value_type& p : all_cams)
   {
     if(p.second)
     {
@@ -650,7 +657,7 @@ void extract_landmarks(const landmark_map_sptr& landmarks,
 
   // Find the set of all landmarks that need to be initialized
   std::set<track_id_t> new_landmarks;
-  VITAL_FOREACH(const map_landmark_t::value_type& p, all_lms)
+  for(const map_landmark_t::value_type& p : all_lms)
   {
     if(p.second)
     {
@@ -697,7 +704,7 @@ find_nearby_new_frames(const std::set<frame_id_t>& new_frames,
                        unsigned int dist)
 {
   std::set<frame_id_t> nearby;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type p, cams)
+  for(camera_map::map_camera_t::value_type p : cams)
   {
     frame_id_t f = p.first < dist ? 0 : p.first - dist;
     for(; f < p.first + dist; ++f)
@@ -776,12 +783,12 @@ next_best_frame(const track_set_sptr tracks,
   const std::vector<track_sptr> trks = tracks->tracks();
   typedef std::map<frame_id_t, unsigned int> frame_map_t;
   frame_map_t vis_count;
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     if( lms.find(t->id()) != lms.end() )
     {
       const std::set<frame_id_t> t_frames = t->all_frame_ids();
-      VITAL_FOREACH(const frame_id_t& fid, t_frames)
+      for(const frame_id_t& fid : t_frames)
       {
         if( new_frame_ids.find(fid) == new_frame_ids.end() )
         {
@@ -808,7 +815,7 @@ next_best_frame(const track_set_sptr tracks,
   // find the maximum observation
   unsigned int max_count = 0;
   frame_id_t best_frame = 0;
-  VITAL_FOREACH(const frame_map_t::value_type& p, vis_count)
+  for(const frame_map_t::value_type& p : vis_count)
   {
     if(p.second > max_count)
     {
@@ -829,7 +836,7 @@ estimate_gsd(const frame_id_t frame,
 {
   std::vector<vector_3d> pts_3d;
   std::vector<vector_2d> pts_2d;
-  VITAL_FOREACH(track_sptr const& t, tracks)
+  for(track_sptr const& t : tracks)
   {
     auto const& lm_itr = lms.find(t->id());
     if( lm_itr != lms.end() )
@@ -837,8 +844,12 @@ estimate_gsd(const frame_id_t frame,
       auto const& ts_itr = t->find(frame);
       if (ts_itr != t->end())
       {
-        pts_3d.push_back(lm_itr->second->loc());
-        pts_2d.push_back(ts_itr->feat->loc());
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts_itr);
+        if (fts && fts->feature)
+        {
+          pts_3d.push_back(lm_itr->second->loc());
+          pts_2d.push_back(fts->feature->loc());
+        }
       }
     }
   }
@@ -874,7 +885,7 @@ void
 initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
-             track_set_sptr tracks,
+             feature_track_set_sptr tracks,
              video_metadata_map_sptr metadata) const
 {
   if( !tracks )
@@ -916,7 +927,7 @@ initialize_cameras_landmarks
   if(cams.size() > 2 && !new_lm_ids.empty())
   {
     map_landmark_t init_lms;
-    VITAL_FOREACH(const landmark_id_t& lmid, new_lm_ids)
+    for(const landmark_id_t& lmid : new_lm_ids)
     {
       landmark_sptr lm(new landmark_d(vector_3d(0,0,0)));
       init_lms[static_cast<landmark_id_t>(lmid)] = lm;
@@ -926,7 +937,7 @@ initialize_cameras_landmarks
     camera_map_sptr cam_map(new simple_camera_map(cams));
     d_->lm_triangulator->triangulate(cam_map, tracks, lm_map);
 
-    VITAL_FOREACH(const map_landmark_t::value_type& p, lm_map->landmarks())
+    for(const map_landmark_t::value_type& p : lm_map->landmarks())
     {
       lms[p.first] = p.second;
     }
@@ -996,14 +1007,13 @@ initialize_cameras_landmarks
     }
 
     // get the subset of tracks that have features on frame f
-    track_set_sptr ftracks = tracks->active_tracks(static_cast<int>(f));
-    // get the subset of tracks that also  have features on the other frame
-    ftracks = ftracks->active_tracks(static_cast<int>(other_frame));
+    auto ftracks = std::make_shared<feature_track_set>(
+                       tracks->active_tracks(static_cast<int>(f)));
 
-    // find existing landmarks for these tracks
+    // find existing landmarks for tracks also having features on the other frame
     map_landmark_t flms;
-    std::vector<track_sptr> trks = ftracks->tracks();
-    VITAL_FOREACH(const track_sptr& t, trks)
+    std::vector<track_sptr> trks = ftracks->active_tracks(static_cast<int>(other_frame));
+    for(const track_sptr& t : trks)
     {
       map_landmark_t::const_iterator li = lms.find(t->id());
       if( li != lms.end() )
@@ -1058,9 +1068,9 @@ initialize_cameras_landmarks
     {
       camera_map::map_camera_t opt_cam_map;
       opt_cam_map[f] = cams[f];
-      camera_map_sptr opt_cams(new simple_camera_map(opt_cam_map));
-      landmark_map_sptr landmarks(new simple_landmark_map(flms));
-      track_set_sptr tracks(new simple_track_set(trks));
+      camera_map_sptr opt_cams = std::make_shared<simple_camera_map>(opt_cam_map);
+      landmark_map_sptr landmarks = std::make_shared<simple_landmark_map>(flms);
+      auto tracks = std::make_shared<feature_track_set>(trks);
       d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, metadata);
       cams[f] = opt_cams->cameras()[f];
     }
@@ -1114,7 +1124,7 @@ initialize_cameras_landmarks
       remove_landmarks(to_remove, lms);
       std::vector<track_sptr> all_trks = tracks->tracks();
       remove_tracks(to_remove, all_trks);
-      tracks = track_set_sptr(new simple_track_set(all_trks));
+      tracks = std::make_shared<feature_track_set>(all_trks);
       double final_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       LOG_INFO(d_->m_logger, "final reprojection RMSE: " << final_rmse);
       LOG_DEBUG(d_->m_logger, "updated focal length "

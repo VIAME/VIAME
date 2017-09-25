@@ -13,6 +13,7 @@ kwiver_discover_tests(core_feature_descriptor_io        test_libraries test_feat
 kwiver_discover_tests(core_interpolate_camera           test_libraries test_interpolate_camera.cxx)
 kwiver_discover_tests(core_detected_object_io           test_libraries test_detected_object_io.cxx)
 kwiver_discover_tests(core_dynamic_configuration        test_libraries test_dynamic_config.cxx)
+kwiver_discover_tests(core_track_set_impl               test_libraries test_track_set_impl.cxx)
 kwiver_discover_tests(core_video_input_image_list       test_libraries test_video_input_image_list.cxx  "${kwiver_test_data_directory}" )
 kwiver_discover_tests(core_video_input_pos              test_libraries test_video_input_pos.cxx  "${kwiver_test_data_directory}" )
 kwiver_discover_tests(core_video_input_split            test_libraries test_video_input_split.cxx  "${kwiver_test_data_directory}" )

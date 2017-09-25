@@ -80,7 +80,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
 };
 
 /// A handle to information about a cluster.
-typedef std::shared_ptr<cluster_info> cluster_info_t;
+typedef boost::shared_ptr<cluster_info> cluster_info_t;
 
 } // end namespace sprokit
 

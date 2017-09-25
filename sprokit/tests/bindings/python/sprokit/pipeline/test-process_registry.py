@@ -271,6 +271,8 @@ def test_register_cluster():
     if not proc_desc == process_factory.description(proc_type):
         test_error("Description was not preserved when registering")
 
+    p = None
+
     try:
         p = process_factory.create_process(proc_type, process.ProcessName())
         if p is None:

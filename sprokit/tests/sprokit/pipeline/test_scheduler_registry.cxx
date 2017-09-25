@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/pipeline/pipeline.h>
@@ -92,9 +91,9 @@ IMPLEMENT_TEST(load_schedulers)
 
   auto factories =  kwiver::vital::plugin_manager::instance().get_factories<sprokit::scheduler>();
 
-  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
-  VITAL_FOREACH( auto fact, factories )
+  for( auto fact : factories )
   {
     sprokit::scheduler_t scheduler;
 
@@ -172,7 +171,7 @@ IMPLEMENT_TEST(unknown_types)
 {
   sprokit::scheduler::type_t const non_existent_scheduler = sprokit::scheduler::type_t("no_such_scheduler");
 
-  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
 
   EXPECT_EXCEPTION(sprokit::no_such_scheduler_type_exception,
                    sprokit::create_scheduler(non_existent_scheduler, pipe),

@@ -30,13 +30,12 @@ sprokit_discover_tests(edge edge_libraries test_edge.cxx)
 ##############################
 # Modules tests
 ##############################
-function (sprokit_add_test_plugin name directory)
-  sprokit_add_plugin("${name}" MAKE_TEST_PLUGIN
-    ${ARGN})
-  target_link_libraries("${name}"
-    LINK_PRIVATE
-    vital_vpm
-    sprokit_pipeline)
+function (sprokit_add_test_plugin    name    directory)
+  kwiver_add_plugin("${name}"
+    SUBDIR   sprokit
+    SOURCES  ${ARGN}
+    PRIVATE    vital_vpm
+               sprokit_pipeline)
 
   set(output_dir
     "${CMAKE_CURRENT_BINARY_DIR}/${directory}")
@@ -76,6 +75,7 @@ sprokit_discover_tests(process test_libraries test_process.cxx)
 
 set( non_b_libs ${test_libraries} kwiver_adapter)
 sprokit_discover_tests(non_blocking non_b_libs test_non_blocking.cxx)
+
 ##############################
 # Process cluster tests
 ##############################
@@ -100,7 +100,7 @@ set(test_python_path)
 
 if (KWIVER_ENABLE_PYTHON)
   set(python_module_path
-    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}")
+    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}/${kwiver_python_subdir}")
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")
@@ -148,9 +148,7 @@ function (sprokit_add_tooled_run_test group instance)
     if (KWIVER_ENABLE_PYTHON)
       if (scheduler STREQUAL "pythread_per_process" OR
           instance STREQUAL "pysimple_pipeline")
-          _sprokit_python_site_package_dir( python_site_packages )
-
-        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/${python_site_packages}")
+        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/${python_sitename}")
       endif ()
     endif ()
 

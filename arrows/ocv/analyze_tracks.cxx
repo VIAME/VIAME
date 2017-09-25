@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@
 #include <iomanip>
 #include <set>
 #include <vector>
+
+#include <arrows/core/track_set_impl.h>
 
 #include <opencv2/core/core.hpp>
 using namespace kwiver::vital;
@@ -173,6 +175,12 @@ analyze_tracks
     return;
   }
 
+  // Convert this track set to one with a frame-indexed implementation,
+  // which is much more efficient for the operations below
+  typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+  track_set = std::make_shared<vital::track_set>(
+                tsi_uptr(new core::frame_index_track_set_impl(track_set->tracks()) ) );
+
   // Constants
   const unsigned num_tracks = static_cast<unsigned>(track_set->size());
   const frame_id_t first_frame = track_set->first_frame();
@@ -202,7 +210,7 @@ analyze_tracks
   for( frame_id_t fid = first_frame; fid <= last_frame; fid++ )
   {
     data.at<double>( static_cast<int>(fid), 0 ) = static_cast<double>(fid);
-    data.at<double>( static_cast<int>(fid), 1 ) = static_cast<double>(track_set->active_tracks( fid )->size());
+    data.at<double>( static_cast<int>(fid), 1 ) = static_cast<double>(track_set->active_tracks( fid ).size());
 
     for( unsigned i = 0; i < d_->frames_to_compare.size(); i++ )
     {

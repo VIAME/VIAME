@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
-/// A class for bundle adjustment of tracks using VXL
+/// A class for bundle adjustment of feature tracks using VXL
 class KWIVER_ALGO_VXL_EXPORT bundle_adjust
 : public vital::algorithm_impl<bundle_adjust, vital::algo::bundle_adjust>
 {
@@ -67,17 +67,17 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// Optimize the camera and landmark parameters given a set of tracks
+  /// Optimize the camera and landmark parameters given a set of feature tracks
   /**
    * \param [in,out] cameras the cameras to optimize
    * \param [in,out] landmarks the landmarks to optimize
-   * \param [in] tracks the tracks to use as constraints
+   * \param [in] tracks the feature tracks to use as constraints
    * \param [in] metadata the frame metadata to use as constraints
    */
   virtual void
   optimize(vital::camera_map_sptr& cameras,
            vital::landmark_map_sptr& landmarks,
-           vital::track_set_sptr tracks,
+           vital::feature_track_set_sptr tracks,
            vital::video_metadata_map_sptr metadata = nullptr) const;
 
 private:

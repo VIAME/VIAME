@@ -33,7 +33,6 @@
 
 #include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -61,6 +60,8 @@ class darknet_trainer::priv
 public:
   priv()
     : m_net_config( "" )
+    , m_seed_weights( "" )
+    , m_output_weights( "" )
     , m_train_directory( "darknet_training" )
     , m_skip_format( false )
     , m_gpu_index( -1 )
@@ -78,6 +79,7 @@ public:
 
   // Items from the config
   std::string m_net_config;
+  std::string m_seed_weights;
   std::string m_output_weights;
   std::string m_train_directory;
   bool m_skip_format;
@@ -131,6 +133,8 @@ get_configuration() const
 
   config->set_value( "net_config", d->m_net_config,
     "Name of network config file." );
+  config->set_value( "seed_weights", d->m_seed_weights,
+    "Optional input seed weights file." );
   config->set_value( "output_weights", d->m_output_weights,
     "Output weights file." );
   config->set_value( "train_directory", d->m_train_directory,
@@ -174,6 +178,7 @@ set_configuration( vital::config_block_sptr config_in )
   config->merge_config( config_in );
 
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
+  this->d->m_seed_weights = config->get_value< std::string >( "seed_weights" );
   this->d->m_output_weights = config->get_value< std::string >( "output_weights" );
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
@@ -234,27 +239,35 @@ train_from_disk(std::vector< std::string > train_image_names,
     test_list = d->format_images( d->m_train_directory + "/test_images",
       test_image_names, test_groundtruth );
 
-    // Generate train image list
-    //boost::replace_all( target, "foo", "bar" );
-    //"darknet -i ${gpu_id} detector train
-    //  ${output_folder}/YOLOv2.data
-    //  config_files/YOLOv2.cfg
-    //  ../detector_pipelines/models/model2.weights";
+    // Generate train/test image list and header information
+    std::string python_cmd = "python -c '";
+    std::string import_cmd = "import kwiver.arrows.darknet;";
+    std::string header_cmd = "generate_header()";
+    std::string end_quote  = "'";
+
+    std::string full_cmd = python_cmd + " " + import_cmd + " " + header_cmd;
+
+    system( full_cmd.c_str() );
   }
 
-  // Setup initial training sequence
-  // Replace with ID count
-
-  // Run training sequence
+  // Run training routine
 #ifdef WIN32
   std::string darknet_cmd = "darknet.exe";
 #else
   std::string darknet_cmd = "darknet";
 #endif
-  system( darknet_cmd.c_str() );
+  std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
+    " detector train " + d->m_train_directory + "/YOLOv2.data " +
+    d->m_net_config;
 
-  // Evaluate final models and select best one
-  // [ TODO ]
+  if( !d->m_seed_weights.empty() )
+  {
+    darknet_args = darknet_args + " " + d->m_seed_weights;
+  }
+
+  std::string full_cmd = darknet_cmd + " " + darknet_args;
+
+  system( full_cmd.c_str() );
 }
 
 // --------------------------------------------------------------------
@@ -391,15 +404,15 @@ print_detections(
   kwiver::vital::detected_object_set_sptr all_detections,
   kwiver::vital::bounding_box_d region )
 {
-  kwiver::vital::detected_object::vector_t input = all_detections->select();
   std::vector< std::string > to_write;
 
   const double width = region.width();
   const double height = region.height();
 
-  VITAL_FOREACH( auto detection, input )
+  auto ie =  all_detections->cend();
+  for ( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
-    kwiver::vital::bounding_box_d det_box = detection->bounding_box();
+    kwiver::vital::bounding_box_d det_box = (*detection)->bounding_box();
     kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
 
     if( det_box.area() > 0 &&
@@ -433,7 +446,7 @@ print_detections(
   {
     std::ofstream fout( filename.c_str() );
 
-    VITAL_FOREACH( std::string line, to_write )
+    for( std::string line : to_write )
     {
       fout << line << std::endl;
     }

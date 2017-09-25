@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 tests for Similarity class
 
 """
+from __future__ import print_function
 import ctypes
 import unittest
 
@@ -127,8 +128,8 @@ class TestSimiliarity (unittest.TestCase):
         sim2 = Similarity.from_matrix(mat1)
         mat2 = sim2.as_matrix()
 
-        print "Sim1:", sim1.as_matrix()
-        print "Sim2:", sim2.as_matrix()
+        print("Sim1:", sim1.as_matrix())
+        print("Sim2:", sim2.as_matrix())
 
         numpy.testing.assert_almost_equal(mat1, mat2, decimal=14)
 
@@ -140,9 +141,9 @@ class TestSimiliarity (unittest.TestCase):
 
         sim_comp = s1.compose(s2).as_matrix()
         mat_comp = numpy.dot(s1.as_matrix(), s2.as_matrix())
-        print 'sim12 comp:\n', sim_comp
-        print 'mat comp:\n', mat_comp
-        print 'sim - mat:\n', sim_comp - mat_comp
+        print('sim12 comp:\n', sim_comp)
+        print('mat comp:\n', mat_comp)
+        print('sim - mat:\n', sim_comp - mat_comp)
         nose.tools.assert_almost_equal(
             numpy.linalg.norm(sim_comp - mat_comp, 2),
             0., 14
@@ -176,9 +177,9 @@ class TestSimiliarity (unittest.TestCase):
 
         sim_comp = s1.compose(s2).as_matrix()
         mat_comp = numpy.dot(s1.as_matrix(), s2.as_matrix())
-        print 'sim12 comp:\n', sim_comp
-        print 'mat comp:\n', mat_comp
-        print 'sim - mat:\n', sim_comp - mat_comp
+        print('sim12 comp:\n', sim_comp)
+        print('mat comp:\n', mat_comp)
+        print('sim - mat:\n', sim_comp - mat_comp)
         nose.tools.assert_almost_equal(
             numpy.linalg.norm(sim_comp - mat_comp, 2),
             0., 6

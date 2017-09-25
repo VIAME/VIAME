@@ -56,10 +56,10 @@ more python friendly types.
 #include <string>
 
 typedef std::vector< double >  double_vector;
-typedef std::shared_ptr< double_vector > double_vector_sptr;
+typedef boost::shared_ptr< double_vector > double_vector_sptr;
 
 typedef std::vector< std::string > string_vector;
-typedef std::shared_ptr< string_vector > string_vector_sptr;
+typedef boost::shared_ptr< string_vector > string_vector_sptr;
 
 static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.type_converters" ) );
 
@@ -324,7 +324,7 @@ double_vector_to_datum( PyObject* list )
 
   // if ( ! PyList_Check( list )) { log message }
 
-  int num_elem = PyList_Size( list );
+  int num_elem = static_cast<int>( PyList_Size( list ) );
 
   // Copy input values into a new vector.
   for ( int i = 0; i < num_elem; i++ )

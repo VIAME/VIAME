@@ -34,7 +34,6 @@ set( public_headers
   filter_features.h
   formulate_query.h
   filter_tracks.h
-  geo_map.h
   image_filter.h
   image_io.h
   image_object_detector.h
@@ -42,6 +41,7 @@ set( public_headers
   match_features.h
   optimize_cameras.h
   refine_detections.h
+  split_image.h
   track_features.h
   train_detector.h
   track_descriptor_set_input.h
@@ -79,7 +79,6 @@ set( sources
   filter_features.cxx
   formulate_query.cxx
   filter_tracks.cxx
-  geo_map.cxx
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx
@@ -87,6 +86,7 @@ set( sources
   match_features.cxx
   optimize_cameras.cxx
   refine_detections.cxx
+  split_image.cxx
   track_features.cxx
   train_detector.cxx
   track_descriptor_set_input.cxx

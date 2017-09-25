@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #include "projected_track_set.h"
 
-#include <vital/vital_foreach.h>
+#include <vital/types/feature.h>
 
 namespace kwiver {
 namespace arrows {
@@ -43,7 +43,7 @@ namespace arrows {
 using namespace kwiver::vital;
 
 /// Use the cameras to project the landmarks back into their images.
-track_set_sptr
+feature_track_set_sptr
 projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
 {
   std::vector<track_sptr> tracks;
@@ -53,18 +53,19 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
 
   for( landmark_map::map_landmark_t::iterator l = lm_map.begin(); l != lm_map.end(); l++ )
   {
-    track_sptr t( new track );
+    track_sptr t = track::create();
     t->set_id( l->first );
     tracks.push_back( t );
 
-    VITAL_FOREACH( const camera_map::map_camera_t::value_type& p, cam_map )
+    for( const camera_map::map_camera_t::value_type& p : cam_map )
     {
       const camera_sptr cam = p.second;
-      feature_sptr f( new feature_d( cam->project( l->second->loc() ) ) );
-      t->append( track::track_state( p.first, f, descriptor_sptr() ) );
+      auto fts = std::make_shared<feature_track_state>(p.first);
+      fts->feature = std::make_shared<feature_d>( cam->project( l->second->loc() ) );
+      t->append( fts );
     }
   }
-  return track_set_sptr( new simple_track_set( tracks ) );
+  return std::make_shared<feature_track_set>( tracks );
 }
 
 

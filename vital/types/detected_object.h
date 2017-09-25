@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
+#include <vital/types/descriptor.h>
 #include <vital/types/image_container.h>
 
 #include <vital/io/eigen_io.h>
@@ -74,7 +75,11 @@ typedef std::shared_ptr< detected_object > detected_object_sptr;
 class VITAL_EXPORT detected_object
 {
 public:
+
   typedef std::vector< detected_object_sptr > vector_t;
+  typedef descriptor_dynamic< double > descriptor_t;
+  typedef std::shared_ptr< descriptor_t > descriptor_sptr;
+  typedef std::shared_ptr< bounding_box_d > bounding_box_sptr;
 
 
   /**
@@ -207,30 +212,49 @@ public:
   void set_type( detected_object_type_sptr c );
 
   /**
-   * @brief Get pointer to optional classifications object.
+   * @brief Get detection mask image.
    *
-   * This method returns the pointer to the classification object if
-   * there is one. If there is no classification object the pointer is
-   * NULL.
+   * This method returns the mask image associated with this detection.
    *
-   * @return Pointer to classification object or NULL.
+   * @return Pointer to the mask image.
    */
   image_container_sptr mask();
 
   /**
-   * @brief Set new classifications for this detection.
+   * @brief Set mask image for this detection.
    *
-   * This method supplies a new set of class_names and scores for this
-   * detection.
+   * This method supplies a new mask image for this detection.
    *
-   * @param c New classification for this detection
+   * @param m Mask image
    */
   void set_mask( image_container_sptr m );
 
+  /**
+   * @brief Get descriptor vector.
+   *
+   * This method returns an optional descriptor vector that was used
+   * to create this detection. This is only set for certain object
+   * detectors.
+   *
+   * @return Pointer to the descriptor vector.
+   */
+  descriptor_sptr descriptor() const;
+
+  /**
+   * @brief Set descriptor for this detection.
+   *
+   * This method sets a descriptor vector that was used to create this
+   * detection. This is only set for certain object detectors.
+   *
+   * @param d Descriptor vector
+   */
+  void set_descriptor( descriptor_sptr d );
+
 private:
-  std::shared_ptr< bounding_box_d > m_bounding_box;
+  bounding_box_sptr m_bounding_box;
   double m_confidence;
   image_container_sptr m_mask_image;
+  descriptor_sptr m_descriptor;
 
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;

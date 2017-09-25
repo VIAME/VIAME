@@ -34,12 +34,11 @@
  * \brief Register processes for use.
  */
 
-#include "clusters-config.h"
+#include "processes_clusters_export.h"
 
 #include <processes/clusters/cluster-paths.h>
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -69,7 +68,7 @@ static const std::string path_separator( 1, PATH_SEPARATOR_CHAR );
  * This function loads and instantiates cluster processes.
  */
 extern "C"
-SPROKIT_PROCESSES_CLUSTERS_EXPORT
+PROCESSES_CLUSTERS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
@@ -85,13 +84,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   kwiver::vital::path_list_t include_dirs;
 
   // Build include directories.
-  {
-    kwiversys::SystemTools::GetPath( include_dirs, sprokit_include_envvar.c_str() );
+  kwiversys::SystemTools::GetPath( include_dirs, sprokit_include_envvar.c_str() );
+  kwiver::vital::tokenize( default_include_dirs, include_dirs, path_separator, true );
 
-    kwiver::vital::tokenize( default_include_dirs, include_dirs, path_separator, true );
-  }
-
-  VITAL_FOREACH ( const kwiver::vital::path_t& include_dir, include_dirs)
+  for ( const kwiver::vital::path_t& include_dir : include_dirs)
   {
     // log file
     LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,16 @@
 
 #include "track_set.h"
 
+#include <algorithm>
 #include <limits>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
 
 /// Return the number of tracks in the set
 size_t
-track_set
+track_set_implementation
 ::size() const
 {
   return this->tracks().size();
@@ -54,22 +54,63 @@ track_set
 
 /// Return whether or not there are any tracks in the set
 bool
-track_set
+track_set_implementation
 ::empty() const
 {
   return this->tracks().empty();
 }
 
 
+/// Notify the container that a new state has been added to an existing track
+void
+track_set_implementation
+::notify_new_state( track_state_sptr ts )
+{
+  // by default, notification does nothing
+}
+
+
+/// merge the pair of tracks \p t1 and \p t2, if possible
+bool
+track_set_implementation
+::merge_tracks( track_sptr t1, track_sptr t2 )
+{
+  // follow track redirects as needed
+  std::shared_ptr<track_data_redirect> tdr;
+  while( t1 && t1->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t1->data())) )
+  {
+    t1 = tdr->redirect_track;
+  }
+  while( t2 && t2->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t2->data())) )
+  {
+    t2 = tdr->redirect_track;
+  }
+  if( !t1 || !t2 || !this->contains(t1) || !this->contains(t2) )
+  {
+    return false;
+  }
+
+  if( !t2->append(*t1) )
+  {
+    return false;
+  }
+
+  this->remove(t1);
+  return true;
+}
+
+
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
-track_set
+track_set_implementation
 ::all_frame_ids() const
 {
   std::set<frame_id_t> ids;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     std::set<frame_id_t> t_ids = t->all_frame_ids();
     ids.insert(t_ids.begin(), t_ids.end());
@@ -81,13 +122,13 @@ track_set
 
 /// Return the set of all track IDs in this track set
 std::set<track_id_t>
-track_set
+track_set_implementation
 ::all_track_ids() const
 {
   std::set<track_id_t> ids;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     ids.insert(t->id());
   }
@@ -98,13 +139,13 @@ track_set
 
 /// Return the last (largest) frame number containing tracks
 frame_id_t
-track_set
+track_set_implementation
 ::last_frame() const
 {
   frame_id_t last_frame = 0;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->last_frame() > last_frame )
     {
@@ -120,14 +161,14 @@ track_set
 
 /// Return the first (smallest) frame number containing tracks
 frame_id_t
-track_set
+track_set_implementation
 ::first_frame() const
 {
   frame_id_t first_frame = std::numeric_limits<frame_id_t>::max();
   const std::vector<track_sptr> all_tracks = this->tracks();
   bool intersects_frame = false;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->first_frame() < first_frame )
     {
@@ -149,12 +190,12 @@ track_set
 
 /// Return the track in the set with the specified id.
 track_sptr const
-track_set
+track_set_implementation
 ::get_track(track_id_t tid) const
 {
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->id() == tid )
     {
@@ -166,15 +207,15 @@ track_set
 }
 
 /// Return all tracks active on a frame.
-track_set_sptr
-track_set
-::active_tracks(frame_id_t offset)
+std::vector< track_sptr >
+track_set_implementation
+::active_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> active_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->find(frame_number) != t->end() )
     {
@@ -182,20 +223,20 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(active_tracks));
+  return active_tracks;
 }
 
 
 /// Return all tracks active on a frame.
-track_set_sptr
-track_set
-::inactive_tracks(frame_id_t offset)
+std::vector< track_sptr >
+track_set_implementation
+::inactive_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> inactive_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->find(frame_number) == t->end() )
     {
@@ -203,20 +244,20 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(inactive_tracks));
+  return inactive_tracks;
 }
 
 
 /// Return all new tracks on a given frame.
-track_set_sptr
-track_set
-::new_tracks(frame_id_t offset)
+std::vector< track_sptr >
+track_set_implementation
+::new_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> new_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->first_frame() == frame_number )
     {
@@ -224,20 +265,20 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(new_tracks));
+  return new_tracks;
 }
 
 
 /// Return all new tracks on a given frame.
-track_set_sptr
-track_set
-::terminated_tracks(frame_id_t offset)
+std::vector< track_sptr >
+track_set_implementation
+::terminated_tracks(frame_id_t offset) const
 {
   frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> terminated_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->last_frame() == frame_number )
     {
@@ -245,14 +286,14 @@ track_set
     }
   }
 
-  return track_set_sptr(new simple_track_set(terminated_tracks));
+  return terminated_tracks;
 }
 
 
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
-track_set
-::percentage_tracked(frame_id_t offset1, frame_id_t offset2)
+track_set_implementation
+::percentage_tracked(frame_id_t offset1, frame_id_t offset2) const
 {
   const frame_id_t frame_number1 = offset_to_frame(offset1);
   const frame_id_t frame_number2 = offset_to_frame(offset2);
@@ -260,7 +301,7 @@ track_set
   const std::vector<track_sptr> all_tracks = this->tracks();
   unsigned total_tracks = 0, tracks_both = 0;
 
-  VITAL_FOREACH( track_sptr t , all_tracks)
+  for( track_sptr t : all_tracks)
   {
     const bool found_on_f1 = t->find(frame_number1) != t->end();
     const bool found_on_f2 = t->find(frame_number2) != t->end();
@@ -277,95 +318,31 @@ track_set
 }
 
 
-/// Return the set of features in tracks on the last frame
-feature_set_sptr
-track_set
-::last_frame_features() const
-{
-  const frame_id_t last_frame = this->last_frame();
-  std::vector<feature_sptr> last_features;
-  const std::vector<track_sptr> all_tracks = this->tracks();
-
-  VITAL_FOREACH( track_sptr t, all_tracks)
-  {
-    if( t->last_frame() == last_frame )
-    {
-      last_features.push_back((t->end()-1)->feat);
-    }
-  }
-
-  return feature_set_sptr(new simple_feature_set(last_features));
-}
-
-
-/// Return the set of descriptors in tracks on the last frame
-descriptor_set_sptr
-track_set
-::last_frame_descriptors() const
-{
-  const frame_id_t last_frame = this->last_frame();
-  std::vector<descriptor_sptr> last_descriptors;
-  const std::vector<track_sptr> all_tracks = this->tracks();
-
-  VITAL_FOREACH( track_sptr t, all_tracks)
-  {
-    if( t->last_frame() == last_frame )
-    {
-      last_descriptors.push_back((t->end()-1)->desc);
-    }
-  }
-
-  return descriptor_set_sptr(new simple_descriptor_set(last_descriptors));
-}
-
-
-/// Return the set of features in all tracks for the given frame.
-feature_set_sptr
-track_set
-::frame_features(frame_id_t offset) const
+/// Return a vector of state data corresponding to the tracks on the given frame.
+std::vector<track_state_sptr>
+track_set_implementation
+::frame_states( frame_id_t offset ) const
 {
   const frame_id_t frame_number = offset_to_frame(offset);
   const std::vector<track_sptr> all_tracks = this->tracks();
-  std::vector<feature_sptr> features;
+  std::vector<track_state_sptr> vdata;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     track::history_const_itr itr = t->find(frame_number);
     if( itr != t->end() )
     {
-      features.push_back(itr->feat);
+      vdata.push_back(*itr);
     }
   }
 
-  return feature_set_sptr(new simple_feature_set(features));
-}
-
-
-/// Return the set of descriptors in all tracks for the given frame.
-descriptor_set_sptr
-track_set
-::frame_descriptors(frame_id_t offset) const
-{
-  const frame_id_t frame_number = offset_to_frame(offset);
-  const std::vector<track_sptr> all_tracks = this->tracks();
-  std::vector<descriptor_sptr> descriptors;
-
-  VITAL_FOREACH( track_sptr t, all_tracks)
-  {
-    track::history_const_itr itr = t->find(frame_number);
-    if( itr != t->end() )
-    {
-      descriptors.push_back(itr->desc);
-    }
-  }
-
-  return descriptor_set_sptr(new simple_descriptor_set(descriptors));
+  return vdata;
 }
 
 
 /// Convert an offset number to an absolute frame number
 frame_id_t
-track_set
+track_set_implementation
 ::offset_to_frame(frame_id_t offset) const
 {
   if( offset >= 0 )
@@ -381,5 +358,58 @@ track_set
   }
   return frame_number;
 }
+
+
+
+/// Default Constructor
+track_set
+::track_set()
+  : impl_(new simple_track_set_implementation)
+{
+}
+
+
+/// Constructor specifying the implementation
+track_set
+::track_set(std::unique_ptr<track_set_implementation> impl)
+  : impl_(std::move(impl))
+{
+}
+
+
+/// Constructor from a vector of tracks
+track_set
+::track_set(std::vector< track_sptr > const& tracks)
+  : impl_(new simple_track_set_implementation(tracks))
+{
+}
+
+
+//===================================================================
+
+
+/// Return true if the set contains a specific track
+bool
+simple_track_set_implementation
+::contains( track_sptr t ) const
+{
+  return std::find(data_.begin(), data_.end(), t) != data_.end();
+}
+
+
+/// Remove a track from the set and return true if successful
+bool
+simple_track_set_implementation
+::remove( track_sptr t )
+{
+  auto itr = std::find(data_.begin(), data_.end(), t);
+  if ( itr == data_.end() )
+  {
+    return false;
+  }
+  data_.erase(itr);
+  return true;
+}
+
 
 } } // end namespace vital

@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'breathe'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'KWIVER'
-copyright = u'2016, Kitware, Inc.'
+copyright = u'2017, Kitware, Inc.'
 author = u'Kitware, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -362,6 +363,9 @@ epub_exclude_files = ['search.html']
 # If false, no index is generated.
 #epub_use_index = True
 
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# Breathe support - need to make directory name more flexible
+breathe_projects = { "kwiver": "/disk2/projects/KWIVER/kwgitlab/build/doc/kwiver/xml" }
+breathe_default_project = "kwiver"

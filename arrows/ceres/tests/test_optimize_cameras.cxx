@@ -44,7 +44,6 @@
 #include <arrows/core/projected_track_set.h>
 #include <arrows/ceres/optimize_cameras.h>
 
-#include <vital/vital_foreach.h>
 
 
 #define TEST_ARGS ()
@@ -79,7 +78,7 @@ IMPLEMENT_TEST(uninitialized)
 
   camera_map_sptr cam_map;
   landmark_map_sptr lm_map;
-  track_set_sptr trk_set;
+  feature_track_set_sptr trk_set;
 
   ceres::optimize_cameras optimizer;
   config_block_sptr cfg = optimizer.get_configuration();
@@ -107,7 +106,7 @@ IMPLEMENT_TEST(empty_input)
 
   camera_map_sptr cam_map(new simple_camera_map());
   landmark_map_sptr lm_map(new simple_landmark_map());
-  track_set_sptr trk_set(new simple_track_set());
+  feature_track_set_sptr trk_set(new feature_track_set());
 
   ceres::optimize_cameras optimizer;
   config_block_sptr cfg = optimizer.get_configuration();
@@ -143,8 +142,8 @@ IMPLEMENT_TEST(no_noise)
 
   landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
   camera_map_sptr working_cam_map(new simple_camera_map(original_cams));
-  track_set_sptr tracks = projected_tracks(landmarks,
-                                                  working_cam_map);
+  feature_track_set_sptr tracks = projected_tracks(landmarks,
+                                                   working_cam_map);
 
   ceres::optimize_cameras optimizer;
   config_block_sptr cfg = optimizer.get_configuration();
@@ -158,8 +157,8 @@ IMPLEMENT_TEST(no_noise)
   ostringstream ss;
 
   double ep = 1e-14;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type const& p,
-                working_cam_map->cameras())
+  for (camera_map::map_camera_t::value_type const& p :
+       working_cam_map->cameras())
   {
     // difference in camera center
     vector_3d a_c = p.second->center(),
@@ -204,7 +203,7 @@ IMPLEMENT_TEST(noisy_cameras)
 
   landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
   camera_map_sptr working_cam_map(new simple_camera_map(original_cams));
-  track_set_sptr tracks = projected_tracks(landmarks, working_cam_map);
+  feature_track_set_sptr tracks = projected_tracks(landmarks, working_cam_map);
 
   working_cam_map = kwiver::testing::noisy_cameras(working_cam_map, 0.1, 0.1);
 
@@ -219,8 +218,8 @@ IMPLEMENT_TEST(noisy_cameras)
   matrix_3x3d zero_mat = matrix_3x3d::Zero();
   ostringstream ss;
 
-  VITAL_FOREACH(camera_map::map_camera_t::value_type const& p,
-                working_cam_map->cameras())
+  for (camera_map::map_camera_t::value_type const& p :
+       working_cam_map->cameras())
   {
     // difference in camera center
     vector_3d a_c = p.second->center(),

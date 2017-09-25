@@ -40,14 +40,12 @@
 #include <vital/vital_export.h>
 #include <vital/types/vector.h>
 
+#include <initializer_list>
 #include <memory>
 #include <vector>
 
 namespace kwiver {
 namespace vital {
-
-class vital_polygon;
-typedef std::shared_ptr<vital_polygon> vital_polygon_sptr;
 
 // ----------------------------------------------------------------
 /**
@@ -72,7 +70,8 @@ public:
   typedef kwiver::vital::vector_2d point_t;
 
   polygon();
-  polygon( const std::vector< kwiver::vital::polygon::point_t >& dat);
+  polygon( const std::vector< point_t >& dat );
+  polygon( std::initializer_list< point_t > dat );
   ~polygon();
 
   /**
@@ -113,7 +112,7 @@ public:
    *
    * @return List of vertices.
    */
-  std::vector< kwiver::vital::polygon::point_t > get_vertices() const;
+  std::vector< point_t > get_vertices() const;
 
   /**
    * @brief Does this polygon contain the point.
@@ -157,7 +156,7 @@ public:
   point_t at( size_t idx ) const;
 
 private:
-  std::vector< kwiver::vital::polygon::point_t > m_polygon;
+  std::vector< point_t > m_polygon;
 }; // end class polygon
 
 // Types for managing polygons

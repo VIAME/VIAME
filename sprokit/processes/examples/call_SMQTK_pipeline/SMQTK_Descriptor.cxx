@@ -76,13 +76,6 @@ ExtractSMQTK(  cv::Mat cv_img, std::string const& config_file )
   static sprokit::process_registry::module_t const module_name =
     sprokit::process_registry::module_t( "smqtk_processes" );
 
-  sprokit::process_registry_t const registry( sprokit::process_registry::self() );
-
-  if ( registry->is_module_loaded( module_name ) )
-  {
-    return std::vector< double >();
-  }
-
 
   sprokit::load_known_modules();
 

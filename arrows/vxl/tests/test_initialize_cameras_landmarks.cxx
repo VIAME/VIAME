@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@
 #include <arrows/vxl/estimate_essential_matrix.h>
 #include <arrows/vxl/estimate_similarity_transform.h>
 
-#include <vital/vital_foreach.h>
 
 
 #define TEST_ARGS ()
@@ -115,7 +114,7 @@ void evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
 
   vital::camera_map::map_camera_t orig_cams = true_cams->cameras();
   vital::camera_map::map_camera_t new_cams = est_cams->cameras();
-  VITAL_FOREACH(vital::camera_map::map_camera_t::value_type p, orig_cams)
+  for(vital::camera_map::map_camera_t::value_type p : orig_cams)
   {
     vital::camera_sptr new_cam_t = arrows::transform(new_cams[p.first], global_sim);
     vital::rotation_d dR = new_cam_t->rotation().inverse() * p.second->rotation();
@@ -127,7 +126,7 @@ void evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
 
   vital::landmark_map::map_landmark_t orig_lms = true_landmarks->landmarks();
   vital::landmark_map::map_landmark_t new_lms = est_landmarks->landmarks();
-  VITAL_FOREACH(landmark_map::map_landmark_t::value_type p, orig_lms)
+  for(landmark_map::map_landmark_t::value_type p : orig_lms)
   {
     vital::landmark_sptr new_lm_tr = arrows::transform(new_lms[p.first], global_sim);
 
@@ -151,7 +150,7 @@ IMPLEMENT_TEST(ideal_points)
   camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
   configure_algo(init, K);
@@ -179,7 +178,7 @@ IMPLEMENT_TEST(ideal_points_from_last)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
@@ -212,7 +211,7 @@ IMPLEMENT_TEST(noisy_points)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
@@ -244,7 +243,7 @@ IMPLEMENT_TEST(noisy_points_from_last)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
@@ -280,7 +279,7 @@ IMPLEMENT_TEST(subset_init)
   vital::camera_map_sptr cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  vital::track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
   vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
   configure_algo(init, K);
@@ -310,12 +309,12 @@ IMPLEMENT_TEST(subset_init)
   init.initialize(new_cameras, new_landmarks, tracks);
 
   // test that we only initialized the requested objects
-  VITAL_FOREACH(vital::camera_map::map_camera_t::value_type p, new_cameras->cameras())
+  for(vital::camera_map::map_camera_t::value_type p : new_cameras->cameras())
   {
     TEST_EQUAL("Camera initialized", bool(p.second), true);
     TEST_EQUAL("Expected camera id", p.first % 3, 0);
   }
-  VITAL_FOREACH(vital::landmark_map::map_landmark_t::value_type p, new_landmarks->landmarks())
+  for(vital::landmark_map::map_landmark_t::value_type p : new_landmarks->landmarks())
   {
     TEST_EQUAL("Landmark initialized", bool(p.second), true);
     TEST_EQUAL("Expected landmark id", p.first % 5, 0);

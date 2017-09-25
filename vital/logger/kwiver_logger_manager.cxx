@@ -101,24 +101,24 @@ kwiver_logger_manager
   // we provide a method for creating these loggers.
 
   bool try_default(false);
+  std::string factory_name;
   char const* factory = std::getenv( PLUGIN_ENV_VAR );
-  if ( 0 == factory )
+  if ( factory == 0 )
   {
-    try_default = true;
     // If no special factory is specified, try default name
-#if defined(WIN32)
-    factory = "vital_logger_plugin.dll";
-#elif defined(__APPLE__)
-    factory = "vital_logger_plugin.so";
-#else
-    factory = "vital_logger_plugin.so";
-#endif
+    try_default = true;
+    factory_name = "vital_logger_plugin";
   }
+  else
+  {
+    factory_name = factory;
+  }
+  factory_name += DL::LibExtension();
 
   try
   {
     // Dynamically load logger factory.
-    load_factory( factory );
+    load_factory( factory_name );
     return;
   }
   catch( std::runtime_error &e )
@@ -241,7 +241,6 @@ kwiver_logger_manager
         << DL::LastError();
     throw std::runtime_error( str.str() );
   }
-
   // Get pointer to new logger factory object
   m_impl->m_logFactory.reset( fp() );
 }

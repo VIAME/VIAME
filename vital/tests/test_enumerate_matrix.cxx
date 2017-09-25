@@ -65,7 +65,7 @@ sparse_sum( Eigen::SparseMatrix<data_value_t> const& m )
 {
   auto result = data_value_t{0};
 
-  VITAL_FOREACH (auto it, kwiver::vital::enumerate(m))
+  for (auto it : kwiver::vital::enumerate(m))
   {
     auto const a = m.coeff(it.row(), it.col());
     if (a != it.value())
@@ -95,7 +95,7 @@ sparse_apply_kernel( Eigen::SparseMatrix<data_value_t> const& m,
 
   auto result = data_value_t{0};
 
-  VITAL_FOREACH (auto it, enumerate(m))
+  for (auto it : enumerate(m))
   {
     test_bound("matrix coefficient row is within expected range",
                it.row(), 0, 4);

@@ -93,7 +93,7 @@ public:
    *
    * @return pointer to the data bytes.
    */
-  const char* value() const;
+  std::string const& value() const;
 
   /**
    * @brief Get number of bytes in id

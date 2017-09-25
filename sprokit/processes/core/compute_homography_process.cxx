@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/homography.h>
 
 #include <vital/algo/track_features.h>
@@ -48,6 +48,34 @@ namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
+create_config_trait( homography_generator, std::string, "", "Name of algorithm config block." );
+
+// ----------------------------------------------------------------
+/**
+ * \class compute_homography_process
+ *
+ * \brief Wrapper process around compute_ref_homography algorithm/
+ *
+ * \process This process instantiates a concrete implementation of the
+ * \b compute_ref_homography algorithm.
+ *
+ * \iports
+ *
+ * \iport{timestamp} time stamp for incoming images.
+ *
+ * \iport{feature_track_set} track set to be used for calculating
+ * homography.
+ *
+ * \oports
+ *
+ * \oport{homography_src_to_ref} Resulting homography.
+ *
+ * \configs
+ *
+ * \config{homography_generator} Algorithm name for homography generator to use.
+ *
+ * Other config parameters depend on the actual algorithm selected.
+ */
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -71,7 +99,7 @@ public:
 compute_homography_process
 ::compute_homography_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new compute_homography_process::priv )
+    d( new compute_homography_process::priv )//
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
@@ -91,7 +119,15 @@ compute_homography_process
 void compute_homography_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   kwiver::vital::config_block_sptr algo_config = get_config();
+
+  // Check config so it will give run-time diagnostic of config problems
+  if ( ! algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config ) )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+  }
 
   algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
   if ( ! d->m_compute_homog )
@@ -101,13 +137,6 @@ void compute_homography_process
   }
 
   algo::compute_ref_homography::get_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
-
-  // Check config so it will give run-time diagnostic of config problems
-  if ( ! algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config ) )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
-  }
-
 }
 
 
@@ -119,13 +148,17 @@ compute_homography_process
   kwiver::vital::f2f_homography_sptr src_to_ref_homography;
 
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-  vital::track_set_sptr tracks = grab_from_port_using_trait( track_set );
+  vital::feature_track_set_sptr tracks = grab_from_port_using_trait( feature_track_set );
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  {
+    scoped_step_instrumentation();
 
-  // Get stabilization homography
-  src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), tracks );
+    // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
+
+    // Get stabilization homography
+    src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), tracks );
+  }
 
   // return by value
   push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );
@@ -143,7 +176,7 @@ void compute_homography_process
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
-  declare_input_port_using_trait( track_set, required );
+  declare_input_port_using_trait( feature_track_set, required );
 
   // -- output --
   declare_output_port_using_trait( homography_src_to_ref, optional );
@@ -154,7 +187,6 @@ void compute_homography_process
 void compute_homography_process
 ::make_config()
 {
-
 }
 
 

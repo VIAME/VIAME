@@ -71,7 +71,7 @@ algorithm_def< Self >
 
   auto fact_list = kwiver::vital::plugin_manager::instance().get_factories( Self::static_type_name() );
 
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string attr_val;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val ) )

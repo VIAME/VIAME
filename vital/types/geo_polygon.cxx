@@ -34,7 +34,12 @@
  */
 
 #include "geo_polygon.h"
+#include "geodesy.h"
 
+#include <algorithm>
+#include <cctype>
+#include <iomanip>
+#include <numeric>
 #include <stdexcept>
 
 namespace kwiver {
@@ -84,8 +89,15 @@ geo_raw_polygon_t geo_polygon
   auto const i = m_poly.find( crs );
   if ( i == m_poly.end() )
   {
-    // TODO convert to requested CRS and add to m_poly
-    throw std::runtime_error( "conversion is not implemented" );
+    auto new_poly = geo_raw_polygon_t{};
+    auto const verts = polygon().get_vertices();
+
+    for ( auto& v : verts )
+    {
+      new_poly.push_back( geo_conv( v, m_original_crs, crs ) );
+    }
+    m_poly.emplace( crs, new_poly );
+    return new_poly;
   }
 
   return i->second;
@@ -98,6 +110,112 @@ void geo_polygon
   m_original_crs = crs;
   m_poly.clear();
   m_poly.insert( std::make_pair( crs, poly ) );
+}
+
+// ----------------------------------------------------------------------------
+template<>
+geo_polygon
+config_block_get_value_cast( config_block_value_t const& value )
+{
+  // Remove trailing spaces so we can reliably test when we run out of content
+  auto i = std::find_if( value.rbegin(), value.rend(),
+                         []( char c ) { return !std::isspace( c ); } );
+  std::stringstream s( std::string{ value.begin(), i.base() } );
+
+  // Check for empty value
+  if ( s.peek(), s.eof() ) {
+    return {};
+  }
+
+  // Set up helper lambda to check for errors
+  auto try_or_die = [&value]( std::istream& s ) {
+    if ( s.fail() ) {
+      throw bad_config_block_cast(
+        "failed to convert from string representation \"" + value + "\"" );
+    }
+  };
+
+  int crs;
+  try_or_die( s >> crs );
+
+  // Get points
+  geo_raw_polygon_t verts;
+  do
+  {
+    double x, y;
+    try_or_die( s >> x );
+    try_or_die( s >> y );
+    verts.push_back( { x, y } );
+  } while ( !s.eof() );
+
+  // Return geodetic polygon
+  return { verts, crs };
+}
+
+// ----------------------------------------------------------------------------
+template<>
+config_block_value_t
+config_block_set_value_cast( geo_polygon const& value )
+{
+  // Handle empty polygon
+  if ( value.is_empty() )
+  {
+    return {};
+  }
+
+  // Write CRS
+  std::stringstream str_result;
+  str_result << value.crs();
+
+  // Determine appropriate output precision
+  auto const& verts = value.polygon().get_vertices();
+  auto const magnitude = std::accumulate(
+    verts.begin(), verts.end(), 0.0,
+    []( double cur, vector_2d const& p ) {
+      return std::max( { cur, std::fabs( p[0] ), std::fabs( p[1] ) } );
+    });
+
+  str_result.precision( 20 - static_cast<int>( std::ceil( magnitude ) ) );
+  str_result.setf( std::ios::fixed );
+
+  // Write vertex coordinates
+  for ( auto const& v : verts )
+  {
+    str_result << " " << v[0] << " " << v[1];
+  }
+
+  // Return result
+  return str_result.str();
+}
+
+// ----------------------------------------------------------------------------
+std::ostream&
+operator<<( std::ostream& str, vital::geo_polygon const& obj )
+{
+  if ( obj.is_empty() )
+  {
+    str << "{ empty }";
+  }
+  else
+  {
+    auto const old_prec = str.precision();
+    auto const verts = obj.polygon();
+
+    str << std::setprecision(22) << "{";
+    for ( size_t n = 0; n < verts.num_vertices(); ++n )
+    {
+      if ( n ) {
+        str << ",";
+      }
+      auto const& v = verts.at( n );
+      str << " " << v[0] << " / " << v[1];
+    }
+    str << " } @ " << obj.crs();
+
+    str.precision( old_prec );
+  }
+
+  return str;
 }
 
 } } // end namespace

@@ -7,38 +7,13 @@
 
 # ==================================================================
 ###
-# Generate correct timer header based on availbility of timer
-#
-
-if (VITAL_USE_STD_CHRONO)
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/wall_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/wall_timer.h" )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cpu_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h" )
-
-else()
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/no-wall_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/wall_timer.h" )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/no-cpu_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h" )
-
-endif()
-
-# ==================================================================
-###
 # These headers are installed
 #
 set( public_headers
   get_paths.h
   timer.h
+  cpu_timer.h
+  wall_timer.h
   demangle.h
   any_converter.h
   enumerate_matrix.h
@@ -94,8 +69,6 @@ kwiver_install_headers(
 # install generated header
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
-  ${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h
-  ${CMAKE_CURRENT_BINARY_DIR}/wall_timer.h
   SUBDIR   vital/util
   NOPATH
   )
@@ -105,8 +78,6 @@ kwiver_add_library( vital_util
   ${private_headers}
   ${sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_util_export.h
-  ${CMAKE_CURRENT_BINARY_DIR}/cpu_timer.h
-  ${CMAKE_CURRENT_BINARY_DIR}/wall_timer.h
   )
 
 target_link_libraries( vital_util

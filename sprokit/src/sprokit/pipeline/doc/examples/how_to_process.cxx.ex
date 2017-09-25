@@ -125,7 +125,7 @@ register_processes()
 
   process_registry_t const registry = process_registry::self();
 
-  if (registry->is_module_loaded(module_name))
+  if (registry->is_process_module_loaded(module_name))
   {
     return;
   }

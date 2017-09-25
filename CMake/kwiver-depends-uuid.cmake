@@ -5,6 +5,8 @@ option( KWIVER_ENABLE_UUID
   "Enable UUID dependent code and plugins"
   OFF
   )
+# Mark as advanced until UUID is provided in Fletch
+mark_as_advanced( KWIVER_ENABLE_UUID )
 
 if (KWIVER_ENABLE_UUID)
 

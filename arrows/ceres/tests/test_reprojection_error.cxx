@@ -36,7 +36,6 @@
 #include <test_common.h>
 #include <test_scene.h>
 
-#include <vital/vital_foreach.h>
 
 #include <arrows/core/metrics.h>
 #include <arrows/ceres/reprojection_error.h>
@@ -127,7 +126,7 @@ test_all_reprojection_errors(const kwiver::vital::camera_map_sptr cameras,
 
   typedef std::map<landmark_id_t, landmark_sptr>::const_iterator lm_map_itr_t;
   typedef std::map<frame_id_t, camera_sptr>::const_iterator cam_map_itr_t;
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     lm_map_itr_t lmi = lm_map.find(t->id());
     if (lmi == lm_map.end() || !lmi->second)
@@ -138,13 +137,14 @@ test_all_reprojection_errors(const kwiver::vital::camera_map_sptr cameras,
     const landmark& lm = *lmi->second;
     for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *tsi->feat;
-      cam_map_itr_t ci = cam_map.find(tsi->frame_id);
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cam_map.find((*tsi)->frame());
       if (ci == cam_map.end() || !ci->second)
       {
         // no camera corresponding to this track state

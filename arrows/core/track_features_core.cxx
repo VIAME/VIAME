@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
  */
 
 #include "track_features_core.h"
-#include "merge_tracks.h"
 
 #include <algorithm>
 #include <numeric>
@@ -45,7 +44,8 @@
 #include <vector>
 #include <iterator>
 
-#include <vital/vital_foreach.h>
+#include <arrows/core/track_set_impl.h>
+
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/feature_descriptor_io.h>
@@ -231,9 +231,9 @@ track_features_core
 
 
 /// Extend a previous set of tracks using the current frame
-track_set_sptr
+feature_track_set_sptr
 track_features_core
-::track(track_set_sptr prev_tracks,
+::track(feature_track_set_sptr prev_tracks,
         unsigned int frame_number,
         image_container_sptr image_data,
         image_container_sptr mask) const
@@ -260,22 +260,22 @@ track_features_core
         );
   }
 
-  track_set_sptr existing_set;
+  std::vector<track_sptr> existing_tracks;
   feature_set_sptr curr_feat;
   descriptor_set_sptr curr_desc;
 
   // see if there are already existing tracks on this frame
   if( prev_tracks )
   {
-    existing_set = prev_tracks->active_tracks(frame_number);
-    if( existing_set && existing_set->size() > 0 )
+    existing_tracks = prev_tracks->active_tracks(frame_number);
+    if( !existing_tracks.empty() )
     {
       LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
       // use existing features
-      curr_feat = existing_set->frame_features(frame_number);
+      curr_feat = prev_tracks->frame_features(frame_number);
 
       // use existng descriptors
-      curr_desc = existing_set->frame_descriptors(frame_number);
+      curr_desc = prev_tracks->frame_descriptors(frame_number);
     }
   }
 
@@ -304,7 +304,20 @@ track_features_core
             (curr_feat->size() == feat->size() ) )
         {
           curr_desc = desc;
-          //TODO: assign these descriptors to the existing track states
+          // assign these descriptors to the existing track states
+          auto track_states = prev_tracks->frame_states(frame_number);
+          if( curr_desc->size() == track_states.size() )
+          {
+            auto vdesc = curr_desc->descriptors();
+            for( size_t i=0; i<track_states.size(); ++i )
+            {
+              auto fts = std::dynamic_pointer_cast<feature_track_state>(track_states[i]);
+              if (fts)
+              {
+                fts->descriptor = vdesc[i];
+              }
+            }
+          }
         }
         else
         {
@@ -368,19 +381,30 @@ track_features_core
     std::vector<vital::track_sptr> new_tracks;
     for(; fit != vf.end() && dit != df.end(); ++fit, ++dit)
     {
-       track::track_state ts(frame_number, *fit, *dit);
-       new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-       new_tracks.back()->set_id(next_track_id++);
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = *fit;
+      fts->descriptor = *dit;
+      new_tracks.push_back(vital::track::create());
+      new_tracks.back()->append(fts);
+      new_tracks.back()->set_id(next_track_id++);
     }
+
+    // create a new track set since one was not provided
+    // use the frame-indexed track_set implementation, which is more efficient
+    // for querying tracks by frame number
+    typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+    auto new_track_set = std::make_shared<feature_track_set>(
+                tsi_uptr(new frame_index_track_set_impl(new_tracks) ) );
+
     if( d_->closer )
     {
       // call loop closure on the first frame to establish this
       // frame as the first frame for loop closing purposes
       return d_->closer->stitch(frame_number,
-                                track_set_sptr(new simple_track_set(new_tracks)),
+                                new_track_set,
                                 image_data, mask);
     }
-    return track_set_sptr(new simple_track_set(new_tracks));
+    return new_track_set;
   }
 
   // get the last track id in the existing set of tracks and increment it
@@ -389,12 +413,13 @@ track_features_core
   const vital::frame_id_t last_frame = prev_tracks->last_frame();
   vital::frame_id_t prev_frame = last_frame;
 
-  track_set_sptr active_set;
+  feature_track_set_sptr active_set;
   // if processing out of order, see if there are tracks on the previous frame
   // and prefer those over the last frame (i.e. largest frame number)
   if( prev_frame >= frame_number && frame_number > 0 )
   {
-    active_set = prev_tracks->active_tracks(frame_number - 1);
+    active_set = std::make_shared<feature_track_set>(
+                     prev_tracks->active_tracks(frame_number - 1) );
     if( active_set && active_set->size() > 0 )
     {
       prev_frame = frame_number - 1;
@@ -402,7 +427,8 @@ track_features_core
   }
   if( !active_set )
   {
-    active_set = prev_tracks->active_tracks(prev_frame);
+    active_set = std::make_shared<feature_track_set>(
+                     prev_tracks->active_tracks(prev_frame) );
   }
 
   // detect features on the previous frame
@@ -423,36 +449,40 @@ track_features_core
   std::vector<track_sptr> active_tracks = active_set->tracks();
   std::vector<match> vm = mset->matches();
 
-  track_set_sptr updated_track_set;
+  feature_track_set_sptr updated_track_set = prev_tracks;
   // if we previously had tracks on this frame, stitch to a previous frame
-  if( existing_set && existing_set->size() > 0 )
+  if( !existing_tracks.empty() )
   {
-    std::vector<track_sptr> existing_tracks = existing_set->tracks();
-    track_pairs_t track_matches;
-    VITAL_FOREACH(match m, vm)
+    int num_linked = 0;
+    for(match m : vm)
     {
       track_sptr tp = active_tracks[m.first];
       track_sptr tc = existing_tracks[m.second];
-      track_matches.push_back( std::make_pair(tc, tp) );
+      if( updated_track_set->merge_tracks(tc, tp) )
+      {
+        ++num_linked;
+      }
     }
-    track_map_t track_replacement;
-    int num_linked = merge_tracks(track_matches, track_replacement);
     LOG_DEBUG( logger(), "Stitched " << num_linked <<
                          " existing tracks from frame " << frame_number <<
                          " to " << prev_frame );
-    updated_track_set = remove_replaced_tracks(prev_tracks, track_replacement);
   }
   else
   {
     std::set<unsigned> matched;
 
-    VITAL_FOREACH(match m, vm)
+    for(match m : vm)
     {
       track_sptr t = active_tracks[m.first];
-      track::track_state ts(frame_number, vf[m.second], df[m.second]);
-      if( t->append(ts) || t->insert(ts) )
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = vf[m.second];
+      fts->descriptor = df[m.second];
+      if( t->append(fts) || t->insert(fts) )
       {
         matched.insert(m.second);
+        // need to notify the track_set of new states appended to
+        // tracks that were previously added
+        updated_track_set->notify_new_state( fts );
       }
     }
 
@@ -470,14 +500,16 @@ track_features_core
                          matched.begin(), matched.end(),
                          unmatched_insert_itr );
 
-    std::vector<track_sptr> all_tracks = prev_tracks->tracks();
-    VITAL_FOREACH(unsigned i, unmatched)
+    for(unsigned i : unmatched)
     {
-      track::track_state ts(frame_number, vf[i], df[i]);
-      all_tracks.push_back(std::make_shared<vital::track>(ts));
-      all_tracks.back()->set_id(next_track_id++);
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = vf[i];
+      fts->descriptor = df[i];
+      auto t = vital::track::create();
+      t->append(fts);
+      t->set_id(next_track_id++);
+      updated_track_set->insert(t);
     }
-    updated_track_set = std::make_shared<simple_track_set>(all_tracks);
   }
 
   // run loop closure if enabled

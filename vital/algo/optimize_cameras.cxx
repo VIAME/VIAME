@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/optimize_cameras.h>
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -50,11 +49,11 @@ optimize_cameras
 }
 
 
-/// Optimize camera parameters given sets of landmarks and tracks
+/// Optimize camera parameters given sets of landmarks and feature tracks
 void
 optimize_cameras
 ::optimize(camera_map_sptr & cameras,
-           track_set_sptr tracks,
+           feature_track_set_sptr tracks,
            landmark_map_sptr landmarks,
            video_metadata_map_sptr metadata) const
 {
@@ -77,7 +76,7 @@ optimize_cameras
 
   states_map_t states_map;
   // O( len(trks) * avg_t_len )
-  VITAL_FOREACH(track_sptr const& t, trks)
+  for(track_sptr const& t : trks)
   {
     // Only record a state if there is a corresponding landmark for the
     // track (constant-time check), the track state has a feature and thus a
@@ -85,11 +84,12 @@ optimize_cameras
     // state's frame (constant-time check).
     if (lms.count(t->id()))
     {
-      VITAL_FOREACH (auto const& ts, *t)
+      for (auto const& ts : *t)
       {
-        if (ts.feat && cams.count(ts.frame_id))
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+        if (fts && fts->feature && cams.count(ts->frame()))
         {
-          states_map[ts.frame_id][t->id()] = ts.feat;
+          states_map[ts->frame()][t->id()] = fts->feature;
         }
       }
     }
@@ -106,7 +106,7 @@ optimize_cameras
   {
     metadata_map = metadata->video_metadata();
   }
-  VITAL_FOREACH(map_camera_t::value_type const& p, cams)
+  for(map_camera_t::value_type const& p : cams)
   {
     v_feat.clear();
     v_lms.clear();
@@ -119,7 +119,7 @@ optimize_cameras
     }
 
     // Construct 2d<->3d correspondences
-    VITAL_FOREACH(inner_map_t::value_type const& q, states_map[p.first])
+    for(inner_map_t::value_type const& q : states_map[p.first])
     {
       // Already guaranteed that feat and landmark exists above.
       v_feat.push_back(q.second);

@@ -58,17 +58,18 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "refine_detections"; }
 
-  /// Find all objects on the provided image
+  /// Refine all object detections on the provided image
   /**
-   * This method analyzes the supplied image and along with any saved
-   * context, returns a vector of detected image objects.
+   * This method analyzes the supplied image and and detections on it,
+   * returning a refined set of detections.
    *
    * \param image_data the image pixels
-   * \returns vector of image objects found
+   * \param detections detected objects
+   * \returns vector of image objects refined
    */
   virtual detected_object_set_sptr
-      refine( image_container_sptr image_data,
-              detected_object_set_sptr detections ) const = 0;
+  refine( image_container_sptr image_data,
+          detected_object_set_sptr detections ) const = 0;
 
 protected:
   refine_detections();

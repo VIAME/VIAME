@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
  */
 
 #include "close_loops_keyframe.h"
-#include "merge_tracks.h"
+#include "match_tracks.h"
 
 #include <set>
 #include <string>
@@ -187,10 +187,10 @@ close_loops_keyframe
 
 
 /// Frame stitching using keyframe-base matching
-vital::track_set_sptr
+vital::feature_track_set_sptr
 close_loops_keyframe
 ::stitch( vital::frame_id_t frame_number,
-          vital::track_set_sptr input,
+          vital::feature_track_set_sptr input,
           vital::image_container_sptr,
           vital::image_container_sptr ) const
 {
@@ -220,7 +220,8 @@ close_loops_keyframe
 
   // extract the subset of tracks on the current frame and their
   // features and descriptors
-  vital::track_set_sptr current_set = input->active_tracks( frame_number );
+  auto current_set = std::make_shared<vital::feature_track_set>(
+                         input->active_tracks( frame_number ) );
   std::vector<vital::track_sptr> current_tracks = current_set->tracks();
   vital::descriptor_set_sptr current_descriptors =
       current_set->frame_descriptors( frame_number );
@@ -238,7 +239,7 @@ close_loops_keyframe
   // between the current and previous frames.  This matching was done outside
   // of loop closure as part of the standard frame-to-frame tracking
   d_->frame_matches[frame_number] =
-      static_cast<unsigned int>(current_set->active_tracks( frame_number-1 )->size());
+      static_cast<unsigned int>(current_set->active_tracks( frame_number-1 ).size());
 
   // used to compute the maximum number of matches between the current frame
   // and any of the key frames
@@ -276,7 +277,6 @@ close_loops_keyframe
   }
 
 
-  track_map_t track_replacement;
   // stitch with all frames within a neighborhood of the current frame
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
@@ -285,7 +285,13 @@ close_loops_keyframe
     int num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = merge_tracks(matches, track_replacement);
+      for( auto const& m : matches )
+      {
+        if( input->merge_tracks(m.first, m.second) )
+        {
+          ++num_linked;
+        }
+      }
     }
     // accumulate matches to help assign keyframes later
     d_->frame_matches[frame_number] += num_matched;
@@ -325,7 +331,13 @@ close_loops_keyframe
     int num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = merge_tracks(matches, track_replacement);
+      for( auto const& m : matches )
+      {
+        if( input->merge_tracks(m.first, m.second) )
+        {
+          ++num_linked;
+        }
+      }
     }
     LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to keyframe "<< *kitr
                            << " has "<< num_matched << " matches and "
@@ -344,10 +356,6 @@ close_loops_keyframe
       break;
     }
   }
-
-  // remove all tracks from 'input' that have now been replaced by
-  // merging with another track
-  input = remove_replaced_tracks(input, track_replacement);
 
 
   // keep track of frames that matched no keyframes

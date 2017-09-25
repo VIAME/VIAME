@@ -2,7 +2,6 @@
 # algorithms/proj
 
 set(proj_headers_public
-  geo_map.h
   )
 
 kwiver_install_headers(
@@ -16,7 +15,7 @@ kwiver_install_headers(
   )
 
 set(proj_sources
-  geo_map.cxx
+  geo_conv.cxx
   )
 
 kwiver_add_library( kwiver_algo_proj
@@ -32,7 +31,3 @@ target_link_libraries( kwiver_algo_proj
 algorithms_create_plugin( kwiver_algo_proj
   register_algorithms.cxx
   )
-
-if (KWIVER_ENABLE_TESTS)
-  add_subdirectory(tests)
-endif()

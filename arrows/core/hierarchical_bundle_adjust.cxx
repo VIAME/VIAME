@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@
 
 #include <math.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/util/cpu_timer.h>
 
 #include <vital/algo/optimize_cameras.h>
@@ -85,7 +84,7 @@ subsample_cameras(camera_map::map_camera_t const& cameras, unsigned n)
 
   camera_map::map_camera_t subsample;
   unsigned int i = 0;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type const& p, cameras)
+  for(camera_map::map_camera_t::value_type const& p : cameras)
   {
     if (i % n == 0)
     {
@@ -263,7 +262,7 @@ hierarchical_bundle_adjust
 }
 
 
-/// Optimize the camera and landmark parameters given a set of tracks
+/// Optimize the camera and landmark parameters given a set of feature tracks
 /**
  * Making naive assuptions:
  *  - cameras we are given are in sequence (no previous sub-sampling and no frame gaps)
@@ -275,7 +274,7 @@ void
 hierarchical_bundle_adjust
 ::optimize(camera_map_sptr & cameras,
            landmark_map_sptr & landmarks,
-           track_set_sptr tracks,
+           feature_track_set_sptr tracks,
            video_metadata_map_sptr metadata) const
 {
   using namespace std;
@@ -428,7 +427,7 @@ hierarchical_bundle_adjust
         }
       }
       // adding optimized interpolated cameras to the map of existing cameras
-      VITAL_FOREACH(camera_map::map_camera_t::value_type const& p, interped_cams_p->cameras())
+      for(camera_map::map_camera_t::value_type const& p : interped_cams_p->cameras())
       {
         ac_map[p.first] = p.second;
       }

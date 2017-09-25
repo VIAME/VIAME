@@ -34,12 +34,12 @@
  */
 
 #include "track_set.h"
+#include "track_set.hxx"
 
 #include <vector>
 
 #include <vital/types/track_set.h>
 #include <vital/io/track_set_io.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/track.h>
@@ -71,7 +71,7 @@ vital_trackset_new( size_t length, vital_track_t **tracks,
       track_vec.push_back( vital_c::TRACK_SPTR_CACHE.get( tracks[i] ) );
     }
 
-    kwiver::vital::track_set_sptr ts_sptr( new kwiver::vital::simple_track_set( track_vec )
+    kwiver::vital::track_set_sptr ts_sptr( new kwiver::vital::track_set( track_vec )
                                          );
 
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
@@ -86,7 +86,7 @@ vital_trackset_t*
 vital_trackset_from_sptr( void* sptr )
 {
   STANDARD_CATCH(
-    "C::track_set::from_sptr", NULL,
+    "vital_trackset_from_sptr", NULL,
 
     kwiver::vital::track_set_sptr ts_sptr = *reinterpret_cast< kwiver::vital::track_set_sptr* >(sptr);
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
@@ -186,7 +186,7 @@ vital_trackset_all_frame_ids( vital_trackset_t const *trackset, size_t *length,
     *length = fid_set.size();
     int64_t *frame_ids = (int64_t*)malloc(sizeof(int64_t) * (*length));
     size_t i=0;
-    VITAL_FOREACH( int64_t const &fid, fid_set )
+    for( int64_t const &fid : fid_set )
     {
       frame_ids[i] = fid;
       ++i;
@@ -209,7 +209,7 @@ vital_trackset_all_track_ids( vital_trackset_t const *trackset, size_t *length,
     *length = tid_set.size();
     int64_t *track_ids = (int64_t*)malloc( sizeof(int64_t) * (*length));
     size_t i = 0;
-    VITAL_FOREACH( int64_t const &tid, tid_set )
+    for( int64_t const &tid : tid_set )
     {
       track_ids[i] = tid;
       ++i;
@@ -260,4 +260,33 @@ vital_trackset_get_track( vital_trackset_t const *trackset, int64_t tid,
     return reinterpret_cast< vital_track_t* >( t_sptr.get() );
   );
   return 0;
+}
+
+
+/// Create a vital_track_set_t around an existing shared pointer.
+vital_trackset_t*
+vital_track_set_new_from_sptr( kwiver::vital::track_set_sptr ts_sptr,
+                               vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "vital_track_set_new_from_sptr", eh,
+    // Store the shared pointer in our cache and return the handle.
+    vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
+    return reinterpret_cast< vital_trackset_t* >( ts_sptr.get() );
+  );
+  return NULL;
+}
+
+
+/// Get the vital::track_set shared pointer for a handle.
+kwiver::vital::track_set_sptr
+vital_track_set_to_sptr( vital_trackset_t* ts,
+                         vital_error_handle_t* eh )
+{
+  STANDARD_CATCH(
+    "vital_track_set_to_sptr", eh,
+    // Return the cached shared pointer.
+    return vital_c::TRACK_SET_SPTR_CACHE.get( ts );
+  );
+  return kwiver::vital::track_set_sptr();
 }

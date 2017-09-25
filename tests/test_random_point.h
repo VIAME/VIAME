@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,32 +41,22 @@
 #include <vital/vital_config.h>
 #include <vital/types/vector.h>
 
-#if VITAL_USE_STD_RANDOM
-# include <random>
-# define RANDOM_NAMESPACE std
-#else
-# include <boost/random.hpp>
-# include <boost/random/normal_distribution.hpp>
-# define RANDOM_NAMESPACE boost
-#endif
-
+#include <random>
 
 namespace kwiver {
 namespace testing {
 
 /// random number generator type
-typedef RANDOM_NAMESPACE::mt19937 rng_t;
+typedef std::mt19937 rng_t;
 
 /// normal distribution
-typedef RANDOM_NAMESPACE::normal_distribution<> norm_dist_t;
+typedef std::normal_distribution<> norm_dist_t;
 
-#undef RANDOM_NAMESPACE
-
- /// a global random number generator instance
- static rng_t rng;
+/// a global random number generator instance
+static rng_t rng;
 
 
- // ------------------------------------------------------------------
+// ------------------------------------------------------------------
 inline
 kwiver::vital::vector_3d random_point3d(double stdev)
 {

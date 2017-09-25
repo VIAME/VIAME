@@ -58,7 +58,8 @@ vital_algorithm_track_features_track( vital_algorithm_t *algo,
     "C::algorithm::track_features::track", eh,
     using namespace kwiver::vital_c;
     kwiver::vital::track_set_sptr ts_sptr = ALGORITHM_track_features_SPTR_CACHE.get( algo )->track(
-      TRACK_SET_SPTR_CACHE.get( prev_tracks ),
+      std::dynamic_pointer_cast< kwiver::vital::feature_track_set >(
+        TRACK_SET_SPTR_CACHE.get( prev_tracks ) ),
       frame_num,
       IMGC_SPTR_CACHE.get( ic )
       );
@@ -83,7 +84,8 @@ vital_algorithm_track_features_track_with_mask( vital_algorithm_t *algo,
     using namespace kwiver::vital_c;
     kwiver::vital::track_set_sptr ts_sptr =
       ALGORITHM_track_features_SPTR_CACHE.get( algo )->track(
-        TRACK_SET_SPTR_CACHE.get( prev_tracks ),
+        std::dynamic_pointer_cast< kwiver::vital::feature_track_set >(
+          TRACK_SET_SPTR_CACHE.get( prev_tracks ) ),
         frame_num,
         IMGC_SPTR_CACHE.get( ic ),
         IMGC_SPTR_CACHE.get( mask )

@@ -64,7 +64,8 @@ vital_algorithm_initialize_cameras_landmarks_initialize( vital_algorithm_t *algo
     auto landmarks_sptr = vital_c::LANDMARK_MAP_SPTR_CACHE.get( *landmarks );
     auto tracks_sptr = vital_c::TRACK_SET_SPTR_CACHE.get( tracks );
 
-    a_sptr->initialize( cameras_sptr, landmarks_sptr, tracks_sptr );
+    a_sptr->initialize( cameras_sptr, landmarks_sptr,
+      std::dynamic_pointer_cast< kwiver::vital::feature_track_set >( tracks_sptr ) );
 
     // Check instance pointer for cameras and landmarks for being different from
     // input for caching.

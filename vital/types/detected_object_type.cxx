@@ -30,7 +30,6 @@
 
 #include "detected_object_type.h"
 
-#include <vital/vital_foreach.h>
 
 #include <stdexcept>
 #include <limits>
@@ -229,6 +228,24 @@ detected_object_type::
 size() const
 {
   return m_classes.size();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_type::class_const_iterator_t
+detected_object_type::
+begin() const
+{
+  return m_classes.begin();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_type::class_const_iterator_t
+detected_object_type::
+end() const
+{
+  return m_classes.end();
 }
 
 

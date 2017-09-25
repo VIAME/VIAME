@@ -26,7 +26,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+from __future__ import print_function
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 
@@ -43,7 +43,7 @@ try:
 except:
     # By doing this we allow folks to test that their KWIVER environment is properly built, before
     # building and configuring SMQTK
-    print "SMQTK not configured into this Python instance.  Entering ApplyDescriptor test mode"
+    print("SMQTK not configured into this Python instance.  Entering ApplyDescriptor test mode")
     apply_descriptor_test_mode = True
 
 
@@ -143,6 +143,6 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.register_add('ApplyDescriptor', 'Apply descriptor to image', ApplyDescriptor)
+    process_factory.add_process('ApplyDescriptor', 'Apply descriptor to image', ApplyDescriptor)
 
     process_factory.mark_process_module_as_loaded(module_name)

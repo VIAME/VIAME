@@ -59,15 +59,17 @@ public:
   /// Default Constructor
   similarity_< T > ( )
   : scale_( 1 ),
-  rot_(),
-  trans_( 0, 0, 0 ) { }
+    rot_(),
+    trans_( 0, 0, 0 )
+  {}
 
   /// Copy Constructor from another type
   template < typename U >
   explicit similarity_< T > ( const similarity_< U > &other )
   : scale_( static_cast< T > ( other.scale() ) ),
-  rot_( static_cast< rotation_< T > > ( other.rotation() ) ),
-  trans_( other.translation().template cast< T > () ) { }
+    rot_( static_cast< rotation_< T > > ( other.rotation() ) ),
+    trans_( other.translation().template cast< T > () )
+  {}
 
   /// Constructor - from scale, rotatation, and translation
   /**
@@ -78,8 +80,9 @@ public:
   similarity_< T > ( const T &s, const rotation_< T > &r,
                      const Eigen::Matrix< T, 3, 1 > &t )
   : scale_( s ),
-  rot_( r ),
-  trans_( t ) { }
+    rot_( r ),
+    trans_( t )
+  {}
 
   /// Constructor - from a matrix
   /**
@@ -87,7 +90,7 @@ public:
    * in homogeneous coordinates
    * \param mat Transform in matrix form to initialize from.
    */
-  explicit similarity_< T > ( const Eigen::Matrix< T, 4, 4 > &mat );
+  explicit similarity_< T >( const Eigen::Matrix< T, 4, 4 > &mat );
 
   /// Convert to a 4x4 matrix
   Eigen::Matrix< T, 4, 4 > matrix() const;

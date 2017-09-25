@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015-2016 by Kitware, Inc.
+Copyright 2015-2017 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -62,9 +62,12 @@ from .similarity import Similarity
 from .landmark import Landmark
 from .landmark_map import LandmarkMap
 
-# Requires Descriptor, Feature
+# Requires Descriptor, DetectedObject, Feature
 from .track import TrackState, Track
 from .track_set import TrackSet
+from .feature_track_set import FeatureTrackState
+from .object_track_set import ObjectTrackState
+from .object_track_set import ObjectTrackSet
 
 # Requires CameraIntrinsics, Covariance, EigenArray, Rotation
 from .camera import Camera

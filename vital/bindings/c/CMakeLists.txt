@@ -11,7 +11,6 @@ set(vital_c_public_headers
   algo_def/convert_image.h
   algo_def/estimate_canonical_transform.h
   algo_def/estimate_similarity_transform.h
-  algo_def/geo_map.h
   algo_def/image_io.h
   algo_def/initialize_cameras_landmarks.h
   algo_def/track_features.h
@@ -32,16 +31,19 @@ set(vital_c_public_headers
   types/detected_object_set.hxx
   types/eigen.h
   types/feature.h
+  types/feature_track_set.h
   types/homography.h
   types/image.h
   types/image_container.h
   types/image_container.hxx
   types/landmark.h
   types/landmark_map.h
+  types/object_track_set.h
   types/rotation.h
   types/similarity.h
   types/track.h
   types/track_set.h
+  types/track_set.hxx
   )
 
 set(vital_c_private_headers
@@ -76,7 +78,6 @@ set(vital_c_sources
   algo_def/convert_image.cxx
   algo_def/estimate_canonical_transform.cxx
   algo_def/estimate_similarity_transform.cxx
-  algo_def/geo_map.cxx
   algo_def/image_io.cxx
   algo_def/initialize_cameras_landmarks.cxx
   algo_def/track_features.cxx
@@ -97,11 +98,13 @@ set(vital_c_sources
   types/detected_object_set.cxx
   types/eigen.cxx
   types/feature.cxx
+  types/feature_track_set.cxx
   types/homography.cxx
   types/image.cxx
   types/image_container.cxx
   types/landmark.cxx
   types/landmark_map.cxx
+  types/object_track_set.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/track.cxx

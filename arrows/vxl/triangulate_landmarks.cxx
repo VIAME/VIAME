@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <set>
 
-#include <vital/vital_foreach.h>
 
 #include <arrows/vxl/camera_map.h>
 
@@ -108,11 +107,11 @@ triangulate_landmarks
 }
 
 
-/// Triangulate the landmark locations given sets of cameras and tracks
+/// Triangulate the landmark locations given sets of cameras and feature tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-              vital::track_set_sptr tracks,
+              vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const
 {
   if( !cameras || !landmarks || !tracks )
@@ -131,7 +130,7 @@ triangulate_landmarks
   // build a track map by id
   typedef std::map<track_id_t, track_sptr> track_map_t;
   track_map_t track_map;
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     track_map[t->id()] = t;
   }
@@ -140,7 +139,7 @@ triangulate_landmarks
   std::set<landmark_id_t> failed_landmarks;
 
   map_landmark_t triangulated_lms;
-  VITAL_FOREACH(const map_landmark_t::value_type& p, lms)
+  for(const map_landmark_t::value_type& p : lms)
   {
     // get the corresponding track
     track_map_t::const_iterator t_itr = track_map.find(p.first);
@@ -157,19 +156,20 @@ triangulate_landmarks
 
     for (track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
       {
         // there is no valid feature for this track state
         continue;
       }
-      map_vcam_t::const_iterator c_itr = vcams.find(tsi->frame_id);
+      map_vcam_t::const_iterator c_itr = vcams.find((*tsi)->frame());
       if (c_itr == vcams.end())
       {
         // there is no camera for this track state.
         continue;
       }
       lm_cams.push_back(c_itr->second);
-      vital::vector_2d pt = tsi->feat->loc();
+      vital::vector_2d pt = fts->feature->loc();
       lm_image_pts.push_back(vgl_point_2d<double>(pt.x(), pt.y()));
     }
 
@@ -182,7 +182,7 @@ triangulate_landmarks
                                                           lm_cams, pt3d);
       bool bad_triangulation = false;
       vgl_homg_point_3d<double> hpt3d(pt3d);
-      VITAL_FOREACH(vpgl_perspective_camera<double> const& cam, lm_cams)
+      for(vpgl_perspective_camera<double> const& cam : lm_cams)
       {
         if(cam.is_behind_camera(hpt3d))
         {

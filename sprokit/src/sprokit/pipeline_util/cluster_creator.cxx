@@ -38,8 +38,9 @@
 #include "loaded_cluster.h"
 #include "provided_by_cluster.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
+
+#include <boost/make_shared.hpp>
 
 #include <algorithm>
 #include <memory>
@@ -79,7 +80,7 @@ cluster_creator
 
   process::names_t proc_names;
 
-  VITAL_FOREACH( bakery_base::process_decl_t const & proc_decl, m_bakery.m_processes )
+  for( bakery_base::process_decl_t const & proc_decl : m_bakery.m_processes )
   {
     process::name_t const& proc_name = proc_decl.first;
 
@@ -95,7 +96,7 @@ cluster_creator
 
   // Append the given configuration to the declarations from the parsed blocks.
   kwiver::vital::config_block_keys_t const& keys = config->available_values();
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  for( kwiver::vital::config_block_key_t const & key : keys )
   {
     kwiver::vital::config_block_value_t const value = config->get_value< kwiver::vital::config_block_value_t > ( key );
     bool const is_read_only = config->is_read_only( key );
@@ -116,13 +117,13 @@ cluster_creator
 
   kwiver::vital::config_block_sptr const full_config = bakery_base::extract_configuration_from_decls( all_configs );
 
-  typedef std::shared_ptr< loaded_cluster > loaded_cluster_t;
+  typedef boost::shared_ptr< loaded_cluster > loaded_cluster_t;
 
   // Pull out the main config block to the top-level.
   kwiver::vital::config_block_sptr const cluster_config = full_config->subblock_view( type );
   full_config->merge_config( cluster_config );
 
-  loaded_cluster_t const cluster = std::make_shared< loaded_cluster > ( full_config );
+  loaded_cluster_t const cluster = boost::make_shared< loaded_cluster > ( full_config );
 
   cluster_bakery::opt_cluster_component_info_t const& opt_info = m_bakery.m_cluster;
 
@@ -137,7 +138,7 @@ cluster_creator
   kwiver::vital::config_block_sptr const main_config = m_default_config->subblock_view( type );
 
   // Declare configuration values.
-  VITAL_FOREACH( cluster_config_t const & conf, info.m_configs )
+  for( cluster_config_t const & conf : info.m_configs )
   {
     config_value_t const& config_value = conf.config_value;
     kwiver::vital::config_block_keys_t const& key_path = config_value.key_path;
@@ -160,7 +161,7 @@ cluster_creator
   }
 
   // Add config mappings.
-  VITAL_FOREACH( bakery_base::config_decl_t const & decl, mapped_decls )
+  for( bakery_base::config_decl_t const & decl : mapped_decls )
   {
     kwiver::vital::config_block_key_t const& key = decl.first;
     bakery_base::config_info_t const& mapping_info = decl.second;
@@ -199,7 +200,7 @@ cluster_creator
   }
 
   // Add processes.
-  VITAL_FOREACH( bakery_base::process_decl_t const & proc_decl, m_bakery.m_processes )
+  for( bakery_base::process_decl_t const & proc_decl : m_bakery.m_processes )
   {
     process::name_t const& proc_name = proc_decl.first;
     process::type_t const& proc_type = proc_decl.second;
@@ -213,7 +214,7 @@ cluster_creator
   {
     process::port_flags_t const input_flags;
 
-    VITAL_FOREACH( cluster_input_t const & input, info.m_inputs )
+    for( cluster_input_t const & input : info.m_inputs )
     {
       process::port_description_t const& description = input.description;
       process::port_t const& port = input.from;
@@ -226,7 +227,7 @@ cluster_creator
 
       process::port_addrs_t const& addrs = input.targets;
 
-      VITAL_FOREACH( process::port_addr_t const & addr, addrs )
+      for( process::port_addr_t const & addr : addrs )
       {
         process::name_t const& mapped_name = addr.first;
         process::port_t const& mapped_port = addr.second;
@@ -243,7 +244,7 @@ cluster_creator
   {
     process::port_flags_t const output_flags;
 
-    VITAL_FOREACH( cluster_output_t const & output, info.m_outputs )
+    for( cluster_output_t const & output : info.m_outputs )
     {
       process::port_description_t const& description = output.description;
       process::port_t const& port = output.to;
@@ -268,7 +269,7 @@ cluster_creator
   }
 
   // Add connections.
-  VITAL_FOREACH( process::connection_t const & connection, m_bakery.m_connections )
+  for( process::connection_t const & connection : m_bakery.m_connections )
   {
     process::port_addr_t const& upstream_addr = connection.first;
     process::port_addr_t const& downstream_addr = connection.second;

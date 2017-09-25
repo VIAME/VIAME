@@ -36,7 +36,6 @@
 #include "embedded_pipeline.h"
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -52,6 +51,8 @@
 #include <sprokit/processes/adapters/output_adapter.h>
 #include <sprokit/processes/adapters/output_adapter_process.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <sstream>
 #include <stdexcept>
 
@@ -64,6 +65,8 @@ static kwiver::vital::config_block_key_t const scheduler_block = kwiver::vital::
 
 
 namespace kwiver {
+
+typedef kwiversys::SystemTools ST;
 
 // ----------------------------------------------------------------
 class embedded_pipeline::priv
@@ -137,11 +140,18 @@ embedded_pipeline
 // ------------------------------------------------------------------
 void
 embedded_pipeline
-::build_pipeline( std::istream& istr )
+::build_pipeline( std::istream& istr, std::string const& def_dir )
 {
   // create a pipeline
   sprokit::pipeline_builder builder;
-  builder.load_pipeline( istr );
+
+  std::string cur_file( def_dir );
+  if ( def_dir.empty() )
+  {
+    cur_file = ST::GetCurrentWorkingDirectory();
+  }
+
+  builder.load_pipeline( istr, cur_file + "/in-stream" );
 
   // build pipeline
   m_priv->m_pipeline = builder.pipeline();
@@ -370,7 +380,7 @@ embedded_pipeline::priv::
 connect_input_adapter()
 {
   auto names = m_pipeline->process_names();
-  VITAL_FOREACH( auto n, names )
+  for( auto n : names )
   {
     auto proc = m_pipeline->process_by_name( n );
     if ( proc->type() == "input_adapter" )
@@ -390,7 +400,7 @@ embedded_pipeline::priv::
 connect_output_adapter()
 {
   auto names = m_pipeline->process_names();
-  VITAL_FOREACH( auto n, names )
+  for( auto n : names )
   {
     auto proc = m_pipeline->process_by_name( n );
     if (proc->type() == "output_adapter" )

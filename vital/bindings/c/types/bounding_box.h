@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,37 +59,41 @@ vital_bounding_box_t* vital_bounding_box_new_from_coordinates(
   double xmin, double  ymin, double xmax, double ymax);
 
 VITAL_C_EXPORT
-void vital_bounding_box_destroy();
+vital_bounding_box_t* vital_bounding_box_copy(
+  vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double* vital_bounding_box_center( vital_bounding_box_t* bbox);
+void vital_bounding_box_destroy( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double* vital_bounding_box_upper_left( vital_bounding_box_t* bbox);
+double* vital_bounding_box_center( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double* vital_bounding_box_lower_right( vital_bounding_box_t* bbox);
+double* vital_bounding_box_upper_left( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_min_x( vital_bounding_box_t* bbox);
+double* vital_bounding_box_lower_right( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_max_x( vital_bounding_box_t* bbox);
+double vital_bounding_box_min_x( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_min_y( vital_bounding_box_t* bbox);
+double vital_bounding_box_max_x( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_max_y( vital_bounding_box_t* bbox);
+double vital_bounding_box_min_y( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_width( vital_bounding_box_t* bbox);
+double vital_bounding_box_max_y( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_height( vital_bounding_box_t* bbox);
+double vital_bounding_box_width( vital_bounding_box_t* bbox );
 
 VITAL_C_EXPORT
-double vital_bounding_box_area( vital_bounding_box_t* bbox);
+double vital_bounding_box_height( vital_bounding_box_t* bbox );
+
+VITAL_C_EXPORT
+double vital_bounding_box_area( vital_bounding_box_t* bbox );
 
 #ifdef __cplusplus
 }

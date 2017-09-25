@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,24 +40,11 @@ class noncopyable
 {
 protected:
 
-#if VITAL_USE_CPP_DEFAULT_CTOR
-
   noncopyable() = default;
   virtual ~noncopyable() = default;
 
   noncopyable( const noncopyable& ) = delete;
   noncopyable& operator=( const noncopyable& ) = delete;
-
-#else
-
-  noncopyable() {}
-  virtual ~noncopyable() {}
-
-private:  // emphasize the following members are private
-  noncopyable( const noncopyable& );
-  noncopyable& operator=( const noncopyable& );
-
-#endif
 };
 
 } }

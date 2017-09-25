@@ -171,9 +171,9 @@ IMPLEMENT_TEST(connect_after_init)
 
   const auto config = kwiver::vital::config_block::empty_config();
 
-  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
-  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>(config);
+  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>(config);
 
   // Only the pipeline can properly initialize a process.
   pipe->add_process(process);
@@ -878,7 +878,7 @@ IMPLEMENT_TEST(reconfigure_tunable)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
@@ -911,7 +911,7 @@ IMPLEMENT_TEST(reconfigure_non_tunable)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
@@ -945,7 +945,7 @@ IMPLEMENT_TEST(reconfigure_extra_parameters)
 
   sprokit::process_t const expect = create_process(proc_type, proc_name, conf);
 
-  sprokit::pipeline_t const pipeline = std::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
+  sprokit::pipeline_t const pipeline = boost::make_shared<sprokit::pipeline>(kwiver::vital::config_block::empty_config());
 
   pipeline->add_process(expect);
   pipeline->setup_pipeline();
@@ -978,7 +978,7 @@ sprokit::edge_t
 create_edge()
 {
   const auto config = kwiver::vital::config_block::empty_config();
-  sprokit::edge_t const edge = std::make_shared<sprokit::edge>(config);
+  sprokit::edge_t const edge = boost::make_shared<sprokit::edge>(config);
 
   return edge;
 }

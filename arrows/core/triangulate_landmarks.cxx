@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <set>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <arrows/core/triangulate.h>
@@ -140,7 +139,7 @@ triangulate_landmarks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-              vital::track_set_sptr tracks,
+              vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const
 {
   using namespace kwiver;
@@ -160,7 +159,7 @@ triangulate_landmarks
   // build a track map by id
   typedef std::map<vital::track_id_t, vital::track_sptr> track_map_t;
   track_map_t track_map;
-  VITAL_FOREACH(const vital::track_sptr& t, trks)
+  for(const vital::track_sptr& t : trks)
   {
     track_map[t->id()] = t;
   }
@@ -169,7 +168,7 @@ triangulate_landmarks
   std::set<vital::landmark_id_t> failed_landmarks;
 
   map_landmark_t triangulated_lms;
-  VITAL_FOREACH(const map_landmark_t::value_type& p, lms)
+  for(const map_landmark_t::value_type& p : lms)
   {
     // get the corresponding track
     track_map_t::const_iterator t_itr = track_map.find(p.first);
@@ -188,19 +187,20 @@ triangulate_landmarks
     auto lm_observations = unsigned{0};
     for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      if (!tsi->feat)
+      auto fts = std::dynamic_pointer_cast<vital::feature_track_state>(*tsi);
+      if (!fts && !fts->feature)
       {
         // there is no valid feature for this track state
         continue;
       }
-      map_camera_t::const_iterator c_itr = cams.find(tsi->frame_id);
+      map_camera_t::const_iterator c_itr = cams.find((*tsi)->frame());
       if (c_itr == cams.end())
       {
         // there is no camera for this track state.
         continue;
       }
       lm_cams.push_back(vital::simple_camera(*c_itr->second));
-      lm_image_pts.push_back(tsi->feat->loc());
+      lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }
 
@@ -223,7 +223,7 @@ triangulate_landmarks
       {
         pt3d = kwiver::arrows::triangulate_inhomog(lm_cams, lm_image_pts);
       }
-      VITAL_FOREACH(vital::simple_camera const& cam, lm_cams)
+      for(vital::simple_camera const& cam : lm_cams)
       {
         if(cam.depth(pt3d) < 0.0)
         {

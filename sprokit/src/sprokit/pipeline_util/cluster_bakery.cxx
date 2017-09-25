@@ -38,7 +38,6 @@
 #include "pipe_bakery_exception.h"
 #include "cluster_splitter.h"
 
-#include <vital/vital_foreach.h>
 
 
 namespace sprokit {
@@ -92,7 +91,7 @@ cluster_bakery
   // Process all cluster config entries and convert to internal
   // representation for config entries.
   // Result ends up in this->m_configs
-  VITAL_FOREACH( cluster_config_t const & value, values )
+  for( cluster_config_t const & value : values )
   {
     config_value_t const& config_value = value.config_value;
 

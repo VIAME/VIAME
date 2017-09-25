@@ -34,7 +34,6 @@
  */
 
 #include "match_matrix.h"
-#include <vital/vital_foreach.h>
 
 #include <map>
 
@@ -67,7 +66,7 @@ match_matrix(vital::track_set_sptr tracks,
   // pre-allocate the sparse matrix memory
   unsigned int max_size = 0;
   const std::vector<vital::track_sptr> trks = tracks->tracks();
-  VITAL_FOREACH(const vital::track_sptr& t, trks)
+  for(const vital::track_sptr& t : trks)
   {
     if( t->size() > max_size )
     {
@@ -78,13 +77,13 @@ match_matrix(vital::track_set_sptr tracks,
   mm.reserve(Eigen::VectorXi::Constant(num_frames, max_size));
 
   // fill in the matching matrix (lower triangular part only)
-  VITAL_FOREACH(const vital::track_sptr& t, trks)
+  for(const vital::track_sptr& t : trks)
   {
     // get all the frames covered by this track
     std::set<vital::frame_id_t> t_frames = t->all_frame_ids();
     // map the frames to a vector of all valid matrix indices
     std::set<unsigned int> t_ind;
-    VITAL_FOREACH(const vital::frame_id_t& fid, t_frames)
+    for(const vital::frame_id_t& fid : t_frames)
     {
       std::map<vital::frame_id_t, unsigned int>::const_iterator fmi = frame_map.find(fid);
       // only add to the vector if in the map
@@ -129,13 +128,13 @@ match_matrix_track_importance(vital::track_set_sptr tracks,
   // score the importance of each track against the match matrix
   std::vector<vital::track_sptr> trks = tracks->tracks();
   std::map<vital::track_id_t, double> scores;
-  VITAL_FOREACH(const vital::track_sptr& t, trks)
+  for(const vital::track_sptr& t : trks)
   {
     // get all the frames covered by this track
     std::set<vital::frame_id_t> t_frames = t->all_frame_ids();
     // map the frames to a vector of all valid matrix indices
     std::set<unsigned int> t_ind;
-    VITAL_FOREACH(const vital::frame_id_t& fid, t_frames)
+    for(const vital::frame_id_t& fid : t_frames)
     {
       std::map<vital::frame_id_t, unsigned int>::const_iterator fmi = frame_map.find(fid);
       // only add to the vector if in the map

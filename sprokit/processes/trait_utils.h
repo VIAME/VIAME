@@ -432,6 +432,7 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 
 
+
 /**
  * \brief Get input from port using port trait name.
  *
@@ -445,6 +446,35 @@ grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  */
 #define grab_datum_from_port_using_trait(PN)            \
   grab_datum_from_port( PN ## _port_trait::port_name )
+
+
+/**
+ * \brief Get edge datum from port using port trait name.
+ *
+ * Grab a edge datum packet from port specified by the port trait.
+ * The edge datum packet contains the raw data and metadata.  See
+ * \ref sprokit::edge_datum_t for details.
+ *
+ * \param PN Port trait name.
+ *
+ * \return The edge datum available on the port.
+ */
+#define grab_edge_datum_using_trait(PN)            \
+  grab_from_port( PN ## _port_trait::port_name )
+
+
+/**
+ * \brief Peek at a edge packet from a port.
+ *
+ * This macro peeks at the first edge packet available on the port
+ * specified by the port trait.
+ *
+ * \param PN Port trait name.
+ *
+ * \return The edge from the port queue.
+ */
+#define peek_at_port_using_trait(PN)                   \
+  peek_at_port(PN ## _port_trait::port_name)
 
 
 /**

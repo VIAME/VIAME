@@ -36,7 +36,6 @@
 
 #include "estimate_homography.h"
 
-#include <vital/vital_foreach.h>
 
 #include <rrel/rrel_homography2d_est.h>
 #include <rrel/rrel_irls.h>
@@ -68,11 +67,11 @@ estimate_homography
   }
 
   std::vector< vnl_vector<double> > from_pts, to_pts;
-  VITAL_FOREACH(const vector_2d& v, pts1)
+  for(const vector_2d& v : pts1)
   {
     from_pts.push_back(vnl_vector<double>(vnl_double_3(v.x(), v.y(), 1.0)));
   }
-  VITAL_FOREACH(const vector_2d& v, pts2)
+  for(const vector_2d& v : pts2)
   {
     to_pts.push_back(vnl_vector<double>(vnl_double_3(v.x(), v.y(), 1.0)));
   }
@@ -123,7 +122,7 @@ estimate_homography
   }
 
   inliers.clear();
-  VITAL_FOREACH(const double& r, residuals)
+  for(const double& r : residuals)
   {
     inliers.push_back(r < inlier_scale);
   }

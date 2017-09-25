@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PROCESSES_EXAMPLES_DUPLICATE_PROCESS_H
 #define SPROKIT_PROCESSES_EXAMPLES_DUPLICATE_PROCESS_H
 
-#include "examples-config.h"
+#include "processes_examples_export.h"
 
 #include <sprokit/pipeline/process.h>
 
@@ -65,7 +65,7 @@ namespace sprokit
  *
  * \ingroup examples
  */
-class SPROKIT_PROCESSES_EXAMPLES_NO_EXPORT duplicate_process
+class PROCESSES_EXAMPLES_NO_EXPORT duplicate_process
   : public process
 {
   public:

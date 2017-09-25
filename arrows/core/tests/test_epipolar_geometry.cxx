@@ -110,16 +110,18 @@ IMPLEMENT_TEST(ideal_points)
   std::vector<vector_2d> pts1, pts2;
   for(unsigned int i=0; i<trks.size(); ++i)
   {
-    pts1.push_back(trks[i]->find(frame1)->feat->loc());
-    pts2.push_back(trks[i]->find(frame2)->feat->loc());
+    auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
+    auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
+    pts1.push_back(fts1->feature->loc());
+    pts2.push_back(fts2->feature->loc());
   }
 
   std::vector<vector_2d> norm_pts1, norm_pts2;
-  VITAL_FOREACH(const vector_2d& p, pts1)
+  for(const vector_2d& p : pts1)
   {
     norm_pts1.push_back(cal1->unmap(p));
   }
-  VITAL_FOREACH(const vector_2d& p, pts2)
+  for(const vector_2d& p : pts2)
   {
     norm_pts2.push_back(cal2->unmap(p));
   }

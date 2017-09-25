@@ -33,10 +33,11 @@
  * \brief PROJ algorithm registration implementation
  */
 
+#include <arrows/proj/geo_conv.h>
+
 #include <arrows/proj/kwiver_algo_proj_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
-
-#include <arrows/proj/geo_map.h>
+#include <vital/types/geodesy.h>
 
 namespace kwiver {
 namespace arrows {
@@ -53,15 +54,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "proj", kwiver::arrows::proj::geo_map );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Map geographic coordinates between UTM and latitude/longitude using PROJ4." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
+  // register geo-conversion functor
+  static auto geo_conv = kwiver::arrows::proj::geo_conversion{};
+  vital::set_geo_conv( &geo_conv );
 
   vpm.mark_module_as_loaded( module_name );
 }

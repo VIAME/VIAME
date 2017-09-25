@@ -7,8 +7,12 @@ set(modules_python_private_headers
   modules-config.h
   )
 
-set(python_both_arch TRUE)
+set(python_noarch FALSE)
 sprokit_create_python_init(sprokit/modules)
+set(python_noarch TRUE)
+sprokit_create_python_init(sprokit/modules)
+set(python_noarch FALSE)
+
 sprokit_private_header_group(${modules_python_private_headers})
 
 if(UNIX)

@@ -3,7 +3,7 @@
 #
 
 OPTION( KWIVER_ENABLE_MATLAB
-  "Enable matlab dependent code and plugins"
+  "Enable Matlab dependent code and plugins (Requires a Matlab installation)"
   OFF
   )
 

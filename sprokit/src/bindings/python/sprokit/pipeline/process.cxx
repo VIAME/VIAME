@@ -37,6 +37,11 @@
 #include <sprokit/python/util/python_wrap_const_shared_ptr.h>
 #include <sprokit/python/util/set_indexing_suite.h>
 
+#if WIN32
+#pragma warning (push)
+#pragma warning (disable : 4244)
+#pragma warning (disable : 4267)
+#endif
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/args.hpp>
 #include <boost/python/class.hpp>
@@ -44,6 +49,9 @@
 #include <boost/python/implicit.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/operators.hpp>
+#if WIN32
+#pragma warning (pop)
+#endif
 
 /**
  * \file process.cxx
@@ -252,7 +260,7 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("frequency", &sprokit::process::port_info::frequency)
   ;
 
-  implicitly_convertible<std::shared_ptr<sprokit::process::port_info>, sprokit::process::port_info_t>();
+  implicitly_convertible<boost::shared_ptr<sprokit::process::port_info>, sprokit::process::port_info_t>();
 
   class_<sprokit::process::conf_info, sprokit::process::conf_info_t>("ConfInfo"
     , "Information about a configuration on a process."
@@ -263,7 +271,7 @@ BOOST_PYTHON_MODULE(process)
     .def_readonly("tunable", &sprokit::process::conf_info::tunable)
   ;
 
-  implicitly_convertible<std::shared_ptr<sprokit::process::conf_info>, sprokit::process::conf_info_t>();
+  implicitly_convertible<boost::shared_ptr<sprokit::process::conf_info>, sprokit::process::conf_info_t>();
 
   class_<sprokit::process::data_info, sprokit::process::data_info_t>("DataInfo"
     , "Information about a set of data packets from edges."
@@ -280,7 +288,7 @@ BOOST_PYTHON_MODULE(process)
     .value("valid", sprokit::process::check_valid)
   ;
 
-  implicitly_convertible<std::shared_ptr<sprokit::process::data_info>, sprokit::process::data_info_t>();
+  implicitly_convertible<boost::shared_ptr<sprokit::process::data_info>, sprokit::process::data_info_t>();
 
   class_<wrap_process, boost::noncopyable>("PythonProcess"
     , "The base class for Python processes."

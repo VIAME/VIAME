@@ -34,7 +34,9 @@ Interface to VITAL detected_object_set class.
 
 """
 import ctypes
+
 from vital.types import DetectedObject
+from vital.util import free_void_ptr
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
 
@@ -44,12 +46,12 @@ class DetectedObjectSet (VitalObject):
     vital::detected_object_set interface class
     """
 
-    def __init__(self):
+    def __init__(self, dobjs = None, count = None, from_cptr = None):
         """
         Create a simple detected object type
 
          """
-        super(DetectedObjectSet, self).__init__()
+        super(DetectedObjectSet, self).__init__(from_cptr, dobjs, count)
 
     def _new(self, dobjs = None, count = None):
         if dobjs is None or count is None:
@@ -80,12 +82,29 @@ class DetectedObjectSet (VitalObject):
         dos_size.restype = ctypes.c_size_t
         return dos_size(self)
 
-    def select(self, one, two = None):
+    def select(self, one = 0.0, two = None):
+
+        c_output = ctypes.POINTER(DetectedObject.c_ptr_type())()
+        length = ctypes.c_size_t()
+
         if two is None:
             dos_st = self.VITAL_LIB.vital_detected_object_set_select_threshold
-            dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double]
-            dos_st(self, one)
+            dos_st.argtypes = [self.C_TYPE_PTR, ctypes.c_double,
+                               ctypes.POINTER(ctypes.POINTER(DetectedObject.c_ptr_type())),
+                               ctypes.POINTER(ctypes.c_size_t)]
+            dos_st( self, one, ctypes.byref(c_output), ctypes.byref(length) )
         else:
             dos_sct = self.VITAL_LIB.vital_detected_object_set_select_class_threshold
-            dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double]
-            dos_sct(self, one, two)
+            dos_sct.argtypes = [self.C_TYPE_PTR, ctypes.c_char_p, ctypes.c_double,
+                                ctypes.POINTER(ctypes.POINTER(DetectedObject.c_ptr_type())),
+                                ctypes.POINTER(ctypes.c_size_t)]
+            dos_sct(self, one, two, ctypes.byref(c_output), ctypes.byref(length) )
+
+        output = []
+        for i in range( length.value ):
+            cptr = DetectedObject.c_ptr_type()(c_output[i].contents)
+            output.append( DetectedObject(from_cptr = cptr) )
+
+        free_void_ptr( c_output )
+        return output
+

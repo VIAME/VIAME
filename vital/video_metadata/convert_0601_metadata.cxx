@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,13 +42,59 @@
 
 #include <vital/logger/logger.h>
 
+#include <vital/types/geodesy.h>
+
 #include <memory>
 #include <type_traits>
 
 namespace kwiver {
 namespace vital {
 
+namespace {
 
+// ----------------------------------------------------------------------------
+template < int N = 2 >
+Eigen::Matrix< double, N, 1 >
+empty_vector()
+{
+  Eigen::Matrix< double, N, 1 > v;
+  for ( int i = 0; i < N; ++i )
+  {
+    v[i] = std::numeric_limits<double>::quiet_NaN();
+  }
+
+  return v;
+}
+
+// ----------------------------------------------------------------------------
+template < int N = 2 >
+bool
+is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
+{
+  for ( int i = 0; i < N; ++i )
+  {
+    if ( std::isnan( vec[i] ) )
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+// ----------------------------------------------------------------------------
+bool
+is_valid_lon_lat( vector_2d const& vec )
+{
+  auto const lat = vec[1];
+  auto const lon = vec[0];
+  return ( lat >= -90.0 && lat <= 90.0 ) &&
+         ( lon >= -180.0 && lon <= 360.0 );
+}
+
+} // end namespace
+
+// ----------------------------------------------------------------------------
 /**
  * @brief Normalize metadata tag data types.
  *
@@ -115,16 +161,17 @@ convert_metadata
   metadata.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, video_metadata::MISB_0601 ) );
 
   //
-  // Data items that are used to collect multi-value metadataa items
-  // such as lat-lon points and image corner points.
+  // Data items that are used to collect multi-value metadataa items such as
+  // lat-lon points and image corner points. All geodetic points are assumed to
+  // be WGS84 lat-lon.
   //
-  geo_lat_lon sensor_location;
-  geo_lat_lon frame_center;
-  geo_lat_lon corner_pt1; // really offsets
-  geo_lat_lon corner_pt2;
-  geo_lat_lon corner_pt3;
-  geo_lat_lon corner_pt4;
-  geo_lat_lon target_location;
+  auto raw_sensor_location = empty_vector();
+  auto raw_frame_center = empty_vector();
+  auto raw_corner_pt1 = empty_vector(); // offsets relative to frame_center
+  auto raw_corner_pt2 = empty_vector();
+  auto raw_corner_pt3 = empty_vector();
+  auto raw_corner_pt4 = empty_vector();
+  auto raw_target_location = empty_vector();
 
   for ( auto itr = lds.begin(); itr != lds.end(); ++itr )
   {
@@ -221,29 +268,25 @@ convert_metadata
 
     case KLV_0601_SENSOR_LATITUDE:
     {
-      double temp = klv_0601_value_double( KLV_0601_SENSOR_LATITUDE, data );
-      sensor_location.set_latitude( temp );
+      raw_sensor_location[1] = klv_0601_value_double( KLV_0601_SENSOR_LATITUDE, data );
     }
       break;
 
     case KLV_0601_SENSOR_LONGITUDE:
     {
-      double temp = klv_0601_value_double( KLV_0601_SENSOR_LONGITUDE, data );
-      sensor_location.set_longitude( temp );
+      raw_sensor_location[0] = klv_0601_value_double( KLV_0601_SENSOR_LONGITUDE, data );
     }
       break;
 
     case KLV_0601_FRAME_CENTER_LAT:
     {
-      double temp = klv_0601_value_double( KLV_0601_FRAME_CENTER_LAT, data );
-      frame_center.set_latitude( temp );
+      raw_frame_center[1] = klv_0601_value_double( KLV_0601_FRAME_CENTER_LAT, data );
     }
       break;
 
     case KLV_0601_FRAME_CENTER_LONG:
     {
-      double temp = klv_0601_value_double( KLV_0601_FRAME_CENTER_LONG, data );
-      frame_center.set_longitude( temp );
+      raw_frame_center[0] = klv_0601_value_double( KLV_0601_FRAME_CENTER_LONG, data );
     }
       break;
 
@@ -258,7 +301,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LAT_PT_1, data );
       if (temp != 0)
       {
-        corner_pt1.set_latitude( temp );
+        raw_corner_pt1[1] = temp;
       }
     }
       break;
@@ -268,7 +311,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LONG_PT_1, data );
       if (temp != 0)
       {
-        corner_pt1.set_longitude( temp );
+        raw_corner_pt1[0] = temp;
       }
     }
       break;
@@ -278,7 +321,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LAT_PT_2, data );
       if (temp != 0)
       {
-        corner_pt2.set_latitude( temp );
+        raw_corner_pt2[1] = temp;
       }
     }
       break;
@@ -288,7 +331,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LONG_PT_2, data );
       if (temp != 0)
       {
-        corner_pt2.set_longitude( temp );
+        raw_corner_pt2[0] = temp;
       }
     }
       break;
@@ -298,7 +341,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LAT_PT_3, data );
       if (temp != 0)
       {
-        corner_pt3.set_latitude( temp );
+        raw_corner_pt3[1] = temp;
       }
     }
       break;
@@ -308,7 +351,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LONG_PT_3, data );
       if (temp != 0)
       {
-        corner_pt3.set_longitude( temp );
+        raw_corner_pt3[0] = temp;
       }
     }
       break;
@@ -318,7 +361,7 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LAT_PT_4, data );
       if (temp != 0)
       {
-        corner_pt4.set_latitude( temp );
+        raw_corner_pt4[1] = temp;
       }
     }
       break;
@@ -328,22 +371,20 @@ convert_metadata
       double temp = klv_0601_value_double( KLV_0601_OFFSET_CORNER_LONG_PT_4, data );
       if (temp != 0)
       {
-        corner_pt4.set_longitude( temp );
+        raw_corner_pt4[0] = temp;
       }
     }
       break;
 
     case KLV_0601_TARGET_LOCATION_LAT:
     {
-      double temp = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LAT, data );
-      target_location.set_latitude( temp );
+      raw_target_location[1] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LAT, data );
     }
       break;
 
     case KLV_0601_TARGET_LOCATION_LONG:
     {
-      double temp = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LONG, data );
-      target_location.set_longitude( temp );
+      raw_target_location[0] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LONG, data );
     }
       break;
 
@@ -356,38 +397,41 @@ convert_metadata
   //
   // Process composite metadata
   //
-  if ( ! sensor_location.is_empty() )
+  if ( ! is_empty( raw_sensor_location ) )
   {
-    if ( ! sensor_location.is_valid() )
+    if ( ! is_valid_lon_lat( raw_sensor_location ) )
     {
-      LOG_DEBUG( logger, "Sensor location lat/lon is not valid coordinate: " << sensor_location );
+      LOG_DEBUG( logger, "Sensor location lat/lon is not valid coordinate: " << raw_sensor_location );
     }
     else
     {
+      auto const sensor_location = geo_point{ raw_sensor_location, SRID::lat_lon_WGS84 };
       metadata.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
     }
   }
 
-  if ( ! frame_center.is_empty() )
+  if ( ! is_empty( raw_frame_center ) )
   {
-    if ( ! frame_center.is_valid() )
+    if ( ! is_valid_lon_lat( raw_frame_center ) )
     {
-      LOG_DEBUG( logger, "Frame Center lat/lon is not valid coordinate: " << frame_center );
+      LOG_DEBUG( logger, "Frame Center lat/lon is not valid coordinate: " << raw_frame_center );
     }
     else
     {
+      auto const frame_center = geo_point{ raw_frame_center, SRID::lat_lon_WGS84 };
       metadata.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
     }
   }
 
-  if ( ! target_location.is_empty() )
+  if ( ! is_empty( raw_target_location ) )
   {
-    if ( ! target_location.is_valid() )
+    if ( ! is_valid_lon_lat( raw_target_location ) )
     {
-      LOG_DEBUG( logger, "Target location lat/lon is not valid coordinate: " << target_location );
+      LOG_DEBUG( logger, "Target location lat/lon is not valid coordinate: " << raw_target_location );
     }
     else
     {
+      auto const target_location = geo_point{ raw_target_location, SRID::lat_lon_WGS84 };
       metadata.add( NEW_METADATA_ITEM( VITAL_META_TARGET_LOCATION, target_location ) );
     }
   }
@@ -395,61 +439,55 @@ convert_metadata
   //
   // If none of the points are set, then that is o.k.
   //
-  if ( ! corner_pt1.is_empty()
-       && ! corner_pt2.is_empty()
-       && ! corner_pt3.is_empty()
-       && ! corner_pt4.is_empty() )
+  if ( ! ( is_empty( raw_corner_pt1 ) &&
+           is_empty( raw_corner_pt2 ) &&
+           is_empty( raw_corner_pt3 ) &&
+           is_empty( raw_corner_pt4 ) ) )
   {
     // If any one of the points are invalid, then decode which one
-    if ( ! corner_pt1.is_valid()
-         || ! corner_pt2.is_valid()
-         || ! corner_pt3.is_valid()
-         || ! corner_pt4.is_valid() )
+    if ( ! is_valid_lon_lat( raw_corner_pt1 ) ||
+         ! is_valid_lon_lat( raw_corner_pt2 ) ||
+         ! is_valid_lon_lat( raw_corner_pt3 ) ||
+         ! is_valid_lon_lat( raw_corner_pt4 ) )
     {
       // Decode which one(s) are not valid
-      if ( ! corner_pt1.is_valid() )
+      if ( ! is_valid_lon_lat( raw_corner_pt1 ) )
       {
-        LOG_DEBUG( logger, "Corner point 1 lat/lon is not valid coordinate: " << corner_pt1 );
+        LOG_DEBUG( logger, "Corner point 1 lat/lon is not valid coordinate: " << raw_corner_pt1 );
       }
 
-      if ( ! corner_pt2.is_valid() )
+      if ( ! is_valid_lon_lat( raw_corner_pt2 ) )
       {
-        LOG_DEBUG( logger, "Corner point 2 lat/lon is not valid coordinate: " << corner_pt1 );
+        LOG_DEBUG( logger, "Corner point 2 lat/lon is not valid coordinate: " << raw_corner_pt2 );
       }
 
-      if ( ! corner_pt3.is_valid() )
+      if ( ! is_valid_lon_lat( raw_corner_pt3 ) )
       {
-        LOG_DEBUG( logger, "Corner point 3 lat/lon is not valid coordinate: " << corner_pt1 );
+        LOG_DEBUG( logger, "Corner point 3 lat/lon is not valid coordinate: " << raw_corner_pt3 );
       }
 
-      if ( ! corner_pt4.is_valid() )
+      if ( ! is_valid_lon_lat( raw_corner_pt4 ) )
       {
-        LOG_DEBUG( logger, "Corner point 4 lat/lon is not valid coordinate: " << corner_pt1 );
+        LOG_DEBUG( logger, "Corner point 4 lat/lon is not valid coordinate: " << raw_corner_pt4 );
       }
     }
     else
     {
-      if ( ! frame_center.is_valid() )
+      if ( ! is_valid_lon_lat( raw_frame_center ) )
       {
         LOG_DEBUG( logger, "Frame center not valid. Can not adjust frame corner offsets." );
       }
       else
       {
         // If all points are set and valid, then build corner point structure
-        kwiver::vital::geo_corner_points corners;
+        kwiver::vital::polygon raw_corners;
 
-        corners.p1.set_latitude( corner_pt1.latitude() + frame_center.latitude() );
-        corners.p1.set_longitude( corner_pt1.longitude() + frame_center.longitude() );
+        raw_corners.push_back( raw_corner_pt1 + raw_frame_center );
+        raw_corners.push_back( raw_corner_pt2 + raw_frame_center );
+        raw_corners.push_back( raw_corner_pt3 + raw_frame_center );
+        raw_corners.push_back( raw_corner_pt4 + raw_frame_center );
 
-        corners.p2.set_latitude( corner_pt2.latitude() + frame_center.latitude() );
-        corners.p2.set_longitude( corner_pt2.longitude() + frame_center.longitude() );
-
-        corners.p3.set_latitude( corner_pt3.latitude() + frame_center.latitude() );
-        corners.p3.set_longitude( corner_pt3.longitude() + frame_center.longitude() );
-
-        corners.p4.set_latitude( corner_pt4.latitude() + frame_center.latitude() );
-        corners.p4.set_longitude( corner_pt4.longitude() + frame_center.longitude() );
-
+        kwiver::vital::geo_polygon corners{ raw_corners, kwiver::vital::SRID::lat_lon_WGS84 };
         metadata.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
       }
     }

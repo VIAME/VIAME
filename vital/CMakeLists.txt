@@ -58,39 +58,10 @@ set( CMAKE_CXX_FLAGS ${save_flags} )
 
 # ==================================================================
 ###
-# Generate correct timer header based on availbility of timer
-#
-
-if (VITAL_USE_STD_CHRONO)
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/wall_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h" )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/cpu_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h" )
-
-else()
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/no-wall_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h" )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/no-cpu_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h" )
-
-endif()
-
-
-# ==================================================================
-###
 # These headers are installed
 #
 set( vital_public_headers
   vital_types.h
-  vital_foreach.h
   noncopyable.h
   any.h
   algorithm_capabilities.h
@@ -130,13 +101,12 @@ set( vital_public_headers
   types/detected_object_set.h
   types/feature.h
   types/feature_set.h
+  types/feature_track_set.h
   types/fundamental_matrix.h
   types/geo_MGRS.h
-  types/geo_UTM.h
-  types/geo_corner_points.h
-  types/geo_lat_lon.h
   types/geo_point.h
   types/geo_polygon.h
+  types/geodesy.h
   types/homography.h
   types/homography_f2f.h
   types/homography_f2w.h
@@ -147,6 +117,7 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/object_track_set.h
   types/polygon.h
   types/query_plan.h
   types/rotation.h
@@ -191,19 +162,19 @@ set( vital_sources
   types/detected_object_type.cxx
   types/essential_matrix.cxx
   types/feature.cxx
+  types/feature_track_set.cxx
   types/fundamental_matrix.cxx
   types/geo_MGRS.cxx
-  types/geo_UTM.cxx
-  types/geo_corner_points.cxx
-  types/geo_lat_lon.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
+  types/geodesy.cxx
   types/homography.cxx
   types/homography_f2f.cxx
   types/homography_f2w.cxx
   types/image.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/object_track_set.cxx
   types/polygon.cxx
   types/query_plan.cxx
   types/rotation.cxx
@@ -228,21 +199,11 @@ kwiver_install_headers(
   NOPATH
   )
 
-# install generated header
-kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
-  ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
-  SUBDIR   vital/util
-  NOPATH
-  )
-
 kwiver_add_library( vital
   ${vital_public_headers}
   ${vital_sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
-  ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
-  ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
   )
 
 target_link_libraries( vital

@@ -37,7 +37,6 @@
 #include "matlab_engine.h"
 #include "matlab_util.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
 
@@ -126,7 +125,7 @@ public:
     // Iterate over all values in this config block and pass the values
     // to the matlab as variable assignments.
     auto keys = algo_config->available_values();
-    VITAL_FOREACH( auto k, keys )
+    for( auto k : keys )
     {
       std::stringstream config_command;
       config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";
@@ -220,7 +219,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
   MxArraySptr mx_class =  std::make_shared<MxArray>( MxArray::Cell(detections.size(), 2) );
   unsigned det_index(0);
 
-  VITAL_FOREACH( const auto det, detections )
+  for( const auto det : detections )
   {
     const kwiver::vital::bounding_box_d bbox( det->bounding_box() );
 
@@ -236,7 +235,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
     if ( dot )
     {
       const auto name_list( dot->class_names() );
-      VITAL_FOREACH( auto name, name_list )
+      for( auto name : name_list )
       {
         // Add classification entry to cell array
         mx_class->set( det_index, 0, name.c_str() );

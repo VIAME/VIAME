@@ -46,7 +46,6 @@
 #include <arrows/core/metrics.h>
 #include <vital/algo/triangulate_landmarks.h>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace testing {
@@ -64,7 +63,7 @@ void test_from_solution(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   kwiver::vital::camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  kwiver::vital::track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  kwiver::vital::feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks->landmarks(),
@@ -96,7 +95,7 @@ void test_noisy_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // add Gaussian noise to the landmark positions
   landmark_map_sptr landmarks0 = testing::noisy_landmarks(landmarks, 0.1);
@@ -132,7 +131,7 @@ void test_zero_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -169,7 +168,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -177,7 +176,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   camera_map::map_camera_t cam_map = cameras->cameras();
   camera_map::map_camera_t cam_map2;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type& p, cam_map)
+  for(camera_map::map_camera_t::value_type& p : cam_map)
   {
     /// take every third camera
     if(p.first % 3 == 0)
@@ -220,7 +219,7 @@ void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -265,14 +264,14 @@ void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
   landmark_map_sptr landmarks0 = testing::init_landmarks(num_landmarks);
 
   // remove some tracks/track_states
-  track_set_sptr tracks0 = testing::subset_tracks(tracks, 0.5);
+  feature_track_set_sptr tracks0 = testing::subset_tracks(tracks, 0.5);
 
   double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
@@ -304,7 +303,7 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras = testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  feature_track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
   // initialize all landmarks to the origin
   landmark_id_t num_landmarks = static_cast<landmark_id_t>(landmarks->size());
@@ -312,7 +311,7 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   // remove some tracks/track_states and add Gaussian noise
   const double track_stdev = 1.0;
-  track_set_sptr tracks0 = testing::noisy_tracks(
+  feature_track_set_sptr tracks0 = testing::noisy_tracks(
                                testing::subset_tracks(tracks, 0.5),
                                track_stdev);
 

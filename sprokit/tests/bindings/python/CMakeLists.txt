@@ -1,7 +1,5 @@
 project(sprokit_test_python)
 
-find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
-
 # TODO: Use "$<CONFIGURATION>" and remove chdir below when generator
 # expressions are supported in test properties.
 if (WIN32)
@@ -43,17 +41,16 @@ endfunction ()
 ###
 #
 function (sprokit_add_python_test group instance)
-  set(python_module_path    "${sprokit_python_output_path}")
+  set(python_module_path    "${sprokit_python_output_path}/${kwiver_python_subdir}")
   set(python_chdir          ".")
 
   if (CMAKE_CONFIGURATION_TYPES)
-    set(python_module_path      "${python_module_path}/$<CONFIGURATION>")
+    set(python_module_path      "${sprokit_python_output_path}/$<CONFIGURATION>/${kwiver_python_subdir}")
     set(python_chdir           "$<CONFIGURATION>")
   endif ()
 
-  _sprokit_python_site_package_dir( site_dir )
   sprokit_add_tooled_test(python-${group} ${instance}
-    "${python_chdir}" "${python_module_path}/${site_dir}" ${ARGN})
+    "${python_chdir}" "${python_module_path}/${python_sitename}" ${ARGN})
 endfunction ()
 
 ###

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 #include <arrows/ceres/options.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 
 
 using namespace kwiver::vital;
@@ -178,11 +177,11 @@ optimize_cameras
 }
 
 
-/// Optimize camera parameters given sets of landmarks and tracks
+/// Optimize camera parameters given sets of landmarks and feature tracks
 void
 optimize_cameras
 ::optimize(vital::camera_map_sptr & cameras,
-           vital::track_set_sptr tracks,
+           vital::feature_track_set_sptr tracks,
            vital::landmark_map_sptr landmarks,
            vital::video_metadata_map_sptr metadata) const
 {
@@ -201,7 +200,7 @@ optimize_cameras
   // Extract the landmark locations into a mutable map
   typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
   lm_param_map_t landmark_params;
-  VITAL_FOREACH(const map_landmark_t::value_type& lm, lms)
+  for(const map_landmark_t::value_type& lm : lms)
   {
     vector_3d loc = lm.second->loc();
     landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
@@ -234,7 +233,7 @@ optimize_cameras
   bool loss_func_used = false;
 
   // Add the residuals for each relevant observation
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     const track_id_t id = t->id();
     lm_param_map_t::iterator lm_itr = landmark_params.find(id);
@@ -246,14 +245,19 @@ optimize_cameras
 
     for(track::history_const_itr ts = t->begin(); ts != t->end(); ++ts)
     {
-      cam_param_map_t::iterator cam_itr = camera_params.find(ts->frame_id);
+      cam_param_map_t::iterator cam_itr = camera_params.find((*ts)->frame());
       if( cam_itr == camera_params.end() )
       {
         continue;
       }
-      unsigned intr_idx = frame_to_intr_map[ts->frame_id];
+      unsigned intr_idx = frame_to_intr_map[(*ts)->frame()];
       double * intr_params_ptr = &camera_intr_params[intr_idx][0];
-      vector_2d pt = ts->feat->loc();
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts);
+      if( !fts || !fts->feature )
+      {
+        continue;
+      }
+      vector_2d pt = fts->feature->loc();
       problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
                                                 pt.x(), pt.y()),
                                loss_func,
@@ -265,7 +269,7 @@ optimize_cameras
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  VITAL_FOREACH(std::vector<double>& cip, camera_intr_params)
+  for(std::vector<double>& cip : camera_intr_params)
   {
     // apply the constraints
     if (constant_intrinsics.size() > 4 + ndp)
@@ -281,7 +285,7 @@ optimize_cameras
     }
   }
   // Set the landmarks constant
-  VITAL_FOREACH(lm_param_map_t::value_type& lmp, landmark_params)
+  for(lm_param_map_t::value_type& lmp : landmark_params)
   {
     problem.SetParameterBlockConstant(&lmp.second[0]);
   }
@@ -331,7 +335,7 @@ optimize_cameras
 
   // extract the landmark parameters
   std::vector<std::vector<double> > landmark_params;
-  VITAL_FOREACH(const landmark_sptr lm, landmarks)
+  for(const landmark_sptr lm : landmarks)
   {
     vector_3d loc = lm->loc();
     landmark_params.push_back(std::vector<double>(loc.data(), loc.data()+3));

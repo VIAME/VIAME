@@ -42,7 +42,6 @@
 #include <sprokit/python/util/python_exceptions.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/vital_foreach.h>
 
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/python/class.hpp>
@@ -169,8 +168,7 @@ register_scheduler( sprokit::scheduler::type_t const& type,
   python_scheduler_wrapper const wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  sprokit::scheduler::type_t derived_type = "python::";
-  auto fact = vpm.add_factory( new sprokit::scheduler_factory( derived_type + type, // derived type name string
+  auto fact = vpm.add_factory( new sprokit::scheduler_factory( type,
                                                                typeid( sprokit::scheduler ).name(),
                                                                wrap ) );
 
@@ -221,7 +219,7 @@ std::vector< std::string > scheduler_names()
   auto fact_list = vpm.get_factories<sprokit::scheduler>();
 
   std::vector<std::string> name_list;
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string buf;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))

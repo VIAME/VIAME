@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,9 +45,9 @@
 #include <deque>
 
 #include <vital/vital_config.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
+#include <vital/types/feature_track_set.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -243,10 +243,16 @@ void subtract_from_all( fid_offset_vec_t& offsets, unsigned value )
 
 
 /// Helper function to convert a track state to an OpenCV point
-cv::Point state_to_cv_point( const track::track_state& ts )
+cv::Point state_to_cv_point( track_state_sptr ts )
 {
-  return cv::Point( static_cast<int>(ts.feat->loc()[0]),
-                    static_cast<int>(ts.feat->loc()[1]) );
+  auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+  if( fts && fts->feature )
+  {
+    return cv::Point( static_cast<int>(fts->feature->loc()[0]),
+                      static_cast<int>(fts->feature->loc()[1]) );
+  }
+  //TODO Maybe throw an exception here
+  return cv::Point();
 }
 
 
@@ -264,13 +270,17 @@ void generate_match_lines( const track_sptr trk,
 
   track::history_const_itr frame_itr = trk->find( frame_id );
 
-  if( frame_itr == trk->end() || !frame_itr->feat )
+  if( frame_itr == trk->end() )
+  {
+    return;
+  }
+  auto fts = std::dynamic_pointer_cast<feature_track_state>(*frame_itr);
+  if( !fts || !fts->feature )
   {
     return;
   }
 
-  const cv::Point frame_loc( static_cast<int>(frame_itr->feat->loc()[0]),
-                             static_cast<int>(frame_itr->feat->loc()[1]) );
+  const cv::Point frame_loc = state_to_cv_point(*frame_itr);
 
   fid_offset_vec_t rem_offsets = frame_offsets;
 
@@ -284,20 +294,24 @@ void generate_match_lines( const track_sptr trk,
       const frame_id_t test_frame_id = frame_id - offset_to_test;
       track::history_const_itr test_itr = trk->find( test_frame_id );
 
-      if( test_itr != trk->end() && test_itr->feat )
+      if( test_itr != trk->end() )
       {
-        // add line
-        cv::Point test_loc = state_to_cv_point( *test_itr );
-        cv::Point frame_offset = static_cast<int>( frame_offsets.size() ) * image_offset;
-        cv::Point test_offset = static_cast<int>( frame_offsets.size() - i - 1 ) * image_offset;
-        line_list.push_back( std::make_pair( frame_loc + frame_offset, test_loc + test_offset ) );
+        fts = std::dynamic_pointer_cast<feature_track_state>(*test_itr);
+        if( fts && fts->feature )
+        {
+          // add line
+          cv::Point test_loc = state_to_cv_point( *test_itr );
+          cv::Point frame_offset = static_cast<int>( frame_offsets.size() ) * image_offset;
+          cv::Point test_offset = static_cast<int>( frame_offsets.size() - i - 1 ) * image_offset;
+          line_list.push_back( std::make_pair( frame_loc + frame_offset, test_loc + test_offset ) );
 
-        // call this function recursively to pick up anymore lines
-        subtract_from_all( rem_offsets, offset_to_test );
-        generate_match_lines( trk, test_frame_id, rem_offsets, image_offset, line_list );
+          // call this function recursively to pick up anymore lines
+          subtract_from_all( rem_offsets, offset_to_test );
+          generate_match_lines( trk, test_frame_id, rem_offsets, image_offset, line_list );
 
-        // break out of loop
-        return;
+          // break out of loop
+          return;
+        }
       }
     }
   }
@@ -351,7 +365,7 @@ draw_tracks
   const cv::Scalar uncompared_color( 240, 32, 160 );
 
   // Iterate over all images
-  VITAL_FOREACH( image_container_sptr ctr_sptr, image_data )
+  for( image_container_sptr ctr_sptr : image_data )
   {
     // Should the current frame be written to disk?
     bool write_image_to_disk = d_->write_images_to_disk;
@@ -379,11 +393,12 @@ draw_tracks
     bool comparison_track_found = false;
 
     // Draw points on input image
-    VITAL_FOREACH( track_sptr trk, display_set->active_tracks( fid )->tracks() )
+    for( track_sptr trk : display_set->active_tracks( fid ) )
     {
-      track::track_state ts = *( trk->find( fid ) );
+      auto ts = *( trk->find( fid ) );
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
 
-      if( !ts.feat )
+      if( !fts || !fts->feature )
       {
         continue;
       }
@@ -424,11 +439,15 @@ draw_tracks
         {
           track::history_const_itr itr = comparison_trk->find( fid );
 
-          if( itr != comparison_trk->end() && itr->feat )
+          if( itr != comparison_trk->end() )
           {
-            cv::Point other_loc = state_to_cv_point( *itr );
-            cv::line( img, other_loc, loc, error_color, 2 );
-            comparison_track_found = true;
+            fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+            if( fts && fts->feature )
+            {
+              cv::Point other_loc = state_to_cv_point( *itr );
+              cv::line( img, other_loc, loc, error_color, 2 );
+              comparison_track_found = true;
+            }
           }
         }
         else
@@ -442,10 +461,14 @@ draw_tracks
       {
         track::history_const_itr itr = trk->find( fid-1 );
 
-        if( itr != trk->end() && itr->feat )
+        if( itr != trk->end() )
         {
-          cv::Point prior_loc = state_to_cv_point( *itr );
-          cv::line( img, prior_loc, loc, color );
+          fts = std::dynamic_pointer_cast<feature_track_state>(*itr);
+          if( fts && fts->feature )
+          {
+            cv::Point prior_loc = state_to_cv_point( *itr );
+            cv::line( img, prior_loc, loc, color );
+          }
         }
       }
 
