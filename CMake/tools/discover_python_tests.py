@@ -20,8 +20,6 @@ class TopLevelVisitor(ast.NodeVisitor):
         http://greentreesnakes.readthedocs.io/en/latest/nodes.html
 
     Example:
-        >>> import sys
-        >>> sys.path.append('/home/joncrall/code/VIAME/packages/kwiver/CMake/tools')
         >>> from discover_tests import *
         >>> import ubelt as ub
         >>> source = ub.codeblock(
@@ -66,7 +64,7 @@ class TopLevelVisitor(ast.NodeVisitor):
         self._current_classname = None
 
     def visit_Assign(self, node):
-        ast.NodeVisitor.generic_visit(self, node)
+        self.generic_visit(self, node)
 
 
 def discover_tests(fpath):
@@ -86,12 +84,12 @@ def discover_tests(fpath):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/VIAME/packages/kwiver/CMake/tools
-        python ~/code/VIAME/packages/kwiver/CMake/tools/discover_python_tests.py
-        python discover_tests.py test_*.py
-        import sys
+        python CMake/tools/discover_python_tests.py test_*.py
     """
+    # Look at all files specified on the command line
     module_fpaths = sys.argv[1:]
     for fpath in module_fpaths:
+        # Search for the tests in each file
         testables = discover_tests(fpath)
+        # Write the discovered testable "pytest nodes" to stdout
         print('\n'.join(testables))

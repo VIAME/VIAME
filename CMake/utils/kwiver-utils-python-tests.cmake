@@ -3,9 +3,12 @@
 # Configures the python test file to the ctest bin directory
 #
 # Args:
-#     group: the suffix of the python file. Weird. We probably should just
-#     use the filename.
-#     input: filename of the test .py file (includes the extension)
+#     group: A key that will point to the input file.
+#     input: filename of the test .py file
+#
+# Notes:
+#     The input file is typically the group with the prefix `test-` and the
+#     suffix `.py. In other words: `input="test-%s.py" % group`.
 #
 # SeeAlso:
 #     kwiver-utils-tests.cmake
@@ -28,8 +31,17 @@ endfunction ()
 
 ###
 #
-# Calls add_test similar to kwiver_add_test, but formats arguments such that
-# py.test can be used
+# Registers a "built" python test with ctest, similar to kwiver_add_test.
+# However this formats arguments such that pytest can be used.
+#
+# Note, in almost every circumstance, kwiver_discover_python_tests should be
+# used instead of this function.
+#
+# Arg:
+#     group: a group key previously registered with `kwiver_build_python_test`.
+#         this is used to lookup a single python file.
+#     instance: the pytest node of the the testable within the python file.
+#
 function (kwiver_add_python_test group instance)
 
   _kwiver_python_site_package_dir( site_dir )
@@ -43,7 +55,6 @@ function (kwiver_add_python_test group instance)
   if (NOT my_PYTHON_MODULE_PATH)
     set(my_PYTHON_MODULE_PATH "${kwiver_python_output_path}")
   endif()
-
 
   # Dont call kwiver_add_test because we need to set `kwiver_test_runner`
   # globally, which may still be expected to be empty. It would be nice if this
@@ -86,8 +97,8 @@ endfunction ()
 # Args:
 #     py_fpath: filepath to the python file
 #     outvar: output variable which will contain a list of testable functions
-#     in the py.test node name suffix format
-#     (e.g. test_func, TestClass::test_func)
+#       in the py.test node name suffix format
+#       (e.g. test_func, TestClass::test_func)
 #
 function (parse_python_testables py_fpath outvar)
   # The python script does the heavy lifting here
@@ -127,13 +138,13 @@ endfunction()
 
 ###
 #
-# Searches test .py files for functions that begin with "test" and creates a
-# separate `ctest` for each. Ideally we would just map the output from
-# something like `py.test` to `ctest` instead.
+# Registers the file under a ctest group name. Then searches the file for all
+# functions that begin with "test" and creates a separate `ctest` instance for
+# each (under this group).
 #
 # Args:
 #     group: the test is registered with this ctests group
-#     file: filename of the test .py file (includes the extension)
+#     file: filename of the test .py file
 #
 # SeeAlso:
 #     sprokit/conf/sprokit-macro-python-tests.cmake
