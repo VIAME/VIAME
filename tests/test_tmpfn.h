@@ -39,7 +39,8 @@
 
 #include <string>
 
-#include <stdio.h>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef _WIN32
 #define tempnam(d, p) _tempnam(d, p)
