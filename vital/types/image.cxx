@@ -43,14 +43,17 @@ namespace vital {
 template <typename T> VITAL_EXPORT
 image_pixel_traits::pixel_type const image_pixel_traits_of<T>::static_type;
 
-template struct image_pixel_traits_of<uint8_t>;
-template struct image_pixel_traits_of<int8_t>;
-template struct image_pixel_traits_of<uint16_t>;
-template struct image_pixel_traits_of<int16_t>;
-template struct image_pixel_traits_of<uint32_t>;
-template struct image_pixel_traits_of<int32_t>;
-template struct image_pixel_traits_of<uint64_t>;
-template struct image_pixel_traits_of<int64_t>;
+template struct image_pixel_traits_of<char>;
+template struct image_pixel_traits_of<signed char>;
+template struct image_pixel_traits_of<unsigned char>;
+template struct image_pixel_traits_of<signed short>;
+template struct image_pixel_traits_of<unsigned short>;
+template struct image_pixel_traits_of<signed int>;
+template struct image_pixel_traits_of<unsigned int>;
+template struct image_pixel_traits_of<signed long>;
+template struct image_pixel_traits_of<unsigned long>;
+template struct image_pixel_traits_of<signed long long>;
+template struct image_pixel_traits_of<unsigned long long>;
 template struct image_pixel_traits_of<float>;
 template struct image_pixel_traits_of<double>;
 
