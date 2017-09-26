@@ -34,6 +34,9 @@
 #include <vital/config/config_block_exception.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/util/string.h>
+#include <vital/util/token_expander.h>
+#include <vital/util/token_type_sysenv.h>
+#include <vital/util/token_type_env.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -218,6 +221,8 @@ public:
 
   // file search path list
   kwiver::vital::config_path_list_t m_search_path;
+
+  kwiver::vital::token_expander m_token_expander;
 };
 
 
@@ -388,6 +393,9 @@ get_next_token()
 
       std::string file_name( m_priv->m_cur_char, m_priv->m_input_line.end() );
       m_priv->trim_string( file_name );
+
+      // Perform macro substitutions first
+      file_name = m_priv->m_token_expander.expand_token( file_name );
 
       kwiver::vital::config_path_t resolv_filename = m_priv->resolve_file_name( file_name );
       if ( "" == resolv_filename ) // could not resolve
@@ -583,6 +591,9 @@ priv()
 
   m_keyword_table["::"]           = TK_DOUBLE_COLON;
   m_keyword_table[":="]           = TK_LOCAL_ASSIGN;
+
+  m_token_expander.add_token_type( new kwiver::vital::token_type_env() );
+  m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
 }
 
 
