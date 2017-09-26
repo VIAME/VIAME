@@ -88,9 +88,14 @@ function (sprokit_add_python_library    name    modpath)
 
 endfunction ()
 
+
 ###
 #
-function (sprokit_add_python_module_int    path     modpath    module)
+# SeeAlso:
+#     kwiver/CMake/utils/kwiver-utils-python.cmake
+#
+function (sprokit_add_python_module    path     modpath    module)
+
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
 
   set(python_arch)
@@ -159,15 +164,9 @@ function (sprokit_add_python_module_int    path     modpath    module)
     "configure-${python_configure_id}")
 endfunction ()
 
-###
-#
-function (sprokit_add_python_module   path   modpath   module)
-  sprokit_add_python_module_int("${path}"
-    "${modpath}"
-    "${module}")
-endfunction ()
 
 ###
+# Creates a default __init__.py file for a core package in the build directory.
 #
 function (sprokit_create_python_init    modpath)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
@@ -191,12 +190,15 @@ function (sprokit_create_python_init    modpath)
       "from ${module} import *\n")
   endforeach ()
 
-  sprokit_add_python_module_int("${init_template}"
+  sprokit_add_python_module("${init_template}"
     "${modpath}"
     __init__)
 endfunction ()
 
+
 ###
+# Creates a default __init__.py file for a plugin package in the build
+# directory.
 #
 function (sprokit_create_python_plugin_init modpath)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
@@ -219,7 +221,7 @@ function (sprokit_create_python_plugin_init modpath)
   file(APPEND "${init_template}"
     "__path__ = extend_path(__path__, __name__)\n")
 
-  sprokit_add_python_module_int("${init_template}"
+  sprokit_add_python_module("${init_template}"
     "${modpath}"
     __init__)
 endfunction ()
