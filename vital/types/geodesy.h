@@ -65,6 +65,9 @@ namespace SRID
   constexpr int lat_lon_NAD83 = 4269;
   constexpr int lat_lon_WGS84 = 4326;
 
+  constexpr int UPS_WGS84_north = 32661;
+  constexpr int UPS_WGS84_south = 32761;
+
   // Add zone number to get zoned SRID
   constexpr int UTM_WGS84_north = 32600;
   constexpr int UTM_WGS84_south = 32700;
