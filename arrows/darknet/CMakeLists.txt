@@ -27,23 +27,21 @@ if (Darknet_USING_GPU)
   include_directories( ${CUDA_TOOLKIT_ROOT_DIR}/include )
   add_definitions( -DDARKNET_USE_GPU )  # needed by darknet detector
 endif()
+
 if (Darknet_USING_CUDNN)
-  find_library( CUDNN_LIBRARIES
-    NAMES cudnn libcudnn
-    HINTS ${CUDNN_ROOT_DIR}
-    PATH_SUFFIXES lib lib64 lib/x64 lib/x86 targets/aarch64-linux
-  )
-  if(NOT CUDNN_LIBRARIES)
-    message(FATAL_ERROR "Unable to find cudnn libraries")
-  endif()
-  include_directories( ${CUDNN_ROOT_DIR}/include )
+  include_directories( ${CUDNN_TOOLKIT_ROOT_DIR}/include )
+  add_definitions( -DDARKNET_USE_CUDNN )  # needed by darknet detector
 endif()
 
-# Visual Studio fix until project has better exports
+
+# Visual Studio links to a static lib of darknet due to the pthread dependency
+# So we need to add all libraries to this arrow, if darknet was a dll, we would
+# not have this issue, but we need pthreads and it likes static for some reason
 if (WIN32)
   include_directories( SYSTEM ${Darknet_INCLUDE_DIR}/../3rdparty/include )
   add_definitions( -D_TIMESPEC_DEFINED )
   set( Darknet_linked_libs ${Darknet_linked_libs} pthreadVC2 )
+
   if (Darknet_USING_GPU)
     set( Darknet_linked_libs
          ${Darknet_linked_libs}
@@ -53,11 +51,23 @@ if (WIN32)
          ${CUDA_curand_LIBRARY} )
   endif()
   if (Darknet_USING_CUDNN)
+    message(STATUS "Darkent Arrow using CUDNN, looking for it here : ${CUDNN_TOOLKIT_ROOT_DIR}")
+    find_library( CUDNN_LIBRARIES
+    NAMES cudnn libcudnn
+    HINTS ${CUDNN_TOOLKIT_ROOT_DIR}
+    PATH_SUFFIXES lib lib64 lib/x64 lib/x86 targets/aarch64-linux
+    )
+  if(NOT CUDNN_LIBRARIES)
+    message(FATAL_ERROR "Unable to find cudnn libraries")
+  endif()
+  include_directories( ${CUDNN_TOOLKIT_ROOT_DIR}/include )
     set( Darknet_linked_libs
          ${Darknet_linked_libs}
          ${CUDNN_LIBRARIES} )
   endif()
 endif()
+message(STATUS "Darkent Arrow using these libraries : ${Darknet_linked_libs}")
+
 
 kwiver_install_headers(
   SUBDIR     arrows/darknet

@@ -46,25 +46,24 @@
 #include <sstream>
 #include <exception>
 
+// Since we need to wrap darknet.h in an extern C
+// We need to include CUDA/CUDNN before darknet does
+// so C++ gets a hold of them first
+// We may want to wrap all the declarations in darknet.h in 
+// an extern C rather than have to do it here.
+
 #ifdef DARKNET_USE_GPU
-#define GPU
-#include <cuda_runtime.h>
+  #define GPU
+  #include "cuda_runtime.h"
+  #include "curand.h"
+  #include "cublas_v2.h"
+  #ifdef DARKNET_USE_CUDNN
+    #define CUDNN
+    #include "cudnn.h"
+  #endif
 #endif
-
-// darknet includes
 extern "C" {
-
-#include "cuda.h"
-#include "network.h"
-#include "region_layer.h"
-#include "cost_layer.h"
-#include "utils.h"
-#include "parser.h"
-#include "box.h"
-#include "demo.h"
-#include "option_list.h"
-#include "image.h"
-
+#include "darknet.h"
 }
 
 namespace kwiver {
@@ -192,7 +191,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_class_names = config->get_value< std::string >( "class_names" );
   this->d->m_thresh      = config->get_value< float >( "thresh" );
   this->d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
-  this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
+  this->d->m_gpu_index   = config->get_value< int >( "gpu_index" ); 
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
   this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
