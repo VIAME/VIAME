@@ -37,12 +37,44 @@
 
 #include <proj_api.h>
 
-#include <regex>
 #include <string>
 
 namespace kwiver {
 namespace arrows {
 namespace proj {
+
+namespace {
+
+// ----------------------------------------------------------------------------
+std::unordered_map< std::string, std::string >
+extract_props( std::string text )
+{
+  std::unordered_map< std::string, std::string > props;
+
+  while ( text.size() )
+  {
+    auto const i = text.find( ' ' );
+    auto tok = text.substr( 0, i );
+    text = ( i == std::string::npos ? std::string{} : text.substr( i + 1 ) );
+
+    if ( tok.size() && tok[0] == '+' )
+    {
+      auto const j = tok.find( '=' );
+      if ( j == std::string::npos )
+      {
+        props.emplace( tok.substr( 1 ), std::string{} );
+      }
+      else
+      {
+        props.emplace( tok.substr( 1, j - 1 ), tok.substr( j + 1 ) );
+      }
+    }
+  }
+
+  return props;
+}
+
+}
 
 // ----------------------------------------------------------------------------
 geo_conversion
@@ -65,9 +97,6 @@ char const* geo_conversion
 vital::geo_crs_description_t geo_conversion
 ::describe( int crs )
 {
-  static const auto prop_re =
-    std::regex{ "[+]([^= ]+)(=([^ ]+))?( |$)", std::regex_constants::extended };
-
   static const auto prop_map =
     std::unordered_map< std::string, std::string >{
       { "datum", "datum" },
@@ -81,13 +110,7 @@ vital::geo_crs_description_t geo_conversion
   auto const text = std::string{ pj_get_def( proj, 0 ) };
 
   // Parse init string into property key/value pairs
-  std::unordered_map< std::string, std::string > props;
-  auto const begin = std::sregex_iterator{ text.begin(), text.end(), prop_re };
-  auto const end = std::sregex_iterator{};
-  for ( auto iter = begin; iter != end; ++iter )
-  {
-    props.emplace( iter->str( 1 ), iter->str( 3 ) );
-  }
+  auto const props = extract_props( text );
 
   // Convert to human-readable result
   vital::geo_crs_description_t result;
