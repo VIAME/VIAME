@@ -1,8 +1,5 @@
 # KWIVER Python interface support
 
-find_package(PythonLibs)
-find_package(PythonInterp REQUIRED)
-
 set( copyright_header
 " #ckwg 29
  # Copyright 2016 by Kitware, Inc.

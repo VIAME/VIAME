@@ -58,7 +58,7 @@ IMPLEMENT_TEST(track_id)
 {
   using namespace kwiver::vital;
   auto t = track::create();
-  TEST_EQUAL("Initial Track ID", t->id(), 0);
+  TEST_EQUAL("Initial Track ID", t->id(), invalid_track_id);
 
   t->set_id(25);
   TEST_EQUAL("Get/Set Track ID", t->id(), 25);

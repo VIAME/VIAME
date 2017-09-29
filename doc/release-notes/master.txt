@@ -10,9 +10,13 @@ Updates since v1.1.0
 
 Vital
 
- * Removed the VITAL_FOREACH macro and vital_foreach.h.  This was left over
-   from a time before C++11 was required.  You should now use a standard
-   C++11 range-based for loop instead.
+ * C++11 feature test macros have been removed.  The current version of KWIVER
+   assumes a fully C++11 compliant compiler; C++11 features should be used
+   directly.  VITAL_FOREACH (and the header vital_foreach.h which provided
+   this), has also been removed.  Remaining compatibility shims are deprecated
+   and should not be used in new code and will eventually be removed also.
+   Note also that [[noreturn]] must appear before <lib>_EXPORT; this was not
+   the case with the old definition of VITAL_NO_RETURN.
 
  * Added new data types geo_point and geo_polygon for representing points
    and polygons in geographic coordinates.  These new types use the new
@@ -44,6 +48,14 @@ Vital
    any combination of implementations and derived track_set types.  Custom
    track_set implementations allow alternative storage and query mechanisms
    for better scalability and speed under different use cases.
+
+ * The track_set is now a mutable class and has new member functions including
+   'insert', 'remove', and 'merge_tracks' to allow in place modification.
+   The intent is that most algorithms will now modify a track_set in place
+   and return it rather than creating a new track_set from the tracks.  This
+   is important for a track_set because it is often a very large structure
+   and may now have backend implementations with bookkeeping that we would
+   like to persist.
 
  * Track states now have a pointer (std::weak_ptr) back to the track object
    which contains them.  This means that each track state can belong to at
@@ -98,6 +110,12 @@ Arrows: Core
    from frame number to the set of track states on that frame.  This makes it
    substantially faster to query tracks by frame ID.
 
+ * Modified feature tracking and loop closure algorithms to modify the
+   track_set object in place and return the same object.
+
+ * Renamed merge_tracks.h to match_tracks.h and removed all track merging
+   functions.  Track merging is now a function of the track_set itself.
+
 Sprokit
 
  * Removed the CMake function sprokit_add_plugin and replaced it with the more
@@ -125,6 +143,13 @@ Sprokit
    following command:
 
      $plugin_explorer --fact instrumentation
+
+Unit Tests
+
+ * KWIVER is in the process of transitioning to Google Test as its primary
+   testing framework.  This means that Google Test is now a hard dependency
+   when KWIVER_ENABLE_TESTS is ON.  (Recent versions of Fletch include Google
+   Test.)  The Sprokit tests will continue to use their own framework.
 
 
 Fixes since v1.1.0

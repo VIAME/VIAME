@@ -55,3 +55,12 @@ IMPLEMENT_TEST(accessor_functions)
   auto test_set = make_simple_track_set();
   test_track_set_accessors(test_set);
 }
+
+
+IMPLEMENT_TEST(modifier_functions)
+{
+  using namespace kwiver::vital::testing;
+
+  auto test_set = make_simple_track_set();
+  test_track_set_modifiers(test_set);
+}

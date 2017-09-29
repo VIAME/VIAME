@@ -57,6 +57,8 @@ namespace group_ns {
  *
  * \brief Process template
  *
+ * \process Full description of process.
+ *
  * \iports
  *
  * \iport{timestamp} time stamp for incoming images.
@@ -238,7 +240,6 @@ template_process
   // perform reconfigure processing if applicable.
 
 }
-
 
 
 // ----------------------------------------------------------------

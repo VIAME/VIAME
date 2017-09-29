@@ -48,6 +48,34 @@ namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
+create_config_trait( homography_generator, std::string, "", "Name of algorithm config block." );
+
+// ----------------------------------------------------------------
+/**
+ * \class compute_homography_process
+ *
+ * \brief Wrapper process around compute_ref_homography algorithm/
+ *
+ * \process This process instantiates a concrete implementation of the
+ * \b compute_ref_homography algorithm.
+ *
+ * \iports
+ *
+ * \iport{timestamp} time stamp for incoming images.
+ *
+ * \iport{feature_track_set} track set to be used for calculating
+ * homography.
+ *
+ * \oports
+ *
+ * \oport{homography_src_to_ref} Resulting homography.
+ *
+ * \configs
+ *
+ * \config{homography_generator} Algorithm name for homography generator to use.
+ *
+ * Other config parameters depend on the actual algorithm selected.
+ */
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -71,7 +99,7 @@ public:
 compute_homography_process
 ::compute_homography_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new compute_homography_process::priv )
+    d( new compute_homography_process::priv )//
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach

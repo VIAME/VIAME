@@ -1,0 +1,14 @@
+In order to generate the files needed for the sphinx server, enter the following command:
+
+$ make html
+
+A local copy of the sphinx server can be started that will serve up the pages created
+by the previous command by entering the folloeing command
+
+$ sphinx_server.py
+
+You may need to install the following to get the server working
+
+apt install -y python-sphinx
+pip install livereload
+pip install breathe

@@ -36,6 +36,7 @@
 
 #include "track_set.h"
 
+#include <algorithm>
 #include <limits>
 
 
@@ -57,6 +58,47 @@ track_set_implementation
 ::empty() const
 {
   return this->tracks().empty();
+}
+
+
+/// Notify the container that a new state has been added to an existing track
+void
+track_set_implementation
+::notify_new_state( track_state_sptr ts )
+{
+  // by default, notification does nothing
+}
+
+
+/// merge the pair of tracks \p t1 and \p t2, if possible
+bool
+track_set_implementation
+::merge_tracks( track_sptr t1, track_sptr t2 )
+{
+  // follow track redirects as needed
+  std::shared_ptr<track_data_redirect> tdr;
+  while( t1 && t1->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t1->data())) )
+  {
+    t1 = tdr->redirect_track;
+  }
+  while( t2 && t2->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t2->data())) )
+  {
+    t2 = tdr->redirect_track;
+  }
+  if( !t1 || !t2 || !this->contains(t1) || !this->contains(t2) )
+  {
+    return false;
+  }
+
+  if( !t2->append(*t1) )
+  {
+    return false;
+  }
+
+  this->remove(t1);
+  return true;
 }
 
 
@@ -342,6 +384,32 @@ track_set
 {
 }
 
+
+//===================================================================
+
+
+/// Return true if the set contains a specific track
+bool
+simple_track_set_implementation
+::contains( track_sptr t ) const
+{
+  return std::find(data_.begin(), data_.end(), t) != data_.end();
+}
+
+
+/// Remove a track from the set and return true if successful
+bool
+simple_track_set_implementation
+::remove( track_sptr t )
+{
+  auto itr = std::find(data_.begin(), data_.end(), t);
+  if ( itr == data_.end() )
+  {
+    return false;
+  }
+  data_.erase(itr);
+  return true;
+}
 
 
 } } // end namespace vital

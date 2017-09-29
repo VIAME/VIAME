@@ -33,27 +33,38 @@
  * \brief core geo_polygon class tests
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
+
+#include <vital/plugin_loader/plugin_manager.h>
+
+#include <vital/config/config_block.h>
 
 #include <vital/types/geo_polygon.h>
 #include <vital/types/geodesy.h>
 #include <vital/types/polygon.h>
-#include <vital/plugin_loader/plugin_manager.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
+
+namespace {
 
 // "It's a magical place." -- P.C.
-static auto const loc_ll = kwiver::vital::vector_2d{ -149.484444, -17.619482 };
-static auto const loc_utm = kwiver::vital::vector_2d{ 236363.98, 8050181.74 };
+auto const loc_ll = vector_2d{ -149.484444, -17.619482 };
+auto const loc_utm = vector_2d{ 236363.98, 8050181.74 };
 
-static auto constexpr crs_ll = kwiver::vital::SRID::lat_lon_WGS84;
-static auto constexpr crs_utm_6s = kwiver::vital::SRID::UTM_WGS84_south + 6;
+auto const loc2_ll = vector_2d{ -73.759291, 42.849631 };
+
+auto constexpr crs_ll = SRID::lat_lon_WGS84;
+auto constexpr crs_utm_6s = SRID::UTM_WGS84_south + 6;
+
+}
+
+namespace kwiver {
+namespace vital {
 
 // ----------------------------------------------------------------------------
-bool operator==( kwiver::vital::polygon const& a,
-                 kwiver::vital::polygon const& b )
+bool operator==( polygon const& a, polygon const& b )
 {
   auto const k = a.num_vertices();
   if ( b.num_vertices() != k )
@@ -73,116 +84,150 @@ bool operator==( kwiver::vital::polygon const& a,
 }
 
 // ----------------------------------------------------------------------------
-bool operator!=( kwiver::vital::polygon const& a,
-                 kwiver::vital::polygon const& b )
+void PrintTo( polygon const& v, ::std::ostream* os )
 {
-  return !( a == b );
+  auto const k = v.num_vertices();
+  (*os) << "(polygon with " << k << " vertices)";
+  for ( auto i = decltype(k){ 0 }; i < k; ++i )
+  {
+    (*os) << "\n  " << i << ": " << ::testing::PrintToString( v.at( i ) );
+  }
 }
+
+} } // end namespace
 
 // ----------------------------------------------------------------------------
 int
-main(int argc, char* argv[])
+main( int argc, char* argv[] )
 {
-  CHECK_ARGS(1);
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  plugin_manager::instance().load_all_plugins();
 
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(default_constructor)
+TEST(geo_polygon, default_constructor)
 {
-  kwiver::vital::geo_polygon p;
-
-  if ( ! p.is_empty() )
-  {
-    TEST_ERROR("The default polygon is not empty");
-  }
+  geo_polygon p;
+  EXPECT_TRUE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(constructor_point)
+TEST(geo_polygon, constructor_polygon)
 {
-  kwiver::vital::geo_polygon p{ { loc_ll }, crs_ll };
-
-  if ( p.is_empty() )
-  {
-    TEST_ERROR("The constructed polygon is empty");
-  }
+  geo_polygon p{ { loc_ll }, crs_ll };
+  EXPECT_FALSE( p.is_empty() );
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(assignment)
+TEST(geo_polygon, assignment)
 {
-  kwiver::vital::geo_polygon p;
-  kwiver::vital::geo_polygon const p1{ { loc_ll }, crs_ll };
-  kwiver::vital::geo_polygon const p2;
+  geo_polygon p;
+  geo_polygon const p1{ { loc_ll }, crs_ll };
+  geo_polygon const p2;
 
-  if ( ! p.is_empty() )
-  {
-    TEST_ERROR("The default polygon is not empty");
-  }
+  // Paranoia-check initial state
+  EXPECT_TRUE( p.is_empty() );
 
+  // Check assignment from non-empty geo_polygon
   p = p1;
 
-  if ( p.is_empty() )
-  {
-    TEST_ERROR("The polygon is empty after assignment from non-empty polygon");
-  }
+  EXPECT_FALSE( p.is_empty() );
+  EXPECT_EQ( p1.polygon(), p.polygon() );
+  EXPECT_EQ( p1.crs(), p.crs() );
 
-  if ( p.polygon() != p1.polygon() )
-  {
-    TEST_ERROR("The polygon has the wrong location after assignment");
-  }
-
-  if ( p.crs() != p1.crs() )
-  {
-    TEST_ERROR("The polygon has the wrong CRS after assignment");
-  }
-
+  // Check assignment from empty geo_polygon
   p = p2;
 
-  if ( ! p.is_empty() )
+  EXPECT_TRUE( p.is_empty() );
+}
+
+// ----------------------------------------------------------------------------
+TEST(geo_polygon, api)
+{
+  geo_polygon p{ { loc_ll }, crs_ll };
+
+  // Test values of the point as originally constructed
+  [=]() {
+    ASSERT_EQ( 1, p.polygon().num_vertices() );
+    EXPECT_EQ( crs_ll, p.crs() );
+    EXPECT_EQ( loc_ll, p.polygon().at( 0 ) );
+    EXPECT_EQ( loc_ll, p.polygon( crs_ll ).at( 0 ) );
+  }();
+
+  // Modify the location and test the new values
+  p.set_polygon( { loc2_ll }, crs_ll );
+
+  [=]() {
+    ASSERT_EQ( 1, p.polygon().num_vertices() );
+    EXPECT_EQ( crs_ll, p.crs() );
+    EXPECT_EQ( loc2_ll, p.polygon().at( 0 ) );
+    EXPECT_EQ( loc2_ll, p.polygon( crs_ll ).at( 0 ) );
+  }();
+
+  // Modify the location again and test the new values
+  p.set_polygon( { loc_utm }, crs_utm_6s );
+
+  [=]() {
+    ASSERT_EQ( 1, p.polygon().num_vertices() );
+    EXPECT_EQ( crs_utm_6s, p.crs() );
+    EXPECT_EQ( loc_utm, p.polygon().at( 0 ) );
+    EXPECT_EQ( loc_utm, p.polygon( crs_utm_6s ).at( 0 ) );
+  }();
+
+  // Test that the old location is not cached
+  try
   {
-    TEST_ERROR("The polygon is not empty after assignment from polygon point");
+    EXPECT_NE( loc2_ll, p.polygon( crs_ll ).at( 0 ) )
+      << "Changing the location did not clear the location cache";
+  }
+  catch (...)
+  {
+    // If no conversion functor is registered, the conversion will fail; that
+    // is okay, since we are only checking here that the point isn't still
+    // caching the old location, which it isn't if it needed to attempt a
+    // conversion
   }
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(api)
+TEST(geo_polygon, conversion)
 {
-  // TODO: Implement these tests
-  // This test case should replicate the geo_point api test case, but doing it
-  // well with the current test framework is awkward... it would be much easier
-  // with Google Test!
+  geo_polygon p_ll{ { loc_ll }, crs_ll };
+  geo_polygon p_utm{ { loc_utm }, crs_utm_6s };
+
+  auto const conv_loc_utm = p_ll.polygon( p_utm.crs() ).at( 0 );
+  auto const conv_loc_ll = p_utm.polygon( p_ll.crs() ).at( 0 );
+
+  auto const epsilon_ll_to_utm = ( loc_utm - conv_loc_utm ).norm();
+  auto const epsilon_utm_to_ll = ( loc_ll - conv_loc_ll ).norm();
+
+  EXPECT_MATRIX_NEAR( p_ll.polygon().at( 0 ), conv_loc_ll, 1e-7 );
+  EXPECT_MATRIX_NEAR( p_utm.polygon().at( 0 ), conv_loc_utm, 1e-2 );
+  EXPECT_LT( epsilon_ll_to_utm, 1e-2 );
+  EXPECT_LT( epsilon_utm_to_ll, 1e-7 );
+
+  std::cout << "LL->UTM epsilon: " << epsilon_ll_to_utm << std::endl;
+  std::cout << "UTM->LL epsilon: " << epsilon_utm_to_ll << std::endl;
 }
 
 // ----------------------------------------------------------------------------
-IMPLEMENT_TEST(conversion)
+TEST(geo_polygon, config_block_io)
 {
-  kwiver::vital::geo_polygon p_ll{ { loc_ll }, crs_ll };
-  kwiver::vital::geo_polygon p_utm{ { loc_utm }, crs_utm_6s };
+  static auto constexpr crs = SRID::lat_lon_NAD83;
+  static auto const loc1 = vector_2d{ -77.397577, 38.179969 };
+  static auto const loc2 = vector_2d{ -77.329127, 38.181347 };
+  static auto const loc3 = vector_2d{ -77.327408, 38.127313 };
+  static auto const loc4 = vector_2d{ -77.395808, 38.125938 };
 
-  auto const d1 =
-    p_ll.polygon( p_utm.crs() ).at( 0 )  - p_utm.polygon().at( 0 );
-  auto const d2 =
-    p_utm.polygon( p_ll.crs() ).at( 0 ) - p_ll.polygon().at( 0 );
+  auto const loc = polygon{ { loc1, loc2, loc3, loc4 } };
 
-  auto const e1 = d1.squaredNorm();
-  auto const e2 = d2.squaredNorm();
+  auto const config = config_block::empty_config();
+  auto const key = config_block_key_t{ "key" };
+  auto const value_in = geo_polygon{ loc, crs };
 
-  if ( e1 > 1e-4 )
-  {
-    TEST_ERROR("Result of LL->UTM conversion exceeds tolerance");
-  }
+  config->set_value( key, value_in );
 
-  if ( e2 > 1e-13 )
-  {
-    TEST_ERROR("Result of UTM->LL conversion exceeds tolerance");
-  }
-
-  std::cout << "LL->UTM epsilon: " << e1 << std::endl;
-  std::cout << "UTM->LL epsilon: " << e2 << std::endl;
+  EXPECT_EQ( loc, config->get_value<geo_polygon>( key ).polygon( crs ) );
 }

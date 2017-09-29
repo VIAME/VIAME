@@ -5,8 +5,6 @@ cmake_minimum_required(VERSION 3.3)
 
 project(KWIVER)
 
-include(CMakeDependentOption)
-
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 1)
@@ -52,7 +50,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   endif()
 endif()
 
-LIST( INSERT CMAKE_MODULE_PATH  0         ${KWIVER_CMAKE_DIR} ) # prepend out cmake resources
+# prepend our CMake resources
+list(INSERT CMAKE_MODULE_PATH 0 ${KWIVER_CMAKE_DIR})
+
+# import CMake future modules
+include(kwiver-cmake-future)
 
 # ================================================================
 # project global includes
@@ -74,6 +76,8 @@ include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 # ================================================================
 ###
 # User options
+include(CMakeDependentOption)
+
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
 MARK_AS_ADVANCED( KWIVER_BUILD_SHARED )
 
@@ -99,10 +103,15 @@ CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON    "Enable python code" OFF
   KWIVER_ENABLE_C_BINDINGS OFF )
 
 if (KWIVER_ENABLE_PYTHON)
+
+  if (NOT WIN32)
+    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying. Allows for more dynamic python development." Off)
+  endif()
+
   if ( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
-  set(kwiver_boost_python_package     python)
+  include( kwiver-setup-python )
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
@@ -150,32 +159,6 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
   include_directories( tests )
 endif()
-
-if (KWIVER_ENABLE_PYTHON)
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs)
-
-    execute_process(
-      COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print distutils.sysconfig.get_python_lib(prefix='')"
-      RESULT_VARIABLE proc_success
-      OUTPUT_VARIABLE python_site_packages
-      )
-
-    if(NOT ${proc_success} EQUAL 0)
-      message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
-    else()
-      string(STRIP "${python_site_packages}" python_site_packages)
-      message(STATUS "Python site-packages to install into: ${python_site_packages}")
-    endif()
-
-    set(PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-      CACHE STRING "The version of python to use for bindings")
-    set(PYTHON_ABIFLAGS ""
-      CACHE STRING "The ABI flags for the version of Python being used")
-
-  include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
-
-endif(KWIVER_ENABLE_PYTHON)
 
 if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
   message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@
 
 #include <vital/util/timer.h>
 
-#if VITAL_USE_CHRONO
-
 #include <string>
 #include <chrono>
 #include <iostream>
@@ -76,7 +74,7 @@ public:
   virtual void start()
   {
     m_active = true;
-    m_start = std::chrono::system_clock::now();
+    m_start = std::chrono::steady_clock::now();
   }
 
 
@@ -89,7 +87,7 @@ public:
   virtual void stop()
   {
     m_active = false;
-    m_end = std::chrono::system_clock::now();
+    m_end = std::chrono::steady_clock::now();
   }
 
 
@@ -106,7 +104,7 @@ public:
     if (m_active)
     {
       // Take a snapshot of the interval.
-      std::chrono::duration< double > elapsed_seconds = std::chrono::system_clock::now() - m_start;
+      std::chrono::duration< double > elapsed_seconds = std::chrono::steady_clock::now() - m_start;
       return elapsed_seconds.count();
     }
     else
@@ -118,8 +116,8 @@ public:
 
 private:
 
-  std::chrono::time_point< std::chrono::system_clock > m_start;
-  std::chrono::time_point< std::chrono::system_clock > m_end;
+  std::chrono::time_point< std::chrono::steady_clock > m_start;
+  std::chrono::time_point< std::chrono::steady_clock > m_end;
 
 }; // end class wall_timer
 
@@ -127,34 +125,5 @@ template class scoped_timer< wall_timer >;
 typedef scoped_timer< wall_timer > scoped_wall_timer;
 
 } }   // end namespace
-
-#else // ==================================================================
-
-namespace kwiver {
-namespace vital {
-
-/*
- * Empty implementation where chrono is not supported.
- */
-class wall_timer
-  : public timer
-{
-public:
-  wall_timer()  { }
-  virtual ~wall_timer() { }
-
-  virtual bool timer_available() { return false; }
-
-  virtual void start() { }
-  virtual void stop() { }
-  virtual double elapsed() const { return 0; }
-}; // end class wall_timer
-
-template class scoped_timer< wall_timer >;
-typedef scoped_timer< wall_timer > scoped_wall_timer;
-
-} } // end namespace
-
-#endif
 
 #endif /* KWIVER_VITAL_SCOPED_TIMER_H */

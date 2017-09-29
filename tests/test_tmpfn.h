@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,41 +30,42 @@
 
 /**
  * \file
- * \brief Interface and implementation of CPU timer classes
+ *
+ * \brief Supplemental macro definitions for test cases
  */
 
-#ifndef KWIVER_VITAL_CPU_TIMER_H
-#define KWIVER_VITAL_CPU_TIMER_H
+#ifndef KWIVER_TEST_TEST_TMPFN_H_
+#define KWIVER_TEST_TEST_TMPFN_H_
 
-#include <vital/util/timer.h>
+#include <string>
+
+#include <cstdio>
+#include <cstdlib>
+
+#ifdef _WIN32
+#define tempnam(d, p) _tempnam(d, p)
+#endif
 
 namespace kwiver {
-namespace vital {
+namespace testing {
 
-// ----------------------------------------------------------------
-/**
- * @brief Interval timer class.
+// ----------------------------------------------------------------------------
+/** @brief Generate a unique file name in the current working directory.
  *
- * This class represents an interval timer that measures CPU time in
- * cases where there is no timer.
-
+ * @param prefix Prefix for generated file name.
+ * @param suffix Suffix for generated file name.
  */
-class cpu_timer
-  : public timer
+std::string
+temp_file_name( char const* prefix, char const* suffix )
 {
-public:
-  cpu_timer() { }
-  ~cpu_timer() { }
-  virtual  bool timer_available() { return false; }
-  virtual void start() { }
-  virtual void stop() { }
-  virtual double elapsed() const { return 0.0; }
-}; // end class cpu_timer
+  auto const n = tempnam(".", prefix);
+  auto const s = std::string(n);
+  free(n);
 
-// instantiate scoped timer
-template class scoped_timer< cpu_timer >;
-typedef scoped_timer< cpu_timer > scoped_cpu_timer;
+  return s + suffix;
+}
 
-} }   // end namespace
+} // end namespace testing
+} // end namespace kwiver
 
-#endif /* KWIVER_VITAL_CPU_TIMER_H */
+#endif
