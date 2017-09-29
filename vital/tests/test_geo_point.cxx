@@ -34,6 +34,7 @@
  */
 
 #include <test_eigen.h>
+#include <test_gtest.h>
 
 #include <vital/types/geo_point.h>
 #include <vital/types/geodesy.h>
@@ -53,9 +54,8 @@ static auto constexpr crs_utm_18n = kwiver::vital::SRID::UTM_WGS84_north + 18;
 int
 main(int argc, char* argv[])
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
   return RUN_ALL_TESTS();
 }
 

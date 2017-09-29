@@ -39,6 +39,16 @@
 
 #include <gtest/gtest.h>
 
+#define TEST_LOAD_PLUGINS() \
+  class _test_plugin_helper : public ::testing::EmptyTestEventListener \
+  { \
+  public: \
+    virtual void OnTestProgramStart(::testing::UnitTest const&) override \
+    { kwiver::vital::plugin_manager::instance().load_all_plugins(); } \
+  }; \
+  ::testing::UnitTest::GetInstance()->listeners().Append( \
+    new _test_plugin_helper )
+
 // ----------------------------------------------------------------------------
 /** @brief Consume a required command line argument.
  *
