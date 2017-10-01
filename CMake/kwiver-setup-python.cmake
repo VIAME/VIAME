@@ -180,28 +180,12 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 
 
 ###
-# Boost-Python (to be replaced by PyBind11)
+# PyBind11
 #
-# linker definitions
+# 
 #
-if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
-  set(boost_python_library python3)
-else()
-  set(boost_python_library python)
-endif ()
-
-string(TOUPPER ${boost_python_library} boost_python_library_upper)
-set(boost_python_library_var
-  Boost_${boost_python_library_upper}_LIBRARY)
-
-# This is to avoid Boost.Python's headers to have __declspec(dllimport) in
-# the headers which confuses Visual Studio's linker.
-cmake_dependent_option(SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC "Link Boost.Python statically" ON
-  WIN32 OFF)
-mark_as_advanced(SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC)
-if (SPROKIT_HACK_LINK_BOOST_PYTHON_STATIC)
-  add_definitions(-DBOOST_PYTHON_STATIC_LIB)
-endif ()
+  set(pybind11_library     python)
+  find_package(pybind11)
 
 
 ###
@@ -246,8 +230,6 @@ PYTHON_CONFIG_STATUS
 
   * python_site_packages = \"${python_site_packages}\"
   * python_sitename = \"${python_sitename}\"
-
-  * boost_python_library_var = \"${boost_python_library_var}\"
 
   * kwiver_python_subdir = \"${kwiver_python_subdir}\"
   * kwiver_python_output_path = \"${kwiver_python_output_path}\"

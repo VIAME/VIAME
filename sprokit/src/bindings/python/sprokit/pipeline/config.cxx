@@ -37,12 +37,8 @@
 #pragma warning (disable : 4267)
 #pragma warning (disable : 4244)
 #endif
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/class.hpp>
-#include <boost/python/def.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/return_internal_reference.hpp>
-#include <boost/python/str.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl_bind.h>
 #if WIN32
 #pragma warning (pop)
 #endif
@@ -70,18 +66,18 @@ namespace boost
 namespace kwiver {
 namespace vital {
 
-// config value converter for boost::python
+// config value converter for pybind11
 template<>
 config_block_value_t
-config_block_set_value_cast( boost::python::extract<std::basic_string<char> > const& value )
+config_block_set_value_cast( pybind11::object const& value )
 {
-  return std::string( value );
+  return value.cast<std::string>();
 }
 
 } }
 
 
-using namespace boost::python;
+using namespace pybind11;
 
 static void config_set_value( kwiver::vital::config_block_sptr         self,
                               kwiver::vital::config_block_key_t const& key,
@@ -102,64 +98,52 @@ static void config_delitem( kwiver::vital::config_block_sptr          self,
                             kwiver::vital::config_block_key_t const&  key );
 
 
-BOOST_PYTHON_MODULE(config)
+PYBIND11_MODULE(config, m)
 {
-  def("empty_config", &kwiver::vital::config_block::empty_config
-    , (arg("name") = kwiver::vital::config_block_key_t())
+  m.def("empty_config", &kwiver::vital::config_block::empty_config
+    , arg("name") = kwiver::vital::config_block_key_t()
     , "Returns an empty configuration.");
 
-  class_<kwiver::vital::config_block_key_t>("ConfigKey"
-    , "A key for a configuration.");
+  bind_vector<std::vector<std::string> >(m, "ConfigKeys"
+    , "A collection of keys for a configuration.");
 
-  class_<kwiver::vital::config_block_keys_t>("ConfigKeys"
-    , "A collection of keys for a configuration.")
-    .def(vector_indexing_suite<kwiver::vital::config_block_keys_t>())
-  ;
-
-  class_<kwiver::vital::config_block_description_t>("ConfigDescription"
-    , "A description of a configuration key.");
-
-  class_<kwiver::vital::config_block_value_t>("ConfigValue"
-    , "A value in the configuration.");
-
-  class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr, boost::noncopyable>("Config"
-    , "A key-value store of configuration values"
-    , no_init)
+  class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr>(m, "Config"
+    , "A key-value store of configuration values")
     .def("subblock", &kwiver::vital::config_block::subblock
-      , (arg("name"))
+      , arg("name")
       , "Returns a subblock from the configuration.")
     .def("subblock_view", &kwiver::vital::config_block::subblock_view
-      , (arg("name"))
+      , arg("name")
       , "Returns a linked subblock from the configuration.")
     .def("get_value", &config_get_value
-      , (arg("key"))
+      , arg("key")
       , "Retrieve a value from the configuration.")
     .def("get_value", &config_get_value_with_default
-      , (arg("key"), arg("default"))
+      , arg("key"), arg("default")
       , "Retrieve a value from the configuration, using a default in case of failure.")
     .def("set_value", &config_set_value
-      , (arg("key"), arg("value"))
+      , arg("key"), arg("value")
       , "Set a value in the configuration.")
     .def("unset_value", &kwiver::vital::config_block::unset_value
-      , (arg("key"))
+      , arg("key")
       , "Unset a value in the configuration.")
     .def("is_read_only", &kwiver::vital::config_block::is_read_only
-      , (arg("key"))
+      , arg("key")
       , "Check if a key is marked as read only.")
     .def("mark_read_only", &kwiver::vital::config_block::mark_read_only
-      , (arg("key"))
+      , arg("key")
       , "Mark a key as read only.")
     .def("merge_config", &kwiver::vital::config_block::merge_config
-      , (arg("config"))
+      , arg("config")
       , "Merge another configuration block into the current one.")
     .def("available_values", &kwiver::vital::config_block::available_values
       , "Retrieves the list of available values in the configuration.")
     .def("has_value", &kwiver::vital::config_block::has_value
-      , (arg("key"))
+      , arg("key")
       , "Returns True if the key is set.")
-    .def_readonly("block_sep", &kwiver::vital::config_block::block_sep
+    .def_readonly_static("block_sep", &kwiver::vital::config_block::block_sep
       , "The string which separates block names from key names.")
-    .def_readonly("global_value", &kwiver::vital::config_block::global_value
+    .def_readonly_static("global_value", &kwiver::vital::config_block::global_value
       , "A special key which is automatically inherited on subblock requests.")
     .def("__len__", &config_len)
     .def("__contains__", &kwiver::vital::config_block::has_value)
@@ -224,7 +208,7 @@ config_getitem( kwiver::vital::config_block_sptr          self,
     sstr << "\'" << key << "\'";
 
     PyErr_SetString( PyExc_KeyError, sstr.str().c_str() );
-    throw_error_already_set();
+    throw error_already_set();
   }
 
   return val;
@@ -240,7 +224,9 @@ config_setitem( kwiver::vital::config_block_sptr          self,
 
   (void)gil;
 
-  self->set_value( key, extract< kwiver::vital::config_block_value_t > ( str( value ) ) );
+  kwiver::vital::config_block_key_t const& str_value = str(value);
+
+  self->set_value( key, str_value );
 }
 
 
@@ -263,6 +249,6 @@ config_delitem( kwiver::vital::config_block_sptr          self,
     sstr << "\'" << key << "\'";
 
     PyErr_SetString( PyExc_KeyError, sstr.str().c_str() );
-    throw_error_already_set();
+    throw error_already_set();
   }
 }

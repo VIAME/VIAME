@@ -91,7 +91,7 @@ IMPLEMENT_TEST(load_schedulers)
 
   auto factories =  kwiver::vital::plugin_manager::instance().get_factories<sprokit::scheduler>();
 
-  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
 
   for( auto fact : factories )
   {
@@ -171,7 +171,7 @@ IMPLEMENT_TEST(unknown_types)
 {
   sprokit::scheduler::type_t const non_existent_scheduler = sprokit::scheduler::type_t("no_such_scheduler");
 
-  sprokit::pipeline_t const pipe = boost::make_shared<sprokit::pipeline>();
+  sprokit::pipeline_t const pipe = std::make_shared<sprokit::pipeline>();
 
   EXPECT_EXCEPTION(sprokit::no_such_scheduler_type_exception,
                    sprokit::create_scheduler(non_existent_scheduler, pipe),

@@ -28,16 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if WIN32
-#pragma warning (push)
-#pragma warning (disable : 4244)
-#endif
-#include <boost/python/def.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/class.hpp>
-#if WIN32
-#pragma warning (pop)
-#endif
+#include <pybind11/pybind11.h>
 
 #include <sprokit/pipeline/version.h>
 
@@ -50,60 +41,73 @@
  * \brief Python bindings for version.
  */
 
-using namespace boost::python;
+using namespace pybind11;
 
 class compile
 {
   public:
     typedef sprokit::version::version_t version_t;
 
+    static version_t const major;
+    static version_t const minor;
+    static version_t const patch;
+    static std::string const version_string;
+    static bool const git_build;
+    static std::string const git_hash;
+    static std::string const git_hash_short;
+    static std::string const git_dirty;
+
     static bool check(version_t major_, version_t minor_, version_t patch_);
 };
+
+sprokit::version::version_t const compile::major = SPROKIT_VERSION_MAJOR;
+sprokit::version::version_t const compile::minor = SPROKIT_VERSION_MINOR;
+sprokit::version::version_t const compile::patch = SPROKIT_VERSION_PATCH;
+std::string const compile::version_string = SPROKIT_VERSION;
+bool const compile::git_build =
+#ifdef SPROKIT_BUILT_FROM_GIT
+      true;
+#else
+      false;
+#endif
+std::string const compile::git_hash = SPROKIT_GIT_HASH;
+std::string const compile::git_hash_short = SPROKIT_GIT_HASH_SHORT;
+std::string const compile::git_dirty = SPROKIT_GIT_DIRTY;
 
 class runtime
 {
 };
 
-BOOST_PYTHON_MODULE(version)
+PYBIND11_MODULE(version, m)
 {
-  class_<compile>("compile"
-    , "Compile-time version information."
-    , no_init)
-    .def_readonly("major", SPROKIT_VERSION_MAJOR)
-    .def_readonly("minor", SPROKIT_VERSION_MINOR)
-    .def_readonly("patch", SPROKIT_VERSION_PATCH)
-    .def_readonly("version_string", SPROKIT_VERSION)
-    .def_readonly("git_build",
-#ifdef SPROKIT_BUILT_FROM_GIT
-      true
-#else
-      false
-#endif
-    )
-    .def_readonly("git_hash", SPROKIT_GIT_HASH)
-    .def_readonly("git_hash_short", SPROKIT_GIT_HASH_SHORT)
-    .def_readonly("git_dirty", SPROKIT_GIT_DIRTY)
-    .def("check", &compile::check
-      , (arg("major"), arg("minor"), arg("patch"))
+  class_<compile>(m,"compile"
+    , "Compile-time version information.")
+    .def_readonly_static("major", &compile::major)
+    .def_readonly_static("minor", &compile::minor)
+    .def_readonly_static("patch", &compile::patch)
+    .def_readonly_static("version_string", &compile::version_string)
+    .def_readonly_static("git_build", &compile::git_build)
+    .def_readonly_static("git_hash", &compile::git_hash)
+    .def_readonly_static("git_hash_short", &compile::git_hash_short)
+    .def_readonly_static("git_dirty", &compile::git_dirty)
+    .def_static("check", &compile::check
+      , arg("major"), arg("minor"), arg("patch")
       , "Check for a sprokit of at least the given version.")
-    .staticmethod("check")
   ;
 
-  class_<runtime>("runtime"
-    , "Runtime version information."
-    , no_init)
-    .def_readonly("major", sprokit::version::major)
-    .def_readonly("minor", sprokit::version::minor)
-    .def_readonly("patch", sprokit::version::patch)
-    .def_readonly("version_string", sprokit::version::version_string)
-    .def_readonly("git_build", sprokit::version::git_build)
-    .def_readonly("git_hash", sprokit::version::git_hash)
-    .def_readonly("git_hash_short", sprokit::version::git_hash_short)
-    .def_readonly("git_dirty", sprokit::version::git_dirty)
-    .def("check", &sprokit::version::check
-      , (arg("major"), arg("minor"), arg("patch"))
+  class_<runtime>(m, "runtime"
+    , "Runtime version information.")
+    .def_readonly_static("major", &sprokit::version::major)
+    .def_readonly_static("minor", &sprokit::version::minor)
+    .def_readonly_static("patch", &sprokit::version::patch)
+    .def_readonly_static("version_string", &sprokit::version::version_string)
+    .def_readonly_static("git_build", &sprokit::version::git_build)
+    .def_readonly_static("git_hash", &sprokit::version::git_hash)
+    .def_readonly_static("git_hash_short", &sprokit::version::git_hash_short)
+    .def_readonly_static("git_dirty", &sprokit::version::git_dirty)
+    .def_static("check", &sprokit::version::check
+      , arg("major"), arg("minor"), arg("patch")
       , "Check for a sprokit of at least the given version.")
-    .staticmethod("check")
   ;
 }
 

@@ -44,19 +44,8 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#if WIN32
-#pragma warning (push)
-#pragma warning (disable : 4267)
-#endif
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/class.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/object.hpp>
-#include <boost/python/wrapper.hpp>
-#include <boost/python/def.hpp>
-#if WIN32
-#pragma warning (pop)
-#endif
+#include <pybind11/stl_bind.h>
+#include "python_wrappers.cxx"
 
 #ifdef WIN32
  // Windows get_pointer const volatile workaround
@@ -76,7 +65,7 @@ namespace boost
 }
 #endif
 
-using namespace boost::python;
+using namespace pybind11;
 
 static void register_process( sprokit::process::type_t const& type,
                               sprokit::process::description_t const& desc,
@@ -89,115 +78,39 @@ static std::vector< std::string > process_names();
 
 
 // ==================================================================
-BOOST_PYTHON_MODULE(process_factory)
+PYBIND11_MODULE(process_factory, m)
 {
-  class_<sprokit::process::description_t>("ProcessDescription"
-    , "The type for a description of a process type.");
-  class_<kwiver::vital::plugin_manager::module_t>("ProcessModule"
-    , "The type for a process module name.");
+  class_<sprokit::processes_t>(m, "Processes"
+    , "A collection of processes.");
 
-  class_<sprokit::process, sprokit::process_t, boost::noncopyable>("Process"
-    , "The base class of processes."
-    , no_init)
-    .def("configure", &sprokit::process::configure
-      , "Configures the process.")
-    .def("init", &sprokit::process::init
-      , "Initializes the process.")
-    .def("reset", &sprokit::process::reset
-      , "Resets the process.")
-    .def("step", &sprokit::process::step
-      , "Steps the process for one iteration.")
-    .def("properties", &sprokit::process::properties
-      , "Returns the properties on the process.")
-    .def("connect_input_port", &sprokit::process::connect_input_port
-      , (arg("port"), arg("edge"))
-      , "Connects the given edge to the input port.")
-    .def("connect_output_port", &sprokit::process::connect_output_port
-      , (arg("port"), arg("edge"))
-      , "Connects the given edge to the output port.")
-    .def("input_ports", &sprokit::process::input_ports
-      , "Returns a list of input ports on the process.")
-    .def("output_ports", &sprokit::process::output_ports
-      , "Returns a list of output ports on the process.")
-    .def("input_port_info", &sprokit::process::input_port_info
-      , (arg("port"))
-      , "Returns information about the given input port.")
-    .def("output_port_info", &sprokit::process::output_port_info
-      , (arg("port"))
-      , "Returns information about the given output port.")
-    .def("set_input_port_type", &sprokit::process::set_input_port_type
-      , (arg("port"), arg("new_type"))
-      , "Sets the type for an input port.")
-    .def("set_output_port_type", &sprokit::process::set_output_port_type
-      , (arg("port"), arg("new_type"))
-      , "Sets the type for an output port.")
-    .def("available_config", &sprokit::process::available_config
-      , "Returns a list of available configuration keys for the process.")
-    .def("available_tunable_config", &sprokit::process::available_tunable_config
-      , "Returns a list of available tunable configuration keys for the process.")
-    .def("config_info", &sprokit::process::config_info
-      , (arg("config"))
-      , "Returns information about the given configuration key.")
-    .def("name", &sprokit::process::name
-      , "Returns the name of the process.")
-    .def("type", &sprokit::process::type
-      , "Returns the type of the process.")
-    .def_readonly("property_no_threads", &sprokit::process::property_no_threads)
-    .def_readonly("property_no_reentrancy", &sprokit::process::property_no_reentrancy)
-    .def_readonly("property_unsync_input", &sprokit::process::property_unsync_input)
-    .def_readonly("property_unsync_output", &sprokit::process::property_unsync_output)
-    .def_readonly("port_heartbeat", &sprokit::process::port_heartbeat)
-    .def_readonly("config_name", &sprokit::process::config_name)
-    .def_readonly("config_type", &sprokit::process::config_type)
-    .def_readonly("type_any", &sprokit::process::type_any)
-    .def_readonly("type_none", &sprokit::process::type_none)
-    .def_readonly("type_data_dependent", &sprokit::process::type_data_dependent)
-    .def_readonly("type_flow_dependent", &sprokit::process::type_flow_dependent)
-    .def_readonly("flag_output_const", &sprokit::process::flag_output_const)
-    .def_readonly("flag_input_static", &sprokit::process::flag_input_static)
-    .def_readonly("flag_input_mutable", &sprokit::process::flag_input_mutable)
-    .def_readonly("flag_input_nodep", &sprokit::process::flag_input_nodep)
-    .def_readonly("flag_required", &sprokit::process::flag_required)
-  ;
+  bind_vector<std::vector<std::string> >(m, "StringVector");
 
-  class_<sprokit::processes_t>("Processes"
-    , "A collection of processes.")
-    .def(vector_indexing_suite<sprokit::processes_t>())
-  ;
+  m.def("is_process_module_loaded", &is_process_loaded
+       , (arg("module"))
+       , "Returns True if the module has already been loaded, False otherwise.");
 
-  class_<sprokit::process_cluster, sprokit::process_cluster_t, bases<sprokit::process>,
-         boost::noncopyable>("ProcessCluster"
-    , "The base class of process clusters."
-    , no_init);
+  m.def("mark_process_module_as_loaded", &mark_process_loaded
+       , (arg("module"))
+       , "Marks a module as loaded.");
 
-  def("is_process_module_loaded", &is_process_loaded
-      , (arg("module"))
-      , "Returns True if the module has already been loaded, False otherwise.");
+  m.def("add_process", &register_process
+      , arg("type"), arg("description"), arg("ctor")
+       , "Registers a function which creates a process of the given type.");
 
-  def("mark_process_module_as_loaded", &mark_process_loaded
-      , (arg("module"))
-      , "Marks a module as loaded.");
+  m.def("create_process", &sprokit::create_process
+      , arg("type"), arg("name"), arg("config") = kwiver::vital::config_block::empty_config()
+      , "Creates a new process of the given type.", return_value_policy::reference_internal);
 
-  def("add_process", &register_process
-      , (arg("type"), arg("description"), arg("ctor"))
-      , "Registers a function which creates a process of the given type.");
+  m.def("description", &get_description
+       , (arg("type"))
+       , "Returns description for the process");
 
-  def("create_process", &sprokit::create_process
-      , (arg("type"), arg("name"), arg("config") = kwiver::vital::config_block::empty_config())
-      , "Creates a new process of the given type.");
+  m.def("types", &process_names
+       , "Returns list of process names" );
 
-  def("description", &get_description
-      , (arg("type"))
-      , "Returns description for the process");
+  m.attr("Process") = m.import("sprokit.pipeline.process").attr("PythonProcess");
+  m.attr("ProcessCluster") = m.import("sprokit.pipeline.process_cluster").attr("PythonProcessCluster");
 
-  def("types", &process_names
-      , "Returns list of process names" );
-
-  //+ convert this to process_factory
-  class_<sprokit::process_factory, sprokit::process_factory, boost::noncopyable>("ProcessFactory"
-    , "A registry of all known process types."
-    , no_init)
-  ;
 }
 
 
@@ -319,15 +232,6 @@ python_process_wrapper
 
   object proc;
 
-  try
-  {
-    proc = m_obj( config );
-    return extract< sprokit::process_t > ( proc );
-  }
-  catch (boost::python::error_already_set const&)
-  {
-    sprokit::python::python_print_exception();
-    throw;
-  }
-
+  proc = m_obj( config );
+  return proc.cast< sprokit::process_t >();
 }

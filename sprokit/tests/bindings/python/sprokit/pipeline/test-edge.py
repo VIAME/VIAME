@@ -90,7 +90,7 @@ def test_api_calls():
 
     modules.load_known_modules()
 
-    p = process_factory.create_process('orphan', process.ProcessName())
+    p = process_factory.create_process('orphan', 'process_name')
 
     e.set_upstream_process(p)
     e.set_downstream_process(p)

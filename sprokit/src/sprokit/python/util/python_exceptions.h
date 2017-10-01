@@ -43,7 +43,7 @@ namespace python {
   {                                               \
     call;                                         \
   }                                               \
-  catch (boost::python::error_already_set const&) \
+  catch (pybind11::error_already_set const&) \
   {                                               \
     sprokit::python::python_print_exception();    \
                                                   \
@@ -55,7 +55,7 @@ namespace python {
   {                                                \
     call;                                          \
   }                                                \
-  catch (boost::python::error_already_set const&)  \
+  catch (pybind11::error_already_set const&)  \
   {                                                \
     sprokit::python::python_print_exception();     \
   }

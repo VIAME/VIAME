@@ -34,6 +34,7 @@
  * \brief Python bindings for \link sprokit::scheduler_factory\endlink.
  */
 
+#include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 
@@ -43,12 +44,7 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/class.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/object.hpp>
-#include <boost/python/wrapper.hpp>
-#include <boost/python/def.hpp>
+#include <pybind11/pybind11.h>
 
 #ifdef WIN32
  // Windows get_pointer const volatile workaround
@@ -67,7 +63,7 @@ namespace boost
 }
 #endif
 
-using namespace boost::python;
+using namespace pybind11;
 
 static void register_scheduler( sprokit::scheduler::type_t const& type,
                                 sprokit::scheduler::description_t const& desc,
@@ -79,52 +75,39 @@ static std::vector< std::string > scheduler_names();
 static std::string get_default_type();
 
 //==================================================================
-BOOST_PYTHON_MODULE(scheduler_factory)
+PYBIND11_MODULE(scheduler_factory, m)
 {
-  // Define types
-  class_<sprokit::scheduler::description_t>("SchedulerDescription"
-    , "The type for a description of a process type.");
-  class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
-    , "The type for a process module name.");
-
   // Define unbound functions.
-  def("add_scheduler", &register_scheduler
-      , (arg("type"), arg("description"), arg("ctor"))
+  m.def("add_scheduler", &register_scheduler
+      , arg("type"), arg("description"), arg("ctor")
       , "Registers a function which creates a scheduler of the given type.");
 
-  def("create_scheduler", &sprokit::create_scheduler
-      , (arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config())
+  m.def("create_scheduler", &sprokit::create_scheduler
+      , arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config()
       , "Creates a new scheduler of the given type.");
 
 
-  def("is_scheduler_module_loaded", &is_scheduler_loaded
+  m.def("is_scheduler_module_loaded", &is_scheduler_loaded
       , (arg("module"))
       , "Returns True if the module has already been loaded, False otherwise.");
 
-  def("mark_scheduler_module_as_loaded", &mark_scheduler_loaded
+  m.def("mark_scheduler_module_as_loaded", &mark_scheduler_loaded
       , (arg("module"))
       , "Marks a module as loaded.");
 
-  def("types", &scheduler_names
+  m.def("types", &scheduler_names
       , "A list of known scheduler types.");
 
-  def("description", &get_description
+  m.def("description", &get_description
       , (arg("type"))
       , "The description for the given scheduler type.");
 
-  def("default_type", &get_default_type
+  m.def("default_type", &get_default_type
       , "The default scheduler type.");
 
 
-  class_<sprokit::scheduler::type_t>("SchedulerType"
-    , "The type for a type of scheduler.");
-
-  class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
-    , "The type for a scheduler module name.");
-
-  class_<sprokit::scheduler, sprokit::scheduler_t, boost::noncopyable>("Scheduler"
-    , "An abstract class which offers an interface for pipeline execution strategies."
-    , no_init)
+  class_<sprokit::scheduler, sprokit::scheduler_t>(m, "Scheduler"
+    , "An abstract class which offers an interface for pipeline execution strategies.")
     .def("start", &sprokit::scheduler::start
       , "Start the execution of the pipeline.")
     .def("wait", &sprokit::scheduler::wait
@@ -133,11 +116,6 @@ BOOST_PYTHON_MODULE(scheduler_factory)
       , "Stop the execution of the pipeline.")
   ;
 
-  class_<sprokit::scheduler_factory, sprokit::scheduler_factory, boost::noncopyable>("SchedulerFactory"
-    , "A registry of all known scheduler types."
-    , no_init)
-
-  ;
 }
 
 
@@ -261,5 +239,5 @@ python_scheduler_wrapper
 
   (void)gil;
 
-  return extract<sprokit::scheduler_t>(m_obj(pipeline, config));
+  return m_obj(pipeline, config).cast< sprokit::scheduler_t >();
 }

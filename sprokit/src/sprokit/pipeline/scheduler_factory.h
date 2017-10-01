@@ -69,7 +69,7 @@ scheduler_t
 create_new_scheduler( pipeline_t const& pipe,
                       kwiver::vital::config_block_sptr const& conf)
 {
-  return boost::make_shared<T>(pipe, conf);
+  return std::make_shared<T>(pipe, conf);
 }
 
 
