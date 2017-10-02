@@ -23,7 +23,7 @@ for row = 1:ROWS
     for col = 1:COLS
         if I(row,col)
             edgepoints = zeros(2*(ROWS+COLS),2);
-            count = 1;            
+            count = 1;
             edgepoints(count,:) = [row col];
             I(row,col) = 0;
             r = row+roff;
@@ -45,7 +45,7 @@ for row = 1:ROWS
                 nextcol = 0;
                 thereIsAPoint = 0;
             end
-            
+
             while thereIsAPoint
                 count = count+1;
                 edgepoints(count,:) = [nextrow nextcol];
@@ -90,7 +90,7 @@ for row = 1:ROWS
                 nextcol = 0;
                 thereIsAPoint = 0;
             end
-            
+
             while thereIsAPoint
                 count = count+1;
                 edgepoints(count,:) = [nextrow nextcol];
