@@ -34,8 +34,6 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <boost/lexical_cast.hpp>
-
 #include <vital/vital_foreach.h>
 
 #include "util.h"
@@ -43,6 +41,7 @@
 #include "SpeciesIDLib.h"
 
 #include <cmath>
+#include <string>
 
 namespace viame {
 
@@ -152,7 +151,7 @@ refine( kwiver::vital::image_container_sptr image_data,
 
     VITAL_FOREACH( int i, predictions )
     {
-      names.push_back( boost::lexical_cast< std::string >( i ) );
+      names.push_back( std::to_string( i ) );
     }
 
     auto dot = std::make_shared< kwiver::vital::detected_object_type >( names, probabilities );

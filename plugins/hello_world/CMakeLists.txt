@@ -1,8 +1,6 @@
 ###
 # Loadable algorithms
 
-find_package( OpenCV REQUIRED )
-
 set( plugin_headers
   hello_world_detector.h
   hello_world_filter.h
@@ -29,10 +27,32 @@ kwiver_add_library( viame_hello_world
   )
 
 target_link_libraries( viame_hello_world
-  PUBLIC               vital_algo
+  PUBLIC               vital
+                       vital_algo
+                       vital_config
+                       vital_logger
+                       vital_util
                        ${OpenCV_LIBRARIES}
   )
 
 algorithms_create_plugin( viame_hello_world
   register_algorithms.cxx
   )
+  
+target_link_libraries( viame_hello_world_plugin
+  PUBLIC               vital_vpm
+  )
+
+if( VIAME_ENABLE_PYTHON )
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    viame/processes/hello_world
+    __init__)
+
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_detector.py
+    viame/processes/hello_world
+    hello_world_detector)
+
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/hello_world_filter.py
+    viame/processes/hello_world
+    hello_world_filter)
+endif()

@@ -13,6 +13,10 @@ if( WIN32 )
   set( example_files
        ${example_files}
        run_vpview.bat )
+elseif( APPLE )
+  set( example_files
+       ${example_files}
+       run_vpview.mac.sh )
 else()
   set( example_files
        ${example_files}

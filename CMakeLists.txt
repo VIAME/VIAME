@@ -11,7 +11,7 @@ include( CMakeDependentOption )
 ###
 # Add paths used throughout CMakeLists files
 ##
-list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/CMake" "${KWIVER_CMAKE_DIR}" )
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVER_CMAKE_DIR}" )
 
 set( VIAME_SOURCE_DIR            "${CMAKE_SOURCE_DIR}" )
 set( VIAME_BINARY_DIR            "${CMAKE_BINARY_DIR}/build" )
@@ -44,33 +44,40 @@ option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
 ###
 # Add algorithmic plugin enable flags
 ##
-option( VIAME_ENABLE_VXL            "Enable VXL plugins"            OFF )
-option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         OFF )
+option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
+option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
-option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  OFF )
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugin"        OFF )
+option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
+option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
 ###
 # Add external package build instructions
 ##
-option( VIAME_BUILD_DEPENDENCIES  "Build all required dependencies in a super-build" ON )
-option( VIAME_CREATE_PACKAGE      "Build a binary package at the end of build"      OFF )
+option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
+option( VIAME_CREATE_PACKAGE        "Build a binary package at the end of build"      OFF )
 mark_as_advanced( VIAME_CREATE_PACKAGE )
+
+###
+# Add extra options
+##
+option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libtiff and libjpeg" ON )
+mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
 ###
 # Add logic relating to enable flags
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
-    VIAME_ENABLE_FASTER_RCNN )
+    VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_YOLO )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
 endif()
 
-if( VIAME_ENABLE_FASTER_RCNN )
+if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK )
   set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
 endif()
 
@@ -78,7 +85,7 @@ if( VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
 endif()
 
-if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_VIVIA )
+if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA )
   set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
 endif()
 
@@ -95,13 +102,11 @@ if( VIAME_ENABLE_DOCS )
 endif()
 
 if( VIAME_ENABLE_PYTHON )
-  if( APPLE )
-    message( FATAL_ERROR "Python on mac currently not working properly, please \
-      either disable python or if you're ambitious, remove this comment and continue \
-      with it on to see if it builds for you." )
-  endif()
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
+
+  option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
+  mark_as_advanced( VIAME_SYMLINK_PYTHON )
 
   find_package( PythonInterp REQUIRED )
   find_package( PythonLibs REQUIRED )
@@ -127,6 +132,9 @@ if( VIAME_ENABLE_PYTHON )
     message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
       make sure the variable is set correctly and you have python-dev installed." )
   endif()
+
+  set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+       CACHE STRING "Python version number" )
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
@@ -141,6 +149,11 @@ endif()
 
 if( VIAME_ENABLE_CUDA )
   find_package( CUDA QUIET REQUIRED )
+
+  option(VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE)
+  mark_as_advanced(VIAME_FORCE_CUDA_CSTD98)
+else()
+  set(VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE)
 endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
@@ -177,8 +190,13 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
-  set( VIAME_OPENCV_VERSION 2.4.11 CACHE STRING "Version of OpenCV to use" )
-  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.11 3.1.0 )
+  set( VIAME_OPENCV_VERSION 2.4.13 CACHE STRING "Version of OpenCV to use" )
+  set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.13 3.1.0 3.3.0 )
+
+  # Version 2.4.11 no longer present fletch
+  if( ${VIAME_OPENCV_VERSION} EQUAL "2.4.11" )
+    set( VIAME_OPENCV_VERSION "2.4.13" CACHE STRING "Version of OpenCV to use" FORCE )
+  endif()
 endif()
 
 # Set default windows configuration mode to be 'Release'
@@ -197,6 +215,12 @@ endif()
 if( MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.00" )
   message( FATAL_ERROR "You must use at least MSVC version 13 or greater" )
 endif()
+# if we have a 32 bit build, turn off Eigen alignment for more information see:
+# http://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html
+if( CMAKE_SIZEOF_VOID_P EQUAL 4 )
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -DEIGEN_DONT_VECTORIZE -DEIGEN_DISABLE_UNALIGNED_ARRAY_ASSERT")
+endif()
 
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
@@ -205,6 +229,15 @@ include( common_macros )
 # Main build loop for when we are building both VIAME and all dependencies
 ##
 if( VIAME_BUILD_DEPENDENCIES )
+
+  # Early error checking in case user did not run submodule init
+  file( GLOB fletch_files ${VIAME_PACKAGES_DIR}/fletch/* )
+  list( LENGTH fletch_files fletch_length )
+
+  if( ${fletch_length} LESS 3 )
+    message( FATAL_ERROR "Fletch directory empty, did you not run the following in your source tree: \n\
+     git submodule update --init --recursive" )
+  endif()
 
   # Include for CMake external project add command
   include( ExternalProject )
@@ -215,9 +248,13 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Hard VIAME requirements
   include( add_project_fletch )
 
-  # Add optional YOLO build
+  # Add optional projects
   if( VIAME_ENABLE_YOLO )
     include( add_project_darknet )
+  endif()
+
+  if( VIAME_ENABLE_BURNOUT )
+    include( add_project_burnout )
   endif()
 
   # Add core (required) kwiver requirement
@@ -226,10 +263,6 @@ if( VIAME_BUILD_DEPENDENCIES )
   # Add other optional libraries
   if( VIAME_ENABLE_SCALLOP_TK )
     include( add_project_scallop_tk )
-  endif()
-
-  if( VIAME_ENABLE_BURNOUT )
-    include( add_project_burnout )
   endif()
 
   if( VIAME_ENABLE_VIVIA )
@@ -242,6 +275,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_FASTER_RCNN )
     include( add_project_faster_rcnn )
+  endif()
+
+  if( VIAME_ENABLE_SMQTK )
+    include( add_project_smqtk )
   endif()
 
   # VIAME plugins, adds this project causing the below else() block to run
@@ -319,29 +356,35 @@ else()
     set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
     set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
     set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
+    set( VIAME_SETUP_SCRIPT             "${VIAME_BINARY_DIR}/setup_viame.bat" )
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/pipeline_runner.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/pipeline_runner.bat.in
       ${VIAME_PIPELINE_RUNNER_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/processopedia.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/processopedia.bat.in
       ${VIAME_PROCESSOPEDIA_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/plugin_explorer.bat.in
+      ${CMAKE_SOURCE_DIR}/cmake/plugin_explorer.bat.in
       ${VIAME_PLUGIN_EXPLORER_SCRIPT}
+    )
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/cmake/setup_viame.bat.in
+      ${VIAME_SETUP_SCRIPT}
     )
 
     install( PROGRAMS      ${VIAME_PIPELINE_RUNNER_SCRIPT}
                            ${VIAME_PROCESSOPEDIA_SCRIPT}
                            ${VIAME_PLUGIN_EXPLORER_SCRIPT}
+                           ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
   else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/CMake/setup_viame.sh.in
+      ${CMAKE_SOURCE_DIR}/cmake/setup_viame.sh.in
       ${VIAME_SETUP_SCRIPT_FILE}
     )
 

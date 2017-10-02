@@ -1,0 +1,6 @@
+# file, GSD, GCS, { easting, northing } ( ul, ur, ll, lr )
+"bluemarble-low-res/world.topo.bathy.200405.3x5400x2700.mrj", 40000, 4326,
+  -180,  90,
+   180,  90,
+  -180, -90,
+   180, -90;

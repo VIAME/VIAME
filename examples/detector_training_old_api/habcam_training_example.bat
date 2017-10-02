@@ -2,10 +2,7 @@
 
 REM Setup VIAME Paths (no need to set if installed to registry or already set up)
 
-SET VIAME_INSTALL=%~dp0\..\..\
-
-SET KWIVER_PLUGIN_PATH=%KWIVER_PLUGIN_PATH%;%VIAME_INSTALL%\lib\modules
-SET KWIVER_PLUGIN_PATH=%KWIVER_PLUGIN_PATH%;%VIAME_INSTALL%\lib\sprokit
+CALL .\..\..\setup_viame.bat
 
 REM Setup Settings
 

@@ -33,15 +33,29 @@ kwiver_add_library( viame_scallop_tk
   )
 
 target_link_libraries( viame_scallop_tk
-  PUBLIC               vital
+  PUBLIC               vital vital_algo vital_config vital_logger
                        kwiver_algo_ocv
+                       opencv_core opencv_legacy
                        ScallopTK
   )
 
-if(VIAME_ENABLE_CAFFE AND WIN32)
-  target_link_libraries(viame_scallop_tk PUBLIC caffe glog)
+if( VIAME_ENABLE_CAFFE AND WIN32 )
+  target_link_libraries( viame_scallop_tk
+    PUBLIC             caffe glog )
+endif()
+
+if( VIAME_ENABLE_CUDA )
+  target_link_libraries( viame_scallop_tk
+    PUBLIC             ${CUDA_CUDA_LIBRARY}
+                       ${CUDA_LIBRARIES}
+                       ${CUDA_CUBLAS_LIBRARIES}
+                       ${CUDA_curand_LIBRARY} )
 endif()
 
 algorithms_create_plugin( viame_scallop_tk
   register_algorithms.cxx
+  )
+
+target_link_libraries( viame_scallop_tk_plugin
+  PUBLIC               vital_vpm
   )

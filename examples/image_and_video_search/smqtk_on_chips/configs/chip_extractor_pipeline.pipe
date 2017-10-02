@@ -1,0 +1,74 @@
+# Runs an object detector and dumps chips around detections out of it, for later
+# possible ingest into a database.
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+# ================================= INPUT VIDEO ====================================
+#process input
+#  :: video_input
+#  :input_name      [video_name]
+#  :video_io:type   vidl_ffmpeg
+
+process input
+  :: frame_list_input
+  :image_list_file     input_list.txt
+  :frame_time          .03333
+  :image_reader:type   ocv
+
+# ================================= DOWNSAMPLER ====================================
+
+#process downsampler
+#  :: image_object_detector
+#  :downsampler:type       core
+#  :downsampler:frame_rate 10
+
+#connect from input.image
+#        to   downsampler.image
+
+# ================================== DETECTOR ======================================
+
+process detector
+  :: image_object_detector
+  :detector:type                  darknet
+
+  # Network config
+  :detector:darknet:net_config    ../../detector_pipelines/models/model2.cfg
+  :detector:darknet:weight_file   ../../detector_pipelines/models/model2.weights
+  :detector:darknet:class_names   ../../detector_pipelines/models/scallop_and_fish.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh        0.25
+  :detector:darknet:hier_thresh   0.01
+  :detector:darknet:gpu_index     0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option maintain_ar
+  :detector:darknet:resize_ni     544
+  :detector:darknet:resize_nj     544
+  :detector:darknet:scale         1.0
+
+#connect from downsampler.image
+#        to   detector.image
+connect from input.image
+        to   detector.image
+
+# ================================ IMAGE CHIPPER ===================================
+
+process chipper
+  :: refine_detections
+  :refiner:type                ocv_draw
+  :refiner:ocv_draw:pattern    tiles/feature_tracks_%05d.png
+
+#connect from downsampler.image
+#        to   chipper.image
+connect from input.image
+        to   chipper.image
+
+connect from detector.detected_object_set
+        to   chipper.detected_object_set
+
+# -- end of file --
