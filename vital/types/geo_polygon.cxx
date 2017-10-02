@@ -174,8 +174,10 @@ config_block_set_value_cast( geo_polygon const& value )
     []( double cur, vector_2d const& p ) {
       return std::max( { cur, std::fabs( p[0] ), std::fabs( p[1] ) } );
     });
+  auto const idigits =
+    static_cast<int>( std::floor( std::log10( magnitude ) ) ) + 1;
 
-  str_result.precision( 20 - static_cast<int>( std::ceil( magnitude ) ) );
+  str_result.precision( std::max( 0, 20 - idigits ) );
   str_result.setf( std::ios::fixed );
 
   // Write vertex coordinates
