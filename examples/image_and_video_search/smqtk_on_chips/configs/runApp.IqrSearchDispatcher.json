@@ -4,8 +4,9 @@
         "BASIC_AUTH_USERNAME": "demo",
         "SECRET_KEY": "MySuperUltraSecret"
     },
-    "iqr_tabs": {
-        "Data-set Iqr": {
+    "iqr_tabs" : [
+        {
+            "name": "data-set",
             "data_set": {
                 "DataMemorySet": {
                     "file_cache": "models/image_elements.dms_cache",
@@ -92,9 +93,10 @@
                 },
                 "type": "LibSvmHikRelevancyIndex"
             },
+            "url_prefix": "fish",
             "working_directory": "models/iqr_app_work"
         }
-    },
+    ],
     "mongo": {
         "database": "smqtk",
         "server": "127.0.0.1:27017"

@@ -6,6 +6,6 @@
 #
 source ../../../setup_viame.sh
 
-runApplication -a IqrSearchDispatcher \
+runApplication -a IqrSearchApp \
   -c configs/runApp.IqrSearchDispatcher.json \
   -tv
