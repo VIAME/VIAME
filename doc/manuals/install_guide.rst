@@ -19,7 +19,7 @@ should help to provide a starting point.
 .. code::
 
   sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
-  sudo apt-get build-dep libboost-all-dev qt5-default
+  sudo apt-get build-dep libboost-all-dev
 
 Install CMAKE
 =============
