@@ -61,11 +61,16 @@ if( VIAME_ENABLE_SCALLOP_TK AND VIAME_ENABLE_YOLO )
        multi_cnn_detector.pipe )
 endif()
 
-if( VIAME_ENABLE_MATLAB AND VIAME_ENABLE_UW_PREDICTOR )
+if( VIAME_ENABLE_MATLAB )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       camtrawl_pipeline.pipe
        lanl_detector.pipe )
+
+  if( VIAME_ENABLE_UW_PREDICTOR )
+    set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       camtrawl_pipeline.pipe )
+  endif()
 
   if( NOT WIN32 )
     set( EXAMPLE_INSTALL_FILES
