@@ -51,9 +51,9 @@ class VITAL_EXPORT algorithm_exception
     /// Constructor
     algorithm_exception(std::string type,
                         std::string impl,
-                        std::string reason) VITAL_NOTHROW;
+                        std::string reason) noexcept;
     /// Deconstructor
-    virtual ~algorithm_exception() VITAL_NOTHROW;
+    virtual ~algorithm_exception() noexcept;
 
     /// The name of the algorithm type
     std::string m_algo_type;
@@ -75,9 +75,9 @@ class VITAL_EXPORT algorithm_configuration_exception
     /// Constructor
     algorithm_configuration_exception(std::string type,
                                       std::string impl,
-                                      std::string reason) VITAL_NOTHROW;
+                                      std::string reason) noexcept;
     /// Destructor
-    virtual ~algorithm_configuration_exception() VITAL_NOTHROW;
+    virtual ~algorithm_configuration_exception() noexcept;
 };
 
 
@@ -89,10 +89,10 @@ class VITAL_EXPORT invalid_name_exception
   public:
     /// Constructor
     invalid_name_exception(std::string type,
-                           std::string impl) VITAL_NOTHROW;
+                           std::string impl) noexcept;
 
     /// Destructor
-    virtual ~invalid_name_exception() VITAL_NOTHROW;
+    virtual ~invalid_name_exception() noexcept;
 };
 
 } } // end namespace vital

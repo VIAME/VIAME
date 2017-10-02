@@ -64,7 +64,7 @@ class VITAL_VIDEO_METADATA_EXPORT video_metadata_exception
 public:
   video_metadata_exception( std::string const& str );
 
-  virtual ~video_metadata_exception() VITAL_NOTHROW;
+  virtual ~video_metadata_exception() noexcept;
 };
 
 

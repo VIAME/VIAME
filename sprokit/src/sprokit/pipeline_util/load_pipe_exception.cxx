@@ -42,20 +42,20 @@ namespace sprokit
 {
 
 load_pipe_exception
-::load_pipe_exception() VITAL_NOTHROW
+::load_pipe_exception() noexcept
   : pipeline_exception()
 {
 }
 
 load_pipe_exception
-::~load_pipe_exception() VITAL_NOTHROW
+::~load_pipe_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 file_no_exist_exception
-::file_no_exist_exception( kwiver::vital::path_t const& fname) VITAL_NOTHROW
+::file_no_exist_exception( kwiver::vital::path_t const& fname) noexcept
   : load_pipe_exception()
   , m_fname(fname)
 {
@@ -66,14 +66,14 @@ file_no_exist_exception
 }
 
 file_no_exist_exception
-::~file_no_exist_exception() VITAL_NOTHROW
+::~file_no_exist_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 parsing_exception::
-parsing_exception( const std::string& msg ) VITAL_NOTHROW
+parsing_exception( const std::string& msg ) noexcept
 : load_pipe_exception()
 {
   m_what = msg;
@@ -81,7 +81,7 @@ parsing_exception( const std::string& msg ) VITAL_NOTHROW
 
 
 parsing_exception::
-~parsing_exception() VITAL_NOTHROW
+~parsing_exception() noexcept
 { }
 
 }

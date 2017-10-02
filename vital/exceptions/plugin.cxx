@@ -41,51 +41,51 @@ namespace vital {
 
 // ------------------------------------------------------------------
 plugin_exception
-::plugin_exception() VITAL_NOTHROW
+::plugin_exception() noexcept
 {
 }
 
 plugin_exception
-::~plugin_exception() VITAL_NOTHROW
+::~plugin_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 plugin_factory_not_found
-::plugin_factory_not_found( std::string const& msg) VITAL_NOTHROW
+::plugin_factory_not_found( std::string const& msg) noexcept
 {
   m_what = msg;
 }
 
 plugin_factory_not_found
-::~plugin_factory_not_found() VITAL_NOTHROW
+::~plugin_factory_not_found() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 plugin_factory_type_creation_error
-::plugin_factory_type_creation_error( std::string const& msg) VITAL_NOTHROW
+::plugin_factory_type_creation_error( std::string const& msg) noexcept
 {
   m_what = msg;
 }
 
 plugin_factory_type_creation_error
-::~plugin_factory_type_creation_error() VITAL_NOTHROW
+::~plugin_factory_type_creation_error() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 plugin_already_exists
-::plugin_already_exists( std::string const& msg) VITAL_NOTHROW
+::plugin_already_exists( std::string const& msg) noexcept
 {
   m_what = msg;
 }
 
 plugin_already_exists
-::~plugin_already_exists() VITAL_NOTHROW
+::~plugin_already_exists() noexcept
 {
 }
 

@@ -41,21 +41,21 @@ namespace vital {
 
 // ------------------------------------------------------------------
 io_exception
-::io_exception() VITAL_NOTHROW
+::io_exception() noexcept
 {
   m_what = "An IO exception occurred.";
 }
 
 
 io_exception
-::~io_exception() VITAL_NOTHROW
+::~io_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 path_not_exists
-::path_not_exists( path_t const& path ) VITAL_NOTHROW
+::path_not_exists( path_t const& path ) noexcept
 {
   std::ostringstream sstr;
 
@@ -65,42 +65,42 @@ path_not_exists
 
 
 path_not_exists
-::~path_not_exists() VITAL_NOTHROW
+::~path_not_exists() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 path_not_a_file
-::path_not_a_file( path_t const& path ) VITAL_NOTHROW
+::path_not_a_file( path_t const& path ) noexcept
 {
   m_what = "Path does not point to a file: " + path;
 }
 
 
 path_not_a_file
-::~path_not_a_file() VITAL_NOTHROW
+::~path_not_a_file() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 path_not_a_directory
-::path_not_a_directory( path_t const& path ) VITAL_NOTHROW
+::path_not_a_directory( path_t const& path ) noexcept
 {
   m_what = "Path does not point to a directory: " + path;
 }
 
 
 path_not_a_directory
-::~path_not_a_directory() VITAL_NOTHROW
+::~path_not_a_directory() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 invalid_file
-::invalid_file( path_t const& path, std::string const& reason ) VITAL_NOTHROW
+::invalid_file( path_t const& path, std::string const& reason ) noexcept
 {
   std::ostringstream ss;
 
@@ -110,28 +110,28 @@ invalid_file
 
 
 invalid_file
-::~invalid_file() VITAL_NOTHROW
+::~invalid_file() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 invalid_data
-::invalid_data( std::string const& reason ) VITAL_NOTHROW
+::invalid_data( std::string const& reason ) noexcept
 {
   m_what = "Invalid data: " + reason;
 }
 
 
 invalid_data
-::~invalid_data() VITAL_NOTHROW
+::~invalid_data() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 file_not_found_exception
-::file_not_found_exception( path_t const& file_path, std::string const& reason ) VITAL_NOTHROW
+::file_not_found_exception( path_t const& file_path, std::string const& reason ) noexcept
 {
   std::ostringstream sstr;
 
@@ -142,14 +142,14 @@ file_not_found_exception
 
 
 file_not_found_exception
-::~file_not_found_exception() VITAL_NOTHROW
+::~file_not_found_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 file_not_read_exception
-::file_not_read_exception( path_t const& file_path, std::string const& reason ) VITAL_NOTHROW
+::file_not_read_exception( path_t const& file_path, std::string const& reason ) noexcept
 {
   std::ostringstream sstr;
 
@@ -160,14 +160,14 @@ file_not_read_exception
 
 
 file_not_read_exception
-::~file_not_read_exception() VITAL_NOTHROW
+::~file_not_read_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 file_write_exception
-::file_write_exception( path_t const& file_path, std::string const& reason ) VITAL_NOTHROW
+::file_write_exception( path_t const& file_path, std::string const& reason ) noexcept
 {
   std::ostringstream sstr;
 
@@ -178,7 +178,7 @@ file_write_exception
 
 
 file_write_exception
-::~file_write_exception() VITAL_NOTHROW
+::~file_write_exception() noexcept
 {
 }
 

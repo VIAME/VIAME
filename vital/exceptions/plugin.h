@@ -48,10 +48,10 @@ class VITAL_EXPORT plugin_exception
 {
 public:
   /// Constructor
-  plugin_exception() VITAL_NOTHROW;
+  plugin_exception() noexcept;
 
   /// Destructor
-  virtual ~plugin_exception() VITAL_NOTHROW;
+  virtual ~plugin_exception() noexcept;
 };
 
 
@@ -62,10 +62,10 @@ class VITAL_EXPORT plugin_factory_not_found
 {
 public:
   /// Constructor
-  plugin_factory_not_found( std::string const& msg) VITAL_NOTHROW;
+  plugin_factory_not_found( std::string const& msg) noexcept;
 
   /// Destructor
-  virtual ~plugin_factory_not_found() VITAL_NOTHROW;
+  virtual ~plugin_factory_not_found() noexcept;
 };
 
 
@@ -76,10 +76,10 @@ class VITAL_EXPORT plugin_factory_type_creation_error
 {
 public:
   /// Constructor
-  plugin_factory_type_creation_error( std::string const& msg) VITAL_NOTHROW;
+  plugin_factory_type_creation_error( std::string const& msg) noexcept;
 
   /// Destructor
-  virtual ~plugin_factory_type_creation_error() VITAL_NOTHROW;
+  virtual ~plugin_factory_type_creation_error() noexcept;
 };
 
 
@@ -90,10 +90,10 @@ class VITAL_EXPORT plugin_already_exists
 {
 public:
   /// Constructor
-  plugin_already_exists( std::string const& msg) VITAL_NOTHROW;
+  plugin_already_exists( std::string const& msg) noexcept;
 
   /// Destructor
-  virtual ~plugin_already_exists() VITAL_NOTHROW;
+  virtual ~plugin_already_exists() noexcept;
 };
 
 } } // end namespace

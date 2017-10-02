@@ -50,9 +50,9 @@ class VITAL_EXPORT math_exception
 {
 public:
   /// Constructor
-  math_exception() VITAL_NOTHROW;
+  math_exception() noexcept;
   /// Destructor
-  virtual ~math_exception() VITAL_NOTHROW;
+  virtual ~math_exception() noexcept;
 };
 
 
@@ -62,9 +62,9 @@ class VITAL_EXPORT non_invertible_matrix
 {
 public:
   /// Constructor
-  non_invertible_matrix() VITAL_NOTHROW;
+  non_invertible_matrix() noexcept;
   /// Destructor
-  virtual ~non_invertible_matrix() VITAL_NOTHROW;
+  virtual ~non_invertible_matrix() noexcept;
 };
 
 
@@ -74,9 +74,9 @@ class VITAL_EXPORT point_maps_to_infinity
 {
 public:
   /// Constructor
-  point_maps_to_infinity() VITAL_NOTHROW;
+  point_maps_to_infinity() noexcept;
   /// Destructor
-  virtual ~point_maps_to_infinity() VITAL_NOTHROW;
+  virtual ~point_maps_to_infinity() noexcept;
 };
 
 
@@ -89,9 +89,9 @@ public:
   /*
    * \param reason  The reason for invalidity.
    */
-  invalid_matrix_operation(std::string reason) VITAL_NOTHROW;
+  invalid_matrix_operation(std::string reason) noexcept;
   /// Destructor
-  virtual ~invalid_matrix_operation() VITAL_NOTHROW;
+  virtual ~invalid_matrix_operation() noexcept;
 
   /// Reason the operation is invalid
   std::string m_reason;

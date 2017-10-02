@@ -176,7 +176,7 @@ public:
    * \returns The value stored within the configuration, or \p def if something goes wrong.
    */
   template < typename T >
-  T get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW;
+  T get_value( config_block_key_t const& key, T const& def ) const noexcept;
 
 
   /**
@@ -693,7 +693,7 @@ config_block
 template < typename T >
 T
 config_block
-::get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW
+::get_value( config_block_key_t const& key, T const& def ) const noexcept
 {
   try
   {
