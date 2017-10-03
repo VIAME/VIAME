@@ -45,6 +45,8 @@
 // Support macros.
 #if defined(_WIN32) || defined(_WIN64)
 
+// TODO use C++17 attributes if available
+
 # define VITAL_MUST_USE_RESULT  /* unsupported */
 # define VITAL_UNUSED           /* unsupported */
 # define VITAL_SYSTEM_WIN_API (1)
@@ -56,6 +58,8 @@
 # define VITAL_SYSTEM_WIN_API (0)
 
 #else
+
+// TODO use C++17 attributes if available
 
 # define VITAL_MUST_USE_RESULT  /* unsupported */
 # define VITAL_UNUSED           /* unsupported */
