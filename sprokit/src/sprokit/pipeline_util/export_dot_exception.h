@@ -58,11 +58,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT export_dot_exception
     /**
      * \brief Constructor.
      */
-    export_dot_exception() VITAL_NOTHROW;
+    export_dot_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~export_dot_exception() VITAL_NOTHROW;
+    virtual ~export_dot_exception() noexcept;
 };
 
 /**
@@ -79,11 +79,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT null_pipeline_export_dot_exception
     /**
      * \brief Constructor.
      */
-    null_pipeline_export_dot_exception() VITAL_NOTHROW;
+    null_pipeline_export_dot_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_pipeline_export_dot_exception() VITAL_NOTHROW;
+    ~null_pipeline_export_dot_exception() noexcept;
 };
 
 /**
@@ -100,11 +100,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT null_cluster_export_dot_exception
     /**
      * \brief Constructor.
      */
-    null_cluster_export_dot_exception() VITAL_NOTHROW;
+    null_cluster_export_dot_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_cluster_export_dot_exception() VITAL_NOTHROW;
+    ~null_cluster_export_dot_exception() noexcept;
 };
 
 /**
@@ -121,11 +121,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT empty_name_export_dot_exception
     /**
      * \brief Constructor.
      */
-    empty_name_export_dot_exception() VITAL_NOTHROW;
+    empty_name_export_dot_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~empty_name_export_dot_exception() VITAL_NOTHROW;
+    ~empty_name_export_dot_exception() noexcept;
 };
 
 }

@@ -106,7 +106,7 @@ track_features_core
 
 /// Destructor
 track_features_core
-::~track_features_core() VITAL_NOTHROW
+::~track_features_core() noexcept
 {
 }
 

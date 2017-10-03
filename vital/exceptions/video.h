@@ -50,10 +50,10 @@ class VITAL_EXPORT video_exception
 {
 public:
   /// Constructor
-  video_exception() VITAL_NOTHROW;
+  video_exception() noexcept;
 
   /// Destructor
-  virtual ~video_exception() VITAL_NOTHROW;
+  virtual ~video_exception() noexcept;
 };
 
 
@@ -68,10 +68,10 @@ class VITAL_EXPORT video_input_timeout_exception
 {
 public:
   /// Constructor
-  video_input_timeout_exception() VITAL_NOTHROW;
+  video_input_timeout_exception() noexcept;
 
   /// Destructor
-  virtual ~video_input_timeout_exception() VITAL_NOTHROW;
+  virtual ~video_input_timeout_exception() noexcept;
 };
 
 
@@ -86,10 +86,10 @@ class VITAL_EXPORT video_stream_exception
 {
 public:
   /// Constructor
-  video_stream_exception( std::string const& msg ) VITAL_NOTHROW;
+  video_stream_exception( std::string const& msg ) noexcept;
 
   /// Destructor
-  virtual ~video_stream_exception() VITAL_NOTHROW;
+  virtual ~video_stream_exception() noexcept;
 };
 
 
@@ -104,10 +104,10 @@ class VITAL_EXPORT video_config_exception
 {
 public:
   /// Constructor
-  video_config_exception( std::string const& msg ) VITAL_NOTHROW;
+  video_config_exception( std::string const& msg ) noexcept;
 
   /// Destructor
-  virtual ~video_config_exception() VITAL_NOTHROW;
+  virtual ~video_config_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -121,10 +121,10 @@ class VITAL_EXPORT video_runtime_exception
 {
 public:
   /// Constructor
-  video_runtime_exception( std::string const& msg ) VITAL_NOTHROW;
+  video_runtime_exception( std::string const& msg ) noexcept;
 
   /// Destructor
-  virtual ~video_runtime_exception() VITAL_NOTHROW;
+  virtual ~video_runtime_exception() noexcept;
 };
 
 } } // end namespace

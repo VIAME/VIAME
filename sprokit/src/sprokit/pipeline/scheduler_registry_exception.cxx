@@ -42,7 +42,7 @@ namespace sprokit{
 
 // ------------------------------------------------------------------
 scheduler_registry_exception
-::scheduler_registry_exception() VITAL_NOTHROW
+::scheduler_registry_exception() noexcept
   : pipeline_exception()
 {
 }
@@ -50,14 +50,14 @@ scheduler_registry_exception
 
 // ------------------------------------------------------------------
 scheduler_registry_exception
-::~scheduler_registry_exception() VITAL_NOTHROW
+::~scheduler_registry_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 null_scheduler_ctor_exception
-::null_scheduler_ctor_exception(sprokit::scheduler::type_t const& type) VITAL_NOTHROW
+::null_scheduler_ctor_exception(sprokit::scheduler::type_t const& type) noexcept
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -72,14 +72,14 @@ null_scheduler_ctor_exception
 
 // ------------------------------------------------------------------
 null_scheduler_ctor_exception
-::~null_scheduler_ctor_exception() VITAL_NOTHROW
+::~null_scheduler_ctor_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 null_scheduler_registry_config_exception
-::null_scheduler_registry_config_exception() VITAL_NOTHROW
+::null_scheduler_registry_config_exception() noexcept
   : scheduler_registry_exception()
 {
   std::ostringstream sstr;
@@ -92,14 +92,14 @@ null_scheduler_registry_config_exception
 
 // ------------------------------------------------------------------
 null_scheduler_registry_config_exception
-::~null_scheduler_registry_config_exception() VITAL_NOTHROW
+::~null_scheduler_registry_config_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 null_scheduler_registry_pipeline_exception
-::null_scheduler_registry_pipeline_exception() VITAL_NOTHROW
+::null_scheduler_registry_pipeline_exception() noexcept
   : scheduler_registry_exception()
 {
   std::ostringstream sstr;
@@ -112,14 +112,14 @@ null_scheduler_registry_pipeline_exception
 
 // ------------------------------------------------------------------
 null_scheduler_registry_pipeline_exception
-::~null_scheduler_registry_pipeline_exception() VITAL_NOTHROW
+::~null_scheduler_registry_pipeline_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 no_such_scheduler_type_exception
-::no_such_scheduler_type_exception(sprokit::scheduler::type_t const& type) VITAL_NOTHROW
+::no_such_scheduler_type_exception(sprokit::scheduler::type_t const& type) noexcept
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -134,14 +134,14 @@ no_such_scheduler_type_exception
 
 // ------------------------------------------------------------------
 no_such_scheduler_type_exception
-::~no_such_scheduler_type_exception() VITAL_NOTHROW
+::~no_such_scheduler_type_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 scheduler_type_already_exists_exception
-::scheduler_type_already_exists_exception(sprokit::scheduler::type_t const& type) VITAL_NOTHROW
+::scheduler_type_already_exists_exception(sprokit::scheduler::type_t const& type) noexcept
   : scheduler_registry_exception()
   , m_type(type)
 {
@@ -156,7 +156,7 @@ scheduler_type_already_exists_exception
 
 // ------------------------------------------------------------------
 scheduler_type_already_exists_exception
-::~scheduler_type_already_exists_exception() VITAL_NOTHROW
+::~scheduler_type_already_exists_exception() noexcept
 {
 }
 

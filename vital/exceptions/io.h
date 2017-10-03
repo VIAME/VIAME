@@ -50,9 +50,9 @@ class VITAL_EXPORT io_exception
 {
 public:
   /// Constructor
-  io_exception() VITAL_NOTHROW;
+  io_exception() noexcept;
   /// Destructor
-  virtual ~io_exception() VITAL_NOTHROW;
+  virtual ~io_exception() noexcept;
 };
 
 
@@ -66,9 +66,9 @@ public:
   /**
    * \param path The path that doesn't point to an existing file or directory
    */
-  path_not_exists(path_t const& path) VITAL_NOTHROW;
+  path_not_exists(path_t const& path) noexcept;
   /// Destructor
-  virtual ~path_not_exists() VITAL_NOTHROW;
+  virtual ~path_not_exists() noexcept;
 };
 
 
@@ -82,9 +82,9 @@ public:
   /**
    * \param path The path that doesn't point to a file.
    */
-  path_not_a_file(path_t const& path) VITAL_NOTHROW;
+  path_not_a_file(path_t const& path) noexcept;
   /// Destructor
-  virtual ~path_not_a_file() VITAL_NOTHROW;
+  virtual ~path_not_a_file() noexcept;
 };
 
 
@@ -98,9 +98,9 @@ public:
   /**
    * \param path The path that doesn't point to a directory.
    */
-  path_not_a_directory(path_t const& path) VITAL_NOTHROW;
+  path_not_a_directory(path_t const& path) noexcept;
   /// Destructor
-  virtual ~path_not_a_directory() VITAL_NOTHROW;
+  virtual ~path_not_a_directory() noexcept;
 };
 
 
@@ -115,9 +115,9 @@ public:
    * \param file    The file that has been deemed invalid
    * \param reason  The reason for invalidity.
    */
-  invalid_file(path_t const& file, std::string const& reason) VITAL_NOTHROW;
+  invalid_file(path_t const& file, std::string const& reason) noexcept;
   /// Destructor
-  virtual ~invalid_file() VITAL_NOTHROW;
+  virtual ~invalid_file() noexcept;
 };
 
 
@@ -128,9 +128,9 @@ class VITAL_EXPORT invalid_data
 {
 public:
   /// Constructor
-  invalid_data(std::string const& reason) VITAL_NOTHROW;
+  invalid_data(std::string const& reason) noexcept;
   /// Destructor
-  virtual ~invalid_data() VITAL_NOTHROW;
+  virtual ~invalid_data() noexcept;
 };
 
 
@@ -145,9 +145,9 @@ public:
    * \param file_path The file path that was looked for.
    * \param reason    The reason the file wasn't found.
    */
-  file_not_found_exception( path_t const& file_path, std::string const& reason ) VITAL_NOTHROW;
+  file_not_found_exception( path_t const& file_path, std::string const& reason ) noexcept;
   /// Deconstructor
-  virtual ~file_not_found_exception() VITAL_NOTHROW;
+  virtual ~file_not_found_exception() noexcept;
 };
 
 
@@ -162,9 +162,9 @@ public:
    * \param file_path The file path on which the read was attempted.
    * \param reason    The reason for the read exception.
    */
-  file_not_read_exception( path_t const& file_path, std::string const& reason ) VITAL_NOTHROW;
+  file_not_read_exception( path_t const& file_path, std::string const& reason ) noexcept;
   /// Deconstructor
-  virtual ~file_not_read_exception() VITAL_NOTHROW;
+  virtual ~file_not_read_exception() noexcept;
 };
 
 
@@ -179,9 +179,9 @@ public:
    * \param file_path The file path to which the write was attempted.
    * \param reason    The reason for the exception
    */
-  file_write_exception( path_t const& file_path, std::string const& reason ) VITAL_NOTHROW;
+  file_write_exception( path_t const& file_path, std::string const& reason ) noexcept;
   /// Deconstructor
-  virtual ~file_write_exception() VITAL_NOTHROW;
+  virtual ~file_write_exception() noexcept;
 };
 
 

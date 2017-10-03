@@ -50,9 +50,9 @@ class VITAL_EXPORT image_exception
 {
 public:
   /// Constructor
-  image_exception() VITAL_NOTHROW;
+  image_exception() noexcept;
   /// Destructor
-  virtual ~image_exception() VITAL_NOTHROW;
+  virtual ~image_exception() noexcept;
 };
 
 
@@ -69,9 +69,9 @@ public:
   /**
    * \param message     Description of circumstances surrounding error.
    */
-  image_type_mismatch_exception(std::string message) VITAL_NOTHROW;
+  image_type_mismatch_exception(std::string message) noexcept;
   /// Destructor
-  virtual ~image_type_mismatch_exception() VITAL_NOTHROW;
+  virtual ~image_type_mismatch_exception() noexcept;
 
   /// Given error message string
   std::string m_message;
@@ -97,9 +97,9 @@ public:
    */
   image_size_mismatch_exception(std::string message,
                                 size_t correct_w, size_t correct_h,
-                                size_t given_w, size_t given_h) VITAL_NOTHROW;
+                                size_t given_w, size_t given_h) noexcept;
   /// Destructor
-  virtual ~image_size_mismatch_exception() VITAL_NOTHROW;
+  virtual ~image_size_mismatch_exception() noexcept;
 
   /// Given error message string
   std::string m_message;

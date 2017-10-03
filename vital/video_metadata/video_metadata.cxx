@@ -55,7 +55,7 @@ video_metadata_exception
 
 
 video_metadata_exception
-::~video_metadata_exception() VITAL_NOTHROW
+::~video_metadata_exception() noexcept
 { }
 
 

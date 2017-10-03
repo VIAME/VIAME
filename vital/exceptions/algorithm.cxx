@@ -42,7 +42,7 @@ namespace vital {
 algorithm_exception
 ::algorithm_exception(std::string type,
                       std::string impl,
-                      std::string reason) VITAL_NOTHROW
+                      std::string reason) noexcept
   : m_algo_type(type)
   , m_algo_impl(impl)
   , m_reason(reason)
@@ -55,14 +55,14 @@ algorithm_exception
 }
 
 algorithm_exception
-::~algorithm_exception() VITAL_NOTHROW
+::~algorithm_exception() noexcept
 {
 }
 
 algorithm_configuration_exception
 ::algorithm_configuration_exception(std::string type,
                                     std::string impl,
-                                    std::string reason) VITAL_NOTHROW
+                                    std::string reason) noexcept
   : algorithm_exception(type, impl, reason)
 {
   std::ostringstream sstr;
@@ -73,13 +73,13 @@ algorithm_configuration_exception
 }
 
 algorithm_configuration_exception
-::~algorithm_configuration_exception() VITAL_NOTHROW
+::~algorithm_configuration_exception() noexcept
 {
 }
 
 invalid_name_exception
 ::invalid_name_exception(std::string type,
-                         std::string impl) VITAL_NOTHROW
+                         std::string impl) noexcept
   : algorithm_exception(type, impl, "")
 {
   std::ostringstream sstr;
@@ -89,7 +89,7 @@ invalid_name_exception
 }
 
 invalid_name_exception
-::~invalid_name_exception() VITAL_NOTHROW
+::~invalid_name_exception() noexcept
 {
 }
 

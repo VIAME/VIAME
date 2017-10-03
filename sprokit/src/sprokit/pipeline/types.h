@@ -101,18 +101,18 @@ class SPROKIT_PIPELINE_EXPORT pipeline_exception
     /**
      * \brief Constructor.
      */
-    pipeline_exception() VITAL_NOTHROW;
+    pipeline_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_exception() VITAL_NOTHROW;
+    virtual ~pipeline_exception() noexcept;
 
     /**
      * \brief A description of the exception.
      *
      * \returns A string describing what went wrong.
      */
-    char const* what() const VITAL_NOTHROW;
+    char const* what() const noexcept;
 
 protected:
     /// The text of the exception.

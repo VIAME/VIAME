@@ -61,7 +61,7 @@ public:
   track_features_core();
 
   /// Destructor
-  virtual ~track_features_core() VITAL_NOTHROW;
+  virtual ~track_features_core() noexcept;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

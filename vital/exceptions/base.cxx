@@ -39,7 +39,7 @@ namespace kwiver {
 namespace vital {
 
 vital_core_base_exception
-::vital_core_base_exception() VITAL_NOTHROW
+::vital_core_base_exception() noexcept
   : std::exception()
   , m_line_number(0)
 {
@@ -47,7 +47,7 @@ vital_core_base_exception
 
 
 vital_core_base_exception
-::~vital_core_base_exception() VITAL_NOTHROW
+::~vital_core_base_exception() noexcept
 {
 }
 
@@ -65,7 +65,7 @@ vital_core_base_exception
 // ------------------------------------------------------------------
 char const*
 vital_core_base_exception
-::what() const VITAL_NOTHROW
+::what() const noexcept
 {
   return this->m_what.c_str();
 }
@@ -73,14 +73,14 @@ vital_core_base_exception
 
 // ------------------------------------------------------------------
 invalid_value
-::invalid_value(std::string reason) VITAL_NOTHROW
+::invalid_value(std::string reason) noexcept
   : m_reason(reason)
 {
   m_what = "Invalid value(s): " + reason;
 }
 
 invalid_value
-::~invalid_value() VITAL_NOTHROW
+::~invalid_value() noexcept
 {
 }
 

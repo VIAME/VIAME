@@ -54,9 +54,9 @@ class KWIVER_ALGO_MATLAB_EXPORT matlab_exception
 {
 public:
   // -- CONSTRUCTORS --
-  matlab_exception( const std::string& msg ) VITAL_NOTHROW;
+  matlab_exception( const std::string& msg ) noexcept;
 
-  virtual ~matlab_exception() VITAL_NOTHROW;
+  virtual ~matlab_exception() noexcept;
 
 }; // end class matlab_exception
 
