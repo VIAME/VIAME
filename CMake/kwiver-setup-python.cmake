@@ -153,8 +153,8 @@ import sys
 print(sys.version[0:3])
 ")
 # assert that the right python version was found
-if(NOT _python_version MATCHES "^${fletch_PYTHON_MAJOR_VERSION}.*")
-  message(FATAL_ERROR "Requested python \"${fletch_PYTHON_MAJOR_VERSION}\" but got \"${_python_version}\"")
+if(NOT PYTHON_VERSION MATCHES "^${KWIVER_PYTHON_MAJOR_VERSION}.*")
+  message(FATAL_ERROR "Requested python \"${KWIVER_PYTHON_MAJOR_VERSION}\" but got \"${PYTHON_VERSION}\"")
 endif()
 
 
