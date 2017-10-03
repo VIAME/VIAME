@@ -3,6 +3,8 @@
 #include <vital/util/tokenize.h>
 #include <vector>
 
+#include <vital/kpf/kpf_parse_utils.h>
+
 #include <vital/logger/logger.h>
 
 using std::istream;
@@ -12,28 +14,59 @@ using std::vector;
 using std::pair;
 
 namespace { // anon
+using namespace kwiver::vital::kpf;
 
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
-using kwiver::vital::kpf::packet_buffer_t;
-using kwiver::vital::kpf::packet_header_t;
-using kwiver::vital::kpf::packet_t;
-
-pair<bool, packet_header_t>
-packet_header_parser( const string& s )
+bool
+packet_header_parser( const string& s, packet_header_t& packet_header )
 {
-  packet_header_t p;
-  auto bad_parse = std::make_pair( false, p );
+  //
+  // try to parse the header into a flag / tag / domain
+  //
 
-  return bad_parse;
+  header_parse_t h = parse_header( s );
+  if (! std::get<0>(h) )
+  {
+    return false;
+  }
 
+  string tag_str( std::get<1>(h) );
+  packet_style style = str2style( tag_str );
+  if ( style == packet_style::INVALID )
+  {
+    return false;
+  }
+
+  int domain( std::get<2>(h) );
+  packet_header = packet_header_t( style, domain );
+  return true;
 }
 
 bool
 packet_parser( const vector<string>& tokens,
                packet_buffer_t& packet_buffer )
 {
-  size_t index = 0;
+  size_t index(0), n( tokens.size() );
+
+  while ( index < n )
+  {
+    packet_t p;
+    if (! packet_header_parser( tokens[ index++ ],
+                                p.header ))
+    {
+      return false;
+    }
+
+    pair< bool, size_t > next = packet_payload_parser( index, tokens, p );
+    if (! next.first )
+    {
+      return false;
+    }
+    index = next.second;
+
+    packet_buffer.insert( std::make_pair( p.header, p ));
+  }
   return true;
 }
 

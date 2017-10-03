@@ -5,8 +5,9 @@
 
 #include <vital/kpf/kpf_parse.h>
 
-#include <tuple>
 #include <string>
+#include <vector>
+#include <tuple>
 
 namespace kwiver {
 namespace vital {
@@ -16,6 +17,12 @@ typedef std::tuple< bool, std::string, int > header_parse_t;
 
 header_parse_t VITAL_KPF_EXPORT parse_header( const std::string& s );
 
+packet_style VITAL_KPF_EXPORT str2style( const std::string& s );
+
+std::pair< bool, size_t > VITAL_KPF_EXPORT packet_payload_parser (
+  size_t index,
+  const std::vector< std::string >& tokens,
+  packet_t& packet );
 
 } // ...kpf
 } // ...vital

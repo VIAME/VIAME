@@ -42,26 +42,48 @@ IMPLEMENT_TEST( basic_kpf_from_string )
     TEST_EQUAL( "Empty reader is empty", r.get_packet_buffer().empty(), true );
   }
 
-  /*
   {
-    string simple_box_str("G0: 10 10 20 20");
-    istringstream iss( simple_box_str );
-    KPF::text_record_reader_t r( iss );
-    KPF::null_reader_t null_reader;
+    map< string, bool > tests;
+    tests.insert( make_pair("g0:", false ));
+    tests.insert( make_pair("g0: 10 ", false ));
+    tests.insert( make_pair("g0: 10 20", false ));
+    tests.insert( make_pair("g0: 10 20 30", false ));
+    tests.insert( make_pair("g0: 10 20 30 40", true ));
+    tests.insert( make_pair("g0: 10 x 30 40", false ));
+    tests.insert( make_pair("g0: 0.1 -1.0e-06 3.14159 10e9", true ));
 
-    //
-    // Note that 'bool okay = (r >> null_reader)' doesn't work, since
-    // explicit conversion doesn't work with copy initialization
-    //
-    bool okay(r >> null_reader);
+    for (auto t = tests.begin(); t != tests.end(); ++t)
+    {
+      istringstream iss( t->first );
+      KPF::text_record_reader_t r( iss );
+      KPF::null_reader_t null_reader;
 
-    TEST_EQUAL( "Reading one box: null reader succeeds", okay, true );
-    TEST_EQUAL( "Reading one box: one packet in the buffer", r.get_packet_buffer().size(), 1 );
-    KPF::packet_header_t g0( KPF::packet_style::GEOM, 0 );
-    auto g0_probe = r.get_packet_buffer().find( g0 );
-    TEST_EQUAL( "Reading one box: packet is g0", g0_probe != r.get_packet_buffer().end(), true );
+      ostringstream oss;
+      if (! t->second )
+      {
+        LOG_ERROR( main_logger, "The following test should generate an error" );
+        oss << "Reading one box '" << t->first << "': null reader should fail";
+      }
+      else
+      {
+        oss << "Reading one box '" << t->first << "': null reader should succeed";
+      }
+
+      //
+      // Note that 'bool okay = (r >> null_reader)' doesn't work, since
+      // explicit conversion doesn't work with copy initialization
+      //
+      bool okay(r >> null_reader);
+      TEST_EQUAL( "Reading one box: null reader succeeds", okay, t->second );
+      if (t->second)
+      {
+        TEST_EQUAL( "Reading one box: one packet in the buffer", r.get_packet_buffer().size(), 1 );
+        KPF::packet_header_t g0( KPF::packet_style::GEOM, 0 );
+        auto g0_probe = r.get_packet_buffer().find( g0 );
+        TEST_EQUAL( "Reading one box: packet is g0", g0_probe != r.get_packet_buffer().end(), true );
+      }
+    }
   }
-  */
 }
 
 IMPLEMENT_TEST( basic_kpf_text_parsing )
@@ -69,6 +91,9 @@ IMPLEMENT_TEST( basic_kpf_text_parsing )
   map< string, KPF::header_parse_t > tests;
 
   tests.insert( make_pair( "", make_tuple( false, string(), KPF::packet_header_t::NO_DOMAIN )));
+  tests.insert( make_pair( ":", make_tuple( false, string(), KPF::packet_header_t::NO_DOMAIN )));
+  tests.insert( make_pair( "1:", make_tuple( false, string(), KPF::packet_header_t::NO_DOMAIN )));
+  tests.insert( make_pair( "100:", make_tuple( false, string(), KPF::packet_header_t::NO_DOMAIN )));
   tests.insert( make_pair( "G1", make_tuple( false, string(), KPF::packet_header_t::NO_DOMAIN )));
   tests.insert( make_pair( "G1:", make_tuple( true, "G", 1 )));
   tests.insert( make_pair( "meta:", make_tuple( true, "meta", KPF::packet_header_t::NO_DOMAIN )));

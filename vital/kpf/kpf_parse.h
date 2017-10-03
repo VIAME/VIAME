@@ -54,7 +54,22 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-enum class VITAL_KPF_EXPORT packet_style { INVALID, ID, TS, TSR, LOC, GEOM, POLY, CONF, EVENT, EVAL, ATTR, TAG, KV };
+enum class VITAL_KPF_EXPORT packet_style
+{
+  INVALID,  // invalid, uninitialized
+  ID,       // a numeric identifier (detection, track, event ID)
+  TS,       // timestamp
+  TSR,      // timestamp range
+  LOC,      // location (2d / 3d)
+  GEOM,     // bounding box
+  POLY,     // polygon
+  CONF,     // a confidence value
+  EVENT,    // an event
+  EVAL,     // an evaluation result
+  ATTR,     // an attribute
+  TAG,      // a tag
+  KV        // a generic key/value pair
+};
 
 struct VITAL_KPF_EXPORT packet_header_t
 {
@@ -78,11 +93,16 @@ namespace canonical
 struct VITAL_KPF_EXPORT bbox_t
 {
   double x1, y1, x2, y2;
+  bbox_t( double a, double b, double c, double d): x1(a), y1(b), x2(c), y2(d) {}
 };
 
 typedef std::size_t id_t;
 typedef double timestamp_t;
-typedef std::pair< timestamp_t, timestamp_t > timestamp_range_t;
+
+struct VITAL_KPF_EXPORT timestamp_range_t
+{
+  timestamp_t start, stop;
+};
 
 // etc etc
 
@@ -90,6 +110,7 @@ typedef std::pair< timestamp_t, timestamp_t > timestamp_range_t;
 
 union VITAL_KPF_EXPORT payload_t
 {
+  payload_t(): id(0) {}
   canonical::id_t id;
   canonical::timestamp_t timestamp;
   canonical::timestamp_range_t timestamp_range;
@@ -102,6 +123,8 @@ struct VITAL_KPF_EXPORT packet_t
 {
   packet_header_t header;
   payload_t payload;
+  packet_t(): header( packet_header_t() ) {}
+
 };
 
 
