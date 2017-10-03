@@ -3,14 +3,14 @@ process input
   :: frame_list_input
 # Input file containing new-line separated paths to sequential image
 # files.
-  :image_list_file @EXAMPLE_DIR@/pipelines/image_list.txt
-  :frame_time .9
+  image_list_file = @EXAMPLE_DIR@/pipelines/image_list.txt
+  frame_time = .9
 
 # Algorithm to use for 'image_reader'.
 # Must be one of the following options:
 # 	- ocv
 # 	- vxl
-  :image_reader:type ocv
+  image_reader:type = ocv
 
 # ================================================================
 process disp
@@ -24,7 +24,7 @@ process disp
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 10
+       capacity = 10
 
 # ================================================================
 # connections

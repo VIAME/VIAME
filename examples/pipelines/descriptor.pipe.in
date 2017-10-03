@@ -10,7 +10,7 @@ process input
 # Must be one of the following options:
 # 	- ocv
 # 	- vxl
-  :image_reader:type ocv
+  image_reader:type = ocv
 
 # ================================================================
 process vector_display
@@ -21,14 +21,14 @@ process vector_display
 # Python process to accept an image.
 process descriptor
   :: ApplyDescriptor
-  :first second
-  :algorithm algo
+  first     = second
+  algorithm = algo
 
 # ================================================================
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 10
+       capacity = 10
 
 # ================================================================
 # connections
