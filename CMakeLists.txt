@@ -73,7 +73,7 @@ mark_as_advanced( VIAME_ENABLE_VIAME_PLUGINS )
 # Add external package build instructions
 ##
 option( VIAME_BUILD_DEPENDENCIES    "Build all required dependencies in a super-build" ON )
-option( VIAME_CREATE_PACKAGE        "Build a binary package at the end of build"      OFF )
+option( VIAME_CREATE_PACKAGE        "Build a binary package at the end of build"       OFF )
 mark_as_advanced( VIAME_CREATE_PACKAGE )
 
 ###
@@ -87,19 +87,19 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
     VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_YOLO )
-  set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
+  set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"   FORCE )
 endif()
 
 if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK )
-  set( VIAME_ENABLE_PYTHON ON CACHE BOOL "Python required for other projects" FORCE )
+  set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
 endif()
 
 if( VIAME_ENABLE_FASTER_RCNN )
-  set( VIAME_ENABLE_CAFFE ON CACHE BOOL "Caffe required for other projects" FORCE )
+  set( VIAME_ENABLE_CAFFE   ON CACHE BOOL "Caffe required for other projects"    FORCE )
 endif()
 
 if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA )
-  set( VIAME_ENABLE_VXL ON CACHE BOOL "VXL required for other projects" FORCE )
+  set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"      FORCE )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
