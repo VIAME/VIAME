@@ -67,7 +67,7 @@ option( VIAME_ENABLE_KWIVER         "Enable KWIVER pipelining"      ON )
 option( VIAME_ENABLE_VIAME_PLUGINS  "Enable VIAME plugins"          ON )
 
 mark_as_advanced( VIAME_ENABLE_KWIVER )
-mark_as_advanced( VIAME_ENABLE_VIAME_CORE )
+mark_as_advanced( VIAME_ENABLE_VIAME_PLUGINS )
 
 ###
 # Add external package build instructions
