@@ -68,7 +68,7 @@ class KWIVER_ALGO_CORE_EXPORT class_probablity_filter
 public:
 
   class_probablity_filter();
-  virtual ~class_probablity_filter() VITAL_DEFAULT_DTOR
+  virtual ~class_probablity_filter() = default;
 
   virtual vital::config_block_sptr get_configuration() const;
 

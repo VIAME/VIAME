@@ -63,7 +63,7 @@ public:
   geo_polygon();
   geo_polygon( geo_raw_polygon_t const&, int crs );
 
-  virtual ~geo_polygon() VITAL_DEFAULT_DTOR
+  virtual ~geo_polygon() = default;
 
   /**
    * \brief Accessor for polygon in original CRS.

@@ -55,7 +55,7 @@ class descriptor_set
 {
 public:
   /// Destructor
-  virtual ~descriptor_set() VITAL_DEFAULT_DTOR
+  virtual ~descriptor_set() = default;
 
   /// Return the number of descriptors in the set
   virtual size_t size() const = 0;

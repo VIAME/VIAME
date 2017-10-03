@@ -146,8 +146,8 @@ class category_explorer
 {
 public:
   // -- CONSTRUCTORS --
-  category_explorer() VITAL_DEFAULT_CTOR
-  virtual ~category_explorer() VITAL_DEFAULT_DTOR
+  category_explorer() = default;
+  virtual ~category_explorer() = default;
 
   /**
    * @brief Initialize the plugin

@@ -64,7 +64,7 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
 class VITAL_ALGO_EXPORT algorithm
 {
 public:
-  virtual ~algorithm() VITAL_DEFAULT_DTOR;
+  virtual ~algorithm() = default;
 
   /// Return the name of the base algorithm
   virtual std::string type_name() const = 0;
@@ -234,7 +234,7 @@ public:
   /// Shared pointer type of the templated vital::algorithm_def class
   typedef std::shared_ptr<Self> base_sptr;
 
-  virtual ~algorithm_def() VITAL_DEFAULT_DTOR;
+  virtual ~algorithm_def() = default;
 
   /// Factory method to make an instance of this algorithm by impl_name
   static base_sptr create(std::string const& impl_name);
@@ -347,7 +347,7 @@ class algorithm_impl
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
 
-  virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
+  virtual ~algorithm_impl() = default;
 };
 
 

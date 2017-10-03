@@ -67,7 +67,7 @@ public:
   close_loops_bad_frames_only();
 
   /// Destructor
-  virtual ~close_loops_bad_frames_only() VITAL_DEFAULT_DTOR;
+  virtual ~close_loops_bad_frames_only() = default;
 
   /// Returns implementation description
   virtual std::string description() const;

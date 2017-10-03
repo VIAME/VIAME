@@ -204,7 +204,7 @@ public:
     this->add_attribute( CONCRETE_TYPE, typeid( T ).name() );
   }
 
-  virtual ~plugin_factory_0() VITAL_DEFAULT_DTOR
+  virtual ~plugin_factory_0() = default;
 
 protected:
   virtual void* create_object_i()

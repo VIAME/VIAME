@@ -80,7 +80,7 @@ public:
   virtual vector_2d operator()( vector_2d const& point, int from, int to ) = 0;
 
 protected:
-  virtual ~geo_conversion() VITAL_DEFAULT_DTOR
+  virtual ~geo_conversion() = default;
 };
 
 /// Get the functor used for performing geodetic conversions. \see geo_conv

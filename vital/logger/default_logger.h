@@ -67,7 +67,7 @@ class logger_factory_default
 {
 public:
   logger_factory_default();
-  virtual ~logger_factory_default() VITAL_DEFAULT_DTOR
+  virtual ~logger_factory_default() = default;
 
   /**
    * @brief Get logger object for /c name.

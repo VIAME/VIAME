@@ -85,7 +85,7 @@ public:
   f2f_homography( f2f_homography const& h );
 
   /// Destructor
-  virtual ~f2f_homography() VITAL_DEFAULT_DTOR
+  virtual ~f2f_homography() = default;
 
   /// Get the sptr of the contained homography transformation
   virtual homography_sptr homography() const;

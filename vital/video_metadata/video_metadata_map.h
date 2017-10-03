@@ -61,7 +61,7 @@ public:
   typedef std::map< frame_id_t, video_metadata_vector > map_video_metadata_t;
 
   /// Destructor
-  virtual ~video_metadata_map() VITAL_DEFAULT_DTOR
+  virtual ~video_metadata_map() = default;
 
   /// Return the number of frames in the map
   virtual size_t size() const = 0;

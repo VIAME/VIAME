@@ -112,7 +112,7 @@ struct converter< bool, std::string >
   }
 
 
-  virtual ~converter() VITAL_DEFAULT_DTOR
+  virtual ~converter() = default;
 
   virtual bool can_convert( kwiver::vital::any const & data ) const
   {
