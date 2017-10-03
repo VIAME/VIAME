@@ -11,21 +11,21 @@ include( CMakeDependentOption )
 ###
 # Add paths used throughout CMakeLists files
 ##
-list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVER_CMAKE_DIR}" )
+list( INSERT CMAKE_MODULE_PATH 0    "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVER_CMAKE_DIR}" )
 
-set( VIAME_SOURCE_DIR            "${CMAKE_SOURCE_DIR}" )
-set( VIAME_BINARY_DIR            "${CMAKE_BINARY_DIR}/build" )
-set( VIAME_BUILD_PREFIX          "${CMAKE_BINARY_DIR}/build" )
-set( VIAME_BUILD_INSTALL_PREFIX  "${CMAKE_BINARY_DIR}/install" )
+set( VIAME_SOURCE_DIR               "${CMAKE_SOURCE_DIR}" )
+set( VIAME_BINARY_DIR               "${CMAKE_BINARY_DIR}/build" )
+set( VIAME_BUILD_PREFIX             "${CMAKE_BINARY_DIR}/build" )
+set( VIAME_BUILD_INSTALL_PREFIX     "${CMAKE_BINARY_DIR}/install" )
 
-set( VIAME_PACKAGES_DIR          "${VIAME_SOURCE_DIR}/packages" )
-set( VIAME_DOWNLOAD_DIR          "${VIAME_PACKAGES_DIR}/downloads" )
+set( VIAME_PACKAGES_DIR             "${VIAME_SOURCE_DIR}/packages" )
+set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
 
 ###
 # Flags relating to examples
 ##
-option( VIAME_INSTALL_EXAMPLES    "Install existing VIAME examples"     ON )
-option( VIAME_DOWNLOAD_MODELS     "Download example detection models"   ON )
+option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
+option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
 
 ###
 # GPU and FFMPEG utilization flags used across projects
@@ -56,6 +56,19 @@ option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 
+
+###
+# Advanced hidden flags used for disabling core features
+#
+# These are meant for use by advanced users when you only want to use VIAME
+# to build one of the above packages by itself, not VIAME core.
+##
+option( VIAME_ENABLE_KWIVER         "Enable KWIVER pipelining"      ON )
+option( VIAME_ENABLE_VIAME_PLUGINS  "Enable VIAME plugins"          ON )
+
+mark_as_advanced( VIAME_ENABLE_KWIVER )
+mark_as_advanced( VIAME_ENABLE_VIAME_CORE )
+
 ###
 # Add external package build instructions
 ##
@@ -72,7 +85,7 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 ###
 # Add logic relating to enable flags
 ##
-if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_MATLAB OR
+if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
     VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_YOLO )
   set( VIAME_ENABLE_OPENCV ON CACHE BOOL "OpenCV required for other projects" FORCE )
 endif()
@@ -258,7 +271,9 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # Add core (required) kwiver requirement
-  include( add_project_kwiver )
+  if( VIAME_ENABLE_KWIVER )
+    include( add_project_kwiver )
+  endif()
 
   # Add other optional libraries
   if( VIAME_ENABLE_SCALLOP_TK )
@@ -282,9 +297,11 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 
   # VIAME plugins, adds this project causing the below else() block to run
-  include( add_project_viame )
+  if( VIAME_ENABLE_VIAME_PLUGINS )
+    include( add_project_viame )
+  endif()
 
-  # Fixup package
+  # Fixup installer package
   if( VIAME_CREATE_PACKAGE )
     include( build_package )
   endif()
