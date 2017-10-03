@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -232,7 +232,7 @@ private:
     T m_any_data;
 
     // -- NOT IMPLEMENTED --
-    internal_typed& operator=( const internal_typed& ) VITAL_DELETE_DECL;
+    internal_typed& operator=( const internal_typed& ) = delete;
   };
 
 
