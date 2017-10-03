@@ -62,7 +62,7 @@ class VITAL_EXPORT track_set_interface
 {
 public:
   /// Destructor
-  virtual ~track_set_interface() VITAL_DEFAULT_DTOR
+  virtual ~track_set_interface() = default;
 
   /// Return the number of tracks in the set
   virtual size_t size() const = 0;
@@ -252,7 +252,7 @@ class VITAL_EXPORT track_set_implementation
 {
 public:
   /// Destructor
-  virtual ~track_set_implementation() VITAL_DEFAULT_DTOR
+  virtual ~track_set_implementation() = default;
 
   /// Return the number of tracks in the set
   virtual size_t size() const;
@@ -317,7 +317,7 @@ class VITAL_EXPORT track_set
 {
 public:
   /// Destructor
-  virtual ~track_set() VITAL_DEFAULT_DTOR
+  virtual ~track_set() = default;
 
   /// Default Constructor
   /**

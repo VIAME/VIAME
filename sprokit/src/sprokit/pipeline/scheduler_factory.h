@@ -112,7 +112,7 @@ public:
       .add_attribute( PLUGIN_CATEGORY, "scheduler" );
   }
 
-  virtual ~scheduler_factory() VITAL_DEFAULT_DTOR
+  virtual ~scheduler_factory() = default;
 
   virtual sprokit::scheduler_t create_object( pipeline_t const& pipe,
                                               kwiver::vital::config_block_sptr const& config )

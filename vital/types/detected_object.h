@@ -93,7 +93,7 @@ public:
                    double confidence = 1.0,
                    detected_object_type_sptr classifications = detected_object_type_sptr() );
 
-  virtual ~detected_object() VITAL_DEFAULT_DTOR
+  virtual ~detected_object() = default;
 
   /**
    * @brief Create a deep copy of this object.

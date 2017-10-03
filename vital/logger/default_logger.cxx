@@ -111,7 +111,7 @@ public:
     }
   }
 
-  virtual ~default_logger() VITAL_DEFAULT_DTOR
+  virtual ~default_logger() = default;
 
   // Check to see if level is enabled
   virtual bool is_fatal_enabled() const { return m_logLevel <= kwiver_logger::LEVEL_FATAL;  }

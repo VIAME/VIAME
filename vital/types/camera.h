@@ -72,7 +72,7 @@ class VITAL_EXPORT camera
 {
 public:
   /// Destructor
-  virtual ~camera() VITAL_DEFAULT_DTOR
+  virtual ~camera() = default;
 
   /// Create a clone of this camera object
   virtual camera_sptr clone() const = 0;

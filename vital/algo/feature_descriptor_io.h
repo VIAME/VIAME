@@ -58,7 +58,7 @@ class VITAL_ALGO_EXPORT feature_descriptor_io
   : public kwiver::vital::algorithm_def<feature_descriptor_io>
 {
 public:
-  virtual ~feature_descriptor_io() VITAL_DEFAULT_DTOR;
+  virtual ~feature_descriptor_io() = default;
 
   /// Return the name of this algorithm
   static std::string static_type_name() { return "feature_descriptor_io"; }

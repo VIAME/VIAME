@@ -58,7 +58,7 @@ public:
   /// Copy Constructor
   f2w_homography( f2w_homography const &h );
 
-  virtual ~f2w_homography() VITAL_DEFAULT_DTOR
+  virtual ~f2w_homography() = default;
 
   /// Get the homography transformation
   virtual homography_sptr homography() const;

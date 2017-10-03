@@ -56,7 +56,7 @@ class descriptor
 {
 public:
   /// Destructor
-  virtual ~descriptor() VITAL_DEFAULT_DTOR
+  virtual ~descriptor() = default;
 
   /// Access the type info of the underlying data (double or float)
   virtual std::type_info const& data_type() const = 0;

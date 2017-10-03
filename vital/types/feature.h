@@ -61,7 +61,7 @@ class feature
 {
 public:
   /// Destructor
-  virtual ~feature() VITAL_DEFAULT_DTOR
+  virtual ~feature() = default;
 
   /// Access the type info of the underlying data (double or float)
   virtual std::type_info const& data_type() const = 0;
