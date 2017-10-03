@@ -34,6 +34,8 @@
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python_gil.h>
 
+#include "python_wrappers.cxx"
+
 #include <pybind11/pybind11.h>
 
 /**
@@ -44,69 +46,9 @@
 
 using namespace pybind11;
 
-class wrap_scheduler
-  : public sprokit::scheduler
-{
-  public:
-    wrap_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config);
-    ~wrap_scheduler();
-
-    void
-    _start() override
-    {
-      PYBIND11_OVERLOAD_PURE(
-        void,
-        sprokit::scheduler,
-        _start
-      );
-    }
-
-    void
-    _wait() override
-    {
-      PYBIND11_OVERLOAD_PURE(
-        void,
-        sprokit::scheduler,
-        _wait
-      );
-    }
-
-    void
-    _pause() override
-    {
-      PYBIND11_OVERLOAD_PURE(
-        void,
-        sprokit::scheduler,
-        _pause
-      );
-    }
-
-    void
-    _resume() override
-    {
-      PYBIND11_OVERLOAD_PURE(
-        void,
-        sprokit::scheduler,
-        _resume
-      );
-    }
-
-    void
-    _stop() override
-    {
-      PYBIND11_OVERLOAD_PURE(
-        void,
-        sprokit::scheduler,
-        _stop
-      );
-    }
-
-    sprokit::pipeline_t _pipeline() const;
-};
-
 PYBIND11_MODULE(scheduler, m)
 {
-  class_<wrap_scheduler>(m, "PythonScheduler"
+  class_<sprokit::scheduler, scheduler_trampoline, sprokit::scheduler_t>(m, "PythonScheduler"
     , "The base class for Python schedulers.")
     .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>())
     .def("start", &sprokit::scheduler::start
@@ -119,8 +61,6 @@ PYBIND11_MODULE(scheduler, m)
       , "Resume execution.")
     .def("stop", &sprokit::scheduler::stop
       , "Stop the execution of the pipeline.")
-    .def("pipeline", &wrap_scheduler::_pipeline
-      , "The pipeline the scheduler is to run.")
     .def("_start", &wrap_scheduler::_start
       , "Implementation of starting the pipeline.")
     .def("_wait", &wrap_scheduler::_wait
@@ -132,23 +72,4 @@ PYBIND11_MODULE(scheduler, m)
     .def("_stop", &wrap_scheduler::_stop
       , "Implementation of stopping the pipeline.")
   ;
-}
-
-wrap_scheduler
-::wrap_scheduler(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
-  : sprokit::scheduler(pipe, config)
-{
-}
-
-wrap_scheduler
-::~wrap_scheduler()
-{
-  shutdown();
-}
-
-sprokit::pipeline_t
-wrap_scheduler
-::_pipeline() const
-{
-  return pipeline();
 }

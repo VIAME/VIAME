@@ -37,16 +37,6 @@ def test_import():
         test_error("Failed to import the scheduler_factory module")
 
 
-def test_create():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import scheduler_factory
-
-    scheduler_factory.SchedulerType()
-    ## scheduler_factory.SchedulerTypes()
-    scheduler_factory.SchedulerDescription()
-    scheduler_factory.SchedulerModule()
-
-
 def test_api_calls():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules

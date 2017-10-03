@@ -229,7 +229,7 @@ PYBIND11_MODULE(process, m)
     .def_readonly("frequency", &sprokit::process::port_info::frequency)
   ;
 
-  class_<sprokit::process::conf_info>(m, "ConfInfo"
+  class_<sprokit::process::conf_info, std::shared_ptr<sprokit::process::conf_info> >(m, "ConfInfo"
     , "Information about a configuration on a process.")
     .def(init<kwiver::vital::config_block_value_t, kwiver::vital::config_block_description_t, bool>())
     .def_readonly("default", &sprokit::process::conf_info::def)
@@ -327,6 +327,21 @@ PYBIND11_MODULE(process, m)
     .def("_base_set_input_port_type", &wrap_process::_set_input_port_type, arg("port"), arg("new_type"), "Base class input port type setting.")
     .def("_base_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Base class output port type setting.")
     .def("_base_available_config", &wrap_process::_available_config, "Base class available configuration information.")
-    .def("_base_config_info", &wrap_process::_config_info, arg("config"), "Base class configuration information.")
+    .def("_base_config_info", &wrap_process::_config_info, return_value_policy::reference, arg("config"), "Base class configuration information.")
+    .def("_configure", &wrap_process::_configure, "Configure the base process.")
+    .def("_init", &wrap_process::_init, "Base class initialization.")
+    .def("_reset", &wrap_process::_reset, "Base class reset.")
+    .def("_flush", &wrap_process::_flush, "Base class flush.")
+    .def("_step", &wrap_process::_step, "Base class step.")
+    .def("_reconfigure", &wrap_process::_reconfigure, arg("conf"), "Base class reconfigure.")
+    .def("_properties", &wrap_process::_properties, "Base class properties.")
+    .def("_input_ports", &wrap_process::_input_ports, "Base class input ports.")
+    .def("_output_ports", &wrap_process::_output_ports, "Base class output ports.")
+    .def("_input_port_info", &wrap_process::_input_port_info, arg("port"), "Base class input port info.")
+    .def("_output_port_info", &wrap_process::_output_port_info, arg("port"), "Base class output port info.")
+    .def("_set_input_port_type", &wrap_process::_set_input_port_type, arg("port"), arg("new_type"), "Base class input port type setting.")
+    .def("_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Base class output port type setting.")
+    .def("_available_config", &wrap_process::_available_config, "Base class available configuration information.")
+    .def("_config_info", &wrap_process::_config_info, arg("config"), "Base class configuration information.")
   ;
 }

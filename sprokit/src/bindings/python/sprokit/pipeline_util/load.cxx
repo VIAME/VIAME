@@ -77,10 +77,6 @@ static sprokit::cluster_blocks load_cluster(object const& stream);
 
 PYBIND11_MODULE(load, m)
 {
-  class_<sprokit::token_t>(m, "Token"
-    , "A token in the pipeline description.");
-  class_<sprokit::config_flag_t>(m, "ConfigFlag"
-    , "A flag on a configuration setting.");
   bind_vector<sprokit::config_flags_t>(m, "ConfigFlags"
     , "A collection of flags on a configuration setting.")
   ;

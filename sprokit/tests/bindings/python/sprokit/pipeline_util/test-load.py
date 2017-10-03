@@ -39,8 +39,6 @@ def test_import(path_unused):
 def test_create(path_unused):
     from sprokit.pipeline_util import load
 
-    load.Token()
-    load.ConfigFlag()
     load.ConfigFlags()
     load.ConfigValue()
     load.ConfigValues()

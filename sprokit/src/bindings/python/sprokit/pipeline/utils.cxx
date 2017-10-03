@@ -43,9 +43,6 @@ using namespace pybind11;
 
 PYBIND11_MODULE(utils, m)
 {
-  class_<sprokit::thread_name_t>(m, "ThreadName"
-    , "A type for the name of a thread.");
-
   m.def("name_thread", &sprokit::name_thread
     , (arg("name"))
     , "Names the currently running thread.");
