@@ -46,6 +46,32 @@
 
 using namespace pybind11;
 
+// Publisher class to access virtual methods
+class wrap_scheduler
+  : public sprokit::scheduler
+{
+  public:
+    using scheduler::scheduler;
+    using scheduler::_start;
+    using scheduler::_wait;
+    using scheduler::_pause;
+    using scheduler::_resume;
+    using scheduler::_stop;
+};
+
+// Trampoline class to allow us to to use virtual methods
+class scheduler_trampoline
+  : public sprokit::scheduler
+{
+  public:
+    scheduler_trampoline(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config) : scheduler( pipe, config ) {};
+    void _start() override;
+    void _wait() override;
+    void _pause() override;
+    void _resume() override;
+    void _stop() override;
+};
+
 PYBIND11_MODULE(scheduler, m)
 {
   class_<sprokit::scheduler, scheduler_trampoline, sprokit::scheduler_t>(m, "PythonScheduler"
@@ -72,4 +98,59 @@ PYBIND11_MODULE(scheduler, m)
     .def("_stop", &wrap_scheduler::_stop
       , "Implementation of stopping the pipeline.")
   ;
+}
+
+void
+scheduler_trampoline
+::_start()
+{
+  PYBIND11_OVERLOAD_PURE(
+    void,
+    scheduler,
+    _start,
+  );
+}
+
+void
+scheduler_trampoline
+::_wait()
+{
+  PYBIND11_OVERLOAD_PURE(
+    void,
+    scheduler,
+    _wait,
+  );
+}
+
+void
+scheduler_trampoline
+::_pause()
+{
+  PYBIND11_OVERLOAD_PURE(
+    void,
+    scheduler,
+    _pause,
+  );
+}
+
+void
+scheduler_trampoline
+::_resume()
+{
+  PYBIND11_OVERLOAD_PURE(
+    void,
+    scheduler,
+    _resume,
+  );
+}
+
+void
+scheduler_trampoline
+::_stop()
+{
+  PYBIND11_OVERLOAD_PURE(
+    void,
+    scheduler,
+    _stop,
+  );
 }

@@ -50,6 +50,53 @@ PYBIND11_MAKE_OPAQUE(string_set)
 
 using namespace pybind11;
 
+// Publicist class to access protected methods 
+class wrap_process
+  : public sprokit::process
+{
+  public:
+    using process::process;
+
+    using process::_configure;
+    using process::_init;
+    using process::_reset;
+    using process::_flush;
+    using process::_step;
+    using process::_reconfigure; 
+    using process::_properties;
+    using process::_input_ports;
+    using process::_output_ports;
+    using process::_input_port_info;
+    using process::_output_port_info;
+    using process::_set_input_port_type;
+    using process::_set_output_port_type;
+    using process::_available_config;
+    using process::_config_info;
+};
+
+// Trampoline class to allow us to use virtual methods
+class process_trampoline
+  : public sprokit::process
+{
+  public:
+    process_trampoline(kwiver::vital::config_block_sptr const& config) : process(config) {};
+    void _configure() override;
+    void _init() override;
+    void _reset() override;
+    void _flush() override;
+    void _step() override;
+    void _reconfigure(kwiver::vital::config_block_sptr const& config) override;
+    sprokit::process::properties_t _properties() const override;
+    sprokit::process::ports_t _input_ports() const override;
+    sprokit::process::ports_t _output_ports() const override;
+    port_info_t _input_port_info(port_t const& port) override;
+    port_info_t _output_port_info(port_t const& port) override;
+    bool _set_input_port_type(port_t const& port, port_type_t const& new_type) override;
+    bool _set_output_port_type(port_t const& port, port_type_t const& new_type) override;
+    kwiver::vital::config_block_keys_t _available_config() const override;
+    sprokit::process::conf_info_t _config_info(kwiver::vital::config_block_key_t const& key) override;
+};
+
 PYBIND11_MODULE(process, m)
 {
   bind_vector<sprokit::process::names_t>(m, "ProcessNames"
@@ -345,4 +392,175 @@ PYBIND11_MODULE(process, m)
     .def("_available_config", &wrap_process::_available_config, "Base class available configuration information.")
     .def("_config_info", &wrap_process::_config_info, arg("config"), "Base class configuration information.")
   ;
+}
+
+void
+process_trampoline
+::_configure()
+{
+  PYBIND11_OVERLOAD(
+    void,
+    process,
+    _configure,
+  );
+}
+
+void
+process_trampoline
+::_init()
+{
+  PYBIND11_OVERLOAD(
+    void,
+    process,
+    _init,
+  );
+}
+
+void
+process_trampoline
+::_reset()
+{
+  PYBIND11_OVERLOAD(
+    void,
+    process,
+    _reset,
+  );
+}
+
+void
+process_trampoline
+::_flush()
+{
+  PYBIND11_OVERLOAD(
+    void,
+    process,
+    _flush,
+  );
+}
+
+void
+process_trampoline
+::_step()
+{
+  PYBIND11_OVERLOAD(
+    void,
+    process,
+    _step,
+  );
+}
+
+void
+process_trampoline
+::_reconfigure(kwiver::vital::config_block_sptr const& config)
+{
+  PYBIND11_OVERLOAD(
+    void,
+    process,
+    _reconfigure,
+    config
+  );
+}
+
+sprokit::process::properties_t
+process_trampoline
+::_properties() const
+{
+  PYBIND11_OVERLOAD(
+    sprokit::process::properties_t,
+    process,
+    _properties,
+  );
+}
+
+sprokit::process::ports_t
+process_trampoline
+::_input_ports() const
+{
+  PYBIND11_OVERLOAD(
+    sprokit::process::ports_t,
+    process,
+    _input_ports,
+  );
+}
+
+sprokit::process::ports_t
+process_trampoline
+::_output_ports() const
+{
+  PYBIND11_OVERLOAD(
+    sprokit::process::ports_t,
+    process,
+    _output_ports,
+  );
+}
+
+sprokit::process::port_info_t
+process_trampoline
+::_input_port_info(port_t const& port)
+{
+  PYBIND11_OVERLOAD(
+    sprokit::process::port_info_t,
+    process,
+    _input_port_info,
+    port
+  );
+}
+
+sprokit::process::port_info_t
+process_trampoline
+::_output_port_info(port_t const& port)
+{
+  PYBIND11_OVERLOAD(
+    sprokit::process::port_info_t,
+    process,
+    _output_port_info,
+    port
+  );
+}
+
+bool
+process_trampoline
+::_set_input_port_type(port_t const& port, port_type_t const& new_type)
+{
+  PYBIND11_OVERLOAD(
+    bool,
+    process,
+    _set_input_port_type,
+    port, new_type
+  );
+}
+
+bool
+process_trampoline
+::_set_output_port_type(port_t const& port, port_type_t const& new_type)
+{
+  PYBIND11_OVERLOAD(
+    bool,
+    process,
+    _set_output_port_type,
+    port, new_type
+  );
+}
+
+kwiver::vital::config_block_keys_t
+process_trampoline
+::_available_config() const
+{
+  PYBIND11_OVERLOAD(
+    kwiver::vital::config_block_keys_t,
+    process,
+    _available_config,
+  );
+}
+
+sprokit::process::conf_info_t
+process_trampoline
+::_config_info(kwiver::vital::config_block_key_t const& key)
+{
+  PYBIND11_OVERLOAD(
+    sprokit::process::conf_info_t,
+    process,
+    _config_info,
+    key
+  );
 }
