@@ -121,7 +121,7 @@ namespace kpf {
 //
 
 header_parse_t
-parse_header(const string& s )
+parse_header(const string& s, bool expect_colon )
 {
   auto bad_parse = std::make_tuple( false, string(), packet_header_t::NO_DOMAIN );
   if (s.empty())
@@ -129,15 +129,18 @@ parse_header(const string& s )
     LOG_ERROR( main_logger, "Packet header: tying to parse empty string?" );
     return bad_parse;
   }
-  if (s.size() == 1)
+  if (expect_colon)
   {
-    LOG_ERROR( main_logger, "Packet header: invalid packet '" << s << "'" );
-    return bad_parse;
+    if (s.size() == 1)
+    {
+      LOG_ERROR( main_logger, "Packet header: invalid packet '" << s << "'" );
+      return bad_parse;
+    }
   }
 
 
   //
-  // packet headers are always of the form [a-Z]+[0-9]*:
+  // packet headers are always of the form [a-Z]+[0-9]*:?
   //
 
   // Example used in comments:
@@ -147,10 +150,13 @@ parse_header(const string& s )
   // start parsing at the back
 
   size_t i=s.size()-1;   // e.g. 7
-  if (s[i--] != ':')
+  if (expect_colon)
   {
-    LOG_ERROR( main_logger, "Packet header '" << s << "': no trailing colon" );
-    return bad_parse;
+    if (s[i--] != ':')
+    {
+      LOG_ERROR( main_logger, "Packet header '" << s << "': no trailing colon" );
+      return bad_parse;
+    }
   }
   // e.g. i is now 6, s[i]=='3'
 

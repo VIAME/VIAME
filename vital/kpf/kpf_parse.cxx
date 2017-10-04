@@ -12,6 +12,7 @@ using std::istringstream;
 using std::string;
 using std::vector;
 using std::pair;
+using std::make_pair;
 
 namespace { // anon
 using namespace kwiver::vital::kpf;
@@ -19,13 +20,13 @@ using namespace kwiver::vital::kpf;
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
 bool
-packet_header_parser( const string& s, packet_header_t& packet_header )
+packet_header_parser( const string& s, packet_header_t& packet_header, bool expect_colon )
 {
   //
   // try to parse the header into a flag / tag / domain
   //
 
-  header_parse_t h = parse_header( s );
+  header_parse_t h = parse_header( s, expect_colon );
   if (! std::get<0>(h) )
   {
     return false;
@@ -53,7 +54,8 @@ packet_parser( const vector<string>& tokens,
   {
     packet_t p;
     if (! packet_header_parser( tokens[ index++ ],
-                                p.header ))
+                                p.header,
+                                true ))
     {
       return false;
     }
@@ -65,7 +67,7 @@ packet_parser( const vector<string>& tokens,
     }
     index = next.second;
 
-    packet_buffer.insert( std::make_pair( p.header, p ));
+    packet_buffer.insert( make_pair( p.header, p ));
   }
   return true;
 }
@@ -77,15 +79,50 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-text_record_reader_t
-::text_record_reader_t( istream& is )
+text_reader_t
+::text_reader_t( const string& s ):
+  is_set( false )
+{
+  if (! packet_header_parser( s, this->header, false ))
+  {
+    LOG_ERROR( main_logger, "Couldn't create a reader for packets of type '" << s << "'");
+    return;
+  }
+}
+
+void
+text_reader_t
+::set_from_buffer( const packet_t& p )
+{
+  this->is_set = true;
+  this->packet = p;
+}
+
+packet_header_t
+text_reader_t
+::my_header() const
+{
+  return this->header;
+}
+
+pair< bool, packet_t >
+text_reader_t
+::get_packet()
+{
+  bool f = this->is_set;
+  this->is_set = false;
+  return make_pair( f, this->packet );
+}
+
+text_parser_t
+::text_parser_t( istream& is )
   : packet_buffer( packet_header_cmp), input_stream(is)
 {
   this->reader_status = static_cast<bool>( is );
 }
 
 
-text_record_reader_t
+text_parser_t
 ::operator bool() const
 {
   return this->reader_status;
@@ -93,7 +130,7 @@ text_record_reader_t
 
 
 bool
-text_record_reader_t
+text_parser_t
 ::parse_next_line()
 {
   //
@@ -107,7 +144,7 @@ text_record_reader_t
     return false;
   }
   vector< string > tokens;
-  ::kwiver::vital::tokenize( s, tokens );
+  ::kwiver::vital::tokenize( s, tokens, " ", true );
 
   //
   // pass the tokens off to the packet parser
@@ -117,8 +154,8 @@ text_record_reader_t
 }
 
 bool
-text_record_reader_t
-::process_reader( text_record_reader_buffer_base_t& b )
+text_parser_t
+::process_reader( text_reader_t& b )
 {
   //
   // If the buffer is empty, read a 'record' (a line)
@@ -168,9 +205,9 @@ text_record_reader_t
   return true;
 }
 
-text_record_reader_t&
-operator>>( text_record_reader_t& t,
-            text_record_reader_buffer_base_t& b )
+text_parser_t&
+operator>>( text_parser_t& t,
+            text_reader_t& b )
 {
   if (t.reader_status)
   {

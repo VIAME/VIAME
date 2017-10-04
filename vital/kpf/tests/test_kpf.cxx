@@ -24,6 +24,17 @@ static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __
 
 namespace KPF=kwiver::vital::kpf;
 
+namespace { // anon
+
+bool operator==( const KPF::canonical::bbox_t& lhs,
+                 const KPF::canonical::bbox_t& rhs )
+{
+  return (lhs.x1 == rhs.x1) && (lhs.y1 == rhs.y1) && (lhs.x2 == rhs.x2) && (lhs.y2 == rhs.y2);
+}
+
+} // ... anon
+
+
 int
 main( int argc, char* argv[] )
 {
@@ -38,7 +49,7 @@ IMPLEMENT_TEST( basic_kpf_from_string )
 {
   {
     // sanity check
-    KPF::text_record_reader_t r( std::cin );
+    KPF::text_parser_t r( std::cin );
     TEST_EQUAL( "Empty reader is empty", r.get_packet_buffer().empty(), true );
   }
 
@@ -55,33 +66,73 @@ IMPLEMENT_TEST( basic_kpf_from_string )
     for (auto t = tests.begin(); t != tests.end(); ++t)
     {
       istringstream iss( t->first );
-      KPF::text_record_reader_t r( iss );
-      KPF::null_reader_t null_reader;
+      KPF::text_parser_t r( iss );
+      KPF::text_reader_t reader( "g0" );
 
       ostringstream oss;
       if (! t->second )
       {
         LOG_ERROR( main_logger, "The following test should generate an error" );
-        oss << "Reading one box '" << t->first << "': null reader should fail";
+        oss << "Reading one box '" << t->first << "': reader should fail";
       }
       else
       {
-        oss << "Reading one box '" << t->first << "': null reader should succeed";
+        oss << "Reading one box '" << t->first << "': reader should succeed";
       }
 
       //
-      // Note that 'bool okay = (r >> null_reader)' doesn't work, since
+      // Note that 'bool okay = (r >> reader)' doesn't work, since
       // explicit conversion doesn't work with copy initialization
       //
-      bool okay(r >> null_reader);
-      TEST_EQUAL( "Reading one box: null reader succeeds", okay, t->second );
+      bool okay(r >> reader);
+      TEST_EQUAL( "Reading one box: reader succeeds", okay, t->second );
       if (t->second)
       {
-        TEST_EQUAL( "Reading one box: one packet in the buffer", r.get_packet_buffer().size(), 1 );
-        KPF::packet_header_t g0( KPF::packet_style::GEOM, 0 );
-        auto g0_probe = r.get_packet_buffer().find( g0 );
-        TEST_EQUAL( "Reading one box: packet is g0", g0_probe != r.get_packet_buffer().end(), true );
+        auto g0_probe = reader.get_packet();
+        TEST_EQUAL( "Reading one box: reader has packet", g0_probe.first, true );
+        KPF::packet_t packet = g0_probe.second;
+        TEST_EQUAL( "Reading one box: packet is geom", packet.header.style == KPF::packet_style::GEOM, true );
+        TEST_EQUAL( "Reading one box: packet domain is 0", packet.header.domain, 0 );
       }
+    }
+  }
+}
+
+IMPLEMENT_TEST( kpf_box_reader )
+{
+  {
+    KPF::canonical::bbox_t ref( 10, 20, 30, 40 );
+    istringstream iss( "g0: 10 20 30 40" );
+    KPF::text_reader_t reader( "g0" );
+    KPF::text_parser_t r( iss );
+
+    {
+    auto probe = reader.get_packet();
+      TEST_EQUAL( "Reader is invalid before read", probe.first, false );
+    }
+
+    bool okay(r >> reader);
+    TEST_EQUAL( "Reading a box succeeds", okay, true );
+
+    {
+      auto probe = reader.get_packet();
+      TEST_EQUAL( "Reader is valid after read", probe.first, true );
+      TEST_EQUAL( "Packet's box equals input", probe.second.payload.bbox == ref, true );
+    }
+  }
+
+  {
+    istringstream iss( "  g0: 1 1 1 1 g0: 2 2 2 2 g0: 3 3 3 3 g0: 4 4 4 4   " );
+    KPF::text_reader_t reader( "g0" );
+    KPF::text_parser_t r( iss );
+    const size_t N_boxes = 4;
+    for (size_t i=0; i<N_boxes+1; ++i)
+    {
+      bool okay( r >> reader );
+      bool expected = (i < N_boxes);
+      ostringstream oss;
+      oss << "Group box read " << i+1 << " of " << N_boxes+1+1;
+      TEST_EQUAL( oss.str(), okay, expected );
     }
   }
 }
@@ -113,7 +164,7 @@ IMPLEMENT_TEST( basic_kpf_text_parsing )
     {
       LOG_ERROR( main_logger, "Following call to parse_header is expected to induce an error" );
     }
-    KPF::header_parse_t result = KPF::parse_header( i->first );
+    KPF::header_parse_t result = KPF::parse_header( i->first, true );
 
     std::tie( okay_obtained, tag_obtained, domain_obtained) = result;
     ostringstream oss;

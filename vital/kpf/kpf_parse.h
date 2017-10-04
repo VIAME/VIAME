@@ -139,41 +139,40 @@ struct VITAL_KPF_EXPORT packet_t
 // dump to stream
 //
 
-class VITAL_KPF_EXPORT text_record_reader_buffer_base_t
+class VITAL_KPF_EXPORT text_reader_t
 {
 public:
-  virtual ~text_record_reader_buffer_base_t() {}
-  virtual void set_from_buffer( const packet_t& ) = 0;
-  virtual packet_header_t my_header() const = 0;
-};
+  explicit text_reader_t( const std::string& tag );
+  ~text_reader_t() {}
+  void set_from_buffer( const packet_t& );
+  packet_header_t my_header() const;
+  std::pair< bool, packet_t > get_packet();
 
-class VITAL_KPF_EXPORT null_reader_t: public text_record_reader_buffer_base_t
-{
-public:
-  virtual ~null_reader_t() {}
-  virtual void set_from_buffer( const packet_t& ) {}
-  virtual packet_header_t my_header() const { return packet_header_t(); }
+protected:
+  bool is_set;
+  packet_header_t header;
+  packet_t packet;
 };
 
 typedef std::multimap< packet_header_t,
                        packet_t,
                        decltype( packet_header_cmp ) > packet_buffer_t;
 
-class VITAL_KPF_EXPORT text_record_reader_t
+class VITAL_KPF_EXPORT text_parser_t
 {
 public:
 
-  explicit text_record_reader_t( std::istream& is );
+  explicit text_parser_t( std::istream& is );
   explicit operator bool() const;
 
-  friend   text_record_reader_t& operator>>( text_record_reader_t& t,
-                                 text_record_reader_buffer_base_t& b );
+  friend text_parser_t& operator>>( text_parser_t& t,
+                                    text_reader_t& b );
 
   // mystery: fails to link if this is not inline?
   const packet_buffer_t& get_packet_buffer() const { return this->packet_buffer; }
 
 private:
-  bool process_reader( text_record_reader_buffer_base_t& b );
+  bool process_reader( text_reader_t& b );
   bool parse_next_line();
 
   packet_buffer_t packet_buffer;
@@ -183,8 +182,8 @@ private:
 };
 
 VITAL_KPF_EXPORT
-text_record_reader_t& operator>>( text_record_reader_t& t,
-                                  text_record_reader_buffer_base_t& b );
+text_parser_t& operator>>( text_parser_t& t,
+                           text_reader_t& b );
 
 } // ...kpf
 } // ...vital
