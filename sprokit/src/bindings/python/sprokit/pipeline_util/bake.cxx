@@ -63,7 +63,7 @@ static sprokit::cluster_info_t bake_cluster(object stream);
 
 PYBIND11_MODULE(bake, m)
 {
-  class_<sprokit::cluster_info_t>(m, "ClusterInfo"
+  class_<sprokit::cluster_info, sprokit::cluster_info_t>(m, "ClusterInfo"
     , "Information loaded from a cluster file.")
     .def("type", &cluster_info_type)
     .def("description", &cluster_info_description)

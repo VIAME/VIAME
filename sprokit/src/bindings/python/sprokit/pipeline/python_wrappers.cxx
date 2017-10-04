@@ -56,6 +56,8 @@ class wrap_port_addr
 
     sprokit::process::name_t process;
     sprokit::process::port_t port;
+
+    sprokit::process::port_addr_t get_addr() {return sprokit::process::port_addr_t(process,port);};
 };
 
 // Publisher class to access virtual methods

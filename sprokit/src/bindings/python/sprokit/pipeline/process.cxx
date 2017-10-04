@@ -208,6 +208,7 @@ PYBIND11_MODULE(process, m)
     .def(init<>())
     .def_readwrite("process", &wrap_port_addr::process)
     .def_readwrite("port", &wrap_port_addr::port)
+    .def("getAddr", &wrap_port_addr::get_addr)
   ;
   bind_vector<std::vector<wrap_port_addr> >(m, "PortAddrs"
     , "A collection of port addresses.")
