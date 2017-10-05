@@ -49,6 +49,7 @@
 #include <utility>
 #include <iostream>
 #include <map>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -142,7 +143,11 @@ struct VITAL_KPF_EXPORT packet_t
 class VITAL_KPF_EXPORT text_reader_t
 {
 public:
+  text_reader_t();
   explicit text_reader_t( const std::string& tag );
+  explicit text_reader_t( const packet_header_t& h );
+  void init( const std::string& tag );
+  void init( const packet_header_t& h );
   ~text_reader_t() {}
   void set_from_buffer( const packet_t& );
   packet_header_t my_header() const;
@@ -184,6 +189,101 @@ private:
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t,
                            text_reader_t& b );
+
+struct kpf_io_adapter_base
+{
+  text_reader_t text_reader;
+};
+
+template< typename USER_TYPE, typename KPF_TYPE >
+struct kpf_io_adapter: public kpf_io_adapter_base
+{
+  // holds the two conversion functions
+  USER_TYPE (*kpf2user_function)( const KPF_TYPE& );
+  void (*kpf2user_inplace) ( const KPF_TYPE&, USER_TYPE& );
+  KPF_TYPE (*user2kpf_function)( const USER_TYPE& );
+  // what domain does this adapter read from / write to?
+  int domain;
+  // text reader (initialized in derived classes)
+
+  kpf_io_adapter( USER_TYPE (*k2u)( const KPF_TYPE& ),
+                  KPF_TYPE( *u2k)( const USER_TYPE& ),
+                  int d ) :
+    kpf2user_function( k2u ), kpf2user_inplace( nullptr ),
+    user2kpf_function( u2k ), domain( d )
+  {}
+
+  kpf_io_adapter( void (*k2u)( const KPF_TYPE&, USER_TYPE& ),
+                  KPF_TYPE( *u2k)( const USER_TYPE& ),
+                  int d ) :
+    kpf2user_function( nullptr ), kpf2user_inplace( k2u ),
+    user2kpf_function( u2k ), domain( d )
+  {}
+
+  // these two methods both convert a KPF type into a user type.
+  USER_TYPE operator()( const KPF_TYPE& k ) { return (user2kpf_function)( k ); }
+  void operator()( const KPF_TYPE& k, USER_TYPE& u ) { (kpf2user_inplace)( k, u ); }
+
+  // this method converts the user type and passes on the domain.
+  std::pair< int, KPF_TYPE > operator()( const USER_TYPE& u )
+  {
+    return std::make_pair( this->domain, (kpf2user_function)( u ));
+  }
+};
+
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t,
+                           kpf_io_adapter_base& io );
+
+
+template< typename USER_TYPE >
+struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
+{
+  friend std::ostream& operator<<( std::ostream& os, const kpf_box_adapter< USER_TYPE >& k );
+
+  kpf_box_adapter( USER_TYPE (*k2u) (const canonical::bbox_t&),
+                   canonical::bbox_t (*u2k)( const USER_TYPE&),
+                   int d )
+    : kpf_io_adapter<USER_TYPE, canonical::bbox_t>( k2u, u2k, d )
+  {
+    this->text_reader.init( packet_header_t( packet_style::GEOM, d ));
+  }
+  kpf_box_adapter( void (*k2u) (const canonical::bbox_t&, USER_TYPE& ),
+                   canonical::bbox_t (*u2k)( const USER_TYPE&),
+                   int d )
+    : kpf_io_adapter<USER_TYPE, canonical::bbox_t>( k2u, u2k, d )
+  {
+    this->text_reader.init( packet_header_t( packet_style::GEOM, d ));
+  }
+
+  USER_TYPE get()
+  {
+    auto probe = this->text_reader.get_packet();
+    // throw if ! probe->first
+    // also throw if kpf2user is null, or else use a temporary?
+    return (this->kpf2user_function)( probe.second.payload.bbox );
+  }
+  void get( USER_TYPE& u )
+  {
+    auto probe = this->text_reader.get_packet();
+    // see above
+    (this->kpf2user_inplace)( probe.second.payload.bbox, u );
+  }
+
+  canonical::bbox_t operator()( const USER_TYPE& u )
+  {
+    return (this->user2kpf)( u );
+  }
+
+  std::string to_str( const USER_TYPE& u ) const
+  {
+    canonical::bbox_t box = (this->user2kpf_function)( u );
+    std::ostringstream oss;
+    oss << "g" << this->domain << ": " << box.x1 << " " << box.y1 << " " << box.x2 << " " << box.y1;
+    return oss.str();
+  }
+
+};
 
 } // ...kpf
 } // ...vital

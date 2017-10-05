@@ -80,14 +80,39 @@ namespace vital {
 namespace kpf {
 
 text_reader_t
-::text_reader_t( const string& s ):
-  is_set( false )
+::text_reader_t()
+  : is_set( false )
+{
+}
+
+text_reader_t
+::text_reader_t( const string& s )
+  : is_set( false )
+{
+  this->init( s );
+}
+
+text_reader_t
+::text_reader_t( const packet_header_t& h )
+  : is_set( false ), header( h )
+{
+}
+
+void
+text_reader_t
+::init( const string& s )
 {
   if (! packet_header_parser( s, this->header, false ))
   {
     LOG_ERROR( main_logger, "Couldn't create a reader for packets of type '" << s << "'");
     return;
   }
+}
+
+void text_reader_t
+::init( const packet_header_t& h )
+{
+  this->header = h;
 }
 
 void
@@ -215,6 +240,12 @@ operator>>( text_parser_t& t,
     t.reader_status = okay && t.reader_status;
   }
   return t;
+}
+
+text_parser_t& operator>>( text_parser_t& t,
+                           kpf_io_adapter_base& io )
+{
+  return t >> io.text_reader;
 }
 
 } // ...kpf
