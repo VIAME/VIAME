@@ -279,7 +279,7 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
   {
     canonical::bbox_t box = (this->user2kpf_function)( u );
     std::ostringstream oss;
-    oss << "g" << this->domain << ": " << box.x1 << " " << box.y1 << " " << box.x2 << " " << box.y1;
+    oss << "g" << this->domain << ": " << box.x1 << " " << box.y1 << " " << box.x2 << " " << box.y2;
     return oss.str();
   }
 

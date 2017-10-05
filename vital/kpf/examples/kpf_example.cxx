@@ -14,6 +14,7 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 using std::istringstream;
+using std::stringstream;
 using std::ostream;
 
 namespace KPF=kwiver::vital::kpf;
@@ -35,7 +36,25 @@ struct whizbang_detection_t
   double box_height;
   string label;
   double confidence;
+  whizbang_detection_t()
+    : detection_id(0), frame_number(0), box_corner_pt( {0,0}),
+      box_width(0), box_height(0), label("invalid"), confidence(0)
+  {}
+  whizbang_detection_t( int d, unsigned f, const pair<double, double>& c,
+                        double w, double h, const string& s, double conf )
+    : detection_id(d), frame_number(f), box_corner_pt(c),
+      box_width(w), box_height(h), label(s), confidence(conf)
+  {}
 };
+
+ostream& operator<<( ostream& os, const whizbang_detection_t& d )
+{
+  os << "detection " << d.detection_id << " @ frame " << d.frame_number << ": "
+     << d.box_width << "x" << d.box_height << "+" << d.box_corner_pt.first
+     << "+" << d.box_corner_pt.second << "; label '" << d.label << "' conf "
+     << d.confidence;
+  return os;
+}
 
 
 //
@@ -43,12 +62,12 @@ struct whizbang_detection_t
 //
 
 vector< whizbang_detection_t >
-make_some_sample_detections()
+make_sample_detections()
 {
   vector< whizbang_detection_t > detections {
-    { 100, 4, make_pair( 33.3, 33.3), 10, 20, "vehicle", 0.3 },
-    { 101, 4, make_pair( 44.4, 44.4), 4, 9,   "person",  0.8 },
-    { 102, 5, make_pair( 55.5, 55.5), 11, 7,  "vehicle", 0.5 }
+    { 100, 4, { 33.3, 33.3 }, 10, 20, "vehicle", 0.3 },
+    { 101, 4, { 44.4, 44.4 }, 4, 9,   "person",  0.8 },
+    { 102, 5, { 55.5, 55.5 }, 11, 7,  "vehicle", 0.5 }
   };
 
   return detections;
@@ -130,12 +149,25 @@ write_detections_to_stream( ostream& os,
 
 int main()
 {
-  string test_input = "g0: 10 10 5 5\n g0: 20 20 8 8\n g0: 19 21 4 4\n";
-  istringstream iss( test_input );
-  vector< whizbang_detection_t> dets = read_detections_from_stream( iss );
-  std::cout << "Read " << dets.size() << " detections\n";
 
-  std::cout << "About to write detections:\n";
-  write_detections_to_stream( std::cout, dets );
+  vector< whizbang_detection_t > src_dets = make_sample_detections();
+  for (auto i=0; i<src_dets.size(); ++i)
+  {
+    std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
+  }
+
+  stringstream ss;
+  std::cout << "\nAbout to write detections:\n";
+  write_detections_to_stream( ss, src_dets );
+  std::cout << "KPF representation:\n" << ss.str();
   std::cout << "Done\n";
+
+  std::cout << "\nAbout to read KPF:\n";
+  vector< whizbang_detection_t> new_dets = read_detections_from_stream( ss );
+  for (auto i=0; i<src_dets.size(); ++i)
+  {
+    std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";
+  }
+
+
 }
