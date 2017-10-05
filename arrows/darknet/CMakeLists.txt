@@ -13,8 +13,8 @@ set( sources
   darknet_trainer.cxx
   )
 
-set( darknet_linked_libs
-  ${darknet_LIBRARIES}
+set( Darknet_linked_libs
+  ${Darknet_LIBRARIES}
   kwiversys
   ${OpenCV_LIBS}
   ${Boost_SYSTEM_LIBRARY}
@@ -22,26 +22,52 @@ set( darknet_linked_libs
   kwiver_algo_ocv )
 
 # if darknet was built with the GPU support
-if (DARKNET_USE_GPU)
+if (Darknet_USING_GPU)
   find_package(CUDA QUIET REQUIRED)
   include_directories( ${CUDA_TOOLKIT_ROOT_DIR}/include )
-  add_definitions( -DDARKNET_USE_GPU )  # needed by darknet includes
+  add_definitions( -DDARKNET_USE_GPU )  # needed by darknet detector
 endif()
 
-# Visual Studio fix until project has better exports
+if (Darknet_USING_CUDNN)
+  include_directories( ${CUDNN_TOOLKIT_ROOT_DIR}/include )
+  add_definitions( -DDARKNET_USE_CUDNN )  # needed by darknet detector
+endif()
+
+
+# Visual Studio links to a static lib of darknet due to the pthread dependency
+# So we need to add all libraries to this arrow, if darknet was a dll, we would
+# not have this issue, but we need pthreads and it likes static for some reason
 if (WIN32)
-  include_directories( SYSTEM ${darknet_INCLUDE_DIR}/../3rdparty/include )
+  include_directories( SYSTEM ${Darknet_INCLUDE_DIR}/../3rdparty/include )
   add_definitions( -D_TIMESPEC_DEFINED )
-  set( darknet_linked_libs ${darknet_linked_libs} pthreadVC2 )
-  if (KWIVER_ENABLE_CUDA)
-    set( darknet_linked_libs
-         ${darknet_linked_libs}
+  set( Darknet_linked_libs ${Darknet_linked_libs} pthreadVC2 )
+
+  if (Darknet_USING_GPU)
+    set( Darknet_linked_libs
+         ${Darknet_linked_libs}
          ${CUDA_CUDA_LIBRARY}
          ${CUDA_LIBRARIES}
          ${CUDA_CUBLAS_LIBRARIES}
          ${CUDA_curand_LIBRARY} )
   endif()
+  if (Darknet_USING_CUDNN)
+    message(STATUS "Darkent Arrow using CUDNN, looking for it here : ${CUDNN_TOOLKIT_ROOT_DIR}")
+    find_library( CUDNN_LIBRARIES
+    NAMES cudnn libcudnn
+    HINTS ${CUDNN_TOOLKIT_ROOT_DIR}
+    PATH_SUFFIXES lib lib64 lib/x64 lib/x86 targets/aarch64-linux
+    )
+  if(NOT CUDNN_LIBRARIES)
+    message(FATAL_ERROR "Unable to find cudnn libraries")
+  endif()
+  include_directories( ${CUDNN_TOOLKIT_ROOT_DIR}/include )
+    set( Darknet_linked_libs
+         ${Darknet_linked_libs}
+         ${CUDNN_LIBRARIES} )
+  endif()
 endif()
+message(STATUS "Darkent Arrow using these libraries : ${Darknet_linked_libs}")
+
 
 kwiver_install_headers(
   SUBDIR     arrows/darknet
@@ -60,7 +86,7 @@ kwiver_add_library( kwiver_algo_darknet
 
 target_link_libraries( kwiver_algo_darknet
   PUBLIC               vital_algo
-  PRIVATE              ${darknet_linked_libs}
+  PRIVATE              ${Darknet_linked_libs}
   )
 
 algorithms_create_plugin( kwiver_algo_darknet
