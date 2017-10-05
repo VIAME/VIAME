@@ -3,26 +3,26 @@ process numbersource
   :: numbers
 
   # Starting Number
-  :start 1
+  start = 1  
 
   # Ending Number
-  :end 7
+  end = 100
 
 # ================================================================
 process numbersink
-  :: kw_print_number_process
+  :: print_number
 
-  :output numbers_from_python.txt
+  output = @EXAMPLE_DIR@/pipelines/output/numbers.txt
 
 # ================================================================
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 10
+       capacity = 10
 
 # ================================================================
 # connections
 connect from numbersource.number
-        to   numbersink.input
+        to   numbersink.number
 
 # -- end of file --

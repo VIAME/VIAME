@@ -1,0 +1,4 @@
+@CMAKE_SOURCE_DIR@/examples/images/cat.jpg
+@CMAKE_SOURCE_DIR@/examples/images/cat_gray.jpg
+@CMAKE_SOURCE_DIR@/examples/images/fish_bike.jpg
+@CMAKE_SOURCE_DIR@/examples/images/soda_circles.jpg

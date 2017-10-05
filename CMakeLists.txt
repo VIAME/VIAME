@@ -85,6 +85,7 @@ OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
 OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
 OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
 OPTION(KWIVER_ENABLE_TRACK_ORACLE  "Enable track_oracle" OFF )
+OPTION(KWIVER_ENABLE_EXAMPLES  "Enable examples" OFF )
 
 # if sprokit enabled
 OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
@@ -278,6 +279,10 @@ endif()
 
 if (KWIVER_ENABLE_EXTRAS)
   add_subdirectory(extras)
+endif()
+
+if (KWIVER_ENABLE_EXAMPLES)
+  add_subdirectory(examples)
 endif()
 
 ###

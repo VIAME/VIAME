@@ -3,14 +3,14 @@ process input
   :: frame_list_input
 # Input file containing new-line separated paths to sequential image
 # files.
-  :image_list_file ../video-test/short/input_image_list.txt
+  :image_list_file @EXAMPLE_DIR@/pipelines/image_list.txt
   :frame_time .9
 
 # Algorithm to use for 'image_reader'.
 # Must be one of the following options:
 # 	- ocv
 # 	- vxl
-  :image_reader:type ocv
+  image_reader:type = ocv
 
 # ================================================================
 process vector_display
@@ -19,23 +19,23 @@ process vector_display
 
 # ================================================================
 # Python process to accept an image.
-process process
+process descriptor
   :: ApplyDescriptor
-  :first second
-  :algorithm algo
+  first     = second
+  algorithm = algo
 
 # ================================================================
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 10
+       capacity = 10
 
 # ================================================================
 # connections
 connect from input.image
-        to   process.image
+        to   descriptor.image
 
-connect from process.vector
+connect from descriptor.vector
         to vector_display.d_vector
 
 # -- end of file --
