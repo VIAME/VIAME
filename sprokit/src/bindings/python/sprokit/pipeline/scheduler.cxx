@@ -57,6 +57,7 @@ class wrap_scheduler
     using scheduler::_pause;
     using scheduler::_resume;
     using scheduler::_stop;
+    using scheduler::pipeline;
 };
 
 // Trampoline class to allow us to to use virtual methods
@@ -97,6 +98,8 @@ PYBIND11_MODULE(scheduler, m)
       , "Implementation of resuming execution.")
     .def("_stop", &wrap_scheduler::_stop
       , "Implementation of stopping the pipeline.")
+    .def("pipeline", &wrap_scheduler::pipeline
+      , "Scheduler pipeline.")
   ;
 }
 

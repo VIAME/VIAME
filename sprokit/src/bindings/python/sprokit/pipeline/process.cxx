@@ -33,7 +33,6 @@ typedef std::set<std::string> string_set; // This has to be done first thing, or
 PYBIND11_MAKE_OPAQUE(string_set)
 
 #include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python_gil.h>
 
 #include <pybind11/stl_bind.h>
 #include <pybind11/operators.h>
@@ -72,6 +71,25 @@ class wrap_process
     using process::_set_output_port_type;
     using process::_available_config;
     using process::_config_info;
+    using process::declare_input_port;
+    using process::declare_output_port;
+    using process::declare_configuration_key;
+    using process::set_input_port_frequency;
+    using process::set_output_port_frequency;
+    using process::remove_input_port;
+    using process::remove_output_port;
+    using process::mark_process_as_complete;
+    using process::has_input_port_edge;
+    using process::count_output_port_edges;
+    using process::peek_at_port;
+    using process::peek_at_datum_on_port;
+    using process::grab_from_port;
+    using process::grab_datum_from_port;
+    using process::push_to_port;
+    using process::push_datum_to_port;
+    using process::get_config;
+    using process::config_value;
+    using process::set_data_checking_level;
 };
 
 // Trampoline class to allow us to use virtual methods
@@ -96,6 +114,42 @@ class process_trampoline
     kwiver::vital::config_block_keys_t _available_config() const override;
     sprokit::process::conf_info_t _config_info(kwiver::vital::config_block_key_t const& key) override;
 };
+
+void declare_input_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info);
+void declare_input_port_5(sprokit::process &self,
+                          sprokit::process::port_t const& port,
+                          sprokit::process::port_type_t const& type_,
+                          sprokit::process::port_flags_t const& flags_,
+                          sprokit::process::port_description_t const& description_,
+                          sprokit::process::port_frequency_t const& frequency_);
+
+void declare_output_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info);
+void declare_output_port_5(sprokit::process &self,
+                          sprokit::process::port_t const& port,
+                          sprokit::process::port_type_t const& type_,
+                          sprokit::process::port_flags_t const& flags_,
+                          sprokit::process::port_description_t const& description_,
+                          sprokit::process::port_frequency_t const& frequency_);
+
+void declare_configuration_key_2(sprokit::process &self,
+                                 kwiver::vital::config_block_key_t const& key,
+                                 sprokit::process::conf_info_t const& info);
+void declare_configuration_key_3(sprokit::process &self,
+                                 kwiver::vital::config_block_key_t const& key,
+                                 kwiver::vital::config_block_value_t const& def_,
+                                 kwiver::vital::config_block_description_t const& description_);
+void declare_configuration_key_4(sprokit::process &self,
+                                 kwiver::vital::config_block_key_t const& key,
+                                 kwiver::vital::config_block_value_t const& def_,
+                                 kwiver::vital::config_block_description_t const& description_,
+                                 bool tunable_);
+
+object grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port);
+
+void push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj);
+void push_datum_to_port(sprokit::process &self, sprokit::process::port_t const& port, sprokit::datum const& dat);
+
+std::string config_value(sprokit::process &self, kwiver::vital::config_block_key_t const& key);
 
 PYBIND11_MODULE(process, m)
 {
@@ -307,7 +361,7 @@ PYBIND11_MODULE(process, m)
       , "Initializes the process.")
     .def("reset", &sprokit::process::reset
       , "Resets the process.")
-    .def("step", &sprokit::process::step
+    .def("step", &sprokit::process::step, call_guard<gil_scoped_release>()
       , "Steps the process for one iteration.")
     .def("properties", &sprokit::process::properties
       , "Returns the properties on the process.")
@@ -376,21 +430,94 @@ PYBIND11_MODULE(process, m)
     .def("_base_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Base class output port type setting.")
     .def("_base_available_config", &wrap_process::_available_config, "Base class available configuration information.")
     .def("_base_config_info", &wrap_process::_config_info, return_value_policy::reference, arg("config"), "Base class configuration information.")
-    .def("_configure", &wrap_process::_configure, "Configure the base process.")
-    .def("_init", &wrap_process::_init, "Base class initialization.")
-    .def("_reset", &wrap_process::_reset, "Base class reset.")
-    .def("_flush", &wrap_process::_flush, "Base class flush.")
-    .def("_step", &wrap_process::_step, "Base class step.")
-    .def("_reconfigure", &wrap_process::_reconfigure, arg("conf"), "Base class reconfigure.")
-    .def("_properties", &wrap_process::_properties, "Base class properties.")
-    .def("_input_ports", &wrap_process::_input_ports, "Base class input ports.")
-    .def("_output_ports", &wrap_process::_output_ports, "Base class output ports.")
-    .def("_input_port_info", &wrap_process::_input_port_info, arg("port"), "Base class input port info.")
-    .def("_output_port_info", &wrap_process::_output_port_info, arg("port"), "Base class output port info.")
-    .def("_set_input_port_type", &wrap_process::_set_input_port_type, arg("port"), arg("new_type"), "Base class input port type setting.")
-    .def("_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Base class output port type setting.")
-    .def("_available_config", &wrap_process::_available_config, "Base class available configuration information.")
-    .def("_config_info", &wrap_process::_config_info, arg("config"), "Base class configuration information.")
+    .def("_configure", &wrap_process::_configure, "Configure the sub process.")
+    .def("_init", &wrap_process::_init, "Sub class initialization.")
+    .def("_reset", &wrap_process::_reset, "Sub class reset.")
+    .def("_flush", &wrap_process::_flush, "Sub class flush.")
+    .def("_step", &wrap_process::_step, call_guard<gil_scoped_release>(), "Sub class step.")
+    .def("_reconfigure", &wrap_process::_reconfigure, arg("conf"), "Sub class reconfigure.")
+    .def("_properties", &wrap_process::_properties, "Sub class properties.")
+    .def("_input_ports", &wrap_process::_input_ports, "Sub class input ports.")
+    .def("_output_ports", &wrap_process::_output_ports, "Sub class output ports.")
+    .def("_input_port_info", &wrap_process::_input_port_info, arg("port"), call_guard<gil_scoped_release>(), "Sub class input port info.")
+    .def("_output_port_info", &wrap_process::_output_port_info, arg("port"), call_guard<gil_scoped_release>(), "Sub class output port info.")
+    .def("_set_input_port_type", &wrap_process::_set_input_port_type, arg("port"), arg("new_type"), "Sub class input port type setting.")
+    .def("_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Sub class output port type setting.")
+    .def("_available_config", &wrap_process::_available_config, "Sub class available configuration information.")
+    .def("_config_info", &wrap_process::_config_info, arg("config"), "Sub class configuration information.")
+    .def("declare_input_port", &declare_input_port_2
+      , arg("port"), arg("info")
+      , "Declare an input port on the process.")
+    .def("declare_input_port", &declare_input_port_5
+      , arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = sprokit::process::port_frequency_t(1)
+      , "Declare an input port on the process.")
+    .def("declare_output_port", &declare_output_port_2
+      , arg("port"), arg("info")
+      , "Declare an output port on the process.")
+    .def("declare_output_port", &declare_output_port_5
+      , arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = sprokit::process::port_frequency_t(1)
+      , "Declare an output port on the process.")
+    .def("declare_configuration_key", &declare_configuration_key_2
+      , arg("key"), arg("info")
+      , "Declare a configuration key for the process")
+    .def("declare_configuration_key", &declare_configuration_key_3
+      , arg("key"), arg("default"), arg("description")
+      , "Declare a configuration key for the process")
+    .def("declare_configuration_key", &declare_configuration_key_4
+      , arg("key"), arg("default"), arg("description"), arg("tunable")
+      , "Declare a configuration key for the process")
+    .def("set_input_port_frequency", &wrap_process::set_input_port_frequency
+      , arg("port"), arg("new_frequency")
+      , "Set an input port\'s frequency.")
+    .def("set_output_port_frequency", &wrap_process::set_output_port_frequency
+      , arg("port"), arg("new_frequency")
+      , "Set an output port\'s frequency.")
+    .def("remove_input_port", &wrap_process::remove_input_port
+      , arg("port")
+      , "Remove an input port from the process.")
+    .def("remove_output_port", &wrap_process::remove_output_port
+      , arg("port")
+      , "Remove an output port from the process.")
+    .def("mark_process_as_complete", &wrap_process::mark_process_as_complete
+      , "Tags the process as complete.")
+    .def("has_input_port_edge", &wrap_process::has_input_port_edge
+      , arg("port")
+      , "True if there is an edge that is connected to the port, False otherwise.")
+    .def("count_output_port_edges", &wrap_process::count_output_port_edges
+      , arg("port")
+      , "The number of edges that are connected to a port.")
+    .def("peek_at_port", &wrap_process::peek_at_port
+      , arg("port"), arg("idx") = 0
+      , "Peek at a port.")
+    .def("peek_at_datum_on_port", &wrap_process::peek_at_datum_on_port
+      , arg("port"), arg("idx") = 0
+      , "Peek at a datum on a port.")
+    .def("grab_from_port", &wrap_process::grab_from_port
+      , arg("port")
+      , "Grab a datum packet from a port.")
+    .def("grab_value_from_port", &grab_value_from_port
+      , arg("port")
+      , "Grab a value from a port.")
+    .def("grab_datum_from_port", &wrap_process::grab_datum_from_port
+      , arg("port")
+      , "Grab a datum from a port.")
+    .def("push_to_port", &wrap_process::push_to_port
+      , arg("port"), arg("datum")
+      , "Push a datum packet to a port.")
+    .def("push_value_to_port", &push_value_to_port
+      , arg("port"), arg("value")
+      , "Push a value to a port.")
+    .def("push_datum_to_port", &push_datum_to_port
+      , arg("port"), arg("datum")
+      , "Push a datum to a port.")
+    .def("get_config", &wrap_process::get_config
+      , "Gets the configuration for a process.")
+    .def("config_value", &config_value
+      , arg("key")
+      , "Gets a value from the configuration for a process.")
+    .def("set_data_checking_level", &wrap_process::set_data_checking_level
+      , arg("check")
+      , "Set the level to which the inputs are automatically checked.")
   ;
 }
 
@@ -442,6 +569,8 @@ void
 process_trampoline
 ::_step()
 {
+  gil_scoped_acquire acquire;
+
   PYBIND11_OVERLOAD(
     void,
     process,
@@ -498,6 +627,8 @@ sprokit::process::port_info_t
 process_trampoline
 ::_input_port_info(port_t const& port)
 {
+  gil_scoped_acquire acquire;
+
   PYBIND11_OVERLOAD(
     sprokit::process::port_info_t,
     process,
@@ -510,6 +641,8 @@ sprokit::process::port_info_t
 process_trampoline
 ::_output_port_info(port_t const& port)
 {
+  gil_scoped_acquire acquire;
+
   PYBIND11_OVERLOAD(
     sprokit::process::port_info_t,
     process,
@@ -563,4 +696,135 @@ process_trampoline
     _config_info,
     key
   );
+}
+
+void
+declare_input_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_input_port(port, port_info);
+}
+
+void
+declare_input_port_5(sprokit::process &self,
+                     sprokit::process::port_t const& port,
+                     sprokit::process::port_type_t const& type_,
+                     sprokit::process::port_flags_t const& flags_,
+                     sprokit::process::port_description_t const& description_,
+                     sprokit::process::port_frequency_t const& frequency_)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_input_port(port, type_, flags_, description_, frequency_);
+}
+
+void
+declare_output_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_output_port(port, port_info);
+}
+
+void
+declare_output_port_5(sprokit::process &self,
+                      sprokit::process::port_t const& port,
+                      sprokit::process::port_type_t const& type_,
+                      sprokit::process::port_flags_t const& flags_,
+                      sprokit::process::port_description_t const& description_,
+                      sprokit::process::port_frequency_t const& frequency_)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_output_port(port, type_, flags_, description_, frequency_);
+}
+
+void
+declare_configuration_key_2(sprokit::process &self,
+                            kwiver::vital::config_block_key_t const& key,
+                            sprokit::process::conf_info_t const& info)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_configuration_key(key, info);
+}
+
+void
+declare_configuration_key_3(sprokit::process &self,
+                            kwiver::vital::config_block_key_t const& key,
+                            kwiver::vital::config_block_value_t const& def_,
+                            kwiver::vital::config_block_description_t const& description_)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_configuration_key(key, def_, description_);
+}
+
+void
+declare_configuration_key_4(sprokit::process &self,
+                            kwiver::vital::config_block_key_t const& key,
+                            kwiver::vital::config_block_value_t const& def_,
+                            kwiver::vital::config_block_description_t const& description_,
+                            bool tunable_)
+{
+  sprokit::process* self_ptr = &self;
+  ((wrap_process*) self_ptr)->declare_configuration_key(key, def_, description_, tunable_);
+}
+
+object
+grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port)
+{
+  sprokit::process* self_ptr = &self;
+  sprokit::datum_t const dat = ((wrap_process*) self_ptr)->grab_datum_from_port(port);
+  boost::any const any = dat->get_datum<boost::any>();
+
+  //boost::any and pybind11::object don't play nice, so we have to try different types
+  //TODO: fix this! preferably by making datum no longer use boost::any
+  object return_val = none();
+  try
+  {
+    return_val = boost::any_cast<object>(any);
+  } catch(...){}
+  try
+  {
+    return_val = cast(boost::any_cast<int>(any));
+  } catch(...){}
+  try
+  {
+    return_val = cast(boost::any_cast<long>(any));
+  } catch(...){}
+  try
+  {
+    return_val = cast(boost::any_cast<float>(any));
+  } catch(...){}
+  try
+  {
+    return_val = cast(boost::any_cast<std::string>(any));
+  } catch(...){}
+  try
+  {
+    return_val = cast(boost::any_cast<char*>(any));
+  } catch(...){}
+
+  return return_val;
+}
+
+void
+push_datum_to_port(sprokit::process &self, sprokit::process::port_t const& port, sprokit::datum const& dat)
+{
+  sprokit::process* self_ptr = &self;
+  return ((wrap_process*) self_ptr)->push_datum_to_port(port, std::make_shared<sprokit::datum>(dat));
+}
+
+void
+push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj)
+{
+  boost::any const any = obj;
+  sprokit::datum_t const dat = sprokit::datum::new_datum(any);
+
+  sprokit::process* self_ptr = &self;
+  return ((wrap_process*) self_ptr)->push_datum_to_port(port, dat);
+
+}
+
+std::string
+config_value(sprokit::process &self, kwiver::vital::config_block_key_t const& key)
+{
+  sprokit::process* self_ptr = &self;
+  return ((wrap_process*) self_ptr)->config_value<std::string>(key);
 }

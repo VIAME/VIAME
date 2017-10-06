@@ -241,10 +241,6 @@ register_scheduler( sprokit::scheduler::type_t const& type,
                     sprokit::scheduler::description_t const& desc,
                     object obj )
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
   python_scheduler_wrapper const wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
@@ -361,9 +357,5 @@ object
 python_scheduler_wrapper
 ::operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config)
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
   return m_obj(pipeline, config);
 }

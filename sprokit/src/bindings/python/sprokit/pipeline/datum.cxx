@@ -56,6 +56,9 @@
 using namespace pybind11;
 
 static sprokit::datum new_datum(object const& obj);
+static sprokit::datum new_int_datum(object const& obj);
+static sprokit::datum new_float_datum(object const& obj);
+static sprokit::datum new_string_datum(object const& obj);
 static sprokit::datum empty_datum();
 static sprokit::datum flush_datum();
 static sprokit::datum complete_datum();
@@ -87,7 +90,16 @@ PYBIND11_MODULE(datum, m)
   // constructors
   m.def("new", &new_datum
     , (arg("dat"))
-    , "Creates a new datum packet.");
+    , "Creates a new datum packet containing a python object.");
+  m.def("new_int", &new_int_datum
+    , (arg("dat"))
+    , "Creates a new datum packet containing an int.");
+  m.def("new_float", &new_float_datum
+    , (arg("dat"))
+    , "Creates a new datum packet containing a float.");
+  m.def("new_string", &new_string_datum
+    , (arg("dat"))
+    , "Creates a new datum packet containing a string.");
   m.def("datum_from_capsule", &datum_from_capsule
       , (arg("dptr"))
       , "Converts datum* in capsule to datum_t");
@@ -120,16 +132,31 @@ PYBIND11_MODULE(datum, m)
 
 
 // ------------------------------------------------------------------
+
+// For now, we need to manually specify how we want to cast our datum
+// This should be fixed when we move away from boost::any
 sprokit::datum
 new_datum(object const& obj)
 {
-  sprokit::python::python_gil const gil;
+  return *(sprokit::datum::new_datum(obj));
+}
 
-  (void)gil;
+sprokit::datum
+new_int_datum(object const& obj)
+{
+  return *(sprokit::datum::new_datum(cast<int>(obj)));
+}
 
-  boost::any const any = obj;
+sprokit::datum
+new_float_datum(object const& obj)
+{
+  return *(sprokit::datum::new_datum(cast<float>(obj)));
+}
 
-  return *(sprokit::datum::new_datum(any));
+sprokit::datum
+new_string_datum(object const& obj)
+{
+  return *(sprokit::datum::new_datum(cast<std::string>(obj)));
 }
 
 sprokit::datum
@@ -171,10 +198,6 @@ datum_get_error(sprokit::datum const& self)
 object
 datum_get_datum(sprokit::datum const& self)
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
   object dat = none();
   if ( self.type() == sprokit::datum::data )
   {

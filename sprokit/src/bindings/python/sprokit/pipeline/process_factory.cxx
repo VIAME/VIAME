@@ -248,6 +248,7 @@ register_process( sprokit::process::type_t const&        type,
                   sprokit::process::description_t const& desc,
                   object                                 obj )
 {
+
   sprokit::python::python_gil const gil;
 
   (void)gil;

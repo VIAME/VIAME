@@ -30,8 +30,6 @@
 
 #include <vital/config/config_block.h>
 
-#include <sprokit/python/util/python_gil.h>
-
 #if WIN32
 #pragma warning (push)
 #pragma warning (disable : 4267)
@@ -199,10 +197,6 @@ config_getitem( kwiver::vital::config_block_sptr          self,
   }
   catch ( kwiver::vital::no_such_configuration_value_exception const& )
   {
-    sprokit::python::python_gil const gil;
-
-    (void)gil;
-
     std::ostringstream sstr;
 
     sstr << "\'" << key << "\'";
@@ -220,10 +214,6 @@ config_setitem( kwiver::vital::config_block_sptr          self,
                 kwiver::vital::config_block_key_t const&  key,
                 object const&                             value )
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
   kwiver::vital::config_block_key_t const& str_value = str(value);
 
   self->set_value( key, str_value );
@@ -240,10 +230,6 @@ config_delitem( kwiver::vital::config_block_sptr          self,
   }
   catch ( kwiver::vital::no_such_configuration_value_exception const& )
   {
-    sprokit::python::python_gil const gil;
-
-    (void)gil;
-
     std::ostringstream sstr;
 
     sstr << "\'" << key << "\'";
