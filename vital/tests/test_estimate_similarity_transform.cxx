@@ -69,7 +69,7 @@ public:
     : expected_size(expected_size)
   {}
 
-  virtual ~dummy_est() VITAL_DEFAULT_DTOR
+  virtual ~dummy_est() = default;
 
   void set_configuration(kwiver::vital::config_block_sptr config) {}
   bool check_configuration(kwiver::vital::config_block_sptr config) const {return true;}

@@ -36,6 +36,8 @@
 #include <sprokit/pipeline_util/export_dot.h>
 
 #include <vital/config/config_block.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
@@ -68,6 +70,10 @@ sprokit_tool_main(int argc, char const* argv[])
     .add(pipe_to_dot_pipeline_options());
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc, "");
+
+  // Load all known modules
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
 
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;

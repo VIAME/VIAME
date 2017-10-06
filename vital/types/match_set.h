@@ -53,7 +53,7 @@ class match_set
 {
 public:
   /// Destructor
-  virtual ~match_set() VITAL_DEFAULT_DTOR
+  virtual ~match_set() = default;
 
   /// Return the number of matches in the set
   virtual size_t size() const = 0;

@@ -2,91 +2,40 @@
 # Python support
 #
 
-# Add python modules
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/helpers.py
-  vital/tests
-  helpers )
+# Define modules with tests in them
+set(__testable_modnames
+  test_algo_convert_image
+  test_camera
+  test_camera_intrinsics
+  test_camera_map
+  test_color
+  test_config_block
+  test_covariance
+  test_descriptor
+  test_eigen_numpy
+  test_feature
+  test_find_vital_library
+  test_homography
+  test_image
+  test_image_container
+  test_landmark
+  test_rotation
+  test_similarity
+  test_track
+  test_track_set
+  test_track_state
+  )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_algo_convert_image.py
-  vital/tests
-  test_algo_convert_image )
+# All python filenames_we in the vital.tests module
+set(__all_modnames
+  __init__
+  helpers
+  ${__testable_modnames}
+  )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera.py
-  vital/tests
-  test_camera )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera_intrinsics.py
-  vital/tests
-  test_camera_intrinsics )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_camera_map.py
-  vital/tests
-  test_camera_map )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_color.py
-  vital/tests
-  test_color )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_config_block.py
-  vital/tests
-  test_config_block )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_covariance.py
-  vital/tests
-  test_covariance )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_descriptor.py
-  vital/tests
-  test_descriptor )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_eigen_numpy.py
-  vital/tests
-  test_eigen_numpy )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_feature.py
-  vital/tests
-  test_feature )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_find_vital_library.py
-  vital/tests
-  test_find_vital_library )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_homography.py
-  vital/tests
-  test_homography )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_image.py
-  vital/tests
-  test_image )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_image_container.py
-  vital/tests
-  test_image_container )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_landmark.py
-  vital/tests
-  test_landmark )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_rotation.py
-  vital/tests
-  test_rotation )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_similarity.py
-  vital/tests
-  test_similarity )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track.py
-  vital/tests
-  test_track )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track_set.py
-  vital/tests
-  test_track_set )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/test_track_state.py
-  vital/tests
-  test_track_state )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-  vital/tests
-  __init__ )
+# Add files to the vital.tests python module
+foreach (modname IN LISTS __all_modnames)
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/${modname}.py
+    vital/tests
+    ${modname})
+endforeach()

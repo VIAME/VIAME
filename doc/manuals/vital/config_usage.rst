@@ -14,7 +14,7 @@ document/section at the end.
 
 Introduction
 ------------
-The vital `config_block` supports general configuration tasks where a
+The vital ``config_block`` supports general configuration tasks where a
 general purpose key/value pair is needed.
 
 Configuration Features

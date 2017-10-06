@@ -1,9 +1,0 @@
-#
-# Test images
-#
-dog.jpg
-eagle.jpg
-horses.jpg
-eagle.jpg
-person.jpg
-scream.jpg

@@ -59,7 +59,7 @@ class image_container
 public:
 
   /// Destructor
-  virtual ~image_container() VITAL_DEFAULT_DTOR
+  virtual ~image_container() = default;
 
   /// The size of the image data in bytes
   /**

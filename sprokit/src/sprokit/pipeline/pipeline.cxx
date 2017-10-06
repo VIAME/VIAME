@@ -178,8 +178,8 @@ class pipeline::priv
                               process::name_t const& downstream_name,
                               process::port_t const& downstream_port,
                               process::port_type_t const& type,
-                              bool push_upstream) VITAL_NOTHROW;
-        ~propagation_exception() VITAL_NOTHROW;
+                              bool push_upstream) noexcept;
+        ~propagation_exception() noexcept;
 
         process::name_t const m_upstream_name;
         process::port_t const m_upstream_port;
@@ -2281,7 +2281,7 @@ pipeline::priv::propagation_exception
                         process::name_t const& downstream_name,
                         process::port_t const& downstream_port,
                         process::port_type_t const& type,
-                        bool push_upstream) VITAL_NOTHROW
+                        bool push_upstream) noexcept
   : m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
   , m_downstream_name(downstream_name)
@@ -2295,7 +2295,7 @@ pipeline::priv::propagation_exception
 
 // ------------------------------------------------------------------
 pipeline::priv::propagation_exception
-::~propagation_exception() VITAL_NOTHROW
+::~propagation_exception() noexcept
 {
 }
 

@@ -47,8 +47,7 @@
 // Testing helper functions
 //
 
-namespace Eigen
-{
+namespace Eigen {
 
 // ----------------------------------------------------------------------------
 void
@@ -57,10 +56,51 @@ PrintTo( Vector2d const& v, ::std::ostream* os )
   // This function exists because a) it produces better formatting, and
   // b) Google Test needs an exact match or it will fall back to the generic
   // value printer...
-  // TODO move this to a shared header
   (*os) << v[0] << ", " << v[1];
 }
 
 } // end namespace Eigen
+
+namespace kwiver {
+namespace testing {
+
+// ----------------------------------------------------------------------------
+struct matrix_comparator
+{
+  // --------------------------------------------------------------------------
+  template <typename A, typename B>
+  bool operator()( A const& m1, B const& m2 )
+  {
+    return m1.isApprox( m2 );
+  }
+
+  // --------------------------------------------------------------------------
+  template <typename T, int M, int N>
+  bool operator()( Eigen::Matrix<T, M, N> const& a,
+                   Eigen::Matrix<T, M, N> const& b,
+                   double epsilon )
+  {
+    for ( unsigned i = 0; i < M; ++i )
+    {
+      for ( unsigned j = 0; j < N; ++j )
+      {
+        if ( std::abs( a( i, j ) - b( i, j ) ) > epsilon )
+        {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+};
+
+#define EXPECT_MATRIX_EQ(a, b) \
+  EXPECT_PRED2(::kwiver::testing::matrix_comparator{}, a, b)
+
+#define EXPECT_MATRIX_NEAR(a, b, eps) \
+  EXPECT_PRED3(::kwiver::testing::matrix_comparator{}, a, b, eps)
+
+} // end namespace testing
+} // end namespace kwiver
 
 #endif // KWIVER_TEST_TEST_EIGEN_H_

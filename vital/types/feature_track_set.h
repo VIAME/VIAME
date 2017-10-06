@@ -100,7 +100,7 @@ public:
   feature_track_set(std::vector< track_sptr > const& tracks);
 
   /// Destructor
-  virtual ~feature_track_set() VITAL_DEFAULT_DTOR
+  virtual ~feature_track_set() = default;
 
   /// Return the set of features in tracks on the last frame
   virtual feature_set_sptr last_frame_features() const;

@@ -163,7 +163,7 @@ OS/X Apple Platform
 - /usr/local/share/<app-name>[/<app-version>]/config
 - /usr/share/<app-name>[/<app-version>]/config
 
-If <install-dir> is not `/usr` or `/usr/local`:
+If <install-dir> is not ``/usr`` or ``/usr/local``:
 
 - <install-dir>/share/<app-name>[/<app-version>]/config
 - <install-dir>/share/config
@@ -181,7 +181,7 @@ Other Posix Platforms (e.g. Linux)
 - /usr/local/share/<app-name>[/<app-version>]/config
 - /usr/share/<app-name>[/<app-version>]/config
 
-If <install-dir> is not `/usr` or `/usr/local`:
+If <install-dir> is not ``/usr`` or ``/usr/local``:
 
 - <install-dir>/share/<app-name>[/<app-version>]/config
 - <install-dir>/share/config
@@ -189,13 +189,13 @@ If <install-dir> is not `/usr` or `/usr/local`:
 
 The environment variable \c KWIVER_CONFIG_PATH can be set with a list
 of one or more directories, in the same manner as the native execution
-`PATH` variable, to be searched for config files.
+``PATH`` variable, to be searched for config files.
 
 Macro Substitution
 ------------------
 The values for configuration elements can be composed from static text
 in the config file and dynamic text supplied by macro providers. The
-format of a macro specification is `$TYPE{name}` where **TYPE** is the
+format of a macro specification is ``$TYPE{name}`` where **TYPE** is the
 name of macro provider and **name** requests a particular value to be
 supplied. The **name** entry is specific to each provider.
 
@@ -217,8 +217,8 @@ LOCAL Macro Provider
 ''''''''''''''''''''
 This macro provider supplies values that have been stored previously
 in the config file.  Local values are specified in the config file
-using the ":=" operator. For example the config entry `mode := online`
-makes `$LOCAL{mode}` available in subsequent configuration
+using the ":=" operator. For example the config entry ``mode := online``
+makes ``$LOCAL{mode}`` available in subsequent configuration
 entries.::
 
   mode := online
@@ -233,7 +233,7 @@ ENV Macro Provider
 ''''''''''''''''''
 This macro provides gives access to the current program
 environment. The values of environment variables such as "HOME" can be
-used by specifying `$ENV{HOME}` in the config file.
+used by specifying ``$ENV{HOME}`` in the config file.
 
 CONFIG Macro Provider
 '''''''''''''''''''''
@@ -242,7 +242,7 @@ entries. For example::
 
   foo:bar = baz
 
-makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
+makes the value available by specifying ``$CONFIG{foo:bar}`` to following lines in the config file
 as shown below.::
 
   value = mode-$CONFIG{foo:bar}ify

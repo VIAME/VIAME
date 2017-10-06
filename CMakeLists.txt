@@ -85,6 +85,7 @@ OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
 OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
 OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
 OPTION(KWIVER_ENABLE_TRACK_ORACLE  "Enable track_oracle" OFF )
+OPTION(KWIVER_ENABLE_EXAMPLES  "Enable examples" OFF )
 
 # if sprokit enabled
 OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
@@ -103,10 +104,15 @@ CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON    "Enable python code" OFF
   KWIVER_ENABLE_C_BINDINGS OFF )
 
 if (KWIVER_ENABLE_PYTHON)
+
+  if (NOT WIN32)
+    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying. Allows for more dynamic python development." Off)
+  endif()
+
   if ( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
-  set(kwiver_boost_python_package     python)
+  include( kwiver-setup-python )
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
@@ -155,33 +161,6 @@ if (KWIVER_ENABLE_TESTS)
   include_directories( tests )
 endif()
 
-if (KWIVER_ENABLE_PYTHON)
-    find_package(PythonInterp REQUIRED)
-    find_package(PythonLibs)
-
-    execute_process(
-      COMMAND "${PYTHON_EXECUTABLE}" -c "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(prefix=''))"
-      RESULT_VARIABLE proc_success
-      OUTPUT_VARIABLE python_site_packages
-      )
-
-    if(NOT ${proc_success} EQUAL 0)
-      message(FATAL_ERROR "Request for python site-packages location failed with error code: ${proc_success}")
-    else()
-      string(STRIP "${python_site_packages}" python_site_packages)
-      message(STATUS "Python site-packages to install into: ${python_site_packages}")
-    endif()
-
-    # TODO Get version from above
-    set(PYTHON_VERSION "2.7"
-      CACHE STRING "The version of python to use for bindings")
-    set(PYTHON_ABIFLAGS ""
-      CACHE STRING "The ABI flags for the version of Python being used")
-
-  include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
-
-endif(KWIVER_ENABLE_PYTHON)
-
 if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
   message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
 endif ()
@@ -205,6 +184,12 @@ configure_file(
   @ONLY
   )
 
+if(fletch_BUILT_WITH_CUDA)
+  list(APPEND EXTRA_WIN32_PATH "${CUDA_TOOLKIT_ROOT_DIR}/bin")
+endif()
+if(fletch_BUILT_WITH_CUDNN)
+  list(APPEND EXTRA_WIN32_PATH "${CUDNN_TOOLKIT_ROOT_DIR}/bin")
+endif()
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.bat.in
   ${KWIVER_SETUP_BATCH_FILE}
@@ -294,6 +279,10 @@ endif()
 
 if (KWIVER_ENABLE_EXTRAS)
   add_subdirectory(extras)
+endif()
+
+if (KWIVER_ENABLE_EXAMPLES)
+  add_subdirectory(examples)
 endif()
 
 ###

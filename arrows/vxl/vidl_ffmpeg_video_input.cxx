@@ -474,12 +474,15 @@ vidl_ffmpeg_video_input
   }
 
   // validate start frame
-  vital::timestamp::frame_t frame =  config->get_value<vital::timestamp::frame_t>( "start_at_frame");
-  //  zero indicates not set, otherwise must be 1 or greater
-  if (frame < 0 )
+  if (config->has_value("start_at_frame"))
   {
-    LOG_ERROR( logger(), "start_at_frame must be greater than 0" );
-    retcode = false;
+    vital::timestamp::frame_t frame = config->get_value<vital::timestamp::frame_t>("start_at_frame");
+    //  zero indicates not set, otherwise must be 1 or greater
+    if (frame < 0)
+    {
+      LOG_ERROR(logger(), "start_at_frame must be greater than 0");
+      retcode = false;
+    }
   }
 
   return retcode;

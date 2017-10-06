@@ -50,7 +50,7 @@ class VITAL_EXPORT klv_exception
 public:
   klv_exception( std::string const& str );
 
-  virtual ~klv_exception() VITAL_NOTHROW;
+  virtual ~klv_exception() noexcept;
 };
 
 } } // end namespace

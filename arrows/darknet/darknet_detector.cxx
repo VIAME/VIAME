@@ -45,25 +45,24 @@
 #include <sstream>
 #include <exception>
 
+// Since we need to wrap darknet.h in an extern C
+// We need to include CUDA/CUDNN before darknet does
+// so C++ gets a hold of them first
+// We may want to wrap all the declarations in darknet.h in 
+// an extern C rather than have to do it here.
+
 #ifdef DARKNET_USE_GPU
-#define GPU
-#include <cuda_runtime.h>
+  #define GPU
+  #include "cuda_runtime.h"
+  #include "curand.h"
+  #include "cublas_v2.h"
+  #ifdef DARKNET_USE_CUDNN
+    #define CUDNN
+    #include "cudnn.h"
+  #endif
 #endif
-
-// darknet includes
 extern "C" {
-
-#include "cuda.h"
-#include "network.h"
-#include "region_layer.h"
-#include "cost_layer.h"
-#include "utils.h"
-#include "parser.h"
-#include "box.h"
-#include "demo.h"
-#include "option_list.h"
-#include "image.h"
-
+#include "darknet.h"
 }
 
 namespace kwiver {
@@ -390,12 +389,14 @@ process_image( const cv::Mat& cv_image )
   /* get boxes around detected objects */
   get_region_boxes( l,        /* i: network output layer */
                     1, 1,     /* i: w, h -  */
+                    m_net.w, m_net.h,
                     m_thresh, /* i: caller supplied threshold */
                     m_probs,  /* o: probability vector */
                     m_boxes,  /* o: list of boxes */
+                    0,        /** masks */
                     0,        /* i: only objectness (false) */
                     0,        /* i: map */
-                    m_hier_thresh ); /* i: caller supplied value */
+                    m_hier_thresh, 1); /* i: caller supplied value */
 
   const float nms( 0.4 );       // don't know what this is
 

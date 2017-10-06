@@ -41,7 +41,7 @@ namespace matlab {
 
 
 matlab_exception::
-matlab_exception(const std::string& msg) VITAL_NOTHROW
+matlab_exception(const std::string& msg) noexcept
   : vital_core_base_exception()
 {
     m_what = msg;
@@ -49,7 +49,7 @@ matlab_exception(const std::string& msg) VITAL_NOTHROW
 
 
 matlab_exception::
-~matlab_exception() VITAL_NOTHROW
+~matlab_exception() noexcept
 { }
 
 

@@ -60,7 +60,7 @@ public:
   close_loops_keyframe();
 
   /// Destructor
-  virtual ~close_loops_keyframe() VITAL_NOTHROW;
+  virtual ~close_loops_keyframe() noexcept;
 
   /// Returns implementation description
   virtual std::string description() const;

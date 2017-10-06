@@ -137,7 +137,7 @@ For example::
   config foo
     bar = baz
 
-makes the value available by specifying `$CONFIG{foo:bar}` to following lines in the config file
+makes the value available by specifying ``$CONFIG{foo:bar}`` to following lines in the config file
 as shown below.::
 
    value = mode-$CONFIG{foo:bar}ify

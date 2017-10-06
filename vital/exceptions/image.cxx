@@ -42,27 +42,27 @@ namespace vital {
 
 
 image_exception
-::image_exception() VITAL_NOTHROW
+::image_exception() noexcept
 {
   m_what = "An image exception";
 }
 
 image_exception
-::~image_exception() VITAL_NOTHROW
+::~image_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 image_type_mismatch_exception
-::image_type_mismatch_exception(std::string message) VITAL_NOTHROW
+::image_type_mismatch_exception(std::string message) noexcept
   : m_message(message)
 {
   m_what = message;
 }
 
 image_type_mismatch_exception
-::~image_type_mismatch_exception() VITAL_NOTHROW
+::~image_type_mismatch_exception() noexcept
 {
 }
 
@@ -71,7 +71,7 @@ image_type_mismatch_exception
 image_size_mismatch_exception
 ::image_size_mismatch_exception(std::string message,
                                 size_t correct_w, size_t correct_h,
-                                size_t given_w, size_t given_h) VITAL_NOTHROW
+                                size_t given_w, size_t given_h) noexcept
   : m_message(message),
     m_correct_w(correct_w),
     m_correct_h(correct_h),
@@ -86,7 +86,7 @@ image_size_mismatch_exception
 }
 
 image_size_mismatch_exception
-::~image_size_mismatch_exception() VITAL_NOTHROW
+::~image_size_mismatch_exception() noexcept
 {
 }
 

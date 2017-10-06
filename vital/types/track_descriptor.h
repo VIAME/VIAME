@@ -87,7 +87,7 @@ public:
     typedef bounding_box_d world_bbox_t;
 
     /// Constructors
-    ~history_entry() VITAL_DEFAULT_DTOR
+    ~history_entry() = default;
 
     /**
      * Create new object.

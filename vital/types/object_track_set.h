@@ -104,7 +104,7 @@ public:
   object_track_set(std::vector< track_sptr > const& tracks);
 
   /// Destructor
-  virtual ~object_track_set() VITAL_DEFAULT_DTOR
+  virtual ~object_track_set() = default;
 };
 
 

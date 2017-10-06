@@ -67,7 +67,7 @@ class VITAL_EXPORT homography
 {
 public:
   /// Destructor
-  virtual ~homography() VITAL_DEFAULT_DTOR
+  virtual ~homography() = default;
 
   /// Access the type info of the underlying data
   virtual std::type_info const& data_type() const = 0;

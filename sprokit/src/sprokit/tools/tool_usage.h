@@ -43,7 +43,7 @@
 namespace sprokit
 {
 
-VITAL_NO_RETURN SPROKIT_TOOLS_EXPORT void tool_usage(int ret, boost::program_options::options_description const& options);
+[[noreturn]] SPROKIT_TOOLS_EXPORT void tool_usage(int ret, boost::program_options::options_description const& options);
 SPROKIT_TOOLS_EXPORT void tool_version_message();
 
 SPROKIT_TOOLS_EXPORT boost::program_options::options_description tool_common_options();
