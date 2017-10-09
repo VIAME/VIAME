@@ -20,8 +20,15 @@ modular, run-time configurable systems.
 This goal is achieved through the three main components of KWIVER: Vital, Arrows, and Sprokit.
 
 
-================================================ ==================================================
-:doc:`Vital</vital/vital_architecture>`          A set of data types and algorithm interfaces      
-:doc:`Arrows</arrows/arrow_architecture>`        Various implementations of vital algorithms       
-:doc:`Sprokit</sprokit/sprokit_architecture>`    An infrastructure for chaining together algorithms
-================================================ ==================================================
+.. toctree::
+  :hidden:
+  
+  vital/architecture
+  arrows/architecture
+  sprokit/architecture
+
+====================================== ====================================================
+:doc:`Vital</vital/architecture>`        A set of data types and algorithm interfaces      
+:doc:`Arrows</arrows/architecture>`      Various implementations of vital algorithms       
+:doc:`Sprokit</sprokit/architecture>`    An infrastructure for chaining together algorithms
+====================================== ====================================================

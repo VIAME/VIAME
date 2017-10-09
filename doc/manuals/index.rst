@@ -12,10 +12,7 @@ Contents:
    :maxdepth: 2
 
    introduction
-   vital/architecture
-   arrows/architecture
-   sprokit/architecture
-   using_kwiver
+   kwiver_tutorials
    extending_kwiver
 
 Indices and tables
