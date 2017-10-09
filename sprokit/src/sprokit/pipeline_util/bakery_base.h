@@ -115,7 +115,7 @@ protected:
 private:
 
   // macro provider
-  boost::shared_ptr< kwiver::vital::token_expander > m_token_expander;
+  std::shared_ptr< kwiver::vital::token_expander > m_token_expander;
   kwiver::vital::token_type_symtab* m_symtab;
   kwiver::vital::config_block_sptr m_ref_config;
 

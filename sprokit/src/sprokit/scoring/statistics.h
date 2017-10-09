@@ -151,7 +151,7 @@ class SPROKIT_SCORING_EXPORT statistics
 };
 
 /// A handle to statistics class.
-typedef boost::shared_ptr<statistics> statistics_t;
+typedef std::shared_ptr<statistics> statistics_t;
 
 }
 

@@ -8,13 +8,10 @@ set(python_util_srcs
 
 set(python_util_headers
   python_allow_threads.h
-  python_convert_optional.h
   python_exceptions.h
   python_gil.h
   python.h
   python_threading.h
-  python_wrap_const_shared_ptr.h
-  set_indexing_suite.h
   util-config.h)
 
 if( NOT WIN32 )
@@ -32,8 +29,7 @@ sprokit_add_library(sprokit_python_util
   ${python_util_headers})
 
 target_link_libraries(sprokit_python_util
-  LINK_PUBLIC     ${${boost_python_library_var}}
-                  ${PYTHON_LIBRARIES}
+  LINK_PUBLIC     ${PYTHON_LIBRARIES}
   LINK_PRIVATE    ${Boost_IOSTREAMS_LIBRARY}
                   ${Boost_SYSTEM_LIBRARY})
 

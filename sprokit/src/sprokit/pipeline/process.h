@@ -220,7 +220,7 @@ class SPROKIT_PIPELINE_EXPORT process
         port_frequency_t const frequency;
     };
     /// Type for information about a port.
-    typedef boost::shared_ptr<port_info const> port_info_t;
+    typedef std::shared_ptr<port_info const> port_info_t;
 
     /**
      * \class conf_info process.h <sprokit/pipeline/process.h>
@@ -253,7 +253,7 @@ class SPROKIT_PIPELINE_EXPORT process
         bool const tunable;
     };
     /// Type for information about a configuration parameter.
-    typedef boost::shared_ptr<conf_info const> conf_info_t;
+    typedef std::shared_ptr<conf_info const> conf_info_t;
 
     /**
      * \class data_info process.h <sprokit/pipeline/process.h>
@@ -285,7 +285,7 @@ class SPROKIT_PIPELINE_EXPORT process
         datum::type_t const max_status;
     };
     /// Type for information about a set of data.
-    typedef boost::shared_ptr<data_info const> data_info_t;
+    typedef std::shared_ptr<data_info const> data_info_t;
 
     /**
      * \brief Data checking levels. All levels include lower levels.
@@ -680,8 +680,6 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_flag_t const flag_required;
 
 
-  protected:
-
     /**
      * \brief Constructor.
      *
@@ -695,6 +693,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Destructor.
      */
     virtual ~process();
+
+  protected:
 
     /**
      * \brief Pre-connection initialization for subclasses.
@@ -1361,6 +1361,9 @@ SCOPED_INSTRUMENTATION(reconfigure);
 #define scoped_reconfigure_instrumentation() scoped_reconfigure_instrumentation_( this )
 ///@}
 
+    class SPROKIT_PIPELINE_NO_EXPORT priv;
+    std::shared_ptr<priv> d;
+
   private:
     kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;
 
@@ -1373,9 +1376,6 @@ SCOPED_INSTRUMENTATION(reconfigure);
 
     friend class process_cluster;
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
-
-    class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::shared_ptr<priv> d;
 };
 
 template <typename T>

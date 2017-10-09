@@ -97,7 +97,7 @@ public:
   std::string m_program_file;
 
   // MatLab support. The engine is allocated at the latest time.
-  boost::shared_ptr< kwiver::arrows::matlab::matlab_engine > m_matlab_engine;
+  std::shared_ptr< kwiver::arrows::matlab::matlab_engine > m_matlab_engine;
 
 }; // end priv class
 
@@ -133,7 +133,7 @@ matlab_process
   scoped_configure_instrumentation()
 
   // Need to delay creating engine because it is heavyweight
-  d->m_matlab_engine = boost::make_shared< kwiver::arrows::matlab::matlab_engine >();
+  d->m_matlab_engine = std::make_shared< kwiver::arrows::matlab::matlab_engine >();
 
   d->m_program_file = config_value_using_trait( program_file );
 
