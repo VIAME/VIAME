@@ -230,16 +230,31 @@ text_parser_t
   return true;
 }
 
+bool
+text_parser_t
+::process( text_reader_t& b )
+{
+  if ( this->reader_status )
+  {
+    bool okay = this->process_reader( b );
+    this->reader_status = okay && this->reader_status;
+  }
+  return this->reader_status;
+}
+
 text_parser_t&
 operator>>( text_parser_t& t,
             text_reader_t& b )
 {
-  if (t.reader_status)
-  {
-    bool okay = t.process_reader( b );
-    t.reader_status = okay && t.reader_status;
-  }
+  t.process( b );
   return t;
+}
+
+bool
+text_parser_t
+::process( kpf_io_adapter_base& io )
+{
+  return this->process( io.text_reader );
 }
 
 text_parser_t& operator>>( text_parser_t& t,
@@ -247,6 +262,7 @@ text_parser_t& operator>>( text_parser_t& t,
 {
   return t >> io.text_reader;
 }
+
 
 } // ...kpf
 } // ...vital

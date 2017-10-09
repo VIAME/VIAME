@@ -46,6 +46,8 @@
 
 #include <vital/kpf/vital_kpf_export.h>
 
+#include <vital/kpf/kpf_packet.h>
+
 #include <utility>
 #include <iostream>
 #include <map>
@@ -55,113 +57,26 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-enum class VITAL_KPF_EXPORT packet_style
-{
-  INVALID,  // invalid, uninitialized
-  ID,       // a numeric identifier (detection, track, event ID)
-  TS,       // timestamp
-  TSR,      // timestamp range
-  LOC,      // location (2d / 3d)
-  GEOM,     // bounding box
-  POLY,     // polygon
-  CONF,     // a confidence value
-  EVENT,    // an event
-  EVAL,     // an evaluation result
-  ATTR,     // an attribute
-  TAG,      // a tag
-  KV        // a generic key/value pair
-};
-
-struct VITAL_KPF_EXPORT packet_header_t
-{
-  enum { NO_DOMAIN = -1 };
-
-  packet_style style;
-  int domain;
-  packet_header_t(): style( packet_style::INVALID ), domain( NO_DOMAIN ) {}
-  packet_header_t( packet_style s, int d ): style(s), domain(d) {}
-};
-
-VITAL_KPF_EXPORT auto packet_header_cmp = []( const packet_header_t& lhs, const packet_header_t& rhs )
-{ return ( lhs.style == rhs.style )
-  ? (lhs.domain < rhs.domain)
-  : (lhs.style < rhs.style);
-};
-
-namespace canonical
-{
-
-struct VITAL_KPF_EXPORT bbox_t
-{
-  double x1, y1, x2, y2;
-  bbox_t( double a, double b, double c, double d): x1(a), y1(b), x2(c), y2(d) {}
-};
-
-typedef std::size_t id_t;
-typedef double timestamp_t;
-
-struct VITAL_KPF_EXPORT timestamp_range_t
-{
-  timestamp_t start, stop;
-};
-
-// etc etc
-
-} // ... canonical types
-
-union VITAL_KPF_EXPORT payload_t
-{
-  payload_t(): id(0) {}
-  canonical::id_t id;
-  canonical::timestamp_t timestamp;
-  canonical::timestamp_range_t timestamp_range;
-  canonical::bbox_t bbox;
-  // ... use pointers for the polygon / events
-  // pay special attention to cpctor / etc...
-};
-
-struct VITAL_KPF_EXPORT packet_t
-{
-  packet_header_t header;
-  payload_t payload;
-  packet_t(): header( packet_header_t() ) {}
-
-};
-
-
 //
-// text file reader:
-// read a string into a buffer
-// parse the buffer into a multimap of packets
-// cycle through adapter interface
+// The text_parser reads a line from a text file and parses it into
+// its packet buffer. Any syntax errors are detected during parsing.
 //
-// text file writer:
-// populate multimap via adapter interfaces
-// dump to stream
+// Packets are transferred out of the packet buffer via operator>>
+// or the process() methods. Packets are transferred into text_reader_t
+// objects (whch are packet-specific.)
 //
 
-class VITAL_KPF_EXPORT text_reader_t
-{
-public:
-  text_reader_t();
-  explicit text_reader_t( const std::string& tag );
-  explicit text_reader_t( const packet_header_t& h );
-  void init( const std::string& tag );
-  void init( const packet_header_t& h );
-  ~text_reader_t() {}
-  void set_from_buffer( const packet_t& );
-  packet_header_t my_header() const;
-  std::pair< bool, packet_t > get_packet();
-
-protected:
-  bool is_set;
-  packet_header_t header;
-  packet_t packet;
-};
+//
+// The packet buffer is a multimap because some packets can repeat
+// (e.g. key-value packets.)
+//
 
 typedef std::multimap< packet_header_t,
                        packet_t,
                        decltype( packet_header_cmp ) > packet_buffer_t;
+
+class text_reader_t;
+struct kpf_io_adapter_base;
 
 class VITAL_KPF_EXPORT text_parser_t
 {
@@ -170,8 +85,13 @@ public:
   explicit text_parser_t( std::istream& is );
   explicit operator bool() const;
 
+  // push packets into the text_reader
   friend text_parser_t& operator>>( text_parser_t& t,
                                     text_reader_t& b );
+
+  // pull packets into the text_reader
+  bool process( text_reader_t& b );
+  bool process( kpf_io_adapter_base& io );
 
   // mystery: fails to link if this is not inline?
   const packet_buffer_t& get_packet_buffer() const { return this->packet_buffer; }
@@ -190,10 +110,62 @@ VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t,
                            text_reader_t& b );
 
+//
+// The text reader is the bounce buffer between the parser's
+// packet buffer and the user. At creation, these objects have
+// a fixed KPF header ("g0", "id3", etc) that they know about.
+//
+
+class VITAL_KPF_EXPORT text_reader_t
+{
+public:
+  text_reader_t();
+  explicit text_reader_t( const std::string& tag );
+  explicit text_reader_t( const packet_header_t& h );
+  void init( const std::string& tag );
+  void init( const packet_header_t& h );
+  ~text_reader_t() {}
+
+  // return this reader's packet header
+  packet_header_t my_header() const;
+
+  // transfer packet into the reader
+  void set_from_buffer( const packet_t& );
+
+  // return (true, packet) and clear the is_set flag
+  // return false if set_from_buffer hasn't been called yet
+  std::pair< bool, packet_t > get_packet();
+
+protected:
+  bool is_set;
+  packet_header_t header;
+  packet_t packet;
+};
+
+
+//
+// For complex types, such as bounding box, text_reader_t
+// needs to be associated with functions to convert between
+// the KPF and user types; this base class holds the
+// text_reader_t instance.
+//
+
 struct kpf_io_adapter_base
 {
   text_reader_t text_reader;
 };
+
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t,
+                           kpf_io_adapter_base& io );
+
+
+//
+// The adapter class holds the infrastructure for mapping
+// between user and KPF types. The user isn't intended to use
+// this; instead should use classes derived from this which
+// are specialized on KPF_TYPE.
+//
 
 template< typename USER_TYPE, typename KPF_TYPE >
 struct kpf_io_adapter: public kpf_io_adapter_base
@@ -202,6 +174,7 @@ struct kpf_io_adapter: public kpf_io_adapter_base
   USER_TYPE (*kpf2user_function)( const KPF_TYPE& );
   void (*kpf2user_inplace) ( const KPF_TYPE&, USER_TYPE& );
   KPF_TYPE (*user2kpf_function)( const USER_TYPE& );
+
   // what domain does this adapter read from / write to?
   int domain;
   // text reader (initialized in derived classes)
@@ -231,15 +204,14 @@ struct kpf_io_adapter: public kpf_io_adapter_base
   }
 };
 
-VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t,
-                           kpf_io_adapter_base& io );
 
+//
+// This is a KPF I/O adapter for bounding boxes.
+//
 
 template< typename USER_TYPE >
 struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 {
-  friend std::ostream& operator<<( std::ostream& os, const kpf_box_adapter< USER_TYPE >& k );
 
   kpf_box_adapter( USER_TYPE (*k2u) (const canonical::bbox_t&),
                    canonical::bbox_t (*u2k)( const USER_TYPE&),
@@ -268,6 +240,13 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
     auto probe = this->text_reader.get_packet();
     // see above
     (this->kpf2user_inplace)( probe.second.payload.bbox, u );
+  }
+
+  void get( text_parser_t& parser, USER_TYPE& u )
+  {
+    // same throwing issues
+    parser.process( *this );
+    this->get( u );
   }
 
   canonical::bbox_t operator()( const USER_TYPE& u )
