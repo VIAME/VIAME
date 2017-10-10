@@ -37,7 +37,6 @@
 
 #include <fstream>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 #include <cereal/archives/portable_binary.hpp>
@@ -130,7 +129,7 @@ template <typename Archive, typename T>
 void
 save_features(Archive & ar, std::vector<feature_sptr> const& features)
 {
-  VITAL_FOREACH( const feature_sptr f, features )
+  for( const feature_sptr f : features )
   {
     if( !f )
     {
@@ -173,7 +172,7 @@ save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
   // dimensionality of each descriptor
   cereal::size_type dim = descriptors[0]->size();
   ar( cereal::make_size_tag( dim ) );
-  VITAL_FOREACH( const descriptor_sptr d, descriptors )
+  for( const descriptor_sptr d : descriptors )
   {
     if( !d )
     {

@@ -67,7 +67,7 @@ class VITAL_EXPORT fundamental_matrix
 {
 public:
   /// Destructor
-  virtual ~fundamental_matrix() VITAL_DEFAULT_DTOR
+  virtual ~fundamental_matrix() = default;
 
   /// Create a clone of this fundamental_matrix object, returning as smart pointer
   /**

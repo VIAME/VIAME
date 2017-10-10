@@ -38,8 +38,6 @@
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 
-#include <vital/vital_foreach.h>
-
 #include <string>
 
 namespace kwiver {
@@ -223,7 +221,7 @@ read_track_descriptor_set_csv::priv
       throw vital::invalid_data( "Track descriptor reading size checksum failed" );
     }
 
-    VITAL_FOREACH( auto id, tid_tokens )
+    for( auto id : tid_tokens )
     {
       desc->add_track_id( std::stoi( id ) );
     }

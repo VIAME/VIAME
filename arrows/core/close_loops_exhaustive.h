@@ -65,7 +65,7 @@ public:
   close_loops_exhaustive();
 
   /// Destructor
-  virtual ~close_loops_exhaustive() VITAL_NOTHROW;
+  virtual ~close_loops_exhaustive() noexcept;
 
   /// Returns implementation description
   virtual std::string description() const;

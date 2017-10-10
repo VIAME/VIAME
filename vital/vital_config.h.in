@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,68 +45,38 @@
 // Support macros.
 #if defined(_WIN32) || defined(_WIN64)
 
-# define VITAL_NO_RETURN __declspec(noreturn)
+// TODO use C++17 attributes if available
+
 # define VITAL_MUST_USE_RESULT  /* unsupported */
 # define VITAL_UNUSED           /* unsupported */
 # define VITAL_SYSTEM_WIN_API (1)
 
 #elif defined(__GNUC__)
 
-# define VITAL_NO_RETURN __attribute__((__noreturn__))
 # define VITAL_MUST_USE_RESULT __attribute__((__warn_unused_result__))
 # define VITAL_UNUSED __attribute__((__unused__))
 # define VITAL_SYSTEM_WIN_API (0)
 
 #else
 
-# define VITAL_NO_RETURN        /* unsupported */
+// TODO use C++17 attributes if available
+
 # define VITAL_MUST_USE_RESULT  /* unsupported */
 # define VITAL_UNUSED           /* unsupported */
 # define VITAL_SYSTEM_WIN_API (0)
 
 #endif
 
-
-#cmakedefine01  VITAL_USE_CPP_AUTO
-#cmakedefine01  VITAL_USE_CPP_RANGE_FOR
-#cmakedefine01  VITAL_USE_CPP_DEFAULT_CTOR
-#cmakedefine01  VITAL_USE_CPP_NOEXCEPT
-#cmakedefine01  VITAL_USE_CPP_FINAL
-#cmakedefine01  VITAL_USE_CPP_CONSTEXPR
-
-#cmakedefine01  VITAL_USE_STD_CHRONO
-#cmakedefine01  VITAL_USE_STD_RANDOM
-#cmakedefine01  VITAL_USE_STD_NULLPTR
+#define VITAL_NO_RETURN [[noreturn]]
 
 #cmakedefine01  VITAL_USE_ABI_DEMANGLE
 #cmakedefine  VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
 
-#if VITAL_USE_CPP_NOEXCEPT
-  #define VITAL_NOTHROW noexcept
-#else
-  #define VITAL_NOTHROW throw()
-#endif
+#define VITAL_NOTHROW noexcept
+#define VITAL_FINAL final
 
-#if VITAL_USE_CPP_FINAL
-  #define VITAL_FINAL final
-#else
-  #define VITAL_FINAL
-#endif
-
-#if VITAL_USE_CPP_CONSTEXPR
-  #define VITAL_CONSTEXPR constexpr
-#else
-  #define VITAL_CONSTEXPR const
-#endif
-
-#if VITAL_USE_CPP_DEFAULT_CTOR // also DTOR
-  #define VITAL_DEFAULT_CTOR = default;
-  #define VITAL_DEFAULT_DTOR = default;
-  #define VITAL_DELETE_DECL = delete
-#else
-  #define VITAL_DEFAULT_CTOR {}
-  #define VITAL_DEFAULT_DTOR {}
-  #define VITAL_DELETE_DECL /* nothing */
-#endif
+#define VITAL_DEFAULT_CTOR = default;
+#define VITAL_DEFAULT_DTOR = default;
+#define VITAL_DELETE_DECL = delete
 
 #endif // VITAL_VITAL_CONFIG_H

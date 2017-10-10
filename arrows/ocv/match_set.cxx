@@ -35,7 +35,6 @@
 
 #include "match_set.h"
 
-#include <vital/vital_foreach.h>
 
 
 namespace kwiver {
@@ -48,7 +47,7 @@ match_set
 ::matches() const
 {
   std::vector<vital::match> m;
-  VITAL_FOREACH(cv::DMatch dm, this->data_)
+  for(cv::DMatch dm : this->data_)
   {
     m.push_back( vital::match(dm.queryIdx, dm.trainIdx));
   }
@@ -67,7 +66,7 @@ matches_to_ocv_dmatch(const vital::match_set& m_set)
   }
   std::vector<cv::DMatch> dm;
   const std::vector<vital::match> mats = m_set.matches();
-  VITAL_FOREACH( vital::match m, mats)
+  for( vital::match m : mats)
   {
     dm.push_back(cv::DMatch(m.first, m.second, FLT_MAX));
   }

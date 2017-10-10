@@ -2,126 +2,37 @@
 # Checks compiler configuration and features available
 #
 
-##
-# see if auto is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/auto.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
+function(vital_check_feature NAME TEST)
+  try_compile(_vital_check_feature_${NAME}
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/configcheck/${TEST}
+    CMAKE_FLAGS
+      -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+      -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD})
 
-set( VITAL_USE_CPP_AUTO ${success} )
+  set(VITAL_USE_${NAME} ${_vital_check_feature_${NAME}} PARENT_SCOPE)
+endfunction()
 
-##
-# see if range for is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/range-for.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
+macro(vital_check_required_feature NAME TEST MESSAGE)
+  vital_check_feature(${NAME} ${TEST})
+  if (NOT VITAL_USE_${NAME})
+    message(SEND_ERROR "Required C++ feature '${MESSAGE}' is not available")
+  endif()
+endmacro()
 
-set( VITAL_USE_CPP_RANGE_FOR ${success} )
+# C++11 is required
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-##
-# see if default ctor is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/default-ctor.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_CPP_DEFAULT_CTOR ${success} )
-
-##
-# see if noexcept is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/throw-noexcept.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_CPP_NOEXCEPT ${success} )
-
-##
-# see if std::chrono is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/std_chrono.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_STD_CHRONO ${success} )
-
-##
-# see if std::random is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/std_random.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-# Known issue with std::random in GCC 4.4.7 and probably below.
-if( CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.5 )
-  set( VITAL_USE_STD_RANDOM FALSE )
-else()
-  set( VITAL_USE_STD_RANDOM ${success} )
-endif()
-
-###
-# See if final keyword is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/final.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_CPP_FINAL ${success} )
-
-###
-# See if nullptr is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/null_ptr.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_STD_NULLPTR ${success} )
+vital_check_required_feature(CPP_AUTO         auto.cxx            "auto type specifier")
+vital_check_required_feature(CPP_CONSTEXPR    constexpr.cxx       "constant expressions")
+vital_check_required_feature(CPP_DEFAULT_CTOR default-ctor.cxx    "explicitly defaulted constructors")
+vital_check_required_feature(CPP_FINAL        final.cxx           "final keyword")
+vital_check_required_feature(CPP_NOEXCEPT     throw-noexcept.cxx  "noexcept specifier")
+vital_check_required_feature(CPP_RANGE_FOR    range-for.cxx       "range-based for")
+vital_check_required_feature(STD_CHRONO       std_chrono.cxx      "std::chrono")
+vital_check_required_feature(STD_NULLPTR      null_ptr.cxx        "nullptr")
 
 ###
 # See if demangle API is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/demangle.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_ABI_DEMANGLE ${success} )
-
-###
-# See if constexpr is supported
-try_compile( success
-  ${CMAKE_BINARY_DIR}
-  ${CMAKE_CURRENT_LIST_DIR}/configcheck/constexpr.cxx
-  CMAKE_FLAGS
-     -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-  OUTPUT_VARIABLE OUTPUT)
-
-set( VITAL_USE_CPP_CONSTEXPR ${success} )
-
-###
-# use for debugging
-#message( "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}" )
-#message( "success: ${success}" )
-#message( "OUTPUT: ${OUTPUT}" )
-
-
-###
+vital_check_feature(ABI_DEMANGLE demangle.cxx)

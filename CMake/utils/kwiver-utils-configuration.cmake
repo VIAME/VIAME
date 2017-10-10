@@ -84,3 +84,54 @@ function(kwiver_configure_file name source dest)
       )
   endif()
 endfunction()
+
+
+###
+#
+# Mimics a `kwiver_configure_file`, but will symlink `source` to `dest`
+# directly without any configureation. This should only be used for interpreted
+# languages like python to prevent the need to re-make the project after making
+# small changes to these interpreted files.
+#
+# SeeAlso:
+#     kwiver/CMake/utils/kwiver-utils-python.cmake
+#     kwiver/sprokit/conf/sprokit-macro-configure.cmake
+#
+function (kwiver_symlink_file name source dest)
+
+  if(EXISTS ${dest} AND NOT IS_SYMLINK ${dest})
+    # If our target it not a symlink, then remove it so we can replace it
+    file(REMOVE ${dest})
+  endif()
+
+  # Need to ensure the directory exists before we create a symlink there
+  get_filename_component(dest_dir ${dest} DIRECTORY)
+  add_custom_command(
+    OUTPUT  "${dest_dir}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory ${dest_dir}
+    )
+
+  add_custom_command(
+    OUTPUT  "${dest}"
+    COMMAND "${CMAKE_COMMAND}" -E create_symlink ${source} ${dest}
+    DEPENDS "${source}" "${dest_dir}"
+    COMMENT "Symlink-configuring ${name} file \"${source}\" -> \"${dest}\""
+    )
+
+
+  # This passes if not defined or a false-evaluating value
+  if(NOT no_configure_target)
+    add_custom_target(configure-${name}
+      DEPENDS "${dest}"
+      SOURCES "${source}"   # Adding source for IDE purposes
+      )
+
+    source_group("Configured Files"
+      FILES "${source}"
+      )
+
+    add_dependencies(kwiver_configure
+      configure-${name}
+      )
+  endif()
+endfunction ()

@@ -12,8 +12,6 @@ else()
   set(TRACK_ORACLE_SCORABLE_MGRS_LIBRARY "" )
 endif()
 
-find_package( TinyXML REQUIRED )
-
 add_subdirectory( aries_interface )
 add_subdirectory( utils )
 

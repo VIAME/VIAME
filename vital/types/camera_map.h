@@ -55,7 +55,7 @@ public:
   typedef std::map< frame_id_t, camera_sptr > map_camera_t;
 
   /// Destructor
-  virtual ~camera_map() VITAL_DEFAULT_DTOR
+  virtual ~camera_map() = default;
 
   /// Return the number of cameras in the map
   virtual size_t size() const = 0;

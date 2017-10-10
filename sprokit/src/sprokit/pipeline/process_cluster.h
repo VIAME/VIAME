@@ -92,7 +92,6 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
     /// A property which indicates that the process is a cluster of processes.
     static property_t const property_cluster;
 
-  protected:
     /**
      * \brief Constructor.
      *
@@ -107,6 +106,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      */
     virtual ~process_cluster();
 
+  protected:
     /**
      * \brief Map a configuration value to a process.
      *

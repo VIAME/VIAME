@@ -41,10 +41,6 @@ function (sprokit_require_fix target fix)
     "configure-fixes-${fix}")
 endfunction ()
 
-if (KWIVER_ENABLE_PYTHON)
-  include("${CMAKE_CURRENT_SOURCE_DIR}/python.cmake")
-endif ()
-
 include("${CMAKE_CURRENT_SOURCE_DIR}/tools.cmake")
 
 # Install the fixes.

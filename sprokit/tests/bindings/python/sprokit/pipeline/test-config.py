@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -44,10 +44,7 @@ def test_create():
     except:
         test_error("Failed to create an empty configuration")
 
-    config.ConfigKey()
     config.ConfigKeys()
-    config.ConfigDescription()
-    config.ConfigValue()
 
 
 def test_api_calls():

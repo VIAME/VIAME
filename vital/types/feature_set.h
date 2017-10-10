@@ -56,7 +56,7 @@ class feature_set
 {
 public:
   /// Destructor
-  virtual ~feature_set() VITAL_DEFAULT_DTOR
+  virtual ~feature_set() = default;
 
   /// Return the number of features in the set
   virtual size_t size() const = 0;

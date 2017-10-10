@@ -42,7 +42,6 @@
 #define KWIVER_VITAL_THREAD_POOL_BUILTIN_BACKEND_H_
 
 #include <vital/util/thread_pool.h>
-#include <vital/vital_foreach.h>
 
 #include <condition_variable>
 #include <mutex>
@@ -78,7 +77,7 @@ public:
       stop = true;
     }
     condition.notify_all();
-    VITAL_FOREACH(std::thread &worker, workers)
+    for(std::thread &worker : workers)
     {
       worker.join();
     }

@@ -33,7 +33,6 @@
 
 #include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -405,15 +404,15 @@ print_detections(
   kwiver::vital::detected_object_set_sptr all_detections,
   kwiver::vital::bounding_box_d region )
 {
-  kwiver::vital::detected_object::vector_t input = all_detections->select();
   std::vector< std::string > to_write;
 
   const double width = region.width();
   const double height = region.height();
 
-  VITAL_FOREACH( auto detection, input )
+  auto ie =  all_detections->cend();
+  for ( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
-    kwiver::vital::bounding_box_d det_box = detection->bounding_box();
+    kwiver::vital::bounding_box_d det_box = (*detection)->bounding_box();
     kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
 
     if( det_box.area() > 0 &&
@@ -447,7 +446,7 @@ print_detections(
   {
     std::ofstream fout( filename.c_str() );
 
-    VITAL_FOREACH( std::string line, to_write )
+    for( std::string line : to_write )
     {
       fout << line << std::endl;
     }

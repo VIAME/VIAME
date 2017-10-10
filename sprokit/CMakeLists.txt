@@ -45,9 +45,6 @@ if (sprokit_is_in_git)
   include(${sprokit_source_dir}/cmake/snippets/dist.cmake)
 endif ()
 
-# Dependencies.
-include(${sprokit_source_dir}/cmake/snippets/python.cmake)
-
 add_subdirectory(src)
 
 option(SPROKIT_ENABLE_EXTRAS "Enable extra files to help with tooling" OFF)

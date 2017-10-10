@@ -4,6 +4,8 @@
 #   kwiver_declare_test
 #   kwiver_build_test
 #   kwiver_add_test
+#   kwiver_discover_tests
+#   kwiver_discover_gtests
 #
 # The following variables may be used to control the behavior of the functions:
 #
@@ -48,11 +50,24 @@
 #     given ``libraries``. Additional arguments and are eventually passed to
 #     the ``add_test()`` call under the hood.
 #
+#   (RECOMMENDED)
+#   kwiver_discover_gtests(group name [SOURCES source ...]
+#                         [LIBRARIES library ...]
+#                         [ARGUMENTS arg ...])
+#     Build a test executable that uses Google Test. Tests are discovered and
+#     registered automatically. If no sources are listed, guesses that the
+#     source file is named ``test_<name>.cxx``. ``LIBRARIES`` may be used to
+#     specify a list of libraries that the executable needs to link. Test names
+#     will be prefixed with ``group``.
+#
+
+include(GoogleTest)
 
 option(KWIVER_TEST_ADD_TARGETS "Add targets for tests to the build system" OFF)
 mark_as_advanced(KWIVER_TEST_ADD_TARGETS)
 if (KWIVER_TEST_ADD_TARGETS)
   add_custom_target(tests)
+  add_dependencies(tests gtest_discover_tests)
 endif ()
 
 # ------------------------------------------------------------------
@@ -175,3 +190,20 @@ function (kwiver_discover_tests group libraries file)
     endif ()
   endforeach ()
 endfunction ()
+
+# -----------------------------------------------------------------------------
+function (kwiver_discover_gtests MODULE NAME)
+  cmake_parse_arguments("" "" "" "SOURCES;LIBRARIES;ARGUMENTS" ${ARGN})
+  if (NOT _SOURCES)
+    set(_SOURCES test_${NAME}.cxx)
+  endif()
+  list(APPEND _LIBRARIES GTest::GTest)
+
+  set(EXTRA_ARGS TEST_PREFIX ${MODULE}:)
+  if (_ARGUMENTS)
+    list(APPEND EXTRA_ARGS EXTRA_ARGS ${_ARGUMENTS})
+  endif()
+
+  kwiver_build_test(${MODULE}-${NAME} _LIBRARIES ${_SOURCES})
+  gtest_discover_tests(test-${MODULE}-${NAME} ${EXTRA_ARGS})
+endfunction()

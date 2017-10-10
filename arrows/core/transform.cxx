@@ -38,7 +38,6 @@
 #include <Eigen/Geometry>
 #include <Eigen/SVD>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {
@@ -109,7 +108,7 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
                           const vital::similarity_d& xform)
 {
   vital::camera_map::map_camera_t cam_map = cameras->cameras();
-  VITAL_FOREACH(vital::camera_map::map_camera_t::value_type& p, cam_map)
+  for(vital::camera_map::map_camera_t::value_type& p : cam_map)
   {
     p.second = transform(p.second, xform);
   }
@@ -151,7 +150,7 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
                             const vital::similarity_d& xform)
 {
   vital::landmark_map::map_landmark_t lm_map = landmarks->landmarks();
-  VITAL_FOREACH(vital::landmark_map::map_landmark_t::value_type& p, lm_map)
+  for(vital::landmark_map::map_landmark_t::value_type& p : lm_map)
   {
     p.second = transform(p.second, xform);
   }
@@ -173,7 +172,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
   // compute the landmark location mean and covariance
   vital::vector_3d lc(0.0, 0.0, 0.0);
   vital::matrix_3x3d covar = vital::matrix_3x3d::Zero();
-  VITAL_FOREACH(const lm_map_t::value_type& p, lms)
+  for(const lm_map_t::value_type& p : lms)
   {
     vital::vector_3d pt = p.second->loc();
     lc += pt;
@@ -192,7 +191,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
   // flip cameras around
   vital::rotation_d Ra180(vital::vector_4d(axis.x(), axis.y(), axis.z(), 0.0));
   vital::rotation_d Rz180(vital::vector_4d(0.0, 0.0, 1.0, 0.0));
-  VITAL_FOREACH(cam_map_t::value_type& p, cams)
+  for(cam_map_t::value_type& p : cams)
   {
     vital::simple_camera* flipped = new vital::simple_camera(*p.second);
     // extract the camera center
@@ -213,7 +212,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
   }
 
   // mirror landmark locations about the mirroring plane
-  VITAL_FOREACH(lm_map_t::value_type& p, lms)
+  for(lm_map_t::value_type& p : lms)
   {
     vital::vector_3d v = p.second->loc();
     v -= 2.0 * (v - lc).dot(axis) * axis;

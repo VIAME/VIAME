@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <vital/types/timestamp.h>
-#include <vital/vital_foreach.h>
 
 #include <arrows/matlab/matlab_engine.h>
 #include <arrows/matlab/matlab_util.h>
@@ -101,7 +100,7 @@ public:
   std::string m_program_file;
 
   // MatLab support. The engine is allocated at the latest time.
-  boost::shared_ptr< kwiver::arrows::matlab::matlab_engine > m_matlab_engine;
+  std::shared_ptr< kwiver::arrows::matlab::matlab_engine > m_matlab_engine;
 
 }; // end priv class
 
@@ -134,8 +133,10 @@ void
 matlab_process
 ::_configure()
 {
+  scoped_configure_instrumentation()
+
   // Need to delay creating engine because it is heavyweight
-  d->m_matlab_engine = boost::make_shared< kwiver::arrows::matlab::matlab_engine >();
+  d->m_matlab_engine = std::make_shared< kwiver::arrows::matlab::matlab_engine >();
 
   d->m_program_file = config_value_using_trait( program_file );
 
@@ -151,7 +152,7 @@ matlab_process
   // Iterate over all values in this config block and pass the values
   // to the matlab as variable assignments.
   auto keys = algo_config->available_values();
-  VITAL_FOREACH( auto k, keys )
+  for( auto k : keys )
   {
     std::stringstream config_command;
     config_command <<  k << "=" << algo_config->get_value<std::string>( k ) << ";";
@@ -181,21 +182,26 @@ matlab_process
 
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  kwiver::vital::image_container_sptr out_image;
+  {
+    scoped_step_instrumentation();
 
-  // Convert inputs to matlab format and send to matlab engine
-  // Need to establish an interface to the matlab function.
-  // Could use parameters or well known names.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  // Sending an image to matlab
-  kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( img );
-  d->m_matlab_engine->put_variable( "in_image", mx_image );
+    // Convert inputs to matlab format and send to matlab engine
+    // Need to establish an interface to the matlab function.
+    // Could use parameters or well known names.
 
-  // Call matlab step function
-  d->eval( "step( in_image );" );
+    // Sending an image to matlab
+    kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( img );
+    d->m_matlab_engine->put_variable( "in_image", mx_image );
 
-  kwiver::arrows::matlab::MxArraySptr mx_out_image = d->m_matlab_engine->get_variable( "out_image" );
-  kwiver::vital::image_container_sptr out_image = kwiver::arrows::matlab::convert_mx_image( mx_out_image );
+    // Call matlab step function
+    d->eval( "step( in_image );" );
+
+    kwiver::arrows::matlab::MxArraySptr mx_out_image = d->m_matlab_engine->get_variable( "out_image" );
+    out_image = kwiver::arrows::matlab::convert_mx_image( mx_out_image );
+  }
 
   push_to_port_using_trait( image, out_image );
 }

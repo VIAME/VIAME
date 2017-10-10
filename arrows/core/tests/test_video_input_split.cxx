@@ -150,7 +150,7 @@ IMPLEMENT_TEST(test_capabilities)
   auto cap = vis.get_implementation_capabilities();
   auto cap_list = cap.capability_list();
 
-  VITAL_FOREACH( auto one, cap_list )
+  for( auto one : cap_list )
   {
     std::cout << one << " -- "
               << ( cap.capability( one ) ? "true" : "false" )

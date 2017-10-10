@@ -50,6 +50,14 @@ namespace kwiver
  *
  * \oport{frame}
  * \oport{time}
+ *
+ * \configs
+ *
+ * \config{error_mode}  (string)
+ * \config{path}  (string)
+ * \config{frame_time} (double)
+ * \config{image_reader}  (string)
+ *
  */
 class KWIVER_PROCESSES_NO_EXPORT image_file_reader_process
   : public sprokit::process

@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from __future__ import print_function
 try:
     from . import loaders
 except:
@@ -48,20 +49,29 @@ def _load_python_module(mod):
             mod.__sprokit_register__()
 
     else:
-        print "[WARN] Python module", mod, "does not have __sprokit_register__ method"
+        print(('[WARN] Python module {} does not have '
+               '__sprokit_register__ method').format(mod))
+
 
 def load_python_modules():
+    """
+    Loads Sprokit python plugins
+
+    Searches for modules specified in the `SPROKIT_PYTHON_MODULES` environment
+    variable that are importable from `PYTHONPATH`. Then these modules are
+    imported and their `__sprokit_register__` function is called to register
+    them with the C++ backend.
+    """
     import os
 
-    packages = [ 'sprokit.processes'
-               , 'sprokit.schedulers'
-               ]
+    packages = ['sprokit.processes',
+                'sprokit.schedulers']
 
     envvar = 'SPROKIT_PYTHON_MODULES'
 
-    if envvar in os.environ:
-        extra_modules = os.environ[envvar]
-        packages += extra_modules.split(os.pathsep)
+    extra_modules = os.environ.get(envvar, '').split(os.pathsep)
+    # ensure the empty string is not considered as a module
+    packages.extend([p for p in extra_modules if p])
 
     loader = loaders.ModuleLoader()
     all_modules = []
@@ -71,7 +81,7 @@ def load_python_modules():
         all_modules += modules
 
     for module in all_modules:
-        print "[DEBUG] Loading python module:", module
+        print('[DEBUG] Loading python module: {}'.format(module))
 
         try:
             _load_python_module(module)

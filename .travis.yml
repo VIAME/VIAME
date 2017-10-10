@@ -19,7 +19,7 @@ matrix:
 cache:
   directories:
   - $HOME/deps
-  - /opt/fletch
+  - /opt/kitware
 
 before_script:
   - bash .travis/install-deps.sh
@@ -33,7 +33,6 @@ addons:
     - libproj-dev
     - libgl1-mesa-dev
     - libxt-dev
-    - libqt4-dev
     - libatlas-base-dev
     - python2.7-dev
 
@@ -44,7 +43,7 @@ script:
   - cmake -DCMAKE_C_COMPILER=$C_COMPILER
           -DCMAKE_CXX_COMPILER=$CXX_COMPILER
           -DCMAKE_INSTALL_PREFIX=$HOME/install
-          -Dfletch_DIR=/opt/fletch
+          -Dfletch_DIR=/opt/kitware/fletch
           -DKWIVER_ENABLE_ARROWS=ON
           -DKWIVER_ENABLE_CERES=ON
           -DKWIVER_ENABLE_C_BINDINGS=ON

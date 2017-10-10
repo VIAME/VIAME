@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -35,16 +35,6 @@ def test_import():
         import sprokit.pipeline.scheduler_factory
     except:
         test_error("Failed to import the scheduler_factory module")
-
-
-def test_create():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import scheduler_factory
-
-    scheduler_factory.SchedulerType()
-    ## scheduler_factory.SchedulerTypes()
-    scheduler_factory.SchedulerDescription()
-    scheduler_factory.SchedulerModule()
 
 
 def test_api_calls():

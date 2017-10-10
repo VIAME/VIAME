@@ -60,7 +60,7 @@ namespace sprokit {
  * 5) Quit when EOF token is returned.
  *
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT lex_processor VITAL_FINAL
+class SPROKIT_PIPELINE_UTIL_EXPORT lex_processor final
 {
 public:
   /**

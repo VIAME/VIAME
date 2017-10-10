@@ -31,7 +31,6 @@
 #include "export_pipe.h"
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/string.h>
 #include <vital/util/wrap_text_block.h>
 
@@ -49,8 +48,6 @@
 #include <stdexcept>
 #include <string>
 #include <cstdlib>
-
-#include <boost/make_shared.hpp>
 
 namespace sprokit {
 
@@ -191,7 +188,7 @@ config_printer
 {
   sprokit::process::names_t const cluster_names = m_pipe->cluster_names();
 
-  VITAL_FOREACH( sprokit::process::name_t const & name, cluster_names )
+  for( sprokit::process::name_t const & name : cluster_names )
   {
     if ( m_visited.count( name ) )
     {
@@ -199,7 +196,7 @@ config_printer
     }
 
     sprokit::process_cluster_t const cluster = m_pipe->cluster_by_name( name );
-    sprokit::process_t const proc = boost::static_pointer_cast< sprokit::process > ( cluster );
+    sprokit::process_t const proc = std::static_pointer_cast< sprokit::process > ( cluster );
 
     static std::string const kind = "cluster";
 
@@ -208,7 +205,7 @@ config_printer
 
   sprokit::process::names_t const process_names = m_pipe->process_names();
 
-  VITAL_FOREACH( sprokit::process::name_t const & name, process_names )
+  for( sprokit::process::name_t const & name : process_names )
   {
     if ( m_visited.count( name ) )
     {
@@ -243,7 +240,7 @@ config_printer
       {
         sprokit::process_cluster_t const cluster = m_pipe->cluster_by_name( name );
 
-        proc = boost::static_pointer_cast< sprokit::process > ( cluster );
+        proc = std::static_pointer_cast< sprokit::process > ( cluster );
       }
       catch ( sprokit::no_such_process_exception const& /*e*/ )
       {
@@ -298,7 +295,7 @@ config_printer
   kwiver::vital::wrap_text_block wtb;
   wtb.set_indent_string( "  #    " );
 
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  for( kwiver::vital::config_block_key_t const & key : keys )
   {
     if ( kwiver::vital::starts_with( key, "_" ) )
     {

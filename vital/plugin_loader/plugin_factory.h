@@ -35,7 +35,6 @@
 #include <vital/plugin_loader/vital_vpm_export.h>
 
 #include <vital/noncopyable.h>
-#include <vital/vital_foreach.h>
 #include <vital/exceptions/plugin.h>
 #include <string>
 #include <sstream>
@@ -151,7 +150,7 @@ public:
    */
   template < class T > void for_each_attr( T& f )
   {
-    VITAL_FOREACH( auto val, m_attribute_map )
+    for( auto val : m_attribute_map )
     {
       f( val.first, val.second );
     }
@@ -159,7 +158,7 @@ public:
 
   template < class T > void for_each_attr( T const& f ) const
   {
-    VITAL_FOREACH( auto const val, m_attribute_map )
+    for( auto const val : m_attribute_map )
     {
       f( val.first, val.second );
     }
@@ -205,7 +204,7 @@ public:
     this->add_attribute( CONCRETE_TYPE, typeid( T ).name() );
   }
 
-  virtual ~plugin_factory_0() VITAL_DEFAULT_DTOR
+  virtual ~plugin_factory_0() = default;
 
 protected:
   virtual void* create_object_i()

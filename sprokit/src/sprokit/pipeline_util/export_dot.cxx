@@ -31,7 +31,6 @@
 #include "export_dot.h"
 #include "export_dot_exception.h"
 
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
@@ -41,7 +40,6 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/ref.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <ostream>
@@ -119,7 +117,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   parent_names_t parent_map;
 
-  VITAL_FOREACH (process::name_t const& name, proc_names)
+  for (process::name_t const& name : proc_names)
   {
     if (name.empty())
     {
@@ -133,7 +131,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
     parent_map[parent].push_back(info);
   }
 
-  VITAL_FOREACH (process::name_t const& name, cluster_names)
+  for (process::name_t const& name : cluster_names)
   {
     if (name.empty())
     {
@@ -152,18 +150,18 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   output_cluster(ostr, process::name_t(), pipe, parent_map);
 
   // Output connections
-  VITAL_FOREACH (process::name_t const& name, proc_names)
+  for (process::name_t const& name : proc_names)
   {
     process_t const proc = pipe->process_by_name(name);
 
     process::ports_t const oports = proc->output_ports();
-    VITAL_FOREACH (process::port_t const& port, oports)
+    for (process::port_t const& port : oports)
     {
       std::string const node_from_port_name = name + node_prefix_output + port;
 
       process::port_addrs_t const addrs = pipe->connections_from_addr(name, port);
 
-      VITAL_FOREACH (process::port_addr_t const& addr, addrs)
+      for (process::port_addr_t const& addr : addrs)
       {
         process::name_t const& recv_name = addr.first;
         process::port_t const& recv_port = addr.second;
@@ -178,18 +176,18 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
     }
   }
 
-  VITAL_FOREACH (process::name_t const& name, cluster_names)
+  for (process::name_t const& name : cluster_names)
   {
     process_t const proc = pipe->cluster_by_name(name);
 
     process::ports_t const oports = proc->output_ports();
-    VITAL_FOREACH (process::port_t const& port, oports)
+    for (process::port_t const& port : oports)
     {
       std::string const node_from_port_name = name + node_prefix_output + port;
 
       process::port_addrs_t const addrs = pipe->connections_from_addr(name, port);
 
-      VITAL_FOREACH (process::port_addr_t const& addr, addrs)
+      for (process::port_addr_t const& addr : addrs)
       {
         process::name_t const& recv_name = addr.first;
         process::port_t const& recv_port = addr.second;
@@ -217,7 +215,7 @@ export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string con
     throw null_cluster_export_dot_exception();
   }
 
-  pipeline_t const pipe = boost::make_shared<pipeline>();
+  pipeline_t const pipe = std::make_shared<pipeline>();
 
   pipe->add_process(cluster);
 
@@ -242,7 +240,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
 
   name_infos_t const& name_infos = i->second;
 
-  VITAL_FOREACH (name_info_t const& info, name_infos)
+  for (name_info_t const& info : name_infos)
   {
     process::name_t const& child_name = info.first;
     name_type_t const& type = info.second;
@@ -295,7 +293,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
   // Input ports
   process::ports_t const iports = process->input_ports();
-  VITAL_FOREACH (process::port_t const& port, iports)
+  for (process::port_t const& port : iports)
   {
     process::port_type_t const ptype = process->input_port_info(port)->type;
 
@@ -315,7 +313,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
   // Output ports
   process::ports_t const oports = process->output_ports();
-  VITAL_FOREACH (process::port_t const& port, oports)
+  for (process::port_t const& port : oports)
   {
     process::port_type_t const ptype = process->output_port_info(port)->type;
 
@@ -356,7 +354,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   // Input ports
   process::connections_t const input_mappings = cluster->input_mappings();
   unique_ports_t input_ports;
-  VITAL_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  for (process::connection_t const& input_mapping : input_mappings)
   {
     process::port_addr_t const& upstream_addr = input_mapping.first;
 
@@ -381,7 +379,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   ostr << "}" << std::endl;
   ostr << std::endl;
 
-  VITAL_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  for (process::connection_t const& input_mapping : input_mappings)
   {
     process::port_addr_t const& upstream_addr = input_mapping.first;
     process::port_addr_t const& downstream_addr = input_mapping.second;
@@ -411,7 +409,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   // Output ports
   process::connections_t const output_mappings = cluster->output_mappings();
   unique_ports_t output_ports;
-  VITAL_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  for (process::connection_t const& output_mapping : output_mappings)
   {
     process::port_addr_t const& downstream_addr = output_mapping.second;
 
@@ -436,7 +434,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
        << "}" << std::endl
        << std::endl;
 
-  VITAL_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  for (process::connection_t const& output_mapping : output_mappings)
   {
     process::port_addr_t const& upstream_addr = output_mapping.first;
     process::port_addr_t const& downstream_addr = output_mapping.second;
@@ -467,7 +465,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     // Output cluster connections
     process::connections_t const connections = cluster->internal_connections();
 
-    VITAL_FOREACH (process::connection_t const& connection, connections)
+    for (process::connection_t const& connection : connections)
     {
       process::port_addr_t const& upstream_addr = connection.first;
       process::port_addr_t const& downstream_addr = connection.second;

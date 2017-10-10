@@ -31,7 +31,6 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/process.h>
@@ -75,7 +74,7 @@ main()
   //+ Check attribute kwiver::vital::plugin_factory::PLUGIN_NAME for duplicates
   // within the list
 
-  VITAL_FOREACH( const auto fact, proc_list )
+  for( const auto fact : proc_list )
   {
     sprokit::process::type_t type;
     if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type ) )
@@ -185,7 +184,7 @@ test_process_configuration( sprokit::process_t const process )
 {
   kwiver::vital::config_block_keys_t const keys = process->available_config();
 
-  VITAL_FOREACH( kwiver::vital::config_block_key_t const & key, keys )
+  for( kwiver::vital::config_block_key_t const & key : keys )
   {
     try
     {
@@ -215,7 +214,7 @@ test_process_input_ports( sprokit::process_t const process )
 
   sprokit::process::ports_t const ports = process->input_ports();
 
-  VITAL_FOREACH( sprokit::process::port_t const & port, ports )
+  for( sprokit::process::port_t const & port : ports )
   {
     sprokit::process::port_info_t info;
 
@@ -270,7 +269,7 @@ test_process_input_ports( sprokit::process_t const process )
                   "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
 
     process->connect_input_port( port, edge );
 
@@ -289,7 +288,7 @@ test_process_output_ports( sprokit::process_t const process )
 
   sprokit::process::ports_t const ports = process->output_ports();
 
-  VITAL_FOREACH( sprokit::process::port_t const & port, ports )
+  for( sprokit::process::port_t const & port : ports )
   {
     sprokit::process::port_info_t info;
 
@@ -334,8 +333,8 @@ test_process_output_ports( sprokit::process_t const process )
                   "(" << process->type() << "." << port << ")" );
     }
 
-    sprokit::edge_t edge1 = boost::make_shared< sprokit::edge > ( config );
-    sprokit::edge_t edge2 = boost::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge1 = std::make_shared< sprokit::edge > ( config );
+    sprokit::edge_t edge2 = std::make_shared< sprokit::edge > ( config );
 
     process->connect_output_port( port, edge1 );
     process->connect_output_port( port, edge2 );
@@ -366,7 +365,7 @@ test_process_invalid_input_port( sprokit::process_t const process )
                     process->input_port_info( non_existent_port ),
                     "requesting the info for a non-existent input port" );
 
-  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
+  sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
 
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->connect_input_port( non_existent_port, edge ),
@@ -386,7 +385,7 @@ test_process_invalid_output_port( sprokit::process_t const process )
                     process->output_port_info( non_existent_port ),
                     "requesting the info for a non-existent output port" );
 
-  sprokit::edge_t edge = boost::make_shared< sprokit::edge > ( config );
+  sprokit::edge_t edge = std::make_shared< sprokit::edge > ( config );
 
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->connect_output_port( non_existent_port, edge ),

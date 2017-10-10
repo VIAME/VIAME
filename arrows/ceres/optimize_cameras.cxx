@@ -37,7 +37,6 @@
 #include <arrows/ceres/options.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 
 
 using namespace kwiver::vital;
@@ -201,7 +200,7 @@ optimize_cameras
   // Extract the landmark locations into a mutable map
   typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
   lm_param_map_t landmark_params;
-  VITAL_FOREACH(const map_landmark_t::value_type& lm, lms)
+  for(const map_landmark_t::value_type& lm : lms)
   {
     vector_3d loc = lm.second->loc();
     landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
@@ -234,7 +233,7 @@ optimize_cameras
   bool loss_func_used = false;
 
   // Add the residuals for each relevant observation
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     const track_id_t id = t->id();
     lm_param_map_t::iterator lm_itr = landmark_params.find(id);
@@ -270,7 +269,7 @@ optimize_cameras
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  VITAL_FOREACH(std::vector<double>& cip, camera_intr_params)
+  for(std::vector<double>& cip : camera_intr_params)
   {
     // apply the constraints
     if (constant_intrinsics.size() > 4 + ndp)
@@ -286,7 +285,7 @@ optimize_cameras
     }
   }
   // Set the landmarks constant
-  VITAL_FOREACH(lm_param_map_t::value_type& lmp, landmark_params)
+  for(lm_param_map_t::value_type& lmp : landmark_params)
   {
     problem.SetParameterBlockConstant(&lmp.second[0]);
   }
@@ -336,7 +335,7 @@ optimize_cameras
 
   // extract the landmark parameters
   std::vector<std::vector<double> > landmark_params;
-  VITAL_FOREACH(const landmark_sptr lm, landmarks)
+  for(const landmark_sptr lm : landmarks)
   {
     vector_3d loc = lm->loc();
     landmark_params.push_back(std::vector<double>(loc.data(), loc.data()+3));

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,6 +133,7 @@ struct image_pixel_traits_helper<true, false, true>
 template <typename T>
 struct image_pixel_traits_of : public image_pixel_traits
 {
+  VITAL_EXPORT
   const static image_pixel_traits::pixel_type static_type =
     image_pixel_traits_helper<std::numeric_limits<T>::is_specialized,
                               std::numeric_limits<T>::is_integer,
@@ -145,6 +146,7 @@ struct image_pixel_traits_of : public image_pixel_traits
 template <>
 struct image_pixel_traits_of<bool> : public image_pixel_traits
 {
+  VITAL_EXPORT
   const static image_pixel_traits::pixel_type static_type = image_pixel_traits::BOOL;
   image_pixel_traits_of<bool>()
   : image_pixel_traits(static_type, sizeof(bool)) {}

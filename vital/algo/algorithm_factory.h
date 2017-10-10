@@ -36,7 +36,6 @@
 #include <vital/algo/algorithm.h>
 
 #include <vital/vital_config.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -69,7 +68,7 @@ public:
       .add_attribute( PLUGIN_CATEGORY, "algorithm" );
   }
 
-  virtual ~algorithm_factory() VITAL_DEFAULT_DTOR
+  virtual ~algorithm_factory() = default;
 
   algorithm_sptr create_object()
   {
@@ -99,7 +98,7 @@ public:
     this->add_attribute( CONCRETE_TYPE, typeid( IMPL ).name() );
   }
 
-  virtual ~algorithm_factory_0() VITAL_DEFAULT_DTOR
+  virtual ~algorithm_factory_0() = default;
 
 protected:
   virtual algorithm_sptr create_object_a()

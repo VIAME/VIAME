@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -90,7 +90,7 @@ def test_api_calls():
 
     modules.load_known_modules()
 
-    p = process_factory.create_process('orphan', process.ProcessName())
+    p = process_factory.create_process('orphan', 'process_name')
 
     e.set_upstream_process(p)
     e.set_downstream_process(p)

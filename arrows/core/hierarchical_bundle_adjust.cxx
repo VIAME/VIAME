@@ -43,7 +43,6 @@
 
 #include <math.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/util/cpu_timer.h>
 
 #include <vital/algo/optimize_cameras.h>
@@ -85,7 +84,7 @@ subsample_cameras(camera_map::map_camera_t const& cameras, unsigned n)
 
   camera_map::map_camera_t subsample;
   unsigned int i = 0;
-  VITAL_FOREACH(camera_map::map_camera_t::value_type const& p, cameras)
+  for(camera_map::map_camera_t::value_type const& p : cameras)
   {
     if (i % n == 0)
     {
@@ -142,7 +141,7 @@ hierarchical_bundle_adjust
 
 /// Destructor
 hierarchical_bundle_adjust
-::~hierarchical_bundle_adjust() VITAL_NOTHROW
+::~hierarchical_bundle_adjust() noexcept
 {
 }
 
@@ -428,7 +427,7 @@ hierarchical_bundle_adjust
         }
       }
       // adding optimized interpolated cameras to the map of existing cameras
-      VITAL_FOREACH(camera_map::map_camera_t::value_type const& p, interped_cams_p->cameras())
+      for(camera_map::map_camera_t::value_type const& p : interped_cams_p->cameras())
       {
         ac_map[p.first] = p.second;
       }

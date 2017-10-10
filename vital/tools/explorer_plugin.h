@@ -100,8 +100,8 @@ public:
   void display_attr( const kwiver::vital::plugin_factory_handle_t fact) const;
 
   bool if_detail() const;
-  bool if_config() const;
   bool if_brief() const;
+  bool if_pipeline_format() const;
 
   class priv;
 
@@ -146,8 +146,8 @@ class category_explorer
 {
 public:
   // -- CONSTRUCTORS --
-  category_explorer() VITAL_DEFAULT_CTOR
-  virtual ~category_explorer() VITAL_DEFAULT_DTOR
+  category_explorer() = default;
+  virtual ~category_explorer() = default;
 
   /**
    * @brief Initialize the plugin

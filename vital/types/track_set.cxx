@@ -36,9 +36,9 @@
 
 #include "track_set.h"
 
+#include <algorithm>
 #include <limits>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -61,6 +61,47 @@ track_set_implementation
 }
 
 
+/// Notify the container that a new state has been added to an existing track
+void
+track_set_implementation
+::notify_new_state( track_state_sptr ts )
+{
+  // by default, notification does nothing
+}
+
+
+/// merge the pair of tracks \p t1 and \p t2, if possible
+bool
+track_set_implementation
+::merge_tracks( track_sptr t1, track_sptr t2 )
+{
+  // follow track redirects as needed
+  std::shared_ptr<track_data_redirect> tdr;
+  while( t1 && t1->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t1->data())) )
+  {
+    t1 = tdr->redirect_track;
+  }
+  while( t2 && t2->empty() &&
+         (tdr = std::dynamic_pointer_cast<track_data_redirect>(t2->data())) )
+  {
+    t2 = tdr->redirect_track;
+  }
+  if( !t1 || !t2 || !this->contains(t1) || !this->contains(t2) )
+  {
+    return false;
+  }
+
+  if( !t2->append(*t1) )
+  {
+    return false;
+  }
+
+  this->remove(t1);
+  return true;
+}
+
+
 /// Return the set of all frame IDs covered by these tracks
 std::set<frame_id_t>
 track_set_implementation
@@ -69,7 +110,7 @@ track_set_implementation
   std::set<frame_id_t> ids;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     std::set<frame_id_t> t_ids = t->all_frame_ids();
     ids.insert(t_ids.begin(), t_ids.end());
@@ -87,7 +128,7 @@ track_set_implementation
   std::set<track_id_t> ids;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     ids.insert(t->id());
   }
@@ -104,7 +145,7 @@ track_set_implementation
   frame_id_t last_frame = 0;
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->last_frame() > last_frame )
     {
@@ -127,7 +168,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   bool intersects_frame = false;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->first_frame() < first_frame )
     {
@@ -154,7 +195,7 @@ track_set_implementation
 {
   const std::vector<track_sptr> all_tracks = this->tracks();
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->id() == tid )
     {
@@ -174,7 +215,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> active_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->find(frame_number) != t->end() )
     {
@@ -195,7 +236,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> inactive_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->find(frame_number) == t->end() )
     {
@@ -216,7 +257,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> new_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->first_frame() == frame_number )
     {
@@ -237,7 +278,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_sptr> terminated_tracks;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     if( t->last_frame() == frame_number )
     {
@@ -260,7 +301,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   unsigned total_tracks = 0, tracks_both = 0;
 
-  VITAL_FOREACH( track_sptr t , all_tracks)
+  for( track_sptr t : all_tracks)
   {
     const bool found_on_f1 = t->find(frame_number1) != t->end();
     const bool found_on_f2 = t->find(frame_number2) != t->end();
@@ -286,7 +327,7 @@ track_set_implementation
   const std::vector<track_sptr> all_tracks = this->tracks();
   std::vector<track_state_sptr> vdata;
 
-  VITAL_FOREACH( track_sptr t, all_tracks)
+  for( track_sptr t : all_tracks)
   {
     track::history_const_itr itr = t->find(frame_number);
     if( itr != t->end() )
@@ -343,6 +384,32 @@ track_set
 {
 }
 
+
+//===================================================================
+
+
+/// Return true if the set contains a specific track
+bool
+simple_track_set_implementation
+::contains( track_sptr t ) const
+{
+  return std::find(data_.begin(), data_.end(), t) != data_.end();
+}
+
+
+/// Remove a track from the set and return true if successful
+bool
+simple_track_set_implementation
+::remove( track_sptr t )
+{
+  auto itr = std::find(data_.begin(), data_.end(), t);
+  if ( itr == data_.end() )
+  {
+    return false;
+  }
+  data_.erase(itr);
+  return true;
+}
 
 
 } } // end namespace vital

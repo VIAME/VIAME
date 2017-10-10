@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,6 +89,8 @@ extract_descriptors_process
 void extract_descriptors_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
@@ -118,11 +120,17 @@ extract_descriptors_process
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
   kwiver::vital::feature_set_sptr features =  grab_from_port_using_trait( feature_set );
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  kwiver::vital::descriptor_set_sptr curr_desc;
 
-  // extract stuff on the current frame
-  kwiver::vital::descriptor_set_sptr curr_desc = d->m_extractor->extract( img, features );
+  {
+    scoped_step_instrumentation();
+
+    // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
+
+    // extract stuff on the current frame
+    curr_desc = d->m_extractor->extract( img, features );
+  }
 
   // return by value
   push_to_port_using_trait( descriptor_set, curr_desc );

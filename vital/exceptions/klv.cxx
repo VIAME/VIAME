@@ -41,7 +41,7 @@ klv_exception
 
 
 klv_exception
-::~klv_exception() VITAL_NOTHROW
+::~klv_exception() noexcept
 { }
 
 

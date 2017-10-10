@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@
 namespace sprokit
 {
 
-SPROKIT_TOOLS_EXPORT VITAL_NO_RETURN void tool_usage(int ret, boost::program_options::options_description const& options);
+[[noreturn]] SPROKIT_TOOLS_EXPORT void tool_usage(int ret, boost::program_options::options_description const& options);
 SPROKIT_TOOLS_EXPORT void tool_version_message();
 
 SPROKIT_TOOLS_EXPORT boost::program_options::options_description tool_common_options();

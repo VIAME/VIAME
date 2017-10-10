@@ -6,7 +6,7 @@
 
 # from sprokit.utilities import homography
 #from sprokit.utilities import timestamp
-
+from __future__ import print_function
 import sprokit.pipeline.datum
 import sprokit.pipeline.process
 import sprokit.pipeline.config
@@ -56,16 +56,16 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
         for r in [ 0, 1, 2 ]:
             for c in [ 0, 1, 2 ]:
                 val = h.get( r, c )
-                print val,
+                print(val, end=' ')
                 self.fout.write( '%.20g ' % val )
 
-        print h.from_id(), h.to_id()
+        print(h.from_id(), h.to_id())
         self.fout.write( '%d %d\n' % (h.from_id(), h.to_id()) )
         self.fout.flush()
         ## t = h # .transform()
 
        # values = tuple([t.get(i // 3, i % 3) for i in range(9)])
-       # print "XXXXXXX homography", values, "\n"
+       # print("XXXXXXX homography", values, "\n")
 
         #self.fout.write('\n%.20g %.20g %.20g\n%.20g %.20g %.20g\n%.20g %.20g %.20g\n\n' % values)
 

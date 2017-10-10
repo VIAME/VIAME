@@ -44,7 +44,6 @@
 #include <map>
 
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 #include <vital/types/feature.h>
 #include <vital/types/descriptor.h>
 #include <kwiversys/SystemTools.hxx>
@@ -143,7 +142,7 @@ write_track_file( track_set_sptr const& tracks,
   // open output file and write the tracks
   std::ofstream ofile( file_path.c_str() );
   std::vector< vital::track_sptr > trks = tracks->tracks();
-  VITAL_FOREACH( vital::track_sptr t, trks )
+  for( vital::track_sptr t : trks )
   {
     for( auto const& s : *t )
     {

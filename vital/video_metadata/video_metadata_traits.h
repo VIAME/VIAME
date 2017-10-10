@@ -39,8 +39,8 @@
 #include <vital/video_metadata/video_metadata_tags.h>
 #include <vital/video_metadata/video_metadata.h> // needed for corner points
 
-#include <vital/types/geo_lat_lon.h>
-#include <vital/types/geo_corner_points.h>
+#include <vital/types/geo_point.h>
+#include <vital/types/geo_polygon.h>
 
 #include <vital/logger/logger.h>
 

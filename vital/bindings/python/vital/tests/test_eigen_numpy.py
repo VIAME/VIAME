@@ -38,6 +38,7 @@ import unittest
 
 import nose.tools as ntools
 import numpy
+from six.moves import range
 
 from vital.exceptions.eigen import VitalInvalidStaticEigenShape
 from vital.types import EigenArray
@@ -105,7 +106,7 @@ class TestVitalEigenMatrix (unittest.TestCase):
     def test_mutability(self):
         a = EigenArray(2, 3)
         d = a.base.base  # The data pointer
-        for i in xrange(6):
+        for i in range(6):
             d[i] = 0
         numpy.testing.assert_array_equal(a, [[0, 0, 0],
                                              [0, 0, 0]])

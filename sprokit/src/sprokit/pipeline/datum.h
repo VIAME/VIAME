@@ -199,11 +199,11 @@ class SPROKIT_PIPELINE_EXPORT datum_exception
     /**
      * \brief Constructor.
      */
-    datum_exception() VITAL_NOTHROW;
+    datum_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~datum_exception() VITAL_NOTHROW;
+    virtual ~datum_exception() noexcept;
 };
 
 /**
@@ -226,11 +226,11 @@ class SPROKIT_PIPELINE_EXPORT bad_datum_cast_exception
      * \param error The type that was requested.
      * \param reason The reason for the bad cast.
      */
-    bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) VITAL_NOTHROW;
+    bad_datum_cast_exception(std::string const& requested_typeid, std::string const& typeid_, datum::type_t const& type, datum::error_t const& error, char const* reason) noexcept;
     /**
      * \brief Destructor.
      */
-    ~bad_datum_cast_exception() VITAL_NOTHROW;
+    ~bad_datum_cast_exception() noexcept;
 
     /// The requested datum type.
     std::string const m_requested_typeid;

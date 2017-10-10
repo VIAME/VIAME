@@ -44,8 +44,7 @@
 #include <vital/types/detected_object_set.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/feature_track_set.h>
-#include <vital/types/geo_corner_points.h>
-#include <vital/types/geo_lat_lon.h>
+#include <vital/types/geo_polygon.h>
 #include <vital/types/image_container.h>
 #include <vital/types/iqr_feedback.h>
 #include <vital/types/matrix.h>
@@ -68,9 +67,9 @@ namespace vital {
   class f2f_homography;
 
   typedef std::vector< double >  double_vector;
-  typedef boost::shared_ptr< double_vector > double_vector_sptr;
+  typedef std::shared_ptr< double_vector > double_vector_sptr;
   typedef std::vector< std::string > string_vector;
-  typedef boost::shared_ptr< string_vector > string_vector_sptr;
+  typedef std::shared_ptr< string_vector > string_vector_sptr;
 
 } }
 
@@ -84,7 +83,7 @@ namespace vital {
 create_type_trait( bounding_box, "kwiver:bounding_box", kwiver::vital::bounding_box_d );
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
-create_type_trait( corner_points, "corner_points", kwiver::vital::geo_corner_points );
+create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );

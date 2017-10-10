@@ -44,21 +44,21 @@ namespace sprokit {
 
 // ------------------------------------------------------------------
 pipe_bakery_exception
-::pipe_bakery_exception() VITAL_NOTHROW
+::pipe_bakery_exception() noexcept
   : pipeline_exception()
 {
 }
 
 
 pipe_bakery_exception
-::~pipe_bakery_exception() VITAL_NOTHROW
+::~pipe_bakery_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 missing_cluster_block_exception
-::missing_cluster_block_exception() VITAL_NOTHROW
+::missing_cluster_block_exception() noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -69,14 +69,14 @@ missing_cluster_block_exception
 
 
 missing_cluster_block_exception
-::~missing_cluster_block_exception() VITAL_NOTHROW
+::~missing_cluster_block_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 multiple_cluster_blocks_exception
-::multiple_cluster_blocks_exception() VITAL_NOTHROW
+::multiple_cluster_blocks_exception() noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -87,14 +87,14 @@ multiple_cluster_blocks_exception
 
 
 multiple_cluster_blocks_exception
-::~multiple_cluster_blocks_exception() VITAL_NOTHROW
+::~multiple_cluster_blocks_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 cluster_without_processes_exception
-::cluster_without_processes_exception() VITAL_NOTHROW
+::cluster_without_processes_exception() noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -105,14 +105,14 @@ cluster_without_processes_exception
 
 
 cluster_without_processes_exception
-::~cluster_without_processes_exception() VITAL_NOTHROW
+::~cluster_without_processes_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 cluster_without_ports_exception
-::cluster_without_ports_exception() VITAL_NOTHROW
+::cluster_without_ports_exception() noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -123,7 +123,7 @@ cluster_without_ports_exception
 
 
 cluster_without_ports_exception
-::~cluster_without_ports_exception() VITAL_NOTHROW
+::~cluster_without_ports_exception() noexcept
 {
 }
 
@@ -131,7 +131,7 @@ cluster_without_ports_exception
 // ------------------------------------------------------------------
 duplicate_cluster_port_exception
 ::duplicate_cluster_port_exception( process::port_t const& port,
-                                    char const* const      side ) VITAL_NOTHROW
+                                    char const* const      side ) noexcept
   : pipe_bakery_exception(),
   m_port( port )
 {
@@ -146,42 +146,42 @@ duplicate_cluster_port_exception
 
 
 duplicate_cluster_port_exception
-::~duplicate_cluster_port_exception() VITAL_NOTHROW
+::~duplicate_cluster_port_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 duplicate_cluster_input_port_exception
-::duplicate_cluster_input_port_exception( process::port_t const& port ) VITAL_NOTHROW
+::duplicate_cluster_input_port_exception( process::port_t const& port ) noexcept
   : duplicate_cluster_port_exception( port, "input" )
 {
 }
 
 
 duplicate_cluster_input_port_exception
-::~duplicate_cluster_input_port_exception() VITAL_NOTHROW
+::~duplicate_cluster_input_port_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 duplicate_cluster_output_port_exception
-::duplicate_cluster_output_port_exception( process::port_t const& port ) VITAL_NOTHROW
+::duplicate_cluster_output_port_exception( process::port_t const& port ) noexcept
   : duplicate_cluster_port_exception( port, "output" )
 {
 }
 
 
 duplicate_cluster_output_port_exception
-::~duplicate_cluster_output_port_exception() VITAL_NOTHROW
+::~duplicate_cluster_output_port_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 unrecognized_config_flag_exception
-::unrecognized_config_flag_exception( kwiver::vital::config_block_key_t const& key, config_flag_t const& flag ) VITAL_NOTHROW
+::unrecognized_config_flag_exception( kwiver::vital::config_block_key_t const& key, config_flag_t const& flag ) noexcept
   : pipe_bakery_exception(),
   m_key( key ),
   m_flag( flag )
@@ -197,7 +197,7 @@ unrecognized_config_flag_exception
 
 
 unrecognized_config_flag_exception
-::~unrecognized_config_flag_exception() VITAL_NOTHROW
+::~unrecognized_config_flag_exception() noexcept
 {
 }
 
@@ -205,7 +205,7 @@ unrecognized_config_flag_exception
 // ------------------------------------------------------------------
 config_flag_mismatch_exception
 ::config_flag_mismatch_exception( kwiver::vital::config_block_key_t const& key,
-                                  std::string const&                       reason ) VITAL_NOTHROW
+                                  std::string const&                       reason ) noexcept
   : pipe_bakery_exception()
   , m_key( key )
   , m_reason( reason )
@@ -221,7 +221,7 @@ config_flag_mismatch_exception
 
 
 config_flag_mismatch_exception
-::~config_flag_mismatch_exception() VITAL_NOTHROW
+::~config_flag_mismatch_exception() noexcept
 {
 }
 
@@ -229,7 +229,7 @@ config_flag_mismatch_exception
 // ------------------------------------------------------------------
 relativepath_exception
 ::relativepath_exception( const std::string&                    msg,
-                          const kwiver::vital::source_location& loc ) VITAL_NOTHROW
+                          const kwiver::vital::source_location& loc ) noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -240,14 +240,14 @@ relativepath_exception
 
 
 relativepath_exception::
-  ~relativepath_exception() VITAL_NOTHROW
+  ~relativepath_exception() noexcept
 { }
 
 
 // ------------------------------------------------------------------
 provider_error_exception::
 provider_error_exception( const std::string&                    msg,
-                          const kwiver::vital::source_location& loc ) VITAL_NOTHROW
+                          const kwiver::vital::source_location& loc ) noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -258,7 +258,7 @@ provider_error_exception( const std::string&                    msg,
 
 
   provider_error_exception::
-  provider_error_exception( const std::string& msg ) VITAL_NOTHROW
+  provider_error_exception( const std::string& msg ) noexcept
   : pipe_bakery_exception()
 {
   std::stringstream sstr;
@@ -269,7 +269,7 @@ provider_error_exception( const std::string&                    msg,
 
 
 provider_error_exception::
-  ~provider_error_exception() VITAL_NOTHROW
+  ~provider_error_exception() noexcept
 { }
 
 } // end namespace

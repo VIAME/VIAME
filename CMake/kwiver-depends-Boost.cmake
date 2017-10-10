@@ -14,7 +14,7 @@ find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
     COMPONENTS
       chrono
       date_time
-      ${kwiver_boost_python_package}
+      iostreams
       filesystem
       program_options
       regex

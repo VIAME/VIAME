@@ -43,7 +43,6 @@
 
 #include "pipe_parser.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/vital_types.h>
 
 #include <sprokit/pipeline/pipeline.h>

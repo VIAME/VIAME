@@ -61,7 +61,7 @@ class VITAL_EXPORT descriptor_request
 public:
 
   descriptor_request();
-  ~descriptor_request() VITAL_DEFAULT_DTOR
+  ~descriptor_request() = default;
 
   uid id() const;
 

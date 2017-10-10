@@ -37,7 +37,6 @@
 
 #include <time.h>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {
@@ -135,31 +134,26 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     d->m_first = false;
   } // end first
 
-  // Get detections from set
-  const auto detections = set->select();
-  VITAL_FOREACH( const auto det, detections )
+  // process all detections
+  auto ie =  set->cend();
+  for ( auto det = set->cbegin(); det != ie; ++det )
   {
-    if( !det )
-    {
-      continue;
-    }
-
-    const kwiver::vital::bounding_box_d bbox( det->bounding_box() );
+    const kwiver::vital::bounding_box_d bbox( (*det)->bounding_box() );
     stream() << d->m_frame_number << d->m_delim
              << image_name << d->m_delim
              << bbox.min_x() << d->m_delim // 2: TL-x
              << bbox.min_y() << d->m_delim // 3: TL-y
              << bbox.max_x() << d->m_delim // 4: BR-x
              << bbox.max_y() << d->m_delim // 5: BR-y
-             << det->confidence()          // 6: confidence value
+             << (*det)->confidence()          // 6: confidence value
       ;
 
     // Process classifications if there are any
-    const auto dot( det->type() );
+    const auto dot( (*det)->type() );
     if ( dot )
     {
       const auto name_list( dot->class_names() );
-      VITAL_FOREACH( auto name, name_list )
+      for( auto name : name_list )
       {
         // Write out the <name> <score> pair
         stream() << d->m_delim << name << d->m_delim << dot->score( name );

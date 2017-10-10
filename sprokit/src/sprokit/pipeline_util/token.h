@@ -137,7 +137,7 @@ inline std::ostream&
 operator<<( std::ostream& str, const token& obj )
 { return obj.format( str ); }
 
-typedef boost::shared_ptr< token > token_sptr;
+typedef std::shared_ptr< token > token_sptr;
 
 } // end namespace
 

@@ -43,17 +43,7 @@
 namespace kwiver
 {
 
-  // ----------------------------------------------------------------
-/**
- * \class detected_object_output_process
- *
- * \brief Reads a series of images
- *
- * \iports
- * \iport{image_name}
- * \iport{detection_set}
- *
- */
+// ----------------------------------------------------------------
 class KWIVER_PROCESSES_NO_EXPORT detected_object_output_process
   : public sprokit::process
 {

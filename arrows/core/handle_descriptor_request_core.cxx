@@ -44,8 +44,6 @@
 #include <iterator>
 #include <exception>
 
-#include <vital/vital_foreach.h>
-#include <vital/types/descriptor_request.h>
 #include <vital/algo/algorithm.h>
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>

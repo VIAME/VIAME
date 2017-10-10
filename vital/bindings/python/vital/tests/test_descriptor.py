@@ -33,11 +33,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 vital::descriptor interface tests
 
 """
+from __future__ import print_function
 import ctypes
 import random
 import unittest
 
 import nose.tools
+from six.moves import range
 import numpy
 
 from vital.exceptions.base import VitalDynamicCastException
@@ -49,7 +51,7 @@ class TestDescriptor (unittest.TestCase):
     def test_new(self):
         # Attempt construction using a bunch of random, non-zero integers
         random.seed(0)
-        for i in xrange(100):
+        for i in range(100):
             n = random.randint(1, 4096)
             Descriptor(n, ctypes.c_double)
             Descriptor(n, ctypes.c_float)
@@ -64,16 +66,16 @@ class TestDescriptor (unittest.TestCase):
     def test_size(self):
         # Check that we can check the size of the descriptor array.
         random.seed(0)
-        for i in xrange(100):
+        for i in range(100):
             n = random.randint(1, 4096)
             nose.tools.assert_equal(Descriptor(n).size, n)
 
     def test_num_bytes(self):
         # While not calling the C function, it should still be a correct value
         random.seed(0)
-        for i in xrange(100):
+        for i in range(100):
             n = random.randint(1, 4096)
-            print n,
+            print(n, end=' ')
 
             nose.tools.assert_equal(
                 Descriptor(n, ctypes.c_double).nbytes,

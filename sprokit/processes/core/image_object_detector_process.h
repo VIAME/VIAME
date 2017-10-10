@@ -43,6 +43,12 @@ namespace kwiver {
 /**
  * @brief Image object detector process.
  *
+ * \iports
+ * \iport{image}
+ *
+ * \oports
+ *
+ * \oport{detected_object_set}
  */
 class KWIVER_PROCESSES_NO_EXPORT image_object_detector_process
   : public sprokit::process

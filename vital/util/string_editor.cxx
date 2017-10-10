@@ -30,7 +30,6 @@
 
 #include "string_editor.h"
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -62,7 +61,7 @@ edit( std::string& str )
 {
   bool result( true );
 
-  VITAL_FOREACH( auto op, m_editor_list )
+  for( auto op : m_editor_list )
   {
     if ( ! op->process( str ) )
     {

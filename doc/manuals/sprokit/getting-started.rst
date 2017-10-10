@@ -1,5 +1,3 @@
-
-============================
 Getting Started with sprokit
 ============================
 
@@ -139,10 +137,10 @@ Factories that create type "sprokit::process"
     Process type: pyprint_number          A Python process which prints numbers
 
 This is the list of modules that can be included in a Sprokit
-pipeline.  We're going to use the `numbers` module and the the
-`print_number` module to create a very simple pipeline.  To learn more
-about the `numbers` module we'll again use `plugin_explorer` this time
-to get details on a particular module.  For `numbers` we'll use the
+pipeline.  We're going to use the ``numbers`` module and the the
+``print_number`` module to create a very simple pipeline.  To learn more
+about the ``numbers`` module we'll again use ``plugin_explorer`` this time
+to get details on a particular module.  For ``numbers`` we'll use the
 following command::
 
     $ plugin_explorer --process --type numbers -d --config
@@ -171,7 +169,7 @@ following command::
         Flags      : _required,
         Description: Where the numbers will be available.
 
-And for `print_number`, we'll use::
+And for ``print_number``, we'll use::
 
     $ plugin_explorer --process --type print_number -d --config
 
@@ -204,17 +202,17 @@ output "Ports").
 
 KWIVER comes with a sample
 [sprokit/pipelines/number_flow.pipe](sprokit/pipelines/number_flow.pipe)
-file that configures and connects the pipeline so that the `numbers`
+file that configures and connects the pipeline so that the ``numbers``
 process will generate a set of integers from 1 to 99 and the
-`print_number` process will write those to a file called
-`numbers.txt`.  Of particular interest is the section at the end of
+``print_number`` process will write those to a file called
+``numbers.txt``.  Of particular interest is the section at the end of
 the file that actually "hooks up" the pipeline.
 
-To run the pipeline, we'll use the Sprokit `pipeline_runner` command::
+To run the pipeline, we'll use the Sprokit ``pipeline_runner`` command::
 
     $ pipeline_runner -p </path/to/kwiver/source>/sprokit/pipelines/number_flow.pipe
 
-After the pipeline completes, you should find a file, `numbers.txt`, in your working directory.
+After the pipeline completes, you should find a file, ``numbers.txt``, in your working directory.
 
 
 Python Processes
@@ -224,8 +222,8 @@ One of KWIVER's great strengths (as provided by sprokit) is the
 ability to create hybrid pipelines which combine C++ and Python
 processes in the same pipeline.  This greatly facilitates prototyping
 complex processing pipelines.  To test this out we'll still use the
-`numbers` process, but we'll use a Python version of the
-`print_number` process called `kw_print_number_process` the code for
+``numbers`` process, but we'll use a Python version of the
+``print_number`` process called ``kw_print_number_process`` the code for
 which can be seen in
 [sprokit/processes/python/kw_print_number_process.py](sprokit/processes/python/kw_print_number_process.py).
 As usual, we can lean about this process with the following command::
@@ -249,16 +247,16 @@ As usual, we can lean about this process with the following command::
 
     Output ports:
 
-As you can see, the process is very similar to the C++ `print_number`
+As you can see, the process is very similar to the C++ ``print_number``
 process.  As a result, the [".pipe" file is very
 similar](sprokit/pipelines/number_flow_python.pipe).
 
 In order to get around limitations imposed by the Python Global
 Interpreter Lock, we'll use a different Sprokit scheduler for this
-pipeline.  The `pythread_per_process` scheduler which does essentially
+pipeline.  The ``pythread_per_process`` scheduler which does essentially
 what it says: it creates a Python thread for every process in the
 pipeline::
 
 	pipeline_runner -S pythread_per_process -p </path/to/kwiver/source>/sprokit/pipelines/number_flow_python.pipe>
 
-As with the previous pipeline, the numbers will be written to an output file, this time `numbers_from_python.txt`
+As with the previous pipeline, the numbers will be written to an output file, this time ``numbers_from_python.txt``

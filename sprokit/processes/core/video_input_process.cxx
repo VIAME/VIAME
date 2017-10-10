@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,6 +110,7 @@ video_input_process
 void video_input_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
 
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
@@ -118,17 +119,16 @@ void video_input_process
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
+  if ( ! algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+  }
+
   // instantiate requested/configured algo type
   algo::video_input::set_nested_algo_configuration( "video_reader", algo_config, d->m_video_reader );
   if ( ! d->m_video_reader )
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create video_reader." );
-  }
-
-  algo::video_input::get_nested_algo_configuration( "video_reader", algo_config, d->m_video_reader );
-  if ( ! algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
-  {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 }
 
@@ -138,6 +138,8 @@ void video_input_process
 void video_input_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   // instantiate a video reader
   d->m_video_reader->open( d->m_config_video_filename ); // throws
 
@@ -153,66 +155,72 @@ void video_input_process
 
   if ( d->m_video_reader->next_frame( ts ) )
   {
-      auto frame = d->m_video_reader->frame_image();
+    kwiver::vital::video_metadata_vector metadata;
+    kwiver::vital::image_container_sptr frame;
+    {
+      scoped_step_instrumentation();
 
-    // --- debug
+      frame = d->m_video_reader->frame_image();
+
+      // --- debug
 #if defined DEBUG
-    cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( frame->get_image() );
-    namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
-    imshow( "Display window", image ); // Show our image inside it.
+      cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( frame->get_image() );
+      namedWindow( "Display window", cv::WINDOW_NORMAL ); // Create a window for display.
+      imshow( "Display window", image ); // Show our image inside it.
 
-    waitKey(0);                 // Wait for a keystroke in the window
+      waitKey(0);                 // Wait for a keystroke in the window
 #endif
-    // -- end debug
+      // -- end debug
 
-    // update timestamp
-    //
-    // Sometimes the video source can not determine either the frame
-    // number or frame time or both.
-    if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
-    {
-      throw sprokit::invalid_configuration_exception( name(),
-            "Video reader selected does not supply image data." );
-    }
+      // update timestamp
+      //
+      // Sometimes the video source can not determine either the frame
+      // number or frame time or both.
+      if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
+      {
+        throw sprokit::invalid_configuration_exception( name(),
+                                                        "Video reader selected does not supply image data." );
+      }
 
 
-    if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
-    {
-      d->m_frame_number = ts.get_frame();
-    }
-    else
-    {
-      ++d->m_frame_number;
-      ts.set_frame( d->m_frame_number );
-    }
+      if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
+      {
+        d->m_frame_number = ts.get_frame();
+      }
+      else
+      {
+        ++d->m_frame_number;
+        ts.set_frame( d->m_frame_number );
+      }
 
-    if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
-    {
-      // create an internal time standard
-      d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
-      ts.set_time_usec( d->m_frame_time );
-    }
+      if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
+      {
+        // create an internal time standard
+        d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
+        ts.set_time_usec( d->m_frame_time );
+      }
 
-    // If this reader/video does not have any metadata, we will just
-    // return an empty vector.  That is all handled by the algorithm
-    // implementation.
-    kwiver::vital::video_metadata_vector metadata = d->m_video_reader->frame_metadata();
+      // If this reader/video does not have any metadata, we will just
+      // return an empty vector.  That is all handled by the algorithm
+      // implementation.
+      metadata = d->m_video_reader->frame_metadata();
 
-    // Since we want to try to always return valid metadata for this
-    // frame - if the returned metadata is empty, then use the last
-    // one we received.  The requirement is to always provide the best
-    // metadata for a frame. Since metadata appears less frequently
-    // than the frames, the metadata returned can be a little old, but
-    // it is still the best we have.
-    if ( metadata.empty() )
-    {
-      // The saved one could be empty, but it is the bewt we have.
-      metadata = d->m_last_metadata;
-    }
-    else
-    {
-      // Now that we have new metadata save it in case we need it later.
-      d->m_last_metadata = metadata;
+      // Since we want to try to always return valid metadata for this
+      // frame - if the returned metadata is empty, then use the last
+      // one we received.  The requirement is to always provide the best
+      // metadata for a frame. Since metadata appears less frequently
+      // than the frames, the metadata returned can be a little old, but
+      // it is still the best we have.
+      if ( metadata.empty() )
+      {
+        // The saved one could be empty, but it is the bewt we have.
+        metadata = d->m_last_metadata;
+      }
+      else
+      {
+        // Now that we have new metadata save it in case we need it later.
+        d->m_last_metadata = metadata;
+      }
     }
 
     push_to_port_using_trait( timestamp, ts );

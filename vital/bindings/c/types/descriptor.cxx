@@ -38,7 +38,6 @@
 #include <vector>
 
 #include <vital/bindings/c/helpers/descriptor.h>
-#include <vital/vital_foreach.h>
 
 
 namespace kwiver {

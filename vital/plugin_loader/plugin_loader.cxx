@@ -169,7 +169,7 @@ plugin_loader
   // Check the two types as a signature.
   if ( m_impl->m_plugin_map.count( interface_type ) != 0)
   {
-    VITAL_FOREACH( auto const fact, m_impl->m_plugin_map[interface_type] )
+    for( auto const fact : m_impl->m_plugin_map[interface_type] )
     {
       std::string interf;
       fact->get_attribute( plugin_factory::INTERFACE_TYPE, interf );
@@ -240,7 +240,7 @@ plugin_loader
 {
   std::vector< std::string > retval;
 
-  VITAL_FOREACH( auto const it, m_impl->m_library_map )
+  for( auto const it : m_impl->m_library_map )
   {
     retval.push_back( it.first );
   } // end foreach
@@ -290,7 +290,7 @@ plugin_loader
 ::load_plugins( path_list_t const& dirpath )
 {
   // Iterate over path and load modules
-  VITAL_FOREACH( auto const & module_dir, dirpath )
+  for( auto const & module_dir : dirpath )
   {
     m_impl->look_in_directory( module_dir );
   }
@@ -316,7 +316,7 @@ plugin_loader_impl
 ::load_known_modules()
 {
   // Iterate over path and load modules
-  VITAL_FOREACH( auto const & module_dir, m_search_paths )
+  for( auto const & module_dir : m_search_paths )
   {
     look_in_directory( module_dir );
   }
