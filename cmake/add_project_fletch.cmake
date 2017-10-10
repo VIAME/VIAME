@@ -144,6 +144,7 @@ ExternalProject_Add(fletch
     -Dfletch_FORCE_CUDA_CSTD98:BOOL=${VIAME_FORCE_CUDA_CSTD98}
 
     -Dfletch_ENABLE_PostgreSQL:BOOL=${VIAME_ENABLE_SMQTK}
+    -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
