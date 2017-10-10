@@ -34,8 +34,6 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-#include <vital/vital_foreach.h>
-
 #include <vital/algo/read_object_track_set.h>
 #include <vital/algo/read_track_descriptor_set.h>
 
@@ -268,9 +266,9 @@ perform_query_process
     if( feedback &&
       ( !feedback->positive_ids().empty() ) )
     {
-      VITAL_FOREACH( auto id, feedback->positive_ids() )
+      for( auto id : feedback->positive_ids() )
       {
-        VITAL_FOREACH( auto desc_sptr, *d->previous_results[id]->descriptors() )
+        for( auto desc_sptr : *d->previous_results[id]->descriptors() )
         {
           positive_uids->push_back( desc_sptr->get_uid().value() );
         }
@@ -289,9 +287,9 @@ perform_query_process
     if( feedback &&
       ( !feedback->negative_ids().empty() ) )
     {
-      VITAL_FOREACH( auto id, feedback->negative_ids() )
+      for( auto id : feedback->negative_ids() )
       {
-        VITAL_FOREACH( auto desc_sptr, *d->previous_results[id]->descriptors() )
+        for( auto desc_sptr : *d->previous_results[id]->descriptors() )
         {
           negative_uids->push_back( desc_sptr->get_uid().value() );
         }
@@ -313,7 +311,7 @@ perform_query_process
 
     vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
 
-    VITAL_FOREACH( auto track_desc, *query->descriptors() )
+    for( auto track_desc : *query->descriptors() )
     {
       exemplar_uids->push_back( track_desc->get_uid().value() );
       exemplar_raw_descs.push_back( track_desc->get_descriptor() );
@@ -417,9 +415,9 @@ perform_query_process
       vital::timestamp ts1, ts2;
       bool is_first = true;
 
-      VITAL_FOREACH( auto desc, *desc_set )
+      for( auto desc : *desc_set )
       {
-        VITAL_FOREACH( auto hist, desc->get_history() )
+        for( auto hist : desc->get_history() )
         {
           if( is_first )
           {
@@ -557,7 +555,7 @@ void perform_query_process::priv
   }
 
   // Load tracks for every base name
-  VITAL_FOREACH( std::string name, basenames )
+  for( std::string name : basenames )
   {
     std::string track_file = database_folder + "/" + name + track_postfix;
     std::string desc_file = database_folder + "/" + name + descriptor_postfix;
@@ -582,17 +580,17 @@ void perform_query_process::priv
 
     std::map< unsigned, vital::track_sptr > id_to_track;
 
-    VITAL_FOREACH( auto trk_sptr, tracks->tracks() )
+    for( auto trk_sptr : tracks->tracks() )
     {
       id_to_track[ trk_sptr->id() ] = trk_sptr;
     }
 
-    VITAL_FOREACH( auto desc_sptr, *descs )
+    for( auto desc_sptr : *descs )
     {
       // Identify associated tracks
       std::vector< vital::track_sptr > assc_trks;
 
-      VITAL_FOREACH( auto id, desc_sptr->get_track_ids() )
+      for( auto id : desc_sptr->get_track_ids() )
       {
         assc_trks.push_back( id_to_track[ id ] );
       }
