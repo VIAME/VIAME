@@ -72,7 +72,7 @@ public:
   };
 
   query_plan();
-  ~query_plan() VITAL_DEFAULT_DTOR
+  ~query_plan() = default;
 
   /// Accessor for query plan unique identifier. \see set_id
   uid id() const;

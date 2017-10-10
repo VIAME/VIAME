@@ -44,8 +44,6 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/make_shared.hpp>
-
 #include <functional>
 #include <memory>
 
@@ -70,8 +68,8 @@ template <typename T>
 process_t
 create_new_process(kwiver::vital::config_block_sptr const& conf)
 {
-  // Note boost pointer
-  return boost::make_shared<T>(conf);
+  // Note shared pointer
+  return std::make_shared<T>(conf);
 }
 
 

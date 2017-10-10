@@ -87,7 +87,7 @@ close_loops_exhaustive
 
 /// Destructor
 close_loops_exhaustive
-::~close_loops_exhaustive() VITAL_NOTHROW
+::~close_loops_exhaustive() noexcept
 {
 }
 

@@ -36,14 +36,11 @@
 #include <sprokit/pipeline/process.h>
 
 #include <sprokit/python/util/pystream.h>
-#include <sprokit/python/util/python_convert_optional.h>
 #include <sprokit/python/util/python_gil.h>
 
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/class.hpp>
-#include <boost/python/def.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/exception_translator.hpp>
+#include <pybind11/stl_bind.h>
+
+#include <bindings/python/sprokit/pipeline/python_wrappers.cxx>
 
 #include <string>
 
@@ -53,7 +50,7 @@
  * \brief Python bindings for loading pipe blocks.
  */
 
-using namespace boost::python;
+using namespace pybind11;
 
 static object pipe_block_config(sprokit::pipe_block const& block);
 static void pipe_block_config_set(sprokit::pipe_block& block, sprokit::config_pipe_block const& config);
@@ -79,116 +76,135 @@ static sprokit::pipe_blocks load_pipe_file(std::string const& path);
 static sprokit::pipe_blocks load_pipe(object const& stream);
 static sprokit::cluster_blocks load_cluster_file(std::string const& path);
 static sprokit::cluster_blocks load_cluster(object const& stream);
+static std::vector<wrap_port_addr> get_targets(sprokit::cluster_input_t const& self);
+static void set_targets(sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets);
 
-BOOST_PYTHON_MODULE(load)
+PYBIND11_MODULE(load, m)
 {
-  sprokit::python::register_optional_converter<sprokit::process::port_flags_t>("PortFlagsOpt", "An optional port flags.");
-
-  class_<sprokit::token_t>("Token"
-    , "A token in the pipeline description.");
-  class_<sprokit::config_flag_t>("ConfigFlag"
-    , "A flag on a configuration setting.");
-  class_<sprokit::config_flags_t>("ConfigFlags"
+  bind_vector<sprokit::config_flags_t>(m, "ConfigFlags"
     , "A collection of flags on a configuration setting.")
-    .def(vector_indexing_suite<sprokit::config_flags_t>())
   ;
-  class_<sprokit::config_value_t>("ConfigValue"
+  class_<sprokit::config_value_t>(m, "ConfigValue"
     , "A complete configuration setting.")
+    .def(init<>())
     .def_readwrite("key", &sprokit::config_value_t::key_path)
     .def_readwrite("flags", &sprokit::config_value_t::flags)
     .def_readwrite("value", &sprokit::config_value_t::value)
   ;
-  class_<sprokit::config_values_t>("ConfigValues"
+  bind_vector<sprokit::config_values_t>(m, "ConfigValues"
     , "A collection of configuration settings.")
-    /// \todo Need operator == on config_value_t
-    //.def(vector_indexing_suite<sprokit::config_values_t>())
   ;
-  class_<sprokit::config_pipe_block>("ConfigBlock"
+  class_<sprokit::config_pipe_block>(m, "ConfigBlock"
     , "A block of configuration settings.")
+    .def(init<>())
     .def_readwrite("key", &sprokit::config_pipe_block::key)
     .def_readwrite("values", &sprokit::config_pipe_block::values)
   ;
-  class_<sprokit::process_pipe_block>("ProcessBlock"
+  class_<sprokit::process_pipe_block>(m, "ProcessBlock"
     , "A block which declares a process.")
+    .def(init<>())
     .def_readwrite("name", &sprokit::process_pipe_block::name)
     .def_readwrite("type", &sprokit::process_pipe_block::type)
     .def_readwrite("config_values", &sprokit::process_pipe_block::config_values)
   ;
-  class_<sprokit::connect_pipe_block>("ConnectBlock"
+  class_<sprokit::connect_pipe_block>(m, "ConnectBlock"
     , "A block which connects two ports together.")
+    .def(init<>())
     .def_readwrite("from_", &sprokit::connect_pipe_block::from)
     .def_readwrite("to", &sprokit::connect_pipe_block::to)
   ;
-  class_<sprokit::pipe_block>("PipeBlock"
+  class_<sprokit::pipe_block>(m, "PipeBlock"
     , "A block in a pipeline declaration file.")
-    .add_property("config", &pipe_block_config, &pipe_block_config_set)
-    .add_property("process", &pipe_block_process, &pipe_block_process_set)
-    .add_property("connect", &pipe_block_connect, &pipe_block_connect_set)
+    .def(init<>())
+    .def_property("config", &pipe_block_config, &pipe_block_config_set)
+    .def_property("process", &pipe_block_process, &pipe_block_process_set)
+    .def_property("connect", &pipe_block_connect, &pipe_block_connect_set)
   ;
-  class_<sprokit::pipe_blocks>("PipeBlocks"
+  class_<sprokit::pipe_blocks>(m, "PipeBlocks"
     , "A collection of pipeline blocks.")
+    .def(init<>())
     /// \todo Need operator == on pipe_block.
     //.def(vector_indexing_suite<sprokit::pipe_blocks>())
   ;
-  class_<sprokit::cluster_config_t>("ClusterConfig"
+  class_<sprokit::cluster_config_t>(m, "ClusterConfig"
     , "A configuration value for a cluster.")
+    .def(init<>())
     .def_readwrite("description", &sprokit::cluster_config_t::description)
     .def_readwrite("config_value", &sprokit::cluster_config_t::config_value)
   ;
-  class_<sprokit::cluster_input_t>("ClusterInput"
+  class_<sprokit::cluster_input_t>(m, "ClusterInput"
     , "An input mapping for a cluster.")
+    .def(init<>())
     .def_readwrite("description", &sprokit::cluster_input_t::description)
     .def_readwrite("from_", &sprokit::cluster_input_t::from)
-    .def_readwrite("targets", &sprokit::cluster_input_t::targets)
+    .def_property("targets", &get_targets, &set_targets)
   ;
-  class_<sprokit::cluster_output_t>("ClusterOutput"
+  class_<sprokit::cluster_output_t>(m, "ClusterOutput"
     , "An output mapping for a cluster.")
+    .def(init<>())
     .def_readwrite("description", &sprokit::cluster_output_t::description)
     .def_readwrite("from_", &sprokit::cluster_output_t::from)
     .def_readwrite("to", &sprokit::cluster_output_t::to)
   ;
-  class_<sprokit::cluster_subblock_t>("ClusterSubblock"
+  class_<sprokit::cluster_subblock_t>(m, "ClusterSubblock"
     , "A subblock within a cluster.")
-    .add_property("config", &cluster_subblock_config, &cluster_subblock_config_set)
-    .add_property("input", &cluster_subblock_input, &cluster_subblock_input_set)
-    .add_property("output", &cluster_subblock_output, &cluster_subblock_output_set)
+    .def(init<>())
+    .def_property("config", &cluster_subblock_config, &cluster_subblock_config_set)
+    .def_property("input", &cluster_subblock_input, &cluster_subblock_input_set)
+    .def_property("output", &cluster_subblock_output, &cluster_subblock_output_set)
   ;
-  class_<sprokit::cluster_subblocks_t>("ClusterSubblocks"
+  class_<sprokit::cluster_subblocks_t>(m, "ClusterSubblocks"
     , "A collection of cluster subblocks.")
-    /// \todo Need operator == on cluster_subblock_t.
-    //.def(vector_indexing_suite<sprokit::cluster_subblocks_t>())
+    .def(init<>())
+    /// \todo Need operator == on cluster_subblock_t for pybind11::bind_vector
   ;
-  class_<sprokit::cluster_pipe_block>("ClusterBlock"
+  class_<sprokit::cluster_pipe_block>(m, "ClusterBlock"
     , "A block which declares a cluster within the pipeline.")
+    .def(init<>())
     .def_readwrite("type", &sprokit::cluster_pipe_block::type)
     .def_readwrite("description", &sprokit::cluster_pipe_block::description)
     .def_readwrite("subblocks", &sprokit::cluster_pipe_block::subblocks)
   ;
-  class_<sprokit::cluster_block>("ClusterDefineBlock"
+  class_<sprokit::cluster_block>(m, "ClusterDefineBlock"
     , "A block in a pipeline declaration file.")
-    .add_property("config", &cluster_block_config, &cluster_block_config_set)
-    .add_property("process", &cluster_block_process, &cluster_block_process_set)
-    .add_property("connect", &cluster_block_connect, &cluster_block_connect_set)
-    .add_property("cluster", &cluster_block_cluster, &cluster_block_cluster_set)
+    .def(init<>())
+    .def_property("config", &cluster_block_config, &cluster_block_config_set)
+    .def_property("process", &cluster_block_process, &cluster_block_process_set)
+    .def_property("connect", &cluster_block_connect, &cluster_block_connect_set)
+    .def_property("cluster", &cluster_block_cluster, &cluster_block_cluster_set)
   ;
-  class_<sprokit::cluster_blocks>("ClusterDefineBlocks"
+  class_<sprokit::cluster_blocks>(m, "ClusterDefineBlocks"
     , "A collection of cluster blocks.")
-    /// \todo Need operator == on cluster_block.
-    //.def(vector_indexing_suite<sprokit::cluster_blocks>())
+    .def(init<>())
+    /// \todo Need operator == on cluster_block for pybind11::bind_vector
   ;
 
-  def("load_pipe_file", &load_pipe_file
+  class_<wrap_port_addr>(m, "PortAddr"
+    , module_local()
+    , "An address for a port within a pipeline.")
+    .def(init<>())
+    .def_readwrite("process", &wrap_port_addr::process)
+    .def_readwrite("port", &wrap_port_addr::port)
+    .def("getAddr", &wrap_port_addr::get_addr)
+  ;
+  bind_vector<std::vector<wrap_port_addr> >(m, "PortAddrs"
+    , module_local()
+    , "A collection of port addresses.")
+  ;
+
+  m.def("load_pipe_file", &load_pipe_file
     , (arg("path"))
     , "Load pipe blocks from a file.");
-  def("load_pipe", &load_pipe
+  m.def("load_pipe", &load_pipe
     , (arg("stream"))
     , "Load pipe blocks from a stream.");
-  def("load_cluster_file", &load_cluster_file
+  m.def("load_cluster_file", &load_cluster_file
     , (arg("path"))
     , "Load cluster blocks from a file.");
-  def("load_cluster", &load_cluster
+  m.def("load_cluster", &load_cluster
     , (arg("stream"))
     , "Load cluster blocks from a stream.");
+
 }
 
 class pipe_block_visitor
@@ -402,11 +418,11 @@ pipe_block_visitor
 
   (void)gil;
 
-  object obj;
+  object obj = none();
 
   if (block_type == BLOCK_CONFIG)
   {
-    obj = object(config_block);
+    obj = cast(config_block);
   }
 
   return obj;
@@ -420,11 +436,11 @@ pipe_block_visitor
 
   (void)gil;
 
-  object obj;
+  object obj = none();
 
   if (block_type == BLOCK_PROCESS)
   {
-    obj = object(process_block);
+    obj = cast(process_block);
   }
 
   return obj;
@@ -438,11 +454,11 @@ pipe_block_visitor
 
   (void)gil;
 
-  object obj;
+  object obj = none();
 
   if (block_type == BLOCK_CONNECT)
   {
-    obj = object(connect_block);
+    obj = cast(connect_block);
   }
 
   return obj;
@@ -456,11 +472,11 @@ pipe_block_visitor
 
   (void)gil;
 
-  object obj;
+  object obj = none();
 
   if (block_type == BLOCK_CLUSTER)
   {
-    obj = object(cluster_block);
+    obj = cast(cluster_block);
   }
 
   return obj;
@@ -487,10 +503,10 @@ cluster_subblock_visitor
 
   if (block_type == BLOCK_CONFIG)
   {
-    return object(config);
+    return cast(config);
   }
 
-  return object();
+  return none();
 }
 
 object
@@ -503,10 +519,10 @@ cluster_subblock_visitor
 
   if (block_type == BLOCK_INPUT)
   {
-    return object(input);
+    return cast(input);
   }
 
-  return object();
+  return none();
 }
 
 object
@@ -519,8 +535,30 @@ cluster_subblock_visitor
 
   if (block_type == BLOCK_OUTPUT)
   {
-    return object(output);
+    return cast(output);
   }
 
-  return object();
+  return none();
+}
+
+std::vector<wrap_port_addr>
+get_targets(sprokit::cluster_input_t const& self)
+{
+  std::vector<wrap_port_addr> wrap_targets;
+  for( auto target : self.targets)
+  {
+    wrap_targets.push_back(wrap_port_addr(target));
+  }
+  return wrap_targets;
+}
+
+void
+set_targets(sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets)
+{
+  sprokit::process::port_addrs_t targets;
+  for( auto wrap_target : wrap_targets)
+  {
+    targets.push_back(wrap_target.get_addr());
+  }
+  self.targets = targets;
 }

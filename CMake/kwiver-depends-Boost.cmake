@@ -14,7 +14,6 @@ find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
     COMPONENTS
       chrono
       date_time
-      ${boost_python_library}
       iostreams
       filesystem
       program_options

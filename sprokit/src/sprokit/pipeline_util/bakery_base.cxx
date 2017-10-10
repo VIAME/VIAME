@@ -44,8 +44,6 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-#include <boost/make_shared.hpp>
-
 namespace sprokit {
 
 namespace {
@@ -103,7 +101,7 @@ bakery_base
   , m_ref_config( kwiver::vital::config_block::empty_config() )
   , m_logger( kwiver::vital::get_logger( "sprokit.bakery_base" ) )
 {
-  m_token_expander = boost::make_shared < expander_bakery >(m_logger);
+  m_token_expander = std::make_shared < expander_bakery >(m_logger);
   m_token_expander->add_token_type( new kwiver::vital::token_type_env() );
   m_token_expander->add_token_type( new kwiver::vital::token_type_sysenv() );
   m_token_expander->add_token_type( m_symtab );

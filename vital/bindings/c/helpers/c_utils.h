@@ -216,7 +216,7 @@ public:
 
   // ------------------------------------------------------------------
   /// Destructor
-  virtual ~SharedPointerCache() VITAL_DEFAULT_DTOR
+  virtual ~SharedPointerCache() = default;
 
   // ------------------------------------------------------------------
   /// Store a shared pointer

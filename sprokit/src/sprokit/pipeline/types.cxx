@@ -40,20 +40,20 @@ namespace sprokit
 {
 
 pipeline_exception
-::pipeline_exception() VITAL_NOTHROW
+::pipeline_exception() noexcept
   : std::exception()
   , m_what()
 {
 }
 
 pipeline_exception
-::~pipeline_exception() VITAL_NOTHROW
+::~pipeline_exception() noexcept
 {
 }
 
 char const*
 pipeline_exception
-::what() const VITAL_NOTHROW
+::what() const noexcept
 {
   return m_what.c_str();
 }

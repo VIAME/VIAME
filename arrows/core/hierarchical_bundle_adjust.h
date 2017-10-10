@@ -59,7 +59,7 @@ public:
   /// Constructor
   hierarchical_bundle_adjust();
   /// Destructor
-  virtual ~hierarchical_bundle_adjust() VITAL_NOTHROW;
+  virtual ~hierarchical_bundle_adjust() noexcept;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

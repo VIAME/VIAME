@@ -57,7 +57,7 @@ class VITAL_ALGO_EXPORT image_io
   : public kwiver::vital::algorithm_def<image_io>
 {
 public:
-  virtual ~image_io() VITAL_DEFAULT_DTOR;
+  virtual ~image_io() = default;
 
   /// Return the name of this algorithm
   static std::string static_type_name() { return "image_io"; }

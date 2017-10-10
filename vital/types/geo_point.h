@@ -73,7 +73,7 @@ public:
   geo_point();
   geo_point( geo_raw_point_t const&, int crs );
 
-  virtual ~geo_point() VITAL_DEFAULT_DTOR
+  virtual ~geo_point() = default;
 
   /**
    * \brief Accessor for location in original CRS.

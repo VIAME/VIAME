@@ -42,13 +42,13 @@ namespace sprokit
 {
 
 process_cluster_exception
-::process_cluster_exception() VITAL_NOTHROW
+::process_cluster_exception() noexcept
   : process_exception()
 {
 }
 
 process_cluster_exception
-::~process_cluster_exception() VITAL_NOTHROW
+::~process_cluster_exception() noexcept
 {
 }
 
@@ -56,7 +56,7 @@ mapping_after_process_exception
 ::mapping_after_process_exception(process::name_t const& name,
                                   kwiver::vital::config_block_key_t const& key,
                                   process::name_t const& mapped_name,
-                                  kwiver::vital::config_block_key_t const& mapped_key) VITAL_NOTHROW
+                                  kwiver::vital::config_block_key_t const& mapped_key) noexcept
   : process_cluster_exception()
   , m_name(name)
   , m_key(key)
@@ -75,7 +75,7 @@ mapping_after_process_exception
 }
 
 mapping_after_process_exception
-::~mapping_after_process_exception() VITAL_NOTHROW
+::~mapping_after_process_exception() noexcept
 {
 }
 
@@ -85,7 +85,7 @@ mapping_to_read_only_value_exception
                                        kwiver::vital::config_block_value_t const& value,
                                        process::name_t const& mapped_name,
                                        kwiver::vital::config_block_key_t const& mapped_key,
-                                       kwiver::vital::config_block_value_t const& ro_value) VITAL_NOTHROW
+                                       kwiver::vital::config_block_value_t const& ro_value) noexcept
   : process_cluster_exception()
   , m_name(name)
   , m_key(key)
@@ -108,7 +108,7 @@ mapping_to_read_only_value_exception
 }
 
 mapping_to_read_only_value_exception
-::~mapping_to_read_only_value_exception() VITAL_NOTHROW
+::~mapping_to_read_only_value_exception() noexcept
 {
 }
 

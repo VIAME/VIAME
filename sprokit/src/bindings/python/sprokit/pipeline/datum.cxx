@@ -32,13 +32,7 @@
 #pragma warning (push)
 #pragma warning (disable : 4244)
 #endif
-#include <boost/python/class.hpp>
-#include <boost/python/def.hpp>
-#include <boost/python/enum.hpp>
-#include <boost/python/extract.hpp>
-#include <boost/python/implicit.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/object.hpp>
+#include <pybind11/pybind11.h>
 #include <boost/any.hpp>
 #include <boost/cstdint.hpp>
 #if WIN32
@@ -47,8 +41,6 @@
 
 #include <sprokit/pipeline/datum.h>
 
-#include <sprokit/python/any_conversion/prototypes.h>
-#include <sprokit/python/any_conversion/registration.h>
 #include <sprokit/python/util/python_gil.h>
 
 #include <limits>
@@ -61,24 +53,31 @@
  * \brief Python bindings for \link sprokit::datum\endlink.
  */
 
-using namespace boost::python;
+using namespace pybind11;
 
-static sprokit::datum_t new_datum(object const& obj);
-static sprokit::datum::type_t datum_type(sprokit::datum_t const& self);
-static sprokit::datum::error_t datum_get_error(sprokit::datum_t const& self);
-static object datum_get_datum(sprokit::datum_t const& self);
-static std::string datum_datum_type(sprokit::datum_t const& self);
+static sprokit::datum new_datum(object const& obj);
+static sprokit::datum new_int_datum(object const& obj);
+static sprokit::datum new_float_datum(object const& obj);
+static sprokit::datum new_string_datum(object const& obj);
+static sprokit::datum empty_datum();
+static sprokit::datum flush_datum();
+static sprokit::datum complete_datum();
+static sprokit::datum error_datum(std::string const& err);
+static sprokit::datum::type_t datum_type(sprokit::datum const& self);
+static sprokit::datum::error_t datum_get_error(sprokit::datum const& self);
+static object datum_get_datum(sprokit::datum const& self);
+static std::string datum_datum_type(sprokit::datum const& self);
 
-static PyObject* datum_get_datum_ptr(sprokit::datum_t& self);
+static PyObject* datum_get_datum_ptr(sprokit::datum& self);
 static sprokit::datum_t datum_from_capsule( PyObject* cap );
 
 char const* sprokit_datum_PyCapsule_name() { return  "sprokit::datum"; }
 
 
-BOOST_PYTHON_MODULE(datum)
+PYBIND11_MODULE(datum, m)
 {
 
-  enum_<sprokit::datum::type_t>("DatumType"
+  enum_<sprokit::datum::type_t>(m, "DatumType"
     , "A type for a datum packet.")
     .value("invalid", sprokit::datum::invalid)
     .value("data", sprokit::datum::data)
@@ -88,30 +87,35 @@ BOOST_PYTHON_MODULE(datum)
     .value("error", sprokit::datum::error)
   ;
 
-  class_<sprokit::datum::error_t>("DatumError"
-    , "The type of an error message.");
-
   // constructors
-  def("new", &new_datum
+  m.def("new", &new_datum
     , (arg("dat"))
-    , "Creates a new datum packet.");
-  def("datum_from_capsule", &datum_from_capsule
+    , "Creates a new datum packet containing a python object.");
+  m.def("new_int", &new_int_datum
+    , (arg("dat"))
+    , "Creates a new datum packet containing an int.");
+  m.def("new_float", &new_float_datum
+    , (arg("dat"))
+    , "Creates a new datum packet containing a float.");
+  m.def("new_string", &new_string_datum
+    , (arg("dat"))
+    , "Creates a new datum packet containing a string.");
+  m.def("datum_from_capsule", &datum_from_capsule
       , (arg("dptr"))
       , "Converts datum* in capsule to datum_t");
-  def("empty", &sprokit::datum::empty_datum
+  m.def("empty", &empty_datum
     , "Creates an empty datum packet.");
-  def("flush", &sprokit::datum::flush_datum
+  m.def("flush", &flush_datum
     , "Creates a flush marker datum packet.");
-  def("complete", &sprokit::datum::complete_datum
+  m.def("complete", &complete_datum
     , "Creates a complete marker datum packet.");
-  def("error", &sprokit::datum::error_datum
-    , (arg("err"))
+  m.def("error", &error_datum
+    , arg("err")
     , "Creates an error datum packet.");
 
   // Methods on datum
-  class_<sprokit::datum_t>("Datum"
-    , "A packet of data within the pipeline."
-    , no_init)
+  class_<sprokit::datum>(m, "Datum"
+    , "A packet of data within the pipeline.")
     .def("type", &datum_type
       , "The type of the datum packet.")
     .def("datum_type", &datum_datum_type
@@ -124,67 +128,96 @@ BOOST_PYTHON_MODULE(datum)
       , "Get pointer to datum object as a PyCapsule.")
   ;
 
-  sprokit::python::register_type<std::string>(0);
-  sprokit::python::register_type<int32_t>(1);
-  sprokit::python::register_type<char>(2);
-  sprokit::python::register_type<bool>(3);
-  sprokit::python::register_type<double>(4);
-
-  // At worst, pass the object itself through.
-  sprokit::python::register_type<object>(std::numeric_limits<sprokit::python::priority_t>::max());
-
-  implicitly_convertible<boost::any, object>();
-  implicitly_convertible<object, boost::any>();
 } // end module
 
 
 // ------------------------------------------------------------------
-sprokit::datum_t
+
+// For now, we need to manually specify how we want to cast our datum
+// This should be fixed when we move away from boost::any
+sprokit::datum
 new_datum(object const& obj)
 {
-  sprokit::python::python_gil const gil;
+  return *(sprokit::datum::new_datum(obj));
+}
 
-  (void)gil;
+sprokit::datum
+new_int_datum(object const& obj)
+{
+  return *(sprokit::datum::new_datum(cast<int>(obj)));
+}
 
-  boost::any const any = boost::python::extract<boost::any>(obj)();
+sprokit::datum
+new_float_datum(object const& obj)
+{
+  return *(sprokit::datum::new_datum(cast<float>(obj)));
+}
 
-  return sprokit::datum::new_datum(any);
+sprokit::datum
+new_string_datum(object const& obj)
+{
+  return *(sprokit::datum::new_datum(cast<std::string>(obj)));
+}
+
+sprokit::datum
+empty_datum()
+{
+  return *(sprokit::datum::empty_datum());
+}
+
+sprokit::datum
+flush_datum()
+{
+  return *(sprokit::datum::flush_datum());
+}
+
+sprokit::datum
+complete_datum()
+{
+  return *(sprokit::datum::complete_datum());
+}
+
+sprokit::datum
+error_datum(std::string const& err)
+{
+  return *(sprokit::datum::error_datum(err));
 }
 
 sprokit::datum::type_t
-datum_type(sprokit::datum_t const& self)
+datum_type(sprokit::datum const& self)
 {
-  return self->type();
+  return self.type();
 }
 
 sprokit::datum::error_t
-datum_get_error(sprokit::datum_t const& self)
+datum_get_error(sprokit::datum const& self)
 {
-  return self->get_error();
+  return self.get_error();
 }
 
 object
-datum_get_datum(sprokit::datum_t const& self)
+datum_get_datum(sprokit::datum const& self)
 {
-  sprokit::python::python_gil const gil;
+  object dat = none();
+  if ( self.type() == sprokit::datum::data )
+  {
+    boost::any const any = self.get_datum<boost::any>();
+    dat = boost::any_cast<object>(any);
+  }
 
-  (void)gil;
-
-  boost::any const any = self->get_datum<boost::any>();
-
-  return object(any);
+  return dat;
 }
 
 std::string
-datum_datum_type(sprokit::datum_t const& self)
+datum_datum_type(sprokit::datum const& self)
 {
-  boost::any const any = self->get_datum<boost::any>();
+  boost::any const any = self.get_datum<boost::any>();
 
   return any.type().name();
 }
 
 // ------------------------------------------------------------------
-// Bridge regular python to boost::python
+// Bridge regular python to pybind11
 
 /**
  * \brief Get address of datum object.
@@ -201,9 +234,9 @@ datum_datum_type(sprokit::datum_t const& self)
  * \return Address of real datum object.
  */
 PyObject*
-datum_get_datum_ptr(sprokit::datum_t& self)
+datum_get_datum_ptr(sprokit::datum& self)
 {
-  return PyCapsule_New( const_cast< sprokit::datum* >(self.get()), "sprokit::datum", NULL );
+  return PyCapsule_New( const_cast< sprokit::datum* >(std::make_shared<sprokit::datum> (self).get()), "sprokit::datum", NULL );
 }
 
 
@@ -215,7 +248,7 @@ datum_get_datum_ptr(sprokit::datum_t& self)
  *
  * \param cap Pointer to PyCapsule that contains address of datum object.
  *
- * \return datun_t sptr that manages supplied datum object.
+ * \return datum_t sptr that manages supplied datum object.
  */
 sprokit::datum_t
 datum_from_capsule( PyObject* cap )

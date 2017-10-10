@@ -40,49 +40,49 @@ namespace vital {
 
 
 math_exception
-::math_exception() VITAL_NOTHROW
+::math_exception() noexcept
 {
   m_what = "A math exception occurred.";
 }
 
 math_exception
-::~math_exception() VITAL_NOTHROW
+::~math_exception() noexcept
 {
 }
 
 
 non_invertible_matrix
-::non_invertible_matrix() VITAL_NOTHROW
+::non_invertible_matrix() noexcept
 {
   m_what = "A matrix was found to be non-invertible";
 }
 
 non_invertible_matrix
-::~non_invertible_matrix() VITAL_NOTHROW
+::~non_invertible_matrix() noexcept
 {
 }
 
 
 point_maps_to_infinity
-::point_maps_to_infinity() VITAL_NOTHROW
+::point_maps_to_infinity() noexcept
 {
   m_what = "A point mapped to infinity";
 }
 
 point_maps_to_infinity
-::~point_maps_to_infinity() VITAL_NOTHROW
+::~point_maps_to_infinity() noexcept
 {
 }
 
 
 invalid_matrix_operation
-::invalid_matrix_operation(std::string reason) VITAL_NOTHROW
+::invalid_matrix_operation(std::string reason) noexcept
 {
   m_what = "Invalid operation: " + reason;
 }
 
 invalid_matrix_operation
-::~invalid_matrix_operation() VITAL_NOTHROW
+::~invalid_matrix_operation() noexcept
 {
 }
 

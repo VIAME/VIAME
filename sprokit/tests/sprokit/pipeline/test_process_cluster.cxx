@@ -41,7 +41,6 @@
 #include <sprokit/pipeline/process_exception.h>
 
 #include <memory>
-#include <boost/make_shared.hpp>
 
 #define TEST_ARGS ()
 
@@ -71,7 +70,7 @@ public:
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( configure )
 {
-  sprokit::process_cluster_t const cluster = boost::make_shared< empty_cluster > ();
+  sprokit::process_cluster_t const cluster = std::make_shared< empty_cluster > ();
 
   cluster->configure();
 }
@@ -80,7 +79,7 @@ IMPLEMENT_TEST( configure )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( init )
 {
-  sprokit::process_cluster_t const cluster = boost::make_shared< empty_cluster > ();
+  sprokit::process_cluster_t const cluster = std::make_shared< empty_cluster > ();
 
   cluster->configure();
   cluster->init();
@@ -90,7 +89,7 @@ IMPLEMENT_TEST( init )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( step )
 {
-  sprokit::process_cluster_t const cluster = boost::make_shared< empty_cluster > ();
+  sprokit::process_cluster_t const cluster = std::make_shared< empty_cluster > ();
 
   cluster->configure();
   cluster->init();
@@ -122,13 +121,13 @@ public:
   void _connect( name_t const& upstream_name, port_t const& upstream_port,
                  name_t const& downstream_name, port_t const& downstream_port );
 };
-typedef boost::shared_ptr< sample_cluster > sample_cluster_t;
+typedef std::shared_ptr< sample_cluster > sample_cluster_t;
 
 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( add_process )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
@@ -170,7 +169,7 @@ IMPLEMENT_TEST( add_process )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( duplicate_name )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "orphan" );
@@ -188,7 +187,7 @@ IMPLEMENT_TEST( duplicate_name )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -200,7 +199,7 @@ IMPLEMENT_TEST( map_config )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_config_after_process )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -221,7 +220,7 @@ IMPLEMENT_TEST( map_config_no_exist )
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -242,7 +241,7 @@ IMPLEMENT_TEST( map_config_read_only )
 
   sprokit::process::name_t const cluster_name = sprokit::process::name_t( "cluster" );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
 
@@ -283,7 +282,7 @@ IMPLEMENT_TEST( map_config_ignore_override )
 
   cluster_conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
 
@@ -313,7 +312,7 @@ IMPLEMENT_TEST( map_config_ignore_override )
 
   cluster->_add_process( name, type, conf );
 
-  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();
@@ -337,7 +336,7 @@ IMPLEMENT_TEST( map_input )
 
   conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( conf );
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "print_number" );
@@ -401,7 +400,7 @@ IMPLEMENT_TEST( map_input )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input_twice )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "print_number" );
@@ -424,7 +423,7 @@ IMPLEMENT_TEST( map_input_twice )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::port_t const port = sprokit::process::port_t( "port" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -438,7 +437,7 @@ IMPLEMENT_TEST( map_input_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_input_port_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::port_t const port = sprokit::process::port_t( "no_such_port" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -463,7 +462,7 @@ IMPLEMENT_TEST( map_output )
 
   conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( conf );
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "numbers" );
@@ -527,7 +526,7 @@ IMPLEMENT_TEST( map_output )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output_twice )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name1 = sprokit::process::name_t( "name1" );
   sprokit::process::name_t const name2 = sprokit::process::name_t( "name2" );
@@ -551,7 +550,7 @@ IMPLEMENT_TEST( map_output_twice )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::port_t const port = sprokit::process::port_t( "port" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -565,7 +564,7 @@ IMPLEMENT_TEST( map_output_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( map_output_port_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::port_t const port = sprokit::process::port_t( "no_such_port" );
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
@@ -582,7 +581,7 @@ IMPLEMENT_TEST( map_output_port_no_exist )
 
 IMPLEMENT_TEST( connect )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name1 = sprokit::process::name_t( "name1" );
   sprokit::process::name_t const name2 = sprokit::process::name_t( "name2" );
@@ -649,7 +648,7 @@ IMPLEMENT_TEST( connect )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_upstream_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name1 = sprokit::process::name_t( "name1" );
   sprokit::process::name_t const name2 = sprokit::process::name_t( "name2" );
@@ -669,7 +668,7 @@ IMPLEMENT_TEST( connect_upstream_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_upstream_port_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name1 = sprokit::process::name_t( "name1" );
   sprokit::process::name_t const name2 = sprokit::process::name_t( "name2" );
@@ -692,7 +691,7 @@ IMPLEMENT_TEST( connect_upstream_port_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_downstream_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name1 = sprokit::process::name_t( "name1" );
   sprokit::process::name_t const name2 = sprokit::process::name_t( "name2" );
@@ -712,7 +711,7 @@ IMPLEMENT_TEST( connect_downstream_no_exist )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( connect_downstream_port_no_exist )
 {
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ();
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ();
 
   sprokit::process::name_t const name1 = sprokit::process::name_t( "name1" );
   sprokit::process::name_t const name2 = sprokit::process::name_t( "name2" );
@@ -743,7 +742,7 @@ IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
 
   cluster_conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
 
@@ -771,7 +770,7 @@ IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
 
   cluster->_add_process( name, type, conf );
 
-  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();
@@ -795,7 +794,7 @@ IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
 
   cluster_conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
 
@@ -822,7 +821,7 @@ IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
 
   cluster->_add_process( name, type, conf );
 
-  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();
@@ -848,7 +847,7 @@ IMPLEMENT_TEST( reconfigure_pass_extra )
 
   cluster_conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "expect" );
@@ -865,7 +864,7 @@ IMPLEMENT_TEST( reconfigure_pass_extra )
 
   cluster->_add_process( name, type, conf );
 
-  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();
@@ -889,7 +888,7 @@ IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
 
   cluster_conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
 
   sprokit::process::name_t const name = sprokit::process::name_t( "name" );
   sprokit::process::type_t const type = sprokit::process::type_t( "expect" );
@@ -907,7 +906,7 @@ IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
 
   cluster->_add_process( name, type, conf );
 
-  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();
@@ -934,7 +933,7 @@ IMPLEMENT_TEST( reconfigure_mapped_untunable )
 
   cluster_conf->set_value( sprokit::process::config_name, cluster_name );
 
-  sample_cluster_t const cluster = boost::make_shared< sample_cluster > ( cluster_conf );
+  sample_cluster_t const cluster = std::make_shared< sample_cluster > ( cluster_conf );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "key" );
 
@@ -962,7 +961,7 @@ IMPLEMENT_TEST( reconfigure_mapped_untunable )
 
   cluster->_add_process( name, type, conf );
 
-  sprokit::pipeline_t const pipeline = boost::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
+  sprokit::pipeline_t const pipeline = std::make_shared< sprokit::pipeline > ( kwiver::vital::config_block::empty_config() );
 
   pipeline->add_process( cluster );
   pipeline->setup_pipeline();

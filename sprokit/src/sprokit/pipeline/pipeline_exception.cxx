@@ -43,18 +43,18 @@ namespace sprokit
 {
 
 pipeline_addition_exception
-::pipeline_addition_exception() VITAL_NOTHROW
+::pipeline_addition_exception() noexcept
   : pipeline_exception()
 {
 }
 
 pipeline_addition_exception
-::~pipeline_addition_exception() VITAL_NOTHROW
+::~pipeline_addition_exception() noexcept
 {
 }
 
 null_pipeline_config_exception
-::null_pipeline_config_exception() VITAL_NOTHROW
+::null_pipeline_config_exception() noexcept
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -65,12 +65,12 @@ null_pipeline_config_exception
 }
 
 null_pipeline_config_exception
-::~null_pipeline_config_exception() VITAL_NOTHROW
+::~null_pipeline_config_exception() noexcept
 {
 }
 
 add_after_setup_exception
-::add_after_setup_exception(process::name_t const& name) VITAL_NOTHROW
+::add_after_setup_exception(process::name_t const& name) noexcept
   : pipeline_addition_exception()
   , m_name(name)
 {
@@ -83,12 +83,12 @@ add_after_setup_exception
 }
 
 add_after_setup_exception
-::~add_after_setup_exception() VITAL_NOTHROW
+::~add_after_setup_exception() noexcept
 {
 }
 
 null_process_addition_exception
-::null_process_addition_exception() VITAL_NOTHROW
+::null_process_addition_exception() noexcept
   : pipeline_addition_exception()
 {
   std::ostringstream sstr;
@@ -100,23 +100,23 @@ null_process_addition_exception
 }
 
 null_process_addition_exception
-::~null_process_addition_exception() VITAL_NOTHROW
+::~null_process_addition_exception() noexcept
 {
 }
 
 pipeline_setup_exception
-::pipeline_setup_exception() VITAL_NOTHROW
+::pipeline_setup_exception() noexcept
   : pipeline_exception()
 {
 }
 
 pipeline_setup_exception
-::~pipeline_setup_exception() VITAL_NOTHROW
+::~pipeline_setup_exception() noexcept
 {
 }
 
 duplicate_process_name_exception
-::duplicate_process_name_exception(process::name_t const& name) VITAL_NOTHROW
+::duplicate_process_name_exception(process::name_t const& name) noexcept
   : pipeline_addition_exception()
   , m_name(name)
 {
@@ -130,23 +130,23 @@ duplicate_process_name_exception
 }
 
 duplicate_process_name_exception
-::~duplicate_process_name_exception() VITAL_NOTHROW
+::~duplicate_process_name_exception() noexcept
 {
 }
 
 pipeline_removal_exception
-::pipeline_removal_exception() VITAL_NOTHROW
+::pipeline_removal_exception() noexcept
   : pipeline_exception()
 {
 }
 
 pipeline_removal_exception
-::~pipeline_removal_exception() VITAL_NOTHROW
+::~pipeline_removal_exception() noexcept
 {
 }
 
 remove_after_setup_exception
-::remove_after_setup_exception(process::name_t const& name) VITAL_NOTHROW
+::remove_after_setup_exception(process::name_t const& name) noexcept
   : pipeline_removal_exception()
   , m_name(name)
 {
@@ -159,12 +159,12 @@ remove_after_setup_exception
 }
 
 remove_after_setup_exception
-::~remove_after_setup_exception() VITAL_NOTHROW
+::~remove_after_setup_exception() noexcept
 {
 }
 
 reconfigure_before_setup_exception
-::reconfigure_before_setup_exception() VITAL_NOTHROW
+::reconfigure_before_setup_exception() noexcept
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -175,18 +175,18 @@ reconfigure_before_setup_exception
 }
 
 reconfigure_before_setup_exception
-::~reconfigure_before_setup_exception() VITAL_NOTHROW
+::~reconfigure_before_setup_exception() noexcept
 {
 }
 
 pipeline_connection_exception
-::pipeline_connection_exception() VITAL_NOTHROW
+::pipeline_connection_exception() noexcept
   : pipeline_exception()
 {
 }
 
 pipeline_connection_exception
-::~pipeline_connection_exception() VITAL_NOTHROW
+::~pipeline_connection_exception() noexcept
 {
 }
 
@@ -194,7 +194,7 @@ connection_after_setup_exception
 ::connection_after_setup_exception(process::name_t const& upstream_name,
                                    process::port_t const& upstream_port,
                                    process::name_t const& downstream_name,
-                                   process::port_t const& downstream_port) VITAL_NOTHROW
+                                   process::port_t const& downstream_port) noexcept
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -212,7 +212,7 @@ connection_after_setup_exception
 }
 
 connection_after_setup_exception
-::~connection_after_setup_exception() VITAL_NOTHROW
+::~connection_after_setup_exception() noexcept
 {
 }
 
@@ -220,7 +220,7 @@ disconnection_after_setup_exception
 ::disconnection_after_setup_exception(process::name_t const& upstream_name,
                                       process::port_t const& upstream_port,
                                       process::name_t const& downstream_name,
-                                      process::port_t const& downstream_port) VITAL_NOTHROW
+                                      process::port_t const& downstream_port) noexcept
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -238,12 +238,12 @@ disconnection_after_setup_exception
 }
 
 disconnection_after_setup_exception
-::~disconnection_after_setup_exception() VITAL_NOTHROW
+::~disconnection_after_setup_exception() noexcept
 {
 }
 
 no_such_process_exception
-::no_such_process_exception(process::name_t const& name) VITAL_NOTHROW
+::no_such_process_exception(process::name_t const& name) noexcept
   : pipeline_connection_exception()
   , m_name(name)
 {
@@ -257,7 +257,7 @@ no_such_process_exception
 }
 
 no_such_process_exception
-::~no_such_process_exception() VITAL_NOTHROW
+::~no_such_process_exception() noexcept
 {
 }
 
@@ -267,7 +267,7 @@ connection_dependent_type_exception
                                       process::name_t const& downstream_name,
                                       process::port_t const& downstream_port,
                                       process::port_type_t const& type,
-                                      bool push_upstream) VITAL_NOTHROW
+                                      bool push_upstream) noexcept
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -290,7 +290,7 @@ connection_dependent_type_exception
 }
 
 connection_dependent_type_exception
-::~connection_dependent_type_exception() VITAL_NOTHROW
+::~connection_dependent_type_exception() noexcept
 {
 }
 
@@ -303,7 +303,7 @@ connection_dependent_type_cascade_exception
                                               process::name_t const& downstream_name,
                                               process::port_t const& downstream_port,
                                               process::port_type_t const& cascade_type,
-                                              bool push_upstream) VITAL_NOTHROW
+                                              bool push_upstream) noexcept
   : pipeline_connection_exception()
   , m_name(name)
   , m_port(port)
@@ -331,7 +331,7 @@ connection_dependent_type_cascade_exception
 }
 
 connection_dependent_type_cascade_exception
-::~connection_dependent_type_cascade_exception() VITAL_NOTHROW
+::~connection_dependent_type_cascade_exception() noexcept
 {
 }
 
@@ -341,7 +341,7 @@ connection_type_mismatch_exception
                                      process::port_type_t const& upstream_type,
                                      process::name_t const& downstream_name,
                                      process::port_t const& downstream_port,
-                                     process::port_type_t const& downstream_type) VITAL_NOTHROW
+                                     process::port_type_t const& downstream_type) noexcept
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -363,7 +363,7 @@ connection_type_mismatch_exception
 }
 
 connection_type_mismatch_exception
-::~connection_type_mismatch_exception() VITAL_NOTHROW
+::~connection_type_mismatch_exception() noexcept
 {
 }
 
@@ -371,7 +371,7 @@ connection_flag_mismatch_exception
 ::connection_flag_mismatch_exception(process::name_t const& upstream_name,
                                      process::port_t const& upstream_port,
                                      process::name_t const& downstream_name,
-                                     process::port_t const& downstream_port) VITAL_NOTHROW
+                                     process::port_t const& downstream_port) noexcept
   : pipeline_connection_exception()
   , m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
@@ -390,12 +390,12 @@ connection_flag_mismatch_exception
 }
 
 connection_flag_mismatch_exception
-::~connection_flag_mismatch_exception() VITAL_NOTHROW
+::~connection_flag_mismatch_exception() noexcept
 {
 }
 
 pipeline_duplicate_setup_exception
-::pipeline_duplicate_setup_exception() VITAL_NOTHROW
+::pipeline_duplicate_setup_exception() noexcept
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -406,12 +406,12 @@ pipeline_duplicate_setup_exception
 }
 
 pipeline_duplicate_setup_exception
-::~pipeline_duplicate_setup_exception() VITAL_NOTHROW
+::~pipeline_duplicate_setup_exception() noexcept
 {
 }
 
 no_processes_exception
-::no_processes_exception() VITAL_NOTHROW
+::no_processes_exception() noexcept
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -422,12 +422,12 @@ no_processes_exception
 }
 
 no_processes_exception
-::~no_processes_exception() VITAL_NOTHROW
+::~no_processes_exception() noexcept
 {
 }
 
 orphaned_processes_exception
-::orphaned_processes_exception() VITAL_NOTHROW
+::orphaned_processes_exception() noexcept
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -438,12 +438,12 @@ orphaned_processes_exception
 }
 
 orphaned_processes_exception
-::~orphaned_processes_exception() VITAL_NOTHROW
+::~orphaned_processes_exception() noexcept
 {
 }
 
 not_a_dag_exception
-::not_a_dag_exception() VITAL_NOTHROW
+::not_a_dag_exception() noexcept
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -456,12 +456,12 @@ not_a_dag_exception
 }
 
 not_a_dag_exception
-::~not_a_dag_exception() VITAL_NOTHROW
+::~not_a_dag_exception() noexcept
 {
 }
 
 untyped_data_dependent_exception
-::untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) noexcept
   : pipeline_setup_exception()
   , m_name(name)
   , m_port(port)
@@ -476,12 +476,12 @@ untyped_data_dependent_exception
 }
 
 untyped_data_dependent_exception
-::~untyped_data_dependent_exception() VITAL_NOTHROW
+::~untyped_data_dependent_exception() noexcept
 {
 }
 
 untyped_connection_exception
-::untyped_connection_exception() VITAL_NOTHROW
+::untyped_connection_exception() noexcept
   : pipeline_setup_exception()
 {
   std::ostringstream sstr;
@@ -493,7 +493,7 @@ untyped_connection_exception
 }
 
 untyped_connection_exception
-::~untyped_connection_exception() VITAL_NOTHROW
+::~untyped_connection_exception() noexcept
 {
 }
 
@@ -505,7 +505,7 @@ frequency_mismatch_exception
                                process::name_t const& downstream_name,
                                process::port_t const& downstream_port,
                                process::port_frequency_t const& downstream_frequency,
-                               process::port_frequency_t const& downstream_port_frequency) VITAL_NOTHROW
+                               process::port_frequency_t const& downstream_port_frequency) noexcept
   : m_upstream_name(upstream_name)
   , m_upstream_port(upstream_port)
   , m_upstream_frequency(upstream_frequency)
@@ -530,12 +530,12 @@ frequency_mismatch_exception
 }
 
 frequency_mismatch_exception
-::~frequency_mismatch_exception() VITAL_NOTHROW
+::~frequency_mismatch_exception() noexcept
 {
 }
 
 reset_running_pipeline_exception
-::reset_running_pipeline_exception() VITAL_NOTHROW
+::reset_running_pipeline_exception() noexcept
 {
   std::ostringstream sstr;
 
@@ -545,12 +545,12 @@ reset_running_pipeline_exception
 }
 
 reset_running_pipeline_exception
-::~reset_running_pipeline_exception() VITAL_NOTHROW
+::~reset_running_pipeline_exception() noexcept
 {
 }
 
 pipeline_not_setup_exception
-::pipeline_not_setup_exception() VITAL_NOTHROW
+::pipeline_not_setup_exception() noexcept
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -561,12 +561,12 @@ pipeline_not_setup_exception
 }
 
 pipeline_not_setup_exception
-::~pipeline_not_setup_exception() VITAL_NOTHROW
+::~pipeline_not_setup_exception() noexcept
 {
 }
 
 pipeline_not_ready_exception
-::pipeline_not_ready_exception() VITAL_NOTHROW
+::pipeline_not_ready_exception() noexcept
   : pipeline_exception()
 {
   std::ostringstream sstr;
@@ -577,7 +577,7 @@ pipeline_not_ready_exception
 }
 
 pipeline_not_ready_exception
-::~pipeline_not_ready_exception() VITAL_NOTHROW
+::~pipeline_not_ready_exception() noexcept
 {
 }
 

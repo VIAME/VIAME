@@ -65,7 +65,7 @@ class landmark
 {
 public:
   /// Destructor
-  virtual ~landmark() VITAL_DEFAULT_DTOR
+  virtual ~landmark() = default;
 
   /// Create a clone of this landmark object
   virtual landmark_sptr clone() const = 0;

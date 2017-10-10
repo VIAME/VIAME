@@ -81,7 +81,7 @@ public:
    */
   detected_object_set();
 
-  ~detected_object_set() VITAL_DEFAULT_DTOR
+  ~detected_object_set() = default;
 
   /**
    * @brief Create new set of detected objects.

@@ -54,8 +54,8 @@ namespace any_convert {
 template < typename DEST >
 struct convert_base
 {
-  convert_base() VITAL_DEFAULT_CTOR
-  virtual ~convert_base() VITAL_DEFAULT_DTOR
+  convert_base() = default;
+  virtual ~convert_base() = default;
 
   virtual bool can_convert( kwiver::vital::any const& data ) const = 0;
   virtual DEST convert( kwiver::vital::any const& data ) const = 0;
@@ -72,8 +72,8 @@ template < typename DEST, typename SRC >
 struct converter
   : public convert_base< DEST >
 {
-  converter() VITAL_DEFAULT_CTOR
-  virtual ~converter() VITAL_DEFAULT_DTOR
+  converter() = default;
+  virtual ~converter() = default;
 
   virtual bool can_convert( kwiver::vital::any const& data ) const
   {
@@ -183,7 +183,7 @@ struct converter< bool, std::string >
   }
 
 
-  virtual ~converter() VITAL_DEFAULT_DTOR
+  virtual ~converter() = default;
 
   virtual bool can_convert( kwiver::vital::any const & data ) const
   {
@@ -244,8 +244,8 @@ public:
   typedef std::shared_ptr< any_convert::convert_base< T > > converter_ptr;
 #endif
 
-  any_converter() VITAL_DEFAULT_CTOR
-  virtual ~any_converter() VITAL_DEFAULT_DTOR
+  any_converter() = default;
+  virtual ~any_converter() = default;
 
   /// Apply conversion to an kwiver::vital::any object.
   /**

@@ -1,0 +1,28 @@
+# ================================================================
+process numbersource
+  :: numbers
+
+  # Starting Number
+  start = 1  
+
+  # Ending Number
+  end = 100
+
+# ================================================================
+process numbersink
+  :: print_number
+
+  output = @EXAMPLE_DIR@/pipelines/output/numbers.txt
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       capacity = 10
+
+# ================================================================
+# connections
+connect from numbersource.number
+        to   numbersink.number
+
+# -- end of file --

@@ -42,18 +42,18 @@ namespace sprokit
 {
 
 process_exception
-::process_exception() VITAL_NOTHROW
+::process_exception() noexcept
   : pipeline_exception()
 {
 }
 
 process_exception
-::~process_exception() VITAL_NOTHROW
+::~process_exception() noexcept
 {
 }
 
 null_process_config_exception
-::null_process_config_exception() VITAL_NOTHROW
+::null_process_config_exception() noexcept
   : process_exception()
 {
   std::ostringstream sstr;
@@ -64,12 +64,12 @@ null_process_config_exception
 }
 
 null_process_config_exception
-::~null_process_config_exception() VITAL_NOTHROW
+::~null_process_config_exception() noexcept
 {
 }
 
 already_initialized_exception
-::already_initialized_exception(process::name_t const& name) VITAL_NOTHROW
+::already_initialized_exception(process::name_t const& name) noexcept
   : process_exception()
   , m_name(name)
 {
@@ -82,12 +82,12 @@ already_initialized_exception
 }
 
 already_initialized_exception
-::~already_initialized_exception() VITAL_NOTHROW
+::~already_initialized_exception() noexcept
 {
 }
 
 unconfigured_exception
-::unconfigured_exception(process::name_t const& name) VITAL_NOTHROW
+::unconfigured_exception(process::name_t const& name) noexcept
   : process_exception()
   , m_name(name)
 {
@@ -100,12 +100,12 @@ unconfigured_exception
 }
 
 unconfigured_exception
-::~unconfigured_exception() VITAL_NOTHROW
+::~unconfigured_exception() noexcept
 {
 }
 
 reconfigured_exception
-::reconfigured_exception(process::name_t const& name) VITAL_NOTHROW
+::reconfigured_exception(process::name_t const& name) noexcept
   : process_exception()
   , m_name(name)
 {
@@ -118,12 +118,12 @@ reconfigured_exception
 }
 
 reconfigured_exception
-::~reconfigured_exception() VITAL_NOTHROW
+::~reconfigured_exception() noexcept
 {
 }
 
 reinitialization_exception
-::reinitialization_exception(process::name_t const& name) VITAL_NOTHROW
+::reinitialization_exception(process::name_t const& name) noexcept
   : process_exception()
   , m_name(name)
 {
@@ -136,12 +136,12 @@ reinitialization_exception
 }
 
 reinitialization_exception
-::~reinitialization_exception() VITAL_NOTHROW
+::~reinitialization_exception() noexcept
 {
 }
 
 null_conf_info_exception
-::null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) VITAL_NOTHROW
+::null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept
   : process_exception()
   , m_name(name)
   , m_key(key)
@@ -156,12 +156,12 @@ null_conf_info_exception
 }
 
 null_conf_info_exception
-::~null_conf_info_exception() VITAL_NOTHROW
+::~null_conf_info_exception() noexcept
 {
 }
 
 null_port_info_exception
-::null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) VITAL_NOTHROW
+::null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) noexcept
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -177,34 +177,34 @@ null_port_info_exception
 }
 
 null_port_info_exception
-::~null_port_info_exception() VITAL_NOTHROW
+::~null_port_info_exception() noexcept
 {
 }
 
 null_input_port_info_exception
-::null_input_port_info_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::null_input_port_info_exception(process::name_t const& name, process::port_t const& port) noexcept
   : null_port_info_exception(name, port, "input")
 {
 }
 
 null_input_port_info_exception
-::~null_input_port_info_exception() VITAL_NOTHROW
+::~null_input_port_info_exception() noexcept
 {
 }
 
 null_output_port_info_exception
-::null_output_port_info_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::null_output_port_info_exception(process::name_t const& name, process::port_t const& port) noexcept
   : null_port_info_exception(name, port, "output")
 {
 }
 
 null_output_port_info_exception
-::~null_output_port_info_exception() VITAL_NOTHROW
+::~null_output_port_info_exception() noexcept
 {
 }
 
 flag_mismatch_exception
-::flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) VITAL_NOTHROW
+::flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) noexcept
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -221,12 +221,12 @@ flag_mismatch_exception
 }
 
 flag_mismatch_exception
-::~flag_mismatch_exception() VITAL_NOTHROW
+::~flag_mismatch_exception() noexcept
 {
 }
 
 set_type_on_initialized_process_exception
-::set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) VITAL_NOTHROW
+::set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) noexcept
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -242,12 +242,12 @@ set_type_on_initialized_process_exception
 }
 
 set_type_on_initialized_process_exception
-::~set_type_on_initialized_process_exception() VITAL_NOTHROW
+::~set_type_on_initialized_process_exception() noexcept
 {
 }
 
 set_frequency_on_initialized_process_exception
-::set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) VITAL_NOTHROW
+::set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) noexcept
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -263,12 +263,12 @@ set_frequency_on_initialized_process_exception
 }
 
 set_frequency_on_initialized_process_exception
-::~set_frequency_on_initialized_process_exception() VITAL_NOTHROW
+::~set_frequency_on_initialized_process_exception() noexcept
 {
 }
 
 uninitialized_exception
-::uninitialized_exception(process::name_t const& name) VITAL_NOTHROW
+::uninitialized_exception(process::name_t const& name) noexcept
   : process_exception()
   , m_name(name)
 {
@@ -281,12 +281,12 @@ uninitialized_exception
 }
 
 uninitialized_exception
-::~uninitialized_exception() VITAL_NOTHROW
+::~uninitialized_exception() noexcept
 {
 }
 
 port_connection_exception
-::port_connection_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::port_connection_exception(process::name_t const& name, process::port_t const& port) noexcept
   : process_exception()
   , m_name(name)
   , m_port(port)
@@ -294,12 +294,12 @@ port_connection_exception
 }
 
 port_connection_exception
-::~port_connection_exception() VITAL_NOTHROW
+::~port_connection_exception() noexcept
 {
 }
 
 connect_to_initialized_process_exception
-::connect_to_initialized_process_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::connect_to_initialized_process_exception(process::name_t const& name, process::port_t const& port) noexcept
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -313,12 +313,12 @@ connect_to_initialized_process_exception
 }
 
 connect_to_initialized_process_exception
-::~connect_to_initialized_process_exception() VITAL_NOTHROW
+::~connect_to_initialized_process_exception() noexcept
 {
 }
 
 no_such_port_exception
-::no_such_port_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::no_such_port_exception(process::name_t const& name, process::port_t const& port) noexcept
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -331,12 +331,12 @@ no_such_port_exception
 }
 
 no_such_port_exception
-::~no_such_port_exception() VITAL_NOTHROW
+::~no_such_port_exception() noexcept
 {
 }
 
 null_edge_port_connection_exception
-::null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) noexcept
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -349,12 +349,12 @@ null_edge_port_connection_exception
 }
 
 null_edge_port_connection_exception
-::~null_edge_port_connection_exception() VITAL_NOTHROW
+::~null_edge_port_connection_exception() noexcept
 {
 }
 
 static_type_reset_exception
-::static_type_reset_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) VITAL_NOTHROW
+::static_type_reset_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) noexcept
   : port_connection_exception(name, port)
   , m_orig_type(orig_type)
   , m_new_type(new_type)
@@ -371,12 +371,12 @@ static_type_reset_exception
 }
 
 static_type_reset_exception
-::~static_type_reset_exception() VITAL_NOTHROW
+::~static_type_reset_exception() noexcept
 {
 }
 
 port_reconnect_exception
-::port_reconnect_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW
+::port_reconnect_exception(process::name_t const& name, process::port_t const& port) noexcept
   : port_connection_exception(name, port)
 {
   std::ostringstream sstr;
@@ -389,12 +389,12 @@ port_reconnect_exception
 }
 
 port_reconnect_exception
-::~port_reconnect_exception() VITAL_NOTHROW
+::~port_reconnect_exception() noexcept
 {
 }
 
 missing_connection_exception
-::missing_connection_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) VITAL_NOTHROW
+::missing_connection_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) noexcept
   : port_connection_exception(name, port)
   , m_reason(reason)
 {
@@ -408,23 +408,23 @@ missing_connection_exception
 }
 
 missing_connection_exception
-::~missing_connection_exception() VITAL_NOTHROW
+::~missing_connection_exception() noexcept
 {
 }
 
 process_configuration_exception
-::process_configuration_exception() VITAL_NOTHROW
+::process_configuration_exception() noexcept
   : process_exception()
 {
 }
 
 process_configuration_exception
-::~process_configuration_exception() VITAL_NOTHROW
+::~process_configuration_exception() noexcept
 {
 }
 
 unknown_configuration_value_exception
-::unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) VITAL_NOTHROW
+::unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)
@@ -439,7 +439,7 @@ unknown_configuration_value_exception
 }
 
 unknown_configuration_value_exception
-::~unknown_configuration_value_exception() VITAL_NOTHROW
+::~unknown_configuration_value_exception() noexcept
 {
 }
 
@@ -447,7 +447,7 @@ invalid_configuration_value_exception
 ::invalid_configuration_value_exception(process::name_t const& name,
                                         kwiver::vital::config_block_key_t const& key,
                                         kwiver::vital::config_block_value_t const& value,
-                                        kwiver::vital::config_block_description_t const& desc) VITAL_NOTHROW
+                                        kwiver::vital::config_block_description_t const& desc) noexcept
   : process_configuration_exception()
   , m_name(name)
   , m_key(key)
@@ -465,12 +465,12 @@ invalid_configuration_value_exception
 }
 
 invalid_configuration_value_exception
-::~invalid_configuration_value_exception() VITAL_NOTHROW
+::~invalid_configuration_value_exception() noexcept
 {
 }
 
 invalid_configuration_exception
-::invalid_configuration_exception(process::name_t const& name, std::string const& reason) VITAL_NOTHROW
+::invalid_configuration_exception(process::name_t const& name, std::string const& reason) noexcept
   : process_configuration_exception()
   , m_name(name)
   , m_reason(reason)
@@ -484,7 +484,7 @@ invalid_configuration_exception
 }
 
 invalid_configuration_exception
-::~invalid_configuration_exception() VITAL_NOTHROW
+::~invalid_configuration_exception() noexcept
 {
 }
 

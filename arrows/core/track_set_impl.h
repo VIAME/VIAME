@@ -73,7 +73,7 @@ public:
   explicit frame_index_track_set_impl( const std::vector< vital::track_sptr >& tracks );
 
   /// Destructor
-  virtual ~frame_index_track_set_impl() VITAL_DEFAULT_DTOR
+  virtual ~frame_index_track_set_impl() = default;
 
   /// Return the number of tracks in the set
   virtual size_t size() const;

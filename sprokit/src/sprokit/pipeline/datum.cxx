@@ -179,14 +179,14 @@ datum
 
 // ------------------------------------------------------------------
 datum_exception
-::datum_exception() VITAL_NOTHROW
+::datum_exception() noexcept
   : pipeline_exception()
 {
 }
 
 
 datum_exception
-::~datum_exception() VITAL_NOTHROW
+::~datum_exception() noexcept
 {
 }
 
@@ -200,7 +200,7 @@ bad_datum_cast_exception
                            std::string const& typeid_,
                            datum::type_t const& type,
                            datum::error_t const& error,
-                           char const* reason) VITAL_NOTHROW
+                           char const* reason) noexcept
   : datum_exception()
   , m_requested_typeid(requested_typeid)
   , m_typeid(typeid_)
@@ -238,7 +238,7 @@ bad_datum_cast_exception
 
 // ------------------------------------------------------------------
 bad_datum_cast_exception
-::~bad_datum_cast_exception() VITAL_NOTHROW
+::~bad_datum_cast_exception() noexcept
 {
 }
 

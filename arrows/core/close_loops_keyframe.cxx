@@ -105,7 +105,7 @@ close_loops_keyframe
 
 /// Destructor
 close_loops_keyframe
-::~close_loops_keyframe() VITAL_NOTHROW
+::~close_loops_keyframe() noexcept
 {
 }
 

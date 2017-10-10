@@ -33,7 +33,6 @@ addons:
     - libproj-dev
     - libgl1-mesa-dev
     - libxt-dev
-    - libqt4-dev
     - libatlas-base-dev
     - python2.7-dev
 
