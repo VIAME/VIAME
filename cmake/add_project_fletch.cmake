@@ -147,6 +147,9 @@ ExternalProject_Add(fletch
     -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
     # Set fletch install path to be viame install path
+    -Dfletch_ENABLE_GTest:PATH=${VIAME_BUILD_TESTS}
+
+    # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
 
     # Disable optional OpenCV build flags, these oft don't build
