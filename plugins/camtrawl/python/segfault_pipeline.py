@@ -1,60 +1,4 @@
 # -*- coding: utf-8 -*-
-#ckwg +28
-# Copyright 2017 by Kitware, Inc.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-#  * Redistributions of source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.
-#
-#  * Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
-#    to endorse or promote products derived from this software without specific
-#    prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
-# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""
-CommandLine:
-    workon_py2
-    source ~/code/VIAME/build/install/setup_viame.sh
-    cd ~/code/VIAME/plugins/camtrawl
-
-    feat1 = Feature(loc=(10, 1))
-    feat2 = Feature(loc=(2, 3))
-
-    np.sum((feat1.location - feat2.location) ** 2)
-
-CommandLine:
-    workon_py2
-    cd ~/code/VIAME/plugins/camtrawl/python
-
-    source ~/code/VIAME/build/install/setup_viame.sh
-    export KWIVER_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
-    export PYTHONPATH=$(pwd):$PYTHONPATH
-
-    python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
-    python run_camtrawl.py
-
-    ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
-
-SeeAlso
-    ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types
-"""
 from __future__ import absolute_import, print_function, division
 from sprokit.pipeline import process
 from sprokit.pipeline import datum
@@ -62,37 +6,16 @@ from kwiver.kwiver_process import KwiverProcess
 from vital.types import DetectedObjectSet
 import logging
 import os
-import define_pipeline
-
-try:
-    import ubelt as ub
-except ImportError:
-    print('Warning: pip install ubelt')
-    ub = None
+# import ubelt as ub
 
 logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
 log = logging.getLogger(__name__)
 print = log.info
 
 
-# TODO: add something similar in sprokit proper
-TMP_SPROKIT_PROCESS_REGISTRY = []
-
-
-def tmp_sprokit_register_process(name=None, doc=''):
-    def _wrp(cls):
-        name_ = name
-        if name is None:
-            name_ = cls.__name__
-        TMP_SPROKIT_PROCESS_REGISTRY.append((name_, doc, cls))
-        return cls
-    return _wrp
-
-
 N_SOURCE_NODES = 1
 
 
-@tmp_sprokit_register_process(name='make_dos')
 class MakeDOSProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
@@ -130,7 +53,6 @@ class MakeDOSProcess(KwiverProcess):
         self._base_step()
 
 
-@tmp_sprokit_register_process(name='measure_dos')
 class MeasureDOSProcess(KwiverProcess):
     """
     This process gets an image and detection_set as input, extracts each chip,
@@ -149,19 +71,22 @@ class MeasureDOSProcess(KwiverProcess):
             self.add_port_trait('detected_object_set' + str(i), 'detected_object_set', 'Detections from camera1')
             self.declare_input_port_using_trait('detected_object_set' + str(i), required)
 
-        if ub is not None:
-            self.prog = ub.ProgIter(verbose=3)
-            self.prog.begin()
+        self.step_num = 0
+
+        # if ub is not None:
+        #     self.prog = ub.ProgIter(verbose=3)
+        #     self.prog.begin()
 
     # ----------------------------------------------
     def _step(self):
         log.debug(' ----- step ' + self.__class__.__name__)
-        self.prog.step()
+        print('self.step_num = {!r}'.format(self.step_num))
+        self.step_num += 1
+        # self.prog.step()
 
         detection_sets = {}
         for i in range(N_SOURCE_NODES):
             detection_sets[i] = self.grab_input_using_trait('detected_object_set' + str(i))
-
         self._base_step()
 
 
@@ -191,6 +116,7 @@ def main():
 
         gdb -ex=r --args /home/joncrall/code/VIAME/build/install/bin/pipeline_runner -p /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
     """
+    import define_pipeline
 
     def add_stereo_camera_branch(pipe, prefix):
         """
@@ -238,14 +164,8 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    if ub is not None:
-        print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
-
-    for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
-        print("REGISTER PROCESS:")
-        print(' * name = {!r}'.format(name))
-        print(' * cls = {!r}'.format(cls))
-        process_factory.add_process(name, doc, cls)
+    process_factory.add_process('make_dos', '', MakeDOSProcess)
+    process_factory.add_process('measure_dos', '', MeasureDOSProcess)
 
     process_factory.mark_process_module_as_loaded(module_name)
 
