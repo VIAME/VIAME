@@ -332,6 +332,7 @@ else()
   ###
   # KWIVER CMake config
   ##
+  include( kwiver-cmake-future )
   include( kwiver-utils )
 
   ##
