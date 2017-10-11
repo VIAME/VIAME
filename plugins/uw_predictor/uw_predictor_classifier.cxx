@@ -34,8 +34,6 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <vital/vital_foreach.h>
-
 #include "util.h"
 #include "classHierarchy.h"
 #include "SpeciesIDLib.h"
@@ -124,7 +122,7 @@ refine( kwiver::vital::image_container_sptr image_data,
   }
 
   // process results
-  VITAL_FOREACH( auto det, input_dets->select() )
+  for( auto det : *input_dets )
   {
     // Crop out chip
     auto bbox = det->bounding_box();
@@ -149,7 +147,7 @@ refine( kwiver::vital::image_container_sptr image_data,
     // Convert UW detections to KWIVER format
     vector< string > names;
 
-    VITAL_FOREACH( int i, predictions )
+    for( int i : predictions )
     {
       names.push_back( std::to_string( i ) );
     }
