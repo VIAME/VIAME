@@ -76,8 +76,6 @@ create_process( const sprokit::process::type_t&         type,
   {
     throw null_process_registry_config_exception();
   }
-  std::cout << " Trying to create a python process " << std::endl;
-
 #ifdef SPROKIT_ENABLE_PYTHON
   // If python is enabled, we need to check for a python factory first
   try
@@ -91,8 +89,6 @@ create_process( const sprokit::process::type_t&         type,
     LOG_DEBUG( logger, "No python process found, trying C++");
   }
 #endif
-
-  std::cout << " Trying to create a C++ process " << std::endl;
 
   typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
   proc_factory ifact;
@@ -198,7 +194,6 @@ create_py_process( const sprokit::process::type_t&         type,
                    const sprokit::process::name_t&         name,
                    const kwiver::vital::config_block_sptr  config )
 {
-  std::cout << " Starting create_py_process function " << std::endl;
   typedef kwiver::vital::implementation_factory_by_name< pybind11::object > proc_factory;
   proc_factory ifact;
 
@@ -228,7 +223,6 @@ create_py_process( const sprokit::process::type_t&         type,
 
   try
   {
-  std::cout << " Calling create_object function " << std::endl;
     return pf->create_object( config );
   }
   catch ( const std::exception &e )

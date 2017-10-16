@@ -47,6 +47,10 @@
 #include <functional>
 #include <memory>
 
+#ifdef SPROKIT_ENABLE_PYTHON
+  #include <pybind11/pybind11.h>
+#endif
+
 namespace sprokit {
 
 // returns: scheduler_t - shared_ptr<scheduler>
@@ -173,6 +177,37 @@ bool is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
   add_factory( new sprokit::scheduler_factory( typeid( type ).name(),   \
                                                typeid( sprokit::scheduler ).name(), \
                                                sprokit::create_new_scheduler< type > ) )
+
+#ifdef SPROKIT_ENABLE_PYTHON
+typedef std::function< pybind11::object( sprokit::pipeline_t const& pipe,
+                               kwiver::vital::config_block_sptr const& config ) > py_scheduler_factory_func_t;
+
+class SPROKIT_PIPELINE_EXPORT python_scheduler_factory
+: public kwiver::vital::plugin_factory
+{
+
+  public:
+
+  python_scheduler_factory( const std::string& type,
+                            const std::string& itype,
+                            py_scheduler_factory_func_t factory );
+
+  virtual ~python_scheduler_factory();
+
+  virtual scheduler_t create_object(sprokit::pipeline_t const& pipe,
+                                    kwiver::vital::config_block_sptr const& config);
+
+private:
+  py_scheduler_factory_func_t m_factory;
+};
+
+SPROKIT_PIPELINE_EXPORT
+scheduler_t
+create_py_scheduler( const sprokit::scheduler::type_t&      name,
+                     const sprokit::pipeline_t&             pipe,
+                     const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config() );
+#endif
+
 } // end namespace
 
 #endif /* SPROKIT_PIPELINE_SCHEDULER_FACTORY_H */
