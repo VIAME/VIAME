@@ -22,27 +22,4 @@ def _pybind11_argv_workaround():
     if not hasattr(sys, 'argv'):
         sys.argv = []
 
-
-@sprokit_logging.exc_report
-def _pybind11_excepthook_workaround():
-    """
-    Implement a custom excepthook to (try and) ensure python errors are
-    reported.
-
-    Currently, I'm unsure if this even does anything. Pybind11 might just not
-    care about excepthooks.
-    """
-    _sys_excepthook = getattr(sys, 'excepthook', None)
-
-    def sprokit_excepthook(*exc_info):
-        print('! SPROKIT EXCEPTHOOK WAS TRIGGERED !')
-        try:
-            sprokit_logging.print_exc(exc_info)
-        except Exception:
-            if _sys_excepthook is not None:
-                _sys_excepthook(*exc_info)
-
-    sys.excepthook = sprokit_excepthook
-
 _pybind11_argv_workaround()
-_pybind11_excepthook_workaround()
