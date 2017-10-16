@@ -47,6 +47,10 @@
 #include <functional>
 #include <memory>
 
+#ifdef SPROKIT_ENABLE_PYTHON
+  #include <pybind11/pybind11.h>
+#endif
+
 namespace sprokit {
 
 // returns: process_t - shared_ptr<process>
@@ -129,7 +133,6 @@ sprokit::process_t create_process(const sprokit::process::type_t&        type,
                                   const sprokit::process::name_t&        name,
                                   const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config() );
 
-
 /**
  * \brief Mark a process as loaded.
  *
@@ -168,6 +171,42 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
   add_factory( new sprokit::process_factory( typeid( proc_type ).name(), \
                                              typeid( sprokit::process ).name(), \
                                              sprokit::create_new_process< proc_type > ) )
+
+#ifdef SPROKIT_ENABLE_PYTHON
+typedef std::function< pybind11::object( kwiver::vital::config_block_sptr const& config ) > py_process_factory_func_t;
+
+class SPROKIT_PIPELINE_EXPORT python_process_factory
+: public kwiver::vital::plugin_factory
+{
+  /**
+   * @brief CTOR for factory object
+   *
+   * This CTOR is designed to work in conjunction with pybind11
+   *
+   * @param type Type name of the process
+   * @param itype Type name of interface type.
+   * @param factory The Factory function
+   */
+  public:
+
+  python_process_factory( const std::string& type,
+                          const std::string& itype,
+                          py_process_factory_func_t factory );
+
+  virtual ~python_process_factory();
+
+  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
+
+private:
+  py_process_factory_func_t m_factory;
+};
+
+SPROKIT_PIPELINE_EXPORT
+sprokit::process_t create_py_process(const sprokit::process::type_t&        type,
+                                     const sprokit::process::name_t&        name,
+                                     const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config() );
+#endif
+
 } // end namespace
 
 #endif /* SPROKIT_PIPELINE_PROCESS_FACTORY_H */
