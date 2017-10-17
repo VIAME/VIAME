@@ -4,7 +4,6 @@ A thin wrapper around python logging.
 """
 from __future__ import print_function, unicode_literals, absolute_import
 import sys
-import six
 import os
 import logging
 
@@ -12,31 +11,42 @@ import logging
 def _configure_logging():
     """
     Configures python logging to using KWIVER / SPROKIT environment variables
+
+    SeeAlso:
+        kwiver/vital/logger: logic for the vital logger
     """
     # Use the C++ logging level by default, but allow python to be different
     cxx_level = os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'DEBUG')
     py_level = os.environ.get('KWIVER_PYTHON_DEFAULT_LOG_LEVEL', cxx_level)
+
+    # Option to colorize the python logs (must pip install coloredlogs)
+    truthy_values = {'true', 'on', 'yes', '1'}
+    use_color_env = os.environ.get('KWIVER_PYTHON_COLOREDLOGS', 'false')
+
+    # Default options
+    use_color = use_color_env.strip().lower() in truthy_values
     level = getattr(logging, py_level.upper())
-    logfmt = '%(name)s:%(levelname)s: %(message)s'
+    # Match KWIVER's log prefix: date time level file(lineno)
+    logfmt = '%(asctime)s.%(msecs)03d %(levelname)s %(name)s(%(lineno)d): %(message)s'
+    datefmt = '%Y-%m-%d %H:%M:%S'
 
-    USE_COLOR = False
-    try:
+    # Maybe use file based configs in the future?
+
+    if use_color:
         import coloredlogs
-    except ImportError:
-        USE_COLOR = False
-
-    if USE_COLOR:
-        coloredlogs.DEFAULT_FIELD_STYLES['name']['color'] = 'blue'
-        coloredlogs.DEFAULT_LEVEL_STYLES['debug']['color'] = 'cyan'
-        # coloredlogs.DEFAULT_LEVEL_STYLES['warn']['color'] = 'yellow'
-        coloredlogs.install(level=level, fmt=logfmt)
+        # The colorscheme can be controlled by several environment variables
+        # https://coloredlogs.readthedocs.io/en/latest/#environment-variables
+        coloredlogs.install(level=level, fmt=logfmt, datefmt=datefmt)
     else:
-        logging.basicConfig(format=logfmt, level=level)
+        logging.basicConfig(format=logfmt, level=level, datefmt=datefmt)
 
 
 def print_exc(exc_info=None):
     """
     Prints a highly visible exception.
+
+    Args:
+        exc_info (tuple): result of `sys.exec_info()`
 
     Example:
         >>> try:
@@ -68,10 +78,13 @@ def exc_report(func):
     """
     Prints a message if an exception occurs in the decorated function.
 
-    Modules called from C++ (e.g. pybind11) are not gaurenteed to print
+    Modules called from C++ (e.g. pybind11) are not guaranteed to print
     exceptions if they occur (unless the C++ program does the work). This
     decorator can be used as a workaround to ensure that there is some
     indication of when Python code raises an exception.
+
+    Args:
+        func (callable): function to dectorate
     """
     def _exc_report_wrapper(*args, **kwargs):
         try:
@@ -82,32 +95,19 @@ def exc_report(func):
     return _exc_report_wrapper
 
 
-class SprokitLogger(object):
+@exc_report
+def getLogger(name):
     """
-    Lighweight wrapper around python's logging.Logger class.
+    Lighweight wrapper around python's logging.getLogger function.
+
+    Args:
+        name (str): Logger name, which should be the module __name__ attribute
+
+    Example:
+        >>> from sprokit import sprokit_logging
+        >>> logger = sprokit_logging.getLogger(__name__)
+        >>> logger.info('Hello World')
     """
-    @exc_report
-    def __init__(self, name):
-        self._logger = logging.getLogger(name)
-        self.log('debug', 'created logger for ' + name)
-
-    @exc_report
-    def log(self, level, msg):
-        if isinstance(level, six.string_types):
-            level = getattr(logging, level.upper())
-        self._logger.log(level, msg)
-
-    def debug(self, msg):
-        return self.log(logging.DEBUG, msg)
-
-    def info(self, msg):
-        return self.log(logging.INFO, msg)
-
-    def warn(self, msg):
-        return self.log(logging.WARN, msg)
-
-    def error(self, msg):
-        return self.log(logging.ERROR, msg)
-
-    def critical(self, msg):
-        return self.log(logging.CRITICAL, msg)
+    _logger = logging.getLogger(name)
+    # _logger.debug('created logger for ' + name)
+    return _logger

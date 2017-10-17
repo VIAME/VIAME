@@ -35,7 +35,7 @@ except:
     from straight.plugin import loaders
 from sprokit import sprokit_logging
 
-logger = sprokit_logging.SprokitLogger(__name__)
+logger = sprokit_logging.getLogger(__name__)
 
 
 @sprokit_logging.exc_report
@@ -65,6 +65,7 @@ def load_python_modules():
     them with the C++ backend.
     """
     import os
+    logger.info('Loading python modules')
 
     # default plugins that are always loaded
     packages = ['sprokit.processes',
