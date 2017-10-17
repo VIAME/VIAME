@@ -34,7 +34,7 @@ import sys
 import os
 from importlib import import_module
 from sprokit import sprokit_logging
-logger = sprokit_logging.SprokitLogger(__name__)
+logger = sprokit_logging.getLogger(__name__)
 
 
 class Loader(object):
@@ -143,7 +143,6 @@ class ModuleLoader(Loader):
                             break
 
     def _findPluginModules(self, namespace):
-        logger.debug('Find plugins in namespace = {!r}'.format(namespace))
         for filepath in self._findPluginFilePaths(namespace):
             path_segments = list(filepath.split(os.path.sep))
             path_segments = [p for p in path_segments if p]
@@ -155,8 +154,6 @@ class ModuleLoader(Loader):
             except ImportError as e:
                 logger.warn('Could not import: {}, Reason: {}'.format(module_name, e))
                 module = None
-            else:
-                logger.debug('imported {}'.format(module))
 
             if module is not None:
                 yield module

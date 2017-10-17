@@ -46,8 +46,7 @@ namespace python {
   catch (pybind11::error_already_set const& e)                    \
   {                                                               \
     auto logger = kwiver::vital::get_logger("python_exceptions"); \
-    LOG_WARN(logger, "Handle Python Exception:");                 \
-    LOG_WARN(logger, e.what());                                   \
+    LOG_WARN(logger, "Ignore Python Exception:\n" << e.what());   \
     sprokit::python::python_print_exception();                    \
                                                                   \
     throw;                                                        \
@@ -61,8 +60,7 @@ namespace python {
   catch (pybind11::error_already_set const& e)                    \
   {                                                               \
     auto logger = kwiver::vital::get_logger("python_exceptions"); \
-    LOG_WARN(logger, "Ignore Python Exception:");                 \
-    LOG_WARN(logger, e.what());                                   \
+    LOG_WARN(logger, "Ignore Python Exception:\n" << e.what());   \
     sprokit::python::python_print_exception();                    \
   }
 
