@@ -39,17 +39,25 @@ CommandLine:
     np.sum((feat1.location - feat2.location) ** 2)
 
 CommandLine:
-    workon_py2
     cd ~/code/VIAME/plugins/camtrawl/python
-
-    source ~/code/VIAME/build/install/setup_viame.sh
-    export KWIVER_DEFAULT_LOG_LEVEL=info
-    export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
     export PYTHONPATH=$(pwd):$PYTHONPATH
+
+    workon_py2
+
+    export KWIVER_PLUGIN_PATH=""
+    export SPROKIT_MODULE_PATH=""
+    source ~/code/VIAME/build/install/setup_viame.sh
+    export KWIVER_DEFAULT_LOG_LEVEL=debug
+    export KWIVER_DEFAULT_LOG_LEVEL=info
+    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=debug
+    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
+
+    # export KWIVER_PYTHON_COLOREDLOGS=1
 
     python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
     python run_camtrawl.py
 
+    ~/code/VIAME/build/install/bin/pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
     ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
 
 SeeAlso
@@ -68,16 +76,14 @@ from vital.types import (  # NOQA
     DetectedObject,
     Feature,
 )
-import logging
-from os.path import expanduser
 import ubelt as ub
 import os
-import camtrawl_algos as ctalgo
 import itertools as it
+from . import algos as ctalgo
 
-logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
-log = logging.getLogger(__name__)
-print = log.info
+from sprokit import sprokit_logging
+logger = sprokit_logging.getLogger(__name__)
+print = logger.info
 
 
 # TODO: add something similar in sprokit proper
@@ -126,7 +132,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
         print('conf = {!r}'.format(conf))
-        log.debug(' ----- init ' + self.__class__.__name__)
+        logger.debug(' ----- init ' + self.__class__.__name__)
         KwiverProcess.__init__(self, conf)
 
         camtrawl_setup_config(self, ctalgo.GMMForegroundObjectDetector.default_params())
@@ -143,7 +149,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
-        log.debug(' ----- configure ' + self.__class__.__name__)
+        logger.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
         print('detector config = {}'.format(ub.repr2(config, nl=2)))
         self.detector = ctalgo.GMMForegroundObjectDetector(**config)
@@ -151,7 +157,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _step(self):
-        log.debug(' ----- step ' + self.__class__.__name__)
+        logger.debug(' ----- step ' + self.__class__.__name__)
         # grab image container from port using traits
         img_container = self.grab_input_using_trait('image')
 
@@ -181,7 +187,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
     """
     # ----------------------------------------------
     def __init__(self, conf):
-        log.debug(' ----- init ' + self.__class__.__name__)
+        logger.debug(' ----- init ' + self.__class__.__name__)
 
         KwiverProcess.__init__(self, conf)
 
@@ -217,7 +223,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
-        log.debug(' ----- configure ' + self.__class__.__name__)
+        logger.debug(' ----- configure ' + self.__class__.__name__)
         config = tmp_smart_cast_config(self)
 
         print('triangulator config = {}'.format(ub.repr2(config, nl=2)))
@@ -247,15 +253,15 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _step(self):
-        log.debug(' ----- step ' + self.__class__.__name__)
+        logger.debug(' ----- step ' + self.__class__.__name__)
         self.prog.step()
 
         if self.cal is None:
             self.cal = True
-            log.debug(' ----- grab cam1 ' + self.__class__.__name__)
+            logger.debug(' ----- grab cam1 ' + self.__class__.__name__)
             # grab camera only if we dont have one yet
             camera1 = self.grab_input_using_trait('camera' + '1')
-            log.debug(' ----- grab cam2 ' + self.__class__.__name__)
+            logger.debug(' ----- grab cam2 ' + self.__class__.__name__)
             camera2 = self.grab_input_using_trait('camera' + '2')
 
             def _cal_from_vital(vital_camera):
@@ -274,12 +280,12 @@ class CamtrawlMeasureProcess(KwiverProcess):
                 }
                 return cam_dict
 
-            log.debug(' ----- parse cameras ' + self.__class__.__name__)
+            logger.debug(' ----- parse cameras ' + self.__class__.__name__)
             self.cal = ctalgo.StereoCalibration({
                 'left': _cal_from_vital(camera1),
                 'right': _cal_from_vital(camera2),
             })
-            log.debug(' ----- no more need for cameras ' + self.__class__.__name__)
+            logger.debug(' ----- no more need for cameras ' + self.__class__.__name__)
 
         image_file_name1 = self.grab_input_using_trait('image_file_name1').get_datum()
         image_file_name2 = self.grab_input_using_trait('image_file_name2').get_datum()
@@ -331,19 +337,19 @@ def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
     module_name = 'python_' + __name__
-    print("REGISTER THIS MODULE: {}, {}".format(module_name, __file__))
+    print("REGISTER MY CAMTRAWL MODULE: {}, {}".format(module_name, __file__))
 
-    # module_name = 'python:camtrawl.camtrawl_processes'
+    # module_name = 'python:camtrawl.processes'
     # module_name = 'python' + __name__
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
+    # print('TMP_SPROKIT_PROCESS_REGISTRY = {}'.format(ub.repr2(TMP_SPROKIT_PROCESS_REGISTRY)))
 
     for name, doc, cls in TMP_SPROKIT_PROCESS_REGISTRY:
-        print("REGISTER PROCESS:")
-        print(' * name = {!r}'.format(name))
-        print(' * cls = {!r}'.format(cls))
+        # print("REGISTER PROCESS:")
+        # print(' * name = {!r}'.format(name))
+        # print(' * cls = {!r}'.format(cls))
         process_factory.add_process(name, doc, cls)
 
     # process_factory.add_process('camtrawl_detect_fish',

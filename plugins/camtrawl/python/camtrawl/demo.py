@@ -4,7 +4,6 @@
 Runs camtrawl algos with no dependency on kwiver
 """
 from __future__ import division, print_function, unicode_literals
-from imutils import (imscale, overlay_heatmask, putMultiLineText)
 from os.path import expanduser, basename, join
 from functools import partial
 import glob
@@ -12,7 +11,8 @@ import cv2
 import numpy as np
 import ubelt as ub
 import threading
-import camtrawl_algos as ctalgo
+from .imutils import (imscale, overlay_heatmask, putMultiLineText)
+from . import algos as ctalgo
 
 try:
     import queue

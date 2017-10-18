@@ -455,6 +455,8 @@ def run_pipe_file(pipe_fpath, dry=False):
     runner_fpath = find_pipeline_runner()
     # '/home/joncrall/code/VIAME/build/install/bin/pipeline_runner'
 
+    print('found runner exe = {!r}'.format(runner_fpath))
+
     if not exists(pipe_fpath):
         raise IOError('Pipeline file {} does not exist'.format(pipe_fpath))
 

@@ -172,6 +172,7 @@ ExternalProject_Add(fletch
     -P ${VIAME_SOURCE_DIR}/cmake/custom_fletch_install.cmake
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(fletch forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
@@ -180,6 +181,7 @@ ExternalProject_Add_Step(fletch forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set( VIAME_ARGS_fletch
   -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
