@@ -264,6 +264,38 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 
 };
 
+//
+//
+//
+
+template< typename T >
+struct io
+{};
+
+template <>
+struct io< canonical::id_t >
+{
+  io( size_t i, int d ): id(i), domain(d) {}
+  canonical::id_t id;
+  int domain;
+};
+
+class kpf_record_text_writer
+{
+public:
+  explicit kpf_record_text_writer( std::ostream& os ) : s( os ) {}
+  friend kpf_record_text_writer& operator<<( kpf_record_text_writer& w, const io< canonical::id_t >& io );
+
+private:
+  std::ostream& s;
+};
+
+kpf_record_text_writer&
+operator<<( kpf_record_text_writer& w, const io< canonical::id_t >& io );
+
+
+
+
 } // ...kpf
 } // ...vital
 } // ...kwiver

@@ -2,6 +2,7 @@
 #define KWIVER_VITAL_KPF_PACKET_H_
 
 #include <vital/kpf/vital_kpf_export.h>
+#include <string>
 #include <utility>
 
 namespace kwiver {
@@ -55,28 +56,47 @@ struct VITAL_KPF_EXPORT id_t
 {
   enum {DETECTION_ID=0, TRACK_ID, EVENT_ID };
   size_t d;
-  id_t( size_t i ): d(i) {}
+  explicit id_t( size_t i ): d(i) {}
 };
 
 struct VITAL_KPF_EXPORT timestamp_t
 {
   double d;
+  explicit timestamp_t( double ts ): d(ts) {}
 };
 
 struct VITAL_KPF_EXPORT timestamp_range_t
 {
+  timestamp_range_t( double a, double b ): start(a), stop(b) {}
   double start, stop;
 };
+
+struct VITAL_KPF_EXPORT kv_t
+{
+  std::string key, val;
+  kv_t( const std::string& k, const std::string& v ): key(k), val(v) {}
+};
+
+struct VITAL_KPF_EXPORT conf_t
+{
+  double d;
+  explicit conf_t( double conf ): d(conf) {}
+};
+
 
 } // ...canonical
 
 union VITAL_KPF_EXPORT payload_t
 {
   payload_t(): id(0) {}
+  payload_t( const payload_t& other ): id( other.id ) {}
+  ~payload_t() {}
   canonical::id_t id;
   canonical::timestamp_t timestamp;
   canonical::timestamp_range_t timestamp_range;
   canonical::bbox_t bbox;
+  canonical::kv_t kv;
+  canonical::conf_t conf;
   // ... use pointers for the polygon / events
   // pay special attention to cpctor / etc...
 };

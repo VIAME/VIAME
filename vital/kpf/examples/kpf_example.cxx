@@ -215,16 +215,17 @@ void
 write_detections_to_stream( ostream& os,
                             const vector< user_detection_t >& dets )
 {
-  user_box_adapter_t box( KPF::canonical::bbox_t::IMAGE_COORDS ); // to domain 0;
+  using namespace KPF::canonical;
+  user_box_adapter_t box( bbox_t::IMAGE_COORDS );
   for (const auto& det: dets )
   {
-    os
-      << box.to_str( det )
+    kpf_text_frame( os )
+      << box.to_str( det ) << " "
 #if 0
-      << canonical::id_t( det.detection_id, canonical::id_t::DETECTION_ID )
-      << canonical::ts_t( det.frame_number, canonical::ts_t::FRAME_NUMBER )
-      << canonical::kv_t( "label", det.label )
-      << canonical::conf_t( det.confidence, DETECTOR_DOMAIN )
+      << KPF::io< id_t >( det.detection_id, id_t::DETECTION_ID )
+      << KPF::io< ts_t >( det.frame_number, ts_t::FRAME_NUMBER )
+      << KPF::io( kv_t( "label", det.label ) )
+      << KPF::io( conf_t( det.confidence ))
 #endif
       << "\n";
   }

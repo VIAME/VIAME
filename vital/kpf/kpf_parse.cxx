@@ -263,6 +263,11 @@ text_parser_t& operator>>( text_parser_t& t,
   return t >> io.text_reader;
 }
 
+kpf_record_text_writer&
+operator<<( kpf_record_text_writer& w, const io< canonical::id_t >& io)
+{
+  w.s << "id" << io.domain << ": " << io.id.id << " ";
+}
 
 } // ...kpf
 } // ...vital
