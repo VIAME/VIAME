@@ -4,11 +4,11 @@ from __future__ import division, print_function, unicode_literals
 import cv2
 import numpy as np
 import ubelt as ub
-import camtrawl_algos as ctalgo
 import sklearn.metrics
 import scipy.io
 import pandas as pd
 from os.path import expanduser
+from . import algos as ctalgo
 
 
 def to_mat_format():

@@ -92,7 +92,7 @@ class DetectedObject(ub.NiceRepr):
     Example:
         >>> import sys
         >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-        >>> from camtrawl_algos import *
+        >>> from camtrawl.algos import *
         >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
         >>> cc_mask[3:5, 2:7] = 1
         >>> self = DetectedObject.from_connected_component(cc_mask)
@@ -237,8 +237,8 @@ class GMMForegroundObjectDetector(object):
             >>> % pylab qt5
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
-            >>> from camtrawl_demo import *
+            >>> from camtrawl.algos import *
+            >>> from camtrawl.demo import *
             >>> detector, img = demodata_detections(target_step='detect', target_frame_num=7)
             >>> detections = detector.detect(img)
             >>> print('detections = {!r}'.format(detections))
@@ -470,8 +470,8 @@ class FishStereoMeasurments(object):
             >>> # Rows are detections in img1, cols are detections in img2
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
-            >>> from camtrawl_demo import *
+            >>> from camtrawl.algos import *
+            >>> from camtrawl.demo import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
             >>> det1, det2 = detections1[0], detections2[0]
             >>> self = FishStereoMeasurments()
@@ -554,7 +554,7 @@ class FishStereoMeasurments(object):
             >>> # Rows are detections in img1, cols are detections in img2
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
+            >>> from camtrawl.algos import *
             >>> self = FishStereoMeasurments()
             >>> cost_errors = np.array([
             >>>     [9, 2, 1, 9],
@@ -593,7 +593,7 @@ class FishStereoMeasurments(object):
             >>> # Rows are detections in img1, cols are detections in img2
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
+            >>> from camtrawl.algos import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
             >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.find_matches(cal, detections1, detections2)
@@ -671,7 +671,7 @@ class StereoCalibration(object):
     Doctest:
         >>> import sys
         >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-        >>> from camtrawl_algos import *
+        >>> from camtrawl.algos import *
         >>> cal_fpath = '/home/joncrall/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz'
         >>> cal = StereoCalibration.from_file(cal_fpath)
     """
@@ -772,8 +772,8 @@ class StereoCalibration(object):
         Doctest:
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl_algos import *
-            >>> from camtrawl_demo import *
+            >>> from camtrawl.algos import *
+            >>> from camtrawl.demo import *
             >>> cal_fpath = '/home/joncrall/data/autoprocess_test_set/cal_201608.mat'
             >>> cal = StereoCalibration.from_matfile(cal_fpath)
             >>> print('cal = {}'.format(cal))

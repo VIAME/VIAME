@@ -88,14 +88,16 @@ ExternalProject_Add(kwiver
 
 
 # Why must we force kwiver to build on every make?
-ExternalProject_Add_Step(kwiver forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+if (VIAME_FORCEBUILD)
+  ExternalProject_Add_Step(kwiver forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
+    COMMENT "Removing build stamp file for build update (forcebuild)."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
+endif()
 
 set(VIAME_ARGS_kwiver
   -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build
