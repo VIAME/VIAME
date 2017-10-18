@@ -2,6 +2,11 @@
 // An example of how one uses KPF to read and write custom data structures.
 //
 
+//
+// This example is in XX parts.
+// Part 1 defines the user detection type we'll be playing with.
+
+
 #include <vital/kpf/kpf_parse.h>
 #include <iostream>
 #include <sstream>
@@ -18,6 +23,17 @@ using std::stringstream;
 using std::ostream;
 
 namespace KPF=kwiver::vital::kpf;
+
+//
+// -----------------------------
+// -----------------------------
+//
+// PART ONE: The user type we'll be playing with
+//
+// -----------------------------
+// -----------------------------
+//
+
 
 //
 // This is a notional data structure that holds object detections.
@@ -52,12 +68,8 @@ struct user_detection_t
 };
 
 //
-// This is the socially-agreed domain for the detector; an arbitrary number
-// greater than 9 which disambiguates this detector from others we may
-// have on the project.
+// pretty-print the user detections
 //
-
-const int DETECTOR_DOMAIN=17;
 
 ostream& operator<<( ostream& os, const user_detection_t& d )
 {
@@ -68,7 +80,6 @@ ostream& operator<<( ostream& os, const user_detection_t& d )
   return os;
 }
 
-
 //
 // Generate some sample detections.
 //
@@ -76,15 +87,21 @@ ostream& operator<<( ostream& os, const user_detection_t& d )
 vector< user_detection_t >
 make_sample_detections()
 {
-  vector< user_detection_t > detections {
+  return {
     { 100, 4, { 33.3, 33.3 }, 10, 20, "vehicle", 0.3 },
     { 101, 4, { 44.4, 44.4 }, 4, 9,   "person",  0.8 },
     { 102, 5, { 55.5, 55.5 }, 11, 7,  "vehicle", 0.5 }
   };
-
-  return detections;
 }
 
+
+//
+// This is the socially-agreed domain for the detector; an arbitrary number
+// greater than 9 which disambiguates this detector from others we may
+// have on the project.
+//
+
+const int DETECTOR_DOMAIN=17;
 
 //
 // For non-scalar data which is represented by a non-scalar KPF structure
@@ -103,13 +120,13 @@ struct user_box_adapter_t: public KPF::kpf_box_adapter< user_detection_t >
 {
   user_box_adapter_t( int domain ):
     kpf_box_adapter< user_detection_t >(
-      // this lambda reads the canonical box into the existing user_detection
+      // reads the canonical box "b" into the user_detection "d"
       []( const KPF::canonical::bbox_t& b, user_detection_t& d ) {
         d.box_corner_pt = make_pair( b.x1, b.y1 );
         d.box_width = (b.x2-b.x1);
         d.box_height = (b.y2-b.y1); },
 
-      // this lambda converts a user_detection into a canonical box
+      // converts a user_detection "d" into a canonical box and returns it
       []( const user_detection_t& d ) {
         return KPF::canonical::bbox_t(
           d.box_corner_pt.first,
@@ -125,7 +142,7 @@ struct user_box_adapter_t: public KPF::kpf_box_adapter< user_detection_t >
 //
 // Read a set of detections from a stream.
 //
-// Note that we're implicitly expecting to find one per line.
+// Note that we're implicitly expecting to find record one per line.
 //
 
 vector< user_detection_t >
