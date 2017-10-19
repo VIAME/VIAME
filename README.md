@@ -6,12 +6,15 @@ video processing algorithms together in a common distributed processing framewor
 majorly targeting marine species analytics. It is also useful as a general computer
 vision toolkit, as it contains many common algorithms and compiles several other popular
 repositories together as a part of its build process. The core infrastructure connecting
-different system components is currently the KWIVER library, which can connect C/C++, python,
+different system components is currently the KWIVER library. KWIVER can connect C/C++, python,
 and matlab nodes together in a graph-like pipeline architecture. For more information
 about KWIVER's capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
 Alongside the pipelined image processing system are a number of standalone utilties
-for model training, output detection visualization, and detector/tracker
-evaluation (a.k.a. scoring).
+for model training, output detection visualization, detector/tracker evaluation (a.k.a. scoring),
+and image/video search.
+
+Capabilities
+------------
 
 <p align="center">
 <br>
@@ -250,7 +253,7 @@ License and Citation
 VIAME is released under a BSD-3 license.
 
 A system paper summarizing VIAME was published in IEEE WACV 2017 (citation below)
-which is available [here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
+which is [available here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
 
 ```
 @inproceedings{viame2017,
