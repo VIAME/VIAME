@@ -118,7 +118,7 @@ const int DETECTOR_DOMAIN=17;
 
 struct user_box_adapter_t: public KPF::kpf_box_adapter< user_detection_t >
 {
-  user_box_adapter_t( int domain ):
+  user_box_adapter_t():
     kpf_box_adapter< user_detection_t >(
       // reads the canonical box "b" into the user_detection "d"
       []( const KPF::canonical::bbox_t& b, user_detection_t& d ) {
@@ -132,9 +132,7 @@ struct user_box_adapter_t: public KPF::kpf_box_adapter< user_detection_t >
           d.box_corner_pt.first,
           d.box_corner_pt.second,
           d.box_corner_pt.first + d.box_width,
-          d.box_corner_pt.second + d.box_height );},
-
-      domain)
+          d.box_corner_pt.second + d.box_height );} )
   {}
 };
 
@@ -149,11 +147,11 @@ vector< user_detection_t >
 read_detections_from_stream( std::istream& is )
 {
   vector< user_detection_t > dets;
-  user_box_adapter_t box( KPF::canonical::bbox_t::IMAGE_COORDS );
+  user_box_adapter_t box;
   KPF::text_parser_t parser( is );
 
   while (parser
-         >> box
+         >> box.set_domain( KPF::canonical::bbox_t::IMAGE_COORDS )
          /*         >> canonical::id_t( det.detection_id, canonical::id_t::DETECTION_ID )
          >> canonical::ts_t( det.frame_number, canonical::ts_t::FRAME_NUMBER )
          >> canonical::kv_t( "label", det.label )
@@ -164,6 +162,7 @@ read_detections_from_stream( std::istream& is )
     user_detection_t det;
     box.get( det ); // would be nice to move this up
     dets.push_back( det );
+    parser.flush();
   }
 
   // or...
@@ -215,19 +214,21 @@ void
 write_detections_to_stream( ostream& os,
                             const vector< user_detection_t >& dets )
 {
-  using namespace KPF::canonical;
-  user_box_adapter_t box( bbox_t::IMAGE_COORDS );
+  namespace KPFC = KPF::canonical;
+  user_box_adapter_t box_adapter;
   for (const auto& det: dets )
   {
-    kpf_text_frame( os )
-      << box.to_str( det ) << " "
+    KPF::record_text_writer w( os );
+    w
+      << KPF::io< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
+      << KPF::io< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
 #if 0
-      << KPF::io< id_t >( det.detection_id, id_t::DETECTION_ID )
+      << box.to_str( det ) << " "
       << KPF::io< ts_t >( det.frame_number, ts_t::FRAME_NUMBER )
       << KPF::io( kv_t( "label", det.label ) )
       << KPF::io( conf_t( det.confidence ))
 #endif
-      << "\n";
+      << KPF::record_text_writer::endl;
   }
 }
 

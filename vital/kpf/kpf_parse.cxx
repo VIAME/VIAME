@@ -14,6 +14,8 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 
+kwiver::vital::kpf::private_endl_t kwiver::vital::kpf::record_text_writer::endl;
+
 namespace { // anon
 using namespace kwiver::vital::kpf;
 
@@ -130,6 +132,15 @@ text_reader_t
   return this->header;
 }
 
+text_reader_t&
+text_reader_t
+::set_domain( int d )
+{
+  this->is_set = false;
+  this->header.domain = d;
+  return *this;
+}
+
 pair< bool, packet_t >
 text_reader_t
 ::get_packet()
@@ -200,6 +211,7 @@ text_parser_t
   //
 
   packet_header_t h = b.my_header();
+  LOG_INFO( main_logger, "Reader looking for style " << style2str(h.style) << " domain " << h.domain );
 
   //
   // if the head is invalid (i.e. the null reader) we're done
@@ -263,10 +275,25 @@ text_parser_t& operator>>( text_parser_t& t,
   return t >> io.text_reader;
 }
 
-kpf_record_text_writer&
-operator<<( kpf_record_text_writer& w, const io< canonical::id_t >& io)
+record_text_writer&
+operator<<( record_text_writer& w, const private_endl_t& )
 {
-  w.s << "id" << io.domain << ": " << io.id.id << " ";
+  w.s << std::endl;
+  return w;
+}
+
+record_text_writer&
+operator<<( record_text_writer& w, const io< canonical::id_t >& io)
+{
+  w.s << "id" << io.domain << ": " << io.id.d << " ";
+  return w;
+}
+
+record_text_writer&
+operator<<( record_text_writer& w, const io< canonical::bbox_t >& io)
+{
+  w.s << "g" << io.domain << ": " << io.box.x1 << " " << io.box.y1 << " " << io.box.x2 << " " << io.box.y2 << " ";
+  return w;
 }
 
 } // ...kpf

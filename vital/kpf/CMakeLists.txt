@@ -3,6 +3,7 @@
 #
 
 set( sources
+  kpf_packet.cxx
   kpf_parse.cxx
 )
 

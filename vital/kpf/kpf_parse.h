@@ -96,6 +96,9 @@ public:
   // mystery: fails to link if this is not inline?
   const packet_buffer_t& get_packet_buffer() const { return this->packet_buffer; }
 
+  // clear the packet buffer
+  void flush() { this->packet_buffer.clear(); }
+
 private:
   bool process_reader( text_reader_t& b );
   bool parse_next_line();
@@ -125,6 +128,9 @@ public:
   void init( const std::string& tag );
   void init( const packet_header_t& h );
   ~text_reader_t() {}
+
+  // mutate the domain
+  text_reader_t& set_domain( int d );
 
   // return this reader's packet header
   packet_header_t my_header() const;
@@ -175,32 +181,28 @@ struct kpf_io_adapter: public kpf_io_adapter_base
   void (*kpf2user_inplace) ( const KPF_TYPE&, USER_TYPE& );
   KPF_TYPE (*user2kpf_function)( const USER_TYPE& );
 
-  // what domain does this adapter read from / write to?
-  int domain;
   // text reader (initialized in derived classes)
 
   kpf_io_adapter( USER_TYPE (*k2u)( const KPF_TYPE& ),
-                  KPF_TYPE( *u2k)( const USER_TYPE& ),
-                  int d ) :
-    kpf2user_function( k2u ), kpf2user_inplace( nullptr ),
-    user2kpf_function( u2k ), domain( d )
+                  KPF_TYPE( *u2k)( const USER_TYPE& ) ) :
+    kpf2user_function( k2u ), kpf2user_inplace( nullptr ), user2kpf_function( u2k )
   {}
 
   kpf_io_adapter( void (*k2u)( const KPF_TYPE&, USER_TYPE& ),
-                  KPF_TYPE( *u2k)( const USER_TYPE& ),
-                  int d ) :
-    kpf2user_function( nullptr ), kpf2user_inplace( k2u ),
-    user2kpf_function( u2k ), domain( d )
+                  KPF_TYPE( *u2k)( const USER_TYPE& ) ) :
+    kpf2user_function( nullptr ), kpf2user_inplace( k2u ), user2kpf_function( u2k )
   {}
 
   // these two methods both convert a KPF type into a user type.
   USER_TYPE operator()( const KPF_TYPE& k ) { return (user2kpf_function)( k ); }
   void operator()( const KPF_TYPE& k, USER_TYPE& u ) { (kpf2user_inplace)( k, u ); }
 
+  kpf_io_adapter& set_domain( int d ) { this->text_reader.set_domain(d); return *this; }
+
   // this method converts the user type and passes on the domain.
-  std::pair< int, KPF_TYPE > operator()( const USER_TYPE& u )
+  std::pair< int, KPF_TYPE > operator()( const USER_TYPE& u, int domain )
   {
-    return std::make_pair( this->domain, (kpf2user_function)( u ));
+    return std::make_pair( domain, (kpf2user_function)( u ));
   }
 };
 
@@ -214,18 +216,16 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 {
 
   kpf_box_adapter( USER_TYPE (*k2u) (const canonical::bbox_t&),
-                   canonical::bbox_t (*u2k)( const USER_TYPE&),
-                   int d )
-    : kpf_io_adapter<USER_TYPE, canonical::bbox_t>( k2u, u2k, d )
+                   canonical::bbox_t (*u2k)( const USER_TYPE&) )
+    : kpf_io_adapter<USER_TYPE, canonical::bbox_t>( k2u, u2k )
   {
-    this->text_reader.init( packet_header_t( packet_style::GEOM, d ));
+    this->text_reader.init( packet_header_t( packet_style::GEOM ));
   }
   kpf_box_adapter( void (*k2u) (const canonical::bbox_t&, USER_TYPE& ),
-                   canonical::bbox_t (*u2k)( const USER_TYPE&),
-                   int d )
-    : kpf_io_adapter<USER_TYPE, canonical::bbox_t>( k2u, u2k, d )
+                   canonical::bbox_t (*u2k)( const USER_TYPE&) )
+    : kpf_io_adapter<USER_TYPE, canonical::bbox_t>( k2u, u2k )
   {
-    this->text_reader.init( packet_header_t( packet_style::GEOM, d ));
+    this->text_reader.init( packet_header_t( packet_style::GEOM ));
   }
 
   USER_TYPE get()
@@ -233,13 +233,13 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
     auto probe = this->text_reader.get_packet();
     // throw if ! probe->first
     // also throw if kpf2user is null, or else use a temporary?
-    return (this->kpf2user_function)( probe.second.payload.bbox );
+    return (this->kpf2user_function)( probe.second.bbox );
   }
   void get( USER_TYPE& u )
   {
     auto probe = this->text_reader.get_packet();
     // see above
-    (this->kpf2user_inplace)( probe.second.payload.bbox, u );
+    (this->kpf2user_inplace)( probe.second.bbox, u );
   }
 
   void get( text_parser_t& parser, USER_TYPE& u )
@@ -251,15 +251,7 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 
   canonical::bbox_t operator()( const USER_TYPE& u )
   {
-    return (this->user2kpf)( u );
-  }
-
-  std::string to_str( const USER_TYPE& u ) const
-  {
-    canonical::bbox_t box = (this->user2kpf_function)( u );
-    std::ostringstream oss;
-    oss << "g" << this->domain << ": " << box.x1 << " " << box.y1 << " " << box.x2 << " " << box.y2;
-    return oss.str();
+    return this->user2kpf_function( u );
   }
 
 };
@@ -273,25 +265,50 @@ struct io
 {};
 
 template <>
-struct io< canonical::id_t >
+struct VITAL_KPF_EXPORT io< canonical::bbox_t >
+{
+  io( const canonical::bbox_t& b, int d) : box(b), domain(d) {}
+  canonical::bbox_t box;
+  int domain;
+};
+
+template <>
+struct VITAL_KPF_EXPORT io< canonical::id_t >
 {
   io( size_t i, int d ): id(i), domain(d) {}
   canonical::id_t id;
   int domain;
 };
 
-class kpf_record_text_writer
+struct VITAL_KPF_EXPORT private_endl_t
+{};
+
+class VITAL_KPF_EXPORT record_text_writer
 {
 public:
-  explicit kpf_record_text_writer( std::ostream& os ) : s( os ) {}
-  friend kpf_record_text_writer& operator<<( kpf_record_text_writer& w, const io< canonical::id_t >& io );
+  explicit record_text_writer( std::ostream& os ) : s( os ) {}
+
+  friend record_text_writer& operator<<( record_text_writer& w, const io< canonical::id_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const io< canonical::bbox_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
+
+  static private_endl_t endl;
 
 private:
   std::ostream& s;
 };
 
-kpf_record_text_writer&
-operator<<( kpf_record_text_writer& w, const io< canonical::id_t >& io );
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const io< canonical::id_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const io< canonical::bbox_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const private_endl_t& e );
 
 
 

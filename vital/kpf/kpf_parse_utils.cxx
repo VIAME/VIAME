@@ -100,10 +100,48 @@ parse_geom( size_t index,
     return make_pair( false, index );
   }
 
-  packet.payload.bbox = bbox_t( xy[0], xy[1], xy[2], xy[3] );
+  packet.bbox = bbox_t( xy[0], xy[1], xy[2], xy[3] );
   return make_pair( true, index+4 );
 }
 
+pair< bool, size_t >
+parse_scalar( size_t index,
+              const vector<string>& tokens,
+              packet_style style,
+              packet_t& packet )
+{
+  // do we have at least one token?
+  if (index > tokens.size())
+  {
+    LOG_ERROR( main_logger, "parsing scalar style " << style2str( style )
+               << "index " << index << " but only " << tokens.size() << " tokens left" );
+    return make_pair( false, index );
+  }
+
+  try
+  {
+    switch (style)
+    {
+      case packet_style::ID:
+        {
+          packet.id.d = stoi( tokens[ index ] );
+        }
+        break;
+      default:
+        {
+          LOG_ERROR( main_logger, "Unhandled scalar parse style " << static_cast<int>( style ) );
+          return make_pair( false, index );
+        }
+    }
+  }
+  catch (const std::invalid_argument& e)
+  {
+    LOG_ERROR( main_logger, "parsing geom: error converting to double " << e.what() );
+    return make_pair( false, index );
+  }
+
+  return make_pair( true, index+1 );
+}
 
 } // anon
 
@@ -210,6 +248,20 @@ str2style( const string& s )
 }
 
 //
+// Given a style, return its corresponding string
+//
+
+string
+style2str( packet_style s )
+{
+  auto probe = TAG2TYPE_BIMAP.style2tag.find( s );
+  return
+    (probe == TAG2TYPE_BIMAP.style2tag.end())
+    ? "invalid"
+    : probe->second;
+}
+
+//
 // Having established the packet style (and domain, although only
 // the style is needed for parsing), parse the style-specific payload
 // from the token stream and convert it into the appropriate canonical
@@ -233,6 +285,14 @@ packet_payload_parser ( size_t index,
 
   case packet_style::GEOM:
     ret = parse_geom( index, tokens, packet);
+    break;
+
+  case packet_style::ID:
+    ret = parse_scalar( index, tokens, packet.header.style, packet );
+    break;
+
+  default:
+    LOG_ERROR( main_logger, "Unparsed packet style " << static_cast<int>( packet.header.style ));
     break;
 
   }

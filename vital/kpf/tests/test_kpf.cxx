@@ -117,7 +117,7 @@ IMPLEMENT_TEST( kpf_box_reader )
     {
       auto probe = reader.get_packet();
       TEST_EQUAL( "Reader is valid after read", probe.first, true );
-      TEST_EQUAL( "Packet's box equals input", probe.second.payload.bbox == ref, true );
+      TEST_EQUAL( "Packet's box equals input", probe.second.bbox == ref, true );
     }
   }
 

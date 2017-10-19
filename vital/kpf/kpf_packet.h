@@ -9,7 +9,7 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-  enum class VITAL_KPF_EXPORT packet_style
+enum class VITAL_KPF_EXPORT packet_style
 {
   INVALID,  // invalid, uninitialized
   ID,       // a numeric identifier (detection, track, event ID)
@@ -34,6 +34,7 @@ struct VITAL_KPF_EXPORT packet_header_t
   int domain;
   packet_header_t(): style( packet_style::INVALID ), domain( NO_DOMAIN ) {}
   packet_header_t( packet_style s, int d ): style(s), domain(d) {}
+  packet_header_t( packet_style s ): style(s), domain( NO_DOMAIN ) {}
 };
 
 VITAL_KPF_EXPORT auto packet_header_cmp = []( const packet_header_t& lhs, const packet_header_t& rhs )
@@ -86,27 +87,22 @@ struct VITAL_KPF_EXPORT conf_t
 
 } // ...canonical
 
-union VITAL_KPF_EXPORT payload_t
-{
-  payload_t(): id(0) {}
-  payload_t( const payload_t& other ): id( other.id ) {}
-  ~payload_t() {}
-  canonical::id_t id;
-  canonical::timestamp_t timestamp;
-  canonical::timestamp_range_t timestamp_range;
-  canonical::bbox_t bbox;
-  canonical::kv_t kv;
-  canonical::conf_t conf;
-  // ... use pointers for the polygon / events
-  // pay special attention to cpctor / etc...
-};
-
 struct VITAL_KPF_EXPORT packet_t
 {
   packet_header_t header;
-  payload_t payload;
+  union
+  {
+    canonical::id_t id;
+    canonical::timestamp_t timestamp;
+    canonical::timestamp_range_t timestamp_range;
+    canonical::bbox_t bbox;
+    canonical::kv_t kv;
+    canonical::conf_t conf;
+  };
   packet_t(): header( packet_header_t() ) {}
-
+  ~packet_t();
+  packet_t( const packet_t& other );
+  packet_t& operator=( const packet_t& other );
 };
 
 } // ...kpf
