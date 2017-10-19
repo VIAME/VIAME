@@ -7,5 +7,5 @@ The example currently requires:
 
   (a) A VIAME build with VIAME_ENABLE_BURNOUT and VIAME_ENABLE_VXL turned on
 
-It's inoperatable at the moment but will be updated shortly.
+It's inoperable at the moment but will be updated shortly.
 
