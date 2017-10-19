@@ -26,6 +26,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+from __future__ import print_function
 
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
@@ -75,7 +76,7 @@ class hello_world_detector(KwiverProcess):
         in_img = in_img_c.get_image()
 
         # Print out text to screen
-        print "Text: " + str( self.text )
+        print("Text: " + str( self.text ))
 
         # push dummy detections object to output port
         detections = DetectedObjectSet()

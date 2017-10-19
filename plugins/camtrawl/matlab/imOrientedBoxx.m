@@ -1,7 +1,7 @@
-function [rect labels] = imOrientedBox(img, theta)
+function [rect labels] = imOrientedBoxx(img, theta)
 %IMORIENTEDBOX Minimum-area oriented bounding box of particles in image
 %
-%   OBB = imOrientedBox(IMG);
+%   OBB = imOrientedBoxx(IMG);
 %   Computes the minimum area oriented bounding box of labels in image IMG.
 %   IMG is either a binary or a label image. 
 %   The result OBB is a N-by-11 array, containing the four rectangle
@@ -14,13 +14,13 @@ function [rect labels] = imOrientedBox(img, theta)
 %   box of each particle in the image.  The orientation is given in radians, in the direction of the greatest
 %   box axis.
 %
-%   OBB = imOrientedBox(IMG, NDIRS);
-%   OBB = imOrientedBox(IMG, DIRSET);
+%   OBB = imOrientedBoxx(IMG, NDIRS);
+%   OBB = imOrientedBoxx(IMG, DIRSET);
 %   Specifies either the number of directions to use for computing boxes
 %   (default is 180), or the set of directions.
 %
 %   Example
-%   imOrientedBox
+%   imOrientedBoxx
 %
 %   See also
 %   imFeretDiameter

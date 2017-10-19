@@ -11,6 +11,7 @@ FormatPassdowns( "VIAME_ENABLE" VIAME_ENABLE_FLAGS )
 FormatPassdowns( "VIAME_DISABLE" VIAME_DISABLE_FLAGS )
 FormatPassdowns( "VIAME_INSTALL" VIAME_INSTALL_FLAGS )
 FormatPassdowns( "VIAME_DOWNLOAD" VIAME_DOWNLOAD_FLAGS )
+FormatPassdowns( "VIAME_.*_VERSION" VIAME_VERSION_FLAGS )
 
 if( VIAME_ENABLE_MATLAB )
   FormatPassdowns( "Matlab" VIAME_MATLAB_FLAGS )
@@ -36,6 +37,7 @@ ExternalProject_Add(viame
     ${VIAME_INSTALL_FLAGS}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
+    ${VIAME_VERSION_FLAGS}
     -DBUILD_SHARED_LIBS:BOOL=ON
     -DVIAME_BUILD_DEPENDENCIES:BOOL=OFF
     -DVIAME_CREATE_PACKAGE:BOOL=${VIAME_CREATE_PACKAGE}
@@ -43,6 +45,7 @@ ExternalProject_Add(viame
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+#if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(viame forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/viame-stamp/viame-build
@@ -51,3 +54,4 @@ ExternalProject_Add_Step(viame forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+#endif()

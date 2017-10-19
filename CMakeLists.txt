@@ -8,6 +8,13 @@ project( VIAME )
 
 include( CMakeDependentOption )
 
+
+# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
+# other superbuild proejct (except for viame). This makes development builds
+# much quicker.
+option(VIAME_FORCEBUILD True)
+mark_as_advanced( VIAME_ENABLE_KWIVER )
+
 ###
 # Add paths used throughout CMakeLists files
 ##
@@ -55,6 +62,7 @@ option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
+option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
 
 
 ###
@@ -81,6 +89,9 @@ mark_as_advanced( VIAME_CREATE_PACKAGE )
 ##
 option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libtiff and libjpeg" ON )
 mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
+
+option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" OFF )
+mark_as_advanced( VIAME_BUILD_TESTS )
 
 ###
 # Add logic relating to enable flags
@@ -118,8 +129,11 @@ if( VIAME_ENABLE_PYTHON )
   option( VIAME_DISABLE_PYTHON_CHECK   "Disable python version checking" OFF )
   mark_as_advanced( VIAME_DISABLE_PYTHON_CHECK )
 
-  option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
-  mark_as_advanced( VIAME_SYMLINK_PYTHON )
+  if (NOT WIN32)
+    option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
+    mark_as_advanced( VIAME_SYMLINK_PYTHON )
+  endif()
+  set(KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON})
 
   find_package( PythonInterp REQUIRED )
   find_package( PythonLibs REQUIRED )
@@ -329,6 +343,7 @@ else()
   ###
   # KWIVER CMake config
   ##
+  include( kwiver-cmake-future )
   include( kwiver-utils )
 
   ##

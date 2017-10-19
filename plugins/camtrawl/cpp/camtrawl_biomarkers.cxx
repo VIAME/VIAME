@@ -28,18 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "uw_predictor_classifier.h"
-
-#include <arrows/ocv/image_container.h>
-
-#include <opencv2/core/core.hpp>
-
-#include "util.h"
-#include "classHierarchy.h"
-#include "SpeciesIDLib.h"
+#include "camtrawl_biomarkers.h"
 
 #include <cmath>
-#include <string>
+#include <iostream>
 
 namespace viame {
 
@@ -47,40 +39,36 @@ namespace viame {
 /**
  * @brief Storage class for private member variables
  */
-class uw_predictor_classifier::priv
+class camtrawl_biomarkers::priv
 {
 public:
 
   priv() {}
   ~priv() {}
 
-  std::string m_model_file;
-  FishSpeciesID m_fish_model;
-};
+}; // end class camtrawl_biomarkers::priv
 
 // =================================================================================================
 
-uw_predictor_classifier::
-uw_predictor_classifier()
+camtrawl_biomarkers::
+camtrawl_biomarkers()
   : d( new priv )
 {}
 
 
-uw_predictor_classifier::
-  ~uw_predictor_classifier()
+camtrawl_biomarkers::
+  ~camtrawl_biomarkers()
 {}
 
 
 // -------------------------------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
-uw_predictor_classifier::
+camtrawl_biomarkers::
 get_configuration() const
 {
   // Get base config from base class
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
-
-  config->set_value( "model_file", d->m_model_file,
-                     "Name of uw_predictor model file." );
+  //config->set_value( "text", d->m_text, "Text to display to user." );
 
   return config;
 }
@@ -88,78 +76,64 @@ get_configuration() const
 
 // -------------------------------------------------------------------------------------------------
 void
-uw_predictor_classifier::
+camtrawl_biomarkers::
 set_configuration( kwiver::vital::config_block_sptr config )
 {
-  d->m_model_file = config->get_value< std::string >( "model_file" );
-
-	d->m_fish_model.loadModel( d->m_model_file.c_str() );
+  //d->m_text = config->get_value< std::string >( "text" );
 }
 
 
 // -------------------------------------------------------------------------------------------------
 bool
-uw_predictor_classifier::
+camtrawl_biomarkers::
 check_configuration( kwiver::vital::config_block_sptr config ) const
 {
+  //if( d->m_text.empty() )
+  //{
+  //  return false;
+  //}
+
   return true;
 }
 
 
 // -------------------------------------------------------------------------------------------------
-kwiver::vital::detected_object_set_sptr
-uw_predictor_classifier::
-refine( kwiver::vital::image_container_sptr image_data,
-  kwiver::vital::detected_object_set_sptr input_dets ) const
+kwiver::vital::feature_set_sptr
+camtrawl_biomarkers::
+detect( kwiver::vital::detected_object_set_sptr image_data ) const
 {
-  auto output_detections = std::make_shared< kwiver::vital::detected_object_set >();
+  // TODO: IMPLEMENT OR CALL DETECTOR ALGORITHM
 
   cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+  // TODO: do image processing
 
-  if( src.channels() == 3 )
+  // pack results into expected type
+  auto feature_points = std::make_shared< kwiver::vital::feature_set >();
+  for (int i = 0; i < 3; i++)
   {
-    cv::cvtColor( src, src, CV_RGB2GRAY );
-  }
+    double xmin = 0 + i;
+    double ymin = 0 + i;
+    double xmax = 1 + i;
+    double ymax = 1 + i;
 
-  // process results
-  for( auto det : *input_dets )
-  {
-    // Crop out chip
-    auto bbox = det->bounding_box();
+    // Create kwiver style bounding box
+    kwiver::vital::bounding_box_d bbox(xmin, ymin, xmax, ymax);
 
-    cv::Rect roi( bbox.min_x(), bbox.min_y(), bbox.width(), bbox.height() );
-    cv::Mat roi_crop = src( roi );
+    std::vector< std::string > class_names = {"redfish", "bluefish"};
+    std::vector< double > class_probs = {.9, .1};
 
-    // Run UW predictor code on each chip
-    vector< int > predictions;
-    vector< double > probabilities;
-
-    cv::Mat segment_chip = kwiver::arrows::ocv::image_container::vital_to_ocv( det->mask()->get_image() );
-
-    if( segment_chip.channels() == 3 )
-    {
-      cv::cvtColor( segment_chip, segment_chip, CV_RGB2GRAY );
-    }
-
-    cv::Mat fg_rect;
-    bool is_partial = d->m_fish_model.predict( roi_crop, segment_chip, predictions, probabilities, fg_rect );
-
-    // Convert UW detections to KWIVER format
-    vector< string > names;
-
-    for( int i : predictions )
-    {
-      names.push_back( std::to_string( i ) );
-    }
-
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >( names, probabilities );
+    // Create possible object types.
+    auto obj_type = std::make_shared< kwiver::vital::detected_object_type >( class_names, class_probs );
 
     // Create detection
-    output_detections->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
-  }
+    feature_points->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+  } // end for
 
-  return output_detections;
+
+  return feature_points;
 }
 
 
 } // end namespace
+
+

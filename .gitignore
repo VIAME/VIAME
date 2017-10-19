@@ -27,3 +27,7 @@
 *.exe
 *.out
 *.app
+
+# Compiled Python
+*.pyc
+__pycache__
