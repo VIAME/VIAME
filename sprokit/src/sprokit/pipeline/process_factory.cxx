@@ -186,7 +186,12 @@ create_object(kwiver::vital::config_block_sptr const& config)
 {
   // Call sprokit factory function. Need to use this factory
   // function approach to handle clusters transparently.
-  return m_factory( config ).cast<sprokit::process_t>();
+
+  // We need to do it this way because of how pybind11 handles memory
+  pybind11::object obj = m_factory(config);
+  obj.inc_ref();
+  sprokit::process_t proc_ptr = obj.cast<sprokit::process_t>();
+  return proc_ptr;
 }
 
 sprokit::process_t

@@ -142,7 +142,10 @@ create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr 
 {
   // Call sprokit factory function. Need to use this factory
   // function approach to handle clusters transparently.
-  return m_factory( pipe, config ).cast<sprokit::scheduler_t>();;
+  pybind11::object obj = m_factory(pipe, config);
+  obj.inc_ref();
+  sprokit::scheduler_t schd_ptr = obj.cast<sprokit::scheduler_t>();
+  return schd_ptr;
 }
 
 

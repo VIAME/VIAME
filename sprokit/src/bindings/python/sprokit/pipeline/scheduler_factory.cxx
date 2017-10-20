@@ -84,12 +84,12 @@ PYBIND11_MODULE(scheduler_factory, m)
   // Define unbound functions.
   m.def("add_scheduler", &register_scheduler
       , arg("type"), arg("description"), arg("ctor")
-      , "Registers a function which creates a scheduler of the given type.");
+      , "Registers a function which creates a scheduler of the given type."
+      , return_value_policy::reference_internal);
 
   m.def("create_scheduler", &sprokit::create_scheduler
       , arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config()
       , "Creates a new scheduler of the given type.");
-
 
   m.def("is_scheduler_module_loaded", &is_scheduler_loaded
       , (arg("module"))
@@ -108,7 +108,6 @@ PYBIND11_MODULE(scheduler_factory, m)
 
   m.def("default_type", &get_default_type
       , "The default scheduler type.");
-
 
   m.attr("Scheduler") = m.import("sprokit.pipeline.scheduler").attr("PythonScheduler");
 
