@@ -58,3 +58,31 @@ function( RemoveDir _inDir )
 endfunction()
 
 
+###
+# Adds a standard VIAME forcebuild custom step to an external project
+###
+function( VIAME_ExternalProject_Add_Step_Forcebuild target_name )
+  cmake_parse_arguments(MY "FORCE" "" "" "${ARGN}")
+
+  string(TOUPPER "${target_name}" target_name_upper)
+  set (_forcebuild_varname "VIAME_FORCEBUILD_${target_name_upper}")
+  set (_forcebuild_value ${${_forcebuild_varname}})
+
+  if (NOT "${MY_FORCE}")
+    if ("${_forcebuild_value}" STREQUAL "")
+      message(WARNING "${_forcebuild_varname} is not set")
+      set(_forcebuild_value True)
+    endif()
+  endif()
+
+  if(MY_FORCE OR _forcebuild_value)
+    ExternalProject_Add_Step(${target_name} forcebuild
+      COMMAND ${CMAKE_COMMAND}
+        -E remove ${VIAME_BUILD_PREFIX}/src/${target_name}-stamp/${target_name}-build
+      COMMENT "Removing ${target_name} build stamp file for build update (forcebuild)."
+      DEPENDEES configure
+      DEPENDERS build
+      ALWAYS 1
+      )
+  endif()
+endfunction()

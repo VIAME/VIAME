@@ -44,14 +44,7 @@ ExternalProject_Add(darknet
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(darknet forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/darknet-stamp/darknet-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+VIAME_ExternalProject_Add_Step_Forcebuild(darknet)
 
 set(VIAME_ARGS_darknet
   -Ddarknet_DIR:PATH=${VIAME_BUILD_PREFIX}/src/darknet-build

@@ -36,6 +36,7 @@ else()
   set( ScallopTK_CXXFLAGS_OVERRIDE )
 endif()
 
+if(VIAME_FORCEBUILD_SCALLOP_TK)
 ExternalProject_Add(scallop_tk
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -55,15 +56,9 @@ ExternalProject_Add(scallop_tk
     -DMODEL_INSTALL_DIR:PATH=examples/detector_pipelines/models/scallop_tk
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
+endif()
 
-ExternalProject_Add_Step(scallop_tk forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/scallop_tk-stamp/scallop_tk-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+VIAME_ExternalProject_Add_Step_Forcebuild(scallop_tk)
 
 set(VIAME_ARGS_scallop_tk
   -DScallopTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/scallop_tk-build

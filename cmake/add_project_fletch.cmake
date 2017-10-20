@@ -115,6 +115,7 @@ else()
 endif()
 
 ExternalProject_Add(fletch
+  DEPENDS
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
   CMAKE_GENERATOR ${gen}
@@ -168,14 +169,7 @@ ExternalProject_Add(fletch
     -P ${VIAME_SOURCE_DIR}/cmake/custom_fletch_install.cmake
   )
 
-ExternalProject_Add_Step(fletch forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+VIAME_ExternalProject_Add_Step_Forcebuild(fletch)
 
 set( VIAME_ARGS_fletch
   -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
