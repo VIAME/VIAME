@@ -62,6 +62,7 @@ struct VITAL_KPF_EXPORT id_t
 
 struct VITAL_KPF_EXPORT timestamp_t
 {
+  enum {FRAME_NUMBER=0 };
   double d;
   explicit timestamp_t( double ts ): d(ts) {}
 };

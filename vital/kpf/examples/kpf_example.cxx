@@ -146,22 +146,23 @@ struct user_box_adapter_t: public KPF::kpf_box_adapter< user_detection_t >
 vector< user_detection_t >
 read_detections_from_stream( std::istream& is )
 {
+  namespace KPFC = KPF::canonical;
   vector< user_detection_t > dets;
   user_box_adapter_t box;
   KPF::text_parser_t parser( is );
+  user_detection_t buffer;
 
   while (parser
-         >> box.set_domain( KPF::canonical::bbox_t::IMAGE_COORDS )
-         /*         >> canonical::id_t( det.detection_id, canonical::id_t::DETECTION_ID )
-         >> canonical::ts_t( det.frame_number, canonical::ts_t::FRAME_NUMBER )
-         >> canonical::kv_t( "label", det.label )
+         >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
+         >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
+         >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
+         /*        >> canonical::kv_t( "label", det.label )
          >> canonical::conf_t( det.confidence, DETECTOR_DOMAIN )
          >> kpf::flush() */
     )
   {
-    user_detection_t det;
-    box.get( det ); // would be nice to move this up
-    dets.push_back( det );
+    box.get( buffer );
+    dets.push_back( buffer );
     parser.flush();
   }
 
@@ -216,15 +217,14 @@ write_detections_to_stream( ostream& os,
 {
   namespace KPFC = KPF::canonical;
   user_box_adapter_t box_adapter;
+  KPF::record_text_writer w( os );
   for (const auto& det: dets )
   {
-    KPF::record_text_writer w( os );
     w
-      << KPF::io< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
-      << KPF::io< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
+      << KPF::writer< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
+      << KPF::writer< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
+      << KPF::writer< KPFC::timestamp_t >( det.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
 #if 0
-      << box.to_str( det ) << " "
-      << KPF::io< ts_t >( det.frame_number, ts_t::FRAME_NUMBER )
       << KPF::io( kv_t( "label", det.label ) )
       << KPF::io( conf_t( det.confidence ))
 #endif

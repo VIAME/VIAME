@@ -127,6 +127,11 @@ parse_scalar( size_t index,
           packet.id.d = stoi( tokens[ index ] );
         }
         break;
+      case packet_style::TS:
+        {
+          packet.timestamp.d = stod( tokens[ index ]);
+        }
+        break;
       default:
         {
           LOG_ERROR( main_logger, "Unhandled scalar parse style " << static_cast<int>( style ) );
@@ -136,7 +141,7 @@ parse_scalar( size_t index,
   }
   catch (const std::invalid_argument& e)
   {
-    LOG_ERROR( main_logger, "parsing geom: error converting to double " << e.what() );
+    LOG_ERROR( main_logger, "parsing scalar: error converting to scalar " << e.what() );
     return make_pair( false, index );
   }
 
@@ -287,7 +292,8 @@ packet_payload_parser ( size_t index,
     ret = parse_geom( index, tokens, packet);
     break;
 
-  case packet_style::ID:
+  case packet_style::ID:   // fallthrough
+  case packet_style::TS:   // fallthrough
     ret = parse_scalar( index, tokens, packet.header.style, packet );
     break;
 

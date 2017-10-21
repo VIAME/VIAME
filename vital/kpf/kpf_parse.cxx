@@ -2,6 +2,7 @@
 
 #include <vital/util/tokenize.h>
 #include <vector>
+#include <stdexcept>
 
 #include <vital/kpf/kpf_parse_utils.h>
 
@@ -189,10 +190,15 @@ text_parser_t
   return packet_parser( tokens, this->packet_buffer );
 }
 
-bool
+pair< bool, packet_t >
 text_parser_t
-::process_reader( text_reader_t& b )
+::transfer_packet_from_buffer( const packet_header_t& h )
 {
+  if (! this->reader_status )
+  {
+    return make_pair( false, packet_t() );
+  }
+
   //
   // If the buffer is empty, read a 'record' (a line)
   // from the stream.
@@ -202,7 +208,8 @@ text_parser_t
   {
     if ( ! this->parse_next_line() )
     {
-      return false;
+      this->reader_status = false;
+      return make_pair( false, packet_t() );
     }
   }
 
@@ -210,7 +217,6 @@ text_parser_t
   // what type of packet is this reader looking for?
   //
 
-  packet_header_t h = b.my_header();
   LOG_INFO( main_logger, "Reader looking for style " << style2str(h.style) << " domain " << h.domain );
 
   //
@@ -219,7 +225,7 @@ text_parser_t
 
   if (h.style == packet_style::INVALID)
   {
-    return true;
+    return make_pair( true, packet_t() );
   }
 
   //
@@ -230,16 +236,29 @@ text_parser_t
   auto probe = this->packet_buffer.find( h );
   if (probe == this->packet_buffer.end())
   {
-    return false;
+    this->reader_status = false;
+    return make_pair( false, packet_t() );
   }
 
   //
   // remove the packet from the buffer and set the reader; we're done
   //
 
-  b.set_from_buffer( probe->second );
+  auto ret = make_pair( true, probe->second );
   this->packet_buffer.erase( probe );
-  return true;
+  return ret;
+}
+
+bool
+text_parser_t
+::process_reader( text_reader_t& b )
+{
+  auto probe = this->transfer_packet_from_buffer( b.my_header() );
+  if (probe.first)
+  {
+    b.set_from_buffer( probe.second );
+  }
+  return probe.first;
 }
 
 bool
@@ -275,6 +294,49 @@ text_parser_t& operator>>( text_parser_t& t,
   return t >> io.text_reader;
 }
 
+text_parser_t&
+operator>>( text_parser_t& t,
+            const reader< canonical::bbox_t >& r )
+{
+  t.process( r.box_adapter.set_domain( r.domain ) );
+  return t;
+}
+
+text_parser_t&
+operator>>( text_parser_t& t,
+            const reader< canonical::id_t >& r )
+{
+  auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::ID, r.domain ));
+  if (probe.first)
+  {
+    r.id_ref = probe.second.id.d;
+  }
+  return t;
+}
+
+text_parser_t&
+operator>>( text_parser_t& t,
+            const reader< canonical::timestamp_t >& r )
+{
+  auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::TS, r.domain ));
+  if (probe.first)
+  {
+    switch (r.which)
+    {
+      case reader< canonical::timestamp_t >::to_int:
+        r.int_ts = static_cast<int>( probe.second.timestamp.d );
+        break;
+      case reader< canonical::timestamp_t >::to_unsigned:
+        r.unsigned_ts = static_cast<unsigned>( probe.second.timestamp.d );
+        break;
+      case reader< canonical::timestamp_t >::to_double:
+        r.double_ts = probe.second.timestamp.d;
+      break;
+    }
+  }
+  return t;
+}
+
 record_text_writer&
 operator<<( record_text_writer& w, const private_endl_t& )
 {
@@ -283,16 +345,23 @@ operator<<( record_text_writer& w, const private_endl_t& )
 }
 
 record_text_writer&
-operator<<( record_text_writer& w, const io< canonical::id_t >& io)
+operator<<( record_text_writer& w, const writer< canonical::id_t >& io)
 {
   w.s << "id" << io.domain << ": " << io.id.d << " ";
   return w;
 }
 
 record_text_writer&
-operator<<( record_text_writer& w, const io< canonical::bbox_t >& io)
+operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io)
 {
   w.s << "g" << io.domain << ": " << io.box.x1 << " " << io.box.y1 << " " << io.box.x2 << " " << io.box.y2 << " ";
+  return w;
+}
+
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io)
+{
+  w.s << "ts" << io.domain << ": " << io.ts.d << " ";
   return w;
 }
 

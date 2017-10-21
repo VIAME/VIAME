@@ -99,6 +99,11 @@ public:
   // clear the packet buffer
   void flush() { this->packet_buffer.clear(); }
 
+  // look for a packet matching the header; if found,
+  // return true, remove from buffer, return the packet
+  // if not found, return false
+  std::pair< bool, packet_t > transfer_packet_from_buffer( const packet_header_t& h );
+
 private:
   bool process_reader( text_reader_t& b );
   bool parse_next_line();
@@ -112,6 +117,85 @@ private:
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t,
                            text_reader_t& b );
+
+//
+//
+//
+
+template< typename T >
+struct writer
+{};
+
+template <>
+struct VITAL_KPF_EXPORT writer< canonical::bbox_t >
+{
+  writer( const canonical::bbox_t& b, int d) : box(b), domain(d) {}
+  const canonical::bbox_t& box;
+  int domain;
+};
+
+template <>
+struct VITAL_KPF_EXPORT writer< canonical::id_t >
+{
+  writer( size_t i, int d ): id(i), domain(d) {}
+  canonical::id_t id;
+  int domain;
+};
+
+template <>
+struct VITAL_KPF_EXPORT writer< canonical::timestamp_t >
+{
+  writer( double t, int d ): ts(t), domain(d) {}
+  canonical::timestamp_t ts;
+  int domain;
+};
+
+//
+//
+//
+
+class record_text_writer;
+class text_reader_t;
+
+struct VITAL_KPF_EXPORT private_endl_t
+{};
+
+class VITAL_KPF_EXPORT record_text_writer
+{
+public:
+  explicit record_text_writer( std::ostream& os ) : s( os ) {}
+
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
+
+  static private_endl_t endl;
+
+private:
+  std::ostream& s;
+};
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
+
+VITAL_KPF_EXPORT
+text_reader_t&
+operator>>( text_reader_t& w, const writer< canonical::id_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const private_endl_t& e );
+
 
 //
 // The text reader is the bounce buffer between the parser's
@@ -159,6 +243,7 @@ protected:
 struct kpf_io_adapter_base
 {
   text_reader_t text_reader;
+  kpf_io_adapter_base& set_domain( int d ) { this->text_reader.set_domain(d); return *this; }
 };
 
 VITAL_KPF_EXPORT
@@ -196,8 +281,6 @@ struct kpf_io_adapter: public kpf_io_adapter_base
   // these two methods both convert a KPF type into a user type.
   USER_TYPE operator()( const KPF_TYPE& k ) { return (user2kpf_function)( k ); }
   void operator()( const KPF_TYPE& k, USER_TYPE& u ) { (kpf2user_inplace)( k, u ); }
-
-  kpf_io_adapter& set_domain( int d ) { this->text_reader.set_domain(d); return *this; }
 
   // this method converts the user type and passes on the domain.
   std::pair< int, KPF_TYPE > operator()( const USER_TYPE& u, int domain )
@@ -256,62 +339,56 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 
 };
 
-//
-//
-//
 
 template< typename T >
-struct io
+struct reader
 {};
 
 template <>
-struct VITAL_KPF_EXPORT io< canonical::bbox_t >
+struct VITAL_KPF_EXPORT reader< canonical::bbox_t >
 {
-  io( const canonical::bbox_t& b, int d) : box(b), domain(d) {}
-  canonical::bbox_t box;
+  reader( kpf_io_adapter_base& b, int d): box_adapter(b), domain(d) {}
+  kpf_io_adapter_base& box_adapter;
   int domain;
 };
 
 template <>
-struct VITAL_KPF_EXPORT io< canonical::id_t >
+struct VITAL_KPF_EXPORT reader< canonical::id_t >
 {
-  io( size_t i, int d ): id(i), domain(d) {}
-  canonical::id_t id;
+  reader( int& id, int d ): id_ref(id), domain(d) {}
+  int& id_ref;
   int domain;
 };
 
-struct VITAL_KPF_EXPORT private_endl_t
-{};
-
-class VITAL_KPF_EXPORT record_text_writer
+template <>
+struct VITAL_KPF_EXPORT reader< canonical::timestamp_t >
 {
-public:
-  explicit record_text_writer( std::ostream& os ) : s( os ) {}
-
-  friend record_text_writer& operator<<( record_text_writer& w, const io< canonical::id_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const io< canonical::bbox_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
-
-  static private_endl_t endl;
-
 private:
-  std::ostream& s;
+  int i_dummy;
+  unsigned u_dummy;
+  double d_dummy;
+
+public:
+  enum which_t {to_int, to_unsigned, to_double};
+  reader( int& ts, int d ): which( to_int), int_ts(ts), unsigned_ts(u_dummy), double_ts( d_dummy ),  domain(d) {}
+  reader( unsigned& ts, int d ): which( to_unsigned ), int_ts( i_dummy), unsigned_ts(ts), double_ts( d_dummy ), domain(d) {}
+  reader( double& ts, int d ): which( to_double ), int_ts( i_dummy ), unsigned_ts( u_dummy ), double_ts(ts), domain(d) {}
+  which_t which;
+  int& int_ts;
+  unsigned& unsigned_ts;
+  double& double_ts;
+  int domain;
 };
 
-VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const io< canonical::id_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const io< canonical::bbox_t >& io );
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::bbox_t >& r );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const private_endl_t& e );
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::id_t >& r );
 
-
-
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::timestamp_t >& r );
 
 } // ...kpf
 } // ...vital
