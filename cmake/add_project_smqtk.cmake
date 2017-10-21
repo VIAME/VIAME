@@ -9,41 +9,20 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} smqtk )
 
-
-###
-# Private helper function to execute `python -c "<cmd>"`
-#
-# Runs a python command and populates an outvar with the result of stdout.
-# Be careful of indentation if `cmd` is multiline.
-#
-function(_pycmd outvar cmd)
-  execute_process(
-    COMMAND "${PYTHON_EXECUTABLE}" -c "${cmd}"
-    RESULT_VARIABLE _exitcode
-    OUTPUT_VARIABLE _output)
-  if(NOT ${_exitcode} EQUAL 0)
-    message(ERROR "Failed when running python code: \"\"\"
-${cmd}\"\"\"")
-    message(FATAL_ERROR "Python command failed with error code: ${_exitcode}")
-  endif()
-  # Remove supurflous newlines (artifacts of print)
-  string(STRIP "${_output}" _output)
-  set(${outvar} "${_output}" PARENT_SCOPE)
-endfunction()
-
-# Copy logic for getting site packages from kwiver
-_pycmd(python_site_packages "\
-from distutils import sysconfig
-print(sysconfig.get_python_lib(prefix=''))
-")
-message(STATUS "python_site_packages = ${python_site_packages}")
-get_filename_component(python_sitename ${python_site_packages} NAME)
-
-_pycmd(python_pip_version "import pip; print(pip.__version__)")
-
 if( WIN32 )
   message( FATAL_ERROR "SMQTK not yet supported on WIN32" )
 else()
+
+  # Logic for getting site packages is copied from kwiver
+  # (but it uses a new pycmd function that handles indentation -- ooohh. aahh.)
+  pycmd(python_site_packages "
+    from distutils import sysconfig
+    print(sysconfig.get_python_lib(prefix=''))
+  ")
+  message(STATUS "python_site_packages = ${python_site_packages}")
+  get_filename_component(python_sitename ${python_site_packages} NAME)
+
+  pycmd(python_pip_version "import pip; print(pip.__version__)")
 
   set( PYTHON_BASEPATH
     ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
