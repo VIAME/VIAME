@@ -85,6 +85,7 @@ function( VIAME_ExternalProject_Add_Step_Forcebuild target_name )
       ALWAYS 1
       )
   endif()
+endfunction()
 
 ###
 # Removes common indentation from a block of text to produce code suitable for
