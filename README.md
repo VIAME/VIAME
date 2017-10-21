@@ -224,7 +224,7 @@ algorithm and the second is the actual implementation type. For example the
 entry image_object_detector:hough_circle_detector indicates that it implements
 the image_object_detector interface and it is a hough_circle_detector.
 
-Algorithms can be instantiated in any program and use a configuration based
+Algorithms can be instantiated in any program and they use a configuration based
 approach to select which concrete implementation to instantiate.
 
 For a simple pipeline test, go to -
