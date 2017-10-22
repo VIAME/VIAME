@@ -34,6 +34,7 @@
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
 #include <vital/util/demangle.h>
+#include <vital/util/string.h>
 
 #include <sstream>
 
@@ -220,6 +221,8 @@ plugin_loader
 ::add_search_path( path_list_t const& path)
 {
   m_impl->m_search_paths.insert(m_impl->m_search_paths.end(), path.begin(), path.end() );
+  // remove any duplicate paths that were added
+  erase_duplicates(m_impl->m_search_paths);
 }
 
 

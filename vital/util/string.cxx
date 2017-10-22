@@ -30,6 +30,7 @@
 
 #include "string.h"
 
+#include <unordered_set>
 #include <algorithm>
 #include <iterator>
 #include <memory>    // For std::unique_ptr
@@ -92,6 +93,33 @@ join( const std::vector<std::string>& elements, const std::string& str_separator
     return os.str();
   }
   } // end switch
+}
+
+
+//----------------------------------------------------------------------------
+/**
+ * Removes duplicate strings in a vector while preserving original order
+ */
+void
+erase_duplicates(std::vector<std::string>& items)
+{
+  // For each item: if it has been seen before, then remove it (inplace)
+  std::unordered_set<std::string> seen;
+  std::vector<std::string>::iterator itr = items.begin();
+  while (itr != items.end())
+  {
+    if (!seen.insert((*itr)).second)
+    {
+      // If the item has been seen before, remove it and move itr to the new
+      // location of the next item
+      itr = items.erase(itr);
+    }
+    else
+    {
+      // otherwise go to the next item
+      ++itr;
+    }
+  }
 }
 
 
