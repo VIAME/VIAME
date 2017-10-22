@@ -345,6 +345,14 @@ operator>>( text_parser_t& t,
 
 text_parser_t&
 operator>>( text_parser_t& t,
+            const reader< canonical::poly_t >& r )
+{
+  t.process( r.poly_adapter.set_domain( r.domain ) );
+  return t;
+}
+
+text_parser_t&
+operator>>( text_parser_t& t,
             const reader< canonical::id_t >& r )
 {
   auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::ID, r.domain ));
@@ -441,6 +449,17 @@ record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::conf_t >& io)
 {
   w.s << "conf" << io.domain << ": " << io.conf.d << " ";
+  return w;
+}
+
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::poly_t >& io)
+{
+  w.s << "poly" << io.domain << ": " << io.poly.xy.size() << " ";
+  for (const auto& p : io.poly.xy )
+  {
+    w.s << p.first << " " << p.second << " ";
+  }
   return w;
 }
 

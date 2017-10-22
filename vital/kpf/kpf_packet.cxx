@@ -33,7 +33,7 @@ struct tag2type_bimap_t
     this->style2tag[ packet_style::GEOM ] = "g";
     this->style2tag[ packet_style::POLY ] = "poly";
     this->style2tag[ packet_style::CONF ] = "conf";
-    this->style2tag[ packet_style::EVENT ] = "e";
+    this->style2tag[ packet_style::ACT ] = "act";
     this->style2tag[ packet_style::EVAL ] = "eval";
     this->style2tag[ packet_style::ATTR ] = "a";
     this->style2tag[ packet_style::TAG ] = "tag";
@@ -129,6 +129,9 @@ packet_t
   case packet_style::GEOM:
     new (& (this->bbox)) canonical::bbox_t( other.bbox );
     break;
+  case packet_style::POLY:
+    new (& (this->poly)) canonical::poly_t( other.poly );
+    break;
 
   default:
     {
@@ -158,6 +161,7 @@ operator<<( std::ostream& os, const packet_t& p )
   case packet_style::TSR:   os << p.timestamp_range.start << ":" << p.timestamp_range.stop; break;
   case packet_style::GEOM:  os << p.bbox.x1 << ", " << p.bbox.y1 << " - " << p.bbox.x2 << ", " << p.bbox.y2; break;
   case packet_style::KV:    os << p.kv.key << " = " << p.kv.val; break;
+  case packet_style::POLY:  os << "(polygon w/ " << p.poly.xy.size() << " points)"; break;
   }
   return os;
 }

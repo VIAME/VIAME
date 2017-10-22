@@ -84,6 +84,42 @@ parse_geom( size_t index,
 }
 
 pair< bool, size_t >
+parse_poly( size_t index,
+            const vector<string>& tokens,
+            packet_t& packet )
+{
+  need_at_least( "poly-npts", 1, index, tokens.size() );
+  size_t npts = 0;
+  try
+  {
+    npts = stoi( tokens[ index ] );
+  }
+  catch (const std::invalid_argument& e )
+  {
+    LOG_ERROR( main_logger, "parsing poly: error converting npoints to int " << e.what() );
+    return make_pair( false, index );
+  }
+
+  need_at_least( "poly-pts", (npts*2)+1, index, tokens.size() );
+  try
+  {
+    ++index;
+    for (size_t i=0; i<npts; ++i)
+    {
+      double x = stod( tokens[index++] );
+      double y = stod( tokens[index++] );
+      packet.poly.xy.push_back( make_pair( x, y ));
+    }
+  }
+  catch (const std::invalid_argument& e )
+  {
+    LOG_ERROR( main_logger, "parsing poly: error converting x/y to double " << e.what() );
+    return make_pair( false, index );
+  }
+  return make_pair( true, index );
+}
+
+pair< bool, size_t >
 parse_scalar( size_t index,
               const vector<string>& tokens,
               packet_style style,
@@ -246,6 +282,11 @@ packet_payload_parser ( size_t index,
     ret = parse_geom( index, tokens, packet);
     break;
 
+  case packet_style::POLY:
+    new (&packet.poly ) canonical::poly_t();
+    ret = parse_poly( index, tokens, packet);
+    break;
+
   case packet_style::ID:   // fallthrough
   case packet_style::TS:   // fallthrough
   case packet_style::CONF: // fallthrough
@@ -253,7 +294,7 @@ packet_payload_parser ( size_t index,
     break;
 
   case packet_style::KV:
-    new (& (packet.kv)) canonical::kv_t("", "");
+    new (&packet.kv) canonical::kv_t("", "");
     ret = parse_kv( index, tokens, packet );
     break;
 

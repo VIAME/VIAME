@@ -144,6 +144,14 @@ struct VITAL_KPF_EXPORT writer< canonical::bbox_t >
 };
 
 template <>
+struct VITAL_KPF_EXPORT writer< canonical::poly_t >
+{
+  writer( const canonical::poly_t& p, int d) : poly(p), domain(d) {}
+  const canonical::poly_t& poly;
+  int domain;
+};
+
+template <>
 struct VITAL_KPF_EXPORT writer< canonical::id_t >
 {
   writer( size_t i, int d ): id(i), domain(d) {}
@@ -195,6 +203,7 @@ public:
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
 
   static private_endl_t endl;
@@ -226,6 +235,10 @@ operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
 VITAL_KPF_EXPORT
 record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
 
 VITAL_KPF_EXPORT
 record_text_writer&
@@ -374,6 +387,54 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 
 };
 
+//
+// This is a KPF I/O adapter for polygons.
+//
+
+template< typename USER_TYPE >
+struct kpf_poly_adapter: public kpf_io_adapter< USER_TYPE, canonical::poly_t >
+{
+
+  kpf_poly_adapter( USER_TYPE (*k2u) (const canonical::poly_t&),
+                    canonical::poly_t (*u2k)( const USER_TYPE&) )
+    : kpf_io_adapter<USER_TYPE, canonical::poly_t>( k2u, u2k )
+  {
+    this->text_reader.init( packet_header_t( packet_style::POLY ));
+  }
+  kpf_poly_adapter( void (*k2u) (const canonical::poly_t&, USER_TYPE& ),
+                    canonical::poly_t (*u2k)( const USER_TYPE&) )
+    : kpf_io_adapter<USER_TYPE, canonical::poly_t>( k2u, u2k )
+  {
+    this->text_reader.init( packet_header_t( packet_style::POLY ));
+  }
+
+  USER_TYPE get()
+  {
+    auto probe = this->text_reader.get_packet();
+    // throw if ! probe->first
+    // also throw if kpf2user is null, or else use a temporary?
+    return (this->kpf2user_function)( probe.second.poly );
+  }
+  void get( USER_TYPE& u )
+  {
+    auto probe = this->text_reader.get_packet();
+    // see above
+    (this->kpf2user_inplace)( probe.second.poly, u );
+  }
+
+  void get( text_parser_t& parser, USER_TYPE& u )
+  {
+    // same throwing issues
+    parser.process( *this );
+    this->get( u );
+  }
+
+  canonical::poly_t operator()( const USER_TYPE& u )
+  {
+    return this->user2kpf_function( u );
+  }
+
+};
 
 template< typename T >
 struct reader
@@ -384,6 +445,14 @@ struct VITAL_KPF_EXPORT reader< canonical::bbox_t >
 {
   reader( kpf_io_adapter_base& b, int d): box_adapter(b), domain(d) {}
   kpf_io_adapter_base& box_adapter;
+  int domain;
+};
+
+template <>
+struct VITAL_KPF_EXPORT reader< canonical::poly_t >
+{
+  reader( kpf_io_adapter_base& b, int d): poly_adapter(b), domain(d) {}
+  kpf_io_adapter_base& poly_adapter;
   int domain;
 };
 
@@ -434,6 +503,9 @@ struct VITAL_KPF_EXPORT reader< canonical::conf_t >
 
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t, const reader< canonical::bbox_t >& r );
+
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::poly_t >& r );
 
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t, const reader< canonical::id_t >& r );

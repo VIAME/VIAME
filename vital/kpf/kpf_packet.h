@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -13,6 +14,7 @@ namespace kpf {
 enum class VITAL_KPF_EXPORT packet_style
 {
   INVALID,  // invalid, uninitialized
+  META,     // an uninterpreted string (consumes all following tokens)
   ID,       // a numeric identifier (detection, track, event ID)
   TS,       // timestamp
   TSR,      // timestamp range
@@ -20,7 +22,7 @@ enum class VITAL_KPF_EXPORT packet_style
   GEOM,     // bounding box
   POLY,     // polygon
   CONF,     // a confidence value
-  EVENT,    // an event
+  ACT,      // an activity
   EVAL,     // an evaluation result
   ATTR,     // an attribute
   TAG,      // a tag
@@ -86,6 +88,13 @@ struct VITAL_KPF_EXPORT conf_t
   explicit conf_t( double conf ): d(conf) {}
 };
 
+struct VITAL_KPF_EXPORT poly_t
+{
+  enum {IMAGE_COORDS = 0};
+  std::vector< std::pair< double, double > > xy;
+  poly_t( const std::vector< std::pair< double, double > >& p ): xy(p) {}
+  poly_t() {}
+};
 
 } // ...canonical
 
@@ -100,6 +109,7 @@ struct VITAL_KPF_EXPORT packet_t
     canonical::bbox_t bbox;
     canonical::kv_t kv;
     canonical::conf_t conf;
+    canonical::poly_t poly;
   };
   packet_t(): header( packet_header_t() ) {}
   ~packet_t();
