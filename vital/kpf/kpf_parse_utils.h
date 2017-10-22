@@ -17,9 +17,6 @@ typedef std::tuple< bool, std::string, int > header_parse_t;
 
 header_parse_t VITAL_KPF_EXPORT parse_header( const std::string& s, bool expect_colon );
 
-packet_style VITAL_KPF_EXPORT str2style( const std::string& s );
-std::string VITAL_KPF_EXPORT style2str( packet_style );
-
 std::pair< bool, size_t > VITAL_KPF_EXPORT packet_payload_parser (
   size_t index,
   const std::vector< std::string >& tokens,

@@ -2,6 +2,7 @@
 #define KWIVER_VITAL_KPF_PACKET_H_
 
 #include <vital/kpf/vital_kpf_export.h>
+#include <iostream>
 #include <string>
 #include <utility>
 
@@ -105,6 +106,12 @@ struct VITAL_KPF_EXPORT packet_t
   packet_t( const packet_t& other );
   packet_t& operator=( const packet_t& other );
 };
+
+std::ostream& VITAL_KPF_EXPORT operator<<( std::ostream& os, const packet_header_t& p );
+std::ostream& VITAL_KPF_EXPORT operator<<( std::ostream& os, const packet_t& p );
+
+packet_style VITAL_KPF_EXPORT str2style( const std::string& s );
+std::string VITAL_KPF_EXPORT style2str( packet_style );
 
 } // ...kpf
 } // ...vital

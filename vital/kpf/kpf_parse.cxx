@@ -190,13 +190,13 @@ text_parser_t
   return packet_parser( tokens, this->packet_buffer );
 }
 
-pair< bool, packet_t >
+bool
 text_parser_t
-::transfer_packet_from_buffer( const packet_header_t& h )
+::verify_reader_status()
 {
   if (! this->reader_status )
   {
-    return make_pair( false, packet_t() );
+    return false;
   }
 
   //
@@ -209,15 +209,56 @@ text_parser_t
     if ( ! this->parse_next_line() )
     {
       this->reader_status = false;
-      return make_pair( false, packet_t() );
+      return false;
     }
+  }
+  return true;
+}
+
+pair< bool, packet_t >
+text_parser_t
+::transfer_kv_packet_from_buffer( const string& key )
+{
+  if (! this->verify_reader_status() )
+  {
+    return make_pair( false, packet_t() );
   }
 
   //
-  // what type of packet is this reader looking for?
+  // Look for a packet in the buffer which is (a) a kv packet,
+  // and (b) its key value matches the parameter
   //
 
-  LOG_INFO( main_logger, "Reader looking for style " << style2str(h.style) << " domain " << h.domain );
+  auto probe =
+    std::find_if( this->packet_buffer.cbegin(),
+                  this->packet_buffer.cend(),
+                  [key]( const std::pair< packet_header_t, packet_t>& p) -> bool {
+                    return ((p.first.style == packet_style::KV) &&
+                            (p.second.kv.key == key )); });
+
+  if (probe == this->packet_buffer.end())
+  {
+    return make_pair( false, packet_t() );
+  }
+
+  //
+  // remove the packet from the buffer and set the reader; we're done
+  //
+
+  auto ret = make_pair( true, probe->second );
+  this->packet_buffer.erase( probe );
+  return ret;
+}
+
+
+pair< bool, packet_t >
+text_parser_t
+::transfer_packet_from_buffer( const packet_header_t& h )
+{
+  if (! this->verify_reader_status() )
+  {
+    return make_pair( false, packet_t() );
+  }
 
   //
   // if the head is invalid (i.e. the null reader) we're done
@@ -337,6 +378,30 @@ operator>>( text_parser_t& t,
   return t;
 }
 
+text_parser_t&
+operator>>( text_parser_t& t,
+            const reader< canonical::kv_t >& r )
+{
+  auto probe = t.transfer_kv_packet_from_buffer( r.key );
+  if (probe.first)
+  {
+    r.val = probe.second.kv.val;
+  }
+  return t;
+}
+
+text_parser_t&
+operator>>( text_parser_t& t,
+            const reader< canonical::conf_t >& r )
+{
+  auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::CONF, r.domain ));
+  if (probe.first)
+  {
+    r.conf = probe.second.conf.d;
+  }
+  return t;
+}
+
 record_text_writer&
 operator<<( record_text_writer& w, const private_endl_t& )
 {
@@ -362,6 +427,20 @@ record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io)
 {
   w.s << "ts" << io.domain << ": " << io.ts.d << " ";
+  return w;
+}
+
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::kv_t >& io)
+{
+  w.s << "kv: " << io.kv.key << " " << io.kv.val << " ";
+  return w;
+}
+
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::conf_t >& io)
+{
+  w.s << "conf" << io.domain << ": " << io.conf.d << " ";
   return w;
 }
 

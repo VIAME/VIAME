@@ -1,11 +1,12 @@
 #include "kpf_parse_utils.h"
 
+#include <vital/exceptions/kpf.h>
+
 #include <utility>
 #include <cctype>
 #include <vector>
+#include <sstream>
 #include <map>
-#include <stdexcept>
-
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -15,50 +16,13 @@ using std::map;
 using std::pair;
 using std::make_pair;
 using std::vector;
-
+using std::ostringstream;
 
 namespace { // anon
 
 using kwiver::vital::kpf::packet_style;
 using kwiver::vital::kpf::packet_t;
 using namespace kwiver::vital::kpf::canonical;
-
-//
-// This structure defines the mapping between text tags and
-// their corresponding enums.
-//
-
-struct tag2type_bimap_t
-{
-  map< string, packet_style > tag2style;
-  map< packet_style, string > style2tag;
-
-  tag2type_bimap_t()
-  {
-    this->style2tag[ packet_style::INVALID ] = "invalid";
-    this->style2tag[ packet_style::ID ] = "id";
-    this->style2tag[ packet_style::TS ] = "ts";
-    this->style2tag[ packet_style::TSR ] = "tsr";
-    this->style2tag[ packet_style::LOC ] = "loc";
-    this->style2tag[ packet_style::GEOM ] = "g";
-    this->style2tag[ packet_style::POLY ] = "poly";
-    this->style2tag[ packet_style::CONF ] = "conf";
-    this->style2tag[ packet_style::EVENT ] = "e";
-    this->style2tag[ packet_style::EVAL ] = "eval";
-    this->style2tag[ packet_style::ATTR ] = "a";
-    this->style2tag[ packet_style::TAG ] = "tag";
-    this->style2tag[ packet_style::KV ] = "kv";
-
-
-    for (auto i=this->style2tag.begin(); i != this->style2tag.end(); ++i )
-    {
-      this->tag2style[ i->second ] = i->first;
-
-    }
- };
-};
-
-static tag2type_bimap_t TAG2TYPE_BIMAP;
 
 //
 // parse the geometry / bounding box:
@@ -72,19 +36,34 @@ static tag2type_bimap_t TAG2TYPE_BIMAP;
 // index   8  9  10 11 12 13  ...
 //
 // ...then for 'g0:' (tokens[8]), index will be 9
+//
+
+void
+need_at_least( const string& tag, size_t needed, size_t index, size_t s )
+{
+  //
+  // if (say) needed == 4, then index range is [index] ... [index+3]
+  // need to make sure [index+3] is valid
+  // i.e. that last-valid-index (aka s-1) is >= index+3
+  // index + needed - 1 <= s-1, or...
+  // index + needed <= s
+  // if ! (index + needed <=s ), throw
+  // ! (index + needed <= s) ==> index + needed > s
+  if (index + needed > s )
+  {
+    ostringstream oss;
+    oss << "Parsing " << tag << ": at index " << index << ", " << needed
+        << " tokens required but only " << s << " in buffer";
+    throw ::kwiver::vital::kpf_token_underrun_exception( oss.str() );
+  }
+}
 
 pair< bool, size_t >
 parse_geom( size_t index,
             const vector<string>& tokens,
             packet_t& packet )
 {
-  // do we have at least four tokens?
-  // tokens[index] is first, through tokens[index+3]
-  if (index + 3 >= tokens.size())
-  {
-    LOG_ERROR( main_logger, "parsing geom: index " << index << " but only " << tokens.size() << " tokens left" );
-    return make_pair( false, index );
-  }
+  need_at_least( "geom", 4, index, tokens.size());
 
   double xy[4];
   try
@@ -110,33 +89,24 @@ parse_scalar( size_t index,
               packet_style style,
               packet_t& packet )
 {
-  // do we have at least one token?
-  if (index > tokens.size())
-  {
-    LOG_ERROR( main_logger, "parsing scalar style " << style2str( style )
-               << "index " << index << " but only " << tokens.size() << " tokens left" );
-    return make_pair( false, index );
-  }
+  need_at_least( style2str(style), 1, index, tokens.size() );
 
   try
   {
     switch (style)
     {
       case packet_style::ID:
-        {
-          packet.id.d = stoi( tokens[ index ] );
-        }
+        packet.id.d = stoi( tokens[ index ] );
         break;
       case packet_style::TS:
-        {
-          packet.timestamp.d = stod( tokens[ index ]);
-        }
+        packet.timestamp.d = stod( tokens[ index ]);
+        break;
+      case packet_style::CONF:
+        packet.conf.d = stod( tokens[index] );
         break;
       default:
-        {
-          LOG_ERROR( main_logger, "Unhandled scalar parse style " << static_cast<int>( style ) );
-          return make_pair( false, index );
-        }
+        LOG_ERROR( main_logger, "Unhandled scalar parse style " << static_cast<int>( style ) );
+        return make_pair( false, index );
     }
   }
   catch (const std::invalid_argument& e)
@@ -146,6 +116,19 @@ parse_scalar( size_t index,
   }
 
   return make_pair( true, index+1 );
+}
+
+pair< bool, size_t >
+parse_kv( size_t index,
+          const vector<string>& tokens,
+          packet_t& packet )
+{
+  need_at_least( "kv", 2, index, tokens.size() );
+
+  packet.kv.key = tokens[index];
+  packet.kv.val = tokens[index+1];
+
+  return make_pair( true, index+2 );
 }
 
 } // anon
@@ -238,35 +221,6 @@ parse_header(const string& s, bool expect_colon )
 }
 
 //
-// Given a string, return its corresponding packet style
-//
-
-packet_style
-str2style( const string& s )
-{
-  auto probe = TAG2TYPE_BIMAP.tag2style.find( s );
-  return
-    (probe == TAG2TYPE_BIMAP.tag2style.end())
-    ? packet_style::INVALID
-    : probe->second;
-
-}
-
-//
-// Given a style, return its corresponding string
-//
-
-string
-style2str( packet_style s )
-{
-  auto probe = TAG2TYPE_BIMAP.style2tag.find( s );
-  return
-    (probe == TAG2TYPE_BIMAP.style2tag.end())
-    ? "invalid"
-    : probe->second;
-}
-
-//
 // Having established the packet style (and domain, although only
 // the style is needed for parsing), parse the style-specific payload
 // from the token stream and convert it into the appropriate canonical
@@ -280,7 +234,7 @@ packet_payload_parser ( size_t index,
 {
   //
   // tokens[index] is the start of the token stream which we
-  // hope to interpret per the style of packet.header
+  // hope
   //
 
   auto ret = make_pair( false, size_t() );
@@ -294,7 +248,13 @@ packet_payload_parser ( size_t index,
 
   case packet_style::ID:   // fallthrough
   case packet_style::TS:   // fallthrough
+  case packet_style::CONF: // fallthrough
     ret = parse_scalar( index, tokens, packet.header.style, packet );
+    break;
+
+  case packet_style::KV:
+    new (& (packet.kv)) canonical::kv_t("", "");
+    ret = parse_kv( index, tokens, packet );
     break;
 
   default:

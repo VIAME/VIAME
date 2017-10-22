@@ -75,6 +75,10 @@ typedef std::multimap< packet_header_t,
                        packet_t,
                        decltype( packet_header_cmp ) > packet_buffer_t;
 
+typedef std::multimap< packet_header_t,
+                       packet_t,
+                       decltype( packet_header_cmp ) >::const_iterator packet_buffer_cit;
+
 class text_reader_t;
 struct kpf_io_adapter_base;
 
@@ -104,9 +108,14 @@ public:
   // if not found, return false
   std::pair< bool, packet_t > transfer_packet_from_buffer( const packet_header_t& h );
 
+  // like above, but specifically for kv (key/value) packets with a
+  // particular key
+  std::pair< bool, packet_t > transfer_kv_packet_from_buffer( const std::string& key );
+
 private:
   bool process_reader( text_reader_t& b );
   bool parse_next_line();
+  bool verify_reader_status();
 
   packet_buffer_t packet_buffer;
   std::istream& input_stream;
@@ -150,6 +159,22 @@ struct VITAL_KPF_EXPORT writer< canonical::timestamp_t >
   int domain;
 };
 
+template<>
+struct VITAL_KPF_EXPORT writer< canonical::kv_t >
+{
+  writer( const std::string& k, const std::string& v ): kv(k,v) {}
+  canonical::kv_t kv;
+  // key/value has no domain
+};
+
+template<>
+struct VITAL_KPF_EXPORT writer< canonical::conf_t >
+{
+  writer( double c, int d ): conf(c), domain(d) {}
+  canonical::conf_t conf;
+  int domain;
+};
+
 //
 //
 //
@@ -168,6 +193,8 @@ public:
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
 
   static private_endl_t endl;
@@ -191,6 +218,14 @@ operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
 VITAL_KPF_EXPORT
 record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
 
 VITAL_KPF_EXPORT
 record_text_writer&
@@ -380,6 +415,22 @@ public:
   int domain;
 };
 
+template <>
+struct VITAL_KPF_EXPORT reader< canonical::kv_t >
+{
+  reader( const std::string& k, std::string& v ): key(k), val(v) {}
+  std::string key;
+  std::string& val;
+};
+
+template <>
+struct VITAL_KPF_EXPORT reader< canonical::conf_t >
+{
+  reader( double& c, int d): conf(c), domain(d) {}
+  double& conf;
+  int domain;
+};
+
 
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t, const reader< canonical::bbox_t >& r );
@@ -389,6 +440,12 @@ text_parser_t& operator>>( text_parser_t& t, const reader< canonical::id_t >& r 
 
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t, const reader< canonical::timestamp_t >& r );
+
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::kv_t >& r );
+
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::conf_t >& r );
 
 } // ...kpf
 } // ...vital

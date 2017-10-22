@@ -156,9 +156,8 @@ read_detections_from_stream( std::istream& is )
          >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
          >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
          >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
-         /*        >> canonical::kv_t( "label", det.label )
-         >> canonical::conf_t( det.confidence, DETECTOR_DOMAIN )
-         >> kpf::flush() */
+         >> KPF::reader< KPFC::kv_t>( "label", buffer.label )
+         >> KPF::reader< KPFC::conf_t>( buffer.confidence, DETECTOR_DOMAIN )
     )
   {
     box.get( buffer );
@@ -224,10 +223,8 @@ write_detections_to_stream( ostream& os,
       << KPF::writer< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
       << KPF::writer< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
       << KPF::writer< KPFC::timestamp_t >( det.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
-#if 0
-      << KPF::io( kv_t( "label", det.label ) )
-      << KPF::io( conf_t( det.confidence ))
-#endif
+      << KPF::writer< KPFC::kv_t >( "label", det.label )
+      << KPF::writer< KPFC::conf_t>( det.confidence, DETECTOR_DOMAIN )
       << KPF::record_text_writer::endl;
   }
 }
