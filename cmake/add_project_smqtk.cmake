@@ -14,7 +14,7 @@ if( WIN32 )
 else()
 
   # Logic for getting site packages is copied from kwiver
-  # (but it uses a new pycmd function that handles indentation -- ooohh. aahh.)
+  # (but it uses a new pycmd function that handles indentation)
   pycmd(python_site_packages "
     from distutils import sysconfig
     print(sysconfig.get_python_lib(prefix=''))
