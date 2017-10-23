@@ -23,4 +23,4 @@ from sprokit import sprokit_logging
 sprokit_logging._configure_logging()
 
 logger = sprokit_logging.getLogger(__name__)
-logger.debug('initializing the sprokit python module')
+# logger.debug('initializing the sprokit python module')
