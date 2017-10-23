@@ -96,6 +96,13 @@ struct VITAL_KPF_EXPORT poly_t
   poly_t() {}
 };
 
+struct VITAL_KPF_EXPORT meta_t
+{
+  std::string txt;
+  meta_t( const std::string& t ): txt(t) {}
+  meta_t() {}
+};
+
 } // ...canonical
 
 struct VITAL_KPF_EXPORT packet_t
@@ -110,6 +117,7 @@ struct VITAL_KPF_EXPORT packet_t
     canonical::kv_t kv;
     canonical::conf_t conf;
     canonical::poly_t poly;
+    canonical::meta_t meta;
   };
   packet_t(): header( packet_header_t() ) {}
   ~packet_t();

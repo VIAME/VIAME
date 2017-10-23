@@ -410,6 +410,18 @@ operator>>( text_parser_t& t,
   return t;
 }
 
+text_parser_t&
+operator>>( text_parser_t& t,
+            const reader< canonical::meta_t >& r )
+{
+  auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::META ));
+  if (probe.first)
+  {
+    r.txt = probe.second.meta.txt;
+  }
+  return t;
+}
+
 record_text_writer&
 operator<<( record_text_writer& w, const private_endl_t& )
 {
@@ -462,6 +474,14 @@ operator<<( record_text_writer& w, const writer< canonical::poly_t >& io)
   }
   return w;
 }
+
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::meta_t >& io)
+{
+  w.s << "meta:" << io.meta.txt;
+  return w;
+}
+
 
 } // ...kpf
 } // ...vital

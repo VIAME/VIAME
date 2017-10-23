@@ -183,6 +183,14 @@ struct VITAL_KPF_EXPORT writer< canonical::conf_t >
   int domain;
 };
 
+template<>
+struct VITAL_KPF_EXPORT writer< canonical::meta_t >
+{
+  writer( const std::string& t ): meta(t) {}
+  canonical::meta_t meta;
+  int domain;
+};
+
 //
 //
 //
@@ -204,6 +212,7 @@ public:
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
+  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::meta_t >& io );
   friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
 
   static private_endl_t endl;
@@ -239,6 +248,10 @@ operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
 VITAL_KPF_EXPORT
 record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
+
+VITAL_KPF_EXPORT
+record_text_writer&
+operator<<( record_text_writer& w, const writer< canonical::meta_t >& io );
 
 VITAL_KPF_EXPORT
 record_text_writer&
@@ -500,6 +513,12 @@ struct VITAL_KPF_EXPORT reader< canonical::conf_t >
   int domain;
 };
 
+template <>
+struct VITAL_KPF_EXPORT reader< canonical::meta_t >
+{
+  reader( std::string& t): txt(t) {}
+  std::string& txt;
+};
 
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t, const reader< canonical::bbox_t >& r );
@@ -518,6 +537,9 @@ text_parser_t& operator>>( text_parser_t& t, const reader< canonical::kv_t >& r 
 
 VITAL_KPF_EXPORT
 text_parser_t& operator>>( text_parser_t& t, const reader< canonical::conf_t >& r );
+
+VITAL_KPF_EXPORT
+text_parser_t& operator>>( text_parser_t& t, const reader< canonical::meta_t >& r );
 
 } // ...kpf
 } // ...vital

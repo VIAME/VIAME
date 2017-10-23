@@ -167,6 +167,25 @@ parse_kv( size_t index,
   return make_pair( true, index+2 );
 }
 
+pair< bool, size_t >
+parse_meta( size_t index,
+            const vector<string>& tokens,
+            packet_t& packet )
+{
+  string s("");
+  for (; index < tokens.size(); ++index)
+  {
+    s += tokens[index];
+    if (index != tokens.size()-1)
+    {
+      s += " ";
+    }
+  }
+  packet.header.domain = kwiver::vital::kpf::packet_header_t::NO_DOMAIN;
+  packet.meta = s;
+  return make_pair( true, index );
+}
+
 } // anon
 
 
@@ -296,6 +315,11 @@ packet_payload_parser ( size_t index,
   case packet_style::KV:
     new (&packet.kv) canonical::kv_t("", "");
     ret = parse_kv( index, tokens, packet );
+    break;
+
+  case packet_style::META:
+    new (&packet.meta) canonical::meta_t();
+    ret = parse_meta( index, tokens, packet );
     break;
 
   default:

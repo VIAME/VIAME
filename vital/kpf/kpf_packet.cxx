@@ -162,6 +162,7 @@ operator<<( std::ostream& os, const packet_t& p )
   case packet_style::GEOM:  os << p.bbox.x1 << ", " << p.bbox.y1 << " - " << p.bbox.x2 << ", " << p.bbox.y2; break;
   case packet_style::KV:    os << p.kv.key << " = " << p.kv.val; break;
   case packet_style::POLY:  os << "(polygon w/ " << p.poly.xy.size() << " points)"; break;
+  case packet_style::META:  os << "meta: " << p.meta.txt; break;
   }
   return os;
 }

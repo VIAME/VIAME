@@ -200,8 +200,9 @@ int main()
   }
 
   stringstream ss;
-  std::cout << "\nAbout to write detections:\n";
+  std::cout << "\nAbout to write detections (with metadata):\n";
   write_detections_to_stream( ss, src_dets );
+  ss << "meta: generated from " << __FILE__ << "\n";
   std::cout << "KPF representation:\n" << ss.str();
   std::cout << "Done\n";
 
