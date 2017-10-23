@@ -39,6 +39,7 @@ packet_header_parser( const string& s, packet_header_t& packet_header, bool expe
   packet_style style = str2style( tag_str );
   if ( style == packet_style::INVALID )
   {
+    LOG_ERROR( main_logger, "Bad packet style '" << tag_str << "'" );
     return false;
   }
 
@@ -153,7 +154,7 @@ text_reader_t
 
 text_parser_t
 ::text_parser_t( istream& is )
-  : packet_buffer( packet_header_cmp), input_stream(is)
+  : packet_buffer( packet_header_cmp ), input_stream(is)
 {
   this->reader_status = static_cast<bool>( is );
 }
@@ -165,29 +166,64 @@ text_parser_t
   return this->reader_status;
 }
 
+vector< string >
+text_parser_t
+::get_meta_packets() const
+{
+  return this->meta_buffer;
+}
+
 
 bool
 text_parser_t
 ::parse_next_line()
 {
   //
-  // Read the next line of text from the stream and
-  // tokenize it
+  // loop over each line (throwing meta packets into the
+  // meta-buffer) until either (a) non-meta packets have
+  // been added or (b) getline() fails
   //
 
-  string s;
-  if (! std::getline( this->input_stream, s ))
+  bool non_meta_packets_added = false;
+  packet_header_t meta_packet_h( packet_style::META );
+  while ( ! non_meta_packets_added )
   {
-    return false;
+    string s;
+    if (! std::getline( this->input_stream, s ))
+    {
+      return false;
+    }
+    vector< string > tokens;
+    ::kwiver::vital::tokenize( s, tokens, " ", true );
+
+    //
+    // pass the tokens off to the packet parser
+    // store them in a local buffer to search for meta tags
+
+    packet_buffer_t local_packet_buffer( packet_header_cmp );
+    if (! packet_parser( tokens, local_packet_buffer ))
+    {
+      return false;
+    }
+
+    // pull any meta packets out
+    packet_buffer_cit p;
+    while ( (p = local_packet_buffer.find( meta_packet_h ))
+           != local_packet_buffer.end() )
+    {
+      this->meta_buffer.push_back( p->second.meta.txt );
+      local_packet_buffer.erase( p );
+    }
+
+    // if we have any packets left, push them into the
+    // global packet buffer and set the flag
+    if (! local_packet_buffer.empty())
+    {
+      this->packet_buffer.insert( local_packet_buffer.begin(), local_packet_buffer.end() );
+      non_meta_packets_added = true;
+    }
   }
-  vector< string > tokens;
-  ::kwiver::vital::tokenize( s, tokens, " ", true );
-
-  //
-  // pass the tokens off to the packet parser
-  //
-
-  return packet_parser( tokens, this->packet_buffer );
+  return non_meta_packets_added;
 }
 
 bool
@@ -478,7 +514,7 @@ operator<<( record_text_writer& w, const writer< canonical::poly_t >& io)
 record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::meta_t >& io)
 {
-  w.s << "meta:" << io.meta.txt;
+  w.s << "meta: " << io.meta.txt;
   return w;
 }
 

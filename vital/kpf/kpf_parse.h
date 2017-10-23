@@ -73,11 +73,11 @@ namespace kpf {
 
 typedef std::multimap< packet_header_t,
                        packet_t,
-                       decltype( packet_header_cmp ) > packet_buffer_t;
+                       decltype(packet_header_cmp) > packet_buffer_t;
 
 typedef std::multimap< packet_header_t,
                        packet_t,
-                       decltype( packet_header_cmp ) >::const_iterator packet_buffer_cit;
+                       decltype(packet_header_cmp) >::const_iterator packet_buffer_cit;
 
 class text_reader_t;
 struct kpf_io_adapter_base;
@@ -101,7 +101,7 @@ public:
   const packet_buffer_t& get_packet_buffer() const { return this->packet_buffer; }
 
   // clear the packet buffer
-  void flush() { this->packet_buffer.clear(); }
+  void flush() { this->packet_buffer.clear(); this->meta_buffer.clear(); }
 
   // look for a packet matching the header; if found,
   // return true, remove from buffer, return the packet
@@ -112,12 +112,16 @@ public:
   // particular key
   std::pair< bool, packet_t > transfer_kv_packet_from_buffer( const std::string& key );
 
+  // return any meta packets
+  std::vector< std::string > get_meta_packets() const;
+
 private:
   bool process_reader( text_reader_t& b );
   bool parse_next_line();
   bool verify_reader_status();
 
   packet_buffer_t packet_buffer;
+  std::vector< std::string > meta_buffer;
   std::istream& input_stream;
   bool reader_status;
 

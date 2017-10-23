@@ -163,6 +163,13 @@ read_detections_from_stream( std::istream& is )
     box.get( buffer );
     poly.get( buffer );
     dets.push_back( buffer );
+
+    // did we receive any metadata?
+    for (auto m: parser.get_meta_packets())
+    {
+      std::cout << "Metadata: '" << m << "'\n";
+    }
+
     parser.flush();
   }
 

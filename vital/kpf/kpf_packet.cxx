@@ -38,6 +38,7 @@ struct tag2type_bimap_t
     this->style2tag[ packet_style::ATTR ] = "a";
     this->style2tag[ packet_style::TAG ] = "tag";
     this->style2tag[ packet_style::KV ] = "kv";
+    this->style2tag[ packet_style::META ] = "meta";
 
 
     for (auto i=this->style2tag.begin(); i != this->style2tag.end(); ++i )
@@ -131,6 +132,9 @@ packet_t
     break;
   case packet_style::POLY:
     new (& (this->poly)) canonical::poly_t( other.poly );
+    break;
+  case packet_style::META:
+    new (& (this->meta)) canonical::meta_t( other.meta );
     break;
 
   default:
