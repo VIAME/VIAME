@@ -134,6 +134,7 @@ ExternalProject_Add(fletch
     # Optional Dependencies
     ${fletch_DEP_FLAGS}
 
+    -Dfletch_ENABLE_log4cplus:BOOL=True
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
     -DOpenCV_SELECT_VERSION=${VIAME_OPENCV_VERSION}
