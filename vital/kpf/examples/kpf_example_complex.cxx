@@ -15,6 +15,7 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 using std::istringstream;
+using std::ostringstream;
 using std::stringstream;
 using std::ostream;
 
@@ -177,8 +178,14 @@ write_detections_to_stream( ostream& os,
   user_box_adapter_t box_adapter;
   user_poly_adapter_t poly_adapter;
   KPF::record_text_writer w( os );
+  size_t line_count = 0;
   for (const auto& det: dets )
   {
+    ostringstream oss;
+    oss << "Record " << line_count++;
+    w
+      << KPF::writer< KPFC::meta_t >( oss.str() )
+      << KPF::record_text_writer::endl;
     w
       << KPF::writer< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
       << KPF::writer< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
@@ -202,7 +209,6 @@ int main()
   stringstream ss;
   std::cout << "\nAbout to write detections (with metadata):\n";
   write_detections_to_stream( ss, src_dets );
-  ss << "meta: generated from " << __FILE__ << "\n";
   std::cout << "KPF representation:\n" << ss.str();
   std::cout << "Done\n";
 
