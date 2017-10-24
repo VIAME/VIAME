@@ -12,17 +12,8 @@ Contents:
    :maxdepth: 2
 
    introduction
-   install_guide
-   tutorial
-   overview_of_components
-   algorithms
-   plugins
-   plugin_explorer
-   pipeline_example
-   sprokit_architecture
-   how_to_pipeline
+   kwiver_tutorials
    extending_kwiver
-   doxy-bridge
 
 Indices and tables
 ==================
