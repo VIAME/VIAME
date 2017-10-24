@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #include <sprokit/processes/process_explorer_plugin_export.h>
 
 #include <vital/tools/explorer_plugin.h>
+#include <vital/util/wrap_text_block.h>
 
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>
@@ -61,8 +62,9 @@ static std::string const hidden_prefix = "_";
 
 // ----------------------------------------------------------------
 /**
- * @brief
+ * @brief plugin_explorer support for formatting processes.
  *
+ * This class provides the special formatting for processes.
  */
 class process_explorer
   : public category_explorer
@@ -111,7 +113,6 @@ initialize( explorer_context* context )
                     kwiversys::CommandLineArguments::NO_ARGUMENT,
                     &this->opt_hidden,
                     "Display hidden properties and ports" );
-
   return true;
 }
 
@@ -235,6 +236,91 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
 } // process_explorer::explore
 
+
+// ==================================================================
+/**
+ * @brief plugin_explorer support for formatting processes in RST
+ *
+ * This class provides the special formatting for processes. It creates
+ */
+class process_explorer_rst
+  : public category_explorer
+{
+public:
+  process_explorer_rst();
+  virtual ~process_explorer_rst();
+
+  virtual bool initialize( explorer_context* context );
+  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
+
+  std::ostream& out_stream() { return m_context->output_stream(); }
+
+  // instance data
+  explorer_context* m_context;
+  kwiver::vital::wrap_text_block m_wtb;
+
+}; // end class process_explorer_rst
+
+
+// ==================================================================
+process_explorer_rst::
+process_explorer_rst()
+{
+  m_wtb.set_indent_string( "" );
+}
+
+
+process_explorer_rst::
+~process_explorer_rst()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+process_explorer_rst::
+initialize( explorer_context* context )
+{
+  m_context = context;
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+void
+process_explorer_rst::
+explore( const kwiver::vital::plugin_factory_handle_t fact )
+{
+  std::string proc_type = "-- Not Set --";
+
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
+
+  std::string descrip = "-- Not_Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+  descrip = m_wtb.wrap_text( descrip );
+
+  std::string buf = "-- Not Set --";
+  if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
+  {
+    buf = kwiver::vital::demangle( buf );
+  }
+
+  std::string under = std::string( proc_type.size(), '=' );
+  out_stream() << proc_type << std::endl
+               << under << std::endl
+               << std::endl
+               << descrip << std::endl
+               << "..  doxygenclass:: " << buf << std::endl
+               << "    :project: kwiver" << std::endl
+               << "    :members:" << std::endl
+    ;
+
+  out_stream()  << std::endl;
+
+} // process_explorer_rst::explore
+
+
+
+
 } } // end namespace
 
 
@@ -252,6 +338,13 @@ void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
   auto fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::process_explorer );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "process" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Plugin explorer for process category." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+
+  fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::process_explorer_rst );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "process-rst" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Plugin explorer for process category rst format output" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   vpm.mark_module_as_loaded( module );
