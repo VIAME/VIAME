@@ -173,7 +173,7 @@ python_process_factory( const std::string& type,
 {
   this->add_attribute( CONCRETE_TYPE, type)
     .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
-    .add_attribute( PLUGIN_CATEGORY, "object" );
+    .add_attribute( PLUGIN_CATEGORY, "process" );
 }
 
 python_process_factory::
