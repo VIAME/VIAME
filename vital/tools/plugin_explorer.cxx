@@ -84,6 +84,7 @@ public:
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
 static void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category );
+static kwiver::vital::category_explorer* get_category_handler( const std::string& cat );
 
 
 //==================================================================
@@ -158,37 +159,37 @@ struct print_functor
 // ------------------------------------------------------------------
 void usage( const std::string& prog_name )
 {
-    pe_out() << "Usage: " << prog_name << "[options]\n"
-             << "\nThis tool displays the attributes of plugins. Each plugin file contains one or more factories.\n"
+  // This is not the best way to do this because plugins can add command line options which are not known at this point.
+  pe_out() << "Usage: " << prog_name << "[options]\n"
+           << "\nThis tool displays the attributes of plugins. Each plugin file contains one or more factories.\n"
 
-             << "    --help -h     Display usage information\n"
-             << "    --detail -d   Display detailed information about plugins\n"
-             << "    --factory --fact  regexp    Only display factories whose interface type matches specified regexp\n"
-             << "    --type   regexp    Only display factories whose instance name matches the specified regexp\n"
-             << "    --brief -b    Generate brief display\n"
+           << "    --help -h     Display usage information\n"
+           << "    --detail -d   Display detailed information about plugins\n"
+           << "    --factory --fact  regexp    Only display factories whose interface type matches specified regexp\n"
+           << "    --type   regexp    Only display factories whose instance name matches the specified regexp\n"
+           << "    --brief -b    Generate brief display\n"
 
-             << "    --files       Display list of loaded files\n"
-             << "    --mod         Display list of loaded modules\n"
-             << "    --all         Display all plugins\n"
-             << "    --algorithm --algo type   Display only algorithm type plugins.\n"
-             << "                  If type is specified as \"all\", then all algorithms are listed. Otherwise, the type\n"
-             << "                  will be treated as a regexp and only algorithm types that match the regexp will be displayed.\n"
-             << "    --process --proc type     Display only sprokit process type plugins.\n"
-             << "                  If type is specified as \"all\", then all processes are listed. Otherwise, the type\n"
-             << "                  will be treated as a regexp and only processes names that match the regexp will be displayed.\n"
-             << "    --scheduler  Display scheduler type plugins\n"
+           << "    --files       Display list of loaded files\n"
+           << "    --mod         Display list of loaded modules\n"
+           << "    --all         Display all plugins\n"
+           << "    --algorithm --algo type   Display only algorithm type plugins.\n"
+           << "                  If type is specified as \"all\", then all algorithms are listed. Otherwise, the type\n"
+           << "                  will be treated as a regexp and only algorithm types that match the regexp will be displayed.\n"
+           << "    --process --proc type     Display only sprokit process type plugins.\n"
+           << "                  If type is specified as \"all\", then all processes are listed. Otherwise, the type\n"
+           << "                  will be treated as a regexp and only processes names that match the regexp will be displayed.\n"
+           << "    --scheduler  Display scheduler type plugins\n"
 
-             << "    --filter  attr-name regex    Filter factories based on attribute name and value.\n"
-             << "    --summary       Display summary of all factories loaded\n"
-             << "    --attrs         Display raw attributes for factories without calling any category specific plugins\n"
+           << "    --filter  attr-name regex    Filter factories based on attribute name and value.\n"
+           << "    --summary       Display summary of all factories loaded\n"
+           << "    --attrs         Display raw attributes for factories without calling any category specific plugins\n"
 
-             << "    -Ipath       Add path to loadable module search path\n"
-             << "    --path       Display loadable module search path list\n"
-             << "    --load   file-name   Load only specified plugin file for inspection. No other plugins are loaded\n"
-             << "    --pipe       Display output in pipeline definition file format\n"
+           << "    -Ipath       Add path to loadable module search path\n"
+           << "    --path       Display loadable module search path list\n"
+           << "    --load   file-name   Load only specified plugin file for inspection. No other plugins are loaded\n"
+           << "    --fmt    fmt-type    Generate display using alternative format, such as 'rst' or 'pipe'\n"
 
-             << std::endl;
-
+           << std::endl;
 }
 
 
@@ -317,11 +318,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
 {
   pe_out() << "\n---- All " << category << " Factories\n";
 
-  kwiver::vital::category_explorer* cat_handler(0);
-  if ( category_map.count( category ) )
-  {
-    cat_handler = category_map[category];
-  }
+  kwiver::vital::category_explorer* cat_handler = get_category_handler( category );
 
   for( auto it : plugin_map )
   {
@@ -378,6 +375,26 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
   } // end interface type
 
   pe_out() << std::endl;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::category_explorer* get_category_handler( const std::string& cat )
+{
+  std::string handler_name = cat;
+
+  // See if special formatting is requested
+  if ( ! G_context.formatting_type.empty() )
+  {
+    handler_name += "-" + G_context.formatting_type;
+  }
+
+  if ( category_map.count( handler_name ) )
+  {
+    return category_map[handler_name];
+  }
+
+  return nullptr;
 }
 
 
@@ -565,7 +582,7 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
                                 "Load only specified plugin file for inspection." );
 
-  G_context.m_args.AddArgument( "--pipe",     argT::NO_ARGUMENT, &G_context.opt_pipe_format, "Generate output in pipeline format" );
+  G_context.m_args.AddArgument( "--fmt",     argT::SPACE_ARGUMENT, &G_context.formatting_type, "Select alternate formatting type." );
 
   // See if there are no args specified. If so, then default to full listing
   if ( argc == 1 )
