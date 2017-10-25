@@ -32,6 +32,7 @@
 
 #include <vital/tools/explorer_plugin.h>
 #include <vital/util/wrap_text_block.h>
+#include <vital/util/string.h>
 
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>
@@ -45,6 +46,8 @@ namespace vital {
 namespace {
 
 // ------------------------------------------------------------------
+// This is different from the utility string because sometimes we need
+// to join a set.
 template< class ContainerT >
 std::string
 join( const ContainerT& vec, const char* delim )
@@ -59,8 +62,23 @@ join( const ContainerT& vec, const char* delim )
     res_str.erase(res_str.size() - 2 );
   }
 
+  // trim trailing white space
+  res_str.erase( res_str.find_last_not_of( " \t\n\r\f\v" ) + 1 );
+
   return res_str;
 }
+
+
+std::string underline( const std::string& txt, const char c = '=' )
+{
+  std::string under = std::string( txt.size(), c );
+  std::stringstream ss;
+
+  ss << txt << std::endl
+     << under << std::endl;
+  return ss.str();
+}
+
 
 static std::string const hidden_prefix = "_";
 
@@ -160,8 +178,9 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   std::string const properties_str = join( properties, ", " );
 
   out_stream()  << "    Properties: " << properties_str << std::endl;
-  out_stream() << "    -- Configuration --" << std::endl;
 
+  // -- config --
+  out_stream() << "    -- Configuration --" << std::endl;
   kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
   for( kwiver::vital::config_block_key_t const & key : keys )
@@ -186,6 +205,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                   << std::endl;
   }
 
+  // -- input ports --
   out_stream() << "  -- Input ports --" << std::endl;
 
   sprokit::process::ports_t const iports = proc->input_ports();
@@ -207,14 +227,14 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
     std::string const flags_str = join( flags, ", " );
 
     out_stream()  << "    Name       : " << port << std::endl
-                  << "    Type       : " << type << std::endl
+                  << "    Data type  : " << type << std::endl
                   << "    Flags      : " << flags_str << std::endl
                   << "    Description: " << port_desc << std::endl
                   << std::endl;
   }   // end foreach
 
+  // -- output ports --
   out_stream() << "  -- Output ports --" << std::endl;
-
   sprokit::process::ports_t const oports = proc->output_ports();
 
   for( sprokit::process::port_t const & port : oports )
@@ -233,7 +253,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
     std::string const flags_str = join( flags, ", " );
 
     out_stream()  << "    Name       : " << port << std::endl
-                  << "    Type       : " << type << std::endl
+                  << "    Data type  : " << type << std::endl
                   << "    Flags      : " << flags_str << std::endl
                   << "    Description: " << port_desc << std::endl
                   << std::endl;
@@ -305,23 +325,133 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
   descrip = m_wtb.wrap_text( descrip );
 
-  std::string buf = "-- Not Set --";
-  if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
+  std::string proc_class = "-- Not Set --";
+  if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, proc_class ) )
   {
-    buf = kwiver::vital::demangle( buf );
+    proc_class = kwiver::vital::demangle( proc_class );
   }
 
-  std::string under = std::string( proc_type.size(), '=' );
-  out_stream() << proc_type << std::endl
-               << under << std::endl
+  out_stream() << std::endl
+               << underline( proc_type, '=' )
                << std::endl
                << descrip << std::endl
-               << "..  doxygenclass:: " << buf << std::endl
+               << "..  doxygenclass:: " << proc_class << std::endl
                << "    :project: kwiver" << std::endl
-               << "    :members:" << std::endl
+               << std::endl
     ;
 
-  out_stream()  << std::endl;
+  sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( fact.get() );
+
+  sprokit::process_t const proc = pf->create_object( kwiver::vital::config_block::empty_config() );
+
+  sprokit::process::properties_t const properties = proc->properties();
+  std::string const properties_str = join( properties, ", " );
+
+  // -- config --
+  kwiver::vital::config_block_keys_t const keys = proc->available_config();
+  out_stream() << underline( "Configuration", '-' );
+
+  for( kwiver::vital::config_block_key_t const & key : keys )
+  {
+    if ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix )
+    {
+      // skip hidden items
+      continue;
+    }
+
+    sprokit::process::conf_info_t const info = proc->config_info( key );
+
+    kwiver::vital::config_block_value_t def = info->def;
+    kwiver::vital::config_block_description_t const  conf_desc =  m_wtb.wrap_text( info->description );
+    bool const& tunable = info->tunable;
+    char const* const tunable_str = tunable ? "*Tunable*" : "*Not tunable*";
+
+    if ( def.empty() )
+    {
+      def = "(no default value)";
+    }
+
+    out_stream() << "**" << key << "**" << " = " << def << "       " << tunable_str << std::endl
+                 << conf_desc << std::endl
+      ;
+  }
+
+  // -- input ports --
+  sprokit::process::ports_t const iports = proc->input_ports();
+  out_stream() << underline( "Input Ports", '-' ) << std::endl;
+
+  for( sprokit::process::port_t const & port : iports )
+  {
+    if ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix )
+    {
+      // skip hidden item
+      continue;
+    }
+
+    sprokit::process::port_info_t const info = proc->input_port_info( port );
+
+    sprokit::process::port_type_t const& type = info->type;
+    sprokit::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_description_t const port_desc = m_wtb.wrap_text( info->description );
+
+    std::string flags_str = join( flags, ", " );
+    if ( flags_str.empty() )
+    {
+      flags_str = "(none)";
+    }
+
+    out_stream() << "**" << port << "**" << std::endl
+                 << port_desc << std::endl
+                 << "Data type  : " << type << std::endl
+                 << "Flags      : " << flags_str << std::endl
+                 << std::endl
+      ;
+
+  }   // end foreach
+
+  if ( iports.empty() )
+  {
+    out_stream() << "(none)" << std::endl
+                 << std::endl;
+  }
+
+  // -- output ports --
+  sprokit::process::ports_t const oports = proc->output_ports();
+  out_stream() << underline( "Output Ports", '-' ) << std::endl;
+
+  for( sprokit::process::port_t const & port : oports )
+  {
+    if ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix )
+    {
+      continue;
+    }
+
+    sprokit::process::port_info_t const info = proc->output_port_info( port );
+
+    sprokit::process::port_type_t const& type = info->type;
+    sprokit::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_description_t const port_desc = m_wtb.wrap_text( info->description );
+
+    std::string flags_str = join( flags, ", " );
+    if ( flags_str.empty() )
+    {
+      flags_str = "(none)";
+    }
+
+    out_stream() << "**" << port << "**" << std::endl
+                 << port_desc << std::endl
+                 << "Data Type  : " << type << std::endl
+                 << "Flags      : " << flags_str << std::endl
+                 << std::endl
+      ;
+
+  }   // end foreach
+
+    if ( oports.empty() )
+  {
+    out_stream() << "(none)" << std::endl
+                 << std::endl;
+  }
 
 } // process_explorer_rst::explore
 
@@ -410,10 +540,11 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   out_stream() << std::endl
                << "# -----------------------------" << std::endl
-               << "process " << proc_type << " :: <local-proc-name>" << std::endl
+               << "process <local-proc-name> :: "  << proc_type << std::endl
                << "#   Properties: " << properties_str << std::endl
                << descrip << std::endl;
 
+  // -- config --
   kwiver::vital::config_block_keys_t const keys = proc->available_config();
 
   for( kwiver::vital::config_block_key_t const & key : keys )
@@ -437,6 +568,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                  << std::endl;
   }
 
+  // -- input ports --
   sprokit::process::ports_t const iports = proc->input_ports();
 
   for( sprokit::process::port_t const & port : iports )
@@ -456,12 +588,13 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
     std::string const flags_str = join( flags, ", " );
 
     out_stream() << "    connect from <upstream_port> to " << port << std::endl
-                 << "#   Type       : " << type << std::endl
+                 << "#   Data type  : " << type << std::endl
                  << "#   Flags      : " << flags_str << std::endl
                  << port_desc << std::endl;
 
   }   // end foreach
 
+  // -- output ports --
   sprokit::process::ports_t const oports = proc->output_ports();
 
   for( sprokit::process::port_t const & port : oports )
@@ -480,7 +613,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
     std::string const flags_str = join( flags, ", " );
 
     out_stream() << "    connect from " << port << " to <downstream_port>" << std::endl
-                 << "#   Type       : " << type << std::endl
+                 << "#   Data type  : " << type << std::endl
                  << "#   Flags      : " << flags_str << std::endl
                  << port_desc << std::endl;
 
