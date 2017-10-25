@@ -52,7 +52,14 @@ join( const ContainerT& vec, const char* delim )
   std::stringstream res;
   std::copy( vec.begin(), vec.end(), std::ostream_iterator< std::string > ( res, delim ) );
 
-  return res.str();
+  // remove trailing delim
+  std::string res_str = res.str();
+  if (res_str.size() > 1 )
+  {
+    res_str.erase(res_str.size() - 2 );
+  }
+
+  return res_str;
 }
 
 static std::string const hidden_prefix = "_";
@@ -60,7 +67,7 @@ static std::string const hidden_prefix = "_";
 } // end namespace
 
 
-// ----------------------------------------------------------------
+// ==================================================================
 /**
  * @brief plugin_explorer support for formatting processes.
  *
@@ -319,6 +326,169 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 } // process_explorer_rst::explore
 
 
+// ==================================================================
+/**
+ * @brief plugin_explorer support for formatting processes.
+ *
+ * This class provides the special formatting for processes.
+ */
+class process_explorer_pipe
+  : public category_explorer
+{
+public:
+  process_explorer_pipe();
+  virtual ~process_explorer_pipe();
+
+  virtual bool initialize( explorer_context* context );
+  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
+
+  std::ostream& out_stream() { return m_context->output_stream(); }
+
+  // instance data
+  explorer_context* m_context;
+  bool opt_hidden;
+
+  // Need special indent prefix so we can not use normal text wrapper.
+  kwiver::vital::wrap_text_block m_wtb;
+
+}; // end class process_explorer_pipe
+
+
+// ==================================================================
+process_explorer_pipe::
+process_explorer_pipe()
+  :opt_hidden( false )
+{
+  m_wtb.set_indent_string( "#   " );
+}
+
+
+process_explorer_pipe::
+~process_explorer_pipe()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+process_explorer_pipe::
+initialize( explorer_context* context )
+{
+  m_context = context;
+
+  // Add plugin specific command line option.
+  auto cla = m_context->command_line_args();
+
+  // The problem here is that the address of these strings are copied
+  // into a control block. This is a problem since they are on the stack. ???
+  cla->AddArgument( "--hidden",
+                    kwiversys::CommandLineArguments::NO_ARGUMENT,
+                    &this->opt_hidden,
+                    "Display hidden properties and ports" );
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+void
+process_explorer_pipe::
+explore( const kwiver::vital::plugin_factory_handle_t fact )
+{
+  std::string proc_type = "-- Not Set --";
+
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type );
+
+  std::string descrip = "-- Not_Set --";
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
+  descrip = m_wtb.wrap_text( descrip );
+
+  sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( fact.get() );
+
+  sprokit::process_t const proc = pf->create_object( kwiver::vital::config_block::empty_config() );
+
+  sprokit::process::properties_t const properties = proc->properties();
+  std::string const properties_str = join( properties, ", " );
+
+  out_stream() << std::endl
+               << "# -----------------------------" << std::endl
+               << "process " << proc_type << " :: <local-proc-name>" << std::endl
+               << "#   Properties: " << properties_str << std::endl
+               << descrip << std::endl;
+
+  kwiver::vital::config_block_keys_t const keys = proc->available_config();
+
+  for( kwiver::vital::config_block_key_t const & key : keys )
+  {
+    if ( ! opt_hidden && ( key.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+    {
+      // skip hidden items
+      continue;
+    }
+
+    sprokit::process::conf_info_t const info = proc->config_info( key );
+
+    kwiver::vital::config_block_value_t const& def = info->def;
+    kwiver::vital::config_block_description_t const& conf_desc =  m_wtb.wrap_text( info->description );
+    bool const& tunable = info->tunable;
+    char const* const tunable_str = tunable ? "yes" : "no";
+
+    out_stream() << "    " << key << " = " << def << std::endl
+                 << conf_desc
+                 << "#   Tunable    : " << tunable_str << std::endl
+                 << std::endl;
+  }
+
+  sprokit::process::ports_t const iports = proc->input_ports();
+
+  for( sprokit::process::port_t const & port : iports )
+  {
+    if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+    {
+      // skip hidden item
+      continue;
+    }
+
+    sprokit::process::port_info_t const info = proc->input_port_info( port );
+
+    sprokit::process::port_type_t const& type = info->type;
+    sprokit::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_description_t const& port_desc = m_wtb.wrap_text( info->description );
+
+    std::string const flags_str = join( flags, ", " );
+
+    out_stream() << "    connect from <upstream_port> to " << port << std::endl
+                 << "#   Type       : " << type << std::endl
+                 << "#   Flags      : " << flags_str << std::endl
+                 << port_desc << std::endl;
+
+  }   // end foreach
+
+  sprokit::process::ports_t const oports = proc->output_ports();
+
+  for( sprokit::process::port_t const & port : oports )
+  {
+    if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+    {
+      continue;
+    }
+
+    sprokit::process::port_info_t const info = proc->output_port_info( port );
+
+    sprokit::process::port_type_t const& type = info->type;
+    sprokit::process::port_flags_t const& flags = info->flags;
+    sprokit::process::port_description_t const& port_desc = m_wtb.wrap_text( info->description );
+
+    std::string const flags_str = join( flags, ", " );
+
+    out_stream() << "    connect from " << port << " to <downstream_port>" << std::endl
+                 << "#   Type       : " << type << std::endl
+                 << "#   Flags      : " << flags_str << std::endl
+                 << port_desc << std::endl;
+
+  }   // end foreach
+
+  out_stream()  << std::endl;
+
+} // process_explorer_pipe::explore
 
 
 } } // end namespace
@@ -347,5 +517,12 @@ void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
                     "Plugin explorer for process category rst format output" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
-  vpm.mark_module_as_loaded( module );
+
+  fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::process_explorer_pipe );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "process-pipe" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Plugin explorer for process category pipeline format output" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+vpm.mark_module_as_loaded( module );
 }
