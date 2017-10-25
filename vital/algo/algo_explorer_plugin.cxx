@@ -181,13 +181,19 @@ public:
 
   // instance data
   explorer_context* m_context;
+
+  // Need special indent prefix so we can not use normal text wrapper.
+  kwiver::vital::wrap_text_block m_wtb;
+
 }; // end class algo_explorer_pipe
 
 
 // ==================================================================
 algo_explorer_pipe::
 algo_explorer_pipe()
-{ }
+{
+  m_wtb.set_indent_string( "#      " );
+}
 
 
 algo_explorer_pipe::
@@ -221,14 +227,9 @@ algo_explorer_pipe::
     return;
   }
 
-  // Need special indent prefix so we can not use normal text wrapper.
-  kwiver::vital::wrap_text_block wtb;
-  wtb.set_indent_string( "#      " );
-
-
   std::string descrip = "-- Not_Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
-  descrip = wtb.wrap_text( descrip );
+  descrip = m_wtb.wrap_text( descrip );
 
   std::string impl = "-- not set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
@@ -252,7 +253,7 @@ algo_explorer_pipe::
     m_context->output_stream() << "    " << key << " = " << val << std::endl;
 
     kwiver::vital::config_block_description_t descr = config->get_description( key );
-    m_context->output_stream() << wtb.wrap_text( descr ) << std::endl;
+    m_context->output_stream() << m_wtb.wrap_text( descr ) << std::endl;
   } // end foreach over config
 
   m_context->output_stream() << "endblock\n" << std::endl;
