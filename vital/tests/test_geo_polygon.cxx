@@ -34,6 +34,7 @@
  */
 
 #include <test_eigen.h>
+#include <test_gtest.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -42,8 +43,6 @@
 #include <vital/types/geo_polygon.h>
 #include <vital/types/geodesy.h>
 #include <vital/types/polygon.h>
-
-#include <gtest/gtest.h>
 
 using namespace kwiver::vital;
 
@@ -100,9 +99,8 @@ void PrintTo( polygon const& v, ::std::ostream* os )
 int
 main( int argc, char* argv[] )
 {
-  plugin_manager::instance().load_all_plugins();
-
   ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
   return RUN_ALL_TESTS();
 }
 
