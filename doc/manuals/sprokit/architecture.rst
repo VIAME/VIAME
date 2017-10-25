@@ -19,7 +19,6 @@ interconnected with those written in C++.
    process
    how_to_process
    plugins
-   plugin_explorer
    pipeline_design
    pipeline_declaration
    pipeline_examples

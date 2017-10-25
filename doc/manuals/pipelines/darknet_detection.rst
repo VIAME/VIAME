@@ -10,10 +10,10 @@ In order to run the pipelines associated with this tutorial you will need to dow
 The download process is done via targets created in the build process.
 In a bash terminal in your KWIVER build directory, make the following targets::
 
-  make external_darknet_data
+  make external_darknet_example
   make setup_darknet_example
 
-If you are using Visual Studio, manually build the external_darknet_data project, followed by the setup_darknet_example project.
+If you are using Visual Studio, manually build the external_darknet_example project, followed by the setup_darknet_example project.
 
 This will pull, place, and configure all the data associated with thise exampe into <your KWIVER build directory>/examples/pipeline/darknet folder
 

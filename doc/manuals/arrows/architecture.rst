@@ -17,7 +17,7 @@ arrows, like core , require no additional dependencies.
 The provided Arrows are:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
    core
    burnout
