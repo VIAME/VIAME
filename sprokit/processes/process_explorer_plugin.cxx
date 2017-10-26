@@ -444,7 +444,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   // -- input ports --
   sprokit::process::ports_t const iports = proc->input_ports();
-  out_stream() << underline( "Input Ports", '-' ) << std::endl;
+  out_stream() << std::endl << underline( "Input Ports", '-' ) << std::endl;
 
   if ( iports.empty() )
   {
@@ -486,7 +486,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   // -- output ports --
   sprokit::process::ports_t const oports = proc->output_ports();
-  out_stream() << underline( "Output Ports", '-' ) << std::endl;
+  out_stream() << std::endl << underline( "Output Ports", '-' ) << std::endl;
 
   if ( oports.empty() )
   {
@@ -544,7 +544,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                << std::endl
 
                << " # ================================================================" << std::endl
-               << " process <this-name>" << std::endl
+               << " process <this-proc>" << std::endl
                << "   :: " << proc_type << std::endl;
 
   // loop over config
@@ -587,7 +587,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   }
   else
   {
-    out_stream() << "# This process will consume the following input ports" << std::endl;
+    out_stream() << " # This process will consume the following input ports" << std::endl;
 
     for( sprokit::process::port_t const & port : iports )
     {
@@ -616,6 +616,8 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   }
   else
   {
+    out_stream() << " # This process will produce the following output ports" << std::endl;
+
     for( sprokit::process::port_t const & port : oports )
     {
       if ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix )
