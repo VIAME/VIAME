@@ -157,43 +157,6 @@ struct print_functor
 
 
 // ------------------------------------------------------------------
-void usage( const std::string& prog_name )
-{
-  // This is not the best way to do this because plugins can add command line options which are not known at this point.
-  pe_out() << "Usage: " << prog_name << "[options]\n"
-           << "\nThis tool displays the attributes of plugins. Each plugin file contains one or more factories.\n"
-
-           << "    --help -h     Display usage information\n"
-           << "    --detail -d   Display detailed information about plugins\n"
-           << "    --factory --fact  regexp    Only display factories whose interface type matches specified regexp\n"
-           << "    --type   regexp    Only display factories whose instance name matches the specified regexp\n"
-           << "    --brief -b    Generate brief display\n"
-
-           << "    --files       Display list of loaded files\n"
-           << "    --mod         Display list of loaded modules\n"
-           << "    --all         Display all plugins\n"
-           << "    --algorithm --algo type   Display only algorithm type plugins.\n"
-           << "                  If type is specified as \"all\", then all algorithms are listed. Otherwise, the type\n"
-           << "                  will be treated as a regexp and only algorithm types that match the regexp will be displayed.\n"
-           << "    --process --proc type     Display only sprokit process type plugins.\n"
-           << "                  If type is specified as \"all\", then all processes are listed. Otherwise, the type\n"
-           << "                  will be treated as a regexp and only processes names that match the regexp will be displayed.\n"
-           << "    --scheduler  Display scheduler type plugins\n"
-
-           << "    --filter  attr-name regex    Filter factories based on attribute name and value.\n"
-           << "    --summary       Display summary of all factories loaded\n"
-           << "    --attrs         Display raw attributes for factories without calling any category specific plugins\n"
-
-           << "    -Ipath       Add path to loadable module search path\n"
-           << "    --path       Display loadable module search path list\n"
-           << "    --load   file-name   Load only specified plugin file for inspection. No other plugins are loaded\n"
-           << "    --fmt    fmt-type    Generate display using alternative format, such as 'rst' or 'pipe'\n"
-
-           << std::endl;
-}
-
-
-// ------------------------------------------------------------------
 std::string
 join( const std::vector< std::string >& vec, const char* delim )
 {
@@ -546,43 +509,73 @@ main( int argc, char* argv[] )
 
   G_context.m_args.AddArgument( "--help",    argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
   G_context.m_args.AddArgument( "-h",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
-  G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
-  G_context.m_args.AddArgument( "-d",        argT::NO_ARGUMENT, &G_context.opt_detail, "Display detailed information about plugins" );
+  G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail,
+                                "Display detailed information about plugins" );
+
+  G_context.m_args.AddArgument( "-d",        argT::NO_ARGUMENT, &G_context.opt_detail,
+                                "Display detailed information about plugins" );
+
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
   G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
-  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex, "Filter factories by interface type based on regexp" );
-  G_context.m_args.AddArgument( "--type",    argT::SPACE_ARGUMENT, &G_context.opt_type_regex, "Filter factories by instance name based on regexp" );
-  G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
-  G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Brief display" );
+  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
+                                "Only display factories whose interface type matches specified regexp" );
+
+  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
+                                "Only display factories whose interface type matches specified regexp" );
+
+  G_context.m_args.AddArgument( "--type",    argT::SPACE_ARGUMENT, &G_context.opt_type_regex,
+                                "Only display factories whose instance name matches the specified regexp" );
+
+  G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Generate brief display" );
+  G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Generate brief display" );
   G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
   G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
-  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all plugins" );
+  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all plugin types" );
 
   std::string algo_arg;
-  G_context.m_args.AddArgument( "--algorithm", argT::SPACE_ARGUMENT, &algo_arg, "Display all algorithms" );
-  G_context.m_args.AddArgument( "--algo",    argT::SPACE_ARGUMENT, &algo_arg, "Display all algorithms" );
+  G_context.m_args.AddArgument( "--algorithm", argT::SPACE_ARGUMENT, &algo_arg,
+                                "Display only algorithm type plugins. "
+                                "If type is specified as \"all\", then all algorithms are listed. Otherwise, the type "
+                                "will be treated as a regexp and only algorithm types that match the regexp will be displayed.");
+
+  G_context.m_args.AddArgument( "--algo",    argT::SPACE_ARGUMENT, &algo_arg,
+                                "Display only algorithm type plugins. "
+                                "If type is specified as \"all\", then all algorithms are listed. Otherwise, the type "
+                                "will be treated as a regexp and only algorithm types that match the regexp will be displayed.");
 
   std::string proc_arg;
-  G_context.m_args.AddArgument( "--process",   argT::SPACE_ARGUMENT, &proc_arg, "Select only processes" );
-  G_context.m_args.AddArgument( "--proc",      argT::SPACE_ARGUMENT, &proc_arg, "Select only processes" );
+  G_context.m_args.AddArgument( "--process",   argT::SPACE_ARGUMENT, &proc_arg,
+                                "Display only sprokit process type plugins. "
+                                "If type is specified as \"all\", then all processes are listed. Otherwise, the type "
+                                "will be treated as a regexp and only processes names that match the regexp will be displayed." );
+  G_context.m_args.AddArgument( "--proc",      argT::SPACE_ARGUMENT, &proc_arg,
+                                "Display only sprokit process type plugins. "
+                                "If type is specified as \"all\", then all processes are listed. Otherwise, the type "
+                                "will be treated as a regexp and only processes names that match the regexp will be displayed." );
 
-  G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Select only schedulers" );
+  G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Displat scheduler type plugins" );
 
   std::vector< std::string > filter_args;
   G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
                                 "Filter factories based on attribute name and value. "
                                 "Only two fields must follow: <attr-name> <attr-value>" );
 
-  G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary, "Display summary of factories" );
+  G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary,
+                                "Display summary of all plugin types" );
 
   G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
-                                "Display raw attributes for factories without calling any category specific plugins" );
+                                "Display raw attributes for plugins without calling any category specific formatting" );
 
   G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
-                                "Load only specified plugin file for inspection." );
+                                "Load only specified plugin file for inspection. No other pluigins are loaded." );
 
-  G_context.m_args.AddArgument( "--fmt",     argT::SPACE_ARGUMENT, &G_context.formatting_type, "Select alternate formatting type." );
+  G_context.m_args.AddArgument( "--fmt",     argT::SPACE_ARGUMENT, &G_context.formatting_type,
+                                "Generate display using alternative format, such as 'rst' or 'pipe'" );
+
+
+  // Need to load plugins before we display help since they can add
+  // command line options.
+  load_explorer_plugins( DEFAULT_MODULE_PATHS );
 
   // See if there are no args specified. If so, then default to full listing
   if ( argc == 1 )
@@ -599,15 +592,10 @@ main( int argc, char* argv[] )
 
   if ( G_context.opt_help )
   {
-    usage( argv[0] );
+    pe_out() << "Usage for " << argv[0] << std::endl
+             << G_context.m_args.GetHelp() << std::endl;
+    //+ usage( argv[0] );
     exit( 0 );
-  }
-
-  // Save some time by not loading the plugins if we know we will not
-  // be using them.
-  if ( ! G_context.opt_attrs )
-  {
-    load_explorer_plugins( DEFAULT_MODULE_PATHS );
   }
 
   // Handle process type parameter
