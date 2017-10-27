@@ -334,7 +334,6 @@ wrap_rst_text( const std::string& txt )
 
   // trim trailing whitesapce new line
   wtxt.erase( wtxt.find_last_not_of( " \t\n\r\f\v" ) + 1 );
-
   return std::regex_replace( wtxt, std::regex("\n"), " |br|\\ " );
 }
 
@@ -349,14 +348,10 @@ initialize( explorer_context* context )
   // Add plugin specific command line option.
   auto cla = m_context->command_line_args();
 
-  static char flag_name[]("--sep-proc-files");
-  static char help_text[]("Generate .rst output for processes in separate files." );
-
-  cla->AddArgument( flag_name,
+  cla->AddArgument( "--sep-proc-files",
                     kwiversys::CommandLineArguments::NO_ARGUMENT,
                     &this->opt_files,
-                    help_text );
-
+                    "Generate .rst output for processes in separate files." );
   return true;
 }
 
@@ -369,7 +364,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   std::string proc_type = "-- Not Set --";
   if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type ) && opt_files )
   {
-    m_out_stream.open( proc_type + "-config.rst", std::ios_base::trunc);
+    m_out_stream.open( proc_type + ".rst", std::ios_base::trunc);
   }
 
   std::string descrip = "-- Not_Set --";
@@ -388,10 +383,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                << "   <br />" << std::endl
                << std::endl;
 
-  out_stream() << underline( proc_type, '=' ) << std::endl
-               << descrip << std::endl
-               << std::endl;
-
+  // Start the doc page for the process.
   sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( fact.get() );
 
   sprokit::process_t const proc = pf->create_object( kwiver::vital::config_block::empty_config() );
@@ -529,15 +521,8 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   // ==================================================================
   // -- pipefile usage --
 
-  // Switch to other file
-  if ( opt_files )
-  {
-    m_out_stream.close();
-    m_out_stream.open( proc_type + "-pipe.rst", std::ios_base::trunc);
-  }
-
   out_stream() << underline( "Pipefile Usage", '-' ) << std::endl
-               << "The following sections describe the blocks needed ot use this process in a pipe file." << std::endl
+               << "The following sections describe the blocks needed to use this process in a pipe file." << std::endl
                << std::endl
                << underline( "Pipefile block", '-' ) << std::endl
                << ".. code::" << std::endl
@@ -634,6 +619,7 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
                << underline( "Class Description", '-' ) << std::endl
                << ".. doxygenclass:: " << proc_class << std::endl
                << "   :project: kwiver" << std::endl
+               << "   :members:" << std::endl
                << std::endl;
 
   // close file just in case it was open
