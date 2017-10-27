@@ -8,6 +8,14 @@ Image Type
 ..  doxygenclass:: kwiver::vital::image
     :project: kwiver
     :members:
+    
+Time Stamp
+----------
+
+.. _timestamp:
+..  doxygenclass:: kwiver::vital::timestamp
+    :project: kwiver
+    :members:
 
 Image Container Type
 --------------------
