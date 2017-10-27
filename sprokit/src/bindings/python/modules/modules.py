@@ -28,31 +28,33 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 try:
     from . import loaders
 except:
     from straight.plugin import loaders
+from sprokit import sprokit_logging
+
+logger = sprokit_logging.getLogger(__name__)
 
 
-def _log(msg):
-    import sys
-    sys.stderr.write("%s\n" % msg)
-    sys.stderr.flush()
-
-
+@sprokit_logging.exc_report
 def _load_python_module(mod):
+    logger.debug('Loading python module: "{}"'.format(mod))
     if hasattr(mod, '__sprokit_register__'):
         import collections
 
         if isinstance(mod.__sprokit_register__, collections.Callable):
             mod.__sprokit_register__()
-
+        else:
+            logger.warn(('Python module "{}" defined __sprokit_register__ but '
+                         'it is not callable').format(mod))
     else:
-        print(('[WARN] Python module {} does not have '
-               '__sprokit_register__ method').format(mod))
+        logger.warn(('Python module "{}" does not have '
+                     '__sprokit_register__ method').format(mod))
 
 
+@sprokit_logging.exc_report
 def load_python_modules():
     """
     Loads Sprokit python plugins
@@ -63,7 +65,9 @@ def load_python_modules():
     them with the C++ backend.
     """
     import os
+    logger.info('Loading python modules')
 
+    # default plugins that are always loaded
     packages = ['sprokit.processes',
                 'sprokit.schedulers']
 
@@ -72,6 +76,9 @@ def load_python_modules():
     extra_modules = os.environ.get(envvar, '').split(os.pathsep)
     # ensure the empty string is not considered as a module
     packages.extend([p for p in extra_modules if p])
+    logger.debug(
+        'Preparing to load sprokit python plugin modules: '
+        '[\n    {}\n]'.format(',\n    '.join(list(map(repr, packages)))))
 
     loader = loaders.ModuleLoader()
     all_modules = []
@@ -81,11 +88,7 @@ def load_python_modules():
         all_modules += modules
 
     for module in all_modules:
-        print('[DEBUG] Loading python module: {}'.format(module))
-
         try:
             _load_python_module(module)
-        except BaseException:
-            import sys
-            e = sys.exc_info()[1]
-            _log("Failed to load '%s': %s" % (module, str(e)))
+        except BaseException as ex:
+            logger.warn('Failed to load "{}": {}'.format(module, ex))

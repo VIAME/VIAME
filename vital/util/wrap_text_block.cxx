@@ -90,7 +90,7 @@ wrap_text( const std::string& text )
     // Counter of additional spaces to place in front of the next non-empty
     // word added to the line buffer. There is always at least one space
     // between words.
-    size_t spaces = 1;
+    size_t spaces = 0;
 
     std::list< std::string > words;
     // Not using token-compress in case there is purposeful use of multiple
@@ -115,8 +115,9 @@ wrap_text( const std::string& text )
           line_buffer = m_indent;
           // On a line split, it makes sense to me that leading spaces are
           // treated as trailing white-space, which should not be output.
-          spaces = 1;
+          spaces = 0;
         }
+
         line_buffer += std::string( spaces, ' ' ) + cur_word;
         spaces = 1;
       }
