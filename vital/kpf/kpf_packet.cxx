@@ -28,12 +28,12 @@ struct tag2type_bimap_t
     this->style2tag[ packet_style::INVALID ] = "invalid";
     this->style2tag[ packet_style::ID ] = "id";
     this->style2tag[ packet_style::TS ] = "ts";
-    this->style2tag[ packet_style::TSR ] = "tsr";
+    this->style2tag[ packet_style::TSR ] = "tsr_";
     this->style2tag[ packet_style::LOC ] = "loc";
     this->style2tag[ packet_style::GEOM ] = "g";
     this->style2tag[ packet_style::POLY ] = "poly";
     this->style2tag[ packet_style::CONF ] = "conf";
-    this->style2tag[ packet_style::ACT ] = "act";
+    this->style2tag[ packet_style::ACT ] = "act_";
     this->style2tag[ packet_style::EVAL ] = "eval";
     this->style2tag[ packet_style::ATTR ] = "a";
     this->style2tag[ packet_style::TAG ] = "tag";

@@ -39,7 +39,7 @@ packet_header_parser( const string& s, packet_header_t& packet_header, bool expe
   packet_style style = str2style( tag_str );
   if ( style == packet_style::INVALID )
   {
-    LOG_ERROR( main_logger, "Bad packet style '" << tag_str << "'" );
+    //    LOG_ERROR( main_logger, "Bad packet style '" << tag_str << "'" );
     return false;
   }
 
@@ -57,21 +57,53 @@ packet_parser( const vector<string>& tokens,
   while ( index < n )
   {
     packet_t p;
-    if (! packet_header_parser( tokens[ index++ ],
-                                p.header,
-                                true ))
+    if (packet_header_parser( tokens[ index ],
+                              p.header,
+                              true ))
     {
-      return false;
-    }
+      // uh-oh, we couldn't parse it; build up an 'unparsed' key-value packet
+      // until we get a parse
+      ++index;
+      pair< bool, size_t > next = packet_payload_parser( index, tokens, p );
+      if (! next.first )
+      {
+        // This indicates a malformed packet error
+        return false;
+      }
+      index = next.second;
 
-    pair< bool, size_t > next = packet_payload_parser( index, tokens, p );
-    if (! next.first )
+      packet_buffer.insert( make_pair( p.header, p ));
+    }
+    else
     {
-      return false;
-    }
-    index = next.second;
+      // uh-oh, we couldn't recognize the header-- build up an 'unparsed' key-value
+      // packet
+      string unparsed_txt = tokens[index];
+      LOG_DEBUG( main_logger, "starting unparsed with '" << unparsed_txt << "'" );
+      // keep trying until we either parse a header or run out of tokens
+      ++index;
+      bool keep_going = (index < n);
+      while (keep_going)
+      {
+        if (packet_header_parser( tokens[index], p.header, true ))
+        {
+          // we found a parsable header-- all done
+          LOG_DEBUG( main_logger, "Found a parsable header at index " << index << ": '" << tokens[index] << "'" );
+          keep_going = false;
+        }
+        else
+        {
+          unparsed_txt += " "+tokens[index++];
+          keep_going = (index < n);
+        }
+      }
 
-    packet_buffer.insert( make_pair( p.header, p ));
+      packet_header_t unparsed_header( packet_style::KV );
+      packet_t unparsed( unparsed_header );
+      LOG_DEBUG( main_logger, "Completing unparsed '" << unparsed_txt << "' ; next index " << index << " of " << n);
+      new (&unparsed.kv) canonical::kv_t( "unparsed", unparsed_txt );
+      packet_buffer.insert( make_pair( unparsed.header, unparsed ));
+    }
   }
   return true;
 }
@@ -163,6 +195,14 @@ text_parser_t
 text_parser_t
 ::operator bool() const
 {
+  return this->reader_status;
+}
+
+bool
+text_parser_t
+::next()
+{
+  this->verify_reader_status();
   return this->reader_status;
 }
 

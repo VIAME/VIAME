@@ -89,6 +89,9 @@ public:
   explicit text_parser_t( std::istream& is );
   explicit operator bool() const;
 
+  // load more packets, if necessary
+  bool next();
+
   // push packets into the text_reader
   friend text_parser_t& operator>>( text_parser_t& t,
                                     text_reader_t& b );

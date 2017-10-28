@@ -120,6 +120,7 @@ struct VITAL_KPF_EXPORT packet_t
     canonical::meta_t meta;
   };
   packet_t(): header( packet_header_t() ) {}
+  packet_t( const packet_header_t& h ): header(h) {}
   ~packet_t();
   packet_t( const packet_t& other );
   packet_t& operator=( const packet_t& other );

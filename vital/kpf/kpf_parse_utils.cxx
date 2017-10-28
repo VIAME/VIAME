@@ -323,7 +323,7 @@ packet_payload_parser ( size_t index,
     break;
 
   default:
-    LOG_ERROR( main_logger, "Unparsed packet style " << static_cast<int>( packet.header.style ));
+    LOG_ERROR( main_logger, "Unparsed packet style '" << style2str( packet.header.style) << "'" );
     break;
 
   }
