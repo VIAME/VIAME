@@ -7,6 +7,9 @@ include( kwiver-depends-Eigen )
 include( kwiver-depends-log4cxx )
 include( kwiver-depends-log4cplus )
 
+# Required for Vital KPF
+include( kwiver-depends-yamlcpp )
+
 # Required for Sprokit and Track Oracle
 if(KWIVER_ENABLE_SPROKIT OR KWIVER_ENABLE_TRACK_ORACLE)
 include( kwiver-depends-Boost )
