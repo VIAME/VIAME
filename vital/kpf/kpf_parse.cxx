@@ -115,27 +115,63 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-text_reader_t
-::text_reader_t()
+//
+// text parser
+//
+
+kpf_text_parser_t
+::kpf_text_parser_t( istream& is ): input_stream( is )
+{
+}
+
+bool
+kpf_text_parser_t
+::get_status() const
+{
+  return static_cast<bool>( this->input_stream );
+}
+
+bool
+kpf_text_parser_t
+::parse_next_record( packet_buffer_t& local_packet_buffer )
+{
+  string s;
+  if (! std::getline( this->input_stream, s ))
+  {
+    return false;
+  }
+  vector< string > tokens;
+  ::kwiver::vital::tokenize( s, tokens, " ", true );
+
+  bool rc = packet_parser( tokens, local_packet_buffer );
+  return rc;
+}
+
+//
+//
+//
+
+packet_bounce_t
+::packet_bounce_t()
   : is_set( false )
 {
 }
 
-text_reader_t
-::text_reader_t( const string& s )
+packet_bounce_t
+::packet_bounce_t( const string& s )
   : is_set( false )
 {
   this->init( s );
 }
 
-text_reader_t
-::text_reader_t( const packet_header_t& h )
+packet_bounce_t
+::packet_bounce_t( const packet_header_t& h )
   : is_set( false ), header( h )
 {
 }
 
 void
-text_reader_t
+packet_bounce_t
 ::init( const string& s )
 {
   if (! packet_header_parser( s, this->header, false ))
@@ -145,14 +181,14 @@ text_reader_t
   }
 }
 
-void text_reader_t
+void packet_bounce_t
 ::init( const packet_header_t& h )
 {
   this->header = h;
 }
 
 void
-text_reader_t
+packet_bounce_t
 ::set_from_buffer( const packet_t& p )
 {
   this->is_set = true;
@@ -160,14 +196,14 @@ text_reader_t
 }
 
 packet_header_t
-text_reader_t
+packet_bounce_t
 ::my_header() const
 {
   return this->header;
 }
 
-text_reader_t&
-text_reader_t
+packet_bounce_t&
+packet_bounce_t
 ::set_domain( int d )
 {
   this->is_set = false;
@@ -176,7 +212,7 @@ text_reader_t
 }
 
 pair< bool, packet_t >
-text_reader_t
+packet_bounce_t
 ::get_packet()
 {
   bool f = this->is_set;
@@ -184,22 +220,25 @@ text_reader_t
   return make_pair( f, this->packet );
 }
 
-text_parser_t
-::text_parser_t( istream& is )
-  : packet_buffer( packet_header_cmp ), input_stream(is)
+kpf_reader_t
+::kpf_reader_t( kpf_parser_base_t& p )
+  : packet_buffer( packet_header_cmp ), parser(p)
 {
-  this->reader_status = static_cast<bool>( is );
+  this->reader_status = this->parser.get_status();
 }
 
+//
+//
+//
 
-text_parser_t
+kpf_reader_t
 ::operator bool() const
 {
   return this->reader_status;
 }
 
 bool
-text_parser_t
+kpf_reader_t
 ::next()
 {
   this->verify_reader_status();
@@ -207,7 +246,7 @@ text_parser_t
 }
 
 vector< string >
-text_parser_t
+kpf_reader_t
 ::get_meta_packets() const
 {
   return this->meta_buffer;
@@ -215,7 +254,7 @@ text_parser_t
 
 
 bool
-text_parser_t
+kpf_reader_t
 ::parse_next_line()
 {
   //
@@ -228,24 +267,12 @@ text_parser_t
   packet_header_t meta_packet_h( packet_style::META );
   while ( ! non_meta_packets_added )
   {
-    string s;
-    if (! std::getline( this->input_stream, s ))
-    {
-      return false;
-    }
-    vector< string > tokens;
-    ::kwiver::vital::tokenize( s, tokens, " ", true );
-
-    //
-    // pass the tokens off to the packet parser
-    // store them in a local buffer to search for meta tags
-
     packet_buffer_t local_packet_buffer( packet_header_cmp );
-    if (! packet_parser( tokens, local_packet_buffer ))
+    bool rc = this->parser.parse_next_record( local_packet_buffer );
+    if (! rc )
     {
-      return false;
+      break;
     }
-
     // pull any meta packets out
     packet_buffer_cit p;
     while ( (p = local_packet_buffer.find( meta_packet_h ))
@@ -267,7 +294,7 @@ text_parser_t
 }
 
 bool
-text_parser_t
+kpf_reader_t
 ::verify_reader_status()
 {
   if (! this->reader_status )
@@ -292,7 +319,7 @@ text_parser_t
 }
 
 pair< bool, packet_t >
-text_parser_t
+kpf_reader_t
 ::transfer_kv_packet_from_buffer( const string& key )
 {
   if (! this->verify_reader_status() )
@@ -328,7 +355,7 @@ text_parser_t
 
 
 pair< bool, packet_t >
-text_parser_t
+kpf_reader_t
 ::transfer_packet_from_buffer( const packet_header_t& h )
 {
   if (! this->verify_reader_status() )
@@ -367,8 +394,8 @@ text_parser_t
 }
 
 bool
-text_parser_t
-::process_reader( text_reader_t& b )
+kpf_reader_t
+::process_reader( packet_bounce_t& b )
 {
   auto probe = this->transfer_packet_from_buffer( b.my_header() );
   if (probe.first)
@@ -379,8 +406,8 @@ text_parser_t
 }
 
 bool
-text_parser_t
-::process( text_reader_t& b )
+kpf_reader_t
+::process( packet_bounce_t& b )
 {
   if ( this->reader_status )
   {
@@ -390,45 +417,45 @@ text_parser_t
   return this->reader_status;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
-            text_reader_t& b )
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
+            packet_bounce_t& b )
 {
   t.process( b );
   return t;
 }
 
 bool
-text_parser_t
+kpf_reader_t
 ::process( kpf_io_adapter_base& io )
 {
   return this->process( io.text_reader );
 }
 
-text_parser_t& operator>>( text_parser_t& t,
+kpf_reader_t& operator>>( kpf_reader_t& t,
                            kpf_io_adapter_base& io )
 {
   return t >> io.text_reader;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::bbox_t >& r )
 {
   t.process( r.box_adapter.set_domain( r.domain ) );
   return t;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::poly_t >& r )
 {
   t.process( r.poly_adapter.set_domain( r.domain ) );
   return t;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::id_t >& r )
 {
   auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::ID, r.domain ));
@@ -439,8 +466,8 @@ operator>>( text_parser_t& t,
   return t;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::timestamp_t >& r )
 {
   auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::TS, r.domain ));
@@ -462,8 +489,8 @@ operator>>( text_parser_t& t,
   return t;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::kv_t >& r )
 {
   auto probe = t.transfer_kv_packet_from_buffer( r.key );
@@ -474,8 +501,8 @@ operator>>( text_parser_t& t,
   return t;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::conf_t >& r )
 {
   auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::CONF, r.domain ));
@@ -486,8 +513,8 @@ operator>>( text_parser_t& t,
   return t;
 }
 
-text_parser_t&
-operator>>( text_parser_t& t,
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::meta_t >& r )
 {
   auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::META ));

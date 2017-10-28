@@ -47,6 +47,7 @@
 #include <vital/kpf/vital_kpf_export.h>
 
 #include <vital/kpf/kpf_packet.h>
+#include <vital/kpf/kpf_canonical_io.h>
 
 #include <utility>
 #include <iostream>
@@ -62,7 +63,7 @@ namespace kpf {
 // its packet buffer. Any syntax errors are detected during parsing.
 //
 // Packets are transferred out of the packet buffer via operator>>
-// or the process() methods. Packets are transferred into text_reader_t
+// or the process() methods. Packets are transferred into packet_bounce_t
 // objects (whch are packet-specific.)
 //
 
@@ -79,25 +80,50 @@ typedef std::multimap< packet_header_t,
                        packet_t,
                        decltype(packet_header_cmp) >::const_iterator packet_buffer_cit;
 
-class text_reader_t;
+class packet_bounce_t;
 struct kpf_io_adapter_base;
 
-class VITAL_KPF_EXPORT text_parser_t
+class VITAL_KPF_EXPORT kpf_parser_base_t
+{
+public:
+  kpf_parser_base_t() {}
+  virtual ~kpf_parser_base_t() {}
+
+  virtual bool get_status() const = 0;
+  virtual bool parse_next_record( packet_buffer_t& ) = 0;
+};
+
+class VITAL_KPF_EXPORT kpf_text_parser_t: public kpf_parser_base_t
+{
+public:
+  explicit kpf_text_parser_t( std::istream& is );
+  ~kpf_text_parser_t() {}
+
+  virtual bool get_status() const;
+  virtual bool parse_next_record( packet_buffer_t& pb );
+
+private:
+  std::istream& input_stream;
+
+};
+
+
+class VITAL_KPF_EXPORT kpf_reader_t
 {
 public:
 
-  explicit text_parser_t( std::istream& is );
+  explicit kpf_reader_t( kpf_parser_base_t& parser );
   explicit operator bool() const;
 
   // load more packets, if necessary
   bool next();
 
   // push packets into the text_reader
-  friend text_parser_t& operator>>( text_parser_t& t,
-                                    text_reader_t& b );
+  friend kpf_reader_t& operator>>( kpf_reader_t& t,
+                                   packet_bounce_t& b );
 
   // pull packets into the text_reader
-  bool process( text_reader_t& b );
+  bool process( packet_bounce_t& b );
   bool process( kpf_io_adapter_base& io );
 
   // mystery: fails to link if this is not inline?
@@ -119,91 +145,26 @@ public:
   std::vector< std::string > get_meta_packets() const;
 
 private:
-  bool process_reader( text_reader_t& b );
+  bool process_reader( packet_bounce_t& b );
   bool parse_next_line();
   bool verify_reader_status();
 
   packet_buffer_t packet_buffer;
   std::vector< std::string > meta_buffer;
-  std::istream& input_stream;
   bool reader_status;
 
+  kpf_parser_base_t& parser;
 };
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t,
-                           text_reader_t& b );
-
-//
-//
-//
-
-template< typename T >
-struct writer
-{};
-
-template <>
-struct VITAL_KPF_EXPORT writer< canonical::bbox_t >
-{
-  writer( const canonical::bbox_t& b, int d) : box(b), domain(d) {}
-  const canonical::bbox_t& box;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT writer< canonical::poly_t >
-{
-  writer( const canonical::poly_t& p, int d) : poly(p), domain(d) {}
-  const canonical::poly_t& poly;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT writer< canonical::id_t >
-{
-  writer( size_t i, int d ): id(i), domain(d) {}
-  canonical::id_t id;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT writer< canonical::timestamp_t >
-{
-  writer( double t, int d ): ts(t), domain(d) {}
-  canonical::timestamp_t ts;
-  int domain;
-};
-
-template<>
-struct VITAL_KPF_EXPORT writer< canonical::kv_t >
-{
-  writer( const std::string& k, const std::string& v ): kv(k,v) {}
-  canonical::kv_t kv;
-  // key/value has no domain
-};
-
-template<>
-struct VITAL_KPF_EXPORT writer< canonical::conf_t >
-{
-  writer( double c, int d ): conf(c), domain(d) {}
-  canonical::conf_t conf;
-  int domain;
-};
-
-template<>
-struct VITAL_KPF_EXPORT writer< canonical::meta_t >
-{
-  writer( const std::string& t ): meta(t) {}
-  canonical::meta_t meta;
-  int domain;
-};
-
+kpf_reader_t& operator>>( kpf_reader_t& t,
+                           packet_bounce_t& b );
 //
 //
 //
 
 class record_text_writer;
-class text_reader_t;
+class packet_bounce_t;
 
 struct VITAL_KPF_EXPORT private_endl_t
 {};
@@ -233,8 +194,8 @@ record_text_writer&
 operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
 
 VITAL_KPF_EXPORT
-text_reader_t&
-operator>>( text_reader_t& w, const writer< canonical::id_t >& io );
+packet_bounce_t&
+operator>>( packet_bounce_t& w, const writer< canonical::id_t >& io );
 
 VITAL_KPF_EXPORT
 record_text_writer&
@@ -271,18 +232,18 @@ operator<<( record_text_writer& w, const private_endl_t& e );
 // a fixed KPF header ("g0", "id3", etc) that they know about.
 //
 
-class VITAL_KPF_EXPORT text_reader_t
+class VITAL_KPF_EXPORT packet_bounce_t
 {
 public:
-  text_reader_t();
-  explicit text_reader_t( const std::string& tag );
-  explicit text_reader_t( const packet_header_t& h );
+  packet_bounce_t();
+  explicit packet_bounce_t( const std::string& tag );
+  explicit packet_bounce_t( const packet_header_t& h );
   void init( const std::string& tag );
   void init( const packet_header_t& h );
-  ~text_reader_t() {}
+  ~packet_bounce_t() {}
 
   // mutate the domain
-  text_reader_t& set_domain( int d );
+  packet_bounce_t& set_domain( int d );
 
   // return this reader's packet header
   packet_header_t my_header() const;
@@ -302,20 +263,20 @@ protected:
 
 
 //
-// For complex types, such as bounding box, text_reader_t
+// For complex types, such as bounding box, packet_bounce_t
 // needs to be associated with functions to convert between
 // the KPF and user types; this base class holds the
-// text_reader_t instance.
+// packet_bounce_t instance.
 //
 
 struct kpf_io_adapter_base
 {
-  text_reader_t text_reader;
+  packet_bounce_t text_reader;
   kpf_io_adapter_base& set_domain( int d ) { this->text_reader.set_domain(d); return *this; }
 };
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t,
+kpf_reader_t& operator>>( kpf_reader_t& t,
                            kpf_io_adapter_base& io );
 
 
@@ -393,7 +354,7 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
     (this->kpf2user_inplace)( probe.second.bbox, u );
   }
 
-  void get( text_parser_t& parser, USER_TYPE& u )
+  void get( kpf_reader_t& parser, USER_TYPE& u )
   {
     // same throwing issues
     parser.process( *this );
@@ -442,7 +403,7 @@ struct kpf_poly_adapter: public kpf_io_adapter< USER_TYPE, canonical::poly_t >
     (this->kpf2user_inplace)( probe.second.poly, u );
   }
 
-  void get( text_parser_t& parser, USER_TYPE& u )
+  void get( kpf_reader_t& parser, USER_TYPE& u )
   {
     // same throwing issues
     parser.process( *this );
@@ -456,97 +417,27 @@ struct kpf_poly_adapter: public kpf_io_adapter< USER_TYPE, canonical::poly_t >
 
 };
 
-template< typename T >
-struct reader
-{};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::bbox_t >
-{
-  reader( kpf_io_adapter_base& b, int d): box_adapter(b), domain(d) {}
-  kpf_io_adapter_base& box_adapter;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::poly_t >
-{
-  reader( kpf_io_adapter_base& b, int d): poly_adapter(b), domain(d) {}
-  kpf_io_adapter_base& poly_adapter;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::id_t >
-{
-  reader( int& id, int d ): id_ref(id), domain(d) {}
-  int& id_ref;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::timestamp_t >
-{
-private:
-  int i_dummy;
-  unsigned u_dummy;
-  double d_dummy;
-
-public:
-  enum which_t {to_int, to_unsigned, to_double};
-  reader( int& ts, int d ): which( to_int), int_ts(ts), unsigned_ts(u_dummy), double_ts( d_dummy ),  domain(d) {}
-  reader( unsigned& ts, int d ): which( to_unsigned ), int_ts( i_dummy), unsigned_ts(ts), double_ts( d_dummy ), domain(d) {}
-  reader( double& ts, int d ): which( to_double ), int_ts( i_dummy ), unsigned_ts( u_dummy ), double_ts(ts), domain(d) {}
-  which_t which;
-  int& int_ts;
-  unsigned& unsigned_ts;
-  double& double_ts;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::kv_t >
-{
-  reader( const std::string& k, std::string& v ): key(k), val(v) {}
-  std::string key;
-  std::string& val;
-};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::conf_t >
-{
-  reader( double& c, int d): conf(c), domain(d) {}
-  double& conf;
-  int domain;
-};
-
-template <>
-struct VITAL_KPF_EXPORT reader< canonical::meta_t >
-{
-  reader( std::string& t): txt(t) {}
-  std::string& txt;
-};
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::bbox_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::bbox_t >& r );
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::poly_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::poly_t >& r );
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::id_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::id_t >& r );
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::timestamp_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::timestamp_t >& r );
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::kv_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::kv_t >& r );
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::conf_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::conf_t >& r );
 
 VITAL_KPF_EXPORT
-text_parser_t& operator>>( text_parser_t& t, const reader< canonical::meta_t >& r );
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::meta_t >& r );
 
 } // ...kpf
 } // ...vital

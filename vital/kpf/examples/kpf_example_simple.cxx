@@ -96,16 +96,17 @@ read_detections_from_stream( std::istream& is )
 
   vector< user_detection_t > dets;
   user_detection_t buffer;
-  KPF::text_parser_t parser( is );
+  KPF::kpf_text_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
 
-  while (parser
+  while (reader
          >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
          >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
          >> KPF::reader< KPFC::conf_t>( buffer.confidence, DETECTOR_DOMAIN )
     )
   {
     dets.push_back( buffer );
-    parser.flush();
+    reader.flush();
   }
   return dets;
 }

@@ -149,10 +149,11 @@ read_detections_from_stream( std::istream& is )
   namespace KPFC = KPF::canonical;
   vector< user_detection_t > dets;
   user_box_adapter_t box;
-  KPF::text_parser_t parser( is );
+  KPF::kpf_text_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
   user_detection_t buffer;
 
-  while (parser
+  while (reader
          >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
          >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
          >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
@@ -162,7 +163,7 @@ read_detections_from_stream( std::istream& is )
   {
     box.get( buffer );
     dets.push_back( buffer );
-    parser.flush();
+    reader.flush();
   }
 
   // or...

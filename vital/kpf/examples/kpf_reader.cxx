@@ -27,12 +27,14 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
   }
 
-  KPF::text_parser_t parser( is );
-  while (parser.next())
-  {
-    const KPF::packet_buffer_t& packets = parser.get_packet_buffer();
 
-    std::vector< std::string > meta = parser.get_meta_packets();
+  KPF::kpf_text_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
+  while (reader.next())
+  {
+    const KPF::packet_buffer_t& packets = reader.get_packet_buffer();
+
+    std::vector< std::string > meta = reader.get_meta_packets();
     std::cout << "Parsed " << meta.size() << " metadata packets:\n";
     for (auto m: meta)
     {
@@ -43,6 +45,6 @@ int main( int argc, char *argv[] )
     {
       std::cout << "-- " << p.second << "\n";
     }
-    parser.flush();
+    reader.flush();
   }
 }

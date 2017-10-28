@@ -148,10 +148,11 @@ read_detections_from_stream( std::istream& is )
   vector< user_detection_t > dets;
   user_box_adapter_t box;
   user_poly_adapter_t poly;
-  KPF::text_parser_t parser( is );
+  KPF::kpf_text_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
   user_detection_t buffer;
 
-  while (parser
+  while (reader
          >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
          >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
          >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
@@ -165,12 +166,12 @@ read_detections_from_stream( std::istream& is )
     dets.push_back( buffer );
 
     // did we receive any metadata?
-    for (auto m: parser.get_meta_packets())
+    for (auto m: reader.get_meta_packets())
     {
       std::cout << "Metadata: '" << m << "'\n";
     }
 
-    parser.flush();
+    reader.flush();
   }
 
 

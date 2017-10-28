@@ -8,6 +8,9 @@ set( sources
 )
 
 set( public_headers
+  kpf_packet.h
+  kpf_canonical_types.h
+  kpf_canonical_io.h
   kpf_parse.h
 )
 
@@ -42,8 +45,8 @@ kwiver_install_headers(
   SUBDIR   vital/kpf
 )
 
-if (KWIVER_ENABLE_TESTS)
-  add_subdirectory( tests )
-endif()
+# if (KWIVER_ENABLE_TESTS)
+#   add_subdirectory( tests )
+# endif()
 
 add_subdirectory( examples )
