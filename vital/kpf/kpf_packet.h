@@ -43,12 +43,11 @@ struct VITAL_KPF_EXPORT packet_header_t
   packet_header_t( packet_style s ): style(s), domain( NO_DOMAIN ) {}
 };
 
-VITAL_KPF_EXPORT auto packet_header_cmp = []( const packet_header_t& lhs, const packet_header_t& rhs )
-{ return ( lhs.style == rhs.style )
-  ? (lhs.domain < rhs.domain)
-  : (lhs.style < rhs.style);
+class VITAL_KPF_EXPORT packet_header_cmp
+{
+public:
+  bool operator()( const packet_header_t& lhs, const packet_header_t& rhs ) const;
 };
-
 
 struct VITAL_KPF_EXPORT packet_t
 {

@@ -3,6 +3,7 @@
 //
 
 #include <vital/kpf/kpf_parse.h>
+#include <vital/kpf/kpf_text_parser.h>
 #include <iostream>
 #include <fstream>
 #include <vector>

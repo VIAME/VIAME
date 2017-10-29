@@ -58,6 +58,15 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
+bool
+packet_header_cmp
+::operator()( const packet_header_t& lhs, const packet_header_t& rhs ) const
+{ return ( lhs.style == rhs.style )
+  ? (lhs.domain < rhs.domain)
+  : (lhs.style < rhs.style);
+}
+
+
 //
 // Given a string, return its corresponding packet style
 //

@@ -4,6 +4,8 @@
 
 
 #include <vital/kpf/kpf_parse.h>
+#include <vital/kpf/kpf_text_parser.h>
+#include <vital/kpf/kpf_canonical_io_adapter.h>
 #include <iostream>
 #include <sstream>
 #include <string>

@@ -2,12 +2,12 @@
 #define KWIVER_VITAL_KPF_CANONICAL_IO_H_
 
 #include <vital/kpf/kpf_canonical_types.h>
+#include <vital/kpf/kpf_canonical_io_adapter_base.h>
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
 
-struct kpf_io_adapter_base;
 
 template< typename T >
 struct writer
@@ -76,16 +76,16 @@ struct reader
 template <>
 struct VITAL_KPF_EXPORT reader< canonical::bbox_t >
 {
-  reader( kpf_io_adapter_base& b, int d): box_adapter(b), domain(d) {}
-  kpf_io_adapter_base& box_adapter;
+  reader( kpf_canonical_io_adapter_base& b, int d): box_adapter(b), domain(d) {}
+  kpf_canonical_io_adapter_base& box_adapter;
   int domain;
 };
 
 template <>
 struct VITAL_KPF_EXPORT reader< canonical::poly_t >
 {
-  reader( kpf_io_adapter_base& b, int d): poly_adapter(b), domain(d) {}
-  kpf_io_adapter_base& poly_adapter;
+  reader( kpf_canonical_io_adapter_base& b, int d): poly_adapter(b), domain(d) {}
+  kpf_canonical_io_adapter_base& poly_adapter;
   int domain;
 };
 
