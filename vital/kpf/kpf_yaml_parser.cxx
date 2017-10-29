@@ -54,8 +54,10 @@ kpf_yaml_parser_t
   for (auto it=n.begin(); it != n.end(); ++it)
   {
     string s = it->first.as<string>();
-    // if the last character is not a digit, it's a key
-    if ( (!s.empty()) && ( isdigit( static_cast< unsigned char>( s.back() ))))
+    // if the last character is not a digit, it's a key (or a meta)
+    bool is_meta = (s == "meta");
+    bool ends_in_digit =  (!s.empty()) && ( isdigit( static_cast< unsigned char>( s.back() )));
+    if (is_meta || ends_in_digit)
     {
       // it's a KPF packet
       tokens.push_back( s+":" );
