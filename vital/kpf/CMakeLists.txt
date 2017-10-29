@@ -7,6 +7,7 @@ set( sources
   kpf_parse_utils.cxx
   kpf_reader.cxx
   kpf_text_parser.cxx
+  kpf_yaml_parser.cxx
   kpf_text_writer.cxx
 )
 
@@ -18,6 +19,7 @@ set( public_headers
   kpf_parse_utils.h
   kpf_parser_base.h
   kpf_text_parser.h
+  kpf_yaml_parser.h
   kpf_canonical_io_adapter_base.h
   kpf_canonical_io_adapter.h
   kpf_text_writer.h
@@ -41,7 +43,8 @@ target_link_libraries( vital_kpf
   PRIVATE        vital
                  vital_logger
                  vital_util
-)
+                 ${YAML_CPP_LIBRARIES}
+  )
 
 kwiver_install_headers(
   ${public_headers}

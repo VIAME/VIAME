@@ -76,6 +76,10 @@ parse_geom( size_t index,
   catch (const std::invalid_argument& e)
   {
     LOG_ERROR( main_logger, "parsing geom: error converting to double " << e.what() );
+    for (auto i=0; i<4; ++i)
+    {
+      LOG_ERROR( main_logger, "index " << index << " offset " << i << "'" << tokens[ index+i ] << "'" );
+    }
     return make_pair( false, index );
   }
 

@@ -40,8 +40,7 @@ kpf_text_parser_t
   vector< string > tokens;
   ::kwiver::vital::tokenize( s, tokens, " ", true );
 
-  bool rc = packet_parser( tokens, local_packet_buffer );
-  return rc;
+  return packet_parser( tokens, local_packet_buffer );
 }
 
 
