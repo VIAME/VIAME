@@ -2,7 +2,7 @@
 // A simple example that reads KPFs.
 //
 
-#include <vital/kpf/kpf_parse.h>
+#include <vital/kpf/kpf_reader.h>
 #include <vital/kpf/kpf_text_parser.h>
 #include <iostream>
 #include <fstream>

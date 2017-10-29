@@ -7,7 +7,7 @@
 // Part 1 defines the user detection type we'll be playing with.
 
 
-#include <vital/kpf/kpf_parse.h>
+#include <vital/kpf/kpf_reader.h>
 #include <vital/kpf/kpf_text_parser.h>
 #include <vital/kpf/kpf_canonical_io_adapter.h>
 #include <vital/kpf/kpf_text_writer.h>

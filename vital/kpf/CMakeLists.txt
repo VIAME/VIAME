@@ -5,7 +5,7 @@
 set( sources
   kpf_packet.cxx
   kpf_parse_utils.cxx
-  kpf_parse.cxx
+  kpf_reader.cxx
   kpf_text_parser.cxx
   kpf_text_writer.cxx
 )
@@ -14,7 +14,7 @@ set( public_headers
   kpf_packet.h
   kpf_canonical_types.h
   kpf_canonical_io.h
-  kpf_parse.h
+  kpf_reader.h
   kpf_parse_utils.h
   kpf_parser_base.h
   kpf_text_parser.h

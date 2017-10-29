@@ -41,8 +41,8 @@
 //
 //
 
-#ifndef KWIVER_VITAL_KPF_PARSE_H_
-#define KWIVER_VITAL_KPF_PARSE_H_
+#ifndef KWIVER_VITAL_KPF_READER_H_
+#define KWIVER_VITAL_KPF_READER_H_
 
 
 #include <vital/kpf/vital_kpf_export.h>
