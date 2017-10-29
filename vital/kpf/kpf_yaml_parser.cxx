@@ -15,6 +15,40 @@ using std::string;
 using std::vector;
 using std::isdigit;
 
+namespace { // anon
+
+void visit( const YAML::Node& n, vector< string >& tokens )
+{
+  switch (n.Type())
+  {
+  case YAML::NodeType::Scalar:
+    ::kwiver::vital::tokenize( n.as<string>(), tokens, " ", true );
+    break;
+
+  case YAML::NodeType::Sequence:
+    for (auto it=n.begin(); it != n.end(); ++it)
+    {
+      visit( *it, tokens );
+    }
+    break;
+
+  case YAML::NodeType::Map:
+    for (auto it=n.begin(); it != n.end(); ++it)
+    {
+      visit( it->first, tokens );
+      visit( it->second, tokens );
+    }
+    break;
+
+  case YAML::NodeType::Null:  // fall-through
+  case YAML::NodeType::Undefined:
+    // do nothing
+    break;
+  }
+}
+
+} // ...anon
+
 namespace kwiver {
 namespace vital {
 namespace kpf {
@@ -68,9 +102,7 @@ kpf_yaml_parser_t
       tokens.push_back( "kv:" );
       tokens.push_back( s );
     }
-    vector< string > sub_tokens;
-    ::kwiver::vital::tokenize( it->second.as<string>(), sub_tokens, " ", true );
-    tokens.insert( tokens.end(), sub_tokens.begin(), sub_tokens.end() );
+    visit( it->second, tokens );
   }
 
   return packet_parser( tokens, local_packet_buffer );
