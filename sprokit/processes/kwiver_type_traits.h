@@ -78,7 +78,7 @@ namespace vital {
 create_type_trait( bounding_box, "kwiver:bounding_box",
                    kwiver::vital::bounding_box_d);
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
-create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
+create_type_trait( gsd, "kwiver:gsd", double );
 create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );

@@ -1,2 +1,2 @@
-Plugin Explorer
+Pipeline Runner
 ===============
