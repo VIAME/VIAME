@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,57 +33,43 @@
  * \brief core polygon class tests
  */
 
-#include <test_common.h>
-
 #include <arrows/vxl/polygon.h>
+
+#include <gtest/gtest.h>
 
 #include <sstream>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-// ------------------------------------------------------------------
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(conversions)
+// ----------------------------------------------------------------------------
+TEST(polygon, conversions)
 {
   auto p = std::make_shared< kwiver::vital::polygon >();
 
-  //                                              X    Y
+  //                                              X   Y
   p->push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
   p->push_back( kwiver::vital::polygon::point_t( 10, 50 ) );
   p->push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
   p->push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
 
   auto xpoly = kwiver::arrows::vxl::vital_to_vxl( p );
-  TEST_EQUAL( "Correct number of vertices, vxl", xpoly->num_vertices(), 4 );
+  ASSERT_EQ( 4, xpoly->num_vertices() );
 
   // Convert back to vital_polygon
   auto vpoly =  kwiver::arrows::vxl::vxl_to_vital( *xpoly.get() );
-  TEST_EQUAL( "Correct number of vertices, vital", vpoly->num_vertices(), 4 );
-
+  ASSERT_EQ( 4, vpoly->num_vertices() );
 
   auto x_sheet = xpoly->operator[](0);
   auto v_vert = vpoly->get_vertices();
 
   for ( size_t i = 0; i < xpoly->num_vertices(); ++i )
   {
-    if ( ( x_sheet[i].x() != v_vert[i](0) ) || ( x_sheet[i].y() != v_vert[i](1) )  )
-    {
-      std::stringstream str;
-      str << "Vertex " << i << " test failed. Values are not equal.";
-      TEST_ERROR( str.str() );
-    }
+    EXPECT_EQ( v_vert[i](0), x_sheet[i].x() ) << "Vertex at index " << i;
+    EXPECT_EQ( v_vert[i](1), x_sheet[i].y() ) << "Vertex at index " << i;
   }
 }
