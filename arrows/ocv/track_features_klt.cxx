@@ -46,7 +46,6 @@
 #include <vector>
 #include <iterator>
 
-#include <vital/vital_foreach.h>
 #include <vital/algo/detect_features.h>
 
 #include <vital/exceptions/algorithm.h>
@@ -140,10 +139,10 @@ track_features_klt
 }
 
 
-/// Extend a previous set of tracks using the current frame
-track_set_sptr
+/// Extend a previous set of feature tracks using the current frame
+feature_track_set_sptr
 track_features_klt
-::track(track_set_sptr prev_tracks,
+::track(feature_track_set_sptr prev_tracks,
         unsigned int frame_number,
         image_container_sptr image_data,
         image_container_sptr mask) const
@@ -156,8 +155,6 @@ track_features_klt
         "not all sub-algorithms have been initialized");
   }
 
-  track_set_sptr existing_set;
-  feature_set_sptr curr_feat;
 
   cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image());
   cv::Mat cv_mask;
@@ -196,14 +193,13 @@ track_features_klt
   if( d_->prev_points.empty() )
   {
     // see if there are already existing tracks on this frame
+    feature_set_sptr curr_feat;
     if( prev_tracks )
     {
-      existing_set = prev_tracks->active_tracks(frame_number);
-      if( existing_set && existing_set->size() > 0 )
+      curr_feat = prev_tracks->frame_features(frame_number);
+      if( curr_feat && curr_feat->size() > 0 )
       {
         LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
-        // use existing features
-        curr_feat = existing_set->frame_features(frame_number);
       }
     }
     if( !curr_feat || curr_feat->size() == 0 )
@@ -216,17 +212,19 @@ track_features_klt
 
     typedef std::vector<feature_sptr>::const_iterator feat_itr;
     feat_itr fit = vf.begin();
-    std::vector<vital::track_sptr> new_tracks;
     d_->prev_points.clear();
     for(; fit != vf.end(); ++fit)
     {
-       track::track_state ts(frame_number, *fit, nullptr);
-       new_tracks.push_back(vital::track_sptr(new vital::track(ts)));
-       new_tracks.back()->set_id(next_track_id++);
-       d_->prev_points.push_back(cv::Point2f((*fit)->loc().x(), (*fit)->loc().y()));
+      auto fts = std::make_shared<feature_track_state>(frame_number);
+      fts->feature = *fit;
+      auto t = vital::track::create();
+      t->append(fts);
+      t->set_id(next_track_id++);
+      prev_tracks->insert(t);
+      d_->prev_points.push_back(cv::Point2f((*fit)->loc().x(), (*fit)->loc().y()));
     }
     d_->prev_image = cv_img;
-    return track_set_sptr(new simple_track_set(new_tracks));
+    return prev_tracks;
   }
 
   std::vector<cv::Point2f> new_points;
@@ -238,10 +236,8 @@ track_features_klt
   // get the last track id in the existing set of tracks and increment it
   next_track_id = (*prev_tracks->all_track_ids().crbegin()) + 1;
 
-  track_set_sptr active_set = prev_tracks->active_tracks();
-  std::vector<track_sptr> active_tracks = active_set->tracks();
-  std::vector<feature_sptr> vf = active_set->last_frame_features()->features();
-  std::vector<track_sptr> all_tracks = prev_tracks->tracks();
+  std::vector<track_sptr> active_tracks = prev_tracks->active_tracks();
+  std::vector<feature_sptr> vf = prev_tracks->last_frame_features()->features();
 
   std::vector<cv::Point2f> next_points;
   for(unsigned int i=0; i< active_tracks.size(); ++i)
@@ -253,14 +249,15 @@ track_features_klt
     }
     auto f = std::make_shared<feature_f>(*vf[i]);
     f->set_loc(np);
-    track::track_state ts(frame_number, f, nullptr);
+    auto fts = std::make_shared<feature_track_state>(frame_number);
+    fts->feature = f;
     track_sptr t = active_tracks[i];
-    t->append(ts);
+    t->append(fts);
     next_points.push_back(new_points[i]);
   }
   d_->prev_points = next_points;
 
-  return std::make_shared<simple_track_set>(all_tracks);
+  return prev_tracks;
 }
 
 } // end namespace core
