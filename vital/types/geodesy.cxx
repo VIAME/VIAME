@@ -70,6 +70,19 @@ set_geo_conv( geo_conversion* c )
 }
 
 // ----------------------------------------------------------------------------
+geo_crs_description_t
+geo_crs_description( int crs )
+{
+  auto const c = s_geo_conv.load();
+  if ( !c )
+  {
+    throw std::runtime_error( "No geo-conversion functor is registered" );
+  }
+
+  return c->describe( crs );
+}
+
+// ----------------------------------------------------------------------------
 vector_2d
 geo_conv( vector_2d const& point, int from, int to )
 {
