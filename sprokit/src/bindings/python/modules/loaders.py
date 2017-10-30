@@ -29,12 +29,12 @@
 # Only ModuleLoader is here since we only care about it.
 
 """Facility to load plugins."""
-
 from __future__ import print_function
 import sys
 import os
-
 from importlib import import_module
+from sprokit import sprokit_logging
+logger = sprokit_logging.getLogger(__name__)
 
 
 class Loader(object):
@@ -42,8 +42,8 @@ class Loader(object):
     def __init__(self, *args, **kwargs):
         self._cache = []
 
-    def load(self, *args, **kwargs):
-        self._fill_cache(*args, **kwargs)
+    def load(self, namespace):
+        self._fill_cache(namespace)
         self._post_fill()
         self._order()
         return self._cache
@@ -102,8 +102,8 @@ class ModuleLoader(Loader):
 
         for ext in py_exts:
             if namespace.endswith(ext):
-                print(('[WARNING] do not specify .py extension for '
-                       'the {} sprokit python module').format(namespace))
+                logger.warn(('do not specify .py extension for the {} '
+                             'sprokit python module').format(namespace))
                 namespace = namespace[:-len(ext)]
 
         namespace_rel_path = namespace.replace('.', os.path.sep)
@@ -139,7 +139,7 @@ class ModuleLoader(Loader):
                             already_seen.add(base)
                             mod_rel_path = namespace_rel_path + ext
                             yield mod_rel_path
-                            # Dont test remaining pyo / pyc extensions.
+                            # Dont test remaining pyc / pyo extensions.
                             break
 
     def _findPluginModules(self, namespace):
@@ -147,13 +147,12 @@ class ModuleLoader(Loader):
             path_segments = list(filepath.split(os.path.sep))
             path_segments = [p for p in path_segments if p]
             path_segments[-1] = os.path.splitext(path_segments[-1])[0]
-            import_path = '.'.join(path_segments)
+            module_name = '.'.join(path_segments)
 
             try:
-                module = import_module(import_path)
+                module = import_module(module_name)
             except ImportError as e:
-                print('[DEBUG] Could not import: {} Reason: {}'.format(
-                    import_path, e))
+                logger.warn('Could not import: {}, Reason: {}'.format(module_name, e))
                 module = None
 
             if module is not None:
