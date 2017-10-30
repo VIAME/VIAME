@@ -1,45 +1,54 @@
-//
-// for text files (at least), each line is a record of packets.
-//
-// I read the file. I get:
-//
-// - header (vector of meta packets)
-// - content (vector of records)
-// - content-descriptor (map of packet -> count)
-//
-// A record is:
-// - a std::map< packet_t, std::unique_ptr<packet_payload_t> >
-// ... one instance of packet_t is 'key', so a record may have multiple key/value pairs.
-//
-// ... packet_t is a pair <packet_enum_t, domain_t>
-// ... packet_payload_t is an ABC, static_cast based on packet_enum_t
-//
-// record_writer rw;
-// rw_index_t geo = rw.add( kpf::geometry, kpf::geometry::PIXEL, []( vgl_box_2d& b ){ return make_tuple( b.lx, ... ); } );
-// ...
-// hmm need to do that because we need to preallocate the domains?
-//
-// rw.write( geo, box_list[1] );
-// ...no, what's the signature there?
-//
-// howabout:
-//
-// auto cvt_box = []( const vgl_box_2d<double>& b ) { return kpf::geo::Type( b.lx, ... );
-// record_writer rw;
-// rw_tag_t geo_tag = rw.add( kpf::geo::Tag, kpf::geometry::PIXEL ); // now have the tag and the domain
-// rw_tag_t frame_tag = rw.add( kpf::id::Tag, kpf::next, "detection ID" ); // added to meta; next is a different type to force overload
-// rw_tag_t track_tag = rw.add( kpf::id::Tag, kpf::next, "track ID" ); // added to meta
-// ...
-// rw << frame_tag << frame_id << track_tag << track_id << geo_tag << cvt_box( b1 ) << rw::endl;
-// ...
-// ...and the op<< for rw has the state to check the decltype for the tags for the following call?
-// ... hmmm!
-//
-// Reading?
-//
-// ... see tmp.cxx
-//
-//
+/*ckwg +29
+ * Copyright 2017 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @file
+ * @brief Base class for KPF readers.
+ *
+ * The KPF reader maintains the packet buffer of KPF packets.
+ *
+ * The general workflow is:
+ *
+ * 1) A reader object pulls for a packet of a particular style and domain
+ *    (say, style ID and domain 2.)
+ *
+ * 2) If the packet buffer is empty, call the parser's parse_next_record()
+ *    method to refill the packet buffer.
+ *
+ * 3) If the packet exists, copy it into the bounce buffer (if it's a simple
+ *    packet) or into the io_adapter_base (if it's complex.)
+ *
+ * When the client is done for this record, call flush() to empty the packet
+ * buffer and trigger another parse_next_record() call.
+ *
+ */
 
 #ifndef KWIVER_VITAL_KPF_READER_H_
 #define KWIVER_VITAL_KPF_READER_H_

@@ -1,3 +1,50 @@
+/*ckwg +29
+ * Copyright 2017 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * \brief Base class for adapters for complex types.
+ *
+ * For complex types (bounding boxes, activities), there's probably not
+ * a one-to-one mapping between the canonical KPF representation and the user's
+ * data structure.
+ *
+ * This holds the (templated) canonical_io_adapter_base as well as some
+ * derived classes for enabling user-types to map more easily into:
+ *
+ * -- bounding boxes
+ * -- polygons
+ * -- activities
+ *
+ */
+
 #ifndef KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_H_
 #define KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_H_
 
@@ -9,15 +56,18 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-
-
-
-//
-// The adapter class holds the infrastructure for mapping
-// between user and KPF types. The user isn't intended to use
-// this; instead should use classes derived from this which
-// are specialized on KPF_TYPE.
-//
+/**
+ * \brief Base class for kpf <-> user translation
+ *
+ * The adapter base class holds the infrastructure for mapping
+ * between user and KPF types. The user isn't intended to use
+ * this; instead should use classes derived from this which
+ * are specialized on KPF_TYPE.
+ *
+ * The user provides two functions; one constructs a
+ * user type from the canonical type, the other constructs a canonical
+ * type from the user's type.
+ */
 
 template< typename USER_TYPE, typename KPF_TYPE >
 struct kpf_io_adapter: public kpf_canonical_io_adapter_base
@@ -50,9 +100,10 @@ struct kpf_io_adapter: public kpf_canonical_io_adapter_base
   }
 };
 
-//
-// This is a KPF I/O adapter for bounding boxes.
-//
+/**
+ * \brief Bounding box adapter.
+ *
+ */
 
 template< typename USER_TYPE >
 struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
@@ -99,9 +150,11 @@ struct kpf_box_adapter: public kpf_io_adapter< USER_TYPE, canonical::bbox_t >
 
 };
 
-//
-// This is a KPF I/O adapter for polygons.
-//
+/**
+ * \brief Polygon adapter.
+ *
+ */
+
 
 template< typename USER_TYPE >
 struct kpf_poly_adapter: public kpf_io_adapter< USER_TYPE, canonical::poly_t >
@@ -148,9 +201,10 @@ struct kpf_poly_adapter: public kpf_io_adapter< USER_TYPE, canonical::poly_t >
 
 };
 
-//
-// This is a KPF I/O adapter for activities.
-//
+/**
+ * \brief Activity adapter.
+ *
+ */
 
 template< typename USER_TYPE >
 struct kpf_act_adapter: public kpf_io_adapter< USER_TYPE, canonical::activity_t >
