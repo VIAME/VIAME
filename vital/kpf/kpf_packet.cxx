@@ -28,12 +28,12 @@ struct tag2type_bimap_t
     this->style2tag[ packet_style::INVALID ] = "invalid";
     this->style2tag[ packet_style::ID ] = "id";
     this->style2tag[ packet_style::TS ] = "ts";
-    this->style2tag[ packet_style::TSR ] = "tsr_";
+    this->style2tag[ packet_style::TSR ] = "tsr";
     this->style2tag[ packet_style::LOC ] = "loc";
     this->style2tag[ packet_style::GEOM ] = "g";
     this->style2tag[ packet_style::POLY ] = "poly";
     this->style2tag[ packet_style::CONF ] = "conf";
-    this->style2tag[ packet_style::ACT ] = "act_";
+    this->style2tag[ packet_style::ACT ] = "act";
     this->style2tag[ packet_style::EVAL ] = "eval";
     this->style2tag[ packet_style::ATTR ] = "a";
     this->style2tag[ packet_style::TAG ] = "tag";
@@ -145,11 +145,14 @@ packet_t
   case packet_style::META:
     new (& (this->meta)) canonical::meta_t( other.meta );
     break;
+  case packet_style::ACT:
+    new (& (this->activity)) canonical::activity_t( other.activity );
+    break;
 
   default:
     {
       std::ostringstream oss;
-      oss << "Unhandled cpctor for style " << static_cast<int>(this->header.style) << " (domain " << this->header.domain << ")";
+      oss << "Unhandled cpctor for style " << style2str(this->header.style) << " (domain " << this->header.domain << ")";
       throw std::logic_error( oss.str() );
     }
   }
@@ -176,6 +179,28 @@ operator<<( std::ostream& os, const packet_t& p )
   case packet_style::KV:    os << p.kv.key << " = " << p.kv.val; break;
   case packet_style::POLY:  os << "(polygon w/ " << p.poly.xy.size() << " points)"; break;
   case packet_style::META:  os << "meta: " << p.meta.txt; break;
+  case packet_style::ACT:
+    const activity_t& act = p.activity;
+    os << act.activity_name << " id " << act.activity_id.d << "/" << act.activity_id_domain << " [ ";
+    for (auto t: act.timespan )
+    {
+      os << t.tsr.start << ":" << t.tsr.stop << " /" << t.domain << ", ";
+    }
+    os << "] ; actors: [ ";
+    for (auto a: act.actors )
+    {
+      os << a.id.d << "/" << a.id_domain << "(";
+      for (auto t: a.actor_timespan)
+      {
+        os << t.tsr.start << ":" << t.tsr.stop << " /" << t.domain << ", ";
+      }
+      os << "), ";
+    }
+    for (auto k: act.attributes)
+    {
+      os << k.key << "=" << k.val << " ,";
+    }
+    break;
   }
   return os;
 }

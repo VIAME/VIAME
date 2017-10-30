@@ -24,6 +24,7 @@ struct VITAL_KPF_EXPORT id_t
   enum {DETECTION_ID=0, TRACK_ID, EVENT_ID };
   size_t d;
   explicit id_t( size_t i ): d(i) {}
+  id_t(): d(0) {}
 };
 
 struct VITAL_KPF_EXPORT timestamp_t
@@ -36,6 +37,7 @@ struct VITAL_KPF_EXPORT timestamp_t
 struct VITAL_KPF_EXPORT timestamp_range_t
 {
   timestamp_range_t( double a, double b ): start(a), stop(b) {}
+  timestamp_range_t(): start(0), stop(0) {}
   double start, stop;
 };
 
@@ -64,6 +66,27 @@ struct VITAL_KPF_EXPORT meta_t
   std::string txt;
   meta_t( const std::string& t ): txt(t) {}
   meta_t() {}
+};
+
+struct VITAL_KPF_EXPORT activity_t
+{
+  struct scoped_tsr_t
+  {
+    int domain;
+    timestamp_range_t tsr;
+  };
+  struct actor_t
+  {
+    int id_domain;
+    id_t id;
+    std::vector< scoped_tsr_t > actor_timespan;
+  };
+  std::string activity_name;
+  id_t activity_id;
+  int activity_id_domain;
+  std::vector< scoped_tsr_t > timespan;
+  std::vector< actor_t > actors;
+  std::vector< kv_t > attributes;
 };
 
 } // ...canonical

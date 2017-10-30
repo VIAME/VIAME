@@ -58,6 +58,19 @@ need_at_least( const string& tag, size_t needed, size_t index, size_t s )
   }
 }
 
+const string&
+next_token( size_t& index, const string& tag, const vector<string>& tokens )
+{
+  if (index == tokens.size())
+  {
+    ostringstream oss;
+    oss << "Parsing " << tag << ": index " << index << " is at end of token buffer";
+    throw ::kwiver::vital::kpf_token_underrun_exception( oss.str() );
+  }
+  return tokens[index++];
+}
+
+
 pair< bool, size_t >
 parse_geom( size_t index,
             const vector<string>& tokens,
@@ -118,6 +131,25 @@ parse_poly( size_t index,
   catch (const std::invalid_argument& e )
   {
     LOG_ERROR( main_logger, "parsing poly: error converting x/y to double " << e.what() );
+    return make_pair( false, index );
+  }
+  return make_pair( true, index );
+}
+
+pair< bool, size_t >
+parse_tsr( size_t index,
+           const vector<string>& tokens,
+           packet_t& packet )
+{
+  need_at_least( "tsr", 2, index, tokens.size() );
+  try
+  {
+    packet.timestamp_range.start = stod( tokens[index++] );
+    packet.timestamp_range.stop = stod( tokens[index++] );
+  }
+  catch (const std::invalid_argument& e )
+  {
+    LOG_ERROR( main_logger, "parsing tsr: error converting start / stop to double " << e.what() );
     return make_pair( false, index );
   }
   return make_pair( true, index );
@@ -188,6 +220,199 @@ parse_meta( size_t index,
   packet.header.domain = kwiver::vital::kpf::packet_header_t::NO_DOMAIN;
   packet.meta = s;
   return make_pair( true, index );
+}
+
+bool
+parse_activity_timespan( size_t& index,
+                         const vector<string>& tokens,
+                         vector< activity_t::scoped_tsr_t >& tsr_list )
+{
+  //
+  // Due to the vagaries of YAML conversion into a flat token stream,
+  // a yaml fragment
+  //
+  //   timespan: [{tsr0: [0, 1526], tsr1: [314, 419]}], src: truth,
+  //
+  // ends up like this:
+  //
+  // token: 4: 'kv:'
+  // token: 5: 'timespan'
+  // token: 6: 'tsr0'
+  // token: 7: '0'
+  // token: 8: '1526'
+  // token: 9: 'tsr1'
+  // token: 10: '314'
+  // token: 11: '419'
+  // token: 12: 'kv:'
+  // token: 13: 'src'
+  //
+  // ...and we're here with index == 7.
+  //
+  // So: we need to back up, and dump scoped TSR entries into the tsr_list
+  // until we see a non-TSR token (indicating we're out of the timespan.)
+
+  --index;
+
+  while ( (index != tokens.size()) &&
+          (tokens[index].substr(0, 3) == "tsr"))
+  {
+    need_at_least( "activity-tsr", 2, index, tokens.size() );
+    activity_t::scoped_tsr_t t;
+    try
+    {
+      t.domain = stoi( tokens[index++].substr(3) );
+      t.tsr.start = stod( tokens[index++] );
+      t.tsr.stop = stod( tokens[index++] );
+    }
+    catch (const std::invalid_argument& e)
+    {
+      LOG_ERROR( main_logger, "Parsing activity TSR: couldn't convert " << e.what() );
+      return false;
+    }
+    tsr_list.push_back( t );
+  }
+
+  return true;
+}
+
+bool
+parse_activity_actors( size_t& index,
+                       const vector<string>& tokens,
+                       vector< activity_t::actor_t >& actor_list )
+{
+  //
+  // Similar to parse_activity_timespan, a YAML fragment such as
+  //
+  // actors: [{id1: 7, timespan: [{tsr0: [0, 1526], tsr1: [315, 777]}]} , {id1: 6, timespan: [{tsr0: [0, 1526], tsr1: [888,999]}]} ,  ]}
+  // token: 15: 'kv:'
+  // token: 16: 'actors'
+  // token: 17: 'id1'
+  // token: 18: '7'
+  // token: 19: 'timespan'
+  // token: 20: 'tsr0'
+  // token: 21: '0'
+  // token: 22: '1526'
+  // token: 23: 'tsr1'
+  // token: 24: '315'
+  // token: 25: '777'
+  // token: 26: 'id1'
+  // token: 27: '6'
+  // token: 28: 'timespan'
+  // token: 29: 'tsr0'
+  // token: 30: '0'
+  // token: 31: '1526'
+  // token: 32: 'tsr1'
+  // token: 33: '888'
+  // token: 34: '999'
+
+  //
+  // ...with an index of 18. So back up, parse the id, parse the timespan,
+  // until either (a) we're done or (b) next token is neither id nor timespan.
+  //
+
+  --index;
+
+  while ( (index != tokens.size()) &&
+          (tokens[index].substr(0, 2) == "id"))
+  {
+    need_at_least( "activity-actor-id", 1, index, tokens.size() );
+    activity_t::actor_t actor;
+    try
+    {
+      actor.id_domain = stoi( tokens[index++].substr(2) );
+      actor.id = kwiver::vital::kpf::canonical::id_t( stoi( tokens[index++] ));
+    }
+    catch (const std::invalid_argument& e)
+    {
+      LOG_ERROR( main_logger, "Parsing activity actor ID: couldn't convert " << e.what() );
+      return false;
+    }
+    need_at_least( "activity-actor-timespan", 2, index, tokens.size() );
+    if (tokens[index] != "timespan")
+    {
+      LOG_ERROR( main_logger, "Parsing activity actor ID: actor "
+                 << actor.id.d << "/" << actor.id_domain << " has no timespan?" );
+      return false;
+    }
+    ++index; // advance to 'tsrN'
+    ++index; // advance to start time
+    if (! parse_activity_timespan( index, tokens, actor.actor_timespan ))
+    {
+      return false;
+    }
+
+    actor_list.push_back( actor );
+  }
+
+  return true;
+}
+
+pair< bool, size_t >
+parse_activity( size_t index,
+                const vector<string>& tokens,
+                packet_t& packet )
+{
+  packet.activity.activity_name = next_token( index, "activity name", tokens );
+
+  // hmm, this is a little awkward
+  // last packet must be "actors:" kv
+  bool keep_going = (index < tokens.size());
+  bool packet_okay = false;
+  while (keep_going)
+  {
+    const string& s = tokens[index++];
+    if (s.back() != ':')
+    {
+      LOG_ERROR( main_logger, "Unexpected token '" << s << "' at index " << index
+                 << " while parsing activity " << packet.activity.activity_name );
+      keep_going = false;
+    }
+    kwiver::vital::kpf::packet_header_t h;
+    keep_going = packet_header_parser( s, h, true );
+    if (! keep_going) continue;  // philosophical
+
+    kwiver::vital::kpf::packet_t p(h);
+    auto sub_packet_parse = packet_payload_parser( index, tokens, p );
+    if (! sub_packet_parse.first )
+    {
+      keep_going = false;
+      continue;
+    }
+    index = sub_packet_parse.second;
+
+    // special key/value pairs: 'timespan' and 'actors'
+    if ( (p.header.style == packet_style::KV) && (p.kv.key == "timespan"))
+    {
+      keep_going = parse_activity_timespan( index, tokens, packet.activity.timespan );
+    }
+    else if ( (p.header.style == packet_style::KV) && (p.kv.key == "actors"))
+    {
+      keep_going = parse_activity_actors( index, tokens, packet.activity.actors );
+      if (keep_going)
+      {
+        packet_okay = true;
+        keep_going = false;
+      }
+    }
+    else if (p.header.style == packet_style::ID)
+    {
+      // explicitly look for the activity ID
+      packet.activity.activity_id = p.id;
+      packet.activity.activity_id_domain = p.header.domain;
+    }
+    else if (p.header.style == packet_style::KV)
+    {
+      // misc. other attributes
+      packet.activity.attributes.push_back( p.kv );
+    }
+    else
+    {
+      LOG_ERROR( main_logger, "Unexpected packet " << p << " in activity " << packet.activity.activity_name );
+      keep_going = false;
+    }
+  } // ...while keep_going
+
+  return make_pair( packet_okay, index );
 }
 
 } // anon
@@ -320,9 +545,19 @@ packet_payload_parser ( size_t index,
     ret = parse_kv( index, tokens, packet );
     break;
 
+  case packet_style::TSR:
+    new (&packet.timestamp_range) canonical::timestamp_range_t(0, 0);
+    ret = parse_tsr( index, tokens, packet );
+    break;
+
   case packet_style::META:
     new (&packet.meta) canonical::meta_t();
     ret = parse_meta( index, tokens, packet );
+    break;
+
+  case packet_style::ACT:
+    new (&packet.activity) canonical::activity_t();
+    ret = parse_activity( index, tokens, packet );
     break;
 
   default:
@@ -393,7 +628,6 @@ packet_parser( const vector<string>& tokens,
       // uh-oh, we couldn't recognize the header-- build up an 'unparsed' key-value
       // packet
       string unparsed_txt = tokens[index];
-      LOG_DEBUG( main_logger, "starting unparsed with '" << unparsed_txt << "'" );
       // keep trying until we either parse a header or run out of tokens
       ++index;
       bool keep_going = (index < n);
@@ -402,7 +636,6 @@ packet_parser( const vector<string>& tokens,
         if (packet_header_parser( tokens[index], p.header, true ))
         {
           // we found a parsable header-- all done
-          LOG_DEBUG( main_logger, "Found a parsable header at index " << index << ": '" << tokens[index] << "'" );
           keep_going = false;
         }
         else
@@ -414,7 +647,6 @@ packet_parser( const vector<string>& tokens,
 
       packet_header_t unparsed_header( packet_style::KV );
       packet_t unparsed( unparsed_header );
-      LOG_DEBUG( main_logger, "Completing unparsed '" << unparsed_txt << "' ; next index " << index << " of " << n);
       new (&unparsed.kv) canonical::kv_t( "unparsed", unparsed_txt );
       packet_buffer.insert( make_pair( unparsed.header, unparsed ));
     }

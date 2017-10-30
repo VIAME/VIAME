@@ -62,6 +62,7 @@ struct VITAL_KPF_EXPORT packet_t
     canonical::conf_t conf;
     canonical::poly_t poly;
     canonical::meta_t meta;
+    canonical::activity_t activity;
   };
   packet_t(): header( packet_header_t() ) {}
   packet_t( const packet_header_t& h ): header(h) {}
