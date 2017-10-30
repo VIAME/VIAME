@@ -17,3 +17,6 @@ target_link_libraries( kpf_yaml_reader vital_kpf )
 
 add_executable( yaml_parser yaml_parser.cxx )
 target_link_libraries( yaml_parser ${YAML_CPP_LIBRARIES} )
+
+add_executable( kpf_example_yaml kpf_example_yaml.cxx )
+target_link_libraries( kpf_example_yaml vital_kpf ${YAML_CPP_LIBRARIES} )

@@ -30,6 +30,14 @@ struct VITAL_KPF_EXPORT writer< canonical::poly_t >
 };
 
 template <>
+struct VITAL_KPF_EXPORT writer< canonical::activity_t >
+{
+  writer( const canonical::activity_t& a, int d) : activity(a), domain(d) {}
+  const canonical::activity_t& activity;
+  int domain;
+};
+
+template <>
 struct VITAL_KPF_EXPORT writer< canonical::id_t >
 {
   writer( size_t i, int d ): id(i), domain(d) {}
@@ -68,6 +76,16 @@ struct VITAL_KPF_EXPORT writer< canonical::meta_t >
   canonical::meta_t meta;
   int domain;
 };
+
+template<>
+struct VITAL_KPF_EXPORT writer< canonical::timestamp_range_t >
+{
+  writer( double start, double stop ): tsr(start, stop) {}
+  canonical::timestamp_range_t tsr;
+  int domain;
+};
+
+
 
 template< typename T >
 struct reader
@@ -138,6 +156,26 @@ struct VITAL_KPF_EXPORT reader< canonical::meta_t >
 {
   reader( std::string& t): txt(t) {}
   std::string& txt;
+};
+
+template <>
+struct VITAL_KPF_EXPORT reader< canonical::timestamp_range_t >
+{
+private:
+  std::pair<int, int> i_dummy;
+  std::pair<unsigned, unsigned> u_dummy;
+  std::pair<double, double> d_dummy;
+
+public:
+  enum which_t {to_int, to_unsigned, to_double};
+  reader( std::pair<int, int>& ts, int d ): which( to_int), int_ts(ts), unsigned_ts(u_dummy), double_ts( d_dummy ),  domain(d) {}
+  reader( std::pair<unsigned, unsigned>& ts, int d ): which( to_unsigned ), int_ts( i_dummy), unsigned_ts(ts), double_ts( d_dummy ), domain(d) {}
+  reader( std::pair<double, double>& ts, int d ): which( to_double ), int_ts( i_dummy ), unsigned_ts( u_dummy ), double_ts(ts), domain(d) {}
+  which_t which;
+  std::pair<int, int>& int_ts;
+  std::pair<unsigned, unsigned>& unsigned_ts;
+  std::pair<double, double>& double_ts;
+  int domain;
 };
 
 } // ...kpf

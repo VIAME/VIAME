@@ -148,6 +148,56 @@ struct kpf_poly_adapter: public kpf_io_adapter< USER_TYPE, canonical::poly_t >
 
 };
 
+//
+// This is a KPF I/O adapter for activities.
+//
+
+template< typename USER_TYPE >
+struct kpf_act_adapter: public kpf_io_adapter< USER_TYPE, canonical::activity_t >
+{
+
+  kpf_act_adapter( USER_TYPE (*k2u) (const canonical::activity_t&),
+                   canonical::activity_t (*u2k)( const USER_TYPE&) )
+    : kpf_io_adapter<USER_TYPE, canonical::activity_t>( k2u, u2k )
+  {
+    this->packet_bounce.init( packet_header_t( packet_style::ACT ));
+  }
+  kpf_act_adapter( void (*k2u) (const canonical::activity_t&, USER_TYPE& ),
+                   canonical::activity_t (*u2k)( const USER_TYPE&) )
+    : kpf_io_adapter<USER_TYPE, canonical::activity_t>( k2u, u2k )
+  {
+    this->packet_bounce.init( packet_header_t( packet_style::ACT ));
+  }
+
+  USER_TYPE get()
+  {
+    auto probe = this->packet_bounce.get_packet();
+    // throw if ! probe->first
+    // also throw if kpf2user is null, or else use a temporary?
+    return (this->kpf2user_function)( probe.second.act );
+  }
+  void get( USER_TYPE& u )
+  {
+    auto probe = this->packet_bounce.get_packet();
+    // see above
+    (this->kpf2user_inplace)( probe.second.act, u );
+  }
+
+  void get( kpf_reader_t& parser, USER_TYPE& u )
+  {
+    // same throwing issues
+    parser.process( *this );
+    this->get( u );
+  }
+
+  canonical::activity_t operator()( const USER_TYPE& u )
+  {
+    return this->user2kpf_function( u );
+  }
+
+};
+
+
 } // ...kpf
 } // ...vital
 } // ...kwiver

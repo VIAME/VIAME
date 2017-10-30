@@ -9,6 +9,7 @@ set( sources
   kpf_text_parser.cxx
   kpf_yaml_parser.cxx
   kpf_text_writer.cxx
+  kpf_yaml_writer.cxx
 )
 
 set( public_headers
@@ -23,6 +24,7 @@ set( public_headers
   kpf_canonical_io_adapter_base.h
   kpf_canonical_io_adapter.h
   kpf_text_writer.h
+  kpf_yaml_writer.h
 )
 
 set( private_headers

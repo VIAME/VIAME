@@ -283,7 +283,10 @@ parse_activity_actors( size_t& index,
   //
   // Similar to parse_activity_timespan, a YAML fragment such as
   //
-  // actors: [{id1: 7, timespan: [{tsr0: [0, 1526], tsr1: [315, 777]}]} , {id1: 6, timespan: [{tsr0: [0, 1526], tsr1: [888,999]}]} ,  ]}
+  //   actors: [{id1: 7, timespan: [{tsr0: [0, 1526], tsr1: [315, 777]}]} , {id1: 6, timespan: [{tsr0: [0, 1526], tsr1: [888,999]}]} ,  ]}
+  //
+  // ...flattens out to:
+  //
   // token: 15: 'kv:'
   // token: 16: 'actors'
   // token: 17: 'id1'
@@ -304,10 +307,10 @@ parse_activity_actors( size_t& index,
   // token: 32: 'tsr1'
   // token: 33: '888'
   // token: 34: '999'
-
   //
-  // ...with an index of 18. So back up, parse the id, parse the timespan,
-  // until either (a) we're done or (b) next token is neither id nor timespan.
+  // ...and we're here with an index of 18. So back up, parse the id,
+  // parse the timespan, until either (a) we're done or (b) next token
+  // is neither id nor timespan.
   //
 
   --index;
