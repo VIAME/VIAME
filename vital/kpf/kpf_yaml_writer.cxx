@@ -129,7 +129,7 @@ operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
     }
     w.s << " }], ";
   }
-  w.s << "]}, ";
+  w.s << "}], ";
 
   return w;
 }

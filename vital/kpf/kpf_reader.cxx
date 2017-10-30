@@ -256,6 +256,14 @@ operator>>( kpf_reader_t& t,
 
 kpf_reader_t&
 operator>>( kpf_reader_t& t,
+            const reader< canonical::activity_t >& r )
+{
+  t.process( r.act_adapter.set_domain( r.domain ) );
+  return t;
+}
+
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
             const reader< canonical::id_t >& r )
 {
   auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::ID, r.domain ));
@@ -321,6 +329,31 @@ operator>>( kpf_reader_t& t,
   if (probe.first)
   {
     r.txt = probe.second.meta.txt;
+  }
+  return t;
+}
+
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
+            const reader< canonical::timestamp_range_t >& r )
+{
+  auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::TSR ));
+  if (probe.first)
+  {
+    switch (r.which)
+    {
+      case reader< canonical::timestamp_range_t >::to_int:
+        r.int_ts = make_pair( static_cast< int >( probe.second.timestamp_range.start ),
+                              static_cast< int >( probe.second.timestamp_range.stop ) );
+        break;
+      case reader< canonical::timestamp_range_t >::to_unsigned:
+        r.unsigned_ts = make_pair( static_cast< unsigned>( probe.second.timestamp_range.start ),
+                                   static_cast< unsigned>( probe.second.timestamp_range.stop ) );
+        break;
+      case reader< canonical::timestamp_range_t >::to_double:
+        r.double_ts = make_pair( probe.second.timestamp_range.start, probe.second.timestamp_range.stop );
+      break;
+    }
   }
   return t;
 }

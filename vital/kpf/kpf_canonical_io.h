@@ -108,6 +108,14 @@ struct VITAL_KPF_EXPORT reader< canonical::poly_t >
 };
 
 template <>
+struct VITAL_KPF_EXPORT reader< canonical::activity_t >
+{
+  reader( kpf_canonical_io_adapter_base& b, int d): act_adapter(b), domain(d) {}
+  kpf_canonical_io_adapter_base& act_adapter;
+  int domain;
+};
+
+template <>
 struct VITAL_KPF_EXPORT reader< canonical::id_t >
 {
   reader( int& id, int d ): id_ref(id), domain(d) {}

@@ -174,13 +174,13 @@ struct kpf_act_adapter: public kpf_io_adapter< USER_TYPE, canonical::activity_t 
     auto probe = this->packet_bounce.get_packet();
     // throw if ! probe->first
     // also throw if kpf2user is null, or else use a temporary?
-    return (this->kpf2user_function)( probe.second.act );
+    return (this->kpf2user_function)( probe.second.activity );
   }
   void get( USER_TYPE& u )
   {
     auto probe = this->packet_bounce.get_packet();
     // see above
-    (this->kpf2user_inplace)( probe.second.act, u );
+    (this->kpf2user_inplace)( probe.second.activity, u );
   }
 
   void get( kpf_reader_t& parser, USER_TYPE& u )

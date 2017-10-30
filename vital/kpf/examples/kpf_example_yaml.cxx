@@ -64,13 +64,13 @@ struct user_activity_t
 
 ostream& operator<<( ostream& os, const user_activity_t& a )
 {
-  os << "activity " << a.id << " is '" << a.name << "' start/stop " << a.start << " / " << a.stop;
-  os << "actors: ";
+  os << "activity " << a.id << " is '" << a.name << "'; start/stop " << a.start << " / " << a.stop;
+  os << "; actors: ";
   for (auto i: a.actor_ids )
   {
     os << i << ", ";
   }
-  os << "conf: " << a.confidence;
+  os << "; conf: " << a.confidence;
   return os;
 }
 
@@ -139,7 +139,7 @@ struct user_act_adapter_t: public KPF::kpf_act_adapter< user_activity_t >
 
         for (auto actor:u.actor_ids)
         {
-          a.actors.push_back( {ACTOR_DOMAIN, actor, a.timespan });
+          a.actors.push_back( {ACTOR_DOMAIN, KPF::canonical::id_t(actor), a.timespan });
         }
 
         return a;
@@ -154,8 +154,8 @@ struct user_act_adapter_t: public KPF::kpf_act_adapter< user_activity_t >
 // Note that we're implicitly expecting to find record one per line.
 //
 
-vector< user_detection_t >
-read_detections_from_stream( std::istream& is )
+vector< user_activity_t >
+read_activities_from_stream( std::istream& is )
 {
   namespace KPFC = KPF::canonical;
   vector< user_activity_t > acts;
@@ -169,7 +169,7 @@ read_detections_from_stream( std::istream& is )
     )
   {
     act.get( buffer );
-    act.push_back( buffer );
+    acts.push_back( buffer );
     reader.flush();
   }
 
@@ -191,7 +191,7 @@ write_activities_to_stream( ostream& os,
   {
     w
       << KPF::writer< KPFC::activity_t >( act_adapter( act ), DETECTOR_DOMAIN )
-      << KPF::record_text_writer::endl;
+      << KPF::record_yaml_writer::endl;
   }
 }
 
@@ -205,8 +205,8 @@ int main()
   }
 
   stringstream ss;
-  std::cout << "\nAbout to write detections:\n";
-  write_detections_to_stream( ss, src );
+  std::cout << "\nAbout to write activities:\n";
+  write_activities_to_stream( ss, src );
   std::cout << "KPF representation:\n" << ss.str();
   std::cout << "Done\n";
 

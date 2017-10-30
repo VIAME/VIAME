@@ -126,6 +126,9 @@ VITAL_KPF_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::poly_t >& r );
 
 VITAL_KPF_EXPORT
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::activity_t >& r );
+
+VITAL_KPF_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::id_t >& r );
 
 VITAL_KPF_EXPORT
@@ -139,6 +142,9 @@ kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::conf_t >& r 
 
 VITAL_KPF_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::meta_t >& r );
+
+VITAL_KPF_EXPORT
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::timestamp_range_t >& r );
 
 
 

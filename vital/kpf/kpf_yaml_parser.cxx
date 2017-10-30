@@ -56,7 +56,17 @@ namespace kpf {
 kpf_yaml_parser_t
 ::kpf_yaml_parser_t( istream& is )
 {
-  this->root = YAML::Load( is );
+  try
+  {
+    this->root = YAML::Load( is );
+  }
+  // This seems not to work on OSX as of 30oct2017
+  // see https://stackoverflow.com/questions/21737201/problems-throwing-and-catching-exceptions-on-os-x-with-fno-rtti
+  catch (const YAML::ParserException& e )
+  {
+    LOG_ERROR( main_logger, "Exception parsing KPF YAML: " << e.what() );
+    this->root = YAML::Node();
+  }
   this->current_record = this->root.begin();
 }
 
