@@ -38,6 +38,7 @@ set( public_headers
   image_io.h
   image_object_detector.h
   initialize_cameras_landmarks.h
+  keyframe_selection.h
   match_features.h
   optimize_cameras.h
   refine_detections.h
