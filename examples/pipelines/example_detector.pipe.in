@@ -1,0 +1,52 @@
+# ================================================================
+process input
+  :: frame_list_input
+  image_list_file   = @EXAMPLE_DIR@/pipelines/example_detector_images.txt
+  frame_time        = .3333
+  image_reader:type = ocv
+
+# ================================================================
+process detector
+  :: image_object_detector
+  detector:type                    	= simple_detector
+  detector:simple_detector:center_x	= 200
+  detector:simple_detector:center_y   	= 200
+  detector:simple_detector:width	= 200
+  detector:simple_detector:height	= 100
+
+# ================================================================
+process draw
+  :: draw_detected_object_boxes
+  default_line_thickness = 3
+
+# ================================================================
+process disp
+  :: image_viewer
+  annotate_image = true
+  pause_time     = 0  #  pause_time in seconds. 0 means wait for keystroke.
+  title          = images
+#  footer         = images
+#  header         = header-header
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       capacity = 2
+
+# ================================================================
+# connections
+connect from input.image
+        to   detector.image
+
+connect from detector.detected_object_set
+        to   draw.detected_object_set
+connect from input.image
+        to draw.image
+
+connect from input.timestamp
+        to   disp.timestamp
+connect from draw.image
+        to   disp.image
+
+# -- end of file --

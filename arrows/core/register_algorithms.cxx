@@ -63,6 +63,7 @@
 #include <arrows/core/detected_object_set_output_kw18.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
+#include <arrows/core/example_detector.h>
 #include <arrows/core/track_descriptor_set_output_csv.h>
 #include <arrows/core/dynamic_config_none.h>
 
@@ -398,6 +399,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
+
+
+  fact = vpm.ADD_ALGORITHM( "simple_detector", kwiver::arrows::core::example_detector );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Simple detector, just creates arbitrary bounding box" )
+          .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+          .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+          .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+          ;
 
 
   vpm.mark_module_as_loaded( module_name );
