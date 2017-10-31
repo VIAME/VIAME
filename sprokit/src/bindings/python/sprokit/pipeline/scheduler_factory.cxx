@@ -47,23 +47,6 @@
 
 #include <pybind11/stl_bind.h>
 
-#ifdef WIN32
- // Windows get_pointer const volatile workaround
-namespace boost
-{
-  template <> inline sprokit::scheduler const volatile*
-  get_pointer(class sprokit::scheduler const volatile* p)
-  {
-    return p;
-  }
-  template <> inline sprokit::scheduler_factory const volatile*
-  get_pointer(class sprokit::scheduler_factory const volatile* p)
-  {
-    return p;
-  }
-}
-#endif
-
 using namespace pybind11;
 
 typedef std::function< object( sprokit::pipeline_t const& pipe,

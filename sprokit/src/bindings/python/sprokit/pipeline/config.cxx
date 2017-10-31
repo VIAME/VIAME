@@ -30,16 +30,8 @@
 
 #include <vital/config/config_block.h>
 
-#if WIN32
-#pragma warning (push)
-#pragma warning (disable : 4267)
-#pragma warning (disable : 4244)
-#endif
 #include <pybind11/pybind11.h>
 #include <pybind11/stl_bind.h>
-#if WIN32
-#pragma warning (pop)
-#endif
 
 #include <sstream>
 
@@ -48,18 +40,6 @@
  *
  * \brief Python bindings for \link kwiver::vital::config \endlink.
  */
-
-#ifdef WIN32
-// Windows get_pointer const volatile workaround
-namespace boost
-{
-  template <> inline kwiver::vital::config_block const volatile*
-  get_pointer( class kwiver::vital::config_block const volatile* cb )
-  {
-    return cb;
-  }
-}
-#endif
 
 namespace kwiver {
 namespace vital {
