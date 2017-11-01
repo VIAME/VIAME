@@ -223,14 +223,22 @@ triangulate_landmarks
       {
         pt3d = kwiver::arrows::triangulate_inhomog(lm_cams, lm_image_pts);
       }
-      VITAL_FOREACH(vital::simple_camera const& cam, lm_cams)
+      if (pt3d.allFinite())
       {
-        if(cam.depth(pt3d) < 0.0)
+        for(vital::simple_camera const& cam : lm_cams)
         {
-          bad_triangulation = true;
-          failed_landmarks.insert(p.first);
-          break;
+          if(cam.depth(pt3d) < 0.0)
+          {
+            bad_triangulation = true;
+            failed_landmarks.insert(p.first);
+            break;
+          }
         }
+      }
+      else
+      {
+        bad_triangulation = true;
+        failed_landmarks.insert(p.first);
       }
       if( !bad_triangulation )
       {
