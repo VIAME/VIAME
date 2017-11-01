@@ -77,6 +77,7 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
 /// Constructor
 close_loops_exhaustive
 ::close_loops_exhaustive()
@@ -92,15 +93,7 @@ close_loops_exhaustive
 }
 
 
-std::string
-close_loops_exhaustive
-::description() const
-{
-  return "Exhaustive matching of all frame pairs, "
-         "or all frames within a moving window";
-}
-
-
+// ----------------------------------------------------------------------------
 /// Get this alg's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 close_loops_exhaustive
@@ -124,6 +117,7 @@ close_loops_exhaustive
 }
 
 
+// ----------------------------------------------------------------------------
 /// Set this algo's properties via a config block
 void
 close_loops_exhaustive
@@ -143,6 +137,7 @@ close_loops_exhaustive
 }
 
 
+// ----------------------------------------------------------------------------
 bool
 close_loops_exhaustive
 ::check_configuration(vital::config_block_sptr config) const

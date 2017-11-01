@@ -104,6 +104,7 @@ typedef std::vector< track_info_t > track_info_buffer_t;
 typedef std::shared_ptr< track_info_buffer_t > track_info_buffer_sptr;
 
 
+// ----------------------------------------------------------------------------
 // Helper function for sorting tis
 bool
 compare_ti( const track_info_t& c1, const track_info_t& c2 )
@@ -112,6 +113,7 @@ compare_ti( const track_info_t& c1, const track_info_t& c2 )
 }
 
 
+// ----------------------------------------------------------------------------
 // Find a track in a given buffer
 track_info_buffer_t::iterator
 find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
@@ -122,6 +124,7 @@ find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
 }
 
 
+// ----------------------------------------------------------------------------
 // Reset all is found flags
 void
 reset_active_flags( track_info_buffer_sptr buffer )
@@ -282,6 +285,7 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
 compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
@@ -297,15 +301,8 @@ compute_ref_homography_core
 }
 
 
-std::string
-compute_ref_homography_core
-::description() const
-{
-  return "Default online sequential-frame reference homography estimator";
-}
-
-
-  vital::config_block_sptr
+// ----------------------------------------------------------------------------
+vital::config_block_sptr
 compute_ref_homography_core
 ::get_configuration() const
 {
@@ -343,6 +340,7 @@ compute_ref_homography_core
 }
 
 
+// ----------------------------------------------------------------------------
 void
 compute_ref_homography_core
 ::set_configuration( vital::config_block_sptr in_config )
@@ -371,6 +369,7 @@ compute_ref_homography_core
 }
 
 
+// ----------------------------------------------------------------------------
 bool
 compute_ref_homography_core
 ::check_configuration(vital::config_block_sptr config) const
@@ -382,6 +381,7 @@ compute_ref_homography_core
 }
 
 
+// ----------------------------------------------------------------------------
 // Perform actual current to reference frame estimation
 f2f_homography_sptr
 compute_ref_homography_core
