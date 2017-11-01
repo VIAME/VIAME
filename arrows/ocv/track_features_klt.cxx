@@ -85,6 +85,59 @@ public:
   double redetect_threshold;
   cv::Mat trackedFeatureLocationMask;
 
+  class featureDistributionImage {
+  public:
+    featureDistributionImage(): rows(4), cols(4)
+    {
+      distImage = cv::Mat(rows, cols, CV_8UC1);
+      distImage.setTo(0);
+    }
+
+    featureDistributionImage& operator=(const featureDistributionImage &other) {
+      if (&other == this) {
+        return *this;
+      }
+      other.distImage.copyTo(distImage);
+    }
+
+    bool shouldRedetect(const featureDistributionImage &lastDetectDist, float lossFact, float badBinFrac) {
+      int badBins = 0;
+      for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+          if (distImage.at<unsigned char>(r, c) < unsigned char(lossFact*float(lastDetectDist.distImage.at<unsigned char>(r, c)))) {
+            ++badBins;
+          }
+        }
+      }
+      if (badBins >= int(float(rows*cols)*badBinFrac)) {
+        return true;
+      }
+      return false;
+    }
+
+    void setFromFeatureVector(const std::vector<cv::Point2f> &points, image_container_sptr image_data) {
+      distImage.setTo(0);
+      const int dist_bin_x_len = image_data->width() / cols;
+      const int dist_bin_y_len = image_data->height() / rows;
+
+      for (auto v = points.begin(); v != points.end(); ++v) {
+        const cv::Point2f &tp = *v;
+        int dist_bin_x = std::min<int>(std::max<int>(tp.x / dist_bin_x_len, 0), cols - 1);
+        int dist_bin_y = std::min<int>(std::max<int>(tp.y / dist_bin_y_len, 0), rows - 1);
+
+        unsigned char& numFeatInBin = distImage.at<unsigned char>(dist_bin_y, dist_bin_x);
+        if (numFeatInBin < 255) {
+          ++numFeatInBin;  //make sure we don't roll over the uchar.
+        }
+      }
+    }
+    
+    cv::Mat distImage;
+    const int rows, cols;
+  };
+
+  featureDistributionImage distImage;
+  featureDistributionImage lastDetect_distImage;
 };
 
 
@@ -198,6 +251,7 @@ track_features_klt
   //points to be tracked in the next frame.  Empty at first.
   std::vector<cv::Point2f> next_points;
 
+  const int win_size = 41;
   //track features if there are any to track
   if (!d_->prev_points.empty())
   {
@@ -205,17 +259,16 @@ track_features_klt
     std::vector<cv::Point2f> tracked_points;
     std::vector<uchar> status;
     std::vector<float> err;
-    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, tracked_points, status, err,cv::Size(41,41),3);
+    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, tracked_points, status, err,cv::Size(win_size, win_size),3);
 
     std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();  //gets the active tracks for the previous frame
-    std::vector<feature_sptr> vf = cur_tracks->last_frame_features()->features();  //copy last frame's features
-    
+    std::vector<feature_sptr> vf = cur_tracks->last_frame_features()->features();  //copy last frame's features   
     for (unsigned int i = 0; i< active_tracks.size(); ++i)
     {
       vector_2f tp(tracked_points[i].x, tracked_points[i].y);
-      if (!status[i] || tp.x() < 0 || tp.y() < 0 || tp.x() > image_data->width() || tp.y() > image_data->height())
+      if (!status[i] || tp.x() < win_size || tp.y() < win_size || tp.x() > image_data->width()- win_size || tp.y() > image_data->height()- win_size)
       {
-        //skip features that tracked to outside of the image or didn't track properly
+        //skip features that tracked to outside of the image (or the border) or didn't track properly
         continue;
       }
       auto f = std::make_shared<feature_f>(*vf[i]);  //info from feature detector (location, scale etc.)
@@ -225,10 +278,20 @@ track_features_klt
       track_sptr t = active_tracks[i];
       t->append(fts);  //append the feature's current location to it's track.  Track was picked up with active_tracks() call on previous_tracks.
       next_points.push_back(tracked_points[i]);
-    }
+      //increment the feature distribution bins     
+    }    
   }
 
   bool detectNewFeatures = next_points.size() <= size_t(d_->redetect_threshold*double(d_->lastDetectNumFeatures));  //did we track enough features from the previous frame?
+
+  d_->distImage.setFromFeatureVector(next_points, image_data);
+  if (!detectNewFeatures){
+    //now check the distribution of features in the image    
+    if(d_->distImage.shouldRedetect(d_->lastDetect_distImage, 0.7, 2.0f/16.0f)){  //this will never be called on the first image so it will work.
+      LOG_DEBUG(logger(), "detecting new feature because of distribution");
+      detectNewFeatures = true;
+    }
+  }
 
   if( detectNewFeatures)
   {
@@ -287,6 +350,13 @@ track_features_klt
       if (d_->trackedFeatureLocationMask.at<unsigned char>((*fit)->loc().y(), (*fit)->loc().x()) != 0) {
         continue;  //there is already a tracked feature near here
       }
+      
+      if ((*fit)->loc().x() < win_size || 
+          (*fit)->loc().y() < win_size || 
+          (*fit)->loc().x() > image_data->width() - win_size || 
+          (*fit)->loc().y() > image_data->height() - win_size){
+        continue;  //mask out features at the edge of the image.
+      }
 
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
@@ -298,6 +368,9 @@ track_features_klt
     }
     //need to store this after the merge
     d_->lastDetectNumFeatures = next_points.size();  //this includes any features tracked to this frame and the new points
+
+    //store the last detected feature distribution
+    d_->lastDetect_distImage.setFromFeatureVector(next_points, image_data);
   }
 
   //set up previous data structures for next call
