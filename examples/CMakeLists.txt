@@ -13,6 +13,8 @@ configure_file(pipelines/hough_detector_images.txt.in ${EXAMPLE_DIR}/pipelines/h
 configure_file(pipelines/number_flow.pipe.in ${EXAMPLE_DIR}/pipelines/number_flow.pipe)
 configure_file(pipelines/number_flow_python.pipe.in ${EXAMPLE_DIR}/pipelines/number_flow_python.pipe)
 configure_file(pipelines/video_display.pipe.in ${EXAMPLE_DIR}/pipelines/video_display.pipe)
+configure_file(pipelines/example_detector_on_image.pipe.in ${EXAMPLE_DIR}/pipelines/example_detector_on_image.pipe)
+configure_file(pipelines/example_detector_on_video.pipe.in ${EXAMPLE_DIR}/pipelines/example_detector_on_video.pipe)
 
 configure_file(pipelines/descriptor.pipe.in ${EXAMPLE_DIR}/pipelines/descriptor.pipe)
 configure_file(pipelines/SMQTK.pipe.in ${EXAMPLE_DIR}/pipelines/SMQTK.pipe)
