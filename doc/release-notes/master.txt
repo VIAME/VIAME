@@ -116,6 +116,9 @@ Arrows: Core
  * Renamed merge_tracks.h to match_tracks.h and removed all track merging
    functions.  Track merging is now a function of the track_set itself.
 
+ * Removed description() methods from some implementations. This
+   method is no longer used.
+
 Sprokit
 
  * Removed the CMake function sprokit_add_plugin and replaced it with the more
