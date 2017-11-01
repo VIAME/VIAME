@@ -80,7 +80,7 @@ namespace KPF=kwiver::vital::kpf;
 
 struct user_detection_t
 {
-  int detection_id;
+  size_t detection_id;
   unsigned frame_number;
   pair< double, double > box_corner_pt;
   double box_width;

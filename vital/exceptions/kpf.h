@@ -69,7 +69,7 @@ public:
   /**
    * \param message     Description of the parsing circumstances
    */
-  kpf_token_underrun_exception(std::string message) VITAL_NOTHROW;
+  kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW;
   /// Destructor
   virtual ~kpf_token_underrun_exception() VITAL_NOTHROW;
 

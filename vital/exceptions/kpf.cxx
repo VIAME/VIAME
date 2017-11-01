@@ -55,7 +55,7 @@ kpf_exception
 
 // ------------------------------------------------------------------
 kpf_token_underrun_exception
-::kpf_token_underrun_exception(std::string message) VITAL_NOTHROW
+::kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW
   : m_message(message)
 {
   m_what = message;

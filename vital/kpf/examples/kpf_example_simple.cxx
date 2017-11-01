@@ -68,7 +68,7 @@ namespace KPF=kwiver::vital::kpf;
 
 struct user_detection_t
 {
-  int detection_id;
+  size_t detection_id;
   unsigned frame_number;
   double confidence;
   user_detection_t()

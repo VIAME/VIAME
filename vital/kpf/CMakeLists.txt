@@ -41,6 +41,10 @@ kwiver_add_library( vital_kpf
   ${private_sources}
 )
 
+if(WIN32)
+  target_compile_definitions(vital_kpf PRIVATE YAML_CPP_DLL)
+endif()
+
 target_link_libraries( vital_kpf
   PRIVATE        vital
                  vital_logger

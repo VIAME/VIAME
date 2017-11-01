@@ -136,16 +136,16 @@ struct VITAL_KPF_EXPORT packet_t
   packet_t& operator=( const packet_t& other );
 };
 
-std::ostream& VITAL_KPF_EXPORT operator<<( std::ostream& os, const packet_header_t& p );
-std::ostream& VITAL_KPF_EXPORT operator<<( std::ostream& os, const packet_t& p );
+VITAL_KPF_EXPORT std::ostream& operator<<( std::ostream& os, const packet_header_t& p );
+VITAL_KPF_EXPORT std::ostream& operator<<( std::ostream& os, const packet_t& p );
 
 /**
  * @brief Utility functions to convert styles to strings and vice versa.
  *
  */
 
-packet_style VITAL_KPF_EXPORT str2style( const std::string& s );
-std::string VITAL_KPF_EXPORT style2str( packet_style );
+VITAL_KPF_EXPORT packet_style str2style( const std::string& s );
+VITAL_KPF_EXPORT std::string style2str( packet_style );
 
 } // ...kpf
 } // ...vital

@@ -172,8 +172,8 @@ struct VITAL_KPF_EXPORT reader< canonical::activity_t >
 template <>
 struct VITAL_KPF_EXPORT reader< canonical::id_t >
 {
-  reader( int& id, int d ): id_ref(id), domain(d) {}
-  int& id_ref;
+  reader(size_t& id, int d ): id_ref(id), domain(d) {}
+  size_t& id_ref;
   int domain;
 };
 

@@ -83,8 +83,7 @@ public:
   bool next();
 
   // push packets into the text_reader
-  friend kpf_reader_t& operator>>( kpf_reader_t& t,
-                                   packet_bounce_t& b );
+  friend VITAL_KPF_EXPORT kpf_reader_t& operator>>( kpf_reader_t& t, packet_bounce_t& b );
 
   // pull packets into the text_reader
   bool process( packet_bounce_t& b );
@@ -121,12 +120,7 @@ private:
 };
 
 VITAL_KPF_EXPORT
-kpf_reader_t& operator>>( kpf_reader_t& t,
-                          packet_bounce_t& b );
-//
-//
-//
-
+kpf_reader_t& operator>>( kpf_reader_t& t, packet_bounce_t& b );
 
 VITAL_KPF_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::bbox_t >& r );
@@ -154,8 +148,6 @@ kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::meta_t >& r 
 
 VITAL_KPF_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::timestamp_range_t >& r );
-
-
 
 } // ...kpf
 } // ...vital

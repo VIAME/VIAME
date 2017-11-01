@@ -40,6 +40,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 
 #include <vital/logger/logger.h>
 #include <vital/kpf/kpf_canonical_io_adapter.h>

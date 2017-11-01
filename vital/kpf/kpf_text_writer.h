@@ -58,14 +58,14 @@ class VITAL_KPF_EXPORT record_text_writer
 public:
   explicit record_text_writer( std::ostream& os ) : s( os ) {}
 
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const writer< canonical::meta_t >& io );
-  friend record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const writer< canonical::meta_t >& io );
+  friend VITAL_KPF_EXPORT record_text_writer& operator<<( record_text_writer& w, const private_endl_t& );
 
   static private_endl_t endl;
 
@@ -74,41 +74,31 @@ private:
 };
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::id_t >& io );
 
 VITAL_KPF_EXPORT
-packet_bounce_t&
-operator>>( packet_bounce_t& w, const writer< canonical::id_t >& io );
+packet_bounce_t& operator>>( packet_bounce_t& w, const writer< canonical::id_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::bbox_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::timestamp_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::kv_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::conf_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::poly_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const writer< canonical::meta_t >& io );
+record_text_writer& operator<<( record_text_writer& w, const writer< canonical::meta_t >& io );
 
 VITAL_KPF_EXPORT
-record_text_writer&
-operator<<( record_text_writer& w, const private_endl_t& e );
-
+record_text_writer& operator<<( record_text_writer& w, const private_endl_t& e );
 
 } // ...kpf
 } // ...vital
