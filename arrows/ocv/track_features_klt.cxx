@@ -68,7 +68,9 @@ class track_features_klt::priv
 {
 public:
   /// Constructor
-  priv()
+  priv():
+    lastDetectNumFeatures(0),
+    redetect_threshold(0.7)
   {
   }
 
@@ -78,6 +80,11 @@ public:
   cv::Mat prev_image;
 
   std::vector<cv::Point2f> prev_points;
+
+  size_t lastDetectNumFeatures;
+  double redetect_threshold;
+  cv::Mat trackedFeatureLocationMask;
+
 };
 
 
@@ -185,79 +192,119 @@ track_features_klt
     cv_mask = ocv::image_container::vital_to_ocv(i);
   }
 
+  //setup stuff complete
+  feature_track_set_sptr cur_tracks = prev_tracks;
 
-  track_id_t next_track_id = 0;
+  //points to be tracked in the next frame.  Empty at first.
+  std::vector<cv::Point2f> next_points;
 
-
-  // compute features and descriptors from the image
-  if( d_->prev_points.empty() )
+  //track features if there are any to track
+  if (!d_->prev_points.empty())
   {
-    // see if there are already existing tracks on this frame
-    feature_set_sptr curr_feat;
-    if( prev_tracks )
+    //track
+    std::vector<cv::Point2f> tracked_points;
+    std::vector<uchar> status;
+    std::vector<float> err;
+    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, tracked_points, status, err,cv::Size(41,41),3);
+
+    std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();  //gets the active tracks for the previous frame
+    std::vector<feature_sptr> vf = cur_tracks->last_frame_features()->features();  //copy last frame's features
+    
+    for (unsigned int i = 0; i< active_tracks.size(); ++i)
     {
-      curr_feat = prev_tracks->frame_features(frame_number);
-      if( curr_feat && curr_feat->size() > 0 )
+      vector_2f tp(tracked_points[i].x, tracked_points[i].y);
+      if (!status[i] || tp.x() < 0 || tp.y() < 0 || tp.x() > image_data->width() || tp.y() > image_data->height())
       {
-        LOG_DEBUG( logger(), "Using existing features on frame "<<frame_number);
+        //skip features that tracked to outside of the image or didn't track properly
+        continue;
+      }
+      auto f = std::make_shared<feature_f>(*vf[i]);  //info from feature detector (location, scale etc.)
+      f->set_loc(tp);  //feature
+      auto fts = std::make_shared<feature_track_state>(frame_number);  //feature, descriptor and frame number together
+      fts->feature = f;
+      track_sptr t = active_tracks[i];
+      t->append(fts);  //append the feature's current location to it's track.  Track was picked up with active_tracks() call on previous_tracks.
+      next_points.push_back(tracked_points[i]);
+    }
+  }
+
+  bool detectNewFeatures = next_points.size() <= size_t(d_->redetect_threshold*double(d_->lastDetectNumFeatures));  //did we track enough features from the previous frame?
+
+  if( detectNewFeatures)
+  {
+    // detect new features
+    // see if there are already existing tracks on this frame
+    feature_set_sptr detected_feat;
+    if(!cur_tracks)
+    {
+      cur_tracks = std::make_shared<kwiver::vital::feature_track_set>();
+    }
+
+    // get the last track id in the existing set of tracks and increment it
+    track_id_t next_track_id = 0;
+    if (!cur_tracks->all_track_ids().empty()) {
+      next_track_id = (*cur_tracks->all_track_ids().crbegin()) + 1;
+    }
+
+    LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
+    // detect features on the current frame
+    detected_feat = d_->detector->detect(image_data, mask);
+
+    //merge new features into existing features (ignore new features near existing features)
+    std::vector<feature_sptr> vf = detected_feat->features();
+
+    //make a mask of current image feature positions
+    if (d_->trackedFeatureLocationMask.size() != cv_img.size())
+    {
+      d_->trackedFeatureLocationMask = cv::Mat(cv_img.rows, cv_img.cols, CV_8UC1); // really this is a bool array so I could pack it more.
+    }
+    
+    int exclusionary_radius_pixels = 10;
+
+    //mark the whole tracked feature mask as not having any features
+    d_->trackedFeatureLocationMask.setTo(0);
+    for (unsigned int i = 0; i < next_points.size(); ++i) {
+      const cv::Point2f &np = next_points[i];
+      for (int r = -exclusionary_radius_pixels; r <= exclusionary_radius_pixels; ++r) {
+        for (int c = -exclusionary_radius_pixels; c <= exclusionary_radius_pixels; ++c) {
+          if ( (r*r + c*c) > exclusionary_radius_pixels * exclusionary_radius_pixels){
+            continue;  //outside of mask radius
+          }
+          int row = r + np.y;
+          int col = c + np.x;
+          if (row < 0 || row >= d_->trackedFeatureLocationMask.rows ||
+            col < 0 || col >= d_->trackedFeatureLocationMask.cols) {
+            continue; // outside of mask image
+          }
+          d_->trackedFeatureLocationMask.at<unsigned char>(row, col) = 1;  //set the mask to 1 here
+        }
       }
     }
-    if( !curr_feat || curr_feat->size() == 0 )
-    {
-      LOG_DEBUG( logger(), "Computing new features on frame "<<frame_number);
-      // detect features on the current frame
-      curr_feat = d_->detector->detect(image_data, mask);
-    }
-    std::vector<feature_sptr> vf = curr_feat->features();
 
-    typedef std::vector<feature_sptr>::const_iterator feat_itr;
-    feat_itr fit = vf.begin();
-    d_->prev_points.clear();
-    for(; fit != vf.end(); ++fit)
+    typedef std::vector<feature_sptr>::const_iterator feat_itr;    
+    for(feat_itr fit = vf.begin(); fit != vf.end(); ++fit)
     {
+      if (d_->trackedFeatureLocationMask.at<unsigned char>((*fit)->loc().y(), (*fit)->loc().x()) != 0) {
+        continue;  //there is already a tracked feature near here
+      }
+
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
-      auto t = vital::track::create();
-      t->append(fts);
-      t->set_id(next_track_id++);
-      prev_tracks->insert(t);
-      d_->prev_points.push_back(cv::Point2f((*fit)->loc().x(), (*fit)->loc().y()));
+      auto t = vital::track::create();  //make a new track
+      t->append(fts);  //put the feature in this new track
+      t->set_id(next_track_id++); //set the new track id
+      cur_tracks->insert(t);
+      next_points.push_back(cv::Point2f((*fit)->loc().x(), (*fit)->loc().y()));
     }
-    d_->prev_image = cv_img;
-    return prev_tracks;
+    //need to store this after the merge
+    d_->lastDetectNumFeatures = next_points.size();  //this includes any features tracked to this frame and the new points
   }
 
-  std::vector<cv::Point2f> new_points;
-  std::vector<uchar> status;
-  std::vector<float> err;
-  cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, new_points, status, err);
+  //set up previous data structures for next call
   d_->prev_image = cv_img.clone();
-
-  // get the last track id in the existing set of tracks and increment it
-  next_track_id = (*prev_tracks->all_track_ids().crbegin()) + 1;
-
-  std::vector<track_sptr> active_tracks = prev_tracks->active_tracks();
-  std::vector<feature_sptr> vf = prev_tracks->last_frame_features()->features();
-
-  std::vector<cv::Point2f> next_points;
-  for(unsigned int i=0; i< active_tracks.size(); ++i)
-  {
-    vector_2f np(new_points[i].x, new_points[i].y);
-    if(!status[i] || np.x() < 0 || np.y() < 0 || np.x() > image_data->width() || np.y() > image_data->height())
-    {
-      continue;
-    }
-    auto f = std::make_shared<feature_f>(*vf[i]);
-    f->set_loc(np);
-    auto fts = std::make_shared<feature_track_state>(frame_number);
-    fts->feature = f;
-    track_sptr t = active_tracks[i];
-    t->append(fts);
-    next_points.push_back(new_points[i]);
-  }
   d_->prev_points = next_points;
 
-  return prev_tracks;
+  return cur_tracks;
 }
 
 } // end namespace core

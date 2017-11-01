@@ -380,7 +380,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
-  fact = vpm.ADD_ALGORITHM( "ocv_klt", kwiver::arrows::ocv::track_features_klt );
+  fact = vpm.ADD_ALGORITHM( "ocv_KLT", kwiver::arrows::ocv::track_features_klt );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "OpenCV Lucas Kanade feature tracker" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
