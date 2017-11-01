@@ -8,11 +8,11 @@ process input
 # ================================================================
 process detector
   :: image_object_detector
-  detector:type                    	= simple_detector
-  detector:simple_detector:center_x	= 200
-  detector:simple_detector:center_y   	= 200
-  detector:simple_detector:width	= 200
-  detector:simple_detector:height	= 100
+  detector:type                    	= example_detector
+  detector:example_detector:center_x	= 200
+  detector:example_detector:center_y   	= 200
+  detector:example_detector:width	= 200
+  detector:example_detector:height	= 100
 
 # ================================================================
 process draw

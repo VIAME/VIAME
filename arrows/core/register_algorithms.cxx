@@ -401,9 +401,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-  fact = vpm.ADD_ALGORITHM( "simple_detector", kwiver::arrows::core::example_detector );
+  fact = vpm.ADD_ALGORITHM( "example_detector", kwiver::arrows::core::example_detector );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Simple detector, just creates arbitrary bounding box" )
+                       "Simple example detector, just creates user-specified "
+                       "bounding box" )
           .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
           .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
           .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
