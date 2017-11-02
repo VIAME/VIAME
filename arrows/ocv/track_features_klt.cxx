@@ -89,6 +89,40 @@ public:
   float redetect_threshold;
   cv::Mat trackedFeatureLocationMask;
   float exclusionary_radius_image_frac;
+
+  //sets up a mask based on the points.  We querry this mask to find out if a newly detected point is near an 
+  //existing point.
+  void setTrackedFeatureLocationMask(const std::vector<cv::Point2f> &points, image_container_sptr image_data) {
+    if (trackedFeatureLocationMask.rows != image_data->height() ||
+        trackedFeatureLocationMask.cols != image_data->width())
+    {
+      trackedFeatureLocationMask = cv::Mat(int(image_data->height()), 
+        int(image_data->width()), CV_8UC1); // really this is a bool array so I could pack it more.
+    }
+
+    //mark the whole tracked feature mask as not having any features
+    int exclusionary_radius_pixels =
+      std::max<int>(1, exclusionary_radius_image_frac * std::min(image_data->width(), image_data->height()));
+
+    trackedFeatureLocationMask.setTo(0);
+    for (unsigned int i = 0; i < points.size(); ++i) {
+      const cv::Point2f &np = points[i];
+      for (int r = -exclusionary_radius_pixels; r <= exclusionary_radius_pixels; ++r) {
+        for (int c = -exclusionary_radius_pixels; c <= exclusionary_radius_pixels; ++c) {
+          if ((r*r + c*c) > exclusionary_radius_pixels * exclusionary_radius_pixels) {
+            continue;  //outside of mask radius
+          }
+          int row = r + np.y;
+          int col = c + np.x;
+          if (row < 0 || row >= trackedFeatureLocationMask.rows ||
+            col < 0 || col >= trackedFeatureLocationMask.cols) {
+            continue; // outside of mask image
+          }
+          trackedFeatureLocationMask.at<unsigned char>(row, col) = 1;  //set the mask to 1 here
+        }
+      }
+    }
+  }
   
   /// Set current parameter values to the given config block
   void update_config(vital::config_block_sptr &config) const
@@ -408,7 +442,9 @@ track_features_klt
 
   bool detectNewFeatures = next_points.size() <= size_t(d_->redetect_threshold*double(d_->lastDetectNumFeatures));  //did we track enough features from the previous frame?
 
+  //set the feature distribution image
   d_->distImage.setFromFeatureVector(next_points, image_data);
+
   if (!detectNewFeatures){
     //now check the distribution of features in the image    
     if(d_->distImage.shouldRedetect(d_->lastDetect_distImage)){  //this will never be called on the first image so it will work.
@@ -440,34 +476,9 @@ track_features_klt
     //merge new features into existing features (ignore new features near existing features)
     std::vector<feature_sptr> vf = detected_feat->features();
 
-    //make a mask of current image feature positions
-    if (d_->trackedFeatureLocationMask.size() != cv_img.size())
-    {
-      d_->trackedFeatureLocationMask = cv::Mat(cv_img.rows, cv_img.cols, CV_8UC1); // really this is a bool array so I could pack it more.
-    }
-   
-    //mark the whole tracked feature mask as not having any features
-    int exclusionary_radius_pixels = 
-      std::max<int>(1,d_->exclusionary_radius_image_frac * std::min(image_data->width(), image_data->height()));
-
-    d_->trackedFeatureLocationMask.setTo(0);
-    for (unsigned int i = 0; i < next_points.size(); ++i) {
-      const cv::Point2f &np = next_points[i];
-      for (int r = -exclusionary_radius_pixels; r <= exclusionary_radius_pixels; ++r) {
-        for (int c = -exclusionary_radius_pixels; c <= exclusionary_radius_pixels; ++c) {
-          if ( (r*r + c*c) > exclusionary_radius_pixels * exclusionary_radius_pixels){
-            continue;  //outside of mask radius
-          }
-          int row = r + np.y;
-          int col = c + np.x;
-          if (row < 0 || row >= d_->trackedFeatureLocationMask.rows ||
-            col < 0 || col >= d_->trackedFeatureLocationMask.cols) {
-            continue; // outside of mask image
-          }
-          d_->trackedFeatureLocationMask.at<unsigned char>(row, col) = 1;  //set the mask to 1 here
-        }
-      }
-    }
+    // make a mask of current image feature positions. This maks keeps features from being 
+    // kept that are detected near existing tracks.
+    d_->setTrackedFeatureLocationMask(next_points, image_data);
 
     typedef std::vector<feature_sptr>::const_iterator feat_itr;    
     for(feat_itr fit = vf.begin(); fit != vf.end(); ++fit)
@@ -491,7 +502,6 @@ track_features_klt
       cur_tracks->insert(t);
       next_points.push_back(cv::Point2f((*fit)->loc().x(), (*fit)->loc().y()));
     }
-    //need to store this after the merge
     d_->lastDetectNumFeatures = next_points.size();  //this includes any features tracked to this frame and the new points
 
     //store the last detected feature distribution
