@@ -129,6 +129,7 @@ darknet_detector()
 {
   // set darknet global GPU index
   gpu_index = d->m_gpu_index;
+  d->m_logger = logger();
 }
 
 
