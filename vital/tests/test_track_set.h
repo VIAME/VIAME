@@ -54,7 +54,7 @@ namespace testing {
 
 // ----------------------------------------------------------------------------
 template <>
-Message& Message::operator<<( std::set<long> const& s )
+Message& Message::operator<<( std::set<int64_t> const& s )
 {
   (*ss_) << "{ ";
   for ( auto const i : s )
@@ -85,7 +85,7 @@ namespace vital {
 namespace testing {
 
 // ----------------------------------------------------------------------------
-bool compare_ids( std::set<long> const& a, std::set<long> const& b )
+bool compare_ids( std::set<int64_t> const& a, std::set<int64_t> const& b )
 {
   return std::equal( a.begin(), a.end(), b.begin() );
 }
