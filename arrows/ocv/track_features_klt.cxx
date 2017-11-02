@@ -47,6 +47,7 @@
 #include <iterator>
 
 #include <vital/algo/detect_features.h>
+#include <vital/logger/logger.h>
 
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
@@ -70,7 +71,10 @@ public:
   /// Constructor
   priv():
     lastDetectNumFeatures(0),
-    redetect_threshold(0.7)
+    redetect_threshold(0.7),
+    exclusionary_radius_image_frac(0.01),
+    win_size(41),
+    half_win_size(win_size/2)
   {
   }
 
@@ -82,15 +86,119 @@ public:
   std::vector<cv::Point2f> prev_points;
 
   size_t lastDetectNumFeatures;
-  double redetect_threshold;
+  float redetect_threshold;
   cv::Mat trackedFeatureLocationMask;
+  float exclusionary_radius_image_frac;
+  
+  /// Set current parameter values to the given config block
+  void update_config(vital::config_block_sptr &config) const
+  {
+    config->set_value("redetect_frac_lost_threshold", redetect_threshold,
+                      "redetect if fraction of features tracked from last detection drops below this level");
+    int gridRows, gridCols;
+    distImage.getGridSize(gridRows, gridCols);
+    config->set_value("grid_rows", gridRows, "rows in feature distribution enforcing grid");
+    config->set_value("grid_cols", gridCols, "colums in feature distribution enforcing grid");
+    config->set_value("new_feat_exclusionary_radius_image_fraction", exclusionary_radius_image_frac,
+      "do not place new features any closer than this fraction of image min dimension to existing features");
+    config->set_value("win_size", win_size, "klt image patch side length (it's a square)");
+  }
+
+  /// Set our parameters based on the given config block
+  void set_config(const vital::config_block_sptr & config) {
+    redetect_threshold = config->get_value<double>("redetect_frac_lost_threshold");
+    distImage.redetect_threshold = redetect_threshold;
+    lastDetect_distImage.redetect_threshold = redetect_threshold;
+    int gridRows = config->get_value<int>("grid_rows");
+    int gridCols = config->get_value<int>("grid_cols");
+    distImage.setGridSize(gridRows, gridCols);
+    lastDetect_distImage.setGridSize(gridRows, gridCols);
+    exclusionary_radius_image_frac = config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
+    win_size = config->get_value<int>("win_size");
+    half_win_size = win_size / 2;
+  }
+
+  bool check_configuration(vital::config_block_sptr config) const {
+    bool success(true);
+
+    float test_redetect_threshold = config->get_value<double>("redetect_frac_lost_threshold");
+    int test_gridRows = config->get_value<int>("grid_rows");
+    int test_gridCols = config->get_value<int>("grid_cols");
+    float test_exclusionary_radius_image_frac = 
+      config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
+    int test_win_size = config->get_value<int>("win_size");
+
+    if (!(0 < test_redetect_threshold && test_redetect_threshold <= 1.0))
+    {
+      std::stringstream str;
+      config->print(str);
+      LOG_ERROR(m_logger, "redetect_frac_lost_threshold (" << test_redetect_threshold 
+        << ") should be greater than zero and <= 1.0"
+        " Configuration is as follows:\n" << str.str());
+      success = false;
+    }
+
+    if (test_gridRows <= 0)
+    {
+      std::stringstream str;
+      config->print(str);
+      LOG_ERROR(m_logger, "grid_rows (" << test_gridRows <<") must be greater than 0"
+        " Configuration is as follows:\n" << str.str());
+      success = false;
+    }
+
+    if (test_gridCols <= 0)
+    {
+      std::stringstream str;
+      config->print(str);
+      LOG_ERROR(m_logger, "grid_cols (" << test_gridCols << ") must be greater than 0"
+        " Configuration is as follows:\n" << str.str());
+      success = false;
+    }
+
+    if (!(0 < test_exclusionary_radius_image_frac && test_exclusionary_radius_image_frac < 1.0)) 
+    {
+      std::stringstream str;
+      config->print(str);
+      LOG_ERROR(m_logger, "new_feat_exclusionary_radius_image_fraction (" 
+        << test_exclusionary_radius_image_frac << ") must be between 0.0 and 1.0"
+        " Configuration is as follows:\n" << str.str());
+      success = false;
+    }
+
+    if (test_win_size < 3)
+    {
+      std::stringstream str;
+      config->print(str);
+      LOG_ERROR(m_logger, "win_size (" << test_win_size << ") must be three or more"
+        " Configuration is as follows:\n" << str.str());
+      success = false;
+    }
+
+    return success;
+  }
 
   class featureDistributionImage {
   public:
-    featureDistributionImage(): rows(4), cols(4)
+    featureDistributionImage(): 
+      rows(0), cols(0), 
+      redetect_threshold(0.7),
+      bad_bins_frac_to_redetect(0.125)
     {
-      distImage = cv::Mat(rows, cols, CV_8UC1);
-      distImage.setTo(0);
+      setGridSize(4, 4);
+    }
+
+    void setGridSize(int _rows, int _cols) {
+      if (rows != _rows || cols != _cols) {
+        rows = _rows;
+        cols = _cols;
+        distImage = cv::Mat(rows, cols, CV_8UC1);
+        distImage.setTo(0);
+      }
+    }
+    void getGridSize(int &_rows, int& _cols) const {
+      _rows = rows;
+      _cols = cols;
     }
 
     featureDistributionImage& operator=(const featureDistributionImage &other) {
@@ -100,16 +208,16 @@ public:
       other.distImage.copyTo(distImage);
     }
 
-    bool shouldRedetect(const featureDistributionImage &lastDetectDist, float lossFact, float badBinFrac) {
+    bool shouldRedetect(const featureDistributionImage &lastDetectDist) {
       int badBins = 0;
       for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-          if (distImage.at<unsigned char>(r, c) < unsigned char(lossFact*float(lastDetectDist.distImage.at<unsigned char>(r, c)))) {
+          if (distImage.at<unsigned char>(r, c) < unsigned char(redetect_threshold*float(lastDetectDist.distImage.at<unsigned char>(r, c)))) {
             ++badBins;
           }
         }
       }
-      if (badBins >= int(float(rows*cols)*badBinFrac)) {
+      if (badBins >= int(float(rows*cols)*bad_bins_frac_to_redetect)) {
         return true;
       }
       return false;
@@ -117,8 +225,8 @@ public:
 
     void setFromFeatureVector(const std::vector<cv::Point2f> &points, image_container_sptr image_data) {
       distImage.setTo(0);
-      const int dist_bin_x_len = image_data->width() / cols;
-      const int dist_bin_y_len = image_data->height() / rows;
+      const int dist_bin_x_len = int(image_data->width() / cols);
+      const int dist_bin_y_len = int(image_data->height() / rows);
 
       for (auto v = points.begin(); v != points.end(); ++v) {
         const cv::Point2f &tp = *v;
@@ -132,12 +240,18 @@ public:
       }
     }
     
-    cv::Mat distImage;
-    const int rows, cols;
+    cv::Mat distImage;    
+    float redetect_threshold;
+    float bad_bins_frac_to_redetect;    
+  private:
+      int rows, cols;      
   };
 
+  kwiver::vital::logger_handle_t m_logger;
   featureDistributionImage distImage;
   featureDistributionImage lastDetect_distImage;
+  int win_size;
+  int half_win_size;
 };
 
 
@@ -146,6 +260,8 @@ track_features_klt
 ::track_features_klt()
 : d_(new priv)
 {
+  attach_logger("ocv_track_features_klt");
+  d_->m_logger = this->logger();
 }
 
 
@@ -169,6 +285,8 @@ track_features_klt
   algo::detect_features::
     get_nested_algo_configuration("feature_detector", config, d_->detector);
 
+  d_->update_config(config);
+
   return config;
 }
 
@@ -188,6 +306,7 @@ track_features_klt
   algo::detect_features_sptr df;
   algo::detect_features::set_nested_algo_configuration("feature_detector", config, df);
   d_->detector = df;
+  d_->set_config(config);
 }
 
 
@@ -195,7 +314,10 @@ bool
 track_features_klt
 ::check_configuration(vital::config_block_sptr config) const
 {
-  return algo::detect_features::check_nested_algo_configuration("feature_detector", config);
+  bool success(true);
+  success = algo::detect_features::check_nested_algo_configuration("feature_detector", config) && success;
+  success = d_->check_configuration(config) && success;
+  return success;
 }
 
 
@@ -251,7 +373,6 @@ track_features_klt
   //points to be tracked in the next frame.  Empty at first.
   std::vector<cv::Point2f> next_points;
 
-  const int win_size = 41;
   //track features if there are any to track
   if (!d_->prev_points.empty())
   {
@@ -259,14 +380,17 @@ track_features_klt
     std::vector<cv::Point2f> tracked_points;
     std::vector<uchar> status;
     std::vector<float> err;
-    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, tracked_points, status, err,cv::Size(win_size, win_size),3);
+    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, tracked_points, status, err,
+      cv::Size(d_->win_size, d_->win_size),3);
 
     std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();  //gets the active tracks for the previous frame
     std::vector<feature_sptr> vf = cur_tracks->last_frame_features()->features();  //copy last frame's features   
     for (unsigned int i = 0; i< active_tracks.size(); ++i)
     {
       vector_2f tp(tracked_points[i].x, tracked_points[i].y);
-      if (!status[i] || tp.x() < win_size || tp.y() < win_size || tp.x() > image_data->width()- win_size || tp.y() > image_data->height()- win_size)
+      if (!status[i] || tp.x() <= d_->half_win_size || tp.y() <= d_->half_win_size 
+        || tp.x() >= image_data->width()- d_->half_win_size 
+        || tp.y() >= image_data->height()- d_->half_win_size)
       {
         //skip features that tracked to outside of the image (or the border) or didn't track properly
         continue;
@@ -287,7 +411,7 @@ track_features_klt
   d_->distImage.setFromFeatureVector(next_points, image_data);
   if (!detectNewFeatures){
     //now check the distribution of features in the image    
-    if(d_->distImage.shouldRedetect(d_->lastDetect_distImage, 0.7, 2.0f/16.0f)){  //this will never be called on the first image so it will work.
+    if(d_->distImage.shouldRedetect(d_->lastDetect_distImage)){  //this will never be called on the first image so it will work.
       LOG_DEBUG(logger(), "detecting new feature because of distribution");
       detectNewFeatures = true;
     }
@@ -321,10 +445,11 @@ track_features_klt
     {
       d_->trackedFeatureLocationMask = cv::Mat(cv_img.rows, cv_img.cols, CV_8UC1); // really this is a bool array so I could pack it more.
     }
-    
-    int exclusionary_radius_pixels = 10;
-
+   
     //mark the whole tracked feature mask as not having any features
+    int exclusionary_radius_pixels = 
+      std::max<int>(1,d_->exclusionary_radius_image_frac * std::min(image_data->width(), image_data->height()));
+
     d_->trackedFeatureLocationMask.setTo(0);
     for (unsigned int i = 0; i < next_points.size(); ++i) {
       const cv::Point2f &np = next_points[i];
@@ -351,10 +476,10 @@ track_features_klt
         continue;  //there is already a tracked feature near here
       }
       
-      if ((*fit)->loc().x() < win_size || 
-          (*fit)->loc().y() < win_size || 
-          (*fit)->loc().x() > image_data->width() - win_size || 
-          (*fit)->loc().y() > image_data->height() - win_size){
+      if ((*fit)->loc().x() < d_->win_size || 
+          (*fit)->loc().y() < d_->win_size ||
+          (*fit)->loc().x() > image_data->width() - d_->win_size ||
+          (*fit)->loc().y() > image_data->height() - d_->win_size){
         continue;  //mask out features at the edge of the image.
       }
 
