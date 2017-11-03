@@ -23,6 +23,12 @@ Testing
 Fixes since v1.1.0
 ------------------
 
+Arrows - Core
+
+  * The triangulate landmarks algorithm was supposed to catch and discard
+    invalid triangulated points.  It was failing to catch points that contained
+    NaN or infinity value.  This has been corrected.
+
 Vital
 
   * The simple_camera::clone_look_at now has the same parameter default as the
