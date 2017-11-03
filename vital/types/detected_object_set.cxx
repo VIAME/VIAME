@@ -127,8 +127,8 @@ void
 detected_object_set::
 add( detected_object_set_sptr detections )
 {
-  auto ie = cend();
-  for ( auto ix = cbegin(); ix != ie; ++ix )
+  auto ie = detections->cend();
+  for ( auto ix = detections->cbegin(); ix != ie; ++ix )
   {
     this->add( *ix );
   }
