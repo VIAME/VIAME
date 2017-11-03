@@ -28,8 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-#include <test_math.h>
+#include <test_eigen.h>
 #include <test_scene.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
@@ -41,36 +40,27 @@
 
 #include <Eigen/LU>
 
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
+#include <gtest/gtest.h>
 
 using namespace kwiver::vital;
 
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  using namespace kwiver::arrows;
-  algo::estimate_fundamental_matrix_sptr est_e = algo::estimate_fundamental_matrix::create("vxl");
-  if (!est_e)
-  {
-    TEST_ERROR("Unable to create vxl::estimate_fundamental_matrix by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(estimate_fundamental_matrix, create)
+{
+  EXPECT_NE( nullptr, algo::estimate_fundamental_matrix::create("vxl") );
+}
 
+// ----------------------------------------------------------------------------
 // Print epipolar distance of pairs of points given a fundamental matrix
 void print_epipolar_distances(const kwiver::vital::matrix_3x3d& F,
                               const std::vector<kwiver::vital::vector_2d> right_pts,
@@ -94,9 +84,9 @@ void print_epipolar_distances(const kwiver::vital::matrix_3x3d& F,
   }
 }
 
-
-// test fundamental matrix estimation with ideal points
-IMPLEMENT_TEST(ideal_points)
+// ----------------------------------------------------------------------------
+// Test fundamental matrix estimation with ideal points
+TEST(estimate_fundamental_matrix, ideal_points)
 {
   using namespace kwiver::arrows;
   vxl::estimate_fundamental_matrix est_f;
@@ -139,29 +129,27 @@ IMPLEMENT_TEST(ideal_points)
 
   // compute the fundmental matrix from the corresponding points
   std::vector<bool> inliers;
-  fundamental_matrix_sptr F_sptr = est_f.estimate(pts1, pts2,
-                                                  inliers, 1.5);
-  matrix_3x3d F = F_sptr->matrix();
+  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
+  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
   // check for sign difference
-  if( true_F->matrix().cwiseProduct(F).sum() < 0.0 )
+  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
   {
-    F *= -1;
+    estimated_F *= -1;
   }
 
   // compare true and computed fundamental matrices
   std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< F <<std::endl;
-  TEST_NEAR("Fundamental Matrix Estimate", F, true_F->matrix(), 1e-8);
+  std::cout << "Estimated F = "<< estimated_F <<std::endl;
+  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, 1e-8 );
 
-  unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                          inliers.end(), true));
-  std::cout << "num inliers "<<num_inliers<<std::endl;
-  TEST_EQUAL("All points are inliers", num_inliers, pts1.size());
+  std::cout << "num inliers " << inliers.size() << std::endl;
+  EXPECT_EQ( pts1.size(), inliers.size() )
+    << "All points should be inliers";
 }
 
-
-// test essential matrix estimation with noisy points
-IMPLEMENT_TEST(noisy_points)
+// ----------------------------------------------------------------------------
+// Test essential matrix estimation with noisy points
+TEST(estimate_fundamental_matrix, noisy_points)
 {
   using namespace kwiver::arrows;
   vxl::estimate_fundamental_matrix est_f;
@@ -206,23 +194,20 @@ IMPLEMENT_TEST(noisy_points)
 
   // compute the essential matrix from the corresponding points
   std::vector<bool> inliers;
-  fundamental_matrix_sptr F_sptr = est_f.estimate(pts1, pts2,
-                                                inliers, 1.5);
-  matrix_3x3d F = F_sptr->matrix();
+  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
+  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
   // check for sign difference
-  if( true_F->matrix().cwiseProduct(F).sum() < 0.0 )
+  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
   {
-    F *= -1;
+    estimated_F *= -1;
   }
 
   // compare true and computed fundamental matrices
   std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< F <<std::endl;
-  TEST_NEAR("Fundamental Matrix Estimate", F, true_F->matrix(), 0.01);
+  std::cout << "Estimated F = "<< estimated_F <<std::endl;
+  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, 0.01 );
 
-  unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                          inliers.end(), true));
-  std::cout << "num inliers "<<num_inliers<<std::endl;
-  bool enough_inliers = num_inliers > pts1.size() / 3;
-  TEST_EQUAL("Enough inliers", enough_inliers, true);
+  std::cout << "num inliers " << inliers.size() << std::endl;
+  EXPECT_GT( inliers.size(), pts1.size() / 3 )
+    << "Not enough inliers";
 }

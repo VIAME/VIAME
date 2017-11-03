@@ -28,12 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iostream>
-#include <sstream>
-
-#include <test_common.h>
-#include <test_math.h>
+#include <test_eigen.h>
 #include <test_scene.h>
+
+#include <arrows/core/projected_track_set.h>
+#include <arrows/vxl/optimize_cameras.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -42,38 +41,30 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/exceptions.h>
 
-#include <arrows/core/projected_track_set.h>
-#include <arrows/vxl/optimize_cameras.h>
+#include <gtest/gtest.h>
 
-
-
-#define TEST_ARGS ()
-DECLARE_TEST_MAP();
-
-int main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-  RUN_TEST(testname);
-}
+#include <iostream>
+#include <sstream>
 
 using namespace kwiver::vital;
 
-IMPLEMENT_TEST(creation)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  using namespace kwiver::arrows;
-  algo::optimize_cameras_sptr cam_optimizer = algo::optimize_cameras::create("vxl");
-  if (!cam_optimizer)
-  {
-    TEST_ERROR("Unable to create vxl::optimize_cameras by impl name.");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(optimize_cameras, create)
+{
+  EXPECT_NE( nullptr, algo::optimize_cameras::create("vxl") );
+}
 
-IMPLEMENT_TEST(uninitialized)
+// ----------------------------------------------------------------------------
+TEST(optimize_cameras, uninitialized)
 {
   using namespace kwiver::arrows;
   using namespace std;
@@ -86,19 +77,18 @@ IMPLEMENT_TEST(uninitialized)
 
   cerr << "cam_map before: " << cam_map << endl;
 
-  EXPECT_EXCEPTION(
-    kwiver::vital::invalid_value,
-      optimizer.optimize(cam_map, trk_set, lm_map),
-      "Running camera optimization with null input"
-      );
+  EXPECT_THROW(
+    optimizer.optimize( cam_map, trk_set, lm_map ),
+    kwiver::vital::invalid_value )
+    << "Running camera optimization with null input";
 
   cerr << "cam_map after: " << cam_map << endl;
 
-  TEST_EQUAL("cam_map", cam_map, 0);
+  EXPECT_EQ( nullptr, cam_map );
 }
 
-
-IMPLEMENT_TEST(empty_input)
+// ----------------------------------------------------------------------------
+TEST(optimize_cameras, empty_input)
 {
   using namespace kwiver::arrows;
   using namespace std;
@@ -116,16 +106,14 @@ IMPLEMENT_TEST(empty_input)
   cerr << "cam_map after : " << cam_map << endl;
   cerr << "orig map      : " << orig_map << endl;
 
-  // make sure that a new camera map was created, but nothing was put in it.
-  TEST_EQUAL("cam_map reference",
-      cam_map == orig_map,
-      false);
-  TEST_EQUAL("cam_map size", cam_map->size(), 0);
-  TEST_EQUAL("orig map size", orig_map->size(), 0);
+  // Make sure that a new camera map was created, but nothing was put in it.
+  EXPECT_NE( orig_map, cam_map );
+  EXPECT_EQ( 0, cam_map->size() );
+  EXPECT_EQ( 0, orig_map->size() );
 }
 
-
-IMPLEMENT_TEST(no_noise)
+// ----------------------------------------------------------------------------
+TEST(optimize_cameras, no_noise)
 {
   using namespace kwiver::arrows;
   using namespace std;
@@ -144,47 +132,28 @@ IMPLEMENT_TEST(no_noise)
   vxl::optimize_cameras optimizer;
   optimizer.optimize(working_cam_map, tracks, landmarks);
 
-  vector_3d zero_3d_vec(0,0,0);
-  vector_4d zero_4d_vec(0,0,0,0);
-  matrix_3x3d zero_mat = matrix_3x3d::Zero();
-  ostringstream ss;
-
-  double ep = 1e-14;
-  for (camera_map::map_camera_t::value_type const& p :
-                working_cam_map->cameras())
+  double const ep = 1e-14;
+  for( auto const& p : working_cam_map->cameras() )
   {
-    // difference in camera center
-    vector_3d a_c = p.second->center(),
-              b_c = original_cams[p.first]->center(),
-              c_c;
-    c_c = a_c - b_c;
-    //cerr << "frm[" << p.first << "]\t:: center delta     :: " << c_c << endl;
-    ss.str("");
-    ss << "frm[" << p.first << "] center delta check";
-    TEST_NEAR(ss.str(), c_c, zero_3d_vec, ep);
+    SCOPED_TRACE( "At camera " + std::to_string( p.first ) );
 
-    // difference in camera rotation
-    rotation_d a_r = p.second->rotation(),
-               b_r = original_cams[p.first]->rotation();
-    vector_4d c_r = a_r.quaternion().coeffs() - b_r.quaternion().coeffs();
-    //cerr << "frm[" << p.first << "]\t:: quaternion delta :: " << c_r << endl;
-    ss.str("");
-    ss << "frm[" << p.first << "] quaternion delta check";
-    TEST_NEAR(ss.str(), c_r, zero_4d_vec, ep);
+    // Difference in camera center
+    EXPECT_MATRIX_NEAR( original_cams[p.first]->center(),
+                        p.second->center(), ep );
+
+    // Difference in camera rotation
+    EXPECT_MATRIX_NEAR(
+      vector_4d{ original_cams[p.first]->rotation().quaternion().coeffs() },
+      vector_4d{ p.second->rotation().quaternion().coeffs() }, ep );
 
     // difference in camera intrinsics
-    camera_intrinsics_sptr a_k = p.second->intrinsics(),
-                           b_k = original_cams[p.first]->intrinsics();
-    matrix_3x3d c_k = a_k->as_matrix() - b_k->as_matrix();
-    //cerr << "frm[" << p.first << "]\t:: intrinsics delta :: " << c_k << endl;
-    ss.str("");
-    ss << "frm[" << p.first << "] intrinsics";
-    TEST_NEAR(ss.str(), c_k, zero_mat, ep);
+    EXPECT_MATRIX_NEAR( original_cams[p.first]->intrinsics()->as_matrix(),
+                        p.second->intrinsics()->as_matrix(), ep );
   }
 }
 
-
-IMPLEMENT_TEST(noisy_cameras)
+// ----------------------------------------------------------------------------
+TEST(optimize_cameras, noisy_cameras)
 {
   using namespace kwiver::arrows;
   using namespace std;
@@ -203,41 +172,22 @@ IMPLEMENT_TEST(noisy_cameras)
   vxl::optimize_cameras optimizer;
   optimizer.optimize(working_cam_map, tracks, landmarks);
 
-  vector_3d zero_3d_vec(0,0,0);
-  vector_4d zero_4d_vec(0,0,0,0);
-  matrix_3x3d zero_mat = matrix_3x3d::Zero();
-  ostringstream ss;
-
   double ep = 2e-10;
-  for (camera_map::map_camera_t::value_type const& p :
-                working_cam_map->cameras())
+  for( auto const& p : working_cam_map->cameras() )
   {
-    // difference in camera center
-    vector_3d a_c = p.second->center(),
-              b_c = original_cams[p.first]->center(),
-              c_c;
-    c_c = a_c - b_c;
-    //cerr << "frm[" << p.first << "]\t:: center delta     :: " << c_c << endl;
-    ss.str("");
-    ss << "frm[" << p.first << "] center delta check";
-    TEST_NEAR(ss.str(), c_c, zero_3d_vec, ep);
+    SCOPED_TRACE( "At camera " + std::to_string( p.first ) );
 
-    // difference in camera rotation
-    rotation_d a_r = p.second->rotation(),
-               b_r = original_cams[p.first]->rotation();
-    vector_4d c_r = a_r.quaternion().coeffs() - b_r.quaternion().coeffs();
-    //cerr << "frm[" << p.first << "]\t:: quaternion delta :: " << c_r << endl;
-    ss.str("");
-    ss << "frm[" << p.first << "] quaternion delta check";
-    TEST_NEAR(ss.str(), c_r, zero_4d_vec, ep);
+    // Difference in camera center
+    EXPECT_MATRIX_NEAR( original_cams[p.first]->center(),
+                        p.second->center(), ep );
+
+    // Difference in camera rotation
+    EXPECT_MATRIX_NEAR(
+      vector_4d{ original_cams[p.first]->rotation().quaternion().coeffs() },
+      vector_4d{ p.second->rotation().quaternion().coeffs() }, ep );
 
     // difference in camera intrinsics
-    camera_intrinsics_sptr a_k = p.second->intrinsics(),
-                           b_k = original_cams[p.first]->intrinsics();
-    matrix_3x3d c_k = a_k->as_matrix() - b_k->as_matrix();
-    //cerr << "frm[" << p.first << "]\t:: intrinsics delta :: " << c_k << endl;
-    ss.str("");
-    ss << "frm[" << p.first << "] intrinsics";
-    TEST_NEAR(ss.str(), c_k, zero_mat, ep);
+    EXPECT_MATRIX_NEAR( original_cams[p.first]->intrinsics()->as_matrix(),
+                        p.second->intrinsics()->as_matrix(), ep );
   }
 }
