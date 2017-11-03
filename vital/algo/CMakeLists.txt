@@ -84,6 +84,7 @@ set( sources
   image_io.cxx
   image_object_detector.cxx
   initialize_cameras_landmarks.cxx
+  keyframe_selection.cxx
   match_features.cxx
   optimize_cameras.cxx
   refine_detections.cxx

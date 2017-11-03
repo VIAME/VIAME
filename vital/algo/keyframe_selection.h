@@ -57,18 +57,29 @@ namespace kwiver {
       {
       public:
 
+        /// Default constructor
+        keyframe_selection();
+
         /// Return the name of this algorithm.
         static std::string static_type_name() { return "keyframe_selection"; }
 
-        /// Select keyframes from a set of images
+        /// Set this algorithm's properties via a config block
+        virtual void set_configuration(kwiver::vital::config_block_sptr config);
+        /// Check that the algorithm's currently configuration is valid
+        virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
+
+        /// Select keyframes from a set of tracks.  Different implementations can select key-frames in different ways.
+        /// For example, one method could only add key-frames for frames that are new.  Another could increase the 
+        /// density of key-frames near existing frames so dense processing can be done.  
         /**
-        * \param [in] input The track set to filter
-        * \returns a filtered version of the track set (simple_track_set)
+        * \param [in] current_keyframes The current key-frame selection data.  Set to null if no key-frame data is 
+                      available or you want to perform key-frame selection from scratch.
+        * \param [in] tracks The tracks over which to select key-frames
+        * \returns selected key-frame data structure
         */
         virtual kwiver::vital::keyframe_data_sptr
-          select(kwiver::vital::keyframe_data_sptr input, 
+          select(kwiver::vital::keyframe_data_sptr current_keyframes, 
                  kwiver::vital::track_set_sptr tracks) const = 0;
-
       };
 
       /// type definition for shared pointer to a filter_tracks algorithm

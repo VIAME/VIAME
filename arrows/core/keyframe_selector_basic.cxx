@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2013-2017 by Kitware, Inc.
+* Copyright 2017 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,60 @@
 
 /**
 * \file
-* \brief Header file for an abstract \link kwiver::vital::track_set track_set
-*        \endlink and a concrete \link kwiver::vital::simple_track_set
-*        simple_track_set \endlink
+* \brief Implementation of formulate_query_core
 */
 
-#ifndef VITAL_KEYFRAME_DATA_H_
-#define VITAL_KEYFRAME_DATA_H_
+#include "keyframe_selector_basic.h"
 
-#include "track.h"
-
-#include <vital/vital_export.h>
-#include <vital/vital_config.h>
-#include <vital/vital_types.h>
-
-#include <vector>
-#include <set>
-#include <memory>
+using namespace kwiver::vital;
 
 namespace kwiver {
-  namespace vital {
+namespace arrows {
+ namespace core {
 
-    class keyframe_data;
-    /// Shared pointer for base keyframe_data type
-    typedef std::shared_ptr< keyframe_data > keyframe_data_sptr;
+/// Default Constructor
+keyframe_selector_basic
+::keyframe_selector_basic()
+{
+}
 
-    /// A collection of tracks
-    /**
-    * This class dispatches everything to an implementation class as in the
-    * bridge design pattern.  This pattern allows multiple back end implementations that
-    * store and index track data in different ways.  Each back end can be combined with
-    * any of the derived track_set types like feature_track_set and object_track_set.
-    */
-    class VITAL_EXPORT keyframe_data
-    {
-    public: 
-      keyframe_data();
+/// Get this alg's \link vital::config_block configuration block \endlink
+vital::config_block_sptr
+keyframe_selector_basic
+::get_configuration() const
+{
+  // get base config from base class
+  vital::config_block_sptr config = algorithm::get_configuration();
 
-      ~keyframe_data();
+  return config;
+}
 
-      virtual bool is_keyframe(frame_id_t frame) const = 0;
+/// Set this algo's properties via a config block
+void
+keyframe_selector_basic
+::set_configuration(vital::config_block_sptr in_config)
+{
+  // Starting with our generated config_block to ensure that assumed values are present
+  // An alternative is to check for key presence before performing a get_value() call.
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config(in_config);
+}
 
-      virtual bool add_keyframe(frame_id_t frame) = 0;
+bool
+keyframe_selector_basic
+::check_configuration(vital::config_block_sptr config) const
+{
+  return true;
+}
 
-      virtual bool remove_keyframe(frame_id_t frame) = 0;
-    };
-  }
-} // end namespace vital
+kwiver::vital::keyframe_data_sptr
+keyframe_selector_basic
+::select(kwiver::vital::keyframe_data_sptr current_keyframes,
+  kwiver::vital::track_set_sptr tracks) const
+{
+  return current_keyframes; // no op for now
+}
 
-#endif // VITAL_KEYFRAME_DATA_H_
+} // end namespace core
+} // end namespace arrows
+} // end namespace kwiver

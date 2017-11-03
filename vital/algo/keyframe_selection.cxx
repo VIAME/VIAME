@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2013-2017 by Kitware, Inc.
+* Copyright 2014-2015 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -28,54 +28,40 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/**
-* \file
-* \brief Header file for an abstract \link kwiver::vital::track_set track_set
-*        \endlink and a concrete \link kwiver::vital::simple_track_set
-*        simple_track_set \endlink
-*/
+#include <vital/algo/algorithm.txx>
 
-#ifndef VITAL_KEYFRAME_DATA_H_
-#define VITAL_KEYFRAME_DATA_H_
+#include "keyframe_selection.h"
 
-#include "track.h"
-
-#include <vital/vital_export.h>
-#include <vital/vital_config.h>
-#include <vital/vital_types.h>
-
-#include <vector>
-#include <set>
-#include <memory>
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::keyframe_selection);
 
 namespace kwiver {
   namespace vital {
+    namespace algo {
 
-    class keyframe_data;
-    /// Shared pointer for base keyframe_data type
-    typedef std::shared_ptr< keyframe_data > keyframe_data_sptr;
+      keyframe_selection
+        ::keyframe_selection()
+      {
+        attach_logger("keyframe_selection");
+      }
 
-    /// A collection of tracks
-    /**
-    * This class dispatches everything to an implementation class as in the
-    * bridge design pattern.  This pattern allows multiple back end implementations that
-    * store and index track data in different ways.  Each back end can be combined with
-    * any of the derived track_set types like feature_track_set and object_track_set.
-    */
-    class VITAL_EXPORT keyframe_data
-    {
-    public: 
-      keyframe_data();
 
-      ~keyframe_data();
+      /// Set this algorithm's properties via a config block
+      void
+        keyframe_selection
+        ::set_configuration(kwiver::vital::config_block_sptr config)
+      {
+        (void)config;
+      }
 
-      virtual bool is_keyframe(frame_id_t frame) const = 0;
+      /// Check that the algorithm's current configuration is valid
+      bool
+        keyframe_selection
+        ::check_configuration(kwiver::vital::config_block_sptr config) const
+      {
+        (void)config;
+        return true;
+      }
 
-      virtual bool add_keyframe(frame_id_t frame) = 0;
-
-      virtual bool remove_keyframe(frame_id_t frame) = 0;
-    };
+    }
   }
-} // end namespace vital
-
-#endif // VITAL_KEYFRAME_DATA_H_
+} // end namespace
