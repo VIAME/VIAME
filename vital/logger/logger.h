@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -241,9 +241,10 @@ logger_handle_t VITAL_LOGGER_EXPORT get_logger( std::string const& name );
  */
 #define LOG_ASSERT( logger, cond, msg ) do {                   \
     if ( ! ( cond ) ) {                                        \
-      std::stringstream _oss_; _oss_  << "ASSERTION FAILED: (" \
-                                      << # cond ")\n"  << msg; \
-      logger->log_error( _oss_.str(), KWIVER_LOGGER_SITE );     \
+      std::stringstream _oss_;                                 \
+      _oss_  << "ASSERTION FAILED: (" << # cond ")\n"  << msg; \
+      logger->log_error( _oss_.str(), KWIVER_LOGGER_SITE );    \
+    }                                                          \
 } while ( 0 )
 
 
