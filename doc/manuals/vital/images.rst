@@ -1,7 +1,7 @@
 Images
 ======
 
-Image Type
+Image
 ----------
 
 .. _image:
@@ -17,7 +17,7 @@ Time Stamp
     :project: kwiver
     :members:
 
-Image Container Type
+Image Container
 --------------------
 
 .. _image_container:
