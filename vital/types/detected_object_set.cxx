@@ -321,4 +321,21 @@ cend() const
 }
 
 
+// ----------------------------------------------------------------------------
+detected_object_sptr
+detected_object_set::
+at( size_t pos )
+{
+  return m_detected_objects.at( pos );
+}
+
+
+// ----------------------------------------------------------------------------
+const detected_object_sptr
+detected_object_set::
+at( size_t pos ) const
+{
+  return m_detected_objects.at( pos );
+}
+
 } } // end namespace
