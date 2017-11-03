@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,22 +29,41 @@
  */
 
 /**
- * \file
- * \brief Base include file for all vital exceptions
+ * @file
+ * @brief KPF text parser.
  *
- * All exception types for vital::core are included through this file.
+ * Text interface to the generic KPF packet buffer. Deprecated in favor of YAML.
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef KWIVER_VITAL_KPF_TEXT_PARSER_H_
+#define KWIVER_VITAL_KPF_TEXT_PARSER_H_
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
-#include "exceptions/kpf.h"
+#include <vital/kpf/vital_kpf_export.h>
+#include <vital/kpf/kpf_parse_utils.h>
+#include <vital/kpf/kpf_parser_base.h>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <iostream>
+
+namespace kwiver {
+namespace vital {
+namespace kpf {
+
+class VITAL_KPF_EXPORT kpf_text_parser_t: public kpf_parser_base_t
+{
+public:
+  explicit kpf_text_parser_t( std::istream& is );
+  ~kpf_text_parser_t() {}
+
+  virtual bool get_status() const;
+  virtual bool parse_next_record( packet_buffer_t& pb );
+
+private:
+  std::istream& input_stream;
+
+};
+
+} // ...kpf
+} // ...vital
+} // ...kwiver
+
+#endif

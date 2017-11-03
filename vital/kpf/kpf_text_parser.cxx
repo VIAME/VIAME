@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,21 +30,55 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
+ * \brief Text parser implementation.
  *
- * All exception types for vital::core are included through this file.
+ * Deprecated in favor of YAML.
+ *
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#include "kpf_text_parser.h"
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
-#include "exceptions/kpf.h"
+#include <vital/util/tokenize.h>
+#include <string>
+#include <vector>
 
-#endif // VITAL_EXCEPTIONS_H_
+using std::istream;
+using std::string;
+using std::vector;
+
+namespace kwiver {
+namespace vital {
+namespace kpf {
+
+kpf_text_parser_t
+::kpf_text_parser_t( istream& is ): input_stream( is )
+{
+}
+
+bool
+kpf_text_parser_t
+::get_status() const
+{
+  return static_cast<bool>( this->input_stream );
+}
+
+bool
+kpf_text_parser_t
+::parse_next_record( packet_buffer_t& local_packet_buffer )
+{
+  string s;
+  if (! std::getline( this->input_stream, s ))
+  {
+    return false;
+  }
+  vector< string > tokens;
+  ::kwiver::vital::tokenize( s, tokens, " ", true );
+
+  return packet_parser( tokens, local_packet_buffer );
+}
+
+
+} // ...kpf
+} // ...vital
+} // ...kwiver
+
