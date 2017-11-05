@@ -1,7 +1,7 @@
 Ceres
 =====
 
-
+..  _ceres_bundle_adjust:
 Bundle Adjust Algorithm
 -----------------------
 
@@ -9,6 +9,8 @@ Bundle Adjust Algorithm
     :project: kwiver
     :members:
 
+
+..  _ceres_optimize_cameras:
 
 Optimize Cameras Algorithm
 --------------------------
@@ -18,12 +20,16 @@ Optimize Cameras Algorithm
     :members:
 
 
+..  _ceres_camera_position_smoothness:
+
 Camera Position Smoothness Class
 --------------------------------
 
 ..  doxygenclass:: kwiver::arrows::ceres::camera_position_smoothness
     :project: kwiver
     :members:
+
+..  _ceres_camera_limit_forward_motion:
 
 Camera Limit Forward Motion Class
 ---------------------------------
@@ -32,6 +38,8 @@ Camera Limit Forward Motion Class
     :project: kwiver
     :members:
     
+..  _ceres_distortion_poly_radial:
+
 Distortion Poly Radial Class
 ----------------------------
 
@@ -39,6 +47,8 @@ Distortion Poly Radial Class
     :project: kwiver
     :members:
     
+..  _ceres_distortion_poly_radial_tangential:
+
 Distortion Poly Radial Tangential Class
 ---------------------------------------
 
@@ -46,14 +56,18 @@ Distortion Poly Radial Tangential Class
     :project: kwiver
     :members:
     
+..  _ceres_distortion_ratpoly_radial_tangential:
+
 Distortion Ratpoly Radial Tangential Class
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ..  doxygenclass:: kwiver::arrows::ceres::distortion_ratpoly_radial_tangential
     :project: kwiver
     :members:
     
     
+
+..  _ceres_create_cost_func:
 
 Create Cost Func Factory
 ------------------------

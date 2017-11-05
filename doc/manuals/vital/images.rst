@@ -1,10 +1,10 @@
-Images
-======
+Image Data Types and Related Algorithms
+=======================================
 
 Image
 ----------
 
-.. _image:
+.. _vital_image:
 ..  doxygenclass:: kwiver::vital::image
     :project: kwiver
     :members:
@@ -12,7 +12,7 @@ Image
 Time Stamp
 ----------
 
-.. _timestamp:
+.. _vital_timestamp:
 ..  doxygenclass:: kwiver::vital::timestamp
     :project: kwiver
     :members:
@@ -20,16 +20,16 @@ Time Stamp
 Image Container
 --------------------
 
-.. _image_container:
+.. _vital_image_container:
 ..  doxygenclass:: kwiver::vital::image_container
     :project: kwiver
     :members:
 
 
-.. _algo_image_io:
 
 Image I/O Algorithm
 -------------------
+.. _vital_image_io:
 
 Instantiate with: ::
 
@@ -42,15 +42,31 @@ Instantiate with: ::
 :ref:`VXL<vxl_image_io>`                vxl             KWIVER_ENABLE_VXL     
 ============================== ====================== ========================
 
-.. _image_io:
 ..  doxygenclass:: kwiver::vital::algo::image_io
     :project: kwiver
     :members:
 
-.. _algo_image_filter:
+Convert Image Algorithm
+-----------------------
+.. _vital_convert_image:
+
+Instantiate with: ::
+
+   kwiver::vital::algo::convert_image_sptr img_bypas = kwiver::vital::algo::convert_image::create("<impl_name>");
+
+====================================== ====================== ========================
+ Arrow & Configuration                  <impl_name> options    CMake Flag to Enable  
+====================================== ====================== ========================
+:ref:`Core<core_convert_image_bypass>`  bypass                 KWIVER_ENABLE_ARROWS 
+====================================== ====================== ========================
+
+..  doxygenclass:: kwiver::vital::algo::convert_image
+    :project: kwiver
+    :members:
 
 Image Filter Algorithm
 ----------------------
+.. _vital_image_filter:
 
 Instantiate with: ::
 
@@ -64,19 +80,17 @@ N/A                             N/A                    N/A
 
 ** Currently there are no arrows implementing the image_filter algorithm **
 
-.. _image_filter:
 ..  doxygenclass:: kwiver::vital::algo::image_filter
     :project: kwiver
     :members:
 
-.. _algo_split_image:
-
 Split Image Algorithm
 ---------------------
+.. _vital_split_image:
 
 Instantiate with: ::
 
-   kwiver::vital::algo::split_image_sptr img_filter = kwiver::vital::algo::split_image::create("<impl_name>");
+   kwiver::vital::algo::split_image_sptr img_split = kwiver::vital::algo::split_image::create("<impl_name>");
 
 ============================== ===================== ========================
  Arrow & Configuration          <impl_name> options    CMake Flag to Enable  
@@ -85,7 +99,6 @@ Instantiate with: ::
 :ref:`VXL<vxl_split_image>`             vxl            KWIVER_ENABLE_VXL     
 ============================== ===================== ========================
 
-.. _split_image:
 ..  doxygenclass:: kwiver::vital::algo::split_image
     :project: kwiver
     :members:
