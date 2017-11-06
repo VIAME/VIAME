@@ -308,7 +308,7 @@ output_process(std::ostream& ostr, process_t const& process, std::string const& 
   {
   ostr << "\"" << node_name << "\" ["
           "label=<<u>" << name << "<br/>:: " << type << "</u>>,"
-       << style_process_rst << link_prefix
+       << style_process_rst << link_prefix << type
        << "\"];" << std::endl;
   }
   else
