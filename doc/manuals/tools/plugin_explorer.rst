@@ -1,2 +1,2 @@
-Process Explorer
+Plugin Explorer
 ================

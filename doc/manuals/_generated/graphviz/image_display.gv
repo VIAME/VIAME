@@ -4,7 +4,7 @@ clusterrank=local;
 subgraph "cluster_disp" {
 color=lightgray;
 
-"disp_main" [label=<<u>disp<br/>:: image_viewer</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/frame_list_input.html"];
+"disp_main" [label=<<u>disp<br/>:: image_viewer</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/image_viewer.html"];
 
 "disp_input_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
 "disp_input_image" -> "disp_main" [arrowhead=none,color=black];
