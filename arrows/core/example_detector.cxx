@@ -101,16 +101,17 @@ get_configuration() const
 // ------------------------------------------------------------------
 void
 example_detector::
-set_configuration(vital::config_block_sptr config)
+set_configuration(vital::config_block_sptr config_in)
 {
+  auto config = get_configuration();
+  config->merge_config(config_in);
+
   d->m_center_x     = config->get_value<double>( "center_x" );
   d->m_center_y     = config->get_value<double>( "center_y" );
   d->m_height       = config->get_value<double>( "height" );
   d->m_width        = config->get_value<double>( "width" );
-  if (config->has_value("dx"))
-    d->m_dx           = config->get_value<double>( "dx" );
-  if (config->has_value("dy"))
-    d->m_dy           = config->get_value<double>( "dy" );
+  d->m_dx           = config->get_value<double>( "dx" );
+  d->m_dy           = config->get_value<double>( "dy" );
 }
 
 

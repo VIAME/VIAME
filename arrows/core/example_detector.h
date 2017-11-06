@@ -47,7 +47,7 @@ public:
   virtual ~example_detector();
 
   virtual vital::config_block_sptr get_configuration() const;
-  virtual void set_configuration(vital::config_block_sptr config);
+  virtual void set_configuration(vital::config_block_sptr config_in);
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
   // Main detection method
