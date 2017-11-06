@@ -36,16 +36,15 @@
 #ifndef VITAL_C_FEATURE_TRACK_SET_H_
 #define VITAL_C_FEATURE_TRACK_SET_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #include "track.h"
 
 #include <vital/bindings/c/types/descriptor.h>
 #include <vital/bindings/c/types/feature.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Feature Track State
