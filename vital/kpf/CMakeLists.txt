@@ -5,7 +5,7 @@
 if(fletch_ENABLED_YAMLCPP)
   find_package( yaml-cpp REQUIRED )
 else()
-  message(STATUS "To enable kpf support, please build or located yaml libraries in fletch")
+  message(STATUS "To enable kpf support, please build or locate yaml libraries in fletch")
   return()
 endif()
 
