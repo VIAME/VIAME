@@ -154,3 +154,9 @@ Instantiate with: ::
     :project: kwiver
     :members:
     
+Code Example
+------------
+
+.. literalinclude:: ../../../examples/cpp/how_to_part_02_detections.cpp
+   :language: cpp
+   :lines: 30-

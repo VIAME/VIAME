@@ -2,6 +2,8 @@ set(EXAMPLE_DIR ${CMAKE_BINARY_DIR}/examples)
 file(MAKE_DIRECTORY "${EXAMPLE_DIR}/pipelines/output")
 
 add_subdirectory(external)
+add_subdirectory(cpp)
+
 # Configure all the local example pipe files
 configure_file(pipelines/image_list.txt.in ${EXAMPLE_DIR}/pipelines/image_list.txt)
 configure_file(pipelines/image_display.pipe.in ${EXAMPLE_DIR}/pipelines/image_display.pipe)

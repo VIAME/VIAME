@@ -107,6 +107,5 @@ Code Example
 ------------
 
 .. literalinclude:: ../../../examples/cpp/how_to_part_01_images.cpp
-   :linenos:
    :language: cpp
    :lines: 30-

@@ -1,4 +1,4 @@
 image_object_detector
 =====================
 
-This sprokit process is used to ...
+.. include:: ../../_generated/processes/image_object_detector.rst

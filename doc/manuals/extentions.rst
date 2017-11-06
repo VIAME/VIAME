@@ -18,8 +18,11 @@ How to configure an Algorithm
 How to Instantiate an Algorithm
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-How to Wrap an Algorithm with a Process
----------------------------------------
+How to Make a Sprokit Process
+-----------------------------
+
+How To Make a Pipeline
+----------------------
 
 .. toctree::
   :hidden:
