@@ -174,9 +174,10 @@ this is typically running ``make``.
 There is also a build target, INSTALL. This target will build all code,
 then create an install directory inside the build directory.  This install
 folder will be populated with all binaries, libraries, headers, and other files
-you will need to develop your application with kwiver.  MSVC users note, this
-install directory is for a single build configuration and their will not be configuration 
-named directories in this directory structure. (i.e. no /bin/release, only /bin)
+you will need to develop your application with kwiver. MSVC users, note that
+this install directory is for a single build configuration; there will not be
+configuration named directories in this directory structure
+(i.e. no ``/bin/release``, only ``/bin``).
 
 .. note::
 
