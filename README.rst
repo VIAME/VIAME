@@ -52,6 +52,7 @@ grow as we expand Arrows.
 
 Vital has minimal required dependencies (only Eigen_).
 Sprokit additionally relies on Boost_.
+C++ tests additionally rely on `Google Test`_.
 Arrows and Sprokit processes are structured so that
 the code that depends on an external package is in a directory with
 the major dependency name (e.g. vxl, ocv). The dependencies can be
@@ -95,7 +96,7 @@ The following are the most important CMake configuration options for KWIVER.
 ``KWIVER_ENABLE_LOG4CPLUS``   Enable log4cplus logger back end
 ``KWIVER_ENABLE_PYTHON``      Enable the Vital Python bindings (requires KWIVER_ENABLE_C_BINDINGS)
 ``KWIVER_ENABLE_SPROKIT``     Enable the Stream Processing Toolkit
-``KWIVER_ENABLE_TESTS``       Build the unit tests
+``KWIVER_ENABLE_TESTS``       Build the unit tests (requires Google Test)
 ``KWIVER_ENABLE_TOOLS``       Build the command line tools (e.g. plugin_explorer)
 ``fletch_DIR``                Install directory of a Fletch build.
 ============================= ====================================================================
@@ -176,6 +177,17 @@ folder will be populated with all binaries, libraries, headers, and other files
 you will need to develop your application with kwiver.  MSVC users note, this
 install directory is for a single build configuration and their will not be configuration 
 named directories in this directory structure. (i.e. no /bin/release, only /bin)
+
+.. note::
+
+  If you are on Windows and enable tests (``KWIVER_ENABLE_TESTS=ON``),
+  and are building shared libraries (``BUILD_SHARED_LIBS=ON``), you will
+  need to add the path to ``gtest.dll`` to the ``PATH`` in your environment
+  in order to build and run the tests.
+
+  The easiest way to achieve this is to use the ``setup_KWIVER.bat`` script
+  (described in the next session), and to run builds and/or launch Visual
+  Studio from a command prompt which has been so configured.
 
 
 Running KWIVER
@@ -287,6 +299,7 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. _Darknet: https://pjreddie.com/darknet/yolo/
 .. _Eigen: http://eigen.tuxfamily.org/
 .. _Fletch: https://github.com/Kitware/fletch
+.. _Google Test: https://github.com/google/googletest
 .. _Kitware: http://www.kitware.com/
 .. _MAP-Tk: https://github.com/Kitware/maptk
 .. _OpenCV: http://opencv.org/
