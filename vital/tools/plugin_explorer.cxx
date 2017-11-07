@@ -59,8 +59,12 @@ TODO
 - expand help text to be more like a man page.
 - handle processopedia and algo_explorer personalities.
 
-- make it easy to display one factory (e.g. process) Maybe add flag
+- make it easy to display one factory (e.g. process, algo) Maybe add flag
   for finding impl type by regexp.
+
+- configuration output is different for algos va proc's. These should
+  be the same. Maybe some common code would help, although they have
+  slightly different contents.
 
  */
 
@@ -97,6 +101,13 @@ static kwiver::vital::logger_handle_t G_logger;
 static kwiversys::RegularExpression filter_regex;
 static kwiversys::RegularExpression fact_regex;
 static kwiversys::RegularExpression type_regex;
+
+#ifndef PLUGIN_EXPLORER_VERSION
+  #define PLUGIN_EXPLORER_VERSION "undefined"
+#endif
+
+static bool opt_version(false);
+static std::string version_string( PLUGIN_EXPLORER_VERSION );
 
 // This program can have different personalities depending on the name
 // of the executable.  This is to emulate the useful behaviour of
@@ -279,8 +290,6 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
                           const std::string& category )
 {
-  pe_out() << "\n---- All " << category << " Factories\n";
-
   kwiver::vital::category_explorer* cat_handler = get_category_handler( category );
 
   for( auto it : plugin_map )
@@ -509,6 +518,8 @@ main( int argc, char* argv[] )
 
   G_context.m_args.AddArgument( "--help",    argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
   G_context.m_args.AddArgument( "-h",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
+  G_context.m_args.AddArgument( "-v",        argT::NO_ARGUMENT, &opt_version, "Display program version" );
+  G_context.m_args.AddArgument( "--version", argT::NO_ARGUMENT, &opt_version, "Display program version" );
   G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail,
                                 "Display detailed information about plugins" );
 
@@ -516,7 +527,7 @@ main( int argc, char* argv[] )
                                 "Display detailed information about plugins" );
 
   G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
-  G_context.m_args.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
+  G_context.m_args.AddCallback( "-I",        argT::SPACE_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
   G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
                                 "Only display factories whose interface type matches specified regexp" );
 
@@ -524,7 +535,8 @@ main( int argc, char* argv[] )
                                 "Only display factories whose interface type matches specified regexp" );
 
   G_context.m_args.AddArgument( "--type",    argT::SPACE_ARGUMENT, &G_context.opt_type_regex,
-                                "Only display factories whose instance name matches the specified regexp" );
+                                "Only display factories whose instance name matches the specified regexp. "
+                                "The plugins are selected from all available categories." );
 
   G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Generate brief display" );
   G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Generate brief display" );
@@ -553,7 +565,7 @@ main( int argc, char* argv[] )
                                 "If type is specified as \"all\", then all processes are listed. Otherwise, the type "
                                 "will be treated as a regexp and only processes names that match the regexp will be displayed." );
 
-  G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Displat scheduler type plugins" );
+  G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Display scheduler type plugins" );
 
   std::vector< std::string > filter_args;
   G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
@@ -567,7 +579,7 @@ main( int argc, char* argv[] )
                                 "Display raw attributes for plugins without calling any category specific formatting" );
 
   G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
-                                "Load only specified plugin file for inspection. No other pluigins are loaded." );
+                                "Load only specified plugin file for inspection. No other plugins are loaded." );
 
   G_context.m_args.AddArgument( "--fmt",     argT::SPACE_ARGUMENT, &G_context.formatting_type,
                                 "Generate display using alternative format, such as 'rst' or 'pipe'" );
@@ -593,8 +605,16 @@ main( int argc, char* argv[] )
   if ( G_context.opt_help )
   {
     pe_out() << "Usage for " << argv[0] << std::endl
+             << "   Version: " << version_string << std::endl
              << G_context.m_args.GetHelp() << std::endl;
-    //+ usage( argv[0] );
+
+    exit( 0 );
+  }
+
+  if (opt_version)
+  {
+    pe_out() << "Version: " << version_string << std::endl;
+    // Could also use build date, ...
     exit( 0 );
   }
 
@@ -779,7 +799,7 @@ main( int argc, char* argv[] )
   {
     auto plugin_map = vpm.plugin_map();
 
-    pe_out() << "\n---- All Registered Factories\n";
+    pe_out() << "\n---- All Registered Plugins\n";
 
     for( auto it : plugin_map )
     {
@@ -821,7 +841,7 @@ main( int argc, char* argv[] )
 
         if ( first_fact )
         {
-          pe_out() << "\nFactories that create type \"" << ds << "\"" << std::endl;
+          pe_out() << "\nPlugins that create type \"" << ds << "\"" << std::endl;
           first_fact = false;
         }
 
@@ -839,11 +859,11 @@ main( int argc, char* argv[] )
   //
   if (G_context.opt_summary )
   {
-    pe_out() << "\n----Summary of factories" << std::endl;
+    pe_out() << "\n----Summary of plugin types" << std::endl;
     size_t count(0);
 
     auto plugin_map = vpm.plugin_map();
-    pe_out() << "    " << plugin_map.size() << " types of factories registered." << std::endl;
+    pe_out() << "    " << plugin_map.size() << " types of plugins registered." << std::endl;
 
     for( auto it : plugin_map )
     {
@@ -853,11 +873,11 @@ main( int argc, char* argv[] )
       kwiver::vital::plugin_factory_vector_t const& facts = it.second;
       count += facts.size();
 
-      pe_out() << "        " << facts.size() << " factories that create \""
+      pe_out() << "        " << facts.size() << " plugin(s) that implement \""
                << ds << "\"" <<std::endl;
     } // end interface type
 
-    pe_out() << "    " << count << " total factories" << std::endl;
+    pe_out() << "    " << count << " total plugins" << std::endl;
   }
 
 
