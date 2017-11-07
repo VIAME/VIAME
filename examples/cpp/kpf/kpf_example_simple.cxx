@@ -35,9 +35,9 @@
  */
 
 
-#include <vital/kpf/kpf_reader.h>
-#include <vital/kpf/kpf_text_parser.h>
-#include <vital/kpf/kpf_text_writer.h>
+#include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_text_parser.h>
+#include <arrows/kpf/yaml/kpf_text_writer.h>
 
 #include <iostream>
 #include <sstream>
@@ -66,15 +66,15 @@ namespace KPF=kwiver::vital::kpf;
 //
 
 
-struct user_detection_t
+struct user_simple_detection_t
 {
   size_t detection_id;
   unsigned frame_number;
   double confidence;
-  user_detection_t()
+  user_simple_detection_t()
     : detection_id(0), frame_number(0), confidence(0)
   {}
-  user_detection_t( int d, unsigned f, double conf )
+  user_simple_detection_t( int d, unsigned f, double conf )
     : detection_id(d), frame_number(f), confidence(conf)
   {}
 };
@@ -83,7 +83,7 @@ struct user_detection_t
 // pretty-print the user detections
 //
 
-ostream& operator<<( ostream& os, const user_detection_t& d )
+ostream& operator<<( ostream& os, const user_simple_detection_t& d )
 {
   os << "detection " << d.detection_id << " @ frame " << d.frame_number
      << ": conf " << d.confidence;
@@ -94,7 +94,7 @@ ostream& operator<<( ostream& os, const user_detection_t& d )
 // Generate some sample detections.
 //
 
-vector< user_detection_t >
+vector< user_simple_detection_t >
 make_sample_detections()
 {
   return {
@@ -119,13 +119,13 @@ const int DETECTOR_DOMAIN=17;
 // Note that we're implicitly expecting to find record one per line.
 //
 
-vector< user_detection_t >
+vector< user_simple_detection_t >
 read_detections_from_stream( std::istream& is )
 {
   namespace KPFC = KPF::canonical;
 
-  vector< user_detection_t > dets;
-  user_detection_t buffer;
+  vector< user_simple_detection_t > dets;
+  user_simple_detection_t buffer;
   KPF::kpf_text_parser_t parser( is );
   KPF::kpf_reader_t reader( parser );
 
@@ -147,7 +147,7 @@ read_detections_from_stream( std::istream& is )
 
 void
 write_detections_to_stream( ostream& os,
-                            const vector< user_detection_t >& dets )
+                            const vector< user_simple_detection_t >& dets )
 {
   namespace KPFC = KPF::canonical;
   KPF::record_text_writer w( os );
@@ -161,10 +161,10 @@ write_detections_to_stream( ostream& os,
   }
 }
 
-int main()
+void kpf_example_simple()
 {
 
-  vector< user_detection_t > src_dets = make_sample_detections();
+  vector< user_simple_detection_t > src_dets = make_sample_detections();
   for (auto i=0; i<src_dets.size(); ++i)
   {
     std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
@@ -177,7 +177,7 @@ int main()
   std::cout << "Done\n";
 
   std::cout << "\nAbout to read KPF:\n";
-  vector< user_detection_t> new_dets = read_detections_from_stream( ss );
+  vector< user_simple_detection_t> new_dets = read_detections_from_stream( ss );
   for (auto i=0; i<new_dets.size(); ++i)
   {
     std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";

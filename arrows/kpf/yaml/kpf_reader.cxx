@@ -43,7 +43,7 @@
 #include <algorithm>
 
 #include <vital/logger/logger.h>
-#include <vital/kpf/kpf_canonical_io_adapter.h>
+#include "kpf_canonical_io_adapter.h"
 
 using std::istream;
 using std::istringstream;

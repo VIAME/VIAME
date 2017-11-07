@@ -48,9 +48,7 @@
 #ifndef KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_H_
 #define KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_H_
 
-
-#include <vital/kpf/vital_kpf_export.h>
-#include <vital/kpf/kpf_canonical_io_adapter_base.h>
+#include "kpf_canonical_io_adapter_base.h"
 
 namespace kwiver {
 namespace vital {

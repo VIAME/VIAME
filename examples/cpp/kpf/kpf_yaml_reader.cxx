@@ -27,40 +27,50 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
-// Predefine methods that show off various functionality in kwiver
-void how_to_part_01_images();
-void how_to_part_02_detections();
 
-// raw kpf examples
-void kpf_example();
-void kpf_example_simple();
-void kpf_example_complex();
-void kpf_example_yaml();
-void kpf_text_reader();
-void kpf_yaml_reader();
-void yaml_parser();
+/**
+ * \file
+ * \brief A very simple packet reader for the YAML format.
+ *
+ */
 
- int main()
+#include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+
+namespace KPF=kwiver::vital::kpf;
+
+
+void kpf_yaml_reader()
 {
-  // use comments to execute a particular method
+  std::string filename = "something.kpf";
+  std::ifstream is( filename );
+  if (!is)
+  {
+    std::cerr << "Couldn't open '" << filename << "' for reading\n";
+    return;
+  }
 
-  how_to_part_01_images();
-  how_to_part_02_detections();
-  
-  // Using the provided kpf writer/reader
-  // Note if you are using vital types, 
-  // there are kwiver algorithms that will 
-  // transform vital objects to and from kpf,
-  // Look through the how_to methods above for examples.
-  // But if you aren not using vital types
-  // and only want to use the kpf_yaml library
-  // These examples are for you!
-  kpf_example();
-  kpf_example_simple();
-  kpf_example_complex();
-  kpf_example_yaml();
-  kpf_text_reader();
-  kpf_yaml_reader();
-  yaml_parser();
+  KPF::kpf_yaml_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
+  while (reader.next())
+  {
+    const KPF::packet_buffer_t& packets = reader.get_packet_buffer();
+
+    std::vector< std::string > meta = reader.get_meta_packets();
+    std::cout << "Parsed " << meta.size() << " metadata packets:\n";
+    for (auto m: meta)
+    {
+      std::cout << "== " << m << "\n";
+    }
+    std::cout << "Parsed " << packets.size() << " packets:\n";
+    for (auto p: packets )
+    {
+      std::cout << "-- " << p.second << "\n";
+    }
+    reader.flush();
+  }
 }

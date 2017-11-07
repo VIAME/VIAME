@@ -37,9 +37,9 @@
 #ifndef KWIVER_VITAL_KPR_PARSE_UTILS_H_
 #define KWIVER_VITAL_KPR_PARSE_UTILS_H_
 
-#include <vital/kpf/vital_kpf_export.h>
 
-#include <vital/kpf/kpf_packet.h>
+
+#include "kpf_packet.h"
 
 #include <string>
 #include <vector>
@@ -77,15 +77,15 @@ typedef std::tuple< bool, std::string, int > header_parse_t;
  * @return true if the conversion is successful.
  */
 
-bool VITAL_KPF_EXPORT packet_header_parser( const std::string& s,
+bool KPF_YAML_EXPORT packet_header_parser( const std::string& s,
                       packet_header_t& packet_header,
                       bool expect_colon );
 
-bool VITAL_KPF_EXPORT
+bool KPF_YAML_EXPORT
 packet_parser( const std::vector< std::string >& tokens,
                packet_buffer_t& packet_buffer );
 
-header_parse_t VITAL_KPF_EXPORT parse_header( const std::string& s, bool expect_colon );
+header_parse_t KPF_YAML_EXPORT parse_header( const std::string& s, bool expect_colon );
 
 /**
  * @brief Given a packet with an initialized header, populate it from the token stream.
@@ -98,7 +98,7 @@ header_parse_t VITAL_KPF_EXPORT parse_header( const std::string& s, bool expect_
  * is set to the next unparsed token
  */
 
-std::pair< bool, size_t > VITAL_KPF_EXPORT packet_payload_parser (
+std::pair< bool, size_t > KPF_YAML_EXPORT packet_payload_parser (
   size_t index,
   const std::vector< std::string >& tokens,
   packet_t& packet );

@@ -53,15 +53,12 @@
 #ifndef KWIVER_VITAL_KPF_READER_H_
 #define KWIVER_VITAL_KPF_READER_H_
 
-
-#include <vital/kpf/vital_kpf_export.h>
-
-#include <vital/kpf/kpf_packet.h>
-#include <vital/kpf/kpf_canonical_io.h>
-#include <vital/kpf/kpf_parse_utils.h>
-#include <vital/kpf/kpf_parser_base.h>
-#include <vital/kpf/kpf_bounce_buffer.h>
-#include <vital/kpf/kpf_canonical_io_adapter_base.h>
+#include "kpf_packet.h"
+#include "kpf_canonical_io.h"
+#include "kpf_parse_utils.h"
+#include "kpf_parser_base.h"
+#include "kpf_bounce_buffer.h"
+#include "kpf_canonical_io_adapter_base.h"
 
 #include <utility>
 #include <iostream>
@@ -72,7 +69,7 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class VITAL_KPF_EXPORT kpf_reader_t
+class KPF_YAML_EXPORT kpf_reader_t
 {
 public:
 
@@ -83,7 +80,7 @@ public:
   bool next();
 
   // push packets into the text_reader
-  friend VITAL_KPF_EXPORT kpf_reader_t& operator>>( kpf_reader_t& t, packet_bounce_t& b );
+  friend KPF_YAML_EXPORT kpf_reader_t& operator>>( kpf_reader_t& t, packet_bounce_t& b );
 
   // pull packets into the text_reader
   bool process( packet_bounce_t& b );
@@ -119,34 +116,34 @@ private:
   kpf_parser_base_t& parser;
 };
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, packet_bounce_t& b );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::bbox_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::poly_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::activity_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::id_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::timestamp_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::kv_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::conf_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::meta_t >& r );
 
-VITAL_KPF_EXPORT
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::timestamp_range_t >& r );
 
 } // ...kpf

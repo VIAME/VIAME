@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,58 +29,38 @@
  */
 
 /**
- * \file
- * \brief Bounce buffer.
+ * @file
+ * @brief KPF YAML parser class.
  *
- *
- * This is the bounce buffer between the parser's
- * packet buffer and the user. This could probably be
- * refactored away.
- *
+ * Header for the KPF YAML parser; holds the YAML root document and provides
+ * the interface for reading each KPF line (which shows up as a YAML map)
+ * into the KPF generic parser's packet buffer.
  */
 
-#ifndef KWIVER_VITAL_KPF_BOUNCE_BUFFER_H_
-#define KWIVER_VITAL_KPF_BOUNCE_BUFFER_H_
+#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
+#define KWIVER_VITAL_KPF_YAML_PARSER_H_
 
+#include "kpf_parse_utils.h"
+#include "kpf_parser_base.h"
 
-#include <vital/kpf/vital_kpf_export.h>
-
-#include <vital/kpf/kpf_packet.h>
-
-#include <string>
-#include <utility>
+#include <yaml-cpp/yaml.h>
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class VITAL_KPF_EXPORT packet_bounce_t
+class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
 {
 public:
-  packet_bounce_t();
-  explicit packet_bounce_t( const std::string& tag );
-  explicit packet_bounce_t( const packet_header_t& h );
-  void init( const std::string& tag );
-  void init( const packet_header_t& h );
-  ~packet_bounce_t() {}
+  explicit kpf_yaml_parser_t( std::istream& is );
+  ~kpf_yaml_parser_t() {}
 
-  // mutate the domain
-  packet_bounce_t& set_domain( int d );
+  virtual bool get_status() const;
+  virtual bool parse_next_record( packet_buffer_t& pb );
 
-  // return this reader's packet header
-  packet_header_t my_header() const;
-
-  // transfer packet into the reader
-  void set_from_buffer( const packet_t& );
-
-  // return (true, packet) and clear the is_set flag
-  // return false if set_from_buffer hasn't been called yet
-  std::pair< bool, packet_t > get_packet();
-
-protected:
-  bool is_set;
-  packet_header_t header;
-  packet_t packet;
+private:
+  YAML::Node root;
+  YAML::const_iterator current_record;
 };
 
 } // ...kpf
@@ -89,4 +69,3 @@ protected:
 
 
 #endif
-

@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,33 +29,38 @@
  */
 
 /**
- * @file
- * @brief Base class for KPF parsers for various formats.
+ * \file
+ * \brief Base class for adapters for complex types.
  *
- * Concrete format-specific instances of this class can be passed to
- * the kpf_reader_t to loop over KPF input.
+ * For complex types (bounding boxes, activities), there's probably not
+ * a one-to-one mapping between the canonical KPF representation and the user's
+ * data structure.
  *
+ * This non-templated base class holds the packet's "bounce buffer" that
+ * adapters use after the packet has been transferred out of the packet buffer
+ * as it goes into user-space.
  */
 
-#ifndef KWIVER_VITAL_KPF_PARSER_BASE_
-#define KWIVER_VITAL_KPF_PARSER_BASE_
+#ifndef KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
+#define KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
 
-#include <vital/kpf/kpf_parse_utils.h>
+#include "kpf_bounce_buffer.h"
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class kpf_parser_base_t
-{
-public:
-  kpf_parser_base_t() {}
-  virtual ~kpf_parser_base_t() {}
+class kpf_reader_t;
 
-  virtual bool get_status() const = 0;
-  virtual bool parse_next_record( packet_buffer_t& ) = 0;
+struct kpf_canonical_io_adapter_base
+{
+  packet_bounce_t packet_bounce;
+  kpf_canonical_io_adapter_base& set_domain( int d ) { this->packet_bounce.set_domain(d); return *this; }
 };
 
+KPF_YAML_EXPORT
+kpf_reader_t& operator>>( kpf_reader_t& t,
+                          kpf_canonical_io_adapter_base& io );
 
 } // ...kpf
 } // ...vital

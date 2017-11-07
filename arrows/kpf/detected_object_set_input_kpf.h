@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +30,43 @@
 
 /**
  * \file
- * \brief A very simple packet reader for the deprecated text format.
- *
+ * \brief Interface for detected_object_set_input_kpf
  */
 
-#include <vital/kpf/kpf_reader.h>
-#include <vital/kpf/kpf_text_parser.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-
-namespace KPF=kwiver::vital::kpf;
+#ifndef KWIVER_ARROWS_KPF_DETECTED_OBJECT_SET_INPUT_KPF_H
+#define KWIVER_ARROWS_KPF_DETECTED_OBJECT_SET_INPUT_KPF_H
 
 
-int main( int argc, char *argv[] )
+#include <vital/vital_config.h>
+#include <arrows/kpf/kwiver_algo_kpf_export.h>
+
+#include <vital/algo/detected_object_set_input.h>
+
+#include <memory>
+
+namespace kwiver {
+namespace arrows {
+namespace kpf {
+
+class KWIVER_ALGO_KPF_EXPORT detected_object_set_input_kpf
+  : public vital::algorithm_impl<detected_object_set_input_kpf, vital::algo::detected_object_set_input>
 {
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " somefile.kpf\n"
-              << "Reads and reports on a KPF file.\n";
-    return EXIT_SUCCESS;
-  }
+public:
+  detected_object_set_input_kpf();
+  virtual ~detected_object_set_input_kpf();
 
-  std::ifstream is( argv[1] );
-  if ( ! is )
-  {
-    std::cerr << "Couldn't open '" << argv[1] << "' for reading\n";
-    return EXIT_FAILURE;
-  }
+  virtual void set_configuration(vital::config_block_sptr config);
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
+  virtual bool read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name );
 
-  KPF::kpf_text_parser_t parser( is );
-  KPF::kpf_reader_t reader( parser );
-  while (reader.next())
-  {
-    const KPF::packet_buffer_t& packets = reader.get_packet_buffer();
+private:
+  virtual void new_stream();
 
-    std::vector< std::string > meta = reader.get_meta_packets();
-    std::cout << "Parsed " << meta.size() << " metadata packets:\n";
-    for (auto m: meta)
-    {
-      std::cout << "== " << m << "\n";
-    }
-    std::cout << "Parsed " << packets.size() << " packets:\n";
-    for (auto p: packets )
-    {
-      std::cout << "-- " << p.second << "\n";
-    }
-    reader.flush();
-  }
-}
+  class priv;
+  std::unique_ptr< priv > d;
+};
+
+} } } // end namespace
+
+#endif // KWIVER_ARROWS_KPF_DETECTED_OBJECT_SET_INPUT_KPF_H

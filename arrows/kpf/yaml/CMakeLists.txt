@@ -2,12 +2,6 @@
 # KPF parsing
 #
 
-if(fletch_ENABLED_YAMLCPP)
-  find_package( yaml-cpp REQUIRED )
-else()
-  message(STATUS "To enable kpf support, please build or locate yaml libraries in fletch")
-  return()
-endif()
 
 set( sources
   kpf_packet.cxx
@@ -42,19 +36,19 @@ set( private_sources
   kpf_bounce_buffer.cxx
 )
 
-kwiver_add_library( vital_kpf
+kwiver_add_library( kpf_yaml
   ${sources}
   ${public_headers}
   ${private_sources}
 )
 
-target_include_directories(vital_kpf PRIVATE ${YAML_CPP_INCLUDE_DIR})
+target_include_directories(kpf_yaml PRIVATE ${YAML_CPP_INCLUDE_DIR})
 
 if(WIN32)
-  target_compile_definitions(vital_kpf PRIVATE YAML_CPP_DLL)
+  target_compile_definitions(kpf_yaml PRIVATE YAML_CPP_DLL)
 endif()
 
-target_link_libraries( vital_kpf
+target_link_libraries( kpf_yaml
   PRIVATE        vital
                  vital_logger
                  vital_util
@@ -63,17 +57,16 @@ target_link_libraries( vital_kpf
 
 kwiver_install_headers(
   ${public_headers}
-  SUBDIR vital/kpf
+  SUBDIR arrows/kpf
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/vital_kpf_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/kpf_yaml_export.h
   NOPATH
-  SUBDIR   vital/kpf
+  SUBDIR   arrows/kpf
 )
 
-# if (KWIVER_ENABLE_TESTS)
+if (KWIVER_ENABLE_TESTS)
 #   add_subdirectory( tests )
-# endif()
+endif()
 
-add_subdirectory( examples )

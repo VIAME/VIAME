@@ -44,8 +44,8 @@
 #ifndef KWIVER_VITAL_KPF_CANONICAL_IO_H_
 #define KWIVER_VITAL_KPF_CANONICAL_IO_H_
 
-#include <vital/kpf/kpf_canonical_types.h>
-#include <vital/kpf/kpf_canonical_io_adapter_base.h>
+#include "kpf_canonical_types.h"
+#include "kpf_canonical_io_adapter_base.h"
 
 namespace kwiver {
 namespace vital {
@@ -63,7 +63,7 @@ struct writer
 {};
 
 template <>
-struct VITAL_KPF_EXPORT writer< canonical::bbox_t >
+struct KPF_YAML_EXPORT writer< canonical::bbox_t >
 {
   writer( const canonical::bbox_t& b, int d) : box(b), domain(d) {}
   const canonical::bbox_t& box;
@@ -71,7 +71,7 @@ struct VITAL_KPF_EXPORT writer< canonical::bbox_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT writer< canonical::poly_t >
+struct KPF_YAML_EXPORT writer< canonical::poly_t >
 {
   writer( const canonical::poly_t& p, int d) : poly(p), domain(d) {}
   const canonical::poly_t& poly;
@@ -79,7 +79,7 @@ struct VITAL_KPF_EXPORT writer< canonical::poly_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT writer< canonical::activity_t >
+struct KPF_YAML_EXPORT writer< canonical::activity_t >
 {
   writer( const canonical::activity_t& a, int d) : activity(a), domain(d) {}
   const canonical::activity_t& activity;
@@ -87,7 +87,7 @@ struct VITAL_KPF_EXPORT writer< canonical::activity_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT writer< canonical::id_t >
+struct KPF_YAML_EXPORT writer< canonical::id_t >
 {
   writer( size_t i, int d ): id(i), domain(d) {}
   canonical::id_t id;
@@ -95,7 +95,7 @@ struct VITAL_KPF_EXPORT writer< canonical::id_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT writer< canonical::timestamp_t >
+struct KPF_YAML_EXPORT writer< canonical::timestamp_t >
 {
   writer( double t, int d ): ts(t), domain(d) {}
   canonical::timestamp_t ts;
@@ -103,7 +103,7 @@ struct VITAL_KPF_EXPORT writer< canonical::timestamp_t >
 };
 
 template<>
-struct VITAL_KPF_EXPORT writer< canonical::kv_t >
+struct KPF_YAML_EXPORT writer< canonical::kv_t >
 {
   writer( const std::string& k, const std::string& v ): kv(k,v) {}
   canonical::kv_t kv;
@@ -111,7 +111,7 @@ struct VITAL_KPF_EXPORT writer< canonical::kv_t >
 };
 
 template<>
-struct VITAL_KPF_EXPORT writer< canonical::conf_t >
+struct KPF_YAML_EXPORT writer< canonical::conf_t >
 {
   writer( double c, int d ): conf(c), domain(d) {}
   canonical::conf_t conf;
@@ -119,7 +119,7 @@ struct VITAL_KPF_EXPORT writer< canonical::conf_t >
 };
 
 template<>
-struct VITAL_KPF_EXPORT writer< canonical::meta_t >
+struct KPF_YAML_EXPORT writer< canonical::meta_t >
 {
   writer( const std::string& t ): meta(t) {}
   canonical::meta_t meta;
@@ -127,7 +127,7 @@ struct VITAL_KPF_EXPORT writer< canonical::meta_t >
 };
 
 template<>
-struct VITAL_KPF_EXPORT writer< canonical::timestamp_range_t >
+struct KPF_YAML_EXPORT writer< canonical::timestamp_range_t >
 {
   writer( double start, double stop ): tsr(start, stop) {}
   canonical::timestamp_range_t tsr;
@@ -146,7 +146,7 @@ struct reader
 {};
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::bbox_t >
+struct KPF_YAML_EXPORT reader< canonical::bbox_t >
 {
   reader( kpf_canonical_io_adapter_base& b, int d): box_adapter(b), domain(d) {}
   kpf_canonical_io_adapter_base& box_adapter;
@@ -154,7 +154,7 @@ struct VITAL_KPF_EXPORT reader< canonical::bbox_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::poly_t >
+struct KPF_YAML_EXPORT reader< canonical::poly_t >
 {
   reader( kpf_canonical_io_adapter_base& b, int d): poly_adapter(b), domain(d) {}
   kpf_canonical_io_adapter_base& poly_adapter;
@@ -162,7 +162,7 @@ struct VITAL_KPF_EXPORT reader< canonical::poly_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::activity_t >
+struct KPF_YAML_EXPORT reader< canonical::activity_t >
 {
   reader( kpf_canonical_io_adapter_base& b, int d): act_adapter(b), domain(d) {}
   kpf_canonical_io_adapter_base& act_adapter;
@@ -170,7 +170,7 @@ struct VITAL_KPF_EXPORT reader< canonical::activity_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::id_t >
+struct KPF_YAML_EXPORT reader< canonical::id_t >
 {
   reader(size_t& id, int d ): id_ref(id), domain(d) {}
   size_t& id_ref;
@@ -178,7 +178,7 @@ struct VITAL_KPF_EXPORT reader< canonical::id_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::timestamp_t >
+struct KPF_YAML_EXPORT reader< canonical::timestamp_t >
 {
 private:
   int i_dummy;
@@ -198,7 +198,7 @@ public:
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::kv_t >
+struct KPF_YAML_EXPORT reader< canonical::kv_t >
 {
   reader( const std::string& k, std::string& v ): key(k), val(v) {}
   std::string key;
@@ -206,7 +206,7 @@ struct VITAL_KPF_EXPORT reader< canonical::kv_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::conf_t >
+struct KPF_YAML_EXPORT reader< canonical::conf_t >
 {
   reader( double& c, int d): conf(c), domain(d) {}
   double& conf;
@@ -214,14 +214,14 @@ struct VITAL_KPF_EXPORT reader< canonical::conf_t >
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::meta_t >
+struct KPF_YAML_EXPORT reader< canonical::meta_t >
 {
   reader( std::string& t): txt(t) {}
   std::string& txt;
 };
 
 template <>
-struct VITAL_KPF_EXPORT reader< canonical::timestamp_range_t >
+struct KPF_YAML_EXPORT reader< canonical::timestamp_range_t >
 {
 private:
   std::pair<int, int> i_dummy;

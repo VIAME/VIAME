@@ -30,43 +30,35 @@
 
 /**
  * @file
- * @brief KPF YAML parser class.
+ * @brief Base class for KPF parsers for various formats.
  *
- * Header for the KPF YAML parser; holds the YAML root document and provides
- * the interface for reading each KPF line (which shows up as a YAML map)
- * into the KPF generic parser's packet buffer.
+ * Concrete format-specific instances of this class can be passed to
+ * the kpf_reader_t to loop over KPF input.
+ *
  */
 
-#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
-#define KWIVER_VITAL_KPF_YAML_PARSER_H_
+#ifndef KWIVER_VITAL_KPF_PARSER_BASE_
+#define KWIVER_VITAL_KPF_PARSER_BASE_
 
-#include <vital/kpf/vital_kpf_export.h>
-#include <vital/kpf/kpf_parse_utils.h>
-#include <vital/kpf/kpf_parser_base.h>
-
-#include <yaml-cpp/yaml.h>
+#include "kpf_parse_utils.h"
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class VITAL_KPF_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
+class kpf_parser_base_t
 {
 public:
-  explicit kpf_yaml_parser_t( std::istream& is );
-  ~kpf_yaml_parser_t() {}
+  kpf_parser_base_t() {}
+  virtual ~kpf_parser_base_t() {}
 
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
-
-private:
-  YAML::Node root;
-  YAML::const_iterator current_record;
+  virtual bool get_status() const = 0;
+  virtual bool parse_next_record( packet_buffer_t& ) = 0;
 };
+
 
 } // ...kpf
 } // ...vital
 } // ...kwiver
-
 
 #endif

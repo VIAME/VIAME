@@ -40,14 +40,12 @@
 #ifndef KWIVER_VITAL_KPF_PACKET_H_
 #define KWIVER_VITAL_KPF_PACKET_H_
 
-#include <vital/kpf/vital_kpf_export.h>
-
 #include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <vital/kpf/kpf_canonical_types.h>
+#include "kpf_canonical_types.h"
 
 namespace kwiver {
 namespace vital {
@@ -58,7 +56,7 @@ namespace kpf {
  *
  */
 
-enum class VITAL_KPF_EXPORT packet_style
+enum class KPF_YAML_EXPORT packet_style
 {
   INVALID,  // invalid, uninitialized
   META,     // an uninterpreted string (consumes all following tokens)
@@ -84,7 +82,7 @@ enum class VITAL_KPF_EXPORT packet_style
  *
  */
 
-  struct VITAL_KPF_EXPORT packet_header_t
+  struct KPF_YAML_EXPORT packet_header_t
 {
   enum { NO_DOMAIN = -1 };
 
@@ -102,7 +100,7 @@ enum class VITAL_KPF_EXPORT packet_style
  *
  */
 
-class VITAL_KPF_EXPORT packet_header_cmp
+class KPF_YAML_EXPORT packet_header_cmp
 {
 public:
   bool operator()( const packet_header_t& lhs, const packet_header_t& rhs ) const;
@@ -114,7 +112,7 @@ public:
  *
  */
 
-struct VITAL_KPF_EXPORT packet_t
+struct KPF_YAML_EXPORT packet_t
 {
   packet_header_t header;
   union
@@ -136,16 +134,16 @@ struct VITAL_KPF_EXPORT packet_t
   packet_t& operator=( const packet_t& other );
 };
 
-VITAL_KPF_EXPORT std::ostream& operator<<( std::ostream& os, const packet_header_t& p );
-VITAL_KPF_EXPORT std::ostream& operator<<( std::ostream& os, const packet_t& p );
+KPF_YAML_EXPORT std::ostream& operator<<( std::ostream& os, const packet_header_t& p );
+KPF_YAML_EXPORT std::ostream& operator<<( std::ostream& os, const packet_t& p );
 
 /**
  * @brief Utility functions to convert styles to strings and vice versa.
  *
  */
 
-VITAL_KPF_EXPORT packet_style str2style( const std::string& s );
-VITAL_KPF_EXPORT std::string style2str( packet_style );
+KPF_YAML_EXPORT packet_style str2style( const std::string& s );
+KPF_YAML_EXPORT std::string style2str( packet_style );
 
 } // ...kpf
 } // ...vital

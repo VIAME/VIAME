@@ -55,17 +55,19 @@ void visit( ostream& os, size_t depth, const YAML::Node& n )
   }
 }
 
-int main( int argc, char *argv[] )
+void yaml_parser( )
 {
-  if (argc != 2)
-  {
-    cerr << "Usage: " << argv[0] << " file.yml\n";
-    return EXIT_FAILURE;
-  }
-
+  std::string filename = "something.yml";
+  
   try
   {
-    ifstream is( argv[1] );
+    ifstream is(filename);
+    if (!is)
+    {
+      std::cerr << "Couldn't open '" << filename << "' for reading\n";
+      return;
+    }
+
     YAML::Node doc = YAML::Load( is );
 
     for (auto it = doc.begin(); it != doc.end(); ++it)

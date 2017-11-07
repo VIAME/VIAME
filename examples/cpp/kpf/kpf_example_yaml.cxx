@@ -34,10 +34,10 @@
  *
  */
 
-#include <vital/kpf/kpf_reader.h>
-#include <vital/kpf/kpf_yaml_parser.h>
-#include <vital/kpf/kpf_canonical_io_adapter.h>
-#include <vital/kpf/kpf_yaml_writer.h>
+#include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -221,7 +221,7 @@ write_activities_to_stream( ostream& os,
   }
 }
 
-int main()
+void kpf_example_yaml()
 {
 
   vector< user_activity_t > src = make_sample_activities();

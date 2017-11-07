@@ -30,53 +30,60 @@
 
 /**
  * \file
- * \brief A very simple packet reader for the YAML format.
+ * \brief Bounce buffer.
+ *
+ *
+ * This is the bounce buffer between the parser's
+ * packet buffer and the user. This could probably be
+ * refactored away.
  *
  */
 
-#include <vital/kpf/kpf_reader.h>
-#include <vital/kpf/kpf_yaml_parser.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
+#ifndef KWIVER_VITAL_KPF_BOUNCE_BUFFER_H_
+#define KWIVER_VITAL_KPF_BOUNCE_BUFFER_H_
+
+#include "kpf_packet.h"
+
 #include <string>
+#include <utility>
 
-namespace KPF=kwiver::vital::kpf;
+namespace kwiver {
+namespace vital {
+namespace kpf {
 
-
-int main( int argc, char *argv[] )
+class KPF_YAML_EXPORT packet_bounce_t
 {
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " some-yaml-kpf.yml\n"
-              << "Reads and reports on a YAML KPF file.\n";
-    return EXIT_SUCCESS;
-  }
+public:
+  packet_bounce_t();
+  explicit packet_bounce_t( const std::string& tag );
+  explicit packet_bounce_t( const packet_header_t& h );
+  void init( const std::string& tag );
+  void init( const packet_header_t& h );
+  ~packet_bounce_t() {}
 
-  std::ifstream is( argv[1] );
-  if ( ! is )
-  {
-    std::cerr << "Couldn't open '" << argv[1] << "' for reading\n";
-    return EXIT_FAILURE;
-  }
+  // mutate the domain
+  packet_bounce_t& set_domain( int d );
 
-  KPF::kpf_yaml_parser_t parser( is );
-  KPF::kpf_reader_t reader( parser );
-  while (reader.next())
-  {
-    const KPF::packet_buffer_t& packets = reader.get_packet_buffer();
+  // return this reader's packet header
+  packet_header_t my_header() const;
 
-    std::vector< std::string > meta = reader.get_meta_packets();
-    std::cout << "Parsed " << meta.size() << " metadata packets:\n";
-    for (auto m: meta)
-    {
-      std::cout << "== " << m << "\n";
-    }
-    std::cout << "Parsed " << packets.size() << " packets:\n";
-    for (auto p: packets )
-    {
-      std::cout << "-- " << p.second << "\n";
-    }
-    reader.flush();
-  }
-}
+  // transfer packet into the reader
+  void set_from_buffer( const packet_t& );
+
+  // return (true, packet) and clear the is_set flag
+  // return false if set_from_buffer hasn't been called yet
+  std::pair< bool, packet_t > get_packet();
+
+protected:
+  bool is_set;
+  packet_header_t header;
+  packet_t packet;
+};
+
+} // ...kpf
+} // ...vital
+} // ...kwiver
+
+
+#endif
+

@@ -49,6 +49,11 @@ if( KWIVER_ENABLE_BURNOUT )
   add_subdirectory( burnout )
 endif()
 
+# if kpf is enabled
+if( KWIVER_ENABLE_KPF )
+  add_subdirectory( kpf )
+endif()
+
 # if uuid is enabled
 if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )

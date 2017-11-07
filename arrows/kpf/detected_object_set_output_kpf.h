@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,41 @@
 
 /**
  * \file
- * \brief Base class for adapters for complex types.
- *
- * For complex types (bounding boxes, activities), there's probably not
- * a one-to-one mapping between the canonical KPF representation and the user's
- * data structure.
- *
- * This non-templated base class holds the packet's "bounce buffer" that
- * adapters use after the packet has been transferred out of the packet buffer
- * as it goes into user-space.
+ * \brief Interface for detected_object_set_output_kpf
  */
 
-#ifndef KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
-#define KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
+#ifndef KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KPF_H
+#define KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KPF_H
 
+#include <vital/vital_config.h>
+#include <arrows/kpf/kwiver_algo_kpf_export.h>
 
-#include <vital/kpf/vital_kpf_export.h>
-#include <vital/kpf/kpf_bounce_buffer.h>
+#include <vital/algo/detected_object_set_output.h>
+
+#include <memory>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
 namespace kpf {
 
-class kpf_reader_t;
-
-struct kpf_canonical_io_adapter_base
+class KWIVER_ALGO_KPF_EXPORT detected_object_set_output_kpf
+  : public vital::algorithm_impl<detected_object_set_output_kpf, vital::algo::detected_object_set_output>
 {
-  packet_bounce_t packet_bounce;
-  kpf_canonical_io_adapter_base& set_domain( int d ) { this->packet_bounce.set_domain(d); return *this; }
+public:
+  detected_object_set_output_kpf();
+  virtual ~detected_object_set_output_kpf();
+
+  virtual vital::config_block_sptr get_configuration() const;
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
+
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name );
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
 };
 
-VITAL_KPF_EXPORT
-kpf_reader_t& operator>>( kpf_reader_t& t,
-                          kpf_canonical_io_adapter_base& io );
+} } } // end namespace
 
-} // ...kpf
-} // ...vital
-} // ...kwiver
-
-#endif
+#endif // KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KPF_H

@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,41 +29,94 @@
  */
 
 /**
- * @file
- * @brief KPF text parser.
+ * \file
+ * \brief KPF bounce buffer implementation.
  *
- * Text interface to the generic KPF packet buffer. Deprecated in favor of YAML.
  */
 
-#ifndef KWIVER_VITAL_KPF_TEXT_PARSER_H_
-#define KWIVER_VITAL_KPF_TEXT_PARSER_H_
+#include "kpf_bounce_buffer.h"
+#include "kpf_parse_utils.h"
 
-#include <vital/kpf/vital_kpf_export.h>
-#include <vital/kpf/kpf_parse_utils.h>
-#include <vital/kpf/kpf_parser_base.h>
+#include <vital/logger/logger.h>
+static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
-#include <iostream>
+using std::string;
+using std::pair;
+using std::make_pair;
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class VITAL_KPF_EXPORT kpf_text_parser_t: public kpf_parser_base_t
+packet_bounce_t
+::packet_bounce_t()
+  : is_set( false )
 {
-public:
-  explicit kpf_text_parser_t( std::istream& is );
-  ~kpf_text_parser_t() {}
+}
 
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
+packet_bounce_t
+::packet_bounce_t( const string& s )
+  : is_set( false )
+{
+  this->init( s );
+}
 
-private:
-  std::istream& input_stream;
+packet_bounce_t
+::packet_bounce_t( const packet_header_t& h )
+  : is_set( false ), header( h )
+{
+}
 
-};
+void
+packet_bounce_t
+::init( const string& s )
+{
+  if (! packet_header_parser( s, this->header, false ))
+  {
+    LOG_ERROR( main_logger, "Couldn't create a reader for packets of type '" << s << "'");
+    return;
+  }
+}
+
+void packet_bounce_t
+::init( const packet_header_t& h )
+{
+  this->header = h;
+}
+
+void
+packet_bounce_t
+::set_from_buffer( const packet_t& p )
+{
+  this->is_set = true;
+  this->packet = p;
+}
+
+packet_header_t
+packet_bounce_t
+::my_header() const
+{
+  return this->header;
+}
+
+packet_bounce_t&
+packet_bounce_t
+::set_domain( int d )
+{
+  this->is_set = false;
+  this->header.domain = d;
+  return *this;
+}
+
+pair< bool, packet_t >
+packet_bounce_t
+::get_packet()
+{
+  bool f = this->is_set;
+  this->is_set = false;
+  return make_pair( f, this->packet );
+}
 
 } // ...kpf
 } // ...vital
 } // ...kwiver
-
-#endif
