@@ -36,6 +36,7 @@
 #include "image_container.h"
 
 #include <arrows/ocv/mat_image_memory.h>
+#include <opencv2/imgproc/imgproc.hpp>
 
 using namespace kwiver::vital;
 
@@ -43,6 +44,22 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
+image_container
+::image_container(const cv::Mat& d, ColorMode cm)
+  : data_(d)
+{
+  if(cm != RGB)
+  {
+    if ( data_.channels() == 3 )
+    {
+      cv::cvtColor(data_, data_, CV_BGR2RGB);
+    }
+    else if ( data_.channels() == 4 )
+    {
+      cv::cvtColor(data_, data_, CV_BGRA2RGBA);
+    }
+  }
+}
 /// Constructor - convert base image container to cv::Mat
 image_container
 ::image_container(const vital::image_container& image_cont)
@@ -126,7 +143,7 @@ image_container
 /// Convert a VITAL image to an OpenCV cv::Mat
 cv::Mat
 image_container
-::vital_to_ocv(const vital::image& img)
+::vital_to_ocv(const vital::image& img, image_container::ColorMode cm)
 {
   // Find the matching OpenCV matrix type or throw and exception if there is no
   // compatible type
@@ -160,7 +177,23 @@ image_container
       out.addref();
     }
     // TODO use MatAllocator to share memory with image_memory
-    return out;
+    if(cm == RGB || out.channels() == 1 )
+    {
+      return out;
+    }
+    else
+    {
+      cv::Mat bgr;
+      if ( out.channels() == 3 )
+      {
+        cv::cvtColor(out, bgr, CV_RGB2BGR);
+      }
+      else if ( out.channels() == 4 )
+      {
+        cv::cvtColor(out, bgr, CV_RGBA2BGRA);
+      }
+      return bgr;
+    }
   }
 
   // allocated a new cv::Mat
@@ -170,6 +203,24 @@ image_container
   image new_img = ocv_to_vital(out);
   new_img.copy_from(img);
 
+  if(cm == RGB || out.channels() == 1 )
+  {
+      return out;
+  }
+  else
+  {
+    cv::Mat bgr;
+    if ( out.channels() == 3 )
+    {
+      cv::cvtColor(out, bgr, CV_RGB2BGR);
+      return bgr;
+    }
+    if ( out.channels() == 4 )
+    {
+      cv::cvtColor(out, bgr, CV_RGBA2BGRA);
+      return bgr;
+    }
+  }
   return out;
 }
 
@@ -230,14 +281,34 @@ image_container
 
 /// Extract a cv::Mat from any image container
 cv::Mat
-image_container_to_ocv_matrix(const vital::image_container& img)
+image_container_to_ocv_matrix(const vital::image_container& img, image_container::ColorMode cm)
 {
+  cv::Mat result;
   if( const ocv::image_container* c =
           dynamic_cast<const ocv::image_container*>(&img) )
   {
-    return c->get_Mat();
+    if(cm == image_container::RGB)
+    {
+      return c->get_Mat();
+    }
+    result = c->get_Mat().clone();
   }
-  return ocv::image_container::vital_to_ocv(img.get_image());
+  else
+  {
+    return ocv::image_container::vital_to_ocv(img.get_image(), cm);
+  }
+  if(cm == image_container::BGR)
+  {
+    if ( result.channels() == 3 )
+    {
+      cv::cvtColor(result, result, CV_RGB2BGR);
+    }
+    else if ( result.channels() == 4 )
+    {
+      cv::cvtColor(result, result, CV_RGBA2BGRA);
+    }
+  }
+  return result;
 }
 
 } // end namespace ocv

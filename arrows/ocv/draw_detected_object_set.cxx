@@ -74,9 +74,9 @@ public:
     , m_draw_text( true )
   {
     m_default_params.thickness = 1.0;
-    m_default_params.color[0] = 0;
+    m_default_params.color[0] = 255;
     m_default_params.color[1] = 0;
-    m_default_params.color[2] = 255;
+    m_default_params.color[2] = 0;
   }
 
   ~priv()
@@ -218,7 +218,7 @@ public:
   vital::image_container_sptr draw_detections( vital::image_container_sptr      image_data,
                                                vital::detected_object_set_sptr  in_set ) const
   {
-    cv::Mat image = image_container_to_ocv_matrix( *image_data ).clone();
+    cv::Mat image = image_container_to_ocv_matrix( *image_data, arrows::ocv::image_container::BGR ).clone();
 
     // process the detection set
     auto ie =  in_set->cend();
@@ -259,7 +259,7 @@ public:
       }
     } // end foreach
 
-    return vital::image_container_sptr( new arrows::ocv::image_container( image ) );
+    return vital::image_container_sptr( new arrows::ocv::image_container( image, arrows::ocv::image_container::BGR ) );
   } // end draw_detections
 
 
