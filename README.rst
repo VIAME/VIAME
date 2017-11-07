@@ -60,8 +60,8 @@ turned ON or OFF through CMake variables.
 To make it easier to build KWIVER, especially
 on systems like Microsoft Windows that do not have package manager,
 Fletch_ was developed to gather, configure and build dependent packages
-for use with KWIVER.  Fletch is a CMake_ based "super-build" that
-takes care of most of the build details for you.
+for use with KWIVER.  Fletch is a |cmake_link|_ based
+"super-build" that takes care of most of the build details for you.
 
 For building Fletch_, refer to the README file in that repository.
 
@@ -283,7 +283,7 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. _Boost: http://www.boost.org/
 .. _`Ceres Solver`: http://ceres-solver.org/
 .. _CDash: http://www.cdash.org/
-.. _CMake: http://www.cmake.org/
+.. _cmake_link: http://www.cmake.org/
 .. _Darknet: https://pjreddie.com/darknet/yolo/
 .. _Eigen: http://eigen.tuxfamily.org/
 .. _Fletch: https://github.com/Kitware/fletch
@@ -298,6 +298,11 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 
 .. Appendix II: Text Substitutions
 .. ===============================
+
+.. Use a different target name to avoid conflict with `<CMake>`_ link to the
+   source tree.
+
+.. |cmake_link| replace:: CMake
 
 .. |>=| unicode:: U+02265 .. greater or equal sign
 
