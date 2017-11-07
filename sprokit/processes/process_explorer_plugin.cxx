@@ -180,11 +180,13 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   sprokit::process::properties_t const properties = proc->properties();
   std::string const properties_str = join( properties, ", " );
 
-  out_stream()  << "    Properties: " << properties_str << std::endl;
+  out_stream()  << "    Properties: " << properties_str << std::endl
+                << std::endl;
 
   // -- config --
   out_stream() << "    -- Configuration --" << std::endl;
   kwiver::vital::config_block_keys_t const keys = proc->available_config();
+  bool config_displayed( false );
 
   for( kwiver::vital::config_block_key_t const & key : keys )
   {
@@ -194,18 +196,25 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
       continue;
     }
 
+    config_displayed = true;
     sprokit::process::conf_info_t const info = proc->config_info( key );
 
     kwiver::vital::config_block_value_t const& def = info->def;
-    kwiver::vital::config_block_description_t const& conf_desc = info->description;
+    kwiver::vital::config_block_description_t const& conf_desc = m_context->wrap_text( info->description );
     bool const& tunable = info->tunable;
     char const* const tunable_str = tunable ? "yes" : "no";
 
     out_stream()  << "    Name       : " << key << std::endl
                   << "    Default    : " << def << std::endl
-                  << "    Description: " << conf_desc << std::endl
+                  << "    Description: " << conf_desc
                   << "    Tunable    : " << tunable_str << std::endl
                   << std::endl;
+  }
+
+  if ( ! config_displayed )
+  {
+    out_stream() << "    No configuration entries" << std::endl
+                 << std::endl;
   }
 
   // -- input ports --
@@ -213,55 +222,70 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   sprokit::process::ports_t const iports = proc->input_ports();
 
-  for( sprokit::process::port_t const & port : iports )
+  if ( iports.empty() )
   {
-    if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+    out_stream() << "    No input ports" << std::endl
+                 << std::endl;
+  }
+  else
+  {
+    for( sprokit::process::port_t const & port : iports )
     {
-      // skip hidden item
-      continue;
-    }
+      if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+      {
+        // skip hidden item
+        continue;
+      }
 
-    sprokit::process::port_info_t const info = proc->input_port_info( port );
+      sprokit::process::port_info_t const info = proc->input_port_info( port );
 
-    sprokit::process::port_type_t const& type = info->type;
-    sprokit::process::port_flags_t const& flags = info->flags;
-    sprokit::process::port_description_t const& port_desc = info->description;
+      sprokit::process::port_type_t const& type = info->type;
+      sprokit::process::port_flags_t const& flags = info->flags;
+      sprokit::process::port_description_t const& port_desc = info->description;
 
-    std::string const flags_str = join( flags, ", " );
+      std::string const flags_str = join( flags, ", " );
 
-    out_stream()  << "    Name       : " << port << std::endl
-                  << "    Data type  : " << type << std::endl
-                  << "    Flags      : " << flags_str << std::endl
-                  << "    Description: " << port_desc << std::endl
-                  << std::endl;
-  }   // end foreach
+      out_stream()  << "    Name       : " << port << std::endl
+                    << "    Data type  : " << type << std::endl
+                    << "    Flags      : " << flags_str << std::endl
+                    << "    Description: " << port_desc << std::endl
+                    << std::endl;
+    }   // end foreach
+  }
 
   // -- output ports --
   out_stream() << "  -- Output ports --" << std::endl;
   sprokit::process::ports_t const oports = proc->output_ports();
 
-  for( sprokit::process::port_t const & port : oports )
+  if ( oports.empty() )
   {
-    if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+    out_stream() << "    No output ports" << std::endl
+                 <<std::endl;
+  }
+  else
+  {
+    for( sprokit::process::port_t const & port : oports )
     {
-      continue;
-    }
+      if ( ! opt_hidden && ( port.substr( 0, hidden_prefix.size() ) == hidden_prefix ) )
+      {
+        continue;
+      }
 
-    sprokit::process::port_info_t const info = proc->output_port_info( port );
+      sprokit::process::port_info_t const info = proc->output_port_info( port );
 
-    sprokit::process::port_type_t const& type = info->type;
-    sprokit::process::port_flags_t const& flags = info->flags;
-    sprokit::process::port_description_t const& port_desc = info->description;
+      sprokit::process::port_type_t const& type = info->type;
+      sprokit::process::port_flags_t const& flags = info->flags;
+      sprokit::process::port_description_t const& port_desc = info->description;
 
-    std::string const flags_str = join( flags, ", " );
+      std::string const flags_str = join( flags, ", " );
 
-    out_stream()  << "    Name       : " << port << std::endl
-                  << "    Data type  : " << type << std::endl
-                  << "    Flags      : " << flags_str << std::endl
-                  << "    Description: " << port_desc << std::endl
-                  << std::endl;
-  }   // end foreach
-
+      out_stream()  << "    Name       : " << port << std::endl
+                    << "    Data type  : " << type << std::endl
+                    << "    Flags      : " << flags_str << std::endl
+                    << "    Description: " << port_desc << std::endl
+                    << std::endl;
+    }   // end foreach
+  }
   out_stream()  << std::endl;
 
 } // process_explorer::explore
@@ -290,7 +314,7 @@ public:
   explorer_context* m_context;
   kwiver::vital::wrap_text_block m_wtb;
   kwiver::vital::wrap_text_block m_comment_wtb;
-  bool opt_files;
+  std::string opt_output_dir;
   std::ofstream m_out_stream;
 
 }; // end class process_explorer_rst
@@ -299,7 +323,6 @@ public:
 // ==================================================================
 process_explorer_rst::
 process_explorer_rst()
-  : opt_files( false )
 {
   m_wtb.set_indent_string( "" );
   m_comment_wtb.set_indent_string( " # " );
@@ -316,7 +339,7 @@ std::ostream&
 process_explorer_rst::
 out_stream()
 {
-  if (opt_files)
+  if ( ! opt_output_dir.empty() )
   {
     return m_out_stream;
   }
@@ -348,10 +371,10 @@ initialize( explorer_context* context )
   // Add plugin specific command line option.
   auto cla = m_context->command_line_args();
 
-  cla->AddArgument( "--sep-proc-files",
-                    kwiversys::CommandLineArguments::NO_ARGUMENT,
-                    &this->opt_files,
-                    "Generate .rst output for processes in separate files." );
+  cla->AddArgument( "--sep-proc-dir",
+                    kwiversys::CommandLineArguments::SPACE_ARGUMENT,
+                    &this->opt_output_dir,
+                    "Generate .rst output for processes as separate files in specified directory." );
   return true;
 }
 
@@ -362,9 +385,10 @@ process_explorer_rst::
 explore( const kwiver::vital::plugin_factory_handle_t fact )
 {
   std::string proc_type = "-- Not Set --";
-  if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type ) && opt_files )
+  if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, proc_type )
+       && ! opt_output_dir.empty() )
   {
-    m_out_stream.open( proc_type + ".rst", std::ios_base::trunc);
+    m_out_stream.open( opt_output_dir + "/" + proc_type + ".rst", std::ios_base::trunc);
   }
 
   std::string descrip = "-- Not_Set --";
