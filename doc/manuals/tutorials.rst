@@ -1,7 +1,7 @@
 Tutorials
 ================
 The following links describe a set of kwiver tutorials. 
-All the source code mentioned here is provided by the `repository <https://github.com/Kitware/kwiver/examples>`_. 
+All the source code mentioned here is provided by the `repository <https://github.com/Kitware/kwiver/tree/master/examples>`_. 
 
 Visit the `repository <https://github.com/Kitware/kwiver>`_ on how to get and build the KWIVER code base.
 
