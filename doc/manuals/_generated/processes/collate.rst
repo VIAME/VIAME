@@ -60,7 +60,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::collate_process
+.. doxygenclass:: sprokit::collate_process
    :project: kwiver
    :members:
 

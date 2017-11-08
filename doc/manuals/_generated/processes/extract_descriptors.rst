@@ -74,7 +74,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::extract_descriptors_process
+.. doxygenclass:: kwiver::extract_descriptors_process
    :project: kwiver
    :members:
 

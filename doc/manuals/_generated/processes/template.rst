@@ -80,7 +80,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class group_ns::template_process
+.. doxygenclass:: group_ns::template_process
    :project: kwiver
    :members:
 

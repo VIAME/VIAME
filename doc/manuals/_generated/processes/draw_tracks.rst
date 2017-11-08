@@ -71,7 +71,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::draw_tracks_process
+.. doxygenclass:: kwiver::draw_tracks_process
    :project: kwiver
    :members:
 

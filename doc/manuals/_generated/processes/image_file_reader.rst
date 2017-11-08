@@ -86,7 +86,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::image_file_reader_process
+.. doxygenclass:: kwiver::image_file_reader_process
    :project: kwiver
    :members:
 

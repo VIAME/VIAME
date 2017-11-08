@@ -74,7 +74,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::compute_stereo_depth_map_process
+.. doxygenclass:: kwiver::compute_stereo_depth_map_process
    :project: kwiver
    :members:
 

@@ -101,7 +101,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::kw_archive_writer_process
+.. doxygenclass:: kwiver::kw_archive_writer_process
    :project: kwiver
    :members:
 

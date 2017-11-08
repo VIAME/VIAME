@@ -71,7 +71,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::multiplier_cluster
+.. doxygenclass:: sprokit::multiplier_cluster
    :project: kwiver
    :members:
 

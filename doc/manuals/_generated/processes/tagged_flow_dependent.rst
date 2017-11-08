@@ -74,7 +74,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::tagged_flow_dependent_process
+.. doxygenclass:: sprokit::tagged_flow_dependent_process
    :project: kwiver
    :members:
 

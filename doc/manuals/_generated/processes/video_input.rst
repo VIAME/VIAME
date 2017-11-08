@@ -12,6 +12,7 @@ Configuration
 
    "frame_time", "0.03333333", "NO", "Inter frame time in seconds. If the input video stream does not supply frame |br|\ times, this value is used to create a default timestamp. If the video stream has |br|\ frame times, then those are used."
    "video_filename", "(no default value)", "NO", "Name of video file."
+   "video_reader", "(no default value)", "NO", "Name of video input algorithm.  Name of the video reader algorithm plugin is |br|\ specified as video_reader:type = <algo-name>"
 
 Input Ports
 -----------
@@ -50,6 +51,9 @@ Pipefile block
    frame_time = 0.03333333
  # Name of video file.
    video_filename = <value>
+ # Name of video input algorithm.  Name of the video reader algorithm plugin is
+ # specified as video_reader:type = <algo-name>
+   video_reader = <value>
  # ================================================================
 
 Process connections
@@ -77,7 +81,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::video_input_process
+.. doxygenclass:: kwiver::video_input_process
    :project: kwiver
    :members:
 

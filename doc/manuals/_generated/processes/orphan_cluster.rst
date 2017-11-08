@@ -60,7 +60,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::orphan_cluster
+.. doxygenclass:: sprokit::orphan_cluster
    :project: kwiver
    :members:
 

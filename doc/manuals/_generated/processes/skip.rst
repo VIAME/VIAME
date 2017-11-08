@@ -74,7 +74,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::skip_process
+.. doxygenclass:: sprokit::skip_process
    :project: kwiver
    :members:
 

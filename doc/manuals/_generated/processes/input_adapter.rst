@@ -60,7 +60,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::input_adapter_process
+.. doxygenclass:: kwiver::input_adapter_process
    :project: kwiver
    :members:
 

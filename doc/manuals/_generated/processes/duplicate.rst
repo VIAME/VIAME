@@ -71,7 +71,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::duplicate_process
+.. doxygenclass:: sprokit::duplicate_process
    :project: kwiver
    :members:
 

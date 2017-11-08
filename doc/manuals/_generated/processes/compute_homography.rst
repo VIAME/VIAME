@@ -71,7 +71,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::compute_homography_process
+.. doxygenclass:: kwiver::compute_homography_process
    :project: kwiver
    :members:
 

@@ -71,7 +71,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::stabilize_image_process
+.. doxygenclass:: kwiver::stabilize_image_process
    :project: kwiver
    :members:
 

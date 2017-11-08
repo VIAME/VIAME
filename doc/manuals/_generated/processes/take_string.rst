@@ -65,7 +65,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class sprokit::take_string_process
+.. doxygenclass:: sprokit::take_string_process
    :project: kwiver
    :members:
 

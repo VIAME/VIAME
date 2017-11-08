@@ -85,7 +85,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::frame_list_process
+.. doxygenclass:: kwiver::frame_list_process
    :project: kwiver
    :members:
 

@@ -74,7 +74,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::refine_detections_process
+.. doxygenclass:: kwiver::refine_detections_process
    :project: kwiver
    :members:
 

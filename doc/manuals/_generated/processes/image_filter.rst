@@ -71,7 +71,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::image_filter_process
+.. doxygenclass:: kwiver::image_filter_process
    :project: kwiver
    :members:
 

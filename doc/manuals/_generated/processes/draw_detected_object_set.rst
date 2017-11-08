@@ -74,7 +74,7 @@ The following Output ports will need to be set
 Class Description
 -----------------
 
-.. doxygenclass:: class kwiver::draw_detected_object_set_process
+.. doxygenclass:: kwiver::draw_detected_object_set_process
    :project: kwiver
    :members:
 
