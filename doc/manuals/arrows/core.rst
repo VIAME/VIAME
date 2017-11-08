@@ -111,10 +111,19 @@ Dynamic Config None Algorithm
 
 .. _core_estimate_canonical_transform:
 
-Estimate CanonicalT ransform Algorithm
+Estimate Canonical Transform Algorithm
 --------------------------------------
 
 ..  doxygenclass:: kwiver::arrows::core::estimate_canonical_transform
+    :project: kwiver
+    :members:
+
+.. _core_example_detector:
+
+Example Detector Algorithm
+--------------------------------------
+
+..  doxygenclass:: kwiver::arrows::core::example_detector
     :project: kwiver
     :members:
 

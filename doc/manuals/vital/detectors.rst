@@ -1,49 +1,55 @@
 Detector Data Types and Related Algorithms
 ==========================================
 
+.. _vital_detected_object_set:
+
 Detected Object Set
 -------------------
 
-.. _vital_detected_object_set:
 ..  doxygenclass:: kwiver::vital::detected_object_set
     :project: kwiver
     :members:
 
+.. _vital_detected_object:
+
 Detected Object
 ---------------
 
-.. _vital_detected_object:
 ..  doxygenclass:: kwiver::vital::detected_object
     :project: kwiver
     :members:
     
+.. _vital_detected_object_type:
+
 Detected Object Type
 --------------------
 
-.. _vital_detected_object_type:
 ..  doxygenclass:: kwiver::vital::detected_object_type
     :project: kwiver
     :members:
     
+.. _vital_bounding_box:
+
 Bounding Box
 ------------
 
-.. _vital_bounding_box:
 ..  doxygenclass:: kwiver::vital::bounding_box
     :project: kwiver
     :members:
     
+.. _vital_descriptor:
+
 Descriptor
 ----------
 
-.. _vital_descriptor:
 ..  doxygenclass:: kwiver::vital::descriptor
     :project: kwiver
     :members:
 
+.. _vital_image_object_detector:
+
 Image Object Detector Algorithm
 -------------------------------
-.. _vital_image_object_detector:
 
 Instantiate with: ::
 
@@ -52,18 +58,19 @@ Instantiate with: ::
 ======================================= ==================== ========================
  Arrow & Configuration                   <impl_name> options    CMake Flag to Enable 
 ======================================= ==================== ========================
+:ref:`Example<core_example_detector>`   example_detector       KWIVER_ENABLE_ARROWS  
+:ref:`Hough<ocv_hough_circle_detector>` hough_circle           KWIVER_ENABLE_OPENCV  
 :ref:`Darknet<darknet_detector>`        darknet                KWIVER_ENABLE_DARKNET 
-:ref:`Hough<ocv_hough_circle_detector>` hough                  KWIVER_ENABLE_OPENCV  
 ======================================= ==================== ========================
 
 ..  doxygenclass:: kwiver::vital::algo::image_object_detector
     :project: kwiver
     :members:
 
-    
+.. _vital_train_detector:
+
 Train Detector Algorithm
 ------------------------
-.. _vital_train_detector:
 
 Instantiate with: ::
 
@@ -79,9 +86,10 @@ Instantiate with: ::
     :project: kwiver
     :members:
 
+.. _vital_detected_object_filter:
+
 Detected Object Filter Algorithm
 --------------------------------
-.. _vital_detected_object_filter:
 
 Instantiate with: ::
 
@@ -97,10 +105,10 @@ Instantiate with: ::
     :project: kwiver
     :members:
 
-    
+.. _vital_draw_detected_object_set:
+
 Draw Detected Object Set Algorithm
 ----------------------------------
-.. _vital_draw_detected_object_set:
 
 Instantiate with: ::
 
@@ -116,9 +124,10 @@ Instantiate with: ::
     :project: kwiver
     :members:
 
+.. _vital_detected_object_set_input:
+
 Detected Object Set Input Algorithm
 ------------------------------------
-.. _vital_detected_object_set_input:
 
 Instantiate with: ::
 
@@ -135,9 +144,10 @@ Instantiate with: ::
     :project: kwiver
     :members:
     
+.. _vital_detected_object_set_output:
+
 Detected Object Set Output Algorithm
 ------------------------------------
-.. _vital_detected_object_set_output:
 
 Instantiate with: ::
 

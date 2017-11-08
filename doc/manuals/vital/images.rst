@@ -1,35 +1,39 @@
 Image Data Types and Related Algorithms
 =======================================
 
+.. _vital_image:
+
 Image
 ----------
 
-.. _vital_image:
 ..  doxygenclass:: kwiver::vital::image
     :project: kwiver
     :members:
-    
+
+.. _vital_timestamp:
+
 Time Stamp
 ----------
 
-.. _vital_timestamp:
 ..  doxygenclass:: kwiver::vital::timestamp
     :project: kwiver
     :members:
 
+    
+.. _vital_image_container:
+
 Image Container
 --------------------
 
-.. _vital_image_container:
 ..  doxygenclass:: kwiver::vital::image_container
     :project: kwiver
     :members:
 
 
+.. _vital_image_io:
 
 Image I/O Algorithm
 -------------------
-.. _vital_image_io:
 
 Instantiate with: ::
 
@@ -46,9 +50,10 @@ Instantiate with: ::
     :project: kwiver
     :members:
 
+.. _vital_convert_image:
+
 Convert Image Algorithm
 -----------------------
-.. _vital_convert_image:
 
 Instantiate with: ::
 
@@ -64,9 +69,11 @@ Instantiate with: ::
     :project: kwiver
     :members:
 
+
+.. _vital_image_filter:
+
 Image Filter Algorithm
 ----------------------
-.. _vital_image_filter:
 
 Instantiate with: ::
 
@@ -84,9 +91,11 @@ N/A                             N/A                    N/A
     :project: kwiver
     :members:
 
+    
+.. _vital_split_image:
+
 Split Image Algorithm
 ---------------------
-.. _vital_split_image:
 
 Instantiate with: ::
 
@@ -100,6 +109,26 @@ Instantiate with: ::
 ============================== ===================== ========================
 
 ..  doxygenclass:: kwiver::vital::algo::split_image
+    :project: kwiver
+    :members:
+    
+
+.. _vital_video_input:
+
+Video Input Algorithm
+-----------------------
+
+Instantiate with: ::
+
+   kwiver::vital::algo::video_input_sptr img_bypas = kwiver::vital::algo::video_input::create("<impl_name>");
+
+========================================= ====================== ========================
+ Arrow & Configuration                     <impl_name> options    CMake Flag to Enable  
+========================================= ====================== ========================
+:ref:`VXL<vxl_vidl_ffmpeg_video_input>`        vidl_ffmpeg        KWIVER_ENABLE_VXL     
+========================================= ====================== ========================
+
+..  doxygenclass:: kwiver::vital::algo::convert_image
     :project: kwiver
     :members:
 
