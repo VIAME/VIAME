@@ -19,7 +19,7 @@ image and video processing projects and integrate them into highly
 modular, run-time configurable systems. 
 
 For more information on how KWIVER achieves this goal,
-and how to use KWIVER visit our `documentation site <kwiver.readthedocs.io>`_
+and how to use KWIVER visit our `documentation site <http://kwiver.readthedocs.io/en/latest/>`_
 
 Directory Structure and Provided Functionality
 ==============================================
