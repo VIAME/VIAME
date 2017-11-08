@@ -35,6 +35,12 @@
 
 #include "detected_object_set_input_kpf.h"
 
+#include "yaml/kpf_reader.h"
+#include "yaml/kpf_text_parser.h"
+#include "yaml/kpf_canonical_io_adapter.h"
+
+#include "vital_kpf_adapters.h"
+
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/logger/logger.h>
@@ -124,12 +130,6 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
   // we do not return image name
   image_name.clear();
 
-  // test for end of stream
-  if (this->at_eof())
-  {
-    return false;
-  }
-
   // return detection set at current index if there is one
   if ( 0 == d->m_detected_sets.count( d->m_current_idx ) )
   {
@@ -162,58 +162,61 @@ void
 detected_object_set_input_kpf::priv::
 read_all()
 {
-  std::string line;
-  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
-
   m_detected_sets.clear();
 
-  while ( stream_reader.getline( line ) )
+  
+
+  KPF::kpf_text_parser_t parser(m_parent->stream());
+  KPF::kpf_reader_t reader(parser);
+
+  // Is there a way to confirm this is a kpf of detections only format?
+  //if (? ? )
+  //{
+  //  std::stringstream str;
+  //  str << "This is not a kpf file; found " << col.size()
+  //    << " columns in\n\"" << line << "\"";
+  //  throw kwiver::vital::invalid_data(str.str());
+  //}
+
+  size_t      detection_id;
+  double      frame_number;
+  std::string detector_name;
+  double      confidence;
+  vital_box_adapter_t box_adapter;
+  kwiver::vital::detected_object_type_sptr types(new kwiver::vital::detected_object_type());
+  kwiver::vital::detected_object_set_sptr frame_detections;
+
+  while (reader
+    >> KPF::reader< KPFC::kv_t>("detector_name", detector_name)
+    >> KPF::reader< KPFC::id_t >(detection_id, KPFC::id_t::DETECTION_ID)
+    >> KPF::reader< KPFC::timestamp_t>(frame_number, KPFC::timestamp_t::FRAME_NUMBER)
+    >> KPF::reader< KPFC::conf_t>(confidence, DETECTOR_DOMAIN)
+    >> KPF::reader< KPFC::bbox_t >(box_adapter, KPFC::bbox_t::IMAGE_COORDS)
+    )
   {
-    std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, " ", true );
-
-    if ( ( col.size() < 18 ) || ( col.size() > 20 ) )
-    {
-      std::stringstream str;
-      str << "This is not a kpf file; found " << col.size()
-          << " columns in\n\"" << line << "\"";
-      throw kwiver::vital::invalid_data( str.str() );
-    }
-
-    /*
-     * Check to see if we have seen this frame before. If we have,
-     * then retrieve the frame's index into our output map. If not
-     * seen before, add frame -> detection set index to our map and
-     * press on.
-     *
-     * This allows for track states to be written in a non-contiguous
-     * manner as may be done by streaming writers.
-     */
-    int index = 0;
-    if ( 0 == m_detected_sets.count( index ) )
+    kwiver::vital::bounding_box_d bbox(0, 0, 0, 0);
+    box_adapter.get(bbox);
+    kwiver::vital::detected_object_sptr det(new kwiver::vital::detected_object(bbox, confidence, types));
+    det->set_detector_name(detector_name);
+    
+    frame_detections = m_detected_sets[frame_number];
+    if (frame_detections.get() == nullptr)
     {
       // create a new detection set entry
-      m_detected_sets[ index ] = std::make_shared<kwiver::vital::detected_object_set>();
+      frame_detections = std::make_shared<kwiver::vital::detected_object_set>();
+      m_detected_sets[frame_number] = frame_detections;
     }
+    frame_detections->add(det);
 
-    kwiver::vital::bounding_box_d bbox(
-      atof( col[0].c_str() ),
-      atof( col[0].c_str() ),
-      atof( col[0].c_str() ),
-      atof( col[0].c_str() ) );
-
-    double conf(1.0);
-    if ( col.size() == 19 )
+    // did we receive any metadata?
+    for (auto m : reader.get_meta_packets())
     {
-      conf = atof( col[0].c_str() );
+      std::cout << "Metadata: '" << m << "'\n";
     }
 
-    // Create detection
-    kwiver::vital::detected_object_sptr dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+    reader.flush();
+  }
 
-    // Add detection to set for the frame
-    m_detected_sets[index]->add( dob );
-  } // ...while !eof
 } // read_all
 
 } } } // end namespace

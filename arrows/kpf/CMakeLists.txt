@@ -16,6 +16,7 @@ set( headers
 )
 
 set( sources
+  vital_kpf_adapters.h
   detected_object_set_input_kpf.cxx
   detected_object_set_output_kpf.cxx
   )

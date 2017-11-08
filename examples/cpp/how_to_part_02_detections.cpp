@@ -125,7 +125,7 @@ void how_to_part_02_detections()
   type3->set_score("fish", 0.08);
   type3->set_score("flag pole", 0.07);
   kwiver::vital::detected_object_sptr detection3(new kwiver::vital::detected_object(bbox3, confidence3, type3));
-  detection2->set_detector_name("lower right");
+  detection3->set_detector_name("lower right");
 
   // Group multiple detections for an image in a set object
   kwiver::vital::detected_object_set_sptr detections(new kwiver::vital::detected_object_set());
@@ -145,6 +145,7 @@ void how_to_part_02_detections()
   
 
   kwiver::vital::algo::detected_object_set_output_sptr kpf_writer = kwiver::vital::algo::detected_object_set_output::create("kpf_output");
+  kwiver::vital::algo::detected_object_set_input_sptr kpf_reader = kwiver::vital::algo::detected_object_set_input::create("kpf_input");
   if (kpf_writer == nullptr)
   {
     std::cerr << "Make sure you have built the kpf arrow, which requires fletch to have yaml" << std::endl;
@@ -153,6 +154,27 @@ void how_to_part_02_detections()
   {
     kpf_writer->open("detected_object_set.kpf");
     kpf_writer->write_set(detections, "");
+
+    // Now let's read the kpf data back in
+    std::string image_name;
+    kwiver::vital::detected_object_set_sptr kpf_detections;
+    kpf_reader->open("detected_object_set.kpf");
+    kpf_reader->read_set(kpf_detections, image_name);
+
+    auto ie = kpf_detections->cend();
+    for (auto det = kpf_detections->cbegin(); det != ie; ++det)
+    {
+      const kwiver::vital::bounding_box_d bbox((*det)->bounding_box());
+
+      std::stringstream ss;
+      ss << "detector_name " << (*det)->detector_name() << "\n"
+         << "bounding box :" << "x1(" << bbox.min_x() << ") y1(" << bbox.min_y() << ") x2(" << bbox.max_x() << ") y2(" << bbox.max_y() << ") \n"
+         << "confidence : " << (*det)->confidence() << "\n"
+         << "classifications : " << "\n";
+      for (auto t : *(*det)->type())
+        ss << "\t type : " << t.first << " " << t.second;
+      std::cout << ss.str();
+    }
   }
 
 }
