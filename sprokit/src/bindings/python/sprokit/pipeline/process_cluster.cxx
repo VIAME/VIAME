@@ -72,24 +72,24 @@ PYBIND11_MODULE(process_cluster, m)
     .def_readonly_static("flag_input_mutable", &sprokit::process::flag_input_mutable)
     .def_readonly_static("flag_input_nodep", &sprokit::process::flag_input_nodep)
     .def_readonly_static("flag_required", &sprokit::process::flag_required)
-    .def("map_config", &wrap_process_cluster::map_config
+    .def("map_config", static_cast<void (sprokit::process_cluster::*)(kwiver::vital::config_block_key_t const&, sprokit::process::name_t const&, kwiver::vital::config_block_key_t const&)>(&wrap_process_cluster::map_config)
       , arg("key"), arg("name"), arg("mapped_key")
       , "Map a configuration value to a process.")
-    .def("add_process", &wrap_process_cluster::add_process
+    .def("add_process", static_cast<void (sprokit::process_cluster::*)(sprokit::process::name_t const&, sprokit::process::type_t const&, kwiver::vital::config_block_sptr const&)>(&wrap_process_cluster::add_process)
       , arg("name"), arg("type"), arg("config") = kwiver::vital::config_block::empty_config()
       , "Add a process to the cluster.")
-    .def("map_input", &wrap_process_cluster::map_input
+    .def("map_input", static_cast<void (sprokit::process_cluster::*)(sprokit::process::port_t const&, sprokit::process::name_t const&, sprokit::process::port_t const&)>(&wrap_process_cluster::map_input)
       , arg("port"), arg("name"), arg("mapped_port")
       , "Map a port on the cluster to an input port.")
-    .def("map_output", &wrap_process_cluster::map_output
+    .def("map_output", static_cast<void (sprokit::process_cluster::*)(sprokit::process::port_t const&, sprokit::process::name_t const&, sprokit::process::port_t const&)>(&wrap_process_cluster::map_output)
       , arg("port"), arg("name"), arg("mapped_port")
       , "Map an output port to a port on the cluster.")
-    .def("connect", &wrap_process_cluster::connect
+    .def("connect", static_cast<void (sprokit::process_cluster::*)(sprokit::process::name_t const&, sprokit::process::port_t const&, sprokit::process::name_t const&, sprokit::process::port_t const&)>(&wrap_process_cluster::connect)
       , arg("upstream_name"), arg("upstream_port"), arg("downstream_name"), arg("downstream_port")
       , "Connect two ports within the cluster.")
-    .def("_properties", &wrap_process_cluster::_properties
+    .def("_properties", static_cast<sprokit::process::properties_t (sprokit::process_cluster::*)() const>(&wrap_process_cluster::_properties)
       , "The properties on the subclass.")
-    .def("_reconfigure", &wrap_process_cluster::_reconfigure
+    .def("_reconfigure", static_cast<void (sprokit::process_cluster::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process_cluster::_reconfigure)
       , arg("config")
       , "Runtime configuration for subclasses.")
     .def("declare_input_port"
