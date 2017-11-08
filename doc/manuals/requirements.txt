@@ -1,2 +1,1 @@
-sphinx.ext.graphviz
 breathe
