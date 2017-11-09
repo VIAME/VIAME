@@ -28,10 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "test_triangulate_landmarks.h"
-
 #include <test_scene.h>
 
+#include <arrows/tests/test_triangulate_landmarks.h>
 #include <arrows/core/triangulate_landmarks.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
