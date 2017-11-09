@@ -40,9 +40,21 @@ namespace sprokit {
 // ------------------------------------------------------------------
 process_factory::
 process_factory( const std::string& type,
+                 const std::string& itype )
+  : plugin_factory( itype )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "process" );
+}
+
+
+// ------------------------------------------------------------------
+cpp_process_factory::
+cpp_process_factory( const std::string& type,
                  const std::string& itype,
                  process_factory_func_t factory )
-  : plugin_factory( itype )
+  : process_factory( type, itype )
   , m_factory( factory )
 {
   this->add_attribute( CONCRETE_TYPE, type)
@@ -50,14 +62,10 @@ process_factory( const std::string& type,
     .add_attribute( PLUGIN_CATEGORY, "process" );
 }
 
-process_factory::
-~process_factory()
-{ }
-
 
 // ------------------------------------------------------------------
 sprokit::process_t
-process_factory::
+cpp_process_factory::
 create_object(kwiver::vital::config_block_sptr const& config)
 {
   // Call sprokit factory function. Need to use this factory
@@ -76,19 +84,6 @@ create_process( const sprokit::process::type_t&         type,
   {
     throw null_process_registry_config_exception();
   }
-#ifdef SPROKIT_ENABLE_PYTHON
-  // If python is enabled, we need to check for a python factory first
-  try
-  {
-    auto proc = create_py_process(type, name, config);
-    return proc;
-  }
-  catch ( const std::exception &e )
-  {
-    auto logger = kwiver::vital::get_logger( "sprokit.object_factory" );
-    LOG_DEBUG( logger, "No python process found, trying C++");
-  }
-#endif
 
   typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
   proc_factory ifact;
@@ -161,14 +156,14 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list()
   return vpm.get_factories<sprokit::process>();
 }
 
+
 // ------------------------------------------------------------------
-// TODO: Most of this code is duplicate, and can be rewritten to use templates
 #ifdef SPROKIT_ENABLE_PYTHON
 python_process_factory::
 python_process_factory( const std::string& type,
                         const std::string& itype,
                         py_process_factory_func_t factory )
-  : plugin_factory( itype )
+  : process_factory( type, itype )
   , m_factory( factory )
 {
   this->add_attribute( CONCRETE_TYPE, type)
@@ -184,63 +179,15 @@ sprokit::process_t
 python_process_factory::
 create_object(kwiver::vital::config_block_sptr const& config)
 {
-  // Call sprokit factory function. Need to use this factory
-  // function approach to handle clusters transparently.
-
-  // We need to do it this way because of how pybind11 handles memory
+  // Call sprokit factory function.
   pybind11::object obj = m_factory(config);
-  obj.inc_ref();
+
+    // We need to do it this way because of how pybind11 handles memory
+obj.inc_ref();
   sprokit::process_t proc_ptr = obj.cast<sprokit::process_t>();
   return proc_ptr;
 }
 
-sprokit::process_t
-create_py_process( const sprokit::process::type_t&         type,
-                   const sprokit::process::name_t&         name,
-                   const kwiver::vital::config_block_sptr  config )
-{
-  typedef kwiver::vital::implementation_factory_by_name< pybind11::object > proc_factory;
-  proc_factory ifact;
-
-  kwiver::vital::plugin_factory_handle_t a_fact;
-  try
-  {
-    a_fact = ifact.find_factory( type );
-  }
-  catch ( kwiver::vital::plugin_factory_not_found& e )
-  {
-    auto logger = kwiver::vital::get_logger( "sprokit.object_factory" );
-    LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
-
-    throw no_such_process_type_exception( type );
-  }
-
-  // Add these entries to the new process config so it will know how it is instantiated.
-  config->set_value( process::config_type, kwiver::vital::config_block_value_t( type ) );
-  config->set_value( process::config_name, kwiver::vital::config_block_value_t( name ) );
-
-  sprokit::python_process_factory* pf = dynamic_cast< sprokit::python_process_factory* > ( a_fact.get() );
-  if (0 == pf)
-  {
-    // Wrong type of factory returned.
-    throw no_such_process_type_exception( type );
-  }
-
-  try
-  {
-    return pf->create_object( config );
-  }
-  catch ( const std::exception &e )
-  {
-    auto logger = kwiver::vital::get_logger( "sprokit.object_factory" );
-    LOG_ERROR( logger, "Exception from creating python process: " << e.what() );
-    throw;
-  }
-
-}
 #endif
-
-
-
 
 } // end namespace
