@@ -62,8 +62,6 @@ split_image_process
   : process( config ),
     d( new split_image_process::priv )
 {
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
