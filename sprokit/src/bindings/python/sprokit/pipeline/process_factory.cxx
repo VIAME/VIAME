@@ -148,8 +148,8 @@ register_process( sprokit::process::type_t const&        type,
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact = vpm.add_factory( new sprokit::python_process_factory( type, // derived type name string
-                                                           typeid( object ).name(),
-                                                           wrap ) );
+                                                                    typeid( sprokit::process ).name(),
+                                                                    wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )

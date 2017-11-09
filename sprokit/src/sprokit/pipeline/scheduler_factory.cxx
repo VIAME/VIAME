@@ -37,6 +37,42 @@ namespace sprokit {
 
 scheduler::type_t const scheduler_factory::default_type = scheduler::type_t("thread_per_process");
 
+// ----------------------------------------------------------------------------
+scheduler_factory::
+scheduler_factory( const std::string&       type,
+                   const std::string&       itype )
+    : plugin_factory( itype )
+  {
+    this->add_attribute( CONCRETE_TYPE, type)
+      .add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() )
+      .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+  }
+
+
+// ----------------------------------------------------------------------------
+cpp_scheduler_factory::
+cpp_scheduler_factory( const std::string&       type,
+                       const std::string&       itype,
+                       scheduler_factory_func_t factory )
+  : scheduler_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::scheduler_t
+cpp_scheduler_factory::
+create_object( pipeline_t const& pipe,
+               kwiver::vital::config_block_sptr const& config )
+{
+  // Call sprokit factory function.
+  return m_factory( pipe, config );
+}
+
 
 // ------------------------------------------------------------------
 sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      name,
@@ -52,20 +88,6 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
   {
     throw null_scheduler_registry_pipeline_exception();
   }
-
-#ifdef SPROKIT_ENABLE_PYTHON
-  // If python is enabled, we need to check for a python factory first
-  try
-  {
-    auto proc = create_py_scheduler(name, pipe, config);
-    return proc;
-  }
-  catch ( const std::exception &e )
-  {
-    auto logger = kwiver::vital::get_logger( "sprokit.object_factory" );
-    LOG_DEBUG( logger, "No python scheduler found, trying C++");
-  }
-#endif
 
   typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > instrumentation_factory;
   instrumentation_factory ifact;
@@ -118,13 +140,13 @@ is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
 }
 
 // ------------------------------------------------------------------
-// TODO: Most of this code is duplicate, and can be rewritten to use templates
 #ifdef SPROKIT_ENABLE_PYTHON
+
 python_scheduler_factory::
 python_scheduler_factory( const std::string& type,
                           const std::string& itype,
                           py_scheduler_factory_func_t factory )
-  : plugin_factory( itype )
+  : scheduler_factory( type, itype )
   , m_factory( factory )
 {
   this->add_attribute( CONCRETE_TYPE, type)
@@ -132,55 +154,17 @@ python_scheduler_factory( const std::string& type,
     .add_attribute( PLUGIN_CATEGORY, "scheduler" );
 }
 
-python_scheduler_factory::
-~python_scheduler_factory()
-{ }
 
+// ----------------------------------------------------------------------------
 scheduler_t
 python_scheduler_factory::
 create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
 {
-  // Call sprokit factory function. Need to use this factory
-  // function approach to handle clusters transparently.
+  // Call sprokit factory function.
   pybind11::object obj = m_factory(pipe, config);
   obj.inc_ref();
   sprokit::scheduler_t schd_ptr = obj.cast<sprokit::scheduler_t>();
   return schd_ptr;
-}
-
-
-// ------------------------------------------------------------------
-scheduler_t
-create_py_scheduler( const sprokit::scheduler::type_t&      name,
-                     const sprokit::pipeline_t&             pipe,
-                     const kwiver::vital::config_block_sptr config )
-{
-  // First see if there's a C++ scheduler with the name
-  // If that fails, try python instead
-  typedef kwiver::vital::implementation_factory_by_name< pybind11::object > instrumentation_factory;
-  instrumentation_factory ifact;
-
-  kwiver::vital::plugin_factory_handle_t a_fact;
-  try
-  {
-    a_fact = ifact.find_factory( name );
-  }
-  catch ( kwiver::vital::plugin_factory_not_found& e )
-  {
-    auto logger = kwiver::vital::get_logger( "python_scheduler_factory" );
-    LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
-
-    throw sprokit::no_such_scheduler_type_exception( name );
-  }
-
-  sprokit::python_scheduler_factory* pf = dynamic_cast< sprokit::python_scheduler_factory* > ( a_fact.get() );
-  if (0 == pf)
-  {
-    // wrong type of factory returned
-    throw sprokit::no_such_scheduler_type_exception( name );
-  }
-
-  return pf->create_object( pipe, config );
 }
 
 #endif
