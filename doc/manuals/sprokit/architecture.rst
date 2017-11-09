@@ -15,12 +15,6 @@ interconnected with those written in C++.
 .. toctree::
    :maxdepth: 3
 
-   getting-started
-   process
-   how_to_process
-   plugins
-   plugin_explorer
    pipeline_design
    pipeline_declaration
-   pipeline_examples
-   how_to_pipeline
+   process

@@ -1,4 +1,4 @@
-Pipeline design
+Pipeline Design
 ===============
 
 Overview

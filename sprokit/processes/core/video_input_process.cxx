@@ -55,6 +55,8 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver {
 
 //                 (config-key, value-type, default-value, description )
+create_config_trait( video_reader, std::string, "", "Name of video input algorithm. "
+  " Name of the video reader algorithm plugin is specified as video_reader:type = <algo-name>" );
 create_config_trait( video_filename, std::string, "", "Name of video file." );
 create_config_trait( frame_time, double, "0.03333333",
                      "Inter frame time in seconds. "
@@ -259,6 +261,7 @@ void video_input_process
 void video_input_process
 ::make_config()
 {
+  declare_config_using_trait( video_reader );
   declare_config_using_trait( video_filename );
   declare_config_using_trait( frame_time );
 }

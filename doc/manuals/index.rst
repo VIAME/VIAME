@@ -9,11 +9,13 @@ Welcome to KWIVER's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 6
 
    introduction
-   kwiver_tutorials
-   extending_kwiver
+   architecture
+   tools
+   tutorials
+   extentions
 
 Indices and tables
 ==================

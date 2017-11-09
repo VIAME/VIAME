@@ -1,4 +1,4 @@
 detected_object_output
 ======================
 
-This sprokit process is used to ...
+.. include:: ../../_generated/processes/detected_object_output.rst
