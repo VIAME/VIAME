@@ -45,12 +45,48 @@ namespace core {
 
 using namespace kwiver::vital;
 
+frame_index_track_set_impl
+::frame_index_track_set_impl()
+{
+  kf_data_ = std::make_shared<simple_keyframe_data>();
+}
+
 
 /// Constructor from a vector of tracks
 frame_index_track_set_impl
 ::frame_index_track_set_impl( const std::vector< track_sptr >& tracks )
   : all_tracks_( tracks )
 {
+  kf_data_ = std::make_shared<simple_keyframe_data>();
+}
+
+
+keyframe_metadata_sptr
+frame_index_track_set_impl
+::get_frame_metadata(frame_id_t frame) const
+{
+  return kf_data_->get_frame_metadata(frame);
+}
+
+bool
+frame_index_track_set_impl
+::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
+{
+  return kf_data_->set_frame_metadata(frame, metadata);
+}
+
+bool
+frame_index_track_set_impl
+::remove_frame_metadata(frame_id_t frame)
+{
+  return kf_data_->remove_frame_metadata(frame);
+}
+
+keyframe_data_const_sptr
+frame_index_track_set_impl
+::get_keyframe_data() const
+{
+  return std::dynamic_pointer_cast<const keyframe_data>(kf_data_);
 }
 
 

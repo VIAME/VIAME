@@ -42,6 +42,7 @@
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
 #include <vital/types/track_set.h>
+#include <vital/types/keyframe_data.h>
 
 #include <map>
 #include <memory>
@@ -67,7 +68,7 @@ class KWIVER_ALGO_CORE_EXPORT frame_index_track_set_impl
 {
 public:
   /// Default Constructor
-  frame_index_track_set_impl() { }
+  frame_index_track_set_impl();
 
   /// Constructor from a vector of tracks
   explicit frame_index_track_set_impl( const std::vector< vital::track_sptr >& tracks );
@@ -138,12 +139,26 @@ public:
   virtual std::vector< vital::track_state_sptr >
   frame_states( vital::frame_id_t offset = -1 ) const;
 
+  virtual vital::keyframe_metadata_sptr get_frame_metadata(vital::frame_id_t frame) const;
+
+  virtual bool set_frame_metadata(vital::frame_id_t frame, vital::keyframe_metadata_sptr metadata);
+
+  virtual bool remove_frame_metadata(vital::frame_id_t frame);
+
+  /// get the keyframe data as a const map.  This allows algorithms to operate on the data
+  /// but not change it.  They must make changes to the keyframe states through track set 
+  /// implementation methods.
+  virtual vital::keyframe_data_const_sptr get_keyframe_data() const;
+
 protected:
   /// Populate frame_map_ with data from all_tracks_
   void populate_frame_map() const;
 
   /// Populate frame_map_ only if it is empty
   void populate_frame_map_on_demand() const;
+
+  /// The keyframe data container
+  vital::simple_keyframe_data_sptr kf_data_;
 
 private:
   /// The vector of all tracks

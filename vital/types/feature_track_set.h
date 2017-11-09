@@ -51,7 +51,6 @@
 namespace kwiver {
 namespace vital {
 
-
 /// A derived track_state for feature tracks
 class VITAL_EXPORT feature_track_state : public track_state
 {

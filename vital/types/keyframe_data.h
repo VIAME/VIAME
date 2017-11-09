@@ -46,36 +46,98 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <memory>
 
 namespace kwiver {
-  namespace vital {
+namespace vital {
 
-    class keyframe_data;
-    /// Shared pointer for base keyframe_data type
-    typedef std::shared_ptr< keyframe_data > keyframe_data_sptr;
+class VITAL_EXPORT keyframe_metadata {
+public:
+  virtual ~keyframe_metadata() {}
+};
 
-    /// A collection of tracks
-    /**
-    * This class dispatches everything to an implementation class as in the
-    * bridge design pattern.  This pattern allows multiple back end implementations that
-    * store and index track data in different ways.  Each back end can be combined with
-    * any of the derived track_set types like feature_track_set and object_track_set.
-    */
-    class VITAL_EXPORT keyframe_data
-    {
-    public: 
-      keyframe_data();
+typedef std::shared_ptr< keyframe_metadata> keyframe_metadata_sptr;
 
-      ~keyframe_data();
+class keyframe_data;
+/// Shared pointer for base keyframe_data type
+typedef std::shared_ptr< keyframe_data > keyframe_data_sptr;
+typedef std::shared_ptr< const keyframe_data > keyframe_data_const_sptr;
 
-      virtual bool is_keyframe(frame_id_t frame) const = 0;
+class simple_keyframe_data;
+typedef std::shared_ptr< simple_keyframe_data> simple_keyframe_data_sptr;
+typedef std::shared_ptr< const simple_keyframe_data> simple_keyframe_data_const_sptr;
 
-      virtual bool add_keyframe(frame_id_t frame) = 0;
+typedef std::map<frame_id_t, keyframe_metadata_sptr> keyframe_data_map;
+typedef std::shared_ptr<keyframe_data_map> keyframe_data_map_sptr;
+typedef std::shared_ptr<const keyframe_data_map> keyframe_data_map_const_sptr;
 
-      virtual bool remove_keyframe(frame_id_t frame) = 0;
-    };
-  }
+/// A collection of keyframes
+/**
+* This class is a very basic keyframe data structure.  We can do better 
+* with a graph etc.
+*/
+class VITAL_EXPORT keyframe_data
+{
+public: 
+
+  virtual ~keyframe_data() {};
+
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const = 0;
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata) = 0;
+
+  virtual bool remove_frame_metadata(frame_id_t frame) = 0;
+
+  virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const = 0;
+
+};
+
+class VITAL_EXPORT simple_keyframe_data:public keyframe_data
+{
+public:
+  simple_keyframe_data();
+
+  virtual ~simple_keyframe_data();
+
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
+
+  virtual bool remove_frame_metadata(frame_id_t frame);
+
+  virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const;
+
+protected:
+  class priv;
+  std::shared_ptr<priv> d_;
+};
+
+//this will go in a new kwiver arror shortly
+class VITAL_EXPORT keyframe_data_graph
+  :public keyframe_data
+{
+public:
+  keyframe_data_graph();
+
+  virtual ~keyframe_data_graph();
+
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
+
+  virtual bool remove_frame_metadata(frame_id_t frame);
+
+  virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const;
+
+protected:
+  class priv;
+  std::shared_ptr<priv> d_;
+  
+};
+
+
 } // end namespace vital
+} // end namespace kwiver
 
 #endif // VITAL_KEYFRAME_DATA_H_

@@ -226,6 +226,25 @@ track_set_implementation
   return active_tracks;
 }
 
+/// Return all tracks active on a frame.
+size_t
+track_set_implementation
+::num_active_tracks(frame_id_t offset) const
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  const std::vector<track_sptr> all_tracks = this->tracks();
+  size_t num_active_tracks_ = 0;
+
+  for (track_sptr t : all_tracks)
+  {
+    if (t->find(frame_number) != t->end())
+    {
+      ++num_active_tracks_;
+    }
+  }
+
+  return num_active_tracks_;
+}
 
 /// Return all tracks active on a frame.
 std::vector< track_sptr >
@@ -359,7 +378,33 @@ track_set_implementation
   return frame_number;
 }
 
+keyframe_metadata_sptr
+track_set_implementation
+::get_frame_metadata(frame_id_t frame) const
+{
+  return keyframe_metadata_sptr();  //return a null smart pointer
+}
 
+bool
+track_set_implementation
+::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
+{
+  return false; // nothing is stored in base class
+}
+
+bool 
+track_set_implementation
+::remove_frame_metadata(frame_id_t frame)
+{
+  return false;
+}
+
+keyframe_data_const_sptr 
+track_set_implementation
+::get_keyframe_data() const
+{
+  return keyframe_data_const_sptr();
+}
 
 /// Default Constructor
 track_set
@@ -387,6 +432,17 @@ track_set
 
 //===================================================================
 
+simple_track_set_implementation
+::simple_track_set_implementation()
+{
+  kf_data_ = std::make_shared<simple_keyframe_data>();
+}
+simple_track_set_implementation
+::simple_track_set_implementation(const std::vector< track_sptr >& tracks):
+  data_(tracks)
+{
+  kf_data_ = std::make_shared<simple_keyframe_data>();
+}
 
 /// Return true if the set contains a specific track
 bool
@@ -411,5 +467,32 @@ simple_track_set_implementation
   return true;
 }
 
+keyframe_metadata_sptr 
+simple_track_set_implementation
+::get_frame_metadata(frame_id_t frame) const
+{
+  return kf_data_->get_frame_metadata(frame);
+}
+
+bool 
+simple_track_set_implementation
+::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
+{
+  return kf_data_->set_frame_metadata(frame, metadata);
+}
+
+bool 
+simple_track_set_implementation
+::remove_frame_metadata(frame_id_t frame)
+{
+  return kf_data_->remove_frame_metadata(frame);
+}
+
+keyframe_data_const_sptr
+simple_track_set_implementation
+::get_keyframe_data() const
+{
+  return std::dynamic_pointer_cast<const keyframe_data>(kf_data_);
+}
 
 } } // end namespace vital

@@ -39,6 +39,7 @@
 #define VITAL_TRACK_SET_H_
 
 #include "track.h"
+#include "keyframe_data.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -46,6 +47,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <memory>
 
 namespace kwiver {
@@ -157,6 +159,20 @@ public:
    */
   virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 ) const = 0;
 
+  /// return the number of active tracks on a frame
+  /**
+  * Active tracks are any tracks which contain a state on the target frame.
+  *
+  * \param [in] offset the frame offset for selecting the active frame.
+  *                    Positive number are absolute frame numbers while
+  *                    negative numbers are relative to the last frame.  For
+  *                    example, offset of -1 refers to the last frame and is
+  *                    the default.
+  *
+  * \returns the number of tracks that are active for the given offset
+  */
+  virtual size_t num_active_tracks(frame_id_t offset = -1) const = 0;
+
   /// Return all tracks inactive on a frame.
   /**
    * Inactive tracks are any tracks which do not contain a state on the target frame.
@@ -235,6 +251,14 @@ public:
 
   /// Convert an offset number to an absolute frame number
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const = 0;
+
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const = 0;
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata) = 0;
+
+  virtual bool remove_frame_metadata(frame_id_t frame) = 0;
+
+  virtual keyframe_data_const_sptr get_keyframe_data() const = 0;
 };
 
 
@@ -284,6 +308,9 @@ public:
   /// Return all tracks active on a frame.
   virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 ) const;
 
+  /// Return the number of active tracks for a frame
+  virtual size_t num_active_tracks(frame_id_t offset = -1) const;
+
   /// Return all tracks inactive on a frame.
   virtual std::vector< track_sptr > inactive_tracks( frame_id_t offset = -1 ) const;
 
@@ -301,6 +328,14 @@ public:
 
   /// Convert an offset number to an absolute frame number
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const;
+
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
+
+  virtual bool remove_frame_metadata(frame_id_t frame);
+
+  virtual keyframe_data_const_sptr get_keyframe_data() const;
 };
 
 
@@ -427,6 +462,12 @@ public:
     return impl_->active_tracks(offset);
   };
 
+  /// Return number of active tracks for a frame.
+  virtual size_t num_active_tracks(frame_id_t offset = -1) const
+  {
+    return impl_->num_active_tracks(offset);
+  };
+
   /// Return all tracks inactive on a frame.
   virtual std::vector< track_sptr > inactive_tracks( frame_id_t offset = -1 ) const
   {
@@ -463,6 +504,26 @@ public:
     return impl_->offset_to_frame(offset);
   }
 
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const
+  {
+    return impl_->get_frame_metadata(frame);
+  }
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
+  {
+    return impl_->set_frame_metadata(frame, metadata);
+  }
+
+  virtual keyframe_data_const_sptr get_keyframe_data() const
+  {
+    return impl_->get_keyframe_data();
+  }
+
+  virtual bool remove_frame_metadata(frame_id_t frame)
+  {
+    return impl_->remove_frame_metadata(frame);
+  }
+
 private:
   /// The implementation of the track set functions
   std::unique_ptr<track_set_implementation> impl_;
@@ -477,11 +538,10 @@ class simple_track_set_implementation
 {
 public:
   /// Default Constructor
-  simple_track_set_implementation() { }
+  simple_track_set_implementation();
 
   /// Constructor from a vector of tracks
-  explicit simple_track_set_implementation( const std::vector< track_sptr >& tracks )
-    : data_( tracks ) { }
+  explicit simple_track_set_implementation(const std::vector< track_sptr >& tracks);    
 
   /// Return the number of tracks in the set
   virtual size_t size() const { return data_.size(); }
@@ -504,10 +564,24 @@ public:
   /// Return a vector of track shared pointers
   virtual std::vector< track_sptr > tracks() const { return data_; }
 
+  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
+
+  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
+
+  virtual bool remove_frame_metadata(frame_id_t frame);
+
+  /// get the keyframe data as a const map.  This allows algorithms to operate on the data
+  /// but not change it.  They must make changes to the keyframe states through track set 
+  /// implementation methods.
+  virtual keyframe_data_const_sptr get_keyframe_data() const;
 
 protected:
   /// The vector of tracks
   std::vector< track_sptr > data_;
+
+  /// The keyframe data container
+  simple_keyframe_data_sptr kf_data_;
+
 };
 
 } } // end namespace vital

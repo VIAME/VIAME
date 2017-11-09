@@ -77,9 +77,8 @@ namespace kwiver {
         * \param [in] tracks The tracks over which to select key-frames
         * \returns selected key-frame data structure
         */
-        virtual kwiver::vital::keyframe_data_sptr
-          select(kwiver::vital::keyframe_data_sptr current_keyframes, 
-                 kwiver::vital::track_set_sptr tracks) const = 0;
+        virtual kwiver::vital::track_set_sptr
+          select(kwiver::vital::track_set_sptr tracks) const = 0;
       };
 
       /// type definition for shared pointer to a filter_tracks algorithm

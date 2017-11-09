@@ -174,6 +174,7 @@ set( vital_sources
   types/homography_f2f.cxx
   types/homography_f2w.cxx
   types/image.cxx
+  types/keyframe_data.cxx
   types/landmark.cxx
   types/mesh.cxx
   types/object_track_set.cxx

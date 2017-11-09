@@ -45,70 +45,94 @@
 
 
 namespace kwiver {
-  namespace arrows {
-    namespace core {
+namespace arrows {
+namespace core {
 
-      /// A basic query formulator
-      class KWIVER_ALGO_CORE_EXPORT keyframe_selector_basic
-        : public vital::algorithm_impl<keyframe_selector_basic, vital::algo::keyframe_selection>
-      {
-      public:
+  class KWIVER_ALGO_CORE_EXPORT keyframe_metadata_for_basic_selector :public vital::keyframe_metadata
+  {
+  public:
+    keyframe_metadata_for_basic_selector() = delete;
 
-        /// Default Constructor
-        keyframe_selector_basic();
+    keyframe_metadata_for_basic_selector(bool is_keyframe_) 
+      : is_keyframe(is_keyframe_) { }
 
-        /// Get this algorithm's \link vital::config_block configuration block \endlink
-        /**
-        * This base virtual function implementation returns an empty configuration
-        * block whose name is set to \c this->type_name.
-        *
-        * \returns \c config_block containing the configuration for this algorithm
-        *          and any nested components.
-        */
-        virtual vital::config_block_sptr get_configuration() const;
+    virtual ~keyframe_metadata_for_basic_selector() {}
 
-        /// Set this algorithm's properties via a config block
-        /**
-        * \throws no_such_configuration_value_exception
-        *    Thrown if an expected configuration value is not present.
-        * \throws algorithm_configuration_exception
-        *    Thrown when the algorithm is given an invalid \c config_block or is'
-        *    otherwise unable to configure itself.
-        *
-        * \param config  The \c config_block instance containing the configuration
-        *                parameters for this algorithm
-        */
-        virtual void set_configuration(vital::config_block_sptr config);
+    bool is_keyframe;
+  };
 
-        /// Check that the algorithm's currently configuration is valid
-        /**
-        * This checks solely within the provided \c config_block and not against
-        * the current state of the instance. This isn't static for inheritence
-        * reasons.
-        *
-        * \param config  The config block to check configuration of.
-        *
-        * \returns true if the configuration check passed and false if it didn't.
-        */
-        virtual bool check_configuration(vital::config_block_sptr config) const;
+  typedef std::shared_ptr<keyframe_metadata_for_basic_selector> keyframe_metadata_for_basic_selector_sptr;
 
-        /// Select keyframes from a set of tracks.  Different implementations can select key-frames in different ways.
-        /// For example, one method could only add key-frames for frames that are new.  Another could increase the 
-        /// density of key-frames near existing frames so dense processing can be done.  
-        /**
-        * \param [in] current_keyframes The current key-frame selection data.  Set to null if no key-frame data is
-        available or you want to perform key-frame selection from scratch.
-        * \param [in] tracks The tracks over which to select key-frames
-        * \returns selected key-frame data structure
-        */
-        virtual kwiver::vital::keyframe_data_sptr
-          select(kwiver::vital::keyframe_data_sptr current_keyframes,
-            kwiver::vital::track_set_sptr tracks) const;
-      
-      };
+  class keyframe_selector_basic;
+  typedef std::shared_ptr<keyframe_selector_basic> keyframe_selector_basic_sptr;
 
-    } // end namespace core
-  } // end namespace arrows
+  /// A basic query formulator
+  class KWIVER_ALGO_CORE_EXPORT keyframe_selector_basic
+    : public vital::algorithm_impl<keyframe_selector_basic, 
+    vital::algo::keyframe_selection>
+  {
+  public:
+
+    /// Default Constructor
+    keyframe_selector_basic();
+
+    virtual ~keyframe_selector_basic() {}
+
+    /// Get this algorithm's \link vital::config_block configuration block \endlink
+    /**
+    * This base virtual function implementation returns an empty configuration
+    * block whose name is set to \c this->type_name.
+    *
+    * \returns \c config_block containing the configuration for this algorithm
+    *          and any nested components.
+    */
+    virtual vital::config_block_sptr get_configuration() const;
+
+    /// Set this algorithm's properties via a config block
+    /**
+    * \throws no_such_configuration_value_exception
+    *    Thrown if an expected configuration value is not present.
+    * \throws algorithm_configuration_exception
+    *    Thrown when the algorithm is given an invalid \c config_block or is'
+    *    otherwise unable to configure itself.
+    *
+    * \param config  The \c config_block instance containing the configuration
+    *                parameters for this algorithm
+    */
+    virtual void set_configuration(vital::config_block_sptr config);
+
+    /// Check that the algorithm's currently configuration is valid
+    /**
+    * This checks solely within the provided \c config_block and not against
+    * the current state of the instance. This isn't static for inheritence
+    * reasons.
+    *
+    * \param config  The config block to check configuration of.
+    *
+    * \returns true if the configuration check passed and false if it didn't.
+    */
+    virtual bool check_configuration(vital::config_block_sptr config) const;
+
+    /// Select keyframes from a set of tracks.  Different implementations can select key-frames in different ways.
+    /// For example, one method could only add key-frames for frames that are new.  Another could increase the 
+    /// density of key-frames near existing frames so dense processing can be done.  
+    /**
+    * \param [in] current_keyframes The current key-frame selection data.  Set to null if no key-frame data is
+    available or you want to perform key-frame selection from scratch.
+    * \param [in] tracks The tracks over which to select key-frames
+    * \returns selected key-frame data structure
+    */
+    virtual kwiver::vital::track_set_sptr
+      select(kwiver::vital::track_set_sptr tracks) const;
+
+  protected:
+
+    class priv;
+    std::shared_ptr<priv> d_;
+  };
+
+} // end namespace core
+} // end namespace arrows
 } // end namespace kwiver
 
 #endif // ARROWS_PLUGINS_CORE_KEYFRAME_SELECTOR_BASIC_H_
