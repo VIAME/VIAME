@@ -47,6 +47,7 @@
 #include <vital/types/feature.h>
 #include <vital/types/descriptor.h>
 #include <kwiversys/SystemTools.hxx>
+#include <arrows/core/keyframe_selector_basic.h>
 
 namespace kwiver {
 namespace vital {
@@ -185,6 +186,11 @@ read_feature_track_file( path_t const& file_path )
     frame_id_t fid;
     auto feat = std::make_shared<feature_d>();
     std::stringstream ss( line );
+    if (ss.str() == "keyframes")
+    {
+      break;
+    }
+
     ss >> tid >> fid >> *feat;
 
     track_sptr t;
@@ -205,7 +211,20 @@ read_feature_track_file( path_t const& file_path )
     t->append( ftsd );
   }
 
-  return std::make_shared<feature_track_set>( tracks );
+  feature_track_set_sptr fts = std::make_shared<feature_track_set>( tracks );
+  
+  for (std::string line; std::getline(input_stream, line); )
+  {
+    frame_id_t fid;
+    std::stringstream ss(line);
+    ss >> fid;
+    keyframe_metadata_sptr kfmd = 
+      std::dynamic_pointer_cast<vital::keyframe_metadata>(
+        std::make_shared<vital::keyframe_metadata_for_basic_selector>(true));
+    fts->set_frame_metadata(fid, kfmd);
+  }
+
+  return fts;
 } // read_track_file
 
 
@@ -255,6 +274,30 @@ write_feature_track_file( feature_track_set_sptr const& tracks,
         throw invalid_data( "Provided track doest not contain a valid feature" );
       }
       ofile << t->id() << " " << s->frame() << " " << *ftsd->feature << "\n";
+    }
+  }
+
+  keyframe_data_const_sptr kfd = tracks->get_keyframe_data();
+  auto kfmd_map = kfd->get_keyframe_metadata_map();
+  if (!kfmd_map->empty())
+  {
+    ofile << "keyframes" << "\n";
+    for (auto kfmd : *kfmd_map)
+    {
+      vital::keyframe_metadata_for_basic_selector_sptr kfmd_basic_ptr =
+        std::dynamic_pointer_cast<vital::keyframe_metadata_for_basic_selector>(
+          kfmd.second);
+      if (!kfmd_basic_ptr)
+      {
+        continue;
+      }
+
+      if (!kfmd_basic_ptr->is_keyframe)
+      {
+        continue;
+      }
+
+      ofile << kfmd.first << "\n";
     }
   }
   ofile.close();

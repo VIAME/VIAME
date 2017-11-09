@@ -48,21 +48,6 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-  class KWIVER_ALGO_CORE_EXPORT keyframe_metadata_for_basic_selector :public vital::keyframe_metadata
-  {
-  public:
-    keyframe_metadata_for_basic_selector() = delete;
-
-    keyframe_metadata_for_basic_selector(bool is_keyframe_) 
-      : is_keyframe(is_keyframe_) { }
-
-    virtual ~keyframe_metadata_for_basic_selector() {}
-
-    bool is_keyframe;
-  };
-
-  typedef std::shared_ptr<keyframe_metadata_for_basic_selector> keyframe_metadata_for_basic_selector_sptr;
-
   class keyframe_selector_basic;
   typedef std::shared_ptr<keyframe_selector_basic> keyframe_selector_basic_sptr;
 

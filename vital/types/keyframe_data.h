@@ -57,6 +57,21 @@ public:
   virtual ~keyframe_metadata() {}
 };
 
+class VITAL_EXPORT keyframe_metadata_for_basic_selector :public keyframe_metadata
+{
+public:
+  keyframe_metadata_for_basic_selector() = delete;
+
+  keyframe_metadata_for_basic_selector(bool is_keyframe_)
+    : is_keyframe(is_keyframe_) { }
+
+  virtual ~keyframe_metadata_for_basic_selector() {}
+
+  bool is_keyframe;
+};
+
+typedef std::shared_ptr<keyframe_metadata_for_basic_selector> keyframe_metadata_for_basic_selector_sptr;
+
 typedef std::shared_ptr< keyframe_metadata> keyframe_metadata_sptr;
 
 class keyframe_data;
