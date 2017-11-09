@@ -1,8 +1,4 @@
 # Required Boost external dependency
-if(WIN32)
-  set(Boost_WIN_MODULES chrono)
-endif()
-
 if (NOT DEFINED KWIVER_BOOST_VERSION)
   set(KWIVER_BOOST_VERSION 1.54)
 endif()
