@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -138,8 +138,8 @@ register_scheduler( sprokit::scheduler::type_t const& type,
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact = vpm.add_factory( new sprokit::python_scheduler_factory( type,
-                                                             typeid( object ).name(),
-                                                             wrap ) );
+                                                                      typeid( sprokit::scheduler ).name(),
+                                                                      wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
