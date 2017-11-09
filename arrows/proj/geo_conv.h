@@ -57,6 +57,8 @@ public:
 
   virtual char const* id() const override;
 
+  virtual vital::geo_crs_description_t describe( int crs ) override;
+
   /// Conversion operator
   virtual vital::vector_2d operator()( vital::vector_2d const& point,
                                        int from, int to ) override;

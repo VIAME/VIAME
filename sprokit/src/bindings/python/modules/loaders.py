@@ -153,6 +153,10 @@ class ModuleLoader(Loader):
                 module = import_module(module_name)
             except ImportError as e:
                 logger.warn('Could not import: {}, Reason: {}'.format(module_name, e))
+                import traceback
+                exc_info = sys.exc_info()
+                tbtext = ''.join(traceback.format_exception(*exc_info))
+                logger.debug(tbtext)
                 module = None
 
             if module is not None:

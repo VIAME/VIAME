@@ -48,24 +48,6 @@
 #include <pybind11/stl_bind.h>
 #include "python_wrappers.cxx"
 
-#ifdef WIN32
- // Windows get_pointer const volatile workaround
-namespace boost
-{
-  template <> inline sprokit::process const volatile*
-  get_pointer(class sprokit::process const volatile* p)
-  {
-    return p;
-  }
-
-  template <> inline sprokit::process_cluster const volatile*
-  get_pointer(class sprokit::process_cluster const volatile* p)
-  {
-    return p;
-  }
-}
-#endif
-
 using namespace pybind11;
 
 // We need our own factory for inheritance to work

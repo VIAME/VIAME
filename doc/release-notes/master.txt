@@ -98,6 +98,9 @@ Vital
  * Added method to return a vector of values from a single config
    entry. The method is templated on the vector element type.
 
+ * Added at() method to detected_object_set to provide bounds checked
+   direct indexing.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
@@ -115,6 +118,9 @@ Arrows: Core
 
  * Renamed merge_tracks.h to match_tracks.h and removed all track merging
    functions.  Track merging is now a function of the track_set itself.
+
+ * Removed description() methods from some implementations. This
+   method is no longer used.
 
 Sprokit
 

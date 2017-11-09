@@ -156,6 +156,26 @@ public:
   const_iterator cend() const;
   //@}
 
+  //@{
+  /**
+   * @brief Return pointer to detected object at specified index.
+   *
+   * Returns a reference to the element at specified location pos,
+   * with bounds checking.
+   *
+   * If pos is not within the range of the container, an exception of
+   * type std::out_of_range is thrown.
+   *
+   * @param pos Position of element to return (from zero).
+   *
+   * @return Shared pointer to specified element.
+   *
+   * @throws std::range if position is now within the range of objects
+   * in container.
+   */
+  detected_object_sptr at( size_t pos );
+  const detected_object_sptr at( size_t pos ) const;
+  //@}
 
   /**
    * @brief Select detections based on confidence value.

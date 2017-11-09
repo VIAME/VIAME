@@ -33,47 +33,38 @@
  * \brief test VXL bundle adjustment functionality
  */
 
-#include <test_common.h>
 #include <test_scene.h>
-
-#include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/core/metrics.h>
 #include <arrows/core/projected_track_set.h>
 #include <arrows/vxl/bundle_adjust.h>
 
-#define TEST_ARGS ()
+#include <vital/plugin_loader/plugin_manager.h>
 
-DECLARE_TEST_MAP();
+#include <gtest/gtest.h>
 
-int
-main(int argc, char* argv[])
+using namespace kwiver::vital;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
+  ::testing::InitGoogleTest( &argc, argv );
 
   // VXL algorithm implementations
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  return RUN_ALL_TESTS();
 }
 
-using namespace kwiver::vital;
-
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+TEST(bundle_adjust, create)
 {
-  using namespace kwiver::arrows;
-  algo::bundle_adjust_sptr ba = algo::bundle_adjust::create("vxl");
-  if (!ba)
-  {
-    TEST_ERROR("Unable to create vxl::bundle_adjust by name");
-  }
+  EXPECT_NE( nullptr, algo::bundle_adjust::create("vxl") );
 }
 
-
-// input to SBA is the ideal solution, make sure it doesn't diverge
-IMPLEMENT_TEST(from_solution)
+// ----------------------------------------------------------------------------
+// Input to SBA is the ideal solution, make sure it doesn't diverge
+TEST(bundle_adjust, from_solution)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -94,22 +85,19 @@ IMPLEMENT_TEST(from_solution)
                                        landmarks->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse > 1e-12)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be small");
-  }
+  EXPECT_LE(init_rmse, 1e-12) << "Initial reprojection RMSE should be small";
 
   ba.optimize(cameras, landmarks, tracks);
 
   double end_rmse = reprojection_rmse(cameras->cameras(),
                                       landmarks->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-12);
+  EXPECT_NEAR(0.0, end_rmse, 1e-12) << "RMSE after SBA";
 }
 
-
-// add noise to landmarks before input to SBA
-IMPLEMENT_TEST(noisy_landmarks)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks before input to SBA
+TEST(bundle_adjust, noisy_landmarks)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -134,23 +122,20 @@ IMPLEMENT_TEST(noisy_landmarks)
   double init_rmse = reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
-  std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras, landmarks0, tracks);
 
   double end_rmse = reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// add noise to landmarks and cameras before input to SBA
-IMPLEMENT_TEST(noisy_landmarks_noisy_cameras)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks and cameras before input to SBA
+TEST(bundle_adjust, noisy_landmarks_noisy_cameras)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -179,22 +164,20 @@ IMPLEMENT_TEST(noisy_landmarks_noisy_cameras)
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras0, landmarks0, tracks);
 
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// initialize all landmarks to the origin as input to SBA
-IMPLEMENT_TEST(zero_landmarks)
+// ----------------------------------------------------------------------------
+// Initialize all landmarks to the origin as input to SBA
+TEST(bundle_adjust, zero_landmarks)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -221,22 +204,21 @@ IMPLEMENT_TEST(zero_landmarks)
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras, landmarks0, tracks);
 
   double end_rmse = reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// initialize all landmarks to the origin and all cameras to same location as input to SBA
-IMPLEMENT_TEST(zero_landmarks_same_cameras)
+// ----------------------------------------------------------------------------
+// Initialize all landmarks to the origin and all cameras to same location as
+// input to SBA
+TEST(bundle_adjust, zero_landmarks_same_cameras)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -267,23 +249,21 @@ IMPLEMENT_TEST(zero_landmarks_same_cameras)
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras0, landmarks0, tracks);
 
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// add noise to landmarks and cameras before input to SBA
-// select a subset of cameras to optimize
-IMPLEMENT_TEST(subset_cameras)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks and cameras before input to SBA; select a subset of
+// cameras to optimize
+TEST(bundle_adjust, subset_cameras)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -309,7 +289,7 @@ IMPLEMENT_TEST(subset_cameras)
 
   camera_map::map_camera_t cam_map = cameras0->cameras();
   camera_map::map_camera_t cam_map2;
-  for(camera_map::map_camera_t::value_type& p : cam_map)
+  for ( auto const& p : cam_map )
   {
     /// take every third camera
     if(p.first % 3 == 0)
@@ -320,29 +300,27 @@ IMPLEMENT_TEST(subset_cameras)
   cameras0 = camera_map_sptr(new simple_camera_map(cam_map2));
 
 
-  TEST_EQUAL("Reduced number of cameras", cameras0->size(), 7);
+  EXPECT_EQ(7, cameras0->size()) << "Reduced number of cameras";
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras0, landmarks0, tracks);
 
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// add noise to landmarks and cameras before input to SBA
-// select a subset of landmarks to optimize
-IMPLEMENT_TEST(subset_landmarks)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks and cameras before input to SBA; select a subset of
+// landmarks to optimize
+TEST(bundle_adjust, subset_landmarks)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -373,29 +351,27 @@ IMPLEMENT_TEST(subset_landmarks)
   lm_map.erase(5);
   landmarks0 = landmark_map_sptr(new simple_landmark_map(lm_map));
 
-  TEST_EQUAL("Reduced number of landmarks", landmarks0->size(), 5);
+  EXPECT_EQ(5, landmarks0->size()) << "Reduced number of landmarks";
 
   double init_rmse = reprojection_rmse(cameras0->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras0, landmarks0, tracks);
 
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// add noise to landmarks and cameras before input to SBA
-// select a subset of tracks/track_states to constrain the problem
-IMPLEMENT_TEST(subset_tracks)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks and cameras before input to SBA; select a subset of
+// tracks/track_states to constrain the problem
+TEST(bundle_adjust, subset_tracks)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -427,23 +403,21 @@ IMPLEMENT_TEST(subset_tracks)
                                        landmarks0->landmarks(),
                                        tracks0->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras0, landmarks0, tracks0);
 
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks0->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after SBA";
 }
 
-
-// add noise to landmarks and cameras and tracks before input to SBA
-// select a subset of tracks/track_states to constrain the problem
-IMPLEMENT_TEST(noisy_tracks)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks and cameras and tracks before input to SBA; select a
+// subset of tracks/track_states to constrain the problem
+TEST(bundle_adjust, noisy_tracks)
 {
   using namespace kwiver::arrows;
   vxl::bundle_adjust ba;
@@ -478,15 +452,13 @@ IMPLEMENT_TEST(noisy_tracks)
                                        landmarks0->landmarks(),
                                        tracks0->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before SBA");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
 
   ba.optimize(cameras0, landmarks0, tracks0);
 
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks0->tracks());
-  TEST_NEAR("RMSE after SBA", end_rmse, 0.0, track_stdev);
+  EXPECT_NEAR(0.0, end_rmse, track_stdev) << "RMSE after SBA";
 }

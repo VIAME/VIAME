@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-
-
 #include <vital/plugin_loader/plugin_manager.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
+using namespace kwiver::vital;
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(module_marking)
+// ----------------------------------------------------------------------------
+TEST(plugin_loader, module_marking)
 {
-  const auto module = kwiver::vital::plugin_manager::module_t("module");
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  const auto module = plugin_manager::module_t{ "module" };
+  plugin_manager& vpm = plugin_manager::instance();
 
-  if (vpm.is_module_loaded( module ))
-  {
-    TEST_ERROR("The module \'" << module
-               << "\' is already marked as loaded");
-  }
+  EXPECT_FALSE( vpm.is_module_loaded( module ) );
 
   vpm.mark_module_as_loaded( module );
 
-  if ( ! vpm.is_module_loaded( module ))
-  {
-    TEST_ERROR("The module \'" << module
-               << "\' is not marked as loaded");
-  }
+  EXPECT_TRUE( vpm.is_module_loaded( module ) );
 }
 
 // Tests to add

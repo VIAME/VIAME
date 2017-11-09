@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,20 +38,19 @@
 #ifndef ALGORITHMS_TEST_ALGO_TEST_TRIANGULATE_LANDMARKS_H_
 #define ALGORITHMS_TEST_ALGO_TEST_TRIANGULATE_LANDMARKS_H_
 
-
-#include <test_common.h>
 #include <test_scene.h>
 
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/metrics.h>
 #include <vital/algo/triangulate_landmarks.h>
 
+#include <gtest/gtest.h>
 
 namespace kwiver {
 namespace testing {
 
-
-// input to triangulation is the ideal solution, make sure it doesn't diverge
+// ----------------------------------------------------------------------------
+// Input to triangulation is the ideal solution, make sure it doesn't diverge
 void test_from_solution(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   //+ using namespace kwiver::vital;
@@ -69,21 +68,19 @@ void test_from_solution(kwiver::vital::algo::triangulate_landmarks& tri_lm)
                                        landmarks->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse > 1e-12)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be small");
-  }
+
+  EXPECT_LE(init_rmse, 1e-12) << "Initial reprojection RMSE should be small";
 
   tri_lm.triangulate(cameras, tracks, landmarks);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-12);
+  EXPECT_NEAR(0.0, end_rmse, 1e-12) << "RMSE after triangulation";
 }
 
-
-// add noise to landmarks before input to triangulation
+// ----------------------------------------------------------------------------
+// Add noise to landmarks before input to triangulation
 void test_noisy_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   using namespace kwiver::vital;
@@ -105,21 +102,19 @@ void test_noisy_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before triangulation");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before triangulation";
 
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after triangulation";
 }
 
-
-// initialize all landmarks to the origin as input to triangulation
+// ----------------------------------------------------------------------------
+// Initialize all landmarks to the origin as input to triangulation
 void test_zero_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   using namespace kwiver::vital;
@@ -142,21 +137,19 @@ void test_zero_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before triangulation");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before triangulation";
 
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after triangulation";
 }
 
-
-// select a subset of cameras to triangulation from
+// ----------------------------------------------------------------------------
+// Select a subset of cameras to triangulation from
 void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   using namespace kwiver::vital;
@@ -176,7 +169,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   camera_map::map_camera_t cam_map = cameras->cameras();
   camera_map::map_camera_t cam_map2;
-  for(camera_map::map_camera_t::value_type& p : cam_map)
+  for ( auto const& p : cam_map )
   {
     /// take every third camera
     if(p.first % 3 == 0)
@@ -187,27 +180,25 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   camera_map_sptr cameras0(new simple_camera_map(cam_map2));
 
 
-  TEST_EQUAL("Reduced number of cameras", cameras0->size(), 7);
+  EXPECT_EQ(7, cameras0->size()) << "Reduced number of cameras";
 
   double init_rmse = kwiver::arrows::reprojection_rmse(cameras0->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before triangulation");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before triangulation";
 
   tri_lm.triangulate(cameras0, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after triangulation";
 }
 
-
-// select a subset of landmarks to triangulate
+// ----------------------------------------------------------------------------
+// Select a subset of landmarks to triangulate
 void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   using namespace kwiver::vital;
@@ -232,27 +223,25 @@ void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   lm_map.erase(5);
   landmarks0 = landmark_map_sptr(new simple_landmark_map(lm_map));
 
-  TEST_EQUAL("Reduced number of landmarks", landmarks0->size(), 5);
+  EXPECT_EQ(5, landmarks0->size()) << "Reduced number of landmarks";
 
   double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                        landmarks0->landmarks(),
                                        tracks->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before triangulation");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before triangulation";
 
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after triangulation";
 }
 
-
-// select a subset of tracks/track_states to constrain the problem
+// ----------------------------------------------------------------------------
+// Select a subset of tracks/track_states to constrain the problem
 void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   using namespace kwiver::vital;
@@ -277,21 +266,19 @@ void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
                                        landmarks0->landmarks(),
                                        tracks0->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before triangulation");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before triangulation";
 
   tri_lm.triangulate(cameras, tracks0, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks0->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 1e-5);
+  EXPECT_NEAR(0.0, end_rmse, 1e-5) << "RMSE after triangulation";
 }
 
-
-// select a subset of tracks/track_states and add noise
+// ----------------------------------------------------------------------------
+// Select a subset of tracks/track_states and add noise
 void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 {
   using namespace kwiver::vital;
@@ -320,17 +307,15 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
                                        landmarks0->landmarks(),
                                        tracks0->tracks());
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-  if (init_rmse < 10.0)
-  {
-    TEST_ERROR("Initial reprojection RMSE should be large before triangulation");
-  }
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before triangulation";
 
   tri_lm.triangulate(cameras, tracks0, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
                                       landmarks0->landmarks(),
                                       tracks0->tracks());
-  TEST_NEAR("RMSE after triangulation", end_rmse, 0.0, 3.0*track_stdev);
+  EXPECT_NEAR(0.0, end_rmse, 3.0*track_stdev) << "RMSE after triangulation";
 }
 
 } // end namespace testing
