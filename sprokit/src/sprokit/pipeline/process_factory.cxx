@@ -40,9 +40,21 @@ namespace sprokit {
 // ------------------------------------------------------------------
 process_factory::
 process_factory( const std::string& type,
+                 const std::string& itype )
+  : plugin_factory( itype )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "process" );
+}
+
+
+// ------------------------------------------------------------------
+cpp_process_factory::
+cpp_process_factory( const std::string& type,
                  const std::string& itype,
                  process_factory_func_t factory )
-  : plugin_factory( itype )
+  : process_factory( type, itype )
   , m_factory( factory )
 {
   this->add_attribute( CONCRETE_TYPE, type)
@@ -50,14 +62,10 @@ process_factory( const std::string& type,
     .add_attribute( PLUGIN_CATEGORY, "process" );
 }
 
-process_factory::
-~process_factory()
-{ }
-
 
 // ------------------------------------------------------------------
 sprokit::process_t
-process_factory::
+cpp_process_factory::
 create_object(kwiver::vital::config_block_sptr const& config)
 {
   // Call sprokit factory function. Need to use this factory
@@ -148,5 +156,38 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list()
   return vpm.get_factories<sprokit::process>();
 }
 
+
+// ------------------------------------------------------------------
+#ifdef SPROKIT_ENABLE_PYTHON
+python_process_factory::
+python_process_factory( const std::string& type,
+                        const std::string& itype,
+                        py_process_factory_func_t factory )
+  : process_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "process" );
+}
+
+python_process_factory::
+~python_process_factory()
+{ }
+
+sprokit::process_t
+python_process_factory::
+create_object(kwiver::vital::config_block_sptr const& config)
+{
+  // Call sprokit factory function.
+  pybind11::object obj = m_factory(config);
+
+    // We need to do it this way because of how pybind11 handles memory
+obj.inc_ref();
+  sprokit::process_t proc_ptr = obj.cast<sprokit::process_t>();
+  return proc_ptr;
+}
+
+#endif
 
 } // end namespace

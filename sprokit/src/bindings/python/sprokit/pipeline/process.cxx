@@ -97,7 +97,7 @@ class process_trampoline
   : public sprokit::process
 {
   public:
-    process_trampoline(kwiver::vital::config_block_sptr const& config) : process(config) {};
+    using process::process;
     void _configure() override;
     void _init() override;
     void _reset() override;
@@ -355,7 +355,7 @@ PYBIND11_MODULE(process, m)
 
   class_<sprokit::process, process_trampoline, sprokit::process_t>(m, "PythonProcess"
     , "The base class for Python processes.")
-    .def(init_alias<kwiver::vital::config_block_sptr>())
+    .def(init<kwiver::vital::config_block_sptr>())
     .def("configure", &sprokit::process::configure, "Configure the process.")
     .def("init", &sprokit::process::init
       , "Initializes the process.")

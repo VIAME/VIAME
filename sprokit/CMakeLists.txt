@@ -19,6 +19,11 @@ include(CMakeDependentOption)
 set(sprokit_output_dir         "${KWIVER_BINARY_DIR}")
 
 
+# we need to know if python is enabled
+if (SPROKIT_ENABLE_PYTHON)
+  add_definitions("-DSPROKIT_ENABLE_PYTHON")
+endif ()
+
 ## TODO replace sprokit macros with kwiver macros if possible
 # Sprokit macros
 include("${sprokit_source_dir}/conf/sprokit-macro-configure.cmake")
