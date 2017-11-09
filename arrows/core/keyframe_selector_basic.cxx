@@ -52,6 +52,62 @@ public:
 
   virtual ~priv() {}
 
+  /// Set our parameters based on the given config block
+  void set_config(const vital::config_block_sptr & config)
+  {
+    if (config->has_value("fraction_tracks_lost_to_necessitate_new_keyframe"))
+    {
+      fraction_tracks_lost_to_necessitate_new_keyframe = config->get_value<float>(
+        "fraction_tracks_lost_to_necessitate_new_keyframe");
+    }
+    if (config->has_value("keyframe_min_feature_count"))
+    {
+      keyframe_min_feature_count = config->get_value<int>(
+        "keyframe_min_feature_count");
+    }
+  }
+
+  /// Set current parameter values to the given config block
+  void update_config(vital::config_block_sptr &config) const
+  {
+    config->set_value("fraction_tracks_lost_to_necessitate_new_keyframe", 
+      fraction_tracks_lost_to_necessitate_new_keyframe,
+      "if this fraction of more of features is lost then select a new keyframe");
+    config->set_value("keyframe_min_feature_count",
+      keyframe_min_feature_count,
+      "minimum number of features required for a frame to become a keyframe");
+  }
+
+  bool check_configuration(vital::config_block_sptr config) const
+  {
+    bool success(true);
+
+    float test_fraction_tracks_lost_to_necessitate_new_keyframe = config->get_value<float>(
+      "fraction_tracks_lost_to_necessitate_new_keyframe");
+
+    if (!(0 < test_fraction_tracks_lost_to_necessitate_new_keyframe && 
+          test_fraction_tracks_lost_to_necessitate_new_keyframe <= 1.0))
+    {         
+      LOG_ERROR(m_logger, "fraction_tracks_lost_to_necessitate_new_keyframe ("
+        << test_fraction_tracks_lost_to_necessitate_new_keyframe
+        << ") should be greater than zero and <= 1.0");
+      success = false;
+    }
+
+    int test_keyframe_min_feature_count = config->get_value<int>(
+      "keyframe_min_feature_count");
+
+    if (test_keyframe_min_feature_count < 0)
+    {
+      LOG_ERROR(m_logger, "keyframe_min_feature_count ("
+        << test_keyframe_min_feature_count
+        << ") should be greater than zero");
+      success = false;
+    }
+
+    return success;
+  }
+
   void initial_keyframe_selection(
     kwiver::vital::track_set_sptr tracks);
 
@@ -64,6 +120,7 @@ public:
                                            // prevent us from checking the 
                                            // same frames repeatedly to see if 
                                            // they are key-frames
+  kwiver::vital::logger_handle_t m_logger;
 };
 
 void
@@ -160,6 +217,9 @@ keyframe_selector_basic
 ::keyframe_selector_basic()
 {
   d_ = std::make_shared<keyframe_selector_basic::priv>();
+
+  attach_logger("keyframe_selector_basic");
+  d_->m_logger = this->logger();
 }
 
 /// Get this alg's \link vital::config_block configuration block \endlink
@@ -169,6 +229,8 @@ keyframe_selector_basic
 {
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
+
+  d_->update_config(config);
 
   return config;
 }
@@ -183,13 +245,14 @@ keyframe_selector_basic
   //get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
+  d_->set_config(in_config);
 }
 
 bool
 keyframe_selector_basic
 ::check_configuration(vital::config_block_sptr config) const
 {
-  return true;
+  return d_->check_configuration(config);
 }
 
 kwiver::vital::track_set_sptr
