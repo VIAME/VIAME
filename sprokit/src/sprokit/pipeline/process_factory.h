@@ -105,6 +105,8 @@ public:
   virtual ~process_factory() = default;
 
   virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) = 0;
+
+  void copy_attributes( sprokit::process_t proc );
 };
 
 
