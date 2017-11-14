@@ -5,7 +5,6 @@ set(SOURCE "main.cpp"
 )
 
 add_executable(kwiver_examples ${SOURCE})
-target_link_libraries(kwiver_examples 
-                      vital_algo 
+target_link_libraries(kwiver_examples
+                      vital_algo  kwiversys
                       kwiver_algo_ocv kwiver_algo_vxl)
-

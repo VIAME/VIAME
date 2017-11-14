@@ -44,6 +44,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "arrows/ocv/image_container.h"
 
+#include <kwiversys/SystemTools.hxx>
+
 void how_to_part_02_detections()
 {
   // Initialize KWIVER and load up all plugins
@@ -68,7 +70,7 @@ void how_to_part_02_detections()
   // The top left corner is the anchor. A bounding_box_i is interger based to associate corners to pixels in the image
   kwiver::vital::bounding_box_d bbox1(ocv_img->width()*0.25, ocv_img->height()*0.25,
                                       ocv_img->width()*0.75, ocv_img->height()*0.75);
-  // The confidence value is the confidence associated with the detection. 
+  // The confidence value is the confidence associated with the detection.
   // It should be a probability (0..1) that the detector is suer that it has identified what it is supposed to find.
   double confidence = 1.0;
   // A Classification
@@ -90,7 +92,7 @@ void how_to_part_02_detections()
 
   // We can take this detection set and create a new image with the detections overlaid on the image
   kwiver::vital::algo::draw_detected_object_set_sptr drawer = kwiver::vital::algo::draw_detected_object_set::create("ocv");
-  drawer->set_configuration(drawer->get_configuration());// This will default the configuration 
+  drawer->set_configuration(drawer->get_configuration());// This will default the configuration
   kwiver::vital::image_container_sptr img_detections = drawer->draw(detections, ocv_img);
 
   // Let's see what it looks like
@@ -98,7 +100,7 @@ void how_to_part_02_detections()
   cv::namedWindow("Detections", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Detections", mat);                     // Show our image inside it.
   cv::waitKey(5);
-  Sleep(2000);                                       // Wait for 2s
+  kwiversys::SystemTools::Delay(2000);                                       // Wait for 2s
   cvDestroyWindow("Detections");
 
   // Now let's run a detection algorithm that comes with kwiver
@@ -111,6 +113,6 @@ void how_to_part_02_detections()
   cv::namedWindow("Hough Detections", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Hough Detections", hough_mat);                     // Show our image inside it.
   cv::waitKey(5);
-  Sleep(2000);                                       // Wait for 2s
+  kwiversys::SystemTools::Delay(2000);                                       // Wait for 2s
   cvDestroyWindow("Hough Detections");
 }
