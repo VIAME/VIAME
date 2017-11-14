@@ -74,7 +74,10 @@ public:
     redetect_threshold(0.7),
     exclusionary_radius_image_frac(0.01),
     win_size(41),
-    half_win_size(win_size/2)
+    half_win_size(win_size/2),
+    tracked_feat_mask_downsample_fact(1),
+    exclude_rad_pixels(1),
+    erp2(1)
   {
   }
 
@@ -83,48 +86,63 @@ public:
   void set_tracked_feature_location_mask(const std::vector<cv::Point2f> &points, 
     image_container_sptr image_data) 
   {
-    if (tracked_feature_location_mask.rows != image_data->height() ||
-        tracked_feature_location_mask.cols != image_data->width())
+    exclude_rad_pixels =
+      std::max<int>(1, exclusionary_radius_image_frac *
+        std::min(image_data->width(), image_data->height()));
+
+     int log_tracked_feat_mask_downsample_fact = int(floor(log2f(float(exclude_rad_pixels)/2.0f)));
+
+     tracked_feat_mask_downsample_fact = 1 << log_tracked_feat_mask_downsample_fact;
+
+     int tfh = int(ceil(float(image_data->height()) / float(tracked_feat_mask_downsample_fact)));
+     int tfw = int(ceil(float(image_data->width()) / float(tracked_feat_mask_downsample_fact)));
+
+    if (tracked_feature_location_mask.rows != tfh ||
+        tracked_feature_location_mask.cols != tfw )
     {
-      tracked_feature_location_mask = cv::Mat(int(image_data->height()), 
-        int(image_data->width()), CV_8UC1); // really this is a bool array so 
-                                            //I could pack it more.
+      tracked_feature_location_mask = cv::Mat(tfh,tfw, CV_8UC1);
     }
+
+    exclude_rad_pixels /= tracked_feat_mask_downsample_fact;
+    erp2 = (exclude_rad_pixels * exclude_rad_pixels);
 
     //mark the whole tracked feature mask as not having any features
-    int exclude_rad_pixels =
-      std::max<int>(1, exclusionary_radius_image_frac * 
-      std::min(image_data->width(), image_data->height()));
-
     tracked_feature_location_mask.setTo(0);
-    const int erp2(exclude_rad_pixels * exclude_rad_pixels);
-
-    for (unsigned int i = 0; i < points.size(); ++i) 
+    
+    for (auto const& np : points)
     {
-    for(auto const& np: points)      
-      for (int r = -exclude_rad_pixels; r <= exclude_rad_pixels; ++r) 
+      set_exclude_mask(np);
+    }
+  }
+
+  void set_exclude_mask(cv::Point2f const &pt)
+  {
+    for (int r = -exclude_rad_pixels; r <= exclude_rad_pixels; ++r)
+    {
+      int row = r + pt.y / tracked_feat_mask_downsample_fact;
+      if (row < 0 || row >= tracked_feature_location_mask.rows)
       {
-        int row = r + np.y;
-        if (row < 0 || row >= tracked_feature_location_mask.rows)
+        continue;
+      }
+      for (int c = -exclude_rad_pixels; c <= exclude_rad_pixels; ++c)
+      {
+        int col = c + pt.x / tracked_feat_mask_downsample_fact;
+        if (col < 0 || col >= tracked_feature_location_mask.cols)
         {
-          continue;
+          continue; // outside of mask image
         }
-        for (int c = -exclude_rad_pixels; c <= exclude_rad_pixels; ++c) 
+        if ((r*r + c*c) > erp2)
         {
-          int col = c + np.x;
-          if (col < 0 || col >= tracked_feature_location_mask.cols)
-          {
-            continue; // outside of mask image
-          }
-          if ((r*r + c*c) > erp2)
-          {
-            continue;  //outside of mask radius
-          }         
-          //set the mask to 1 here
-          tracked_feature_location_mask.at<unsigned char>(row, col) = 1;            
+          continue;  //outside of mask radius
         }
+        //set the mask to 1 here
+        tracked_feature_location_mask.at<unsigned char>(row, col) = 1;
       }
     }
+  }
+
+  bool exclude_mask_is_set(vital::vector_2d const &pt) const {
+    return tracked_feature_location_mask.at<unsigned char>(pt.y() / tracked_feat_mask_downsample_fact, pt.x() / tracked_feat_mask_downsample_fact) != 0;
   }
   
   /// Set current parameter values to the given config block
@@ -334,6 +352,9 @@ public:
   feature_distribution_image last_detect_distImage;
   int win_size;
   int half_win_size;
+  int tracked_feat_mask_downsample_fact;
+  int exclude_rad_pixels;
+  int erp2;
 };
 
 
@@ -553,11 +574,13 @@ track_features_klt
     typedef std::vector<feature_sptr>::const_iterator feat_itr;    
     for(feat_itr fit = vf.begin(); fit != vf.end(); ++fit)
     {
-      if (d_->tracked_feature_location_mask.at<unsigned char>(
-          (*fit)->loc().y(), (*fit)->loc().x()) != 0) 
-      {
-        continue;  //there is already a tracked feature near here
-      }
+      //if (d_->tracked_feature_location_mask.at<unsigned char>(
+      //    (*fit)->loc().y(), (*fit)->loc().x()) != 0) 
+      //{
+      //  continue;  //there is already a tracked feature near here
+      //}
+      if (d_->exclude_mask_is_set((*fit)->loc()))
+        continue;
       
       if ((*fit)->loc().x() < d_->win_size ||
           (*fit)->loc().y() < d_->win_size ||
@@ -573,7 +596,12 @@ track_features_klt
       t->append(fts);  //put the feature in this new track
       t->set_id(next_track_id++); //set the new track id
       cur_tracks->insert(t);
-      next_points.push_back(cv::Point2f((*fit)->loc().x(), (*fit)->loc().y()));
+      cv::Point2f new_pt = cv::Point2f((*fit)->loc().x(), (*fit)->loc().y());
+      next_points.push_back(new_pt);
+
+      d_->set_exclude_mask(new_pt);      //this makes the points earlier in the 
+      // detection list more likely to be in tracked feature set.  Should sort 
+      //by strength to get the best features with the highest likelihood.
     }
     //this includes any features tracked to this frame and the new points
     d_->last_detect_num_features = next_points.size();  
