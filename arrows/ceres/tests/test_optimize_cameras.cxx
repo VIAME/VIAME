@@ -46,15 +46,14 @@ static constexpr double noisy_intrinsics_tolerance = 1e-7;
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 TEST(optimize_cameras, create)
 {
+  plugin_manager::instance().load_all_plugins();
+
   EXPECT_NE( nullptr, algo::optimize_cameras::create("ceres") );
 }
 
