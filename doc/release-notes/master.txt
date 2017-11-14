@@ -160,6 +160,10 @@ Sprokit
 
      $plugin_explorer --fact instrumentation
 
+ * Added test to threaded scheduler to detect when a python process is
+   in the pipeline. If a python process is found, an exception is
+   thrown.
+
 Unit Tests
 
  * KWIVER is in the process of transitioning to Google Test as its primary
