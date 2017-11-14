@@ -58,6 +58,56 @@ static std::string get_description( const std::string& name );
 static std::vector< std::string > scheduler_names();
 static std::string get_default_type();
 
+// ============================================================================
+typedef std::function< pybind11::object( sprokit::pipeline_t const& pipe,
+                               kwiver::vital::config_block_sptr const& config ) > py_scheduler_factory_func_t;
+
+class SPROKIT_PIPELINE_EXPORT python_scheduler_factory
+  : public sprokit::scheduler_factory
+{
+  public:
+
+  python_scheduler_factory( const std::string& type,
+                            const std::string& itype,
+                            py_scheduler_factory_func_t factory );
+
+  virtual ~python_scheduler_factory() = default;
+
+  virtual sprokit::scheduler_t create_object(sprokit::pipeline_t const& pipe,
+                                             kwiver::vital::config_block_sptr const& config);
+
+private:
+  py_scheduler_factory_func_t m_factory;
+};
+
+
+// ------------------------------------------------------------------
+python_scheduler_factory::
+python_scheduler_factory( const std::string& type,
+                          const std::string& itype,
+                          py_scheduler_factory_func_t factory )
+  : scheduler_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::scheduler_t
+python_scheduler_factory::
+create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
+{
+  // Call sprokit factory function.
+  pybind11::object obj = m_factory(pipe, config);
+  obj.inc_ref();
+  sprokit::scheduler_t schd_ptr = obj.cast<sprokit::scheduler_t>();
+  return schd_ptr;
+}
+
+
 //==================================================================
 PYBIND11_MODULE(scheduler_factory, m)
 {
@@ -120,9 +170,9 @@ register_scheduler( sprokit::scheduler::type_t const& type,
   python_scheduler_wrapper const wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact = vpm.add_factory( new sprokit::python_scheduler_factory( type,
-                                                                      typeid( sprokit::scheduler ).name(),
-                                                                      wrap ) );
+  auto fact = vpm.add_factory( new python_scheduler_factory( type,
+                                                             typeid( sprokit::scheduler ).name(),
+                                                             wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )

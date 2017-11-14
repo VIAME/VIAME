@@ -47,10 +47,6 @@
 #include <functional>
 #include <memory>
 
-#ifdef SPROKIT_ENABLE_PYTHON
-  #include <pybind11/pybind11.h>
-#endif
-
 namespace sprokit {
 
 // returns: process_t - shared_ptr<process>
@@ -194,38 +190,6 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
   add_factory( new sprokit::cpp_process_factory( typeid( proc_type ).name(), \
                                                  typeid( sprokit::process ).name(), \
                                                  sprokit::create_new_process< proc_type > ) )
-
-#ifdef SPROKIT_ENABLE_PYTHON
-
-typedef std::function< pybind11::object( kwiver::vital::config_block_sptr const& config ) > py_process_factory_func_t;
-
-class SPROKIT_PIPELINE_EXPORT python_process_factory
-  : public sprokit::process_factory
-{
-  /**
-   * @brief CTOR for factory object
-   *
-   * This CTOR is designed to work in conjunction with pybind11
-   *
-   * @param type Type name of the process
-   * @param itype Type name of interface type.
-   * @param factory The Factory function
-   */
-  public:
-
-  python_process_factory( const std::string& type,
-                          const std::string& itype,
-                          py_process_factory_func_t factory );
-
-  virtual ~python_process_factory();
-
-  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
-
-private:
-  py_process_factory_func_t m_factory;
-};
-
-#endif
 
 } // end namespace
 
