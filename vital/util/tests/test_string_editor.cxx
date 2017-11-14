@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,29 +32,20 @@
  * \file
  * \brief test util string_editor class
  */
-#include <test_common.h>
 
 #include <vital/util/string_editor.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ( )
-
-DECLARE_TEST_MAP();
-
-// ------------------------------------------------------------------
-int
-main( int argc, char* argv[] )
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS( 1 );
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST( testname );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_editor )
+// ----------------------------------------------------------------------------
+TEST(string_editor, test)
 {
   kwiver::vital::string_editor se;
 
@@ -63,31 +54,26 @@ IMPLEMENT_TEST( test_editor )
 
   // test empty editor
   se.edit( str );
-
-  TEST_EQUAL( "Empty editor", str, astr );
+  EXPECT_EQ( astr, str );
 
   se.add( new kwiver::vital::edit_operation::shell_comment() );
   se.add( new kwiver::vital::edit_operation::right_trim() );
   se.add( new kwiver::vital::edit_operation::remove_blank_string() );
 
-  se.edit(str);
-  // std::cout << "|" << str << "|\n";
-  TEST_EQUAL( "typical line", str, "first line" );
+  EXPECT_TRUE( se.edit(str) );
+  EXPECT_EQ( "first line", str );
 
   str = "  \n";
-  TEST_EQUAL( "absorb blank line", se.edit(str), false );
+  EXPECT_FALSE( se.edit( str ) ) << "Blank line should be absorbed";
 
   str = "trailing spaces        \n";
-  se.edit(str);
-  //  std::cout << "|" << str << "|\n";
-  TEST_EQUAL( "Trailing spaces", str, "trailing spaces" );
+  EXPECT_TRUE( se.edit(str) );
+  EXPECT_EQ( "trailing spaces", str );
 
   str = "# comment  \n";
-  se.edit(str);
-  TEST_EQUAL( "absorb comment line", se.edit(str), false );
+  EXPECT_FALSE( se.edit( str ) ) << "Comment should be absorbed";
 
   str = "foo bar  # trailing comment  \n";
-  se.edit(str);
-  TEST_EQUAL( "trailing comment", str, "foo bar" );
-  // std::cout << "|" << str << "|\n";
+  EXPECT_TRUE( se.edit(str) );
+  EXPECT_EQ( "foo bar", str );
 }

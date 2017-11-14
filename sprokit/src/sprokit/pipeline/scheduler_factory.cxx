@@ -37,6 +37,42 @@ namespace sprokit {
 
 scheduler::type_t const scheduler_factory::default_type = scheduler::type_t("thread_per_process");
 
+// ----------------------------------------------------------------------------
+scheduler_factory::
+scheduler_factory( const std::string&       type,
+                   const std::string&       itype )
+    : plugin_factory( itype )
+  {
+    this->add_attribute( CONCRETE_TYPE, type)
+      .add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() )
+      .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+  }
+
+
+// ----------------------------------------------------------------------------
+cpp_scheduler_factory::
+cpp_scheduler_factory( const std::string&       type,
+                       const std::string&       itype,
+                       scheduler_factory_func_t factory )
+  : scheduler_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::scheduler_t
+cpp_scheduler_factory::
+create_object( pipeline_t const& pipe,
+               kwiver::vital::config_block_sptr const& config )
+{
+  // Call sprokit factory function.
+  return m_factory( pipe, config );
+}
+
 
 // ------------------------------------------------------------------
 sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      name,
@@ -102,5 +138,36 @@ is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
 
   return vpl.is_module_loaded( mod );
 }
+
+// ------------------------------------------------------------------
+#ifdef SPROKIT_ENABLE_PYTHON
+
+python_scheduler_factory::
+python_scheduler_factory( const std::string& type,
+                          const std::string& itype,
+                          py_scheduler_factory_func_t factory )
+  : scheduler_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+}
+
+
+// ----------------------------------------------------------------------------
+scheduler_t
+python_scheduler_factory::
+create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
+{
+  // Call sprokit factory function.
+  pybind11::object obj = m_factory(pipe, config);
+  obj.inc_ref();
+  sprokit::scheduler_t schd_ptr = obj.cast<sprokit::scheduler_t>();
+  return schd_ptr;
+}
+
+#endif
+
 
 } // end namespace

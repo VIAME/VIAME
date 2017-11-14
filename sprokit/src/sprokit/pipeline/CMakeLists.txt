@@ -112,6 +112,7 @@ target_link_libraries(sprokit_pipeline
                       vital_logger
                       ${Boost_CHRONO_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
+                      sprokit_python_util
   PRIVATE             ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_DATE_TIME_LIBRARY}
                       ${Boost_THREAD_LIBRARY}

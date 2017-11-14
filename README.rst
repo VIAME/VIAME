@@ -16,62 +16,28 @@ and uses an permissive `BSD License <LICENSE>`_.
 One of the primary design goals of KWIVER is to make it easier to pull
 together algorithms from a wide variety of third-party, open source
 image and video processing projects and integrate them into highly
-modular, run-time configurable systems.  This goal is achieved through
-the three main components of KWIVER: Vital, Arrows, and Sprokit.
+modular, run-time configurable systems. 
 
-Vital
------
-Vital is core of KWIVER and is designed to provide data and algorithm
-abstractions with minimal library dependencies.  Vital only depends on
-the C++ standard library and the header-only Eigen_ library.  Vital defines
-the core data types and abstract interfaces for core vision algorithms
-using these types.  Vital also provides various system utility functions
-like logging, plugin management, and configuration file handling.  Vital
-does **not** provide implementations of the abstract algorithms.
-Implementations are found in Arrows and are loaded dynamically at run-time
-via plugins.
+For more information on how KWIVER achieves this goal,
+and how to use KWIVER visit our `documentation site <http://kwiver.readthedocs.io/en/latest/>`_
 
-The design of KWIVER allows end-user applications to link only against
-the Vital libraries and have minimal hard dependencies.  One can then
-dynamically add algorithmic capabilities, with new dependencies, via
-plugins without needing to recompile Vital or the application code.
-Only Vital is built by default when building KWIVER without enabling
-any options in CMake.
+Directory Structure and Provided Functionality
+==============================================
 
-Arrows
-------
-Arrows is the collection of plugins that provides implementations of the
-algorithms declared in Vital.  Each arrow can be enabled or disabled
-in build process through CMake options.  Most arrows bring in additional
-third-party dependencies and wrap the capabilities of those libraries
-to make them accessible through the Vital APIs.  The code in Arrows
-also converts or wrap data types from these external libraries into
-Vital data types.  This allows interchange of data between algorithms
-from different arrows using Vital types as the intermediary.
+Below is a summary of the key directories in KWIVER and a brief summary of
+the content they contain.
 
-Capabilities are currently organized into Arrows based on what third
-party library they require.  However, this arrangement is not required
-and may change as the number of algorithms and arrows grows.  Some
-arrows, like `core <arrows/core>`_, require no additional dependencies.
-Some examples of the provided Arrows are:
 
-* `ocv <arrows/ocv>`__ - provides algorithms from OpenCV_
-* `ceres <arrows/ceres>`__ - provides algorithms from `Ceres Solver`_
-* `vxl <arrow/vxl>`__ - provides algorithms from VXL_
-
-Sprokit
--------
-Sprokit is a "**S**\ tream **Pro**\ cessing Tool\ **kit**" that provides
-infrastructure for chaining together algorithms into pipelines for
-processing streaming data sources.  The most common use case of Sprokit
-is for video processing, but Sprokit is data type agnostic and could be
-used for any type of streaming data.  Sprokit allows the user to dynamically
-connect and configure a pipeline by chaining together processing nodes
-called "processes" into a directed graph with data sources and sinks.
-Sprokit schedules the jobs to run each process and keep data flowing through
-pipeline.  Sprokit also allows processes written in Python to be
-interconnected with those written in C++.
-
+================ ===========================================================
+`<CMake>`_       CMake helper scripts
+`<arrows>`_      The algorithm plugin modules
+`<doc>`_         Documentation, manuals, release notes
+`<examples>`_    Examples for running KWIVER (currently out of date)
+`<extras>`_      Extra utilities (e.g. instrumentation)
+`<sprokit>`_     Stream processing toolkit
+`<tests>`_       Testing related support code
+`<vital>`_       Core libraries source and headers
+================ ===========================================================
 
 Building KWIVER
 ===============
@@ -86,6 +52,7 @@ grow as we expand Arrows.
 
 Vital has minimal required dependencies (only Eigen_).
 Sprokit additionally relies on Boost_.
+C++ tests additionally rely on `Google Test`_.
 Arrows and Sprokit processes are structured so that
 the code that depends on an external package is in a directory with
 the major dependency name (e.g. vxl, ocv). The dependencies can be
@@ -94,8 +61,8 @@ turned ON or OFF through CMake variables.
 To make it easier to build KWIVER, especially
 on systems like Microsoft Windows that do not have package manager,
 Fletch_ was developed to gather, configure and build dependent packages
-for use with KWIVER.  Fletch is a CMake_ based "super-build" that
-takes care of most of the build details for you.
+for use with KWIVER.  Fletch is a |cmake_link|_ based
+"super-build" that takes care of most of the build details for you.
 
 For building Fletch_, refer to the README file in that repository.
 
@@ -129,7 +96,7 @@ The following are the most important CMake configuration options for KWIVER.
 ``KWIVER_ENABLE_LOG4CPLUS``   Enable log4cplus logger back end
 ``KWIVER_ENABLE_PYTHON``      Enable the Vital Python bindings (requires KWIVER_ENABLE_C_BINDINGS)
 ``KWIVER_ENABLE_SPROKIT``     Enable the Stream Processing Toolkit
-``KWIVER_ENABLE_TESTS``       Build the unit tests
+``KWIVER_ENABLE_TESTS``       Build the unit tests (requires Google Test)
 ``KWIVER_ENABLE_TOOLS``       Build the command line tools (e.g. plugin_explorer)
 ``fletch_DIR``                Install directory of a Fletch build.
 ============================= ====================================================================
@@ -139,6 +106,7 @@ for third-party projects prefixed with ``KWIVER_ENABLE_`` that enable
 building the Arrows plugins that depend on those projects.  When building
 with the support of Fletch_ (set ``fletch_DIR``) the enable options for
 packages built by Fletch should be turned on by default.
+The fletch_DIR is the fletch build directory root, which contains the fletchConfig.cmake file.
 
 The following sections will walk you through the basic options for a minimal kwiver build.
 
@@ -150,7 +118,7 @@ Note, This assumes your fletch was built with python support (Turn OFF if not)
 You will also need to replace the fletch path with your own::
 
     $ cmake </path/to/kwiver/source> -DCMAKE_BUILD_TYPE=Release \
-            -Dfletch_DIR:PATH=<path/to/fletch/builds/install> 
+            -Dfletch_DIR:PATH=<path/to/fletch/build/dir> 
             -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_C_BINDINGS:BOOL=ON \
             -DKWIVER_ENABLE_EXTRAS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON \
             -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON \
@@ -185,7 +153,7 @@ configuration button, new options will be highlighted in the red sections.
 
    a. Note, if compiling with MSVC, you will not have a CMAKE_BUILD_TYPE option
   
-.. image:: doc/manuals/images/cmake/cmake_step_2.png
+.. image:: doc/manuals/_images/cmake/cmake_step_2.png
    :alt: KWIVER CMake Configuration Step 2
   
 3. Select these new options, and click 'Generate'
@@ -193,7 +161,7 @@ configuration button, new options will be highlighted in the red sections.
    a. This assumes your fletch was build with python support,
       if not, do not check that option
 
-.. image:: doc/manuals/images/cmake/cmake_step_3.png
+.. image:: doc/manuals/_images/cmake/cmake_step_3.png
    :alt: KWIVER CMake Configuration Step 3
 
 Compiling
@@ -206,9 +174,21 @@ this is typically running ``make``.
 There is also a build target, INSTALL. This target will build all code,
 then create an install directory inside the build directory.  This install
 folder will be populated with all binaries, libraries, headers, and other files
-you will need to develop your application with kwiver.  MSVC users note, this
-install directory is for a single build configuration and their will not be configuration 
-named directories in this directory structure. (i.e. no /bin/release, only /bin)
+you will need to develop your application with kwiver. MSVC users, note that
+this install directory is for a single build configuration; there will not be
+configuration named directories in this directory structure
+(i.e. no ``/bin/release``, only ``/bin``).
+
+.. note::
+
+  If you are on Windows and enable tests (``KWIVER_ENABLE_TESTS=ON``),
+  and are building shared libraries (``BUILD_SHARED_LIBS=ON``), you will
+  need to add the path to ``gtest.dll`` to the ``PATH`` in your environment
+  in order to build and run the tests.
+
+  The easiest way to achieve this is to use the ``setup_KWIVER.bat`` script
+  (described in the next session), and to run builds and/or launch Visual
+  Studio from a command prompt which has been so configured.
 
 
 Running KWIVER
@@ -232,12 +212,12 @@ to allow KWIVER to work conveniently within in the shell/cmd window.
 You can run this simple pipeline to ensure your system is configured properly::
 
   # via a bash shell
-  </path/to/kwiver/build>/bin/pipeline_runner -p </path/to/kwiver/source>/sprokit/pipelines/number_flow.pipe
+  </path/to/kwiver/build>/bin/pipeline_runner -p ../examples/pipelines/number_flow.pipe
   #
   # on windows, you will need to also be in the configuration folder
-  </path/to/kwiver/build>/bin/release/pipeline_runner -p </path/to/kwiver/source>/sprokit/pipelines/number_flow.pipe
+  </path/to/kwiver/build>/bin/release/pipeline_runner -p ..\..\examples\pipelines\number_flow.pipe
 
-This will generate a 'numbers.txt' file in the current directory (/bin or /bin/release).
+This will generate a 'numbers.txt' file in the </path/to/kwiver/build>/examples/pipelines/output directory.
 
 KWIVER Users
 ============
@@ -253,86 +233,6 @@ VIAME_     A computer vision library designed to integrate several image and
            video processing algorithms together in a common distributed
            processing framework, majorly targeting marine species analytics
 ========== ================================================================
-
-Code Structure and Provided Functionality
-=========================================
-
-Below is a summary of the key directories in KWIVER and a brief summary of
-the content they contain.
-
-
-================ ===========================================================
-`<CMake>`_       CMake helper scripts
-`<arrows>`_      The algorithm plugin modules
-`<doc>`_         Documentation, manuals, release notes
-`<examples>`_    Examples for running KWIVER (currently out of date)
-`<extras>`_      Extra utilities (e.g. instrumentation)
-`<sprokit>`_     Stream processing toolkit
-`<tests>`_       Testing related support code
-`<vital>`_       Core libraries source and headers
-================ ===========================================================
-
-Vital
------
-
-========================= =========================================================
-`<vital/algo>`_           Abstract algorithm definitions
-`<vital/bindings>`_       C and Python bindings
-`<vital/config>`_         Configuration support code
-`<vital/exceptions>`_     Exception class hierarchy
-`<vital/io>`_             Classes that support reading and writing core data types
-`<vital/kwiversys>`_      Code that supports the OS abstraction layer
-`<vital/logger>`_         Classes that provide logging support
-`<vital/plugin_loader>`_  Classes that provide plugin loading services
-`<vital/tests>`_          Unit tests for vital code
-`<vital/tools>`_          Source for command line utilities
-`<vital/types>`_          Classes for the core data types
-`<vital/util>`_           Source for general purpose utility functions
-`<vital/video_metadata>`_ Classes that support video metadata
-========================= =========================================================
-
-Arrows
-------
-
-===================== =========================================================
-`<arrows/burnout>`_   [*Experimental*] Pixel classifiers for heads-up display
-                      detection an related tasks using Vibrant_.
-`<arrows/ceres>`_     Algorithms for bundle adjustment and optimization using
-                      `Ceres Solver`_.
-`<arrows/core>`_      Algorithms implemented with no additional third party
-                      dependencies beyond what Vital uses (Eigen).
-`<arrows/darknet>`_   [*Experimental*] Object detection with the Darknet_ YOLO CNN.
-`<arrows/matlab>`_    An interface for running Matlab code KWIVER 
-`<arrows/ocv>`_       Algorithms implemented using OpenCV_.
-                      Includes feature detectors and descriptor, homography
-                      and fundamental matrix estimation, image IO, and more.
-`<arrows/proj>`_      Geographic conversion functions implemented with PROJ4_.
-`<arrows/uuid>`_      [*Experimental*] Implementation of unique IDs using libuuid
-`<arrows/viscl>`_     [*Experimental*] Algorithms using VisCL to implement
-                      algorithms in OpenCL 
-`<arrows/vxl>`_       Algorithms implemnted using the VXL_ libraries.
-                      Includes bundle adjustment, homography estimation, video
-                      file reading, and more.
-===================== =========================================================
-
-Sprokit
--------
-
-====================== =========================================================
-`<sprokit/cmake>`_     CMake helper scripts specific to Sprokit
-`<sprokit/conf>`_      Configuration files CMake will tailor to the build system
-                       machine and directory structure
-`<sprokit/doc>`_       Further documenation related to sprokit
-`<sprokit/extra>`_     General scripts, hooks, and cofigurations for use with 3rd
-                       party tools (e.g. git and vim)
-`<sprokit/pipelines>`_ Example pipeline files demonstrating the execution of
-                       various arrows through sprokit
-`<sprokit/processes>`_ General utility processess that encapsulate various arrows
-                       for core funcionality  
-`<sprokit/src>`_       Core infrastructure code for defining, chaining, and
-                       executing Sprokit processes 
-`<sprokit/tests>`_     Sprokit unit tests
-====================== =========================================================
 
 Testing
 ========
@@ -396,10 +296,11 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. _Boost: http://www.boost.org/
 .. _`Ceres Solver`: http://ceres-solver.org/
 .. _CDash: http://www.cdash.org/
-.. _CMake: http://www.cmake.org/
+.. _cmake_link: http://www.cmake.org/
 .. _Darknet: https://pjreddie.com/darknet/yolo/
 .. _Eigen: http://eigen.tuxfamily.org/
 .. _Fletch: https://github.com/Kitware/fletch
+.. _Google Test: https://github.com/google/googletest
 .. _Kitware: http://www.kitware.com/
 .. _MAP-Tk: https://github.com/Kitware/maptk
 .. _OpenCV: http://opencv.org/
@@ -411,6 +312,11 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 
 .. Appendix II: Text Substitutions
 .. ===============================
+
+.. Use a different target name to avoid conflict with `<CMake>`_ link to the
+   source tree.
+
+.. |cmake_link| replace:: CMake
 
 .. |>=| unicode:: U+02265 .. greater or equal sign
 

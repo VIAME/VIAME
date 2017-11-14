@@ -1,0 +1,39 @@
+strict digraph "unnamed" {
+clusterrank=local;
+
+subgraph "cluster_disp" {
+color=lightgray;
+
+"disp_main" [label=<<u>disp<br/>:: image_viewer</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/image_viewer.html"];
+
+"disp_input_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"disp_input_image" -> "disp_main" [arrowhead=none,color=black];
+"disp_input_timestamp" [label="timestamp\n:: kwiver:timestamp",shape=none,height=0,width=0,fontsize=12];
+"disp_input_timestamp" -> "disp_main" [arrowhead=none,color=black];
+
+"disp_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"disp_main" -> "disp_output__heartbeat" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_input" {
+color=lightgray;
+
+"input_main" [label=<<u>input<br/>:: frame_list_input</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/frame_list_input.html"];
+
+
+"input_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output__heartbeat" [arrowhead=none,color=black];
+"input_output_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output_image" [arrowhead=none,color=black];
+"input_output_image_file_name" [label="image_file_name\n:: kwiver:image_file_name",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output_image_file_name" [arrowhead=none,color=black];
+"input_output_timestamp" [label="timestamp\n:: kwiver:timestamp",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output_timestamp" [arrowhead=none,color=black];
+
+}
+
+"input_output_image" -> "disp_input_image" [minlen=1,color=black,weight=1];
+"input_output_timestamp" -> "disp_input_timestamp" [minlen=1,color=black,weight=1];
+
+}

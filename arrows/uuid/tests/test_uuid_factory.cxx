@@ -33,45 +33,38 @@
  * \brief test dynamic configuration
  */
 
-#include <test_common.h>
-#include <vital/plugin_loader/plugin_manager.h>
-
 #include <arrows/uuid/uuid_factory_uuid.h>
 
-#define TEST_ARGS ()
+#include <vital/plugin_loader/plugin_manager.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
+#include <gtest/gtest.h>
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::uuid;
 
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(test_api)
+TEST(uuid, test_api)
 {
   kac::uuid_factory_uuid algo;
 
   auto cfg = kwiver::vital::config_block::empty_config();
 
-  TEST_EQUAL( "check_configuration return", algo.check_configuration( cfg ), true );
+  EXPECT_TRUE( algo.check_configuration( cfg ) );
 
   kwiver::vital::uid id = algo.create_uuid();
-  TEST_EQUAL( "Valid uid", id.is_valid(), true );
+  EXPECT_TRUE( id.is_valid() );
 }
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(test_loading)
+TEST(uuid, test_loading)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -82,19 +75,11 @@ IMPLEMENT_TEST(test_loading)
   algo::uuid_factory_sptr fact;
 
   // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::uuid_factory::check_nested_algo_configuration( "uuid_cfg", cfg ) )
-  {
-    TEST_ERROR( "Configuration check failed." );
-  }
+  ASSERT_TRUE(
+    algo::uuid_factory::check_nested_algo_configuration( "uuid_cfg", cfg ) );
 
   // Instantiate the configured algorithm
   algo::uuid_factory::set_nested_algo_configuration( "uuid_cfg", cfg, fact );
-  if ( ! fact )
-  {
-    TEST_ERROR( "Unable to create algorithm" );
-  }
-  else
-  {
-    TEST_EQUAL( "algorithm name", fact->impl_name(), "uuid" );
-  }
+  ASSERT_NE( nullptr, fact ) << "Unable to create algorithm";
+  EXPECT_EQ( "uuid", fact->impl_name() );
 }

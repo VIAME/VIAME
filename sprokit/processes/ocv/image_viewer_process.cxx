@@ -203,7 +203,6 @@ image_viewer_process
   : process( config ),
     d( new image_viewer_process::priv )
 {
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
   make_ports();
   make_config();
 }

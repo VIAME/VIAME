@@ -68,9 +68,6 @@ public:
   /// Destructor
   virtual ~close_loops_multi_method() = default;
 
-  /// Returns implementation description string
-  virtual std::string description() const;
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
    * This base virtual function implementation returns an empty configuration

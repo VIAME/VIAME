@@ -76,9 +76,6 @@ public:
   /// Default Destructor
   virtual ~compute_ref_homography_core();
 
-  /// Return implementation description string
-  virtual std::string description() const;
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
    * This base virtual function implementation returns an empty configuration

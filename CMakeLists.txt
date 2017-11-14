@@ -91,7 +91,7 @@ OPTION(KWIVER_ENABLE_EXAMPLES  "Enable examples" OFF )
 OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
 
 CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF
-  "KWIVER_ENABLE_ARROWS AND  KWIVER_ENABLE_SPROKIT" OFF )
+  "KWIVER_ENABLE_ARROWS AND KWIVER_ENABLE_SPROKIT" OFF )
 
 OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
 MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
@@ -112,7 +112,6 @@ if (KWIVER_ENABLE_PYTHON)
   if ( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
   endif()
-  include( kwiver-setup-python )
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})

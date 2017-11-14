@@ -45,5 +45,6 @@
 #include "exceptions/math.h"
 #include "exceptions/video.h"
 #include "exceptions/klv.h"
+#include "exceptions/kpf.h"
 
 #endif // VITAL_EXCEPTIONS_H_

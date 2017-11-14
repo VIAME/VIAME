@@ -105,7 +105,6 @@ typedef std::vector<process_t> processes_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT process
-  : private boost::noncopyable
 {
   public:
     /// The type for the type of a process.

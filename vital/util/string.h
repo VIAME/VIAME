@@ -85,6 +85,19 @@ starts_with( const std::string& input, const std::string& pattern)
 VITAL_UTIL_EXPORT std::string
 join( const std::vector<std::string>& elements, const std::string& str_separator);
 
+
+/**
+ * @brief Removes duplicate strings while preserving original order.
+ *
+ * Modifies a vector of strings inplace by removing duplicates encountered in a
+ * forward iteration. The result is a unique vector of strings that preserves
+ * the forwards order.
+ *
+ * @param items Vector of strings to modify inplace
+ */
+VITAL_UTIL_EXPORT void
+erase_duplicates(std::vector<std::string>& items);
+
 } } // end namespace
 
 #endif /* KWIVER_VITAL_UTIL_STRING_FORMAT_H */

@@ -16,6 +16,7 @@ set( plugin_core_headers
   detected_object_set_output_csv.h
   dynamic_config_none.h
   estimate_canonical_transform.h
+  example_detector.h
   feature_descriptor_io.h
   filter_features_magnitude.h
   formulate_query_core.h
@@ -29,6 +30,7 @@ set( plugin_core_headers
   match_tracks.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
+  track_descriptor_set_output_csv.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
@@ -78,6 +80,7 @@ set( plugin_core_sources
   detected_object_set_output_csv.cxx
   dynamic_config_none.cxx
   estimate_canonical_transform.cxx
+  example_detector.cxx
   feature_descriptor_io.cxx
   filter_features_magnitude.cxx
   formulate_query_core.cxx
@@ -91,6 +94,7 @@ set( plugin_core_sources
   match_tracks.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
+  track_descriptor_set_output_csv.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx

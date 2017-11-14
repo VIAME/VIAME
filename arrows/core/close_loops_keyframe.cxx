@@ -95,6 +95,7 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
 /// Constructor
 close_loops_keyframe
 ::close_loops_keyframe()
@@ -110,14 +111,7 @@ close_loops_keyframe
 }
 
 
-std::string
-close_loops_keyframe
-::description() const
-{
-  return "Establishes keyframes matches to all keyframes";
-}
-
-
+// ----------------------------------------------------------------------------
 /// Get this alg's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 close_loops_keyframe
@@ -152,6 +146,7 @@ close_loops_keyframe
 }
 
 
+// ----------------------------------------------------------------------------
 /// Set this algo's properties via a config block
 void
 close_loops_keyframe
@@ -173,6 +168,7 @@ close_loops_keyframe
 }
 
 
+// ----------------------------------------------------------------------------
 bool
 close_loops_keyframe
 ::check_configuration(vital::config_block_sptr config) const
@@ -186,6 +182,7 @@ close_loops_keyframe
 }
 
 
+// ----------------------------------------------------------------------------
 /// Frame stitching using keyframe-base matching
 vital::feature_track_set_sptr
 close_loops_keyframe

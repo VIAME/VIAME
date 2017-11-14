@@ -643,7 +643,7 @@ process
   }
 
   // Set default logger name
-  attach_logger( kwiver::vital::get_logger( std::string( "process." ) + name() ) );
+  attach_logger( kwiver::vital::get_logger( std::string( "sprokit.process." ) + name() ) );
 }
 
 

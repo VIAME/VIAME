@@ -155,7 +155,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
         try
         {
           // Add cluster to process registry with a specific factory function
-          auto fact = vpm.add_factory( new sprokit::process_factory( type, typeid( sprokit::process ).name(), ctor ) );
+          auto fact = vpm.add_factory( new sprokit::cpp_process_factory( type, typeid( sprokit::process ).name(), ctor ) );
           fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
 
           // Indicate this is a cluster and add source file name

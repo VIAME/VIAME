@@ -137,6 +137,10 @@ IMPLEMENT_TEST(object_creation)
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 1", score, 0.775 );
 
+  dot = list_1->at(1)->type();
+  score = dot->score( "clam" );
+  TEST_EQUAL( "(expected score at 1", score, 0.775 );
+
   dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 2", score, 0.605 );
@@ -144,6 +148,11 @@ IMPLEMENT_TEST(object_creation)
   dot = (*it++)->type();
   score = dot->score( "clam" );
   TEST_EQUAL( "expected score 3", score, 0.07 );
+
+  EXPECT_EXCEPTION( std::out_of_range,
+                    dot = list_1->at(5)->type(),
+                    "indexed off end of set");
+
 }
 
 

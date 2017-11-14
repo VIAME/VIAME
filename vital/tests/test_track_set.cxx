@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,39 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-
-
 #include <vital/tests/test_track_set.h>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main( int argc, char** argv )
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(accessor_functions)
+// ----------------------------------------------------------------------------
+TEST(track_set, accessor_functions)
 {
   using namespace kwiver::vital::testing;
 
   auto test_set = make_simple_track_set();
-  test_track_set_accessors(test_set);
+  test_track_set_accessors( test_set );
 }
 
-
-IMPLEMENT_TEST(modifier_functions)
+// ----------------------------------------------------------------------------
+TEST(track_set, modifier_functions)
 {
   using namespace kwiver::vital::testing;
 
   auto test_set = make_simple_track_set();
-  test_track_set_modifiers(test_set);
+  test_track_set_modifiers( test_set );
 }

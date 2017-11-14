@@ -112,6 +112,13 @@ endif()
 
 
 ###
+#
+# Mark the previous version so we can determine when python versions change
+#
+set(__prev_kwiver_pyversion "${KWIVER_PYTHON_MAJOR_VERSION}" CACHE INTERNAL
+  "allows us to determine if the user changes python version")
+
+###
 # Python interpreter and libraries
 #
 if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
@@ -182,7 +189,7 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 ###
 # PyBind11
 #
-# 
+#
 #
   set(pybind11_library     python)
   find_package(pybind11)
@@ -201,16 +208,6 @@ set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}"
 # Currently needs to be separate because sprokit may have CONFIGURATIONS that
 # are placed between lib and `kwiver_python_subdir`
 set(sprokit_python_output_path "${KWIVER_BINARY_DIR}/lib")
-
-
-###
-# Detect major version change (part2)
-#
-# Mark the previous version so we can determine when python versions change
-#
-set(__prev_kwiver_pyversion "${KWIVER_PYTHON_MAJOR_VERSION}" CACHE INTERNAL
-  "allows us to determine if the user changes python version")
-
 
 ###
 # Status string for debugging

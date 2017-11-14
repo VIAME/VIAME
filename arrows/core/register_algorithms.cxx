@@ -46,6 +46,7 @@
 #include <arrows/core/compute_ref_homography_core.h>
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/estimate_canonical_transform.h>
+#include <arrows/core/example_detector.h>
 #include <arrows/core/feature_descriptor_io.h>
 #include <arrows/core/filter_features_magnitude.h>
 #include <arrows/core/formulate_query_core.h>
@@ -58,6 +59,7 @@
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/read_object_track_set_kw18.h>
 #include <arrows/core/read_track_descriptor_set_csv.h>
+#include <arrows/core/track_descriptor_set_output_csv.h>
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/triangulate_landmarks.h>
 #include <arrows/core/video_input_filter.h>
@@ -71,6 +73,7 @@
 #include <arrows/core/detected_object_set_output_kw18.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
+
 #include <arrows/core/dynamic_config_none.h>
 
 
@@ -452,6 +455,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
+
+  fact = vpm.ADD_ALGORITHM( "example_detector", kwiver::arrows::core::example_detector );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Simple example detector, just creates user-specified "
+                       "bounding box" )
+          .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+          .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+          .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+          ;
+
 
   vpm.mark_module_as_loaded( module_name );
 }

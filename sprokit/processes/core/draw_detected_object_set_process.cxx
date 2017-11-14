@@ -88,9 +88,6 @@ draw_detected_object_set_process
   : process( config ),
     d( new draw_detected_object_set_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
