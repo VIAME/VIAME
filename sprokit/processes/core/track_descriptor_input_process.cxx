@@ -73,9 +73,6 @@ track_descriptor_input_process
   : process( config ),
     d( new track_descriptor_input_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }

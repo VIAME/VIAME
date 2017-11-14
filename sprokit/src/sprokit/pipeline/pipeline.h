@@ -224,6 +224,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns True if the pipeline has been setup, false otherwise.
      */
     bool is_setup() const;
+
     /**
      * \brief Query whether the pipeline has been setup successfully.
      *
