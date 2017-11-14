@@ -55,6 +55,7 @@
 #include "stabilize_image_process.h"
 #include "track_descriptor_input_process.h"
 #include "track_descriptor_output_process.h"
+#include "track_features_process.h"
 #include "video_input_process.h"
 
 // ----------------------------------------------------------------
@@ -273,6 +274,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
+  fact = vpm.ADD_PROCESS(kwiver::track_features_process);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_tracker");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Tracks features from frame to frame.");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

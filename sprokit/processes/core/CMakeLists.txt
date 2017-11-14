@@ -27,6 +27,7 @@ set( sources
   stabilize_image_process.cxx
   track_descriptor_input_process.cxx
   track_descriptor_output_process.cxx
+  track_features_process.cxx
   video_input_process.cxx
 )
 
@@ -52,6 +53,7 @@ set( private_headers
   stabilize_image_process.h
   track_descriptor_input_process.h
   track_descriptor_output_process.h
+  track_features_process.h
   video_input_process.h
 )
 
