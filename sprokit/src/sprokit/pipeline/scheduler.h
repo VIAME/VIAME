@@ -35,6 +35,7 @@
 
 #include "types.h"
 #include <vital/config/config_block.h>
+#include <vital/logger/logger.h>
 #include <boost/noncopyable.hpp>
 
 /**
@@ -161,7 +162,18 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      */
     pipeline_t pipeline() const;
 
+    /**
+     * \brief Get logger handle
+     *
+     * \returns Logger handle so log messages can be generated.
+     */
+    kwiver::vital::logger_handle_t logger();
+
+    // The logger handle
+    kwiver::vital::logger_handle_t m_logger;
+
   private:
+
     class SPROKIT_PIPELINE_NO_EXPORT priv;
     std::unique_ptr<priv> d;
 };

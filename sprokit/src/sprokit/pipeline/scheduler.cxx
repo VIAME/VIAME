@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,7 @@
  * \brief Implementation of the base class for \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 class scheduler::priv
 {
@@ -72,14 +71,18 @@ class scheduler::priv
     mutex_t mut;
 };
 
+
+// ============================================================================
 scheduler
 ::~scheduler()
 {
 }
 
+
 scheduler
 ::scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
-  : d()
+  : m_logger( kwiver::vital::get_logger( "scheduler.base" ) )
+  , d()
 {
   if (!config)
   {
@@ -94,6 +97,8 @@ scheduler
   d.reset(new priv(this, pipe));
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler
 ::start()
@@ -114,6 +119,8 @@ scheduler
   d->running = true;
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler
 ::wait()
@@ -150,6 +157,8 @@ scheduler
   }
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler
 ::pause()
@@ -175,6 +184,8 @@ scheduler
   d->paused = true;
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler
 ::resume()
@@ -198,6 +209,8 @@ scheduler
   d->paused = false;
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler
 ::stop()
@@ -214,6 +227,8 @@ scheduler
   d->stop();
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler
 ::shutdown()
@@ -228,6 +243,8 @@ scheduler
   }
 }
 
+
+// ----------------------------------------------------------------------------
 pipeline_t
 scheduler
 ::pipeline() const
@@ -235,6 +252,17 @@ scheduler
   return d->p;
 }
 
+
+// ----------------------------------------------------------------------------
+kwiver::vital::logger_handle_t
+scheduler
+::logger()
+{
+  return m_logger;
+}
+
+
+// ============================================================================
 scheduler::priv
 ::priv(scheduler* sched, pipeline_t const& pipe)
   : q(sched)
@@ -250,6 +278,8 @@ scheduler::priv
 {
 }
 
+
+// ----------------------------------------------------------------------------
 void
 scheduler::priv
 ::stop()
