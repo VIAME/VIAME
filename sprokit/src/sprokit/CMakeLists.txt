@@ -75,14 +75,14 @@ sprokit_configure_file_always(version.h
 
 set(configure_code)
 
+if (KWIVER_ENABLE_PYTHON)
+  add_subdirectory(python)
+endif ()
+
 add_subdirectory(pipeline)
 add_subdirectory(pipeline_util)
 add_subdirectory(scoring)
 add_subdirectory(tools)
-
-if (KWIVER_ENABLE_PYTHON)
-  add_subdirectory(python)
-endif ()
 
 install(
   FILES       "${CMAKE_CURRENT_BINARY_DIR}/config.h"

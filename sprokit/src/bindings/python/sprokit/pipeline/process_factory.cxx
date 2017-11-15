@@ -63,6 +63,69 @@ static void mark_process_loaded( const std::string& name );
 static std::string get_description( const std::string& name );
 static std::vector< std::string > process_names();
 
+// ============================================================================
+typedef std::function< pybind11::object( kwiver::vital::config_block_sptr const& config ) > py_process_factory_func_t;
+
+class SPROKIT_PIPELINE_EXPORT python_process_factory
+  : public sprokit::process_factory
+{
+  /**
+   * @brief CTOR for factory object
+   *
+   * This CTOR is designed to work in conjunction with pybind11
+   *
+   * @param type Type name of the process
+   * @param itype Type name of interface type.
+   * @param factory The Factory function
+   */
+  public:
+
+  python_process_factory( const std::string& type,
+                          const std::string& itype,
+                          py_process_factory_func_t factory );
+
+  virtual ~python_process_factory();
+
+  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
+
+private:
+  py_process_factory_func_t m_factory;
+};
+
+
+// ------------------------------------------------------------------
+python_process_factory::
+python_process_factory( const std::string& type,
+                        const std::string& itype,
+                        py_process_factory_func_t factory )
+  : process_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "process" );
+}
+
+python_process_factory::
+~python_process_factory()
+{ }
+
+
+// ----------------------------------------------------------------------------
+sprokit::process_t
+python_process_factory::
+create_object(kwiver::vital::config_block_sptr const& config)
+{
+  // Call sprokit factory function.
+  pybind11::object obj = m_factory(config);
+
+  // We need to do it this way because of how pybind11 handles memory
+  obj.inc_ref();
+  sprokit::process_t proc_ptr = obj.cast<sprokit::process_t>();
+  return proc_ptr;
+}
+
+
 // ==================================================================
 PYBIND11_MODULE(process_factory, m)
 {
@@ -129,9 +192,9 @@ register_process( sprokit::process::type_t const&        type,
   python_process_wrapper const& wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact = vpm.add_factory( new sprokit::python_process_factory( type, // derived type name string
-                                                                    typeid( sprokit::process ).name(),
-                                                                    wrap ) );
+  auto fact = vpm.add_factory( new python_process_factory( type, // derived type name string
+                                                           typeid( sprokit::process ).name(),
+                                                           wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
