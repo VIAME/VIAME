@@ -60,19 +60,19 @@ public:
   typedef sprokit::process base_t;
 
   keyframe_selection_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~keyframe_selection_process();
+  virtual ~keyframe_selection_process();
 
 protected:
-    virtual void _configure();
-    virtual void _step();
+  virtual void _configure();
+  virtual void _step();
 
 private:
-    void make_ports();
-    void make_config();
+  void make_ports();
+  void make_config();
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class detect_features_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class detect_features_process
 
 
 } // end namespace

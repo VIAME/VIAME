@@ -47,7 +47,7 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( keyframe_selector, std::string, "", "Algorithm configuration subblock." )
+  create_config_trait( keyframe_selection, std::string, "", "Algorithm configuration subblock." )
 
 /**
  * \class keyframe_selection_process
@@ -122,17 +122,19 @@ void keyframe_selection_process
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
+  const std::string algo_name = "keyframe_selection_1";
+
   // Instantiate the configured algorithm
-  algo::keyframe_selection::set_nested_algo_configuration( "keyframe_selection", algo_config, d->m_keyframe_selection );
+  algo::keyframe_selection::set_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection );
   if ( ! d->m_keyframe_selection )
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create keyframe_selection" );
   }
 
-  algo::keyframe_selection::get_nested_algo_configuration("keyframe_selection", algo_config, d->m_keyframe_selection);
+  algo::keyframe_selection::get_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection);
 
   //// Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::keyframe_selection::check_nested_algo_configuration( "keyframe_selection", algo_config ) )
+  if ( ! algo::keyframe_selection::check_nested_algo_configuration(algo_name, algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
@@ -190,7 +192,7 @@ void keyframe_selection_process
 void keyframe_selection_process
 ::make_config()
 {
-  declare_config_using_trait( keyframe_selector );
+  declare_config_using_trait( keyframe_selection );
 }
 
 

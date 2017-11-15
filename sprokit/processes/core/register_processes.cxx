@@ -284,7 +284,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
 
   fact = vpm.ADD_PROCESS(kwiver::keyframe_selection_process);
-  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection_process");
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Selects keyframes from a track set.");
