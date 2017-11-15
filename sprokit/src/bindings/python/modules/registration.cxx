@@ -75,6 +75,8 @@ MODULES_PYTHON_EXPORT
 void
 register_factories(kwiver::vital::plugin_loader& vpm)
 {
+  auto logger = kwiver::vital::get_logger("sprokit.python_modules");
+
   if (is_suppressed())
   {
     return;
@@ -84,11 +86,18 @@ register_factories(kwiver::vital::plugin_loader& vpm)
 
 #ifdef SPROKIT_LOAD_PYLIB_SYM
   const char *pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
-
   if( pylib )
   {
+    LOG_DEBUG(logger, "Loading symbols from PYTHON_LIBRARY= " << pylib );
     dlopen( pylib, RTLD_LAZY | RTLD_GLOBAL );
   }
+  else
+  {
+    LOG_DEBUG(logger, "Unable to pre-load python symbols because " <<
+                      "PYTHON_LIBRARY is undefined.");
+  }
+#else
+  LOG_DEBUG(logger, "Not checking for python symbols");
 #endif
 
   sprokit::python::python_gil const gil;
