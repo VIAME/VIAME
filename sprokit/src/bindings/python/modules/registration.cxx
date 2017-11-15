@@ -81,6 +81,9 @@ register_factories(kwiver::vital::plugin_loader& vpm)
   }
 
   Py_Initialize();
+  // Set Python interpeter attribute: sys.argv = []
+  // parameters are: (argc, argv, updatepath)
+  PySys_SetArgvEx(0, NULL, 0);
 
 #ifdef SPROKIT_LOAD_PYLIB_SYM
   const char *pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
