@@ -259,7 +259,6 @@ if (KWIVER_ENABLE_PYTHON)
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n:: set to suppress loading python modules/processes\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "::set SPROKIT_NO_PYTHON_MODULES=false\n\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n# point to the python library")
 endif()
 
 if ( KWIVER_ENABLE_MATLAB )
