@@ -48,6 +48,7 @@
 #include "image_filter_process.h"
 #include "image_object_detector_process.h"
 #include "image_writer_process.h"
+#include "keyframe_selection_process.h"
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
 #include "refine_detections_process.h"
@@ -280,6 +281,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Tracks features from frame to frame.");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
+
+  fact = vpm.ADD_PROCESS(kwiver::keyframe_selection_process);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Selects keyframes from a track set.");
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
 
   // - - - - - - - - - - - - - - - - - - - - - - -

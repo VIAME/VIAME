@@ -35,8 +35,8 @@
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::keyframe_selection);
 
 namespace kwiver {
-  namespace vital {
-    namespace algo {
+namespace vital {
+namespace algo {
 
       keyframe_selection
         ::keyframe_selection()
@@ -44,7 +44,7 @@ namespace kwiver {
         attach_logger("keyframe_selection");
       }
 
-
+      /*
       /// Set this algorithm's properties via a config block
       void
         keyframe_selection
@@ -61,7 +61,9 @@ namespace kwiver {
         (void)config;
         return true;
       }
+      */
+}}} // end namespace
 
-    }
-  }
-} // end namespace
+  /// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::keyframe_selection);
+/// \endcond
