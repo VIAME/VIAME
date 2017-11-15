@@ -105,6 +105,7 @@ class process_trampoline
     void _step() override;
     void _reconfigure(kwiver::vital::config_block_sptr const& config) override;
     sprokit::process::properties_t _properties() const override;
+    sprokit::process::properties_t _properties_over() const;
     sprokit::process::ports_t _input_ports() const override;
     sprokit::process::ports_t _output_ports() const override;
     port_info_t _input_port_info(port_t const& port) override;
@@ -592,13 +593,22 @@ process_trampoline
 
 sprokit::process::properties_t
 process_trampoline
-::_properties() const
+::_properties_over() const
 {
   PYBIND11_OVERLOAD(
     sprokit::process::properties_t,
     process,
     _properties,
   );
+}
+
+sprokit::process::properties_t
+process_trampoline
+::_properties() const
+{
+  sprokit::process::properties_t consts = _properties_over();
+  consts.insert("_python");
+  return consts;
 }
 
 sprokit::process::ports_t
