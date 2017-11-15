@@ -80,10 +80,17 @@ register_factories(kwiver::vital::plugin_loader& vpm)
     return;
   }
 
-  Py_Initialize();
-  // Set Python interpeter attribute: sys.argv = []
-  // parameters are: (argc, argv, updatepath)
-  PySys_SetArgvEx(0, NULL, 0);
+  // Check if a python interpreter already exists so we don't clobber sys.argv
+  // (e.g. if sprokit is initialized from python)
+  if (not Py_IsInitialized())
+  {
+    // Embed a python interpretter if one does not exist
+    Py_Initialize();
+
+    // Set Python interpeter attribute: sys.argv = []
+    // parameters are: (argc, argv, updatepath)
+    PySys_SetArgvEx(0, NULL, 0);
+  }
 
 #ifdef SPROKIT_LOAD_PYLIB_SYM
   const char *pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
