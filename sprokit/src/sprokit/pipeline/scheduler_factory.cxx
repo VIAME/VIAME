@@ -74,7 +74,7 @@ create_object( pipeline_t const& pipe,
 {
   // Call sprokit factory function.
   process::names_t names = pipe->process_names();
-  for ( name : names )
+  for ( process::name_t const& name : names )
   {
     auto process = pipe->process_by_name(name);
     auto properties = process->properties();
