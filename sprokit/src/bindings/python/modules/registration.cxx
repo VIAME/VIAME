@@ -51,7 +51,7 @@
   #include <dlfcn.h>
 #endif
 
-using namespace pybind11;
+namespace py = pybind11;
 
 static void load();
 static bool is_suppressed();
@@ -103,8 +103,8 @@ register_factories(kwiver::vital::plugin_loader& vpm)
 void
 load()
 {
-  object const modules = module::import("sprokit.modules.modules");
-  object const loader = modules.attr("load_python_modules");
+  py::object const modules = py::module::import("sprokit.modules.modules");
+  py::object const loader = modules.attr("load_python_modules");
 
   loader();
 }
