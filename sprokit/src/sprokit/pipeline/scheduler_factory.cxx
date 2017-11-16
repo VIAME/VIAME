@@ -30,9 +30,6 @@
 
 #include "scheduler_factory.h"
 #include "scheduler_registry_exception.h"
-#include "scheduler_exception.h"
-
-#include "pipeline.h"
 
 #include <vital/logger/logger.h>
 
@@ -73,18 +70,6 @@ create_object( pipeline_t const& pipe,
                kwiver::vital::config_block_sptr const& config )
 {
   // Call sprokit factory function.
-  process::names_t names = pipe->process_names();
-  for ( process::name_t const& name : names )
-  {
-    auto process = pipe->process_by_name(name);
-    auto properties = process->properties();
-    if ( properties.find("_python") != properties.end() )
-    {
-      std::string const reason = "The process \'" + name + "\' is "
-                                 "a python process and is not supported by this scheduler.";
-      throw incompatible_pipeline_exception(reason);
-    }
-  }
   return m_factory( pipe, config );
 }
 
