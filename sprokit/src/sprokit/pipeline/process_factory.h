@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_FACTORY_H
 #define SPROKIT_PIPELINE_PROCESS_FACTORY_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>

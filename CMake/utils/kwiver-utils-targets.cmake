@@ -208,7 +208,7 @@ function(kwiver_add_library     name)
     _kwiver_compile_pic("${name}")
   endif()
 
-  _kwiver_export(${name})
+  _kwiver_export("${name}")
   # LIB_SUFFIX should only apply to installation location, not the build
   # locations that properties above this point pertain to.
   kwiver_install(
@@ -221,7 +221,7 @@ function(kwiver_add_library     name)
     )
 
   if ( NOT no_export)
-    set_property(GLOBAL APPEND PROPERTY kwiver_libraries ${name})
+    set_property(GLOBAL APPEND PROPERTY kwiver_libraries "${name}")
   endif()
 endfunction()
 

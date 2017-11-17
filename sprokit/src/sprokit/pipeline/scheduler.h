@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_H
 #define SPROKIT_PIPELINE_SCHEDULER_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "types.h"
 #include <vital/config/config_block.h>
