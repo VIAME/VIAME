@@ -66,7 +66,7 @@ static std::vector< std::string > process_names();
 // ============================================================================
 typedef std::function< pybind11::object( kwiver::vital::config_block_sptr const& config ) > py_process_factory_func_t;
 
-class SPROKIT_PIPELINE_EXPORT python_process_factory
+class python_process_factory
   : public sprokit::process_factory
 {
   /**
