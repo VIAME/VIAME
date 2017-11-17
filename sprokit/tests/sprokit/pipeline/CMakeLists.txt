@@ -57,6 +57,8 @@ function (sprokit_add_test_plugin    name    directory)
   endforeach ()
 endfunction ()
 
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
 sprokit_add_test_plugin(processes_test multiple_load
   processes_test.cxx)
 
