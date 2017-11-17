@@ -84,9 +84,10 @@ thread_per_process_scheduler
   process_t proc = p->get_python_process();
   if(proc)
   {
-      std::string const reason = "The process \'" + proc->name() + "\' is "
-                                 "a python process and is not supported by this scheduler.";
-      throw incompatible_pipeline_exception(reason);
+    std::string const reason = "The process \'" + proc->name() + "\' of type \'" + proc->type()
+      + "\' is a python process and that type of process is not supported by this scheduler.";
+
+    throw incompatible_pipeline_exception(reason);
   }
 
   process::names_t const names = p->process_names();
@@ -102,18 +103,6 @@ thread_per_process_scheduler
     {
       std::string const reason =
         "The process \'" + name + "\' does not support being in its own thread.";
-
-      throw incompatible_pipeline_exception(reason);
-    }
-
-    // Test for a python process in the pipeline. This scheduler does
-    // not support running python processes and bad things happen if
-    // you try.
-    if ( consts.count( process::property_python) )
-    {
-      std::string const reason = "The process \'" + name + "\' of type \'" + proc->type()
-        + "\' is "
-        "a python process and that type of process is not supported by this scheduler.";
 
       throw incompatible_pipeline_exception(reason);
     }

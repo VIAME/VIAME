@@ -92,8 +92,9 @@ sync_scheduler
   process_t proc = p->get_python_process();
   if(proc)
   {
-      std::string const reason = "The process \'" + proc->name() + "\' is "
-                                 "a python process and is not supported by this scheduler.";
+        std::string const reason = "The process \'" + proc->name() + "\' of type \'" + proc->type()
+      + "\' is a python process and that type of process is not supported by this scheduler.";
+
       throw incompatible_pipeline_exception(reason);
   }
 
