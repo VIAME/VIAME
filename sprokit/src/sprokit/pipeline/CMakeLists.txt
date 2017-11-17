@@ -123,9 +123,15 @@ if(APPLE AND KWIVER_ENABLE_PYTHON)
 endif()
 
 kwiver_install_headers(
-  SUBDIR sprokit/pipeline
-  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_pipeline_export.h
   ${pipeline_headers}
+  SUBDIR sprokit/pipeline
+  )
+
+# install export header
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_pipeline_export.h
+  SUBDIR sprokit/pipeline
+  NOPATH
   )
 
 sprokit_configure_pkgconfig(sprokit-pipeline)
