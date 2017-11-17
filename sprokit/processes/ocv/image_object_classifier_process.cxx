@@ -71,7 +71,7 @@ public:
   /**
    * @brief Classify regions defined within the provided detected object set.
    *
-  * Replace multi-channel image with a single channel image equal to the root 
+  * Replace multi-channel image with a single channel image equal to the root
   * mean square over the channels.
   *
   * @param src_image Full-resolution image
