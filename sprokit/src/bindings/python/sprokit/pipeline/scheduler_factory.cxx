@@ -62,7 +62,7 @@ static std::string get_default_type();
 typedef std::function< pybind11::object( sprokit::pipeline_t const& pipe,
                                kwiver::vital::config_block_sptr const& config ) > py_scheduler_factory_func_t;
 
-class SPROKIT_PIPELINE_EXPORT python_scheduler_factory
+class python_scheduler_factory
   : public sprokit::scheduler_factory
 {
   public:
