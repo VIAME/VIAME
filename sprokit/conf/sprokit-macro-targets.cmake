@@ -153,7 +153,8 @@ endfunction ()
 
 ###
 # replace with kwiver_add_library()
-function (sprokit_add_library name)
+function (sprokit_add_library        name)
+
   add_library("${name}"     ${ARGN})
 
   set_target_properties("${name}"
@@ -161,8 +162,6 @@ function (sprokit_add_library name)
       ARCHIVE_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
       LIBRARY_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
       RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin${library_subdir}${library_subdir_suffix}")
-
-  add_dependencies("${name}"    configure-config.h)
 
   foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
     set(subdir "/${config}/${library_subdir}${library_subdir_suffix}")

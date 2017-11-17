@@ -34,20 +34,16 @@
 
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>
-
 #include <sprokit/processes/adapters/output_adapter.h>
 #include <sprokit/processes/adapters/output_adapter_process.h>
-
 #include <sprokit/processes/adapters/embedded_pipeline.h>
-
-#include <sprokit/config.h>
 #include <sprokit/pipeline_util/literal_pipeline.h>
 
 #include <sstream>
 #include <thread>
 
 
-class SPROKIT_NO_EXPORT test_non_blocking
+class test_non_blocking
   : public sprokit::process
 {
 public:

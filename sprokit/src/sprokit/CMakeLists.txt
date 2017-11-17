@@ -1,7 +1,6 @@
-sprokit_configure_file(config.h
-  "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-  SPROKIT_HAVE_GCC_VISIBILITY)
+#
+#
+#
 
 set(SPROKIT_BUILT_FROM_GIT)
 
