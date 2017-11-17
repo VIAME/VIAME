@@ -6,7 +6,6 @@
 #   sprokit_add_library
 #   sprokit_private_header_group
 #   sprokit_private_template_group
-#   sprokit_install_headers
 #   sprokit_install_pipelines
 #   sprokit_install_clusters
 #   sprokit_install_includes
@@ -65,10 +64,6 @@
 #     Add 'sources' to a subdirectory within IDEs which display sources for
 #     each target. Useful for separating installed files from private files in
 #     the UI.
-#
-#   sprokit_install_headers(subdir [header ...])
-#     Installs the headers stored in the variable under a subdirectory. Headers
-#     are always installed under the 'development' component.
 #
 #   sprokit_install_pipelines([pipeline ...])
 #   sprokit_install_clusters([cluster ...])
@@ -223,15 +218,6 @@ endfunction ()
 function (sprokit_private_template_group)
   source_group("Template Files\\Private"
     FILES ${ARGN})
-endfunction ()
-
-###
-#
-function (sprokit_install_headers subdir)
-  sprokit_install(
-    FILES       ${ARGN}
-    DESTINATION "include/${subdir}"
-    COMPONENT   development)
 endfunction ()
 
 ###
