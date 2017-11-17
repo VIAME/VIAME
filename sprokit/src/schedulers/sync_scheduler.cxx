@@ -85,11 +85,20 @@ sync_scheduler
   , d(new priv)
 {
   pipeline_t const p = pipeline();
+
+  process_t proc = p->get_python_process();
+  if(proc)
+  {
+      std::string const reason = "The process \'" + proc->name() + "\' is "
+                                 "a python process and is not supported by this scheduler.";
+      throw incompatible_pipeline_exception(reason);
+  }
+
   process::names_t const names = p->process_names();
 
   for (process::name_t const& name : names)
   {
-    process_t const proc = p->process_by_name(name);
+    proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
 
     if (consts.count(process::property_unsync_output))

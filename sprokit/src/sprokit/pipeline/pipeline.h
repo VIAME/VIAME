@@ -491,6 +491,13 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      */
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
 
+    /**
+     * \brief Check to see if the pipeline has any python processes.
+     *
+     * \returns Return a python process if any exist, or a null pointer otherwise
+     */
+    process_t get_python_process() const;
+
   private:
     friend class scheduler;
     SPROKIT_PIPELINE_NO_EXPORT void start();
