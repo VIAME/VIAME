@@ -36,7 +36,7 @@
 #include "types.h"
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 /**
  * \file scheduler.h
@@ -44,8 +44,7 @@
  * \brief Header for \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class scheduler scheduler.h <sprokit/pipeline/scheduler.h>
@@ -59,7 +58,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT scheduler
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /// The type of registry keys.

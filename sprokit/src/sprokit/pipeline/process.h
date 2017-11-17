@@ -46,7 +46,7 @@
 #pragma warning (disable : 4244)
 #pragma warning (disable : 4267)
 #endif
-#include <boost/noncopyable.hpp>
+
 #include <boost/cstdint.hpp>
 #include <boost/rational.hpp>
 #ifdef WIN32
