@@ -129,18 +129,12 @@ TEST(estimate_essential_matrix, ideal_points)
 
   // compute the essential matrix from the corresponding points
   std::vector<bool> inliers;
-  auto estimated_E_sptr = est_e.estimate(pts1, pts2, cal1, cal2, inliers, 1.5);
-  matrix_3x3d estimated_E = estimated_E_sptr->matrix();
-  // check for sign difference
-  if( true_E->matrix().cwiseProduct(estimated_E).sum() < 0.0 )
-  {
-    estimated_E *= -1;
-  }
+  auto estimated_E = est_e.estimate(pts1, pts2, cal1, cal2, inliers, 1.5);
 
   // compare true and computed essential matrices
-  std::cout << "true E = "<< *true_E << std::endl;
-  std::cout << "Estimated E = "<< estimated_E << std::endl;
-  EXPECT_MATRIX_NEAR( true_E->matrix(), estimated_E, 1e-8 );
+  std::cout << "true E = " << *true_E << std::endl;
+  std::cout << "Estimated E = " << *estimated_E << std::endl;
+  EXPECT_MATRIX_SIMILAR( true_E->matrix(), estimated_E->matrix(), 1e-8 );
 
   std::cout << "num inliers " << inliers.size() << std::endl;
   EXPECT_EQ( pts1.size(), inliers.size() )
@@ -196,18 +190,12 @@ TEST(estimate_essential_matrix, noisy_points)
 
   // compute the essential matrix from the corresponding points
   std::vector<bool> inliers;
-  auto estimated_E_sptr = est_e.estimate(pts1, pts2, cal1, cal2, inliers, 1.5);
-  matrix_3x3d estimated_E = estimated_E_sptr->matrix();
-  // check for sign difference
-  if( true_E->matrix().cwiseProduct(estimated_E).sum() < 0.0 )
-  {
-    estimated_E *= -1;
-  }
+  auto estimated_E = est_e.estimate(pts1, pts2, cal1, cal2, inliers, 1.5);
 
   // compare true and computed essential matrices
   std::cout << "true E = "<< *true_E << std::endl;
-  std::cout << "Estimated E = "<< estimated_E << std::endl;
-  EXPECT_MATRIX_NEAR( true_E->matrix(), estimated_E, 1e-2 );
+  std::cout << "Estimated E = "<< *estimated_E << std::endl;
+  EXPECT_MATRIX_SIMILAR( true_E->matrix(), estimated_E->matrix(), 1e-2 );
 
   std::cout << "num inliers " << inliers.size() << std::endl;
   EXPECT_GT( inliers.size(), pts1.size() / 3 )

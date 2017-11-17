@@ -112,7 +112,6 @@ target_link_libraries(sprokit_pipeline
                       vital_logger
                       ${Boost_CHRONO_LIBRARY}
                       ${Boost_SYSTEM_LIBRARY}
-                      sprokit_python_util
   PRIVATE             ${Boost_FILESYSTEM_LIBRARY}
                       ${Boost_DATE_TIME_LIBRARY}
                       ${Boost_THREAD_LIBRARY}
@@ -126,10 +125,6 @@ set_target_properties(sprokit_pipeline
     VERSION       ${KWIVER_VERSION}
     SOVERSION     0
     DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_LIB)
-
-if(APPLE AND KWIVER_ENABLE_PYTHON)
-  set_target_properties(sprokit_pipeline PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-endif()
 
 add_dependencies(sprokit_pipeline     configure-version.h)
 

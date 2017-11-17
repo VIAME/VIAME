@@ -112,18 +112,13 @@ TEST(estimate_fundamental_matrix, ideal_points)
 
   // compute the fundamental matrix from the corresponding points
   std::vector<bool> inliers;
-  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
-  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
-  // check for sign difference
-  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
-  {
-    estimated_F *= -1;
-  }
+  auto estimated_F = est_f.estimate( pts1, pts2, inliers, 1.5 );
 
   // compare true and computed fundamental matrices
-  std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< estimated_F <<std::endl;
-  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, ideal_tolerance );
+  std::cout << "true F = " << *true_F << std::endl;
+  std::cout << "Estimated F = "<< *estimated_F << std::endl;
+  EXPECT_MATRIX_SIMILAR( true_F->matrix(), estimated_F->matrix(),
+                         ideal_tolerance );
 
   std::cout << "num inliers " << inliers.size() << std::endl;
   EXPECT_EQ( pts1.size(), inliers.size() )
@@ -178,18 +173,12 @@ TEST(estimate_fundamental_matrix, noisy_points)
 
   // compute the fundamental matrix from the corresponding points
   std::vector<bool> inliers;
-  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
-  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
-  // check for sign difference
-  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
-  {
-    estimated_F *= -1;
-  }
+  auto estimated_F = est_f.estimate( pts1, pts2, inliers, 1.5 );
 
   // compare true and computed fundamental matrices
-  std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< estimated_F <<std::endl;
-  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, 0.01 );
+  std::cout << "true F = " << *true_F << std::endl;
+  std::cout << "Estimated F = "<< *estimated_F << std::endl;
+  EXPECT_MATRIX_SIMILAR( true_F->matrix(), estimated_F->matrix(), 0.01 );
 
   std::cout << "num inliers " << inliers.size() << std::endl;
   EXPECT_GT( inliers.size(), pts1.size() / 2 )
@@ -253,18 +242,13 @@ TEST(estimate_fundamental_matrix, outlier_points)
 
   // compute the fundamental matrix from the corresponding points
   std::vector<bool> inliers;
-  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
-  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
-  // check for sign difference
-  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
-  {
-    estimated_F *= -1;
-  }
+  auto estimated_F = est_f.estimate( pts1, pts2, inliers, 1.5 );
 
   // compare true and computed fundamental matrices
-  std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< estimated_F << std::endl;
-  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, outlier_tolerance );
+  std::cout << "true F = " << *true_F << std::endl;
+  std::cout << "Estimated F = "<< *estimated_F << std::endl;
+  EXPECT_MATRIX_SIMILAR( true_F->matrix(), estimated_F->matrix(),
+                         outlier_tolerance );
 
   std::cout << "num inliers " << inliers.size() << std::endl;
   EXPECT_GT( inliers.size(), pts1.size() / 3 )

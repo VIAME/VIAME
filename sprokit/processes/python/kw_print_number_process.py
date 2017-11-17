@@ -29,7 +29,6 @@
 from __future__ import print_function
 import sprokit.pipeline.process
 import sprokit.pipeline.config
-from sprokit.pipeline.process_factory import ProcessFactory
 
 import os.path
 
