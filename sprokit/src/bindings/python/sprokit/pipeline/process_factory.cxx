@@ -254,22 +254,10 @@ std::string get_description( const std::string& type )
 // ------------------------------------------------------------------
 std::vector< std::string > process_names()
 {
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto py_fact_list = vpm.get_factories<object>();
+  std::vector< std::string > name_list;
 
-  std::vector<std::string> name_list;
-  for( auto fact : py_fact_list )
-  {
-    std::string buf;
-    if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
-    {
-      name_list.push_back( buf );
-    }
-  } // end foreach
-
-  auto fact_list = vpm.get_factories<sprokit::process>();
-
-  for( auto fact : py_fact_list )
+  auto fact_list = sprokit::get_process_list();
+  for( auto fact : fact_list )
   {
     std::string buf;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
