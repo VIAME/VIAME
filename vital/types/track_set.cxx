@@ -406,6 +406,22 @@ track_set_implementation
   return keyframe_data_const_sptr();
 }
 
+void
+track_set_implementation
+::set_keyframe_data(keyframe_data_const_sptr kfd)
+{
+  //no op
+}
+
+track_set_implementation_uptr
+track_set_implementation
+::clone() const
+{
+  return track_set_implementation_uptr();
+}
+
+//=============================================================================
+
 /// Default Constructor
 track_set
 ::track_set()
@@ -428,6 +444,18 @@ track_set
   : impl_(new simple_track_set_implementation(tracks))
 {
 }
+
+track_set_sptr
+track_set
+::clone() const {
+
+  track_set_implementation_uptr my_impl = impl_->clone();
+
+  track_set_sptr ts = std::make_shared<track_set>(std::move(my_impl));
+  
+  return ts;
+}
+
 
 
 //===================================================================
@@ -494,5 +522,47 @@ simple_track_set_implementation
 {
   return std::dynamic_pointer_cast<const keyframe_data>(kf_data_);
 }
+
+void 
+simple_track_set_implementation
+::set_keyframe_data(keyframe_data_const_sptr kfd) {
+  kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(std::const_pointer_cast<keyframe_data>(kfd));
+  if (!kf_data_)
+  {
+    static std::string const reason = "Input keyframe data could not be cast to a simple keyframe data.";
+    throw std::runtime_error(reason);
+  }
+}
+
+
+track_set_implementation_uptr 
+simple_track_set_implementation
+::clone() const
+{
+  //std::vector<track_sptr> new_tracks;
+  //put together the new tracks
+  //TODO clone the tracks
+
+
+
+  std::unique_ptr<simple_track_set_implementation> new_stsi = std::make_unique<simple_track_set_implementation>();
+
+  for (auto trk : data_)  
+  {
+    new_stsi->data_.push_back(trk->clone());  //TODO compare track::clone to feature_track::clone
+
+  }
+
+  //this will work because this->kf_data is in fact a simple_keyframe_data by construction
+  new_stsi->kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(this->kf_data_->clone());
+  
+  std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());
+  if (new_tsi) {
+    new_stsi.release();
+  }
+
+  return new_tsi;
+}
+
 
 } } // end namespace vital

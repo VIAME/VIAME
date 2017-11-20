@@ -92,6 +92,16 @@ feature_< T >
 {
 }
 
+template < typename T >
+feature_sptr
+feature_< T >
+::clone() const {
+  
+  feature_<T> *ptr = new feature_<T>(this->loc_, this->magnitude_, this->scale_, this->angle_, this->color_);
+  std::shared_ptr< feature_< T> > new_feat(ptr);
+  return std::dynamic_pointer_cast<feature>(new_feat);
+}
+
 
 /// output stream operator for a feature
 template < typename T >

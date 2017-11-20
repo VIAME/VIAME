@@ -67,7 +67,21 @@ public:
   /// Clone the track state (polymorphic copy constructor)
   virtual track_state_sptr clone() const
   {
-    return std::make_shared<feature_track_state>( *this );
+    
+    feature_sptr nf;
+    descriptor_sptr nd;
+
+    if (feature)
+    {
+      nf = feature->clone();
+    }
+
+    if (descriptor)
+    {
+      nd = descriptor->clone();
+    }
+
+    return std::shared_ptr<feature_track_state>(new feature_track_state(frame_id_,nf,nd));
   }
 
   feature_sptr feature;
@@ -100,6 +114,11 @@ public:
 
   /// Destructor
   virtual ~feature_track_set() = default;
+
+  /**
+  * \note returns a deep copy of the feature_track_set
+  */
+  virtual track_set_sptr clone() const;
 
   /// Return the set of features in tracks on the last frame
   virtual feature_set_sptr last_frame_features() const;

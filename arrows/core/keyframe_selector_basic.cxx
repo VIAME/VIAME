@@ -266,22 +266,24 @@ keyframe_selector_basic
   // 2) number of features in frame is greater than some minimum.  This prevents 
   //    keyframes from being added in areas with little texture (few features).
 
-  keyframe_data_const_sptr kfd = tracks->get_keyframe_data();
+  track_set_sptr cur_tracks = tracks->clone();  //deep copy here
+
+  keyframe_data_const_sptr kfd = cur_tracks->get_keyframe_data();
 
   auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
 
   if (kfd_metadata_map->empty())
   {
     //we don't have any keyframe data yet for this set of tracks.
-    d_->initial_keyframe_selection(tracks);
+    d_->initial_keyframe_selection(cur_tracks);
   }
 
   if (!kfd_metadata_map->empty())
   { //check again because initial keyframe selection could have added a keyframe
-    d_->continuing_keyframe_selection(tracks);
+    d_->continuing_keyframe_selection(cur_tracks);
   }
 
-  return tracks; // no op for now
+  return cur_tracks;  //return the copy of tracks
 }
 /*
 //this will eventually go in keyframe_selector_graph

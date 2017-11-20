@@ -82,6 +82,18 @@ public:
     return kf_map_ptr;
   }
 
+  std::shared_ptr<simple_keyframe_data::priv> clone() const
+  {
+    std::shared_ptr<simple_keyframe_data::priv> new_skd_priv =
+      std::make_shared<simple_keyframe_data::priv>();
+    
+    for (auto kf : *kf_map_ptr)
+    {
+      (*(new_skd_priv->kf_map_ptr))[kf.first] = kf.second->clone();
+    }
+    return new_skd_priv;
+  }
+
   keyframe_data_map_sptr kf_map_ptr;
 };  //end keframe_data::priv 
 
@@ -97,6 +109,15 @@ simple_keyframe_data
 ::~simple_keyframe_data()
 {
 
+}
+
+keyframe_data_sptr 
+simple_keyframe_data
+::clone() const
+{
+  simple_keyframe_data_sptr new_skd = std::make_shared<simple_keyframe_data>();
+  new_skd->d_ = this->d_->clone();
+  return new_skd;
 }
 
 keyframe_metadata_sptr
@@ -167,6 +188,13 @@ keyframe_data_graph
 ::get_keyframe_metadata_map() const
 {
   return keyframe_data_map_const_sptr();
+}
+
+keyframe_data_sptr 
+keyframe_data_graph
+::clone() const
+{
+  return keyframe_data_graph_sptr();
 }
 
 

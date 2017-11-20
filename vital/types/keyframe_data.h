@@ -52,10 +52,17 @@
 namespace kwiver {
 namespace vital {
 
+class keyframe_metadata;
+typedef std::shared_ptr< keyframe_metadata> keyframe_metadata_sptr;
+
 class VITAL_EXPORT keyframe_metadata {
 public:
   virtual ~keyframe_metadata() {}
+  virtual keyframe_metadata_sptr clone() const = 0;
 };
+
+class keyframe_metadata_for_basic_selector;
+typedef std::shared_ptr<keyframe_metadata_for_basic_selector> keyframe_metadata_for_basic_selector_sptr;
 
 class VITAL_EXPORT keyframe_metadata_for_basic_selector :public keyframe_metadata
 {
@@ -67,12 +74,17 @@ public:
 
   virtual ~keyframe_metadata_for_basic_selector() {}
 
+  virtual keyframe_metadata_sptr clone() const
+  {
+    keyframe_metadata_for_basic_selector_sptr new_kfmd =
+      std::make_shared< keyframe_metadata_for_basic_selector >(this->is_keyframe);
+    return new_kfmd;
+  }
+
   bool is_keyframe;
 };
 
-typedef std::shared_ptr<keyframe_metadata_for_basic_selector> keyframe_metadata_for_basic_selector_sptr;
 
-typedef std::shared_ptr< keyframe_metadata> keyframe_metadata_sptr;
 
 class keyframe_data;
 /// Shared pointer for base keyframe_data type
@@ -106,6 +118,8 @@ public:
 
   virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const = 0;
 
+  virtual keyframe_data_sptr clone() const = 0;
+
 };
 
 class VITAL_EXPORT simple_keyframe_data:public keyframe_data
@@ -122,6 +136,8 @@ public:
   virtual bool remove_frame_metadata(frame_id_t frame);
 
   virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const;
+
+  virtual keyframe_data_sptr clone() const;
 
 protected:
   class priv;
@@ -145,11 +161,15 @@ public:
 
   virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const;
 
+  virtual keyframe_data_sptr clone() const;
+
 protected:
   class priv;
   std::shared_ptr<priv> d_;
   
 };
+
+typedef std::shared_ptr<keyframe_data_graph> keyframe_data_graph_sptr;
 
 
 } // end namespace vital

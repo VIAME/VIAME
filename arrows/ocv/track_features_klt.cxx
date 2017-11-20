@@ -485,8 +485,11 @@ track_features_klt
   }
 
   //setup stuff complete
-  feature_track_set_sptr cur_tracks = prev_tracks;
-
+  feature_track_set_sptr cur_tracks;
+  if (prev_tracks)
+  {
+    cur_tracks = std::dynamic_pointer_cast<feature_track_set>(prev_tracks->clone());
+  }
   //points to be tracked in the next frame.  Empty at first.
   std::vector<cv::Point2f> next_points;
 
@@ -505,10 +508,29 @@ track_features_klt
     //copy last frame's features   
     std::vector<feature_sptr> vf = 
       cur_tracks->last_frame_features()->features(); 
-    for (unsigned int i = 0; i< active_tracks.size(); ++i)
+    unsigned int kf_feat_i = 0;
+    for (unsigned int last_frame_feat_i = 0; last_frame_feat_i< active_tracks.size(); ++last_frame_feat_i)
     {
-      vector_2f tp(tracked_points[i].x, tracked_points[i].y);
-      if (!status[i] 
+      //first we check if the active track has a descriptor.  If it does, it's not a klt track so we skip over it.
+      track_sptr t = active_tracks[last_frame_feat_i];
+      if (t->empty())
+      {
+        continue;
+      }
+      std::shared_ptr<const feature_track_state> first_track_fts = std::dynamic_pointer_cast<const feature_track_state>(*(t->begin()));
+      if (!first_track_fts)
+      {
+        static std::string const reason = "The track state should be castable to a feature_track_state but is not.";
+        throw std::runtime_error(reason);
+      }
+      if (first_track_fts->descriptor)
+      {
+        //this feature has a descriptor, so It's not a KLT feature.  Skip it.
+        continue;
+      }
+
+      vector_2f tp(tracked_points[kf_feat_i].x, tracked_points[kf_feat_i].y);
+      if (!status[kf_feat_i]
           || tp.x() <= d_->half_win_size 
           || tp.y() <= d_->half_win_size 
           || tp.x() >= image_data->width()- d_->half_win_size 
@@ -516,20 +538,21 @@ track_features_klt
       {
         // skip features that tracked to outside of the image (or the border) 
         // or didn't track properly
+        ++kf_feat_i;
         continue;
       }
       //info from feature detector (location, scale etc.)
-      auto f = std::make_shared<feature_f>(*vf[i]);  
+      auto f = std::make_shared<feature_f>(*vf[last_frame_feat_i]);  
       f->set_loc(tp);  //feature
       //feature, descriptor and frame number together
       auto fts = std::make_shared<feature_track_state>(frame_number);  
-      fts->feature = f;
-      track_sptr t = active_tracks[i];
+      fts->feature = f;      
       // append the feature's current location to it's track.  Track was picked 
       // up with active_tracks() call on previous_tracks.
       t->append(fts);  
-      next_points.push_back(tracked_points[i]);
+      next_points.push_back(tracked_points[kf_feat_i]);
       //increment the feature distribution bins     
+      ++kf_feat_i;
     }    
   }
 

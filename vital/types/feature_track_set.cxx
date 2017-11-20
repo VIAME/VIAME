@@ -68,6 +68,16 @@ feature_track_set
 {
 }
 
+track_set_sptr
+feature_track_set
+::clone() const
+{
+  track_set_implementation_uptr new_imp =
+    this->impl_->clone();
+  feature_track_set_sptr new_fts = std::make_shared<feature_track_set>(std::move(new_imp));
+  return std::dynamic_pointer_cast<track_set>(new_fts);
+}
+
 
 /// Return the set of features in tracks on the last frame
 feature_set_sptr

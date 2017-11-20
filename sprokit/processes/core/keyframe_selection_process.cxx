@@ -88,6 +88,7 @@ public:
   // the algo.
 
   algo::keyframe_selection_sptr m_keyframe_selection;
+  bool first_frame;
 
 }; // end priv class
 
@@ -101,7 +102,7 @@ public:
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
 
-  make_ports();
+  make_ports(); 
   make_config();
 }
 
@@ -151,6 +152,15 @@ keyframe_selection_process
 
   kwiver::vital::feature_track_set_sptr prev_tracks = grab_from_port_using_trait(feature_track_set);
 
+  
+  if (!d->first_frame)
+  {
+    vital::keyframe_data_sptr in_cfd = 
+    std::const_pointer_cast<vital::keyframe_data>(grab_from_port_using_trait(keyframe_data_const));
+    prev_tracks->set_keyframe_data(in_cfd);
+  }
+  d->first_frame = false;
+
   kwiver::vital::feature_track_set_sptr new_kf_tracks;
 
   {
@@ -167,7 +177,9 @@ keyframe_selection_process
   }
 
   // return by value
-  push_to_port_using_trait(feature_track_set, new_kf_tracks );
+  push_to_port_using_trait(feature_track_set, new_kf_tracks );  
+  vital::keyframe_data_const_sptr kfd = new_kf_tracks->get_keyframe_data();
+  push_to_port_using_trait(keyframe_data_const,kfd);
 }
 
 
@@ -177,14 +189,18 @@ void keyframe_selection_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
+  sprokit::process::port_flags_t optional;
   required.insert( flag_required );
+  optional.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( feature_track_set, required);
+  declare_input_port_using_trait(keyframe_data_const, optional);
 
   // -- output --
   declare_output_port_using_trait(feature_track_set, required );
+  declare_output_port_using_trait(keyframe_data_const, required);
 }
 
 
@@ -199,6 +215,7 @@ void keyframe_selection_process
 // ================================================================
 keyframe_selection_process::priv
 ::priv()
+  :first_frame(true)
 {
 }
 

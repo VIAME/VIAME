@@ -44,6 +44,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/image_container.h>
+#include <vital/types/keyframe_data.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
@@ -95,6 +96,7 @@ create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
+create_type_trait (keyframe_data_const, "kwiver:keyframe_data", kwiver::vital::keyframe_data_const_sptr);
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video_metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
@@ -125,6 +127,7 @@ create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track des
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file. "
                    "The file name may contain leading path components." );
+create_port_trait(keyframe_data_const, keyframe_data_const, "Const keyframe information.");
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 create_port_trait( video_metadata, video_metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );

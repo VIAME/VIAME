@@ -57,8 +57,10 @@ class track_set;
 /// Shared pointer for base track_set type
 typedef std::shared_ptr< track_set > track_set_sptr;
 
+class track_set_interface;
+typedef std::shared_ptr< track_set_interface > track_set_interface_sptr;
+typedef std::unique_ptr< track_set_interface > track_set_interface_uptr;
 
-// ------------------------------------------------------------------
 /// Abstract interface for a collection of tracks
 class VITAL_EXPORT track_set_interface
 {
@@ -256,9 +258,8 @@ public:
 
   virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata) = 0;
 
-  virtual bool remove_frame_metadata(frame_id_t frame) = 0;
+  virtual bool remove_frame_metadata(frame_id_t frame) = 0;  
 
-  virtual keyframe_data_const_sptr get_keyframe_data() const = 0;
 };
 
 
@@ -271,6 +272,11 @@ public:
  * be the most efficent depending on how tracks are stored, but derived
  * classes can reimplement more efficient overrides as needed.
  */
+
+class track_set_implementation;
+typedef std::shared_ptr<track_set_implementation> track_set_implementation_sptr;
+typedef std::unique_ptr<track_set_implementation> track_set_implementation_uptr;
+
 class VITAL_EXPORT track_set_implementation
   : public track_set_interface
 {
@@ -336,6 +342,10 @@ public:
   virtual bool remove_frame_metadata(frame_id_t frame);
 
   virtual keyframe_data_const_sptr get_keyframe_data() const;
+
+  virtual void set_keyframe_data(keyframe_data_const_sptr kfd);
+
+  virtual track_set_implementation_uptr clone() const;
 };
 
 
@@ -519,12 +529,20 @@ public:
     return impl_->get_keyframe_data();
   }
 
+  virtual void set_keyframe_data(keyframe_data_sptr kfd)
+  {
+    return impl_->set_keyframe_data(kfd);
+  }
+
   virtual bool remove_frame_metadata(frame_id_t frame)
   {
     return impl_->remove_frame_metadata(frame);
   }
 
-private:
+  virtual track_set_sptr clone() const;
+
+protected:  
+
   /// The implementation of the track set functions
   std::unique_ptr<track_set_implementation> impl_;
 };
@@ -574,6 +592,10 @@ public:
   /// but not change it.  They must make changes to the keyframe states through track set 
   /// implementation methods.
   virtual keyframe_data_const_sptr get_keyframe_data() const;
+
+  virtual void set_keyframe_data(keyframe_data_const_sptr kfd);
+
+  virtual track_set_implementation_uptr clone() const;
 
 protected:
   /// The vector of tracks
