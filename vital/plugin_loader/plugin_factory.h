@@ -84,6 +84,7 @@ public:
   static const std::string PLUGIN_ORGANIZATION;
   static const std::string PLUGIN_LICENSE;
   static const std::string PLUGIN_CATEGORY;
+  static const std::string PLUGIN_PROCESS_PROPERTIES;
 
 
   /**

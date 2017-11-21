@@ -45,6 +45,7 @@ const std::string plugin_factory::PLUGIN_AUTHOR( "plugin-author" );
 const std::string plugin_factory::PLUGIN_ORGANIZATION( "plugin-organization" );
 const std::string plugin_factory::PLUGIN_LICENSE( "plugin-license" );
 const std::string plugin_factory::PLUGIN_CATEGORY( "plugin-category" );
+const std::string plugin_factory::PLUGIN_PROCESS_PROPERTIES( "plugin-process-properties" );
 
 
 // ------------------------------------------------------------------

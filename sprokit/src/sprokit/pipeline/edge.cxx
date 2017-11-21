@@ -97,6 +97,9 @@ edge_datum_t
           pointers_equal(stamp, rhs.stamp));
 }
 
+// This config parameter is used internally to signal that the edge
+// has no dependency. See process::flag_input_nodep for additional
+// description.
 kwiver::vital::config_block_key_t const edge::config_dependency = kwiver::vital::config_block_key_t("_dependency");
 kwiver::vital::config_block_key_t const edge::config_capacity   = kwiver::vital::config_block_key_t("capacity");
 kwiver::vital::config_block_key_t const edge::config_blocking   = kwiver::vital::config_block_key_t("blocking");
@@ -115,9 +118,18 @@ class edge::priv
 
     bool push(edge_datum_t const& datum, boost::optional<duration_t> const& duration = boost::none);
     boost::optional<edge_datum_t> pop(boost::optional<duration_t> const& duration = boost::none);
+
+    /// This flag indicates that this edge connection should or should
+    /// not imply a dependency. Generally set to false if a backwards
+    /// edge.
     bool const depends;
+
+    /// Size of the buffer in this edge.
     size_t const capacity;
+
+    /// Set to indicate if this edge will block if its buffer is full.
     bool const blocking;
+
     bool downstream_complete;
 
     process_ref_t upstream;
@@ -139,7 +151,7 @@ class edge::priv
     mutable mutex_t mutex;
     mutable mutex_t complete_mutex;
 
-  kwiver::vital::logger_handle_t m_logger;
+    kwiver::vital::logger_handle_t m_logger;
 };
 
 

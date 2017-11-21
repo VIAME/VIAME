@@ -549,6 +549,8 @@ class SPROKIT_PIPELINE_EXPORT process
     static property_t const property_unsync_output;
     /// Indicates that the process supports instrumentation call
     static property_t const property_instrumented;
+    /// Indicates the process is written in Python
+    static property_t const property_python;
 
     /// The name of the heartbeat port.
     static port_t const port_heartbeat;
@@ -1375,8 +1377,12 @@ SCOPED_INSTRUMENTATION(reconfigure);
 
     friend class process_cluster;
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
+
+    friend class process_factory;
+    SPROKIT_PIPELINE_NO_EXPORT void add_property ( const property_t& prop );
 };
 
+// ----------------------------------------------------------------------------
 template <typename T>
 T
 process
