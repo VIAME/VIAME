@@ -159,10 +159,9 @@ TEST_P(algo_config, empty_config)
 #define ALGORITHM( t, n ) \
   algorithm_test{ n, []{ return algo::t::create( n ); } }
 
-INSTANTIATE_TEST_CASE_P(
-  detect_features,
-  algo_config,
-  ::testing::Values(
+auto detect_features_algorithms = []()
+{
+  return ::testing::Values(
       ALGORITHM( detect_features, "ocv_BRISK" )
     , ALGORITHM( detect_features, "ocv_FAST" )
     , ALGORITHM( detect_features, "ocv_GFTT" )
@@ -185,8 +184,14 @@ INSTANTIATE_TEST_CASE_P(
 #ifdef KWIVER_OCV_HAS_SURF
     , ALGORITHM( detect_features, "ocv_SURF" )
 #endif
-  ) );
+  );
+};
 
+INSTANTIATE_TEST_CASE_P(
+  detect_features,
+  algo_config,
+  detect_features_algorithms()
+);
 
 INSTANTIATE_TEST_CASE_P(
   match_features,
@@ -194,12 +199,12 @@ INSTANTIATE_TEST_CASE_P(
   ::testing::Values(
       ALGORITHM( match_features, "ocv_brute_force" )
     , ALGORITHM( match_features, "ocv_flann_based" )
-  ) );
+  )
+);
 
-INSTANTIATE_TEST_CASE_P(
-  extract_descriptors,
-  algo_config,
-  ::testing::Values(
+auto extract_descriptors_algorithms = []()
+{
+  return ::testing::Values(
       ALGORITHM( extract_descriptors, "ocv_BRISK" )
     , ALGORITHM( extract_descriptors, "ocv_ORB" )
 
@@ -230,4 +235,11 @@ INSTANTIATE_TEST_CASE_P(
 #ifdef KWIVER_OCV_HAS_SURF
     , ALGORITHM( extract_descriptors, "ocv_SURF" )
 #endif
-  ) );
+  );
+};
+
+INSTANTIATE_TEST_CASE_P(
+  extract_descriptors,
+  algo_config,
+  extract_descriptors_algorithms()
+);
