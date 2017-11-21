@@ -398,7 +398,7 @@ priv_t
 
   std::vector< vnl_vector_fixed< double, 2 > > corners; // (x,y)
   auto const pts = corner_pts.polygon( kwiver::vital::SRID::lat_lon_WGS84 );
-  for ( auto n = 0; n < pts.num_vertices(); ++n )
+  for ( size_t n = 0; n < pts.num_vertices(); ++n )
   {
     auto const& pt = pts.at( n );
     corners.push_back( vnl_double_2( pt[0], pt[1] ) );

@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYSTREAM_H
 #define SPROKIT_PYTHON_UTIL_PYSTREAM_H
 
-#include "util-config.h"
+#include <sprokit/python/util/sprokit_python_util_export.h>
 
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
@@ -39,11 +39,8 @@
 
 #include <iosfwd>
 
-namespace sprokit
-{
-
-namespace python
-{
+namespace sprokit {
+namespace python {
 
 class SPROKIT_PYTHON_UTIL_EXPORT pyistream_device
   : public boost::iostreams::source
@@ -53,12 +50,14 @@ class SPROKIT_PYTHON_UTIL_EXPORT pyistream_device
     ~pyistream_device();
 
     std::streamsize read(char_type* s, std::streamsize n);
+
   private:
     pybind11::object m_obj;
 };
 
 typedef boost::iostreams::stream<pyistream_device> pyistream;
 
+// ----------------------------------------------------------------------------
 class SPROKIT_PYTHON_UTIL_EXPORT pyostream_device
   : public boost::iostreams::sink
 {
@@ -67,6 +66,7 @@ class SPROKIT_PYTHON_UTIL_EXPORT pyostream_device
     ~pyostream_device();
 
     std::streamsize write(char_type const* s, std::streamsize n);
+
   private:
     pybind11::object m_obj;
 };
@@ -74,7 +74,6 @@ class SPROKIT_PYTHON_UTIL_EXPORT pyostream_device
 typedef boost::iostreams::stream<pyostream_device> pyostream;
 
 }
-
 }
 
 #endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H

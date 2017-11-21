@@ -31,12 +31,12 @@
 #ifndef SPROKIT_PIPELINE_PIPELINE_H
 #define SPROKIT_PIPELINE_PIPELINE_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "process.h"
 #include "types.h"
 
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 /**
  * \file pipeline.h
@@ -44,8 +44,7 @@
  * \brief Header for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class pipeline pipeline.h <sprokit/pipeline/pipeline.h>
@@ -55,7 +54,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT pipeline
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /**

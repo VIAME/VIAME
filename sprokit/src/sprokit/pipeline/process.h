@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_H
 #define SPROKIT_PIPELINE_PROCESS_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "edge.h"
 #include "datum.h"
@@ -46,7 +46,7 @@
 #pragma warning (disable : 4244)
 #pragma warning (disable : 4267)
 #endif
-#include <boost/noncopyable.hpp>
+
 #include <boost/cstdint.hpp>
 #include <boost/rational.hpp>
 #ifdef WIN32
