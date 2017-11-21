@@ -54,7 +54,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Sprokit process instrumentation implementation using RightTrack.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "process-instrumentation" )
+   ;
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   vpm.mark_module_as_loaded( module_name );
