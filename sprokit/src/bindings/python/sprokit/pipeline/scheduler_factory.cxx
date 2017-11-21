@@ -231,19 +231,9 @@ std::string get_description( const std::string& type )
 // ------------------------------------------------------------------
 std::vector< std::string > scheduler_names()
 {
+  std::vector< std::string > name_list;
+
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto py_fact_list = vpm.get_factories<object>();
-
-  std::vector<std::string> name_list;
-  for( auto fact : py_fact_list )
-  {
-    std::string buf;
-    if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
-    {
-      name_list.push_back( buf );
-    }
-  } // end foreach
-
   auto fact_list = vpm.get_factories<sprokit::scheduler>();
   for( auto fact : fact_list )
   {
