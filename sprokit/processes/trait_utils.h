@@ -135,6 +135,17 @@ declare_configuration_key( KEY ## _config_trait::key,                   \
 #define reconfig_value_using_trait(CONF,KEY) CONF->get_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
 
 
+// Algorithm interface using traits
+#define check_nested_algo_configuration_using_trait(KEY, ALGO) \
+  check_nested_algo_configuration( KEY ## _config_trait::key, ALGO )
+
+#define set_nested_algo_configuration_using_trait(KEY, CONFIG, ALGO)     \
+  set_nested_algo_configuration( KEY ## _config_trait::key, CONFIG, ALGO )
+
+#define get_nested_algo_configuration_using_trait(KEY, CONFIG, ALGO)     \
+  get_nested_algo_configuration( KEY ## _config_trait::key, CONFIG, ALGO )
+
+
 /**
  * \brief Create type trait.
  *
