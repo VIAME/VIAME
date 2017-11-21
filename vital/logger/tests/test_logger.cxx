@@ -78,8 +78,17 @@ TEST(logger, levels)
 
   EXPECT_EQ( kwiver_logger::LEVEL_DEBUG, log2->get_level() );
 
-  // test to see if we get the same logger back
-  EXPECT_EQ( log2, get_logger( "main.logger2" ) );
+  // Test to see if we get the same logger back
+  // Note: some implementations may give back an identical pointer, but others
+  // may not, so instead compare that their log level is synchronized
+  auto log = get_logger( "main.logger2" );
+
+  EXPECT_EQ( kwiver_logger::LEVEL_DEBUG, log->get_level() );
+
+  log2->set_level( kwiver_logger::LEVEL_INFO );
+
+  EXPECT_EQ( kwiver_logger::LEVEL_INFO, log2->get_level() );
+  EXPECT_EQ( kwiver_logger::LEVEL_INFO, log->get_level() );
 }
 
 // ----------------------------------------------------------------------------
