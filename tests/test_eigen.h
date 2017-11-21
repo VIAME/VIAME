@@ -59,6 +59,22 @@ PrintTo( Vector2d const& v, ::std::ostream* os )
   (*os) << v[0] << ", " << v[1];
 }
 
+// ----------------------------------------------------------------------------
+template <typename T>
+::std::ostream&
+operator<<( ::std::ostream& os, Quaternion<T> const& v )
+{
+  os << v.x() << ", " << v.y() << ", " << v.z() << ", " << v.w();
+  return os;
+}
+
+// ----------------------------------------------------------------------------
+template <typename T>
+bool operator==( Quaternion<T> const& q1, Quaternion<T> const& q2 )
+{
+  return q1.coeffs() == q2.coeffs();
+}
+
 } // end namespace Eigen
 
 namespace kwiver {
@@ -112,6 +128,14 @@ struct matrix_comparator
       }
     }
     return true;
+  }
+
+  // --------------------------------------------------------------------------
+  template <typename T>
+  bool operator()( Eigen::Quaternion<T> const& q1,
+                   Eigen::Quaternion<T> const& q2 )
+  {
+    return operator()( q1.coeffs(), q2.coeffs() );
   }
 };
 

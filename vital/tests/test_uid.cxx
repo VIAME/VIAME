@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,35 +33,28 @@
  * \brief test uuid functionality
  */
 
-#include <test_common.h>
-
 #include <vital/types/uid.h>
-#include <iostream>
 
-#define TEST_ARGS      ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST( test_API )
+// ----------------------------------------------------------------------------
+TEST(uid, api)
 {
-  kwiver::vital::uid foo( "init" );
+  kwiver::vital::uid foo{ "test0123456789" };
+  EXPECT_TRUE( foo.is_valid() );
+  EXPECT_EQ( "test0123456789", std::string{ foo.value() } );
 
-  auto foo_2 = foo;
-  auto foo_3( foo );
+  kwiver::vital::uid foo_copied = foo;
+  EXPECT_EQ( foo, foo_copied );
 
-  if (foo != foo_3)
-  {
-    TEST_ERROR("Equal UUID test failed" );
-  }
+  kwiver::vital::uid foo_assigned;
+  foo_assigned = foo;
+  EXPECT_EQ( foo, foo_assigned );
 }
