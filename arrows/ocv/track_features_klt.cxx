@@ -305,9 +305,9 @@ public:
       {
         for (int c = 0; c < cols; ++c) 
         {
-          if (dist_image.at<unsigned char>(r, c) < 
-              unsigned char(redetect_threshold*
-              float(lastDetectDist.dist_image.at<unsigned char>(r, c)))) 
+          if (dist_image.at<uint16_t>(r, c) < 
+              uint16_t(redetect_threshold*
+              float(lastDetectDist.dist_image.at<uint16_t>(r, c)))) 
           {
             ++bad_bins;
           }
@@ -335,8 +335,8 @@ public:
         int dist_bin_y = 
           std::min<int>(std::max<int>(tp.y / dist_bin_y_len, 0), rows - 1);
 
-        unsigned char& numFeatInBin = 
-          dist_image.at<unsigned char>(dist_bin_y, dist_bin_x);
+        uint16_t& numFeatInBin = 
+          dist_image.at<uint16_t>(dist_bin_y, dist_bin_x);
         if (numFeatInBin < UINT16_MAX) 
         {
           ++numFeatInBin;  //make sure we don't roll over the uchar.
