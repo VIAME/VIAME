@@ -77,7 +77,8 @@ public:
     half_win_size(win_size/2),
     tracked_feat_mask_downsample_fact(1),
     exclude_rad_pixels(1),
-    erp2(1)
+    erp2(1),
+    max_pyramid_level(3)
   {
   }
 
@@ -152,98 +153,109 @@ public:
                       "redetect if fraction of features tracked from last " 
                       "detection drops below this level");
     int grid_rows, grid_cols;
+    
     dist_image.get_grid_size(grid_rows, grid_cols);
+    
     config->set_value("grid_rows", grid_rows, 
-      "rows in feature distribution enforcing grid");
+                      "rows in feature distribution enforcing grid");
+    
     config->set_value("grid_cols", grid_cols, 
-      "colums in feature distribution enforcing grid");
+                      "colums in feature distribution enforcing grid");
+    
     config->set_value("new_feat_exclusionary_radius_image_fraction", 
-      exclusionary_radius_image_frac,
-      "do not place new features any closer than this fraction of image min " 
-      "dimension to existing features");
+                      exclusionary_radius_image_frac,
+                      "do not place new features any closer than this fraction of image min " 
+                      "dimension to existing features");
+    
     config->set_value("win_size", win_size, 
-      "klt image patch side length (it's a square)");
+                      "klt image patch side length (it's a square)");
+
+    config->set_value("max_pyramid_level", max_pyramid_level,
+                      "maximum pyramid level used in klt feature tracking");
   }
 
   /// Set our parameters based on the given config block
   void set_config(const vital::config_block_sptr & config) 
   {
-    redetect_threshold = config->get_value<double>(
-      "redetect_frac_lost_threshold");
-    dist_image.redetect_threshold = redetect_threshold;
-    last_detect_distImage.redetect_threshold = redetect_threshold;
+    redetect_threshold = 
+      config->get_value<double>("redetect_frac_lost_threshold");
+
     int grid_rows = config->get_value<int>("grid_rows");
+
     int gridCols = config->get_value<int>("grid_cols");
+
     dist_image.set_grid_size(grid_rows, gridCols);
+
     last_detect_distImage.set_grid_size(grid_rows, gridCols);
-    exclusionary_radius_image_frac = config->get_value<float>(
-      "new_feat_exclusionary_radius_image_fraction");
+
+    exclusionary_radius_image_frac = 
+      config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
+    
     win_size = config->get_value<int>("win_size");
+    
     half_win_size = win_size / 2;
+
+    max_pyramid_level = config->get_value<int>("max_pyramid_level");
   }
 
   bool check_configuration(vital::config_block_sptr config) const 
   {
     bool success(true);
 
-    float test_redetect_threshold = config->get_value<double>(
-      "redetect_frac_lost_threshold");
+    float test_redetect_threshold = 
+      config->get_value<double>("redetect_frac_lost_threshold");
+    
     int test_grid_rows = config->get_value<int>("grid_rows");
+    
     int test_grid_cols = config->get_value<int>("grid_cols");
+    
     float test_exclusionary_radius_image_frac = 
       config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
+    
     int test_win_size = config->get_value<int>("win_size");
 
     if (!(0 < test_redetect_threshold && test_redetect_threshold <= 1.0))
     {
-      std::stringstream str;
-      config->print(str);
       LOG_ERROR(m_logger, "redetect_frac_lost_threshold (" 
         << test_redetect_threshold 
-        << ") should be greater than zero and <= 1.0"
-        " Configuration is as follows:\n" << str.str());
+        << ") should be greater than zero and <= 1.0");
       success = false;
     }
 
     if (test_grid_rows <= 0)
     {
-      std::stringstream str;
-      config->print(str);
       LOG_ERROR(m_logger, "grid_rows (" << test_grid_rows <<
-        ") must be greater than 0"
-        " Configuration is as follows:\n" << str.str());
+        ") must be greater than 0");
       success = false;
     }
 
     if (test_grid_cols <= 0)
     {
-      std::stringstream str;
-      config->print(str);
-      LOG_ERROR(m_logger, "grid_cols (" << test_grid_cols << 
-        ") must be greater than 0"
-        " Configuration is as follows:\n" << str.str());
+      LOG_ERROR(m_logger, "grid_cols (" << test_grid_cols <<
+        ") must be greater than 0");
       success = false;
     }
 
     if (!(0 < test_exclusionary_radius_image_frac && 
         test_exclusionary_radius_image_frac < 1.0)) 
     {
-      std::stringstream str;
-      config->print(str);
-      LOG_ERROR(m_logger, "new_feat_exclusionary_radius_image_fraction (" 
-        << test_exclusionary_radius_image_frac << 
-        ") must be between 0.0 and 1.0"
-        " Configuration is as follows:\n" << str.str());
+      LOG_ERROR(m_logger, "new_feat_exclusionary_radius_image_fraction ("
+        << test_exclusionary_radius_image_frac <<
+        ") must be between 0.0 and 1.0");
       success = false;
     }
 
     if (test_win_size < 3)
     {
-      std::stringstream str;
-      config->print(str);
       LOG_ERROR(m_logger, "win_size (" << test_win_size << 
-        ") must be three or more"
-        " Configuration is as follows:\n" << str.str());
+        ") must be three or more");
+      success = false;
+    }
+
+    if (max_pyramid_level < 0)
+    {
+      LOG_ERROR(m_logger, "max_pyramid_level (" <<
+        max_pyramid_level << ") must be non-negative");
       success = false;
     }
 
@@ -255,7 +267,6 @@ public:
   public:
     feature_distribution_image(): 
       rows(0), cols(0), 
-      redetect_threshold(0.7),
       bad_bins_frac_to_redetect(0.125)
     {
       set_grid_size(4, 4);
@@ -266,7 +277,7 @@ public:
       if (rows != _rows || cols != _cols) {
         rows = _rows;
         cols = _cols;
-        dist_image = cv::Mat(rows, cols, CV_8UC1);
+        dist_image = cv::Mat(rows, cols, CV_16UC1);
         dist_image.setTo(0);
       }
     }
@@ -286,7 +297,8 @@ public:
       other.dist_image.copyTo(dist_image);
     }
 
-    bool should_redetect(const feature_distribution_image &lastDetectDist) 
+    bool should_redetect(const feature_distribution_image &lastDetectDist, 
+                         float redetect_threshold) 
     {
       int bad_bins = 0;
       for (int r = 0; r < rows; ++r) 
@@ -325,7 +337,7 @@ public:
 
         unsigned char& numFeatInBin = 
           dist_image.at<unsigned char>(dist_bin_y, dist_bin_x);
-        if (numFeatInBin < 255) 
+        if (numFeatInBin < UINT16_MAX) 
         {
           ++numFeatInBin;  //make sure we don't roll over the uchar.
         }
@@ -333,7 +345,6 @@ public:
     }
     
     cv::Mat dist_image;    
-    float redetect_threshold;
     float bad_bins_frac_to_redetect;    
   private:
       int rows, cols;      
@@ -355,6 +366,7 @@ public:
   int tracked_feat_mask_downsample_fact;
   int exclude_rad_pixels;
   int erp2;
+  int max_pyramid_level;
 };
 
 
@@ -488,7 +500,7 @@ track_features_klt
     std::vector<uchar> status;
     std::vector<float> err;
     cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, 
-      tracked_points, status, err,cv::Size(d_->win_size, d_->win_size),3);
+      tracked_points, status, err,cv::Size(d_->win_size, d_->win_size),d_->max_pyramid_level);
 
     //gets the active tracks for the previous frame
     std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();  
@@ -534,7 +546,7 @@ track_features_klt
   if (!detect_new_features)
   {
     //now check the distribution of features in the image    
-    if(d_->dist_image.should_redetect(d_->last_detect_distImage))
+    if(d_->dist_image.should_redetect(d_->last_detect_distImage,d_->redetect_threshold))
     {  
       //this will never be called on the first image so it will work.
       LOG_DEBUG(logger(), "detecting new feature because of distribution");
