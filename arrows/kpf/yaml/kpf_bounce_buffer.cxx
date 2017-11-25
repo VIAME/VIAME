@@ -35,7 +35,7 @@
  */
 
 #include "kpf_bounce_buffer.h"
-#include "kpf_parse_utils.h"
+#include <arrows/kpf/yaml/kpf_parse_utils.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );

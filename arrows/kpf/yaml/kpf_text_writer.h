@@ -41,8 +41,8 @@
 #define KWIVER_VITAL_KPF_TEXT_WRITER_H_
 
 #include <iostream>
-#include "kpf_canonical_types.h"
-#include "kpf_canonical_io.h"
+#include <arrows/kpf/yaml/kpf_canonical_types.h>
+#include <arrows/kpf/yaml/kpf_canonical_io.h>
 
 namespace kwiver {
 namespace vital {

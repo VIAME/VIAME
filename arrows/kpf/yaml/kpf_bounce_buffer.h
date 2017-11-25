@@ -42,7 +42,7 @@
 #ifndef KWIVER_VITAL_KPF_BOUNCE_BUFFER_H_
 #define KWIVER_VITAL_KPF_BOUNCE_BUFFER_H_
 
-#include "kpf_packet.h"
+#include <arrows/kpf/yaml/kpf_packet.h>
 
 #include <string>
 #include <utility>

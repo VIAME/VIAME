@@ -53,12 +53,12 @@
 #ifndef KWIVER_VITAL_KPF_READER_H_
 #define KWIVER_VITAL_KPF_READER_H_
 
-#include "kpf_packet.h"
-#include "kpf_canonical_io.h"
-#include "kpf_parse_utils.h"
-#include "kpf_parser_base.h"
-#include "kpf_bounce_buffer.h"
-#include "kpf_canonical_io_adapter_base.h"
+#include <arrows/kpf/yaml/kpf_packet.h>
+#include <arrows/kpf/yaml/kpf_canonical_io.h>
+#include <arrows/kpf/yaml/kpf_parse_utils.h>
+#include <arrows/kpf/yaml/kpf_parser_base.h>
+#include <arrows/kpf/yaml/kpf_bounce_buffer.h>
+#include <arrows/kpf/yaml/kpf_canonical_io_adapter_base.h>
 
 #include <utility>
 #include <iostream>

@@ -45,7 +45,7 @@
 #include <utility>
 #include <vector>
 
-#include "kpf_canonical_types.h"
+#include <arrows/kpf/yaml/kpf_canonical_types.h>
 
 namespace kwiver {
 namespace vital {

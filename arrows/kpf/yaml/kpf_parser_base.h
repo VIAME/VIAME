@@ -40,7 +40,7 @@
 #ifndef KWIVER_VITAL_KPF_PARSER_BASE_
 #define KWIVER_VITAL_KPF_PARSER_BASE_
 
-#include "kpf_parse_utils.h"
+#include <arrows/kpf/yaml/kpf_parse_utils.h>
 
 namespace kwiver {
 namespace vital {

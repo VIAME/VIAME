@@ -39,7 +39,7 @@
 
 
 
-#include "kpf_packet.h"
+#include <arrows/kpf/yaml/kpf_packet.h>
 
 #include <string>
 #include <vector>

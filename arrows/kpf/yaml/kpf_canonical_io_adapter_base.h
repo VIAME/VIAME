@@ -44,7 +44,7 @@
 #ifndef KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
 #define KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
 
-#include "kpf_bounce_buffer.h"
+#include <arrows/kpf/yaml/kpf_bounce_buffer.h>
 
 namespace kwiver {
 namespace vital {

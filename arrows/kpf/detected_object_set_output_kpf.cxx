@@ -32,10 +32,10 @@
 
 #include <vital/util/tokenize.h>
 
-#include "yaml/kpf_canonical_io_adapter.h"
-#include "yaml/kpf_text_writer.h"
+#include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
+#include <arrows/kpf/yaml/kpf_text_writer.h>
 
-#include "vital_kpf_adapters.h"
+#include <arrows/kpf/vital_kpf_adapters.h>
 
 #include <memory>
 #include <vector>
