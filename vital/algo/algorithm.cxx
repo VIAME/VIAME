@@ -173,8 +173,20 @@ algorithm
     }
     else
     {
-      LOG_WARN( logger, "Could not find implementation \"" << iname
-                << "\" for \"" << type_name << "\"." );
+      std::stringstream msg;
+      msg << "Could not find implementation \"" << iname
+          << "\" for \"" << type_name << "\"";
+
+      // Add line number if known
+      std::string file;
+      int line(0);
+      if ( config->get_location( type_key, file, line ) )
+      {
+        msg << " as requested from "
+                << file << ":" << line;
+      }
+
+      LOG_WARN( logger, msg.str() );
     }
   }
   else
