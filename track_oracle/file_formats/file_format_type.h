@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2012-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2012-2017 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -55,6 +55,7 @@ enum file_format_enum
   TF_4676,
   TF_CSV,
   TF_KWIVER,
+  TF_KPF_GEOM,
   TF_INVALID_TYPE   // must always be last entry
 };
 
