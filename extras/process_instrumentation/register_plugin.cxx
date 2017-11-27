@@ -33,6 +33,7 @@
 #include <instrumentation_plugin_export.h>
 
 #include "logger_process_instrumentation.h"
+#include "timing_process_instrumentation.h"
 
 extern "C"
 INSTRUMENTATION_PLUGIN_EXPORT
@@ -46,14 +47,26 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  kwiver::vital::plugin_factory_handle_t fact =
-    vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::logger_process_instrumentation );
+  kwiver::vital::plugin_factory_handle_t
+    fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::logger_process_instrumentation );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "logger")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Sprokit process instrumentation implementation using logger.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "process-instrumentation" )
+    ;
+
+
+      fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::timing_process_instrumentation );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "timing")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Sprokit process instrumentation implementation using timer.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "process-instrumentation" )
     ;
 
   // - - - - - - - - - - - - - - - - - - - - - - -

@@ -37,7 +37,7 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
 
         #self.declare_input_port('homography', info)
         #                        name, type, flags, descrip
-        self.declare_input_port('homography', 's2r_homography', required, 'Input homographies' )
+        self.declare_input_port('homography', 'kwiver:s2r_homography', required, 'Input homographies' )
 
     # ----------------------------------------------------------------
     def _configure(self):

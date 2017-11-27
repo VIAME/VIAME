@@ -33,12 +33,17 @@
  * \brief Interface for process instrumentation.
  */
 
-#ifndef SPROKIT_LOGGER_PROCESS_INSTRUMENTATION_H
-#define SPROKIT_LOGGER_PROCESS_INSTRUMENTATION_H
+#ifndef SPROKIT_TIMING_PROCESS_INSTRUMENTATION_H
+#define SPROKIT_TIMING_PROCESS_INSTRUMENTATION_H
 
 #include "instrumentation_plugin_export.h"
+
 #include <sprokit/pipeline/process_instrumentation.h>
 #include <vital/logger/logger.h>
+#include <vital/util/wall_timer.h>
+#include <vital/util/cpu_timer.h>
+
+#include <memory>
 
 namespace sprokit {
 
@@ -48,13 +53,15 @@ namespace sprokit {
  *
  * This class provides an implementation of process instrumentation
  * where each event is recorded to the logger.
+ *
+ ** Note: The current implementation does not handle reentrant processes.
  */
-class INSTRUMENTATION_PLUGIN_NO_EXPORT logger_process_instrumentation
+class INSTRUMENTATION_PLUGIN_NO_EXPORT timing_process_instrumentation
   : public process_instrumentation
 {
 public:
-  logger_process_instrumentation();
-  virtual ~logger_process_instrumentation();
+  timing_process_instrumentation();
+  virtual ~timing_process_instrumentation();
 
   virtual void start_init_processing( std::string const& data );
   virtual void stop_init_processing();
@@ -74,11 +81,22 @@ public:
   virtual void start_reconfigure_processing( std::string const& data );
   virtual void stop_reconfigure_processing();
 
+  virtual void configure( kwiver::vital::config_block_sptr const conf );
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
+
 private:
+  void write_interval( const std::string& tag, double interval );
+
+  // The configured timer is allocated and stored here.
+  std::shared_ptr<kwiver::vital::timer> m_timer;
+
+  // The output file
+  std::ofstream* m_output_file;
+
   kwiver::vital::logger_handle_t m_logger;
 
-}; // end class logger_process_instrumentation
+}; // end class timing_process_instrumentation
 
 } // end namespace
 
-#endif // SPROKIT_LOGGER_PROCESS_INSTRUMENTATION_H
+#endif // SPROKIT_TIMING_PROCESS_INSTRUMENTATION_H
