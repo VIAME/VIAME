@@ -114,9 +114,9 @@ register_factories(kwiver::vital::plugin_loader& vpm)
  */
 void _load_python_library_symbols()
 {
-#ifdef SPROKIT_LOAD_PYLIB_SYM
   auto logger = kwiver::vital::get_logger("sprokit.python_modules");
 
+#ifdef SPROKIT_LOAD_PYLIB_SYM
   const char *env_pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
 
   // cmake should provide this definition
