@@ -60,11 +60,21 @@ add_subdirectory( track_csv )
 add_subdirectory( track_kst )
 add_subdirectory( track_vatic )
 add_subdirectory( track_vpd )
+if( KWIVER_ENABLE_KPF )
+  add_subdirectory( track_kpf_geom )
+  # ...kpf_activity
+  set( TRACK_KPF_LIBRARIES track_kpf_geom )
+else()
+  set( TRACK_KPF_LIBRARIES "" )
+endif()
+
 if (KWIVER_ENABLE_TRACK_ORACLE_MGRS)
   add_subdirectory( track_scorable_mgrs )
   add_subdirectory( aoi_utils )
 endif()
+
 add_subdirectory( track_e2at_callout )
+
 if (KWIVER_ENABLE_TRACK_ORACLE_EVENT_ADAPTER)
   add_subdirectory( track_filter_kwe)
   set( TRACK_FILTER_KWE_LIBRARY track_filter_kwe )
@@ -118,7 +128,8 @@ target_link_libraries( track_oracle_file_formats
                        track_oracle_tokenizers
                        ${TRACK_FILTER_KWE_LIBRARY}
                        ${TRACK_ORACLE_APIX_LIBRARY}
-
+                       ${TRACK_KPF_LIBRARIES}
+                       
   PRIVATE              ${Boost_THREAD_LIBRARY}
                        vital
                        vul
