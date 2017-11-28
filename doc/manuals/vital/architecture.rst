@@ -19,8 +19,10 @@ Only Vital is built by default when building KWIVER without enabling
 any options in CMake. You will need to enable various Arrows in order
 for vital to instantiate those various implementations.
 
-The Vital API is all that applications need to control the execute any KWIVER algorithm arrow.
-In the following sections we will breakdown the various the algorithms and data types provided in vital based on their functionality.
+The Vital API is all that applications need to control the execute any
+KWIVER algorithm arrow.  In the following sections we will breakdown
+the various the algorithms and data types provided in vital based on
+their functionality.
 
 .. toctree::
    :maxdepth: 2
