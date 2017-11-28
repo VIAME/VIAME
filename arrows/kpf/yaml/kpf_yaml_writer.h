@@ -59,6 +59,7 @@ public:
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::timestamp_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::kv_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::conf_t >& io );
+  friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::eval_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::poly_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::meta_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::timestamp_range_t >& io );
@@ -90,6 +91,9 @@ record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::
 
 KPF_YAML_EXPORT
 record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::conf_t >& io );
+
+KPF_YAML_EXPORT
+record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::eval_t >& io );
 
 KPF_YAML_EXPORT
 record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::poly_t >& io );

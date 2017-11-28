@@ -89,6 +89,12 @@ struct KPF_YAML_EXPORT conf_t
   explicit conf_t( double conf ): d(conf) {}
 };
 
+struct KPF_YAML_EXPORT eval_t
+{
+  double d;
+  explicit eval_t( double score ): d(score) {}
+};
+
 struct KPF_YAML_EXPORT poly_t
 {
   enum {IMAGE_COORDS = 0};
