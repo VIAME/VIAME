@@ -82,7 +82,7 @@ enum class KPF_YAML_EXPORT packet_style
  *
  */
 
-  struct KPF_YAML_EXPORT packet_header_t
+struct KPF_YAML_EXPORT packet_header_t
 {
   enum { NO_DOMAIN = -1 };
 
@@ -90,7 +90,7 @@ enum class KPF_YAML_EXPORT packet_style
   int domain;
   packet_header_t(): style( packet_style::INVALID ), domain( NO_DOMAIN ) {}
   packet_header_t( packet_style s, int d ): style(s), domain(d) {}
-  packet_header_t( packet_style s ): style(s), domain( NO_DOMAIN ) {}
+  explicit packet_header_t( packet_style s ): style(s), domain( NO_DOMAIN ) {}
 };
 
 /**
