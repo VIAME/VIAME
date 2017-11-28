@@ -48,7 +48,7 @@ more python friendly types.
 
 #include <sprokit/pipeline/datum.h>
 
-#include <boost/any.hpp>
+#include <vital/any.h>
 
 #include <vector>
 #include <memory>
@@ -126,17 +126,17 @@ vital_image_container_from_datum( PyObject* args )
 
   try
   {
-    // Get boost::any from the datum
-    boost::any const any = dptr->get_datum< boost::any > ();
+    // Get kwiver::vital::any from the datum
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any > ();
 
-    // Get sptr from boost::any
-    kwiver::vital::image_container_sptr sptr = boost::any_cast< kwiver::vital::image_container_sptr > ( any );
+    // Get sptr from kwiver::vital::any
+    kwiver::vital::image_container_sptr sptr = kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( any );
 
     // Register this object with the main image_container interface
     vital_image_container_t* ptr =  vital_image_container_from_sptr( sptr );
     return ptr;
   }
-  catch ( boost::bad_any_cast const& e )
+  catch ( kwiver::vital::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
@@ -198,17 +198,17 @@ vital_detected_object_set_from_datum( PyObject* args )
 
   try
   {
-    // Get boost::any from the datum
-    boost::any const any = dptr->get_datum< boost::any > ();
+    // Get kwiver::vital::any from the datum
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any > ();
 
-    // Get sptr from boost::any
-    kwiver::vital::detected_object_set_sptr sptr = boost::any_cast< kwiver::vital::detected_object_set_sptr > ( any );
+    // Get sptr from kwiver::vital::any
+    kwiver::vital::detected_object_set_sptr sptr = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr > ( any );
 
     // Register this object with the main detected_object_set interface
     vital_detected_object_set_t* ptr = vital_detected_object_set_from_sptr( sptr );
     return ptr;
   }
-  catch ( boost::bad_any_cast const& e )
+  catch ( kwiver::vital::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
@@ -265,11 +265,11 @@ double_vector_from_datum( PyObject* args )
 
   try
   {
-    // Get boost::any from the datum
-    boost::any const any = dptr->get_datum< boost::any > ();
+    // Get kwiver::vital::any from the datum
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any > ();
 
-    // Get sptr from boost::any
-    double_vector_sptr sptr = boost::any_cast< double_vector_sptr > ( any );
+    // Get sptr from kwiver::vital::any
+    double_vector_sptr sptr = kwiver::vital::any_cast< double_vector_sptr > ( any );
     size_t num_elem = sptr->size();
 
     // make C compatible array of doubles
@@ -283,7 +283,7 @@ double_vector_from_datum( PyObject* args )
 
     return retval;
   }
-  catch ( boost::bad_any_cast const& e )
+  catch ( kwiver::vital::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
@@ -355,14 +355,14 @@ vital_trackset_from_datum( PyObject* args )
 
   try
   {
-    boost::any const any = dptr->get_datum< boost::any > ();
-    kwiver::vital::track_set_sptr sptr = boost::any_cast< kwiver::vital::track_set_sptr > ( any );
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any > ();
+    kwiver::vital::track_set_sptr sptr = kwiver::vital::any_cast< kwiver::vital::track_set_sptr > ( any );
 
     // Register this object with the main track_set interface
     vital_trackset_t* ptr =  vital_trackset_from_sptr( reinterpret_cast< void* > ( &sptr ) );
     return ptr;
   }
-  catch ( boost::bad_any_cast const& e )
+  catch ( kwiver::vital::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
@@ -384,10 +384,10 @@ vital_string_vector_from_datum( PyObject *args,
 
   try
   {
-    // Get boost::any from the datum
-    boost::any const any = dptr->get_datum< boost::any >();
-    // Get sptr from boost::any
-    string_vector_sptr sptr = boost::any_cast< string_vector_sptr >( any );
+    // Get kwiver::vital::any from the datum
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any >();
+    // Get sptr from kwiver::vital::any
+    string_vector_sptr sptr = kwiver::vital::any_cast< string_vector_sptr >( any );
 
     // Set size and allocate output array memory
     (*out_size) = sptr->size();
@@ -409,7 +409,7 @@ vital_string_vector_from_datum( PyObject *args,
 
     return;
   }
-  catch ( boost::bad_any_cast const& e )
+  catch ( kwiver::vital::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
@@ -455,9 +455,9 @@ vital_descriptor_set_from_datum( PyObject *args )
 
   try
   {
-    boost::any const any = dptr->get_datum< boost::any >();
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any >();
     kwiver::vital::descriptor_set_sptr sptr =
-      boost::any_cast< kwiver::vital::descriptor_set_sptr >( any );
+      kwiver::vital::any_cast< kwiver::vital::descriptor_set_sptr >( any );
 
     eh = vital_eh_new();
     if( NULL == eh )
@@ -474,7 +474,7 @@ vital_descriptor_set_from_datum( PyObject *args )
       throw eh->message;
     }
   }
-  catch( boost::bad_any_cast const& e )
+  catch( kwiver::vital::bad_any_cast const& e )
   {
     // This is a warning because this converter should only be called
     // if there is good reason to believe that the object really is an
