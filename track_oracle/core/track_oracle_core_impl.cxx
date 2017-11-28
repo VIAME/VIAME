@@ -143,6 +143,19 @@ track_oracle_core_impl
   }
 }
 
+vector< field_handle_type >
+track_oracle_core_impl
+::get_all_field_handles() const
+{
+ boost::unique_lock< boost::mutex > lock( this->api_lock );
+ vector< field_handle_type > ret;
+ for (const auto p: this->name_pool)
+ {
+   ret.push_back( p.second );
+ }
+ return ret;
+}
+
 field_handle_type
 track_oracle_core_impl
 ::unlocked_lookup_by_name( const string& name ) const

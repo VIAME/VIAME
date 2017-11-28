@@ -108,6 +108,7 @@ public:
 
   template< typename T > field_handle_type create_element( const element_descriptor& e );
 
+  std::vector< field_handle_type > get_all_field_handles() const;
   field_handle_type lookup_by_name( const std::string& name ) const;
 
   element_descriptor get_element_descriptor( field_handle_type f ) const;

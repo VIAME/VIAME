@@ -41,6 +41,7 @@ public:
   // introducing new elements (aka inserting new columns)
   //
 
+  static std::vector<field_handle_type> get_all_field_handles();
   static field_handle_type lookup_by_name( const std::string& name );
   static element_descriptor get_element_descriptor( field_handle_type f );
   static const element_store_base* get_element_store_base( field_handle_type f );

@@ -39,6 +39,13 @@ track_oracle_core
   return *track_oracle_core::impl;
 }
 
+vector< field_handle_type >
+track_oracle_core
+::get_all_field_handles()
+{
+  return track_oracle_core::get_instance().get_all_field_handles();
+}
+
 field_handle_type
 track_oracle_core
 ::lookup_by_name( const string& name )
