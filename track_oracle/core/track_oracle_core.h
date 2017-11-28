@@ -55,6 +55,7 @@ public:
 
   template< typename T > static void remove_field( oracle_entry_handle_type row, field_handle_type field );
   static std::vector< field_handle_type > fields_at_row( oracle_entry_handle_type row );
+  static std::vector< std::vector< field_handle_type > > fields_at_rows( const std::vector<oracle_entry_handle_type> rows );
 
   static handle_list_type get_domain( domain_handle_type domain );
   static domain_handle_type lookup_domain( const std::string& domain_name, bool create_if_not_found );

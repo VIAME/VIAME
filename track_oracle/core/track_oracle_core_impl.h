@@ -139,6 +139,9 @@ public:
   // return fields which have entries at this row
   std::vector< field_handle_type > fields_at_row( oracle_entry_handle_type row ) const;
 
+  // return fields which have entries for these rows (faster than one-at-time calls to above)
+  std::vector< std::vector< field_handle_type > > fields_at_rows( const std::vector< oracle_entry_handle_type >& rows ) const;
+
   // return the row containing the value-- return first if multiple; probably should alert somehow
   template< typename T> oracle_entry_handle_type lookup( field_handle_type field, const T& val, domain_handle_type domain );
 

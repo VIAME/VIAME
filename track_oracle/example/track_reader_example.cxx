@@ -17,6 +17,7 @@
 #include <stdexcept>
 
 #include <vul/vul_arg.h>
+#include <vul/vul_timer.h>
 
 #include <track_oracle/core/track_oracle_core.h>
 #include <track_oracle/core/element_descriptor.h>
@@ -197,6 +198,7 @@ int load_tracks( const string& track_fn, track_handle_list_type& tracks, const s
   map< field_handle_type, size_t > track_stats, frame_stats;
   size_t frame_count = 0;
 
+  vul_timer timer;
   for (size_t i=0; i<tracks.size(); ++i)
   {
     vector< field_handle_type > ts = track_oracle_core::fields_at_row( tracks[i].row );
@@ -204,10 +206,29 @@ int load_tracks( const string& track_fn, track_handle_list_type& tracks, const s
 
     frame_handle_list_type frames = track_oracle_core::get_frames( tracks[i] );
     frame_count += frames.size();
+    vector< oracle_entry_handle_type > frame_handles( frames.size() );
+    for (auto j=0; j<frames.size(); ++j)
+    {
+      frame_handles[j] = frames[j].row;
+    }
+    /*
     for (size_t j=0; j<frames.size(); ++j)
     {
       vector< field_handle_type > fs = track_oracle_core::fields_at_row( frames[j].row );
       for (size_t t=0; t<fs.size(); ++t) ++frame_stats[ fs[t] ];
+    }
+    */
+    for (auto fields_at_frame: track_oracle_core::fields_at_rows( frame_handles ))
+    {
+      for (auto field: fields_at_frame)
+      {
+        ++frame_stats[ field ];
+      }
+    }
+    if (timer.real() > 5 * 1000)
+    {
+      LOG_INFO( main_logger, "Computed stats on " << i << " of " << tracks.size() << "; " << frame_count << " frames" );
+      timer.mark();
     }
   }
 

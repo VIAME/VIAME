@@ -81,6 +81,13 @@ track_oracle_core
   return track_oracle_core::get_instance().fields_at_row( row );
 }
 
+vector< vector< field_handle_type > >
+track_oracle_core
+::fields_at_rows( const vector< oracle_entry_handle_type > rows )
+{
+  return track_oracle_core::get_instance().fields_at_rows( rows );
+}
+
 oracle_entry_handle_type
 track_oracle_core
 ::get_next_handle()
