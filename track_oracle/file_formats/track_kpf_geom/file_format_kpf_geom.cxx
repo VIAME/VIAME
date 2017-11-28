@@ -42,7 +42,9 @@ static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __
 
 #include <track_oracle/data_terms/data_terms.h>
 #include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
 #include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
 #include <vital/util/tokenize.h>
 #include <track_oracle/utils/logging_map.h>
 
@@ -52,13 +54,20 @@ static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <regex>
+#include <cctype>
 
 using std::string;
 using std::istream;
 using std::ifstream;
+using std::ofstream;
 using std::stringstream;
 using std::ostringstream;
 using std::map;
+using std::regex;
+using std::sregex_iterator;
+using std::distance;
+using std::stoi;
 
 namespace KPF=::kwiver::vital::kpf;
 
@@ -66,6 +75,26 @@ namespace // anon
 {
 using namespace kwiver::track_oracle;
 
+struct vgl_box_adapter_t: public KPF::kpf_box_adapter< vgl_box_2d<double> >
+{
+  vgl_box_adapter_t():
+    kpf_box_adapter< vgl_box_2d<double> >(
+      // reads the canonical box "b" into the vgl_box "d"
+      []( const KPF::canonical::bbox_t& b, vgl_box_2d<double>& d ) {
+        d = vgl_box_2d<double>(
+          vgl_point_2d<double>( b.x1, b.y1 ),
+          vgl_point_2d<double>( b.x2, b.y2 ));
+      },
+
+      // converts a vgl box "d" into a canonical box and returns it
+      []( const vgl_box_2d<double>& d ) {
+        return KPF::canonical::bbox_t(
+          d.min_x(),
+          d.min_y(),
+          d.max_x(),
+          d.max_y()); })
+  {}
+};
 
 
 struct kpf_geom_exception
@@ -73,6 +102,57 @@ struct kpf_geom_exception
   explicit kpf_geom_exception( const string& msg ): what(msg) {}
   string what;
 };
+
+map< field_handle_type, KPF::packet_t >
+get_optional_fields()
+{
+  map< field_handle_type, KPF::packet_t > optional_fields;
+  string dbltype( typeid( double(0) ).name()), strtype( typeid( string("") ).name());
+  string kpf_key_str( KPF::style2str( KPF::packet_style::KV ));
+  // Note that these regexs are tied to the synthesized field names in the reader.
+  regex field_dbl("^([a-zA-Z0-9]+)_([0-9]+)$"), field_kv("^"+kpf_key_str+"_([a-zA-Z0-9]+)$");
+  auto match_end = sregex_iterator();
+
+  for (auto i: track_oracle_core::get_all_field_handles())
+  {
+    element_descriptor e = track_oracle_core::get_element_descriptor( i );
+
+    // Is the type double?
+    if (e.typeid_str == dbltype)
+    {
+      auto m = sregex_iterator( e.name.begin(), e.name.end(), field_dbl );
+      // did we find two matches and is the first a KPF style?
+      if (distance( m, match_end ) == 2)
+      {
+        auto style = KPF::str2style( m->str() );
+        if (style != KPF::packet_style::INVALID )
+        {
+          // Convert the domain and associate a packet with the field
+          ++m;
+          optional_fields[i] = KPF::packet_t( KPF::packet_header_t( style, stoi( m->str() )));
+
+        } // ...not a valid KPF domain
+      } // ... didn't find two matches
+    } // ...field is not a double
+
+    // Is the type string?
+    else if (e.typeid_str == strtype)
+    {
+      auto m = sregex_iterator( e.name.begin(), e.name.end(), field_kv );
+      // did we find one match?
+      if (distance( m, match_end) == 1)
+      {
+        // Create a partial KV packet with the key
+        KPF::packet_t p( (KPF::packet_header_t( KPF::packet_style::KV )) );
+        p.kv.key = m->str();
+        optional_fields[i] = p;
+
+      } // ...didn't get exactly one match
+    } // ... field is not a string
+  } // ...for all fields in track_oracle
+
+  return optional_fields;
+}
 
 void
 add_to_row( kwiver::logging_map_type& log_map,
@@ -167,6 +247,10 @@ add_to_row( kwiver::logging_map_type& log_map,
       // can assert their semantic interpretation. Not so with conf packets,
       // so we'll just create their storage on-the-fly.
 
+
+      // Note that this string needs to be kept in sync with the regex
+      // used to pick it up in the writer.
+
       ostringstream oss;
       oss << KPF::style2str( p.header.style ) << "_" << p.header.domain;
       field_handle_type f = track_oracle_core::lookup_by_name( oss.str() );
@@ -185,6 +269,9 @@ add_to_row( kwiver::logging_map_type& log_map,
     {
       // Like the conf values, but here we don't have a domain, and
       // the type is string, not double.
+
+      // Note that this string needs to be kept in sync with the regex
+      // used to pick it up in the writer.
 
       ostringstream oss;
       oss << KPF::style2str( p.header.style ) << "_" << p.kv.key;
@@ -267,6 +354,10 @@ bool
 file_format_kpf_geom
 ::read( istream& is, track_handle_list_type& tracks ) const
 {
+  //
+  // Load the YAML
+  //
+
   LOG_INFO( main_logger, "KPF geometry YAML load start");
   KPF::kpf_yaml_parser_t parser( is );
   KPF::kpf_reader_t reader( parser );
@@ -276,6 +367,10 @@ file_format_kpf_geom
   size_t rc = 0;
   map< unsigned, track_handle_type > track_map;
   logging_map_type wmsgs( main_logger, KWIVER_LOGGER_SITE );
+
+  //
+  // process each line
+  //
 
   while ( reader.next() )
   {
@@ -293,6 +388,11 @@ file_format_kpf_geom
     {
       namespace KPFC = ::kwiver::vital::kpf::canonical;
 
+      //
+      // special handling for the track ID (aka ID1) since we need
+      // that as our key into track_oracle's track/frame pool
+      //
+
       auto track_id_probe = reader.transfer_packet_from_buffer(
         KPF::packet_header_t( KPF::packet_style::ID, KPFC::id_t::TRACK_ID ));
       if ( ! track_id_probe.first )
@@ -301,6 +401,11 @@ file_format_kpf_geom
         oss << "Missing packet ID1 on non-meta record line " << rc << "; skipping";
         throw kpf_geom_exception( oss.str() );
       }
+
+      //
+      // do we already have a track_oracle track structure for this ID?
+      // if not, create one
+      //
 
       auto track_probe = track_map.find( track_id_probe.second.id.d );
       if (track_probe == track_map.end())
@@ -312,6 +417,10 @@ file_format_kpf_geom
       // the track ID is added to the track row;
       // other packets are added to the frames
       add_to_row( wmsgs, t.row, track_id_probe.second );
+
+      //
+      // create a frame for this record and read the rest of the packets into it
+      //
 
       frame_handle_type f = entry(t).create_frame();
 
@@ -361,10 +470,20 @@ file_format_kpf_geom
 
     reader.flush();
   }
+
+  //
+  // convert the map of track handles into the return buffer
+  //
+
   for (auto p: track_map)
   {
     tracks.push_back( p.second );
   }
+
+  //
+  // all done; emit any warnings and return
+  //
+
   if (! wmsgs.empty() )
   {
     LOG_INFO( main_logger, "KPF geom parsing warnings begin" );
@@ -379,7 +498,13 @@ file_format_kpf_geom
 ::write( const std::string& fn,
          const track_handle_list_type& tracks) const
 {
-  return false;
+  ofstream os( fn.c_str() );
+  if ( ! os )
+  {
+    LOG_ERROR( main_logger, "Couldn't open '" << fn << "' for writing" );
+    return false;
+  }
+  return this->write( os, tracks );
 }
 
 bool
@@ -387,7 +512,147 @@ file_format_kpf_geom
 ::write( std::ostream& os,
          const track_handle_list_type& tracks) const
 {
-  return false;
+  namespace KPFC = KPF::canonical;
+  logging_map_type wmsgs( main_logger, KWIVER_LOGGER_SITE );
+  KPF::record_yaml_writer w( os );
+  track_kpf_geom_type entry;
+  vgl_box_adapter_t box_adapter;
+
+  //
+  // When looking in track_oracle's database for any optional fields
+  // to emit, we select anything whose field name matches either
+  //
+  // XXX_nnn, where 'XXX' can be converted to a KPF style, and nnn is an
+  // integer (interpreted as the domain), and the type is a double,
+  //
+  // OR
+  //
+  // key_KKK, where 'key' is the KPF style for a key/value pair; KKK is
+  // taken as the key, and the track_oracle entry is the value, and the type
+  // is a string.
+  //
+  // Another approach might be to store these packet headers when we read the
+  // KPF in, but somehow doing it just-in-time here feels better, if more
+  // convoluted.
+  //
+
+  //
+  // Whoops, we have to store a whole packet because the KV packet
+  // doesn't record the key in the header. Drat.
+  //
+
+  auto optional_fields = get_optional_fields();
+  for (auto i: optional_fields)
+  {
+    const KPF::packet_t& p = i.second;
+    if (p.header.style == KPF::packet_style::KV)
+    {
+      LOG_INFO( main_logger, "KPF geom writer: adding optional KV " << p.kv.key );
+    }
+    else
+    {
+      LOG_INFO( main_logger, "KPF geom writer: adding optional " << p.header );
+    }
+  }
+
+  //
+  // worry about meta packets later
+  //
+
+  for (const auto& t: tracks )
+  {
+    for (const auto& f: track_oracle_core::get_frames( t ) )
+    {
+      //
+      // write out the required fields
+      //
+
+      w
+        << KPF::writer< KPFC::id_t >( entry(t).track_id(), KPFC::id_t::TRACK_ID )
+        << KPF::writer< KPFC::id_t >( entry[f].det_id(), KPFC::id_t::DETECTION_ID )
+        << KPF::writer< KPFC::bbox_t >( box_adapter( entry[f].bounding_box()), KPFC::bbox_t::IMAGE_COORDS )
+        << KPF::writer< KPFC::timestamp_t >( entry[f].frame_number(), KPFC::timestamp_t::FRAME_NUMBER );
+
+      //
+      // write out the optional fields
+      //
+
+      for (auto fh: track_oracle_core::fields_at_row( f.row ) )
+      {
+        auto probe = optional_fields.find( fh );
+        if (probe == optional_fields.end())
+        {
+          continue;
+        }
+
+        //
+        // hmm, awkward
+        //
+
+        const KPF::packet_t& p = probe->second;
+        switch (p.header.style)
+        {
+        case KPF::packet_style::CONF:
+          {
+            auto v = track_oracle_core::get<double>( f.row, fh );
+            if ( v.first )
+            {
+              w << KPF::writer< KPFC::conf_t >( v.second, p.header.domain );
+            }
+            else
+            {
+              LOG_ERROR( main_logger, "Lost value for " << p.header << "?" );
+            }
+          }
+          break;
+        case KPF::packet_style::EVAL:
+          {
+            auto v = track_oracle_core::get<double>( f.row, fh );
+            if ( v.first )
+            {
+              w << KPF::writer< KPFC::eval_t >( v.second, p.header.domain );
+            }
+            else
+            {
+              LOG_ERROR( main_logger, "Lost value for " << p.header << "?" );
+            }
+          }
+          break;
+        case KPF::packet_style::KV:
+          {
+            auto v = track_oracle_core::get<string>( f.row, fh );
+            if ( v.first )
+            {
+              w << KPF::writer< KPFC::kv_t >( p.kv.key, v.second );
+            }
+            else
+            {
+              LOG_ERROR( main_logger, "Lost value for " << p.header << "?" );
+            }
+          }
+          break;
+        default:
+          {
+            ostringstream oss;
+            oss << "No handler for optional packet " << p.header;
+            wmsgs.add_msg( oss.str() );
+          }
+        }
+      } // ...for all optional fields
+
+      w << KPF::record_yaml_writer::endl;
+
+    } // ... for all frames
+  } // ... for all tracks
+
+  if (! wmsgs.empty() )
+  {
+    LOG_INFO( main_logger, "KPF geom writer warnings begin" );
+    wmsgs.dump_msgs();
+    LOG_INFO( main_logger, "KPF geom writer warnings end" );
+  }
+
+  return true;
 }
 
 } // ...track_oracle
