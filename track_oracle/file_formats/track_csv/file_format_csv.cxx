@@ -221,7 +221,7 @@ file_format_csv
   // ends up in the element pool
   volatile track_field< dt::tracking::mgrs_pos > mgrs;
 #endif
-  
+
   // ...and state flags
   volatile track_field< dt::utility::state_flags > state_flags;
 
@@ -236,6 +236,8 @@ file_format_csv
   volatile track_field< dt::events::event_type > ev_type_field;
   volatile track_field< dt::events::event_probability > ev_prob_field;
   volatile track_field< dt::events::source_track_ids > src_trk_ids_field;
+
+  volatile track_field< dt::detection::detection_id > det_id_field;
 }
 
 file_format_csv
