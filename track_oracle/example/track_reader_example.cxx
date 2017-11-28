@@ -54,6 +54,7 @@ int main( int argc, char *argv[] )
   vul_arg< string > kwiver_arg( "-kwiver", "write out as kwiver to this file" );
   vul_arg< string > kw18_arg( "-kw18", "write out as kw18 to this file" );
   vul_arg< string > csv_arg( "-csv", "write out as csv to this file" );
+  vul_arg< string > kpf_g_arg( "-kpf-g", "write out as KPF geometry to this file" );
   vul_arg< string > csv_v1_arg( "-csv-v1", "write out as old-style csv to this file" );
   vul_arg< string > kwxml_ts_arg( "-kwxml_ts", "if writing kwxml, set default track style to this", "trackObjectKitware" );
   vul_arg< string > tag_arg( "-tag", "if writing kwiver, test tags by setting track-level 'test' flag to this" );
@@ -142,6 +143,11 @@ int main( int argc, char *argv[] )
       {
         LOG_ERROR( main_logger, "Could not write CSV to '" << csv_arg() << "'" );
       }
+    }
+    if ( kpf_g_arg.set() )
+    {
+      bool okay = file_format_manager::get_format( TF_KPF_GEOM )->write( kpf_g_arg(), tracks );
+      LOG_INFO( main_logger, "Wrote KPF geometry to " << kpf_g_arg() << " success: " << okay );
     }
   }
   return rc;
