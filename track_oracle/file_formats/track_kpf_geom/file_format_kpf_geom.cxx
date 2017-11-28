@@ -103,6 +103,29 @@ struct kpf_geom_exception
   string what;
 };
 
+//
+// When looking in track_oracle's database for any optional fields
+// to emit, we select anything whose field name matches either
+//
+// XXX_nnn, where 'XXX' can be converted to a KPF style, and nnn is an
+// integer (interpreted as the domain), and the type is a double,
+//
+// OR
+//
+// key_KKK, where 'key' is the KPF style for a key/value pair; KKK is
+// taken as the key, and the track_oracle entry is the value, and the type
+// is a string.
+//
+// Another approach might be to store these packet headers when we read the
+// KPF in, but somehow doing it just-in-time here feels better, if more
+// convoluted.
+//
+
+//
+// Whoops, we have to store a whole packet because the KV packet
+// doesn't record the key in the header. Drat.
+//
+
 map< field_handle_type, KPF::packet_t >
 get_optional_fields()
 {
@@ -517,29 +540,6 @@ file_format_kpf_geom
   KPF::record_yaml_writer w( os );
   track_kpf_geom_type entry;
   vgl_box_adapter_t box_adapter;
-
-  //
-  // When looking in track_oracle's database for any optional fields
-  // to emit, we select anything whose field name matches either
-  //
-  // XXX_nnn, where 'XXX' can be converted to a KPF style, and nnn is an
-  // integer (interpreted as the domain), and the type is a double,
-  //
-  // OR
-  //
-  // key_KKK, where 'key' is the KPF style for a key/value pair; KKK is
-  // taken as the key, and the track_oracle entry is the value, and the type
-  // is a string.
-  //
-  // Another approach might be to store these packet headers when we read the
-  // KPF in, but somehow doing it just-in-time here feels better, if more
-  // convoluted.
-  //
-
-  //
-  // Whoops, we have to store a whole packet because the KV packet
-  // doesn't record the key in the header. Drat.
-  //
 
   auto optional_fields = get_optional_fields();
   for (auto i: optional_fields)
