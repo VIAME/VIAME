@@ -6,7 +6,8 @@ set(SOURCE "main.cpp"
 
 set(kwiver_examples_libraries vital_algo
                               kwiver_algo_ocv
-                              kwiver_algo_vxl)
+                              kwiver_algo_vxl
+                              kwiversys )
 
 if(fletch_ENABLED_YAMLCPP)
   # YAML parsing and raw kpf examples
