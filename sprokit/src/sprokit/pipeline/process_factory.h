@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_FACTORY_H
 #define SPROKIT_PIPELINE_PROCESS_FACTORY_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>
@@ -98,13 +98,38 @@ public:
    *
    * @param type Type name of the process
    * @param itype Type name of interface type.
-   * @param factory The Factory function
    */
   process_factory( const std::string& type,
-                   const std::string& itype,
-                   process_factory_func_t factory );
+                   const std::string& itype );
 
-  virtual ~process_factory();
+  virtual ~process_factory() = default;
+
+  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) = 0;
+
+  void copy_attributes( sprokit::process_t proc );
+};
+
+
+// ----------------------------------------------------------------------------
+class SPROKIT_PIPELINE_EXPORT cpp_process_factory
+: public sprokit::process_factory
+{
+public:
+  /**
+   * @brief CTOR for factory object
+   *
+   * This CTOR also takes a factory function so it can support
+   * creating processes and clusters.
+   *
+   * @param type Type name of the process
+   * @param itype Type name of interface type.
+   * @param factory The Factory function
+   */
+  cpp_process_factory( const std::string& type,
+                       const std::string& itype,
+                       process_factory_func_t factory );
+
+  virtual ~cpp_process_factory() = default;
 
   virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
 
@@ -128,7 +153,6 @@ SPROKIT_PIPELINE_EXPORT
 sprokit::process_t create_process(const sprokit::process::type_t&        type,
                                   const sprokit::process::name_t&        name,
                                   const kwiver::vital::config_block_sptr config = kwiver::vital::config_block::empty_config() );
-
 
 /**
  * \brief Mark a process as loaded.
@@ -164,10 +188,11 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
 //
 // Convenience macro for adding processes
 //
-#define ADD_PROCESS( proc_type )                          \
-  add_factory( new sprokit::process_factory( typeid( proc_type ).name(), \
-                                             typeid( sprokit::process ).name(), \
-                                             sprokit::create_new_process< proc_type > ) )
+#define ADD_PROCESS( proc_type )                                        \
+  add_factory( new sprokit::cpp_process_factory( typeid( proc_type ).name(), \
+                                                 typeid( sprokit::process ).name(), \
+                                                 sprokit::create_new_process< proc_type > ) )
+
 } // end namespace
 
 #endif /* SPROKIT_PIPELINE_PROCESS_FACTORY_H */

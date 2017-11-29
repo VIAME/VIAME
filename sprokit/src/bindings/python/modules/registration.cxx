@@ -51,10 +51,25 @@
   #include <dlfcn.h>
 #endif
 
+
+// Undefine macros that will double expand in case an definition has a value
+// something like: /usr/lib/x86_64-linux-gnu/libpython2.7.so
+#ifdef linux
+#define _orig_linux linux
+#undef linux
+#endif
+
+// for getting the value of a macro as a string literal
+#define MACRO_STR_VALUE(x) _TO_STRING0(x)
+#define _TO_STRING0(x) _TO_STRING1(x)
+#define _TO_STRING1(x) #x
+
+
 using namespace pybind11;
 
 static void load();
 static bool is_suppressed();
+static void _load_python_library_symbols();
 
 
 // ==================================================================
@@ -82,20 +97,62 @@ register_factories(kwiver::vital::plugin_loader& vpm)
 
   Py_Initialize();
 
-#ifdef SPROKIT_LOAD_PYLIB_SYM
-  const char *pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
-
-  if( pylib )
-  {
-    dlopen( pylib, RTLD_LAZY | RTLD_GLOBAL );
-  }
-#endif
+  _load_python_library_symbols();
 
   sprokit::python::python_gil const gil;
 
   (void)gil;
 
   SPROKIT_PYTHON_IGNORE_EXCEPTION(load())
+}
+
+
+// ------------------------------------------------------------------
+/*
+ * Uses environment variables and compiler definitions to determine where the
+ * python shared library is and load its symbols.
+ */
+void _load_python_library_symbols()
+{
+  auto logger = kwiver::vital::get_logger("sprokit.python_modules");
+
+#ifdef SPROKIT_LOAD_PYLIB_SYM
+  const char *env_pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
+
+  // cmake should provide this definition
+  #ifdef PYTHON_LIBRARY
+  const char *default_pylib = MACRO_STR_VALUE(PYTHON_LIBRARY);
+  #else
+  const char *default_pylib = NULL;
+  #endif
+
+  // First check if the PYTHON_LIBRARY environment variable is specified
+  if( env_pylib )
+  {
+    LOG_DEBUG(logger, "Loading symbols from PYTHON_LIBRARY=" << env_pylib );
+    void* handle = dlopen( env_pylib, RTLD_LAZY | RTLD_GLOBAL );
+    if (!handle) {
+      LOG_ERROR(logger, "Cannot load library: " << dlerror());
+    }
+  }
+  else if( default_pylib )
+  {
+    // If the PYTHON_LIBRARY environment variable is not specified, use the
+    // CMAKE definition of PYTHON_LIBRARY instead.
+    LOG_DEBUG(logger, "Loading symbols from default PYTHON_LIBRARY=" << default_pylib);
+    void* handle = dlopen( default_pylib, RTLD_LAZY | RTLD_GLOBAL );
+    if (!handle) {
+      LOG_ERROR(logger, "Cannot load library: " << dlerror());
+    }
+  }
+  else
+  {
+    LOG_DEBUG(logger, "Unable to pre-load python symbols because " <<
+                      "PYTHON_LIBRARY is undefined.");
+  }
+#else
+  LOG_DEBUG(logger, "Not checking for python symbols");
+#endif
 }
 
 
@@ -124,3 +181,11 @@ is_suppressed()
 
   return suppress_python_modules;
 }
+
+
+// Redefine values that we hacked away
+#ifdef _orig_linux
+#define linux _orig_linux
+#undef _orig_linux
+#endif
+

@@ -46,6 +46,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "arrows/ocv/image_container.h"
 
+#include <kwiversys/SystemTools.hxx>
+
 void how_to_part_02_detections()
 {
   // Initialize KWIVER and load up all plugins
@@ -78,7 +80,7 @@ void how_to_part_02_detections()
   Sleep(2000);                                       // Wait for 2s
   cvDestroyWindow("Hough Detections");
 
-  // Next, let's look at the detection data structurs and we can make them
+  // Next, let's look at the detection data structures and we can make them
 
   // General detection data is defined by the detected_object class
   // Detectors will take in an image and return a detected_object_set_sptr object
@@ -88,15 +90,16 @@ void how_to_part_02_detections()
   // bounding_box_d is a double based box where the top left and bottom right corners are specificed as TODO pixel index?
   // The top left corner is the anchor. A bounding_box_i is interger based to associate corners to pixels in the image
   kwiver::vital::bounding_box_d bbox1(ocv_img->width()*0.25, ocv_img->height()*0.25,
-    ocv_img->width()*0.75, ocv_img->height()*0.75);
-  // The confidence value is the confidence associated with the detection. 
-  // It should be a probability (0..1) that the detector is suer that it has identified what it is supposed to find.
-  double confidence1 = 1.0;
+                                      ocv_img->width()*0.75, ocv_img->height()*0.75);
+  // The confidence value is the confidence associated with the detection.
+  // It should be a probability (0..1) that the detector is sure that it has identified what it is supposed to find.
+
   // A Classification
   // The detected_object_type is created by a classifier which is sometimes part of the detector.
   // It is a group of name / value pairs.The name being the name of the class.
   // The score is the probability that the object is that class.
   // It is optional and not required for a detected object although most examples provide one just to be complete.
+
   kwiver::vital::detected_object_type_sptr type1(new kwiver::vital::detected_object_type());
   // This can have multiple entries / scores
   type1->set_score("car", 0.03);
@@ -139,10 +142,8 @@ void how_to_part_02_detections()
   cv::namedWindow("Detections", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Detections", mat);                     // Show our image inside it.
   cv::waitKey(5);
-  Sleep(2000);                                       // Wait for 2s
+  kwiversys::SystemTools::Delay(2000);                                       // Wait for 2s
   cvDestroyWindow("Detections");
-
-  
 
   kwiver::vital::algo::detected_object_set_output_sptr kpf_writer = kwiver::vital::algo::detected_object_set_output::create("kpf_output");
   kwiver::vital::algo::detected_object_set_input_sptr kpf_reader = kwiver::vital::algo::detected_object_set_input::create("kpf_input");

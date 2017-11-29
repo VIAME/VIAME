@@ -1,4 +1,4 @@
 image_writer
 ============
 
-This sprokit process is used to ...
+.. include:: ../../_generated/processes/image_writer.rst

@@ -45,7 +45,6 @@
 #include <cctype>
 #include <locale>
 
-
 namespace kwiver {
 namespace vital {
 
@@ -135,10 +134,8 @@ config_block
 
     config_block_key_t const stripped_key_name = strip_block_name( key, key_name );
 
-    conf->set_value( stripped_key_name,
-                     i_get_value( key_name ),
-                     get_description( key_name ) );
-  }
+    conf->copy_entry( stripped_key_name, this );
+  } // end for
 
   return conf;
 }
@@ -471,14 +468,25 @@ config_block
                 std::string& f,
                 int& l) const
 {
-  location_t::const_iterator i = m_def_store.find( key );
-  if ( i != m_def_store.end() )
+  if (m_parent)
+  {
+    location_t::const_iterator i = m_parent->m_def_store.find( m_name + block_sep + key );
+    if ( i != m_parent->m_def_store.end() )
+    {
+      f = i->second.file();
+      l = i->second.line();
+      return true;
+    }
+    return false;
+  }
+
+  location_t::const_iterator i = this->m_def_store.find( key );
+  if ( i != this->m_def_store.end() )
   {
     f = i->second.file();
     l = i->second.line();
     return true;
   }
-
   return false;
 }
 
@@ -488,13 +496,23 @@ bool
 config_block
 ::get_location( config_block_key_t const& key, kwiver::vital::source_location& loc ) const
 {
+    if (m_parent)
+  {
+    location_t::const_iterator i = m_parent->m_def_store.find( m_name + block_sep + key );
+    if ( i != m_parent->m_def_store.end() )
+    {
+      loc = i->second;
+      return true;
+    }
+    return false;
+  }
+
   location_t::const_iterator i = m_def_store.find( key );
   if ( i != m_def_store.end() )
   {
     loc  = i->second;;
     return true;
   }
-
   return false;
 }
 
@@ -598,7 +616,7 @@ strip_block_name( config_block_key_t const& subblock, config_block_key_t const& 
 /// Format config block in a printable stream
 void
 config_block::
-  print( std::ostream& str )
+print( std::ostream& str )
 {
   kwiver::vital::config_block_keys_t all_keys = this->available_values();
 

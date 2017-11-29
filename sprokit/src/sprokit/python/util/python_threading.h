@@ -31,13 +31,10 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYTHON_THREADING_H
 #define SPROKIT_PYTHON_UTIL_PYTHON_THREADING_H
 
-#include "util-config.h"
+#include <sprokit/python/util/sprokit_python_util_export.h>
 
-namespace sprokit
-{
-
-namespace python
-{
+namespace sprokit {
+namespace python {
 
 class SPROKIT_PYTHON_UTIL_EXPORT python_threading
 {
@@ -47,7 +44,6 @@ class SPROKIT_PYTHON_UTIL_EXPORT python_threading
 };
 
 }
-
 }
 
 #endif // SPROKIT_PYTHON_UTIL_PYTHON_THREADING_H

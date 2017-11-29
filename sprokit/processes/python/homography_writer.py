@@ -10,11 +10,10 @@ from __future__ import print_function
 import sprokit.pipeline.datum
 import sprokit.pipeline.process
 import sprokit.pipeline.config
-import sprokit.pipeline.process_registry
 
 # from libkwiver_python_convert_homography.homograpy import HomograpyTra
 import os.path
-import libkwiver_python_convert_homography
+# import libkwiver_python_convert_homography
 
 
 
@@ -38,7 +37,7 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
 
         #self.declare_input_port('homography', info)
         #                        name, type, flags, descrip
-        self.declare_input_port('homography', 's2r_homography', required, 'Input homographies' )
+        self.declare_input_port('homography', 'kwiver:s2r_homography', required, 'Input homographies' )
 
     # ----------------------------------------------------------------
     def _configure(self):
@@ -81,8 +80,8 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.register_add('kw_write_homography',
-                                 'A Simple Kwiver homography writer',
-                                 HomographyWriterProcess)
+    process_factory.add_process('kw_write_homography',
+                                'A Simple Kwiver homography writer',
+                                HomographyWriterProcess)
 
     process_factory.mark_process_module_as_loaded(module_name)

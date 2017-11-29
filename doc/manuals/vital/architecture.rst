@@ -26,8 +26,9 @@ In the following sections we will breakdown the various the algorithms and data 
    :maxdepth: 2
 
    images
-   detections
-   doxygen
+   detectors
+   trackers
+   activities
    
 
 .. _Eigen: http://eigen.tuxfamily.org/

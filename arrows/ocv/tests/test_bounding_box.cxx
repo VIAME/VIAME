@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,53 +33,37 @@
  * \brief test VXL bundle adjustment functionality
  */
 
-#include <test_common.h>
-
 #include <arrows/ocv/bounding_box.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(convert_bb2ocv)
+// ----------------------------------------------------------------------------
+TEST(bounding_box, convert_bb2ocv)
 {
   kwiver::vital::bounding_box<double> bbox( 1, 3, 10, 34 );
-  CvRect vbox = kwiver::arrows::ocv::convert( bbox );
+  auto const& vbox = kwiver::arrows::ocv::convert( bbox );
 
-  if ( bbox.min_x() != vbox.x ||
-       bbox.min_y() != vbox.y ||
-       bbox.height() != vbox.height ||
-       bbox.width() != vbox.width )
-  {
-    TEST_ERROR( "Assignment ocv = bbox failed" );
-  }
+  EXPECT_EQ( bbox.min_x(), vbox.x );
+  EXPECT_EQ( bbox.min_y(), vbox.y );
+  EXPECT_EQ( bbox.width(), vbox.width );
+  EXPECT_EQ( bbox.height(), vbox.height );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(convert_ocv2bb)
+// ----------------------------------------------------------------------------
+TEST(bounding_box, convert_ocv2bb)
 {
   CvRect vbox= cvRect( 1, 3, 10, 34 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::ocv::convert<double>( vbox );
+  auto const& bbox = kwiver::arrows::ocv::convert<double>( vbox );
 
-  if ( bbox.min_x() != vbox.x ||
-       bbox.min_y() != vbox.y ||
-       bbox.height() != vbox.height ||
-       bbox.width() != vbox.width )
-  {
-    TEST_ERROR( "Assignment bbox = ocv failed" );
-  }
+  EXPECT_EQ( vbox.x, bbox.min_x() );
+  EXPECT_EQ( vbox.y, bbox.min_y() );
+  EXPECT_EQ( vbox.width, bbox.width() );
+  EXPECT_EQ( vbox.height, bbox.height() );
 }

@@ -11,8 +11,7 @@ set(python_util_headers
   python_exceptions.h
   python_gil.h
   python.h
-  python_threading.h
-  util-config.h)
+  python_threading.h)
 
 if( NOT WIN32 )
   set(python_util_srcs
@@ -24,7 +23,7 @@ if( NOT WIN32 )
       pystream.h)
 endif()
 
-sprokit_add_library(sprokit_python_util
+kwiver_add_library(sprokit_python_util
   ${python_util_srcs}
   ${python_util_headers})
 
@@ -33,12 +32,16 @@ target_link_libraries(sprokit_python_util
   LINK_PRIVATE    ${Boost_IOSTREAMS_LIBRARY}
                   ${Boost_SYSTEM_LIBRARY})
 
-  set_target_properties(sprokit_python_util
-  PROPERTIES
-    VERSION       ${KWIVER_VERSION}
-    SOVERSION     0
-    DEFINE_SYMBOL MAKE_SPROKIT_PYTHON_UTIL_LIB)
+kwiver_install_headers(
+    SUBDIR     sprokit/python/util
+    ${python_util_headers}
+    )
 
-sprokit_install_headers(sprokit/python/util ${python_util_headers})
+  # install export header
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_python_util_export.h
+  SUBDIR   sprokit/python/util
+  NOPATH
+  )
 
 sprokit_configure_pkgconfig(sprokit-python_util      PYTHON_VERSION)

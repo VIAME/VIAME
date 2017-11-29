@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,55 +33,73 @@
  * \brief test capabilities class
  */
 
-#include <test_common.h>
 #include <vital/algorithm_capabilities.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-IMPLEMENT_TEST(test_api)
+// ----------------------------------------------------------------------------
+class algorithm_capabilities : public ::testing::Test
 {
+public:
+  void SetUp()
+  {
+    cap.set_capability( "cap1", true );
+    cap.set_capability( "cap2", false );
+  }
+
   kwiver::vital::algorithm_capabilities cap;
+};
 
-  TEST_EQUAL( "Empty capabilities cap", cap.has_capability("test"), false );
+// ----------------------------------------------------------------------------
+TEST_F(algorithm_capabilities, empty)
+{
+  kwiver::vital::algorithm_capabilities cap_empty;
 
-  kwiver::vital::algorithm_capabilities::capability_list_t cap_list = cap.capability_list();
-  TEST_EQUAL( "Empty cap list", cap_list.empty(), true );
+  EXPECT_EQ( false, cap_empty.has_capability( "test" ) );
 
-  cap.set_capability( "cap1", true );
-  cap.set_capability( "cap2", false );
+  auto cap_list = cap_empty.capability_list();
+  EXPECT_TRUE( cap_list.empty() );
+  EXPECT_EQ( 0, cap_list.size() );
+}
 
-  cap_list = cap.capability_list();
-  TEST_EQUAL( "Empty cap list 2", cap_list.size(), 2 );
+// ----------------------------------------------------------------------------
+static void test_capabilities(
+  kwiver::vital::algorithm_capabilities const& cap )
+{
+  auto cap_list = cap.capability_list();
+  EXPECT_EQ( 2, cap_list.size() );
 
-  TEST_EQUAL( "cap1", cap.capability( "cap1"), true );
-  TEST_EQUAL( "cap2", cap.capability( "cap2"), false );
+  EXPECT_TRUE( cap.has_capability( "cap1" ) );
+  EXPECT_TRUE( cap.has_capability( "cap2" ) );
 
-  kwiver::vital::algorithm_capabilities cap_2( cap );
+  EXPECT_EQ( true, cap.capability( "cap1" ) );
+  EXPECT_EQ( false, cap.capability( "cap2" ) );
+}
 
-  cap_list = cap_2.capability_list();
-  TEST_EQUAL( "Empty cap list 2", cap_list.size(), 2 );
+// ----------------------------------------------------------------------------
+TEST_F(algorithm_capabilities, api)
+{
+  test_capabilities( cap );
+}
 
-  TEST_EQUAL( "cap1", cap_2.capability( "cap1"), true );
-  TEST_EQUAL( "cap2", cap_2.capability( "cap2"), false );
+// ----------------------------------------------------------------------------
+TEST_F(algorithm_capabilities, copy)
+{
+  kwiver::vital::algorithm_capabilities cap_copied( cap );
+  test_capabilities( cap_copied );
+}
 
-  kwiver::vital::algorithm_capabilities cap_3;
-  cap_3 = cap;
-
-  cap_list = cap_3.capability_list();
-  TEST_EQUAL( "Empty cap list 2", cap_list.size(), 2 );
-
-  TEST_EQUAL( "cap1", cap_3.capability( "cap1"), true );
-  TEST_EQUAL( "cap2", cap_3.capability( "cap2"), false );
+// ----------------------------------------------------------------------------
+TEST_F(algorithm_capabilities, assign)
+{
+  kwiver::vital::algorithm_capabilities cap_assigned;
+  cap_assigned = cap;
+  test_capabilities( cap_assigned );
 }

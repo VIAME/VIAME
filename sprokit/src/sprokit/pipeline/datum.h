@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_DATUM_H
 #define SPROKIT_PIPELINE_DATUM_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "types.h"
 

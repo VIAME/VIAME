@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
 #define SPROKIT_PYTHON_UTIL_PYTHON_GIL_H
 
-#include "util-config.h"
+#include <sprokit/python/util/sprokit_python_util_export.h>
 
 #include <vital/noncopyable.h>
 
@@ -43,11 +43,8 @@
  * \brief RAII class for grabbing the Python GIL.
  */
 
-namespace sprokit
-{
-
-namespace python
-{
+namespace sprokit {
+namespace python {
 
 /**
  * \class python_gil python_gil.h <sprokit/python/util/python_gil.h>
@@ -55,7 +52,7 @@ namespace python
  * \brief Grabs the Python GIL and uses RAII to ensure it is released.
  */
 class SPROKIT_PYTHON_UTIL_EXPORT python_gil
-  : kwiver::vital::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /**
@@ -71,7 +68,6 @@ class SPROKIT_PYTHON_UTIL_EXPORT python_gil
 };
 
 }
-
 }
 
 #endif // SPROKIT_PYTHON_UTIL_PYTHON_GIL_H

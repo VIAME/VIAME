@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,42 +33,35 @@
  * \brief test Ceres reprojection error functors
  */
 
-#include <test_common.h>
 #include <test_scene.h>
 
-
-#include <arrows/core/metrics.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
+
+#include <arrows/core/metrics.h>
 #include <arrows/core/projected_track_set.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
+using namespace kwiver::vital;
 
-DECLARE_TEST_MAP();
+using kwiver::arrows::reprojection_rmse;
+using kwiver::arrows::projected_tracks;
 
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-/// test the reprojection error of a single residual
-void
-test_reprojection_error(const kwiver::vital::camera& cam,
-                        const kwiver::vital::landmark& lm,
-                        const kwiver::vital::feature& f,
-                        const kwiver::arrows::ceres::LensDistortionType dist_type)
+// ----------------------------------------------------------------------------
+/// Test the reprojection error of a single residual
+static void
+test_reprojection_error(
+  camera const& cam, landmark const& lm, feature const& f,
+  kwiver::arrows::ceres::LensDistortionType dist_type )
 {
-  using namespace kwiver::arrows;
-  using namespace kwiver::arrows::ceres;
-  using namespace kwiver::vital;
-
   ::ceres::CostFunction* cost_func =
       create_cost_func(dist_type, f.loc().x(), f.loc().y());
 
@@ -102,178 +95,126 @@ test_reprojection_error(const kwiver::vital::camera& cam,
   cost_func->Evaluate(parameters, residuals.data(), NULL);
   delete cost_func;
 
-  TEST_NEAR("Residual near zero", residuals.norm(), 0.0, 1e-12);
+  EXPECT_NEAR( 0.0, residuals.norm(), 1e-12 );
 }
 
-
-/// test the reprojection error of all residuals
-void
-test_all_reprojection_errors(const kwiver::vital::camera_map_sptr cameras,
-                             const kwiver::vital::landmark_map_sptr landmarks,
-                             const kwiver::vital::track_set_sptr tracks,
-                             const kwiver::arrows::ceres::LensDistortionType dist_type)
+// ----------------------------------------------------------------------------
+static Eigen::VectorXd distortion_coefficients( int dim )
 {
-  using namespace kwiver::arrows;
-  using namespace kwiver::vital;
+  Eigen::VectorXd dc{ 8 };
+  dc << -0.01, 0.002, 0.001, -0.005, -0.004, 0.02, -0.007, 0.0001;
+  dc.resize( dim );
+  return dc;
+}
 
-  camera_map::map_camera_t cam_map = cameras->cameras();
-  landmark_map::map_landmark_t lm_map = landmarks->landmarks();
-  std::vector<track_sptr> trks = tracks->tracks();
+// ----------------------------------------------------------------------------
+struct reprojection_test
+{
+  char const* const distortion_model;
+  kwiver::arrows::ceres::LensDistortionType const distortion_type;
+  int const distortion_coefficients_dimension;
+};
+
+// ----------------------------------------------------------------------------
+void
+PrintTo( reprojection_test const& v, ::std::ostream* os )
+{
+  (*os) << v.distortion_model << '/' << v.distortion_coefficients_dimension;
+}
+
+// ----------------------------------------------------------------------------
+class reprojection_error : public ::testing::TestWithParam<reprojection_test>
+{
+};
+
+// ----------------------------------------------------------------------------
+// Compare MAP-Tk camera projection to Ceres reprojection error models
+TEST_P(reprojection_error, compare_projections)
+{
+  auto const dist_type = GetParam().distortion_type;
+
+  // Create landmarks at the corners of a cube
+  auto landmarks = kwiver::testing::cube_corners( 2.0 );
+
+  // The intrinsic camera parameters to use
+  auto const dc_dim = GetParam().distortion_coefficients_dimension;
+  simple_camera_intrinsics K{ 1000, vector_2d{ 640, 480 } };
+  K.set_dist_coeffs( distortion_coefficients( dc_dim ) );
+
+  // Create a camera sequence (elliptical path)
+  auto cameras = kwiver::testing::camera_seq( 20, K );
+
+  // Create tracks from the projections
+  auto tracks = projected_tracks( landmarks, cameras );
+
+  // Test the reprojection error of all residuals
+  auto cam_map = cameras->cameras();
+  auto lm_map = landmarks->landmarks();
+  auto trks = tracks->tracks();
 
   double rmse = reprojection_rmse(cam_map, lm_map, trks);
   std::cout << "MAP-Tk reprojection RMSE: " << rmse << std::endl;
-  TEST_NEAR("MAP-Tk reprojection RMSE should be small", rmse, 0.0, 1e-12);
+  EXPECT_NEAR( 0.0, rmse, 1e-12 )
+    << "MAP-Tk reprojection RMSE should be small";
 
-  typedef std::map<landmark_id_t, landmark_sptr>::const_iterator lm_map_itr_t;
-  typedef std::map<frame_id_t, camera_sptr>::const_iterator cam_map_itr_t;
-  for(const track_sptr& t : trks)
+  for ( track_sptr const& t : trks )
   {
-    lm_map_itr_t lmi = lm_map.find(t->id());
-    if (lmi == lm_map.end() || !lmi->second)
+    auto lmi = lm_map.find( t->id() );
+    if ( lmi == lm_map.end() || !lmi->second )
     {
       // no landmark corresponding to this track
       continue;
     }
+
+    SCOPED_TRACE( "At track " + std::to_string( t->id() ) );
+
     const landmark& lm = *lmi->second;
-    for( track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
+    for( auto const& ts : *t )
     {
-      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
-      if (!fts || !fts->feature)
+      auto fts = std::dynamic_pointer_cast<feature_track_state>( ts );
+      if ( !fts || !fts->feature )
       {
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *fts->feature;
-      cam_map_itr_t ci = cam_map.find((*tsi)->frame());
-      if (ci == cam_map.end() || !ci->second)
+
+      auto const& feat = *fts->feature;
+      auto ci = cam_map.find( ts->frame() );
+      if ( ci == cam_map.end() || !ci->second )
       {
         // no camera corresponding to this track state
         continue;
       }
-      const camera& cam = *ci->second;
-      test_reprojection_error(cam, lm, feat, dist_type);
+
+      SCOPED_TRACE( "At track frame " + std::to_string( ts->frame() ) );
+
+      auto const& cam = *ci->second;
+      test_reprojection_error( cam, lm, feat, dist_type );
     }
   }
 }
 
+// ----------------------------------------------------------------------------
+#define DISTORTION( t, k ) \
+  reprojection_test{ #t, kwiver::arrows::ceres::t, k }
 
-/// test reprojection error on a test scene for a particular model
-void test_reprojection_model(const Eigen::VectorXd& dc,
-                             const kwiver::arrows::ceres::LensDistortionType dist_type)
-{
-  using namespace kwiver::arrows;
-  using namespace kwiver::arrows::ceres;
-  using namespace kwiver::vital;
-
-  // create landmarks at the corners of a cube
-  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0);
-
-  // The intrinsic camera parameters to use
-  simple_camera_intrinsics K(1000, vector_2d(640,480));
-  K.set_dist_coeffs(dc);
-
-  // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = kwiver::testing::camera_seq(20,K);
-
-  // create tracks from the projections
-  track_set_sptr tracks = projected_tracks(landmarks, cameras);
-
-  test_all_reprojection_errors(cameras, landmarks, tracks,
-                               dist_type);
-}
-
-
-// compare MAP-Tk camera projection to Ceres reprojection error models
-IMPLEMENT_TEST(compare_projections_no_distortion)
-{
-  using namespace kwiver::arrows::ceres;
-  using namespace kwiver::vital;
-
-  Eigen::VectorXd dc;
-
-  std::cout << "Testing NO_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, NO_DISTORTION);
-  std::cout << "Testing POLYNOMIAL_RADIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_DISTORTION);
-  std::cout << "Testing POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION);
-  std::cout << "Testing RATIONAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, RATIONAL_RADIAL_TANGENTIAL_DISTORTION);
-}
-
-
-// compare MAP-Tk camera projection to Ceres reprojection error models
-IMPLEMENT_TEST(compare_projections_distortion_1)
-{
-  using namespace kwiver::arrows::ceres;
-
-  Eigen::VectorXd dc(1);
-  dc << -0.01;
-
-  std::cout << "Testing POLYNOMIAL_RADIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_DISTORTION);
-  std::cout << "Testing POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION);
-  std::cout << "Testing RATIONAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, RATIONAL_RADIAL_TANGENTIAL_DISTORTION);
-}
-
-
-// compare MAP-Tk camera projection to Ceres reprojection error models
-IMPLEMENT_TEST(compare_projections_distortion_2)
-{
-  using namespace kwiver::arrows::ceres;
-
-  Eigen::VectorXd dc(2);
-  dc << -0.01, 0.002;
-
-  std::cout << "Testing POLYNOMIAL_RADIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_DISTORTION);
-  std::cout << "Testing POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION);
-  std::cout << "Testing RATIONAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, RATIONAL_RADIAL_TANGENTIAL_DISTORTION);
-}
-
-
-// compare MAP-Tk camera projection to Ceres reprojection error models
-IMPLEMENT_TEST(compare_projections_distortion_4)
-{
-  using namespace kwiver::arrows::ceres;
-
-  Eigen::VectorXd dc(4);
-  dc << -0.01, 0.002, 0.001, -0.005;
-
-  std::cout << "Testing POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION);
-  std::cout << "Testing RATIONAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, RATIONAL_RADIAL_TANGENTIAL_DISTORTION);
-}
-
-
-// compare MAP-Tk camera projection to Ceres reprojection error models
-IMPLEMENT_TEST(compare_projections_distortion_5)
-{
-  using namespace kwiver::arrows::ceres;
-
-  Eigen::VectorXd dc(5);
-  dc << -0.01, 0.002, 0.001, -0.005, -0.004;
-
-  std::cout << "Testing POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION);
-  std::cout << "Testing RATIONAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, RATIONAL_RADIAL_TANGENTIAL_DISTORTION);
-}
-
-
-// compare MAP-Tk camera projection to Ceres reprojection error models
-IMPLEMENT_TEST(compare_projections_distortion_8)
-{
-  using namespace kwiver::arrows::ceres;
-
-  Eigen::VectorXd dc(8);
-  dc << -0.01, 0.002, 0.001, -0.005, -0.004, 0.02, -0.007, 0.0001;
-
-  std::cout << "Testing RATIONAL_RADIAL_TANGENTIAL_DISTORTION model" << std::endl;
-  test_reprojection_model(dc, RATIONAL_RADIAL_TANGENTIAL_DISTORTION);
-}
+INSTANTIATE_TEST_CASE_P(
+  ,
+  reprojection_error,
+  ::testing::Values(
+    DISTORTION( NO_DISTORTION, 0 ),
+    DISTORTION( POLYNOMIAL_RADIAL_DISTORTION, 0 ),
+    DISTORTION( POLYNOMIAL_RADIAL_DISTORTION, 1 ),
+    DISTORTION( POLYNOMIAL_RADIAL_DISTORTION, 2 ),
+    DISTORTION( POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION, 0 ),
+    DISTORTION( POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION, 1 ),
+    DISTORTION( POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION, 2 ),
+    DISTORTION( POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION, 4 ),
+    DISTORTION( POLYNOMIAL_RADIAL_TANGENTIAL_DISTORTION, 5 ),
+    DISTORTION( RATIONAL_RADIAL_TANGENTIAL_DISTORTION, 0 ),
+    DISTORTION( RATIONAL_RADIAL_TANGENTIAL_DISTORTION, 1 ),
+    DISTORTION( RATIONAL_RADIAL_TANGENTIAL_DISTORTION, 2 ),
+    DISTORTION( RATIONAL_RADIAL_TANGENTIAL_DISTORTION, 4 ),
+    DISTORTION( RATIONAL_RADIAL_TANGENTIAL_DISTORTION, 5 ),
+    DISTORTION( RATIONAL_RADIAL_TANGENTIAL_DISTORTION, 8 )
+  ) );

@@ -66,7 +66,7 @@ static kwiver::vital::config_block_value_t config_get_value( kwiver::vital::conf
 static kwiver::vital::config_block_value_t config_get_value_with_default( kwiver::vital::config_block_sptr            self,
                                                                           kwiver::vital::config_block_key_t const&    key,
                                                                           kwiver::vital::config_block_value_t const&  def );
-static size_t config_len( kwiver::vital::config_block_sptr self );
+static pybind11::size_t config_len( kwiver::vital::config_block_sptr self );
 static kwiver::vital::config_block_value_t config_getitem( kwiver::vital::config_block_sptr         self,
                                                            kwiver::vital::config_block_key_t const& key );
 static void config_setitem( kwiver::vital::config_block_sptr          self,
@@ -158,7 +158,7 @@ config_get_value_with_default( kwiver::vital::config_block_sptr           self,
 }
 
 
-size_t
+pybind11::size_t
 config_len( kwiver::vital::config_block_sptr self )
 {
   return self->available_values().size();

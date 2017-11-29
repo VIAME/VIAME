@@ -31,11 +31,12 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_H
 #define SPROKIT_PIPELINE_SCHEDULER_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "types.h"
 #include <vital/config/config_block.h>
-#include <boost/noncopyable.hpp>
+#include <vital/logger/logger.h>
+#include <vital/noncopyable.h>
 
 /**
  * \file scheduler.h
@@ -43,8 +44,7 @@
  * \brief Header for \link sprokit::scheduler schedulers\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class scheduler scheduler.h <sprokit/pipeline/scheduler.h>
@@ -58,7 +58,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT scheduler
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /// The type of registry keys.
@@ -161,7 +161,18 @@ class SPROKIT_PIPELINE_EXPORT scheduler
      */
     pipeline_t pipeline() const;
 
+    /**
+     * \brief Get logger handle
+     *
+     * \returns Logger handle so log messages can be generated.
+     */
+    kwiver::vital::logger_handle_t logger();
+
+    // The logger handle
+    kwiver::vital::logger_handle_t m_logger;
+
   private:
+
     class SPROKIT_PIPELINE_NO_EXPORT priv;
     std::unique_ptr<priv> d;
 };

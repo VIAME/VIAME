@@ -41,7 +41,7 @@ class TestPythonScheduler(scheduler.PythonScheduler):
 def __sprokit_register__():
     from sprokit.pipeline import scheduler_factory
 
-    module_name = 'python:test.pythonpath.test'
+    module_name = 'python:test.pythonpath.scheduler_test'
 
     if scheduler_factory.is_scheduler_module_loaded(module_name):
         return

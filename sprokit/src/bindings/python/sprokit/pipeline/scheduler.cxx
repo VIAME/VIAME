@@ -88,17 +88,17 @@ PYBIND11_MODULE(scheduler, m)
       , "Resume execution.")
     .def("stop", &sprokit::scheduler::stop
       , "Stop the execution of the pipeline.")
-    .def("_start", &wrap_scheduler::_start
+    .def("_start", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_start)
       , "Implementation of starting the pipeline.")
-    .def("_wait", &wrap_scheduler::_wait
+    .def("_wait", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_wait)
       , "Implementation of waiting until execution is complete.")
-    .def("_pause", &wrap_scheduler::_pause
+    .def("_pause", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_pause)
       , "Implementation of pausing execution.")
-    .def("_resume", &wrap_scheduler::_resume
+    .def("_resume", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_resume)
       , "Implementation of resuming execution.")
-    .def("_stop", &wrap_scheduler::_stop
+    .def("_stop", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_stop)
       , "Implementation of stopping the pipeline.")
-    .def("pipeline", &wrap_scheduler::pipeline
+    .def("pipeline", static_cast<sprokit::pipeline_t (sprokit::scheduler::*)() const>(&wrap_scheduler::pipeline)
       , "Scheduler pipeline.")
   ;
 }

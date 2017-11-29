@@ -4,6 +4,8 @@
 
 ###
 #
+set( plugin_explorer_version "1.0" )
+
 kwiver_add_executable( plugin_explorer
   plugin_explorer.cxx
   )
@@ -20,6 +22,10 @@ target_link_libraries( plugin_explorer
 set( public_headers
   explorer_plugin.h
   )
+
+set_source_files_properties(plugin_explorer.cxx
+  PROPERTIES
+    COMPILE_DEFINITIONS "PLUGIN_EXPLORER_VERSION=\"1.1\"")
 
 # public headers for explorer
 kwiver_install_headers(

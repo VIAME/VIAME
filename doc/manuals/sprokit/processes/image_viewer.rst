@@ -1,4 +1,4 @@
 image_viewer
 ============
 
-This sprokit process is used to ...
+.. include:: ../../_generated/processes/image_viewer.rst
