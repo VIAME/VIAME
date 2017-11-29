@@ -76,7 +76,6 @@ set( vital_public_headers
   exceptions/video.h
   exceptions/klv.h
   exceptions/plugin.h
-  exceptions/kpf.h
 
   io/camera_io.h
   io/camera_map_io.h
@@ -147,7 +146,6 @@ set( vital_sources
   exceptions/video.cxx
   exceptions/klv.cxx
   exceptions/plugin.cxx
-  exceptions/kpf.cxx
 
   io/camera_io.cxx
   io/camera_map_io.cxx

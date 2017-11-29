@@ -30,41 +30,53 @@
 
 /**
  * \file
- * \brief Implementation for KPF exceptions
+ * \brief VITAL Exceptions pertaining to KPF parsing
  */
 
-#include "kpf.h"
+#ifndef INCL_KPF_EXCEPTIONS_H
+#define INCL_KPF_EXCEPTIONS_H
 
-#include <sstream>
+#include <string>
+
+#include <vital/exceptions/base.h>
 
 namespace kwiver {
 namespace vital {
 
-
-kpf_exception
-::kpf_exception() VITAL_NOTHROW
+// ------------------------------------------------------------------
+/// Generic kpf exception
+class VITAL_EXPORT kpf_exception
+  : public vital_core_base_exception
 {
-  m_what = "Generic KPF exception";
-}
-
-kpf_exception
-::~kpf_exception() VITAL_NOTHROW
-{
-}
-
+public:
+  /// Constructor
+  kpf_exception() VITAL_NOTHROW;
+  /// Destructor
+  virtual ~kpf_exception() VITAL_NOTHROW;
+};
 
 // ------------------------------------------------------------------
-kpf_token_underrun_exception
-::kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW
-  : m_message(message)
+/// Exception for not enough tokens to complete parse
+/**
+ * Example: attempting to parse a geometry string (needs four tokens)
+ * but only two tokens are left.
+ */
+class VITAL_EXPORT kpf_token_underrun_exception
+  : public kpf_exception
 {
-  m_what = message;
-}
+public:
+  /// Constructor
+  /**
+   * \param message     Description of the parsing circumstances
+   */
+  kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW;
+  /// Destructor
+  virtual ~kpf_token_underrun_exception() VITAL_NOTHROW;
 
-kpf_token_underrun_exception
-::~kpf_token_underrun_exception() VITAL_NOTHROW
-{
-}
+  /// Given error message string
+  std::string m_message;
+};
 
 } // ...vital
 } // ...kwiver
+#endif

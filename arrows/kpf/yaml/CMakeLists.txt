@@ -11,6 +11,7 @@ set( sources
   kpf_yaml_parser.cxx
   kpf_text_writer.cxx
   kpf_yaml_writer.cxx
+  kpf_exception.cxx
 )
 
 set( public_headers
@@ -26,6 +27,7 @@ set( public_headers
   kpf_canonical_io_adapter.h
   kpf_text_writer.h
   kpf_yaml_writer.h
+  kpf_exception.h
 )
 
 set( private_headers
