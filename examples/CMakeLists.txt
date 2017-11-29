@@ -3,7 +3,6 @@ file(MAKE_DIRECTORY "${EXAMPLE_DIR}/pipelines/output")
 
 add_subdirectory(cpp)
 add_subdirectory(external)
-add_subdirectory(cpp)
 
 # Configure all the local example pipe files
 configure_file(pipelines/image_list.txt.in ${EXAMPLE_DIR}/pipelines/image_list.txt)
