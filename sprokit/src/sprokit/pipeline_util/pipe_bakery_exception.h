@@ -37,7 +37,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 

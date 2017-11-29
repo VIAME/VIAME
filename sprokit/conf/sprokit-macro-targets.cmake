@@ -6,7 +6,6 @@
 #   sprokit_add_library
 #   sprokit_private_header_group
 #   sprokit_private_template_group
-#   sprokit_install_headers
 #   sprokit_install_pipelines
 #   sprokit_install_clusters
 #   sprokit_install_includes
@@ -65,10 +64,6 @@
 #     Add 'sources' to a subdirectory within IDEs which display sources for
 #     each target. Useful for separating installed files from private files in
 #     the UI.
-#
-#   sprokit_install_headers(subdir [header ...])
-#     Installs the headers stored in the variable under a subdirectory. Headers
-#     are always installed under the 'development' component.
 #
 #   sprokit_install_pipelines([pipeline ...])
 #   sprokit_install_clusters([cluster ...])
@@ -157,61 +152,6 @@ function (sprokit_add_executable name)
 endfunction ()
 
 ###
-# replace with kwiver_add_library()
-function (sprokit_add_library name)
-  add_library("${name}"     ${ARGN})
-
-  set_target_properties("${name}"
-    PROPERTIES
-      ARCHIVE_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
-      LIBRARY_OUTPUT_DIRECTORY "${sprokit_output_dir}/lib${library_subdir}${library_subdir_suffix}"
-      RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin${library_subdir}${library_subdir_suffix}")
-
-  add_dependencies("${name}"    configure-config.h)
-
-  foreach (config IN LISTS CMAKE_CONFIGURATION_TYPES)
-    set(subdir "/${config}/${library_subdir}${library_subdir_suffix}")
-    string(TOUPPER "${config}" upper_config)
-
-    set_target_properties(${name}
-      PROPERTIES
-        "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${sprokit_output_dir}/lib${subdir}"
-        "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${sprokit_output_dir}/lib${subdir}"
-        "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${sprokit_output_dir}/bin${subdir}")
-  endforeach ()
-
-  if (NOT component)
-    set(component      runtime)
-  endif ()
-
-  get_target_property(target_type    "${name}" TYPE)
-
-  if (target_type STREQUAL "STATIC_LIBRARY")
-    _sprokit_compile_pic("${name}")
-  elseif( NOT no_export)
-
-    if (target_type STREQUAL "MODULE")
-      set_property(GLOBAL APPEND
-        PROPERTY kwiver_plugin_libraries    "${name}" )
-    else ()
-      set_property(GLOBAL APPEND
-        PROPERTY kwiver_libraries     "${name}" )
-    endif ()
-
-  endif()
-
-  _sprokit_export("${name}")
-
-  sprokit_install(
-    TARGETS       "${name}"
-    ${exports}
-    ARCHIVE      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
-    LIBRARY      DESTINATION "lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
-    RUNTIME      DESTINATION "bin${library_subdir}${library_subdir_suffix}"
-    COMPONENT     "${component}")
-endfunction ()
-
-###
 #
 function (sprokit_private_header_group)
   source_group("Header Files\\Private"
@@ -223,15 +163,6 @@ endfunction ()
 function (sprokit_private_template_group)
   source_group("Template Files\\Private"
     FILES ${ARGN})
-endfunction ()
-
-###
-#
-function (sprokit_install_headers subdir)
-  sprokit_install(
-    FILES       ${ARGN}
-    DESTINATION "include/${subdir}"
-    COMPONENT   development)
 endfunction ()
 
 ###

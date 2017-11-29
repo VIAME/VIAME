@@ -38,7 +38,6 @@ endif()
 # So we need to add all libraries to this arrow, if darknet was a dll, we would
 # not have this issue, but we need pthreads and it likes static for some reason
 if (WIN32)
-  include_directories( SYSTEM ${Darknet_INCLUDE_DIR}/../3rdparty/include )
   add_definitions( -D_TIMESPEC_DEFINED )
   set( Darknet_linked_libs ${Darknet_linked_libs} pthreadVC2 )
 

@@ -64,8 +64,6 @@ input_adapter_process
 ::input_adapter_process( kwiver::vital::config_block_sptr const& config )
   : process( config )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
 }
 
 

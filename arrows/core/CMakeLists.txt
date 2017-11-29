@@ -23,6 +23,7 @@ set( plugin_core_headers
   initialize_cameras_landmarks.h
   match_features_fundamental_matrix.h
   match_features_homography.h
+  example_detector.h
   track_descriptor_set_output_csv.h
   match_tracks.h
   track_features_core.h
@@ -79,6 +80,7 @@ set( plugin_core_sources
   initialize_cameras_landmarks.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
+  example_detector.cxx
   track_descriptor_set_output_csv.cxx
   match_tracks.cxx
   track_features_core.cxx

@@ -30,7 +30,7 @@
 
 #include <test_scene.h>
 
-#include <arrows/core/tests/test_triangulate_landmarks.h>
+#include <arrows/tests/test_triangulate_landmarks.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 
 #include <vital/plugin_loader/plugin_manager.h>

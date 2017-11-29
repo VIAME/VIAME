@@ -75,5 +75,6 @@ class PythonPrintNumberProcess(process.PythonProcess):
         num = self.grab_value_from_port('input')
 
         self.fout.write('%d\n' % num)
+        self.fout.flush()
 
         self._base_step()

@@ -99,28 +99,42 @@ public:
    *
    * @param type Type name of the scheduler
    * @param itype Type name of interface type.
-   * @param factory The Factory function
    */
   scheduler_factory( const std::string&       type,
-                     const std::string&       itype,
-                     scheduler_factory_func_t factory )
-    : plugin_factory( itype )
-    , m_factory( factory )
-  {
-    this->add_attribute( CONCRETE_TYPE, type)
-      .add_attribute( PLUGIN_FACTORY_TYPE, typeid( *this ).name() )
-      .add_attribute( PLUGIN_CATEGORY, "scheduler" );
-  }
+                     const std::string&       itype );
 
   virtual ~scheduler_factory() = default;
 
   virtual sprokit::scheduler_t create_object( pipeline_t const& pipe,
-                                              kwiver::vital::config_block_sptr const& config )
-  {
-    // Call sprokit factory function. Need to use this factory
-    // function approach to handle clusters transparently.
-    return m_factory( pipe, config );
-  }
+                                              kwiver::vital::config_block_sptr const& config ) = 0;
+};
+
+
+// ----------------------------------------------------------------------------
+class SPROKIT_PIPELINE_EXPORT cpp_scheduler_factory
+: public scheduler_factory
+{
+public:
+  static scheduler::type_t const default_type;
+
+  /**
+   * @brief CTOR for factory object
+   *
+   * This CTOR also takes a factory function so it can support
+   * creating schedulers.
+   *
+   * @param type Type name of the scheduler
+   * @param itype Type name of interface type.
+   * @param factory The Factory function
+   */
+  cpp_scheduler_factory( const std::string&       type,
+                         const std::string&       itype,
+                         scheduler_factory_func_t factory );
+
+  virtual ~cpp_scheduler_factory() = default;
+
+  virtual sprokit::scheduler_t create_object( pipeline_t const& pipe,
+                                              kwiver::vital::config_block_sptr const& config );
 
 private:
   scheduler_factory_func_t m_factory;
@@ -169,10 +183,11 @@ bool is_scheduler_module_loaded( kwiver::vital::plugin_loader& vpl,
 //
 // Convenience macro for adding schedulers
 //
-#define ADD_SCHEDULER( type )                                         \
-  add_factory( new sprokit::scheduler_factory( typeid( type ).name(),   \
-                                               typeid( sprokit::scheduler ).name(), \
-                                               sprokit::create_new_scheduler< type > ) )
+#define ADD_SCHEDULER( type )                                           \
+  add_factory( new sprokit::cpp_scheduler_factory( typeid( type ).name(), \
+                                                   typeid( sprokit::scheduler ).name(), \
+                                                   sprokit::create_new_scheduler< type > ) )
+
 } // end namespace
 
 #endif /* SPROKIT_PIPELINE_SCHEDULER_FACTORY_H */

@@ -1,20 +1,26 @@
 Darknet
 =======
 
-Darknet is an open source neural network framework written in C and CUDA.
 
-The following algorithm implementations use Darknet
+..  _darknet_detector:
 
-========================================== ============================================================
-:ref:`darknet_detector<darknet_detector>`  .. doxygenclass:: kwiver::arrows::darknet::darknet_detector 
-:ref:`darknet_trainer<darknet_trainer>`    .. doxygenclass:: kwiver::arrows::darknet::darknet_trainer  
-========================================== ============================================================
+Darknet Detector Algorithm
+--------------------------
 
-In the pipe files, you can tune the algorithm with these variables :
-  - darknet:thresh
-  - darknet:hier_thresh
-  - darknet:gpu_index
-  
+..  doxygenclass:: kwiver::arrows::darknet::darknet_detector
+    :project: kwiver
+    :members:
+
+..  _darknet_trainer:
+
+Darknet Trainer Algorithm
+-------------------------
+
+..  doxygenclass:: kwiver::arrows::darknet::darknet_trainer
+    :project: kwiver
+    :members:
+    
+
 FAQ
 ---
 

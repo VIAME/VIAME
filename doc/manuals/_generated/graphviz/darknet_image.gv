@@ -1,0 +1,124 @@
+strict digraph "unnamed" {
+clusterrank=local;
+
+subgraph "cluster_disp" {
+color=lightgray;
+
+"disp_main" [label=<<u>disp<br/>:: image_viewer</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/image_viewer.html"];
+
+"disp_input_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"disp_input_image" -> "disp_main" [arrowhead=none,color=black];
+"disp_input_timestamp" [label="timestamp\n:: kwiver:timestamp",shape=none,height=0,width=0,fontsize=12];
+"disp_input_timestamp" -> "disp_main" [arrowhead=none,color=black];
+
+"disp_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"disp_main" -> "disp_output__heartbeat" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_draw" {
+color=lightgray;
+
+"draw_main" [label=<<u>draw<br/>:: draw_detected_object_boxes</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/draw_detected_object_boxes.html"];
+
+"draw_input_detected_object_set" [label="detected_object_set\n:: kwiver:detected_object_set",shape=none,height=0,width=0,fontsize=12];
+"draw_input_detected_object_set" -> "draw_main" [arrowhead=none,color=black];
+"draw_input_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"draw_input_image" -> "draw_main" [arrowhead=none,color=black];
+
+"draw_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"draw_main" -> "draw_output__heartbeat" [arrowhead=none,color=black];
+"draw_output_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"draw_main" -> "draw_output_image" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_input" {
+color=lightgray;
+
+"input_main" [label=<<u>input<br/>:: frame_list_input</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/frame_list_input.html"];
+
+
+"input_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output__heartbeat" [arrowhead=none,color=black];
+"input_output_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output_image" [arrowhead=none,color=black];
+"input_output_image_file_name" [label="image_file_name\n:: kwiver:image_file_name",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output_image_file_name" [arrowhead=none,color=black];
+"input_output_timestamp" [label="timestamp\n:: kwiver:timestamp",shape=none,height=0,width=0,fontsize=12];
+"input_main" -> "input_output_timestamp" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_write" {
+color=lightgray;
+
+"write_main" [label=<<u>write<br/>:: image_writer</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/image_writer.html"];
+
+"write_input_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"write_input_image" -> "write_main" [arrowhead=none,color=black];
+"write_input_timestamp" [label="timestamp\n:: kwiver:timestamp",shape=none,height=0,width=0,fontsize=12];
+"write_input_timestamp" -> "write_main" [arrowhead=none,color=black];
+
+"write_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"write_main" -> "write_output__heartbeat" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_yolo_v2" {
+color=lightgray;
+
+"yolo_v2_main" [label=<<u>yolo_v2<br/>:: image_object_detector</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/image_object_detector.html"];
+
+"yolo_v2_input_image" [label="image\n:: kwiver:image",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_input_image" -> "yolo_v2_main" [arrowhead=none,color=black];
+
+"yolo_v2_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_main" -> "yolo_v2_output__heartbeat" [arrowhead=none,color=black];
+"yolo_v2_output_detected_object_set" [label="detected_object_set\n:: kwiver:detected_object_set",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_main" -> "yolo_v2_output_detected_object_set" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_yolo_v2_csv_writer" {
+color=lightgray;
+
+"yolo_v2_csv_writer_main" [label=<<u>yolo_v2_csv_writer<br/>:: detected_object_output</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/detected_object_output.html"];
+
+"yolo_v2_csv_writer_input_detected_object_set" [label="detected_object_set\n:: kwiver:detected_object_set",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_csv_writer_input_detected_object_set" -> "yolo_v2_csv_writer_main" [arrowhead=none,color=black];
+"yolo_v2_csv_writer_input_image_file_name" [label="image_file_name\n:: kwiver:image_file_name",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_csv_writer_input_image_file_name" -> "yolo_v2_csv_writer_main" [arrowhead=none,color=black];
+
+"yolo_v2_csv_writer_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_csv_writer_main" -> "yolo_v2_csv_writer_output__heartbeat" [arrowhead=none,color=black];
+
+}
+
+subgraph "cluster_yolo_v2_kw18_writer" {
+color=lightgray;
+
+"yolo_v2_kw18_writer_main" [label=<<u>yolo_v2_kw18_writer<br/>:: detected_object_output</u>>,shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href="../sprokit/processes/detected_object_output.html"];
+
+"yolo_v2_kw18_writer_input_detected_object_set" [label="detected_object_set\n:: kwiver:detected_object_set",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_kw18_writer_input_detected_object_set" -> "yolo_v2_kw18_writer_main" [arrowhead=none,color=black];
+"yolo_v2_kw18_writer_input_image_file_name" [label="image_file_name\n:: kwiver:image_file_name",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_kw18_writer_input_image_file_name" -> "yolo_v2_kw18_writer_main" [arrowhead=none,color=black];
+
+"yolo_v2_kw18_writer_output__heartbeat" [label="_heartbeat\n:: _none",shape=none,height=0,width=0,fontsize=12];
+"yolo_v2_kw18_writer_main" -> "yolo_v2_kw18_writer_output__heartbeat" [arrowhead=none,color=black];
+
+}
+
+"draw_output_image" -> "disp_input_image" [minlen=1,color=black,weight=1];
+"draw_output_image" -> "write_input_image" [minlen=1,color=black,weight=1];
+"input_output_image" -> "yolo_v2_input_image" [minlen=1,color=black,weight=1];
+"input_output_image" -> "draw_input_image" [minlen=1,color=black,weight=1];
+"input_output_image_file_name" -> "yolo_v2_kw18_writer_input_image_file_name" [minlen=1,color=black,weight=1];
+"input_output_image_file_name" -> "yolo_v2_csv_writer_input_image_file_name" [minlen=1,color=black,weight=1];
+"input_output_timestamp" -> "disp_input_timestamp" [minlen=1,color=black,weight=1];
+"yolo_v2_output_detected_object_set" -> "draw_input_detected_object_set" [minlen=1,color=black,weight=1];
+"yolo_v2_output_detected_object_set" -> "yolo_v2_kw18_writer_input_detected_object_set" [minlen=1,color=black,weight=1];
+"yolo_v2_output_detected_object_set" -> "yolo_v2_csv_writer_input_detected_object_set" [minlen=1,color=black,weight=1];
+
+}

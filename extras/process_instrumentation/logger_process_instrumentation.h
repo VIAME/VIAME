@@ -36,11 +36,9 @@
 #ifndef SPROKIT_LOGGER_PROCESS_INSTRUMENTATION_H
 #define SPROKIT_LOGGER_PROCESS_INSTRUMENTATION_H
 
-
+#include "instrumentation_plugin_export.h"
 #include <sprokit/pipeline/process_instrumentation.h>
 #include <vital/logger/logger.h>
-
-#include <string>
 
 namespace sprokit {
 
@@ -51,7 +49,7 @@ namespace sprokit {
  * This class provides an implementation of process instrumentation
  * where each event is recorded to the logger.
  */
-class logger_process_instrumentation
+class INSTRUMENTATION_PLUGIN_NO_EXPORT logger_process_instrumentation
   : public process_instrumentation
 {
 public:

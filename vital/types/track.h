@@ -62,6 +62,7 @@ typedef std::weak_ptr< track > track_wptr;
 typedef std::shared_ptr<track_state> track_state_sptr;
 
 
+// ------------------------------------------------------------------
 /// Empty base class for data associated with a track state
 class VITAL_EXPORT track_state
 {
@@ -104,7 +105,8 @@ private:
 };
 
 
-/// Empty base class for data associated with a whole track
+// ------------------------------------------------------------------
+/// Empty base class for data associated with a whole track.
 class VITAL_EXPORT track_data
 {
 protected:
@@ -114,6 +116,7 @@ protected:
 typedef std::shared_ptr<track_data> track_data_sptr;
 
 
+// ------------------------------------------------------------------
 /// A special type of track data that redirects to another track
 /**
  * The primary use case for this class is to aid bookkeeping for track merging.
@@ -147,7 +150,7 @@ public:
 };
 
 
-
+// ------------------------------------------------------------------
 /// A representation of a track.
 /**
  * A track is a sequence of corresponding identifiers associated with each

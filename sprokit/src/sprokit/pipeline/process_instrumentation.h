@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PROCESS_INSTRUMENTATION_H
 #define SPROKIT_PROCESS_INSTRUMENTATION_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/config/config_block.h>
 
@@ -86,16 +86,28 @@ public:
    * @brief Get process that is being instrumented.
    *
    *
-   * @return Reference to process object.
+   * @return Pointer to process object.
    */
-  sprokit::process const& process() const { return *m_process; }
+  sprokit::process const* process() const { return m_process; }
 
   /**
    * @brief Configure provider.
    *
+   * This method sends the config block to the implementation.
+   *
    * @param conf Configuration block.
    */
   virtual void configure( kwiver::vital::config_block_sptr const conf );
+
+  /**
+   * @brief Get default configuration block.
+   *
+   * This method returns the default configuration block for this
+   * instrumentation implementation.
+   *
+   * @return Pointer to config block.
+   */
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
 
 private:
   sprokit::process const* m_process;

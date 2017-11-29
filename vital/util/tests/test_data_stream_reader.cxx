@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,62 +32,43 @@
  * \file
  * \brief test util string_editor class
  */
-#include <test_common.h>
 
 #include <vital/util/data_stream_reader.h>
 
+#include <gtest/gtest.h>
+
 #include <sstream>
 
-
-#define TEST_ARGS ( )
-
-DECLARE_TEST_MAP();
-
-// ------------------------------------------------------------------
-int
-main( int argc, char* argv[] )
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS( 1 );
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST( testname );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_reader )
+// ----------------------------------------------------------------------------
+TEST(data_stream_reader,  test)
 {
   std::stringstream str;
 
   str << "first line\n"
-    "second line\n"
-    "  \n" // blank line
-    "# comment\n"
-    "foo bar # trailing comment\n";
+         "second line\n"
+         "  \n" // blank line
+         "# comment\n"
+         "foo bar # trailing comment\n";
 
-  kwiver::vital::data_stream_reader dsr( str );
-
+  kwiver::vital::data_stream_reader dsr{ str };
   std::string line;
-  TEST_EQUAL( "return code", dsr.getline( line ), true );
-  TEST_EQUAL( "first line", line, "first line" );
-  // std::cout << "|" << line << "|  line number: " << dsr.line_number() << std::endl; ;
-  TEST_EQUAL( "line count", dsr.line_number(), 1 );
 
-  TEST_EQUAL( "return code", dsr.getline( line ), true );
-  TEST_EQUAL( "second line", line, "second line" );
-  // std::cout << "|" << line << "|  line number: " << dsr.line_number() << std::endl; ;
-  TEST_EQUAL( "line count", dsr.line_number(), 2 );
+  EXPECT_TRUE( dsr.getline( line ) );
+  EXPECT_EQ( "first line", line );
+  EXPECT_EQ( 1, dsr.line_number() );
 
-  TEST_EQUAL( "return code", dsr.getline( line ), true );
-  TEST_EQUAL( "third line", line, "foo bar" );
-  // std::cout << "|" << line << "|  line number: " << dsr.line_number() << std::endl; ;
-  TEST_EQUAL( "line count", dsr.line_number(), 5 );
+  EXPECT_TRUE( dsr.getline( line ) );
+  EXPECT_EQ( "second line", line );
+  EXPECT_EQ( 2, dsr.line_number() );
 
-}
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_file )
-{
-
+  EXPECT_TRUE( dsr.getline( line ) );
+  EXPECT_EQ( "foo bar", line );
+  EXPECT_EQ( 5, dsr.line_number() );
 }

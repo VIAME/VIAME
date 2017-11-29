@@ -75,7 +75,7 @@ std::string name = ec.to_string( one );
  *
 \code
 // Converter implemented as a derived type using MACRO helper
-ENUM_CONVERSION( my_ec, numbers,
+ENUM_CONVERTER( my_ec, numbers,
       { "ONE", one },
       { "TWO", two },
       { "THREE", three },

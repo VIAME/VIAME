@@ -97,7 +97,7 @@ public:
   const char* active_backend() const;
 
   /// Return the names of the available backends
-  std::vector<std::string> available_backends() const;
+  static std::vector<std::string> available_backends();
 
   /// Set the backend
   /**

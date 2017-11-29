@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,16 @@ public:
   std::string wrap_text( const std::string& text ) const;
 
   /**
+   * @brief Return formatting type string.
+   *
+   * This method returns the formatting type string that was specified
+   * on the commane line.
+   *
+   * @return Formatting type string.
+   */
+  const std::string& formatting_type() const;
+
+  /**
    * @brief Display all factory attributes.
    *
    * This method displays all the attributes in the supplied
@@ -101,7 +111,6 @@ public:
 
   bool if_detail() const;
   bool if_brief() const;
-  bool if_pipeline_format() const;
 
   class priv;
 

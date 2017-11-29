@@ -28,21 +28,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_eigen.h>
-#include <test_scene.h>
-
-#include <vital/plugin_loader/plugin_manager.h>
-
-#include <arrows/core/projected_track_set.h>
-#include <arrows/core/metrics.h>
-#include <arrows/core/epipolar_geometry.h>
 #include <arrows/vxl/estimate_fundamental_matrix.h>
 
-#include <Eigen/LU>
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <gtest/gtest.h>
 
 using namespace kwiver::vital;
+using namespace kwiver::arrows;
+
+using vxl::estimate_fundamental_matrix;
+
+static constexpr double ideal_tolerance = 1e-8; // OCV: 1e-6
+static constexpr double outlier_tolerance = 0.02; // OCV: 0.01
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -61,153 +59,4 @@ TEST(estimate_fundamental_matrix, create)
 }
 
 // ----------------------------------------------------------------------------
-// Print epipolar distance of pairs of points given a fundamental matrix
-void print_epipolar_distances(const kwiver::vital::matrix_3x3d& F,
-                              const std::vector<kwiver::vital::vector_2d> right_pts,
-                              const std::vector<kwiver::vital::vector_2d> left_pts)
-{
-  using namespace kwiver::arrows;
-  matrix_3x3d Ft = F.transpose();
-  for(unsigned i=0; i<right_pts.size(); ++i)
-  {
-    const vector_2d& pr = right_pts[i];
-    const vector_2d& pl = left_pts[i];
-    vector_3d vr(pr.x(), pr.y(), 1.0);
-    vector_3d vl(pl.x(), pl.y(), 1.0);
-    vector_3d lr = F * vr;
-    vector_3d ll = Ft * vl;
-    double sr = 1.0 / sqrt(lr.x()*lr.x() + lr.y()*lr.y());
-    double sl = 1.0 / sqrt(ll.x()*ll.x() + ll.y()*ll.y());
-    // sum of point to epipolar line distance in both images
-    double d = vr.dot(ll);
-    std::cout <<" dist right = "<<d*sr<<"  dist left = "<<d*sl << std::endl;
-  }
-}
-
-// ----------------------------------------------------------------------------
-// Test fundamental matrix estimation with ideal points
-TEST(estimate_fundamental_matrix, ideal_points)
-{
-  using namespace kwiver::arrows;
-  vxl::estimate_fundamental_matrix est_f;
-
-  // create landmarks at the random locations
-  landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
-  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
-
-  // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = kwiver::testing::camera_seq();
-
-  // create tracks from the projections
-  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
-
-  const frame_id_t frame1 = 0;
-  const frame_id_t frame2 = 10;
-
-  camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam1 = cams[frame1];
-  camera_sptr cam2 = cams[frame2];
-  camera_intrinsics_sptr cal1 = cam1->intrinsics();
-  camera_intrinsics_sptr cal2 = cam2->intrinsics();
-
-  // compute the true fundamental matrix from the cameras
-  fundamental_matrix_sptr true_F = fundamental_matrix_from_cameras(*cam1, *cam2);
-
-  // extract coresponding image points
-  std::vector<track_sptr> trks = tracks->tracks();
-  std::vector<vector_2d> pts1, pts2;
-  for(unsigned int i=0; i<trks.size(); ++i)
-  {
-    auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
-    auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
-    pts1.push_back(fts1->feature->loc());
-    pts2.push_back(fts2->feature->loc());
-  }
-
-  // print the epipolar distances using this essential matrix
-  print_epipolar_distances(true_F->matrix(), pts1, pts2);
-
-  // compute the fundmental matrix from the corresponding points
-  std::vector<bool> inliers;
-  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
-  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
-  // check for sign difference
-  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
-  {
-    estimated_F *= -1;
-  }
-
-  // compare true and computed fundamental matrices
-  std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< estimated_F <<std::endl;
-  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, 1e-8 );
-
-  std::cout << "num inliers " << inliers.size() << std::endl;
-  EXPECT_EQ( pts1.size(), inliers.size() )
-    << "All points should be inliers";
-}
-
-// ----------------------------------------------------------------------------
-// Test essential matrix estimation with noisy points
-TEST(estimate_fundamental_matrix, noisy_points)
-{
-  using namespace kwiver::arrows;
-  vxl::estimate_fundamental_matrix est_f;
-
-  // create landmarks at the random locations
-  landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
-  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
-
-  // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = kwiver::testing::camera_seq();
-
-  // create tracks from the projections
-  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
-
-  // add random noise to track image locations
-  tracks = kwiver::testing::noisy_tracks(tracks, 0.5);
-
-  const frame_id_t frame1 = 0;
-  const frame_id_t frame2 = 10;
-
-  camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam1 = cams[frame1];
-  camera_sptr cam2 = cams[frame2];
-  camera_intrinsics_sptr cal1 = cam1->intrinsics();
-  camera_intrinsics_sptr cal2 = cam2->intrinsics();
-
-  // compute the true fundamental matrix from the cameras
-  fundamental_matrix_sptr true_F = fundamental_matrix_from_cameras(*cam1, *cam2);
-
-  // extract coresponding image points
-  std::vector<track_sptr> trks = tracks->tracks();
-  std::vector<vector_2d> pts1, pts2;
-  for(unsigned int i=0; i<trks.size(); ++i)
-  {
-    auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
-    auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
-    pts1.push_back(fts1->feature->loc());
-    pts2.push_back(fts2->feature->loc());
-  }
-
-  print_epipolar_distances(true_F->matrix(), pts1, pts2);
-
-  // compute the essential matrix from the corresponding points
-  std::vector<bool> inliers;
-  auto estimated_F_sptr = est_f.estimate( pts1, pts2, inliers, 1.5 );
-  matrix_3x3d estimated_F = estimated_F_sptr->matrix();
-  // check for sign difference
-  if( true_F->matrix().cwiseProduct(estimated_F).sum() < 0.0 )
-  {
-    estimated_F *= -1;
-  }
-
-  // compare true and computed fundamental matrices
-  std::cout << "true F = "<<*true_F<<std::endl;
-  std::cout << "Estimated F = "<< estimated_F <<std::endl;
-  EXPECT_MATRIX_NEAR( true_F->matrix(), estimated_F, 0.01 );
-
-  std::cout << "num inliers " << inliers.size() << std::endl;
-  EXPECT_GT( inliers.size(), pts1.size() / 3 )
-    << "Not enough inliers";
-}
+#include <arrows/tests/test_estimate_fundamental_matrix.h>

@@ -28,6 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <test_tmpfn.h>
+
 #include <arrows/core/feature_descriptor_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -226,7 +228,7 @@ equal_descriptor_set(descriptor_set_sptr ds1, descriptor_set_sptr ds2)
 TEST(feature_descriptor_io, read_write_features)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr features = make_n_features<float>(100);
   descriptor_set_sptr empty_descriptors;
@@ -240,7 +242,7 @@ TEST(feature_descriptor_io, read_write_features)
 
   EXPECT_EQ(nullptr, loaded_descriptors);
   EXPECT_TRUE(equal_feature_set(features, loaded_features));
-  std::remove(filename);
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
 // ----------------------------------------------------------------------------
@@ -248,7 +250,7 @@ TEST(feature_descriptor_io, read_write_features)
 TEST(feature_descriptor_io, read_write_descriptors)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   descriptor_set_sptr descriptors = make_n_descriptors<float>(100, 128);
 
@@ -261,7 +263,7 @@ TEST(feature_descriptor_io, read_write_descriptors)
 
   EXPECT_EQ(nullptr, loaded_features);
   EXPECT_TRUE(equal_descriptor_set(descriptors, loaded_descriptors));
-  std::remove(filename);
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
 // ----------------------------------------------------------------------------
@@ -269,7 +271,7 @@ TEST(feature_descriptor_io, read_write_descriptors)
 TEST(feature_descriptor_io, read_write_features_descriptors)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr features = make_n_features<double>(50);
   descriptor_set_sptr descriptors = make_n_descriptors<uint8_t>(100, 96);
@@ -283,7 +285,7 @@ TEST(feature_descriptor_io, read_write_features_descriptors)
 
   EXPECT_TRUE(equal_feature_set(features, loaded_features));
   EXPECT_TRUE(equal_descriptor_set(descriptors, loaded_descriptors));
-  std::remove(filename);
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
 // ----------------------------------------------------------------------------
@@ -291,7 +293,7 @@ TEST(feature_descriptor_io, read_write_features_descriptors)
 TEST(feature_descriptor_io, read_write_mixed_features)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr features1 = make_n_features<double>(50);
   feature_set_sptr features2 = make_n_features<float>(50);
@@ -311,7 +313,7 @@ TEST(feature_descriptor_io, read_write_mixed_features)
   // This is false because the writer will convert all the features to a common
   // type, which ever comes first in the vector.
   EXPECT_FALSE(equal_feature_set(features, loaded_features));
-  std::remove(filename);
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
 // ----------------------------------------------------------------------------
@@ -319,7 +321,7 @@ TEST(feature_descriptor_io, read_write_mixed_features)
 TEST(feature_descriptor_io, write_mixed_descriptor_dim)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr empty_features;
   descriptor_set_sptr descriptors1 = make_n_descriptors<int16_t>(50, 128);
@@ -332,7 +334,7 @@ TEST(feature_descriptor_io, write_mixed_descriptor_dim)
   EXPECT_THROW(fd_io.save(filename, empty_features, descriptors),
                kwiver::vital::invalid_data)
     << "Expected exception saving a mixture of descriptor dimensions";
-  std::remove(filename);
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
 // ----------------------------------------------------------------------------
@@ -340,7 +342,7 @@ TEST(feature_descriptor_io, write_mixed_descriptor_dim)
 TEST(feature_descriptor_io, write_mixed_descriptor_type)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr empty_features;
   descriptor_set_sptr descriptors1 = make_n_descriptors<uint16_t>(50, 96);
@@ -353,5 +355,5 @@ TEST(feature_descriptor_io, write_mixed_descriptor_type)
   EXPECT_THROW(fd_io.save(filename, empty_features, descriptors),
                kwiver::vital::invalid_data)
     << "Expected exception saving a mixture of descriptor types";
-  std::remove(filename);
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }

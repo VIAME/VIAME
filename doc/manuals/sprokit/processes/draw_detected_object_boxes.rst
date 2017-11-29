@@ -1,4 +1,4 @@
 draw_detected_object_boxes
 ==========================
 
-This sprokit process is used to ...
+.. include:: ../../_generated/processes/draw_detected_object_boxes.rst

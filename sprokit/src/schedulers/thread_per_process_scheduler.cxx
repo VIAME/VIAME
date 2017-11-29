@@ -72,27 +72,43 @@ class thread_per_process_scheduler::priv
 
 // ------------------------------------------------------------------
 thread_per_process_scheduler
-::thread_per_process_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
+::thread_per_process_scheduler(pipeline_t const& pipe,
+                               kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
   , d(new priv)
 {
+  m_logger = kwiver::vital::get_logger( "scheduler.thread_per_process" );
+
   pipeline_t const p = pipeline();
+
+  process_t proc = p->get_python_process();
+  if(proc)
+  {
+    std::string const reason = "The process \'" + proc->name() + "\' of type \'" + proc->type()
+      + "\' is a python process and that type of process is not supported by this scheduler.";
+
+    throw incompatible_pipeline_exception(reason);
+  }
+
   process::names_t const names = p->process_names();
 
+  // Scan all processes in the pipeline to see if any are not
+  // compatible with this scheduler.
   for (process::name_t const& name : names)
   {
-    process_t const proc = p->process_by_name(name);
+    proc = p->process_by_name(name);
     process::properties_t const consts = proc->properties();
 
     if (consts.count(process::property_no_threads))
     {
-      std::string const reason = "The process \'" + name + "\' does "
-                                 "not support being in its own thread";
+      std::string const reason =
+        "The process \'" + name + "\' does not support being in its own thread.";
 
       throw incompatible_pipeline_exception(reason);
     }
   }
 }
+
 
 // ------------------------------------------------------------------
 thread_per_process_scheduler
@@ -129,6 +145,7 @@ thread_per_process_scheduler
   d->process_threads->join_all();
 }
 
+
 // ------------------------------------------------------------------
 void
 thread_per_process_scheduler
@@ -136,6 +153,7 @@ thread_per_process_scheduler
 {
   d->m_pause_mutex.lock();
 }
+
 
 // ------------------------------------------------------------------
 void
@@ -145,6 +163,7 @@ thread_per_process_scheduler
   d->m_pause_mutex.unlock();
 }
 
+
 // ------------------------------------------------------------------
 void
 thread_per_process_scheduler
@@ -153,12 +172,15 @@ thread_per_process_scheduler
   d->process_threads->interrupt_all();
 }
 
+
+// ============================================================================
 thread_per_process_scheduler::priv
 ::priv()
   : process_threads()
   , m_pause_mutex()
 {
 }
+
 
 // ------------------------------------------------------------------
 thread_per_process_scheduler::priv
@@ -170,10 +192,15 @@ static kwiver::vital::config_block_sptr monitor_edge_config();
 
 
 // ------------------------------------------------------------------
+/*
+ * This is the thread that runs a process. It loops until the process
+ * is complete or fails.
+ */
 void
 thread_per_process_scheduler::priv
 ::run_process(process_t const& process)
 {
+  // Create the monitor edge. This is only needed for this type of scheduler.
   kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
 
   name_thread(process->name());
@@ -212,6 +239,15 @@ thread_per_process_scheduler::priv
 
 
 // ------------------------------------------------------------------
+/**
+ * This function returns the config block for the "monitor_edge". The
+ * monitor_edge being the one where the process generates a heart beat datum.
+ *
+ * Currently there is no config for these edges.
+ *
+ * One possibility for supplying this config would be to have it be
+ * part of the scheduler config.
+ */
 kwiver::vital::config_block_sptr
 monitor_edge_config()
 {

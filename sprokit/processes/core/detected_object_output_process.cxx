@@ -99,9 +99,6 @@ detected_object_output_process
   : process( config ),
     d( new detected_object_output_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }

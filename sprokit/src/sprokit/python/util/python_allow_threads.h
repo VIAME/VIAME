@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
 #define SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
 
-#include "util-config.h"
+#include <sprokit/python/util/sprokit_python_util_export.h>
 
 #include <vital/noncopyable.h>
 
@@ -43,11 +43,8 @@
  * \brief RAII class for calling into non-Python code.
  */
 
-namespace sprokit
-{
-
-namespace python
-{
+namespace sprokit {
+namespace python {
 
 /**
  * \class python_allow_threads python_allow_threads.h <sprokit/python/util/python_allow_threads.h>
@@ -55,7 +52,7 @@ namespace python
  * \brief RAII class for calling into non-Python code.
  */
 class SPROKIT_PYTHON_UTIL_EXPORT python_allow_threads
-  : kwiver::vital::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /**
@@ -73,6 +70,7 @@ class SPROKIT_PYTHON_UTIL_EXPORT python_allow_threads
      * \brief Manually acquire the GIL again.
      */
     void release();
+
   private:
     PyThreadState* thread;
 };

@@ -7,7 +7,7 @@ pipelining facilities to manage, integrate and run many of KWIVER's
 modules and capabilities.  To see what modules (called processes in
 sprockit) are available, run the following command::
 
-    $ plugin_explorer --process -b
+    $ plugin_explorer --proc all -b
 
 Here's a typical list of modules (note that as KWIVER expands, this
 list is likely to grow):
