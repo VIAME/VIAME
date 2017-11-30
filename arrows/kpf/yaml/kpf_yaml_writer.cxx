@@ -93,7 +93,7 @@ record_yaml_writer&
 operator<<( record_yaml_writer& w, const writer< canonical::kv_t >& io)
 {
   w.ensure_start();
-  w.s << "kv: " << io.kv.key << " " << io.kv.val << ", ";
+  w.s << io.kv.key << ": " << io.kv.val << ", ";
   return w;
 }
 
