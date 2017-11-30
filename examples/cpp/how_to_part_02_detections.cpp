@@ -80,7 +80,7 @@ void how_to_part_02_detections()
   kwiversys::SystemTools::Delay(2000);                                       // Wait for 2s
   cvDestroyWindow("Hough Detections");
 
-  // Next, let's look at the detection data structurs and we can make them
+  // Next, let's look at the detection data structures and we can make them
 
   // General detection data is defined by the detected_object class
   // Detectors will take in an image and return a detected_object_set_sptr object
@@ -100,6 +100,7 @@ void how_to_part_02_detections()
   // It is a group of name / value pairs.The name being the name of the class.
   // The score is the probability that the object is that class.
   // It is optional and not required for a detected object although most examples provide one just to be complete.
+
   kwiver::vital::detected_object_type_sptr type1(new kwiver::vital::detected_object_type());
   // This can have multiple entries / scores
   type1->set_score("car", 0.03);

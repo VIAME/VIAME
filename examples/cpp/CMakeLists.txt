@@ -1,7 +1,7 @@
 
 set(SOURCE "main.cpp"
-                           "how_to_part_01_images.cpp"
-                           "how_to_part_02_detections.cpp"
+           "how_to_part_01_images.cpp"
+           "how_to_part_02_detections.cpp"
 )
 
 set(kwiver_examples_libraries vital_algo
@@ -11,6 +11,7 @@ set(kwiver_examples_libraries vital_algo
 
 if(fletch_ENABLED_YAMLCPP)
   add_subdirectory( kpf )
+
   list(APPEND kwiver_examples_libraries kwiver_algo_kpf kpf_yaml ${YAML_CPP_LIBRARIES})
   if(WIN32)
     set(kwiver_examples_flags YAML_CPP_DLL)
