@@ -40,7 +40,7 @@ kwiver_add_library( kpf_yaml
   ${private_sources}
 )
 
-target_include_directories(kpf_yaml PRIVATE ${YAML_CPP_INCLUDE_DIR})
+target_include_directories(kpf_yaml PUBLIC ${YAML_CPP_INCLUDE_DIR})
 
 if(WIN32)
   target_compile_definitions(kpf_yaml PRIVATE YAML_CPP_DLL)
