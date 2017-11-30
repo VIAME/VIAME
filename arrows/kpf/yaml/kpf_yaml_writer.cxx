@@ -109,7 +109,7 @@ record_yaml_writer&
 operator<<( record_yaml_writer& w, const writer< canonical::poly_t >& io)
 {
   w.ensure_start();
-  w.s << "poly" << io.domain << ": " << io.poly.xy.size() << " [";
+  w.s << "poly" << io.domain << ": [";
   for (const auto& p : io.poly.xy )
   {
     w.s << "[ " << p.first << ", " << p.second << " ],";

@@ -42,6 +42,7 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 #include <cctype>
 
 #include <vital/util/tokenize.h>
@@ -54,6 +55,7 @@ using std::istream;
 using std::string;
 using std::vector;
 using std::isdigit;
+using std::ostringstream;
 
 namespace { // anon
 
@@ -172,7 +174,27 @@ kpf_yaml_parser_t
       tokens.push_back( "kv:" );
       tokens.push_back( s );
     }
-    visit( it->second, tokens );
+
+    //
+    // MASSIVE hack for polygons-- the (token-based) parse_poly() routine
+    // requires the number of points in the token stream, but that's not
+    // explicitly stored in the YAML. Now that we've abandoned non-yaml
+    // text packets, we should fix this, but for now...
+    //
+    bool is_poly = (s.substr(0, 4) == "poly");
+    if (is_poly)
+    {
+      vector<string> poly_tokens;
+      visit( it->second, poly_tokens );
+      ostringstream oss;
+      oss << (poly_tokens.size() / 2);
+      tokens.push_back( oss.str() );
+      tokens.insert( tokens.end(), poly_tokens.begin(), poly_tokens.end());
+    }
+    else
+    {
+      visit( it->second, tokens );
+    }
   }
 
   return packet_parser( tokens, local_packet_buffer );
