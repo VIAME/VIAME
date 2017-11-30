@@ -10,17 +10,7 @@ set(kwiver_examples_libraries vital_algo
                               kwiversys )
 
 if(fletch_ENABLED_YAMLCPP)
-  # YAML parsing and raw kpf examples
-  find_package( yaml-cpp REQUIRED )
-  list(APPEND SOURCE kpf/kpf_example.cxx
-                     kpf/kpf_example_simple.cxx
-                     kpf/kpf_example_complex.cxx
-                     kpf/kpf_text_reader.cxx
-                     kpf/kpf_yaml_reader.cxx
-                     kpf/yaml_parser.cxx
-                     kpf/kpf_example_yaml.cxx
-  )
-
+  add_subdirectory( kpf )
   list(APPEND kwiver_examples_libraries kwiver_algo_kpf kpf_yaml ${YAML_CPP_LIBRARIES})
   if(WIN32)
     set(kwiver_examples_flags YAML_CPP_DLL)

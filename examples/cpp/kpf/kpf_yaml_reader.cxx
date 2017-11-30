@@ -44,14 +44,19 @@
 namespace KPF=kwiver::vital::kpf;
 
 
-void kpf_yaml_reader()
+int main( int argc, char* argv[] )
 {
-  std::string filename = "something.kpf";
-  std::ifstream is( filename );
+  if (argc != 2)
+  {
+    std::cerr << "Usage: " << argv[0] << " file.kpf\n";
+    return EXIT_FAILURE;
+  }
+
+  std::ifstream is( argv[1] );
   if (!is)
   {
-    std::cerr << "Couldn't open '" << filename << "' for reading\n";
-    return;
+    std::cerr << "Couldn't open '" << argv[1] << "' for reading\n";
+    return EXIT_FAILURE;
   }
 
   KPF::kpf_yaml_parser_t parser( is );
@@ -66,7 +71,7 @@ void kpf_yaml_reader()
     {
       std::cout << "== " << m << "\n";
     }
-    std::cout << "Parsed " << packets.size() << " packets:\n";
+    std::cout << "Parsed " << packets.size() << " payload packets:\n";
     for (auto p: packets )
     {
       std::cout << "-- " << p.second << "\n";

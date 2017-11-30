@@ -27,40 +27,15 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 // Predefine methods that show off various functionality in kwiver
 void how_to_part_01_images();
 void how_to_part_02_detections();
 
-// raw kpf examples
-void kpf_example();
-void kpf_example_simple();
-void kpf_example_complex();
-void kpf_example_yaml();
-void kpf_text_reader();
-void kpf_yaml_reader();
-void yaml_parser();
-
- int main()
+int main()
 {
   // use comments to execute a particular method
 
   how_to_part_01_images();
   how_to_part_02_detections();
-  
-  // Using the provided kpf writer/reader
-  // Note if you are using vital types, 
-  // there are kwiver algorithms that will 
-  // transform vital objects to and from kpf,
-  // Look through the how_to methods above for examples.
-  // But if you aren not using vital types
-  // and only want to use the kpf_yaml library
-  // These examples are for you!
-  kpf_example();
-  kpf_example_simple();
-  kpf_example_complex();
-  kpf_example_yaml();
-  kpf_text_reader();
-  kpf_yaml_reader();
-  yaml_parser();
 }

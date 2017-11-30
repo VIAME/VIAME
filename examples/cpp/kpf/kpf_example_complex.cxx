@@ -32,13 +32,15 @@
  * \file
  * \brief KPF reading / writing, with a few more user-defined adapters.
  *
+ * This is a slightly more complex version of kpf_example_simple.cxx.
+ *
  */
 
 
 #include <arrows/kpf/yaml/kpf_reader.h>
-#include <arrows/kpf/yaml/kpf_text_parser.h>
+#include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
 #include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
-#include <arrows/kpf/yaml/kpf_text_writer.h>
 
 #include <iostream>
 #include <sstream>
@@ -57,6 +59,15 @@ using std::ostream;
 
 namespace KPF=kwiver::vital::kpf;
 
+//
+// This is our slightly more complex detection object.
+//
+// The box is stored as a corner point and a width and height, not
+// because this is necessarily a good way to do it, but rather to
+// demonstrate how data structures which are "distributed" across
+// user-space are mapped into single KPF data structures (in this case,
+// a bounding box.)
+//
 
 struct user_complex_detection_t
 {
@@ -149,6 +160,11 @@ struct user_box_adapter_t: public KPF::kpf_box_adapter< user_complex_detection_t
   {}
 };
 
+//
+// This adapter converts the KPF polygon structure into the user's
+// polygon structure.
+//
+
 struct user_poly_adapter_t: public KPF::kpf_poly_adapter< user_complex_detection_t >
 {
   user_poly_adapter_t():
@@ -184,9 +200,18 @@ read_detections_from_stream( std::istream& is )
   vector< user_complex_detection_t > dets;
   user_box_adapter_t box;
   user_poly_adapter_t poly;
-  KPF::kpf_text_parser_t parser( is );
+
+  KPF::kpf_yaml_parser_t parser( is );
   KPF::kpf_reader_t reader( parser );
+
+  // each record will be read into a buffer object
   user_complex_detection_t buffer;
+
+  //
+  // Here the reader object populates the adapters with their respective
+  // structures, but the user must explicitly call get() on the adapter
+  // to copy it into the buffer before copying the buffer into the vector.
+  //
 
   while (reader
          >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
@@ -201,6 +226,11 @@ read_detections_from_stream( std::istream& is )
     poly.get( buffer );
     dets.push_back( buffer );
 
+    //
+    // Metadata packets can appear anywhere in the stream. The reader object
+    // buffers them up until it sees the next non-metadata record (or end-of-file.)
+    //
+
     // did we receive any metadata?
     for (auto m: reader.get_meta_packets())
     {
@@ -209,7 +239,6 @@ read_detections_from_stream( std::istream& is )
 
     reader.flush();
   }
-
 
   return dets;
 }
@@ -221,30 +250,40 @@ write_detections_to_stream( ostream& os,
   namespace KPFC = KPF::canonical;
   user_box_adapter_t box_adapter;
   user_poly_adapter_t poly_adapter;
-  KPF::record_text_writer w( os );
+  KPF::record_yaml_writer w( os );
   size_t line_count = 0;
   for (const auto& det: dets )
   {
+    //
+    // Generate some gratuitous metadata; write it out as its own record.
+    //
+
     ostringstream oss;
     oss << "Record " << line_count++;
     w
       << KPF::writer< KPFC::meta_t >( oss.str() )
-      << KPF::record_text_writer::endl;
+      << KPF::record_yaml_writer::endl;
+
+    //
+    // Write out the actual detection.
+    //
+
     w
       << KPF::writer< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
       << KPF::writer< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
       << KPF::writer< KPFC::timestamp_t >( det.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
+      << KPF::writer< KPFC::poly_t>( poly_adapter( det ), KPFC::poly_t::IMAGE_COORDS )
       << KPF::writer< KPFC::kv_t >( "label", det.label )
       << KPF::writer< KPFC::conf_t>( det.confidence, DETECTOR_DOMAIN )
-      << KPF::writer< KPFC::poly_t>( poly_adapter( det ), KPFC::poly_t::IMAGE_COORDS )
-      << KPF::record_text_writer::endl;
+      << KPF::record_yaml_writer::endl;
   }
 }
 
-void kpf_example_complex()
+int main()
 {
 
   vector< user_complex_detection_t > src_dets = make_sample_detections();
+  std::cout << "\n";
   for (auto i=0; i<src_dets.size(); ++i)
   {
     std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
@@ -262,6 +301,4 @@ void kpf_example_complex()
   {
     std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";
   }
-
-
 }

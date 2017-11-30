@@ -32,6 +32,9 @@
  * \file
  * \brief KPF read / write of the activity type, using YAML.
  *
+ * This file is similar to kpf_example_complex.cxx, but demonstrates
+ * reading and writing the KPF activity object.
+ *
  */
 
 #include <arrows/kpf/yaml/kpf_reader.h>
@@ -57,21 +60,16 @@ using std::stod;
 
 namespace KPF=kwiver::vital::kpf;
 
-//
-// -----------------------------
-// -----------------------------
-//
-// PART ONE: The user type we'll be playing with
-//
-// -----------------------------
-// -----------------------------
-//
 
+//
+// Our user-defined activity object.
+// Activities can have multiple actors.
+//
 
 struct user_activity_t
 {
   int id;
-  unsigned start, stop;
+  unsigned start, stop; // in frame numbers
   string name;
   vector<size_t> actor_ids;
   double confidence;
@@ -124,20 +122,27 @@ make_sample_activities()
 const int DETECTOR_DOMAIN=17;
 const int ACTOR_DOMAIN=15;
 
+//
+// The KPF activity object is complex, and requires an adapter.
+//
+
 struct user_act_adapter_t: public KPF::kpf_act_adapter< user_activity_t >
 {
   user_act_adapter_t():
     kpf_act_adapter< user_activity_t >(
       // reads the canonical activity "a" into the user_activity "u"
       []( const KPF::canonical::activity_t& a, user_activity_t& u ) {
+        // load the activity ID, name, and start and stop frames
         u.id = a.activity_id.d;
         u.name = a.activity_name;
         u.start = a.timespan[0].tsr.start;
         u.stop = a.timespan[0].tsr.stop;
+        // load in our actor IDs
         for (const auto& actor: a.actors)
         {
           u.actor_ids.push_back( actor.id.d );
         }
+        // look for our confidence value in the key/value pairs
         for (const auto& kv: a.attributes)
         {
           if (kv.key == "conf")
@@ -146,23 +151,28 @@ struct user_act_adapter_t: public KPF::kpf_act_adapter< user_activity_t >
           }
         }
       },
+
       // converts a user_activity "a" into a canonical activity and returns it
       []( const user_activity_t& u ) {
         KPF::canonical::activity_t a;
+        // set the name, ID, and domain
         a.activity_name = u.name;
         a.activity_id.d = u.id;
         a.activity_id_domain = DETECTOR_DOMAIN;
 
+        // set our confidence as a key/value pair
         ostringstream oss;
         oss << u.confidence;
         a.attributes.push_back( KPF::canonical::kv_t( "conf", oss.str() ));
 
+        // set the start / stop time (as frame numbers)
         KPF::canonical::activity_t::scoped_tsr_t tsr;
         tsr.domain = KPF::canonical::timestamp_t::FRAME_NUMBER;
         tsr.tsr.start = u.start;
         tsr.tsr.stop = u.stop;
         a.timespan.push_back( tsr );
 
+        // also use the activity start/stop time for each actor
         for (auto actor:u.actor_ids)
         {
           a.actors.push_back( {ACTOR_DOMAIN, KPF::canonical::id_t(actor), a.timespan });
@@ -221,7 +231,7 @@ write_activities_to_stream( ostream& os,
   }
 }
 
-void kpf_example_yaml()
+int main()
 {
 
   vector< user_activity_t > src = make_sample_activities();
