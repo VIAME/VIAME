@@ -33,7 +33,7 @@
 #include <vital/util/tokenize.h>
 
 #include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
-#include <arrows/kpf/yaml/kpf_text_writer.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
 
 #include <arrows/kpf/vital_kpf_adapters.h>
 
@@ -127,7 +127,7 @@ void
 detected_object_set_output_kpf::
 write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name )
 {
-  KPF::record_text_writer w(stream());
+  KPF::record_yaml_writer w(stream());
   size_t line_count = 0;
   vital_box_adapter_t box_adapter;
   // Is this needed? vital_poly_adapter_t poly_adapter;
@@ -147,7 +147,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     oss << "Record " << line_count++;
     w
       << KPF::writer< KPFC::meta_t >(oss.str())
-      << KPF::record_text_writer::endl;
+      << KPF::record_yaml_writer::endl;
     w
       << KPF::writer< KPFC::kv_t >("detector_name", (*det)->detector_name())
       << KPF::writer< KPFC::id_t >(id, KPFC::id_t::DETECTION_ID)
@@ -156,7 +156,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
       << KPF::writer< KPFC::bbox_t >(box_adapter((*det)->bounding_box()), KPFC::bbox_t::IMAGE_COORDS);
     //for (auto t : *(*det)->type())
     //  w << KPF::writer< KPFC::kv_t >(*t.first, std::to_string(t.second));
-    w << KPF::record_text_writer::endl;
+    w << KPF::record_yaml_writer::endl;
 
 
     // I do not think the vital detection has poly data....

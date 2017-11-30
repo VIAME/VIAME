@@ -36,7 +36,7 @@
 #include "detected_object_set_input_kpf.h"
 
 #include "yaml/kpf_reader.h"
-#include "yaml/kpf_text_parser.h"
+#include "yaml/kpf_yaml_parser.h"
 #include "yaml/kpf_canonical_io_adapter.h"
 
 #include "vital_kpf_adapters.h"
@@ -166,7 +166,7 @@ read_all()
 
   
 
-  KPF::kpf_text_parser_t parser(m_parent->stream());
+  KPF::kpf_yaml_parser_t parser(m_parent->stream());
   KPF::kpf_reader_t reader(parser);
 
   // Is there a way to confirm this is a kpf of detections only format?

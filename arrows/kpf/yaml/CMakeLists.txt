@@ -7,9 +7,7 @@ set( sources
   kpf_packet.cxx
   kpf_parse_utils.cxx
   kpf_reader.cxx
-  kpf_text_parser.cxx
   kpf_yaml_parser.cxx
-  kpf_text_writer.cxx
   kpf_yaml_writer.cxx
   kpf_exception.cxx
 )
@@ -21,11 +19,9 @@ set( public_headers
   kpf_reader.h
   kpf_parse_utils.h
   kpf_parser_base.h
-  kpf_text_parser.h
   kpf_yaml_parser.h
   kpf_canonical_io_adapter_base.h
   kpf_canonical_io_adapter.h
-  kpf_text_writer.h
   kpf_yaml_writer.h
   kpf_exception.h
 )
