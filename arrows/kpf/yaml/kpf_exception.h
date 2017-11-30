@@ -38,6 +38,8 @@
 
 #include <string>
 
+#include <arrows/kpf/yaml/kpf_yaml_export.h>
+
 #include <vital/exceptions/base.h>
 
 namespace kwiver {
@@ -45,7 +47,7 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Generic kpf exception
-class VITAL_EXPORT kpf_exception
+class  KPF_YAML_EXPORT kpf_exception
   : public vital_core_base_exception
 {
 public:
@@ -61,7 +63,7 @@ public:
  * Example: attempting to parse a geometry string (needs four tokens)
  * but only two tokens are left.
  */
-class VITAL_EXPORT kpf_token_underrun_exception
+class  KPF_YAML_EXPORT kpf_token_underrun_exception
   : public kpf_exception
 {
 public:
