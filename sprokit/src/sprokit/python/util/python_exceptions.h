@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 #define SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 
-#include "util-config.h"
+#include <sprokit/python/util/sprokit_python_util_export.h>
 
 namespace sprokit {
 namespace python {
@@ -83,7 +83,6 @@ namespace python {
 SPROKIT_PYTHON_UTIL_EXPORT void python_print_exception();
 
 }
-
 }
 
 #endif // SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H

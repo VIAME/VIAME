@@ -33,7 +33,7 @@
  * \brief test reading video from a list of images.
  */
 
-#include <test_common.h>
+#include <test_gtest.h>
 
 #include <arrows/core/video_input_pos.h>
 #include <vital/plugin_loader/plugin_manager.h>
@@ -42,40 +42,37 @@
 #include <string>
 #include <iostream>
 
-#define TEST_ARGS ( kwiver::vital::path_t data_dir )
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(2);
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-  kwiver::vital::path_t data_dir( argv[2] );
-
-  RUN_TEST(testname, data_dir);
-}
+kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int
+main(int argc, char* argv[])
 {
-  algo::video_input_sptr vi = algo::video_input::create("pos");
-  if (!vi)
-  {
-    TEST_ERROR("Unable to create core::video_input_pos by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
+
+  GET_ARG(1, g_data_dir);
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+class video_input_pos : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(read_list)
+// ----------------------------------------------------------------------------
+TEST_F(video_input_pos, create)
+{
+  EXPECT_NE( nullptr, algo::video_input::create("pos") );
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_pos, read_list)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -102,13 +99,14 @@ IMPLEMENT_TEST(read_list)
       kwiver::vital::print_metadata( std::cout, *md[0] );
     }
     ++num_frames;
-    TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
+    EXPECT_EQ( num_frames, ts.get_frame() )
+      << "Frame numbers should be sequential";
   }
-  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+  EXPECT_EQ( 5, num_frames );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(is_good)
+// ----------------------------------------------------------------------------
+TEST_F(video_input_pos, is_good)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -116,26 +114,29 @@ IMPLEMENT_TEST(is_good)
 
   kwiver::arrows::core::video_input_pos vip;
 
-  vip.check_configuration( config );
+  EXPECT_TRUE( vip.check_configuration( config ) );
   vip.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
   kwiver::vital::timestamp ts;
 
-  TEST_EQUAL( "Video state is not \"good\" before open", vip.good(), false );
+  EXPECT_FALSE( vip.good() )
+    << "Video state before open";
 
   // open the video
   vip.open( list_file );
-  TEST_EQUAL( "Video state is not \"good\" after open but before first frame",
-              vip.good(), false );
+  EXPECT_FALSE( vip.good() )
+    << "Video state after open but before first frame";
 
   // step one frame
   vip.next_frame( ts );
-  TEST_EQUAL( "Video state is \"good\" on first frame", vip.good(), true );
+  EXPECT_TRUE( vip.good() )
+    << "Video state on first frame";
 
   // close the video
   vip.close();
-  TEST_EQUAL( "Video state is not \"good\" after close", vip.good(), false );
+  EXPECT_FALSE( vip.good() )
+    << "Video state after close";
 
   // Reopen the video
   vip.open( list_file );
@@ -144,8 +145,8 @@ IMPLEMENT_TEST(is_good)
   while ( vip.next_frame( ts ) )
   {
     ++num_frames;
-    TEST_EQUAL( "Video state is \"good\" on frame" << ts.get_frame(),
-                vip.good(), true );
+    EXPECT_TRUE( vip.good() )
+      << "Video state on frame " << ts.get_frame();
   }
-  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+  EXPECT_EQ( 5, num_frames );
 }

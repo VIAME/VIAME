@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_H
 #define SPROKIT_PIPELINE_PROCESS_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "edge.h"
 #include "datum.h"
@@ -46,7 +46,7 @@
 #pragma warning (disable : 4244)
 #pragma warning (disable : 4267)
 #endif
-#include <boost/noncopyable.hpp>
+
 #include <boost/cstdint.hpp>
 #include <boost/rational.hpp>
 #ifdef WIN32
@@ -105,7 +105,6 @@ typedef std::vector<process_t> processes_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT process
-  : private boost::noncopyable
 {
   public:
     /// The type for the type of a process.
@@ -550,6 +549,8 @@ class SPROKIT_PIPELINE_EXPORT process
     static property_t const property_unsync_output;
     /// Indicates that the process supports instrumentation call
     static property_t const property_instrumented;
+    /// Indicates the process is written in Python
+    static property_t const property_python;
 
     /// The name of the heartbeat port.
     static port_t const port_heartbeat;
@@ -857,6 +858,9 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Subclass available configuration keys.
+     *
+     * This method returns the list of all config keys that are
+     * available to this process.
      *
      * \returns The names of all available configuration keys.
      */
@@ -1376,8 +1380,12 @@ SCOPED_INSTRUMENTATION(reconfigure);
 
     friend class process_cluster;
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
+
+    friend class process_factory;
+    SPROKIT_PIPELINE_NO_EXPORT void add_property ( const property_t& prop );
 };
 
+// ----------------------------------------------------------------------------
 template <typename T>
 T
 process

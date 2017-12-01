@@ -32,63 +32,48 @@
  * \file
  * \brief test util string_editor class
  */
-#include <test_common.h>
 
 #include <vital/util/string.h>
+
+#include <gtest/gtest.h>
+
 #include <sstream>
 
+using namespace kwiver::vital;
 
-#define TEST_ARGS ( )
-
-DECLARE_TEST_MAP();
-
-// ------------------------------------------------------------------
-int
-main( int argc, char* argv[] )
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS( 1 );
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST( testname );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_starts_with )
+// ----------------------------------------------------------------------------
+TEST(string, starts_with)
 {
-  TEST_EQUAL( "prefix match", kwiver::vital::starts_with( "input_string", "input" ), true );
-  TEST_EQUAL( "leading space", kwiver::vital::starts_with( "input_string", " input" ), false );
-  TEST_EQUAL( "leading space match", kwiver::vital::starts_with( " input_string", " input" ), true);
-  TEST_EQUAL( "mismatch", kwiver::vital::starts_with( "input_string", " string" ), false );
+  EXPECT_TRUE( starts_with( "input_string", "input" ) );
+  EXPECT_FALSE( starts_with( "input_string", " input" ) );
+  EXPECT_TRUE( starts_with( " input_string", " input" ) );
+  EXPECT_FALSE( starts_with( "input_string", "string" ) );
 }
 
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_string_format )
+// ----------------------------------------------------------------------------
+TEST(string, format)
 {
-  TEST_EQUAL( "Numeric values", kwiver::vital::string_format( "%d %d", 1, 2), "1 2" );
-  TEST_EQUAL( "Leading space", kwiver::vital::string_format( " %d %d", 1, 2), " 1 2" );
+  EXPECT_EQ( "1 2", string_format( "%d %d", 1, 2 ) );
+  EXPECT_EQ( " 1 2", string_format( " %d %d", 1, 2 ) );
 
-  const std::string long_string( "this is a very long string - relatively speaking" );
-  TEST_EQUAL( "result longer than format string", kwiver::vital::string_format( "%s", long_string.c_str()), long_string );
+  auto const long_string =
+    std::string{ "this is a very long string - relatively speaking" };
+  EXPECT_EQ( long_string, string_format( "%s", long_string.c_str() ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_string_join )
+// ----------------------------------------------------------------------------
+TEST(string, join)
 {
   std::vector<std::string> input;
 
-  TEST_EQUAL( "Empty vector", kwiver::vital::join( input, ", " ), "" );
-
-  input.push_back( "one" );
-
-  TEST_EQUAL( "One element vector", kwiver::vital::join( input, std::string(", ") ), "one" );
-
-  input.push_back( "two" );
-  input.push_back( "three" );
-
-  TEST_EQUAL( "Three element vector", kwiver::vital::join( input, std::string(", ") ), "one, two, three" );
+  EXPECT_EQ( "", join( {}, ", " ) );
+  EXPECT_EQ( "one", join( {{ "one" }}, ", " ) );
+  EXPECT_EQ( "one, two, three", join( {{ "one", "two", "three" }}, ", " ) );
 }

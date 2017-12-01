@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,70 +33,57 @@
  * \brief test attribute_set functionality
  */
 
-#include <test_common.h>
-
 #include <vital/attribute_set.h>
 
-#define TEST_ARGS      ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST( test_api )
+// ----------------------------------------------------------------------------
+TEST(attribute_set, api)
 {
   kwiver::vital::attribute_set set;
 
-  TEST_EQUAL( "Size of empty set", set.size(), 0 );
-  TEST_EQUAL( "Empty set", set.empty(), true );
+  EXPECT_EQ( 0, set.size() );
+  EXPECT_TRUE( set.empty() );
 
   set.add( "first", 1 );
+  EXPECT_EQ( 1, set.size() );
+  EXPECT_FALSE( set.empty() );
 
-  TEST_EQUAL( "Size of one", set.size(), 1 );
-
-  // replace entry
+  // Replace entry
   set.add( "first", (double) 3.14159 );
-  TEST_EQUAL( "Size of one(2)", set.size(), 1 );
+  EXPECT_EQ( 1, set.size() );
+  EXPECT_FALSE( set.empty() );
+  EXPECT_TRUE( set.has( "first" ) );
+  EXPECT_FALSE( set.has( "the-first" ) );
 
-  TEST_EQUAL( "has(first) for existing entry", set.has( "first" ), true );
-  TEST_EQUAL( "has() for non-existing entry", set.has( "the-first" ), false );
+  set.add( "second", 42 );
+  EXPECT_EQ( 2, set.size() );
+  EXPECT_FALSE( set.empty() );
+  EXPECT_TRUE( set.has( "first" ) );
+  EXPECT_TRUE( set.has( "second" ) );
 
-  set.add( "second", 2 );
-  TEST_EQUAL( "Size after add another", set.size(), 2 );
-  TEST_EQUAL( "has(second) for existing entry", set.has( "second" ), true );
-  TEST_EQUAL( "Non-empty set", set.empty(), false );
-
-  int sec = set.get<int>( "second" );
-
-  TEST_EQUAL( "Returned data value", sec, 2 );
-
-  TEST_EQUAL( "Item type test", set.is_type<int>("second"), true );
+  EXPECT_EQ( 42, set.get<int>( "second" ) );
+  EXPECT_TRUE( set.is_type<int>( "second") );
 
   // Test returning wrong type, exception
-  EXPECT_EXCEPTION(
-    kwiver::vital::bad_any_cast,
-    double val = set.get<double>( "second" );
-    (void) val;
-    , "Cast to wrong data type" );
+  EXPECT_THROW(
+    set.get<double>( "second" ),
+    kwiver::vital::bad_any_cast );
 
-  // test data() accessor
-  EXPECT_EXCEPTION(
-    kwiver::vital::attribute_set_exception,
-    auto set_data = set.data( "second_one" );
-    , "Accessing data() for non-existent type" );
+  // Test data() accessor
+  EXPECT_THROW(
+    set.data( "does-not-exist" ),
+    kwiver::vital::attribute_set_exception );
 
-  // test iterators
-  auto ie = set.end();
-  for (auto it = set.begin(); it != ie; ++it )
+  // Test iterators
+  for ( auto it = set.begin(); it != set.end(); ++it )
   {
     std::cout << it->first << std::endl;
   }

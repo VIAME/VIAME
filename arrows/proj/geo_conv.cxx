@@ -43,6 +43,39 @@ namespace kwiver {
 namespace arrows {
 namespace proj {
 
+namespace {
+
+// ----------------------------------------------------------------------------
+std::unordered_map< std::string, std::string >
+extract_props( std::string text )
+{
+  std::unordered_map< std::string, std::string > props;
+
+  while ( text.size() )
+  {
+    auto const i = text.find( ' ' );
+    auto tok = text.substr( 0, i );
+    text = ( i == std::string::npos ? std::string{} : text.substr( i + 1 ) );
+
+    if ( tok.size() && tok[0] == '+' )
+    {
+      auto const j = tok.find( '=' );
+      if ( j == std::string::npos )
+      {
+        props.emplace( tok.substr( 1 ), std::string{} );
+      }
+      else
+      {
+        props.emplace( tok.substr( 1, j - 1 ), tok.substr( j + 1 ) );
+      }
+    }
+  }
+
+  return props;
+}
+
+}
+
 // ----------------------------------------------------------------------------
 geo_conversion
 ::~geo_conversion()
@@ -58,6 +91,48 @@ char const* geo_conversion
 ::id() const
 {
   return "proj";
+}
+
+// ----------------------------------------------------------------------------
+vital::geo_crs_description_t geo_conversion
+::describe( int crs )
+{
+  static const auto prop_map =
+    std::unordered_map< std::string, std::string >{
+      { "datum", "datum" },
+      { "ellps", "ellipse" },
+      { "proj", "projection" },
+      { "units", "units" },
+    };
+
+  // Get CRS init string
+  auto const proj = projection( crs );
+  auto const text = std::string{ pj_get_def( proj, 0 ) };
+
+  // Parse init string into property key/value pairs
+  auto const props = extract_props( text );
+
+  // Convert to human-readable result
+  vital::geo_crs_description_t result;
+  for ( auto const iter : props )
+  {
+    if ( iter.first == "zone" )
+    {
+      result.emplace( "zone", iter.second );
+      result.emplace( "hemisphere",
+                      props.count( "south" ) ? "south" : "north" );
+    }
+    else
+    {
+      auto const prop_map_iter = prop_map.find( iter.first );
+      if ( prop_map_iter != prop_map.end() )
+      {
+        result.emplace( prop_map_iter->second, iter.second );
+      }
+    }
+  }
+
+  return result;
 }
 
 // ----------------------------------------------------------------------------

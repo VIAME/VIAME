@@ -27,7 +27,6 @@ set(pipeline_headers
   datum.h
   edge.h
   edge_exception.h
-  pipeline-config.h
   pipeline.h
   pipeline_exception.h
   process.h
@@ -49,8 +48,6 @@ set(pipeline_headers
 
 set(pipeline_private_headers)
 
-## set( install_lib_module_subdir "${shared_lib_dir}${lib_dir_suffix}/sprokit" )
-## set( sprokit_default_module_paths  "${CMAKE_INSTALL_PREFIX}${install_lib_module_subdir}" )
 kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} sprokit )
 set( sprokit_default_module_paths ${kwiver_module_path_result} )
 
@@ -102,10 +99,11 @@ set_source_files_properties(edge.cxx
 
 sprokit_private_header_group(${pipeline_private_headers})
 
-sprokit_add_library(sprokit_pipeline SHARED
+kwiver_add_library(sprokit_pipeline
   ${pipeline_srcs}
   ${pipeline_headers}
-  ${pipeline_private_headers})
+  ${pipeline_private_headers}
+  )
 
 target_link_libraries(sprokit_pipeline
   PUBLIC              vital_config
@@ -120,21 +118,20 @@ target_link_libraries(sprokit_pipeline
                       vital_vpm kwiversys
   )
 
-set_target_properties(sprokit_pipeline
-  PROPERTIES
-    VERSION       ${KWIVER_VERSION}
-    SOVERSION     0
-    DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_LIB)
-
 if(APPLE AND KWIVER_ENABLE_PYTHON)
   set_target_properties(sprokit_pipeline PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
 endif()
 
-add_dependencies(sprokit_pipeline     configure-version.h)
+kwiver_install_headers(
+  ${pipeline_headers}
+  SUBDIR sprokit/pipeline
+  )
 
-##++ need a differente way of exporting paths to loadable modules
-# e.g. always in the same location, determined at a higher level.
-
-sprokit_install_headers(sprokit/pipeline ${pipeline_headers})
+# install export header
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_pipeline_export.h
+  SUBDIR sprokit/pipeline
+  NOPATH
+  )
 
 sprokit_configure_pkgconfig(sprokit-pipeline)

@@ -97,7 +97,7 @@ class process_trampoline
   : public sprokit::process
 {
   public:
-    process_trampoline(kwiver::vital::config_block_sptr const& config) : process(config) {};
+    using process::process;
     void _configure() override;
     void _init() override;
     void _reset() override;
@@ -105,6 +105,7 @@ class process_trampoline
     void _step() override;
     void _reconfigure(kwiver::vital::config_block_sptr const& config) override;
     sprokit::process::properties_t _properties() const override;
+    sprokit::process::properties_t _properties_over() const;
     sprokit::process::ports_t _input_ports() const override;
     sprokit::process::ports_t _output_ports() const override;
     port_info_t _input_port_info(port_t const& port) override;
@@ -355,7 +356,7 @@ PYBIND11_MODULE(process, m)
 
   class_<sprokit::process, process_trampoline, sprokit::process_t>(m, "PythonProcess"
     , "The base class for Python processes.")
-    .def(init_alias<kwiver::vital::config_block_sptr>())
+    .def(init<kwiver::vital::config_block_sptr>())
     .def("configure", &sprokit::process::configure, "Configure the process.")
     .def("init", &sprokit::process::init
       , "Initializes the process.")
@@ -415,36 +416,36 @@ PYBIND11_MODULE(process, m)
     .def_readonly_static("flag_input_mutable", &sprokit::process::flag_input_mutable)
     .def_readonly_static("flag_input_nodep", &sprokit::process::flag_input_nodep)
     .def_readonly_static("flag_required", &sprokit::process::flag_required)
-    .def("_base_configure", &wrap_process::_configure, "Configure the base process.")
-    .def("_base_init", &wrap_process::_init, "Base class initialization.")
-    .def("_base_reset", &wrap_process::_reset, "Base class reset.")
-    .def("_base_flush", &wrap_process::_flush, "Base class flush.")
-    .def("_base_step", &wrap_process::_step, "Base class step.")
-    .def("_base_reconfigure", &wrap_process::_reconfigure, arg("conf"), "Base class reconfigure.")
-    .def("_base_properties", &wrap_process::_properties, "Base class properties.")
-    .def("_base_input_ports", &wrap_process::_input_ports, "Base class input ports.")
-    .def("_base_output_ports", &wrap_process::_output_ports, "Base class output ports.")
-    .def("_base_input_port_info", &wrap_process::_input_port_info, arg("port"), "Base class input port info.")
-    .def("_base_output_port_info", &wrap_process::_output_port_info, arg("port"), "Base class output port info.")
-    .def("_base_set_input_port_type", &wrap_process::_set_input_port_type, arg("port"), arg("new_type"), "Base class input port type setting.")
-    .def("_base_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Base class output port type setting.")
-    .def("_base_available_config", &wrap_process::_available_config, "Base class available configuration information.")
-    .def("_base_config_info", &wrap_process::_config_info, return_value_policy::reference, arg("config"), "Base class configuration information.")
-    .def("_configure", &wrap_process::_configure, "Configure the sub process.")
-    .def("_init", &wrap_process::_init, "Sub class initialization.")
-    .def("_reset", &wrap_process::_reset, "Sub class reset.")
-    .def("_flush", &wrap_process::_flush, "Sub class flush.")
-    .def("_step", &wrap_process::_step, call_guard<gil_scoped_release>(), "Sub class step.")
-    .def("_reconfigure", &wrap_process::_reconfigure, arg("conf"), "Sub class reconfigure.")
-    .def("_properties", &wrap_process::_properties, "Sub class properties.")
-    .def("_input_ports", &wrap_process::_input_ports, "Sub class input ports.")
-    .def("_output_ports", &wrap_process::_output_ports, "Sub class output ports.")
-    .def("_input_port_info", &wrap_process::_input_port_info, arg("port"), call_guard<gil_scoped_release>(), "Sub class input port info.")
-    .def("_output_port_info", &wrap_process::_output_port_info, arg("port"), call_guard<gil_scoped_release>(), "Sub class output port info.")
-    .def("_set_input_port_type", &wrap_process::_set_input_port_type, arg("port"), arg("new_type"), "Sub class input port type setting.")
-    .def("_set_output_port_type", &wrap_process::_set_output_port_type, arg("port"), arg("new_type"), "Sub class output port type setting.")
-    .def("_available_config", &wrap_process::_available_config, "Sub class available configuration information.")
-    .def("_config_info", &wrap_process::_config_info, arg("config"), "Sub class configuration information.")
+    .def("_base_configure", static_cast<void (sprokit::process::*)()>(&wrap_process::_configure), "Configure the base process.")
+    .def("_base_init", static_cast<void (sprokit::process::*)()>(&wrap_process::_init), "Base class initialization.")
+    .def("_base_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), "Base class reset.")
+    .def("_base_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), "Base class flush.")
+    .def("_base_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), "Base class step.")
+    .def("_base_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), arg("conf"), "Base class reconfigure.")
+    .def("_base_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), "Base class properties.")
+    .def("_base_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), "Base class input ports.")
+    .def("_base_output_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_output_ports), "Base class output ports.")
+    .def("_base_input_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_input_port_info), arg("port"), "Base class input port info.")
+    .def("_base_output_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_output_port_info), arg("port"), "Base class output port info.")
+    .def("_base_set_input_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_input_port_type), arg("port"), arg("new_type"), "Base class input port type setting.")
+    .def("_base_set_output_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_output_port_type), arg("port"), arg("new_type"), "Base class output port type setting.")
+    .def("_base_available_config", static_cast<kwiver::vital::config_block_keys_t (sprokit::process::*)() const>(&wrap_process::_available_config), "Base class available configuration information.")
+    .def("_base_config_info", static_cast<sprokit::process::conf_info_t (sprokit::process::*)(kwiver::vital::config_block_key_t const&)>(&wrap_process::_config_info), return_value_policy::reference, arg("config"), "Base class configuration information.")
+    .def("_configure", static_cast<void (sprokit::process::*)()>(&wrap_process::_configure), "Configure the sub process.")
+    .def("_init", static_cast<void (sprokit::process::*)()>(&wrap_process::_init), "Sub class initialization.")
+    .def("_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), "Sub class reset.")
+    .def("_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), "Sub class flush.")
+    .def("_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), call_guard<gil_scoped_release>(), "Sub class step.")
+    .def("_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), arg("conf"), "Sub class reconfigure.")
+    .def("_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), "Sub class properties.")
+    .def("_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), "Sub class input ports.")
+    .def("_output_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_output_ports), "Sub class output ports.")
+    .def("_input_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_input_port_info), arg("port"), call_guard<gil_scoped_release>(), "Sub class input port info.")
+    .def("_output_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_output_port_info), arg("port"), call_guard<gil_scoped_release>(), "Sub class output port info.")
+    .def("_set_input_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_input_port_type), arg("port"), arg("new_type"), "Sub class input port type setting.")
+    .def("_set_output_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_output_port_type), arg("port"), arg("new_type"), "Sub class output port type setting.")
+    .def("_available_config", static_cast<kwiver::vital::config_block_keys_t (sprokit::process::*)() const>(&wrap_process::_available_config), "Sub class available configuration information.")
+    .def("_config_info", static_cast<sprokit::process::conf_info_t (sprokit::process::*)(kwiver::vital::config_block_key_t const&)>(&wrap_process::_config_info), arg("config"), "Sub class configuration information.")
     .def("declare_input_port", &declare_input_port_2
       , arg("port"), arg("info")
       , "Declare an input port on the process.")
@@ -466,42 +467,42 @@ PYBIND11_MODULE(process, m)
     .def("declare_configuration_key", &declare_configuration_key_4
       , arg("key"), arg("default"), arg("description"), arg("tunable")
       , "Declare a configuration key for the process")
-    .def("set_input_port_frequency", &wrap_process::set_input_port_frequency
+    .def("set_input_port_frequency", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_frequency_t const&)>(&wrap_process::set_input_port_frequency)
       , arg("port"), arg("new_frequency")
       , "Set an input port\'s frequency.")
-    .def("set_output_port_frequency", &wrap_process::set_output_port_frequency
+    .def("set_output_port_frequency", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_frequency_t const&)>(&wrap_process::set_output_port_frequency)
       , arg("port"), arg("new_frequency")
       , "Set an output port\'s frequency.")
-    .def("remove_input_port", &wrap_process::remove_input_port
+    .def("remove_input_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::remove_input_port)
       , arg("port")
       , "Remove an input port from the process.")
-    .def("remove_output_port", &wrap_process::remove_output_port
+    .def("remove_output_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::remove_output_port)
       , arg("port")
       , "Remove an output port from the process.")
-    .def("mark_process_as_complete", &wrap_process::mark_process_as_complete
+    .def("mark_process_as_complete", static_cast<void (sprokit::process::*)()>(&wrap_process::mark_process_as_complete)
       , "Tags the process as complete.")
-    .def("has_input_port_edge", &wrap_process::has_input_port_edge
+    .def("has_input_port_edge", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::has_input_port_edge)
       , arg("port")
       , "True if there is an edge that is connected to the port, False otherwise.")
-    .def("count_output_port_edges", &wrap_process::count_output_port_edges
+    .def("count_output_port_edges", static_cast<pybind11::size_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::count_output_port_edges)
       , arg("port")
       , "The number of edges that are connected to a port.")
-    .def("peek_at_port", &wrap_process::peek_at_port
+    .def("peek_at_port", static_cast<sprokit::edge_datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_port)
       , arg("port"), arg("idx") = 0
       , "Peek at a port.")
-    .def("peek_at_datum_on_port", &wrap_process::peek_at_datum_on_port
+    .def("peek_at_datum_on_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_datum_on_port)
       , arg("port"), arg("idx") = 0
       , "Peek at a datum on a port.")
-    .def("grab_from_port", &wrap_process::grab_from_port
+    .def("grab_from_port", static_cast<sprokit::edge_datum_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::grab_from_port)
       , arg("port")
       , "Grab a datum packet from a port.")
     .def("grab_value_from_port", &grab_value_from_port
       , arg("port")
       , "Grab a value from a port.")
-    .def("grab_datum_from_port", &wrap_process::grab_datum_from_port
+    .def("grab_datum_from_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::grab_datum_from_port)
       , arg("port")
       , "Grab a datum from a port.")
-    .def("push_to_port", &wrap_process::push_to_port
+    .def("push_to_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::edge_datum_t const&) const>(&wrap_process::push_to_port)
       , arg("port"), arg("datum")
       , "Push a datum packet to a port.")
     .def("push_value_to_port", &push_value_to_port
@@ -510,12 +511,12 @@ PYBIND11_MODULE(process, m)
     .def("push_datum_to_port", &push_datum_to_port
       , arg("port"), arg("datum")
       , "Push a datum to a port.")
-    .def("get_config", &wrap_process::get_config
+    .def("get_config", static_cast<kwiver::vital::config_block_sptr (sprokit::process::*)() const>(&wrap_process::get_config)
       , "Gets the configuration for a process.")
     .def("config_value", &config_value
       , arg("key")
       , "Gets a value from the configuration for a process.")
-    .def("set_data_checking_level", &wrap_process::set_data_checking_level
+    .def("set_data_checking_level", static_cast<void (sprokit::process::*)(sprokit::process::data_check_t)>(&wrap_process::set_data_checking_level)
       , arg("check")
       , "Set the level to which the inputs are automatically checked.")
   ;
@@ -592,13 +593,22 @@ process_trampoline
 
 sprokit::process::properties_t
 process_trampoline
-::_properties() const
+::_properties_over() const
 {
   PYBIND11_OVERLOAD(
     sprokit::process::properties_t,
     process,
     _properties,
   );
+}
+
+sprokit::process::properties_t
+process_trampoline
+::_properties() const
+{
+  sprokit::process::properties_t consts = _properties_over();
+  consts.insert("_python");
+  return consts;
 }
 
 sprokit::process::ports_t

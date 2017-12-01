@@ -51,12 +51,12 @@
 namespace kwiver {
 namespace vital {
 
-
-
 class track_set;
 /// Shared pointer for base track_set type
 typedef std::shared_ptr< track_set > track_set_sptr;
 
+
+// ------------------------------------------------------------------
 /// Abstract interface for a collection of tracks
 class VITAL_EXPORT track_set_interface
 {
@@ -238,7 +238,7 @@ public:
 };
 
 
-
+// ------------------------------------------------------------------
 /// A base class for the implementation of track sets
 /**
  * This class provides default implementations of most functions which are
@@ -304,7 +304,7 @@ public:
 };
 
 
-
+// ------------------------------------------------------------------
 /// A collection of tracks
 /**
  * This class dispatches everything to an implementation class as in the
@@ -470,10 +470,10 @@ private:
 
 
 
-
+// ------------------------------------------------------------------
 /// A concrete track set that simply wraps a vector of tracks.
-class simple_track_set_implementation :
-  public track_set_implementation
+class simple_track_set_implementation
+  : public track_set_implementation
 {
 public:
   /// Default Constructor

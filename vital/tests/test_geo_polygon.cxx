@@ -100,7 +100,6 @@ int
 main( int argc, char* argv[] )
 {
   ::testing::InitGoogleTest( &argc, argv );
-  TEST_LOAD_PLUGINS();
   return RUN_ALL_TESTS();
 }
 
@@ -192,6 +191,8 @@ TEST(geo_polygon, api)
 // ----------------------------------------------------------------------------
 TEST(geo_polygon, conversion)
 {
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   geo_polygon p_ll{ { loc_ll }, crs_ll };
   geo_polygon p_utm{ { loc_utm }, crs_utm_6s };
 

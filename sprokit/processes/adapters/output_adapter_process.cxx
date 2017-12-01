@@ -77,9 +77,6 @@ output_adapter_process
   : process( config )
   , d( new output_adapter_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   declare_config_using_trait( wait_on_queue_full );
 }
 

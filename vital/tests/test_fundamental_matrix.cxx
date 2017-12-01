@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,55 +33,37 @@
  * \brief test core essential matrix class
  */
 
-#include <test_common.h>
-#include <test_math.h>
-
-#include <iostream>
-#include <vector>
+#include <test_eigen.h>
 
 #include <vital/types/fundamental_matrix.h>
 
 #include <Eigen/SVD>
 
+using namespace kwiver::vital;
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(rank)
+// ----------------------------------------------------------------------------
+TEST(fundamental_matrix, rank)
 {
-  using namespace kwiver::vital;
-  using kwiver::testing::is_almost;
-
   matrix_3x3d mat_rand = matrix_3x3d::Random();
-  fundamental_matrix_d fm(mat_rand);
+  fundamental_matrix_d fm{ mat_rand };
 
   matrix_3x3d mat = fm.matrix();
 
-  Eigen::JacobiSVD<matrix_3x3d> svd(mat, Eigen::ComputeFullV |
-                                         Eigen::ComputeFullU);
-  const auto& S = svd.singularValues();
+  Eigen::JacobiSVD<matrix_3x3d> svd{ mat, Eigen::ComputeFullV |
+                                          Eigen::ComputeFullU };
+  auto const& S = svd.singularValues();
 
-  TEST_NEAR("Last signular value should be zero",
-            S[2], 0.0, 1e-14);
-  if( S[0] <= 0.0 || S[1] <= 0.0 )
-  {
-    TEST_ERROR("Singular values should be positive");
-  }
+  EXPECT_GE( S[0], 0.0 ) << "Singular values should be non-negative";
+  EXPECT_GE( S[1], 0.0 ) << "Singular values should be non-negative";
+  EXPECT_NEAR( 0.0, S[2], 1e-14 ) << "Last singular value should be zero";
 
-  if(!is_almost(fundamental_matrix_d(mat).matrix(), mat, 1e-14))
-  {
-    TEST_ERROR("constructor from matrix not consistent with matrix accessor");
-  }
+  EXPECT_MATRIX_NEAR( mat, fundamental_matrix_d{ mat }.matrix(), 1e-14 )
+    << "Constructor from matrix not consistent with matrix accessor";
 }

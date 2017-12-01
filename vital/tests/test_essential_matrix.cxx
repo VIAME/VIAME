@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,17 @@
  * \brief test core essential matrix class
  */
 
-#include <test_common.h>
-#include <test_math.h>
+#include <test_eigen.h>
+
+#include <vital/types/essential_matrix.h>
+
+#include <Eigen/SVD>
 
 #include <iostream>
 #include <vector>
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 #if defined M_PIl
 #define LOCAL_PI M_PIl
@@ -48,30 +51,25 @@
 #define LOCAL_PI M_PI
 #endif
 
-#include <vital/types/essential_matrix.h>
+using namespace kwiver::vital;
 
-#include <Eigen/SVD>
-
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(matrix_properties)
+// ----------------------------------------------------------------------------
+static bool is_similar(
+  matrix_3x3d const& m1, matrix_3x3d const& m2, double tol )
 {
-  using namespace kwiver::vital;
-  using kwiver::testing::is_almost;
+  return kwiver::testing::similar_matrix_comparator{}( m1, m2, tol );
+}
+
+// ----------------------------------------------------------------------------
+TEST(essential_matrix, properties)
+{
   rotation_d rot(vector_3d(1.0, 2.0, 3.0));
   vector_3d t(-1.0, 1.0, 4.0);
 
@@ -80,11 +78,8 @@ IMPLEMENT_TEST(matrix_properties)
 
   Eigen::JacobiSVD<matrix_3x3d> svd(mat, Eigen::ComputeFullV |
                                          Eigen::ComputeFullU);
-  TEST_NEAR("Singular values should be [1 1 0]",
-            svd.singularValues(), vector_3d(1.0, 1.0, 0.0), 1e-14);
-
-  TEST_NEAR("translation should be unit length",
-            em.translation().norm(), 1.0, 1e-14);
+  EXPECT_MATRIX_NEAR( ( vector_3d{ 1, 1, 0 } ), svd.singularValues(), 1e-14 );
+  EXPECT_NEAR( 1.0, em.translation().norm(), 1e-14 );
 
   const matrix_3x3d W = (matrix_3x3d() << 0.0, -1.0, 0.0,
                                           1.0,  0.0, 0.0,
@@ -94,40 +89,25 @@ IMPLEMENT_TEST(matrix_properties)
   vector_3d t_extracted = U.col(2);
 
   vector_3d t_norm = t.normalized();
-  if(!is_almost(t_norm, t_extracted, 1e-14) &&
-     !is_almost(t_norm, (-t_extracted).eval(), 1e-14) )
-  {
-    TEST_ERROR("extract translation should match original up to a sign\n"
-               "input: " << t.normalized().transpose() << "\n"
-               "got:   " << t_extracted.transpose() );
-  }
+  EXPECT_MATRIX_SIMILAR( t_extracted, t_norm, 1e-14 );
 
   matrix_3x3d R1_extracted = U*W*V.transpose();
   matrix_3x3d R2_extracted = U*W.transpose()*V.transpose();
-  if( R1_extracted.determinant() < 0.0 )
-  {
-    R1_extracted *= -1.0;
-  }
-  if( R2_extracted.determinant() < 0.0 )
-  {
-    R2_extracted *= -1.0;
-  }
 
-  if(!is_almost(rot.matrix(), R1_extracted, 1e-14) &&
-     !is_almost(rot.matrix(), R2_extracted, 1e-14) )
+  if ( !is_similar( rot.matrix(), R1_extracted, 1e-14 ) &&
+       !is_similar( rot.matrix(), R2_extracted, 1e-14 ) )
   {
-    TEST_ERROR("extracted rotation should match input or twisted pair\n"
-               "input:\n" << rot.matrix() << "\n"
-               "got (v1):\n" << R1_extracted << "\n"
-               "got (v2):\n" << R2_extracted << "\n");
+    ADD_FAILURE()
+      << "Extracted rotation should match input or twisted pair\n"
+      << "Input:\n" << rot.matrix() << "\n"
+      << "Result (v1):\n" << R1_extracted << "\n"
+      << "Result (v2):\n" << R2_extracted;
   }
 }
 
-
-IMPLEMENT_TEST(twisted_pair)
+// ----------------------------------------------------------------------------
+TEST(essential_matrix, twisted_pair)
 {
-  using namespace kwiver::vital;
-  const double epsilon = 1e-14;
   rotation_d rot(vector_3d(1.0, 2.0, 3.0));
   vector_3d t(-1.0, 1.0, 4.0);
 
@@ -139,45 +119,21 @@ IMPLEMENT_TEST(twisted_pair)
   vector_3d t1 = em.translation();
   vector_3d t2 = -t1;
 
-  rotation_d rot_t_180( LOCAL_PI,
-                       t.normalized().eval());
-  TEST_NEAR("twisted pair rotation should be 180 degree rotation around t",
-            R2.matrix(), (rot_t_180 * R1).matrix(), epsilon);
+  rotation_d rot_t_180{ LOCAL_PI, t.normalized() };
+  EXPECT_MATRIX_NEAR( ( rot_t_180 * R1 ).matrix(), R2.matrix(), 1e-14 )
+    << "Twisted pair rotation should be 180 degree rotation around t";
 
   essential_matrix_d em1(R1, t1), em2(R1, t2), em3(R2, t1), em4(R2, t2);
   matrix_3x3d M1(em1.matrix()), M2(em2.matrix()),
               M3(em3.matrix()), M4(em4.matrix());
   matrix_3x3d M(em.matrix());
 
-  // flip sign on matrices with mismatched signs
-  if( (M(0,0) > 0.0) != (M1(0,0) > 0.0) )
-  {
-    M1 *= -1.0;
-  }
-  TEST_NEAR("Possible factorization 1 matches source",
-            M, M1, 1e-14);
-
-  // flip sign on matrices with mismatched signs
-  if( (M(0,0) > 0.0) != (M2(0,0) > 0.0) )
-  {
-    M2 *= -1.0;
-  }
-  TEST_NEAR("Possible factorization 2 matches source",
-            M, M2, 1e-14);
-
-  // flip sign on matrices with mismatched signs
-  if( (M(0,0) > 0.0) != (M3(0,0) > 0.0) )
-  {
-    M3 *= -1.0;
-  }
-  TEST_NEAR("Possible factorization 3 matches source",
-            M, M3, 1e-14);
-
-  // flip sign on matrices with mismatched signs
-  if( (M(0,0) > 0.0) != (M4(0,0) > 0.0) )
-  {
-    M4 *= -1.0;
-  }
-  TEST_NEAR("Possible factorization 4 matches source",
-            M, M4, 1e-14);
+  EXPECT_MATRIX_SIMILAR( M, M1, 1e-14 )
+    << "Possible factorization 1 should match source";
+  EXPECT_MATRIX_SIMILAR( M, M2, 1e-14 )
+    << "Possible factorization 2 should match source";
+  EXPECT_MATRIX_SIMILAR( M, M3, 1e-14 )
+    << "Possible factorization 3 should match source";
+  EXPECT_MATRIX_SIMILAR( M, M4, 1e-14 )
+    << "Possible factorization 4 should match source";
 }

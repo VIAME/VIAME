@@ -32,123 +32,113 @@
  * \file
  * \brief test util string_editor class
  */
-#include <test_common.h>
-
 #include <vital/util/token_expander.h>
 #include <vital/util/token_type_symtab.h>
 #include <vital/util/token_type_sysenv.h>
 #include <vital/util/token_type_env.h>
 
-#define TEST_ARGS ( )
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
 
-// ------------------------------------------------------------------
-int
-main( int argc, char* argv[] )
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS( 1 );
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST( testname );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
+namespace {
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_expander )
+// ----------------------------------------------------------------------------
+void initialize( token_expander& expander )
 {
-  kwiver::vital::token_expander expander;
-
-  expander.add_token_type( new kwiver::vital::token_type_env() );
-  expander.add_token_type( new kwiver::vital::token_type_sysenv() );
-
-  kwiver::vital::token_type_symtab* symtab = new kwiver::vital::token_type_symtab("LOCAL");
+  auto* symtab = new token_type_symtab{ "LOCAL" };
   expander.add_token_type( symtab );
 
   symtab->add_entry( "key", "value" );
   symtab->add_entry( "key2", "value2" );
-
-  std::string input = "no-subs here";
-
-  TEST_EQUAL( "No substitution", expander.expand_token( input ), input );
-
-  input = "$LOCAL{key}";
-  TEST_EQUAL( "Full substitution", expander.expand_token( input ), "value" );
-
-  input = "prefix$LOCAL{key}";
-  TEST_EQUAL( "Substitution prefix", expander.expand_token( input ), "prefixvalue" );
-
-  input = "$LOCAL{key}postfix";
-  TEST_EQUAL( "Substitution postfix", expander.expand_token( input ), "valuepostfix" );
-
-  input = "pre$LOCAL{key}post";
-  TEST_EQUAL( "Substitution bookends", expander.expand_token( input ), "prevaluepost" );
-
-  input = "$LOCAL{key}$LOCAL{key2}";
-  TEST_EQUAL( "Substitution 2 times", expander.expand_token( input ), "valuevalue2" );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_expander_missing_default )
+// ----------------------------------------------------------------------------
+class expander_no_fill : public token_expander
 {
-  kwiver::vital::token_expander expander;
-
-  expander.add_token_type( new kwiver::vital::token_type_env() );
-  expander.add_token_type( new kwiver::vital::token_type_sysenv() );
-
-  kwiver::vital::token_type_symtab* symtab = new kwiver::vital::token_type_symtab("LOCAL");
-  expander.add_token_type( symtab );
-
-  symtab->add_entry( "key", "value" );
-  symtab->add_entry( "key2", "value2" );
-
-  std::string input = "$LOCAL{not-here}";
-  TEST_EQUAL( "Entry not here", expander.expand_token( input ), input );
-
-  input = "$FOO{not-here}";
-  TEST_EQUAL( "Provider not here", expander.expand_token( input ), input );
-}
-
-
-// ==================================================================
-class expander_no_fill
-  : public kwiver::vital::token_expander
-{
-public:
-  expander_no_fill()
-    : kwiver::vital::token_expander()
-  { }
-
 protected:
-  virtual bool handle_missing_entry( const std::string& provider, const std::string& entry )
-  { return false; }
-  virtual bool handle_missing_provider( const std::string& provider, const std::string& entry )
-  { return false; }
+  virtual bool handle_missing_entry(
+    const std::string& provider, const std::string& entry ) override
+  { std::cerr << provider << ':' << entry << std::endl; return false; }
 
+  virtual bool handle_missing_provider(
+    const std::string& provider, const std::string& entry ) override
+  { std::cerr << provider << ':' << entry << std::endl; return false; }
 };
 
+}
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( test_expander_missing_override )
+// ----------------------------------------------------------------------------
+TEST(token_expander, basic)
+{
+  token_expander expander;
+  initialize( expander );
+
+  EXPECT_EQ(
+    "no-subs here",
+    expander.expand_token( "no-subs here" ) );
+
+  EXPECT_EQ(
+    "value",
+    expander.expand_token( "$LOCAL{key}" ) );
+
+  EXPECT_EQ(
+    "prefixvalue",
+    expander.expand_token( "prefix$LOCAL{key}" ) );
+
+  EXPECT_EQ(
+    "valuesuffix",
+    expander.expand_token( "$LOCAL{key}suffix" ) );
+
+  EXPECT_EQ(
+    "prefixvaluesuffix",
+    expander.expand_token( "prefix$LOCAL{key}suffix" ) );
+
+  EXPECT_EQ(
+    "valuevalue2",
+    expander.expand_token( "$LOCAL{key}$LOCAL{key2}" ) );
+}
+
+
+// ----------------------------------------------------------------------------
+TEST(token_expander, missing_default)
+{
+  token_expander expander;
+  initialize( expander );
+
+  EXPECT_EQ(
+    "$LOCAL{bad_key}",
+    expander.expand_token( "$LOCAL{bad_key}" ) );
+
+  EXPECT_EQ(
+    "$BAD_PROVIDER{key}",
+    expander.expand_token( "$BAD_PROVIDER{key}" ) );
+}
+
+// ----------------------------------------------------------------------------
+TEST(token_expander, missing_override)
 {
   expander_no_fill expander;
+  initialize( expander );
 
-  expander.add_token_type( new kwiver::vital::token_type_env() );
-  expander.add_token_type( new kwiver::vital::token_type_sysenv() );
+  EXPECT_EQ(
+    "AB",
+    expander.expand_token( "A$LOCAL{bad_key}B" ) );
 
-  kwiver::vital::token_type_symtab* symtab = new kwiver::vital::token_type_symtab("LOCAL");
-  expander.add_token_type( symtab );
-
-  symtab->add_entry( "key", "value" );
-  symtab->add_entry( "key2", "value2" );
-
-  std::string input = "A$LOCAL{not_here}B";
-  std::string exp_value = expander.expand_token( input );
-  TEST_EQUAL( "Entry not here", exp_value, "AB" );
-
-  input = "A$FOO{not_here}B";
-  exp_value = expander.expand_token( input );
-  TEST_EQUAL( "Provider not here", exp_value, "AB" );
+  EXPECT_EQ(
+    "AB",
+    expander.expand_token( "A$BAD_PROVIDER{key}B" ) );
 }
+
+// TODO:
+// - Test ENV expander
+// - Test SYSENV expander?
+// - Test keys with special characters (':', '.')
+// - Test malformatted keys, providers

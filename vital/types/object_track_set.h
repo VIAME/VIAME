@@ -51,7 +51,7 @@
 namespace kwiver {
 namespace vital {
 
-
+// ============================================================================
 /// A derived track_state for object tracks
 class VITAL_EXPORT object_track_state : public track_state
 {
@@ -80,10 +80,7 @@ public:
 };
 
 
-class object_track_set;
-/// Shared pointer for object_track_set type
-typedef std::shared_ptr< object_track_set > object_track_set_sptr;
-
+// ============================================================================
 /// A collection of object tracks
 class VITAL_EXPORT object_track_set : public track_set
 {
@@ -107,6 +104,8 @@ public:
   virtual ~object_track_set() = default;
 };
 
+/// Shared pointer for object_track_set type
+typedef std::shared_ptr< object_track_set > object_track_set_sptr;
 
 } } // end namespace vital
 

@@ -28,54 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-#include <test_math.h>
+#include <test_gtest.h>
+#include <test_eigen.h>
 #include <test_scene.h>
 
-#include <vital/types/similarity.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include <arrows/vxl/estimate_essential_matrix.h>
+#include <arrows/vxl/estimate_similarity_transform.h>
 
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/transform.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 
-#include <arrows/vxl/estimate_essential_matrix.h>
-#include <arrows/vxl/estimate_similarity_transform.h>
+#include <vital/plugin_loader/plugin_manager.h>
 
-
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
+#include <vital/types/similarity.h>
 
 using namespace kwiver::vital;
 
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  using namespace kwiver::arrows;
-  algo::initialize_cameras_landmarks_sptr init = algo::initialize_cameras_landmarks::create("core");
-  if (!init)
-  {
-    TEST_ERROR("Unable to create core::initialize_cameras_landmarks by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(initialize_cameras_landmarks, create)
+{
+  EXPECT_NE( nullptr, algo::initialize_cameras_landmarks::create("core") );
+}
 
-// helper function to configure the algorithm
-void configure_algo(kwiver::arrows::core::initialize_cameras_landmarks& algo,
-                    const kwiver::vital::camera_intrinsics_sptr K)
+// ----------------------------------------------------------------------------
+// Helper function to configure the algorithm
+static void
+configure_algo(kwiver::arrows::core::initialize_cameras_landmarks& algo,
+               const kwiver::vital::camera_intrinsics_sptr K)
 {
   using namespace kwiver::arrows;
   kwiver::vital::config_block_sptr cfg = algo.get_configuration();
@@ -97,12 +86,13 @@ void configure_algo(kwiver::arrows::core::initialize_cameras_landmarks& algo,
   }
 }
 
-
-void evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
-                             const kwiver::vital::landmark_map_sptr true_landmarks,
-                             const kwiver::vital::camera_map_sptr est_cams,
-                             const kwiver::vital::landmark_map_sptr est_landmarks,
-                             double tol)
+// ----------------------------------------------------------------------------
+static void
+evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
+                        const kwiver::vital::landmark_map_sptr true_landmarks,
+                        const kwiver::vital::camera_map_sptr est_cams,
+                        const kwiver::vital::landmark_map_sptr est_landmarks,
+                        double tol)
 {
   using namespace kwiver;
 
@@ -114,30 +104,30 @@ void evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
 
   vital::camera_map::map_camera_t orig_cams = true_cams->cameras();
   vital::camera_map::map_camera_t new_cams = est_cams->cameras();
-  for(vital::camera_map::map_camera_t::value_type p : orig_cams)
+  for (auto const& p : orig_cams)
   {
     vital::camera_sptr new_cam_t = arrows::transform(new_cams[p.first], global_sim);
     vital::rotation_d dR = new_cam_t->rotation().inverse() * p.second->rotation();
-    TEST_NEAR("rotation difference magnitude", dR.angle(), 0.0, tol);
+    EXPECT_NEAR(0.0, dR.angle(), tol) << "Rotation difference magnitude";
 
     double dt = (p.second->center() - new_cam_t->center()).norm();
-    TEST_NEAR("camera center difference", dt, 0.0, tol);
+    EXPECT_NEAR(0.0, dt, tol) << "Camera center difference";
   }
 
   vital::landmark_map::map_landmark_t orig_lms = true_landmarks->landmarks();
   vital::landmark_map::map_landmark_t new_lms = est_landmarks->landmarks();
-  for(landmark_map::map_landmark_t::value_type p : orig_lms)
+  for (auto const& p : orig_lms)
   {
     vital::landmark_sptr new_lm_tr = arrows::transform(new_lms[p.first], global_sim);
 
     double dt = (p.second->loc() - new_lm_tr->loc()).norm();
-    TEST_NEAR("landmark location difference", dt, 0.0, tol);
+    EXPECT_NEAR(0.0, dt, tol) << "Landmark location difference";
   }
 }
 
-
-// test initialization with ideal points
-IMPLEMENT_TEST(ideal_points)
+// ----------------------------------------------------------------------------
+// Test initialization with ideal points
+TEST(initialize_cameras_landmarks, ideal_points)
 {
   using namespace kwiver;
   arrows::core::initialize_cameras_landmarks init;
@@ -164,8 +154,9 @@ IMPLEMENT_TEST(ideal_points)
                           1e-6);
 }
 
-// test initialization with ideal points
-IMPLEMENT_TEST(ideal_points_from_last)
+// ----------------------------------------------------------------------------
+// Test initialization with ideal points
+TEST(initialize_cameras_landmarks, ideal_points_from_last)
 {
   using namespace kwiver;
   arrows::core::initialize_cameras_landmarks init;
@@ -195,10 +186,9 @@ IMPLEMENT_TEST(ideal_points_from_last)
                           1e-6);
 }
 
-
-
-// test initialization with noisy points
-IMPLEMENT_TEST(noisy_points)
+// ----------------------------------------------------------------------------
+// Test initialization with noisy points
+TEST(initialize_cameras_landmarks, noisy_points)
 {
   using namespace kwiver;
   arrows::core::initialize_cameras_landmarks init;
@@ -228,9 +218,9 @@ IMPLEMENT_TEST(noisy_points)
                           0.2);
 }
 
-
-// test initialization with noisy points
-IMPLEMENT_TEST(noisy_points_from_last)
+// ----------------------------------------------------------------------------
+// Test initialization with noisy points
+TEST(initialize_cameras_landmarks, noisy_points_from_last)
 {
   using namespace kwiver;
   arrows::core::initialize_cameras_landmarks init;
@@ -263,10 +253,9 @@ IMPLEMENT_TEST(noisy_points_from_last)
                           0.2);
 }
 
-
-
-// test initialization with subsets of cameras and landmarks
-IMPLEMENT_TEST(subset_init)
+// ----------------------------------------------------------------------------
+// Test initialization with subsets of cameras and landmarks
+TEST(initialize_cameras_landmarks, subset_init)
 {
   using namespace kwiver;
   arrows::core::initialize_cameras_landmarks init;
@@ -309,23 +298,31 @@ IMPLEMENT_TEST(subset_init)
   init.initialize(new_cameras, new_landmarks, tracks);
 
   // test that we only initialized the requested objects
-  for(vital::camera_map::map_camera_t::value_type p : new_cameras->cameras())
+  for (auto const& p : new_cameras->cameras())
   {
-    TEST_EQUAL("Camera initialized", bool(p.second), true);
-    TEST_EQUAL("Expected camera id", p.first % 3, 0);
+    auto const& camera_id = p.first;
+    auto const& camera_ptr = p.second;
+
+    EXPECT_NE( nullptr, camera_ptr );
+    EXPECT_EQ( 0, camera_id % 3 );
   }
-  for(vital::landmark_map::map_landmark_t::value_type p : new_landmarks->landmarks())
+  for (auto const& p : new_landmarks->landmarks())
   {
-    TEST_EQUAL("Landmark initialized", bool(p.second), true);
-    TEST_EQUAL("Expected landmark id", p.first % 5, 0);
+    auto const& landmark_id = p.first;
+    auto const& landmark_ptr = p.second;
+
+    EXPECT_NE( nullptr, landmark_ptr );
+    EXPECT_EQ( 0, landmark_id % 5 );
   }
 
   // calling this again should do nothing
   vital::camera_map_sptr before_cameras = new_cameras;
   vital::landmark_map_sptr before_landmarks = new_landmarks;
   init.initialize(new_cameras, new_landmarks, tracks);
-  TEST_EQUAL("Initialization No-Op on cameras", before_cameras, new_cameras);
-  TEST_EQUAL("Initialization No-Op on landmarks", before_landmarks, new_landmarks);
+  EXPECT_EQ( before_cameras, new_cameras )
+    << "Initialization should be no-op";
+  EXPECT_EQ( before_landmarks, new_landmarks )
+    << "Initialization should be no-op";
 
   // add the rest of the cameras
   cams_to_init = new_cameras->cameras();

@@ -8,4 +8,4 @@ set( test_libraries vital_logger )
 # Logger tests
 ##############################
 
-kwiver_discover_tests(vital-logger             test_libraries test_logger.cxx)
+kwiver_discover_gtests(vital logger LIBRARIES ${test_libraries})

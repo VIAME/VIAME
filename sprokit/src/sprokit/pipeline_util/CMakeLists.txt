@@ -35,7 +35,6 @@ set(pipeline_util_headers
   pipe_bakery.h
   pipe_bakery_exception.h
   pipe_declaration_types.h
-  pipeline_util-config.h
   )
 
 set(pipeline_util_private_headers
@@ -92,12 +91,11 @@ set_source_files_properties(load_pipe.cxx
 
 sprokit_private_header_group(${pipeline_util_private_headers})
 
-sprokit_add_library(sprokit_pipeline_util
+kwiver_add_library(sprokit_pipeline_util
   ${pipeline_util_srcs}
   ${pipeline_util_headers}
   ${pipeline_util_private_headers}
   )
-
 
 target_link_libraries(sprokit_pipeline_util
   PUBLIC      sprokit_pipeline
@@ -111,17 +109,21 @@ target_link_libraries(sprokit_pipeline_util
              kwiversys
  )
 
-set_target_properties(sprokit_pipeline_util
-  PROPERTIES
-    VERSION       ${KWIVER_VERSION}
-    SOVERSION     0
-    DEFINE_SYMBOL MAKE_SPROKIT_PIPELINE_UTIL_LIB)
-
 if (WIN32)
   add_dependencies(sprokit_pipeline_util
     configure-include-paths.h)
 endif ()
 
-sprokit_install_headers(sprokit/pipeline_util ${pipeline_util_headers})
+kwiver_install_headers(
+  ${pipeline_util_headers}
+  SUBDIR sprokit/pipeline_util
+  )
+
+# install export header
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/sprokit_pipeline_util_export.h
+  SUBDIR   sprokit/pipeline_util
+  NOPATH
+  )
 
 sprokit_configure_pkgconfig(sprokit-pipeline_util)

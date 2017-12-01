@@ -324,6 +324,12 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
     // create config entry
     conf->set_value( key, val );
 
+    // Set location if available
+    if ( info.defined_loc.valid() )
+    {
+      conf->set_location( key, info.defined_loc );
+    }
+
     if ( info.read_only )
     {
       conf->mark_read_only( key );

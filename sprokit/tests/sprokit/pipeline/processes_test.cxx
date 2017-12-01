@@ -31,11 +31,11 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>
 
-#include <sprokit/config.h>
+#include "processes_test_export.h"
 
 using namespace sprokit;
 
-class SPROKIT_NO_EXPORT test_process
+class PROCESSES_TEST_NO_EXPORT test_process
   : public sprokit::process
 {
   public:
@@ -56,7 +56,7 @@ test_process
 
 // ------------------------------------------------------------------
 extern "C"
-SPROKIT_EXPORT
+PROCESSES_TEST_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

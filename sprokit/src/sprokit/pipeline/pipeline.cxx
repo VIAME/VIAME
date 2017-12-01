@@ -1130,6 +1130,27 @@ pipeline
 
 
 // ------------------------------------------------------------------
+process_t
+pipeline
+::get_python_process() const
+{
+  // Run through each process, checking to see if any are python
+  process_t python_process; // Start with a null pointer, return it if no python procs are found
+  for (priv::process_map_t::value_type const& process_index : d->process_map)
+  {
+    process_t proc = process_index.second;
+    auto properties = proc->properties();
+    if ( properties.find("_python") != properties.end() )
+    {
+      python_process = proc;
+      break;
+    }
+  }
+
+  return python_process;
+}
+
+// ------------------------------------------------------------------
 pipeline::priv
 ::priv(pipeline* pipe, kwiver::vital::config_block_sptr conf)
   : q(pipe)

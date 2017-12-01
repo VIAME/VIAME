@@ -42,6 +42,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "arrows/ocv/image_container.h"
 
+#include <kwiversys/SystemTools.hxx>
+
 void how_to_part_01_images()
 {
   // Note that the use of _sptr in objet typing.
@@ -50,13 +52,13 @@ void how_to_part_01_images()
 
   // All algorithms are implemented/encapsulated in an arrow, and operate on vital classes
   // There are various algorithms (arrows) that kwiver provides that you can use to analyze imagry
-  // In this example, while we will look at a few algorithms, this example highlights the vital data types used by algorithms 
+  // In this example, while we will look at a few algorithms, this example highlights the vital data types used by algorithms
   // These vital data types can then be used as inputs or outputs for algorithms.
   // The vital data types are a sort of common 'glue' between dispart algorithms allowing them to work together.
 
   // Image I/O algorithms are derived from the kwiver::vital::image_io algorithm interface
 
-  // While we could instantiate a particular algorithm object directly with this code 
+  // While we could instantiate a particular algorithm object directly with this code
   // kwiver::arrows::ocv::image_io ocv_io;
   // kwiver::arrows::vxl::image_io vxl_io;
   // This would require our application to include specific headers be include in our code
@@ -69,10 +71,10 @@ void how_to_part_01_images()
   // The first thing to do is to tell kwiver to load up all it's plugins (which includes all the algorithms)
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  // Refer to this page : http://kwiver.readthedocs.io/en/latest/vital/images.html 
+  // Refer to this page : http://kwiver.readthedocs.io/en/latest/vital/images.html
   // Documenting the types and algorithms associated with images:
   //               Various implementations of the algorithm,
-  //               The string to use to specify creation of a specific implementation, 
+  //               The string to use to specify creation of a specific implementation,
   //               The KWIVER CMake option that builds the specific implementation
 
   ///////////////
@@ -82,7 +84,7 @@ void how_to_part_01_images()
   // The main image libraries used in KWIVER are the OpenCV and VXL libraries
   kwiver::vital::algo::image_io_sptr ocv_io = kwiver::vital::algo::image_io::create("ocv");
   kwiver::vital::algo::image_io_sptr vxl_io = kwiver::vital::algo::image_io::create("vxl");
-  
+
   // The image_io interface is simple, and has a load and save method
   // These methods will operate on the vital object image_container
   // The image_container is intended to be a wrapper for image to facilitate conversion between
@@ -100,7 +102,7 @@ void how_to_part_01_images()
   cv::namedWindow("Image loaded by OpenCV", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Image loaded by OpenCV", mat);                     // Show our image inside it.
   cv::waitKey(5);
-  Sleep(2000);                                                   // Wait for 2s
+  kwiversys::SystemTools::Delay(2000);                                                   // Wait for 2s
   cvDestroyWindow("Image loaded by OpenCV");
 
   // We can do the same, even if the image was originally loaded with VXL
@@ -108,7 +110,7 @@ void how_to_part_01_images()
   cv::namedWindow("Image loaded by VXL", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Image loaded by VXL", mat);                     // Show our image inside it.
   cv::waitKey(5);
-  Sleep(2000);                                                // Wait for 2s
+  kwiversys::SystemTools::Delay(2000);                                                // Wait for 2s
   cvDestroyWindow("Image loaded by VXL");
 
   //////////////////
@@ -117,7 +119,7 @@ void how_to_part_01_images()
 
   // Currently, there is no arrow implementing image filtering
   //kwiver::vital::algo::image_filter_sptr _filter = kwiver::vital::algo::image_filter::create("<impl_name>");
-  
+
   /////////////////
   // Split Image //
   /////////////////
@@ -133,7 +135,7 @@ void how_to_part_01_images()
     cv::namedWindow("OpenCV Split Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
     cv::imshow("OpenCV Split Image", mat);                     // Show our image inside it.
     cv::waitKey(5);
-    Sleep(2000);                                               // Wait for 2s
+    kwiversys::SystemTools::Delay(2000);                                               // Wait for 2s
     cvDestroyWindow("OpenCV Split Image");
   }
 
@@ -144,7 +146,7 @@ void how_to_part_01_images()
     cv::namedWindow("VXL Split Image", cv::WINDOW_AUTOSIZE);// Create a window for display.
     cv::imshow("VXL Split Image", mat);                     // Show our image inside it.
     cv::waitKey(5);
-    Sleep(2000);                                            // Wait for 2s
+    kwiversys::SystemTools::Delay(2000);                                            // Wait for 2s
     cvDestroyWindow("VXL Split Image");
   }
 

@@ -98,6 +98,19 @@ Vital
  * Added method to return a vector of values from a single config
    entry. The method is templated on the vector element type.
 
+ * Added at() method to detected_object_set to provide bounds checked
+   direct indexing.
+
+ * Added process properties that are bound to the process
+   object. Process properties were created based on the process class
+   hierarchy, where the derived process would create the set of
+   properties. There are cases where the derived process does not know
+   all the properties, such as when process instrumentation is
+   enabled. The solution is to add a set of properties that is part of
+   the process object that can accumulate these condition based
+   properties. Properties from the derived class are merged with the
+   fixed set of properties when the set of properties is requested.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
@@ -115,6 +128,9 @@ Arrows: Core
 
  * Renamed merge_tracks.h to match_tracks.h and removed all track merging
    functions.  Track merging is now a function of the track_set itself.
+
+ * Removed description() methods from some implementations. This
+   method is no longer used.
 
 Sprokit
 
@@ -143,6 +159,10 @@ Sprokit
    following command:
 
      $plugin_explorer --fact instrumentation
+
+ * Added test to threaded scheduler to detect when a python process is
+   in the pipeline. If a python process is found, an exception is
+   thrown.
 
 Unit Tests
 

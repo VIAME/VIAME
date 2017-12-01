@@ -28,45 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-
-#include <cstdlib>
+#include <test_tmpfn.h>
 
 #include <arrows/core/feature_descriptor_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  RUN_TEST(testname);
-}
+#include <cstdlib>
 
 using namespace kwiver::vital;
 
-
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  algo::feature_descriptor_io_sptr fd_io = algo::feature_descriptor_io::create("core");
-  if (!fd_io)
-  {
-    TEST_ERROR("Unable to create core::feature_descriptor_io by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(feature_descriptor_io, create)
+{
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-// test writing Null data, which should throw an exception
-IMPLEMENT_TEST(write_null_features_descriptors)
+  EXPECT_NE(nullptr, algo::feature_descriptor_io::create("core"));
+}
+
+// ----------------------------------------------------------------------------
+// Test writing Null data, which should throw an exception
+TEST(feature_descriptor_io, write_null_features_descriptors)
 {
   using namespace kwiver::arrows;
 
@@ -74,16 +64,15 @@ IMPLEMENT_TEST(write_null_features_descriptors)
   descriptor_set_sptr empty_descriptors;
 
   core::feature_descriptor_io fd_io;
-  EXPECT_EXCEPTION(kwiver::vital::invalid_value,
-                   fd_io.save("temp.kwfd", empty_features, empty_descriptors),
-                   "attempting to save a file with Null features and descriptors");
-
-  //TEST_EQUAL("All points are inliers", num_inliers, norm_pts1.size());
+  EXPECT_THROW(
+    fd_io.save("temp.kwfd", empty_features, empty_descriptors),
+    kwiver::vital::invalid_value)
+    << "Attempting to save a file with Null features and descriptors";
 }
 
-
-// test writing Null data, which should throw an exception
-IMPLEMENT_TEST(load_bad_file_path)
+// ----------------------------------------------------------------------------
+// Test writing Null data, which should throw an exception
+TEST(feature_descriptor_io, load_bad_file_path)
 {
   using namespace kwiver::arrows;
 
@@ -91,15 +80,15 @@ IMPLEMENT_TEST(load_bad_file_path)
   descriptor_set_sptr loaded_descriptors;
 
   core::feature_descriptor_io fd_io;
-  EXPECT_EXCEPTION(kwiver::vital::path_not_exists,
-                   fd_io.load("invalid_file_path.kwfd", loaded_features, loaded_descriptors),
-                   "attempting to load from an invalid file path");
-
-  //TEST_EQUAL("All points are inliers", num_inliers, norm_pts1.size());
+  EXPECT_THROW(
+    fd_io.load("invalid_file_path.kwfd", loaded_features, loaded_descriptors),
+    kwiver::vital::path_not_exists)
+    << "Attempting to load from an invalid file path";
 }
 
 namespace {
 
+// ----------------------------------------------------------------------------
 template <typename T>
 feature_set_sptr
 make_n_features(size_t num_feat)
@@ -124,7 +113,7 @@ make_n_features(size_t num_feat)
   return std::make_shared<simple_feature_set>(feat);
 }
 
-
+// ----------------------------------------------------------------------------
 template <typename T>
 descriptor_set_sptr
 make_n_descriptors(size_t num_desc, size_t dim)
@@ -151,20 +140,21 @@ make_n_descriptors(size_t num_desc, size_t dim)
   return std::make_shared<simple_descriptor_set>(desc);
 }
 
-
-bool equal_feature_set(feature_set_sptr fs1, feature_set_sptr fs2)
+// ----------------------------------------------------------------------------
+::testing::AssertionResult
+equal_feature_set(feature_set_sptr fs1, feature_set_sptr fs2)
 {
   if( !fs1 && !fs2 )
   {
-    return true;
+    return ::testing::AssertionSuccess();
   }
   if( !fs1 || !fs2 )
   {
-    return false;
+    return ::testing::AssertionFailure() << "empty / non-empty mismatch";
   }
   if( fs1->size() != fs2->size() )
   {
-    return false;
+    return ::testing::AssertionFailure() << "size mismatch";
   }
   std::vector<feature_sptr> feat1 = fs1->features();
   std::vector<feature_sptr> feat2 = fs2->features();
@@ -178,30 +168,33 @@ bool equal_feature_set(feature_set_sptr fs1, feature_set_sptr fs2)
     }
     if( !f1 || !f2 )
     {
-      return false;
+      return ::testing::AssertionFailure()
+        << "feature existence mismatch at index " << i;
     }
     if( *f1 != *f2 )
     {
-      return false;
+      return ::testing::AssertionFailure()
+        << "features at index " << i << " are inequal";
     }
   }
-  return true;
+  return ::testing::AssertionSuccess();
 }
 
-
-bool equal_descriptor_set(descriptor_set_sptr ds1, descriptor_set_sptr ds2)
+// ----------------------------------------------------------------------------
+::testing::AssertionResult
+equal_descriptor_set(descriptor_set_sptr ds1, descriptor_set_sptr ds2)
 {
   if( !ds1 && !ds2 )
   {
-    return true;
+    return ::testing::AssertionSuccess();
   }
   if( !ds1 || !ds2 )
   {
-    return false;
+    return ::testing::AssertionFailure() << "empty / non-empty mismatch";
   }
   if( ds1->size() != ds2->size() )
   {
-    return false;
+    return ::testing::AssertionFailure() << "size mismatch";
   }
   std::vector<descriptor_sptr> desc1 = ds1->descriptors();
   std::vector<descriptor_sptr> desc2 = ds2->descriptors();
@@ -215,69 +208,69 @@ bool equal_descriptor_set(descriptor_set_sptr ds1, descriptor_set_sptr ds2)
     }
     if( !d1 || !d2 )
     {
-      return false;
+      return ::testing::AssertionFailure()
+        << "descriptor existence mismatch at index " << i;
     }
     if( *d1 != *d2 )
     {
-      return false;
+      return ::testing::AssertionFailure()
+        << "descriptors at index " << i << " are inequal";
     }
   }
-  return true;
+  return ::testing::AssertionSuccess();
 }
 
-
 }
 
-
-// test writing just features
-IMPLEMENT_TEST(read_write_features)
+// ----------------------------------------------------------------------------
+// Test writing just features
+TEST(feature_descriptor_io, read_write_features)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr features = make_n_features<float>(100);
   descriptor_set_sptr empty_descriptors;
 
   core::feature_descriptor_io fd_io;
-  fd_io.save(filename, features, empty_descriptors);
+  fd_io.save(filename, features, descriptor_set_sptr{});
 
   feature_set_sptr loaded_features;
   descriptor_set_sptr loaded_descriptors;
   fd_io.load(filename, loaded_features, loaded_descriptors);
 
-  TEST_EQUAL("empty descriptors", empty_descriptors, loaded_descriptors);
-  TEST_EQUAL("compare features", equal_feature_set(features, loaded_features), true);
-  std::remove(filename);
+  EXPECT_EQ(nullptr, loaded_descriptors);
+  EXPECT_TRUE(equal_feature_set(features, loaded_features));
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
-
-// test writing just descriptors
-IMPLEMENT_TEST(read_write_descriptors)
+// ----------------------------------------------------------------------------
+// Test writing just descriptors
+TEST(feature_descriptor_io, read_write_descriptors)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
-  feature_set_sptr empty_features;
   descriptor_set_sptr descriptors = make_n_descriptors<float>(100, 128);
 
   core::feature_descriptor_io fd_io;
-  fd_io.save(filename, empty_features, descriptors);
+  fd_io.save(filename, feature_set_sptr{}, descriptors);
 
   feature_set_sptr loaded_features;
   descriptor_set_sptr loaded_descriptors;
   fd_io.load(filename, loaded_features, loaded_descriptors);
 
-  TEST_EQUAL("empty features", empty_features, loaded_features);
-  TEST_EQUAL("compare descriptors", equal_descriptor_set(descriptors, loaded_descriptors), true);
-  std::remove(filename);
+  EXPECT_EQ(nullptr, loaded_features);
+  EXPECT_TRUE(equal_descriptor_set(descriptors, loaded_descriptors));
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
-
-// test writing both features and descriptors
-IMPLEMENT_TEST(read_write_features_descriptors)
+// ----------------------------------------------------------------------------
+// Test writing both features and descriptors
+TEST(feature_descriptor_io, read_write_features_descriptors)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr features = make_n_features<double>(50);
   descriptor_set_sptr descriptors = make_n_descriptors<uint8_t>(100, 96);
@@ -289,17 +282,17 @@ IMPLEMENT_TEST(read_write_features_descriptors)
   descriptor_set_sptr loaded_descriptors;
   fd_io.load(filename, loaded_features, loaded_descriptors);
 
-  TEST_EQUAL("compare features", equal_feature_set(features, loaded_features), true);
-  TEST_EQUAL("compare descriptors", equal_descriptor_set(descriptors, loaded_descriptors), true);
-  std::remove(filename);
+  EXPECT_TRUE(equal_feature_set(features, loaded_features));
+  EXPECT_TRUE(equal_descriptor_set(descriptors, loaded_descriptors));
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
-
-// test writing a mix of features types
-IMPLEMENT_TEST(read_write_mixed_features)
+// ----------------------------------------------------------------------------
+// Test writing a mix of features types
+TEST(feature_descriptor_io, read_write_mixed_features)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr features1 = make_n_features<double>(50);
   feature_set_sptr features2 = make_n_features<float>(50);
@@ -307,28 +300,27 @@ IMPLEMENT_TEST(read_write_mixed_features)
   std::vector<feature_sptr> feat2 = features2->features();
   feat1.insert(feat1.end(), feat2.begin(), feat2.end());
   feature_set_sptr features = std::make_shared<simple_feature_set>(feat1);
-  descriptor_set_sptr empty_descriptors;
 
   core::feature_descriptor_io fd_io;
-  fd_io.save(filename, features, empty_descriptors);
+  fd_io.save(filename, features, descriptor_set_sptr{});
 
   feature_set_sptr loaded_features;
   descriptor_set_sptr loaded_descriptors;
   fd_io.load(filename, loaded_features, loaded_descriptors);
 
-  TEST_EQUAL("empty descriptors", empty_descriptors, loaded_descriptors);
-  // this is false because the writer will convert all the features to a common type,
-  // which ever comes first in the vector.
-  TEST_EQUAL("compare features", equal_feature_set(features, loaded_features), false);
-  std::remove(filename);
+  EXPECT_EQ(nullptr, loaded_descriptors);
+  // This is false because the writer will convert all the features to a common
+  // type, which ever comes first in the vector.
+  EXPECT_FALSE(equal_feature_set(features, loaded_features));
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
-
-// test writing a mix of descriptor dimensions
-IMPLEMENT_TEST(write_mixed_descriptor_dim)
+// ----------------------------------------------------------------------------
+// Test writing a mix of descriptor dimensions
+TEST(feature_descriptor_io, write_mixed_descriptor_dim)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr empty_features;
   descriptor_set_sptr descriptors1 = make_n_descriptors<int16_t>(50, 128);
@@ -338,18 +330,18 @@ IMPLEMENT_TEST(write_mixed_descriptor_dim)
   desc1.insert(desc1.end(), desc2.begin(), desc2.end());
   descriptor_set_sptr descriptors = std::make_shared<simple_descriptor_set>(desc1);
   core::feature_descriptor_io fd_io;
-  EXPECT_EXCEPTION(kwiver::vital::invalid_data,
-                   fd_io.save(filename, empty_features, descriptors),
-                   "cannot save a mixture of descriptor dimensions");
-  std::remove(filename);
+  EXPECT_THROW(fd_io.save(filename, empty_features, descriptors),
+               kwiver::vital::invalid_data)
+    << "Expected exception saving a mixture of descriptor dimensions";
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }
 
-
-// test writing a mix of descriptor types
-IMPLEMENT_TEST(write_mixed_descriptor_type)
+// ----------------------------------------------------------------------------
+// Test writing a mix of descriptor types
+TEST(feature_descriptor_io, write_mixed_descriptor_type)
 {
   using namespace kwiver::arrows;
-  const char filename[] = "temp.kwfd";
+  auto const filename = kwiver::testing::temp_file_name( "test-", ".kwfd" );
 
   feature_set_sptr empty_features;
   descriptor_set_sptr descriptors1 = make_n_descriptors<uint16_t>(50, 96);
@@ -359,8 +351,8 @@ IMPLEMENT_TEST(write_mixed_descriptor_type)
   desc1.insert(desc1.end(), desc2.begin(), desc2.end());
   descriptor_set_sptr descriptors = std::make_shared<simple_descriptor_set>(desc1);
   core::feature_descriptor_io fd_io;
-  EXPECT_EXCEPTION(kwiver::vital::invalid_data,
-                   fd_io.save(filename, empty_features, descriptors),
-                   "cannot save a mixture of descriptor types");
-  std::remove(filename);
+  EXPECT_THROW(fd_io.save(filename, empty_features, descriptors),
+               kwiver::vital::invalid_data)
+    << "Expected exception saving a mixture of descriptor types";
+  EXPECT_EQ(0, std::remove(filename.c_str()));
 }

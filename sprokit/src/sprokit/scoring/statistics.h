@@ -31,7 +31,7 @@
 #ifndef SPROKIT_SCORING_STATISTICS_H
 #define SPROKIT_SCORING_STATISTICS_H
 
-#include "scoring-config.h"
+#include <sprokit/scoring/sprokit_scoring_export.h>
 
 #include <memory>
 #include <vector>
@@ -44,8 +44,7 @@
  * \brief Declaration of a statistics class.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class statistics statistics.h <sprokit/scoring/statistics.h>
@@ -77,6 +76,7 @@ class SPROKIT_SCORING_EXPORT statistics
      * \param pt The data sample.
      */
     void add_point(data_point_t pt);
+
     /**
      * \brief Add a set of samples to the set.
      *
@@ -97,54 +97,63 @@ class SPROKIT_SCORING_EXPORT statistics
      * \returns The size of the sample set.
      */
     size_t count() const;
+
     /**
      * \brief Query for the sum of the data.
      *
      * \returns The sum of the data.
      */
     data_point_t sum() const;
+
     /**
      * \brief Query for the minimum of the data.
      *
      * \returns The minimum of the data.
      */
     data_point_t minimum() const;
+
     /**
      * \brief Query for the maximum of the data.
      *
      * \returns The maximum of the data.
      */
     data_point_t maximum() const;
+
     /**
      * \brief Query for the range of the data.
      *
      * \returns The range of the data.
      */
     data_point_t range() const;
+
     /**
      * \brief Query for the mean of the data.
      *
      * \returns The mean of the data.
      */
     double mean() const;
+
     /**
      * \brief Query for the median of the data.
      *
      * \returns The median of the data.
      */
     double median() const;
+
     /**
      * \brief Query for the variance of the data.
      *
      * \returns The variance of the data.
      */
     double variance() const;
+
     /**
      * \brief Query for the standard deviation of the data.
      *
      * \returns The standard deviation of the data.
      */
     double standard_deviation() const;
+
   private:
     class SPROKIT_SCORING_NO_EXPORT priv;
     std::unique_ptr<priv> d;

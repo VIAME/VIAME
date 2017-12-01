@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,56 +33,37 @@
  * \brief core camera_intrinsics tests
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 
 #include <vital/types/camera_intrinsics.h>
 
-#define TEST_ARGS ()
+using namespace kwiver::vital;
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(map)
+// ----------------------------------------------------------------------------
+TEST(camera_intrinsics, map)
 {
-  using namespace kwiver::vital;
-  vector_2d pp(300,400);
+  vector_2d pp{ 300, 400 };
   double f = 1000.0;
   double a = 0.75;
   double s = 0.1;
-  simple_camera_intrinsics K(f, pp, a, s);
+  simple_camera_intrinsics K{ f, pp, a, s };
 
-  vector_2d origin = K.map(vector_2d(0,0));
+  EXPECT_MATRIX_NEAR( pp, K.map( vector_2d{ 0, 0 } ), 1e-12 );
+  EXPECT_MATRIX_NEAR( ( vector_2d{ 0, 0 } ), K.unmap( pp ), 1e-12 );
 
-  TEST_NEAR("(0,0) maps to principal point",
-            (origin-pp).norm(), 0.0, 1e-12);
+  vector_2d test_pt{ 1, 2 };
+  vector_2d mapped_test_gt{ test_pt.x() * f + test_pt.y() * s + pp.x(),
+                            test_pt.y() * f / a + pp.y() };
+  EXPECT_MATRIX_NEAR( mapped_test_gt, K.map( test_pt ), 1e-12 );
+  EXPECT_MATRIX_NEAR( test_pt, K.unmap( K.map( test_pt ) ), 1e-12 );
 
-  TEST_NEAR("principal point unmaps to (0,0)",
-            K.unmap(pp).norm(), 0.0, 1e-12);
-
-  vector_2d test_pt(1,2);
-  vector_2d mapped_test = K.map(test_pt);
-  vector_2d mapped_test_gt(test_pt.x() * f + test_pt.y() * s + pp.x(),
-                           test_pt.y() * f / a + pp.y());
-  TEST_NEAR("mapped test point at GT location",
-            (mapped_test - mapped_test_gt).norm(), 0.0, 1e-12);
-
-  vector_2d unmapped = K.unmap(mapped_test);
-  TEST_NEAR("unmap is the inverse of map",
-            (unmapped-test_pt).norm(), 0.0, 1e-12);
-
-  vector_3d homg_pt(2.5 * vector_3d(test_pt.x(), test_pt.y(), 1));
-  vector_2d mapped_from_3d = K.map(homg_pt);
-  TEST_NEAR("mapped 3D test point at GT location",
-            (mapped_from_3d - mapped_test_gt).norm(), 0.0, 1e-12);
-
+  vector_3d homg_pt{ 2.5 * vector_3d{ test_pt.x(), test_pt.y(), 1 } };
+  EXPECT_MATRIX_NEAR( mapped_test_gt, K.map( homg_pt ), 1e-12 );
 }

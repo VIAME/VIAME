@@ -88,9 +88,6 @@ draw_detected_object_set_process
   : process( config ),
     d( new draw_detected_object_set_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -108,7 +105,7 @@ void draw_detected_object_set_process
 {
   scoped_configure_instrumentation();
 
-  vital::config_block_sptr algo_config = get_config();
+  auto algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if ( ! vital::algo::draw_detected_object_set::check_nested_algo_configuration( "draw_algo", algo_config ) )

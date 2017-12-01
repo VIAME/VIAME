@@ -59,9 +59,9 @@ function (sprokit_add_python_library    name    modpath)
   set(component runtime)
 
   set(no_export ON)
+  set(no_export_header ON)
 
-  sprokit_add_library("python-${safe_modpath}-${name}" MODULE
-    ${ARGN})
+  kwiver_add_library("python-${safe_modpath}-${name}" MODULE  ${ARGN})
 
 
   if(MSVC)

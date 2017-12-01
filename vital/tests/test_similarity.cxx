@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,98 +28,62 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 
 #include <vital/types/similarity.h>
 
-#define TEST_ARGS ()
+using namespace kwiver::vital;
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(default_constructor)
+// ----------------------------------------------------------------------------
+TEST(similarity, default_constructor)
 {
-  using namespace kwiver::vital;
   similarity_d sim;
-  if (sim.scale() != 1.0 || sim.rotation() != rotation_d() ||
-      sim.translation() != vector_3d(0,0,0))
-  {
-    TEST_ERROR("The default similarity transformation is not the identity");
-  }
+  EXPECT_EQ( 1.0, sim.scale() );
+  EXPECT_EQ( rotation_d{}, sim.rotation() );
+  EXPECT_EQ( ( vector_3d{ 0, 0, 0 } ), sim.translation() );
 }
 
-
-IMPLEMENT_TEST(convert_matrix)
+// ----------------------------------------------------------------------------
+TEST(similarity, convert_matrix)
 {
-  using namespace kwiver::vital;
-  similarity_d sim;
-  matrix_4x4d S(sim.matrix());
-  matrix_4x4d I = matrix_4x4d().setIdentity();
-  std::cout << S << I << std::endl;
+  EXPECT_EQ( matrix_4x4d::Identity(), similarity_d{}.matrix() );
 
-  if (S != I)
-  {
-    TEST_ERROR("Default similarity transformation is not identity matrix");
-  }
-
-  similarity_d sim1(2.4, rotation_d(vector_3d(0.1, -1.5, 2.0)),
-                    vector_3d(1,-2,5));
-  matrix_4x4d mat1(sim1.matrix());
-  similarity_d sim2(mat1);
-  matrix_4x4d mat2(sim2.matrix());
-  std::cout << "sim1: "<< sim1 <<std::endl;
-  std::cout << "sim2: "<< sim2 <<std::endl;
-  TEST_NEAR("Convert similarity to matrix and back",
-            (mat1 - mat2).norm(), 0.0, 1e-14);
-
+  similarity_d sim1{ 2.4, rotation_d{ vector_3d{ 0.1, -1.5, 2.0 } },
+                     vector_3d{ 1, -2, 5 } };
+  similarity_d sim2{ sim1.matrix() };
+  EXPECT_MATRIX_NEAR( sim1.matrix(), sim2.matrix(), 1e-14 );
 }
 
-
-IMPLEMENT_TEST(compose)
+// ----------------------------------------------------------------------------
+TEST(similarity, compose)
 {
-  using namespace kwiver::vital;
+  similarity_d sim1{ 2.4, rotation_d{ vector_3d{ 0.1, -1.5, 2.0 } },
+                     vector_3d{ 1, -2, 5 } };
+  similarity_d sim2{ 0.75, rotation_d{ vector_3d{ -0.5, -0.5, 1.0 } },
+                     vector_3d{ 4, 6.5, 8 } };
 
-  similarity_d sim1(2.4, rotation_d(vector_3d(0.1, -1.5, 2.0)),
-                    vector_3d(1,-2,5));
-  similarity_d sim2(0.75, rotation_d(vector_3d(-0.5, -0.5, 1.0)),
-                    vector_3d(4,6.5,8));
-
-  matrix_4x4d sim_comp_sim = (sim1 * sim2).matrix();
-  matrix_4x4d mat_comp_sim = sim1.matrix() * sim2.matrix();
-  std::cout << "similarity composition: "<<sim_comp_sim<<std::endl;
-  std::cout << "matrix composition: "<<mat_comp_sim<<std::endl;
-
-  TEST_NEAR("Matrix multiplication matches similarity composition",
-            (sim_comp_sim - mat_comp_sim).norm(),
-            0.0, 1e-14);
+  EXPECT_MATRIX_NEAR( ( sim1.matrix() * sim2.matrix() ).eval(),
+                      ( sim1 * sim2 ).matrix(), 1e-14 );
 }
 
-
-IMPLEMENT_TEST(inverse)
+// ----------------------------------------------------------------------------
+TEST(similarity, inverse)
 {
-  using namespace kwiver::vital;
+  EXPECT_EQ( similarity_d{}, similarity_d{}.inverse() );
 
-  TEST_EQUAL("Inverse of identity is identity",
-             similarity_d(), similarity_d().inverse());
+  similarity_d sim{ 2.4, rotation_d{ vector_3d{ 0.1, -1.5, 2.0 } },
+                    vector_3d{ 1, -2, 5 } };
+  similarity_d I = sim * sim.inverse();
 
-  similarity_d sim1(2.4, rotation_d(vector_3d(0.1, -1.5, 2.0)),
-                    vector_3d(1,-2,5));
-  similarity_d I = sim1 * sim1.inverse();
-
-  TEST_NEAR("Similarity composed with inverse does not have unit scale",
-            I.scale(), 1.0, 1e-14);
-  TEST_NEAR("Similarity composed with inverse does not have zero rotation",
-            I.rotation().angle(), 0.0, 1e-14);
-  TEST_NEAR("Similarity composed with inverse does not have zero translation",
-            I.translation().norm(), 0.0, 1e-14);
+  // Similarity composed with its inverse should be near identity
+  EXPECT_NEAR( 1.0, I.scale(), 1e-14 );
+  EXPECT_NEAR( 0.0, I.rotation().angle(), 1e-14 );
+  EXPECT_NEAR( 0.0, I.translation().norm(), 1e-14 );
 }

@@ -98,9 +98,6 @@ image_writer_process
   : process( config ),
     d( new image_writer_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }

@@ -91,7 +91,7 @@ OPTION(KWIVER_ENABLE_EXAMPLES  "Enable examples" OFF )
 OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
 
 CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF
-  "KWIVER_ENABLE_ARROWS AND  KWIVER_ENABLE_SPROKIT" OFF )
+  "KWIVER_ENABLE_ARROWS AND KWIVER_ENABLE_SPROKIT" OFF )
 
 OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
 MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
@@ -244,12 +244,16 @@ endif()
 
 
 if (KWIVER_ENABLE_PYTHON)
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# Python environment\n")
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHON_LIBRARY=\"${PYTHON_LIBRARY}\"\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# additional python mudules to load, separated by ':'\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# set to suppress loading python modules/processes\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# export SPROKIT_NO_PYTHON_MODULES\n\n" )
 
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "# Python environment\n")
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHON_LIBRARY=${PYTHON_LIBRARY}\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHONPATH=%~dp0/lib/%config%/python2.7/site-packages\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n:: additional python mudules to load, separated by ':'\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set SPROKIT_PYTHON_MODULES=kwiver.processes\n" )

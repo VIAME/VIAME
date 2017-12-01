@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,169 +33,102 @@
  * \brief test detected_object_type class
  */
 
-#include <test_common.h>
-
 #include <vital/types/detected_object_type.h>
-#include <stdexcept>
 
-#define TEST_ARGS       ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
 
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
+namespace {
 
-  testname_t const testname = argv[1];
+std::vector<std::string> const names =
+  { "person", "vehicle", "other", "clam", "barnacle" };
 
-  RUN_TEST(testname);
+std::vector<double> const scores  = { 0.65, 0.6, 0.07, 0.055, 0.005 };
+
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(DOT_creation)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  std::vector< std::string > names;
-  names.push_back( "person" );
-  names.push_back( "vehicle" );
-  names.push_back( "other" );
-  names.push_back( "clam" );
-  names.push_back( "barnacle" );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
-  std::vector< double > score;
-  score.push_back( .65 );
-  score.push_back( .6 );
-  score.push_back( .07 );
-  score.push_back( .0055 );
-  score.push_back( .005 );
+// ----------------------------------------------------------------------------
+TEST(detected_object_type, api)
+{
+  detected_object_type dot( names, scores );
 
-  kwiver::vital::detected_object_type dot( names, score );
-
-  TEST_EQUAL( "expected score", dot.score( "other" ), 0.07 );
+  EXPECT_EQ( 0.07, dot.score( "other" ) );
 
   std::string ml_name;
   double ml_score;
   dot.get_most_likely( ml_name, ml_score );
 
-  TEST_EQUAL( "expected most likely name", ml_name, "person" );
-  TEST_EQUAL( "expected most likely score", ml_score, .65 );
+  EXPECT_EQ( "person", ml_name );
+  EXPECT_EQ( 0.65, ml_score );
 
-  for (size_t i = 0; i < names.size(); i++)
+  for ( size_t i = 0; i < names.size(); ++i )
   {
-    double s = dot.score( names[i] );
-    std::string msg;
-    msg = "Expected score for " + names[i];
-    TEST_EQUAL( msg, s, score[i] );
+    SCOPED_TRACE(
+      "For score " + std::to_string( i ) + " ('" + names[i] + "')" );
+
+    EXPECT_EQ( scores[i], dot.score( names[i] ) );
   }
 
-  double old_cs = dot.score( "clam" );
+  EXPECT_EQ( 0.055, dot.score( "clam" ) );
+
   dot.set_score( "clam", 1.23 );
-  double new_cs = dot.score( "clam" );
+  EXPECT_EQ( 1.23, dot.score( "clam" ) );
 
-  if ( old_cs != 0.0055 || new_cs != 1.23 )
-  {
-    TEST_ERROR( "failure setting new score on old class." );
-  }
+  EXPECT_EQ( 5, dot.class_names().size() );
 
-  auto lbl  = kwiver::vital::detected_object_type::all_class_names();
-
-  TEST_EQUAL( "expected name count", lbl.size(), 5 );
-
-  dot.score( "other" ); // make sure this entry exists
-
+  EXPECT_NO_THROW( dot.score( "other" ) ); // make sure this entry exists
   dot.delete_score( "other" );
+  EXPECT_THROW( dot.score("other"), std::runtime_error )
+    << "Accessing deleted class name";
 
-  EXPECT_EXCEPTION( std::runtime_error,
-                    dot.score("other"),
-                    "accessing deleted class name" );
+  EXPECT_EQ( 4, dot.class_names().size() );
 
-  lbl  = dot.class_names();
-  TEST_EQUAL( "expected new name count", lbl.size(), 4 );
-
-  for (size_t i = 0; i < lbl.size(); i++)
+  for ( auto const& name : dot.class_names() )
   {
-    std::cout << " -- " << lbl[i]
-              << "    score: "  << dot.score( lbl[i] ) << std::endl;
+    std::cout << " -- " << name << "    score: "
+              << dot.score( name ) << std::endl;
   }
 
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(DOT_creation_error)
+// ----------------------------------------------------------------------------
+TEST(detected_object_type, creation_error)
 {
-  std::vector< std::string > names;
-  std::vector< double > score;
+  auto wrong_size_scores = scores;
+  wrong_size_scores.resize( 4 );
 
-  EXPECT_EXCEPTION( std::invalid_argument,
-                    kwiver::vital::detected_object_type dot( names, score ),
-                    "empty initialization vectors" );
+  EXPECT_THROW(
+    detected_object_type dot( {}, {} ),
+    std::invalid_argument );
 
-  names.push_back( "person" );
-  names.push_back( "vehicle" );
-  names.push_back( "other" );
-  names.push_back( "clam" );
-  names.push_back( "barnacle" );
-
-  score.push_back( .65 );
-  score.push_back( .6 );
-  score.push_back( .07 );
-  score.push_back( .0055 );
-
-  EXPECT_EXCEPTION( std::invalid_argument,
-                    kwiver::vital::detected_object_type dot( names, score ),
-                    "invalid initialization of object" );
+  EXPECT_THROW(
+    detected_object_type dot( names, wrong_size_scores ),
+    std::invalid_argument );
 }
 
-
-// ----------------------------------------------------------------
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(DOT_name_pool)
+// ----------------------------------------------------------------------------
+TEST(detected_object_type, name_pool)
 {
-  std::vector< std::string > names;
-  names.push_back( "person" );
-  names.push_back( "vehicle" );
-  names.push_back( "other" );
-  names.push_back( "clam" );
-  names.push_back( "barnacle" );
+  detected_object_type dot( names, scores );
 
-  std::vector< double > score;
-  score.push_back( .65 );
-  score.push_back( .6 );
-  score.push_back( .07 );
-  score.push_back( .0055 );
-  score.push_back( .005 );
+  std::vector<std::string> alt_names =
+    { "a-person", "a-vehicle", "a-other", "a-clam", "a-barnacle" };
 
-  kwiver::vital::detected_object_type dot( names, score );
+  detected_object_type dot_2( alt_names, scores );
 
-  std::vector< std::string > names_2;
-  names_2.push_back( "a-person" );
-  names_2.push_back( "a-vehicle" );
-  names_2.push_back( "a-other" );
-  names_2.push_back( "a-clam" );
-  names_2.push_back( "a-barnacle" );
+  EXPECT_EQ( 10, detected_object_type::all_class_names().size() );
 
-  std::vector< double > score_2;
-  score_2.push_back( .65 );
-  score_2.push_back( .6 );
-  score_2.push_back( .07 );
-  score_2.push_back( .0055 );
-  score_2.push_back( .005 );
-
-  kwiver::vital::detected_object_type dot_2( names_2, score_2 );
-
-  auto list = kwiver::vital::detected_object_type::all_class_names();
-
-  TEST_EQUAL( "Expected master list size", list.size(), 10 );
-
-  auto it = list.begin();
-  auto eit = list.end();
-  for ( ; it != eit; ++it )
+  for ( auto const& name : detected_object_type::all_class_names() )
   {
-    std::cout << "  --  " << *it << std::endl;
+    std::cout << "  --  " << name << std::endl;
   }
 
 }

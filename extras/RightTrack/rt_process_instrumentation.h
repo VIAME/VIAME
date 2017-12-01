@@ -32,12 +32,12 @@ f * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef KWIVER_EXTRAS_RT_PROCESS_INSTRUMENTATION_H
 #define KWIVER_EXTRAS_RT_PROCESS_INSTRUMENTATION_H
 
+#include "righttrack_plugin_export.h"
 #include <sprokit/pipeline/process_instrumentation.h>
 
 #include <RightTrack/BoundedEvent.h>
 
 #include <memory>
-
 
 namespace sprokit {
 
@@ -46,7 +46,7 @@ namespace sprokit {
  * @brief Process instrumentation using RightTrack tool.
  *
  */
-class rt_process_instrumentation
+class RIGHTTRACK_PLUGIN_NO_EXPORT rt_process_instrumentation
 : public process_instrumentation
 {
 public:
@@ -55,6 +55,7 @@ public:
   virtual ~rt_process_instrumentation();
 
   virtual void configure( kwiver::vital::config_block_sptr const config );
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
 
   virtual void start_init_processing( std::string const& data );
   virtual void stop_init_processing();

@@ -62,9 +62,6 @@ public:
   /// Destructor
   virtual ~close_loops_keyframe() noexcept;
 
-  /// Returns implementation description
-  virtual std::string description() const;
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
    * This base virtual function implementation returns an empty configuration

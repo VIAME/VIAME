@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,36 +33,29 @@
  * \brief test detected object io
  */
 
-#include <test_common.h>
-
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_output_csv.h>
+
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <sstream>
 #include <memory>
 #include <string>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
+
 namespace {
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::detected_object_type_sptr
 create_dot( const char* n[], const double s[] )
 {
@@ -78,8 +71,7 @@ create_dot( const char* n[], const double s[] )
   return  std::make_shared< kwiver::vital::detected_object_type >( names, scores );
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::detected_object_set_sptr
 make_dos()
 {
@@ -118,9 +110,8 @@ make_dos()
 
 } // end namespace
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(stream_io)
+// ----------------------------------------------------------------------------
+TEST(detected_object_io, stream_io)
 {
 
   kac::detected_object_set_input_csv reader;
@@ -128,7 +119,6 @@ IMPLEMENT_TEST(stream_io)
 
   // Create some detections.
   auto dos = make_dos();
-
 
   // setup stream
   std::stringstream str;
@@ -144,18 +134,14 @@ IMPLEMENT_TEST(stream_io)
   reader.use_stream( &str );
   kwiver::vital::detected_object_set_sptr idos;
   std::string name;
-  bool result = reader.read_set( idos, name );
-  TEST_EQUAL( "Reading the first set", result, true );
-  TEST_EQUAL( "Reading first name", name, "image_name_1" );
+  EXPECT_TRUE( reader.read_set( idos, name ) );
+  EXPECT_EQ( "image_name_1" , name );
 
-  TEST_EQUAL( "Testing end of stream api", reader.at_eof(), false );
+  EXPECT_EQ( false , reader.at_eof() );
 
-  result = reader.read_set( idos, name );
-  TEST_EQUAL( "Reading the second set", result, true );
-  TEST_EQUAL( "Reading first name", name, "image_name_2" );
+  EXPECT_TRUE( reader.read_set( idos, name ) );
+  EXPECT_EQ( "image_name_2", name );
 
-  result = reader.read_set( idos, name );
-  TEST_EQUAL( "Testing end of stream on read", result, false );
-
-  TEST_EQUAL( "Testing end of stream api", reader.at_eof(), true );
+  EXPECT_FALSE( reader.read_set( idos, name ) );
+  EXPECT_TRUE( reader.at_eof() );
 }
