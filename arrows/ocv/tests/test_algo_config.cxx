@@ -34,6 +34,8 @@
  *        interactions with kwiver::vital::config_block objects.
  */
 
+#include <test_gtest.h>
+
 // Get headers of optional algos for ``MAPTK_OCV_HAS_*`` defines
 #include <arrows/ocv/detect_features_AGAST.h>
 #include <arrows/ocv/detect_features_MSD.h>
@@ -57,8 +59,6 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <gtest/gtest.h>
-
 #include <iostream>
 
 using namespace kwiver::vital;
@@ -68,9 +68,7 @@ using namespace kwiver::arrows;
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
+  TEST_LOAD_PLUGINS();
   return RUN_ALL_TESTS();
 }
 

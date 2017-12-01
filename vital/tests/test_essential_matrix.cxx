@@ -39,8 +39,6 @@
 
 #include <Eigen/SVD>
 
-#include <gtest/gtest.h>
-
 #include <iostream>
 #include <vector>
 

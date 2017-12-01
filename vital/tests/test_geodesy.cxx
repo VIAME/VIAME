@@ -50,8 +50,6 @@ static auto const loc6 = kwiver::vital::vector_2d{ 107.646964, -83.921037 };
 int
 main(int argc, char* argv[])
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   ::testing::InitGoogleTest( &argc, argv );
   return RUN_ALL_TESTS();
 }
@@ -99,6 +97,8 @@ TEST(geodesy, utm_ups_zone_range_error)
 TEST(geodesy, descriptions)
 {
   using namespace kwiver::vital;
+
+  plugin_manager::instance().load_all_plugins();
 
   // Helper to get description value from key
   auto get = []( geo_crs_description_t const& desc, char const* key )

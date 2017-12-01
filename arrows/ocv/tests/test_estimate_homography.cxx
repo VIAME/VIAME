@@ -40,8 +40,6 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 using namespace kwiver::testing;
 using namespace kwiver::arrows;
@@ -61,15 +59,14 @@ static constexpr double outlier_norm_tolerance = 1e-4;
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 TEST(estimate_homography, create)
 {
+  plugin_manager::instance().load_all_plugins();
+
   EXPECT_NE( nullptr, algo::estimate_homography::create("ocv") );
 }
 

@@ -43,15 +43,14 @@ using namespace kwiver::vital;
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 TEST(feature_descriptor_io, create)
 {
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   EXPECT_NE(nullptr, algo::feature_descriptor_io::create("core"));
 }
 

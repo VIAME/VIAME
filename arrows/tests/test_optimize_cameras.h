@@ -36,8 +36,6 @@
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 
-#include <gtest/gtest.h>
-
 #include <iostream>
 
 using namespace kwiver::vital;

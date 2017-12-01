@@ -39,8 +39,6 @@
 
 #include <Eigen/QR>
 
-#include <gtest/gtest.h>
-
 #include <cstdio>
 
 using namespace kwiver::vital;

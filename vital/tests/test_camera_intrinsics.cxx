@@ -37,8 +37,6 @@
 
 #include <vital/types/camera_intrinsics.h>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------
