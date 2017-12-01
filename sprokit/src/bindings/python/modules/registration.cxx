@@ -51,7 +51,6 @@
   #include <dlfcn.h>
 #endif
 
-
 // Undefine macros that will double expand in case an definition has a value
 // something like: /usr/lib/x86_64-linux-gnu/libpython2.7.so
 #ifdef linux
@@ -64,8 +63,7 @@
 #define _TO_STRING0(x) _TO_STRING1(x)
 #define _TO_STRING1(x) #x
 
-
-using namespace pybind11;
+namespace py = pybind11;
 
 static void load();
 static bool is_suppressed();
@@ -95,7 +93,17 @@ register_factories(kwiver::vital::plugin_loader& vpm)
     return;
   }
 
-  Py_Initialize();
+  // Check if a python interpreter already exists so we don't clobber sys.argv
+  // (e.g. if sprokit is initialized from python)
+  if (not Py_IsInitialized())
+  {
+    // Embed a python interpretter if one does not exist
+    Py_Initialize();
+
+    // Set Python interpeter attribute: sys.argv = []
+    // parameters are: (argc, argv, updatepath)
+    PySys_SetArgvEx(0, NULL, 0);
+  }
 
   _load_python_library_symbols();
 
@@ -160,8 +168,8 @@ void _load_python_library_symbols()
 void
 load()
 {
-  object const modules = module::import("sprokit.modules.modules");
-  object const loader = modules.attr("load_python_modules");
+  py::object const modules = py::module::import("sprokit.modules.modules");
+  py::object const loader = modules.attr("load_python_modules");
 
   loader();
 }
@@ -188,4 +196,3 @@ is_suppressed()
 #define linux _orig_linux
 #undef _orig_linux
 #endif
-
