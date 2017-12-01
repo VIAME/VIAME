@@ -134,7 +134,22 @@ config_block
 
     config_block_key_t const stripped_key_name = strip_block_name( key, key_name );
 
-    conf->copy_entry( stripped_key_name, this );
+    conf->set_value( stripped_key_name,
+                     i_get_value( key_name ),
+                     get_description( key_name ) );
+
+    // Copy RO status from this to other
+    if ( this->is_read_only( key_name ) )
+    {
+      conf->mark_read_only( stripped_key_name );
+    }
+
+    // Copy location if there is one.
+    auto i = m_def_store.find( key_name );
+    if ( i != m_def_store.end() )
+    {
+      conf->m_def_store[stripped_key_name] = i->second;
+    }
   } // end for
 
   return conf;
