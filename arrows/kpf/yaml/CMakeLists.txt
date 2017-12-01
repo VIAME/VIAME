@@ -4,15 +4,19 @@
 
 
 set( sources
+  kpf_packet_header.cxx
   kpf_packet.cxx
+  kpf_canonical_types.cxx
   kpf_parse_utils.cxx
   kpf_reader.cxx
   kpf_yaml_parser.cxx
   kpf_yaml_writer.cxx
+  kpf_yaml_schemas.cxx
   kpf_exception.cxx
 )
 
 set( public_headers
+  kpf_packet_header.h
   kpf_packet.h
   kpf_canonical_types.h
   kpf_canonical_io.h
@@ -23,6 +27,7 @@ set( public_headers
   kpf_canonical_io_adapter_base.h
   kpf_canonical_io_adapter.h
   kpf_yaml_writer.h
+  kpf_yaml_schemas.h
   kpf_exception.h
 )
 

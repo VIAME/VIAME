@@ -30,18 +30,18 @@
 
 /**
  * @file
- * @brief KPF YAML parser class.
+ * @brief Support for predefined KPF yaml schemas.
  *
- * Header for the KPF YAML parser; holds the YAML root document and provides
- * the interface for reading each KPF line (which shows up as a YAML map)
- * into the KPF generic parser's packet buffer.
+ * The KPF schema is mostly a validation aid, associating a tag ("geom",
+ * "act") with a set of required packet types.
+ *
  */
 
-#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
-#define KWIVER_VITAL_KPF_YAML_PARSER_H_
+#ifndef KWIVER_VITAL_KPF_YAML_SCHEMAS_H_
+#define KWIVER_VITAL_KPF_YAML_SCHEMAS_H_
 
 #include <arrows/kpf/yaml/kpf_parse_utils.h>
-#include <arrows/kpf/yaml/kpf_parser_base.h>
+#include <vector>
 
 #include <yaml-cpp/yaml.h>
 
@@ -49,25 +49,37 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
-{
-public:
-  explicit kpf_yaml_parser_t( std::istream& is );
-  ~kpf_yaml_parser_t() {}
-
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
-  virtual bool eof() const;
-
-private:
-  YAML::Node root;
-  YAML::const_iterator current_record;
-
+enum class KPF_YAML_EXPORT schema_style {
+  INVALID,     // invalid
+  GEOM,        // geometry
+  ACT,         // activity
+  TYPES,       // object types
+  REGIONS,     // regions file
+  UNSPECIFIED  // no validation provided
 };
+
+struct KPF_YAML_EXPORT validation_data
+{
+  packet_style style;
+  std::string key;
+  validation_data(): style( packet_style::INVALID ), key("") {}
+  explicit validation_data( YAML::const_iterator it );
+  explicit validation_data( packet_style s ): style(s), key("") {}
+  validation_data( packet_style s, const std::string& k ): style(s), key(k) {}
+
+  static std::string schema_style_to_str( schema_style s );
+  static schema_style str_to_schema_style( const std::string& s );
+};
+
+std::vector< validation_data > KPF_YAML_EXPORT
+validate_schema( schema_style schema, const packet_buffer_t& packets );
+
+std::vector< validation_data > KPF_YAML_EXPORT
+validate_schema( schema_style schema, const std::vector< validation_data>& vpackets );
+
 
 } // ...kpf
 } // ...vital
 } // ...kwiver
-
 
 #endif

@@ -71,7 +71,8 @@ void
 packet_bounce_t
 ::init( const string& s )
 {
-  if (! packet_header_parser( s, this->header, false ))
+  this->header = packet_header_parser( s );
+  if (! (this->header.style == packet_style::INVALID))
   {
     LOG_ERROR( main_logger, "Couldn't create a reader for packets of type '" << s << "'");
     return;

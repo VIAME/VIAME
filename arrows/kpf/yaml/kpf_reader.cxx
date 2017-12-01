@@ -216,7 +216,24 @@ kpf_reader_t
   // if not, return false
   //
 
-  auto probe = this->packet_buffer.find( h );
+  packet_buffer_cit probe = this->packet_buffer.end();
+  if (h.domain == packet_header_t::ANY_DOMAIN)
+  {
+    for (packet_buffer_cit any_probe = this->packet_buffer.begin();
+         any_probe != this->packet_buffer.end();
+         ++any_probe )
+    {
+      if (any_probe->first.style == h.style)
+      {
+        probe = any_probe;
+        break;
+      }
+    }
+  }
+  else
+  {
+    probe = this->packet_buffer.find( h );
+  }
   if (probe == this->packet_buffer.end())
   {
     this->reader_status = false;
@@ -356,6 +373,18 @@ operator>>( kpf_reader_t& t,
   if (probe.first)
   {
     r.conf = probe.second.conf.d;
+  }
+  return t;
+}
+
+kpf_reader_t&
+operator>>( kpf_reader_t& t,
+            const reader< canonical::cset_t >& r )
+{
+  auto probe = t.transfer_packet_from_buffer( packet_header_t( packet_style::CSET, r.domain ));
+  if (probe.first)
+  {
+    r.cset = *probe.second.cset;
   }
   return t;
 }

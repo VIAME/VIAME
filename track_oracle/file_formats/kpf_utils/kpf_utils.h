@@ -30,61 +30,71 @@
 
 /**
  * @file
- * @brief Various utility functions for parsing KPF.
+ * @brief Utilities for reading and writing KPF in track_oracle.
+ *
+ * add_to_row() adds the KPF packet to the track_oracle row. Any
+ * ad hoc fields are added with a specific naming convention which
+ * is recognized by get_optional_fields().
+ *
+ * get_optional_fields() scans the track_oracle data columns (aka fields)
+ * and returns a map of which fields correspond to KPF packets.
  *
  */
 
-#ifndef KWIVER_VITAL_KPR_PARSE_UTILS_H_
-#define KWIVER_VITAL_KPR_PARSE_UTILS_H_
+#ifndef INCL_KPF_UTILITIES_H
+#define INCL_KPF_UTILITIES_H
 
+#include <vital/vital_config.h>
+#include <track_oracle/file_formats/kpf_utils/kpf_utils_export.h>
 
+#include <track_oracle/core/track_oracle_api_types.h>
+#include <track_oracle/utils/logging_map.h>
 
 #include <arrows/kpf/yaml/kpf_packet.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
 
-#include <string>
-#include <vector>
-#include <tuple>
 #include <map>
 
 namespace kwiver {
-namespace vital {
-namespace kpf {
+namespace track_oracle {
+namespace kpf_utils {
 
-/**
- * @brief This maps KPF packet headers to their full packets.
- *
- * The packet buffer holds the parsed KPF packets for the current line (aka record.)
- * Packets are transferred out of the buffer to the client via the kfp_reader.
- *
- * The packet buffer is a multimap because some packets may appear multiple
- * times (i.e. key-value packets.)
- */
+namespace KPF=::kwiver::vital::kpf;
 
-typedef std::multimap< packet_header_t,
-                       packet_t,
-                       packet_header_cmp > packet_buffer_t;
+KPF_UTILS_EXPORT
+void
+add_to_row( kwiver::logging_map_type& log_map,
+            const oracle_entry_handle_type& row,
+            const KPF::packet_t& p );
 
-typedef std::multimap< packet_header_t,
-                       packet_t,
-                       packet_header_cmp >::const_iterator packet_buffer_cit;
+struct KPF_UTILS_EXPORT optional_field_state
+{
+  bool first_pass;
+  std::map< field_handle_type, KPF::packet_t > optional_fields;
+  kwiver::logging_map_type& log_map;
 
+  explicit optional_field_state( kwiver::logging_map_type& lmt );
+};
 
-typedef std::tuple< bool, std::string, int > header_parse_t;
-
-/**
- * @brief Convert a string (e.g. 'id2') into a KPF packet header.
- *
- * @return true if the conversion is successful.
- */
-
-packet_header_t KPF_YAML_EXPORT
-packet_header_parser( const std::string& s );
-
-header_parse_t KPF_YAML_EXPORT parse_header( const std::string& s, bool expect_colon );
+KPF_UTILS_EXPORT
+std::vector< KPF::packet_t >
+optional_fields_to_packets( optional_field_state& ofs,
+                            const oracle_entry_handle_type& row );
 
 
-} // ...kpf
-} // ...vital
+KPF_UTILS_EXPORT
+void
+write_optional_packets( const std::vector< KPF::packet_t>& packets,
+                        kwiver::logging_map_type& log_map,
+                        KPF::record_yaml_writer& w );
+
+KPF_UTILS_EXPORT
+track_handle_list_type
+read_unstructured_yaml( const std::string& fn );
+
+
+} // ...kpf_utils
+} // ...track_oracle
 } // ...kwiver
 
 #endif
