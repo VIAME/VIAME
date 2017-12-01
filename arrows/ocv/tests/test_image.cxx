@@ -172,12 +172,12 @@ run_ocv_conversion_tests( cv::Mat const& img )
   ASSERT_FALSE( ::testing::Test::HasNonfatalFailure() );
 
   [&]{
-    unsigned int const num_c = img.channels();
-    for( unsigned int c = 0; c < num_c; ++c )
+    int const num_c = img.channels();
+    for( int c = 0; c < num_c; ++c )
     {
-      for( unsigned int j = 0; j < img.rows; ++j )
+      for( int j = 0; j < img.rows; ++j )
       {
-        for( unsigned int i = 0; i < img.cols; ++i )
+        for( int i = 0; i < img.cols; ++i )
         {
           ASSERT_EQ( img.ptr<T>( j )[ num_c * i + c ], vimg.at<T>( i, j, c ) );
         }
@@ -197,7 +197,7 @@ run_ocv_conversion_tests( cv::Mat const& img )
   std::vector<cv::Mat> channels2( img2.channels() );
   cv::split( img, channels1 );
   cv::split( img2, channels2 );
-  unsigned int diffs = 0;
+
   for ( unsigned c = 0; c < channels1.size(); ++c )
   {
     SCOPED_TRACE( "In channel " + std::to_string(c) );
@@ -230,12 +230,12 @@ run_vital_conversion_tests( kwiver::vital::image_of<T> const& img,
   }
 
   [&]{
-    unsigned int const num_c = ocv_img.channels();
-    for( unsigned int c = 0; c < num_c; ++c )
+    int const num_c = ocv_img.channels();
+    for( int c = 0; c < num_c; ++c )
     {
-      for( unsigned int j = 0; j < ocv_img.rows; ++j )
+      for( int j = 0; j < ocv_img.rows; ++j )
       {
-        for( unsigned int i = 0; i < ocv_img.cols; ++i )
+        for( int i = 0; i < ocv_img.cols; ++i )
         {
           ASSERT_EQ( img( i, j, c ), ocv_img.ptr<T>( j )[ num_c * i + c ] )
             << "Pixels differ at " << i << ", " << j << ", " << c;
