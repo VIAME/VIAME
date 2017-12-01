@@ -95,7 +95,7 @@ register_factories(kwiver::vital::plugin_loader& vpm)
 
   // Check if a python interpreter already exists so we don't clobber sys.argv
   // (e.g. if sprokit is initialized from python)
-  if (not Py_IsInitialized())
+  if (!Py_IsInitialized())
   {
     // Embed a python interpretter if one does not exist
     Py_Initialize();
