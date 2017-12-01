@@ -366,7 +366,7 @@ wrap_rst_text( const std::string& txt )
 
   // trim trailing whitesapce new line
   wtxt.erase( wtxt.find_last_not_of( " \t\n\r\f\v" ) + 1 );
-  return std::regex_replace( wtxt, std::regex("\n"), " |br|\\ " );
+  return std::regex_replace( wtxt, std::regex("\n"), std::string(" |br|\\ ") );
 }
 
 
