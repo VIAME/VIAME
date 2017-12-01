@@ -71,7 +71,6 @@ public:
 
 
 private:
-  void print_config_value( sprokit::config_value_t const& config_value ) const;
   void output_process_by_name( sprokit::process::name_t const& name, bool fatal_if_no_process );
   void output_process_block( sprokit::process_t const& name, std::string const& kind );
   void output_process( sprokit::process_t const& proc );

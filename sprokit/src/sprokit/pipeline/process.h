@@ -859,6 +859,9 @@ class SPROKIT_PIPELINE_EXPORT process
     /**
      * \brief Subclass available configuration keys.
      *
+     * This method returns the list of all config keys that are
+     * available to this process.
+     *
      * \returns The names of all available configuration keys.
      */
     virtual kwiver::vital::config_block_keys_t _available_config() const;
