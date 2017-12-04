@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,55 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
- *
- * All exception types for vital::core are included through this file.
+ * \brief VITAL Exceptions pertaining to KPF parsing
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef INCL_KPF_EXCEPTIONS_H
+#define INCL_KPF_EXCEPTIONS_H
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
+#include <string>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <arrows/kpf/yaml/kpf_yaml_export.h>
+
+#include <vital/exceptions/base.h>
+
+namespace kwiver {
+namespace vital {
+
+// ------------------------------------------------------------------
+/// Generic kpf exception
+class  KPF_YAML_EXPORT kpf_exception
+  : public vital_core_base_exception
+{
+public:
+  /// Constructor
+  kpf_exception() VITAL_NOTHROW;
+  /// Destructor
+  virtual ~kpf_exception() VITAL_NOTHROW;
+};
+
+// ------------------------------------------------------------------
+/// Exception for not enough tokens to complete parse
+/**
+ * Example: attempting to parse a geometry string (needs four tokens)
+ * but only two tokens are left.
+ */
+class  KPF_YAML_EXPORT kpf_token_underrun_exception
+  : public kpf_exception
+{
+public:
+  /// Constructor
+  /**
+   * \param message     Description of the parsing circumstances
+   */
+  kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW;
+  /// Destructor
+  virtual ~kpf_token_underrun_exception() VITAL_NOTHROW;
+
+  /// Given error message string
+  std::string m_message;
+};
+
+} // ...vital
+} // ...kwiver
+#endif

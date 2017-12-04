@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,20 +30,40 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
+ * \brief Base class for adapters for complex types.
  *
- * All exception types for vital::core are included through this file.
+ * For complex types (bounding boxes, activities), there's probably not
+ * a one-to-one mapping between the canonical KPF representation and the user's
+ * data structure.
+ *
+ * This non-templated base class holds the packet's "bounce buffer" that
+ * adapters use after the packet has been transferred out of the packet buffer
+ * as it goes into user-space.
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
+#define KWIVER_VITAL_KPF_CANONICAL_IO_ADAPTER_BASE_H_
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
+#include <arrows/kpf/yaml/kpf_bounce_buffer.h>
 
-#endif // VITAL_EXCEPTIONS_H_
+namespace kwiver {
+namespace vital {
+namespace kpf {
+
+class kpf_reader_t;
+
+struct kpf_canonical_io_adapter_base
+{
+  packet_bounce_t packet_bounce;
+  kpf_canonical_io_adapter_base& set_domain( int d ) { this->packet_bounce.set_domain(d); return *this; }
+};
+
+KPF_YAML_EXPORT
+kpf_reader_t& operator>>( kpf_reader_t& t,
+                          kpf_canonical_io_adapter_base& io );
+
+} // ...kpf
+} // ...vital
+} // ...kwiver
+
+#endif

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,43 @@
  */
 
 /**
- * \file
- * \brief Base include file for all vital exceptions
+ * @file
+ * @brief KPF YAML parser class.
  *
- * All exception types for vital::core are included through this file.
+ * Header for the KPF YAML parser; holds the YAML root document and provides
+ * the interface for reading each KPF line (which shows up as a YAML map)
+ * into the KPF generic parser's packet buffer.
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
+#define KWIVER_VITAL_KPF_YAML_PARSER_H_
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
+#include <arrows/kpf/yaml/kpf_parse_utils.h>
+#include <arrows/kpf/yaml/kpf_parser_base.h>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <yaml-cpp/yaml.h>
+
+namespace kwiver {
+namespace vital {
+namespace kpf {
+
+class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
+{
+public:
+  explicit kpf_yaml_parser_t( std::istream& is );
+  ~kpf_yaml_parser_t() {}
+
+  virtual bool get_status() const;
+  virtual bool parse_next_record( packet_buffer_t& pb );
+
+private:
+  YAML::Node root;
+  YAML::const_iterator current_record;
+};
+
+} // ...kpf
+} // ...vital
+} // ...kwiver
+
+
+#endif

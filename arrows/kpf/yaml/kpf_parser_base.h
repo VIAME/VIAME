@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,36 @@
  */
 
 /**
- * \file
- * \brief Base include file for all vital exceptions
+ * @file
+ * @brief Base class for KPF parsers for various formats.
  *
- * All exception types for vital::core are included through this file.
+ * Concrete format-specific instances of this class can be passed to
+ * the kpf_reader_t to loop over KPF input.
+ *
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef KWIVER_VITAL_KPF_PARSER_BASE_
+#define KWIVER_VITAL_KPF_PARSER_BASE_
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
+#include <arrows/kpf/yaml/kpf_parse_utils.h>
 
-#endif // VITAL_EXCEPTIONS_H_
+namespace kwiver {
+namespace vital {
+namespace kpf {
+
+class kpf_parser_base_t
+{
+public:
+  kpf_parser_base_t() {}
+  virtual ~kpf_parser_base_t() {}
+
+  virtual bool get_status() const = 0;
+  virtual bool parse_next_record( packet_buffer_t& ) = 0;
+};
+
+
+} // ...kpf
+} // ...vital
+} // ...kwiver
+
+#endif

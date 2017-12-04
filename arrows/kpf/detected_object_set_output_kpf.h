@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,20 +30,41 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
- *
- * All exception types for vital::core are included through this file.
+ * \brief Interface for detected_object_set_output_kpf
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KPF_H
+#define KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KPF_H
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
+#include <vital/vital_config.h>
+#include <arrows/kpf/kwiver_algo_kpf_export.h>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <vital/algo/detected_object_set_output.h>
+
+#include <memory>
+
+namespace kwiver {
+namespace arrows {
+namespace kpf {
+
+class KWIVER_ALGO_KPF_EXPORT detected_object_set_output_kpf
+  : public vital::algorithm_impl<detected_object_set_output_kpf, vital::algo::detected_object_set_output>
+{
+public:
+  detected_object_set_output_kpf();
+  virtual ~detected_object_set_output_kpf();
+
+  virtual vital::config_block_sptr get_configuration() const;
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
+
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr set, std::string const& image_name );
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
+
+} } } // end namespace
+
+#endif // KWIVER_ARROWS_DETECTED_OBJECT_SET_OUTPUT_KPF_H

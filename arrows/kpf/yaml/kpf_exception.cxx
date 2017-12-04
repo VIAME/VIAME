@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,41 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
- *
- * All exception types for vital::core are included through this file.
+ * \brief Implementation for KPF exceptions
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#include "kpf_exception.h"
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
+#include <sstream>
 
-#endif // VITAL_EXCEPTIONS_H_
+namespace kwiver {
+namespace vital {
+
+
+kpf_exception
+::kpf_exception() VITAL_NOTHROW
+{
+  m_what = "Generic KPF exception";
+}
+
+kpf_exception
+::~kpf_exception() VITAL_NOTHROW
+{
+}
+
+
+// ------------------------------------------------------------------
+kpf_token_underrun_exception
+::kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW
+  : m_message(message)
+{
+  m_what = message;
+}
+
+kpf_token_underrun_exception
+::~kpf_token_underrun_exception() VITAL_NOTHROW
+{
+}
+
+} // ...vital
+} // ...kwiver
