@@ -74,7 +74,13 @@ TEST_F(vidl_ffmpeg_video_input, create)
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, read_video)
 {
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  vfvi.check_configuration( config );
+  vfvi.set_configuration( config );
 
   kwiver::vital::path_t video_file = data_dir + "/video.mpg";
   vfvi.open( video_file );
@@ -91,19 +97,25 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
       std::cout << "-----------------------------------\n" << std::endl;
       kwiver::vital::print_metadata( std::cout, *md[0] );
     }
-    ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+    ++num_frames;
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( 150, num_frames );
 }
 
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, is_good)
 {
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
-  kwiver::vital::path_t video_file = data_dir + "/movie.mpg";
+  vfvi.check_configuration( config );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mpg";
   kwiver::vital::timestamp ts;
 
   EXPECT_FALSE( vfvi.good() )
@@ -111,7 +123,7 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
 
   // open the video
   vfvi.open( video_file );
-  EXPECT_FALSE( vfvi.good() )
+  EXPECT_TRUE( vfvi.good() )
     << "Video state after open but before first frame";
 
   // step one frame
@@ -130,9 +142,9 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
   int num_frames = 0;
   while ( vfvi.next_frame( ts ) )
   {
-    ++num_frames;
     EXPECT_TRUE( vfvi.good() )
       << "Video state on frame " << ts.get_frame();
+    ++num_frames;
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( 150, num_frames );
 }
