@@ -42,5 +42,6 @@ target_link_libraries( track_kpf_geom
                        vgl
                        track_oracle_format_base
                        logging_map
+                       kwiversys
                        ${YAML_CPP_LIBRARIES}
 )
