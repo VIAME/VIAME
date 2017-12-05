@@ -82,7 +82,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
   vfvi.check_configuration( config );
   vfvi.set_configuration( config );
 
-  kwiver::vital::path_t video_file = data_dir + "/video.mpg";
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
   vfvi.open( video_file );
 
   kwiver::vital::timestamp ts;
@@ -101,7 +101,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
       << "Frame numbers should be sequential";
     ++num_frames;
   }
-  EXPECT_EQ( 150, num_frames );
+  EXPECT_EQ( 100, num_frames );
 }
 
 // ----------------------------------------------------------------------------
@@ -115,7 +115,7 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
   vfvi.check_configuration( config );
   vfvi.set_configuration( config );
 
-  kwiver::vital::path_t video_file = data_dir + "/video.mpg";
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
   kwiver::vital::timestamp ts;
 
   EXPECT_FALSE( vfvi.good() )
@@ -146,5 +146,5 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
       << "Video state on frame " << ts.get_frame();
     ++num_frames;
   }
-  EXPECT_EQ( 150, num_frames );
+  EXPECT_EQ( 100, num_frames );
 }
