@@ -230,12 +230,14 @@ detect_loops::priv
   if (!im_list.is_open())
   {
     LOG_ERROR(m_logger, "error while opening file " + training_image_list);
+    throw vital::invalid_file(training_image_list, "unable to open training image file");
   }
 
   while (std::getline(im_list, line)) 
   {   
    
     image_container_sptr im = m_image_io->load(line);
+    LOG_INFO(m_logger,"Extracting features for image " + line);
 
     feature_set_sptr im_features = m_detector->detect(im);
     descriptor_set_sptr im_descriptors = m_extractor->extract(im, im_features);
@@ -247,6 +249,7 @@ detect_loops::priv
   if (im_list.bad())
   {
     LOG_ERROR(m_logger, "error while reading " + training_image_list);
+    throw vital::invalid_file(training_image_list, "training image list bad");
   }
 }
 
@@ -307,6 +310,8 @@ detect_loops::priv
   feat1 = fi1->features;
   desc1 = fi1->descriptors;
 
+  int num_successfully_matched_pairs = 0;
+
   for (auto fn2 : putative_matches)
   {
     if (fn2 == frame_number)
@@ -347,7 +352,15 @@ detect_loops::priv
     LOG_DEBUG(m_logger, "Stitched " << num_linked <<
       " tracks between frames " << frame_number <<
       " and " << fn2);
+
+    if (num_linked > 0)
+    {
+      ++num_successfully_matched_pairs;
+    }
   }
+
+  LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches " <<
+    num_successfully_matched_pairs << " pairs were verified");
 
   return feat_tracks;
 }
@@ -480,7 +493,7 @@ detect_loops::priv
   m_entry_to_frame.insert(new_ent);
 
   //querry the database for matches
-  int max_res = 50;
+  int max_res = 10;
   DBoW2::QueryResults ret;
   m_db->query(bow_vec, ret, max_res, ent);  //ent at the end prevents the querry from returning the current image.
 
@@ -496,6 +509,9 @@ detect_loops::priv
     }
     putative_matching_images.push_back(put_match->second);
   }
+
+  //uncomment line below to skip matching orb features
+  //putative_matching_images.clear();  //TODO remove this
 
   return verify_and_add_image_matches(feat_tracks, frame_number, putative_matching_images);
 }
