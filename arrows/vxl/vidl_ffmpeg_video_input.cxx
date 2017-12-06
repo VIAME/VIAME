@@ -654,6 +654,16 @@ vidl_ffmpeg_video_input
   return true;
 }
 
+// ------------------------------------------------------------------
+bool
+vidl_ffmpeg_video_input
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // TODO: needs implementation? CPN
+  return false;
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
@@ -722,6 +732,14 @@ vidl_ffmpeg_video_input
 ::good() const
 {
   return d->d_video_stream.is_valid();
+}
+
+// ------------------------------------------------------------------
+bool
+vidl_ffmpeg_video_input
+::seekable() const
+{
+  return d->d_video_stream.is_seekable();
 }
 
 } } } // end namespace

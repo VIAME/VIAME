@@ -259,6 +259,13 @@ video_input_image_list
   return d->m_frame_number > 0 && ! this->end_of_video();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_image_list
+::seekable() const
+{
+  return true;
+}
 
 // ------------------------------------------------------------------
 bool
@@ -293,6 +300,16 @@ video_input_image_list
   return ! this->end_of_video();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_image_list
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // TODO: needs implementation? CPN
+  return false;
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr

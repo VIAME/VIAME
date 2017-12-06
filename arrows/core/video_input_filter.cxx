@@ -92,11 +92,11 @@ video_input_filter
                      "If set to zero, start at the beginning of the video." );
 
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "End the video after passing this frame number. " 
+                     "End the video after passing this frame number. "
                      "Set this value to 0 to disable filter.");
 
   config->set_value( "frame_rate", d->c_frame_rate, "Number of frames per second. "
-                     "If the video does not provide a valid time, use this rate " 
+                     "If the video does not provide a valid time, use this rate "
                      "to compute frame time.  Set 0 to disable.");
 
   vital::algo::video_input::
@@ -211,6 +211,17 @@ video_input_filter
   return d->d_video_input->good();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_filter
+::seekable() const
+{
+  if( ! d->d_video_input )
+  {
+    return false;
+  }
+  return d->d_video_input->seekable();
+}
 
 // ------------------------------------------------------------------
 bool
@@ -247,6 +258,16 @@ video_input_filter
   return status;
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_filter
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout ) // not supported
+{
+  // TODO: are filters seekable? CPN
+  return false;
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr

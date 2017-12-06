@@ -198,6 +198,14 @@ video_input_split
          (d->d_metadata_source && d->d_metadata_source->good());
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_split
+::seekable() const
+{
+  return (d->d_image_source && d->d_image_source->seekable()) &&
+         (d->d_metadata_source && d->d_metadata_source->seekable());
+}
 
 // ------------------------------------------------------------------
 bool
@@ -253,6 +261,16 @@ video_input_split
   return true;
 } // video_input_split::next_frame
 
+// ------------------------------------------------------------------
+bool
+video_input_split
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // TODO: needs implementation? CPN
+  return false;
+} // video_input_split::seek_frame
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr

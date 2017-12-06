@@ -212,6 +212,13 @@ video_input_pos
   return d->d_frame_number > 0 && ! this->end_of_video();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_pos
+::seekable() const
+{
+  return true;
+}
 
 // ------------------------------------------------------------------
 bool
@@ -272,6 +279,16 @@ video_input_pos
   return true;
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_pos
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // TODO: needs implementation? CPN
+  return false;
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
