@@ -264,7 +264,8 @@ detect_features_if_keyframe_process::priv
   curr_tracks->set_keyframe_data(next_kfd->clone());  //copy the next kfd into the current tracks.
 
   //ok, next tracks will have some tracks that are longer or newer than loop_back_tracks.  
-  std::vector< vital::track_sptr> next_active_tracks = next_tracks->active_tracks(next_tracks_frame_num);
+  std::vector< vital::track_sptr> next_active_tracks = next_tracks->active_tracks(next_tracks_frame_num);  
+
   //get the active tracks for the last frame in loop_back tracks.
   std::vector< vital::track_sptr> curr_active_tracks = curr_tracks->active_tracks(next_tracks_frame_num-1);
 
@@ -272,7 +273,7 @@ detect_features_if_keyframe_process::priv
   // tracks and so it won't increment its IDs to match.
 
   //need a fast way to search which track a feature is in.  Feature pointers are not cloned, so we can search on those.
-  //make a map from feature pointer to loop back track pointer.
+  //make a map from feature pointer to curr track pointer.
 
   std::map<vital::feature *, vital::track_sptr> feature_to_curr_track;
   for (auto curr_tk : curr_active_tracks)
@@ -288,12 +289,15 @@ detect_features_if_keyframe_process::priv
     }
   }
 
+  kwiver::vital::track_id_t next_track_id = *curr_tracks->all_track_ids().crbegin() + 1;  //what is the next track id in the looped back tracks?
 
   for (auto next_tk : next_active_tracks)
   {
     if (next_tk->size() == 1)
     {
       //this is a new track.  Just add it to curr_tracks
+      next_tk->set_id(next_track_id++);  //change the track id to account for any new detected features.  The KLT tracker was not 
+      //aware these detected features existed so could not have adjusted its IDs to account for them.
       curr_tracks->insert(next_tk->clone()); //clone the track and add it to curr_tracks
       continue;
     }
