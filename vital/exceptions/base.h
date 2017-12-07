@@ -119,7 +119,7 @@ protected:
 #define VITAL_THROW_MSG(E, MSG) do {            \
     std::stringstream _oss_;                    \
     _oss_ << MSG;                               \
-    E except(_oss.str();                        \
+    E except( _oss.str() );                     \
     except.set_location( __file, __line );      \
     throw except;                               \
   } while (0)
