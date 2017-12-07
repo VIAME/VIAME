@@ -45,6 +45,8 @@
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
+static int num_expected_frames = 100;
+static std::string video_file_name = "video.mp4";
 
 // ----------------------------------------------------------------------------
 int
@@ -82,7 +84,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
   vfvi.check_configuration( config );
   vfvi.set_configuration( config );
 
-  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
   vfvi.open( video_file );
 
   kwiver::vital::timestamp ts;
@@ -101,7 +103,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
       << "Frame numbers should be sequential";
     ++num_frames;
   }
-  EXPECT_EQ( 100, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 // ----------------------------------------------------------------------------
@@ -115,7 +117,7 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
   vfvi.check_configuration( config );
   vfvi.set_configuration( config );
 
-  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
   kwiver::vital::timestamp ts;
 
   EXPECT_FALSE( vfvi.good() )
@@ -146,5 +148,45 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
       << "Video state on frame " << ts.get_frame();
     ++num_frames;
   }
-  EXPECT_EQ( 100, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
+}
+
+TEST_F(vidl_ffmpeg_video_input, seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  vfvi.check_configuration( config );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vfvi.open( video_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vfvi.seekable() );
+
+  // Test various valid seeks
+  int num_valid_seeks = 4;
+  kwiver::vital::timestamp::time_t valid_seeks[num_valid_seeks] = {3, 20, 34, 65};
+
+  for (int i=0; i<num_valid_seeks; ++i)
+  {
+    EXPECT_TRUE( vfvi.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+  }
+
+  // Test invalid seek past end of video
+  EXPECT_FALSE( vfvi.seek_frame( ts, 120 ) );
+  EXPECT_NE( 120, ts.get_frame() );
+
+  // Test invalid reverse seek
+  EXPECT_FALSE( vfvi.seek_frame( ts, 40 ) );
+  EXPECT_NE( 40, ts.get_frame() );
+
+  vfvi.close();
 }

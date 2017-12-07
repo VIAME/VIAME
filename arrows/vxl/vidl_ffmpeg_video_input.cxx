@@ -661,8 +661,67 @@ vidl_ffmpeg_video_input
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
-  // TODO: needs implementation? CPN
-  return false;
+  // TODO: Remove after reverse seeking is implemented
+  if (d->d_at_eov)
+  {
+    return false;
+  }
+
+  // is stream open?
+  if ( ! d->d_video_stream.is_open() )
+  {
+    throw vital::file_not_read_exception( d->video_path, "Video not open" );
+  }
+
+  // TODO: this will only move forward in the video
+  unsigned int curr_frame_num = d->d_video_stream.frame_number();
+
+  // No support for backwards seeking
+  if (curr_frame_num > frame_number)
+  {
+    return false;
+  }
+
+  for (int i=curr_frame_num; i<frame_number; ++i)
+  {
+    if( ! d->d_video_stream.advance() )
+    {
+      d->d_at_eov = true;
+      return false;
+    }
+  }
+
+  // TODO: past this point method is identical too next_frame. Put coomon code
+  //       in helper function?
+
+  unsigned int frame_num = d->d_video_stream.frame_number();
+  if( (d->c_stop_after_frame != 0) && (d->c_stop_after_frame < frame_num ))
+  {
+    d->d_at_eov = true;  // logical end of file
+    return false;
+  }
+
+  // ---- Calculate time stamp ----
+  // Metadata packets may not exist for each frame, so use the diff in
+  // presentation time stamps to foward the first metadata time stamp.
+  double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
+  d->d_frame_time = d->meta_ts + pts_diff;
+  d->d_frame_number = d->d_video_stream.frame_number();
+
+  // We don't always have all components of a timestamp, so start with
+  // an invalid TS and add the data we have.
+  ts.set_invalid();
+  ts.set_frame( d->d_frame_number );
+
+  if ( d->d_have_frame_time )
+  {
+    ts.set_time_usec( d->d_frame_time );
+  }
+
+  // ---- process metadata ---
+  d->metadata_collection.clear(); // erase old metadata packets
+
+  return true;
 }
 
 // ------------------------------------------------------------------
