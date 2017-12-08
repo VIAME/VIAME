@@ -60,7 +60,7 @@ class KwiverProcess(process.PythonProcess):
         """This class represents a single type trait. It binds together
         trait_name: name of this type specification used with other
         traits canonical type name: official system level type name
-        string.  conv: function to convert data from boost::any to
+        string.  conv: function to convert data from vital::any to
         real type.
 
         The convert function takes in a "datum" and returns the correct type/

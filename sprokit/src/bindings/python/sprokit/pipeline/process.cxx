@@ -781,34 +781,34 @@ grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& por
 {
   sprokit::process* self_ptr = &self;
   sprokit::datum_t const dat = ((wrap_process*) self_ptr)->grab_datum_from_port(port);
-  boost::any const any = dat->get_datum<boost::any>();
+  kwiver::vital::any const any = dat->get_datum<kwiver::vital::any>();
 
-  //boost::any and pybind11::object don't play nice, so we have to try different types
-  //TODO: fix this! preferably by making datum no longer use boost::any
+  //kwiver::vital::any and pybind11::object don't play nice, so we have to try different types
+  //TODO: fix this! preferably by making datum no longer use kwiver::vital::any
   object return_val = none();
   try
   {
-    return_val = boost::any_cast<object>(any);
+    return_val = kwiver::vital::any_cast<object>(any);
   } catch(...){}
   try
   {
-    return_val = cast(boost::any_cast<int>(any));
+    return_val = cast(kwiver::vital::any_cast<int>(any));
   } catch(...){}
   try
   {
-    return_val = cast(boost::any_cast<long>(any));
+    return_val = cast(kwiver::vital::any_cast<long>(any));
   } catch(...){}
   try
   {
-    return_val = cast(boost::any_cast<float>(any));
+    return_val = cast(kwiver::vital::any_cast<float>(any));
   } catch(...){}
   try
   {
-    return_val = cast(boost::any_cast<std::string>(any));
+    return_val = cast(kwiver::vital::any_cast<std::string>(any));
   } catch(...){}
   try
   {
-    return_val = cast(boost::any_cast<char*>(any));
+    return_val = cast(kwiver::vital::any_cast<char*>(any));
   } catch(...){}
 
   return return_val;
@@ -824,7 +824,7 @@ push_datum_to_port(sprokit::process &self, sprokit::process::port_t const& port,
 void
 push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj)
 {
-  boost::any const any = obj;
+  kwiver::vital::any const any = obj;
   sprokit::datum_t const dat = sprokit::datum::new_datum(any);
 
   sprokit::process* self_ptr = &self;

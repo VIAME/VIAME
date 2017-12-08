@@ -33,7 +33,7 @@
 #pragma warning (disable : 4244)
 #endif
 #include <pybind11/pybind11.h>
-#include <boost/any.hpp>
+#include <vital/any.h>
 #include <boost/cstdint.hpp>
 #if WIN32
 #pragma warning (pop)
@@ -134,7 +134,7 @@ PYBIND11_MODULE(datum, m)
 // ------------------------------------------------------------------
 
 // For now, we need to manually specify how we want to cast our datum
-// This should be fixed when we move away from boost::any
+// This should be fixed when we move away from kwiver::vital::any
 sprokit::datum
 new_datum(object const& obj)
 {
@@ -201,8 +201,8 @@ datum_get_datum(sprokit::datum const& self)
   object dat = none();
   if ( self.type() == sprokit::datum::data )
   {
-    boost::any const any = self.get_datum<boost::any>();
-    dat = boost::any_cast<object>(any);
+    kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
+    dat = kwiver::vital::any_cast<object>(any);
   }
 
   return dat;
@@ -211,7 +211,7 @@ datum_get_datum(sprokit::datum const& self)
 std::string
 datum_datum_type(sprokit::datum const& self)
 {
-  boost::any const any = self.get_datum<boost::any>();
+  kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
 
   return any.type().name();
 }
