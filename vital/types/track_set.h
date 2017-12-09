@@ -377,7 +377,7 @@ public:
   /**
    * \note implementation defaults to simple_track_set_implementation
    */
-  track_set(std::vector< track_sptr > const& tracks);
+  track_set(std::vector< track_sptr > const& tracks, keyframe_data_sptr kfd);
 
   /// Return the number of tracks in the set
   virtual size_t size() const

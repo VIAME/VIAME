@@ -440,9 +440,10 @@ track_set
 
 /// Constructor from a vector of tracks
 track_set
-::track_set(std::vector< track_sptr > const& tracks)
+::track_set(std::vector< track_sptr > const& tracks, keyframe_data_sptr kfd)
   : impl_(new simple_track_set_implementation(tracks))
 {
+  impl_->set_keyframe_data(kfd);
 }
 
 track_set_sptr
