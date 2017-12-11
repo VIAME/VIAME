@@ -636,7 +636,7 @@ vidl_ffmpeg_video_input
   // presentation time stamps to foward the first metadata time stamp.
   double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
   d->d_frame_time = d->meta_ts + pts_diff;
-  d->d_frame_number = d->d_video_stream.frame_number();
+  d->d_frame_number = d->d_video_stream.frame_number() + 1;
 
   // We don't always have all components of a timestamp, so start with
   // an invalid TS and add the data we have.
@@ -661,27 +661,24 @@ vidl_ffmpeg_video_input
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
-  // TODO: Remove after reverse seeking is implemented
-  if (d->d_at_eov)
-  {
-    return false;
-  }
-
   // is stream open?
   if ( ! d->d_video_stream.is_open() )
   {
     throw vital::file_not_read_exception( d->video_path, "Video not open" );
   }
 
-  // TODO: this will only move forward in the video
-  unsigned int curr_frame_num = d->d_video_stream.frame_number();
+  unsigned int curr_frame_num = d->d_video_stream.frame_number() + 1;
 
-  // No support for backwards seeking
+  // If current frame number is greater than requested frame reopen
+  // file to reset to start
   if (curr_frame_num > frame_number)
   {
-    return false;
+    this->close();
+    this->open( d->video_path );
+    curr_frame_num = d->d_video_stream.frame_number() + 1;
   }
 
+  // Just advance video until the requested frame is reached
   for (int i=curr_frame_num; i<frame_number; ++i)
   {
     if( ! d->d_video_stream.advance() )
@@ -694,7 +691,7 @@ vidl_ffmpeg_video_input
   // TODO: past this point method is identical too next_frame. Put coomon code
   //       in helper function?
 
-  unsigned int frame_num = d->d_video_stream.frame_number();
+  unsigned int frame_num = d->d_video_stream.frame_number() + 1;
   if( (d->c_stop_after_frame != 0) && (d->c_stop_after_frame < frame_num ))
   {
     d->d_at_eov = true;  // logical end of file
@@ -706,7 +703,7 @@ vidl_ffmpeg_video_input
   // presentation time stamps to foward the first metadata time stamp.
   double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
   d->d_frame_time = d->meta_ts + pts_diff;
-  d->d_frame_number = d->d_video_stream.frame_number();
+  d->d_frame_number = d->d_video_stream.frame_number() + 1;
 
   // We don't always have all components of a timestamp, so start with
   // an invalid TS and add the data we have.

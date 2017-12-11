@@ -45,7 +45,7 @@
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
-static int num_expected_frames = 100;
+static int num_expected_frames = 50;
 static std::string video_file_name = "video.mp4";
 
 // ----------------------------------------------------------------------------
@@ -99,9 +99,10 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
       std::cout << "-----------------------------------\n" << std::endl;
       kwiver::vital::print_metadata( std::cout, *md[0] );
     }
+
+    ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
-    ++num_frames;
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 }
@@ -144,9 +145,9 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
   int num_frames = 0;
   while ( vfvi.next_frame( ts ) )
   {
+      ++num_frames;
     EXPECT_TRUE( vfvi.good() )
       << "Video state on frame " << ts.get_frame();
-    ++num_frames;
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 }
@@ -171,22 +172,24 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame)
   EXPECT_TRUE( vfvi.seekable() );
 
   // Test various valid seeks
-  int num_valid_seeks = 4;
-  kwiver::vital::timestamp::time_t valid_seeks[num_valid_seeks] = {3, 20, 34, 65};
-
-  for (int i=0; i<num_valid_seeks; ++i)
+  int num_seeks = 6;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {3, 23, 46, 34, 50, 1};
+  for (int i=0; i<num_seeks; ++i)
   {
     EXPECT_TRUE( vfvi.seek_frame( ts, valid_seeks[i]) );
     EXPECT_EQ( valid_seeks[i], ts.get_frame() );
   }
 
-  // Test invalid seek past end of video
-  EXPECT_FALSE( vfvi.seek_frame( ts, 120 ) );
-  EXPECT_NE( 120, ts.get_frame() );
-
-  // Test invalid reverse seek
-  EXPECT_FALSE( vfvi.seek_frame( ts, 40 ) );
-  EXPECT_NE( 40, ts.get_frame() );
+  // Test various invalid seeks past end of video
+  num_seeks = 2;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( vfvi.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
 
   vfvi.close();
 }

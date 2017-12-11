@@ -307,8 +307,34 @@ video_input_image_list
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
-  // TODO: needs implementation? CPN
-  return false;
+  // Calculate distance to new frame
+  kwiver::vital::timestamp::frame_t frame_diff =
+    frame_number - d->m_frame_number;
+  d->m_current_file += frame_diff;
+  d->m_frame_number = frame_number;
+
+  bool retVal = true;
+
+  // If frame seek pushes video past start or end of video reset frame number
+  if ( this->end_of_video() )
+  {
+    d->m_frame_number = d->m_files.size();
+    retVal = false;
+  }
+  else if ( d->m_current_file == d->m_files.begin() )
+  {
+    d->m_frame_number = 1;
+  }
+
+  // clear the last loaded image
+  d->m_image = nullptr;
+
+  // Return timestamp
+  ts = kwiver::vital::timestamp();
+
+  ts.set_frame( d->m_frame_number );
+
+  return retVal;
 }
 
 // ------------------------------------------------------------------

@@ -160,3 +160,29 @@ TEST_F(video_input_image_list, is_good)
   }
   EXPECT_EQ( 5, num_frames );
 }
+
+TEST_F(video_input_image_list, seek_frame)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "image_reader:type", "dummy" );
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  viil.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( viil.seekable() );
+
+  viil.close();
+}
