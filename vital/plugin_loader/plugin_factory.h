@@ -74,7 +74,10 @@ public:
   static const std::string INTERFACE_TYPE;
   static const std::string CONCRETE_TYPE;
   static const std::string PLUGIN_FILE_NAME;
+  static const std::string PLUGIN_CATEGORY;
+  static const std::string PLUGIN_PROCESS_PROPERTIES;
 
+  // User settable
   static const std::string PLUGIN_NAME;
   static const std::string PLUGIN_DESCRIPTION;
   static const std::string PLUGIN_VERSION;
@@ -83,8 +86,6 @@ public:
   static const std::string PLUGIN_AUTHOR;
   static const std::string PLUGIN_ORGANIZATION;
   static const std::string PLUGIN_LICENSE;
-  static const std::string PLUGIN_CATEGORY;
-  static const std::string PLUGIN_PROCESS_PROPERTIES;
 
 
   /**

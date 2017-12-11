@@ -60,16 +60,18 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "input_adapter" )
     .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                        "Source process for pipeline. Pushes data items into pipeline ports. "
-                        "Ports are dynamically created as needed based on connections specified in the pipeline file." )
+                     "Source process for pipeline.\n\n"
+                     "Pushes data items into pipeline ports. "
+                     "Ports are dynamically created as needed based on connections specified in the pipeline file." )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
 
   fact = vpm.ADD_PROCESS( kwiver::output_adapter_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,  "output_adapter" )
     .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                        "Sink process for pipeline. Accepts data items from pipeline ports. "
-                        "Ports are dynamically created as needed based on connections specified in the pipeline file." )
+                     "Sink process for pipeline.\n\n"
+                     "Accepts data items from pipeline ports. "
+                     "Ports are dynamically created as needed based on connections specified in the pipeline file." )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
 
   // - - - - - - - - - - - - - - - - - - - - - - -
