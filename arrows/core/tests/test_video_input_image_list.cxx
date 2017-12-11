@@ -48,6 +48,8 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
+static int num_expected_frames = 50;
+static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -88,7 +90,7 @@ TEST_F(video_input_image_list, read_list)
   viil.check_configuration( config );
   viil.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   viil.open( list_file );
 
   kwiver::vital::timestamp ts;
@@ -109,7 +111,7 @@ TEST_F(video_input_image_list, read_list)
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 // ----------------------------------------------------------------------------
@@ -127,7 +129,7 @@ TEST_F(video_input_image_list, is_good)
   EXPECT_TRUE( viil.check_configuration( config ) );
   viil.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   kwiver::vital::timestamp ts;
 
   EXPECT_FALSE( viil.good() )
@@ -158,7 +160,7 @@ TEST_F(video_input_image_list, is_good)
     EXPECT_TRUE( viil.good() )
       << "Video state on frame " << ts.get_frame();
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 TEST_F(video_input_image_list, seek_frame)
@@ -175,7 +177,7 @@ TEST_F(video_input_image_list, seek_frame)
   EXPECT_TRUE( viil.check_configuration( config ) );
   viil.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   kwiver::vital::timestamp ts;
 
   // Open the video

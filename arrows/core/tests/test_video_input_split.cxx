@@ -48,6 +48,8 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
+static int num_expected_frames = 50;
+static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -103,7 +105,7 @@ TEST_F(video_input_split, read_list)
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vis.open( list_file );
 
   kwiver::vital::timestamp ts;
@@ -124,7 +126,7 @@ TEST_F(video_input_split, read_list)
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 // ----------------------------------------------------------------------------
@@ -141,7 +143,7 @@ TEST_F(video_input_split, test_capabilities)
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vis.open( list_file );
 
   auto cap = vis.get_implementation_capabilities();

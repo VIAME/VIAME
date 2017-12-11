@@ -48,6 +48,8 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
+static int num_expected_frames = 50;
+static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -105,7 +107,7 @@ TEST_F(video_input_filter, read_list)
   EXPECT_TRUE( vif.check_configuration( config ) );
   vif.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vif.open( list_file );
 
   kwiver::vital::timestamp ts;
@@ -126,7 +128,7 @@ TEST_F(video_input_filter, read_list)
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 
@@ -139,21 +141,21 @@ TEST_F(video_input_filter, read_list_subset)
   // make config block
   auto config = make_config(data_dir);
 
-  config->set_value( "start_at_frame", "2" );
-  config->set_value( "stop_after_frame", "4" );
+  config->set_value( "start_at_frame", "11" );
+  config->set_value( "stop_after_frame", "30" );
 
   kwiver::arrows::core::video_input_filter vif;
 
   EXPECT_TRUE( vif.check_configuration( config ) );
   vif.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vif.open( list_file );
 
   kwiver::vital::timestamp ts;
 
   int num_frames = 0;
-  int frame_idx = 1;
+  int frame_idx = 10;
   while ( vif.next_frame( ts ) )
   {
     auto img = vif.frame_image();
@@ -170,7 +172,7 @@ TEST_F(video_input_filter, read_list_subset)
     EXPECT_EQ( frame_idx, ts.get_frame() )
       << "Frame numbers should be sequential";
   }
-  EXPECT_EQ( 3, num_frames );
+  EXPECT_EQ( 20, num_frames );
 }
 
 
@@ -188,7 +190,7 @@ TEST_F(video_input_filter, test_capabilities)
   EXPECT_TRUE( vif.check_configuration( config ) );
   vif.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vif.open( list_file );
 
   auto cap = vif.get_implementation_capabilities();
