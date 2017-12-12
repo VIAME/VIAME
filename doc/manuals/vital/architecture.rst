@@ -27,6 +27,7 @@ their functionality.
 .. toctree::
    :maxdepth: 2
 
+   common
    images
    detectors
    trackers
