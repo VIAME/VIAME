@@ -66,6 +66,7 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  iterator.h
 
   exceptions.h
   exceptions/algorithm.h
