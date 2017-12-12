@@ -265,8 +265,21 @@ video_input_filter
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout ) // not supported
 {
-  // TODO: are filters seekable? CPN
-  return false;
+  // Check if requested frame exists
+  if (frame_number > d->c_stop_after_frame || frame_number < d->c_start_at_frame)
+  {
+    return false;
+  }
+
+  bool status = d->d_video_input->seek_frame( ts, frame_number, timeout );
+
+  // set the frame time base on rate if missing
+  if( d->c_frame_rate > 0 && !ts.has_valid_time() )
+  {
+    ts.set_time_seconds( ts.get_frame() / d->c_frame_rate );
+  }
+
+  return status;
 }
 
 // ------------------------------------------------------------------

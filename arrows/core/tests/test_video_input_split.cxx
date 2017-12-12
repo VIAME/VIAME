@@ -129,6 +129,53 @@ TEST_F(video_input_split, read_list)
   EXPECT_EQ( num_expected_frames, num_frames );
 }
 
+TEST_F(video_input_split, seek_frame)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
+  // make config block
+  auto config = make_config(data_dir);
+
+  kwiver::arrows::core::video_input_split vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vis.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vis.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vis.seekable() );
+
+  // Test various valid seeks
+  int num_seeks = 6;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {3, 23, 46, 34, 50, 1};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_TRUE( vis.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+  }
+
+  // Test various invalid seeks past end of video
+  num_seeks = 4;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {-3, -1, 51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( vis.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
+
+  vis.close();
+}
+
 // ----------------------------------------------------------------------------
 TEST_F(video_input_split, test_capabilities)
 {

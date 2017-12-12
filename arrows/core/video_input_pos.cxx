@@ -286,8 +286,57 @@ video_input_pos
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
-  // TODO: needs implementation? CPN
-  return false;
+  // reset current metadata packet and timestamp
+  d->d_metadata = nullptr;
+  ts = kwiver::vital::timestamp();
+
+  // Check if requested frame exists
+  if (frame_number > d->d_img_md_files.size() || frame_number < 0)
+  {
+    return false;
+  }
+
+  // Adjust frame number if this is the first call to seek_frame or next_frame
+  if (d->d_frame_number == 0)
+  {
+    d->d_frame_number = 1;
+  }
+
+  // Calculate distance to new frame
+  kwiver::vital::timestamp::frame_t frame_diff =
+    frame_number - d->d_frame_number;
+  d->d_current_files += frame_diff;
+  d->d_frame_number = frame_number;
+
+  if ( ! d->d_current_files->second.empty() )
+  {
+    // Open next file in the list
+    std::cerr << "FILE: " << d->d_current_files->second << std::endl;
+    d->d_metadata = vital::read_pos_file( d->d_current_files->second );
+  }
+
+  // Include the path to the image
+  if ( d->d_metadata )
+  {
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+                                           d->d_current_files->first ) );
+  }
+
+  // Return timestamp
+  ts.set_frame( d->d_frame_number );
+  if ( d->d_metadata )
+  {
+    if ( d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
+    {
+      double gps_sec = d->d_metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+      // TODO: also use gps_week and convert to UTC to get abosolute time
+      // or subtract off first frame time to get time relative to start
+      ts.set_time_seconds( gps_sec );
+    }
+    d->d_metadata->set_timestamp( ts );
+  }
+
+  return true;
 }
 
 // ------------------------------------------------------------------

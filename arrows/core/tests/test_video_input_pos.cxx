@@ -152,3 +152,46 @@ TEST_F(video_input_pos, is_good)
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 }
+
+TEST_F(video_input_pos, seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
+
+  kwiver::arrows::core::video_input_pos vip;
+
+  EXPECT_TRUE( vip.check_configuration( config ) );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vip.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vip.seekable() );
+
+  // Test various valid seeks
+  int num_seeks = 6;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {3, 23, 46, 34, 50, 1};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_TRUE( vip.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+  }
+
+  // Test various invalid seeks past end of video
+  num_seeks = 4;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {-3, -1, 51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( vip.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
+
+  vip.close();
+}

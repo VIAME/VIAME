@@ -186,5 +186,25 @@ TEST_F(video_input_image_list, seek_frame)
   // Video should be seekable
   EXPECT_TRUE( viil.seekable() );
 
+  // Test various valid seeks
+  int num_seeks = 6;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {3, 23, 46, 34, 50, 1};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_TRUE( viil.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+  }
+
+  // Test various invalid seeks past end of video
+  num_seeks = 4;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {-3, -1, 51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( viil.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
+
   viil.close();
 }

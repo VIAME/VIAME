@@ -667,6 +667,12 @@ vidl_ffmpeg_video_input
     throw vital::file_not_read_exception( d->video_path, "Video not open" );
   }
 
+  // negative frame number not allowed
+  if ( frame_number < 0 )
+  {
+    return false;
+  }
+
   unsigned int curr_frame_num = d->d_video_stream.frame_number() + 1;
 
   // If current frame number is greater than requested frame reopen
@@ -688,7 +694,7 @@ vidl_ffmpeg_video_input
     }
   }
 
-  // TODO: past this point method is identical too next_frame. Put coomon code
+  // TODO: past this point method is identical to next_frame. Put coomon code
   //       in helper function?
 
   unsigned int frame_num = d->d_video_stream.frame_number() + 1;

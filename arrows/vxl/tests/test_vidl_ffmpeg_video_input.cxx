@@ -182,9 +182,9 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame)
   }
 
   // Test various invalid seeks past end of video
-  num_seeks = 2;
+  num_seeks = 4;
   kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
-    {51, 55};
+    {-3, -1, 51, 55};
   for (int i=0; i<num_seeks; ++i)
   {
     EXPECT_FALSE( vfvi.seek_frame( ts, in_valid_seeks[i]) );

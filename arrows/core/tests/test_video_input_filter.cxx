@@ -175,6 +175,55 @@ TEST_F(video_input_filter, read_list_subset)
   EXPECT_EQ( 20, num_frames );
 }
 
+TEST_F(video_input_filter, seek_frame_sublist)
+{
+  // register the dummy_image_io so we can use it in this test
+  register_dummy_image_io();
+
+  // make config block
+  auto config = make_config(data_dir);
+
+  config->set_value( "start_at_frame", "11" );
+  config->set_value( "stop_after_frame", "30" );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vif.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vif.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vif.seekable() );
+
+  // Test various valid seeks
+  int num_seeks = 5;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {11, 17, 28, 21, 30};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_TRUE( vif.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+  }
+
+  // Test various invalid seeks past end of video
+  num_seeks = 8;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {-3, -1, 5, 10, 31, 42, 51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( vif.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
+
+  vif.close();
+}
 
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, test_capabilities)
