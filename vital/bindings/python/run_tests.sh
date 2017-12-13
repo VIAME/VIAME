@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-#nosetests \
-#  --cover-erase --with-coverage --cover-package=vital \
-#  "$@" ${SCRIPT_DIR}/vital/tests/
-
-pytest --cov=vital --cov-report=term "$@" ${SCRIPT_DIR}/vital/tests/
+nosetests \
+  --cover-erase --with-coverage --cover-package=vital \
+  "$@" ${SCRIPT_DIR}/vital/tests/
