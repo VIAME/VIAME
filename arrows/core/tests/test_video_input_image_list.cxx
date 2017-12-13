@@ -35,14 +35,14 @@
 
 #include <test_gtest.h>
 
-#include "dummy_image_io.h"
-
 #include <arrows/core/video_input_image_list.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
 #include <iostream>
+
+#include "barcode_decode.h"
 
 kwiver::vital::path_t g_data_dir;
 
@@ -78,12 +78,9 @@ TEST_F(video_input_image_list, create)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, read_list)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
-  config->set_value( "image_reader:type", "dummy" );
+  config->set_value( "image_reader:type", "ocv" );
 
   kwiver::arrows::core::video_input_image_list viil;
 
@@ -110,6 +107,8 @@ TEST_F(video_input_image_list, read_list)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 }
@@ -117,12 +116,9 @@ TEST_F(video_input_image_list, read_list)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, is_good)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
-  config->set_value( "image_reader:type", "dummy" );
+  config->set_value( "image_reader:type", "ocv" );
 
   kwiver::arrows::core::video_input_image_list viil;
 
@@ -165,12 +161,9 @@ TEST_F(video_input_image_list, is_good)
 
 TEST_F(video_input_image_list, seek_frame)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
-  config->set_value( "image_reader:type", "dummy" );
+  config->set_value( "image_reader:type", "ocv" );
 
   kwiver::arrows::core::video_input_image_list viil;
 
@@ -193,7 +186,13 @@ TEST_F(video_input_image_list, seek_frame)
   for (int i=0; i<num_seeks; ++i)
   {
     EXPECT_TRUE( viil.seek_frame( ts, valid_seeks[i]) );
-    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+
+    auto img = viil.frame_image();
+
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+      << "Frame number should match seek request";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
 
   // Test various invalid seeks past end of video

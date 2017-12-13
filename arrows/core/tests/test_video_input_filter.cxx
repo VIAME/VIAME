@@ -35,8 +35,6 @@
 
 #include <test_gtest.h>
 
-#include "dummy_image_io.h"
-
 #include <arrows/core/video_input_filter.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -85,7 +83,7 @@ make_config(std::string const& data_dir)
   config->set_value( "video_input:type", "split" );
 
   config->set_value( "video_input:split:image_source:type", "image_list" );
-  config->set_value( "video_input:split:image_source:image_list:image_reader:type", "dummy" );
+  config->set_value( "video_input:split:image_source:image_list:image_reader:type", "ocv" );
 
   config->set_value( "video_input:split:metadata_source:type", "pos" );
   config->set_value( "video_input:split:metadata_source:pos:metadata_directory", data_dir + "/pos");
@@ -96,9 +94,6 @@ make_config(std::string const& data_dir)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = make_config(data_dir);
 
@@ -135,9 +130,6 @@ TEST_F(video_input_filter, read_list)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list_subset)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = make_config(data_dir);
 
@@ -177,9 +169,6 @@ TEST_F(video_input_filter, read_list_subset)
 
 TEST_F(video_input_filter, seek_frame_sublist)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = make_config(data_dir);
 
@@ -228,9 +217,6 @@ TEST_F(video_input_filter, seek_frame_sublist)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, test_capabilities)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
   auto config = make_config(data_dir);
 
