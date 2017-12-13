@@ -21,6 +21,8 @@
 
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::utility::state_flags);
 
+TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::detection::detection_id );
+
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::external_id );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::timestamp_usecs );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::frame_number );

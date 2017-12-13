@@ -55,6 +55,10 @@ namespace dt {
 #define DEF_DT(NAME) \
   context NAME::c( NAME::get_context_name(), NAME::get_context_description() );
 
+namespace detection {
+  DEF_DT( detection_id );
+}
+
 namespace tracking {
 
   DEF_DT( external_id );

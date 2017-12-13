@@ -106,6 +106,14 @@ operator<<( record_yaml_writer& w, const writer< canonical::conf_t >& io)
 }
 
 record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::eval_t >& io)
+{
+  w.ensure_start();
+  w.s << "eval" << io.domain << ": " << io.eval.d << ", ";
+  return w;
+}
+
+record_yaml_writer&
 operator<<( record_yaml_writer& w, const writer< canonical::poly_t >& io)
 {
   w.ensure_start();

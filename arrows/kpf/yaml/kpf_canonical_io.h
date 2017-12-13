@@ -119,6 +119,14 @@ struct KPF_YAML_EXPORT writer< canonical::conf_t >
 };
 
 template<>
+struct KPF_YAML_EXPORT writer< canonical::eval_t >
+{
+  writer( double c, int d ): eval(c), domain(d) {}
+  canonical::eval_t eval;
+  int domain;
+};
+
+template<>
 struct KPF_YAML_EXPORT writer< canonical::meta_t >
 {
   writer( const std::string& t ): meta(t) {}
@@ -210,6 +218,14 @@ struct KPF_YAML_EXPORT reader< canonical::conf_t >
 {
   reader( double& c, int d): conf(c), domain(d) {}
   double& conf;
+  int domain;
+};
+
+template <>
+struct KPF_YAML_EXPORT reader< canonical::eval_t >
+{
+  reader( double& s, int d): score(s), domain(d) {}
+  double& score;
   int domain;
 };
 
