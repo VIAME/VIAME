@@ -75,9 +75,9 @@ On unix systems, the ccmake tool allows for interactive selection of CMake optio
 Available for all platforms, the CMake GUI can set the source and build directories, options,
 "Configure" and "Generate" the build files all with the click of a few button.
 
-We recommend building Fletch out of the source directory to prevent mixing
+We recommend building KWIVER out of the source directory to prevent mixing
 source files with compiled products.  Create a build directory in parallel
-with the Fletch source directory for each desired configuration. For example :
+with the KWIVER source directory for each desired configuration. For example :
 
 ========================== ===================================================================
 ``\kwiver\src``             contains the code from the git repository
@@ -123,7 +123,7 @@ You will also need to replace the fletch path with your own::
             -DKWIVER_ENABLE_EXTRAS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON \
             -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON \
             -DKWIVER_ENABLE_SPROKIT:BOOL=ON -DKWIVER_ENABLE_TOOLS:BOOL=ON \
-            -DKWIVER_USE_BUILD_TREE:BOOL=ON
+            -DKWIVER_ENABLE_EXAMPLES:BOOL=ON -DKWIVER_USE_BUILD_TREE:BOOL=ON
 
 Basic CMake generation using ccmake
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -195,29 +195,33 @@ Running KWIVER
 ==============
 
 Once you've built KWIVER, you'll want to test that it's working on your system.
+Change your terminal/command prompt to the KWIVER CMake build directory.
 From a command prompt execute the following command::
 
   # via a bash shell
-  source </path/to/kwiver/build>/setup_KWIVER.sh
+  $ cd <path/to/kwiver/build>
+  $ source setup_KWIVER.sh
   #
   # via a windows cmd prompt
-  </path/to/kwiver/build>/setup_KWIVER.bat
-
-Where `</path/to/kwiver/build>` is the actual path of your KWIVER
-CMake build directory.
+  > cd <path/to/kwiver/build>
+  > setup_KWIVER.bat
 
 This will set up your PATH, PYTHONPATH and other environment variables
 to allow KWIVER to work conveniently within in the shell/cmd window.
 
 You can run this simple pipeline to ensure your system is configured properly::
 
-  # via a bash shell
-  </path/to/kwiver/build>/bin/pipeline_runner -p ../examples/pipelines/number_flow.pipe
+  # via a bash shell  
+  $ cd bin
+  $ pipeline_runner -p ../examples/pipelines/number_flow.pipe
   #
   # on windows, you will need to also be in the configuration folder
-  </path/to/kwiver/build>/bin/release/pipeline_runner -p ..\..\examples\pipelines\number_flow.pipe
+  > cd bin\release
+  > pipeline_runner -p ..\..\examples\pipelines\number_flow.pipe
 
 This will generate a 'numbers.txt' file in the </path/to/kwiver/build>/examples/pipelines/output directory.
+
+More examples can be found in our `tutorials <http://kwiver.readthedocs.io/en/latest/tutorials.html>`_
 
 KWIVER Users
 ============
