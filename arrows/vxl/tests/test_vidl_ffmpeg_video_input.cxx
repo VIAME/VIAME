@@ -35,6 +35,7 @@
 
 #include <test_gtest.h>
 
+#include <arrows/core/tests/barcode_decode.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -92,6 +93,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
   int num_frames = 0;
   while ( vfvi.next_frame( ts ) )
   {
+    auto img = vfvi.frame_image();
     auto md = vfvi.frame_metadata();
 
     if (md.size() > 0)
@@ -103,6 +105,8 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 }
@@ -178,7 +182,13 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame)
   for (int i=0; i<num_seeks; ++i)
   {
     EXPECT_TRUE( vfvi.seek_frame( ts, valid_seeks[i]) );
-    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+
+    auto img = vfvi.frame_image();
+
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+      << "Frame number should match seek request";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
 
   // Test various invalid seeks past end of video

@@ -42,6 +42,8 @@
 #include <string>
 #include <iostream>
 
+#include "barcode_decode.h"
+
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
@@ -122,6 +124,8 @@ TEST_F(video_input_filter, read_list)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 }
@@ -163,6 +167,8 @@ TEST_F(video_input_filter, read_list_subset)
     ++frame_idx;
     EXPECT_EQ( frame_idx, ts.get_frame() )
       << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
   EXPECT_EQ( 20, num_frames );
 }
@@ -198,7 +204,13 @@ TEST_F(video_input_filter, seek_frame_sublist)
   for (int i=0; i<num_seeks; ++i)
   {
     EXPECT_TRUE( vif.seek_frame( ts, valid_seeks[i]) );
-    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+
+    auto img = vif.frame_image();
+
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+      << "Frame number should match seek request";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
 
   // Test various invalid seeks past end of video
