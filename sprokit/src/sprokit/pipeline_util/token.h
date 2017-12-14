@@ -44,8 +44,6 @@
 #include <string>
 #include <memory>
 
-#include <boost/shared_ptr.hpp>
-
 namespace sprokit {
 
 /**

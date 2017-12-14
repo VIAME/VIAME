@@ -44,7 +44,6 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/bind.hpp>
 
 #include <deque>
 #include <iterator>
@@ -136,7 +135,7 @@ void
 sync_scheduler
 ::_start()
 {
-  d->thread = boost::thread(boost::bind(&priv::run, d.get(), pipeline()));
+  d->thread = boost::thread(std::bind(&priv::run, d.get(), pipeline()));
 }
 
 
