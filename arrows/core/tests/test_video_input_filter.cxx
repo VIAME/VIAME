@@ -195,29 +195,27 @@ TEST_F(video_input_filter, seek_frame)
   EXPECT_TRUE( vif.seekable() );
 
   // Test various valid seeks
-  int num_seeks = 6;
-  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
     {3, 23, 46, 34, 50, 1};
-  for (int i=0; i<num_seeks; ++i)
+  for (auto requested_frame : valid_seeks)
   {
-    EXPECT_TRUE( vif.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_TRUE( vif.seek_frame( ts, requested_frame) );
 
     auto img = vif.frame_image();
 
-    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+    EXPECT_EQ( requested_frame, ts.get_frame() )
       << "Frame number should match seek request";
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
 
   // Test various invalid seeks past end of video
-  num_seeks = 4;
-  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
     {-3, -1, 51, 55};
-  for (int i=0; i<num_seeks; ++i)
+  for (auto requested_frame : in_valid_seeks)
   {
-    EXPECT_FALSE( vif.seek_frame( ts, in_valid_seeks[i]) );
-    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+    EXPECT_FALSE( vif.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
   }
 
   vif.close();
@@ -248,29 +246,27 @@ TEST_F(video_input_filter, seek_frame_sublist)
   EXPECT_TRUE( vif.seekable() );
 
   // Test various valid seeks
-  int num_seeks = 5;
-  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
     {11, 17, 28, 21, 30};
-  for (int i=0; i<num_seeks; ++i)
+  for (auto requested_frame : valid_seeks)
   {
-    EXPECT_TRUE( vif.seek_frame( ts, valid_seeks[i]) );
+    EXPECT_TRUE( vif.seek_frame( ts, requested_frame) );
 
     auto img = vif.frame_image();
 
-    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+    EXPECT_EQ( requested_frame, ts.get_frame() )
       << "Frame number should match seek request";
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
 
   // Test various invalid seeks past end of video
-  num_seeks = 8;
-  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
     {-3, -1, 5, 10, 31, 42, 51, 55};
-  for (int i=0; i<num_seeks; ++i)
+  for (auto requested_frame : in_valid_seeks)
   {
-    EXPECT_FALSE( vif.seek_frame( ts, in_valid_seeks[i]) );
-    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+    EXPECT_FALSE( vif.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
   }
 
   vif.close();

@@ -174,23 +174,21 @@ TEST_F(video_input_pos, seek_frame)
   EXPECT_TRUE( vip.seekable() );
 
   // Test various valid seeks
-  int num_seeks = 6;
-  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
     {3, 23, 46, 34, 50, 1};
-  for (int i=0; i<num_seeks; ++i)
+  for (auto requested_frame : valid_seeks)
   {
-    EXPECT_TRUE( vip.seek_frame( ts, valid_seeks[i]) );
-    EXPECT_EQ( valid_seeks[i], ts.get_frame() );
+    EXPECT_TRUE( vip.seek_frame( ts, requested_frame) );
+    EXPECT_EQ( requested_frame, ts.get_frame() );
   }
 
   // Test various invalid seeks past end of video
-  num_seeks = 4;
-  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
     {-3, -1, 51, 55};
-  for (int i=0; i<num_seeks; ++i)
+  for (auto requested_frame : in_valid_seeks)
   {
-    EXPECT_FALSE( vip.seek_frame( ts, in_valid_seeks[i]) );
-    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+    EXPECT_FALSE( vip.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
   }
 
   vip.close();
