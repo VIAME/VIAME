@@ -74,6 +74,7 @@ public:
       c_time_scan_frame_limit( 100 ),
       d_have_frame( false ),
       d_at_eov( false ),
+      d_frame_advanced( false ),
       d_have_frame_time( false ),
       d_have_abs_frame_time( false ),
       d_have_metadata( false ),
@@ -97,6 +98,7 @@ public:
   // local state
   bool d_have_frame;
   bool d_at_eov;
+  bool d_frame_advanced;
 
   /**
    * This is set to indicate that we can supply a frame time of some
@@ -521,6 +523,7 @@ vidl_ffmpeg_video_input
   }
 
   d->d_at_eov = false;
+  d->d_frame_advanced = false;
   d->d_frame_number = 1;
 
   if ( d->c_start_at_frame != 0 &&  d->c_start_at_frame > 1 )
@@ -585,6 +588,7 @@ vidl_ffmpeg_video_input
 
   d->d_have_frame = false;
   d->d_at_eov = false;
+  d->d_frame_advanced = false;
   d->d_have_frame_time = false;
   d->d_have_abs_frame_time = false;
   d->d_have_metadata = false;
@@ -651,6 +655,8 @@ vidl_ffmpeg_video_input
   // ---- process metadata ---
   d->metadata_collection.clear(); // erase old metadata packets
 
+  d->d_frame_advanced = true;
+
   return true;
 }
 
@@ -669,6 +675,13 @@ vidl_ffmpeg_video_input
 
   // negative frame number not allowed
   if ( frame_number < 0 )
+  {
+    return false;
+  }
+
+  // Check if requested frame is valid
+  if ( (d->c_stop_after_frame != 0 && d->c_stop_after_frame < frame_number )
+        || frame_number < d->c_start_at_frame )
   {
     return false;
   }
@@ -697,13 +710,6 @@ vidl_ffmpeg_video_input
   // TODO: past this point method is identical to next_frame. Put coomon code
   //       in helper function?
 
-  unsigned int frame_num = d->d_video_stream.frame_number() + 1;
-  if( (d->c_stop_after_frame != 0) && (d->c_stop_after_frame < frame_num ))
-  {
-    d->d_at_eov = true;  // logical end of file
-    return false;
-  }
-
   // ---- Calculate time stamp ----
   // Metadata packets may not exist for each frame, so use the diff in
   // presentation time stamps to foward the first metadata time stamp.
@@ -723,6 +729,8 @@ vidl_ffmpeg_video_input
 
   // ---- process metadata ---
   d->metadata_collection.clear(); // erase old metadata packets
+
+  d->d_frame_advanced = true;
 
   return true;
 }
@@ -793,7 +801,7 @@ bool
 vidl_ffmpeg_video_input
 ::good() const
 {
-  return d->d_video_stream.is_valid();
+  return d->d_video_stream.is_valid() && d->d_frame_advanced;
 }
 
 // ------------------------------------------------------------------

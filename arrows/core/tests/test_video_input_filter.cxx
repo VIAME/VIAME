@@ -173,6 +173,56 @@ TEST_F(video_input_filter, read_list_subset)
   EXPECT_EQ( 20, num_frames );
 }
 
+TEST_F(video_input_filter, seek_frame)
+{
+  // make config block
+  auto config = make_config(data_dir);
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vif.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vif.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vif.seekable() );
+
+  // Test various valid seeks
+  int num_seeks = 6;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {3, 23, 46, 34, 50, 1};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_TRUE( vif.seek_frame( ts, valid_seeks[i]) );
+
+    auto img = vif.frame_image();
+
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+      << "Frame number should match seek request";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
+  }
+
+  // Test various invalid seeks past end of video
+  num_seeks = 4;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {-3, -1, 51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( vif.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
+
+  vif.close();
+}
+
 TEST_F(video_input_filter, seek_frame_sublist)
 {
   // make config block

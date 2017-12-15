@@ -265,8 +265,9 @@ video_input_filter
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout ) // not supported
 {
-  // Check if requested frame exists
-  if (frame_number > d->c_stop_after_frame || frame_number < d->c_start_at_frame)
+  // Check if requested frame is valid
+  if ( (d->c_stop_after_frame != 0 && d->c_stop_after_frame < frame_number )
+        || frame_number < d->c_start_at_frame )
   {
     return false;
   }

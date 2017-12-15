@@ -130,7 +130,7 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
 
   // open the video
   vfvi.open( video_file );
-  EXPECT_TRUE( vfvi.good() )
+  EXPECT_FALSE( vfvi.good() )
     << "Video state after open but before first frame";
 
   // step one frame
@@ -198,6 +198,57 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame)
   for (int i=0; i<num_seeks; ++i)
   {
     EXPECT_FALSE( vfvi.seek_frame( ts, in_valid_seeks[i]) );
+    EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
+  }
+
+  vfvi.close();
+}
+
+TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "start_at_frame", "11" );
+  config->set_value( "stop_after_frame", "30" );
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  vfvi.check_configuration( config );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vfvi.open( video_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vfvi.seekable() );
+
+  // Test various valid seeks
+  int num_seeks = 5;
+  kwiver::vital::timestamp::frame_t valid_seeks[num_seeks] =
+    {11, 17, 28, 21, 30};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_TRUE( vfvi.seek_frame( ts, valid_seeks[i]) );
+
+    auto img = vfvi.frame_image();
+
+    EXPECT_EQ( valid_seeks[i], ts.get_frame() )
+      << "Frame number should match seek request";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
+  }
+
+  // Test various invalid seeks past end of video
+  num_seeks = 8;
+  kwiver::vital::timestamp::frame_t in_valid_seeks[num_seeks] =
+    {-3, -1, 5, 10, 31, 42, 51, 55};
+  for (int i=0; i<num_seeks; ++i)
+  {
+    EXPECT_FALSE( vfvi.seek_frame( ts, in_valid_seeks[i]) ) << " for " << in_valid_seeks[i];
     EXPECT_NE( in_valid_seeks[i], ts.get_frame() );
   }
 

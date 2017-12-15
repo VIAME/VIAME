@@ -291,7 +291,7 @@ video_input_pos
   ts = kwiver::vital::timestamp();
 
   // Check if requested frame exists
-  if (frame_number > d->d_img_md_files.size() || frame_number < 0)
+  if (frame_number > (int)d->d_img_md_files.size() || frame_number < 0)
   {
     return false;
   }
@@ -311,7 +311,6 @@ video_input_pos
   if ( ! d->d_current_files->second.empty() )
   {
     // Open next file in the list
-    std::cerr << "FILE: " << d->d_current_files->second << std::endl;
     d->d_metadata = vital::read_pos_file( d->d_current_files->second );
   }
 
