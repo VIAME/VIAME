@@ -223,6 +223,15 @@ estimate_pnp
   res_cam->set_translation(tvec_eig);
   res_cam->set_intrinsics(cal);
 
+  if (!std::isfinite(res_cam->center().x()))
+  {    
+    LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " << best_rvec.at<double>(1) << " " << best_rvec.at<double>(2));
+    LOG_DEBUG(d_->m_logger, "best_rvec " << best_tvec.at<double>(0) << " " << best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
+    LOG_DEBUG(d_->m_logger, "rotation angle " << res_cam->rotation().angle());
+    LOG_DEBUG(d_->m_logger, "non-finite camera center found");
+    return vital::camera_sptr();
+  }
+
   return std::dynamic_pointer_cast<vital::camera>(res_cam);
 }
 
