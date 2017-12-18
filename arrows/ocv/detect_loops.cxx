@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,13 +133,16 @@ public:
 
   unsigned m_min_loop_inlier_matches;
 
+  int m_max_num_candidate_matches_from_vocabulary_tree;
+
 };
 
 //-----------------------------------------------------------------------------
 
 detect_loops::priv
 ::priv()
-  :m_min_loop_inlier_matches(50)
+  : m_min_loop_inlier_matches(50)
+  , m_max_num_candidate_matches_from_vocabulary_tree(10)
 {
 }
 
@@ -230,12 +233,18 @@ detect_loops::priv
   if (!im_list.is_open())
   {
     LOG_ERROR(m_logger, "error while opening file " + training_image_list);
-    throw vital::invalid_file(training_image_list, "unable to open training image file");
+    throw vital::invalid_file(training_image_list, 
+      "unable to open training image file");
   }
 
+  int ln_num = 0;
   while (std::getline(im_list, line)) 
   {   
-   
+    if (ln_num++ != 10)
+    {      
+      continue;
+    }
+    ln_num = 0;
     image_container_sptr im = m_image_io->load(line);
     LOG_INFO(m_logger,"Extracting features for image " + line);
 
@@ -243,7 +252,7 @@ detect_loops::priv
     descriptor_set_sptr im_descriptors = m_extractor->extract(im, im_features);
 
     features.push_back(std::vector<cv::Mat >());
-    descriptor_set_to_vec(im_descriptors, features.back());   
+    descriptor_set_to_vec(im_descriptors, features.back());       
   }
 
   if (im_list.bad())
@@ -359,8 +368,8 @@ detect_loops::priv
     }
   }
 
-  LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches " <<
-    num_successfully_matched_pairs << " pairs were verified");
+  LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches " 
+    << num_successfully_matched_pairs << " pairs were verified");
 
   return feat_tracks;
 }
@@ -408,13 +417,14 @@ detect_loops::priv
     mwc.m2 = m.second;
     feature_sptr f1 = fi1->features->features()[mwc.m1];
     feature_sptr f2 = fi2->features->features()[mwc.m2];       
-    mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());  //using relative scale as cost
+    //using relative scale as cost
+    mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());  
   }
 
   std::sort(mwc_vec.begin(), mwc_vec.end());
 
-  //sorting makes us add the lowest cost matches first.  This means if we have duplicate matches, 
-  //the best ones will end up in the final match set.
+  // sorting makes us add the lowest cost matches first.  This means if we have
+  // duplicate matches, the best ones will end up in the final match set.
   std::set<unsigned> matched_indices_1, matched_indices_2;
 
   std::vector<match> unique_matches;
@@ -475,7 +485,9 @@ detect_loops::priv
     return feat_tracks;
   }
   std::vector<cv::Mat> desc_mats;
-  descriptor_set_to_vec(desc, desc_mats);  //note that desc_mats can be shorter than desc because of null descriptors (KLT features)
+  descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
+                                           // than desc because of null 
+                                           // descriptors (KLT features)
 
   if (desc_mats.size() == 0)
   {  //only features without descriptors in this frame
@@ -489,13 +501,17 @@ detect_loops::priv
 
   //add them to the database
   const DBoW2::EntryId ent = m_db->add(bow_vec, feat_vec);
-  std::pair<const DBoW2::EntryId, kwiver::vital::frame_id_t> new_ent(ent, frame_number);
+  std::pair<const DBoW2::EntryId, kwiver::vital::frame_id_t> 
+    new_ent(ent, frame_number);
+
   m_entry_to_frame.insert(new_ent);
 
   //querry the database for matches
-  int max_res = 10;
+  int max_res = m_max_num_candidate_matches_from_vocabulary_tree;
   DBoW2::QueryResults ret;
-  m_db->query(bow_vec, ret, max_res, ent);  //ent at the end prevents the querry from returning the current image.
+  m_db->query(bow_vec, ret, max_res, ent);  // ent at the end prevents the 
+                                            // querry from returning the 
+                                            // current image.
 
   std::vector<frame_id_t> putative_matching_images;
   putative_matching_images.reserve(ret.size());
@@ -513,7 +529,8 @@ detect_loops::priv
   //uncomment line below to skip matching orb features
   //putative_matching_images.clear();  //TODO remove this
 
-  return verify_and_add_image_matches(feat_tracks, frame_number, putative_matching_images);
+  return verify_and_add_image_matches(feat_tracks, frame_number, 
+    putative_matching_images);
 }
 
 // ----------------------------------------------------------------------------
@@ -583,6 +600,11 @@ detect_loops
   algo::match_features::
     get_nested_algo_configuration("match_features", config, d_->m_matcher);
 
+
+  config->set_value("max_num_candidate_matches_from_vocabulary_tree", 
+    d_->m_max_num_candidate_matches_from_vocabulary_tree,
+    "the maximum number of candidate matches to return from the vocabulary tree");
+
   return config;
 }
 
@@ -601,11 +623,13 @@ detect_loops
   // Setting nested algorithm instances via setter methods instead of directly
   // assigning to instance property.
   algo::detect_features_sptr df;
-  algo::detect_features::set_nested_algo_configuration("feature_detector", config, df);
+  algo::detect_features::set_nested_algo_configuration(
+    "feature_detector", config, df);
   d_->m_detector = df;
 
   algo::extract_descriptors_sptr ed;
-  algo::extract_descriptors::set_nested_algo_configuration("descriptor_extractor", config, ed);
+  algo::extract_descriptors::set_nested_algo_configuration(
+    "descriptor_extractor", config, ed);
   d_->m_extractor = ed;
 
   algo::image_io_sptr io;
@@ -613,10 +637,13 @@ detect_loops
   d_->m_image_io = io;
 
   algo::match_features_sptr mf;
-  algo::match_features::set_nested_algo_configuration("match_features", config, mf);
+  algo::match_features::set_nested_algo_configuration(
+    "match_features", config, mf);
   d_->m_matcher = mf;
 
-
+  d_->m_max_num_candidate_matches_from_vocabulary_tree =
+    config->get_value<int>("max_num_candidate_matches_from_vocabulary_tree", 
+      d_->m_max_num_candidate_matches_from_vocabulary_tree);
 }
 
 //-----------------------------------------------------------------------------
@@ -627,16 +654,33 @@ detect_loops
 {
   bool config_valid = true;
 
-  config_valid = algo::detect_features::check_nested_algo_configuration("feature_detector", config)
-    && config_valid;
+  config_valid = 
+    algo::detect_features::check_nested_algo_configuration(
+      "feature_detector", config) && config_valid;
 
-  config_valid = algo::extract_descriptors::check_nested_algo_configuration("descriptor_extractor", config)
-    && config_valid;
+  config_valid = 
+    algo::extract_descriptors::check_nested_algo_configuration(
+      "descriptor_extractor", config) && config_valid;
 
-  config_valid = algo::image_io::check_nested_algo_configuration("image_io", config) && config_valid;
+  config_valid = 
+    algo::image_io::check_nested_algo_configuration("image_io", config) && 
+    config_valid;
 
-  config_valid = algo::match_features::check_nested_algo_configuration("match_features", config) && config_valid;
-    
+  config_valid = 
+    algo::match_features::check_nested_algo_configuration(
+      "match_features", config) && config_valid;
+
+  int max_cand_matches =
+    config->get_value<int>("max_num_candidate_matches_from_vocabulary_tree");
+  
+  if (max_cand_matches <= 0)
+  {
+    LOG_ERROR(d_->m_logger, 
+      "max_num_candidate_matches_from_vocabulary_tree must be a positive "
+      "(nonzero) integer");
+    config_valid = false;
+  }
+        
   return config_valid;
 }
 
