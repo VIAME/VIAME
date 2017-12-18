@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_split.h>
+#include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
@@ -78,25 +79,40 @@ TEST_F(video_input_split, create)
 
 // ----------------------------------------------------------------------------
 static
-kwiver::vital::config_block_sptr
-make_config(std::string const& data_dir)
+bool
+set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
 {
-  // make config block
-  auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "image_source:type", "image_list" );
-  config->set_value( "image_source:image_list:image_reader:type", "ocv" );
+  if ( kwiver::vital::has_algorithm_impl_name( "image_io", "ocv" ) )
+  {
+    config->set_value( "image_source:image_list:image_reader:type", "ocv" );
+  }
+  else if ( kwiver::vital::has_algorithm_impl_name( "image_io", "vxl" ) )
+  {
+    config->set_value( "image_source:image_list:image_reader:type", "vxl" );
+  }
+  else
+  {
+    std::cout << "Skipping tests since there is no image reader." << std::endl;
+    return false;
+  }
 
   config->set_value( "metadata_source:type", "pos" );
   config->set_value( "metadata_source:pos:metadata_directory", data_dir + "/pos");
 
-  return config;
+  return true;
 }
 
 // ----------------------------------------------------------------------------
 TEST_F(video_input_split, read_list)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_split vis;
 
@@ -132,7 +148,12 @@ TEST_F(video_input_split, read_list)
 TEST_F(video_input_split, seek_frame)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_split vis;
 
@@ -153,7 +174,12 @@ TEST_F(video_input_split, seek_frame)
 TEST_F(video_input_split, test_capabilities)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_split vis;
 

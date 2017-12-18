@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_filter.h>
+#include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
@@ -78,27 +79,41 @@ TEST_F(video_input_filter, create)
 
 // ----------------------------------------------------------------------------
 static
-kwiver::vital::config_block_sptr
-make_config(std::string const& data_dir)
+bool
+set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
 {
-  // make config block
-  auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "video_input:type", "split" );
-
   config->set_value( "video_input:split:image_source:type", "image_list" );
-  config->set_value( "video_input:split:image_source:image_list:image_reader:type", "ocv" );
+  if ( kwiver::vital::has_algorithm_impl_name( "image_io", "ocv" ) )
+  {
+    config->set_value( "video_input:split:image_source:image_list:image_reader:type", "ocv" );
+  }
+  else if ( kwiver::vital::has_algorithm_impl_name( "image_io", "vxl" ) )
+  {
+    config->set_value( "video_input:split:image_source:image_list:image_reader:type", "vxl" );
+  }
+  else
+  {
+    std::cout << "Skipping tests since there is no image reader." << std::endl;
+    return false;
+  }
 
   config->set_value( "video_input:split:metadata_source:type", "pos" );
   config->set_value( "video_input:split:metadata_source:pos:metadata_directory", data_dir + "/pos");
 
-  return config;
+  return true;
 }
 
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_filter vif;
 
@@ -136,7 +151,12 @@ TEST_F(video_input_filter, read_list)
 TEST_F(video_input_filter, read_list_subset)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   config->set_value( "start_at_frame", "11" );
   config->set_value( "stop_after_frame", "30" );
@@ -177,7 +197,12 @@ TEST_F(video_input_filter, read_list_subset)
 TEST_F(video_input_filter, seek_frame)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_filter vif;
 
@@ -197,7 +222,12 @@ TEST_F(video_input_filter, seek_frame)
 TEST_F(video_input_filter, seek_frame_sublist)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   config->set_value( "start_at_frame", "11" );
   config->set_value( "stop_after_frame", "30" );
@@ -222,7 +252,12 @@ TEST_F(video_input_filter, seek_frame_sublist)
 TEST_F(video_input_filter, test_capabilities)
 {
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_filter vif;
 
