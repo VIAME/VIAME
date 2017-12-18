@@ -43,6 +43,7 @@
 #include <iostream>
 
 #include "barcode_decode.h"
+#include "seek_frame_common.h"
 
 kwiver::vital::path_t g_data_dir;
 
@@ -171,37 +172,11 @@ TEST_F(video_input_image_list, seek_frame)
   viil.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
-  kwiver::vital::timestamp ts;
 
   // Open the video
   viil.open( list_file );
 
-  // Video should be seekable
-  EXPECT_TRUE( viil.seekable() );
-
-  // Test various valid seeks
-  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
-    {3, 23, 46, 34, 50, 1};
-  for (auto requested_frame : valid_seeks)
-  {
-    EXPECT_TRUE( viil.seek_frame( ts, requested_frame) );
-
-    auto img = viil.frame_image();
-
-    EXPECT_EQ( requested_frame, ts.get_frame() )
-      << "Frame number should match seek request";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-  }
-
-  // Test various invalid seeks past end of video
-  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
-    {-3, -1, 51, 55};
-  for (auto requested_frame : in_valid_seeks)
-  {
-    EXPECT_FALSE( viil.seek_frame( ts, requested_frame) );
-    EXPECT_NE( requested_frame, ts.get_frame() );
-  }
+  test_seek_frame( viil );
 
   viil.close();
 }

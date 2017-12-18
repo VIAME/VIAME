@@ -274,6 +274,39 @@ public:
     return retval;
   } // init_timestamp
 
+// ------------------------------------------------------------------
+  /*
+   * @brief Calculate timestamp for frame.
+   *
+   * This method calculates the timestamp for a frame after a call to
+   * next_frame() or skip_frame(). This also clears old metadata packets
+   * and marks that the frame has been advanced after creation.
+   *
+   */
+  void process_frame_timestamp( kwiver::vital::timestamp& ts )
+  {
+    // ---- Calculate time stamp ----
+    // Metadata packets may not exist for each frame, so use the diff in
+    // presentation time stamps to foward the first metadata time stamp.
+    double pts_diff = ( d_video_stream.current_pts() - pts_of_meta_ts ) * 1e6;
+    d_frame_time = meta_ts + pts_diff;
+    d_frame_number = d_video_stream.frame_number() + 1;
+
+    // We don't always have all components of a timestamp, so start with
+    // an invalid TS and add the data we have.
+    ts.set_invalid();
+    ts.set_frame( d_frame_number );
+
+    if ( d_have_frame_time )
+    {
+      ts.set_time_usec( d_frame_time );
+    }
+
+    // ---- process metadata ---
+    metadata_collection.clear(); // erase old metadata packets
+
+    d_frame_advanced = true;
+  }
 
 // ------------------------------------------------------------------
   bool misp_time()
@@ -635,27 +668,7 @@ vidl_ffmpeg_video_input
     return false;
   }
 
-  // ---- Calculate time stamp ----
-  // Metadata packets may not exist for each frame, so use the diff in
-  // presentation time stamps to foward the first metadata time stamp.
-  double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
-  d->d_frame_time = d->meta_ts + pts_diff;
-  d->d_frame_number = d->d_video_stream.frame_number() + 1;
-
-  // We don't always have all components of a timestamp, so start with
-  // an invalid TS and add the data we have.
-  ts.set_invalid();
-  ts.set_frame( d->d_frame_number );
-
-  if ( d->d_have_frame_time )
-  {
-    ts.set_time_usec( d->d_frame_time );
-  }
-
-  // ---- process metadata ---
-  d->metadata_collection.clear(); // erase old metadata packets
-
-  d->d_frame_advanced = true;
+  d->process_frame_timestamp( ts );
 
   return true;
 }
@@ -707,30 +720,7 @@ vidl_ffmpeg_video_input
     }
   }
 
-  // TODO: past this point method is identical to next_frame. Put coomon code
-  //       in helper function?
-
-  // ---- Calculate time stamp ----
-  // Metadata packets may not exist for each frame, so use the diff in
-  // presentation time stamps to foward the first metadata time stamp.
-  double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
-  d->d_frame_time = d->meta_ts + pts_diff;
-  d->d_frame_number = d->d_video_stream.frame_number() + 1;
-
-  // We don't always have all components of a timestamp, so start with
-  // an invalid TS and add the data we have.
-  ts.set_invalid();
-  ts.set_frame( d->d_frame_number );
-
-  if ( d->d_have_frame_time )
-  {
-    ts.set_time_usec( d->d_frame_time );
-  }
-
-  // ---- process metadata ---
-  d->metadata_collection.clear(); // erase old metadata packets
-
-  d->d_frame_advanced = true;
+  d->process_frame_timestamp( ts );
 
   return true;
 }
