@@ -88,11 +88,18 @@ public:
               vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const;
 
+  vital::vector_3d
+  ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
+                      const std::vector<vital::vector_2d> &lm_image_pts,
+                      float inlier_threshold) const;
+
 private:
   /// private implementation class
   class priv;
   const std::unique_ptr<priv> d_;
 };
+
+typedef std::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
 
 } // end namespace core
 } // end namespace arrows
