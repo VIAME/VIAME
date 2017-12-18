@@ -110,6 +110,10 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
         // no feature for this track state.
         continue;
       }
+      if (!fts->inlier)
+      {
+        continue; //feature is not marked as an inlier so skip it
+      }
       const feature& feat = *fts->feature;
       cam_map_itr_t ci = cameras.find((*tsi)->frame());
       if (ci == cameras.end() || !ci->second)
@@ -151,6 +155,10 @@ reprojection_rmse(const std::map<frame_id_t, camera_sptr>& cameras,
       {
         // no feature for this track state.
         continue;
+      }
+      if (!fts->inlier)
+      {
+        continue; //feature is not marked as an inlier so skip it
       }
       const feature& feat = *fts->feature;
       cam_map_itr_t ci = cameras.find((*tsi)->frame());
