@@ -45,7 +45,7 @@ class keyframe_selector_basic::priv {
 public:
   priv()
     : keyframe_min_feature_count(50)
-    , fraction_tracks_lost_to_necessitate_new_keyframe(0.65f)  //setting very high for debugging purposes
+    , fraction_tracks_lost_to_necessitate_new_keyframe(0.3f)  //setting very high for debugging purposes
     , next_candidate_keyframe_id(-1)
   {
   }  
