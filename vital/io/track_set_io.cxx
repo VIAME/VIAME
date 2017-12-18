@@ -177,6 +177,7 @@ read_feature_track_file( path_t const& file_path )
           "Could not open file at given path." );
   }
 
+  std::set<frame_id_t> frames_in_track_set;
   // Read the file
   std::vector< track_sptr > tracks;
   std::map< track_id_t, track_sptr > track_map;
@@ -207,6 +208,8 @@ read_feature_track_file( path_t const& file_path )
     {
       t = it->second;
     }
+    frames_in_track_set.insert(fid);
+
     auto ftsd = std::make_shared<feature_track_state>(fid);
     ftsd->feature = feat;
     if (has_desc)
@@ -229,6 +232,19 @@ read_feature_track_file( path_t const& file_path )
         std::make_shared<vital::keyframe_metadata_for_basic_selector>(true));
     fts->set_frame_metadata(fid, kfmd);
   }
+  //make sure all the non-keyframe metadata items are also included
+  for (auto frame : frames_in_track_set)
+  {
+    auto kfmd = fts->get_frame_metadata(frame);
+    if (!kfmd)
+    {
+      keyframe_metadata_sptr new_kfmd =
+        std::dynamic_pointer_cast<vital::keyframe_metadata>(
+          std::make_shared<vital::keyframe_metadata_for_basic_selector>(false));
+      fts->set_frame_metadata(frame, new_kfmd);
+    }
+  }
+
 
   return fts;
 } // read_track_file
