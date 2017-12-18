@@ -51,12 +51,14 @@ class estimate_pnp::priv
 public:
   /// Constructor
   priv()
-    : confidence_threshold(0.99),
-      m_logger( vital::get_logger( "arrows.ocv.estimate_pnp" ))
+    : confidence_threshold(0.99)
+    , max_iterations(10000)
+    , m_logger( vital::get_logger( "arrows.ocv.estimate_pnp" ))
   {
   }
 
   double confidence_threshold;
+  int max_iterations;
 
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -87,7 +89,10 @@ estimate_pnp
       vital::algo::estimate_pnp::get_configuration();
 
   config->set_value("confidence_threshold", d_->confidence_threshold,
-                    "Confidence that estimated matrix is correct, range (0.0, 1.0]");
+    "Confidence that estimated matrix is correct, range (0.0, 1.0]");
+
+  config->set_value("max_iterations", d_->max_iterations,
+    "maximum number of iterations to run P3P [1, INT_MAX]");
 
   return config;
 }
@@ -98,7 +103,10 @@ void
 estimate_pnp
 ::set_configuration(vital::config_block_sptr config)
 {
-  d_->confidence_threshold = config->get_value<double>("confidence_threshold", d_->confidence_threshold);
+  d_->confidence_threshold = 
+    config->get_value<double>("confidence_threshold", d_->confidence_threshold);
+  d_->max_iterations =
+    config->get_value<int>("max_iterations", d_->max_iterations);
 }
 
 
@@ -107,16 +115,29 @@ bool
 estimate_pnp
 ::check_configuration(vital::config_block_sptr config) const
 {
-  double confidence_threshold = config->get_value<double>("confidence_threshold", d_->confidence_threshold);
+  bool good_conf = true;
+  double confidence_threshold = 
+    config->get_value<double>("confidence_threshold", d_->confidence_threshold);
+
   if( confidence_threshold <= 0.0 || confidence_threshold > 1.0 )
   {
     LOG_ERROR(d_->m_logger, "confidence_threshold parameter is "
                             << confidence_threshold
                             << ", needs to be in (0.0, 1.0].");
-    return false;
+    good_conf = false;
   }
 
-  return true;
+  int max_iterations = 
+    config->get_value<int>("max_iterations", d_->max_iterations);
+
+  if (max_iterations < 1)
+  {
+    LOG_ERROR(d_->m_logger, "max iterations is " << max_iterations
+      << ", needs to be greater than zero.");
+    good_conf = false;
+  }  
+
+  return good_conf;
 }
 
 
@@ -130,12 +151,14 @@ estimate_pnp
 {
   if (pts2d.size() < 3 || pts3d.size() < 3)
   {
-    LOG_ERROR(d_->m_logger, "Not enough points to estimate a fundamental matrix");
+    LOG_ERROR(d_->m_logger, 
+      "Not enough points to estimate a fundamental matrix");
     return vital::camera_sptr();
   }
   if (pts2d.size() != pts3d.size())
   {
-    LOG_ERROR(d_->m_logger, "Number of 3D points and projections should match.  They don't.");
+    LOG_ERROR(d_->m_logger, 
+      "Number of 3D points and projections should match.  They don't.");
   }
 
   std::vector<cv::Point2f> projs;
@@ -165,8 +188,9 @@ estimate_pnp
   cv::eigen2cv(K, cv_K);
   
   double confidence = 0;
-  double confidence_thresh = 0.9999;
-  int max_iterations = 10000;  //set some maximum because we don't want to wait forever
+  double confidence_thresh = d_->confidence_threshold;
+  int max_iterations = d_->max_iterations;  // set some maximum because we don't
+                                            // want to wait forever
   int iterations = 0;
   double best_inlier_ratio = 0;
   const double sample_size = 3;
@@ -182,7 +206,10 @@ estimate_pnp
   {
     cv::Mat inliers_mat;
     cv::Mat rvec, tvec;
-    cv::solvePnPRansac(Xs, projs, cv_K, dist_coeffs, rvec, tvec, false, num_iterations, reproj_error, OCV_confidence, inliers_mat, cv::SOLVEPNP_EPNP);
+    cv::solvePnPRansac(Xs, projs, cv_K, dist_coeffs, rvec, tvec, false, 
+      num_iterations, reproj_error, OCV_confidence, inliers_mat, 
+      cv::SOLVEPNP_EPNP);
+
     iterations += num_iterations;
 
     if (inliers_mat.rows > best_inliers_mat.rows)
@@ -194,12 +221,16 @@ estimate_pnp
       best_rvec = rvec;
     }
     
-    confidence = 1.0 - pow((1.0 - pow(best_inlier_ratio, sample_size)), double(iterations));
+    confidence = 1.0 - pow((1.0 - pow(best_inlier_ratio, sample_size)), 
+      double(iterations));
   }
 
   if (best_tvec.rows == 0 || best_rvec.rows == 0)
   {
-    LOG_DEBUG(d_->m_logger, "no P3P solution iterations " << iterations << " confidence " << confidence << " best inlier ratio " << best_inlier_ratio );
+    LOG_DEBUG(d_->m_logger, "no P3P solution iterations " << iterations << 
+      " confidence " << confidence << " best inlier ratio " << 
+      best_inlier_ratio );
+
     return vital::camera_sptr();
   }
 
@@ -225,8 +256,10 @@ estimate_pnp
 
   if (!std::isfinite(res_cam->center().x()))
   {    
-    LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " << best_rvec.at<double>(1) << " " << best_rvec.at<double>(2));
-    LOG_DEBUG(d_->m_logger, "best_rvec " << best_tvec.at<double>(0) << " " << best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
+    LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " << 
+      best_rvec.at<double>(1) << " " << best_rvec.at<double>(2));
+    LOG_DEBUG(d_->m_logger, "best_rvec " << best_tvec.at<double>(0) << " " << 
+      best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
     LOG_DEBUG(d_->m_logger, "rotation angle " << res_cam->rotation().angle());
     LOG_DEBUG(d_->m_logger, "non-finite camera center found");
     return vital::camera_sptr();

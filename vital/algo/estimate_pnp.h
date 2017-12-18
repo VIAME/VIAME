@@ -50,7 +50,9 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for estimating an essential matrix from matching 2D points
+/// An abstract base class to estimate a camera's pose from 3D feature 
+/// and point projection pairs.
+
 class VITAL_ALGO_EXPORT estimate_pnp
   : public kwiver::vital::algorithm_def<estimate_pnp>
 {

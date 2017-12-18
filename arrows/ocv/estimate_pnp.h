@@ -47,7 +47,8 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// A class that using OpenCV to estimate a fundamental matrix from matching 2D points
+/// A class that uses OpenCV to estimate a camera's pose from 3D feature 
+/// and point projection pairs.
 class KWIVER_ALGO_OCV_EXPORT estimate_pnp
   : public vital::algorithm_impl<estimate_pnp, vital::algo::estimate_pnp>
 {
