@@ -66,6 +66,7 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  iterator.h
 
   exceptions.h
   exceptions/algorithm.h
@@ -76,7 +77,6 @@ set( vital_public_headers
   exceptions/video.h
   exceptions/klv.h
   exceptions/plugin.h
-  exceptions/kpf.h
 
   io/camera_io.h
   io/camera_map_io.h
@@ -147,7 +147,6 @@ set( vital_sources
   exceptions/video.cxx
   exceptions/klv.cxx
   exceptions/plugin.cxx
-  exceptions/kpf.cxx
 
   io/camera_io.cxx
   io/camera_map_io.cxx
@@ -284,7 +283,6 @@ add_subdirectory( klv )
 add_subdirectory( logger )
 add_subdirectory( plugin_loader )
 add_subdirectory( video_metadata )
-add_subdirectory( kpf )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )

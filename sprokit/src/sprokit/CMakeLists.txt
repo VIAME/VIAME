@@ -84,7 +84,6 @@ add_subdirectory(scoring)
 add_subdirectory(tools)
 
 install(
-  FILES       "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-              "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/version.h"
   DESTINATION include/sprokit
   COMPONENT   development)

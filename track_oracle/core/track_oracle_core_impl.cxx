@@ -143,6 +143,19 @@ track_oracle_core_impl
   }
 }
 
+vector< field_handle_type >
+track_oracle_core_impl
+::get_all_field_handles() const
+{
+ boost::unique_lock< boost::mutex > lock( this->api_lock );
+ vector< field_handle_type > ret;
+ for (const auto p: this->name_pool)
+ {
+   ret.push_back( p.second );
+ }
+ return ret;
+}
+
 field_handle_type
 track_oracle_core_impl
 ::unlocked_lookup_by_name( const string& name ) const
@@ -248,6 +261,31 @@ track_oracle_core_impl
   return ret;
 }
 
+vector< vector< field_handle_type > >
+track_oracle_core_impl
+::fields_at_rows( const vector<oracle_entry_handle_type>& rows ) const
+{
+  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  vector< vector< field_handle_type > > ret( rows.size() );
+
+  vector< oracle_entry_handle_type > sorted_rows( rows );
+  std::sort( sorted_rows.begin(), sorted_rows.end() );
+
+  for (map< field_handle_type, element_store_base* >::const_iterator i = this->element_pool.begin();
+       i != this->element_pool.end();
+       ++i)
+  {
+    auto exists_list = i->second->exists( rows );
+    for (auto j=0; j<exists_list.size(); ++j)
+    {
+      if (exists_list[j])
+      {
+        ret[j].push_back( i->first );
+      }
+    }
+  }
+  return ret;
+}
 
 oracle_entry_handle_type
 track_oracle_core_impl

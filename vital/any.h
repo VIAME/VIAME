@@ -265,8 +265,15 @@ public:
                 std::string const& to_type )
   {
     // Construct helpful message
-    m_message = "vital::bad_any_cast: failed conversion using kwiver::vital::any_cast from type \""
-      + demangle( from_type ) + "\" to type \"" + demangle( to_type ) + "\"";
+    if( from_type != "")
+    {
+      m_message = "vital::bad_any_cast: failed conversion using kwiver::vital::any_cast from type \""
+        + demangle( from_type ) + "\" to type \"" + demangle( to_type ) + "\"";
+    }
+    else
+    {
+      m_message = "vital::bad_any_cast: attempted to cast an uninitialized kwiver::vital::any object";
+    }
   }
 
   virtual ~bad_any_cast() noexcept {}
@@ -338,12 +345,17 @@ inline T
 any_cast( any const& aval )
 {
   // Is the type requested compatible with the type represented.
-  if ( typeid( T ) == aval.m_content->type() )
+  if (aval.m_content)
   {
-    return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
+    if ( typeid( T ) == aval.m_content->type() )
+    {
+      return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
+    }
+
+    throw bad_any_cast( aval.m_content->type().name(), typeid( T ).name() );
   }
 
-  throw bad_any_cast( aval.m_content->type().name(), typeid( T ).name() );
+  throw bad_any_cast( "", typeid( T ).name() );
 }
 
 } }  // end namespace

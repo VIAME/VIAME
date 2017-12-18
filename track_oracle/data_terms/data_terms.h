@@ -69,6 +69,9 @@ namespace dt {
 /// want to use custom XML attributes.)
 ///
 
+namespace detection {
+  DECL_DT( detection_id, unsigned long long, "detection ID; unique within a session but not a UUID" );
+}
 
 namespace tracking {
 
