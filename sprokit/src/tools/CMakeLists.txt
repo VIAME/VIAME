@@ -1,13 +1,11 @@
 project(sprokit_tools)
 
-add_subdirectory(pipelines)
-
 sprokit_use_tools_fixes()
 
-function (add_tool name)
+function (add_tool       name)
   set(component tool)
 
-  sprokit_add_executable(${name}
+  kwiver_add_executable(${name}
     ${name}.cxx)
   target_link_libraries(${name}
     LINK_PRIVATE
@@ -15,7 +13,7 @@ function (add_tool name)
   sprokit_require_tools_fixes(${name})
 endfunction ()
 
-function (add_python_tool name)
+function (add_python_tool     name)
   if (KWIVER_ENABLE_PYTHON)
     sprokit_configure_file(tool-python-${name}
       "${CMAKE_CURRENT_SOURCE_DIR}/${name}.py"
