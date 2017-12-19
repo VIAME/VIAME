@@ -34,8 +34,6 @@
 #include <fstream>
 #include <stdexcept>
 
-#include <boost/shared_ptr.hpp>
-
 namespace sprokit {
 
 namespace {

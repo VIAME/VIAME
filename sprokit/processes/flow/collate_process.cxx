@@ -42,7 +42,7 @@
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/stamp.h>
 
-#include <boost/algorithm/string/predicate.hpp>
+#include <vital/util/string.h>
 
 #include <map>
 #include <string>
@@ -382,7 +382,7 @@ collate_process
 ::_input_port_info(port_t const& port)
 {
   // Is this a status port (starts with "status/")
-  if (boost::starts_with(port, priv::port_status_prefix))
+  if (kwiver::vital::starts_with(port, priv::port_status_prefix))
   {
     // Extract TAG sub-string from port name
     priv::tag_t const tag = port.substr(priv::port_status_prefix.size());
@@ -470,7 +470,7 @@ collate_process::priv
 ::tag_for_coll_port(port_t const& port) const
 {
   // Does this port start with "coll/"
-  if (boost::starts_with(port, priv::port_coll_prefix))
+  if (kwiver::vital::starts_with(port, priv::port_coll_prefix))
   {
     // Get the part of the port name after the prefix
     // This could be "tag/item"
@@ -484,7 +484,7 @@ collate_process::priv
 
       // If the port name without the prefix is "tag/*" then return
       // base tag string
-      if (boost::starts_with(no_prefix, tag_prefix))
+      if (kwiver::vital::starts_with(no_prefix, tag_prefix))
       {
         return tag;
       }

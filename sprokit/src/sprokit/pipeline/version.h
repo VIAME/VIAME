@@ -33,8 +33,6 @@
 
 #include <sprokit/pipeline/sprokit_pipeline_export.h>
 
-#include <boost/cstdint.hpp>
-
 #include <string>
 
 /**
