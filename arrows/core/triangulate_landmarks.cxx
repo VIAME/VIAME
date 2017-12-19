@@ -70,6 +70,11 @@ public:
   {
   }
 
+  vital::vector_3d
+  ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
+    const std::vector<vital::vector_2d> &lm_image_pts,
+    float inlier_threshold) const;
+
   /// use the homogeneous method for triangulation
   bool homogeneous;
   float min_angle_deg;
@@ -148,8 +153,9 @@ triangulate_landmarks
   return true;
 }
 
+/// Triangulate the landmark with RANSAC robust estimation 
 vital::vector_3d
-triangulate_landmarks
+triangulate_landmarks::priv
 ::ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
   const std::vector<vital::vector_2d> &lm_image_pts,
   float inlier_threshold) const
@@ -170,7 +176,7 @@ triangulate_landmarks
   std::mt19937_64 gen(rd());
   std::time_t time_res = std::time(nullptr);
   gen.seed(time_res);
-  std::uniform_int_distribution<> dis(0, lm_cams.size() - 1);
+  std::uniform_int_distribution<> dis(0, int(lm_cams.size() - 1));
 
   best_pt3d.setZero();
 
@@ -326,7 +332,7 @@ triangulate_landmarks
       }
       else
       {
-        pt3d = ransac_triangulation(lm_cams, lm_image_pts,2.0);
+        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts,2.0);
       }
       if (pt3d.allFinite())
       {
