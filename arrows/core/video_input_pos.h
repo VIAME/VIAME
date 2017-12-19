@@ -84,7 +84,7 @@ public:
                            uint32_t timeout = 0 );
 
   virtual kwiver::vital::image_container_sptr frame_image();
-  virtual kwiver::vital::video_metadata_vector frame_metadata();
+  virtual kwiver::vital::metadata_vector frame_metadata();
 
 private:
   /// private implementation class

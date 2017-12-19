@@ -264,7 +264,7 @@ video_input_split
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 video_input_split
 ::frame_metadata()
 {

@@ -34,11 +34,11 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/image_container.h>
 #include <vital/types/image.h>
+#include <vital/types/metadata_traits.h>
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/util/tokenize.h>
-#include <vital/video_metadata/video_metadata_traits.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -314,19 +314,19 @@ video_input_image_list
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 video_input_image_list
 ::frame_metadata()
 {
   if ( ! this->good() )
   {
-    return vital::video_metadata_vector();
+    return vital::metadata_vector();
   }
   // For now, the only metadata is the filename of the image
-  auto md = std::make_shared<vital::video_metadata>();
+  auto md = std::make_shared<vital::metadata>();
   md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
                               *d->m_current_file ) );
-  vital::video_metadata_vector mdv(1, md);
+  vital::metadata_vector mdv(1, md);
   return mdv;
 }
 

@@ -262,7 +262,7 @@ video_input_filter
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 video_input_filter
 ::frame_metadata()
 {
@@ -270,7 +270,7 @@ video_input_filter
   {
     return d->d_video_input->frame_metadata();
   }
-  return kwiver::vital::video_metadata_vector();
+  return kwiver::vital::metadata_vector();
 }
 
 } } }     // end namespace
