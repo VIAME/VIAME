@@ -30,18 +30,19 @@
 
 /**
  * \file
- * \brief File IO functions for the POS metadata file format from AFRL
+ * \brief File IO functions for metadata objects.
  *
+ * Currently functions are provided to use the POS metadata format from AFRL.
  * These read POS files into a metadata structure and write a
  * metadata structure to a POS file.
  */
 
-#ifndef VITAL_POS_METADATA_IO_H_
-#define VITAL_POS_METADATA_IO_H_
+#ifndef VITAL_METADATA_IO_H_
+#define VITAL_METADATA_IO_H_
 
-#include <vital/vital_types.h>
 #include <vital/types/metadata.h>
-#include <vital/video_metadata/vital_video_metadata_export.h>
+#include <vital/vital_types.h>
+#include <vital/vital_export.h>
 
 namespace kwiver {
 namespace vital {
@@ -57,7 +58,7 @@ namespace vital {
  * \return A new camera object representing the contents of the read-in file.
  */
 metadata_sptr
-VITAL_VIDEO_METADATA_EXPORT read_pos_file( path_t const& file_path );
+VITAL_EXPORT read_pos_file( path_t const& file_path );
 
 
 /// Output the given metadata object to the specified file path
@@ -74,9 +75,9 @@ VITAL_VIDEO_METADATA_EXPORT read_pos_file( path_t const& file_path );
  * \param file_path The path to output the file to.
  */
 void
-VITAL_VIDEO_METADATA_EXPORT write_pos_file( metadata const& md,
-                                            path_t const& file_path );
+VITAL_EXPORT write_pos_file( metadata const& md,
+                             path_t const& file_path );
 
 } } // end namespace
 
-#endif // VITAL_POS_METADATA_IO_H_
+#endif // VITAL_METADATA_IO_H_

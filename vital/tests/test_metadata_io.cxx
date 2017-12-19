@@ -30,12 +30,12 @@
 
 /**
  * \file
- * \brief core pos_io tests
+ * \brief core metadata_io tests
  */
 
 #include <tests/test_gtest.h>
 
-#include <vital/video_metadata/pos_metadata_io.h>
+#include <vital/io/metadata_io.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/geodesy.h>
 #include <vital/exceptions.h>

@@ -7,13 +7,11 @@ set( sources
   convert_metadata.cxx
   convert_0601_metadata.cxx
   convert_0104_metadata.cxx
-  pos_metadata_io.cxx
   )
 
 set( public_headers
   video_metadata_util.h
   convert_metadata.h
-  pos_metadata_io.h
   )
 
 set( private_headers
@@ -43,9 +41,3 @@ kwiver_install_headers(
   NOPATH
   SUBDIR      vital/video_metadata
   )
-
-###
-# Add tests if enabled
-if (KWIVER_ENABLE_TESTS)
-  add_subdirectory( tests )
-endif()

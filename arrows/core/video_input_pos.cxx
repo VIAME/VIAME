@@ -37,7 +37,7 @@
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
 
-#include <vital/video_metadata/pos_metadata_io.h>
+#include <vital/io/metadata_io.h>
 
 #include <kwiversys/SystemTools.hxx>
 

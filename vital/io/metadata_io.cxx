@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Implementation of file IO functions for AFRL POS metadata files
+ * \brief Implementation of file IO functions for metadata
  *
  */
 
-#include "pos_metadata_io.h"
+#include "metadata_io.h"
 
 #include <fstream>
 
