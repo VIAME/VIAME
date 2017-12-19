@@ -93,7 +93,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );
     if ( ! kwiversys::SystemTools::FileExists( include_dir) )
     {
-      LOG_WARN( logger, "Path not found loading clusters: " << include_dir );
+      LOG_DEBUG( logger, "Path not found loading clusters: " << include_dir );
       continue;
     }
 
