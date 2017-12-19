@@ -56,6 +56,9 @@ public:
   /// Destructor
   virtual ~split_image();
 
+  virtual void set_configuration( kwiver::vital::config_block_sptr ) { }
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config) const { return true; }
+
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >
   split(kwiver::vital::image_container_sptr img) const;
