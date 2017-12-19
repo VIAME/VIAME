@@ -118,6 +118,10 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/metadata.h
+  types/metadata_map.h
+  types/metadata_traits.h
+  types/metadata_tags.h
   types/object_track_set.h
   types/polygon.h
   types/query_plan.h
@@ -175,6 +179,8 @@ set( vital_sources
   types/image.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/metadata.cxx
+  types/metadata_traits.cxx
   types/object_track_set.cxx
   types/polygon.cxx
   types/query_plan.cxx
