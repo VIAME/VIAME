@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
 #define KWIVER_ARROWS_CORE_MATCH_FEATURES_HOMOGRAPHY_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/filter_features.h>
@@ -45,7 +44,6 @@
 #include <vital/algo/match_features.h>
 #include <vital/config/config_block.h>
 
-#include <memory>
 
 namespace kwiver {
 namespace arrows {

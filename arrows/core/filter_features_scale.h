@@ -28,20 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_CORE_FILTER_FEATURES_SCALE_H_
-#define KWIVER_ARROWS_CORE_FILTER_FEATURES_SCALE_H_
-
-#include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
-
-#include <vital/algo/filter_features.h>
-
-#include <memory>
-
 /**
  * \file
  * \brief Header defining the filter_features_scale algorithm
  */
+
+#ifndef KWIVER_ARROWS_CORE_FILTER_FEATURES_SCALE_H_
+#define KWIVER_ARROWS_CORE_FILTER_FEATURES_SCALE_H_
+
+#include <arrows/core/kwiver_algo_core_export.h>
+
+#include <vital/algo/filter_features.h>
 
 namespace kwiver {
 namespace arrows {

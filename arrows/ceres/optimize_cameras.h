@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
 #define KWIVER_ARROWS_CERES_OPTIMIZE_CAMERAS_H_
 
-#include <vital/vital_config.h>
 #include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 #include <vital/algo/optimize_cameras.h>

@@ -36,13 +36,9 @@
 #ifndef KWIVER_ARROWS_OCV_SPLIT_IMAGE_H_
 #define KWIVER_ARROWS_OCV_SPLIT_IMAGE_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/split_image.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {
@@ -51,7 +47,7 @@ namespace ocv {
 /// A class for writing out image chips around detections, useful as a debugging process
 /// for ensuring that the refine detections process is running on desired ROIs.
 class KWIVER_ALGO_OCV_EXPORT split_image
-: public vital::algorithm_impl<split_image, vital::algo::split_image>
+  : public vital::algorithm_impl<split_image, vital::algo::split_image>
 {
 public:
 
