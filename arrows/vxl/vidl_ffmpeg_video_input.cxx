@@ -128,7 +128,7 @@ public:
   std::string video_path; // name of video we opened
 
   std::deque<uint8_t> md_buffer; // working buffer for metadata stream
-  kwiver::vital::video_metadata_vector metadata_collection; // current collection
+  kwiver::vital::metadata_vector metadata_collection; // current collection
 
   kwiver::vital::convert_metadata converter; // metadata converter object
 
@@ -163,7 +163,7 @@ public:
     // If we have collected enough of the stream to make a KLV packet
     while ( klv_pop_next_packet( md_buffer, klv_packet ) )
     {
-      auto meta = std::make_shared<kwiver::vital::video_metadata>();
+      auto meta = std::make_shared<kwiver::vital::metadata>();
 
       converter.convert( klv_packet, *(meta) );
 
@@ -221,11 +221,11 @@ public:
     }
     else if ( time_source == "klv0601" )
     {
-      retval = klv_time( kwiver::vital::video_metadata::MISB_0601 );
+      retval = klv_time( kwiver::vital::metadata::MISB_0601 );
     }
     else if ( time_source == "klv0104" )
     {
-      retval = klv_time( kwiver::vital::video_metadata::MISB_0104 );
+      retval = klv_time( kwiver::vital::metadata::MISB_0104 );
     }
     else if ( time_source == "none" )
     {
@@ -682,13 +682,13 @@ vidl_ffmpeg_video_input
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 vidl_ffmpeg_video_input
 ::frame_metadata()
 {
   if (d->d_at_eov)
   {
-    return kwiver::vital::video_metadata_vector();
+    return kwiver::vital::metadata_vector();
   }
 
   // ---- process metadata ---
