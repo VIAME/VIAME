@@ -42,7 +42,6 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/camera.h>
 #include <vital/types/image_container.h>
-#include <vital/types/voxel_array_container.h>
 
 
 namespace kwiver {
@@ -74,11 +73,14 @@ public:
    * \param [in]     depth_maps the set of floating point depth map images
    * \param [in]     cameras    the set of cameras, one for each depth map
    * \param [in,out] volume     the fused volumetric data
+   *
+   * \note the volume data is stored as a 3D image.  Metadata fields on the
+   * image specify the origin and scale of the volume in world coordinates.
    */
   virtual void
   integrate(kwiver::vital::image_container_sptr_list depth_maps,
             kwiver::vital::camera_sptr_list cameras,
-            kwiver::vital::voxel_array_container_sptr volume) const = 0;
+            kwiver::vital::image_container_sptr& volume) const = 0;
 
 protected:
   integrate_depth_maps();
