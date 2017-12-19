@@ -161,7 +161,7 @@ video_input_split
                      is_caps.capability( vi::HAS_TIMEOUT );
   set_capability( vi::HAS_TIMEOUT, d->d_has_timeout );
   set_capability( vi::IS_SEEKABLE,
-                  is_caps.capability( vi::IS_SEEKABLE) ||
+                  is_caps.capability( vi::IS_SEEKABLE) &&
                   ms_caps.capability( vi::IS_SEEKABLE) );
 }
 

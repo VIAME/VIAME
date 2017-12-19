@@ -238,7 +238,6 @@ TEST_F(video_input_filter, seek_frame_sublist)
   vif.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
-  vif.open( list_file );
 
   // Open the video
   vif.open( list_file );
