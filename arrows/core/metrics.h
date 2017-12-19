@@ -79,11 +79,13 @@ reprojection_error_sqr(const vital::camera& cam,
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
 
-/// Compute the maximum angle between the rays in the bundle associated with the landmark
+/// Compute the maximum angle between the rays in the bundle associated with 
+/// the landmark
 /**
 * \param [in] cameras is the set of cameras that view X
 * \param [in] X is the landmark projected into the cameras
-* \returns cos of the maximum angle pair of rays intersecting at lm from the cameras observing lm
+* \returns cos of the maximum angle pair of rays intersecting at lm from the
+           cameras observing lm
 */
 
 KWIVER_ALGO_CORE_EXPORT
