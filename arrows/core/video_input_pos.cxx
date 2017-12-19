@@ -88,6 +88,7 @@ video_input_pos
   set_capability( vital::algo::video_input::HAS_FRAME_DATA, false );
   set_capability( vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false ); // MAYBE
   set_capability( vital::algo::video_input::HAS_TIMEOUT, false );
+  set_capability( vital::algo::video_input::IS_SEEKABLE, true );
 }
 
 

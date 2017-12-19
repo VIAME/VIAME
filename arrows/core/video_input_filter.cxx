@@ -174,6 +174,8 @@ video_input_filter
                   vi_caps.capability( vi::HAS_ABSOLUTE_FRAME_TIME ) );
   set_capability( vi::HAS_TIMEOUT,
                   vi_caps.capability( vi::HAS_TIMEOUT ) );
+  set_capability( vi::IS_SEEKABLE,
+                  vi_caps.capability( vi::IS_SEEKABLE ) );
 
 }
 

@@ -78,6 +78,7 @@ public:
       d_have_frame_time( false ),
       d_have_abs_frame_time( false ),
       d_have_metadata( false ),
+      d_is_seekable( false ),
       pts_of_meta_ts( 0.0 ),
       meta_ts( 0 ),
       d_frame_time( 0 ),
@@ -119,6 +120,12 @@ public:
    * to report the HAS_METADATA capability.
    */
   bool d_have_metadata;
+
+  /**
+   * This is set to indicate the video stream is seekable by frame and is used
+   * to report the IS_SEEKABLE capability.
+   */
+  bool d_is_seekable;
 
   double pts_of_meta_ts;            // probably seconds
   vital::timestamp::time_t meta_ts; // time in usec
@@ -578,6 +585,9 @@ vidl_ffmpeg_video_input
   // check for metadata
   d->d_have_metadata = d->d_video_stream.has_metadata();
 
+  // check for seekability
+  d->d_is_seekable = d->d_video_stream.is_seekable();
+
   // We already have required frame
   // See if we can generate a time base
   d->d_have_frame = true;
@@ -609,6 +619,7 @@ vidl_ffmpeg_video_input
   set_capability(vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME,
                  (d->d_have_frame_time & d->d_have_abs_frame_time) );
   set_capability(vital::algo::video_input::HAS_METADATA, d->d_have_metadata  );
+  set_capability(vital::algo::video_input::IS_SEEKABLE, d->d_is_seekable );
 }
 
 
@@ -625,6 +636,7 @@ vidl_ffmpeg_video_input
   d->d_have_frame_time = false;
   d->d_have_abs_frame_time = false;
   d->d_have_metadata = false;
+  d->d_is_seekable = false;
   d->d_frame_time = 0;
   d->d_frame_number = 1;
 }

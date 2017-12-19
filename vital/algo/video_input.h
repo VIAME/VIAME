@@ -113,6 +113,9 @@ namespace algo {
  * HAS_TIMEOUT - This capability is set if the implementation supports the
  *     timeout parameter on the next_frame() method.
  *
+ * IS_SEEKABLE - This capability is set if the video source can seek to a
+ *      specific frame.
+ *
  * All implementations \b must support the basic traits, in that they
  * are registered with a \b true or \b false value. Additional
  * implementation specific (extended) traits may be added. The
@@ -140,6 +143,7 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;
+  static const algorithm_capabilities::capability_name_t IS_SEEKABLE;
 
   virtual ~video_input();
 
