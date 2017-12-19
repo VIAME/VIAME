@@ -96,14 +96,14 @@ namespace {
 
 // ----------------------------------------------------------------------------
 void compare_tag( kwiver::vital::metadata_item const& expected,
-                  kwiver::vital::video_metadata_sptr const& metadata )
+                  kwiver::vital::metadata_sptr const& md )
 {
   constexpr static double epsilon = 1e-8;
 
   SCOPED_TRACE( "At tag " + expected.name() );
-  ASSERT_TRUE( metadata->has( expected.tag() ) );
+  ASSERT_TRUE( md->has( expected.tag() ) );
 
-  auto const& actual = metadata->find( expected.tag() );
+  auto const& actual = md->find( expected.tag() );
   if ( expected.type() == typeid(double) )
   {
     EXPECT_NEAR( expected.as_double(), actual.as_double(), epsilon );

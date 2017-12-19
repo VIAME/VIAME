@@ -31,14 +31,16 @@
 /**
  * \file
  * \brief This file contains additional utilty functions for working with
- *  video metadata.
+ *  metadata.
  */
 
 #ifndef KWIVER_VITAL_VIDEO_METADATA_UTIL_H
 #define KWIVER_VITAL_VIDEO_METADATA_UTIL_H
 
 
-#include <vital/video_metadata/video_metadata.h>
+#include <vital/video_metadata/vital_video_metadata_export.h>
+
+#include <vital/types/metadata.h>
 #include <vital/vital_types.h>
 
 namespace kwiver {
@@ -54,7 +56,7 @@ namespace vital {
  */
 VITAL_VIDEO_METADATA_EXPORT
 std::string
-basename_from_metadata(video_metadata_sptr md,
+basename_from_metadata(metadata_sptr md,
                        frame_id_t frame);
 
 

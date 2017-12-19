@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ convert_metadata
 
 // ==================================================================
 void convert_metadata
-::convert( klv_data const& klv, video_metadata& metadata )
+::convert( klv_data const& klv, metadata& md )
 {
   klv_uds_key uds_key( klv ); // create key from raw data
 
@@ -95,12 +95,12 @@ void convert_metadata
     }
 
     klv_lds_vector_t lds = parse_klv_lds( klv );
-    convert_0601_metadata( lds, metadata );
+    convert_0601_metadata( lds, md );
   }
   else if ( klv_0104::is_key( uds_key ) )
   {
     klv_uds_vector_t uds = parse_klv_uds( klv );
-    convert_0104_metadata( uds,  metadata );
+    convert_0104_metadata( uds,  md );
   }
   else
   {

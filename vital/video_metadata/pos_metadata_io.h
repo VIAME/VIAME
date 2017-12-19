@@ -32,21 +32,21 @@
  * \file
  * \brief File IO functions for the POS metadata file format from AFRL
  *
- * These read POS files into a video_metadata structure and write a
- * video_metadata structrue to a POS file.
+ * These read POS files into a metadata structure and write a
+ * metadata structure to a POS file.
  */
 
 #ifndef VITAL_POS_METADATA_IO_H_
 #define VITAL_POS_METADATA_IO_H_
 
 #include <vital/vital_types.h>
-#include <vital/video_metadata/video_metadata.h>
+#include <vital/types/metadata.h>
 #include <vital/video_metadata/vital_video_metadata_export.h>
 
 namespace kwiver {
 namespace vital {
 
-/// Read in a POS file, producing a video_metadata object
+/// Read in a POS file, producing a metadata object
 /**
  * \throws file_not_found_exception
  *    Thrown when the file could not be found on the file system.
@@ -56,11 +56,11 @@ namespace vital {
  * \param file_path   The path to the file to read in.
  * \return A new camera object representing the contents of the read-in file.
  */
-video_metadata_sptr
+metadata_sptr
 VITAL_VIDEO_METADATA_EXPORT read_pos_file( path_t const& file_path );
 
 
-/// Output the given video_metadata object to the specified file path
+/// Output the given metadata object to the specified file path
 /**
  * If a file exists at the target location, it will be overwritten. If the
  * containing directory of the given path does not exist, it will be created
@@ -70,11 +70,11 @@ VITAL_VIDEO_METADATA_EXPORT read_pos_file( path_t const& file_path );
  * \throws file_write_exception
  *    Thrown when something prevents output of the file.
  *
- * \param metadata  The \c video_metadata object to output.
+ * \param metadata  The \c metadata object to output.
  * \param file_path The path to output the file to.
  */
 void
-VITAL_VIDEO_METADATA_EXPORT write_pos_file( video_metadata const& md,
+VITAL_VIDEO_METADATA_EXPORT write_pos_file( metadata const& md,
                                             path_t const& file_path );
 
 } } // end namespace

@@ -40,16 +40,16 @@
 
 #include <vital/exceptions.h>
 #include <vital/util/tokenize.h>
-#include <vital/video_metadata/video_metadata_traits.h>
 #include <vital/types/geodesy.h>
+#include <vital/types/metadata_traits.h>
 #include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
 
 
-/// Read in a POS file, producing a video_metadata object
-video_metadata_sptr
+/// Read in a POS file, producing a metadata object
+metadata_sptr
 read_pos_file( path_t const& file_path )
 {
   // Check that file exists
@@ -94,7 +94,7 @@ read_pos_file( path_t const& file_path )
   }
 
   // make a new metadata container.
-  auto md = std::make_shared<video_metadata>();
+  auto md = std::make_shared<metadata>();
   md->add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, std::string( "POS-file") ) );
 
   if ( tokens.size() == 15 )
@@ -133,9 +133,9 @@ read_pos_file( path_t const& file_path )
 }
 
 
-/// Output the given \c video_metadata object to the specified POS file path
+/// Output the given \c metadata object to the specified POS file path
 void
-write_pos_file( video_metadata const& md,
+write_pos_file( metadata const& md,
                 path_t const& file_path )
 {
 

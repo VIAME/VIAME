@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@
  *    and/or other materials provided with the distribution.
  *
  *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
+ *    to endorse or p-2017romote products derived from this software without specific
  *    prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -38,8 +38,8 @@
 
 #include <vital/video_metadata/vital_video_metadata_export.h>
 
-#include <vital/video_metadata/video_metadata.h>
-#include <vital/video_metadata/video_metadata_traits.h>
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
 
 #include <vital/klv/klv_0601.h>
 #include <vital/klv/klv_0104.h>
@@ -71,12 +71,12 @@ public:
    *
    * @throws klv_exception When error encountered.
    */
-   void convert( klv_data const& klv, video_metadata& metadata );
+   void convert( klv_data const& klv, metadata& md );
 
 private:
 
-  void convert_0601_metadata( klv_lds_vector_t const& lds, video_metadata& metadata );
-  void convert_0104_metadata( klv_uds_vector_t const& uds, video_metadata& metadata );
+  void convert_0601_metadata( klv_lds_vector_t const& lds, metadata& md );
+  void convert_0104_metadata( klv_uds_vector_t const& uds, metadata& md );
 
   kwiver::vital::any normalize_0601_tag_data( klv_0601_tag tag,
                                               kwiver::vital::vital_metadata_tag vital_tag,
@@ -91,7 +91,7 @@ private:
   any_converter< double > convert_to_double;
   any_converter< uint64_t > convert_to_int;
 
-  video_metadata_traits m_metadata_traits;
+  metadata_traits m_metadata_traits;
 
 }; // end class convert_metadata
 

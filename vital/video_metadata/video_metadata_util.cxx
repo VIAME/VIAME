@@ -45,7 +45,7 @@ namespace vital {
 
 /// Extract an image file basename from metadata and (if needed) frame number
 std::string
-basename_from_metadata(video_metadata_sptr md,
+basename_from_metadata(metadata_sptr md,
                        frame_id_t frame)
 {
   typedef kwiversys::SystemTools  ST;
