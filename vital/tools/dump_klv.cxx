@@ -41,10 +41,7 @@
 
 #include <vital/algo/video_input.h>
 
-#include <vital/klv/klv_data.h>
-#include <vital/klv/klv_parse.h>
 #include <vital/types/metadata.h>
-#include <vital/video_metadata/convert_metadata.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
