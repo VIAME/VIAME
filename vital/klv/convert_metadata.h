@@ -33,10 +33,10 @@
  * converter class.
  */
 
-#ifndef KWIVER_VITAL_CONVERT_METADATA_H
-#define KWIVER_VITAL_CONVERT_METADATA_H
+#ifndef KWIVER_VITAL_KLV_CONVERT_METADATA_H_
+#define KWIVER_VITAL_KLV_CONVERT_METADATA_H_
 
-#include <vital/video_metadata/vital_video_metadata_export.h>
+#include <vital/klv/vital_klv_export.h>
 
 #include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
@@ -56,7 +56,7 @@ namespace vital {
  * @brief
  *
  */
-class VITAL_VIDEO_METADATA_EXPORT convert_metadata
+class VITAL_KLV_EXPORT convert_metadata
 {
 public:
   // -- CONSTRUCTORS --
@@ -119,4 +119,4 @@ private:
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_CONVERT_METADATA_H */
+#endif /* KWIVER_VITAL_KLV_CONVERT_METADATA_H_ */

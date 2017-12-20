@@ -17,5 +17,4 @@ Directory Structure and Provided Functionality
 `<vital/tools>`_          Source for command line utilities
 `<vital/types>`_          Classes for the core data types
 `<vital/util>`_           Source for general purpose utility functions
-`<vital/video_metadata>`_ Classes that support video metadata
 ========================= =========================================================

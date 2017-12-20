@@ -38,8 +38,8 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
 #include <vital/exceptions/video.h>
-#include <vital/video_metadata/convert_metadata.h>
 #include <vital/util/tokenize.h>
+#include <vital/klv/convert_metadata.h>
 #include <vital/klv/misp_time.h>
 #include <vital/klv/klv_data.h>
 

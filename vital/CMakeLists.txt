@@ -290,7 +290,6 @@ add_subdirectory( config )
 add_subdirectory( klv )
 add_subdirectory( logger )
 add_subdirectory( plugin_loader )
-add_subdirectory( video_metadata )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
