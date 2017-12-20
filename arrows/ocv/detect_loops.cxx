@@ -305,6 +305,10 @@ detect_loops
   algo::bag_of_words_matching::
     get_nested_algo_configuration("bag_of_words_matching", config, d_->m_bow);
 
+  config->set_value("min_loop_inlier_matches",
+    d_->m_min_loop_inlier_matches,
+    "the minimum number of inlier feature matches to accept a loop connection and join tracks");
+
   return config;
 }
 
@@ -333,6 +337,11 @@ detect_loops
   algo::bag_of_words_matching::set_nested_algo_configuration(
     "bag_of_words_matching", config, bow);
   d_->m_bow = bow;
+
+  d_->m_min_loop_inlier_matches =
+    config->get_value<int>("min_loop_inlier_matches",
+      d_->m_min_loop_inlier_matches);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -350,6 +359,16 @@ detect_loops
   config_valid =
     algo::bag_of_words_matching::check_nested_algo_configuration(
       "bag_of_words_matching", config) && config_valid;
+
+  int min_loop_matches =
+    config->get_value<int>("min_loop_inlier_matches");
+
+  if (min_loop_matches < 0)
+  {
+    LOG_ERROR(d_->m_logger,
+      "min_loop_inlier_matches must be non-negative");
+    config_valid = false;
+  }
         
   return config_valid;
 }
