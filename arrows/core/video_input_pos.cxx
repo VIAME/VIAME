@@ -292,7 +292,7 @@ video_input_pos
   ts = kwiver::vital::timestamp();
 
   // Check if requested frame exists
-  if (frame_number > (int)d->d_img_md_files.size() || frame_number < 0)
+  if (frame_number > static_cast<int>( d->d_img_md_files.size() ) || frame_number < 0)
   {
     return false;
   }
