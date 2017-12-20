@@ -48,32 +48,83 @@ namespace kwiver {
 namespace arrows {
 namespace DBoW2_kw {
 
-/// An abstract base class for reading and writing images
+/// class for bag of words image matching
 /**
- * This class represents an abstract interface for bag of words image matching
+ * This class implements bag of words image matching
  */
 class KWIVER_ALGO_DBOW2_EXPORT bag_of_words_matching
   : public vital::algorithm_impl<bag_of_words_matching, vital::algo::bag_of_words_matching>
 {
 public:
 
+  /// Default constructor
   bag_of_words_matching();
 
+  /// Desctuctor
   virtual ~bag_of_words_matching();
 
+  /// Add an image to the inverted file system.  
+  /**
+  * Add the image to the inverted file system.  Future matching results may 
+  * include this image in their results.
+  * \param[in] desc set of descriptors for the image
+  * \param[in] frame_number frame of the associated image
+  * \returns None
+  */
   virtual void append_to_index( const vital::descriptor_set_sptr desc, 
                                 vital::frame_id_t frame_number);
 
-  virtual void query( const vital::descriptor_set_sptr, 
+  /// Add an image to the inverted file system.  
+  /**
+  * Add the image to the inverted file system.  Future matching results may
+  * include this image in their results.
+  * \param[in] desc set of descriptors for the image
+  * \param[in] frame_number frame of the associated image
+  * \param[out] putative_matching_frames possibly matching images found by the query
+  * \param[in] append_to_index_on_query Add this image to the inverted file index 
+  * during the query. Note: the current image will not be returned in
+  * putative_matching_frames because we already know it matches itself.
+  * \returns None
+  */
+  virtual void query( const vital::descriptor_set_sptr desc, 
                       vital::frame_id_t frame_number, 
                       std::vector<vital::frame_id_t> &putative_matching_frames,
                       bool append_to_index_on_query);
   
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /**
+  * This base virtual function implementation returns an empty configuration
+  * block whose name is set to \c this->type_name.
+  *
+  * \returns \c config_block containing the configuration for this algorithm
+  *          and any nested components.
+  */
   virtual vital::config_block_sptr get_configuration() const;
 
-  virtual void set_configuration( vital::config_block_sptr config);
-  
-  virtual bool check_configuration( vital::config_block_sptr config) const;
+  /// Set this algorithm's properties via a config block
+  /**
+  * \throws no_such_configuration_value_exception
+  *    Thrown if an expected configuration value is not present.
+  * \throws algorithm_configuration_exception
+  *    Thrown when the algorithm is given an invalid \c config_block or is'
+  *    otherwise unable to configure itself.
+  *
+  * \param config  The \c config_block instance containing the configuration
+  *                parameters for this algorithm
+  */
+  virtual void set_configuration(vital::config_block_sptr config);
+
+  /// Check that the algorithm's currently configuration is valid
+  /**
+  * This checks solely within the provided \c config_block and not against
+  * the current state of the instance. This isn't static for inheritence
+  * reasons.
+  *
+  * \param config  The config block to check configuration of.
+  *
+  * \returns true if the configuration check passed and false if it didn't.
+  */
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
 protected:
   /// the feature m_detector algorithm

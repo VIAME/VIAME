@@ -50,7 +50,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for reading and writing images
+/// An abstract base class for bag of words image matching
 /**
  * This class represents an abstract interface for bag of words image matching
  */
@@ -59,19 +59,42 @@ class VITAL_ALGO_EXPORT bag_of_words_matching
 {
 public:
 
+  /// Desctuctor
   virtual ~bag_of_words_matching() = default;
 
   /// Return the name of this algorithm
   static std::string static_type_name() { return "bag_of_words_matching"; }
 
+  /// Add an image to the inverted file system.  
+  /**
+  * Add the image to the inverted file system.  Future matching results may
+  * include this image in their results.
+  * \param[in] desc set of descriptors for the image
+  * \param[in] frame_number frame of the associated image
+  * \returns None
+  */
   virtual void append_to_index( const descriptor_set_sptr desc, frame_id_t frame) = 0;
 
+  /// Add an image to the inverted file system.  
+  /**
+  * Add the image to the inverted file system.  Future matching results may
+  * include this image in their results.
+  * \param[in] desc set of descriptors for the image
+  * \param[in] frame_number frame of the associated image
+  * \param[out] putative_matching_frames possibly matching images found by the query
+  * \param[in] append_to_index_on_query Add this image to the inverted file index
+  * during the query. Note: the current image will not be returned in
+  * putative_matching_frames because we already know it matches itself.
+  * \returns None
+  */
   virtual void query(const vital::descriptor_set_sptr,
                      frame_id_t frame_number,
                      std::vector<vital::frame_id_t> &putative_matching_frames,
                      bool append_to_index_on_query) = 0;
 
 protected:
+
+  /// Default constructor
   bag_of_words_matching();
  
 };
