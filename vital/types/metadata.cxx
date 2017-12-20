@@ -42,20 +42,6 @@ namespace kwiver {
 namespace vital {
 
 
-// ------------------------------------------------------------------
-// metadata exception support
-metadata_exception
-::metadata_exception( std::string const& str )
-{
-  m_what = str;
-}
-
-
-metadata_exception
-::~metadata_exception() noexcept
-{ }
-
-
 // ----------------------------------------------------------------
 /*
  * This class is returned when find can not locate the requested tag.

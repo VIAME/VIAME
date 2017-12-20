@@ -74,6 +74,7 @@ set( vital_public_headers
   exceptions/image.h
   exceptions/io.h
   exceptions/math.h
+  exceptions/metadata.h
   exceptions/video.h
   exceptions/klv.h
   exceptions/plugin.h
@@ -149,6 +150,7 @@ set( vital_sources
   exceptions/image.cxx
   exceptions/io.cxx
   exceptions/math.cxx
+  exceptions/metadata.cxx
   exceptions/video.cxx
   exceptions/klv.cxx
   exceptions/plugin.cxx

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,21 +30,32 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
- *
- * All exception types for vital::core are included through this file.
+ * \brief VITAL Exceptions pertaining to metadata operations
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef VITAL_CORE_EXCEPTIONS_METADATA_H_
+#define VITAL_CORE_EXCEPTIONS_METADATA_H_
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/video.h"
-#include "exceptions/klv.h"
-#include "exceptions/metadata.h"
+#include <string>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <vital/exceptions/base.h>
+
+namespace kwiver {
+namespace vital {
+
+// ------------------------------------------------------------------
+/// Generic metadata exception
+class VITAL_EXPORT metadata_exception
+  : public vital_core_base_exception
+{
+public:
+  /// Constructor
+  metadata_exception( std::string const& str );
+
+  virtual ~metadata_exception() noexcept;
+};
+
+
+} } // end namespace
+
+#endif // VITAL_CORE_EXCEPTIONS_METADATA_H_

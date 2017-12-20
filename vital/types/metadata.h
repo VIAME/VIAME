@@ -41,7 +41,7 @@
 #include <vital/any.h>
 
 #include <vital/types/timestamp.h>
-#include <vital/exceptions/base.h>
+#include <vital/exceptions/metadata.h>
 #include <vital/types/metadata_tags.h>
 
 #include <map>
@@ -56,16 +56,6 @@
 
 namespace kwiver {
 namespace vital {
-
-// ------------------------
-class VITAL_EXPORT metadata_exception
-  : public vital_core_base_exception
-{
-public:
-  metadata_exception( std::string const& str );
-
-  virtual ~metadata_exception() noexcept;
-};
 
 
 // -----------------------------------------------------------------
