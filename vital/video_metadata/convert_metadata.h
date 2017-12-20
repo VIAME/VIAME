@@ -73,6 +73,28 @@ public:
    */
    void convert( klv_data const& klv, metadata& md );
 
+
+  /** Constants used to determine the source of this metadata
+   * collection. The value of the VITAL_META_METADATA_ORIGIN tag is
+   * set to one of the following values depending on the format of the
+   * metadata packet processed.
+   *
+   * Typical usage is:
+   \code
+   std::string type;
+   if (meta.has( VITAL_META_METADATA_ORIGIN ) )
+   {
+      type = meta.find( VITAL_META_METADATA_ORIGIN ).as_string();
+   }
+   if (metadata::MISB_0104 == type)
+   {
+       // metadata was from MISB 0104 packet
+   }
+   \endcode
+   */
+  const static std::string MISB_0104;
+  const static std::string MISB_0601;
+
 private:
 
   void convert_0601_metadata( klv_lds_vector_t const& lds, metadata& md );

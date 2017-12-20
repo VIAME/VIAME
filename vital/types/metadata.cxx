@@ -41,9 +41,6 @@
 namespace kwiver {
 namespace vital {
 
-const std::string metadata::MISB_0104( "MISB_0104" );
-const std::string metadata::MISB_0601( "MISB_0601" );
-
 
 // ------------------------------------------------------------------
 // metadata exception support

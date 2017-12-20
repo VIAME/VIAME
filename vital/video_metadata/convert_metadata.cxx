@@ -44,6 +44,9 @@
 namespace kwiver {
 namespace vital {
 
+const std::string convert_metadata::MISB_0104( "MISB_0104" );
+const std::string convert_metadata::MISB_0601( "MISB_0601" );
+
 // ------------------------------------------------------------------
 convert_metadata
 ::convert_metadata()

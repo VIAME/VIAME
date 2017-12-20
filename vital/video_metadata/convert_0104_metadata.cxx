@@ -155,7 +155,7 @@ void convert_metadata
   // Add our "origin" tag to indicate that the source of this metadata
   // collection is from a 0104 spec packet.
   //
-  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, metadata::MISB_0104 ) );
+  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, MISB_0104 ) );
 
   for ( auto itr = uds.begin(); itr != uds.end(); ++itr )
   {

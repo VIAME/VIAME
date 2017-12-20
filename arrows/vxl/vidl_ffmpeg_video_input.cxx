@@ -221,11 +221,11 @@ public:
     }
     else if ( time_source == "klv0601" )
     {
-      retval = klv_time( kwiver::vital::metadata::MISB_0601 );
+      retval = klv_time( kwiver::vital::convert_metadata::MISB_0601 );
     }
     else if ( time_source == "klv0104" )
     {
-      retval = klv_time( kwiver::vital::metadata::MISB_0104 );
+      retval = klv_time( kwiver::vital::convert_metadata::MISB_0104 );
     }
     else if ( time_source == "none" )
     {

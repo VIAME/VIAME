@@ -158,7 +158,7 @@ convert_metadata
 {
   static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.convert_metadata" ) );
 
-  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, metadata::MISB_0601 ) );
+  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, MISB_0601 ) );
 
   //
   // Data items that are used to collect multi-value metadataa items such as
