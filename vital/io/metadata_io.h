@@ -47,6 +47,26 @@
 namespace kwiver {
 namespace vital {
 
+/// Extract an image file basename from metadata and (if needed) frame number
+/**
+ * The purpose of this function is to provide a standard way to get a base file
+ * name (no file extension) from metadata.  The caller of this function should
+ * append a file extenstion and can then use this file to store data relevant
+ * to the source frame.
+ *
+ * The generated base file name is determined as follows.  If a source image
+ * file name is provided in \c md then the basename (file extension removed)
+ * of the image is returned. Otherwise, if a source video file name is provided
+ * the video file basename is appended with the frame number and returned.
+ * If no source file name is provided, the base name is "frame" with the frame
+ * number appended.
+ */
+std::string
+VITAL_EXPORT
+basename_from_metadata(metadata_sptr md,
+                       frame_id_t frame);
+
+
 /// Read in a POS file, producing a metadata object
 /**
  * \throws file_not_found_exception
@@ -58,7 +78,8 @@ namespace vital {
  * \return A new camera object representing the contents of the read-in file.
  */
 metadata_sptr
-VITAL_EXPORT read_pos_file( path_t const& file_path );
+VITAL_EXPORT
+read_pos_file( path_t const& file_path );
 
 
 /// Output the given metadata object to the specified file path
@@ -75,8 +96,9 @@ VITAL_EXPORT read_pos_file( path_t const& file_path );
  * \param file_path The path to output the file to.
  */
 void
-VITAL_EXPORT write_pos_file( metadata const& md,
-                             path_t const& file_path );
+VITAL_EXPORT
+write_pos_file( metadata const& md,
+                path_t const& file_path );
 
 } } // end namespace
 

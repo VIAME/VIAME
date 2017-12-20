@@ -48,6 +48,34 @@ namespace kwiver {
 namespace vital {
 
 
+/// Extract an image file basename from metadata and (if needed) frame number
+std::string
+basename_from_metadata(metadata_sptr md,
+                       frame_id_t frame)
+{
+  typedef kwiversys::SystemTools  ST;
+
+  std::string basename = "frame";
+  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_FILENAME ) )
+  {
+    std::string img_name = md->find( VITAL_META_IMAGE_FILENAME ).as_string();
+    basename = ST::GetFilenameWithoutLastExtension( img_name );
+  }
+  else
+  {
+    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_FILENAME ) )
+    {
+      std::string vid_name = md->find( VITAL_META_VIDEO_FILENAME ).as_string();
+      basename = ST::GetFilenameWithoutLastExtension( vid_name );
+    }
+    char frame_str[6];
+    std::snprintf(frame_str, 6, "%05d", static_cast<int>(frame));
+    basename += std::string(frame_str);
+  }
+  return basename;
+}
+
+
 /// Read in a POS file, producing a metadata object
 metadata_sptr
 read_pos_file( path_t const& file_path )

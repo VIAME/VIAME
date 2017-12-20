@@ -52,7 +52,7 @@
 #include <vital/algo/match_features.h>
 #include <vital/algo/close_loops.h>
 
-#include <vital/video_metadata/video_metadata_util.h>
+#include <vital/io/metadata_io.h>
 
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
