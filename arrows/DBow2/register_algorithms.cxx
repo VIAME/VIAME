@@ -75,6 +75,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   vpm.mark_module_as_loaded( module_name );
 }
 
-} // end namespace DBoW2
+} // end namespace DBoW2_kw
 } // end namespace arrows
 } // end namespace kwiver
