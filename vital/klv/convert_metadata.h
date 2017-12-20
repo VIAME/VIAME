@@ -13,7 +13,7 @@
  *    and/or other materials provided with the distribution.
  *
  *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or p-2017romote products derived from this software without specific
+ *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
