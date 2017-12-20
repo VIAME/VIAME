@@ -35,19 +35,23 @@
 
 #include <test_gtest.h>
 
-#include "dummy_image_io.h"
-
 #include <arrows/core/video_input_filter.h>
+#include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
 #include <iostream>
 
+#include "barcode_decode.h"
+#include "seek_frame_common.h"
+
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
+static int num_expected_frames = 50;
+static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -75,37 +79,48 @@ TEST_F(video_input_filter, create)
 
 // ----------------------------------------------------------------------------
 static
-kwiver::vital::config_block_sptr
-make_config(std::string const& data_dir)
+bool
+set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
 {
-  // make config block
-  auto config = kwiver::vital::config_block::empty_config();
   config->set_value( "video_input:type", "split" );
-
   config->set_value( "video_input:split:image_source:type", "image_list" );
-  config->set_value( "video_input:split:image_source:image_list:image_reader:type", "dummy" );
+  if ( kwiver::vital::has_algorithm_impl_name( "image_io", "ocv" ) )
+  {
+    config->set_value( "video_input:split:image_source:image_list:image_reader:type", "ocv" );
+  }
+  else if ( kwiver::vital::has_algorithm_impl_name( "image_io", "vxl" ) )
+  {
+    config->set_value( "video_input:split:image_source:image_list:image_reader:type", "vxl" );
+  }
+  else
+  {
+    std::cout << "Skipping tests since there is no image reader." << std::endl;
+    return false;
+  }
 
   config->set_value( "video_input:split:metadata_source:type", "pos" );
   config->set_value( "video_input:split:metadata_source:pos:metadata_directory", data_dir + "/pos");
 
-  return config;
+  return true;
 }
 
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_filter vif;
 
   EXPECT_TRUE( vif.check_configuration( config ) );
   vif.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vif.open( list_file );
 
   kwiver::vital::timestamp ts;
@@ -125,35 +140,39 @@ TEST_F(video_input_filter, read_list)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list_subset)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "start_at_frame", "2" );
-  config->set_value( "stop_after_frame", "4" );
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  config->set_value( "start_at_frame", "11" );
+  config->set_value( "stop_after_frame", "30" );
 
   kwiver::arrows::core::video_input_filter vif;
 
   EXPECT_TRUE( vif.check_configuration( config ) );
   vif.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vif.open( list_file );
 
   kwiver::vital::timestamp ts;
 
   int num_frames = 0;
-  int frame_idx = 1;
+  int frame_idx = 10;
   while ( vif.next_frame( ts ) )
   {
     auto img = vif.frame_image();
@@ -169,26 +188,82 @@ TEST_F(video_input_filter, read_list_subset)
     ++frame_idx;
     EXPECT_EQ( frame_idx, ts.get_frame() )
       << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
   }
-  EXPECT_EQ( 3, num_frames );
+  EXPECT_EQ( 20, num_frames );
 }
 
-
-// ----------------------------------------------------------------------------
-TEST_F(video_input_filter, test_capabilities)
+TEST_F(video_input_filter, seek_frame)
 {
-  // register the dummy_image_io so we can use it in this test
-  register_dummy_image_io();
-
   // make config block
-  auto config = make_config(data_dir);
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
 
   kwiver::arrows::core::video_input_filter vif;
 
   EXPECT_TRUE( vif.check_configuration( config ) );
   vif.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vif.open( list_file );
+
+  test_seek_frame( vif );
+
+  vif.close();
+}
+
+TEST_F(video_input_filter, seek_frame_sublist)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  config->set_value( "start_at_frame", "11" );
+  config->set_value( "stop_after_frame", "30" );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vif.open( list_file );
+
+  test_seek_frame_sublist( vif );
+
+  vif.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_filter, test_capabilities)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vif.open( list_file );
 
   auto cap = vif.get_implementation_capabilities();

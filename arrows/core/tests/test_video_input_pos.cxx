@@ -46,6 +46,8 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
+static int num_expected_frames = 50;
+static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -83,7 +85,7 @@ TEST_F(video_input_pos, read_list)
   vip.check_configuration( config );
   vip.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vip.open( list_file );
 
   kwiver::vital::timestamp ts;
@@ -102,7 +104,7 @@ TEST_F(video_input_pos, read_list)
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
 }
 
 // ----------------------------------------------------------------------------
@@ -117,7 +119,7 @@ TEST_F(video_input_pos, is_good)
   EXPECT_TRUE( vip.check_configuration( config ) );
   vip.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   kwiver::vital::timestamp ts;
 
   EXPECT_FALSE( vip.good() )
@@ -148,5 +150,46 @@ TEST_F(video_input_pos, is_good)
     EXPECT_TRUE( vip.good() )
       << "Video state on frame " << ts.get_frame();
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
+}
+
+TEST_F(video_input_pos, seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
+
+  kwiver::arrows::core::video_input_pos vip;
+
+  EXPECT_TRUE( vip.check_configuration( config ) );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vip.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vip.seekable() );
+
+  // Test various valid seeks
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
+    {3, 23, 46, 34, 50, 1};
+  for (auto requested_frame : valid_seeks)
+  {
+    EXPECT_TRUE( vip.seek_frame( ts, requested_frame) );
+    EXPECT_EQ( requested_frame, ts.get_frame() );
+  }
+
+  // Test various invalid seeks past end of video
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
+    {-3, -1, 51, 55};
+  for (auto requested_frame : in_valid_seeks)
+  {
+    EXPECT_FALSE( vip.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
+  }
+
+  vip.close();
 }
