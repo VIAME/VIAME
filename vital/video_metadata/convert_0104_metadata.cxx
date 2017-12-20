@@ -38,7 +38,7 @@
 #include <vital/klv/klv_0104.h>
 #include <vital/klv/klv_data.h>
 
-#include <vital/exceptions/klv.h>
+#include <vital/exceptions/metadata.h>
 
 #include <vital/types/geodesy.h>
 
@@ -173,7 +173,7 @@ void convert_metadata
 
       data = klv_0104::instance()->get_value( tag, &itr->second[0], itr->second.size() );
     }
-    catch ( kwiver::vital::klv_exception const& e )
+    catch ( kwiver::vital::metadata_exception const& e )
     {
       LOG_INFO( m_logger, "Exception caught parsing 0104 klv: " << e.what() );
       continue;

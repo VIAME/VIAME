@@ -39,7 +39,7 @@
 #include <vital/klv/klv_0104.h>
 #include <vital/klv/klv_data.h>
 #include <vital/klv/klv_parse.h>
-#include <vital/exceptions/klv.h>
+#include <vital/exceptions/metadata.h>
 
 namespace kwiver {
 namespace vital {
@@ -94,7 +94,7 @@ void convert_metadata
     if ( ! klv_0601_checksum( klv ) )
     {
       // serious error
-      throw klv_exception( "checksum error on 0601 packet");
+      throw metadata_exception( "checksum error on 0601 packet");
     }
 
     klv_lds_vector_t lds = parse_klv_lds( klv );

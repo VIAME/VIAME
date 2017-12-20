@@ -69,7 +69,7 @@ public:
    * @param[in] klv Raw metadata packet containing UDS key
    * @param[in,out] metadata Collection of metadata this updated.
    *
-   * @throws klv_exception When error encountered.
+   * @throws metadata_exception When error encountered.
    */
    void convert( klv_data const& klv, metadata& md );
 
