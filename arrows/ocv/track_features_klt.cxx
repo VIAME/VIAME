@@ -54,10 +54,7 @@
 
 #include <opencv2/video/tracking.hpp>
 
-#include <kwiversys/SystemTools.hxx>
-
 using namespace kwiver::vital;
-typedef kwiversys::SystemTools ST;
 
 namespace kwiver {
 namespace arrows {
@@ -104,9 +101,10 @@ public:
       tracked_feature_location_mask = cv::Mat(tfh,tfw, CV_8UC1);
     }
 
-    exclude_rad_pixels /= tracked_feat_mask_downsample_fact;
-    erp2 = (exclude_rad_pixels * exclude_rad_pixels);
-
+    erp2 = exclude_rad_pixels * exclude_rad_pixels;
+    erp2 /= tracked_feat_mask_downsample_fact;
+    erp2 /= tracked_feat_mask_downsample_fact;
+   
     //mark the whole tracked feature mask as not having any features
     tracked_feature_location_mask.setTo(0);
     
@@ -339,7 +337,7 @@ public:
           dist_image.at<uint16_t>(dist_bin_y, dist_bin_x);
         if (numFeatInBin < UINT16_MAX) 
         {
-          ++numFeatInBin;  //make sure we don't roll over the uchar.
+          ++numFeatInBin;  //make sure we don't roll over the UINT_16.
         }
       }
     }
@@ -586,11 +584,6 @@ track_features_klt
     typedef std::vector<feature_sptr>::const_iterator feat_itr;    
     for(feat_itr fit = vf.begin(); fit != vf.end(); ++fit)
     {
-      //if (d_->tracked_feature_location_mask.at<unsigned char>(
-      //    (*fit)->loc().y(), (*fit)->loc().x()) != 0) 
-      //{
-      //  continue;  //there is already a tracked feature near here
-      //}
       if (d_->exclude_mask_is_set((*fit)->loc()))
         continue;
       

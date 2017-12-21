@@ -10,7 +10,7 @@ release version, and the content of this file will be reset.
 Updates since last public release
 ---------------------------------
 
-*Added an opencv based KLT feature tracker.
+* Added an opencv based KLT feature tracker.
 
 Fixes since last public release
 -------------------------------
