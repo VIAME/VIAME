@@ -24,6 +24,10 @@ Arrows - Core
    frame. This done using barcodes embedded in the test imagery that encode
    the frame number.
 
+Arrows - OpenCV
+
+ * Added an OpenCV based KLT feature tracker.
+
 Arrows - VXL
 
  * Implemented the seekable() and seek_frame() methods for the

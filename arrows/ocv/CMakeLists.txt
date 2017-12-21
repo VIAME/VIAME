@@ -37,6 +37,7 @@ set( ocv_headers_public
   match_set.h
   refine_detections_write_to_disk.h
   split_image.h
+  track_features_klt.h
   )
 kwiver_install_headers(
   SUBDIR     arrows/ocv
@@ -83,6 +84,7 @@ set( ocv_sources
   match_set.cxx
   refine_detections_write_to_disk.cxx
   split_image.cxx
+  track_features_klt.cxx
   )
 
 if( KWIVER_HAS_OPENCV_VER_3 )
