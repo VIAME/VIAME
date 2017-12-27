@@ -40,6 +40,7 @@ import ctypes
 from vital.util.VitalObject import VitalObject
 from vital.exceptions.base import VitalBaseException
 
+from vital.util.bindings import error_handle
 
 # noinspection PyPep8Naming
 class VitalErrorHandle (VitalObject):
@@ -65,17 +66,13 @@ class VitalErrorHandle (VitalObject):
         """
         Create a new error handle instance.
         """
-        eh_new = self.VITAL_LIB['vital_eh_new']
-        eh_new.restype = self.C_TYPE_PTR
-        c_ptr = eh_new()
+        c_ptr = error_handle.new()
         if not c_ptr:
             raise RuntimeError("Failed construct new error handle instance")
         return c_ptr
 
     def _destroy(self):
-        eh_del = self.VITAL_LIB['vital_eh_destroy']
-        eh_del.argtypes = [self.C_TYPE_PTR]
-        eh_del(self._inst_ptr)
+        error_handle.destroy(self._inst_ptr)
 
     def __enter__(self):
         return self
@@ -89,11 +86,11 @@ class VitalErrorHandle (VitalObject):
 
     @property
     def error_code(self):
-        return self.c_pointer[0].error_code
+        return self._inst_ptr.error_code
 
     @property
     def message(self):
-        return self.c_pointer[0].message
+        return self._inst_ptr.message
 
     def set_exception_map(self, ec_exception_map):
         """

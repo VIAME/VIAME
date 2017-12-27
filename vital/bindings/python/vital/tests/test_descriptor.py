@@ -34,7 +34,6 @@ vital::descriptor interface tests
 
 """
 from __future__ import print_function
-import ctypes
 import random
 import unittest
 
@@ -53,13 +52,13 @@ class TestDescriptor (unittest.TestCase):
         random.seed(0)
         for i in range(100):
             n = random.randint(1, 4096)
-            Descriptor(n, ctypes.c_double)
-            Descriptor(n, ctypes.c_float)
+            Descriptor(n, numpy.float)
+            Descriptor(n, numpy.float32)
 
     def test_new_invalid_size(self):
         # Check that we need to pass an integer size.
         nose.tools.assert_raises(
-            ctypes.ArgumentError,
+            TypeError,
             Descriptor, 42.3
         )
 
@@ -78,12 +77,12 @@ class TestDescriptor (unittest.TestCase):
             print(n, end=' ')
 
             nose.tools.assert_equal(
-                Descriptor(n, ctypes.c_double).nbytes,
-                ctypes.sizeof(ctypes.c_double) * n
+                Descriptor(n, numpy.float).nbytes,
+                8 * n
             )
             nose.tools.assert_equal(
-                Descriptor(n, ctypes.c_float).nbytes,
-                ctypes.sizeof(ctypes.c_float) * n
+                Descriptor(n, numpy.float32).nbytes,
+                4 * n
             )
 
     def test_raw_data(self):

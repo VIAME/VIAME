@@ -48,6 +48,7 @@ TYPE_NAME_MAP = {
 
 
 def free_void_ptr(ptr):
+    # TODO DELETE THIS OR REPLACE WITH PROPER BINDINGS AS OTHER PARTS ARE FINISHED BEING REWRITTEN
     """
     Free a C pointer as a void pointer.
 
