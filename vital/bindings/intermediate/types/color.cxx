@@ -28,33 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vital/types/color.h>
+
 #include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
 
-#include "py_classes.cxx"
+namespace py=pybind11;
 
-namespace py = pybind11;
-
-PYBIND11_MODULE(_covariance, m)
+PYBIND11_MODULE(_color, m)
 {
-  py::class_<PyCovarianceBase, std::shared_ptr<PyCovarianceBase> >(m, "Covariance")
-  .def_static("new_covar", &PyCovarianceBase::covar_from_scalar, // need to use a factory func instead of constructor
-       py::arg("N")=2, py::arg("c_type")='d', py::arg("init")=py::none())
-  .def_static("from_matrix", &PyCovarianceBase::covar_from_matrix,
-       py::arg("N")=2, py::arg("c_type")='d', py::arg("init")=py::none())
-  .def("to_matrix", &PyCovarianceBase::to_matrix)
-  .def("__setitem__", [](PyCovarianceBase &self, py::tuple idx, py::object value)
+  py::class_<kwiver::vital::rgb_color, std::shared_ptr<kwiver::vital::rgb_color> >(m, "RGBColor")
+  .def(py::init<>())
+  .def(py::init([](float r, float g, float b) {return kwiver::vital::rgb_color(uint8_t(r),uint8_t(g),uint8_t(b));}),
+    py::arg("r")=0, py::arg("g")=0, py::arg("b")=0)
+  .def_readwrite("r", &kwiver::vital::rgb_color::r)
+  .def_readwrite("g", &kwiver::vital::rgb_color::g)
+  .def_readwrite("b", &kwiver::vital::rgb_color::b)
+  .def("__eq__", [](kwiver::vital::rgb_color self, kwiver::vital::rgb_color other)
                       {
-                        self.set_item(idx[0].cast<int>(), idx[1].cast<int>(), value);
+                        return ((self.r == other.r) && (self.g == other.g) && (self.b == other.b));
                       })
-  .def("__getitem__", [](PyCovarianceBase &self, py::tuple idx)
+  .def("__ne__", [](kwiver::vital::rgb_color self, kwiver::vital::rgb_color other)
                       {
-                        return self.get_item(idx[0].cast<int>(), idx[1].cast<int>());
+                        return ((self.r != other.r) || (self.g != other.g) || (self.b != other.b));
                       })
-   ;
-
-  py::class_<PyCovariance2d, PyCovarianceBase, std::shared_ptr<PyCovariance2d>>(m, "Covariance2d");
-  py::class_<PyCovariance3d, PyCovarianceBase, std::shared_ptr<PyCovariance3d>>(m, "Covariance3d");
-  py::class_<PyCovariance2f, PyCovarianceBase, std::shared_ptr<PyCovariance2f>>(m, "Covariance2f");
-  py::class_<PyCovariance3f, PyCovarianceBase, std::shared_ptr<PyCovariance3f>>(m, "Covariance3f");
+  .def("__repr__", [](kwiver::vital::rgb_color self)
+                      {
+                        return "RGBColor{" + std::to_string(self.r) + ", " + std::to_string(self.g) + ", " + std::to_string(self.b) + "}";
+                      })
+  .def("__getitem__", [](kwiver::vital::rgb_color self, int idx)
+                        {
+                          switch (idx) {
+                            case 0: return self.r;
+                            case 1: return self.g;
+                            case 2: return self.b;
+                          }
+                          throw pybind11::index_error("RGB can't have an index greater than 2");
+                        })
+  ;
 }

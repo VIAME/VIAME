@@ -28,33 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <vital/types/camera_map.h>
+
 #include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
+#include <pybind11/stl.h>
 
-#include "py_classes.cxx"
+namespace py=pybind11;
 
-namespace py = pybind11;
-
-PYBIND11_MODULE(_covariance, m)
+PYBIND11_MODULE(_camera_map, m)
 {
-  py::class_<PyCovarianceBase, std::shared_ptr<PyCovarianceBase> >(m, "Covariance")
-  .def_static("new_covar", &PyCovarianceBase::covar_from_scalar, // need to use a factory func instead of constructor
-       py::arg("N")=2, py::arg("c_type")='d', py::arg("init")=py::none())
-  .def_static("from_matrix", &PyCovarianceBase::covar_from_matrix,
-       py::arg("N")=2, py::arg("c_type")='d', py::arg("init")=py::none())
-  .def("to_matrix", &PyCovarianceBase::to_matrix)
-  .def("__setitem__", [](PyCovarianceBase &self, py::tuple idx, py::object value)
+  py::class_<kwiver::vital::simple_camera_map, std::shared_ptr<kwiver::vital::simple_camera_map> >(m, "CameraMap")
+    .def(py::init<>())
+    .def(py::init([](py::dict dict)
+                    {
+                      std::map<kwiver::vital::frame_id_t, kwiver::vital::camera_sptr> cm;
+                      for( auto item : dict)
                       {
-                        self.set_item(idx[0].cast<int>(), idx[1].cast<int>(), value);
-                      })
-  .def("__getitem__", [](PyCovarianceBase &self, py::tuple idx)
+                        cm.insert(std::make_pair(
+                                    item.first.cast<kwiver::vital::frame_id_t>(),
+                                    item.second.cast<std::shared_ptr<kwiver::vital::simple_camera>>()));
+                      }
+                      return kwiver::vital::simple_camera_map(cm);
+                    }))
+    .def_property_readonly("size", &kwiver::vital::simple_camera_map::size)
+    .def("as_dict", [](kwiver::vital::simple_camera_map &cm)
                       {
-                        return self.get_item(idx[0].cast<int>(), idx[1].cast<int>());
+                        std::map<kwiver::vital::frame_id_t, kwiver::vital::simple_camera> dict;
+                        auto cam_list = cm.cameras();
+                        for( auto item : cam_list)
+                        {
+                          kwiver::vital::simple_camera cam(*(item.second));
+                          dict.insert(std::make_pair(item.first, cam));
+                        }
+                        return dict;
                       })
-   ;
-
-  py::class_<PyCovariance2d, PyCovarianceBase, std::shared_ptr<PyCovariance2d>>(m, "Covariance2d");
-  py::class_<PyCovariance3d, PyCovarianceBase, std::shared_ptr<PyCovariance3d>>(m, "Covariance3d");
-  py::class_<PyCovariance2f, PyCovarianceBase, std::shared_ptr<PyCovariance2f>>(m, "Covariance2f");
-  py::class_<PyCovariance3f, PyCovarianceBase, std::shared_ptr<PyCovariance3f>>(m, "Covariance3f");
+  ;
 }

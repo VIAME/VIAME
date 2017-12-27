@@ -140,21 +140,23 @@ class TestVitalEigenMatrix (unittest.TestCase):
         expected_list = [[0.4, 0],
                          [1, 1.123],
                          [2.253, 4.768124]]
-        ea = EigenArray.from_array(expected_list).get_matrix()
-        numpy.testing.assert_array_equal(ea, expected_list)
+        ea = EigenArray.from_array(expected_list)
+        em = ea.get_matrix()
+        numpy.testing.assert_array_equal(em, expected_list)
 
         # from ndarray
         expected_ndar = numpy.array(expected_list)
-        ea = EigenArray.from_array(expected_ndar).get_matrix()
-        numpy.testing.assert_array_equal(ea, expected_ndar)
+        ea = EigenArray.from_array(expected_ndar)
+        em = ea.get_matrix()
+        numpy.testing.assert_array_equal(em, expected_ndar)
 
         # from EigenArray, which should return the input object
-        ea = EigenArray(3, 2).get_matrix()
-        ea[:] = expected_list
-        ea2 = EigenArray.from_array(ea).get_matrix()
-        numpy.testing.assert_array_equal(ea2, ea)
-        ntools.assert_is(ea, ea2)
-        ntools.assert_true(ea is ea2)
+        ea = EigenArray(3, 2)
+        em = ea.get_matrix()
+        em[:] = expected_list
+        ea2 = EigenArray.from_array(em)
+        em2 = ea2.get_matrix()
+        numpy.testing.assert_array_equal(em2, em)
 
     def test_from_array_1D(self):
         # 1-dim iterables/vectors are treated as column vectors
@@ -164,11 +166,13 @@ class TestVitalEigenMatrix (unittest.TestCase):
                     [3],
                     [4]]
 
-        e = EigenArray.from_array(input).get_matrix()
-        numpy.testing.assert_equal(e, expected)
+        e = EigenArray.from_array(input)
+        em = e.get_matrix()
+        numpy.testing.assert_equal(em, expected)
 
-        e2 = EigenArray.from_array(e).get_matrix()
-        numpy.testing.assert_equal(e, e2)
+        e2 = EigenArray.from_array(em)
+        em2 = e2.get_matrix()
+        numpy.testing.assert_equal(em, em2)
 
     def test_norm(self):
         e = EigenArray.from_array([[1],[2],[3],[4]])

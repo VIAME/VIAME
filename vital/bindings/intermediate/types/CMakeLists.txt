@@ -7,19 +7,33 @@ sprokit_add_python_library(_bounding_box
   bounding_box.cxx)
 target_link_libraries(python-vital.types.bindings-_bounding_box
   PUBLIC ${PYTHON_LIBRARIES}
-         vital_c)
+         vital)
 
 sprokit_add_python_library(_camera
   vital/types/bindings
   camera.cxx)
 target_link_libraries(python-vital.types.bindings-_camera
   PUBLIC ${PYTHON_LIBRARIES}
-         vital_c)
+         vital)
 
 sprokit_add_python_library(_camera_intrinsics
   vital/types/bindings
   camera_intrinsics.cxx)
 target_link_libraries(python-vital.types.bindings-_camera_intrinsics
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_camera_map
+  vital/types/bindings
+  camera_map.cxx)
+target_link_libraries(python-vital.types.bindings-_camera_map
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_color
+  vital/types/bindings
+  color.cxx)
+target_link_libraries(python-vital.types.bindings-_color
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -55,6 +69,8 @@ sprokit_create_python_init(vital/types/bindings
   _bounding_box
   _camera
   _camera_intrinsics
+  _camera_map
+  _color
   _covariance
   _descriptor
   _eigen
