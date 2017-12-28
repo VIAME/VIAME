@@ -351,6 +351,7 @@ triangulate_landmarks
         if (bad_triangulation)
         {
           failed_angle.insert(p.first);
+          failed_landmarks.insert(p.first);
         }
       }
       if( !bad_triangulation )
