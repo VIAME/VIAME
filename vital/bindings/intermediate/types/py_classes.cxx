@@ -732,8 +732,11 @@ class PyCovariance2d
                   {covar = kwiver::vital::covariance_<2, double>(mat);};
     PyCovariance2d(Eigen::Matrix<double, 2, 2> mat)
                   {covar = kwiver::vital::covariance_<2, double>(mat);};
+    PyCovariance2d(kwiver::vital::covariance_<2, double> mat)
+                  {covar = mat;};
 
     py::object to_matrix() {return py::cast<Eigen::Matrix<double, 2, 2>>(covar.matrix());};
+    kwiver::vital::covariance_<2, double> get_covar() {return covar;};
 
     void set_item(int i, int j, py::object value)
                                     {
@@ -767,6 +770,8 @@ class PyCovariance3d
                   {covar = kwiver::vital::covariance_<3, double>(mat);};
     PyCovariance3d(Eigen::Matrix<double, 3, 3> mat)
                   {covar = kwiver::vital::covariance_<3, double>(mat);};
+    PyCovariance3d(kwiver::vital::covariance_<3, double> mat)
+                  {covar = mat;};
 
     py::object to_matrix() {return py::cast<Eigen::Matrix<double, 3, 3>>(covar.matrix());};
     kwiver::vital::covariance_<3, double> get_covar() {return covar;};
@@ -802,8 +807,11 @@ class PyCovariance2f
                   {covar = kwiver::vital::covariance_<2, float>(mat);};
     PyCovariance2f(Eigen::Matrix<float, 2, 2> mat)
                   {covar = kwiver::vital::covariance_<2, float>(mat);};
+    PyCovariance2f(kwiver::vital::covariance_<2, float> mat)
+                  {covar = mat;};
 
     py::object to_matrix() {return py::cast<Eigen::Matrix<float, 2, 2>>(covar.matrix());};
+    kwiver::vital::covariance_<2, float> get_covar() {return covar;};
 
     void set_item(int i, int j, py::object value)
                                     {
@@ -836,8 +844,11 @@ class PyCovariance3f
                   {covar = kwiver::vital::covariance_<3, float>(mat);};
     PyCovariance3f(Eigen::Matrix<float, 3, 3> mat)
                   {covar = kwiver::vital::covariance_<3, float>(mat);};
+    PyCovariance3f(kwiver::vital::covariance_<3, float> mat)
+                  {covar = mat;};
 
     py::object to_matrix() {return py::cast<Eigen::Matrix<float, 3, 3>>(covar.matrix());};
+    kwiver::vital::covariance_<3, float> get_covar() {return covar;};
 
     void set_item(int i, int j, py::object value)
                                     {

@@ -58,10 +58,31 @@ target_link_libraries(python-vital.types.bindings-_eigen
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_feature
+  vital/types/bindings
+  feature.cxx)
+target_link_libraries(python-vital.types.bindings-_feature
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_landmark
+  vital/types/bindings
+  landmark.cxx)
+target_link_libraries(python-vital.types.bindings-_landmark
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_add_python_library(_rotation
   vital/types/bindings
   rotation.cxx)
 target_link_libraries(python-vital.types.bindings-_rotation
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_track
+  vital/types/bindings
+  track.cxx)
+target_link_libraries(python-vital.types.bindings-_track
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -74,5 +95,8 @@ sprokit_create_python_init(vital/types/bindings
   _covariance
   _descriptor
   _eigen
+  _feature
+  _landmark
   _rotation
+  _track
 )

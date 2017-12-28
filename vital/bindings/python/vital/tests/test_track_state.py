@@ -33,7 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for TrackState interface class
 
 """
-import ctypes
 import unittest
 
 import nose.tools
@@ -55,15 +54,6 @@ class TestTrackState (unittest.TestCase):
         TrackState(0, descriptor=d)
         TrackState(0, f, d)
 
-        # Only integers
-        nose.tools.assert_raises(
-            ctypes.ArgumentError,
-            TrackState, 1.2
-        )
-        nose.tools.assert_raises(
-            ctypes.ArgumentError,
-            TrackState, 'foo'
-        )
 
     def test_frame_id(self):
         ts = TrackState(0)

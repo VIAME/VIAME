@@ -33,7 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Track interface class
 
 """
-import ctypes
 
 import nose.tools
 import numpy
@@ -88,13 +87,6 @@ class TestVitalTrack (object):
         t.id = 1345634
         nose.tools.assert_equal(t.id, 1345634)
 
-        # Shouldn't be able to set floats
-        def set():
-            t.id = 1.5
-        nose.tools.assert_raises(
-            ctypes.ArgumentError,
-            set
-        )
 
     def test_ts_append(self):
         t = Track()
