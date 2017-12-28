@@ -37,15 +37,11 @@
 #define ARROWS_PLUGINS_CORE_TRACK_FEATURES_CORE_H_
 
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/track_features.h>
 #include <vital/types/image_container.h>
 #include <vital/types/feature_track_set.h>
-
-#include <memory>
-
 
 namespace kwiver {
 namespace arrows {

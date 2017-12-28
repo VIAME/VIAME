@@ -31,14 +31,9 @@
 #ifndef KWIVER_ARROWS_VISCL_MATCH_FEATURES_H_
 #define KWIVER_ARROWS_VISCL_MATCH_FEATURES_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/viscl/kwiver_algo_viscl_export.h>
 
 #include <vital/algo/match_features.h>
-
-#include <memory>
-
 
 namespace kwiver {
 namespace arrows {

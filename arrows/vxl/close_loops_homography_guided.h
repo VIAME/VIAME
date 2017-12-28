@@ -37,16 +37,12 @@
 #ifndef KWIVER_ARROWS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
 #define KWIVER_ARROWS_VXL_CLOSE_LOOPS_HOMOGRAPHY_GUIDED_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/image_container.h>
 #include <vital/types/feature_track_set.h>
 
 #include <vital/algo/close_loops.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {
