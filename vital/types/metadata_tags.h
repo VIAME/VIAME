@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,16 @@
 /**
  * \file
  * \brief This file contains the internal definitions for the vital
- * video metadata tags.
+ * metadata tags.
  */
 
-#ifndef KWIVER_VITAL_VIDEO_METADATA_TAGS_H
-#define KWIVER_VITAL_VIDEO_METADATA_TAGS_H
+#ifndef KWIVER_VITAL_METADATA_TAGS_H_
+#define KWIVER_VITAL_METADATA_TAGS_H_
 
 //
-// Define all VITAL metadata tags
+// Define all Vital metadata tags
 //
-// This is the canonical definition for all kwiver vital video metadata flags
+// This is the canonical definition for all kwiver vital metadata flags
 //
 // Add another line to the macro to add another tag.
 
@@ -151,4 +151,4 @@ enum vital_metadata_tag {
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_VIDEO_METADATA_TAGS_H */
+#endif /* KWIVER_VITAL_METADATA_TAGS_H_ */

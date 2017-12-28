@@ -43,7 +43,7 @@
 #include "exceptions/image.h"
 #include "exceptions/io.h"
 #include "exceptions/math.h"
+#include "exceptions/metadata.h"
 #include "exceptions/video.h"
-#include "exceptions/klv.h"
 
 #endif // VITAL_EXCEPTIONS_H_

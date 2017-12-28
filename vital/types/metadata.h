@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,19 @@
 
 /**
  * \file
- * \brief This file contains the interface for vital video metadata.
+ * \brief This file contains the interface for vital metadata.
  */
 
-#ifndef KWIVER_VITAL_VIDEO_METADATA_H
-#define KWIVER_VITAL_VIDEO_METADATA_H
+#ifndef KWIVER_VITAL_METADATA_H_
+#define KWIVER_VITAL_METADATA_H_
 
-#include <vital/video_metadata/vital_video_metadata_export.h>
+#include <vital/vital_export.h>
 
 #include <vital/any.h>
 
 #include <vital/types/timestamp.h>
-#include <vital/exceptions/base.h>
-#include <vital/video_metadata/video_metadata_tags.h>
+#include <vital/exceptions/metadata.h>
+#include <vital/types/metadata_tags.h>
 
 #include <map>
 #include <vector>
@@ -57,19 +57,9 @@
 namespace kwiver {
 namespace vital {
 
-// ------------------------
-class VITAL_VIDEO_METADATA_EXPORT video_metadata_exception
-  : public vital_core_base_exception
-{
-public:
-  video_metadata_exception( std::string const& str );
-
-  virtual ~video_metadata_exception() noexcept;
-};
-
 
 // -----------------------------------------------------------------
-/// Abstract base class for video metadata items
+/// Abstract base class for metadata items
 /**
  * This class is the abstract base class for a single metadata
  * item. This mainly provides the interface for the type specific
@@ -78,7 +68,7 @@ public:
  * All metadata items need a common base class so they can be managed
  * in a collection.
  */
-class VITAL_VIDEO_METADATA_EXPORT metadata_item
+class VITAL_EXPORT metadata_item
 {
 public:
   virtual ~metadata_item();
@@ -250,7 +240,7 @@ public:
           << demangle( data.type().name() )
           << ") different from type object was created with ("
           << demangle( typeid(TYPE).name() ) << ")";
-      throw video_metadata_exception( msg.str() );
+      throw metadata_exception( msg.str() );
     }
   }
 
@@ -285,13 +275,17 @@ public:
 
 
 // -----------------------------------------------------------------
-/// Collection of video metadata.
+/// Collection of metadata.
 /**
- * This class represents a set of video metadata items.
+ * This class represents a set of metadata items.
  *
  * The concept is to provide a canonical set of useful metadata
- * entries that can be derived from 0104 and 0601 types of KLV
- * data.
+ * entries that can be derived from a variety of sources.  Sources may
+ * include KLV video metadata (e.g. 0104 and 0601 standards), image
+ * file header data (e.g. EXIF), telemetry data from a robot, etc.
+ * The original intent was that this metadata is associated with
+ * either an image or video frame, but it could be used in other
+ * contexts as well.
  *
  * Metadata items from the different sources are converted into a
  * small set of data types to simplify using these elements. Since the
@@ -323,7 +317,7 @@ public:
  * the \c any object carefully.
  *
  */
-class VITAL_VIDEO_METADATA_EXPORT video_metadata
+class VITAL_EXPORT metadata
 {
 public:
 #ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
@@ -334,29 +328,8 @@ public:
   typedef std::map< vital_metadata_tag, item_ptr > metadata_map_t;
   typedef metadata_map_t::const_iterator const_iterator_t;
 
-  video_metadata();
-  ~video_metadata();
-
-  /** Constants used to determine the source of this metadata
-   * collection. The value of the VITAL_META_METADATA_ORIGIN tag is
-   * set to one of the following values depending on the format of the
-   * metadata packet processed.
-   *
-   * Typical usage is:
-   \code
-   std::string type;
-   if (meta.has( VITAL_META_METADATA_ORIGIN ) )
-   {
-      type = meta.find( VITAL_META_METADATA_ORIGIN ).as_string();
-   }
-   if (video_metadata::MISB_0104 == type)
-   {
-       // metadata was from MISB 0104 packet
-   }
-   \endcode
-   */
-  const static std::string MISB_0104;
-  const static std::string MISB_0601;
+  metadata();
+  ~metadata();
 
 
   /// Add metadata item to collection.
@@ -424,10 +397,10 @@ public:
   const_iterator_t begin() const;
 
 
-  /// Get ending iterator for collection of video metadata.
+  /// Get ending iterator for collection of metadata.
   /**
    * This method returns the ending iterator for the collection of
-   * video metadata items.
+   * metadata items.
    *
    * Typical usage:
    \code
@@ -469,7 +442,7 @@ public:
   /**
    * This method sets that time stamp for this metadata
    * collection. This time stamp can be used to relate this metada
-   * back to the video image stream.
+   * back to other temporal data like a video image stream.
    *
    * @param ts Time stamp to add to this collection.
    */
@@ -479,7 +452,7 @@ public:
   /// Return timestamp associated with these metadata.
   /**
    * This method returns the timestamp associated with this collection
-   * of video metadata. The value may not be meaningful if it has not
+   * of metadata. The value may not be meaningful if it has not
    * been set by set_timestamp().
    *
    * @return Timestamp value.
@@ -505,14 +478,14 @@ private:
   metadata_map_t m_metadata_map;
   kwiver::vital::timestamp m_timestamp;
 
-}; // end class video_metadata
+}; // end class metadata
 
-typedef std::shared_ptr< video_metadata > video_metadata_sptr;
-typedef std::vector< video_metadata_sptr > video_metadata_vector;
+typedef std::shared_ptr< metadata > metadata_sptr;
+typedef std::vector< metadata_sptr > metadata_vector;
 
 
-VITAL_VIDEO_METADATA_EXPORT std::ostream& print_metadata( std::ostream& str, video_metadata const& metadata );
+VITAL_EXPORT std::ostream& print_metadata( std::ostream& str, metadata const& metadata );
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_VIDEO_METADATA_H */
+#endif /* KWIVER_VITAL_METADATA_H_ */

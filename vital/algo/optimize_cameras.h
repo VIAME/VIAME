@@ -43,7 +43,7 @@
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/feature_track_set.h>
-#include <vital/video_metadata/video_metadata_map.h>
+#include <vital/types/metadata_map.h>
 
 
 namespace kwiver {
@@ -78,7 +78,7 @@ public:
   optimize(kwiver::vital::camera_map_sptr & cameras,
            kwiver::vital::feature_track_set_sptr tracks,
            kwiver::vital::landmark_map_sptr landmarks,
-           kwiver::vital::video_metadata_map_sptr metadata = nullptr) const;
+           kwiver::vital::metadata_map_sptr metadata = nullptr) const;
 
 
   /// Optimize a single camera given corresponding features and landmarks
@@ -99,8 +99,8 @@ public:
   optimize(kwiver::vital::camera_sptr& camera,
            const std::vector<kwiver::vital::feature_sptr>& features,
            const std::vector<kwiver::vital::landmark_sptr>& landmarks,
-           kwiver::vital::video_metadata_vector metadata
-             = kwiver::vital::video_metadata_vector()) const = 0;
+           kwiver::vital::metadata_vector metadata
+             = kwiver::vital::metadata_vector()) const = 0;
 
 protected:
   optimize_cameras();

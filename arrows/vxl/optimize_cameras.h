@@ -76,8 +76,8 @@ public:
   optimize(vital::camera_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::video_metadata_vector metadata
-             = kwiver::vital::video_metadata_vector()) const;
+           kwiver::vital::metadata_vector metadata
+             = kwiver::vital::metadata_vector()) const;
 };
 
 
