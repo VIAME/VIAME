@@ -37,7 +37,7 @@ Tests for Track interface class
 import nose.tools
 import numpy
 
-from vital.types import Track, TrackState, Feature, Descriptor
+from vital.types.bindings import Track, TrackState, Feature, Descriptor
 
 
 class TestVitalTrack (object):
@@ -188,40 +188,6 @@ class TestVitalTrack (object):
         t.append(TrackState(10))
         nose.tools.assert_is_not_none(t[10])
         nose.tools.assert_equal(t[10].frame_id, 10)
-
-    def test_ts_feat_desc(self):
-        t = Track()
-
-        f0 = Feature(mag=0)
-        d0 = Descriptor(4)
-        d0[:] = 0
-        t.append(TrackState(0, f0, d0))
-
-        f1 = Feature(mag=1)
-        d1 = Descriptor(4)
-        d1[:] = 1
-        t.append(TrackState(1, f1, d1))
-
-        nose.tools.assert_equal(t.size, 2)
-        nose.tools.assert_equal(len(t), 2)
-        ts0 = t.find_state(0)
-        nose.tools.assert_equal(ts0.feature, f0)
-        numpy.testing.assert_equal(ts0.descriptor, d0)
-
-        ts1 = t.find_state(1)
-        nose.tools.assert_equal(ts1.feature, f1)
-        numpy.testing.assert_equal(ts1.descriptor, d1)
-
-        # Delete local descriptor references, get track states and check
-        # descriptor values manually
-        del f0, f1, d0, d1, ts0, ts1
-        # Now, only the track-state in C++ has feature/descriptor references
-        numpy.testing.assert_equal(
-            t.find_state(0).descriptor, [0, 0, 0, 0]
-        )
-        numpy.testing.assert_equal(
-            t.find_state(1).descriptor, [1, 1, 1, 1]
-        )
 
     def test_iteration(self):
         t = Track()

@@ -49,7 +49,7 @@ sprokit_add_python_library(_descriptor
   descriptor.cxx)
 target_link_libraries(python-vital.types.bindings-_descriptor
   PUBLIC ${PYTHON_LIBRARIES}
-         vital_c)
+         vital)
 
 sprokit_add_python_library(_eigen
   vital/types/bindings

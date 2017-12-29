@@ -38,9 +38,10 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types import TrackState, Feature, Descriptor
+from vital.types.bindings import TrackState, Feature, Descriptor
 
 
+# kwiver::vital::track_state doesn't have features or descriptors
 class TestTrackState (unittest.TestCase):
 
     def test_new_ts(self):
@@ -48,11 +49,11 @@ class TestTrackState (unittest.TestCase):
         TrackState(23456)
 
         # With feat, desc, feat/desc
-        f = Feature()
-        d = Descriptor()
-        TrackState(0, feature=f)
-        TrackState(0, descriptor=d)
-        TrackState(0, f, d)
+        #f = Feature()
+        #d = Descriptor()
+        #TrackState(0, feature=f)
+        #TrackState(0, descriptor=d)
+        #TrackState(0, f, d)
 
 
     def test_frame_id(self):
@@ -62,6 +63,7 @@ class TestTrackState (unittest.TestCase):
         ts = TrackState(14691234578)
         nose.tools.assert_equal(ts.frame_id, 14691234578)
 
+'''
     def test_feat_empty(self):
         ts = TrackState(0)
         nose.tools.assert_is_none(ts.feature)
@@ -83,3 +85,4 @@ class TestTrackState (unittest.TestCase):
 
         ts = TrackState(0, descriptor=d)
         numpy.testing.assert_equal(d, ts.descriptor)
+'''

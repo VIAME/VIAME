@@ -28,64 +28,180 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/bindings/c/types/descriptor.h>
+#include <vital/types/descriptor.h>
 
+#include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
 #include <list>
 
 namespace py = pybind11;
 
+class PyDescriptorBase
+{
+
+  public:
+
+    virtual ~PyDescriptorBase() = default;
+
+    virtual size_t get_size() {return 0;};
+    virtual size_t get_num_bytes() {return 0;};
+    virtual size_t sum() {return -1;};
+
+    virtual void set_slice(py::slice slice, py::object val_obj) {};
+    virtual py::object get_slice(py::slice slice) {return py::none();};
+
+    virtual std::vector<double> as_double() { return std::vector<double>();};
+    virtual std::vector<unsigned char> as_bytes() { return std::vector<unsigned char>();};
+
+};
+
+class PyDescriptorD
+: public PyDescriptorBase
+{
+
+  kwiver::vital::descriptor_dynamic<double> desc;
+
+  public:
+
+    PyDescriptorD(size_t len) 
+      : desc (kwiver::vital::descriptor_dynamic<double>(len)) 
+      {};
+
+    size_t get_size() { return desc.size(); };
+    size_t get_num_bytes() { return desc.num_bytes(); };
+
+    size_t sum()
+    {
+      double* data = desc.raw_data();
+      size_t sum = 0;
+      for (size_t idx = 0; idx < desc.size(); idx++)
+      {
+        sum += data[idx];
+      }
+      return sum;
+    }
+
+    std::vector<double> as_double() { return desc.as_double();};
+    std::vector<unsigned char> as_bytes() { return desc.as_bytes();};
+
+    void set_slice(py::slice slice, py::object val_obj)
+    {
+      double val = val_obj.cast<double>();
+      size_t start, stop, step, slicelength;
+      slice.compute(desc.size(), &start, &stop, &step, &slicelength);
+      double* data = desc.raw_data();
+
+      for (size_t idx = start; idx < stop; idx+=step)
+      {
+        data[idx] = val;
+      }
+    };
+
+    py::object get_slice(py::slice slice)
+    {
+      std::vector<double> ret_vec;
+      size_t start, stop, step, slicelength;
+      slice.compute(desc.size(), &start, &stop, &step, &slicelength);
+      double* data = desc.raw_data();
+
+      for (size_t idx = start; idx < stop; idx+=step)
+      {
+        ret_vec.push_back(data[idx]);
+      }
+      return py::cast<std::vector<double>> (ret_vec);
+    }
+
+};
+
+class PyDescriptorF
+: public PyDescriptorBase
+{
+
+  kwiver::vital::descriptor_dynamic<float> desc;
+
+  public:
+
+    PyDescriptorF(size_t len)
+      : desc(kwiver::vital::descriptor_dynamic<float>(len))
+      {};
+
+    size_t get_size() { return desc.size(); };
+    size_t get_num_bytes() { return desc.num_bytes(); };
+
+    size_t sum()
+    {
+      float* data = desc.raw_data();
+      size_t sum = 0;
+      for (size_t idx = 0; idx < desc.size(); idx++)
+      {
+        sum += data[idx];
+      }
+      return sum;
+    }
+
+    std::vector<double> as_double() { return desc.as_double();};
+    std::vector<unsigned char> as_bytes() { return desc.as_bytes();};
+
+    void set_slice(py::slice slice, py::object val_obj)
+    {
+      float val = val_obj.cast<float>();
+      size_t start, stop, step, slicelength;
+      slice.compute(desc.size(), &start, &stop, &step, &slicelength);
+      float* data = desc.raw_data();
+
+      for (size_t idx = start; idx < stop; idx+=step)
+      {
+        data[idx] = val;
+      }
+    };
+
+    py::object get_slice(py::slice slice)
+    {
+      std::vector<float> ret_vec;
+      size_t start, stop, step, slicelength;
+      slice.compute(desc.size(), &start, &stop, &step, &slicelength);
+      float* data = desc.raw_data();
+
+      for (size_t idx = start; idx < stop; idx+=step)
+      {
+        ret_vec.push_back(data[idx]);
+      }
+      return py::cast<std::vector<float>> (ret_vec);
+    }
+};
+
+std::shared_ptr<PyDescriptorBase>
+new_descriptor(size_t len, char ctype)
+{
+  std::shared_ptr<PyDescriptorBase> retVal;
+  if(ctype == 'd')
+  {
+    retVal = std::shared_ptr<PyDescriptorBase>(new PyDescriptorD(len));
+  }
+  else if(ctype == 'f')
+  {
+    retVal = std::shared_ptr<PyDescriptorBase>(new PyDescriptorF(len));
+  }
+  return retVal;
+}
+
 PYBIND11_MODULE(_descriptor, m)
 {
-  py::class_<vital_descriptor_s>(m, "vital_descriptor_s");
+  py::class_<PyDescriptorBase, std::shared_ptr<PyDescriptorBase>>(m, "Descriptor")
+  .def(py::init(&new_descriptor),
+    py::arg("size"), py::arg("ctype")='d')
+  .def("sum", &PyDescriptorBase::sum)
+  .def("todoublearray", &PyDescriptorBase::as_double)
+  .def("tobytearray", &PyDescriptorBase::as_bytes)
+  .def("__setitem__", &PyDescriptorBase::set_slice,
+    py::arg("slice"), py::arg("value"))
+  .def("__getitem__", &PyDescriptorBase::get_slice,
+    py::arg("slice"))
+  .def_property_readonly("size", &PyDescriptorBase::get_size)
+  .def_property_readonly("nbytes", &PyDescriptorBase::get_num_bytes)
+  ;
 
-  m.def("vital_descriptor_destroy", &vital_descriptor_destroy
-    , py::arg("size"), py::arg("eh"));
-  m.def("vital_descriptor_size", &vital_descriptor_size
-    , py::arg("size"), py::arg("eh"));
-  m.def("vital_descriptor_as_bytes"
-    , [](vital_descriptor_t *d, vital_error_handle_t *eh)
-      {
-        size_t size = vital_descriptor_size(d, eh);
-        unsigned char *uc_array = vital_descriptor_as_bytes(d,eh);
-        std::string s(reinterpret_cast<char const*>(uc_array), size);
-        return py::bytes(s);
-      }
-    );
-  m.def("vital_descriptor_type_name", &vital_descriptor_type_name
-    , py::arg("size"), py::arg("eh")
-    , py::return_value_policy::reference);
-  m.def("vital_descriptor_new_d", &vital_descriptor_new_d
-    , py::arg("size"), py::arg("eh")
-    , py::return_value_policy::reference);
-  m.def("vital_descriptor_get_d_raw_data"
-    , [](vital_descriptor_t *d, vital_error_handle_t *eh)
-      {
-        double *tmp = vital_descriptor_get_d_raw_data(d, eh);
-        size_t size = vital_descriptor_size(d, eh);
-        std::list<double> ret_list;
-        for(size_t i = 0; i < size; i++)
-        {
-          ret_list.push_back(tmp[i]);
-        }
-        return ret_list;
-      }
-    , py::return_value_policy::reference);
-  m.def("vital_descriptor_new_f", &vital_descriptor_new_f
-    , py::arg("size"), py::arg("eh")
-    , py::return_value_policy::reference);
-  m.def("vital_descriptor_get_f_raw_data"
-    , [](vital_descriptor_t *d, vital_error_handle_t *eh)
-      {
-        float *tmp = vital_descriptor_get_f_raw_data(d, eh);
-        size_t size = vital_descriptor_size(d, eh);
-        std::list<float> ret_list;
-        for(size_t i = 0; i < size; i++)
-        {
-          ret_list.push_back(tmp[i]);
-        }
-        return ret_list;
-      }
-    , py::return_value_policy::reference);
+  py::class_<PyDescriptorD, PyDescriptorBase, std::shared_ptr<PyDescriptorD>>(m, "DescriptorD");
+  py::class_<PyDescriptorF, PyDescriptorBase, std::shared_ptr<PyDescriptorF>>(m, "DescriptorF");
 }
