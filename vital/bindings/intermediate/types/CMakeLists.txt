@@ -86,6 +86,13 @@ target_link_libraries(python-vital.types.bindings-_track
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_track_set
+  vital/types/bindings
+  track_set.cxx)
+target_link_libraries(python-vital.types.bindings-_track_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_create_python_init(vital/types/bindings
   _bounding_box
   _camera
@@ -99,4 +106,5 @@ sprokit_create_python_init(vital/types/bindings
   _landmark
   _rotation
   _track
+  _track_set
 )
