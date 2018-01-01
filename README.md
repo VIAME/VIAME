@@ -6,12 +6,15 @@ video processing algorithms together in a common distributed processing framewor
 majorly targeting marine species analytics. It is also useful as a general computer
 vision toolkit, as it contains many common algorithms and compiles several other popular
 repositories together as a part of its build process. The core infrastructure connecting
-different system components is currently the KWIVER library, which can connect C/C++, python,
+different system components is currently the KWIVER library. KWIVER can connect C/C++, python,
 and matlab nodes together in a graph-like pipeline architecture. For more information
 about KWIVER's capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
 Alongside the pipelined image processing system are a number of standalone utilties
-for model training, output detection visualization, and detector/tracker
-evaluation (a.k.a. scoring).
+for model training, output detection visualization, detector/tracker evaluation (a.k.a. scoring),
+and image/video search.
+
+Capabilities
+------------
 
 <p align="center">
 <br>
@@ -46,6 +49,8 @@ Documentation
 
 Pre-Built Binaries
 ------------------
+
+Note: these binaries are currently very out-of-date, but will be updated sometime before this year's ICCV. Source build is recommended.
 
 Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages.
 
@@ -241,3 +246,23 @@ Output detections can then be viewed in the GUI, e.g., see:
 
 [install-directory]/examples/visualizing_detections_in_gui/
 
+
+License and Citation
+--------------------
+
+VIAME is released under a BSD-3 license.
+
+A system paper summarizing VIAME was published in IEEE WACV 2017 (citation below)
+which is [available here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
+
+```
+@inproceedings{viame2017,
+  title={An Open-Source Platform for Underwater Image and Video Analytics},
+  author={Dawkins, Matthew and Sherrill, Linus and Fieldhouse, Keith and Hoogs, Anthony and Richards, Benjamin and Zhang, David and Prasad, Lakshman and Williams, Kresimir and Lauffenburger, Nathan and Wang, Gaoang},
+  booktitle={Applications of Computer Vision (WACV), 2017 IEEE Winter Conference on},
+  pages={898--906},
+  year={2017},
+  organization={IEEE}
+}
+
+```

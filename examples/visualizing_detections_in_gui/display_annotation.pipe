@@ -5,16 +5,14 @@
 # ==================================================================
 process read_annotations
   :: detected_object_input
-#  :file_name   habcam.csv
-#  :reader:type csv
-  :file_name   /videonas2/other/data_golden/whoi_scallop/drop_1/training_set_metadata_5_6_2016.txt
-  :reader:type habcam
+  :file_name                  some_ground_truth_file.txt
+  :reader:type                gt_type_str[csv,habcam,...]
 
 # ==================================================================
 process image_reader
   :: image_file_reader
   :error_mode    skip
-  :path   /videonas2/other/data_golden/whoi_scallop/drop_1/HabCam_trainingSet_5_6_2016
+  :path                       directory_containing_images
   :image_reader:type ocv
 
 # ==================================================================
@@ -24,14 +22,14 @@ process draw_box
 # ================================================================
 process disp
   :: image_viewer
-:annotate_image         true
-:pause_time             2.0
+:annotate_image               true
+:pause_time                   2.0
 
 # ================================================================
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 10
+       :capacity              10
 
 
 # ================================================================

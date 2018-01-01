@@ -1,0 +1,108 @@
+{
+    "flask_app": {
+        "BASIC_AUTH_PASSWORD": "demo",
+        "BASIC_AUTH_USERNAME": "demo",
+        "SECRET_KEY": "MySuperUltraSecret"
+    },
+    "iqr_tabs" : [
+        {
+            "name": "data-set",
+            "data_set": {
+                "DataMemorySet": {
+                    "file_cache": "models/image_elements.dms_cache",
+                    "pickle_protocol": -1
+                },
+                "type": "DataMemorySet"
+            },
+            "descr_generator": {
+                "CaffeDescriptorGenerator": {
+                    "batch_size": 100,
+                    "data_layer": "data",
+                    "gpu_device_id": 0,
+                    "image_mean_filepath": "configs/imagenet_mean.binaryproto",
+                    "input_scale": null,
+                    "load_truncated_images": true,
+                    "network_is_bgr": true,
+                    "network_model_filepath": "configs/bvlc_alexnet.caffemodel",
+                    "network_prototxt_filepath": "configs/deploy.prototxt",
+                    "pixel_rescale": null,
+                    "return_layer": "fc7",
+                    "use_gpu": false
+                },
+                "type": "CaffeDescriptorGenerator"
+            },
+            "descriptor_factory": {
+                "DescriptorFileElement": {
+                    "save_dir": "models/descriptors",
+                    "subdir_split": null
+                },
+                "PostgresDescriptorElement": {
+                    "binary_col": "vector",
+                    "db_host": "/dev/shm",
+                    "db_name": "postgres",
+                    "db_pass": null,
+                    "db_port": 5432,
+                    "db_user": "smqtk",
+                    "table_name": "descriptors_alexnet_fc7",
+                    "type_col": "type_str",
+                    "uuid_col": "uid"
+                },
+                "type": "DescriptorFileElement"
+            },
+            "nn_index": {
+                "LSHNearestNeighborIndex": {
+                    "descriptor_index": {
+                        "MemoryDescriptorIndex": {
+                            "file_cache": "models/descriptors.alexnet_fc7.mdi_cache",
+                            "pickle_protocol": -1
+                        },
+                        "type": "MemoryDescriptorIndex"
+                    },
+                    "distance_method": "cosine",
+                    "hash2uuid_cache_filepath": "models/alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle",
+                    "hash_index": {
+                        "SkLearnBallTreeHashIndex": {
+                            "file_cache": "models/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz",
+                            "leaf_size": 40,
+                            "random_seed": 0
+                        },
+                        "type": "SkLearnBallTreeHashIndex"
+                    },
+                    "live_reload": false,
+                    "lsh_functor": {
+                        "ItqFunctor": {
+                            "bit_length": 256,
+                            "itq_iterations": 100,
+                            "mean_vec_filepath": "models/itq.model.b256_i100_r0.mean_vec.npy",
+                            "normalize": null,
+                            "random_seed": 0,
+                            "rotation_filepath": "models/itq.model.b256_i100_r0.rotation.npy"
+                        },
+                        "type": "ItqFunctor"
+                    },
+                    "read_only": false,
+                    "reload_mon_interval": 0.1,
+                    "reload_settle_window": 1.0
+                },
+                "type": "LSHNearestNeighborIndex"
+            },
+            "pos_seed_neighbors": 500,
+            "rel_index_config": {
+                "LibSvmHikRelevancyIndex": {
+                    "descr_cache_filepath": null
+                },
+                "type": "LibSvmHikRelevancyIndex"
+            },
+            "url_prefix": "fish",
+            "working_directory": "models/iqr_app_work"
+        }
+    ],
+    "mongo": {
+        "database": "smqtk",
+        "server": "127.0.0.1:27017"
+    },
+    "server": {
+        "host": "0.0.0.0",
+        "port": 5000
+    }
+}

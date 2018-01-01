@@ -34,15 +34,12 @@
 
 #include <opencv2/core/core.hpp>
 
-#include <boost/lexical_cast.hpp>
-
-#include <vital/vital_foreach.h>
-
 #include "util.h"
 #include "classHierarchy.h"
 #include "SpeciesIDLib.h"
 
 #include <cmath>
+#include <string>
 
 namespace viame {
 
@@ -125,7 +122,7 @@ refine( kwiver::vital::image_container_sptr image_data,
   }
 
   // process results
-  VITAL_FOREACH( auto det, input_dets->select() )
+  for( auto det : *input_dets )
   {
     // Crop out chip
     auto bbox = det->bounding_box();
@@ -150,9 +147,9 @@ refine( kwiver::vital::image_container_sptr image_data,
     // Convert UW detections to KWIVER format
     vector< string > names;
 
-    VITAL_FOREACH( int i, predictions )
+    for( int i : predictions )
     {
-      names.push_back( boost::lexical_cast< std::string >( i ) );
+      names.push_back( std::to_string( i ) );
     }
 
     auto dot = std::make_shared< kwiver::vital::detected_object_type >( names, probabilities );

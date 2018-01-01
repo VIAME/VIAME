@@ -72,6 +72,72 @@ def parse_habcam( input_file ):
 
   return output
 
+def filter_h2_string( st ):
+  return st.replace(' ','').replace('[','').replace(']','').replace('"','')
+
+def parse_habcam_v2( input_file ):
+  output = dict()
+  for line in open( input_file ):
+    parsed_line = filter( None, line.replace(':',',').split(',') )
+
+    if len( parsed_line ) < 1:
+      continue
+    if parsed_line[0] == '#' or parsed_line[0] == "Image":
+      continue
+
+    image_name = parsed_line[0]
+
+    if not image_name in output:
+      output[ image_name ] = []
+    if len( parsed_line ) < 2:
+      continue
+
+    sid = int( parsed_line[1] )
+    if sid in ( 524, 533, 1003, 1001 ): # Fish
+      sid = 0
+    elif sid in ( 185, 197, 207, 211, 515, 912, 919, 920 ): # Live Scallop
+      sid = 1
+    elif sid in ( 188, 99999 ): # Dead Scallop
+      sid = 2
+      continue # Ignore for now
+    elif sid in ( 158, 258 ): # Crab
+      sid = 3
+      continue # Ignore for now
+    else:
+      continue
+
+    if len( parsed_line ) < 8:
+      continue
+
+    entry = [ sid, 0.0, 0.0, 0.0, 0.0 ]
+
+    p1x = float( filter_h2_string( parsed_line[4] ) )
+    p1y = float( filter_h2_string( parsed_line[5] ) )
+    p2x = float( filter_h2_string( parsed_line[6] ) )
+    p2y = float( filter_h2_string( parsed_line[7] ) )
+
+    shape_id = parsed_line[3].replace( '"', '' )
+
+    if shape_id == 'boundingBox':
+      entry[1] = max( min( p1x, p2x ), 0.0 )
+      entry[2] = max( min( p1y, p2y ), 0.0 )
+      entry[3] = abs( p2x - p1x )
+      entry[4] = abs( p2y - p1y )
+    elif shape_id == 'line':
+      cx = ( p1x + p2x ) / 2.0
+      cy = ( p1y + p2y ) / 2.0
+      r = math.sqrt( math.pow( p2x - p1x, 2 ) + math.pow( p2y - p1y, 2 ) ) / 2.0
+      entry[1] = max( cx - r, 0.0 )
+      entry[2] = max( cy - r, 0.0 )
+      entry[3] = 2.0 * r
+      entry[4] = 2.0 * r
+    else:
+      continue
+
+    output[ image_name ].append( entry )
+
+  return output
+
 def parse_clef( input_file ):
   import xmltodict
   output = dict()
@@ -126,6 +192,8 @@ def parse_file( input_file, format_id ):
 
   if format_id == "habcam":
     return parse_habcam( input_file )
+  elif format_id == "habcam2":
+    return parse_habcam_v2( input_file )
   elif format_id == "clef":
     return parse_clef( input_file )
   elif format_id == "wild":
@@ -163,7 +231,7 @@ if __name__ == "__main__" :
                       help="Folder to store validation imagery")
 
   parser.add_argument("-f", dest="format_type", default="",
-                      help="Groundtruth file format: habcam, clef, wild, camtrawl.")
+                      help="Groundtruth file format: habcam, habcam2, clef, wild, camtrawl.")
 
   parser.add_argument("-e", dest="exclude_list", default="",
                       help="A txt file containing a list of images to exclude in training.")
@@ -200,7 +268,7 @@ if __name__ == "__main__" :
 
   if ( ni > 0 and nj < 0 ) or ( ni < 0 and nj > 0 ):
     print( "Must specify both image width and height" )
-    sys.exit() 
+    sys.exit()
 
   resize_images = False
 
@@ -295,9 +363,9 @@ if __name__ == "__main__" :
 
         if tr_x-br_x <= 1 or tr_y-br_y <= 1:
           continue
-  
-        annotation = [ annotation[1], br_x, br_y, tr_x-br_x, tr_y-br_y ]
-  
+
+        annotation = [ annotation[0], br_x, br_y, tr_x-br_x, tr_y-br_y ]
+
       if args.norm:
         fout.write( str( annotation[0] )
             + " " + str( ( annotation[1] + annotation[3] / 2.0 ) * scale / width )

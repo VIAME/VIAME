@@ -39,7 +39,6 @@
 #include <vital/config/config_block_io.h>
 #include <vital/util/demangle.h>
 #include <vital/util/wrap_text_block.h>
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/algo/train_detector.h>
@@ -391,7 +390,7 @@ main( int argc, char* argv[] )
       std::cout << std::endl << "Trainable detector variants:" << std::endl << std::endl;
     }
 
-    VITAL_FOREACH( auto fact, fact_list )
+    for( auto fact : fact_list )
     {
       std::string name;
       if( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )

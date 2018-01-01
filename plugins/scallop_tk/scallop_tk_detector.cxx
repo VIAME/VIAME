@@ -38,8 +38,6 @@
 
 #include <ScallopTK/Pipelines/CoreDetector.h>
 
-#include <vital/vital_foreach.h>
-
 namespace viame {
 
 using namespace ScallopTK;
@@ -122,7 +120,7 @@ detect( kwiver::vital::image_container_sptr image_data ) const
   LOG_DEBUG( logger(), "Detected " << det_list.size() << " objects." );
 
   // process results
-  VITAL_FOREACH( auto det, det_list )
+  for( auto det : det_list )
   {
     // Get parameters from ellipse output
     double angle = det.angle * PI / 180;
