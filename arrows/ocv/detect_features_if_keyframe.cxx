@@ -109,13 +109,10 @@ detect_features_if_keyframe
   //describe the features
   vital::descriptor_set_sptr new_desc = d_->extractor->extract(image_data, new_feat, mask);
 
-  // copy the feature track set because we are going to modify it
-  feature_track_set_sptr updated_track_set = std::dynamic_pointer_cast<feature_track_set>(feat_track_set->clone());  
-
   std::vector<feature_sptr> vf = new_feat->features();
   std::vector<descriptor_sptr> df = new_desc->descriptors();
   // get the last track id in the existing set of tracks and increment it
-  track_id_t next_track_id = (*updated_track_set->all_track_ids().crbegin()) + 1;
+  track_id_t next_track_id = (*feat_track_set->all_track_ids().crbegin()) + 1;
 
   for (size_t i = 0; i < vf.size(); ++i)
   {
@@ -125,12 +122,12 @@ detect_features_if_keyframe
     auto t = vital::track::create();
     t->append(fts);
     t->set_id(next_track_id++);
-    updated_track_set->insert(t);
+    feat_track_set->insert(t);
   }
 
   //note that right now are haven't done any matching.  Each newly detected feature is in its own track.
 
-  return updated_track_set;
+  return feat_track_set;
 }
 
 detect_features_if_keyframe

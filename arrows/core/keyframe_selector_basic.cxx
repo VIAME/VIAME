@@ -135,16 +135,21 @@ keyframe_selector_basic::priv
   // going until we find a first suitable keyframe.
   auto frame_ids = tracks->all_frame_ids();
   for (auto frame : frame_ids)
-  {    
+  {   
+    bool is_keyframe = false;
     if (tracks->num_active_tracks() >= keyframe_min_feature_count)
     {
-      //this is the first frame that can be a keyframe
-      std::shared_ptr<keyframe_metadata> sptr = 
-        std::shared_ptr<keyframe_metadata>(
-        (keyframe_metadata*)new keyframe_metadata_for_basic_selector(true));
-      tracks->set_frame_metadata(frame, sptr);
-      break;
+      is_keyframe = true;
+      next_candidate_keyframe_id = frame + 1;
     }
+    //this is the first frame that can be a keyframe
+    std::shared_ptr<keyframe_metadata> sptr = 
+      std::shared_ptr<keyframe_metadata>(
+      (keyframe_metadata*)new keyframe_metadata_for_basic_selector(is_keyframe));
+    
+      tracks->set_frame_metadata(frame, sptr);
+      
+      break;
   }
 }
 
@@ -163,21 +168,31 @@ keyframe_selector_basic::priv
     return;
   }
 
-  auto latest_kfmd_it = kfd_metadata_map->crbegin();
-  frame_id_t last_keyframe_id = latest_kfmd_it->first;
-  keyframe_metadata_sptr latest_kfmd = latest_kfmd_it->second;
+  //find the last keyframe
 
-  keyframe_metadata_for_basic_selector_sptr latest_kfmd_basic = 
-    std::dynamic_pointer_cast<keyframe_metadata_for_basic_selector>(latest_kfmd);
-  if (!latest_kfmd_basic)
+  frame_id_t last_keyframe_id = -1;
+  for (auto latest_kfmd_it = kfd_metadata_map->crbegin(); latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
   {
-    //metadata should be keyframe_metadata_for_basic_selector and is not.
-    return;
+    last_keyframe_id = latest_kfmd_it->first;
+    keyframe_metadata_sptr latest_kfmd = latest_kfmd_it->second;
+
+    keyframe_metadata_for_basic_selector_sptr latest_kfmd_basic =
+      std::dynamic_pointer_cast<keyframe_metadata_for_basic_selector>(latest_kfmd);
+    if (!latest_kfmd_basic)
+    {
+      //metadata should be keyframe_metadata_for_basic_selector and is not.
+      return;
+    }
+
+    if (latest_kfmd_basic->is_keyframe)
+    {
+      break;
+    }
+    last_keyframe_id = -1;  //set to -1 so we can error out if the loop runs out without finding a keyframe
   }
 
-  if (!latest_kfmd_basic->is_keyframe)
+  if (last_keyframe_id < 0)
   {
-    //this should be a keyframe
     return;
   }
 
@@ -190,21 +205,27 @@ keyframe_selector_basic::priv
 
   for ( ; next_candidate_keyframe_id <= last_frame_id ; ++next_candidate_keyframe_id)
   {
+    bool is_keyframe = true;
     double percentage_tracked = 
       tracks->percentage_tracked(last_keyframe_id, next_candidate_keyframe_id);
     if ( percentage_tracked > (1.0 - fraction_tracks_lost_to_necessitate_new_keyframe))
     {
-      continue;  // no need to make candidate_keyframe_id a keyframe
+      is_keyframe = false;
     }
 
     //ok we could make this a keyframe.  Does it have enough features?
-    if (tracks->num_active_tracks() >= keyframe_min_feature_count)
-    {  //yep, it's a keyframe
-      //add it's metadata to tracks      
-      std::shared_ptr<keyframe_metadata> sptr = 
-        std::dynamic_pointer_cast<keyframe_metadata>(
-          std::make_shared<keyframe_metadata_for_basic_selector>(true));
-      tracks->set_frame_metadata(next_candidate_keyframe_id, sptr);
+    if (tracks->num_active_tracks() < keyframe_min_feature_count)
+    {
+      is_keyframe = false;
+    }
+
+    //add it's metadata to tracks      
+    std::shared_ptr<keyframe_metadata> sptr = 
+      std::dynamic_pointer_cast<keyframe_metadata>(
+        std::make_shared<keyframe_metadata_for_basic_selector>(is_keyframe));
+    tracks->set_frame_metadata(next_candidate_keyframe_id, sptr);
+    if (is_keyframe)
+    {
       last_keyframe_id = next_candidate_keyframe_id;
     }
   }
@@ -272,13 +293,13 @@ keyframe_selector_basic
 
   auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
 
-  if (kfd_metadata_map->empty())
+  if (d_->next_candidate_keyframe_id == -1)
   {
     //we don't have any keyframe data yet for this set of tracks.
     d_->initial_keyframe_selection(cur_tracks);
   }
 
-  if (!kfd_metadata_map->empty())
+  if (d_->next_candidate_keyframe_id != -1)
   { //check again because initial keyframe selection could have added a keyframe
     d_->continuing_keyframe_selection(cur_tracks);
   }

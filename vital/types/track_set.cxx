@@ -539,18 +539,11 @@ track_set_implementation_uptr
 simple_track_set_implementation
 ::clone() const
 {
-  //std::vector<track_sptr> new_tracks;
-  //put together the new tracks
-  //TODO clone the tracks
-
-
-
   std::unique_ptr<simple_track_set_implementation> new_stsi = std::make_unique<simple_track_set_implementation>();
 
   for (auto trk : data_)  
   {
     new_stsi->data_.push_back(trk->clone());  //TODO compare track::clone to feature_track::clone
-
   }
 
   //this will work because this->kf_data is in fact a simple_keyframe_data by construction

@@ -162,16 +162,17 @@ track_features_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  kwiver::vital::feature_track_set_sptr prev_tracks = kwiver::vital::feature_track_set_sptr();
+  
+  kwiver::vital::feature_track_set_sptr cur_tracks;
   if (!d->first) 
   {
-    //sprokit::datum_t const dat = grab_datum_from_port(priv::port_input);
-    prev_tracks = grab_from_port_using_trait(feature_track_set);
-    //prev_tracks = dat->get_datum<kwiver::vital::feature_track_set_sptr>();    
+    kwiver::vital::feature_track_set_sptr prev_tracks = 
+      grab_from_port_using_trait(feature_track_set);
+    // clone prev tracks.  This way any changes made on it by m_tracker are done 
+    // to a unique object.
+    cur_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(prev_tracks->clone());
   }    
   d->first = false;
-
-  kwiver::vital::feature_track_set_sptr curr_feat;
 
   {
     scoped_step_instrumentation();
@@ -179,11 +180,11 @@ track_features_process
     LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
     // detect features on the current frame
-    curr_feat = d->m_tracker->track(prev_tracks, frame_time.get_frame(), img);
+    cur_tracks = d->m_tracker->track(cur_tracks, frame_time.get_frame(), img);
   }
 
   // return by value
-  push_to_port_using_trait(feature_track_set, curr_feat );
+  push_to_port_using_trait(feature_track_set, cur_tracks);
 }
 
 

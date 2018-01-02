@@ -485,11 +485,8 @@ track_features_klt
   }
 
   //setup stuff complete
-  feature_track_set_sptr cur_tracks;
-  if (prev_tracks)
-  {
-    cur_tracks = std::dynamic_pointer_cast<feature_track_set>(prev_tracks->clone());
-  }
+  feature_track_set_sptr cur_tracks = prev_tracks;  //no clone here.  It is done in the process.
+  
   //points to be tracked in the next frame.  Empty at first.
   std::vector<cv::Point2f> next_points;
 

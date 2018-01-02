@@ -52,6 +52,10 @@ namespace kwiver {
 namespace vital {
 
 /// A derived track_state for feature tracks
+
+class feature_track_state;
+typedef std::shared_ptr<feature_track_state> feature_track_state_sptr;
+
 class VITAL_EXPORT feature_track_state : public track_state
 {
 public:
@@ -68,20 +72,21 @@ public:
   virtual track_state_sptr clone() const
   {
     
-    feature_sptr nf;
-    descriptor_sptr nd;
+    feature_sptr nf = feature;
+    descriptor_sptr nd = descriptor;
 
-    if (feature)
-    {
-      nf = feature->clone();
-    }
+    //if we decide to later clone features and descriptors, uncomment these lines
+    //if (feature)
+    //{
+    //  nf = feature->clone();
+    //}
 
-    if (descriptor)
-    {
-      nd = descriptor->clone();
-    }
+    //if (descriptor)
+    //{
+    //  nd = descriptor->clone();
+    //}
 
-    return std::shared_ptr<feature_track_state>(new feature_track_state(frame_id_,nf,nd));
+    return feature_track_state_sptr(new feature_track_state(frame_id_,nf,nd));
   }
 
   feature_sptr feature;
