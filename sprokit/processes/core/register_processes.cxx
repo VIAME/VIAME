@@ -38,6 +38,7 @@
 #include "compute_stereo_depth_map_process.h"
 #include "detect_features_if_keyframe_process.h"
 #include "detect_features_process.h"
+#include "detect_loops_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
@@ -296,6 +297,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Detects feautres in an image if it is a keyframe.");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
+
+  fact = vpm.ADD_PROCESS(kwiver::detect_loops_process);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_loops_process");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Detects loops in a track set using features with descriptors.");
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
 
   // - - - - - - - - - - - - - - - - - - - - - - -

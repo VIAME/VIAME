@@ -34,6 +34,7 @@
  */
 
 #include <map>
+#include <algorithm>
 
 #include "detect_loops.h"
 
@@ -52,6 +53,8 @@ using namespace kwiver::vital;
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/image_io.h>
 #include <vital/algo/match_features.h>
+#include <kwiversys/SystemTools.hxx>
+
 
 using namespace DBoW2;
 using namespace DUtils;
@@ -91,6 +94,12 @@ public:
       kwiver::vital::frame_id_t frame_number,
       std::vector<frame_id_t> const &putative_matches);
 
+  match_set_sptr
+    remove_duplicate_matches(
+      match_set_sptr mset, 
+      feature_info_sptr fi1,
+      feature_info_sptr fi2);
+
   cv::Mat descriptor_to_mat(descriptor_sptr) const;
 
   void descriptor_set_to_vec(
@@ -122,14 +131,16 @@ public:
 
   std::map<DBoW2::EntryId, kwiver::vital::frame_id_t> m_entry_to_frame;  
 
+  unsigned m_min_loop_inlier_matches;
+
 };
 
 //-----------------------------------------------------------------------------
 
 detect_loops::priv
 ::priv()
+  :m_min_loop_inlier_matches(50)
 {
-  m_db = std::make_shared<OrbDatabase>(false,0);
 }
 
 //-----------------------------------------------------------------------------
@@ -184,6 +195,16 @@ void
 detect_loops::priv
 ::load_vocabulary(std::string voc_file_path)
 {
+  if (!kwiversys::SystemTools::FileExists(voc_file_path))
+  {
+    throw path_not_exists(voc_file_path);
+  }
+  else if (kwiversys::SystemTools::FileIsDirectory(voc_file_path))
+  {
+    throw path_not_a_file(voc_file_path);
+  }
+
+
   m_voc = std::make_shared<OrbVocabulary>(voc_file_path);
 }
 
@@ -242,8 +263,15 @@ detect_loops::priv
   unsigned int dn = 0;
   for (auto d : desc)
   {
+    if (!d)
+    {
+      //skip null descriptors
+      continue;
+    }
     features[dn++] = descriptor_to_mat(d);
   }
+
+  features.resize(dn);  //resize to only return features for non-null descriptors
 }
 
 
@@ -275,11 +303,9 @@ detect_loops::priv
   feature_set_sptr feat1, feat2;
   descriptor_set_sptr desc1, desc2;
 
-  feat1 = feat_tracks->frame_features(frame_number);
-  desc1 = feat_tracks->frame_descriptors(frame_number);
-
-  feature_track_set_sptr loop_connected_tracks = std::dynamic_pointer_cast<feature_track_set>(feat_tracks->clone());
-  std::vector<kwiver::vital::track_sptr> tracks1 = loop_connected_tracks->active_tracks(frame_number);
+  feature_info_sptr fi1 = feat_tracks->frame_feature_info(frame_number,true);
+  feat1 = fi1->features;
+  desc1 = fi1->descriptors;
 
   for (auto fn2 : putative_matches)
   {
@@ -287,8 +313,9 @@ detect_loops::priv
     {
       continue; // no sense matching an image to itself
     }
-    feat2 = feat_tracks->frame_features(fn2);
-    desc2 = feat_tracks->frame_descriptors(fn2);
+    feature_info_sptr fi2 = feat_tracks->frame_feature_info(fn2, true);
+    feat2 = fi2->features;
+    desc2 = fi2->descriptors;
 
     match_set_sptr mset = m_matcher->match(feat1, desc1, feat2, desc2);
     if (!mset)
@@ -297,31 +324,104 @@ detect_loops::priv
         " and " << fn2 << " failed");
       continue;
     }
-
-    std::vector<track_sptr> tracks2 = feat_tracks->active_tracks(fn2);
     
+    mset = remove_duplicate_matches(mset, fi1, fi2);
+
     std::vector<match> vm = mset->matches();
 
-      int num_linked = 0;
-      for (match m : vm)
+    if (vm.size() < m_min_loop_inlier_matches)
+    {
+      continue;
+    }
+
+    int num_linked = 0;
+    for (match m : vm)
+    {
+      track_sptr t1 = fi1->corresponding_tracks[m.first];
+      track_sptr t2 = fi2->corresponding_tracks[m.second];
+      if (feat_tracks->merge_tracks(t1, t2))
       {
-        track_sptr t1 = tracks1[m.first];
-        track_sptr t2 = tracks2[m.second];
-        if (loop_connected_tracks->merge_tracks(t1, t2))
-        {
-          ++num_linked;
-        }
+        ++num_linked;
       }
-      LOG_DEBUG(m_logger, "Stitched " << num_linked <<
-        " tracks between frames " << frame_number <<
-        " and " << fn2);
+    }
+    LOG_DEBUG(m_logger, "Stitched " << num_linked <<
+      " tracks between frames " << frame_number <<
+      " and " << fn2);
   }
 
-  return loop_connected_tracks;
+  return feat_tracks;
+}
+
+//-----------------------------------------------------------------------------
+
+match_set_sptr
+detect_loops::priv
+::remove_duplicate_matches(match_set_sptr mset, 
+                           feature_info_sptr fi1, 
+                           feature_info_sptr fi2)
+{  
+  std::vector<match> orig_matches = mset->matches();
+
+  struct match_with_cost {
+    unsigned m1;
+    unsigned m2;
+    double cost;
+
+    match_with_cost() 
+      : m1(0)
+      , m2(0)
+      , cost(DBL_MAX)
+    {}
+
+    match_with_cost(unsigned _m1, unsigned _m2, double _cost)
+      :m1(_m1)
+      , m2(_m2)
+      , cost(_cost)
+    {}
+
+    bool operator<(const match_with_cost &rhs) const
+    {
+      return cost < rhs.cost;
+    }
+  };
+
+  std::vector<match_with_cost> mwc_vec;
+  mwc_vec.resize(orig_matches.size());
+  size_t m_idx = 0;
+  for (auto m : orig_matches)
+  {    
+    match_with_cost & mwc = mwc_vec[m_idx++];
+    mwc.m1 = m.first;
+    mwc.m2 = m.second;
+    feature_sptr f1 = fi1->features->features()[mwc.m1];
+    feature_sptr f2 = fi2->features->features()[mwc.m2];       
+    mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());  //using relative scale as cost
+  }
+
+  std::sort(mwc_vec.begin(), mwc_vec.end());
+
+  //sorting makes us add the lowest cost matches first.  This means if we have duplicate matches, 
+  //the best ones will end up in the final match set.
+  std::set<unsigned> matched_indices_1, matched_indices_2;
+
+  std::vector<match> unique_matches;
+
+  for (auto m : mwc_vec)
+  {       
+    if (matched_indices_1.find(m.m1) != matched_indices_1.end() ||
+        matched_indices_2.find(m.m2) != matched_indices_2.end())
+    {
+      continue;
+    }
+    matched_indices_1.insert(m.m1);
+    matched_indices_2.insert(m.m2);
+    unique_matches.push_back(vital::match(m.m1,m.m2));
+  }
+
+  return std::make_shared<simple_match_set>(unique_matches);
+
 }
   
-
-
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
@@ -329,6 +429,31 @@ detect_loops::priv
 ::detect(kwiver::vital::feature_track_set_sptr feat_tracks,
   kwiver::vital::frame_id_t frame_number)
 {
+  if (!m_voc)
+  {
+    std::string voc_file = "kwiver_voc.yml.gz";
+    //first time we will make the voc.  Then just load it.
+    try {
+      load_vocabulary(voc_file);
+    }
+    catch (const path_not_a_file &e)
+    {
+      m_voc.reset();      
+    }
+    catch (const path_not_exists &e)
+    {
+      m_voc.reset();
+    }
+    
+    if (!m_voc)
+    {
+      train_vocabulary("training_image_list.txt", voc_file);
+    }
+
+    m_db = std::make_shared<OrbDatabase>(*m_voc, true, 3);
+  }
+
+
   //get the feature descriptors in the current image
  
   descriptor_set_sptr desc = feat_tracks->frame_descriptors(frame_number);
@@ -337,7 +462,12 @@ detect_loops::priv
     return feat_tracks;
   }
   std::vector<cv::Mat> desc_mats;
-  descriptor_set_to_vec(desc, desc_mats);
+  descriptor_set_to_vec(desc, desc_mats);  //note that desc_mats can be shorter than desc because of null descriptors (KLT features)
+
+  if (desc_mats.size() == 0)
+  {  //only features without descriptors in this frame
+    return feat_tracks;
+  }
 
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
@@ -378,18 +508,6 @@ detect_loops
   d_ = std::make_shared<priv>();
   attach_logger("detect_loops");
   d_->m_logger = this->logger();
-
-  std::string voc_file = "kwiver_voc.yml.gz";
-  //first time we will make the voc.  Then just load it.
-  bool make_voc = true;
-  if (make_voc)
-  {
-    d_->train_vocabulary("training_image_list.txt", voc_file);
-  }
-  else
-  {
-    d_->load_vocabulary(voc_file);
-  } 
 }
 
 //-----------------------------------------------------------------------------
