@@ -41,7 +41,6 @@
 
 using namespace kwiver::vital;
 
-#include <DBoW2\DBoW2.h>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
