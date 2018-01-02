@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,16 +41,17 @@ namespace kwiver
 
 // ----------------------------------------------------------------
 /**
- * \class detect_features_process
+ * \class detect_loops_process
  *
- * \brief Stabilizes a series of image.
+ * \brief Detects loops in a set of images
  *
  * \iports
  * \iport{timestamp}
- * \iport{image}
+ * \iport{next_tracks}
+ * \iport{loop_back_tracks}
  *
  * \oports
- * \oport{feature_set}
+ * \oport{feature_track_set}
  *
  */
 class KWIVER_PROCESSES_NO_EXPORT detect_loops_process

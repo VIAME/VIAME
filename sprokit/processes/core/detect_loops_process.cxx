@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,8 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( detect_loops, std::string, "", "Algorithm configuration subblock." )
+  create_config_trait( detect_loops, std::string, "",
+    "Algorithm configuration subblock." )
 
 /**
  * \class track_features_process
@@ -94,8 +95,8 @@ public:
 
   // Configuration values
 
-  // There are many config items for the tracking and stabilization that go directly to
-  // the algo.
+  // There are many config items for the tracking and stabilization that 
+  // go directly to the algo.
 
   algo::detect_loops_sptr m_loop_detector;
 
@@ -109,9 +110,6 @@ public:
   vital::feature_track_set_sptr m_last_output_tracks;
 }; // end priv class
 
-//sprokit::process::port_t const track_features_process::priv::port_input = port_t("prev_tracks_port");
-//sprokit::process::port_type_t const track_features_process::priv::type_custom_feedback = port_type_t("kwiver:feature_track_set");
-
 // ================================================================
 
   detect_loops_process
@@ -120,7 +118,7 @@ public:
     d( new detect_loops_process::priv )
 {
   // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  attach_logger( kwiver::vital::get_logger( name() ) );
   d->m_logger = this->logger();
   make_ports();
   make_config();
@@ -132,7 +130,8 @@ public:
 {
     if (d && d->m_last_output_tracks)
     {
-      kwiver::vital::write_feature_track_file(d->m_last_output_tracks, "tracks_with_loops.txt");
+      kwiver::vital::write_feature_track_file(d->m_last_output_tracks, 
+        "tracks_with_loops.txt");
     }
 }
 
@@ -150,18 +149,25 @@ void detect_loops_process
   const std::string algo_name = "detect_loops_algo";
 
   // Instantiate the configured algorithm
-  algo::detect_loops::set_nested_algo_configuration(algo_name, algo_config, d->m_loop_detector );
+  algo::detect_loops::set_nested_algo_configuration(algo_name, algo_config, 
+    d->m_loop_detector );
+
   if ( ! d->m_loop_detector )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create detect_loops_algo" );
+    throw sprokit::invalid_configuration_exception( name(), 
+      "Unable to create detect_loops_algo" );
   }
 
-  algo::detect_loops::get_nested_algo_configuration(algo_name, algo_config, d->m_loop_detector);
+  algo::detect_loops::get_nested_algo_configuration(algo_name, algo_config, 
+    d->m_loop_detector);
 
-  //// Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::detect_loops::check_nested_algo_configuration( algo_name, algo_config ) )
+  //// Check config so it will give run-time diagnostic if any config problems
+  // are found
+  if ( ! algo::detect_loops::check_nested_algo_configuration( 
+      algo_name, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    throw sprokit::invalid_configuration_exception( name(), 
+      "Configuration check failed." );
   }
 
 }
@@ -189,7 +195,8 @@ detect_loops_process
   }
   else
   {
-    curr_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = 
+      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
   }
   d->first = false;
 
@@ -223,11 +230,12 @@ void detect_loops_process
   declare_input_port_using_trait( timestamp, required );
 
   declare_input_port("next_tracks", "kwiver:feature_track_set", required,
-    "feature track set for the next frame.  Features are not yet matched for any frames.");
+    "feature track set for the next frame.  Features are not yet matched for "
+    "any frames.");
 
   declare_input_port("loop_back_tracks", "kwiver:feature_track_set", input_nodep,
-    "feature track set from last call to detect loops.  May include loops (joined track sets,"
-    " split track sets.");
+    "feature track set from last call to detect loops.  May include loops "
+    "(joined track sets, split track sets.");
 
   // -- output --
   declare_output_port_using_trait(feature_track_set, optional );
@@ -261,39 +269,50 @@ detect_loops_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //merge next_tracks into loop_back_tracks
+  // merge next_tracks into loop_back_tracks
 
   vital::keyframe_data_const_sptr next_kfd = next_tracks->get_keyframe_data();
 
+  //clone loop back tracks so we can change it.
   vital::feature_track_set_sptr curr_tracks = 
-    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());  //clone loop back tracks so we can change it.
+    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());  
 
   vital::keyframe_data_const_sptr curr_kfd = curr_tracks->get_keyframe_data();
 
-  curr_tracks->set_keyframe_data(next_kfd->clone());  //copy the next kfd into the current tracks.  
+  // copy the next kfd into the current tracks.  
+  curr_tracks->set_keyframe_data(next_kfd->clone());  
 
-  //ok, next tracks will have some tracks that are longer or newer than loop_back_tracks.  
-  std::vector< vital::track_sptr> next_active_tracks = next_tracks->active_tracks(next_tracks_frame_num);
+  // ok, next tracks will have some tracks that are longer or newer than 
+  // loop_back_tracks.  
+  std::vector< vital::track_sptr> next_active_tracks = 
+    next_tracks->active_tracks(next_tracks_frame_num);
   //get the active tracks for the last frame in loop_back tracks.
-  std::vector< vital::track_sptr> curr_active_tracks = curr_tracks->active_tracks(next_tracks_frame_num - 1);
+  std::vector< vital::track_sptr> curr_active_tracks = 
+    curr_tracks->active_tracks(next_tracks_frame_num - 1);
 
-  //note, track ids from next_tracks and loop_back_tracks do not correspond.  KLT tracker never sees detected feature
-  // tracks and so it won't increment its IDs to match.
+  // Note, track ids from next_tracks and loop_back_tracks do not correspond.  
+  // KLT tracker never sees detected feature tracks and so it won't increment 
+  // its IDs to match.
 
-  //need a fast way to search which track a feature is in.  Feature pointers are not cloned, so we can search on those.
-  //make a map from feature pointer to loop back track pointer.
+  // need a fast way to search which track a feature is in.  Feature pointers 
+  // are not cloned, so we can search on those. Make a map from feature pointer 
+  // to loop back track pointer.
 
   std::map<vital::feature *, vital::track_sptr> feature_to_curr_track;
   for (auto curr_tk : curr_active_tracks)
   {
-    for (auto curr_tk_state = curr_tk->begin(); curr_tk_state != curr_tk->end(); ++curr_tk_state)
+    for (auto curr_tk_state = curr_tk->begin(); 
+           curr_tk_state != curr_tk->end(); ++curr_tk_state)
     {
-      vital::feature_track_state_sptr fts = std::dynamic_pointer_cast<vital::feature_track_state>(*curr_tk_state);
+      vital::feature_track_state_sptr fts = 
+        std::dynamic_pointer_cast<vital::feature_track_state>(*curr_tk_state);
       if (!fts)
       {
         continue;
       }
-      feature_to_curr_track.insert(std::pair<vital::feature*, vital::track_sptr>(fts->feature.get(), curr_tk));
+      feature_to_curr_track.insert(
+        std::pair<vital::feature*, 
+                  vital::track_sptr>(fts->feature.get(), curr_tk));
     }
   }
 
@@ -302,22 +321,27 @@ detect_loops_process::priv
     if (next_tk->size() == 1)
     {
       //this is a new track.  Just add it to curr_tracks
-      curr_tracks->insert(next_tk->clone()); //clone the track and add it to curr_tracks
+      curr_tracks->insert(next_tk->clone()); // clone the track and add it to
+                                             // curr_tracks
       continue;
     }
 
     vital::track_sptr curr_track;
-    for (auto next_tk_state = next_tk->begin(); next_tk_state != next_tk->end(); ++next_tk_state)
+    for (auto next_tk_state = next_tk->begin(); 
+      next_tk_state != next_tk->end(); ++next_tk_state)
     {
-      vital::feature_track_state_sptr fts = std::dynamic_pointer_cast<vital::feature_track_state>(*next_tk_state);
+      vital::feature_track_state_sptr fts = 
+        std::dynamic_pointer_cast<vital::feature_track_state>(*next_tk_state);
       if (!fts)
       {
-        LOG_ERROR(m_logger, "fts should have cast to a feature_track_state and didn't");
+        LOG_ERROR(m_logger, 
+          "fts should have cast to a feature_track_state and didn't");
         continue;
       }
 
       kwiver::vital::feature *feat = fts->feature.get();
-      //ok, we have the feature pointer in next active tracks.  Let's find it in loop back tracks.
+      // ok, we have the feature pointer in next active tracks.  Let's find it 
+      // in loop back tracks.
       auto feature_to_curr_track_it = feature_to_curr_track.find(feat);
       if (feature_to_curr_track_it != feature_to_curr_track.end())
       {
@@ -328,7 +352,8 @@ detect_loops_process::priv
     if (!curr_track)
     {
       //we didn't find the matching track in cur_tracks
-      LOG_ERROR(m_logger, "We should have found a matching track in cur_tracks and didn't");
+      LOG_ERROR(m_logger, 
+        "We should have found a matching track in cur_tracks and didn't");
       continue;
     }
 
