@@ -10,9 +10,10 @@ set( sources
   compute_stereo_depth_map_process.cxx
   detect_features_if_keyframe_process.cxx
   detect_features_process.cxx
+  detect_loops_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
-  detected_object_filter_process.cxx
+  detected_object_filter_process.cxx  
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
@@ -38,6 +39,7 @@ set( private_headers
   compute_stereo_depth_map_process.h
   detect_features_if_keyframe_process.h
   detect_features_process.h
+  detect_loops_process.h
   detected_object_output_process.h
   detected_object_input_process.h
   detected_object_filter_process.h

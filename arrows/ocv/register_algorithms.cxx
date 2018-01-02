@@ -50,6 +50,7 @@
 #include <arrows/ocv/detect_features_MSER.h>
 #include <arrows/ocv/detect_features_simple_blob.h>
 #include <arrows/ocv/detect_features_STAR.h>
+#include <arrows/ocv/detect_loops.h>
 #include <arrows/ocv/draw_detected_object_set.h>
 #include <arrows/ocv/draw_tracks.h>
 #include <arrows/ocv/estimate_fundamental_matrix.h>
@@ -392,6 +393,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact = vpm.ADD_ALGORITHM("standard", kwiver::arrows::ocv::detect_features_if_keyframe);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Detect and describe features if image is a keyframe")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
+    ;
+
+  fact = vpm.ADD_ALGORITHM("standard", kwiver::arrows::ocv::detect_loops);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Detect loops in a feature_track_set")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
