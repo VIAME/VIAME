@@ -72,13 +72,6 @@ public:
     detect(kwiver::vital::feature_track_set_sptr feat_tracks,
       kwiver::vital::frame_id_t frame_number);
 
-  virtual void train_vocabulary(
-    std::string training_image_path,
-    std::string vocabulary_output_file);
-
-  virtual void load_vocabulary(
-    std::string vocabulary_file);
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
   * This base virtual function implementation returns an empty configuration
