@@ -184,14 +184,15 @@ read_feature_track_file( path_t const& file_path )
   {
     track_id_t tid;
     frame_id_t fid;
-    auto feat = std::make_shared<feature_d>();
+    auto feat = std::make_shared<feature_d>();    
     std::stringstream ss( line );
     if (ss.str() == "keyframes")
     {
       break;
     }
-
-    ss >> tid >> fid >> *feat;
+    bool has_desc;
+    
+    ss >> tid >> fid >> *feat >> has_desc;
 
     track_sptr t;
     std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
@@ -208,6 +209,11 @@ read_feature_track_file( path_t const& file_path )
     }
     auto ftsd = std::make_shared<feature_track_state>(fid);
     ftsd->feature = feat;
+    if (has_desc)
+    {
+      ftsd->descriptor = std::make_shared<descriptor_fixed<unsigned char,1>>();  //dummy descriptor.
+      //this will be overwritten when the descriptor file is read.
+    }
     t->append( ftsd );
   }
 
@@ -273,7 +279,8 @@ write_feature_track_file( feature_track_set_sptr const& tracks,
       {
         throw invalid_data( "Provided track doest not contain a valid feature" );
       }
-      ofile << t->id() << " " << s->frame() << " " << *ftsd->feature << "\n";
+      bool has_desc = ftsd->descriptor.get() != NULL;
+      ofile << t->id() << " " << s->frame() << " " << *ftsd->feature << " " << has_desc << "\n";
     }
   }
 

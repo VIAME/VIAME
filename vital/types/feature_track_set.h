@@ -93,6 +93,14 @@ public:
   descriptor_sptr descriptor;
 };
 
+class feature_info {
+public:
+  feature_set_sptr features;
+  descriptor_set_sptr descriptors;
+  std::vector<track_sptr> corresponding_tracks;
+};
+
+typedef std::shared_ptr< feature_info> feature_info_sptr;
 
 class feature_track_set;
 /// Shared pointer for feature_track_set type
@@ -154,6 +162,9 @@ public:
    * \returns a descriptor_set_sptr for all features on the give frame.
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
+
+  virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1, 
+    bool only_features_with_descriptors = true) const;
 
 };
 

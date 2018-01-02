@@ -140,4 +140,46 @@ feature_track_set
 }
 
 
+feature_info_sptr
+feature_track_set
+::frame_feature_info(frame_id_t offset,
+  bool only_features_with_descriptors) const
+{
+  feature_info_sptr fi = std::make_shared<feature_info>();
+
+  std::vector<feature_sptr> features;
+  std::vector<descriptor_sptr> descriptors;
+  std::vector<track_state_sptr> fsd = this->frame_states(offset);
+  
+  for (auto const data : fsd)
+  {
+    feature_sptr f = nullptr;
+    descriptor_sptr d = nullptr;
+    track_sptr t = nullptr;
+
+    auto fdata = std::dynamic_pointer_cast<feature_track_state>(data);
+
+    if (fdata)
+    {
+      f = fdata->feature;
+      d = fdata->descriptor;
+      t = fdata->track();
+      if (only_features_with_descriptors && !d)
+      {
+        continue;
+      }   
+
+      features.push_back(f);
+      descriptors.push_back(d);
+      fi->corresponding_tracks.push_back(t);
+    }    
+  }
+
+  fi->features = feature_set_sptr(new simple_feature_set(features));
+  fi->descriptors = descriptor_set_sptr(new simple_descriptor_set(descriptors));
+
+  return fi;
+}
+
+
 } } // end namespace vital
