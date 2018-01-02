@@ -31,7 +31,6 @@ set( ocv_headers_public
   hough_circle_detector.h
   image_container.h
   image_io.h
-  initialize_cameras_landmarks.h
   mat_image_memory.h
   match_features.h
   match_features_bruteforce.h
@@ -80,7 +79,6 @@ set( ocv_sources
   feature_detect_extract_SURF.cxx
   image_container.cxx
   image_io.cxx
-  initialize_cameras_landmarks.cxx
   mat_image_memory.cxx
   match_features.cxx
   match_features_bruteforce.cxx
