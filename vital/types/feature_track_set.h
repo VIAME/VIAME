@@ -70,21 +70,9 @@ public:
 
   /// Clone the track state (polymorphic copy constructor)
   virtual track_state_sptr clone() const
-  {
-    
+  {    
     feature_sptr nf = feature;
     descriptor_sptr nd = descriptor;
-
-    //if we decide to later clone features and descriptors, uncomment these lines
-    //if (feature)
-    //{
-    //  nf = feature->clone();
-    //}
-
-    //if (descriptor)
-    //{
-    //  nd = descriptor->clone();
-    //}
 
     return feature_track_state_sptr(new feature_track_state(frame_id_,nf,nd));
   }

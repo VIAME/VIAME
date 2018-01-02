@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -47,7 +47,8 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( track_features, std::string, "", "Algorithm configuration subblock." )
+  create_config_trait( track_features, std::string, "", 
+    "Algorithm configuration subblock." )
 
 /**
  * \class track_features_process
@@ -87,8 +88,8 @@ public:
 
   // Configuration values
 
-  // There are many config items for the tracking and stabilization that go directly to
-  // the algo.
+  // There are many config items for the tracking and stabilization that go 
+  // directly to the algo.
 
   algo::track_features_sptr m_tracker;
 
@@ -99,9 +100,6 @@ public:
 
 }; // end priv class
 
-//sprokit::process::port_t const track_features_process::priv::port_input = port_t("prev_tracks_port");
-//sprokit::process::port_type_t const track_features_process::priv::type_custom_feedback = port_type_t("kwiver:feature_track_set");
-
 // ================================================================
 
  track_features_process
@@ -110,7 +108,7 @@ public:
     d( new track_features_process::priv )
 {
   // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
+  attach_logger( kwiver::vital::get_logger( name() ) );
 
   make_ports();
   make_config();
@@ -134,18 +132,25 @@ void track_features_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Instantiate the configured algorithm
-  algo::track_features::set_nested_algo_configuration( "track_features", algo_config, d->m_tracker );
+  algo::track_features::set_nested_algo_configuration( "track_features", 
+    algo_config, d->m_tracker );
+
   if ( ! d->m_tracker )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create track_features" );
+    throw sprokit::invalid_configuration_exception( name(), 
+      "Unable to create track_features" );
   }
 
-  algo::track_features::get_nested_algo_configuration("track_features", algo_config, d->m_tracker);
+  algo::track_features::get_nested_algo_configuration("track_features", 
+    algo_config, d->m_tracker);
 
-  //// Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::track_features::check_nested_algo_configuration( "track_features", algo_config ) ) 
+  //// Check config so it will give run-time diagnostic if any config problems
+  // are found
+  if ( ! algo::track_features::check_nested_algo_configuration( 
+          "track_features", algo_config ) ) 
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    throw sprokit::invalid_configuration_exception( name(), 
+      "Configuration check failed." );
   }
 
 }
@@ -170,7 +175,8 @@ track_features_process
       grab_from_port_using_trait(feature_track_set);
     // clone prev tracks.  This way any changes made on it by m_tracker are done 
     // to a unique object.
-    cur_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(prev_tracks->clone());
+    cur_tracks = 
+      std::dynamic_pointer_cast<vital::feature_track_set>(prev_tracks->clone());
   }    
   d->first = false;
 
@@ -203,13 +209,6 @@ void track_features_process
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
   declare_input_port_using_trait(feature_track_set, input_nodep);
-
-  //declare_input_port(
-  //  priv::port_input,
-  //  priv::type_custom_feedback,
-  //  input_nodep,
-  //  port_description_t("A port which accepts this process\' output."));
-
 
   // -- output --
   declare_output_port_using_trait(feature_track_set, optional );

@@ -45,7 +45,7 @@ class keyframe_selector_basic::priv {
 public:
   priv()
     : keyframe_min_feature_count(50)
-    , fraction_tracks_lost_to_necessitate_new_keyframe(0.3f)  //setting very high for debugging purposes
+    , fraction_tracks_lost_to_necessitate_new_keyframe(0.3f) 
     , next_candidate_keyframe_id(-1)
   {
   }  
@@ -82,7 +82,8 @@ public:
   {
     bool success(true);
 
-    float test_fraction_tracks_lost_to_necessitate_new_keyframe = config->get_value<float>(
+    float test_fraction_tracks_lost_to_necessitate_new_keyframe = 
+      config->get_value<float>(
       "fraction_tracks_lost_to_necessitate_new_keyframe");
 
     if (!(0 < test_fraction_tracks_lost_to_necessitate_new_keyframe && 
@@ -171,7 +172,8 @@ keyframe_selector_basic::priv
   //find the last keyframe
 
   frame_id_t last_keyframe_id = -1;
-  for (auto latest_kfmd_it = kfd_metadata_map->crbegin(); latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
+  for (auto latest_kfmd_it = kfd_metadata_map->crbegin(); 
+    latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
   {
     last_keyframe_id = latest_kfmd_it->first;
     keyframe_metadata_sptr latest_kfmd = latest_kfmd_it->second;
@@ -188,7 +190,8 @@ keyframe_selector_basic::priv
     {
       break;
     }
-    last_keyframe_id = -1;  //set to -1 so we can error out if the loop runs out without finding a keyframe
+    last_keyframe_id = -1;  // set to -1 so we can error out if the loop runs
+                            // out without finding a keyframe
   }
 
   if (last_keyframe_id < 0)
@@ -203,12 +206,14 @@ keyframe_selector_basic::priv
 
   frame_id_t last_frame_id = tracks->last_frame();
 
-  for ( ; next_candidate_keyframe_id <= last_frame_id ; ++next_candidate_keyframe_id)
+  for ( ; next_candidate_keyframe_id <= last_frame_id ; 
+        ++next_candidate_keyframe_id)
   {
     bool is_keyframe = true;
     double percentage_tracked = 
       tracks->percentage_tracked(last_keyframe_id, next_candidate_keyframe_id);
-    if ( percentage_tracked > (1.0 - fraction_tracks_lost_to_necessitate_new_keyframe))
+    if ( percentage_tracked > 
+        (1.0 - fraction_tracks_lost_to_necessitate_new_keyframe))
     {
       is_keyframe = false;
     }

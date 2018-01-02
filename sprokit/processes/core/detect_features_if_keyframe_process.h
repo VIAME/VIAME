@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,9 @@ class KWIVER_PROCESSES_NO_EXPORT detect_features_if_keyframe_process
 public:
   typedef sprokit::process base_t;
 
-  detect_features_if_keyframe_process( kwiver::vital::config_block_sptr const& config );
+  detect_features_if_keyframe_process( 
+    kwiver::vital::config_block_sptr const& config );
+
     virtual ~detect_features_if_keyframe_process();
 
 protected:

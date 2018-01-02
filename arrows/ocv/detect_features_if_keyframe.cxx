@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,8 @@ detect_features_if_keyframe
   vital::feature_set_sptr new_feat = d_->detector->detect(image_data, mask);
 
   //describe the features
-  vital::descriptor_set_sptr new_desc = d_->extractor->extract(image_data, new_feat, mask);
+  vital::descriptor_set_sptr new_desc = 
+    d_->extractor->extract(image_data, new_feat, mask);
 
   std::vector<feature_sptr> vf = new_feat->features();
   std::vector<descriptor_sptr> df = new_desc->descriptors();
@@ -125,7 +126,8 @@ detect_features_if_keyframe
     feat_track_set->insert(t);
   }
 
-  //note that right now are haven't done any matching.  Each newly detected feature is in its own track.
+  // Note that right now are haven't done any matching.  Each newly detected 
+  // feature is in its own track.
 
   return feat_track_set;
 }
@@ -134,7 +136,6 @@ detect_features_if_keyframe
 ::detect_features_if_keyframe()
   :d_(new priv)
 {
-
 }
 
 
@@ -184,8 +185,6 @@ detect_features_if_keyframe
   algo::extract_descriptors_sptr ed;
   algo::extract_descriptors::set_nested_algo_configuration(d_->extractor_name, config, ed);
   d_->extractor = ed;
-
-
 }
 
 

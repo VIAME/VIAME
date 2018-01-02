@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2013-2016 by Kitware, Inc.
+* Copyright 2017 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
 * \file
-* \brief OCV detect_features algorithm impl interface
+* \brief OCV detect_features_if_keyframe
 */
 
 #ifndef KWIVER_ARROWS_OCV_DETECT_FEATURES_IF_KEYFRAME_H_
@@ -48,10 +48,10 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-  /// OCV Specific base definition for algorithms that detect feature points
+  /// OCV detect_features_if_keyframe derived class using open cv
   /**
-  * This extended algorithm_def provides a common implementation for the detect
-  * method.
+  * Uses open cv to detect features on images if they are marked as keyframes.
+  * Does nothing if it is not a keyframe.  
   */
   class KWIVER_ALGO_OCV_EXPORT detect_features_if_keyframe
     : public vital::algo::detect_features_if_keyframe
@@ -118,7 +118,8 @@ namespace ocv {
     detect(kwiver::vital::image_container_sptr image_data,
            unsigned int frame_number,
            kwiver::vital::feature_track_set_sptr feature_tracks,
-           kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) const;
+           kwiver::vital::image_container_sptr mask = 
+             kwiver::vital::image_container_sptr()) const;
 
   protected:
 
