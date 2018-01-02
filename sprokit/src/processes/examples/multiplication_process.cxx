@@ -30,8 +30,6 @@
 
 #include "multiplication_process.h"
 
-#include <boost/cstdint.hpp>
-
 /**
  * \file multiplication_process.cxx
  *

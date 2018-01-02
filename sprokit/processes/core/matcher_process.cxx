@@ -44,7 +44,6 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-#include <boost/algorithm/string/join.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 
 namespace algo = kwiver::vital::algo;

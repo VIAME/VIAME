@@ -49,7 +49,8 @@ namespace arrows {
 namespace proj {
 
 /// PROJ implementation of geo_conversion functor
-class KWIVER_ALGO_PROJ_EXPORT geo_conversion : public vital::geo_conversion
+class KWIVER_ALGO_PROJ_EXPORT geo_conversion
+  : public vital::geo_conversion
 {
 public:
   geo_conversion() {}

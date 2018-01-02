@@ -37,6 +37,8 @@
 
 #include <vital/vital_types.h>
 #include <vital/util/tokenize.h>
+#include <vital/util/string.h>
+#include <vital/config/config_difference.h>
 
 #include <kwiversys/RegularExpression.hxx>
 #include <arrows/ocv/image_container.h>
@@ -412,6 +414,15 @@ set_configuration(vital::config_block_sptr config_in)
   // Starting with our generated config_block to ensure that assumed values are present
   // An alternative is to check for key presence before performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
+
+  kwiver::vital::config_difference cd( config, config_in );
+  const auto key_list = cd.extra_keys();
+  if ( ! key_list.empty() )
+  {
+    // This may be considered an error in some cases
+    LOG_WARN( logger(), "Additional parameters found in config block that are not required or desired: "
+              << kwiver::vital::join( key_list, ", " ) );
+  }
 
   config->merge_config( config_in );
 

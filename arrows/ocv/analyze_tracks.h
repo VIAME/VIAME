@@ -36,13 +36,9 @@
 #ifndef KWIVER_ARROWS_OCV_ANALYZE_TRACKS_H_
 #define KWIVER_ARROWS_OCV_ANALYZE_TRACKS_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/analyze_tracks.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {

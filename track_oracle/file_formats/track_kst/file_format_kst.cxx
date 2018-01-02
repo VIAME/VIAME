@@ -16,7 +16,7 @@
 #include <vgl/vgl_point_2d.h>
 #include <vul/vul_timer.h>
 
-#include <boost/algorithm/string/trim.hpp>
+#include <vital/util/string.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -37,7 +37,7 @@ get_next_nonblank_line( istream& is, string& line )
 {
   while ( getline(is, line) )
   {
-    boost::trim_left(line);
+    kwiver::vital::left_trim(line);
     // skip blank lines
     if (line.empty())
     {

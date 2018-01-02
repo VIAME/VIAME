@@ -36,14 +36,9 @@
 #ifndef KWIVER_ARROWS_OCV_MATCH_FEATURES_H_
 #define KWIVER_ARROWS_OCV_MATCH_FEATURES_H_
 
-#include <memory>
-
-#include <vital/vital_config.h>
 #include <vital/algo/match_features.h>
 
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
-
-#include <memory>
 
 #include <opencv2/features2d/features2d.hpp>
 

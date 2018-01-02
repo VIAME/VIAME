@@ -31,12 +31,9 @@
 #ifndef KWIVER_ARROWS_CLASS_PROBABLITY_FILTER_H_
 #define KWIVER_ARROWS_CLASS_PROBABLITY_FILTER_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/algo/algorithm.h>
 #include <vital/algo/detected_object_filter.h>
-#include <vital/types/image_container.h>
 
 #include <utility>
 #include <set>
@@ -66,12 +63,10 @@ class KWIVER_ALGO_CORE_EXPORT class_probablity_filter
   : public vital::algorithm_impl<class_probablity_filter, vital::algo::detected_object_filter>
 {
 public:
-
   class_probablity_filter();
   virtual ~class_probablity_filter() = default;
 
   virtual vital::config_block_sptr get_configuration() const;
-
   virtual void set_configuration(vital::config_block_sptr config);
   virtual bool check_configuration(vital::config_block_sptr config) const;
 

@@ -38,7 +38,7 @@
 #include <vital/klv/klv_0104.h>
 #include <vital/klv/klv_data.h>
 
-#include <vital/exceptions/klv.h>
+#include <vital/exceptions/metadata.h>
 
 #include <vital/types/geodesy.h>
 
@@ -102,7 +102,7 @@ convert_metadata
                            kwiver::vital::any const& data )
 {
   // If the input data is already in the correct type, just return.
-  if ( video_metadata::typeid_for_tag( vital_tag ) == data.type() )
+  if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
     return data;
   }
@@ -110,7 +110,7 @@ convert_metadata
   try
   {
     // If destination type is double, then source must be convertable to double
-    if ( video_metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
+    if ( metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
     {
       kwiver::vital::any converted_data = convert_to_double.convert( data );
       return converted_data;
@@ -137,7 +137,7 @@ convert_metadata
 
 // ------------------------------------------------------------------
 void convert_metadata
-::convert_0104_metadata( klv_uds_vector_t const& uds, video_metadata& metadata )
+::convert_0104_metadata( klv_uds_vector_t const& uds, metadata& md )
 {
   //
   // Data items that are used to collect multi-value metadataa items such as
@@ -155,7 +155,7 @@ void convert_metadata
   // Add our "origin" tag to indicate that the source of this metadata
   // collection is from a 0104 spec packet.
   //
-  metadata.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, video_metadata::MISB_0104 ) );
+  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, MISB_0104 ) );
 
   for ( auto itr = uds.begin(); itr != uds.end(); ++itr )
   {
@@ -173,7 +173,7 @@ void convert_metadata
 
       data = klv_0104::instance()->get_value( tag, &itr->second[0], itr->second.size() );
     }
-    catch ( kwiver::vital::klv_exception const& e )
+    catch ( kwiver::vital::metadata_exception const& e )
     {
       LOG_INFO( m_logger, "Exception caught parsing 0104 klv: " << e.what() );
       continue;
@@ -187,14 +187,14 @@ void convert_metadata
     switch (tag)
     {
 // Refine simple case to a define
-#define CASE(N)                                                 \
-case klv_0104::N:                                               \
-  metadata.add( NEW_METADATA_ITEM( VITAL_META_ ## N, data ) );  \
+#define CASE(N)                                           \
+case klv_0104::N:                                         \
+  md.add( NEW_METADATA_ITEM( VITAL_META_ ## N, data ) );  \
   break
 
-#define CASE2(KN,MN)                                                    \
-      case klv_0104::KN:                                                \
-    metadata.add( NEW_METADATA_ITEM( VITAL_META_ ## MN, data ) );       \
+#define CASE2(KN,MN)                                         \
+      case klv_0104::KN:                                     \
+    md.add( NEW_METADATA_ITEM( VITAL_META_ ## MN, data ) );  \
     break
 
       CASE( UNIX_TIMESTAMP );
@@ -299,7 +299,7 @@ case klv_0104::N:                                               \
     else
     {
       auto const sensor_location = geo_point{ raw_sensor_location, SRID::lat_lon_WGS84 };
-      metadata.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
+      md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
     }
   }
 
@@ -312,7 +312,7 @@ case klv_0104::N:                                               \
     else
     {
       auto const frame_center = geo_point{ raw_frame_center, SRID::lat_lon_WGS84 };
-      metadata.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
+      md.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
     }
   }
 
@@ -362,7 +362,7 @@ case klv_0104::N:                                               \
       raw_corners.push_back( raw_corner_pt4 );
 
       kwiver::vital::geo_polygon corners{ raw_corners, kwiver::vital::SRID::lat_lon_WGS84 };
-      metadata.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
+      md.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
     }
   }
 }

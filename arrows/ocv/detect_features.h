@@ -36,8 +36,6 @@
 #ifndef KWIVER_ARROWS_OCV_DETECT_FEATURES_H_
 #define KWIVER_ARROWS_OCV_DETECT_FEATURES_H_
 
-
-#include <vital/vital_config.h>
 #include <vital/algo/detect_features.h>
 
 #include <arrows/ocv/kwiver_algo_ocv_export.h>

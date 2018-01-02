@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_CERES_BUNDLE_ADJUST_H_
 #define KWIVER_ARROWS_CERES_BUNDLE_ADJUST_H_
 
-#include <vital/vital_config.h>
 #include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 #include <vital/algo/bundle_adjust.h>
@@ -76,7 +75,7 @@ public:
   optimize(vital::camera_map_sptr& cameras,
            vital::landmark_map_sptr& landmarks,
            vital::feature_track_set_sptr tracks,
-           vital::video_metadata_map_sptr metadata = nullptr) const;
+           vital::metadata_map_sptr metadata = nullptr) const;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

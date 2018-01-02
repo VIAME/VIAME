@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
 #define KWIVER_ARROWS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
@@ -45,12 +44,9 @@
 #include <vital/types/image_container.h>
 #include <vital/types/feature_track_set.h>
 
-#include <memory>
-
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 /// Default impl class for mapping each image to some reference image.
 /**

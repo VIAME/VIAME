@@ -36,8 +36,6 @@
 #ifndef KWIVER_ARROWS_VXL_SPLIT_IMAGE_H_
 #define KWIVER_ARROWS_VXL_SPLIT_IMAGE_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/split_image.h>
@@ -57,6 +55,9 @@ public:
 
   /// Destructor
   virtual ~split_image();
+
+  virtual void set_configuration( kwiver::vital::config_block_sptr ) { }
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config) const { return true; }
 
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >

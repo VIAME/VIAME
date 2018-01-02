@@ -36,14 +36,11 @@
 #ifndef KWIVER_ARROWS_FEATURE_DETECT_EXTRACT_ORB_H_
 #define KWIVER_ARROWS_FEATURE_DETECT_EXTRACT_ORB_H_
 
-#include <memory>
-#include <string>
-
-#include <vital/vital_config.h>
-
 #include <arrows/ocv/detect_features.h>
 #include <arrows/ocv/extract_descriptors.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
+
+#include <string>
 
 namespace kwiver {
 namespace arrows {

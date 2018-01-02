@@ -30,13 +30,13 @@
 
 /**
  * \file
- * \brief Header file for a map from frame IDs to video metadata vectors
+ * \brief Header file for a map from frame IDs to metadata vectors
  */
 
-#ifndef KWIVER_VITAL_VIDEO_METADATA_MAP_H_
-#define KWIVER_VITAL_VIDEO_METADATA_MAP_H_
+#ifndef KWIVER_VITAL_METADATA_MAP_H_
+#define KWIVER_VITAL_METADATA_MAP_H_
 
-#include <vital/video_metadata/video_metadata.h>
+#include <vital/types/metadata.h>
 
 #include <vital/vital_types.h>
 #include <vital/vital_config.h>
@@ -47,57 +47,57 @@
 namespace kwiver {
 namespace vital {
 
-/// An abstract mapping between frame IDs and video_metadata vectors
+/// An abstract mapping between frame IDs and metadata vectors
 /*
- * \note a vector of video_metadata objects is used because each frame could
+ * \note a vector of metadata objects is used because each frame could
  * have multiple metadata blocks.  For example, metadata may come from
  * multiple sources on a given frame or a metadata may be provided at
  * a higher sampling rate than the video sampling rate.
  */
-class video_metadata_map
+class metadata_map
 {
 public:
-  /// typedef for std::map from integer frame IDs to video_metadata vectors
-  typedef std::map< frame_id_t, video_metadata_vector > map_video_metadata_t;
+  /// typedef for std::map from integer frame IDs to metadata vectors
+  typedef std::map< frame_id_t, metadata_vector > map_metadata_t;
 
   /// Destructor
-  virtual ~video_metadata_map() = default;
+  virtual ~metadata_map() = default;
 
   /// Return the number of frames in the map
   virtual size_t size() const = 0;
 
-  /// Return a map from integer frame IDs to video_metadata vectors
-  virtual map_video_metadata_t video_metadata() const = 0;
+  /// Return a map from integer frame IDs to metadata vectors
+  virtual map_metadata_t metadata() const = 0;
 };
 
-/// typedef for a video_metadata shared pointer
-typedef std::shared_ptr< video_metadata_map > video_metadata_map_sptr;
+/// typedef for a metadata shared pointer
+typedef std::shared_ptr< metadata_map > metadata_map_sptr;
 
 
-/// A concrete video_metadata_map that simply wraps a std::map.
-class simple_video_metadata_map :
-  public video_metadata_map
+/// A concrete metadata_map that simply wraps a std::map.
+class simple_metadata_map :
+  public metadata_map
 {
 public:
   /// Default Constructor
-  simple_video_metadata_map() { }
+  simple_metadata_map() { }
 
-  /// Constructor from a std::map of video_metadata
-  explicit simple_video_metadata_map( map_video_metadata_t const& video_metadata )
-    : data_( video_metadata ) { }
+  /// Constructor from a std::map of metadata
+  explicit simple_metadata_map( map_metadata_t const& metadata )
+    : data_( metadata ) { }
 
-  /// Return the number of video_metadata in the map
+  /// Return the number of metadata in the map
   virtual size_t size() const { return data_.size(); }
 
-  /// Return a map from integer IDs to video_metadata shared pointers
-  virtual map_video_metadata_t video_metadata() const { return data_; }
+  /// Return a map from integer IDs to metadata shared pointers
+  virtual map_metadata_t metadata() const { return data_; }
 
 
 protected:
-  /// The map from integer IDs to video_metadata shared pointers
-  map_video_metadata_t data_;
+  /// The map from integer IDs to metadata shared pointers
+  map_metadata_t data_;
 };
 
 }} // end namespace vital
 
-#endif // KWIVER_VITAL_VIDEO_METADATA_MAP_H_
+#endif // KWIVER_VITAL_METADATA_MAP_H_

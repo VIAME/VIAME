@@ -33,7 +33,7 @@
  * \brief This file contains the implementation for vital video metadata.
  */
 
-#include "video_metadata.h"
+#include <vital/types/metadata.h>
 #include "convert_metadata.h"
 
 #include <vital/klv/klv_0601.h>
@@ -108,7 +108,7 @@ convert_metadata
                            kwiver::vital::any const& data )
 {
   // If the input data is already in the correct type
-  if ( video_metadata::typeid_for_tag( vital_tag ) == data.type() )
+  if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
     // leave data as is since it already correct type.
     return data;
@@ -116,7 +116,7 @@ convert_metadata
 
 
   // If destination type is double, then source must be convertable to double
-  if ( video_metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
+  if ( metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
   {
     if ( klv_0601_has_double( tag ) )
     {
@@ -154,11 +154,11 @@ convert_metadata
 // ------------------------------------------------------------------
 void
 convert_metadata
-::convert_0601_metadata( klv_lds_vector_t const& lds, video_metadata& metadata )
+::convert_0601_metadata( klv_lds_vector_t const& lds, metadata& md )
 {
   static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.convert_metadata" ) );
 
-  metadata.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, video_metadata::MISB_0601 ) );
+  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, MISB_0601 ) );
 
   //
   // Data items that are used to collect multi-value metadataa items such as
@@ -192,18 +192,18 @@ convert_metadata
 // Refine simple case to a define
 #define CASE(N)                                                         \
   case KLV_0601_ ## N:                                                  \
-    metadata.add( NEW_METADATA_ITEM( VITAL_META_ ## N,                  \
+    md.add( NEW_METADATA_ITEM( VITAL_META_ ## N,                        \
       normalize_0601_tag_data( KLV_0601_ ## N, VITAL_META_ ## N, data ) ) ); \
     break
 
 #define CASE_COPY(N)                                                    \
   case KLV_0601_ ## N:                                                  \
-    metadata.add( NEW_METADATA_ITEM( VITAL_META_ ## N, data ) );        \
+    md.add( NEW_METADATA_ITEM( VITAL_META_ ## N, data ) );              \
     break
 
 #define CASE2(KN,VN)                                                    \
   case KLV_0601_ ## KN:                                                 \
-    metadata.add( NEW_METADATA_ITEM( VITAL_META_ ## VN,                 \
+    md.add( NEW_METADATA_ITEM( VITAL_META_ ## VN,                       \
       normalize_0601_tag_data( KLV_0601_ ## KN, VITAL_META_ ## VN, data ) ) ); \
     break
 
@@ -406,7 +406,7 @@ convert_metadata
     else
     {
       auto const sensor_location = geo_point{ raw_sensor_location, SRID::lat_lon_WGS84 };
-      metadata.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
+      md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
     }
   }
 
@@ -419,7 +419,7 @@ convert_metadata
     else
     {
       auto const frame_center = geo_point{ raw_frame_center, SRID::lat_lon_WGS84 };
-      metadata.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
+      md.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
     }
   }
 
@@ -432,7 +432,7 @@ convert_metadata
     else
     {
       auto const target_location = geo_point{ raw_target_location, SRID::lat_lon_WGS84 };
-      metadata.add( NEW_METADATA_ITEM( VITAL_META_TARGET_LOCATION, target_location ) );
+      md.add( NEW_METADATA_ITEM( VITAL_META_TARGET_LOCATION, target_location ) );
     }
   }
 
@@ -488,7 +488,7 @@ convert_metadata
         raw_corners.push_back( raw_corner_pt4 + raw_frame_center );
 
         kwiver::vital::geo_polygon corners{ raw_corners, kwiver::vital::SRID::lat_lon_WGS84 };
-        metadata.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
+        md.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
       }
     }
   } // corner points are empty
