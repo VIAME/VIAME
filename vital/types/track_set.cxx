@@ -527,10 +527,13 @@ simple_track_set_implementation
 void 
 simple_track_set_implementation
 ::set_keyframe_data(keyframe_data_const_sptr kfd) {
-  kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(std::const_pointer_cast<keyframe_data>(kfd));
+  kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(
+    std::const_pointer_cast<keyframe_data>(kfd));
+
   if (!kf_data_)
   {
-    static std::string const reason = "Input keyframe data could not be cast to a simple keyframe data.";
+    static std::string const reason = 
+      "Input keyframe data could not be cast to a simple keyframe data.";
     throw std::runtime_error(reason);
   }
 }
@@ -540,15 +543,17 @@ track_set_implementation_uptr
 simple_track_set_implementation
 ::clone() const
 {
-  std::unique_ptr<simple_track_set_implementation> new_stsi = std::make_unique<simple_track_set_implementation>();
+  std::unique_ptr<simple_track_set_implementation> new_stsi = 
+    std::make_unique<simple_track_set_implementation>();
 
-  for (auto trk : data_)  
+  for (auto trk : data_)
   {
-    new_stsi->data_.push_back(trk->clone());  //TODO compare track::clone to feature_track::clone
+    new_stsi->data_.push_back(trk->clone());
   }
-
-  //this will work because this->kf_data is in fact a simple_keyframe_data by construction
-  new_stsi->kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(this->kf_data_->clone());
+  // this will work because this->kf_data is in fact a 
+  // simple_keyframe_data by construction
+  new_stsi->kf_data_ = 
+    std::dynamic_pointer_cast<simple_keyframe_data>(this->kf_data_->clone());
   
   std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());
   if (new_tsi) {
