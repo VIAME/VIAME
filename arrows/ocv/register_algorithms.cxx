@@ -53,6 +53,7 @@
 #include <arrows/ocv/draw_tracks.h>
 #include <arrows/ocv/estimate_fundamental_matrix.h>
 #include <arrows/ocv/estimate_homography.h>
+#include <arrows/ocv/estimate_pnp.h>
 #include <arrows/ocv/extract_descriptors_BRIEF.h>
 #include <arrows/ocv/extract_descriptors_DAISY.h>
 #include <arrows/ocv/extract_descriptors_FREAK.h>
@@ -386,6 +387,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM("ocv", kwiver::arrows::ocv::estimate_pnp);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Estimate camera pose with perspective three point method")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
     ;
 
   vpm.mark_module_as_loaded( module_name );
