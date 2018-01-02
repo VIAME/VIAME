@@ -16,6 +16,7 @@ set( ocv_headers_public
   draw_tracks.h
   estimate_fundamental_matrix.h
   estimate_homography.h
+  estimate_pnp.h
   extract_descriptors.h
   extract_descriptors_BRIEF.h
   extract_descriptors_DAISY.h
@@ -30,6 +31,7 @@ set( ocv_headers_public
   hough_circle_detector.h
   image_container.h
   image_io.h
+  initialize_cameras_landmarks.h
   mat_image_memory.h
   match_features.h
   match_features_bruteforce.h
@@ -63,6 +65,7 @@ set( ocv_sources
   draw_tracks.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
+  estimate_pnp.cxx
   extract_descriptors.cxx
   extract_descriptors_BRIEF.cxx
   extract_descriptors_DAISY.cxx
@@ -77,6 +80,7 @@ set( ocv_sources
   feature_detect_extract_SURF.cxx
   image_container.cxx
   image_io.cxx
+  initialize_cameras_landmarks.cxx
   mat_image_memory.cxx
   match_features.cxx
   match_features_bruteforce.cxx
