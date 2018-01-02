@@ -132,6 +132,7 @@ bool list_all_subfolders( const std::string& location,
 
 bool list_files_in_folder( const std::string& location,
                            std::vector< std::string >& filepaths,
+                           bool search_subfolders = false,
                            std::vector< std::string > extensions = std::vector< std::string >() )
 {
   filepaths.clear();
@@ -219,7 +220,7 @@ bool string_to_vector( const std::string& str,
 
   try
   {
-    VITAL_FOREACH( std::string s, parsed_string )
+    for( std::string s : parsed_string )
     {
       if( !s.empty() )
       {
@@ -372,7 +373,7 @@ main( int argc, char* argv[] )
 
     kwiversys::SystemTools::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
 
-    VITAL_FOREACH( auto path, pathl )
+    for( auto path : pathl )
     {
       vpm.add_search_path( path );
     }
@@ -492,8 +493,6 @@ main( int argc, char* argv[] )
   if( train_files.empty() && test_files.empty() )
   {
     std::cout << "Automatically selecting train and test files" << std::endl;
-
-    // TODO: SELECT FILES
   }
   else if( train_files.empty() != test_files.empty() )
   {
@@ -630,7 +629,7 @@ main( int argc, char* argv[] )
   std::vector< std::string > test_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > test_gt;
 
-  VITAL_FOREACH( std::string folder, subdirs )
+  for( std::string folder : subdirs )
   {
     std::cout << "Processing " << folder << std::endl;
 
