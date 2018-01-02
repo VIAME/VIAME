@@ -27,6 +27,8 @@ Arrows - Core
 Arrows - OpenCV
 
  * Added an OpenCV based KLT feature tracker.
+ 
+ * Added perspective three point pose estimation.
 
 Arrows - VXL
 
