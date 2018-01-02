@@ -51,6 +51,20 @@ target_link_libraries(python-vital.types.bindings-_descriptor
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_descriptor_set
+  vital/types/bindings
+  descriptor_set.cxx)
+target_link_libraries(python-vital.types.bindings-_descriptor_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_detected_object_type
+  vital/types/bindings
+  detected_object_type.cxx)
+target_link_libraries(python-vital.types.bindings-_detected_object_type
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_add_python_library(_eigen
   vital/types/bindings
   eigen.cxx)
@@ -101,6 +115,8 @@ sprokit_create_python_init(vital/types/bindings
   _color
   _covariance
   _descriptor
+  _descriptor_set
+  _detected_object_type
   _eigen
   _feature
   _landmark

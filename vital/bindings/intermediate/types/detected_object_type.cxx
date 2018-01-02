@@ -30,28 +30,39 @@
 
 #include <pybind11/stl.h>
 
-#include "py_classes.cxx"
+#include <vital/types/detected_object_type.h>
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_descriptor, m)
+PYBIND11_MODULE(_detected_object_type, m)
 {
-  py::class_<PyDescriptorBase, std::shared_ptr<PyDescriptorBase>>(m, "Descriptor")
-  .def(py::init(&new_descriptor),
-    py::arg("size")=0, py::arg("ctype")='d')
-  .def("sum", &PyDescriptorBase::sum)
-  .def("todoublearray", &PyDescriptorBase::as_double)
-  .def("tobytearray", &PyDescriptorBase::as_bytes)
-  .def("__eq__", [](PyDescriptorBase &self, PyDescriptorBase &other) { return self.as_double() == other.as_double(); })
-  .def("__ne__", [](PyDescriptorBase &self, PyDescriptorBase &other) { return self.as_double() != other.as_double(); })
-  .def("__setitem__", &PyDescriptorBase::set_slice,
-    py::arg("slice"), py::arg("value"))
-  .def("__getitem__", &PyDescriptorBase::get_slice,
-    py::arg("slice"))
-  .def_property_readonly("size", &PyDescriptorBase::get_size)
-  .def_property_readonly("nbytes", &PyDescriptorBase::get_num_bytes)
+  py::class_<kwiver::vital::detected_object_type, std::shared_ptr<kwiver::vital::detected_object_type>>(m, "DetectedObjectType")
+  .def(py::init<>())
+  .def(py::init<std::vector<std::string>, std::vector<double>>())
+  .def("has_class_name", &kwiver::vital::detected_object_type::has_class_name,
+    py::arg("class_name"))
+  .def("score", &kwiver::vital::detected_object_type::score,
+    py::arg("class_name"))
+  .def("get_most_likely_class", [](std::shared_ptr<kwiver::vital::detected_object_type> self)
+    {
+      std::string max_name;
+      double max_score;
+      self->get_most_likely(max_name, max_score);
+      return max_name;
+    })
+  .def("get_most_likely_score", [](std::shared_ptr<kwiver::vital::detected_object_type> self)
+    {
+      std::string max_name;
+      double max_score;
+      self->get_most_likely(max_name, max_score);
+      return max_score;
+    })
+  .def("set_score", &kwiver::vital::detected_object_type::set_score,
+    py::arg("class_name"), py::arg("score"))
+  .def("delete_score", &kwiver::vital::detected_object_type::delete_score,
+    py::arg("class_name"))
+  .def("class_names", &kwiver::vital::detected_object_type::class_names,
+    py::arg("threshold")=kwiver::vital::detected_object_type::INVALID_SCORE)
+  .def_static("all_class_names", &kwiver::vital::detected_object_type::all_class_names)
   ;
-
-  py::class_<PyDescriptorD, PyDescriptorBase, std::shared_ptr<PyDescriptorD>>(m, "DescriptorD");
-  py::class_<PyDescriptorF, PyDescriptorBase, std::shared_ptr<PyDescriptorF>>(m, "DescriptorF");
 }

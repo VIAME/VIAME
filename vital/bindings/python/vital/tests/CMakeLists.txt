@@ -12,6 +12,7 @@ set(__testable_modnames
   test_config_block
   test_covariance
   test_descriptor
+  test_descriptor_set
   test_eigen_numpy
   test_feature
   test_find_vital_library

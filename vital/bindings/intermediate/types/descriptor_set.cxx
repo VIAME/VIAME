@@ -34,24 +34,34 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_descriptor, m)
+class PyDescriptorSet
 {
-  py::class_<PyDescriptorBase, std::shared_ptr<PyDescriptorBase>>(m, "Descriptor")
-  .def(py::init(&new_descriptor),
-    py::arg("size")=0, py::arg("ctype")='d')
-  .def("sum", &PyDescriptorBase::sum)
-  .def("todoublearray", &PyDescriptorBase::as_double)
-  .def("tobytearray", &PyDescriptorBase::as_bytes)
-  .def("__eq__", [](PyDescriptorBase &self, PyDescriptorBase &other) { return self.as_double() == other.as_double(); })
-  .def("__ne__", [](PyDescriptorBase &self, PyDescriptorBase &other) { return self.as_double() != other.as_double(); })
-  .def("__setitem__", &PyDescriptorBase::set_slice,
-    py::arg("slice"), py::arg("value"))
-  .def("__getitem__", &PyDescriptorBase::get_slice,
-    py::arg("slice"))
-  .def_property_readonly("size", &PyDescriptorBase::get_size)
-  .def_property_readonly("nbytes", &PyDescriptorBase::get_num_bytes)
-  ;
+  std::vector<std::shared_ptr<PyDescriptorBase>> descriptors;
 
-  py::class_<PyDescriptorD, PyDescriptorBase, std::shared_ptr<PyDescriptorD>>(m, "DescriptorD");
-  py::class_<PyDescriptorF, PyDescriptorBase, std::shared_ptr<PyDescriptorF>>(m, "DescriptorF");
+  public:
+
+    PyDescriptorSet() {};
+    PyDescriptorSet(py::list desc_arg)
+     {
+       for(auto py_desc: desc_arg)
+       {
+         std::shared_ptr<PyDescriptorBase> desc = py_desc.cast<std::shared_ptr<PyDescriptorBase>>();
+         descriptors.push_back(desc);
+       }
+     };
+
+    size_t size() { return descriptors.size(); };
+
+    std::vector<std::shared_ptr<PyDescriptorBase>> get_descriptors() { return descriptors; };
+};
+
+PYBIND11_MODULE(_descriptor_set, m)
+{
+  py::class_<PyDescriptorSet, std::shared_ptr<PyDescriptorSet>>(m, "DescriptorSet")
+  .def(py::init<>())
+  .def(py::init<py::list>())
+  .def("descriptors", &PyDescriptorSet::get_descriptors)
+  .def("size", &PyDescriptorSet::size)
+  .def("__len__", &PyDescriptorSet::size)
+  ;
 }
