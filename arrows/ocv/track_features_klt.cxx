@@ -288,11 +288,11 @@ public:
     feature_distribution_image& operator=(
       const feature_distribution_image &other) 
     {
-      if (&other == this) 
+      if (&other != this)
       {
-        return *this;
+        other.dist_image.copyTo(dist_image);
       }
-      other.dist_image.copyTo(dist_image);
+      return *this;
     }
 
     bool should_redetect(const feature_distribution_image &lastDetectDist, 
