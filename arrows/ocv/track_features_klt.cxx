@@ -264,8 +264,8 @@ public:
   {
   public:
     feature_distribution_image(): 
-      rows(0), cols(0), 
-      bad_bins_frac_to_redetect(0.125)
+      bad_bins_frac_to_redetect(0.125),
+      rows(0), cols(0)
     {
       set_grid_size(4, 4);
     }
