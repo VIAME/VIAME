@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2016 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,45 +29,27 @@
  */
 
 /**
- * @file
- * @brief KPF YAML parser class.
- *
- * Header for the KPF YAML parser; holds the YAML root document and provides
- * the interface for reading each KPF line (which shows up as a YAML map)
- * into the KPF generic parser's packet buffer.
+ * \file
+ * \brief Template instances of kwiver I/O for the CSET support types
  */
 
-#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
-#define KWIVER_VITAL_KPF_YAML_PARSER_H_
+#include <vital/vital_config.h>
+#include <track_oracle/core/track_oracle_export.h>
+#define TRACK_FIELD_EXPORT TRACK_ORACLE_EXPORT
+#define KWIVER_IO_EXPORT TRACK_ORACLE_EXPORT
+#define TRACK_ORACLE_CORE_EXPORT TRACK_ORACLE_EXPORT
+#define ELEMENT_STORE_EXPORT TRACK_ORACLE_EXPORT
+#define TRACK_ORACLE_ROW_VIEW_EXPORT TRACK_ORACLE_EXPORT
 
-#include <arrows/kpf/yaml/kpf_parse_utils.h>
-#include <arrows/kpf/yaml/kpf_parser_base.h>
+#include <track_oracle/core/track_oracle_instantiation.h>
+#include <track_oracle/core/track_field_instantiation.h>
+#include <track_oracle/core/track_oracle_row_view_instantiation.h>
+#include <track_oracle/core/element_store_instantiation.h>
 
-#include <yaml-cpp/yaml.h>
+#define MACRO_COMMA ,
 
-namespace kwiver {
-namespace vital {
-namespace kpf {
+TRACK_ORACLE_INSTANCES(std::map<std::string MACRO_COMMA size_t>);
+ELEMENT_STORE_INSTANCES(std::map<std::string MACRO_COMMA size_t>);
+TRACK_ORACLE_INSTANCES(std::map<size_t MACRO_COMMA double>);
+ELEMENT_STORE_INSTANCES(std::map<size_t MACRO_COMMA double>);
 
-class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
-{
-public:
-  explicit kpf_yaml_parser_t( std::istream& is );
-  ~kpf_yaml_parser_t() {}
-
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
-  virtual bool eof() const;
-
-private:
-  YAML::Node root;
-  YAML::const_iterator current_record;
-
-};
-
-} // ...kpf
-} // ...vital
-} // ...kwiver
-
-
-#endif

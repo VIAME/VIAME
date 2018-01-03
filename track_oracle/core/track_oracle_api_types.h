@@ -38,6 +38,9 @@ typedef size_t field_handle_type;
 const oracle_entry_handle_type INVALID_ROW_HANDLE = static_cast<oracle_entry_handle_type>( -1 );
 const field_handle_type INVALID_FIELD_HANDLE = static_cast<field_handle_type>( -1 );
 
+// special row for system bookkeeping
+const oracle_entry_handle_type SYSTEM_ROW_HANDLE = 0;
+
 //
 // The only structure track oracle imposes on the data is the abstract
 // structure of a moving object track:

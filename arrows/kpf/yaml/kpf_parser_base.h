@@ -54,6 +54,7 @@ public:
 
   virtual bool get_status() const = 0;
   virtual bool parse_next_record( packet_buffer_t& ) = 0;
+  virtual bool eof() const = 0;
 };
 
 

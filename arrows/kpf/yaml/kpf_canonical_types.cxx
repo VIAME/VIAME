@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,45 +29,38 @@
  */
 
 /**
- * @file
- * @brief KPF YAML parser class.
- *
- * Header for the KPF YAML parser; holds the YAML root document and provides
- * the interface for reading each KPF line (which shows up as a YAML map)
- * into the KPF generic parser's packet buffer.
+ * \file
+ * \brief Canonical KPF types.
  */
 
-#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
-#define KWIVER_VITAL_KPF_YAML_PARSER_H_
+#include "kpf_canonical_types.h"
+#include <arrows/kpf/yaml/kpf_packet.h>
 
-#include <arrows/kpf/yaml/kpf_parse_utils.h>
-#include <arrows/kpf/yaml/kpf_parser_base.h>
+#include <vital/logger/logger.h>
+static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
-#include <yaml-cpp/yaml.h>
+using std::string;
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
 
-class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
+namespace canonical
 {
-public:
-  explicit kpf_yaml_parser_t( std::istream& is );
-  ~kpf_yaml_parser_t() {}
 
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
-  virtual bool eof() const;
+kv_t
+::kv_t( const string& k, const string& v )
+  : key(k), val(v)
+{
+  if ( str2style( k ) != packet_style::INVALID )
+  {
+    LOG_ERROR( main_logger, "KV packet '" << k << "' / '" << v << "'; key value is already a KPF packet type-- file won't parse" );
+    // throw an error?
+  }
+}
 
-private:
-  YAML::Node root;
-  YAML::const_iterator current_record;
-
-};
-
+} // ...canonical
 } // ...kpf
 } // ...vital
 } // ...kwiver
 
-
-#endif

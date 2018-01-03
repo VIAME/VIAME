@@ -58,7 +58,7 @@ indent( size_t depth )
 
 void visit( ostream& os, size_t depth, const YAML::Node& n )
 {
-  os << indent( depth );
+  //  os << indent( depth );
   switch (n.Type())
   {
   case YAML::NodeType::Null:
@@ -71,15 +71,16 @@ void visit( ostream& os, size_t depth, const YAML::Node& n )
     os << "(sequence)\n";
     for (auto it=n.begin(); it != n.end(); ++it)
     {
+      os << indent( depth );
       visit( os, depth+1, *it);
     }
     break;
   case YAML::NodeType::Map:
-    cerr << "(map)\n";
+    os << "(map)\n";
     for (auto it=n.begin(); it != n.end(); ++it)
     {
-      os << indent(depth+1) << it->first.as<string>() << " => \n";
-      visit( os, depth+2, it->second);
+      os << indent(depth) << it->first.as<string>() << " => ";
+      visit( os, depth+1, it->second);
     }
     break;
   case YAML::NodeType::Undefined:
@@ -112,7 +113,7 @@ int main( int argc, char* argv[] )
 
     for (auto it = doc.begin(); it != doc.end(); ++it)
     {
-      visit( cout, 0, *it);
+      visit( cout, 1, *it);
     }
   }
   catch (const YAML::Exception& e )

@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,45 +29,56 @@
  */
 
 /**
- * @file
- * @brief KPF YAML parser class.
+ * \file
  *
- * Header for the KPF YAML parser; holds the YAML root document and provides
- * the interface for reading each KPF line (which shows up as a YAML map)
- * into the KPF generic parser's packet buffer.
+ * Generic KPF parser
+ *
  */
 
-#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
-#define KWIVER_VITAL_KPF_YAML_PARSER_H_
 
-#include <arrows/kpf/yaml/kpf_parse_utils.h>
-#include <arrows/kpf/yaml/kpf_parser_base.h>
+#include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
 
-#include <yaml-cpp/yaml.h>
+#include <iostream>
+#include <fstream>
 
-namespace kwiver {
-namespace vital {
-namespace kpf {
+using std::cerr;
+using std::cout;
+using std::ifstream;
 
-class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
+namespace KPF=kwiver::vital::kpf;
+
+int main( int argc, char *argv[] )
 {
-public:
-  explicit kpf_yaml_parser_t( std::istream& is );
-  ~kpf_yaml_parser_t() {}
+  if (argc != 2)
+  {
+    cerr << "Usage: " << argv[0] << " kpf-yaml-file\n";
+    return EXIT_FAILURE;
+  }
 
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
-  virtual bool eof() const;
+  ifstream is( argv[1] );
+  if ( ! is )
+  {
+    cerr << "Couldn't open '" << argv[1] << "'\n";
+    return EXIT_FAILURE;
+  }
 
-private:
-  YAML::Node root;
-  YAML::const_iterator current_record;
+  KPF::kpf_yaml_parser_t parser( is );
+  KPF::kpf_reader_t reader ( parser );
 
-};
-
-} // ...kpf
-} // ...vital
-} // ...kwiver
-
-
-#endif
+  size_t line_c = 0;
+  while (reader.next())
+  {
+    ++line_c;
+    for (const auto& p: reader.get_meta_packets() )
+    {
+      cout << "line " << line_c << ": meta '" << p << "'\n";
+    }
+    for (const auto& p: reader.get_packet_buffer() )
+    {
+      cout << "line " << line_c << ": " << p.second << "\n";
+    }
+    reader.flush();
+  }
+}
