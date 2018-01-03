@@ -79,10 +79,10 @@ public:
   {
   }
 
-  // sets up a mask based on the points.  We query this mask to find out if a  
+  // sets up a mask based on the points.  We query this mask to find out if a
   // newly detected point is near an existing point.
-  void set_tracked_feature_location_mask(const std::vector<cv::Point2f> &points, 
-    image_container_sptr image_data) 
+  void set_tracked_feature_location_mask(const std::vector<cv::Point2f> &points,
+    image_container_sptr image_data)
   {
     exclude_rad_pixels =
       std::max<int>(1, exclusionary_radius_image_frac *
@@ -104,10 +104,10 @@ public:
     erp2 = exclude_rad_pixels * exclude_rad_pixels;
     erp2 /= tracked_feat_mask_downsample_fact;
     erp2 /= tracked_feat_mask_downsample_fact;
-   
+
     //mark the whole tracked feature mask as not having any features
     tracked_feature_location_mask.setTo(0);
-    
+
     for (auto const& np : points)
     {
       set_exclude_mask(np);
@@ -143,29 +143,29 @@ public:
   bool exclude_mask_is_set(vital::vector_2d const &pt) const {
     return tracked_feature_location_mask.at<unsigned char>(pt.y() / tracked_feat_mask_downsample_fact, pt.x() / tracked_feat_mask_downsample_fact) != 0;
   }
-  
+
   /// Set current parameter values to the given config block
   void update_config(vital::config_block_sptr &config) const
   {
     config->set_value("redetect_frac_lost_threshold", redetect_threshold,
-                      "redetect if fraction of features tracked from last " 
+                      "redetect if fraction of features tracked from last "
                       "detection drops below this level");
     int grid_rows, grid_cols;
-    
+
     dist_image.get_grid_size(grid_rows, grid_cols);
-    
-    config->set_value("grid_rows", grid_rows, 
+
+    config->set_value("grid_rows", grid_rows,
                       "rows in feature distribution enforcing grid");
-    
-    config->set_value("grid_cols", grid_cols, 
+
+    config->set_value("grid_cols", grid_cols,
                       "colums in feature distribution enforcing grid");
-    
-    config->set_value("new_feat_exclusionary_radius_image_fraction", 
+
+    config->set_value("new_feat_exclusionary_radius_image_fraction",
                       exclusionary_radius_image_frac,
-                      "do not place new features any closer than this fraction of image min " 
+                      "do not place new features any closer than this fraction of image min "
                       "dimension to existing features");
-    
-    config->set_value("win_size", win_size, 
+
+    config->set_value("win_size", win_size,
                       "klt image patch side length (it's a square)");
 
     config->set_value("max_pyramid_level", max_pyramid_level,
@@ -173,9 +173,9 @@ public:
   }
 
   /// Set our parameters based on the given config block
-  void set_config(const vital::config_block_sptr & config) 
+  void set_config(const vital::config_block_sptr & config)
   {
-    redetect_threshold = 
+    redetect_threshold =
       config->get_value<double>("redetect_frac_lost_threshold");
 
     int grid_rows = config->get_value<int>("grid_rows");
@@ -186,36 +186,36 @@ public:
 
     last_detect_distImage.set_grid_size(grid_rows, gridCols);
 
-    exclusionary_radius_image_frac = 
+    exclusionary_radius_image_frac =
       config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
-    
+
     win_size = config->get_value<int>("win_size");
-    
+
     half_win_size = win_size / 2;
 
     max_pyramid_level = config->get_value<int>("max_pyramid_level");
   }
 
-  bool check_configuration(vital::config_block_sptr config) const 
+  bool check_configuration(vital::config_block_sptr config) const
   {
     bool success(true);
 
-    float test_redetect_threshold = 
+    float test_redetect_threshold =
       config->get_value<double>("redetect_frac_lost_threshold");
-    
+
     int test_grid_rows = config->get_value<int>("grid_rows");
-    
+
     int test_grid_cols = config->get_value<int>("grid_cols");
-    
-    float test_exclusionary_radius_image_frac = 
+
+    float test_exclusionary_radius_image_frac =
       config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
-    
+
     int test_win_size = config->get_value<int>("win_size");
 
     if (!(0 < test_redetect_threshold && test_redetect_threshold <= 1.0))
     {
-      LOG_ERROR(m_logger, "redetect_frac_lost_threshold (" 
-        << test_redetect_threshold 
+      LOG_ERROR(m_logger, "redetect_frac_lost_threshold ("
+        << test_redetect_threshold
         << ") should be greater than zero and <= 1.0");
       success = false;
     }
@@ -234,8 +234,8 @@ public:
       success = false;
     }
 
-    if (!(0 < test_exclusionary_radius_image_frac && 
-        test_exclusionary_radius_image_frac < 1.0)) 
+    if (!(0 < test_exclusionary_radius_image_frac &&
+        test_exclusionary_radius_image_frac < 1.0))
     {
       LOG_ERROR(m_logger, "new_feat_exclusionary_radius_image_fraction ("
         << test_exclusionary_radius_image_frac <<
@@ -245,7 +245,7 @@ public:
 
     if (test_win_size < 3)
     {
-      LOG_ERROR(m_logger, "win_size (" << test_win_size << 
+      LOG_ERROR(m_logger, "win_size (" << test_win_size <<
         ") must be three or more");
       success = false;
     }
@@ -260,17 +260,17 @@ public:
     return success;
   }
 
-  class feature_distribution_image 
+  class feature_distribution_image
   {
   public:
-    feature_distribution_image(): 
+    feature_distribution_image():
       bad_bins_frac_to_redetect(0.125),
       rows(0), cols(0)
     {
       set_grid_size(4, 4);
     }
 
-    void set_grid_size(int _rows, int _cols) 
+    void set_grid_size(int _rows, int _cols)
     {
       if (rows != _rows || cols != _cols) {
         rows = _rows;
@@ -279,14 +279,14 @@ public:
         dist_image.setTo(0);
       }
     }
-    void get_grid_size(int &_rows, int& _cols) const 
+    void get_grid_size(int &_rows, int& _cols) const
     {
       _rows = rows;
       _cols = cols;
     }
 
     feature_distribution_image& operator=(
-      const feature_distribution_image &other) 
+      const feature_distribution_image &other)
     {
       if (&other != this)
       {
@@ -295,57 +295,57 @@ public:
       return *this;
     }
 
-    bool should_redetect(const feature_distribution_image &lastDetectDist, 
-                         float redetect_threshold) 
+    bool should_redetect(const feature_distribution_image &lastDetectDist,
+                         float redetect_threshold)
     {
       int bad_bins = 0;
-      for (int r = 0; r < rows; ++r) 
+      for (int r = 0; r < rows; ++r)
       {
-        for (int c = 0; c < cols; ++c) 
+        for (int c = 0; c < cols; ++c)
         {
-          if (dist_image.at<uint16_t>(r, c) < 
+          if (dist_image.at<uint16_t>(r, c) <
               uint16_t(redetect_threshold*
-              float(lastDetectDist.dist_image.at<uint16_t>(r, c)))) 
+              float(lastDetectDist.dist_image.at<uint16_t>(r, c))))
           {
             ++bad_bins;
           }
         }
       }
-      if (bad_bins >= int(float(rows*cols)*bad_bins_frac_to_redetect)) 
+      if (bad_bins >= int(float(rows*cols)*bad_bins_frac_to_redetect))
       {
         return true;
       }
       return false;
     }
 
-    void set_from_feature_vector(const std::vector<cv::Point2f> &points, 
-                                 image_container_sptr image_data) 
+    void set_from_feature_vector(const std::vector<cv::Point2f> &points,
+                                 image_container_sptr image_data)
     {
       dist_image.setTo(0);
       const int dist_bin_x_len = int(image_data->width() / cols);
       const int dist_bin_y_len = int(image_data->height() / rows);
 
-      for (auto v = points.begin(); v != points.end(); ++v) 
+      for (auto v = points.begin(); v != points.end(); ++v)
       {
         const cv::Point2f &tp = *v;
-        int dist_bin_x = 
+        int dist_bin_x =
           std::min<int>(std::max<int>(tp.x / dist_bin_x_len, 0), cols - 1);
-        int dist_bin_y = 
+        int dist_bin_y =
           std::min<int>(std::max<int>(tp.y / dist_bin_y_len, 0), rows - 1);
 
-        uint16_t& numFeatInBin = 
+        uint16_t& numFeatInBin =
           dist_image.at<uint16_t>(dist_bin_y, dist_bin_x);
-        if (numFeatInBin < UINT16_MAX) 
+        if (numFeatInBin < UINT16_MAX)
         {
           ++numFeatInBin;  //make sure we don't roll over the UINT_16.
         }
       }
     }
-    
-    cv::Mat dist_image;    
-    float bad_bins_frac_to_redetect;    
+
+    cv::Mat dist_image;
+    float bad_bins_frac_to_redetect;
   private:
-      int rows, cols;      
+      int rows, cols;
   };
 
   /// The feature detector algorithm to use
@@ -410,7 +410,7 @@ track_features_klt
 ::set_configuration(vital::config_block_sptr in_config)
 {
   // Starting with our generated config_block to ensure that assumed values are
-  // present.  An alternative is to check for key presence before performing a 
+  // present.  An alternative is to check for key presence before performing a
   // get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
@@ -497,55 +497,55 @@ track_features_klt
     std::vector<cv::Point2f> tracked_points;
     std::vector<uchar> status;
     std::vector<float> err;
-    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points, 
+    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points,
       tracked_points, status, err,cv::Size(d_->win_size, d_->win_size),d_->max_pyramid_level);
 
     //gets the active tracks for the previous frame
-    std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();  
-    //copy last frame's features   
-    std::vector<feature_sptr> vf = 
-      cur_tracks->last_frame_features()->features(); 
+    std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();
+    //copy last frame's features
+    std::vector<feature_sptr> vf =
+      cur_tracks->last_frame_features()->features();
     for (unsigned int i = 0; i< active_tracks.size(); ++i)
     {
       vector_2f tp(tracked_points[i].x, tracked_points[i].y);
-      if (!status[i] 
-          || tp.x() <= d_->half_win_size 
-          || tp.y() <= d_->half_win_size 
-          || tp.x() >= image_data->width()- d_->half_win_size 
+      if (!status[i]
+          || tp.x() <= d_->half_win_size
+          || tp.y() <= d_->half_win_size
+          || tp.x() >= image_data->width()- d_->half_win_size
           || tp.y() >= image_data->height()- d_->half_win_size)
       {
-        // skip features that tracked to outside of the image (or the border) 
+        // skip features that tracked to outside of the image (or the border)
         // or didn't track properly
         continue;
       }
       //info from feature detector (location, scale etc.)
-      auto f = std::make_shared<feature_f>(*vf[i]);  
+      auto f = std::make_shared<feature_f>(*vf[i]);
       f->set_loc(tp);  //feature
       //feature, descriptor and frame number together
-      auto fts = std::make_shared<feature_track_state>(frame_number);  
+      auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = f;
       track_sptr t = active_tracks[i];
-      // append the feature's current location to it's track.  Track was picked 
+      // append the feature's current location to it's track.  Track was picked
       // up with active_tracks() call on previous_tracks.
-      t->append(fts);  
+      t->append(fts);
       next_points.push_back(tracked_points[i]);
-      //increment the feature distribution bins     
-    }    
+      //increment the feature distribution bins
+    }
   }
 
   //did we track enough features from the previous frame?
-  bool detect_new_features = 
-    next_points.size() <= 
-    size_t(d_->redetect_threshold*double(d_->last_detect_num_features));  
+  bool detect_new_features =
+    next_points.size() <=
+    size_t(d_->redetect_threshold*double(d_->last_detect_num_features));
 
   //set the feature distribution image
   d_->dist_image.set_from_feature_vector(next_points, image_data);
 
   if (!detect_new_features)
   {
-    //now check the distribution of features in the image    
+    //now check the distribution of features in the image
     if(d_->dist_image.should_redetect(d_->last_detect_distImage,d_->redetect_threshold))
-    {  
+    {
       //this will never be called on the first image so it will work.
       LOG_DEBUG(logger(), "detecting new feature because of distribution");
       detect_new_features = true;
@@ -564,7 +564,7 @@ track_features_klt
 
     // get the last track id in the existing set of tracks and increment it
     track_id_t next_track_id = 0;
-    if (!cur_tracks->all_track_ids().empty()) 
+    if (!cur_tracks->all_track_ids().empty())
     {
       next_track_id = (*cur_tracks->all_track_ids().crbegin()) + 1;
     }
@@ -573,20 +573,20 @@ track_features_klt
     // detect features on the current frame
     detected_feat = d_->detector->detect(image_data, mask);
 
-    // merge new features into existing features (ignore new features near 
+    // merge new features into existing features (ignore new features near
     // existing features)
     std::vector<feature_sptr> vf = detected_feat->features();
 
-    // make a mask of current image feature positions. This maks keeps 
+    // make a mask of current image feature positions. This maks keeps
     // features from being kept that are detected near existing tracks.
     d_->set_tracked_feature_location_mask(next_points, image_data);
 
-    typedef std::vector<feature_sptr>::const_iterator feat_itr;    
+    typedef std::vector<feature_sptr>::const_iterator feat_itr;
     for(feat_itr fit = vf.begin(); fit != vf.end(); ++fit)
     {
       if (d_->exclude_mask_is_set((*fit)->loc()))
         continue;
-      
+
       if ((*fit)->loc().x() < d_->win_size ||
           (*fit)->loc().y() < d_->win_size ||
           (*fit)->loc().x() > image_data->width() - d_->win_size ||
@@ -604,12 +604,12 @@ track_features_klt
       cv::Point2f new_pt = cv::Point2f((*fit)->loc().x(), (*fit)->loc().y());
       next_points.push_back(new_pt);
 
-      d_->set_exclude_mask(new_pt);      //this makes the points earlier in the 
-      // detection list more likely to be in tracked feature set.  Should sort 
+      d_->set_exclude_mask(new_pt);      //this makes the points earlier in the
+      // detection list more likely to be in tracked feature set.  Should sort
       //by strength to get the best features with the highest likelihood.
     }
     //this includes any features tracked to this frame and the new points
-    d_->last_detect_num_features = next_points.size();  
+    d_->last_detect_num_features = next_points.size();
 
     //store the last detected feature distribution
     d_->last_detect_distImage.set_from_feature_vector(next_points, image_data);
