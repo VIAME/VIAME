@@ -166,6 +166,13 @@ bool list_files_in_folder( const std::string& location,
         }
       }
     }
+    else if( boost::filesystem::is_directory( *file_iter ) && search_subfolders )
+    {
+      std::vector< std::string > subfiles;
+      list_files_in_folder( file_iter->path().string(), subfiles, search_subfolders, extensions );
+
+      filepaths.insert( filepaths.end(), subfiles.begin(), subfiles.end() );
+    }
   }
 
   return true;
@@ -269,7 +276,7 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "groundtruth_extensions", ".txt",
                      "Groundtruth file extensions (txt, kw18, etc...). Note: this is indepedent "
                      "of the format that's stored in the file" );
-  config->set_value( "groundtruth_style", "one_per_file",
+  config->set_value( "groundtruth_style", "one_per_folder",
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
 
   config->set_value( "default_percent_test", "0.05",
@@ -431,42 +438,16 @@ main( int argc, char* argv[] )
   // Load labels.txt file
   const std::string label_fn = append_path( input_dir, "labels.txt" );
 
-  std::vector< std::string > labels;
-  std::vector< std::vector< std::string > > label_ids;
+  kwiver::vital::category_hierarchy_sptr classes;
 
   if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
   {
-    std::cerr << "Label file does not exist" << std::endl;
+    std::cerr << "Label file (label.txt) does not exist in data folder" << std::endl;
     exit( 0 );
   }
   else if( g_params.opt_out_config.empty() )
   {
-    std::ifstream in( label_fn.c_str() );
-
-    if( !in )
-    {
-      std::cerr << "Unable to open " << label_fn << std::endl;
-      exit( 0 );
-    }
-
-    std::string line, label;
-    while( std::getline( in, line ) )
-    {
-      std::vector< std::string > tokens;
-      string_to_vector( line, tokens, "\n\t\v " );
-
-      if( tokens.size() == 0 )
-      {
-        continue;
-      }
-      else
-      {
-        std::vector< std::string > id_strs;
-        string_to_vector( line, id_strs, "\n\t\v," );
-        labels.push_back( tokens[0] );
-        label_ids.push_back( id_strs );
-      }
-    }
+    classes.reset( new kwiver::vital::category_hierarchy( label_fn ) );
   }
 
   // Load train.txt, if available
@@ -636,54 +617,103 @@ main( int argc, char* argv[] )
     std::string fullpath = folder;
 
     std::vector< std::string > image_files, gt_files;
-    list_files_in_folder( fullpath, image_files, image_extensions );
-    list_files_in_folder( fullpath, gt_files, groundtruth_extensions );
+    list_files_in_folder( fullpath, image_files, true, image_extensions );
+    list_files_in_folder( fullpath, gt_files, false, groundtruth_extensions );
+
     std::sort( image_files.begin(), image_files.end() );
     std::sort( gt_files.begin(), gt_files.end() );
 
-    //VITAL_FOREACH( std::string image_file, image_files )
-    if( image_files.size() != 1 || gt_files.size() != 1 )
+    if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
     {
-      std::cout << "Skipping folder " << image_files.size() << std::endl;
+      std::cout << "Error: folder " << folder << " contains unequal truth and image file counts" << std::endl;
+      std::cout << " - Consider turning on the one_per_folder groundtruth style" << std::endl;
+      continue;
+    }
+    else if( gt_files.size() < 1 )
+    {
+      std::cout << "Error reading folder " << folder << ", no groundtruth." << std::endl;
       continue;
     }
 
-    std::string image_file = image_files[0];
-    std::string gt_file = gt_files[0];
+    kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
 
-    const std::string file_wrt_input = append_path( folder, image_file );
-    const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
+    if( !one_file_per_image )
+    {
+      if( gt_files.size() != 1 )
+      {
+        std::cout << "Error: folder " << folder << " must contain only 1 groundtruth file" << std::endl;
+        continue;
+      }
 
-    // Is this a test or a train image?
+      kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+        ( "groundtruth_reader", config, gt_reader );
+      kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+        ( "groundtruth_reader", config, gt_reader );
 
-    // Read groundtruth for frame
-    kwiver::vital::algo::detected_object_set_input_sptr folder_gt_reader;
+      std::cout << "Opening groundtruth file " << gt_files[0] << std::endl;
 
-    kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
-      ( "groundtruth_reader", config, folder_gt_reader );
-    kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
-      ( "groundtruth_reader", config, folder_gt_reader );
+      gt_reader->open( gt_files[0] );
+    }
 
-    kwiver::vital::detected_object_set_sptr frame_dets =
-      std::make_shared< kwiver::vital::detected_object_set>();
+    // Read all images in sequence
+    if( image_files.size() == 0 )
+    {
+      std::cout << "Error: folder contains no image files." << std::endl;
+    }
 
-    std::cout << gt_file << " " << image_file << std::endl;
+    for( unsigned i = 0; i < image_files.size(); ++i )
+    {
+      const std::string image_file = image_files[i];
 
-    std::string copy = image_file;
+      const std::string file_wrt_input = append_path( folder, image_file );
+      const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
 
-    folder_gt_reader->open( gt_file );
-    folder_gt_reader->read_set( frame_dets, image_file );
-    folder_gt_reader->close();
+      // Read groundtruth for image
+      kwiver::vital::detected_object_set_sptr frame_dets =
+        std::make_shared< kwiver::vital::detected_object_set>();
 
-    std::cout << "Read " << frame_dets->size() << " detections" << std::endl;
+      if( one_file_per_image )
+      {
+        gt_reader.reset();
 
-    train_image_fn.push_back( copy );
-    train_gt.push_back( frame_dets );
+        kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+          ( "groundtruth_reader", config, gt_reader );
+        kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+          ( "groundtruth_reader", config, gt_reader );
+
+        gt_reader->open( gt_files[i] );
+
+        std::string read_fn;
+        gt_reader->read_set( frame_dets, read_fn );
+        gt_reader->close();
+      }
+      else
+      {
+        std::string read_fn;
+        gt_reader->read_set( frame_dets, read_fn );
+      }
+
+      std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
+
+      // Is this a train or test image?
+      // TODO: ME
+
+      train_image_fn.push_back( image_files[i] );
+      train_gt.push_back( frame_dets );
+    }
+
+    if( !one_file_per_image )
+    {
+      gt_reader->close();
+    }
   }
 
   // Adjust all groundtruth detections for label file contents
+  // TODO: ME
 
   // Run training algorithm
-  detector_trainer->train_from_disk( train_image_fn, train_gt, test_image_fn, test_gt );
+  std::cout << "Beginning Training Process" << std::endl;
+
+  detector_trainer->train_from_disk( classes, train_image_fn, train_gt, test_image_fn, test_gt );
   return 0;
 }
