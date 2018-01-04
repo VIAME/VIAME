@@ -51,7 +51,9 @@ namespace vital {
  * @brief Category Hierarchy.
  *
  * A relatively simple class used for representing semantic hierarchies
- * of arbitrary types of categories.
+ * of arbitrary types of categories. Each category can have any number of
+ * optional 'parent' and 'child' categories (for example an 'atlantic sea
+ * scallop' is a type of broader 'scallop' category).
  */
 class VITAL_EXPORT category_hierarchy
 {
@@ -66,14 +68,24 @@ public:
   /**
    * @brief Create an empty object.
    *
-   * An object is created without class_names
+   * An object is created without class_names.
    */
   category_hierarchy();
 
   /**
    * @brief Disable copy constructor.
+   * 
+   * Typically smart pointers to this class should be passed around.
    */
   category_hierarchy( const category_hierarchy& other ) = delete;
+
+  /**
+   * @brief Create an object from the given file containing a
+   * hierarchy definition.
+   *
+   * @param filename Filename of file containing hierarchy.
+   */
+  category_hierarchy( std::string filename );
 
   /**
    * @brief Create a new categorical hierarchy class.
@@ -111,11 +123,13 @@ public:
   /**
    * @brief Add a new class ID
    *
+   * Parent name can be an empty string if this category has no parent.
+   * 
    * @param class_name Class name.
    */
   void add_class( const label_t& class_name,
                   const label_t& parent_name = label_t(),
-                  const label_id_t id = label_id_t() );
+                  const label_id_t id = label_id_t(-1) );
 
   /**
    * @brief Get the class label ID for the given class name.
@@ -146,11 +160,36 @@ public:
   void add_relationship( const label_t& child_name, const label_t& parent_name );
 
   /**
-   * @brief Get list of class_names for this hierarchy.
+   * @brief Adds another synonym to some existing class
+   *
+   * If a class is specified which doesn't exist, an exception will be thrown.
+   *
+   * @param class_name Existing class name.
+   * @param synonym_name Synonym for the same class.
+   */
+  void add_synonym( const label_t& class_name, const label_t& synonym_name );
+
+  /**
+   * @brief Get list of all class_names in this hierarchy.
+   *
+   * The returned list will be ordered first based on the numerical ID number,
+   * followed by alphabetically for items with no ID number. This does not
+   * include synonyms.
    *
    * @return Ordered list of class_names.
    */
-  label_vec_t class_names() const;
+  label_vec_t all_class_names() const;
+
+  /**
+   * @brief Get list of all class_names without any children.
+   *
+   * The returned list will be ordered first based on the numerical ID number,
+   * followed by alphabetically for items with no ID number. This does not
+   * include synonyms.
+   *
+   * @return Ordered list of class_names without children.
+   */
+  label_vec_t child_class_names() const;
 
   /**
    * @brief Get number of class names on this object.
@@ -162,6 +201,13 @@ public:
    */
   size_t size() const;
 
+  /**
+   * @brief Load a hierarchy from a file
+   *
+   * Throwns on invalid file.
+   */
+  void load_from_file( std::string filename );
+
 private:
 
   class category
@@ -170,13 +216,21 @@ private:
     label_t category_name;
     label_id_t category_id;
 
+    std::vector< label_t > synonyms;
+
     std::vector< category* > parents;
     std::vector< category* > children;
   };
 
-  std::map< label_t, category* > m_hierarchy;
+  using category_sptr = std::shared_ptr< category >;
+  using hierarchy_map_t = std::map< label_t, category_sptr >;
 
-  std::map< label_t, category* >::const_iterator find( const label_t& lbl ) const;
+  using hierarchy_const_itr_t = hierarchy_map_t::const_iterator;
+
+  hierarchy_map_t m_hierarchy;
+
+  hierarchy_const_itr_t find( const label_t& lbl ) const;
+  std::vector< category_sptr > sorted_categories() const;
 };
 
 // typedef for a category_hierarchy shared pointer

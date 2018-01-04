@@ -21,37 +21,33 @@ def does_file_exist( filename ):
   return os.path.isfile( filename )
 
 # Main Utility
-def generate_yolo_headers( input_dir, output_dir, type_str, image_ext, test_per ):
+def generate_yolo_headers( working_dir, labels, image_ext=".png", test_per=0.05 ):
 
   # Check arguments
-  if not does_file_exist( input_dir + "/labels.txt" ):
-    print( "labels.txt must exist in the input directory" )
+  if len( labels ) < 0:
+    print( "Must specify labels vector" )
     sys.exit(0)
 
-  with open( input_dir + "/labels.txt", "r" ) as f:
-    content = f.readlines()
-  content = [x.strip() for x in content]
-
-  parsed_lbls = []
-  for line in content:
-    parsed_lbls.append( line.split( None, 1 )[0] )
+  # Hard coded configs
+  label_file = "yolo_v2.lbl"
+  conf_file = "yolo_v2.data"
 
   # Dump out labels file
-  with open( output_dir + "/" + type_str + ".lbl", "w" ) as f:
-    for item in parsed_lbls:
+  with open( working_dir + "/" + label_file, "w" ) as f:
+    for item in labels:
       f.write( item + "\n" )
 
   # Dump out special files for varients
-  with open( output_dir + "/" + type_str + ".data", "w" ) as f:
-    f.write( "train = " + output_dir + "/train_files.txt\n" )
-    f.write( "valid = " + output_dir + "/test_files.txt\n" )
-    f.write( "names = " + type_str + ".lbl\n" )
-    f.write( "backup = " + output_dir + "/models\n" )
+  with open( working_dir + "/" + conf_file, "w" ) as f:
+    f.write( "train = " + working_dir + "/train_files.txt\n" )
+    f.write( "valid = " + working_dir + "/test_files.txt\n" )
+    f.write( "names = " + label_file + "\n" )
+    f.write( "backup = " + working_dir + "/models\n" )
 
   # Dump out list files
-  create_dir( output_dir + "/models" )
+  create_dir( working_dir + "/models" )
 
-  image_list = list_files_in_dir( output_dir + "/formatted_samples", image_ext )
+  image_list = list_files_in_dir( working_dir + "/train_images", image_ext )
   shuffled_list = image_list
   random.shuffle( shuffled_list )
 
@@ -60,10 +56,10 @@ def generate_yolo_headers( input_dir, output_dir, type_str, image_ext, test_per 
   train_list = shuffled_list[:pivot]
   test_list = shuffled_list[pivot:]
 
-  with open( output_dir + "/train_files.txt", "w" ) as f:
+  with open( working_dir + "/train_files.txt", "w" ) as f:
     for item in train_list:
       f.write( item + "\n" )
 
-  with open( output_dir + "/test_files.txt", "w" ) as f:
+  with open( working_dir + "/test_files.txt", "w" ) as f:
     for item in test_list:
       f.write( item + "\n" )

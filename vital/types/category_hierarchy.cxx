@@ -30,8 +30,13 @@
 
 #include "category_hierarchy.h"
 
+#include <string>
 #include <stdexcept>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <iterator>
+#include <utility>
 
 namespace kwiver {
 namespace vital {
@@ -41,6 +46,12 @@ namespace vital {
 category_hierarchy
 ::category_hierarchy()
 {
+}
+
+category_hierarchy
+::category_hierarchy( std::string filename )
+{
+  this->load_from_file( filename );
 }
 
 category_hierarchy
@@ -90,11 +101,6 @@ category_hierarchy
 category_hierarchy
 ::~category_hierarchy()
 {
-  for( std::map< label_t, category* >::const_iterator p = m_hierarchy.begin();
-       p != m_hierarchy.end(); p++ )
-  {
-    delete p->second;
-  }
 }
 
 
@@ -123,7 +129,7 @@ category_hierarchy
     throw std::runtime_error( "Category already exists." );
   }
 
-  category* new_entry = new category();
+  category_sptr new_entry( new category() );
   m_hierarchy[ class_name ] = new_entry;
 
   new_entry->category_name = class_name;
@@ -131,8 +137,8 @@ category_hierarchy
 
   if( !parent_name.empty() )
   {
-    std::map< label_t, category* >::const_iterator itr = find( parent_name );
-    new_entry->parents.push_back( itr->second );
+    hierarchy_const_itr_t itr = find( parent_name );
+    new_entry->parents.push_back( itr->second.get() );
   }
 }
 
@@ -142,7 +148,7 @@ category_hierarchy::label_id_t
 category_hierarchy
 ::get_class_id( const label_t& class_name ) const
 {
-  std::map< label_t, category* >::const_iterator itr = this->find( class_name );
+  hierarchy_const_itr_t itr = this->find( class_name );
 
   return itr->second->category_id;
 }
@@ -155,7 +161,7 @@ category_hierarchy
 {
   label_vec_t output;
 
-  std::map< label_t, category* >::const_iterator itr = this->find( class_name );
+  hierarchy_const_itr_t itr = this->find( class_name );
 
   for( category *p : itr->second->parents )
   {
@@ -171,25 +177,64 @@ void
 category_hierarchy
 ::add_relationship( const label_t& child_name, const label_t& parent_name )
 {
-  std::map< label_t, category* >::const_iterator itr1 = this->find( child_name );
-  std::map< label_t, category* >::const_iterator itr2 = this->find( parent_name );
+  hierarchy_const_itr_t itr1 = this->find( child_name );
+  hierarchy_const_itr_t itr2 = this->find( parent_name );
 
-  itr1->second->parents.push_back( itr2->second );
-  itr2->second->children.push_back( itr1->second );
+  itr1->second->parents.push_back( itr2->second.get() );
+  itr2->second->children.push_back( itr1->second.get() );
+}
+
+
+// -----------------------------------------------------------------------------
+void
+category_hierarchy
+::add_synonym( const label_t& class_name, const label_t& synonym_name )
+{
+  hierarchy_const_itr_t itr = this->find( class_name );
+
+  if( has_class_name( synonym_name ) )
+  {
+    throw std::runtime_error( "Synonym name already exists in hierarchy" );
+  }
+
+  itr->second->synonyms.push_back( synonym_name );
+  m_hierarchy[ synonym_name ] = itr->second;
 }
 
 
 // -----------------------------------------------------------------------------
 category_hierarchy::label_vec_t
 category_hierarchy
-::class_names() const
+::all_class_names() const
 {
+  std::vector< category_sptr > sorted_cats = sorted_categories();
+
   label_vec_t names;
 
-  for( std::map< label_t, category* >::const_iterator p = m_hierarchy.begin();
-       p != m_hierarchy.end(); p++ )
+  for( category_sptr c : sorted_cats )
   {
-    names.push_back( p->first );
+    names.push_back( c->category_name );
+  }
+
+  return names;
+}
+
+
+// -----------------------------------------------------------------------------
+category_hierarchy::label_vec_t
+category_hierarchy
+::child_class_names() const
+{
+  std::vector< category_sptr > sorted_cats = sorted_categories();
+
+  label_vec_t names;
+
+  for( category_sptr c : sorted_cats )
+  {
+    if( c->children.empty() )
+    {
+      names.push_back( c->category_name );
+    }
   }
 
   return names;
@@ -206,11 +251,66 @@ category_hierarchy
 
 
 // -----------------------------------------------------------------------------
-std::map< category_hierarchy::label_t, category_hierarchy::category* >::const_iterator
+void
+category_hierarchy
+::load_from_file( std::string filename )
+{
+  std::ifstream in( filename.c_str() );
+
+  if( !in )
+  {
+    throw std::runtime_error( "Unable to open " + filename );
+  }
+
+  std::vector< std::pair< label_t, label_t > > relationships;
+
+  std::string line;
+  label_t label;
+
+  int entry_num = 0;
+
+  while( std::getline( in, line ) )
+  {
+    std::istringstream ss{ line };
+    using str_it = std::istream_iterator< std::string >;
+    std::vector< label_t > tokens{ str_it{ss}, str_it{ss} };
+
+    if( tokens.size() == 0 )
+    {
+      continue;
+    }
+
+    this->add_class( tokens[0], "", entry_num );
+    entry_num++;
+
+    for( unsigned i = 1; i < tokens.size(); ++i )
+    {
+      if( tokens[i].compare( 0, 8, ":parent=" ) )
+      {
+        relationships.push_back(
+          std::make_pair< label_t, label_t >(
+            label_t( tokens[0] ), label_t( tokens[i].substr( 8 ) ) ) );
+      }
+      else
+      {
+        this->add_synonym( tokens[0], tokens[i] );
+      }
+    }
+  }
+
+  for( auto rel : relationships )
+  {
+    this->add_relationship( rel.first, rel.second );
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+category_hierarchy::hierarchy_const_itr_t
 category_hierarchy
 ::find( const label_t& lbl ) const
 {
-  std::map< label_t, category* >::const_iterator itr = m_hierarchy.find( lbl );
+  hierarchy_const_itr_t itr = m_hierarchy.find( lbl );
 
   if( itr == m_hierarchy.end() )
   {
@@ -218,6 +318,31 @@ category_hierarchy
   }
 
   return itr;
+}
+
+
+// -----------------------------------------------------------------------------
+std::vector< category_hierarchy::category_sptr >
+category_hierarchy
+::sorted_categories() const
+{
+  std::vector< category_sptr > sorted_cats;
+
+  for( hierarchy_const_itr_t p = m_hierarchy.begin();
+       p != m_hierarchy.end(); ++p )
+  {
+    sorted_cats.push_back( p->second );
+  }
+
+  std::sort( sorted_cats.begin(), sorted_cats.end(),
+    []( const category_sptr& lhs, const category_sptr& rhs )
+      { return ( lhs->category_id >= 0 && rhs->category_id >= 0
+                  && lhs->category_id < rhs->category_id ) ||
+               ( lhs->category_id >= 0 && rhs->category_id < 0 ) ||
+               ( lhs->category_id < 0 && rhs->category_id < 0
+                  && lhs->category_name < rhs->category_name ); } );
+
+  return sorted_cats;
 }
 
 
