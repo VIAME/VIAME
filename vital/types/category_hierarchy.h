@@ -71,6 +71,11 @@ public:
   category_hierarchy();
 
   /**
+   * @brief Disable copy constructor.
+   */
+  category_hierarchy( const category_hierarchy& other ) = delete;
+
+  /**
    * @brief Create a new categorical hierarchy class.
    *
    * Create a new category hierarchy instance with a set of labels. If
