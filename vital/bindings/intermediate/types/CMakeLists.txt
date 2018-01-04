@@ -100,6 +100,20 @@ target_link_libraries(python-vital.types.bindings-_homography
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_image
+  vital/types/bindings
+  image.cxx)
+target_link_libraries(python-vital.types.bindings-_image
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_image_container
+  vital/types/bindings
+  image_container.cxx)
+target_link_libraries(python-vital.types.bindings-_image_container
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_add_python_library(_landmark
   vital/types/bindings
   landmark.cxx)
@@ -150,6 +164,8 @@ sprokit_create_python_init(vital/types/bindings
   _eigen
   _feature
   _homography
+  _image
+  _image_container
   _landmark
   _rotation
   _track
