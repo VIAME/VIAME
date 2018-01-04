@@ -28,33 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/types/bounding_box.h>
-
-#include <Eigen/Core>
+#include <vital/types/object_track_set.h>
 
 #include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
+
+typedef kwiver::vital::object_track_state obj_track_state;
+typedef kwiver::vital::object_track_set obj_track_set;
 
 namespace py = pybind11;
 
-typedef kwiver::vital::bounding_box<double> bbox;
-
-PYBIND11_MODULE(_bounding_box, m)
+std::shared_ptr<kwiver::vital::track>
+get_track(std::shared_ptr<obj_track_set> &self, uint64_t id)
 {
+  auto track = self->get_track(id);
+  if(!track)
+  {
+    throw py::index_error("Track does not exist in set");
+  }
 
-  py::class_<bbox, std::shared_ptr<bbox>>(m, "BoundingBox")
-  .def(py::init<Eigen::Matrix<double,2,1>, Eigen::Matrix<double,2,1>>())
-  .def(py::init<Eigen::Matrix<double,2,1>, double, double>())
-  .def(py::init<double, double, double, double>())
-  .def("center", &bbox::center)
-  .def("upper_left", &bbox::upper_left)
-  .def("lower_right", &bbox::lower_right)
-  .def("min_x", &bbox::min_x)
-  .def("min_y", &bbox::min_y)
-  .def("max_x", &bbox::max_x)
-  .def("max_y", &bbox::max_y)
-  .def("width", &bbox::width)
-  .def("height", &bbox::height)
-  .def("area", &bbox::area)
+  return track;
+}
+
+PYBIND11_MODULE(_object_track_set, m)
+{
+  py::class_<obj_track_state, kwiver::vital::track_state, std::shared_ptr<obj_track_state>>(m, "ObjectTrackState")
+  .def(py::init<int64_t, std::shared_ptr<kwiver::vital::detected_object>>())
+  .def_property_readonly("frame_id", &kwiver::vital::track_state::frame)
+  .def_readwrite("detection", &obj_track_state::detection)
+  ;
+
+  py::class_<obj_track_set, kwiver::vital::track_set, std::shared_ptr<obj_track_set>>(m, "ObjectTrackSet")
+  .def(py::init<>())
+  .def(py::init<std::vector<std::shared_ptr<kwiver::vital::track>>>())
+  .def("all_frame_ids", &obj_track_set::all_frame_ids)
+  .def("get_track", &get_track,
+    py::arg("id"))
+  .def("first_frame", &obj_track_set::first_frame)
+  .def("last_frame", &obj_track_set::last_frame)
+  .def("size", &obj_track_set::size)
+  .def("tracks", &obj_track_set::tracks)
+  .def("__len__", &obj_track_set::size)
   ;
 }

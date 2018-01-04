@@ -58,6 +58,20 @@ target_link_libraries(python-vital.types.bindings-_descriptor_set
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_detected_object
+  vital/types/bindings
+  detected_object.cxx)
+target_link_libraries(python-vital.types.bindings-_detected_object
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_detected_object_set
+  vital/types/bindings
+  detected_object_set.cxx)
+target_link_libraries(python-vital.types.bindings-_detected_object_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_add_python_library(_detected_object_type
   vital/types/bindings
   detected_object_type.cxx)
@@ -76,6 +90,13 @@ sprokit_add_python_library(_feature
   vital/types/bindings
   feature.cxx)
 target_link_libraries(python-vital.types.bindings-_feature
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+sprokit_add_python_library(_homography
+  vital/types/bindings
+  homography.cxx)
+target_link_libraries(python-vital.types.bindings-_homography
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -107,6 +128,13 @@ target_link_libraries(python-vital.types.bindings-_track_set
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_object_track_set
+  vital/types/bindings
+  object_track_set.cxx)
+target_link_libraries(python-vital.types.bindings-_object_track_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_create_python_init(vital/types/bindings
   _bounding_box
   _camera
@@ -117,10 +145,14 @@ sprokit_create_python_init(vital/types/bindings
   _descriptor
   _descriptor_set
   _detected_object_type
+  _detected_object
+  _detected_object_set
   _eigen
   _feature
+  _homography
   _landmark
   _rotation
   _track
   _track_set
+  _object_track_set
 )

@@ -28,33 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/types/bounding_box.h>
-
-#include <Eigen/Core>
+#include <vital/types/detected_object_set.h>
 
 #include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 
-typedef kwiver::vital::bounding_box<double> bbox;
+typedef kwiver::vital::detected_object_set det_obj_set;
 
-PYBIND11_MODULE(_bounding_box, m)
+PYBIND11_MODULE(_detected_object_set, m)
 {
-
-  py::class_<bbox, std::shared_ptr<bbox>>(m, "BoundingBox")
-  .def(py::init<Eigen::Matrix<double,2,1>, Eigen::Matrix<double,2,1>>())
-  .def(py::init<Eigen::Matrix<double,2,1>, double, double>())
-  .def(py::init<double, double, double, double>())
-  .def("center", &bbox::center)
-  .def("upper_left", &bbox::upper_left)
-  .def("lower_right", &bbox::lower_right)
-  .def("min_x", &bbox::min_x)
-  .def("min_y", &bbox::min_y)
-  .def("max_x", &bbox::max_x)
-  .def("max_y", &bbox::max_y)
-  .def("width", &bbox::width)
-  .def("height", &bbox::height)
-  .def("area", &bbox::area)
+  py::class_<det_obj_set, std::shared_ptr<det_obj_set>>(m, "DetectedObjectSet")
+  .def(py::init<>())
+  .def(py::init<std::vector<std::shared_ptr<kwiver::vital::detected_object>>>())
+  .def("add", [](det_obj_set &self, py::object object)
+    {
+      try
+      {
+        auto det_obj = object.cast<std::shared_ptr<kwiver::vital::detected_object>>();
+        return self.add(det_obj);
+      }
+      catch(...){};
+      auto det_obj = object.cast<std::shared_ptr<det_obj_set>>();
+      return self.add(det_obj);
+    })
+  .def("size", &det_obj_set::size)
+  .def("select", [](det_obj_set &self, double threshold, py::object class_name)
+    {
+      if(class_name.is(py::none()))
+      {
+        return self.select(threshold);
+      }
+      return self.select(class_name.cast<std::string>(), threshold);
+    },
+    py::arg("threshold")=kwiver::vital::detected_object_type::INVALID_SCORE, py::arg("class_name")=py::none())
+  .def("__getitem__", [](det_obj_set &self, size_t idx)
+    {
+      return self.at(idx);
+    })
   ;
 }

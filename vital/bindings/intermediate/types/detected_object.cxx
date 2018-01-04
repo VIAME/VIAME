@@ -28,33 +28,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/types/bounding_box.h>
-
-#include <Eigen/Core>
+#include <vital/types/detected_object.h>
 
 #include <pybind11/pybind11.h>
-#include <pybind11/eigen.h>
 
 namespace py = pybind11;
 
-typedef kwiver::vital::bounding_box<double> bbox;
+typedef kwiver::vital::detected_object det_obj;
 
-PYBIND11_MODULE(_bounding_box, m)
+PYBIND11_MODULE(_detected_object, m)
 {
 
-  py::class_<bbox, std::shared_ptr<bbox>>(m, "BoundingBox")
-  .def(py::init<Eigen::Matrix<double,2,1>, Eigen::Matrix<double,2,1>>())
-  .def(py::init<Eigen::Matrix<double,2,1>, double, double>())
-  .def(py::init<double, double, double, double>())
-  .def("center", &bbox::center)
-  .def("upper_left", &bbox::upper_left)
-  .def("lower_right", &bbox::lower_right)
-  .def("min_x", &bbox::min_x)
-  .def("min_y", &bbox::min_y)
-  .def("max_x", &bbox::max_x)
-  .def("max_y", &bbox::max_y)
-  .def("width", &bbox::width)
-  .def("height", &bbox::height)
-  .def("area", &bbox::area)
+  py::class_<det_obj, std::shared_ptr<det_obj>>(m, "DetectedObject")
+  .def(py::init<kwiver::vital::bounding_box<double>, double, kwiver::vital::detected_object_type_sptr>(),
+    py::arg("bbox"), py::arg("confidence")=1.0, py::arg("classifications")=kwiver::vital::detected_object_type_sptr())
+  .def("bounding_box", &det_obj::bounding_box)
+  .def("set_bounding_box", &det_obj::set_bounding_box,
+    py::arg("bbox"))
+  .def("confidence", &det_obj::confidence)
+  .def("set_confidence", &det_obj::set_confidence,
+    py::arg("d"))
+  .def("type", &det_obj::type)
+  .def("set_type", &det_obj::set_type,
+    py::arg("c"))
   ;
 }
