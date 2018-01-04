@@ -33,15 +33,18 @@
  * \brief OCV estimate_pnp algorithm implementation
  */
 
+#include <math.h>
+
 #include "estimate_pnp.h"
 
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 
+#include "camera_intrinsics.h"
+
 namespace kwiver {
 namespace arrows {
-
 namespace ocv
 {
 
@@ -92,7 +95,7 @@ estimate_pnp
     "Confidence that estimated matrix is correct, range (0.0, 1.0]");
 
   config->set_value("max_iterations", d_->max_iterations,
-    "maximum number of iterations to run P3P [1, INT_MAX]");
+    "maximum number of iterations to run PnP [1, INT_MAX]");
 
   return config;
 }
@@ -194,13 +197,8 @@ estimate_pnp
   int iterations = 0;
   double best_inlier_ratio = 0;
   const double sample_size = 3;
-  std::vector<double> dist_coeffs = cal->dist_coeffs();
-  if (dist_coeffs.size() == 2)
-  {
-    //we are assuming k1, k2.  Push back zeros for p1, p2
-    dist_coeffs.push_back(0);
-    dist_coeffs.push_back(0);
-  }
+
+  std::vector<double> dist_coeffs = intrinsicsToOpenCV(cal);
 
   while (confidence < confidence_thresh && iterations < max_iterations)
   {
@@ -221,24 +219,21 @@ estimate_pnp
       best_rvec = rvec;
     }
     
-    confidence = 1.0 - pow((1.0 - pow(best_inlier_ratio, sample_size)), 
+    confidence = 1.0 - std::pow((1.0 - std::pow(best_inlier_ratio, sample_size)),
       double(iterations));
   }
 
   if (best_tvec.rows == 0 || best_rvec.rows == 0)
   {
-    LOG_DEBUG(d_->m_logger, "no P3P solution iterations " << iterations << 
-      " confidence " << confidence << " best inlier ratio " << 
+    LOG_DEBUG(d_->m_logger, "no PnP solution after " << iterations << " iterations "  
+      " with confidence " << confidence << " and best inlier ratio " << 
       best_inlier_ratio );
 
     return vital::camera_sptr();
   }
 
-  inliers.resize(Xs.size());
-  for (unsigned i = 0; i < inliers.size(); ++i)
-  {
-    inliers[i] = 0;
-  }
+  inliers.assign(Xs.size(), 0);
+
   for(int i = 0; i < best_inliers_mat.rows; ++i)
   {
     int idx = best_inliers_mat.at<int>(i);
@@ -258,10 +253,10 @@ estimate_pnp
   {    
     LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " << 
       best_rvec.at<double>(1) << " " << best_rvec.at<double>(2));
-    LOG_DEBUG(d_->m_logger, "best_rvec " << best_tvec.at<double>(0) << " " << 
+    LOG_DEBUG(d_->m_logger, "best_tvec " << best_tvec.at<double>(0) << " " << 
       best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
     LOG_DEBUG(d_->m_logger, "rotation angle " << res_cam->rotation().angle());
-    LOG_DEBUG(d_->m_logger, "non-finite camera center found");
+    LOG_WARN(d_->m_logger, "non-finite camera center found");
     return vital::camera_sptr();
   }
 

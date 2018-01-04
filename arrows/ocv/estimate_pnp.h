@@ -68,20 +68,20 @@ public:
   /// Check that the algorithm's configuration config_block is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// Estimate an essential matrix from corresponding features
+  /// Estimate the camera's pose from the 3D points and their corresponding projections
   /**
   * \param [in]  pts2d 2d projections of pts3d in the same order as pts3d
   * \param [in]  pts3d 3d landmarks in the same order as pts2d.  Both must be same size.
-  * \param [in]  cal1 the intrinsic parameters of the camera
+  * \param [in]  cal the intrinsic parameters of the camera
   * \param [out] inliers for each point, the value is true if
   *                      this pair is an inlier to the estimate
   */
   virtual
-    kwiver::vital::camera_sptr
-    estimate(const std::vector<vital::vector_2d>& pts2d,
-      const std::vector<vital::vector_3d>& pts3d,
-      const kwiver::vital::camera_intrinsics_sptr cal,
-      std::vector<bool>& inliers) const;
+  kwiver::vital::camera_sptr
+  estimate(const std::vector<vital::vector_2d>& pts2d,
+           const std::vector<vital::vector_3d>& pts3d,
+           const kwiver::vital::camera_intrinsics_sptr cal,
+           std::vector<bool>& inliers) const;
 
 private:
   /// private implementation class
