@@ -147,8 +147,8 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
   // we do not return image name
   image_name.clear();
 
-  // test for end of stream
-  if (this->at_eof())
+  // test for end of all loaded detections
+  if (d->m_current_idx > d->m_last_idx)
   {
     return false;
   }
