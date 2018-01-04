@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ namespace kwiver {
 namespace arrows {
 namespace darknet {
 
-// ==================================================================
+// =============================================================================
 class darknet_trainer::priv
 {
 public:
@@ -110,7 +110,7 @@ public:
 };
 
 
-// ==================================================================
+// =============================================================================
 darknet_trainer::
 darknet_trainer()
   : d( new priv() )
@@ -123,7 +123,7 @@ darknet_trainer::
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 vital::config_block_sptr
 darknet_trainer::
 get_configuration() const
@@ -166,7 +166,7 @@ get_configuration() const
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 darknet_trainer::
 set_configuration( vital::config_block_sptr config_in )
@@ -193,7 +193,7 @@ set_configuration( vital::config_block_sptr config_in )
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 bool
 darknet_trainer::
 check_configuration( vital::config_block_sptr config ) const
@@ -210,10 +210,12 @@ check_configuration( vital::config_block_sptr config ) const
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 darknet_trainer::
-train_from_disk(std::vector< std::string > train_image_names,
+train_from_disk(
+  vital::category_hierarchy object_labels,
+  std::vector< std::string > train_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
   std::vector< std::string > test_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
@@ -240,12 +242,17 @@ train_from_disk(std::vector< std::string > train_image_names,
       test_image_names, test_groundtruth );
 
     // Generate train/test image list and header information
+#ifdef WIN32
+    std::string python_cmd = "python.exe -c '";
+#else
     std::string python_cmd = "python -c '";
-    std::string import_cmd = "import kwiver.arrows.darknet;";
-    std::string header_cmd = "generate_header()";
-    std::string end_quote  = "'";
+#endif
+    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dnh;";
+    std::string header_cmd = "dnh.generate_yolo_headers(";
+    std::string header_args = "";
+    std::string header_end  = ")'";
 
-    std::string full_cmd = python_cmd + " " + import_cmd + " " + header_cmd;
+    std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
     system( full_cmd.c_str() );
   }
@@ -257,8 +264,7 @@ train_from_disk(std::vector< std::string > train_image_names,
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + "/YOLOv2.data " +
-    d->m_net_config;
+    " detector train " + d->m_train_directory + "/YOLOv2.data " + d->m_net_config;
 
   if( !d->m_seed_weights.empty() )
   {
@@ -270,7 +276,7 @@ train_from_disk(std::vector< std::string > train_image_names,
   system( full_cmd.c_str() );
 }
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 std::vector< std::string >
 darknet_trainer::priv::
 format_images( std::string folder,

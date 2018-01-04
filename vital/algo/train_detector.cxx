@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,25 @@ train_detector
 
 void
 train_detector
-::train_from_memory(std::vector< kwiver::vital::image_container_sptr > images,
-  std::vector< kwiver::vital::detected_object_set_sptr > groundtruth)
+::train_from_disk(
+  vital::category_hierarchy object_labels,
+  std::vector< std::string > train_image_names,
+  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+  std::vector< std::string > test_image_names,
+  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
+{
+  throw std::runtime_error( "Method not implemented" );
+}
+
+
+void
+train_detector
+::train_from_memory(
+  vital::category_hierarchy object_labels,
+  std::vector< kwiver::vital::image_container_sptr > train_images,
+  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+  std::vector< kwiver::vital::image_container_sptr > test_images,
+  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
 {
   throw std::runtime_error( "Method not implemented" );
 }

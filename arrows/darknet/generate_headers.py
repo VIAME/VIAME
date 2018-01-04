@@ -22,10 +22,8 @@ def does_file_exist( filename ):
 
 # Main Utility
 def generate_yolo_headers( input_dir, output_dir, type_str, image_ext, test_per ):
-arg
-  # Check arguments
-  args = parser.parse_args()
 
+  # Check arguments
   if not does_file_exist( input_dir + "/labels.txt" ):
     print( "labels.txt must exist in the input directory" )
     sys.exit(0)
@@ -44,12 +42,11 @@ arg
       f.write( item + "\n" )
 
   # Dump out special files for varients
-  if type_str == "YOLO" or type_str == "YOLOv2":
-    with open( output_dir + "/" + type_str + ".data", "w" ) as f:
-      f.write( "train = " + output_dir + "/train_files.txt\n" )
-      f.write( "valid = " + output_dir + "/test_files.txt\n" )
-      f.write( "names = " + type_str + ".lbl\n" )
-      f.write( "backup = " + output_dir + "/models\n" )
+  with open( output_dir + "/" + type_str + ".data", "w" ) as f:
+    f.write( "train = " + output_dir + "/train_files.txt\n" )
+    f.write( "valid = " + output_dir + "/test_files.txt\n" )
+    f.write( "names = " + type_str + ".lbl\n" )
+    f.write( "backup = " + output_dir + "/models\n" )
 
   # Dump out list files
   create_dir( output_dir + "/models" )
