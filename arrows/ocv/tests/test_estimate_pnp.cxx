@@ -28,31 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief OCV camera intrinsics implementation
- */
+#include <arrows/ocv/estimate_pnp.h>
 
-#include "camera_intrinsics.h"
+#include <vital/plugin_loader/plugin_manager.h>
 
-namespace kwiver {
-namespace arrows {
-namespace ocv {
+#include <gtest/gtest.h>
 
-std::vector<double> intrinsicsToOpenCV(vital::camera_intrinsics_sptr intrinsics)
+using namespace kwiver::vital;
+using namespace kwiver::arrows;
+
+using ocv::estimate_pnp;
+
+static constexpr double ideal_rotation_tolerance = 1e-6;
+static constexpr double ideal_center_tolerance = 1e-6;
+static constexpr double noisy_rotation_tolerance = 0.01;
+static constexpr double noisy_center_tolerance = 0.05;
+static constexpr double outlier_rotation_tolerance = 0.01;
+static constexpr double outlier_center_tolerance = 0.05;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  auto kw_dist = intrinsics->dist_coeffs();
-  std::vector<double> ocv_dist;
-  size_t num_coeffs = kw_dist.size() < 4 ? 4 : kw_dist.size();
-  ocv_dist.assign(num_coeffs, 0);
-  for (unsigned int i = 0; i < kw_dist.size(); ++i)
-  {
-    ocv_dist[i] = kw_dist[i];
-  }
-
-  return ocv_dist;
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-} // end namespace ocv
-} // end namespace arrows
-} // end namespace kwiver
+// ----------------------------------------------------------------------------
+TEST(estimate_pnp, create)
+{
+  plugin_manager::instance().load_all_plugins();
+
+  EXPECT_NE( nullptr, algo::estimate_pnp::create("ocv") );
+}
+
+// ----------------------------------------------------------------------------
+#include <arrows/tests/test_estimate_pnp.h>

@@ -106,7 +106,7 @@ void
 estimate_pnp
 ::set_configuration(vital::config_block_sptr config)
 {
-  d_->confidence_threshold = 
+  d_->confidence_threshold =
     config->get_value<double>("confidence_threshold", d_->confidence_threshold);
   d_->max_iterations =
     config->get_value<int>("max_iterations", d_->max_iterations);
@@ -119,7 +119,7 @@ estimate_pnp
 ::check_configuration(vital::config_block_sptr config) const
 {
   bool good_conf = true;
-  double confidence_threshold = 
+  double confidence_threshold =
     config->get_value<double>("confidence_threshold", d_->confidence_threshold);
 
   if( confidence_threshold <= 0.0 || confidence_threshold > 1.0 )
@@ -130,7 +130,7 @@ estimate_pnp
     good_conf = false;
   }
 
-  int max_iterations = 
+  int max_iterations =
     config->get_value<int>("max_iterations", d_->max_iterations);
 
   if (max_iterations < 1)
@@ -138,7 +138,7 @@ estimate_pnp
     LOG_ERROR(d_->m_logger, "max iterations is " << max_iterations
       << ", needs to be greater than zero.");
     good_conf = false;
-  }  
+  }
 
   return good_conf;
 }
@@ -154,13 +154,13 @@ estimate_pnp
 {
   if (pts2d.size() < 3 || pts3d.size() < 3)
   {
-    LOG_ERROR(d_->m_logger, 
+    LOG_ERROR(d_->m_logger,
       "Not enough points to estimate a fundamental matrix");
     return vital::camera_sptr();
   }
   if (pts2d.size() != pts3d.size())
   {
-    LOG_ERROR(d_->m_logger, 
+    LOG_ERROR(d_->m_logger,
       "Number of 3D points and projections should match.  They don't.");
   }
 
@@ -181,7 +181,7 @@ estimate_pnp
   cv::Mat best_inliers_mat;
   cv::Mat best_rvec, best_tvec;
 
-  
+
   int num_iterations = 5;
   double reproj_error = 4;
   double OCV_confidence = 0.98;  //I'm not sure what this is for.
@@ -189,7 +189,7 @@ estimate_pnp
   vital::matrix_3x3d K = cal->as_matrix();
   cv::Mat cv_K;
   cv::eigen2cv(K, cv_K);
-  
+
   double confidence = 0;
   double confidence_thresh = d_->confidence_threshold;
   int max_iterations = d_->max_iterations;  // set some maximum because we don't
@@ -204,8 +204,8 @@ estimate_pnp
   {
     cv::Mat inliers_mat;
     cv::Mat rvec, tvec;
-    cv::solvePnPRansac(Xs, projs, cv_K, dist_coeffs, rvec, tvec, false, 
-      num_iterations, reproj_error, OCV_confidence, inliers_mat, 
+    cv::solvePnPRansac(Xs, projs, cv_K, dist_coeffs, rvec, tvec, false,
+      num_iterations, reproj_error, OCV_confidence, inliers_mat,
       cv::SOLVEPNP_EPNP);
 
     iterations += num_iterations;
@@ -218,15 +218,15 @@ estimate_pnp
       best_tvec = tvec;
       best_rvec = rvec;
     }
-    
+
     confidence = 1.0 - std::pow((1.0 - std::pow(best_inlier_ratio, sample_size)),
       double(iterations));
   }
 
   if (best_tvec.rows == 0 || best_rvec.rows == 0)
   {
-    LOG_DEBUG(d_->m_logger, "no PnP solution after " << iterations << " iterations "  
-      " with confidence " << confidence << " and best inlier ratio " << 
+    LOG_DEBUG(d_->m_logger, "no PnP solution after " << iterations << " iterations "
+      " with confidence " << confidence << " and best inlier ratio " <<
       best_inlier_ratio );
 
     return vital::camera_sptr();
@@ -250,10 +250,10 @@ estimate_pnp
   res_cam->set_intrinsics(cal);
 
   if (!std::isfinite(res_cam->center().x()))
-  {    
-    LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " << 
+  {
+    LOG_DEBUG(d_->m_logger, "best_rvec " << best_rvec.at<double>(0) << " " <<
       best_rvec.at<double>(1) << " " << best_rvec.at<double>(2));
-    LOG_DEBUG(d_->m_logger, "best_tvec " << best_tvec.at<double>(0) << " " << 
+    LOG_DEBUG(d_->m_logger, "best_tvec " << best_tvec.at<double>(0) << " " <<
       best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
     LOG_DEBUG(d_->m_logger, "rotation angle " << res_cam->rotation().angle());
     LOG_WARN(d_->m_logger, "non-finite camera center found");
