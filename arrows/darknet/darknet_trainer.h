@@ -58,7 +58,7 @@ public:
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
   virtual void
-  train_from_disk( vital::category_hierarchy object_labels,
+  train_from_disk(vital::category_hierarchy_sptr object_labels,
     std::vector< std::string > train_image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names,

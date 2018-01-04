@@ -65,7 +65,7 @@ public:
    * \param test_groundtruth annotations loaded for each image
    */
   virtual void
-  train_from_disk(vital::category_hierarchy object_labels,
+  train_from_disk(vital::category_hierarchy_sptr object_labels,
     std::vector< std::string > train_image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names = std::vector< std::string >(),
@@ -86,7 +86,7 @@ public:
    * \param test_groundtruth optional annotations loaded for each test image
    */
   virtual void
-  train_from_memory(vital::category_hierarchy object_labels,
+  train_from_memory(vital::category_hierarchy_sptr object_labels,
     std::vector< kwiver::vital::image_container_sptr > train_images,
     std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
     std::vector< kwiver::vital::image_container_sptr > test_images
