@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,13 @@
  * converter class.
  */
 
-#ifndef KWIVER_VITAL_CONVERT_METADATA_H
-#define KWIVER_VITAL_CONVERT_METADATA_H
+#ifndef KWIVER_VITAL_KLV_CONVERT_METADATA_H_
+#define KWIVER_VITAL_KLV_CONVERT_METADATA_H_
 
-#include <vital/video_metadata/vital_video_metadata_export.h>
+#include <vital/klv/vital_klv_export.h>
 
-#include <vital/video_metadata/video_metadata.h>
-#include <vital/video_metadata/video_metadata_traits.h>
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
 
 #include <vital/klv/klv_0601.h>
 #include <vital/klv/klv_0104.h>
@@ -56,7 +56,7 @@ namespace vital {
  * @brief
  *
  */
-class VITAL_VIDEO_METADATA_EXPORT convert_metadata
+class VITAL_KLV_EXPORT convert_metadata
 {
 public:
   // -- CONSTRUCTORS --
@@ -69,14 +69,36 @@ public:
    * @param[in] klv Raw metadata packet containing UDS key
    * @param[in,out] metadata Collection of metadata this updated.
    *
-   * @throws klv_exception When error encountered.
+   * @throws metadata_exception When error encountered.
    */
-   void convert( klv_data const& klv, video_metadata& metadata );
+   void convert( klv_data const& klv, metadata& md );
+
+
+  /** Constants used to determine the source of this metadata
+   * collection. The value of the VITAL_META_METADATA_ORIGIN tag is
+   * set to one of the following values depending on the format of the
+   * metadata packet processed.
+   *
+   * Typical usage is:
+   \code
+   std::string type;
+   if (meta.has( VITAL_META_METADATA_ORIGIN ) )
+   {
+      type = meta.find( VITAL_META_METADATA_ORIGIN ).as_string();
+   }
+   if (metadata::MISB_0104 == type)
+   {
+       // metadata was from MISB 0104 packet
+   }
+   \endcode
+   */
+  const static std::string MISB_0104;
+  const static std::string MISB_0601;
 
 private:
 
-  void convert_0601_metadata( klv_lds_vector_t const& lds, video_metadata& metadata );
-  void convert_0104_metadata( klv_uds_vector_t const& uds, video_metadata& metadata );
+  void convert_0601_metadata( klv_lds_vector_t const& lds, metadata& md );
+  void convert_0104_metadata( klv_uds_vector_t const& uds, metadata& md );
 
   kwiver::vital::any normalize_0601_tag_data( klv_0601_tag tag,
                                               kwiver::vital::vital_metadata_tag vital_tag,
@@ -91,10 +113,10 @@ private:
   any_converter< double > convert_to_double;
   any_converter< uint64_t > convert_to_int;
 
-  video_metadata_traits m_metadata_traits;
+  metadata_traits m_metadata_traits;
 
 }; // end class convert_metadata
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_CONVERT_METADATA_H */
+#endif /* KWIVER_VITAL_KLV_CONVERT_METADATA_H_ */

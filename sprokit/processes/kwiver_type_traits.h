@@ -45,10 +45,10 @@
 #include <vital/types/geo_polygon.h>
 #include <vital/types/image_container.h>
 #include <vital/types/keyframe_data.h>
+#include <vital/types/metadata.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
-#include <vital/video_metadata/video_metadata.h>
 
 #include "trait_utils.h"
 
@@ -98,7 +98,7 @@ create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait (keyframe_data_const, "kwiver:keyframe_data", kwiver::vital::keyframe_data_const_sptr);
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
-create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video_metadata_vector );
+create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 
 
@@ -129,7 +129,7 @@ create_port_trait( image_file_name, image_file_name, "Name of an image file. "
                    "The file name may contain leading path components." );
 create_port_trait(keyframe_data_const, keyframe_data_const, "Const keyframe information.");
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
-create_port_trait( video_metadata, video_metadata, "Video metadata vector for a frame." );
+create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

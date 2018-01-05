@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,34 +30,25 @@
 
 /**
  * \file
- * \brief This file contains additional utilty functions for working with
- *  video metadata.
+ * \brief Implementation for metadata exceptions
  */
 
-#ifndef KWIVER_VITAL_VIDEO_METADATA_UTIL_H
-#define KWIVER_VITAL_VIDEO_METADATA_UTIL_H
-
-
-#include <vital/video_metadata/video_metadata.h>
-#include <vital/vital_types.h>
+#include "metadata.h"
 
 namespace kwiver {
 namespace vital {
 
 
-/// Extract an image file basename from metadata and (if needed) frame number
-/**
- * The purpose of this function is to provide a standard way to get a base file
- * name (no file extension) from metadata.  This is either the original image
- * file basename, if provided, or the video basename, if provided, with frame
- * number appended, or simply "frame%05d".
- */
-VITAL_VIDEO_METADATA_EXPORT
-std::string
-basename_from_metadata(video_metadata_sptr md,
-                       frame_id_t frame);
+metadata_exception
+::metadata_exception( std::string const& str )
+{
+  m_what = str;
+}
 
 
-} } // end namespace
+metadata_exception
+::~metadata_exception() noexcept
+{ }
 
-#endif /* KWIVER_VITAL_VIDEO_METADATA_UTIL_H */
+
+} } // end vital namespace

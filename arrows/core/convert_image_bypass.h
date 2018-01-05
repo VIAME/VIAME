@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_CORE_CONVERT_IMAGE_BYPASS_H_
 #define KWIVER_ARROWS_CORE_CONVERT_IMAGE_BYPASS_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/convert_image.h>

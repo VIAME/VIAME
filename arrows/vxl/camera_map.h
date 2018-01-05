@@ -36,9 +36,6 @@
 #ifndef KWIVER_ARROWS_VXL_CAMERA_MAP_H_
 #define KWIVER_ARROWS_VXL_CAMERA_MAP_H_
 
-
-#include <map>
-
 #include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
@@ -46,6 +43,7 @@
 
 #include <vpgl/vpgl_perspective_camera.h>
 
+#include <map>
 
 namespace kwiver {
 namespace arrows {

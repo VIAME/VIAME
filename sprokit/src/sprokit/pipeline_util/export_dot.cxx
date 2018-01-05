@@ -37,8 +37,6 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/ref.hpp>
 
 #include <map>
@@ -48,6 +46,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <functional>
 
 /// \todo Implement a depth option to suppress recursion into too many clusters.
 /// \todo Improve the color scheme.
@@ -100,13 +99,14 @@ typedef std::pair<process::name_t, name_type_t> name_info_t;
 typedef std::vector<name_info_t> name_infos_t;
 typedef std::map<process::name_t, name_infos_t> parent_names_t;
 
-typedef boost::function<void ()> callback_t;
+typedef std::function<void ()> callback_t;
 
 }
 
 static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map, std::string const& link_prefix);
-static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map);
 
+
+// ----------------------------------------------------------------------------
 void
 export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name, std::string const& link_prefix)
 {
@@ -213,12 +213,16 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   ostr << "}" << std::endl;
 }
 
+
+// ----------------------------------------------------------------------------
 void
 export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
 {
   export_dot(ostr, pipe, graph_name, "");
 }
 
+
+// ----------------------------------------------------------------------------
 void
 export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name)
 {
@@ -234,9 +238,12 @@ export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string con
   export_dot(ostr, pipe, graph_name);
 }
 
+
 static void output_process(std::ostream& ostr, process_t const& process, std::string const& link_prefix);
 static void output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, callback_t const& output_children);
 
+
+// ----------------------------------------------------------------------------
 void
 output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map, std::string const& link_prefix)
 {
@@ -271,7 +278,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
       {
         process_cluster_t const proc = pipe->cluster_by_name(child_name);
 
-        callback_t const callback = boost::bind(&output_cluster, boost::ref(ostr), child_name, pipe, parent_map, link_prefix);
+        callback_t const callback = std::bind(&output_cluster, std::ref(ostr), child_name, pipe, parent_map, link_prefix);
 
         output_process_cluster(ostr, proc, callback);
 
@@ -283,12 +290,8 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
   }
 }
 
-void
-output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map)
-{
-  output_cluster(ostr, name, pipe, parent_map, "");
-}
 
+// ----------------------------------------------------------------------------
 void
 output_process(std::ostream& ostr, process_t const& process, std::string const& link_prefix)
 {

@@ -886,7 +886,7 @@ initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
              feature_track_set_sptr tracks,
-             video_metadata_map_sptr metadata) const
+             metadata_map_sptr metadata) const
 {
   if( !tracks )
   {

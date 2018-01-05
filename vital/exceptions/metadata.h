@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,22 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "klv.h"
+/**
+ * \file
+ * \brief VITAL Exceptions pertaining to metadata operations
+ */
+
+#ifndef VITAL_CORE_EXCEPTIONS_METADATA_H_
+#define VITAL_CORE_EXCEPTIONS_METADATA_H_
+
+#include <string>
+
+#include <vital/exceptions/base.h>
 
 namespace kwiver {
 namespace vital {
 
-klv_exception
-::klv_exception( std::string const& str )
+// ------------------------------------------------------------------
+/// Generic metadata exception
+class VITAL_EXPORT metadata_exception
+  : public vital_core_base_exception
 {
-  m_what = str;
-}
+public:
+  /// Constructor
+  metadata_exception( std::string const& str );
 
-
-klv_exception
-::~klv_exception() noexcept
-{ }
-
+  virtual ~metadata_exception() noexcept;
+};
 
 
 } } // end namespace
+
+#endif // VITAL_CORE_EXCEPTIONS_METADATA_H_

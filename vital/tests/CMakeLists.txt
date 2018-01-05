@@ -31,6 +31,7 @@ kwiver_discover_gtests(vital geodesy                        LIBRARIES ${test_lib
 kwiver_discover_gtests(vital homography                     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital image                          LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital iterator                       LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital metadata_io                    LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}")
 kwiver_discover_gtests(vital polygon                        LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital rotation                       LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital similarity                     LIBRARIES ${test_libraries})

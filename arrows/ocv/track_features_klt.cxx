@@ -264,8 +264,8 @@ public:
   {
   public:
     feature_distribution_image(): 
-      rows(0), cols(0), 
-      bad_bins_frac_to_redetect(0.125)
+      bad_bins_frac_to_redetect(0.125),
+      rows(0), cols(0)
     {
       set_grid_size(4, 4);
     }
@@ -288,11 +288,11 @@ public:
     feature_distribution_image& operator=(
       const feature_distribution_image &other) 
     {
-      if (&other == this) 
+      if (&other != this)
       {
-        return *this;
+        other.dist_image.copyTo(dist_image);
       }
-      other.dist_image.copyTo(dist_image);
+        return *this;
     }
 
     bool should_redetect(const feature_distribution_image &lastDetectDist, 
@@ -486,7 +486,7 @@ track_features_klt
 
   //setup stuff complete
   feature_track_set_sptr cur_tracks = prev_tracks;  //no clone here.  It is done in the process.
-  
+
   //points to be tracked in the next frame.  Empty at first.
   std::vector<cv::Point2f> next_points;
 
@@ -543,7 +543,7 @@ track_features_klt
       f->set_loc(tp);  //feature
       //feature, descriptor and frame number together
       auto fts = std::make_shared<feature_track_state>(frame_number);  
-      fts->feature = f;      
+      fts->feature = f;
       // append the feature's current location to it's track.  Track was picked 
       // up with active_tracks() call on previous_tracks.
       t->append(fts);  
