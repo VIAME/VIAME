@@ -128,6 +128,13 @@ target_link_libraries(python-vital.types.bindings-_rotation
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+sprokit_add_python_library(_similarity
+  vital/types/bindings
+  similarity.cxx)
+target_link_libraries(python-vital.types.bindings-_similarity
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 sprokit_add_python_library(_track
   vital/types/bindings
   track.cxx)
@@ -168,6 +175,7 @@ sprokit_create_python_init(vital/types/bindings
   _image_container
   _landmark
   _rotation
+  _similarity
   _track
   _track_set
   _object_track_set
