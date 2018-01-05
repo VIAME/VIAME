@@ -145,8 +145,6 @@ get_configuration() const
     "Name of network config file." );
   config->set_value( "seed_weights", d->m_seed_weights,
     "Optional input seed weights file." );
-  config->set_value( "output_weights", d->m_output_weights,
-    "Output weights file." );
   config->set_value( "train_directory", d->m_train_directory,
     "Temp directory for all files used in training." );
   config->set_value( "skip_format", d->m_skip_format,
@@ -191,7 +189,6 @@ set_configuration( vital::config_block_sptr config_in )
 
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
   this->d->m_seed_weights = config->get_value< std::string >( "seed_weights" );
-  this->d->m_output_weights = config->get_value< std::string >( "output_weights" );
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
