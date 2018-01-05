@@ -60,19 +60,14 @@ namespace algo {
     /// Return the name of this algorithm.
     static std::string static_type_name() { return "keyframe_selection"; }
 
-    /// Set this algorithm's properties via a config block
-    //virtual void set_configuration(kwiver::vital::config_block_sptr config);
-    /// Check that the algorithm's currently configuration is valid
-    //virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
-
-    /// Select keyframes from a set of tracks.  Different implementations can select key-frames in different ways.
-    /// For example, one method could only add key-frames for frames that are new.  Another could increase the 
-    /// density of key-frames near existing frames so dense processing can be done.  
+    /// Select keyframes from a set of tracks.
+    /** Different implementations can select key-frames in different ways.
+    *   For example, one method could only add key-frames for frames that are new.  Another could increase the
+    * density of key-frames near existing frames so dense processing can be done.
+    */
     /**
-    * \param [in] current_keyframes The current key-frame selection data.  Set to null if no key-frame data is 
-                  available or you want to perform key-frame selection from scratch.
     * \param [in] tracks The tracks over which to select key-frames
-    * \returns selected key-frame data structure
+    * \returns a track set that includes the selected keyframe data structure
     */
     virtual kwiver::vital::track_set_sptr
       select(kwiver::vital::track_set_sptr tracks) const = 0;

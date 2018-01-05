@@ -146,9 +146,13 @@ public:
   virtual bool remove_frame_metadata(vital::frame_id_t frame);
 
   /// get the keyframe data as a const map.  This allows algorithms to operate on the data
-  /// but not change it.  They must make changes to the keyframe states through track set 
+  /// but not change it.  They must make changes to the keyframe states through track set
   /// implementation methods.
   virtual vital::keyframe_data_const_sptr get_keyframe_data() const;
+
+  virtual void set_keyframe_data(vital::keyframe_data_const_sptr kfd);
+
+  virtual vital::track_set_implementation_uptr clone() const;
 
 protected:
   /// Populate frame_map_ with data from all_tracks_

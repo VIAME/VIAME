@@ -433,6 +433,29 @@ frame_index_track_set_impl
   return vdata;
 }
 
+void
+frame_index_track_set_impl
+::set_keyframe_data(keyframe_data_const_sptr kfd)
+{
+  kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(
+    std::const_pointer_cast<keyframe_data>(kfd));
+
+  if (!kf_data_)
+  {
+    static std::string const reason =
+      "Input keyframe data could not be cast to a simple keyframe data.";
+    throw std::runtime_error(reason);
+  }
+}
+
+track_set_implementation_uptr
+frame_index_track_set_impl
+::clone() const
+{
+  /// TODO CODE THIS!!!!
+  return nullptr;
+}
+
 
 } // end namespace core
 } // end namespace arrows

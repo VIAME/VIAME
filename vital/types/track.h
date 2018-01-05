@@ -96,7 +96,7 @@ public:
 
   virtual ~track_state() = default;
 
-protected:
+private:
   /// The frame identifier for this state
   frame_id_t frame_id_;
 

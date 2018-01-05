@@ -70,11 +70,8 @@ public:
 
   /// Clone the track state (polymorphic copy constructor)
   virtual track_state_sptr clone() const
-  {    
-    feature_sptr nf = feature;
-    descriptor_sptr nd = descriptor;
-
-    return feature_track_state_sptr(new feature_track_state(frame_id_,nf,nd));
+  {
+    return std::make_shared<feature_track_state>(*this);
   }
 
   feature_sptr feature;
@@ -151,7 +148,7 @@ public:
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
 
-  virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1, 
+  virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1,
     bool only_features_with_descriptors = true) const;
 
 };

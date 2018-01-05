@@ -197,9 +197,9 @@ public:
 
   virtual descriptor_sptr clone() const
   {
-    descriptor_fixed<T,N> *new_desc = new descriptor_fixed<T,N>();
+    auto new_desc = std::make_shared<descriptor_fixed<T, N>>();
     memcpy(&new_desc->data_, &data_, N*sizeof(T));
-    return std::shared_ptr<descriptor_fixed>(new_desc);
+    return new_desc;
   }
 
 protected:
@@ -241,9 +241,9 @@ public:
 
   virtual  descriptor_sptr clone() const
   {
-    descriptor_dynamic<T> *ptr = new descriptor_dynamic<T>(length_);
+    auto ptr = std::make_shared<descriptor_dynamic<T>>(length_);
     memcpy(ptr->data_, data_, length_ * sizeof(T));
-    return std::shared_ptr<descriptor>(ptr);
+    return ptr;
   }
 
 protected:

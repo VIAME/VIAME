@@ -47,7 +47,6 @@
 #include <vital/types/feature.h>
 #include <vital/types/descriptor.h>
 #include <kwiversys/SystemTools.hxx>
-#include <arrows/core/keyframe_selector_basic.h>
 
 namespace kwiver {
 namespace vital {
@@ -185,14 +184,14 @@ read_feature_track_file( path_t const& file_path )
   {
     track_id_t tid;
     frame_id_t fid;
-    auto feat = std::make_shared<feature_d>();    
+    auto feat = std::make_shared<feature_d>();
     std::stringstream ss( line );
     if (ss.str() == "keyframes")
     {
       break;
     }
     bool has_desc;
-    
+
     ss >> tid >> fid >> *feat >> has_desc;
 
     track_sptr t;
@@ -221,13 +220,13 @@ read_feature_track_file( path_t const& file_path )
   }
 
   feature_track_set_sptr fts = std::make_shared<feature_track_set>( tracks );
-  
+
   for (std::string line; std::getline(input_stream, line); )
   {
     frame_id_t fid;
     std::stringstream ss(line);
     ss >> fid;
-    keyframe_metadata_sptr kfmd = 
+    keyframe_metadata_sptr kfmd =
       std::dynamic_pointer_cast<vital::keyframe_metadata>(
         std::make_shared<vital::keyframe_metadata_for_basic_selector>(true));
     fts->set_frame_metadata(fid, kfmd);
