@@ -36,6 +36,8 @@
 #ifndef KWIVER_ARROWS_OCV_CAMERA_INTRINSICS_H_
 #define KWIVER_ARROWS_OCV_CAMERA_INTRINSICS_H_
 
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
+
 #include <vector>
 #include <vital/vital_config.h>
 
@@ -45,12 +47,17 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// OCV Methods that convert Kwiver Camera intrinsics to OpenCV intrinsics
-/**
- * This extended algorithm_def provides a common implementation for the detect
- * method.
- */
- std::vector<double> intrinsicsToOpenCV(vital::camera_intrinsics_sptr intrinsics);
+/// OCV Methods that reformats Kwiver Camera intrinsics to OpenCV intrinsics
+
+/// return ocv distortion coefficients given the distortion coefficients in the argument
+KWIVER_ALGO_OCV_EXPORT
+std::vector<double>
+get_ocv_dist_coeffs(vital::camera_intrinsics_sptr intrinsics);
+
+/// return opencv formatted distortion coefficients based on vital distortion coefficients
+KWIVER_ALGO_OCV_EXPORT
+std::vector<double>
+dist_coeffs_to_ocv(std::vector<double> const& vital_dist_coeffs);
 
 } // end namespace ocv
 } // end namespace arrows

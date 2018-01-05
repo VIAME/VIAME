@@ -391,7 +391,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_ALGORITHM("ocv", kwiver::arrows::ocv::estimate_pnp);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Estimate camera pose with perspective three point method")
+    "Estimate camera pose with perspective N point method")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")

@@ -39,18 +39,22 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-std::vector<double> intrinsicsToOpenCV(vital::camera_intrinsics_sptr intrinsics)
+std::vector<double> dist_coeffs_to_ocv(std::vector<double> const& vital_dist_coeffs)
 {
-  auto kw_dist = intrinsics->dist_coeffs();
   std::vector<double> ocv_dist;
-  size_t num_coeffs = kw_dist.size() < 4 ? 4 : kw_dist.size();
+  size_t num_coeffs = vital_dist_coeffs.size() < 4 ? 4 : vital_dist_coeffs.size();
   ocv_dist.assign(num_coeffs, 0);
-  for (unsigned int i = 0; i < kw_dist.size(); ++i)
+  for (unsigned int i = 0; i < vital_dist_coeffs.size(); ++i)
   {
-    ocv_dist[i] = kw_dist[i];
+    ocv_dist[i] = vital_dist_coeffs[i];
   }
 
   return ocv_dist;
+}
+
+std::vector<double> get_ocv_dist_coeffs(vital::camera_intrinsics_sptr intrinsics)
+{
+  return dist_coeffs_to_ocv(intrinsics->dist_coeffs());
 }
 
 } // end namespace ocv

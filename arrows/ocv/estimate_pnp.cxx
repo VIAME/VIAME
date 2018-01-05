@@ -198,7 +198,7 @@ estimate_pnp
   double best_inlier_ratio = 0;
   const double sample_size = 3;
 
-  std::vector<double> dist_coeffs = intrinsicsToOpenCV(cal);
+  std::vector<double> dist_coeffs = get_ocv_dist_coeffs(cal);
 
   while (confidence < confidence_thresh && iterations < max_iterations)
   {

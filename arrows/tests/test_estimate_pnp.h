@@ -90,11 +90,10 @@ TEST(estimate_pnp, ideal_points)
   std::cout << "true C = " << cam->center() << std::endl;
   std::cout << "Estimated C = " << est_cam->center() << std::endl;
 
-  Eigen::Matrix<double, 3, 3> R_err = cam->rotation().matrix().transpose()*est_cam->rotation().matrix();
-  Eigen::Matrix<double, 3, 3> R_eye;
-  R_eye.setIdentity();
+  auto R_err = cam->rotation().inverse()*est_cam->rotation();
+  std::cout << "Rotation error = " << R_err.angle()*180.0 / M_PI << " degrees" << std::endl;
 
-  EXPECT_MATRIX_SIMILAR(R_err, R_eye, ideal_rotation_tolerance);
+  EXPECT_LT(R_err.angle(), ideal_rotation_tolerance);
   EXPECT_MATRIX_SIMILAR(cam->center(), est_cam->center(), ideal_center_tolerance);
 
   unsigned int num_inliers = std::count(inliers.begin(), inliers.end(), true);
@@ -154,11 +153,10 @@ TEST(estimate_pnp, noisy_points)
   std::cout << "true C = " << cam->center() << std::endl;
   std::cout << "Estimated C = " << est_cam->center() << std::endl;
 
-  Eigen::Matrix<double, 3, 3> R_err = cam->rotation().matrix().transpose()*est_cam->rotation().matrix();
-  Eigen::Matrix<double, 3, 3> R_eye;
-  R_eye.setIdentity();
+  auto R_err = cam->rotation().inverse()*est_cam->rotation();
+  std::cout << "Rotation error = " << R_err.angle()*180.0 / M_PI << " degrees" << std::endl;
 
-  EXPECT_MATRIX_SIMILAR(R_err, R_eye, noisy_rotation_tolerance);
+  EXPECT_LT(R_err.angle(), noisy_rotation_tolerance);
   EXPECT_MATRIX_SIMILAR(cam->center(), est_cam->center(), noisy_center_tolerance);
 
   unsigned int num_inliers = std::count(inliers.begin(), inliers.end(), true);
@@ -226,11 +224,10 @@ TEST(estimate_pnp, outlier_points)
   std::cout << "true C = " << cam->center() << std::endl;
   std::cout << "Estimated C = " << est_cam->center() << std::endl;
 
-  Eigen::Matrix<double, 3, 3> R_err = cam->rotation().matrix().transpose()*est_cam->rotation().matrix();
-  Eigen::Matrix<double, 3, 3> R_eye;
-  R_eye.setIdentity();
+  auto R_err = cam->rotation().inverse()*est_cam->rotation();
+  std::cout << "Rotation error = " << R_err.angle()*180.0 / M_PI << " degrees" << std::endl;
 
-  EXPECT_MATRIX_SIMILAR(R_err, R_eye, outlier_rotation_tolerance);
+  EXPECT_LT(R_err.angle(), outlier_rotation_tolerance);
   EXPECT_MATRIX_SIMILAR(cam->center(), est_cam->center(), outlier_center_tolerance);
 
   unsigned int num_inliers = std::count(inliers.begin(), inliers.end(), true);
