@@ -98,6 +98,15 @@ adapter_data_set
 
 
 // ------------------------------------------------------------------
+kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+adapter_data_set
+::cbegin() const
+{
+  return m_port_datum_set.begin();
+}
+
+
+// ------------------------------------------------------------------
 kwiver::adapter::adapter_data_set::datum_map_t::iterator
 adapter_data_set
 ::end()
@@ -110,6 +119,15 @@ adapter_data_set
 kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
 ::end() const
+{
+  return m_port_datum_set.end();
+}
+
+
+// ------------------------------------------------------------------
+kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+adapter_data_set
+::cend() const
 {
   return m_port_datum_set.end();
 }
