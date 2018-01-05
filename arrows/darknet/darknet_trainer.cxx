@@ -364,7 +364,7 @@ format_images( std::string folder, std::string prefix,
     else
     {
       // Chip up and process scaled image
-      for( int i = 0; i < resized_image.cols; i += m_chip_step )
+      for( int i = 0; i < resized_image.cols - m_resize_i + m_chip_step; i += m_chip_step )
       {
         int cw = i + m_resize_i;
 
@@ -377,7 +377,7 @@ format_images( std::string folder, std::string prefix,
           cw = m_resize_i;
         }
 
-        for( int j = 0; j < resized_image.rows; j += m_chip_step )
+        for( int j = 0; j < resized_image.rows - m_resize_j + m_chip_step; j += m_chip_step )
         {
           int ch = j + m_resize_j;
 
