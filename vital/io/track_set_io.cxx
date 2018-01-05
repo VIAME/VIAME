@@ -190,9 +190,15 @@ read_feature_track_file( path_t const& file_path )
     {
       break;
     }
-    bool has_desc;
 
-    ss >> tid >> fid >> *feat >> has_desc;
+    bool has_desc = false;
+
+    ss >> tid >> fid >> *feat;
+    if (!(ss >> has_desc))
+    {
+      //all older files without has_desc used only descriptor based features
+      has_desc = true;
+    }
 
     track_sptr t;
     std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
