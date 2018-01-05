@@ -85,7 +85,7 @@ public:
   detected_object_type();
 
   /**
-   * @brief Create new object type classes.
+   * @brief Create new object type class.
    *
    * Create a new object type instance with a set of labels and
    * likelyhoods. The parameters have corresponding ordering, which
@@ -100,6 +100,18 @@ public:
    */
   detected_object_type( const std::vector< std::string >& class_names,
                         const std::vector< double >& scores );
+
+  /**
+   * @brief Create new object type class.
+   *
+   * Create a new object type instance from a single class name
+   * and label.
+   *
+   * @param class_name Class name
+   * @param score Probability score for the class
+   */
+  detected_object_type( const std::string& class_name,
+                        const double score );
 
   /**
    * @brief Determine if class-name is present.
@@ -130,6 +142,21 @@ public:
   double score( const std::string& class_name ) const;
 
   /**
+   * @brief Get max class name.
+   *
+   * This method returns the most likely class for this object.
+   *
+   * If there are no scores associated with this detection, then an
+   * exception is thrown
+   *
+   * @param[out] max_name Class name with the maximum score.
+   *
+   * @throws std::runtime_error If no scores are associated with this
+   *                            detection.
+   */
+  void get_most_likely( std::string& max_name ) const;
+
+  /**
    * @brief Get max score and name.
    *
    * This method returns the maximum score or the most likely class
@@ -143,8 +170,6 @@ public:
    *
    * @throws std::runtime_error If no scores are associated with this
    *                            detection.
-   *
-   * @return Maximum score for this object type.
    */
   void get_most_likely( std::string& max_name, double& max_score ) const;
 

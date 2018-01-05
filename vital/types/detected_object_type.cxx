@@ -99,6 +99,12 @@ detected_object_type( const std::vector< std::string >& class_names,
   }
 }
 
+detected_object_type::
+detected_object_type( const std::string& class_name, const double score )
+{
+  set_score( class_name, score );
+}
+
 
 // ------------------------------------------------------------------
 bool
@@ -133,6 +139,23 @@ score( const std::string& class_name ) const
 
   auto it = m_classes.find( str_ptr );
   return it->second; // return score
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object_type::
+get_most_likely( std::string& max_name ) const
+{
+  if ( m_classes.empty() )
+  {
+    // Throw error
+    throw std::runtime_error( "This detection has no scores." );
+  }
+
+  auto it = std::max_element( m_classes.begin(), m_classes.end(), less_second< const std::string*, double > () );
+
+  max_name = std::string ( *(it->first) );
 }
 
 

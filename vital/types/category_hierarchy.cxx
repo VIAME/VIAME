@@ -271,9 +271,11 @@ category_hierarchy
 
   while( std::getline( in, line ) )
   {
-    std::istringstream ss{ line };
-    using str_it = std::istream_iterator< std::string >;
-    std::vector< label_t > tokens{ str_it{ss}, str_it{ss} };
+    std::vector< label_t > tokens;
+    std::istringstream iss( line );
+    std::copy( std::istream_iterator< std::string >( iss ),
+      std::istream_iterator< std::string >(),
+      std::back_inserter( tokens ) );
 
     if( tokens.size() == 0 )
     {
@@ -285,7 +287,7 @@ category_hierarchy
 
     for( unsigned i = 1; i < tokens.size(); ++i )
     {
-      if( tokens[i].compare( 0, 8, ":parent=" ) )
+      if( tokens[i].compare( 0, 8, ":parent=" ) == 0 )
       {
         relationships.push_back(
           std::make_pair< label_t, label_t >(
