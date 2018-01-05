@@ -33,7 +33,7 @@
  * \brief OCV estimate_pnp algorithm implementation
  */
 
-#include <math.h>
+#include <cmath>
 
 #include "estimate_pnp.h"
 
