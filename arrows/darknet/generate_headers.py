@@ -20,8 +20,23 @@ def create_dir( dirname ):
 def does_file_exist( filename ):
   return os.path.isfile( filename )
 
+def replace_str_in_file( input_fn, output_fn, repl_array ):
+  inputf = open( input_fn )
+  outputf = open( output_fn, 'w' )
+  all_lines = []
+  for s in inputf.xreadlines():
+    all_lines.append( s )
+  for repl in repl_array:
+    for i, s in enumerate( all_lines ):
+      all_lines[i] = s.replace( repl[0], repl[1] )
+  for s in all_lines:
+    outputf.write( s )
+  outputf.close()
+  inputf.close()
+
 # Main Utility
-def generate_yolo_headers( working_dir, labels, image_ext=".png", test_per=0.05 ):
+def generate_yolo_v2_headers( working_dir, labels, width, height, input_model, \
+  output_str="yolo_v2", image_ext=".png", test_per=0.05 ):
 
   # Check arguments
   if len( labels ) < 0:
@@ -29,8 +44,17 @@ def generate_yolo_headers( working_dir, labels, image_ext=".png", test_per=0.05 
     sys.exit(0)
 
   # Hard coded configs
-  label_file = "yolo_v2.lbl"
-  conf_file = "yolo_v2.data"
+  label_file = output_str + ".lbl"
+  conf_file = output_str + ".cfg"
+  train_file = output_str + ".data"
+
+  # Dump out adjusted network file
+  repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)], \
+                ["[-WIDTH_INSERT-]",str(width)], \
+                ["[-FILTER_COUNT_INSERT-]",str((len(labels)+5)*5)], \
+                ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
+
+  replace_str_in_file( input_model, working_dir + "/" + conf_file, repl_strs )
 
   # Dump out labels file
   with open( working_dir + "/" + label_file, "w" ) as f:
@@ -38,7 +62,7 @@ def generate_yolo_headers( working_dir, labels, image_ext=".png", test_per=0.05 
       f.write( item + "\n" )
 
   # Dump out special files for varients
-  with open( working_dir + "/" + conf_file, "w" ) as f:
+  with open( working_dir + "/" + train_file, "w" ) as f:
     f.write( "train = " + working_dir + "/train_files.txt\n" )
     f.write( "valid = " + working_dir + "/test_files.txt\n" )
     f.write( "names = " + label_file + "\n" )
