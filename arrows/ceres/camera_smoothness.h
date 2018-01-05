@@ -36,8 +36,6 @@
 #ifndef KWIVER_ARROWS_CERES_CAMERA_SMOOTHNESS_H_
 #define KWIVER_ARROWS_CERES_CAMERA_SMOOTHNESS_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/ceres/kwiver_algo_ceres_export.h>
 
 #include <arrows/ceres/types.h>

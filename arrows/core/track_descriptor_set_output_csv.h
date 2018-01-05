@@ -36,12 +36,9 @@
 #ifndef KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
 #define KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/track_descriptor_set_output.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {

@@ -34,8 +34,6 @@
 
 #include <arrows/darknet/kwiver_algo_darknet_export.h>
 
-#include <vital/vital_config.h>
-
 #include <vital/algo/train_detector.h>
 
 namespace kwiver {

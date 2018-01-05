@@ -82,7 +82,7 @@ public:
   kwiver::vital::timestamp::frame_t       m_frame_number;
   kwiver::vital::timestamp::time_t        m_frame_time;
 
-  kwiver::vital::video_metadata_vector    m_last_metadata;
+  kwiver::vital::metadata_vector          m_last_metadata;
 
 }; // end priv class
 
@@ -154,7 +154,7 @@ void video_input_process
 
   if ( d->m_video_reader->next_frame( ts ) )
   {
-    kwiver::vital::video_metadata_vector metadata;
+    kwiver::vital::metadata_vector metadata;
     kwiver::vital::image_container_sptr frame;
     {
       scoped_step_instrumentation();
@@ -224,7 +224,7 @@ void video_input_process
 
     push_to_port_using_trait( timestamp, ts );
     push_to_port_using_trait( image, frame );
-    push_to_port_using_trait( video_metadata, metadata );
+    push_to_port_using_trait( metadata, metadata );
   }
   else
   {
@@ -236,7 +236,7 @@ void video_input_process
 
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
-    push_datum_to_port_using_trait( video_metadata, dat );
+    push_datum_to_port_using_trait( metadata, dat );
   }
 }
 
@@ -250,7 +250,7 @@ void video_input_process
 
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( video_metadata, optional );
+  declare_output_port_using_trait( metadata, optional );
 }
 
 

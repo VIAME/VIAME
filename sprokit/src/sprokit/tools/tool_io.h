@@ -39,8 +39,6 @@
 #include <ostream>
 #include <memory>
 
-#include <boost/shared_ptr.hpp>
-
 namespace sprokit {
 
 typedef std::shared_ptr<std::istream> istream_t;

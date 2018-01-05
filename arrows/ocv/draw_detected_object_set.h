@@ -36,13 +36,9 @@
 #ifndef ARROWS_OCV_DRAW_DETECTED_OBJECT_SET_H
 #define ARROWS_OCV_DRAW_DETECTED_OBJECT_SET_H
 
-#include <vital/vital_config.h>
-
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/draw_detected_object_set.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {

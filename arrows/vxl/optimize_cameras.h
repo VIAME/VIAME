@@ -36,15 +36,12 @@
 #ifndef KWIVER_ARROWS_VXL_OPTIMIZE_CAMERAS_H_
 #define KWIVER_ARROWS_VXL_OPTIMIZE_CAMERAS_H_
 
-
-#include <string>
-
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/optimize_cameras.h>
 
+#include <string>
 
 namespace kwiver {
 namespace arrows {
@@ -79,8 +76,8 @@ public:
   optimize(vital::camera_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::video_metadata_vector metadata
-             = kwiver::vital::video_metadata_vector()) const;
+           kwiver::vital::metadata_vector metadata
+             = kwiver::vital::metadata_vector()) const;
 };
 
 

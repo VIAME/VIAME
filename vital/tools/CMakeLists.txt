@@ -64,7 +64,6 @@ target_link_libraries( dump_klv
               vital_klv
               vital_algo
               vital_logger
-              vital_video_metadata
               kwiversys
   )
 

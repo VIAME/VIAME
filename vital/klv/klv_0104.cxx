@@ -37,7 +37,7 @@
 #include "klv_0104.h"
 #include "klv_data.h"
 
-#include <vital/exceptions/klv.h>
+#include <vital/exceptions/metadata.h>
 #include <vital/logger/logger.h>
 
 #include <type_traits>
@@ -352,7 +352,7 @@ traits< double >::convert( uint8_t const* data, std::size_t length )
   }
   else
   {
-    throw kwiver::vital::klv_exception( "Length does not correspond to double or float." );
+    throw kwiver::vital::metadata_exception( "Length does not correspond to double or float." );
   }
 
   return val;
@@ -413,7 +413,7 @@ klv_0104::get_value( tag tg, kwiver::vital::any const& data ) const
   traits< T >* t = dynamic_cast< traits< T >* > ( m_traitsvec[tg] );
   if ( ! t )
   {
-    throw kwiver::vital::klv_exception( t->m_name + "' type mismatch" );
+    throw kwiver::vital::metadata_exception( t->m_name + "' type mismatch" );
   }
 
   return kwiver::vital::any_cast< T > ( data );

@@ -36,13 +36,10 @@
 #ifndef KWIVER_ARROWS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
 #define KWIVER_ARROWS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/estimate_similarity_transform.h>
 #include <vital/types/vector.h>
-
 
 namespace kwiver {
 namespace arrows {

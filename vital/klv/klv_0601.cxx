@@ -141,7 +141,7 @@ typedef std::function< double ( kwiver::vital::any const& ) > klv_any_to_double_
 
 // ------------------------------------------------------------------
 // Take a "convert T to double" function apply to a kwiver::vital::any
-// This is used with boost bind to make a kwiver::vital::any to double conversion function
+// This is used with std::bind to make a kwiver::vital::any to double conversion function
 template < typename T >
 double
 klv_as_double( const std::function< double(T const& val) >& func,

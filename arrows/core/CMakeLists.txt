@@ -121,7 +121,6 @@ kwiver_add_library( kwiver_algo_core
 target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   PRIVATE              kwiversys
-                       vital_video_metadata
                        vital_config
   )
 

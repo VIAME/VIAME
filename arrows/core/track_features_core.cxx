@@ -52,7 +52,7 @@
 #include <vital/algo/match_features.h>
 #include <vital/algo/close_loops.h>
 
-#include <vital/video_metadata/video_metadata_util.h>
+#include <vital/io/metadata_io.h>
 
 #include <vital/exceptions/algorithm.h>
 #include <vital/exceptions/image.h>
@@ -284,7 +284,7 @@ track_features_core
        !curr_desc || curr_desc->size() == 0 ) &&
       d_->feature_io && d_->features_dir != "" )
   {
-    video_metadata_sptr md = image_data->get_metadata();
+    metadata_sptr md = image_data->get_metadata();
     std::string basename = basename_from_metadata(md, frame_number);
     path_t kwfd_file = d_->features_dir + "/" + basename + ".kwfd";
     if( ST::FileExists( kwfd_file ) )
@@ -348,7 +348,7 @@ track_features_core
   // cache features if they were just computed and feature I/O is enabled
   if( features_computed && d_->feature_io && d_->features_dir != "")
   {
-    video_metadata_sptr md = image_data->get_metadata();
+    metadata_sptr md = image_data->get_metadata();
     std::string basename = basename_from_metadata(md, frame_number);
     path_t kwfd_file = d_->features_dir + "/" + basename + ".kwfd";
 

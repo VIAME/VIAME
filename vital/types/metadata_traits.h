@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,18 +29,18 @@
  */
 
 /**
- * \file \brief This file contains the interface for video metadata traits.
+ * \file \brief This file contains the interface for metadata traits.
  */
 
-#ifndef KWIVER_VITAL_VIDEO_METADATA_TRAITS_H
-#define KWIVER_VITAL_VIDEO_METADATA_TRAITS_H
+#ifndef KWIVER_VITAL_METADATA_TRAITS_H_
+#define KWIVER_VITAL_METADATA_TRAITS_H_
 
-#include <vital/video_metadata/vital_video_metadata_export.h>
-#include <vital/video_metadata/video_metadata_tags.h>
-#include <vital/video_metadata/video_metadata.h> // needed for corner points
+#include <vital/vital_export.h>
 
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
+#include <vital/types/metadata_tags.h>
+#include <vital/types/metadata.h> 
 
 #include <vital/logger/logger.h>
 
@@ -51,7 +51,7 @@ namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
-/// Interface to run-time video metadata traits.
+/// Interface to run-time metadata traits.
 /**
  *
  */
@@ -102,21 +102,21 @@ template <vital_metadata_tag tag> struct vital_meta_trait;
  *
  *
  */
-class VITAL_VIDEO_METADATA_EXPORT video_metadata_traits
+class VITAL_EXPORT metadata_traits
 {
 public:
-  video_metadata_traits();
-  ~video_metadata_traits();
+  metadata_traits();
+  ~metadata_traits();
 
 
   /// Find traits entry for specified tag.
   /**
-   * This method returns the video metadata trait entry for the
+   * This method returns the metadata trait entry for the
    * specified tag. A default entry is returned if an invalid tag value is specified.
    *
    * @param tag Metadata tag value.
    *
-   * @return Video metadata traits entry.
+   * @return Metadata traits entry.
    */
   vital_meta_trait_base const& find( vital_metadata_tag tag ) const;
 
@@ -137,18 +137,18 @@ public:
   /**
    * This method returns the symbol name for the supplied tag.
    *
-   * @param tag Video metadata tag value
+   * @param tag Metadata tag value
    *
    * @return String representation of the tag symbol.
    */
   std::string tag_to_symbol( vital_metadata_tag tag ) const;
 
 
-  /// Get name for video metadata tag.
+  /// Get name for metadata tag.
   /**
    * This method returns the long form name for the specified tag.
    *
-   * @param tag Video mdtadata tag value.
+   * @param tag Metadata tag value.
    *
    * @return Long name for this tag.
    */
@@ -166,7 +166,7 @@ private:
 #endif
   std::map< kwiver::vital::vital_metadata_tag, trait_ptr> m_trait_table;
 
-}; // end class video_metadata_traits
+}; // end class metadata_traits
 
 } } // end namespace
 
@@ -175,4 +175,4 @@ private:
   new kwiver::vital::typed_metadata< TAG, kwiver::vital::vital_meta_trait<TAG>::type > \
   ( kwiver::vital::vital_meta_trait<TAG>::name(), DATA )
 
-#endif /* KWIVER_VITAL_VIDEO_METADATA_TRAITS_H */
+#endif /* KWIVER_VITAL_METADATA_TRAITS_H_ */
