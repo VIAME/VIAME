@@ -13,6 +13,12 @@ if( KWIVER_ENABLE_CERES )
   add_subdirectory( ceres )
 endif()
 
+
+# Add depth plugin if enabled
+if( KWIVER_ENABLE_DEPTH )
+  add_subdirectory( depth )
+endif()
+
 # Add OpenCV plugin if enabled
 if( KWIVER_ENABLE_OPENCV )
   add_subdirectory( dbow2 )

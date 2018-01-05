@@ -21,6 +21,7 @@ endif()
 # Optional for Arrows
 if(KWIVER_ENABLE_ARROWS)
   include( kwiver-depends-CUDA )
+  include( kwiver-depends-depth )
   include( kwiver-depends-OpenCV )
   include( kwiver-depends-PROJ )
   include( kwiver-depends-VisCL )

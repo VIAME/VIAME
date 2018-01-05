@@ -13,6 +13,7 @@ set( public_headers
   analyze_tracks.h
   bundle_adjust.h
   close_loops.h
+  compute_depth.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
   compute_track_descriptors.h
@@ -62,6 +63,7 @@ set( sources
   analyze_tracks.cxx
   bundle_adjust.cxx
   close_loops.cxx
+  compute_depth.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
   compute_track_descriptors.cxx

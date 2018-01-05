@@ -11,6 +11,7 @@ Directory Structure and Provided Functionality
                       `Ceres Solver`_.
 `<arrows/core>`_      Algorithms implemented with no additional third party
                       dependencies beyond what Vital uses (Eigen).
+`<arrows/depth>`_     Depth estimation from video, uses VXL
 `<arrows/darknet>`_   [*Experimental*] Object detection with the Darknet_ YOLO CNN.
 `<arrows/matlab>`_    An interface for running Matlab code KWIVER 
 `<arrows/ocv>`_       Algorithms implemented using OpenCV_.
