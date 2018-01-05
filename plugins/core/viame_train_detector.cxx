@@ -58,7 +58,7 @@
 #include <memory>
 #include <map>
 
-//===================================================================
+//==================================================================================================
 // Class storing all input parameters and private variables for tool
 class trainer_vars
 {
@@ -86,12 +86,12 @@ public:
   }
 };
 
-//===================================================================
+//==================================================================================================
 // Define global variables used across this tool
 static trainer_vars g_params;
 static kwiver::vital::logger_handle_t g_logger;
 
-//===================================================================
+//==================================================================================================
 // Assorted filesystem related helper functions
 bool does_file_exist( const std::string& location )
 {
@@ -266,7 +266,7 @@ bool file_to_vector( const std::string& fn, std::vector< T >& out )
   return true;
 }
 
-//===================================================================
+//==================================================================================================
 // Assorted configuration related helper functions
 static kwiver::vital::config_block_sptr default_config()
 {
@@ -284,6 +284,8 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "image_extensions", ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG",
                      "Semicolon list of seperated image extensions to use in training, images "
                      "without this extension will not be included." );
+  config->set_value( "check_override", "false",
+                     "Over-ride and ignore data safety checks." );
 
   kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
     ( "groundtruth_reader", config, kwiver::vital::algo::detected_object_set_input_sptr() );
@@ -310,7 +312,7 @@ static bool check_config( kwiver::vital::config_block_sptr config )
   return true;
 }
 
-// ==================================================================
+// =================================================================================================
 /*                   _
  *   _ __ ___   __ _(_)_ __
  *  | '_ ` _ \ / _` | | '_ \
@@ -573,6 +575,7 @@ main( int argc, char* argv[] )
   std::string groundtruth_extensions_str = config->get_value< std::string >( "groundtruth_extensions" );
   std::string image_extensions_str = config->get_value< std::string >( "image_extensions" );
   std::string groundtruth_style = config->get_value< std::string >( "groundtruth_style" );
+  bool check_override = config->get_value< bool >( "check_override" );
 
   std::vector< std::string > image_extensions, groundtruth_extensions;
   bool one_file_per_image;
@@ -708,8 +711,63 @@ main( int argc, char* argv[] )
     }
   }
 
-  // Adjust all groundtruth detections for label file contents
-  // TODO: ME
+  // Adjust all groundtruth detections for label file contents and perform error checking
+  std::map< std::string, int > class_count;
+
+  for( auto det_set : train_gt )
+  {
+    for( auto det : *det_set )
+    {
+      if( det->type() )
+      {
+        std::string gt_class;
+        det->type()->get_most_likely( gt_class );
+        class_count[ gt_class ]++;
+      }
+    }
+  }
+
+  if( class_count.empty() ) // groundtruth has no classification labels
+  {
+    // Only 1 class, is okay but inject the classification into the groundtruth
+    if( classes->size() == 1 )
+    {
+      for( auto det_set : train_gt )
+      {
+        for( auto det : *det_set )
+        {
+          det->set_type(
+            kwiver::vital::detected_object_type_sptr(
+              new kwiver::vital::detected_object_type( classes->all_class_names()[0], 1.0 ) ) );
+        }
+      }
+      for( auto det_set : test_gt )
+      {
+        for( auto det : *det_set )
+        {
+          det->set_type(
+            kwiver::vital::detected_object_type_sptr(
+              new kwiver::vital::detected_object_type( classes->all_class_names()[0], 1.0 ) ) );
+        }
+      }
+    }
+    else // Not okay
+    {
+      std::cout << "Error: labels.txt contains multiple classes, but GT is clase-less" << std::endl;
+      return 0;
+    }
+  }
+  else if( !check_override )
+  {
+    for( auto cls : classes->all_class_names() )
+    {
+      if( class_count[ cls ] == 0 )
+      {
+        std::cout << "Error: no entries in groundtruth of class " << cls << std::endl;
+        std::cout << "Optionally set \"check_override\" parameter to ignore this check." << std::endl;
+      }
+    }
+  }
 
   // Run training algorithm
   std::cout << "Beginning Training Process" << std::endl;
