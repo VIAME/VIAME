@@ -60,6 +60,6 @@ algorithms_create_plugin( kwiver_algo_DBoW2
   register_algorithms.cxx
   )
 
-if (KWIVER_ENABLE_TESTS)
-  add_subdirectory(tests)
-endif()
+# if (KWIVER_ENABLE_TESTS)
+#   add_subdirectory(tests)
+# endif()
