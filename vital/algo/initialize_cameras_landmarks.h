@@ -43,7 +43,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
-#include <vital/video_metadata/video_metadata_map.h>
+#include <vital/types/metadata_map.h>
 
 #include <functional>
 
@@ -74,7 +74,7 @@ public:
   initialize(kwiver::vital::camera_map_sptr& cameras,
              kwiver::vital::landmark_map_sptr& landmarks,
              kwiver::vital::feature_track_set_sptr tracks,
-             kwiver::vital::video_metadata_map_sptr metadata = nullptr) const = 0;
+             kwiver::vital::metadata_map_sptr metadata = nullptr) const = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,

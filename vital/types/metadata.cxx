@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,33 +30,16 @@
 
 /**
  * \file
- * \brief This file contains the implementation for vital video metadata.
+ * \brief This file contains the implementation for vital metadata.
  */
 
-#include "video_metadata.h"
-#include "video_metadata_traits.h"
+#include "metadata.h"
+#include "metadata_traits.h"
 
 #include <vital/util/demangle.h>
 
 namespace kwiver {
 namespace vital {
-
-const std::string video_metadata::MISB_0104( "MISB_0104" );
-const std::string video_metadata::MISB_0601( "MISB_0601" );
-
-
-// ------------------------------------------------------------------
-// video metadata exception support
-video_metadata_exception
-::video_metadata_exception( std::string const& str )
-{
-  m_what = str;
-}
-
-
-video_metadata_exception
-::~video_metadata_exception() noexcept
-{ }
 
 
 // ----------------------------------------------------------------
@@ -158,19 +141,19 @@ metadata_item
 
 
 // ==================================================================
-video_metadata
-::video_metadata()
+metadata
+::metadata()
 { }
 
 
-video_metadata
-::~video_metadata()
+metadata
+::~metadata()
 {
 
 }
 
 void
-video_metadata
+metadata
 ::add( metadata_item* item )
 {
   this->m_metadata_map[item->tag()] = item_ptr(item);
@@ -178,7 +161,7 @@ video_metadata
 
 
 bool
-video_metadata
+metadata
 ::has( vital_metadata_tag tag ) const
 {
   return m_metadata_map.find( tag ) != m_metadata_map.end();
@@ -187,7 +170,7 @@ video_metadata
 
 // ------------------------------------------------------------------
 metadata_item const&
-video_metadata
+metadata
 ::find( vital_metadata_tag tag ) const
 {
   static unknown_metadata_item unknown_item;
@@ -204,7 +187,7 @@ video_metadata
 
 // ------------------------------------------------------------------
 bool
-video_metadata
+metadata
 ::erase( vital_metadata_tag tag )
 {
   return m_metadata_map.erase( tag ) > 0;
@@ -212,16 +195,16 @@ video_metadata
 
 
 // ------------------------------------------------------------------
-video_metadata::const_iterator_t
-video_metadata
+metadata::const_iterator_t
+metadata
 ::begin() const
 {
   return m_metadata_map.begin();
 }
 
 
-video_metadata::const_iterator_t
-video_metadata
+metadata::const_iterator_t
+metadata
 ::end() const
 {
   return m_metadata_map.end();
@@ -229,7 +212,7 @@ video_metadata
 
 
 size_t
-video_metadata
+metadata
 ::size() const
 {
   return m_metadata_map.size();
@@ -237,7 +220,7 @@ video_metadata
 
 
 bool
-video_metadata
+metadata
 ::empty() const
 {
   return m_metadata_map.empty();
@@ -246,7 +229,7 @@ video_metadata
 
 // ------------------------------------------------------------------
 void
-video_metadata
+metadata
 ::set_timestamp( kwiver::vital::timestamp const& ts )
 {
   this->m_timestamp = ts;
@@ -254,7 +237,7 @@ video_metadata
 
 
 kwiver::vital::timestamp const&
-video_metadata
+metadata
 ::timestamp() const
 {
   return this->m_timestamp;
@@ -263,7 +246,7 @@ video_metadata
 
   // ------------------------------------------------------------------
 std::type_info const&
-video_metadata
+metadata
 ::typeid_for_tag( vital_metadata_tag tag )
 {
 
@@ -282,7 +265,7 @@ video_metadata
 
 // ------------------------------------------------------------------
 std::string
-video_metadata
+metadata
 ::format_string( std::string const& val )
 {
   const char hex_chars[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
@@ -326,7 +309,7 @@ video_metadata
 
 
 // ------------------------------------------------------------------
-std::ostream& print_metadata( std::ostream& str, video_metadata const& metadata )
+std::ostream& print_metadata( std::ostream& str, metadata const& metadata )
 {
   auto eix = metadata.end();
   for ( auto ix = metadata.begin(); ix != eix; ix++)
@@ -338,7 +321,7 @@ std::ostream& print_metadata( std::ostream& str, video_metadata const& metadata 
    str << "Metadata item: "
        << name
        << " <" << demangle( ix->second->type().name() ) << ">: "
-       << video_metadata::format_string (ix->second->as_string())
+       << metadata::format_string (ix->second->as_string())
        << std::endl;
   } // end for
 

@@ -3,6 +3,9 @@
 #
 
 set( sources
+  convert_metadata.cxx
+  convert_0601_metadata.cxx
+  convert_0104_metadata.cxx
   klv_parse.cxx
   klv_data.cxx
   klv_key.cxx
@@ -12,6 +15,7 @@ set( sources
   )
 
 set( public_headers
+  convert_metadata.h
   klv_parse.h
   klv_data.h
   klv_key.h

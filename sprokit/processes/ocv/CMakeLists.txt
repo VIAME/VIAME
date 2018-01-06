@@ -6,12 +6,10 @@ project( kwiver_ocv_processes )
 set( sources
   register_processes.cxx
 
-  draw_detected_object_boxes_process.cxx
   image_viewer_process.cxx
 )
 
 set( private_headers
-  draw_detected_object_boxes_process.h
   image_viewer_process.h
 )
 

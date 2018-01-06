@@ -240,12 +240,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_set_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_detected_object_set" )
-     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                     "Draws border around detected objects in the set using the selected algorithm." )
-     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-     ;
-
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Draws border around detected objects in the set using the selected algorithm.\n\n"
+                       "This process is a wrapper around a draw_detected_object_set algorithm.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   fact = vpm.ADD_PROCESS( kwiver::split_image_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "split_image" )

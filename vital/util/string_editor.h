@@ -32,6 +32,7 @@
 #define VITAL_STRING_EDITOR_H
 
 #include <vital/util/vital_util_export.h>
+#include <vital/util/string.h>
 
 #include <string>
 #include <vector>
@@ -179,7 +180,7 @@ class left_trim : public string_edit_operation
 public:
   virtual bool process( std::string& s )
   {
-    s.erase(  0, s.find_first_not_of( " \t\n\r\f\v" ) );
+    kwiver::vital::left_trim(s);
     return true;
   }
 };   // end class left_trim
@@ -197,7 +198,7 @@ class right_trim : public string_edit_operation
 public:
   virtual bool process( std::string& s )
   {
-    s.erase( s.find_last_not_of( " \t\n\r\f\v" ) + 1 );
+    kwiver::vital::right_trim(s);
     return true;
   }
 }; // end class right_trim

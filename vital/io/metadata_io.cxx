@@ -30,26 +30,54 @@
 
 /**
  * \file
- * \brief Implementation of file IO functions for AFRL POS metadata files
+ * \brief Implementation of file IO functions for metadata
  *
  */
 
-#include "pos_metadata_io.h"
+#include "metadata_io.h"
 
 #include <fstream>
 
 #include <vital/exceptions.h>
 #include <vital/util/tokenize.h>
-#include <vital/video_metadata/video_metadata_traits.h>
 #include <vital/types/geodesy.h>
+#include <vital/types/metadata_traits.h>
 #include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace vital {
 
 
-/// Read in a POS file, producing a video_metadata object
-video_metadata_sptr
+/// Extract an image file basename from metadata and (if needed) frame number
+std::string
+basename_from_metadata(metadata_sptr md,
+                       frame_id_t frame)
+{
+  typedef kwiversys::SystemTools  ST;
+
+  std::string basename = "frame";
+  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_FILENAME ) )
+  {
+    std::string img_name = md->find( VITAL_META_IMAGE_FILENAME ).as_string();
+    basename = ST::GetFilenameWithoutLastExtension( img_name );
+  }
+  else
+  {
+    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_FILENAME ) )
+    {
+      std::string vid_name = md->find( VITAL_META_VIDEO_FILENAME ).as_string();
+      basename = ST::GetFilenameWithoutLastExtension( vid_name );
+    }
+    char frame_str[6];
+    std::snprintf(frame_str, 6, "%05d", static_cast<int>(frame));
+    basename += std::string(frame_str);
+  }
+  return basename;
+}
+
+
+/// Read in a POS file, producing a metadata object
+metadata_sptr
 read_pos_file( path_t const& file_path )
 {
   // Check that file exists
@@ -94,7 +122,7 @@ read_pos_file( path_t const& file_path )
   }
 
   // make a new metadata container.
-  auto md = std::make_shared<video_metadata>();
+  auto md = std::make_shared<metadata>();
   md->add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, std::string( "POS-file") ) );
 
   if ( tokens.size() == 15 )
@@ -133,9 +161,9 @@ read_pos_file( path_t const& file_path )
 }
 
 
-/// Output the given \c video_metadata object to the specified POS file path
+/// Output the given \c metadata object to the specified POS file path
 void
-write_pos_file( video_metadata const& md,
+write_pos_file( metadata const& md,
                 path_t const& file_path )
 {
 

@@ -36,12 +36,9 @@
 #ifndef KWIVER_ARROWS_CLOSE_LOOPS_KEYFRAME_H_
 #define KWIVER_ARROWS_CLOSE_LOOPS_KEYFRAME_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/close_loops.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * \file \brief This file contains the implementation for metadata traits.
  */
 
-#include "video_metadata_traits.h"
+#include "metadata_traits.h"
 
 namespace kwiver {
 namespace vital {
@@ -74,9 +74,9 @@ struct vital_meta_trait_object
   KWIVER_VITAL_METADATA_TAGS( DEFINE_VITAL_META_TRAIT )
 
 // ------------------------------------------------------------------
-video_metadata_traits
-::video_metadata_traits()
-  : m_logger( kwiver::vital::get_logger( "vital.video_metadata_traits" ) )
+metadata_traits
+::metadata_traits()
+  : m_logger( kwiver::vital::get_logger( "vital.metadata_traits" ) )
 {
   // Create trait table
 #define TABLE_ENTRY(TAG, NAME, TYPE) \
@@ -92,8 +92,8 @@ video_metadata_traits
 
 
 // ------------------------------------------------------------------
-video_metadata_traits
-::~video_metadata_traits()
+metadata_traits
+::~metadata_traits()
 {
 
 }
@@ -101,7 +101,7 @@ video_metadata_traits
 
 // ------------------------------------------------------------------
 vital_meta_trait_base const&
-video_metadata_traits
+metadata_traits
 ::find( vital_metadata_tag tag ) const
 {
   auto ix = m_trait_table.find( tag );
@@ -116,7 +116,7 @@ video_metadata_traits
 
 // ------------------------------------------------------------------
 std::type_info const&
-video_metadata_traits
+metadata_traits
 ::typeid_for_tag( vital_metadata_tag tag ) const
 {
   vital_meta_trait_base const& trait = find( tag );
@@ -126,7 +126,7 @@ video_metadata_traits
 
 // ------------------------------------------------------------------
 std::string
-video_metadata_traits
+metadata_traits
 ::tag_to_symbol( vital_metadata_tag tag ) const
 {
 #define TAG_CASE( TAG, NAME, TYPE ) case VITAL_META_##TAG: return "VITAL_META_" #TAG;
@@ -147,7 +147,7 @@ video_metadata_traits
 
 // ------------------------------------------------------------------
 std::string
-video_metadata_traits
+metadata_traits
 ::tag_to_name( vital_metadata_tag tag ) const
 {
   vital_meta_trait_base const& trait = find( tag );

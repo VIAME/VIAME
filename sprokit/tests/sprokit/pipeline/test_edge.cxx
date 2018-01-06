@@ -47,7 +47,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #endif
 #include <boost/thread/thread.hpp>
-#include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <memory>
@@ -499,7 +498,7 @@ IMPLEMENT_TEST(capacity)
   // Fill the edge.
   edge->push_datum(edat1);
 
-  boost::thread thread = boost::thread(boost::bind(&push_datum, edge, edat2));
+  boost::thread thread = boost::thread(std::bind(&push_datum, edge, edat2));
 
   // Give the other thread some time.
   // XXX(boost): 1.50.0
