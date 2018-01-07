@@ -74,6 +74,7 @@ public:
     , m_overlap_required( 0.05 )
     , m_random_int_shift( 0.00 )
     , m_chips_w_gt_only( false )
+    , m_crop_left( false )
   {}
 
   ~priv()
@@ -94,6 +95,7 @@ public:
   double m_overlap_required;
   double m_random_int_shift;
   bool m_chips_w_gt_only;
+  bool m_crop_left;
 
   // Helper functions
   std::vector< std::string > format_images( std::string folder,
@@ -171,6 +173,8 @@ get_configuration() const
   config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
     "Only chips with valid groundtruth objects on them will be included in "
     "training." );
+  config->set_value( "crop_left", d->m_crop_left,
+    "Crop out the left portion of imagery, only using the left side." );
 
   return config;
 }
@@ -200,6 +204,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
+  this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
 }
 
 
@@ -331,6 +336,12 @@ format_images( std::string folder, std::string prefix,
     {
       std::cout << "Could not load image " << image_fn << std::endl;
       return std::vector< std::string >();
+    }
+
+    if( m_crop_left )
+    {
+      original_image = cv::Mat( original_image,
+        cv::Rect( 0, 0, original_image.cols/2, original_image.rows ) );
     }
 
     double resized_scale = 1.0;

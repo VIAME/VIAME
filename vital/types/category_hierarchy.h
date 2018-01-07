@@ -108,6 +108,18 @@ public:
    */
   ~category_hierarchy();
 
+
+  /**
+   * @brief Add a new class ID
+   *
+   * Parent name can be an empty string if this category has no parent.
+   *
+   * @param class_name Class name.
+   */
+  void add_class( const label_t& class_name,
+                  const label_t& parent_name = label_t(),
+                  const label_id_t id = label_id_t(-1) );
+
   /**
    * @brief Determine if class_name is present.
    *
@@ -121,15 +133,17 @@ public:
   bool has_class_name( const label_t& class_name ) const;
 
   /**
-   * @brief Add a new class ID
+   * @brief Get the official class name for the given class name.
    *
-   * Parent name can be an empty string if this category has no parent.
-   * 
-   * @param class_name Class name.
+   * This is only useful for hierarchies with multiple synonyms
+   * for the same item. In this case, the category "super-ID"
+   * for the synonym will be returned.
+   *
+   * @param class_name Class name to get official class name for.
+   *
+   * @return \b Class label name.
    */
-  void add_class( const label_t& class_name,
-                  const label_t& parent_name = label_t(),
-                  const label_id_t id = label_id_t(-1) );
+  label_t get_class_name( const label_t& class_name ) const;
 
   /**
    * @brief Get the class label ID for the given class name.

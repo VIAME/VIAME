@@ -105,19 +105,6 @@ category_hierarchy
 
 
 // -----------------------------------------------------------------------------
-bool
-category_hierarchy
-::has_class_name( const std::string& class_name ) const
-{
-  if( m_hierarchy.find( class_name ) != m_hierarchy.end() )
-  {
-    return true;
-  }
-  return false;
-}
-
-
-// -----------------------------------------------------------------------------
 void
 category_hierarchy
 ::add_class( const label_t& class_name,
@@ -140,6 +127,30 @@ category_hierarchy
     hierarchy_const_itr_t itr = find( parent_name );
     new_entry->parents.push_back( itr->second.get() );
   }
+}
+
+
+// -----------------------------------------------------------------------------
+bool
+category_hierarchy
+::has_class_name( const std::string& class_name ) const
+{
+  if( m_hierarchy.find( class_name ) != m_hierarchy.end() )
+  {
+    return true;
+  }
+  return false;
+}
+
+
+// -----------------------------------------------------------------------------
+category_hierarchy::label_t
+category_hierarchy
+::get_class_name( const label_t& class_name ) const
+{
+  hierarchy_const_itr_t itr = this->find( class_name );
+
+  return itr->second->category_name;
 }
 
 
@@ -277,7 +288,7 @@ category_hierarchy
       std::istream_iterator< std::string >(),
       std::back_inserter( tokens ) );
 
-    if( tokens.size() == 0 )
+    if( tokens.size() == 0 || tokens[0].size() == 0 || tokens[0][0] == '#' )
     {
       continue;
     }
@@ -316,7 +327,7 @@ category_hierarchy
 
   if( itr == m_hierarchy.end() )
   {
-    throw std::runtime_error( "Class node does not exist." );
+    throw std::runtime_error( "Class node " + lbl + " does not exist." );
   }
 
   return itr;
@@ -333,7 +344,10 @@ category_hierarchy
   for( hierarchy_const_itr_t p = m_hierarchy.begin();
        p != m_hierarchy.end(); ++p )
   {
-    sorted_cats.push_back( p->second );
+    if( p->first == p->second->category_name ) // don't include synonyms
+    {
+      sorted_cats.push_back( p->second );
+    }
   }
 
   std::sort( sorted_cats.begin(), sorted_cats.end(),
