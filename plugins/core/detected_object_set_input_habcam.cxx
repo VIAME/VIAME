@@ -406,13 +406,10 @@ read_all()
     kwiver::vital::tokenize( line, parsed_line, m_delim, true );
 
     // Test the minimum number of fields.
-    if ( parsed_line.size() < 3 )
+    if ( parsed_line.size() < 4 )
     {
-      std::stringstream str;
-      str << "Too few field in input at line " << stream_reader.line_number()
-          << std::endl << "\"" << line << "\"";
-
-      throw kwiver::vital::invalid_data( str.str() );
+      std::cout << "Invalid line: " << line << std::endl;
+      continue;
     }
 
     // Make 'v2' formats look like 'v1' so they can share parsing code
