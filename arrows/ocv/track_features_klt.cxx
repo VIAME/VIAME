@@ -293,7 +293,7 @@ public:
         other.dist_image.copyTo(dist_image);
       }
         return *this;
-      }
+    }
 
     bool should_redetect(const feature_distribution_image &lastDetectDist, 
                          float redetect_threshold) 

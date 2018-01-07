@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2013-2017 by Kitware, Inc.
+* Copyright 2017-2018 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,7 @@
 
 /**
 * \file
-* \brief Header file for an abstract \link kwiver::vital::track_set track_set
-*        \endlink and a concrete \link kwiver::vital::simple_track_set
-*        simple_track_set \endlink
+* \brief  Classes to store metadata about frames.
 */
 
 #ifndef VITAL_KEYFRAME_DATA_H_
@@ -55,36 +53,51 @@ namespace vital {
 class keyframe_metadata;
 typedef std::shared_ptr< keyframe_metadata> keyframe_metadata_sptr;
 
+///  Virtual base class for keyframe metadata.
+/**
+* Interface for keyframe metadata.  At a minimum it is cloneable.
+*/
+
 class VITAL_EXPORT keyframe_metadata {
 public:
+  /// Desructor
   virtual ~keyframe_metadata() {}
+
+  // Clone the metadata
   virtual keyframe_metadata_sptr clone() const = 0;
 };
 
 class keyframe_metadata_for_basic_selector;
 typedef std::shared_ptr<keyframe_metadata_for_basic_selector> keyframe_metadata_for_basic_selector_sptr;
 
+/// Stores if a frame is a keyframe or not.
+/**
+* Stores the metadata of whether or not a frame is a keyframe.
+*/
+
 class VITAL_EXPORT keyframe_metadata_for_basic_selector :public keyframe_metadata
 {
 public:
+
+  /// Constructor
   keyframe_metadata_for_basic_selector() = delete;
 
+  /// Returns true iff the frame is a keyframe
   keyframe_metadata_for_basic_selector(bool is_keyframe_)
     : is_keyframe(is_keyframe_) { }
 
+  /// Destructor
   virtual ~keyframe_metadata_for_basic_selector() {}
 
+  /// Clone this metadata and return a pointer to it
   virtual keyframe_metadata_sptr clone() const
   {
-    keyframe_metadata_for_basic_selector_sptr new_kfmd =
-      std::make_shared< keyframe_metadata_for_basic_selector >(this->is_keyframe);
-    return new_kfmd;
+    return std::make_shared< keyframe_metadata_for_basic_selector >(this->is_keyframe);
   }
 
+  /// True iff the frame is a keyframe
   bool is_keyframe;
 };
-
-
 
 class keyframe_data;
 /// Shared pointer for base keyframe_data type
@@ -92,6 +105,7 @@ typedef std::shared_ptr< keyframe_data > keyframe_data_sptr;
 typedef std::shared_ptr< const keyframe_data > keyframe_data_const_sptr;
 
 class simple_keyframe_data;
+/// Shared pointer for base simple_keyframe_data type
 typedef std::shared_ptr< simple_keyframe_data> simple_keyframe_data_sptr;
 typedef std::shared_ptr< const simple_keyframe_data> simple_keyframe_data_const_sptr;
 
@@ -101,23 +115,29 @@ typedef std::shared_ptr<const keyframe_data_map> keyframe_data_map_const_sptr;
 
 /// A collection of keyframes
 /**
-* This class is a very basic keyframe data structure.  We can do better 
+* This class is a very basic keyframe data structure.  We can do better
 * with a graph etc.
 */
 class VITAL_EXPORT keyframe_data
 {
-public: 
+public:
 
+  /// Destructor
   virtual ~keyframe_data() {};
 
+  /// Get a pointer to the metadata for a particular frame
   virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const = 0;
 
+  /// Set the metadata for a frame
   virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata) = 0;
 
+  /// Remove the metadata for a pariticular frame from the data structure
   virtual bool remove_frame_metadata(frame_id_t frame) = 0;
 
+  /// Get a pointer to the keyframe_data_map that stores all of the keyframe metadata
   virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const = 0;
 
+  /// Clone this keyframe data
   virtual keyframe_data_sptr clone() const = 0;
 
 };
@@ -125,52 +145,32 @@ public:
 class VITAL_EXPORT simple_keyframe_data:public keyframe_data
 {
 public:
+
+  /// Constructor
   simple_keyframe_data();
 
+  /// Destructor
   virtual ~simple_keyframe_data();
 
+  /// Get the metadata for a frame
   virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
 
+  /// Set the metadata for a frame
   virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
 
+  /// Remove the metadata for a frame from the data structure
   virtual bool remove_frame_metadata(frame_id_t frame);
 
+  /// Get a pointer to the keyframe_data_map that stores all of the keyframe metadata
   virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const;
 
+  /// Clone this keyframe data
   virtual keyframe_data_sptr clone() const;
 
 protected:
   class priv;
   std::shared_ptr<priv> d_;
 };
-
-//this will go in a new kwiver arror shortly
-class VITAL_EXPORT keyframe_data_graph
-  :public keyframe_data
-{
-public:
-  keyframe_data_graph();
-
-  virtual ~keyframe_data_graph();
-
-  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
-
-  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
-
-  virtual bool remove_frame_metadata(frame_id_t frame);
-
-  virtual keyframe_data_map_const_sptr get_keyframe_metadata_map() const;
-
-  virtual keyframe_data_sptr clone() const;
-
-protected:
-  class priv;
-  std::shared_ptr<priv> d_;
-  
-};
-
-typedef std::shared_ptr<keyframe_data_graph> keyframe_data_graph_sptr;
-
 
 } // end namespace vital
 } // end namespace kwiver

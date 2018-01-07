@@ -378,48 +378,6 @@ track_set_implementation
   return frame_number;
 }
 
-keyframe_metadata_sptr
-track_set_implementation
-::get_frame_metadata(frame_id_t frame) const
-{
-  return keyframe_metadata_sptr();  //return a null smart pointer
-}
-
-bool
-track_set_implementation
-::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
-{
-  return false; // nothing is stored in base class
-}
-
-bool 
-track_set_implementation
-::remove_frame_metadata(frame_id_t frame)
-{
-  return false;
-}
-
-keyframe_data_const_sptr 
-track_set_implementation
-::get_keyframe_data() const
-{
-  return keyframe_data_const_sptr();
-}
-
-void
-track_set_implementation
-::set_keyframe_data(keyframe_data_const_sptr kfd)
-{
-  //no op
-}
-
-track_set_implementation_uptr
-track_set_implementation
-::clone() const
-{
-  return track_set_implementation_uptr();
-}
-
 //=============================================================================
 
 /// Default Constructor
@@ -453,7 +411,7 @@ track_set
   track_set_implementation_uptr my_impl = impl_->clone();
 
   track_set_sptr ts = std::make_shared<track_set>(std::move(my_impl));
-  
+
   return ts;
 }
 
@@ -496,21 +454,21 @@ simple_track_set_implementation
   return true;
 }
 
-keyframe_metadata_sptr 
+keyframe_metadata_sptr
 simple_track_set_implementation
 ::get_frame_metadata(frame_id_t frame) const
 {
   return kf_data_->get_frame_metadata(frame);
 }
 
-bool 
+bool
 simple_track_set_implementation
 ::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
 {
   return kf_data_->set_frame_metadata(frame, metadata);
 }
 
-bool 
+bool
 simple_track_set_implementation
 ::remove_frame_metadata(frame_id_t frame)
 {
@@ -524,37 +482,29 @@ simple_track_set_implementation
   return std::dynamic_pointer_cast<const keyframe_data>(kf_data_);
 }
 
-void 
+void
 simple_track_set_implementation
 ::set_keyframe_data(keyframe_data_const_sptr kfd) {
-  kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(
-    std::const_pointer_cast<keyframe_data>(kfd));
-
-  if (!kf_data_)
-  {
-    static std::string const reason = 
-      "Input keyframe data could not be cast to a simple keyframe data.";
-    throw std::runtime_error(reason);
-  }
+  kf_data_ = std::const_pointer_cast<keyframe_data>(kfd);
 }
 
 
-track_set_implementation_uptr 
+track_set_implementation_uptr
 simple_track_set_implementation
 ::clone() const
 {
-  std::unique_ptr<simple_track_set_implementation> new_stsi = 
-    std::make_unique<simple_track_set_implementation>();
+  std::unique_ptr<simple_track_set_implementation> new_stsi =
+    std::unique_ptr<simple_track_set_implementation>(new simple_track_set_implementation());
 
   for (auto trk : data_)
   {
     new_stsi->data_.push_back(trk->clone());
   }
-  // this will work because this->kf_data is in fact a 
+  // this will work because this->kf_data is in fact a
   // simple_keyframe_data by construction
-  new_stsi->kf_data_ = 
+  new_stsi->kf_data_ =
     std::dynamic_pointer_cast<simple_keyframe_data>(this->kf_data_->clone());
-  
+
   std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());
   if (new_tsi) {
     new_stsi.release();

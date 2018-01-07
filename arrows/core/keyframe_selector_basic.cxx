@@ -45,10 +45,10 @@ class keyframe_selector_basic::priv {
 public:
   priv()
     : keyframe_min_feature_count(50)
-    , fraction_tracks_lost_to_necessitate_new_keyframe(0.3f) 
+    , fraction_tracks_lost_to_necessitate_new_keyframe(0.3f)
     , next_candidate_keyframe_id(-1)
   {
-  }  
+  }
 
   virtual ~priv() {}
 
@@ -70,7 +70,7 @@ public:
   /// Set current parameter values to the given config block
   void update_config(vital::config_block_sptr &config) const
   {
-    config->set_value("fraction_tracks_lost_to_necessitate_new_keyframe", 
+    config->set_value("fraction_tracks_lost_to_necessitate_new_keyframe",
       fraction_tracks_lost_to_necessitate_new_keyframe,
       "if this fraction of more of features is lost then select a new keyframe");
     config->set_value("keyframe_min_feature_count",
@@ -82,13 +82,13 @@ public:
   {
     bool success(true);
 
-    float test_fraction_tracks_lost_to_necessitate_new_keyframe = 
+    float test_fraction_tracks_lost_to_necessitate_new_keyframe =
       config->get_value<float>(
       "fraction_tracks_lost_to_necessitate_new_keyframe");
 
-    if (!(0 < test_fraction_tracks_lost_to_necessitate_new_keyframe && 
+    if (!(0 < test_fraction_tracks_lost_to_necessitate_new_keyframe &&
           test_fraction_tracks_lost_to_necessitate_new_keyframe <= 1.0))
-    {         
+    {
       LOG_ERROR(m_logger, "fraction_tracks_lost_to_necessitate_new_keyframe ("
         << test_fraction_tracks_lost_to_necessitate_new_keyframe
         << ") should be greater than zero and <= 1.0");
@@ -117,10 +117,13 @@ public:
 
   int keyframe_min_feature_count;
   float fraction_tracks_lost_to_necessitate_new_keyframe;
-  frame_id_t next_candidate_keyframe_id;   // this is a member variable to 
-                                           // prevent us from checking the 
-                                           // same frames repeatedly to see if 
-                                           // they are key-frames
+     // this is a member variable to
+
+  // prevent us from checking the
+  // same frames repeatedly to see if
+  // they are key-frames
+  frame_id_t next_candidate_keyframe_id;
+
   kwiver::vital::logger_handle_t m_logger;
 };
 
@@ -136,7 +139,7 @@ keyframe_selector_basic::priv
   // going until we find a first suitable keyframe.
   auto frame_ids = tracks->all_frame_ids();
   for (auto frame : frame_ids)
-  {   
+  {
     bool is_keyframe = false;
     if (tracks->num_active_tracks() >= keyframe_min_feature_count)
     {
@@ -144,12 +147,12 @@ keyframe_selector_basic::priv
       next_candidate_keyframe_id = frame + 1;
     }
     //this is the first frame that can be a keyframe
-    std::shared_ptr<keyframe_metadata> sptr = 
+    std::shared_ptr<keyframe_metadata> sptr =
       std::shared_ptr<keyframe_metadata>(
       (keyframe_metadata*)new keyframe_metadata_for_basic_selector(is_keyframe));
-    
+
       tracks->set_frame_metadata(frame, sptr);
-      
+
       break;
   }
 }
@@ -162,7 +165,7 @@ keyframe_selector_basic::priv
   auto kfd = tracks->get_keyframe_data();
   auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
 
-  // go to the last key-frame, then consider each frame newer than that one in 
+  // go to the last key-frame, then consider each frame newer than that one in
   // order and decide if it should be a keyframe
   if (kfd_metadata_map->empty())
   {
@@ -172,7 +175,7 @@ keyframe_selector_basic::priv
   //find the last keyframe
 
   frame_id_t last_keyframe_id = -1;
-  for (auto latest_kfmd_it = kfd_metadata_map->crbegin(); 
+  for (auto latest_kfmd_it = kfd_metadata_map->crbegin();
     latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
   {
     last_keyframe_id = latest_kfmd_it->first;
@@ -206,13 +209,13 @@ keyframe_selector_basic::priv
 
   frame_id_t last_frame_id = tracks->last_frame();
 
-  for ( ; next_candidate_keyframe_id <= last_frame_id ; 
+  for ( ; next_candidate_keyframe_id <= last_frame_id ;
         ++next_candidate_keyframe_id)
   {
     bool is_keyframe = true;
-    double percentage_tracked = 
+    double percentage_tracked =
       tracks->percentage_tracked(last_keyframe_id, next_candidate_keyframe_id);
-    if ( percentage_tracked > 
+    if ( percentage_tracked >
         (1.0 - fraction_tracks_lost_to_necessitate_new_keyframe))
     {
       is_keyframe = false;
@@ -224,8 +227,8 @@ keyframe_selector_basic::priv
       is_keyframe = false;
     }
 
-    //add it's metadata to tracks      
-    std::shared_ptr<keyframe_metadata> sptr = 
+    //add it's metadata to tracks
+    std::shared_ptr<keyframe_metadata> sptr =
       std::dynamic_pointer_cast<keyframe_metadata>(
         std::make_shared<keyframe_metadata_for_basic_selector>(is_keyframe));
     tracks->set_frame_metadata(next_candidate_keyframe_id, sptr);
@@ -266,8 +269,8 @@ void
 keyframe_selector_basic
 ::set_configuration(vital::config_block_sptr in_config)
 {
-  // Starting with our generated config_block to ensure that assumed values are 
-  // present.  An alternative is to check for key presence before performing a 
+  // Starting with our generated config_block to ensure that assumed values are
+  // present.  An alternative is to check for key presence before performing a
   //get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
@@ -289,7 +292,7 @@ keyframe_selector_basic
   // Add a key frame if
   // 1) Number of continuous feature tracks to a frame drops below 90%
   //    of features existing in any neighboring key-frame
-  // 2) number of features in frame is greater than some minimum.  This prevents 
+  // 2) number of features in frame is greater than some minimum.  This prevents
   //    keyframes from being added in areas with little texture (few features).
 
   track_set_sptr cur_tracks = tracks->clone();  //deep copy here
@@ -311,38 +314,6 @@ keyframe_selector_basic
 
   return cur_tracks;  //return the copy of tracks
 }
-/*
-//this will eventually go in keyframe_selector_graph
-kwiver::vital::track_set_sptr
-keyframe_selector_graph
-::select(kwiver::vital::track_set_sptr tracks) const
-{
-  // General idea here:
-  // Add a key frame if
-  // 1) Number of continuous feature tracks to a frame drops below 90%
-  //    of features existing in any neighboring key-frame
-  // 2) number of features in frame is greater than some minimum.  This prevents 
-  //    keyframes from being added in areas with little texture (few features).
-
-  keyframe_data_const_sptr kfd = tracks->get_keyframe_data();
-  //std::shared_ptr<const keyframe_data_graph> kfd_g;
-  //kfd_g = std::dynamic_pointer_cast<const keyframe_data_graph>(kfd);
-  //if(kfd_g)
-  //{
-  //  //do the algorithm that uses the graph data structures
-  //  return tracks;
-  //}
-
-  // we can add if statements for algorithms that correspond to other underlying
-  // keyframe_data structures here
-
-  //do the basic algorithm that uses the
-  auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
-
-
-  return tracks; // no op for now
-}
-*/
 
 } // end namespace core
 } // end namespace arrows

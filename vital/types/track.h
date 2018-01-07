@@ -96,7 +96,7 @@ public:
 
   virtual ~track_state() = default;
 
-protected:
+private:
   /// The frame identifier for this state
   frame_id_t frame_id_;
 
@@ -173,7 +173,7 @@ public:
   static track_sptr create( track_data_sptr data = nullptr );
 
   /// Clone
-  virtual track_sptr clone() const;
+  track_sptr clone() const;
 
   /// Access the track identification number
   track_id_t id() const { return id_; }

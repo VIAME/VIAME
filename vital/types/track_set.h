@@ -258,7 +258,7 @@ public:
 
   virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata) = 0;
 
-  virtual bool remove_frame_metadata(frame_id_t frame) = 0;  
+  virtual bool remove_frame_metadata(frame_id_t frame) = 0;
 
 };
 
@@ -335,17 +335,14 @@ public:
   /// Convert an offset number to an absolute frame number
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const;
 
-  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
+  /// Get the keyframe data
+  virtual keyframe_data_const_sptr get_keyframe_data() const = 0;
 
-  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
+  /// Set the keyframe data
+  virtual void set_keyframe_data(keyframe_data_const_sptr kfd) = 0;
 
-  virtual bool remove_frame_metadata(frame_id_t frame);
-
-  virtual keyframe_data_const_sptr get_keyframe_data() const;
-
-  virtual void set_keyframe_data(keyframe_data_const_sptr kfd);
-
-  virtual track_set_implementation_uptr clone() const;
+  /// Clone this track set implementation
+  virtual track_set_implementation_uptr clone() const = 0;
 };
 
 
@@ -541,7 +538,7 @@ public:
 
   virtual track_set_sptr clone() const;
 
-protected:  
+protected:
 
   /// The implementation of the track set functions
   std::unique_ptr<track_set_implementation> impl_;
@@ -559,7 +556,7 @@ public:
   simple_track_set_implementation();
 
   /// Constructor from a vector of tracks
-  explicit simple_track_set_implementation(const std::vector< track_sptr >& tracks);    
+  explicit simple_track_set_implementation(const std::vector< track_sptr >& tracks);
 
   /// Return the number of tracks in the set
   virtual size_t size() const { return data_.size(); }
@@ -589,7 +586,7 @@ public:
   virtual bool remove_frame_metadata(frame_id_t frame);
 
   /// get the keyframe data as a const map.  This allows algorithms to operate on the data
-  /// but not change it.  They must make changes to the keyframe states through track set 
+  /// but not change it.  They must make changes to the keyframe states through track set
   /// implementation methods.
   virtual keyframe_data_const_sptr get_keyframe_data() const;
 
@@ -602,7 +599,7 @@ protected:
   std::vector< track_sptr > data_;
 
   /// The keyframe data container
-  simple_keyframe_data_sptr kf_data_;
+  keyframe_data_sptr kf_data_;
 
 };
 

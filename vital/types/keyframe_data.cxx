@@ -38,7 +38,7 @@
 
 namespace kwiver {
 namespace vital {
-  
+
 class simple_keyframe_data::priv
 {
 public:
@@ -86,7 +86,7 @@ public:
   {
     std::shared_ptr<simple_keyframe_data::priv> new_skd_priv =
       std::make_shared<simple_keyframe_data::priv>();
-    
+
     for (auto kf : *kf_map_ptr)
     {
       (*(new_skd_priv->kf_map_ptr))[kf.first] = kf.second->clone();
@@ -95,7 +95,7 @@ public:
   }
 
   keyframe_data_map_sptr kf_map_ptr;
-};  //end keframe_data::priv 
+};  //end keframe_data::priv
 
     //-------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ simple_keyframe_data
 
 }
 
-keyframe_data_sptr 
+keyframe_data_sptr
 simple_keyframe_data
 ::clone() const
 {
@@ -127,77 +127,26 @@ simple_keyframe_data
   return d_->get_frame_metadata(frame);
 }
 
-bool 
+bool
 simple_keyframe_data
 ::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
 {
   return d_->set_frame_metadata(frame, metadata);
 }
 
-bool 
+bool
 simple_keyframe_data
 ::remove_frame_metadata(frame_id_t frame)
 {
   return d_->remove_frame_metadata(frame);
 }
 
-keyframe_data_map_const_sptr 
+keyframe_data_map_const_sptr
 simple_keyframe_data
 ::get_keyframe_metadata_map() const
 {
   return d_->get_keyframe_metadata_map();
 }
-
-//-----------------------------------------------------------------------------
-
-keyframe_data_graph
-::keyframe_data_graph()
-{
-
-}
-
-keyframe_data_graph
-::~keyframe_data_graph()
-{
-
-}
-
-keyframe_metadata_sptr 
-keyframe_data_graph
-::get_frame_metadata(frame_id_t frame) const
-{
-  return keyframe_metadata_sptr();
-}
-
-bool 
-keyframe_data_graph
-::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
-{
-  return false;
-}
-
-bool
-keyframe_data_graph
-::remove_frame_metadata(frame_id_t frame)
-{
-  return false;
-}
-
-keyframe_data_map_const_sptr
-keyframe_data_graph
-::get_keyframe_metadata_map() const
-{
-  return keyframe_data_map_const_sptr();
-}
-
-keyframe_data_sptr 
-keyframe_data_graph
-::clone() const
-{
-  return keyframe_data_graph_sptr();
-}
-
-
 
 } // end namespace vital
 } // end namespace kwiver

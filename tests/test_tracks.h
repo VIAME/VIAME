@@ -114,7 +114,7 @@ generate_tracks( unsigned frames=100,
     active_tracks.swap( next_tracks );
 
   }
-  return std::make_shared<track_set>( all_tracks );
+  return std::make_shared<track_set>( all_tracks, nullptr );
 }
 
 
