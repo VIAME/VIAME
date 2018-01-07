@@ -162,7 +162,7 @@ read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name 
   if( !image_name.empty() )
   {
     // return detection set at current index if there is one
-    if( d->m_gt_sets.count( image_name ) == 0 )
+    if( d->m_gt_sets.find( image_name ) == d->m_gt_sets.end() )
     {
       // return empty set
       set = std::make_shared< kwiver::vital::detected_object_set>();
@@ -429,6 +429,8 @@ read_all()
 
       parsed_line.insert( parsed_line.begin() + 3, parsed_loc.begin(), parsed_loc.end() );
     }
+
+    parse_detection( parsed_line );
   }
 
   std::sort( m_filenames.begin(), m_filenames.end() );

@@ -692,13 +692,13 @@ main( int argc, char* argv[] )
 
         gt_reader->open( gt_files[i] );
 
-        std::string read_fn = image_file;
+        std::string read_fn = get_filename_no_path( image_file );
         gt_reader->read_set( frame_dets, read_fn );
         gt_reader->close();
       }
       else
       {
-        std::string read_fn = image_file;
+        std::string read_fn = get_filename_no_path( image_file );
         gt_reader->read_set( frame_dets, read_fn );
       }
 
