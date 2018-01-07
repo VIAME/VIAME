@@ -34,11 +34,11 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/image_container.h>
 #include <vital/types/image.h>
+#include <vital/types/metadata_traits.h>
 #include <vital/algo/image_io.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/util/tokenize.h>
-#include <vital/video_metadata/video_metadata_traits.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -89,6 +89,7 @@ video_input_image_list
   set_capability( vital::algo::video_input::HAS_FRAME_TIME, false );
   set_capability( vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false );
   set_capability( vital::algo::video_input::HAS_TIMEOUT, false );
+  set_capability( vital::algo::video_input::IS_SEEKABLE, true );
 }
 
 
@@ -259,6 +260,13 @@ video_input_image_list
   return d->m_frame_number > 0 && ! this->end_of_video();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_image_list
+::seekable() const
+{
+  return true;
+}
 
 // ------------------------------------------------------------------
 bool
@@ -293,6 +301,41 @@ video_input_image_list
   return ! this->end_of_video();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_image_list
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // Check if requested frame exists
+  if (frame_number > static_cast<int>( d->m_files.size() ) || frame_number < 0)
+  {
+    return false;
+  }
+
+  // Adjust frame number if this is the first call to seek_frame or next_frame
+  if (d->m_frame_number == 0)
+  {
+    d->m_frame_number = 1;
+  }
+
+  // Calculate distance to new frame
+  kwiver::vital::timestamp::frame_t frame_diff =
+    frame_number - d->m_frame_number;
+  d->m_current_file += frame_diff;
+  d->m_frame_number = frame_number;
+
+  // clear the last loaded image
+  d->m_image = nullptr;
+
+  // Return timestamp
+  ts = kwiver::vital::timestamp();
+
+  ts.set_frame( d->m_frame_number );
+
+  return ! this->end_of_video();
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
@@ -314,19 +357,19 @@ video_input_image_list
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 video_input_image_list
 ::frame_metadata()
 {
   if ( ! this->good() )
   {
-    return vital::video_metadata_vector();
+    return vital::metadata_vector();
   }
   // For now, the only metadata is the filename of the image
-  auto md = std::make_shared<vital::video_metadata>();
+  auto md = std::make_shared<vital::metadata>();
   md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
                               *d->m_current_file ) );
-  vital::video_metadata_vector mdv(1, md);
+  vital::metadata_vector mdv(1, md);
   return mdv;
 }
 

@@ -98,8 +98,8 @@ detailed information can be displayed by adding the ``-d`` option.::
     Flags      :
     Description: Timestamp for input image.
 
-    Name       : video_metadata
-    Data type  : kwiver:video_metadata
+    Name       : metadata
+    Data type  : kwiver:metadata
     Flags      :
     Description: Video metadata vector for a frame.
 

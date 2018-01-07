@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS__MATCH_FEATURES_FUNDMENTAL_MATRIX_H_
 #define KWIVER_ARROWS__MATCH_FEATURES_FUNDMENTAL_MATRIX_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/filter_features.h>
@@ -44,8 +43,6 @@
 #include <vital/algo/estimate_fundamental_matrix.h>
 #include <vital/algo/match_features.h>
 #include <vital/config/config_block.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {

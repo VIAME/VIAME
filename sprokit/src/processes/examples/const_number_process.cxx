@@ -32,8 +32,6 @@
 
 #include <vital/config/config_block.h>
 
-#include <boost/cstdint.hpp>
-
 /**
  * \file const_number_process.cxx
  *

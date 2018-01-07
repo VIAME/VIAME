@@ -41,10 +41,7 @@
 
 #include <vital/algo/video_input.h>
 
-#include <vital/klv/klv_data.h>
-#include <vital/klv/klv_parse.h>
-#include <vital/video_metadata/video_metadata.h>
-#include <vital/video_metadata/convert_metadata.h>
+#include <vital/types/metadata.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
@@ -191,7 +188,7 @@ int main( int argc, char** argv )
     std::cout << "========== Read frame " << ts.get_frame()
               << " (index " << count << ") ==========" << std::endl;
 
-    kwiver::vital::video_metadata_vector metadata = video_reader->frame_metadata();
+    kwiver::vital::metadata_vector metadata = video_reader->frame_metadata();
     for( auto meta : metadata )
     {
       std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;

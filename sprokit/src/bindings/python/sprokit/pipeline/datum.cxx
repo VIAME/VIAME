@@ -34,7 +34,6 @@
 #endif
 #include <pybind11/pybind11.h>
 #include <vital/any.h>
-#include <boost/cstdint.hpp>
 #if WIN32
 #pragma warning (pop)
 #endif

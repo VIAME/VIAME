@@ -10,6 +10,40 @@ release version, and the content of this file will be reset.
 Updates since last public release
 ---------------------------------
 
+Arrows - Core
+
+ * Implemented the seekable() and seek_frame() methods for the various
+   video_input implementations. In general this means most of these
+   implementations now support seeking to a specific frame in the video.
+
+ * Expanding the tests for the video_input implementations to test the new
+   seek frame functionality.
+
+ * Tests of the video_input implementations now test against new test imagery
+   that allows an additional check that the video source is on the correct
+   frame. This done using barcodes embedded in the test imagery that encode
+   the frame number.
+
+Arrows - OpenCV
+
+ * Added an OpenCV based KLT feature tracker.
+
+Arrows - VXL
+
+ * Implemented the seekable() and seek_frame() methods for the
+   vidl_ffmpeg_video_input video source. This source now supports seeking by
+   frame if the underlying video stream supports it.
+
+ * Added a test for the vidl_ffmpeg_video_input. This test tests the same
+   functionality as the tests for video_input implementations in Core. This
+   includes the new seek frame functionality.
+
+Vital
+
+ * Expanded video_input API to include a seek_frame() method which will seek
+   the video source to specific frame and a seekable() method which returns
+   true if the video source supports frame seeking. This allows
+   implementations to support seeking to a specific frame if possible.
 
 Fixes since last public release
 -------------------------------

@@ -111,6 +111,12 @@ Vital
    properties. Properties from the derived class are merged with the
    fixed set of properties when the set of properties is requested.
 
+ * The video_metadata library has been removed by refactoring its contents
+   into other parts of Vital.  The video_metadata type has moved into
+   vital/types and was renamed to "metadata".  The file I/O functions have
+   moved into vital/io, and the KLV conversion functions have moved into
+   vital/klv.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring

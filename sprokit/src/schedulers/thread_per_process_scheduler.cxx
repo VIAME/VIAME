@@ -132,7 +132,7 @@ thread_per_process_scheduler
   {
     process_t const process = pipeline()->process_by_name(name);
 
-    d->process_threads->create_thread(boost::bind(&priv::run_process, d.get(), process));
+    d->process_threads->create_thread(std::bind(&priv::run_process, d.get(), process));
   }
 }
 

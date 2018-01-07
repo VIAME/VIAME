@@ -36,12 +36,9 @@
 #ifndef KWIVER_ARROWS_OCV_ESTIMATE_FUNDAMENTAL_MATRIX_H_
 #define KWIVER_ARROWS_OCV_ESTIMATE_FUNDAMENTAL_MATRIX_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/estimate_fundamental_matrix.h>
-
 
 namespace kwiver {
 namespace arrows {

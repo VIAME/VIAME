@@ -39,13 +39,11 @@
 #include <opencv2/opencv_modules.hpp>
 #if ! defined(KWIVER_HAS_OPENCV_VER_3) || defined(HAVE_OPENCV_XFEATURES2D)
 
-#include <memory>
-#include <string>
-
 #include <vital/algo/extract_descriptors.h>
-#include <vital/vital_config.h>
 
 #include <arrows/ocv/extract_descriptors.h>
+
+#include <string>
 
 namespace kwiver {
 namespace arrows {

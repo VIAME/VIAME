@@ -43,8 +43,8 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
+#include <vital/types/metadata.h>
 #include <vital/types/timestamp.h>
-#include <vital/video_metadata/video_metadata.h>
 
 #include <string>
 #include <vector>
@@ -113,6 +113,9 @@ namespace algo {
  * HAS_TIMEOUT - This capability is set if the implementation supports the
  *     timeout parameter on the next_frame() method.
  *
+ * IS_SEEKABLE - This capability is set if the video source can seek to a
+ *      specific frame.
+ *
  * All implementations \b must support the basic traits, in that they
  * are registered with a \b true or \b false value. Additional
  * implementation specific (extended) traits may be added. The
@@ -140,6 +143,7 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;
+  static const algorithm_capabilities::capability_name_t IS_SEEKABLE;
 
   virtual ~video_input();
 
@@ -204,6 +208,14 @@ public:
    */
   virtual bool good() const = 0; // like io stream API
 
+  /**
+   * \brief Return whether video stream is seekable.
+   *
+   * This method returns whether the video stream is seekable.
+   *
+   * \return \b true if video stream is seekable, \b false otherwise.
+   */
+  virtual bool seekable() const = 0;
 
   /**
    * \brief Advance to next frame in video stream.
@@ -236,6 +248,40 @@ public:
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 ) = 0;
 
+  /**
+   * \brief Seek to the given frame number in video stream.
+   *
+   * This method seeks the video stream to the requested frame, making
+   * the image and metadata available. The returned timestamp is for
+   * new current frame.
+   *
+   * The timestamp returned may be missing the time.
+   *
+   * Calling this method will make a new image and metadata packets
+   * available. They can be retrieved by calling frame_image() and
+   * frame_metadata().
+   *
+   * Check the HAS_TIMEOUT capability from the concrete implementation to
+   * see if the timeout feature is supported.
+   *
+   * If the frame requested does not exist, then calling this method
+   * will return \b false.
+   *
+   * If the video input is not seekable then calling this method will return
+   * \b false.
+   *
+   * \param[out] ts Time stamp of new frame.
+   * \param[in] frame_number The frame to seek to.
+   * \param[in] timeout Number of seconds to wait. 0 = no timeout.
+   *
+   * \return \b true if frame returned, \b false if end of video.
+   *
+   * \throws video_input_timeout_exception when the timeout expires.
+   * \throws video_stream_exception when there is an error in the video stream.
+   */
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 ) = 0;
 
   /**
    * \brief Get current frame from video stream.
@@ -285,7 +331,7 @@ public:
    *
    * \throws video_stream_exception when there is an error in the video stream.
    */
-  virtual kwiver::vital::video_metadata_vector frame_metadata() = 0;
+  virtual kwiver::vital::metadata_vector frame_metadata() = 0;
 
 
   /**

@@ -36,17 +36,13 @@
 #ifndef KWIVER_ARROWS_DETECT_FEATURES_FAST_H_
 #define KWIVER_ARROWS_DETECT_FEATURES_FAST_H_
 
-#include <memory>
-#include <string>
-
-#include <vital/vital_config.h>
-
 #include <arrows/ocv/detect_features.h>
+
+#include <string>
 
 namespace kwiver {
 namespace arrows {
 namespace ocv{
-
 
 class KWIVER_ALGO_OCV_EXPORT detect_features_FAST
   : public vital::algorithm_impl<detect_features_FAST,

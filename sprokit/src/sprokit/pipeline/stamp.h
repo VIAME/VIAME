@@ -42,7 +42,6 @@
 #pragma warning (disable : 4244)
 #pragma warning (disable : 4267)
 #endif
-#include <boost/cstdint.hpp>
 #include <boost/operators.hpp>
 #ifdef WIN32
 #pragma warning (pop)

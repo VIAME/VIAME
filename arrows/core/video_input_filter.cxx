@@ -92,11 +92,11 @@ video_input_filter
                      "If set to zero, start at the beginning of the video." );
 
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "End the video after passing this frame number. " 
+                     "End the video after passing this frame number. "
                      "Set this value to 0 to disable filter.");
 
   config->set_value( "frame_rate", d->c_frame_rate, "Number of frames per second. "
-                     "If the video does not provide a valid time, use this rate " 
+                     "If the video does not provide a valid time, use this rate "
                      "to compute frame time.  Set 0 to disable.");
 
   vital::algo::video_input::
@@ -174,6 +174,8 @@ video_input_filter
                   vi_caps.capability( vi::HAS_ABSOLUTE_FRAME_TIME ) );
   set_capability( vi::HAS_TIMEOUT,
                   vi_caps.capability( vi::HAS_TIMEOUT ) );
+  set_capability( vi::IS_SEEKABLE,
+                  vi_caps.capability( vi::IS_SEEKABLE ) );
 
 }
 
@@ -211,6 +213,17 @@ video_input_filter
   return d->d_video_input->good();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_filter
+::seekable() const
+{
+  if( ! d->d_video_input )
+  {
+    return false;
+  }
+  return d->d_video_input->seekable();
+}
 
 // ------------------------------------------------------------------
 bool
@@ -247,6 +260,30 @@ video_input_filter
   return status;
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_filter
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout ) // not supported
+{
+  // Check if requested frame is valid
+  if ( (d->c_stop_after_frame != 0 && d->c_stop_after_frame < frame_number )
+        || frame_number < d->c_start_at_frame )
+  {
+    return false;
+  }
+
+  bool status = d->d_video_input->seek_frame( ts, frame_number, timeout );
+
+  // set the frame time base on rate if missing
+  if( d->c_frame_rate > 0 && !ts.has_valid_time() )
+  {
+    ts.set_time_seconds( ts.get_frame() / d->c_frame_rate );
+  }
+
+  return status;
+}
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
@@ -262,7 +299,7 @@ video_input_filter
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 video_input_filter
 ::frame_metadata()
 {
@@ -270,7 +307,7 @@ video_input_filter
   {
     return d->d_video_input->frame_metadata();
   }
-  return kwiver::vital::video_metadata_vector();
+  return kwiver::vital::metadata_vector();
 }
 
 } } }     // end namespace
