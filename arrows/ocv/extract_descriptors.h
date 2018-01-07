@@ -36,8 +36,6 @@
 #ifndef KWIVER_ARROWS_OCV_EXTRACT_DESCRIPTORS_H_
 #define KWIVER_ARROWS_OCV_EXTRACT_DESCRIPTORS_H_
 
-
-#include <vital/vital_config.h>
 #include <vital/algo/extract_descriptors.h>
 
 #include <arrows/ocv/kwiver_algo_ocv_export.h>

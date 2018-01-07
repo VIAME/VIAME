@@ -9,7 +9,6 @@
 #   sprokit_install_pipelines
 #   sprokit_install_clusters
 #   sprokit_install_includes
-#   sprokit_add_helper_library
 #
 # The following variables may be used to control the behavior of the functions:
 #
@@ -71,22 +70,6 @@
 #     Install pipeline files into the correct
 #     location.
 #
-#   sprokit_add_helper_library(name sourcevar [library ...])
-#     Adds a static library which contains code shared between separate
-#     libraries. The library is neither exported nor installed. The 'sourcevar'
-#     argument is a list of source files for the library.
-
-function (_sprokit_compile_pic name)
-  if (CMAKE_VERSION VERSION_GREATER "2.8.9")
-    set_target_properties(${name}
-      PROPERTIES
-        POSITION_INDEPENDENT_CODE TRUE)
-  elseif (NOT MSVC)
-    set_target_properties(${name}
-      PROPERTIES
-        COMPILE_FLAGS "-fPIC")
-  endif ()
-endfunction ()
 
 ###
 #
@@ -130,29 +113,6 @@ endfunction ()
 
 ###
 #
-function (sprokit_add_executable name)
-  add_executable(${name}
-    ${ARGN})
-  set_target_properties(${name}
-    PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${sprokit_output_dir}/bin")
-
-  if (NOT component)
-    set(component
-      runtime)
-  endif ()
-
-  _sprokit_export(${name})
-
-  sprokit_install(
-    TARGETS     ${name}
-    ${exports}
-    DESTINATION bin
-    COMPONENT   ${component})
-endfunction ()
-
-###
-#
 function (sprokit_private_header_group)
   source_group("Header Files\\Private"
     FILES ${ARGN})
@@ -175,7 +135,7 @@ function (sprokit_install_pipelines)
 endfunction ()
 
 ###
-#
+# for cluster definitions
 function (sprokit_install_clusters)
   sprokit_install(
     FILES       ${ARGN}
@@ -184,22 +144,10 @@ function (sprokit_install_clusters)
 endfunction ()
 
 ###
-#
+# for pipeline fragment files that are included
 function (sprokit_install_includes)
   sprokit_install(
     FILES       ${ARGN}
     DESTINATION share/sprokit/pipelines/include
     COMPONENT   pipeline)
-endfunction ()
-
-###
-#
-function (sprokit_add_helper_library name sources)
-  add_library(${name} STATIC
-    ${${sources}})
-  target_link_libraries(${name}
-    LINK_PRIVATE
-      ${ARGN})
-
-  _sprokit_compile_pic(${name})
 endfunction ()

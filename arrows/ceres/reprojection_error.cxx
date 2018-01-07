@@ -36,8 +36,6 @@
 
 #include "reprojection_error.h"
 
-#include <vital/vital_config.h>
-
 #include <arrows/ceres/lens_distortion.h>
 #include <arrows/ceres/types.h>
 
@@ -254,4 +252,3 @@ create_cost_func(LensDistortionType ldt, double x, double y)
 } // end namespace ceres
 } // end namespace arrows
 } // end namespace kwiver
-

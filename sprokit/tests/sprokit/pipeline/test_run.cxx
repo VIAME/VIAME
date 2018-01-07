@@ -40,7 +40,6 @@
 #include <sprokit/pipeline/scheduler_exception.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 
-#include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <memory>

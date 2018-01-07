@@ -36,12 +36,9 @@
 #ifndef KWIVER_ARROWS_VXL_ESTIMATE_HOMOGRAPHY_H_
 #define KWIVER_ARROWS_VXL_ESTIMATE_HOMOGRAPHY_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/algo/estimate_homography.h>
-
 
 namespace kwiver {
 namespace arrows {

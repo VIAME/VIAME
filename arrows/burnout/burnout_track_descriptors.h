@@ -33,8 +33,6 @@
 
 #include <arrows/burnout/kwiver_algo_burnout_export.h>
 
-#include <vital/vital_config.h>
-
 #include <vital/algo/compute_track_descriptors.h>
 
 namespace kwiver {
