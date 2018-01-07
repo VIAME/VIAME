@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,14 +40,21 @@
 #include <memory>
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
 namespace viame {
 
 /// Expected format
-/// typical input looks like the following:
+/// typical input looks like the following for version 1:
 ///
 /// 201503.20150517.074921957.9593.png 469 201501
-/// 201503.20150517.074921957.9593.png 527 201501 boundingBox 458.6666666666667 970.4166666666666 521.3333333333334 1021.0833333333334
+/// 201503.20150517.074921957.9593.png 527 201501 boundingBox ...
+/// ...458.6666666666667 970.4166666666666 521.3333333333334 1021.0833333333334
+///
+/// or alternatively for version 2:
+///
+/// 201503.20150525.101430169.572475.png,185,live sea scallop,"""line"": ...
+/// ...[[963.3651240907222, 1011.8916075814615], [964.870387904199, 966.7336931771592]]"
 ///
 /// 1: image name
 /// 2: species code
@@ -56,46 +63,50 @@ namespace viame {
 /// 4: annotation type
 /// 5: annotation data depends on type
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 class detected_object_set_input_habcam::priv
 {
 public:
   priv( detected_object_set_input_habcam* parent)
     : m_parent( parent )
     , m_first( true )
-    , m_delim( " " )
+    , m_current_idx( 0 )
+    , m_last_idx( 0 )
+    , m_delim( "" )
     , m_point_dilation( 50 )
+    , m_use_internal_table( false )
+    , m_detected_version( 1 )
   {
     init_species_map();
   }
 
-  ~priv() { }
+  ~priv() {}
 
-  bool get_input();
-  void add_detection();
+  void read_all();
   void init_species_map();
   std::string decode_species( int code );
-
+  void parse_detection( const std::vector< std::string >& parsed_line );
 
   // -- initialized data --
   detected_object_set_input_habcam* m_parent;
   bool m_first;
 
+  int m_current_idx;
+  int m_last_idx;
+
   // -- config data --
   std::string m_delim;
   double m_point_dilation;      // in pixels
+  bool m_use_internal_table;
+  int m_detected_version;
 
   std::map< int, std::string > m_species_map;
-
-  // -- algo state data --
-  std::shared_ptr< kwiver::vital::data_stream_reader > m_stream_reader;
-  std::vector< std::string > m_input_buffer;
-  kwiver::vital::detected_object_set_sptr m_current_set;
-  std::string m_image_name;
+  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_gt_sets;
+  std::vector< std::string > m_filenames;
 };
 
 
-// ==================================================================
+// =============================================================================
 detected_object_set_input_habcam::
 detected_object_set_input_habcam()
   : d( new detected_object_set_input_habcam::priv( this ) )
@@ -109,23 +120,21 @@ detected_object_set_input_habcam::
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 detected_object_set_input_habcam::
 set_configuration( kwiver::vital::config_block_sptr config )
 {
-  d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
-  d->m_point_dilation = config->get_value<double>( "point_dilation", d->m_point_dilation );
-
-  // Test for no specification which can happen due to config parsing issues.
-  if ( d->m_delim.empty() )
-  {
-    d->m_delim = " ";
-  }
+  d->m_delim =
+    config->get_value<std::string>( "delimiter", d->m_delim );
+  d->m_point_dilation =
+    config->get_value<double>( "point_dilation", d->m_point_dilation );
+  d->m_use_internal_table =
+    config->get_value<bool>( "point_dilation", d->m_use_internal_table );
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 bool
 detected_object_set_input_habcam::
 check_configuration( kwiver::vital::config_block_sptr config ) const
@@ -134,144 +143,131 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 bool
 detected_object_set_input_habcam::
-read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
+read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
 {
-  if ( d->m_first )
+  if( d->m_first )
   {
     d->m_first = false;
+    d->init_species_map();
+    d->read_all();
 
-    if ( ! d->get_input() )
+    d->m_current_idx = 0;
+    d->m_last_idx = d->m_filenames.size();
+  }
+
+  // External image name provided, use that
+  if( !image_name.empty() )
+  {
+    // return detection set at current index if there is one
+    if( d->m_gt_sets.count( image_name ) == 0 )
     {
-      return false; // indicate end of file.
+      // return empty set
+      set = std::make_shared< kwiver::vital::detected_object_set>();
     }
-  } // end first
+    else
+    {
+      // Return detections for this frame.
+      set = d->m_gt_sets[ image_name ];
+    }
+    return true;
+  }
 
-  // test for end of stream
-  if (this->at_eof())
+  // External image name not provided, iterate through all images alphabetically
+
+  // Test for end of stream
+  if( d->m_current_idx >= d->m_last_idx )
   {
     return false;
   }
 
-  // Allocate return set and reset image name
-  d->m_current_set = std::make_shared<kwiver::vital::detected_object_set>();
-  d->m_image_name = d->m_input_buffer[0];
+  // Return detections for this frame.
+  image_name = d->m_filenames[ d->m_current_idx ];
+  set = d->m_gt_sets[ image_name ];
 
-  bool valid_line( true );
-
-  while( true )
-  {
-    // check buffer to see if it has the current frame number
-    if ( valid_line && ( d->m_input_buffer[0] == d->m_image_name ) )
-    {
-      // We are in the same frame, so add this detection to current set
-      d->add_detection();
-
-      // Get next input line
-      valid_line = d->get_input();
-    }
-    else
-    {
-      // Don't return empty sets at this point.
-      if (d->m_current_set->size() > 0)
-      {
-        image_name = d->m_image_name;
-        set = d->m_current_set;
-        return true;
-      }
-
-      d->m_image_name = d->m_input_buffer[0];
-    }
-  } // end while
-
-  return false;
+  ++d->m_current_idx;
+  return true;
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 detected_object_set_input_habcam::
 new_stream()
 {
   d->m_first = true;
-  d->m_stream_reader = std::make_shared< kwiver::vital::data_stream_reader>( stream() );
+  d->m_filenames.clear();
+  d->m_gt_sets.clear();
 }
 
 
-// ==================================================================
-bool
-detected_object_set_input_habcam::priv::
-get_input()
-{
-  std::string line;
-  if ( ! m_stream_reader->getline( line ) )
-  {
-    return false; // end of file.
-  }
-
-  m_input_buffer.clear();
-  kwiver::vital::tokenize( line, m_input_buffer, m_delim, true );
-
-  // Test the minimum number of fields.
-  if ( m_input_buffer.size() < 3 )
-  {
-    std::stringstream str;
-    str << "Too few field in input at line " << m_stream_reader->line_number() << std::endl
-        << "\"" << line << "\"";
-    throw kwiver::vital::invalid_data( str.str() );
-  }
-
-  return true;
-}
-
-
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 detected_object_set_input_habcam::priv::
-add_detection()
+parse_detection( const std::vector< std::string >& parsed_line )
 {
-  if ( m_input_buffer.size() < 4 )
+  if ( parsed_line.size() < 4 )
   {
     // This is an image level annotation.
     // Not handled at this point
     return;
   }
 
-  kwiver::vital::detected_object_type_sptr dot = std::make_shared< kwiver::vital::detected_object_type > ();
-  std::string class_name = decode_species( atoi( m_input_buffer[1].c_str() ) );
+  if( m_gt_sets.find( parsed_line[0] ) == m_gt_sets.end() )
+  {
+    // create a new detection set entry
+    m_gt_sets[ parsed_line[0] ] =
+      std::make_shared<kwiver::vital::detected_object_set>();
+
+    m_filenames.push_back( parsed_line[0] );
+  }
+
+  kwiver::vital::detected_object_type_sptr dot
+    = std::make_shared< kwiver::vital::detected_object_type >();
+
+  std::string class_name;
+
+  if( m_use_internal_table )
+  {
+    class_name = decode_species( atoi( parsed_line[1].c_str() ) );
+  }
+  else
+  {
+    class_name = parsed_line[1];
+  }
 
   dot->set_score( class_name, 1.0 );
 
   kwiver::vital::bounding_box_d bbox( 0, 0, 0, 0 );
 
   // Generate bbox based on annotation type
-  if ( "boundingBox" == m_input_buffer[3] )
+  if ( "boundingBox" == parsed_line[3] )
   {
-    if ( m_input_buffer.size() == 8 )
+    if ( parsed_line.size() == 8 )
     {
       bbox = kwiver::vital::bounding_box_d(
-        atof( m_input_buffer[4].c_str() ),
-        atof( m_input_buffer[5].c_str() ),
-        atof( m_input_buffer[6].c_str() ),
-        atof( m_input_buffer[7].c_str() ) );
+        atof( parsed_line[4].c_str() ),
+        atof( parsed_line[5].c_str() ),
+        atof( parsed_line[6].c_str() ),
+        atof( parsed_line[7].c_str() ) );
     }
     else
     {
       // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid line format for boundingBox annotation" );
+      LOG_WARN( m_parent->logger(), "Invalid format for boundingBox annotation" );
       return;
     }
   }
-  else if ( "line" == m_input_buffer[3] )
+  else if ( "line" == parsed_line[3] )
   {
-    if ( m_input_buffer.size() == 8 )
+    if ( parsed_line.size() == 8 )
     {
-      const double x1 = atof( m_input_buffer[4].c_str() );
-      const double y1 = atof( m_input_buffer[5].c_str() );
-      const double x2 = atof( m_input_buffer[6].c_str() );
-      const double y2 = atof( m_input_buffer[7].c_str() );
+      const double x1 = atof( parsed_line[4].c_str() );
+      const double y1 = atof( parsed_line[5].c_str() );
+      const double x2 = atof( parsed_line[6].c_str() );
+      const double y2 = atof( parsed_line[7].c_str() );
 
       const double cx = ( x1 + x2 ) / 2;
       const double cy = ( y1 + y2 ) / 2;
@@ -287,17 +283,16 @@ add_detection()
     else
     {
       // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid line format for boundingBox annotation" );
+      LOG_WARN( m_parent->logger(), "Invalid format for line annotation" );
       return;
     }
-
   }
-  else if ( "point" == m_input_buffer[3] )
+  else if ( "point" == parsed_line[3] )
   {
-    if ( m_input_buffer.size() == 6 )
+    if ( parsed_line.size() == 6 )
     {
-      const double cx = atof( m_input_buffer[4].c_str() );
-      const double cy = atof( m_input_buffer[5].c_str() );
+      const double cx = atof( parsed_line[4].c_str() );
+      const double cy = atof( parsed_line[5].c_str() );
 
       bbox = kwiver::vital::bounding_box_d(
         cx - m_point_dilation, cy - m_point_dilation,
@@ -306,22 +301,50 @@ add_detection()
     else
     {
       // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid line format for point annotation" );
+      LOG_WARN( m_parent->logger(), "Invalid format for point annotation" );
+      return;
+    }
+  }
+  else if ( "circle" == parsed_line[3] )
+  {
+    if ( parsed_line.size() == 8 )
+    {
+      const double x1 = atof( parsed_line[4].c_str() );
+      const double y1 = atof( parsed_line[5].c_str() );
+      const double x2 = atof( parsed_line[6].c_str() );
+      const double y2 = atof( parsed_line[7].c_str() );
+
+      const double cx = ( x1 + x2 ) / 2;
+      const double cy = ( y1 + y2 ) / 2;
+
+      const double dx = x1 - cx;
+      const double dy = y1 - cy;
+      const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
+
+      bbox = kwiver::vital::bounding_box_d(
+        cx - r, cy - r,
+        cx + r, cy + r );
+    }
+    else
+    {
+      // invalid line format
+      LOG_WARN( m_parent->logger(), "Invalid format for circle annotation" );
       return;
     }
   }
   else
   {
     // Unknown annotation type
-    LOG_WARN( m_parent->logger(), "Unknown annotation type \"" << m_input_buffer[3] << "\"" );
+    LOG_WARN( m_parent->logger(), "Unknown annotation type \"" << parsed_line[3] << "\"" );
     return;
   }
 
-  m_current_set->add( std::make_shared< kwiver::vital::detected_object > ( bbox, 1.0, dot ) );
+  m_gt_sets[ parsed_line[0] ]->add(
+    std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
 } // detected_object_set_input_habcam::priv::add_detection
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 std::string
 detected_object_set_input_habcam::priv::
 decode_species( int code )
@@ -339,7 +362,80 @@ decode_species( int code )
 }
 
 
-// ------------------------------------------------------------------
+// =============================================================================
+void
+detected_object_set_input_habcam::priv::
+read_all()
+{
+  std::string line;
+  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
+
+  m_gt_sets.clear();
+
+  while( stream_reader.getline( line ) )
+  {
+    if( line.substr(0,6) == "Image," || line.empty() ) //ignore header
+    {
+      continue;
+    }
+
+    // Automatically figure out delim if not set
+    if( m_delim.empty() )
+    {
+      if( line.find( ',' ) )
+      {
+        m_delim = ",";
+        m_detected_version = 2;
+      }
+      else
+      {
+        m_delim = " ";
+        m_detected_version = 1;
+      }
+    }
+
+    if( m_detected_version == 2 )
+    {
+      line.erase( std::remove( line.begin(), line.end(), '[' ), line.end() );
+      line.erase( std::remove( line.begin(), line.end(), ']' ), line.end() );
+      line.erase( std::remove( line.begin(), line.end(), '\"' ), line.end() );
+      line.erase( std::remove( line.begin(), line.end(), ':' ), line.end() );
+    }
+
+    std::vector< std::string > parsed_line;
+    kwiver::vital::tokenize( line, parsed_line, m_delim, true );
+
+    // Test the minimum number of fields.
+    if ( parsed_line.size() < 3 )
+    {
+      std::stringstream str;
+      str << "Too few field in input at line " << stream_reader.line_number()
+          << std::endl << "\"" << line << "\"";
+
+      throw kwiver::vital::invalid_data( str.str() );
+    }
+
+    // Make 'v2' formats look like 'v1' so they can share parsing code
+    if( m_detected_version == 2 )
+    {
+      std::vector< std::string > parsed_loc;
+      kwiver::vital::tokenize( parsed_line[3], parsed_loc, " ", true );
+      parsed_line.erase( parsed_line.begin() + 3 );
+
+      if( parsed_loc.size() != 2 )
+      {
+        throw kwiver::vital::invalid_data( "Invalid line: " + line );
+      }
+
+      parsed_line.insert( parsed_line.begin() + 3, parsed_loc.begin(), parsed_loc.end() );
+    }
+  }
+
+  std::sort( m_filenames.begin(), m_filenames.end() );
+}
+
+
+// -----------------------------------------------------------------------------
 void
 detected_object_set_input_habcam::priv::
 init_species_map()
@@ -347,22 +443,22 @@ init_species_map()
   // Could read the species definition from a file.
   // The map will be constant and large, so this could be class static.
   // Probably not more than one reader instantiated at a time.
-  m_species_map[185] = "Live Scallop";
-  m_species_map[197] = "Live Scallop";
-  m_species_map[207] = "Live Scallop";
-  m_species_map[211] = "Live Scallop";
-  m_species_map[515] = "Live Scallop";
-  m_species_map[912] = "Live Scallop";
-  m_species_map[919] = "Live Scallop";
-  m_species_map[920] = "Live Scallop";
-  m_species_map[188] = "Dead Scallop";
-  m_species_map[403] = "Sand-eel";
-  m_species_map[524] = "Skate";
-  m_species_map[533] = "Fish";
-  m_species_map[1003] = "Fish";
-  m_species_map[1001] = "Fish";
-  m_species_map[158] = "Crab";
-  m_species_map[258] = "Crab";
+  m_species_map[185] = "live_scallop";
+  m_species_map[197] = "live_scallop";
+  m_species_map[207] = "live_scallop";
+  m_species_map[211] = "live_scallop";
+  m_species_map[515] = "live_scallop";
+  m_species_map[912] = "live_scallop";
+  m_species_map[919] = "live_scallop";
+  m_species_map[920] = "live_scallop";
+  m_species_map[188] = "dead_scallop";
+  m_species_map[403] = "sand_eel";
+  m_species_map[524] = "skate";
+  m_species_map[533] = "fish";
+  m_species_map[1003] = "fish";
+  m_species_map[1001] = "fish";
+  m_species_map[158] = "crab";
+  m_species_map[258] = "crab";
 }
 
 } // end namespace

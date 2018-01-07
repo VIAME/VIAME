@@ -613,6 +613,12 @@ main( int argc, char* argv[] )
   std::vector< std::string > test_image_fn;
   std::vector< kwiver::vital::detected_object_set_sptr > test_gt;
 
+  if( subdirs.empty() )
+  {
+    std::cout << "Error: training folder contains no sub-folders" << std::endl;
+    exit( 0 );
+  }
+
   for( std::string folder : subdirs )
   {
     std::cout << "Processing " << folder << std::endl;
@@ -630,12 +636,12 @@ main( int argc, char* argv[] )
     {
       std::cout << "Error: folder " << folder << " contains unequal truth and image file counts" << std::endl;
       std::cout << " - Consider turning on the one_per_folder groundtruth style" << std::endl;
-      continue;
+      exit( 0 );
     }
     else if( gt_files.size() < 1 )
     {
       std::cout << "Error reading folder " << folder << ", no groundtruth." << std::endl;
-      continue;
+      exit( 0 );
     }
 
     kwiver::vital::algo::detected_object_set_input_sptr gt_reader;
@@ -645,7 +651,7 @@ main( int argc, char* argv[] )
       if( gt_files.size() != 1 )
       {
         std::cout << "Error: folder " << folder << " must contain only 1 groundtruth file" << std::endl;
-        continue;
+        exit( 0 );
       }
 
       kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
@@ -658,10 +664,72 @@ main( int argc, char* argv[] )
       gt_reader->open( gt_files[0] );
     }
 
-    // Read all images in sequence
+    // Read all images and detections in sequence
     if( image_files.size() == 0 )
     {
       std::cout << "Error: folder contains no image files." << std::endl;
+    }
+
+    std::map< std::string, kwiver::vital::detected_object_set_sptr > seq_dets;
+
+    if( !one_file_per_image )
+    {
+      std::string read_fn;
+      int frame_counter = 0;
+
+      kwiver::vital::detected_object_set_sptr frame_dets;
+
+      while( gt_reader->read_set( frame_dets, read_fn ) )
+      {
+        if( !read_fn.empty() ) // Groundtruth format contains file names
+        {
+          seq_dets[ read_fn ] = frame_dets;
+        }
+        else if( frame_counter < image_files.size() ) // GT doesn't have names
+        {
+          seq_dets[ image_files[ frame_counter ] ] = frame_dets;
+        }
+        else // Error
+        {
+          std::cout << "Warning: more groundtruth than number of images" << std::endl;
+          break;
+        }
+
+        frame_counter++;
+      }
+    }
+
+    for( unsigned i = 0; i < image_files.size(); ++i )
+    {
+      const std::string image_file = image_files[i];
+
+      const std::string file_wrt_input = append_path( folder, image_file );
+      const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
+
+      // Read groundtruth for image
+      kwiver::vital::detected_object_set_sptr frame_dets;
+
+      if( one_file_per_image )
+      {
+        gt_reader.reset();
+
+        kwiver::vital::algo::detected_object_set_input::set_nested_algo_configuration
+          ( "groundtruth_reader", config, gt_reader );
+        kwiver::vital::algo::detected_object_set_input::get_nested_algo_configuration
+          ( "groundtruth_reader", config, gt_reader );
+
+        gt_reader->open( gt_files[i] );
+
+        std::string read_fn;
+        gt_reader->read_set( frame_dets, read_fn );
+        gt_reader->close();
+      }
+      else
+      {
+        frame_dets = seq_dets[ image_files[i] ];
+      }
+
+      std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
     }
 
     for( unsigned i = 0; i < image_files.size(); ++i )
@@ -722,7 +790,11 @@ main( int argc, char* argv[] )
       {
         std::string gt_class;
         det->type()->get_most_likely( gt_class );
-        class_count[ gt_class ]++;
+
+        if( classes->has_class_name( gt_class ) )
+        {
+          class_count[ classes->get_class_name( gt_class ) ]++;
+        }
       }
     }
   }
@@ -765,6 +837,7 @@ main( int argc, char* argv[] )
       {
         std::cout << "Error: no entries in groundtruth of class " << cls << std::endl;
         std::cout << "Optionally set \"check_override\" parameter to ignore this check." << std::endl;
+        exit( 0 );
       }
     }
   }
