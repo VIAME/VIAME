@@ -155,7 +155,7 @@ estimate_pnp
   if (pts2d.size() < 3 || pts3d.size() < 3)
   {
     LOG_ERROR(d_->m_logger,
-      "Not enough points to estimate a fundamental matrix");
+      "Not enough points to estimate camera's pose");
     return vital::camera_sptr();
   }
   if (pts2d.size() != pts3d.size())
