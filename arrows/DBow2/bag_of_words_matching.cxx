@@ -78,10 +78,10 @@ public:
 
   cv::Mat descriptor_to_mat(descriptor_sptr) const;
 
-  void query(kwiver::vital::descriptor_set_sptr desc,
-             frame_id_t frame_number,
-             std::vector<frame_id_t> &putative_matches,
-             bool append_to_index_on_query);
+  std::vector<frame_id_t>
+  query(kwiver::vital::descriptor_set_sptr desc,
+        frame_id_t frame_number,
+        bool append_to_index_on_query);
 
   void append_to_index(const vital::descriptor_set_sptr desc,
                        vital::frame_id_t frame);
@@ -188,20 +188,19 @@ bag_of_words_matching::priv
 
 //-----------------------------------------------------------------------------
 
-void
+std::vector<frame_id_t>
 bag_of_words_matching::priv
 ::query( kwiver::vital::descriptor_set_sptr desc,
          frame_id_t frame_number,
-         std::vector<frame_id_t> &putative_matches,
          bool append_to_index_on_query)
 {
   setup_voc();
 
-  putative_matches.clear();
+  std::vector<frame_id_t> putative_matches;
 
   if (!desc)
   {
-    return;
+    return putative_matches;
   }
 
   std::vector<cv::Mat> desc_mats;
@@ -211,7 +210,7 @@ bag_of_words_matching::priv
 
   if (desc_mats.size() == 0)
   {  //only features without descriptors in this frame
-    return;
+    return putative_matches;
   }
 
   //run them through the vocabulary to get the BOW vector
@@ -254,6 +253,7 @@ bag_of_words_matching::priv
     putative_matches.push_back(put_match->second);
   }
 
+  return putative_matches;
 }
 
 //-----------------------------------------------------------------------------
@@ -425,14 +425,19 @@ bag_of_words_matching
   d_->append_to_index(desc, frame_number);
 }
 
-void
+std::vector<frame_id_t>
 bag_of_words_matching
-::query(const descriptor_set_sptr desc,
-        frame_id_t frame_number,
-        std::vector<frame_id_t> &putative_matching_frames,
-        bool append_to_index_on_query)
+::query( const descriptor_set_sptr desc )
 {
-  d_->query(desc, frame_number, putative_matching_frames,append_to_index_on_query);
+  return d_->query(desc,-1,false);
+}
+
+std::vector<frame_id_t>
+bag_of_words_matching
+::query_and_append( const vital::descriptor_set_sptr desc,
+                    frame_id_t frame)
+{
+  return d_->query(desc, frame, true);
 }
 
 // ------------------------------------------------------------------

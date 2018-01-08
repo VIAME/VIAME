@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Interface for bag_of_words_matching \link kwiver::vital::algo::algorithm_def 
+ * \brief Interface for bag_of_words_matching \link kwiver::vital::algo::algorithm_def
  *   algorithm definition \endlink.
  */
 
@@ -65,7 +65,7 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "bag_of_words_matching"; }
 
-  /// Add an image to the inverted file system.  
+  /// Add an image to the inverted file system.
   /**
   * Add the image to the inverted file system.  Future matching results may
   * include this image in their results.
@@ -73,30 +73,40 @@ public:
   * \param[in] frame_number frame of the associated image
   * \returns None
   */
-  virtual void append_to_index( const descriptor_set_sptr desc, frame_id_t frame) = 0;
+  virtual
+  void
+  append_to_index(const vital::descriptor_set_sptr desc,
+                  vital::frame_id_t frame_number) = 0;
 
-  /// Add an image to the inverted file system.  
+  /// Query the inverted file system for similar images.
   /**
-  * Add the image to the inverted file system.  Future matching results may
-  * include this image in their results.
+  * Query the inverted file system and return the most similar images.
   * \param[in] desc set of descriptors for the image
-  * \param[in] frame_number frame of the associated image
-  * \param[out] putative_matching_frames possibly matching images found by the query
-  * \param[in] append_to_index_on_query Add this image to the inverted file index
-  * during the query. Note: the current image will not be returned in
-  * putative_matching_frames because we already know it matches itself.
-  * \returns None
+  * \returns vector of possibly matching frames found by the query
   */
-  virtual void query(const vital::descriptor_set_sptr,
-                     frame_id_t frame_number,
-                     std::vector<vital::frame_id_t> &putative_matching_frames,
-                     bool append_to_index_on_query) = 0;
+  virtual
+  std::vector<vital::frame_id_t>
+  query(const vital::descriptor_set_sptr desc) = 0;
+
+  /// Query the inverted file system for similar images and append the querying image.
+  /**
+  * Query the inverted file system and return the most similar images.  This method
+  * may be faster than first querying and then appending if both operations are required.
+  * \param[in] desc set of descriptors for the image
+  * \param[in] frame id of the query image
+  * \returns vector of possibly matching frames found by the query
+  */
+
+  virtual
+  std::vector<vital::frame_id_t>
+  query_and_append(const vital::descriptor_set_sptr desc,
+                   frame_id_t frame);
 
 protected:
 
   /// Default constructor
   bag_of_words_matching();
- 
+
 };
 
 
