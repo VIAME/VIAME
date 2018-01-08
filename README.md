@@ -49,7 +49,7 @@ Documentation
 Pre-Built Binaries
 ------------------
 
-Note: these binaries are currently very out-of-date, but will be updated sometime before this year's ICCV. Source build is recommended.
+Note: these binaries are currently very out-of-date, but will be updated in the near future. Source build is recommended.
 
 Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages.
 
