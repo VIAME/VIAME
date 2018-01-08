@@ -40,13 +40,13 @@ Documentation
 [Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
-[Image and Video Search](examples/image_and_video_search) > > > [Detector Training](examples/detector_training)
+[Detector Training API](examples/detector_training) > > > [Image and Video Search, for both Search and Model Generation](examples/image_and_video_search)
 
 
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
 
 
-[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Class-Level Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
+[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
 Pre-Built Binaries
