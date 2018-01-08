@@ -50,7 +50,11 @@ class EigenArray
 
   public:
 
-    EigenArray(unsigned int, unsigned int, bool, bool, char);
+    EigenArray(unsigned int rows = 2,
+               unsigned int cols = 1,
+               bool dynamic_rows = false,
+               bool dynamic_cols = false,
+               char ctype = 'd');
 
     void fromVectorF(std::vector< std::vector<float> >);
     void fromVectorD(std::vector< std::vector<double> >);
@@ -165,7 +169,7 @@ class PyRotation
 
   public:
 
-    PyRotation(char);
+    PyRotation(char ctype='d');
 
     void fromQuatF(const Eigen::Quaternion< float >);
     void fromQuatD(const Eigen::Quaternion< double >);
