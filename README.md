@@ -17,8 +17,8 @@ Capabilities
 <p align="center">
 <br>
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="430" height="284">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="430" height="284">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="400" height="264">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="400" height="264">
 </nobr>
 </p>
 <p align="center">
@@ -26,7 +26,6 @@ Capabilities
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png" alt="Query Example" width="860" height="284">
 </nobr>
 </p>
-<br>
 
 Documentation
 -------------
