@@ -72,11 +72,11 @@ class EigenArray
 };
 
 EigenArray::
-EigenArray(unsigned int rows = 2,
-             unsigned int cols = 1,
-             bool dynamic_rows = false, // we're ignoring these, but keeping them in for API reasons
-             bool dynamic_cols = false,
-             char ctype = 'd')
+EigenArray(unsigned int rows,
+             unsigned int cols,
+             bool dynamic_rows, // we're ignoring these, but keeping them in for API reasons
+             bool dynamic_cols,
+             char ctype)
 {
   type = ctype;
   if(type == 'd') double_mat = Eigen::MatrixXd(rows, cols);
@@ -210,7 +210,7 @@ class PyRotation
 };
 
 PyRotation::
-PyRotation(char ctype = 'd')
+PyRotation(char ctype)
 {
   type = ctype;
   if(type == 'd') double_rot = kwiver::vital::rotation_<double>();
