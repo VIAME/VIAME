@@ -53,6 +53,17 @@ bag_of_words_matching
 }
 
 
+std::vector<vital::frame_id_t>
+bag_of_words_matching
+::query_and_append(const vital::descriptor_set_sptr desc,
+  frame_id_t frame)
+{
+  auto putative_matching_frames = this->query(desc);
+  this->append_to_index(desc, frame);
+  return putative_matching_frames;
+}
+
+
 } } } // end namespace
 
 /// \cond DoxygenSuppress
