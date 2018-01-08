@@ -6,11 +6,11 @@ video processing algorithms together in a common distributed processing framewor
 majorly targeting marine species analytics. As it contains many common algorithms
 and compiles several other popular repositories together as a part of its build process,
 it is also useful as a general computer vision toolkit. The core infrastructure connecting
-different system components is currently the KWIVER library. KWIVER can connect C/C++, python,
+different system components is currently the KWIVER library, which can connect C/C++, python,
 and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined
 image processing system are a number of standalone utilties for model training, output detection
 visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring),
-image/video search, and rapid detector model generation.
+image/video search, and rapid model generation.
 
 Capabilities
 ------------
@@ -31,7 +31,7 @@ Documentation
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
-[Detector Examples](examples/detector_pipelines) > > > [Running Detectors Overview](doc/detector_introduction.md) > > > [Example Detector Usage in C++ Code](examples/using_detectors_in_cxx_code)
+[Detector Examples](examples/detector_pipelines) > > > [Running Detectors Overview](doc/detector_introduction.md) > > > [Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
 [How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Example Integrations](plugins) > > > [Example Templates](plugins/templates)
@@ -43,7 +43,7 @@ Documentation
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
 
 
-[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Class-Level Info](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
+[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Class-Level Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
 Pre-Built Binaries
