@@ -3,6 +3,7 @@
 
 set( ocv_headers_public
   analyze_tracks.h
+  camera_intrinsics.h
   descriptor_set.h
   detect_features.h
   detect_features_AGAST.h
@@ -16,6 +17,7 @@ set( ocv_headers_public
   draw_tracks.h
   estimate_fundamental_matrix.h
   estimate_homography.h
+  estimate_pnp.h
   extract_descriptors.h
   extract_descriptors_BRIEF.h
   extract_descriptors_DAISY.h
@@ -50,6 +52,7 @@ kwiver_install_headers(
 
 set( ocv_sources
   analyze_tracks.cxx
+  camera_intrinsics.cxx
   descriptor_set.cxx
   detect_features.cxx
   detect_features_AGAST.cxx
@@ -63,6 +66,7 @@ set( ocv_sources
   draw_tracks.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
+  estimate_pnp.cxx
   extract_descriptors.cxx
   extract_descriptors_BRIEF.cxx
   extract_descriptors_DAISY.cxx

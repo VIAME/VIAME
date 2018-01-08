@@ -28,6 +28,7 @@ set( public_headers
   estimate_essential_matrix.h
   estimate_fundamental_matrix.h
   estimate_homography.h
+  estimate_pnp.h
   estimate_similarity_transform.h
   extract_descriptors.h
   feature_descriptor_io.h
@@ -74,6 +75,7 @@ set( sources
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
+  estimate_pnp.cxx
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
   feature_descriptor_io.cxx
