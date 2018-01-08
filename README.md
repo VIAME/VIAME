@@ -3,15 +3,14 @@
 <br>
 VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
-majorly targeting marine species analytics. It is also useful as a general computer
-vision toolkit, as it contains many common algorithms and compiles several other popular
-repositories together as a part of its build process. The core infrastructure connecting
+majorly targeting marine species analytics. As it contains many common algorithms
+and compiles several other popular repositories together as a part of its build process,
+it is also useful as a general computer vision toolkit. The core infrastructure connecting
 different system components is currently the KWIVER library. KWIVER can connect C/C++, python,
-and matlab nodes together in a graph-like pipeline architecture. For more information
-about KWIVER's capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
-Alongside the pipelined image processing system are a number of standalone utilties
-for model training, output detection visualization, detector/tracker evaluation (a.k.a. scoring),
-and image/video search.
+and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined
+image processing system are a number of standalone utilties for model training, output detection
+visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring),
+image/video search, and rapid detector model generation.
 
 Capabilities
 ------------
@@ -32,19 +31,19 @@ Documentation
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
-[Running Detectors](doc/detector_introduction.md) > > > [Pipeline Run Examples](examples/detector_pipelines) > > > [CXX Usage Examples](examples/using_detectors_in_cxx_code)
+[Detector Examples](examples/detector_pipelines) > > > [Running Detectors Overview](doc/detector_introduction.md) > > > [Example Detector Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins) > > > [Templates](plugins/templates)
+[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Example Integrations](plugins) > > > [Example Templates](plugins/templates)
 
 
-[Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
 
 
-[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
+[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Class-Level Info](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
 Pre-Built Binaries
