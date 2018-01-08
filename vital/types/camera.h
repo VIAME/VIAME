@@ -59,6 +59,8 @@ namespace vital {
 class camera;
 /// typedef for a camera shared pointer
 typedef std::shared_ptr< camera > camera_sptr;
+/// typedef for a vector of cameras
+typedef std::vector< camera_sptr > camera_sptr_list;
 
 
 // ------------------------------------------------------------------

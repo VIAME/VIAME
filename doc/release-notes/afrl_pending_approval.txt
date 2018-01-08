@@ -34,6 +34,8 @@ Arrows - OpenCV
  
  * Added feature detection if a frame is a keyframe.  
 
+ * Added perspective three point pose estimation.
+
 Arrows - VXL
 
  * Implemented the seekable() and seek_frame() methods for the
@@ -50,6 +52,10 @@ Vital
    the video source to specific frame and a seekable() method which returns
    true if the video source supports frame seeking. This allows
    implementations to support seeking to a specific frame if possible.
+
+ * Added a new abstract algorithm, integrate_depth_maps, for the integration
+   of depth map images into an implicit surface volume using truncated signed
+   distance functions (TSDF) or similar approaches.
 
 Fixes since last public release
 -------------------------------
