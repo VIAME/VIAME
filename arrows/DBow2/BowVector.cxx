@@ -64,7 +64,7 @@ BowVector::~BowVector(void)
 void BowVector::addWeight(WordId id, WordValue v)
 {
   BowVector::iterator vit = this->lower_bound(id);
-  
+
   if(vit != this->end() && !(this->key_comp()(id, vit->first)))
   {
     vit->second += v;
@@ -80,7 +80,7 @@ void BowVector::addWeight(WordId id, WordValue v)
 void BowVector::addIfNotExist(WordId id, WordValue v)
 {
   BowVector::iterator vit = this->lower_bound(id);
-  
+
   if(vit == this->end() || (this->key_comp()(id, vit->first)))
   {
     this->insert(vit, BowVector::value_type(id, v));
@@ -91,7 +91,7 @@ void BowVector::addIfNotExist(WordId id, WordValue v)
 
 void BowVector::normalize(LNorm norm_type)
 {
-  double norm = 0.0; 
+  double norm = 0.0;
   BowVector::iterator it;
 
   if(norm_type == DBoW2::L1)
@@ -103,7 +103,7 @@ void BowVector::normalize(LNorm norm_type)
   {
     for(it = begin(); it != end(); ++it)
       norm += it->second * it->second;
-		norm = sqrt(norm);  
+		norm = sqrt(norm);
   }
 
   if(norm > 0.0)
@@ -119,12 +119,12 @@ std::ostream& operator<< (std::ostream &out, const BowVector &v)
 {
   BowVector::const_iterator vit;
   std::vector<unsigned int>::const_iterator iit;
-  unsigned int i = 0; 
-  const unsigned int N = v.size();
+  unsigned int i = 0;
+  const unsigned int N = static_cast<unsigned int>(v.size());
   for(vit = v.begin(); vit != v.end(); ++vit, ++i)
   {
     out << "<" << vit->first << ", " << vit->second << ">";
-    
+
     if(i < N-1) out << ", ";
   }
   return out;
@@ -135,7 +135,7 @@ std::ostream& operator<< (std::ostream &out, const BowVector &v)
 void BowVector::saveM(const std::string &filename, size_t W) const
 {
   std::fstream f(filename.c_str(), std::ios::out);
-  
+
   WordId last = 0;
   BowVector::const_iterator bit;
   for(bit = this->begin(); bit != this->end(); ++bit)
@@ -145,12 +145,12 @@ void BowVector::saveM(const std::string &filename, size_t W) const
       f << "0 ";
     }
     f << bit->second << " ";
-    
+
     last = bit->first + 1;
   }
   for(; last < (WordId)W; ++last)
     f << "0 ";
-  
+
   f.close();
 }
 

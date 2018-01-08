@@ -78,12 +78,12 @@ public:
 
   cv::Mat descriptor_to_mat(descriptor_sptr) const;
 
-  void query(kwiver::vital::descriptor_set_sptr desc, 
-             frame_id_t frame_number, 
+  void query(kwiver::vital::descriptor_set_sptr desc,
+             frame_id_t frame_number,
              std::vector<frame_id_t> &putative_matches,
              bool append_to_index_on_query);
 
-  void append_to_index(const vital::descriptor_set_sptr desc, 
+  void append_to_index(const vital::descriptor_set_sptr desc,
                        vital::frame_id_t frame);
 
   kwiver::vital::logger_handle_t m_logger;
@@ -132,10 +132,12 @@ bag_of_words_matching::priv
     }
     catch (const path_not_a_file &e)
     {
+      LOG_DEBUG(m_logger, e.what());
       m_voc.reset();
     }
     catch (const path_not_exists &e)
     {
+      LOG_DEBUG(m_logger, e.what());
       m_voc.reset();
     }
 
@@ -150,7 +152,7 @@ bag_of_words_matching::priv
 
 //-----------------------------------------------------------------------------
 
-void 
+void
 bag_of_words_matching::priv
 ::append_to_index(const vital::descriptor_set_sptr desc,
   vital::frame_id_t frame_number)
@@ -164,7 +166,7 @@ bag_of_words_matching::priv
 
   std::vector<cv::Mat> desc_mats;
   descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
-                                           // than desc because of null 
+                                           // than desc because of null
                                            // descriptors (KLT features)
 
   if (desc_mats.size() == 0)
@@ -188,9 +190,9 @@ bag_of_words_matching::priv
 
 void
 bag_of_words_matching::priv
-::query( kwiver::vital::descriptor_set_sptr desc, 
-         frame_id_t frame_number, 
-         std::vector<frame_id_t> &putative_matches, 
+::query( kwiver::vital::descriptor_set_sptr desc,
+         frame_id_t frame_number,
+         std::vector<frame_id_t> &putative_matches,
          bool append_to_index_on_query)
 {
   setup_voc();
@@ -204,7 +206,7 @@ bag_of_words_matching::priv
 
   std::vector<cv::Mat> desc_mats;
   descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
-                                           // than desc because of null 
+                                           // than desc because of null
                                            // descriptors (KLT features)
 
   if (desc_mats.size() == 0)
@@ -230,9 +232,9 @@ bag_of_words_matching::priv
     m_entry_to_frame.insert(new_ent);
 
     //querry the database for matches
-    
-    m_db->query(bow_vec, ret, max_res, ent);  // ent at the end prevents the 
-                                              // querry from returning the 
+
+    m_db->query(bow_vec, ret, max_res, ent);  // ent at the end prevents the
+                                              // querry from returning the
                                               // current image.
   }
   else
@@ -284,7 +286,7 @@ bag_of_words_matching::priv
   m_voc = std::make_shared<OrbVocabulary>(k, L, weight, score);
   m_voc->create(features);
 
-  // save the vocabulary to disk  
+  // save the vocabulary to disk
   LOG_INFO(m_logger, "Saving vocabulary ...");
   m_voc->save(voc_file_path);
   LOG_INFO(m_logger, "Done saving vocabulary");
@@ -391,7 +393,7 @@ bag_of_words_matching::priv
 ::descriptor_to_mat(descriptor_sptr desc) const
 {
   std::vector<kwiver::vital::byte> desc_bytes = desc->as_bytes();
-  cv::Mat desc_mat = cv::Mat(1, desc_bytes.size(), CV_8UC1);
+  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(desc_bytes.size()), CV_8UC1);
   unsigned int bn = 0;
   for (auto b : desc_bytes)
   {
@@ -423,10 +425,10 @@ bag_of_words_matching
   d_->append_to_index(desc, frame_number);
 }
 
-void 
+void
 bag_of_words_matching
-::query(const descriptor_set_sptr desc, 
-        frame_id_t frame_number, 
+::query(const descriptor_set_sptr desc,
+        frame_id_t frame_number,
         std::vector<frame_id_t> &putative_matching_frames,
         bool append_to_index_on_query)
 {

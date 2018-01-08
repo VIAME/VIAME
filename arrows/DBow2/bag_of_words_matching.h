@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Interface for bag_of_words_matching \link kwiver::vital::algo::algorithm_def 
+ * \brief Interface for bag_of_words_matching \link kwiver::vital::algo::algorithm_def
  *   algorithm definition \endlink.
  */
 
@@ -63,34 +63,34 @@ public:
   /// Desctuctor
   virtual ~bag_of_words_matching();
 
-  /// Add an image to the inverted file system.  
-  /**
-  * Add the image to the inverted file system.  Future matching results may 
-  * include this image in their results.
-  * \param[in] desc set of descriptors for the image
-  * \param[in] frame_number frame of the associated image
-  * \returns None
-  */
-  virtual void append_to_index( const vital::descriptor_set_sptr desc, 
-                                vital::frame_id_t frame_number);
-
-  /// Add an image to the inverted file system.  
+  /// Add an image to the inverted file system.
   /**
   * Add the image to the inverted file system.  Future matching results may
   * include this image in their results.
   * \param[in] desc set of descriptors for the image
   * \param[in] frame_number frame of the associated image
+  * \returns None
+  */
+  virtual void append_to_index( const vital::descriptor_set_sptr desc,
+                                vital::frame_id_t frame_number);
+
+  /// Query the inverted file system for similar images.
+  /**
+  * Query the inverted file system and return the most similar images.  For efficiency
+  * the image can be added to the inverted file system during the querying process.
+  * \param[in] desc set of descriptors for the image
+  * \param[in] frame_number frame of the associated image
   * \param[out] putative_matching_frames possibly matching images found by the query
-  * \param[in] append_to_index_on_query Add this image to the inverted file index 
+  * \param[in] append_to_index_on_query Add this image to the inverted file index
   * during the query. Note: the current image will not be returned in
   * putative_matching_frames because we already know it matches itself.
   * \returns None
   */
-  virtual void query( const vital::descriptor_set_sptr desc, 
-                      vital::frame_id_t frame_number, 
+  virtual void query( const vital::descriptor_set_sptr desc,
+                      vital::frame_id_t frame_number,
                       std::vector<vital::frame_id_t> &putative_matching_frames,
                       bool append_to_index_on_query);
-  
+
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
   * This base virtual function implementation returns an empty configuration
