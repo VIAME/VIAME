@@ -33,7 +33,7 @@
  * Author: Dorian Galvez-Lopez
  * Date: March 2009
  * Description: timestamping functions
- * 
+ *
  * Note: in windows, this class has a 1ms resolution
  *
  * License: see the LICENSE_DUTIL.txt file
@@ -84,7 +84,7 @@ bool Timestamp::empty() const
 }
 
 void Timestamp::setToCurrentTime(){
-	
+
 #ifdef WIN32
 	struct __timeb32 timebuffer;
 	_ftime32_s( &timebuffer ); // C4996
@@ -107,7 +107,7 @@ void Timestamp::setTime(const string &stime){
 		m_usecs = 0;
 	}else{
 		m_secs = atol(stime.substr(0, p).c_str());
-		
+
 		string s_usecs = stime.substr(p+1, 6);
 		m_usecs = atol(stime.substr(p+1).c_str());
 		m_usecs *= (unsigned long)pow(10.0, double(6 - s_usecs.length()));
@@ -117,7 +117,7 @@ void Timestamp::setTime(const string &stime){
 void Timestamp::setTime(double s)
 {
   m_secs = (unsigned long)s;
-  m_usecs = (s - (double)m_secs) * 1e6;
+  m_usecs = static_cast<unsigned long>((s - (double)m_secs) * 1e6);
 }
 
 double Timestamp::getFloatTime() const {
@@ -164,7 +164,7 @@ Timestamp Timestamp::plus(unsigned long secs, unsigned long usecs) const
 		t.setTime(m_secs + secs + 1, m_usecs + usecs - max);
 	else
 		t.setTime(m_secs + secs, m_usecs + usecs);
-	
+
 	return t;
 }
 
@@ -186,7 +186,7 @@ Timestamp Timestamp::minus(unsigned long secs, unsigned long usecs) const
 		t.setTime(m_secs - secs - 1, max - (usecs - m_usecs));
 	else
 		t.setTime(m_secs - secs, m_usecs - usecs);
-	
+
 	return t;
 }
 
@@ -224,7 +224,7 @@ bool Timestamp::operator== (const Timestamp &t) const
 }
 
 
-string Timestamp::Format(bool machine_friendly) const 
+string Timestamp::Format(bool machine_friendly) const
 {
   struct tm tm_time;
 
@@ -235,9 +235,9 @@ string Timestamp::Format(bool machine_friendly) const
 #else
   localtime_r(&t, &tm_time);
 #endif
-  
+
   char buffer[128];
-  
+
   if(machine_friendly)
   {
     strftime(buffer, 128, "%Y%m%d_%H%M%S", &tm_time);
@@ -246,7 +246,7 @@ string Timestamp::Format(bool machine_friendly) const
   {
     strftime(buffer, 128, "%c", &tm_time); // Thu Aug 23 14:55:02 2001
   }
-  
+
   return string(buffer);
 }
 
