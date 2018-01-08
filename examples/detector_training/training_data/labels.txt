@@ -1,0 +1,4 @@
+# fish 524 533 1003 1001
+live_scallop 185 197 207 211 515 912 919 920
+# dead_scallop 188
+# crab 158 258
