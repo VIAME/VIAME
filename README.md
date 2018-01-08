@@ -3,15 +3,17 @@
 <br>
 VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
-majorly targeting marine species analytics. It is also useful as a general computer
-vision toolkit, as it contains many common algorithms and compiles several other popular
-repositories together as a part of its build process. The core infrastructure connecting
+majorly targeting marine species analytics. As it contains many common algorithms
+and compiles several other popular repositories together as a part of its build process,
+it is also useful as a general computer vision toolkit. The core infrastructure connecting
 different system components is currently the KWIVER library, which can connect C/C++, python,
-and matlab nodes together in a graph-like pipeline architecture. For more information
-about KWIVER's capabilities, please see <a href="https://github.com/Kitware/kwiver/">here</a>.
-Alongside the pipelined image processing system are a number of standalone utilties
-for model training, output detection visualization, and detector/tracker
-evaluation (a.k.a. scoring).
+and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined
+image processing system are a number of standalone utilties for model training, output detection
+visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring),
+image/video search, and rapid model generation.
+
+Capabilities
+------------
 
 <p align="center">
 <br>
@@ -29,19 +31,22 @@ Documentation
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
-[Running Detectors](doc/detector_introduction.md) > > > [Pipeline Run Examples](examples/detector_pipelines) > > > [CXX Usage Examples](examples/using_detectors_in_cxx_code)
+[Detector Examples](examples/detector_pipelines) > > > [Running Detectors Overview](doc/detector_introduction.md) > > > [Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Examples](plugins) > > > [Templates](plugins/templates)
+[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Example Integrations](plugins) > > > [Example Templates](plugins/templates)
 
 
-[Graphical User Interfaces for Visualization](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+
+
+[Detector Training API](examples/detector_training) > > > [Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
 
 
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
 
 
-[KWIVER Documentation](https://github.com/Kitware/kwiver) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
+[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
 Pre-Built Binaries
@@ -95,11 +100,11 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 Or alternatively by building it in Visual Studio or your compiler of choice on Windows.
 The '-j8' tells the build to run multi-threaded using 8 threads, this is useful for a
 faster build though if you get an error it can be difficult to know where it was, in which case running just
-'make' might be more helpful. For Windows, currently VS2013 thru VS2017 is supported.
-If using CUDA, version 8.0 is desired, along with Python 2.7. Other versions have yet
-to be tested extensively. On Windows it can also be beneficial to use Anaconda to get
-multiple python packages. Boost Python (turned on by default when Python is enabled)
-requires Numpy and a few other dependencies.
+'make' might be more helpful. For Windows, currently VS2013 thru VS2015 (with only
+early versions of 2017, not latest) are supported. If using CUDA, version 8.0 is
+desired, along with Python 2.7. Other versions have yet to be tested extensively.
+On Windows it can also be beneficial to use Anaconda to get multiple python packages.
+Boost Python (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built, such
 as those listed below. If a plugin is enabled that depends on another dependency (such
@@ -250,7 +255,7 @@ License and Citation
 VIAME is released under a BSD-3 license.
 
 A system paper summarizing VIAME was published in IEEE WACV 2017 (citation below)
-which is available [here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
+which is [available here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
 
 ```
 @inproceedings{viame2017,

@@ -82,6 +82,9 @@ mark_as_advanced( VIAME_CREATE_PACKAGE )
 option( VIAME_BUILD_CORE_IMAGE_LIBS "Build core image libraries such as libtiff and libjpeg" ON )
 mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
+option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" OFF )
+mark_as_advanced( VIAME_BUILD_TESTS )
+
 ###
 # Add logic relating to enable flags
 ##
@@ -329,6 +332,7 @@ else()
   ###
   # KWIVER CMake config
   ##
+  include( kwiver-cmake-future )
   include( kwiver-utils )
 
   ##
