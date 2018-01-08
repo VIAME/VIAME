@@ -5,7 +5,7 @@ VIAME is a computer vision library designed to integrate several image and
 video processing algorithms together in a common distributed processing framework,
 majorly targeting marine species analytics. As it contains many common algorithms
 and compiles several other popular repositories together as a part of its build process,
-it is also useful as a general computer vision toolkit. The core infrastructure connecting
+it's also useful as a general computer vision toolkit. The core infrastructure connecting
 different system components is currently the KWIVER library, which can connect C/C++, python,
 and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined
 image processing system are a number of standalone utilties for model training, output detection
@@ -14,13 +14,20 @@ image/video search, and rapid model generation.
 
 Capabilities
 ------------
-
 <p align="center">
 <br>
 <br>
 <nobr>
 <img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="430" height="284">
 <img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/image_player.png" alt="vpView Example" width="430" height="284">
+</nobr>
+</p>
+<br>
+<p align="center">
+<br>
+<br>
+<nobr>
+<img src="http://www.viametoolkit.org/wp-content/uploads/2017/03/video_player.png" alt="vsPlay Example" width="860" height="284">
 </nobr>
 </p>
 <br>
