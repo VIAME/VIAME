@@ -40,7 +40,7 @@ Documentation
 [Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
 
 
-[Detector Training API](examples/detector_training) > > > [Image and Video Search for both Object Search and Model Generation](examples/image_and_video_search)
+[Detector Training API](examples/detector_training) > > > [Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
 
 
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
