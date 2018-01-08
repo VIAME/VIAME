@@ -59,7 +59,7 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-class detect_loops::priv 
+class detect_loops::priv
 {
 public:
   priv();
@@ -76,19 +76,19 @@ public:
 
   match_set_sptr
     remove_duplicate_matches(
-      match_set_sptr mset, 
+      match_set_sptr mset,
       feature_info_sptr fi1,
       feature_info_sptr fi2);
 
   kwiver::vital::logger_handle_t m_logger;
-  
-  
+
+
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr m_matcher;
 
   // The bag of words matching image finder
   vital::algo::bag_of_words_matching_sptr m_bow;
-  
+
   unsigned m_min_loop_inlier_matches;
 
 };
@@ -107,7 +107,7 @@ kwiver::vital::feature_track_set_sptr
 detect_loops::priv
 ::verify_and_add_image_matches(
   kwiver::vital::feature_track_set_sptr feat_tracks,
-  kwiver::vital::frame_id_t frame_number, 
+  kwiver::vital::frame_id_t frame_number,
   std::vector<frame_id_t> const &putative_matches)
 {
   feature_set_sptr feat1, feat2;
@@ -136,7 +136,7 @@ detect_loops::priv
         " and " << fn2 << " failed");
       continue;
     }
-    
+
     mset = remove_duplicate_matches(mset, fi1, fi2);
 
     std::vector<match> vm = mset->matches();
@@ -166,7 +166,7 @@ detect_loops::priv
     }
   }
 
-  LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches " 
+  LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches "
     << num_successfully_matched_pairs << " pairs were verified");
 
   return feat_tracks;
@@ -176,10 +176,10 @@ detect_loops::priv
 
 match_set_sptr
 detect_loops::priv
-::remove_duplicate_matches(match_set_sptr mset, 
-                           feature_info_sptr fi1, 
+::remove_duplicate_matches(match_set_sptr mset,
+                           feature_info_sptr fi1,
                            feature_info_sptr fi2)
-{  
+{
   std::vector<match> orig_matches = mset->matches();
 
   struct match_with_cost {
@@ -187,7 +187,7 @@ detect_loops::priv
     unsigned m2;
     double cost;
 
-    match_with_cost() 
+    match_with_cost()
       : m1(0)
       , m2(0)
       , cost(DBL_MAX)
@@ -209,14 +209,14 @@ detect_loops::priv
   mwc_vec.resize(orig_matches.size());
   size_t m_idx = 0;
   for (auto m : orig_matches)
-  {    
+  {
     match_with_cost & mwc = mwc_vec[m_idx++];
     mwc.m1 = m.first;
     mwc.m2 = m.second;
     feature_sptr f1 = fi1->features->features()[mwc.m1];
-    feature_sptr f2 = fi2->features->features()[mwc.m2];       
+    feature_sptr f2 = fi2->features->features()[mwc.m2];
     //using relative scale as cost
-    mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());  
+    mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());
   }
 
   std::sort(mwc_vec.begin(), mwc_vec.end());
@@ -228,7 +228,7 @@ detect_loops::priv
   std::vector<match> unique_matches;
 
   for (auto m : mwc_vec)
-  {       
+  {
     if (matched_indices_1.find(m.m1) != matched_indices_1.end() ||
         matched_indices_2.find(m.m2) != matched_indices_2.end())
     {
@@ -242,7 +242,7 @@ detect_loops::priv
   return std::make_shared<simple_match_set>(unique_matches);
 
 }
-  
+
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
@@ -251,18 +251,19 @@ detect_loops::priv
   kwiver::vital::frame_id_t frame_number)
 {
 
-  std::vector<frame_id_t> putative_matching_images;
+
 
   if (!m_bow)
   {
     return feat_tracks;
-  } 
+  }
 
   descriptor_set_sptr desc = feat_tracks->frame_descriptors(frame_number);
 
-  m_bow->query(desc, frame_number, putative_matching_images, true);
+  std::vector<frame_id_t> putative_matching_images =
+    m_bow->query_and_append(desc, frame_number);
 
-  return verify_and_add_image_matches(feat_tracks, frame_number, 
+  return verify_and_add_image_matches(feat_tracks, frame_number,
                                       putative_matching_images);
 }
 
@@ -319,8 +320,8 @@ void
 detect_loops
 ::set_configuration(vital::config_block_sptr in_config)
 {
-  // Starting with our generated config_block to ensure that assumed values 
-  // are present.  An alternative is to check for key presence before 
+  // Starting with our generated config_block to ensure that assumed values
+  // are present.  An alternative is to check for key presence before
   // performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
@@ -352,7 +353,7 @@ detect_loops
 {
   bool config_valid = true;
 
-  config_valid = 
+  config_valid =
     algo::match_features::check_nested_algo_configuration(
       "match_features", config) && config_valid;
 
@@ -369,7 +370,7 @@ detect_loops
       "min_loop_inlier_matches must be non-negative");
     config_valid = false;
   }
-        
+
   return config_valid;
 }
 
