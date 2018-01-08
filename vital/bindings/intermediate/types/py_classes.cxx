@@ -50,8 +50,8 @@ class EigenArray
 
   public:
 
-    EigenArray(unsigned int rows = 2,
-               unsigned int cols = 1,
+    EigenArray(int rows = 2,
+               int cols = 1,
                bool dynamic_rows = false,
                bool dynamic_cols = false,
                char ctype = 'd');
@@ -72,11 +72,11 @@ class EigenArray
 };
 
 EigenArray::
-EigenArray(unsigned int rows,
-             unsigned int cols,
-             bool dynamic_rows, // we're ignoring these, but keeping them in for API reasons
-             bool dynamic_cols,
-             char ctype)
+EigenArray(int rows,
+           int cols,
+           bool dynamic_rows, // we're ignoring these, but keeping them in for API reasons
+           bool dynamic_cols,
+           char ctype)
 {
   type = ctype;
   if(type == 'd') double_mat = Eigen::MatrixXd(rows, cols);
