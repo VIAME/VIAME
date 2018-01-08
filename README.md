@@ -23,7 +23,7 @@ Capabilities
 </p>
 <p align="center">
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png" alt="Query Example" width="800" height="250">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png" alt="Query Example" width="830" height="257">
 </nobr>
 </p>
 
