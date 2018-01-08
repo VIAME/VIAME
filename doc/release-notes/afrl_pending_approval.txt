@@ -27,11 +27,14 @@ Arrows - Core
 Arrows - OpenCV
 
  * Added an OpenCV based KLT feature tracker.
+
+ * Added perspective three point pose estimation.
  
 Arrows - DBoW2
 
  * Added bag of words image matching based on DBoW2 library.  Includes a new vital
    algorithm base class bag_of_words_matching.
+
 
 Arrows - VXL
 
@@ -49,6 +52,10 @@ Vital
    the video source to specific frame and a seekable() method which returns
    true if the video source supports frame seeking. This allows
    implementations to support seeking to a specific frame if possible.
+
+ * Added a new abstract algorithm, integrate_depth_maps, for the integration
+   of depth map images into an implicit surface volume using truncated signed
+   distance functions (TSDF) or similar approaches.
 
 Fixes since last public release
 -------------------------------
