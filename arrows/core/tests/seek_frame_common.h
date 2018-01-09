@@ -59,7 +59,7 @@ void test_seek_frame(kwiver::vital::algo::video_input& vi)
 
   // Test various invalid seeks past end of video
   std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
-    {-3, -1, 51, 55};
+    {-3, -1, 0, 51, 55};
   for (auto requested_frame : in_valid_seeks)
   {
     EXPECT_FALSE( vi.seek_frame( ts, requested_frame) );
