@@ -66,7 +66,7 @@ public:
     return true;
   }
 
-  virtual bool remove_frame_metadata(frame_id_t frame)
+  bool remove_frame_metadata(frame_id_t frame)
   {
     auto kfm_it = kf_map_ptr->find(frame);
     if ( kfm_it != kf_map_ptr->end())
