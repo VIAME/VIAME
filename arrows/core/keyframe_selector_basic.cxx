@@ -46,7 +46,6 @@ public:
   priv()
     : keyframe_min_feature_count(50)
     , fraction_tracks_lost_to_necessitate_new_keyframe(0.3f)
-    , next_candidate_keyframe_id(-1)
   {
   }
 
@@ -115,14 +114,14 @@ public:
   void continuing_keyframe_selection(
     kwiver::vital::track_set_sptr tracks);
 
+  bool a_keyframe_was_selected(
+    kwiver::vital::track_set_sptr tracks);
+
+  frame_id_t get_last_keyframe_id(
+    kwiver::vital::track_set_sptr tracks);
+
   int keyframe_min_feature_count;
   float fraction_tracks_lost_to_necessitate_new_keyframe;
-     // this is a member variable to
-
-  // prevent us from checking the
-  // same frames repeatedly to see if
-  // they are key-frames
-  frame_id_t next_candidate_keyframe_id;
 
   kwiver::vital::logger_handle_t m_logger;
 };
@@ -140,20 +139,28 @@ keyframe_selector_basic::priv
   auto frame_ids = tracks->all_frame_ids();
   for (auto frame : frame_ids)
   {
+    if (kfd_metadata_map->find(frame) != kfd_metadata_map->end())
+    {
+      // If we are running this function, there haven't been any keyframes yet.
+      // So, any frame in the metadata now will be a non-keyframe.
+      continue;
+    }
+
     bool is_keyframe = false;
     if (tracks->num_active_tracks() >= keyframe_min_feature_count)
     {
       is_keyframe = true;
-      next_candidate_keyframe_id = frame + 1;
     }
     //this is the first frame that can be a keyframe
     std::shared_ptr<keyframe_metadata> sptr =
       std::shared_ptr<keyframe_metadata>(
       (keyframe_metadata*)new keyframe_metadata_for_basic_selector(is_keyframe));
 
-      tracks->set_frame_metadata(frame, sptr);
-
+    tracks->set_frame_metadata(frame, sptr);
+    if (is_keyframe)
+    {
       break;
+    }
   }
 }
 
@@ -174,38 +181,16 @@ keyframe_selector_basic::priv
 
   //find the last keyframe
 
-  frame_id_t last_keyframe_id = -1;
-  for (auto latest_kfmd_it = kfd_metadata_map->crbegin();
-    latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
-  {
-    last_keyframe_id = latest_kfmd_it->first;
-    keyframe_metadata_sptr latest_kfmd = latest_kfmd_it->second;
-
-    keyframe_metadata_for_basic_selector_sptr latest_kfmd_basic =
-      std::dynamic_pointer_cast<keyframe_metadata_for_basic_selector>(latest_kfmd);
-    if (!latest_kfmd_basic)
-    {
-      //metadata should be keyframe_metadata_for_basic_selector and is not.
-      return;
-    }
-
-    if (latest_kfmd_basic->is_keyframe)
-    {
-      break;
-    }
-    last_keyframe_id = -1;  // set to -1 so we can error out if the loop runs
-                            // out without finding a keyframe
-  }
+  frame_id_t last_keyframe_id = get_last_keyframe_id(tracks);
 
   if (last_keyframe_id < 0)
   {
+    // we haven't found a keyframe yet, so we can't do continuing keyframe selection
     return;
   }
 
-  if (next_candidate_keyframe_id < 0)
-  {
-    next_candidate_keyframe_id = last_keyframe_id + 1;
-  }
+  // calculate the id of the next frame that doesn't have keyframe metadata
+  frame_id_t next_candidate_keyframe_id = kfd_metadata_map->rbegin()->first + 1;
 
   frame_id_t last_frame_id = tracks->last_frame();
 
@@ -239,7 +224,42 @@ keyframe_selector_basic::priv
   }
 }
 
+bool
+keyframe_selector_basic::priv
+::a_keyframe_was_selected(
+  kwiver::vital::track_set_sptr tracks)
+{
+  return get_last_keyframe_id(tracks) >= 0;
+}
 
+frame_id_t
+keyframe_selector_basic::priv
+::get_last_keyframe_id(
+  kwiver::vital::track_set_sptr tracks)
+{
+  auto kfd = tracks->get_keyframe_data();
+  auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
+
+  for (auto latest_kfmd_it = kfd_metadata_map->crbegin();
+    latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
+  {
+    keyframe_metadata_sptr latest_kfmd = latest_kfmd_it->second;
+
+    keyframe_metadata_for_basic_selector_sptr latest_kfmd_basic =
+      std::dynamic_pointer_cast<keyframe_metadata_for_basic_selector>(latest_kfmd);
+    if (!latest_kfmd_basic)
+    {
+      //metadata should be keyframe_metadata_for_basic_selector and is not.
+      return -1;
+    }
+
+    if (latest_kfmd_basic->is_keyframe)
+    {
+      return latest_kfmd_it->first;
+    }
+  }
+  return -1;
+}
 
 /// Default Constructor
 keyframe_selector_basic
@@ -297,17 +317,13 @@ keyframe_selector_basic
 
   track_set_sptr cur_tracks = tracks->clone();  //deep copy here
 
-  keyframe_data_const_sptr kfd = cur_tracks->get_keyframe_data();
-
-  auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
-
-  if (d_->next_candidate_keyframe_id == -1)
+  if (!d_->a_keyframe_was_selected(cur_tracks))
   {
     //we don't have any keyframe data yet for this set of tracks.
     d_->initial_keyframe_selection(cur_tracks);
   }
 
-  if (d_->next_candidate_keyframe_id != -1)
+  if (d_->a_keyframe_was_selected(cur_tracks))
   { //check again because initial keyframe selection could have added a keyframe
     d_->continuing_keyframe_selection(cur_tracks);
   }
