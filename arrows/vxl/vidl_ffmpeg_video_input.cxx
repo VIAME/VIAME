@@ -698,8 +698,8 @@ vidl_ffmpeg_video_input
     throw vital::file_not_read_exception( d->video_path, "Video not open" );
   }
 
-  // negative frame number not allowed
-  if ( frame_number < 0 )
+  // negative or zero frame number not allowed
+  if ( frame_number <= 0 )
   {
     return false;
   }
