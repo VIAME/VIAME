@@ -31,6 +31,7 @@ set( public_headers
   estimate_essential_matrix.h
   estimate_fundamental_matrix.h
   estimate_homography.h
+  estimate_pnp.h
   estimate_similarity_transform.h
   extract_descriptors.h
   feature_descriptor_io.h
@@ -41,6 +42,7 @@ set( public_headers
   image_io.h
   image_object_detector.h
   initialize_cameras_landmarks.h
+  integrate_depth_maps.h
   keyframe_selection.h
   match_features.h
   optimize_cameras.h
@@ -80,6 +82,7 @@ set( sources
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
+  estimate_pnp.cxx
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
   feature_descriptor_io.cxx
@@ -91,6 +94,7 @@ set( sources
   image_object_detector.cxx
   initialize_cameras_landmarks.cxx
   keyframe_selection.cxx
+  integrate_depth_maps.cxx
   match_features.cxx
   optimize_cameras.cxx
   refine_detections.cxx
