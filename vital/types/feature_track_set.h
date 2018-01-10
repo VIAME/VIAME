@@ -51,11 +51,10 @@
 namespace kwiver {
 namespace vital {
 
-/// A derived track_state for feature tracks
-
 class feature_track_state;
 typedef std::shared_ptr<feature_track_state> feature_track_state_sptr;
 
+/// A derived track_state for feature tracks
 class VITAL_EXPORT feature_track_state : public track_state
 {
 public:
@@ -77,6 +76,26 @@ public:
   feature_sptr feature;
   descriptor_sptr descriptor;
 };
+
+
+
+class feature_track_set_frame_data;
+typedef std::shared_ptr<feature_track_set_frame_data> feature_track_set_frame_data_sptr;
+
+/// A derived track_state_frame_data for feature tracks
+class VITAL_EXPORT feature_track_set_frame_data
+ : public track_set_frame_data
+{
+public:
+  // Dynamic copy constructor
+  virtual track_set_frame_data_sptr clone() const
+  {
+    return std::make_shared<feature_track_set_frame_data>(*this);
+  }
+
+  bool is_keyframe;
+};
+
 
 class feature_info {
 public:
