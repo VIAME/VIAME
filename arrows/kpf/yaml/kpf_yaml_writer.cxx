@@ -184,7 +184,12 @@ operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
   const canonical::activity_t& act = io.activity;
 
   w.oss << "act" << io.domain << ": ";
-  w.oss << act.activity_label << ", ";
+  w.oss << "{ ";
+  for (auto p:act.activity_labels.d)
+  {
+    w.oss << p.first << ": " << p.second << ", ";
+  }
+  w.oss << "}, ";
 
   w.oss << "id" << act.activity_id.domain << ": " << act.activity_id.t.d << ", ";
 
@@ -198,11 +203,6 @@ operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
   for (auto k: act.attributes )
   {
     w << writer<canonical::kv_t>( k );
-  }
-
-  for (auto c: act.confidences )
-  {
-    w << writer< canonical::conf_t>( c );
   }
 
   for (auto e: act.evals )

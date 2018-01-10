@@ -81,6 +81,29 @@ kpf_v3_check( const YAML::Node& n )
 }
 
 bool
+cset_helper_parser( const string& context, const YAML::Node& n, KPFC::cset_t& cset )
+{
+  if ( ! n.IsMap() )
+  {
+    LOG_ERROR( main_logger, "YAML parser: " << context << ": not a map?" );
+    return false;
+  }
+  try
+  {
+    for (auto i=n.begin(); i != n.end(); ++i)
+    {
+      cset.d.insert( make_pair( i->first.as<string>(), i->second.as<double>() ));
+    }
+  }
+  catch (const std::invalid_argument& e )
+  {
+    LOG_ERROR( main_logger, "YAML parser: " << context << ": error converting to double: " << e.what() );
+    return false;
+  }
+  return true;
+}
+
+bool
 parse_poly( KPF::packet_t& p, const YAML::Node& n )
 {
   if (! n.IsSequence())
@@ -124,25 +147,8 @@ parse_poly( KPF::packet_t& p, const YAML::Node& n )
 bool
 parse_cset( KPF::packet_t& p, const YAML::Node& n )
 {
-  if ( ! n.IsMap() )
-  {
-    LOG_ERROR( main_logger, "YAML parser: cset: not a map?" );
-    return false;
-  }
   p.cset = new KPFC::cset_t();
-  try
-  {
-    for (auto i=n.begin(); i != n.end(); ++i)
-    {
-      p.cset->d.insert( make_pair( i->first.as<string>(), i->second.as<double>() ));
-    }
-  }
-  catch (const std::invalid_argument& e )
-  {
-    LOG_ERROR( main_logger, "YAML parser: cse: error converting to double: " << e.what() );
-    return false;
-  }
-  return true;
+  return cset_helper_parser( "cset", n, *(p.cset) );
 }
 
 bool
@@ -387,7 +393,10 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
     if ( h.style == KPF::packet_style::ACT)
     {
       act.activity_id.domain = h.domain;
-      act.activity_label = i->second.as<string>();
+      if (! cset_helper_parser( "activity-label cset", i->second, act.activity_labels ))
+      {
+        return false;
+      }
     }
   }
   if ( act.activity_id.domain == -1 )
@@ -432,12 +441,6 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
         KPF::packet_t p(h);
         if ( ! parse_packet( i, p )) return false;
         act.evals.push_back ( {p.eval, p.header.domain} );
-      }
-      else if (h.style == KPF::packet_style::CONF)
-      {
-        KPF::packet_t p(h);
-        if ( ! parse_packet( i, p )) return false;
-        act.confidences.push_back ( {p.conf, p.header.domain} );
       }
       else if (h.style == KPF::packet_style::ACT)
       {
