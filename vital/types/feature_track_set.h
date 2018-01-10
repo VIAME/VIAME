@@ -167,6 +167,23 @@ public:
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
 
+  /// Return a map of all feature_track_set_frame_data
+  /**
+   * This function is similar to \c all_frame_data() except that it checks
+   * the type of the frame data and dynamically casts it to the specialized
+   * frame data for feature_track_set.  Any frame data of a different type
+   * is not included in this ouput.
+   */
+  virtual std::map<frame_id_t, feature_track_set_frame_data_sptr>
+    all_feature_frame_data() const;
+
+  /// Return the set of all keyframes in the track set
+  /**
+   * Keyframes are designated as frames which have an associated
+   * feature_track_set_frame_data marked with is_keyframe == true
+   */
+  virtual std::set<frame_id_t> keyframes() const;
+
   virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1,
     bool only_features_with_descriptors = true) const;
 

@@ -291,18 +291,13 @@ write_feature_track_file( feature_track_set_sptr const& tracks,
     }
   }
 
-  track_set_frame_data_map_t fdm = tracks->all_frame_data();
-  if ( !fdm.empty() )
+  std::set<frame_id_t> keyframes = tracks->keyframes();
+  if ( !keyframes.empty() )
   {
     ofile << "keyframes" << "\n";
-    for (auto fd : fdm)
+    for (auto k : keyframes)
     {
-      auto ftsfd =
-        std::dynamic_pointer_cast<feature_track_set_frame_data>(fd.second);
-      if (ftsfd && ftsfd->is_keyframe)
-      {
-        ofile << fd.first << "\n";
-      }
+      ofile << k << "\n";
     }
   }
   ofile.close();
