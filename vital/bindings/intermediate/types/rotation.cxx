@@ -31,7 +31,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "py_classes.cxx"
+#include "rotation_class.cxx"
 
 namespace py = pybind11;
 

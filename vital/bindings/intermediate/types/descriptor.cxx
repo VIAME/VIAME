@@ -30,7 +30,7 @@
 
 #include <pybind11/stl.h>
 
-#include "py_classes.cxx"
+#include "descriptor_class.cxx"
 
 namespace py = pybind11;
 

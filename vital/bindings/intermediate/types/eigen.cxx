@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "py_classes.cxx"
+#include "eigen_class.cxx"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>

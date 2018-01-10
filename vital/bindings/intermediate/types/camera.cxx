@@ -34,7 +34,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 
-#include "py_classes.cxx"
+#include "covariance_class.cxx"
+#include "eigen_class.cxx"
+#include "rotation_class.cxx"
 
 namespace py = pybind11;
 
@@ -93,7 +95,7 @@ PYBIND11_MODULE(_camera, m)
                         return self;
                       })
   .def("clone_look_at", &kwiver::vital::simple_camera::clone_look_at,
-    py::arg("stare_point"), py::arg("up_direction")=0)
+    py::arg("stare_point"), py::arg("up_direction")=Eigen::Matrix<double,3,1>::UnitZ())
   .def("project", &kwiver::vital::simple_camera::project,
     py::arg("pt"))
   .def("depth", &kwiver::vital::simple_camera::depth)

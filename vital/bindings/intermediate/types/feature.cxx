@@ -30,7 +30,7 @@
 
 #include <vital/types/feature.h>
 
-#include "py_classes.cxx"
+#include "covariance_class.cxx"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
@@ -99,15 +99,19 @@ class PyFeatureD
                      {
                        return PyCovariance2d(feature.get_covar());
                      };
-    void set_covar(py::object covar_obj)
+    void set_covar(py::object mat_obj)
                      {
                        PyCovariance2d covar;
-                       try
+                       try // we need to check to see if it's a matrix or a covariance object
                        {
-                         covar_obj = PyCovarianceBase::covar_from_matrix(2,'d',covar_obj);
+                         Eigen::Matrix<double, 2, 2> mat = mat_obj.cast<Eigen::Matrix<double,2,2>>();
+                         covar = PyCovariance2d(mat);
                        }
-                       catch (...) {}
-                       covar = covar_obj.cast<PyCovariance2d>();
+                       catch (...) // if matrix doesn't work, try covar object
+                       {
+                         covar = mat_obj.cast<PyCovariance2d>();
+                       }
+
                        feature.set_covar(covar.get_covar());
                      };
 
@@ -150,15 +154,19 @@ class PyFeatureF
                      {
                        return PyCovariance2f(feature.get_covar());
                      };
-    void set_covar(py::object covar_obj)
+    void set_covar(py::object mat_obj)
                      {
                        PyCovariance2f covar;
-                       try
+                       try // we need to check to see if it's a matrix or a covariance object
                        {
-                         covar_obj = PyCovarianceBase::covar_from_matrix(2,'f',covar_obj);
+                         Eigen::Matrix<float, 2, 2> mat = mat_obj.cast<Eigen::Matrix<float,2,2>>();
+                         covar = PyCovariance2f(mat);
                        }
-                       catch (...) {}
-                       covar = covar_obj.cast<PyCovariance2f>();
+                       catch (...) // if matrix doesn't work, try covar object
+                       {
+                         covar = mat_obj.cast<PyCovariance2f>();
+                       }
+
                        feature.set_covar(covar.get_covar());
                      };
 
@@ -210,5 +218,4 @@ PYBIND11_MODULE(_feature, m)
   .def_property("covariance", &PyFeatureBase::get_covar, &PyFeatureBase::set_covar)
   .def_property("color", &PyFeatureBase::get_color, &PyFeatureBase::set_color)
   ;
-
 }

@@ -31,7 +31,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
 
-#include "py_classes.cxx"
+#include "covariance_class.cxx"
 
 namespace py = pybind11;
 
@@ -53,8 +53,10 @@ PYBIND11_MODULE(_covariance, m)
                       })
    ;
 
-  py::class_<PyCovariance2d, PyCovarianceBase, std::shared_ptr<PyCovariance2d>>(m, "Covariance2d");
-  py::class_<PyCovariance3d, PyCovarianceBase, std::shared_ptr<PyCovariance3d>>(m, "Covariance3d");
-  py::class_<PyCovariance2f, PyCovarianceBase, std::shared_ptr<PyCovariance2f>>(m, "Covariance2f");
-  py::class_<PyCovariance3f, PyCovarianceBase, std::shared_ptr<PyCovariance3f>>(m, "Covariance3f");
+  // it's nice to be able to directly use the subclasses
+  py::class_<PyCovariance2d, std::shared_ptr<PyCovariance2d>, PyCovarianceBase>(m, "Covar2d");
+  py::class_<PyCovariance2f, std::shared_ptr<PyCovariance2f>, PyCovarianceBase>(m, "Covar2f");
+  py::class_<PyCovariance3d, std::shared_ptr<PyCovariance3d>, PyCovarianceBase>(m, "Covar3d");
+  py::class_<PyCovariance3f, std::shared_ptr<PyCovariance3f>, PyCovarianceBase>(m, "Covar3f");
+
 }

@@ -30,7 +30,7 @@
 
 #include <vital/types/similarity.h>
 
-#include "py_classes.cxx"
+#include "rotation_class.cxx"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>

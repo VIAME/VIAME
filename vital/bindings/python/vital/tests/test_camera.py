@@ -183,11 +183,11 @@ class TestVitalCamera (unittest.TestCase):
         nose.tools.assert_not_equal(base, cam)
 
         ifocus = cam.project([0,1,2])
-        nose.tools.assert_almost_equal(numpy.linalg.norm(ifocus - pp, 2),
+        nose.tools.assert_almost_equal(numpy.linalg.norm(ifocus - pp.get_matrix().T, 2),
                                        0., 12)
 
         ifocus_up = cam.project([0,1,4])
-        tmp = ifocus_up - pp
+        tmp = (ifocus_up - pp.get_matrix().T)[0]
         nose.tools.assert_almost_equal(tmp[0], 0., 12)
         nose.tools.assert_true(tmp[1] < 0.)
 

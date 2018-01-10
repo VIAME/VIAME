@@ -30,7 +30,7 @@
 
 #include <vital/types/landmark.h>
 
-#include "py_classes.cxx"
+#include "covariance_class.cxx"
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
@@ -244,8 +244,5 @@ PYBIND11_MODULE(_landmark, m)
   .def_property("color", &PyLandmarkBase::get_color, &PyLandmarkBase::set_color)
   .def_property("observations", &PyLandmarkBase::get_observations, &PyLandmarkBase::set_observations)
   ;
-
-  py::class_<PyLandmarkd, PyLandmarkBase, std::shared_ptr<PyLandmarkd>>(m, "Landmarkd");
-  py::class_<PyLandmarkf, PyLandmarkBase, std::shared_ptr<PyLandmarkf>>(m, "Landmarkf");
 
 }
