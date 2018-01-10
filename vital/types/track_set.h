@@ -269,6 +269,9 @@ public:
    */
   virtual std::vector<track_state_sptr> frame_states( frame_id_t offset = -1 ) const = 0;
 
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual track_set_frame_data_map_t all_frame_data() const = 0;
+
   /// Return the additional data associated with all tracks on the given frame
   /**
    * \param [in] offset the frame offset for selecting the target frame.
@@ -544,6 +547,12 @@ public:
     return impl_->frame_states(offset);
   }
 
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual track_set_frame_data_map_t all_frame_data() const
+  {
+    return impl_->all_frame_data();
+  }
+
   /// Return the additional data associated with all tracks on the given frame
   virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const
   {
@@ -608,6 +617,9 @@ public:
 
   /// Return a vector of track shared pointers
   virtual std::vector< track_sptr > tracks() const { return data_; }
+
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual track_set_frame_data_map_t all_frame_data() const { return frame_data_; }
 
   /// Return the additional data associated with all tracks on the given frame
   virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const;
