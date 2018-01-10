@@ -103,6 +103,12 @@ public:
   // The image io to use
   vital::algo::image_io_sptr m_image_io;
 
+  // The path to the training image list
+  std::string training_image_list_path;
+
+  // The path to the vocabulary
+  std::string vocabulary_path;
+
   std::map<DBoW2::EntryId, kwiver::vital::frame_id_t> m_entry_to_frame;
 
   int m_max_num_candidate_matches_from_vocabulary_tree;
@@ -113,6 +119,8 @@ public:
 bag_of_words_matching::priv
 ::priv()
   :m_max_num_candidate_matches_from_vocabulary_tree(10)
+  ,training_image_list_path("")
+  ,vocabulary_path("")
 {
 
 }
@@ -125,10 +133,9 @@ bag_of_words_matching::priv
 {
   if (!m_voc)
   {
-    std::string voc_file = "kwiver_voc.yml.gz";
     //first time we will make the voc.  Then just load it.
     try {
-      load_vocabulary(voc_file);
+      load_vocabulary(vocabulary_path);
     }
     catch (const path_not_a_file &e)
     {
@@ -143,7 +150,7 @@ bag_of_words_matching::priv
 
     if (!m_voc)
     {
-      train_vocabulary("training_image_list.txt", voc_file);
+      train_vocabulary(training_image_list_path, vocabulary_path);
     }
 
     m_db = std::make_shared<OrbDatabase>(*m_voc, true, 3);
@@ -465,6 +472,14 @@ get_configuration() const
     d_->m_max_num_candidate_matches_from_vocabulary_tree,
     "the maximum number of candidate matches to return from the vocabulary tree");
 
+  config->set_value("training_image_list_path",
+    d_->training_image_list_path,
+    "path to the list of vocabulary training images");
+
+  config->set_value("vocabulary_path",
+    d_->vocabulary_path,
+    "path to the vocabulary file");
+
   return config;
 }
 
@@ -500,6 +515,11 @@ set_configuration(vital::config_block_sptr config_in)
     config->get_value<int>("max_num_candidate_matches_from_vocabulary_tree",
       d_->m_max_num_candidate_matches_from_vocabulary_tree);
 
+  d_->training_image_list_path =
+    config->get_value<std::string>("training_image_list_path", d_->training_image_list_path);
+
+  d_->vocabulary_path =
+    config->get_value<std::string>("vocabulary_path", d_->vocabulary_path);
 }
 
 // ------------------------------------------------------------------
