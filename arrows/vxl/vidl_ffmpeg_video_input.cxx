@@ -814,4 +814,12 @@ vidl_ffmpeg_video_input
   return d->d_video_stream.is_seekable();
 }
 
+// ------------------------------------------------------------------
+kwiver::vital::timestamp::frame_t
+vidl_ffmpeg_video_input
+::num_frames() const
+{
+  return d->d_video_stream.num_frames();
+}
+
 } } } // end namespace

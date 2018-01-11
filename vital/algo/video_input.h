@@ -218,6 +218,19 @@ public:
   virtual bool seekable() const = 0;
 
   /**
+   * \brief Get the number of frames in the video stream.
+   *
+   * Get the number of frames available in the video stream. If the video stream
+   * is not seekable it returns -1
+   *
+   * \return the number of frames in the video stream, or -1 if the video stream
+   * is not seekable.
+   *
+   * \throws video_stream_exception when there is an error in the video stream.
+   */
+  virtual kwiver::vital::timestamp::frame_t num_frames() const = 0;
+
+  /**
    * \brief Advance to next frame in video stream.
    *
    * This method advances the video stream to the next frame, making

@@ -269,6 +269,14 @@ video_input_image_list
 }
 
 // ------------------------------------------------------------------
+kwiver::vital::timestamp::frame_t
+video_input_image_list
+::num_frames() const
+{
+  return d->m_files.size();
+}
+
+// ------------------------------------------------------------------
 bool
 video_input_image_list
 ::next_frame( kwiver::vital::timestamp& ts,
