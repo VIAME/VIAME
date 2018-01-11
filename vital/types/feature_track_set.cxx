@@ -183,4 +183,44 @@ feature_track_set
 }
 
 
+/// Return a map of all feature_track_set_frame_data
+std::map<frame_id_t, feature_track_set_frame_data_sptr>
+feature_track_set
+::all_feature_frame_data() const
+{
+  std::map<frame_id_t, feature_track_set_frame_data_sptr> feature_fmap;
+  track_set_frame_data_map_t fmap = this->all_frame_data();
+  for (auto fd : fmap)
+  {
+    auto ftsfd =
+      std::dynamic_pointer_cast<feature_track_set_frame_data>(fd.second);
+    if ( ftsfd )
+    {
+      feature_fmap[fd.first] = ftsfd;
+    }
+  }
+  return feature_fmap;
+}
+
+
+/// Return the set of all keyframes in the track set
+std::set<frame_id_t>
+feature_track_set
+::keyframes() const
+{
+  std::set<frame_id_t> keyframes;
+  track_set_frame_data_map_t fdm = this->all_frame_data();
+  for (auto fd : fdm)
+  {
+    auto ftsfd =
+      std::dynamic_pointer_cast<feature_track_set_frame_data>(fd.second);
+    if (ftsfd && ftsfd->is_keyframe)
+    {
+      keyframes.insert(fd.first);
+    }
+  }
+  return keyframes;
+}
+
+
 } } // end namespace vital

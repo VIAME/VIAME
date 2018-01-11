@@ -38,7 +38,6 @@
 #include <memory>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/keyframe_data.h>
 #include <vital/types/track_set.h>
 
 /**

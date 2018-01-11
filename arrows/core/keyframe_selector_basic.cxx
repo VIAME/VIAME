@@ -34,6 +34,7 @@
 */
 
 #include "keyframe_selector_basic.h"
+#include <vital/types/feature_track_set.h>
 
 using namespace kwiver::vital;
 
@@ -117,9 +118,6 @@ public:
   bool a_keyframe_was_selected(
     kwiver::vital::track_set_sptr tracks);
 
-  frame_id_t get_last_keyframe_id(
-    kwiver::vital::track_set_sptr tracks);
-
   int keyframe_min_feature_count;
   float fraction_tracks_lost_to_necessitate_new_keyframe;
 
@@ -131,15 +129,15 @@ keyframe_selector_basic::priv
 ::initial_keyframe_selection(
   kwiver::vital::track_set_sptr tracks)
 {
-  auto kfd = tracks->get_keyframe_data();
-  auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
+  auto ftracks = std::static_pointer_cast<feature_track_set>(tracks);
+  auto keyframes = ftracks->keyframes();
 
   // start with first frame, can it be a keyframe?  If so add it, if not keep
   // going until we find a first suitable keyframe.
   auto frame_ids = tracks->all_frame_ids();
   for (auto frame : frame_ids)
   {
-    if (kfd_metadata_map->find(frame) != kfd_metadata_map->end())
+    if (keyframes.find(frame) != keyframes.end())
     {
       // If we are running this function, there haven't been any keyframes yet.
       // So, any frame in the metadata now will be a non-keyframe.
@@ -152,11 +150,10 @@ keyframe_selector_basic::priv
       is_keyframe = true;
     }
     //this is the first frame that can be a keyframe
-    std::shared_ptr<keyframe_metadata> sptr =
-      std::shared_ptr<keyframe_metadata>(
-      (keyframe_metadata*)new keyframe_metadata_for_basic_selector(is_keyframe));
+    auto ftsfd = std::make_shared<feature_track_set_frame_data>();
+    ftsfd->is_keyframe = is_keyframe;
 
-    tracks->set_frame_metadata(frame, sptr);
+    tracks->set_frame_data(ftsfd, frame);
     if (is_keyframe)
     {
       break;
@@ -169,28 +166,21 @@ keyframe_selector_basic::priv
 ::continuing_keyframe_selection(
   kwiver::vital::track_set_sptr tracks)
 {
-  auto kfd = tracks->get_keyframe_data();
-  auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
-
+  auto ftracks = std::static_pointer_cast<feature_track_set>(tracks);
+  auto keyframes = ftracks->keyframes();
   // go to the last key-frame, then consider each frame newer than that one in
   // order and decide if it should be a keyframe
-  if (kfd_metadata_map->empty())
+  if (keyframes.empty())
   {
     return;
   }
 
   //find the last keyframe
-
-  frame_id_t last_keyframe_id = get_last_keyframe_id(tracks);
-
-  if (last_keyframe_id < 0)
-  {
-    // we haven't found a keyframe yet, so we can't do continuing keyframe selection
-    return;
-  }
+  frame_id_t last_keyframe_id = *keyframes.rbegin();
 
   // calculate the id of the next frame that doesn't have keyframe metadata
-  frame_id_t next_candidate_keyframe_id = kfd_metadata_map->rbegin()->first + 1;
+  frame_id_t next_candidate_keyframe_id =
+    ftracks->all_feature_frame_data().rbegin()->first + 1;
 
   frame_id_t last_frame_id = tracks->last_frame();
 
@@ -213,10 +203,9 @@ keyframe_selector_basic::priv
     }
 
     //add it's metadata to tracks
-    std::shared_ptr<keyframe_metadata> sptr =
-      std::dynamic_pointer_cast<keyframe_metadata>(
-        std::make_shared<keyframe_metadata_for_basic_selector>(is_keyframe));
-    tracks->set_frame_metadata(next_candidate_keyframe_id, sptr);
+    auto ftsfd = std::make_shared<feature_track_set_frame_data>();
+    ftsfd->is_keyframe = is_keyframe;
+    tracks->set_frame_data(ftsfd, next_candidate_keyframe_id);
     if (is_keyframe)
     {
       last_keyframe_id = next_candidate_keyframe_id;
@@ -229,37 +218,11 @@ keyframe_selector_basic::priv
 ::a_keyframe_was_selected(
   kwiver::vital::track_set_sptr tracks)
 {
-  return get_last_keyframe_id(tracks) >= 0;
+  auto ftracks = std::static_pointer_cast<feature_track_set>(tracks);
+  auto keyframes = ftracks->keyframes();
+  return !keyframes.empty();
 }
 
-frame_id_t
-keyframe_selector_basic::priv
-::get_last_keyframe_id(
-  kwiver::vital::track_set_sptr tracks)
-{
-  auto kfd = tracks->get_keyframe_data();
-  auto kfd_metadata_map = kfd->get_keyframe_metadata_map();
-
-  for (auto latest_kfmd_it = kfd_metadata_map->crbegin();
-    latest_kfmd_it != kfd_metadata_map->crend(); ++latest_kfmd_it)
-  {
-    keyframe_metadata_sptr latest_kfmd = latest_kfmd_it->second;
-
-    keyframe_metadata_for_basic_selector_sptr latest_kfmd_basic =
-      std::dynamic_pointer_cast<keyframe_metadata_for_basic_selector>(latest_kfmd);
-    if (!latest_kfmd_basic)
-    {
-      //metadata should be keyframe_metadata_for_basic_selector and is not.
-      return -1;
-    }
-
-    if (latest_kfmd_basic->is_keyframe)
-    {
-      return latest_kfmd_it->first;
-    }
-  }
-  return -1;
-}
 
 /// Default Constructor
 keyframe_selector_basic
@@ -291,7 +254,7 @@ keyframe_selector_basic
 {
   // Starting with our generated config_block to ensure that assumed values are
   // present.  An alternative is to check for key presence before performing a
-  //get_value() call.
+  // get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
   d_->set_config(in_config);
@@ -315,20 +278,23 @@ keyframe_selector_basic
   // 2) number of features in frame is greater than some minimum.  This prevents
   //    keyframes from being added in areas with little texture (few features).
 
-  track_set_sptr cur_tracks = tracks->clone();  //deep copy here
+  // deep copy here
+  track_set_sptr cur_tracks = tracks->clone();
 
   if (!d_->a_keyframe_was_selected(cur_tracks))
   {
-    //we don't have any keyframe data yet for this set of tracks.
+    // we don't have any keyframe data yet for this set of tracks.
     d_->initial_keyframe_selection(cur_tracks);
   }
 
   if (d_->a_keyframe_was_selected(cur_tracks))
-  { //check again because initial keyframe selection could have added a keyframe
+  {
+    // check again because initial keyframe selection could have added a keyframe
     d_->continuing_keyframe_selection(cur_tracks);
   }
 
-  return cur_tracks;  //return the copy of tracks
+  // return the copy of tracks
+  return cur_tracks;
 }
 
 } // end namespace core

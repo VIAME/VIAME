@@ -149,16 +149,8 @@ keyframe_selection_process
 {
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-
   kwiver::vital::feature_track_set_sptr prev_tracks = grab_from_port_using_trait(feature_track_set);
 
-  
-  if (!d->first_frame)
-  {
-    vital::keyframe_data_sptr in_cfd = 
-    std::const_pointer_cast<vital::keyframe_data>(grab_from_port_using_trait(keyframe_data_const));
-    prev_tracks->set_keyframe_data(in_cfd);
-  }
   d->first_frame = false;
 
   kwiver::vital::feature_track_set_sptr new_kf_tracks;
@@ -178,8 +170,6 @@ keyframe_selection_process
 
   // return by value
   push_to_port_using_trait(feature_track_set, new_kf_tracks );  
-  vital::keyframe_data_const_sptr kfd = new_kf_tracks->get_keyframe_data();
-  push_to_port_using_trait(keyframe_data_const,kfd);
 }
 
 
@@ -196,11 +186,9 @@ void keyframe_selection_process
   // -- input --
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( feature_track_set, required);
-  declare_input_port_using_trait(keyframe_data_const, optional);
 
   // -- output --
   declare_output_port_using_trait(feature_track_set, required );
-  declare_output_port_using_trait(keyframe_data_const, required);
 }
 
 

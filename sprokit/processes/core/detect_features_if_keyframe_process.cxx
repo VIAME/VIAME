@@ -268,20 +268,19 @@ detect_features_if_keyframe_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  vital::keyframe_data_const_sptr next_kfd = 
-    next_tracks->get_keyframe_data();
-
-  vital::keyframe_data_const_sptr loop_kfd = 
-    loop_back_tracks->get_keyframe_data();
+  auto next_fd = next_tracks->all_frame_data();
+  // clone frame data in place
+  for ( auto f : next_fd )
+  {
+    f.second = f.second->clone();
+  }
 
   vital::feature_track_set_sptr curr_tracks = 
     std::dynamic_pointer_cast<vital::feature_track_set>( 
       loop_back_tracks->clone() );  //clone loop back tracks so we can change it.
 
-  vital::keyframe_data_const_sptr curr_kfd = curr_tracks->get_keyframe_data();
-
   // copy the next kfd into the current tracks.
-  curr_tracks->set_keyframe_data(next_kfd->clone());  
+  curr_tracks->set_frame_data(next_fd);
 
   // ok, next tracks will have some tracks that are longer or newer than 
   // loop_back_tracks.  

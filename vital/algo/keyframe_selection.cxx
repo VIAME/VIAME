@@ -32,8 +32,6 @@
 
 #include "keyframe_selection.h"
 
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::keyframe_selection);
-
 namespace kwiver {
 namespace vital {
 namespace algo {

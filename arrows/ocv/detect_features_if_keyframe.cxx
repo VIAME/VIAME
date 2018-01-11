@@ -79,28 +79,13 @@ detect_features_if_keyframe
          kwiver::vital::image_container_sptr mask) const
 {
   
-  vital::keyframe_metadata_sptr kfmd_ptr = 
-    feat_track_set->get_keyframe_data()->get_frame_metadata(frame_number);
-  if (!kfmd_ptr)
+  auto fmap = feat_track_set->all_feature_frame_data();
+  auto ftsfd = fmap.find(frame_number);
+  if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
   {
-    //no keyframe data for this frame id.  So, return the orignial feat_track_set
-    return feat_track_set;  //no changes made so no deep copy necessary
-  }
-
-  vital::keyframe_metadata_for_basic_selector_sptr kfmd_basic_ptr =
-    std::dynamic_pointer_cast<keyframe_metadata_for_basic_selector>(kfmd_ptr);
-  if (!kfmd_basic_ptr)
-  {
-    //Can't cast it to a keyframe_metadata_for_basic_selector to get the
-    //bool is_keyframe flag.  So, just return the original feat_track_set
-    return feat_track_set; //no changes made so no deep copy necessary
-  }
-
-  //basic keyframe data is present.  Is it a keyframe?
-  if (!kfmd_basic_ptr->is_keyframe)
-  {
-    //nope, so return the original feat_track_set
-    return feat_track_set; //no changes made so no deep copy necessary
+    // this is not a keyframe, so return the orignial feat_track_set
+    // no changes made so no deep copy necessary
+    return feat_track_set;
   }
 
   //detect the features

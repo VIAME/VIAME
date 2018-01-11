@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@
 #define VITAL_TRACK_SET_H_
 
 #include "track.h"
-#include "keyframe_data.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -61,6 +60,25 @@ class track_set_interface;
 typedef std::shared_ptr< track_set_interface > track_set_interface_sptr;
 typedef std::unique_ptr< track_set_interface > track_set_interface_uptr;
 
+class track_set_frame_data;
+typedef std::shared_ptr<track_set_frame_data> track_set_frame_data_sptr;
+typedef std::map<frame_id_t, track_set_frame_data_sptr> track_set_frame_data_map_t;
+
+
+// ------------------------------------------------------------------
+/// Empty base class for data associated a frame in the track_set
+class VITAL_EXPORT track_set_frame_data
+{
+public:
+  // Dynamic copy constructor
+  virtual track_set_frame_data_sptr clone() const = 0;
+
+protected:
+  virtual ~track_set_frame_data() = default;
+};
+
+
+// ------------------------------------------------------------------
 /// Abstract interface for a collection of tracks
 class VITAL_EXPORT track_set_interface
 {
@@ -247,19 +265,57 @@ public:
    *                    the default.
    *
    * \returns a vector of track_state_sptr corresponding to the tracks
-              on this frame and in the same order as active_track(offset)
+   *          on this frame and in the same order as active_track(offset)
    */
   virtual std::vector<track_state_sptr> frame_states( frame_id_t offset = -1 ) const = 0;
 
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual track_set_frame_data_map_t all_frame_data() const = 0;
+
+  /// Return the additional data associated with all tracks on the given frame
+  /**
+   * \param [in] offset the frame offset for selecting the target frame.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
+   *
+   * \returns a track_set_frame_data_sptr containing the frame data or nullptr
+   *          if no data is available on this frame.
+   */
+  virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const = 0;
+
+  /// Set additional frame data associated with all tracks for all frames
+  /**
+   * This method sets the frame data on all frames at once using a map.
+   * Any existing frame data is removed and replaced with the contents of
+   * this map.  Therefore, providing an empty map removes all frame data.
+   *
+   * \param [in] fmap  the map of frame number to frame data to replace all
+   *                   existing frame data stored with the tracks.
+   *
+   * \returns true if the data was successfully set.
+   */
+  virtual bool set_frame_data( track_set_frame_data_map_t const& fmap ) = 0;
+
+  /// Set additional data associated with all tracks on the given frame
+  /**
+   * \param [in] data   the frame data object to store on this frame.
+   * \param [in] offset the frame offset for selecting the target frame.
+   *                    Positive number are absolute frame numbers while
+   *                    negative numbers are relative to the last frame.  For
+   *                    example, offset of -1 refers to the last frame and is
+   *                    the default.
+   *
+   * \returns true if the data was successfully set.
+   *
+   * \note Set the \c data to \c nullptr to remove the data on a frame.
+   */
+  virtual bool set_frame_data( track_set_frame_data_sptr data,
+                               frame_id_t offset = -1 ) = 0;
+
   /// Convert an offset number to an absolute frame number
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const = 0;
-
-  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const = 0;
-
-  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata) = 0;
-
-  virtual bool remove_frame_metadata(frame_id_t frame) = 0;
-
 };
 
 
@@ -335,12 +391,6 @@ public:
   /// Convert an offset number to an absolute frame number
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const;
 
-  /// Get the keyframe data
-  virtual keyframe_data_const_sptr get_keyframe_data() const = 0;
-
-  /// Set the keyframe data
-  virtual void set_keyframe_data(keyframe_data_const_sptr kfd) = 0;
-
   /// Clone this track set implementation
   virtual track_set_implementation_uptr clone() const = 0;
 };
@@ -372,9 +422,14 @@ public:
 
   /// Constructor from a vector of tracks
   /**
+   * \param [in] tracks the vector of tracks to add to the set
+   * \param [in] frame_data the optional map of frame_data to add
+   *
    * \note implementation defaults to simple_track_set_implementation
    */
-  track_set(std::vector< track_sptr > const& tracks, keyframe_data_sptr kfd);
+  track_set(std::vector< track_sptr > const& tracks,
+            track_set_frame_data_map_t const& frame_data =
+              track_set_frame_data_map_t());
 
   /// Return the number of tracks in the set
   virtual size_t size() const
@@ -505,35 +560,35 @@ public:
     return impl_->frame_states(offset);
   }
 
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual track_set_frame_data_map_t all_frame_data() const
+  {
+    return impl_->all_frame_data();
+  }
+
+  /// Return the additional data associated with all tracks on the given frame
+  virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const
+  {
+    return impl_->frame_data(offset);
+  }
+
+  /// Set additional frame data associated with all tracks for all frames
+  virtual bool set_frame_data( track_set_frame_data_map_t const& fmap )
+  {
+    return impl_->set_frame_data( fmap );
+  }
+
+  /// Set additional data associated with all tracks on the given frame
+  virtual bool set_frame_data( track_set_frame_data_sptr data,
+                               frame_id_t offset = -1 )
+  {
+    return impl_->set_frame_data( data, offset );
+  }
+
   /// Convert an offset number to an absolute frame number
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const
   {
     return impl_->offset_to_frame(offset);
-  }
-
-  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const
-  {
-    return impl_->get_frame_metadata(frame);
-  }
-
-  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
-  {
-    return impl_->set_frame_metadata(frame, metadata);
-  }
-
-  virtual keyframe_data_const_sptr get_keyframe_data() const
-  {
-    return impl_->get_keyframe_data();
-  }
-
-  virtual void set_keyframe_data(keyframe_data_sptr kfd)
-  {
-    return impl_->set_keyframe_data(kfd);
-  }
-
-  virtual bool remove_frame_metadata(frame_id_t frame)
-  {
-    return impl_->remove_frame_metadata(frame);
   }
 
   virtual track_set_sptr clone() const;
@@ -553,10 +608,13 @@ class simple_track_set_implementation
 {
 public:
   /// Default Constructor
-  simple_track_set_implementation();
+  simple_track_set_implementation() { }
 
   /// Constructor from a vector of tracks
-  explicit simple_track_set_implementation(const std::vector< track_sptr >& tracks);
+  explicit simple_track_set_implementation(
+      std::vector< track_sptr > const& tracks,
+      track_set_frame_data_map_t const& frame_data =
+        track_set_frame_data_map_t());
 
   /// Return the number of tracks in the set
   virtual size_t size() const { return data_.size(); }
@@ -579,18 +637,22 @@ public:
   /// Return a vector of track shared pointers
   virtual std::vector< track_sptr > tracks() const { return data_; }
 
-  virtual keyframe_metadata_sptr get_frame_metadata(frame_id_t frame) const;
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual track_set_frame_data_map_t all_frame_data() const { return frame_data_; }
 
-  virtual bool set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata);
+  /// Return the additional data associated with all tracks on the given frame
+  virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const;
 
-  virtual bool remove_frame_metadata(frame_id_t frame);
+  /// Set additional frame data associated with all tracks for all frames
+  virtual bool set_frame_data( track_set_frame_data_map_t const& fmap )
+  {
+    frame_data_ = fmap;
+    return true;
+  }
 
-  /// get the keyframe data as a const map.  This allows algorithms to operate on the data
-  /// but not change it.  They must make changes to the keyframe states through track set
-  /// implementation methods.
-  virtual keyframe_data_const_sptr get_keyframe_data() const;
-
-  virtual void set_keyframe_data(keyframe_data_const_sptr kfd);
+  /// Set additional data associated with all tracks on the given frame
+  virtual bool set_frame_data( track_set_frame_data_sptr data,
+                               frame_id_t offset = -1 );
 
   virtual track_set_implementation_uptr clone() const;
 
@@ -598,8 +660,8 @@ protected:
   /// The vector of tracks
   std::vector< track_sptr > data_;
 
-  /// The keyframe data container
-  keyframe_data_sptr kf_data_;
+  /// The frame data map
+  track_set_frame_data_map_t frame_data_;
 
 };
 

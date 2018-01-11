@@ -398,10 +398,10 @@ track_set
 
 /// Constructor from a vector of tracks
 track_set
-::track_set(std::vector< track_sptr > const& tracks, keyframe_data_sptr kfd)
-  : impl_(new simple_track_set_implementation(tracks))
+::track_set(std::vector< track_sptr > const& tracks,
+            track_set_frame_data_map_t const& frame_data)
+  : impl_(new simple_track_set_implementation(tracks, frame_data))
 {
-  impl_->set_keyframe_data(kfd);
 }
 
 track_set_sptr
@@ -419,16 +419,13 @@ track_set
 
 //===================================================================
 
+/// Constructor from a vector of tracks
 simple_track_set_implementation
-::simple_track_set_implementation()
+::simple_track_set_implementation(std::vector< track_sptr > const& tracks,
+                                  track_set_frame_data_map_t const& frame_data)
+  : data_(tracks)
+  , frame_data_(frame_data)
 {
-  kf_data_ = std::make_shared<simple_keyframe_data>();
-}
-simple_track_set_implementation
-::simple_track_set_implementation(const std::vector< track_sptr >& tracks):
-  data_(tracks)
-{
-  kf_data_ = std::make_shared<simple_keyframe_data>();
 }
 
 /// Return true if the set contains a specific track
@@ -454,38 +451,44 @@ simple_track_set_implementation
   return true;
 }
 
-keyframe_metadata_sptr
+
+/// Return the additional data associated with all tracks on the given frame
+track_set_frame_data_sptr
 simple_track_set_implementation
-::get_frame_metadata(frame_id_t frame) const
+::frame_data( frame_id_t offset ) const
 {
-  return kf_data_->get_frame_metadata(frame);
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if ( itr != frame_data_.end() )
+  {
+    return itr->second;
+  }
+  return nullptr;
 }
 
+
+/// Set additional data associated with all tracks on the given frame
 bool
 simple_track_set_implementation
-::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
+::set_frame_data( track_set_frame_data_sptr data,
+                  frame_id_t offset )
 {
-  return kf_data_->set_frame_metadata(frame, metadata);
-}
-
-bool
-simple_track_set_implementation
-::remove_frame_metadata(frame_id_t frame)
-{
-  return kf_data_->remove_frame_metadata(frame);
-}
-
-keyframe_data_const_sptr
-simple_track_set_implementation
-::get_keyframe_data() const
-{
-  return std::dynamic_pointer_cast<const keyframe_data>(kf_data_);
-}
-
-void
-simple_track_set_implementation
-::set_keyframe_data(keyframe_data_const_sptr kfd) {
-  kf_data_ = std::const_pointer_cast<keyframe_data>(kfd);
+  frame_id_t frame_number = offset_to_frame(offset);
+  if ( !data )
+  {
+    // remove the data on the specified frame
+    auto itr = frame_data_.find(frame_number);
+    if ( itr == frame_data_.end() )
+    {
+      return false;
+    }
+    frame_data_.erase(itr);
+  }
+  else
+  {
+    frame_data_[frame_number] = data;
+  }
+  return true;
 }
 
 
@@ -500,10 +503,13 @@ simple_track_set_implementation
   {
     new_stsi->data_.push_back(trk->clone());
   }
-  // this will work because this->kf_data is in fact a
-  // simple_keyframe_data by construction
-  new_stsi->kf_data_ =
-    std::dynamic_pointer_cast<simple_keyframe_data>(this->kf_data_->clone());
+  for (auto fd : frame_data_)
+  {
+    if ( fd.second )
+    {
+      new_stsi->frame_data_[fd.first] = fd.second->clone();
+    }
+  }
 
   std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());
   if (new_tsi) {

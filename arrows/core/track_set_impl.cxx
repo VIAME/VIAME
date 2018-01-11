@@ -48,7 +48,6 @@ using namespace kwiver::vital;
 frame_index_track_set_impl
 ::frame_index_track_set_impl()
 {
-  kf_data_ = std::make_shared<simple_keyframe_data>();
 }
 
 
@@ -57,38 +56,7 @@ frame_index_track_set_impl
 ::frame_index_track_set_impl( const std::vector< track_sptr >& tracks )
   : all_tracks_( tracks )
 {
-  kf_data_ = std::make_shared<simple_keyframe_data>();
 }
-
-
-keyframe_metadata_sptr
-frame_index_track_set_impl
-::get_frame_metadata(frame_id_t frame) const
-{
-  return kf_data_->get_frame_metadata(frame);
-}
-
-bool
-frame_index_track_set_impl
-::set_frame_metadata(frame_id_t frame, keyframe_metadata_sptr metadata)
-{
-  return kf_data_->set_frame_metadata(frame, metadata);
-}
-
-bool
-frame_index_track_set_impl
-::remove_frame_metadata(frame_id_t frame)
-{
-  return kf_data_->remove_frame_metadata(frame);
-}
-
-keyframe_data_const_sptr
-frame_index_track_set_impl
-::get_keyframe_data() const
-{
-  return std::dynamic_pointer_cast<const keyframe_data>(kf_data_);
-}
-
 
 /// Populate frame_map_ with data from all_tracks_
 void
@@ -433,20 +401,45 @@ frame_index_track_set_impl
   return vdata;
 }
 
-void
+/// Return the additional data associated with all tracks on the given frame
+track_set_frame_data_sptr
 frame_index_track_set_impl
-::set_keyframe_data(keyframe_data_const_sptr kfd)
+::frame_data( frame_id_t offset ) const
 {
-  kf_data_ = std::dynamic_pointer_cast<simple_keyframe_data>(
-    std::const_pointer_cast<keyframe_data>(kfd));
-
-  if (!kf_data_)
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if ( itr != frame_data_.end() )
   {
-    static std::string const reason =
-      "Input keyframe data could not be cast to a simple keyframe data.";
-    throw std::runtime_error(reason);
+    return itr->second;
   }
+  return nullptr;
 }
+
+
+/// Set additional data associated with all tracks on the given frame
+bool
+frame_index_track_set_impl
+::set_frame_data( track_set_frame_data_sptr data,
+                  frame_id_t offset )
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  if ( !data )
+  {
+    // remove the data on the specified frame
+    auto itr = frame_data_.find(frame_number);
+    if ( itr == frame_data_.end() )
+    {
+      return false;
+    }
+    frame_data_.erase(itr);
+  }
+  else
+  {
+    frame_data_[frame_number] = data;
+  }
+  return true;
+}
+
 
 track_set_implementation_uptr
 frame_index_track_set_impl
