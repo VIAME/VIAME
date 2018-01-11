@@ -285,6 +285,19 @@ public:
    */
   virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const = 0;
 
+  /// Set additional frame data associated with all tracks for all frames
+  /**
+   * This method sets the frame data on all frames at once using a map.
+   * Any existing frame data is removed and replaced with the contents of
+   * this map.  Therefore, providing an empty map removes all frame data.
+   *
+   * \param [in] fmap  the map of frame number to frame data to replace all
+   *                   existing frame data stored with the tracks.
+   *
+   * \returns true if the data was successfully set.
+   */
+  virtual bool set_frame_data( track_set_frame_data_map_t const& fmap ) = 0;
+
   /// Set additional data associated with all tracks on the given frame
   /**
    * \param [in] data   the frame data object to store on this frame.
@@ -559,6 +572,12 @@ public:
     return impl_->frame_data(offset);
   }
 
+  /// Set additional frame data associated with all tracks for all frames
+  virtual bool set_frame_data( track_set_frame_data_map_t const& fmap )
+  {
+    return impl_->set_frame_data( fmap );
+  }
+
   /// Set additional data associated with all tracks on the given frame
   virtual bool set_frame_data( track_set_frame_data_sptr data,
                                frame_id_t offset = -1 )
@@ -624,6 +643,13 @@ public:
   /// Return the additional data associated with all tracks on the given frame
   virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const;
 
+  /// Set additional frame data associated with all tracks for all frames
+  virtual bool set_frame_data( track_set_frame_data_map_t const& fmap )
+  {
+    frame_data_ = fmap;
+    return true;
+  }
+
   /// Set additional data associated with all tracks on the given frame
   virtual bool set_frame_data( track_set_frame_data_sptr data,
                                frame_id_t offset = -1 );
@@ -635,7 +661,7 @@ protected:
   std::vector< track_sptr > data_;
 
   /// The frame data map
-  std::map<frame_id_t, track_set_frame_data_sptr> frame_data_;
+  track_set_frame_data_map_t frame_data_;
 
 };
 

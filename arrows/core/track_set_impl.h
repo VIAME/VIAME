@@ -141,6 +141,13 @@ public:
   virtual vital::track_set_frame_data_sptr
   frame_data( vital::frame_id_t offset = -1 ) const;
 
+  /// Set additional frame data associated with all tracks for all frames
+  virtual bool set_frame_data( vital::track_set_frame_data_map_t const& fmap )
+  {
+    frame_data_ = fmap;
+    return true;
+  }
+
   /// Set additional data associated with all tracks on the given frame
   virtual bool set_frame_data( vital::track_set_frame_data_sptr data,
                                vital::frame_id_t offset = -1 );
@@ -155,7 +162,7 @@ protected:
   void populate_frame_map_on_demand() const;
 
   /// The frame data map
-  std::map<vital::frame_id_t, vital::track_set_frame_data_sptr> frame_data_;
+  vital::track_set_frame_data_map_t frame_data_;
 
 private:
   /// The vector of all tracks
