@@ -33,12 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Interface to VITAL bounding_box class.
 
 """
-import ctypes
-
 from vital.util import VitalObject
 from vital.util import VitalErrorHandle
 
 from vital.util import free_void_ptr
+
+from vital.types.bindings import _bounding_box
 
 
 class BoundingBox (VitalObject):
