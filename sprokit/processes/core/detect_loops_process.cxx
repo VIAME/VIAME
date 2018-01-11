@@ -269,18 +269,9 @@ detect_loops_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  // merge next_tracks into loop_back_tracks
-
-  vital::keyframe_data_const_sptr next_kfd = next_tracks->get_keyframe_data();
-
   //clone loop back tracks so we can change it.
   vital::feature_track_set_sptr curr_tracks =
     std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
-
-  vital::keyframe_data_const_sptr curr_kfd = curr_tracks->get_keyframe_data();
-
-  // copy the next kfd into the current tracks.
-  curr_tracks->set_keyframe_data(next_kfd->clone());
 
   // ok, next tracks will have some tracks that are longer or newer than
   // loop_back_tracks.
