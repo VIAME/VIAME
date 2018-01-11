@@ -257,16 +257,4 @@ License and Citation
 VIAME is released under a BSD-3 license.
 
 A system paper summarizing VIAME was published in IEEE WACV 2017 (citation below)
-which is [available here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
-
-```
-@inproceedings{viame2017,
-  title={An Open-Source Platform for Underwater Image and Video Analytics},
-  author={Dawkins, Matthew and Sherrill, Linus and Fieldhouse, Keith and Hoogs, Anthony and Richards, Benjamin and Zhang, David and Prasad, Lakshman and Williams, Kresimir and Lauffenburger, Nathan and Wang, Gaoang},
-  booktitle={Applications of Computer Vision (WACV), 2017 IEEE Winter Conference on},
-  pages={898--906},
-  year={2017},
-  organization={IEEE}
-}
-
-```
+which is available [here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
