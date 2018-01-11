@@ -102,7 +102,7 @@ read_track_file( path_t const& file_path )
     t->append( std::make_shared<track_state>( fid ) );
   }
 
-  return track_set_sptr( new track_set( tracks, kwiver::vital::keyframe_data_sptr() ) );
+  return track_set_sptr( new track_set( tracks ) );
 } // read_track_file
 
 
@@ -232,24 +232,10 @@ read_feature_track_file( path_t const& file_path )
     frame_id_t fid;
     std::stringstream ss(line);
     ss >> fid;
-    keyframe_metadata_sptr kfmd =
-      std::dynamic_pointer_cast<vital::keyframe_metadata>(
-        std::make_shared<vital::keyframe_metadata_for_basic_selector>(true));
-    fts->set_frame_metadata(fid, kfmd);
+    auto frame_data = std::make_shared<feature_track_set_frame_data>();
+    frame_data->is_keyframe = true;
+    fts->set_frame_data(frame_data, fid);
   }
-  //make sure all the non-keyframe metadata items are also included
-  for (auto frame : frames_in_track_set)
-  {
-    auto kfmd = fts->get_frame_metadata(frame);
-    if (!kfmd)
-    {
-      keyframe_metadata_sptr new_kfmd =
-        std::dynamic_pointer_cast<vital::keyframe_metadata>(
-          std::make_shared<vital::keyframe_metadata_for_basic_selector>(false));
-      fts->set_frame_metadata(frame, new_kfmd);
-    }
-  }
-
 
   return fts;
 } // read_track_file
@@ -305,27 +291,13 @@ write_feature_track_file( feature_track_set_sptr const& tracks,
     }
   }
 
-  keyframe_data_const_sptr kfd = tracks->get_keyframe_data();
-  auto kfmd_map = kfd->get_keyframe_metadata_map();
-  if (!kfmd_map->empty())
+  std::set<frame_id_t> keyframes = tracks->keyframes();
+  if ( !keyframes.empty() )
   {
     ofile << "keyframes" << "\n";
-    for (auto kfmd : *kfmd_map)
+    for (auto k : keyframes)
     {
-      vital::keyframe_metadata_for_basic_selector_sptr kfmd_basic_ptr =
-        std::dynamic_pointer_cast<vital::keyframe_metadata_for_basic_selector>(
-          kfmd.second);
-      if (!kfmd_basic_ptr)
-      {
-        continue;
-      }
-
-      if (!kfmd_basic_ptr->is_keyframe)
-      {
-        continue;
-      }
-
-      ofile << kfmd.first << "\n";
+      ofile << k << "\n";
     }
   }
   ofile.close();

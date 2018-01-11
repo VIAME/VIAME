@@ -141,7 +141,7 @@ make_simple_track_set()
   test_tracks[1]->append( test_state2->clone() );
   test_tracks[2]->append( test_state3->clone() );
 
-  return std::make_shared<track_set>( test_tracks, nullptr );
+  return std::make_shared<track_set>( test_tracks );
 }
 
 // ----------------------------------------------------------------------------

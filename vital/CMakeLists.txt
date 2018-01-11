@@ -114,7 +114,6 @@ set( vital_public_headers
   types/homography_f2w.h
   types/image.h
   types/image_container.h
-  types/keyframe_data.h
   types/landmark.h
   types/landmark_map.h
   types/match_set.h
@@ -180,7 +179,6 @@ set( vital_sources
   types/homography_f2f.cxx
   types/homography_f2w.cxx
   types/image.cxx
-  types/keyframe_data.cxx
   types/landmark.cxx
   types/mesh.cxx
   types/metadata.cxx

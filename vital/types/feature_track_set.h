@@ -51,11 +51,10 @@
 namespace kwiver {
 namespace vital {
 
-/// A derived track_state for feature tracks
-
 class feature_track_state;
 typedef std::shared_ptr<feature_track_state> feature_track_state_sptr;
 
+/// A derived track_state for feature tracks
 class VITAL_EXPORT feature_track_state : public track_state
 {
 public:
@@ -77,6 +76,26 @@ public:
   feature_sptr feature;
   descriptor_sptr descriptor;
 };
+
+
+
+class feature_track_set_frame_data;
+typedef std::shared_ptr<feature_track_set_frame_data> feature_track_set_frame_data_sptr;
+
+/// A derived track_state_frame_data for feature tracks
+class VITAL_EXPORT feature_track_set_frame_data
+ : public track_set_frame_data
+{
+public:
+  // Dynamic copy constructor
+  virtual track_set_frame_data_sptr clone() const
+  {
+    return std::make_shared<feature_track_set_frame_data>(*this);
+  }
+
+  bool is_keyframe;
+};
+
 
 class feature_info {
 public:
@@ -147,6 +166,23 @@ public:
    * \returns a descriptor_set_sptr for all features on the give frame.
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
+
+  /// Return a map of all feature_track_set_frame_data
+  /**
+   * This function is similar to \c all_frame_data() except that it checks
+   * the type of the frame data and dynamically casts it to the specialized
+   * frame data for feature_track_set.  Any frame data of a different type
+   * is not included in this ouput.
+   */
+  virtual std::map<frame_id_t, feature_track_set_frame_data_sptr>
+    all_feature_frame_data() const;
+
+  /// Return the set of all keyframes in the track set
+  /**
+   * Keyframes are designated as frames which have an associated
+   * feature_track_set_frame_data marked with is_keyframe == true
+   */
+  virtual std::set<frame_id_t> keyframes() const;
 
   virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1,
     bool only_features_with_descriptors = true) const;
