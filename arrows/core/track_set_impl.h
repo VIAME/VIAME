@@ -40,7 +40,6 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/track_set.h>
-#include <vital/types/keyframe_data.h>
 
 #include <map>
 
@@ -132,18 +131,19 @@ public:
   virtual std::vector< vital::track_state_sptr >
   frame_states( vital::frame_id_t offset = -1 ) const;
 
-  virtual vital::keyframe_metadata_sptr get_frame_metadata(vital::frame_id_t frame) const;
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual vital::track_set_frame_data_map_t all_frame_data() const
+  {
+    return frame_data_;
+  }
 
-  virtual bool set_frame_metadata(vital::frame_id_t frame, vital::keyframe_metadata_sptr metadata);
+  /// Return the additional data associated with all tracks on the given frame
+  virtual vital::track_set_frame_data_sptr
+  frame_data( vital::frame_id_t offset = -1 ) const;
 
-  virtual bool remove_frame_metadata(vital::frame_id_t frame);
-
-  /// get the keyframe data as a const map.  This allows algorithms to operate on the data
-  /// but not change it.  They must make changes to the keyframe states through track set
-  /// implementation methods.
-  virtual vital::keyframe_data_const_sptr get_keyframe_data() const;
-
-  virtual void set_keyframe_data(vital::keyframe_data_const_sptr kfd);
+  /// Set additional data associated with all tracks on the given frame
+  virtual bool set_frame_data( vital::track_set_frame_data_sptr data,
+                               vital::frame_id_t offset = -1 );
 
   virtual vital::track_set_implementation_uptr clone() const;
 
@@ -154,8 +154,8 @@ protected:
   /// Populate frame_map_ only if it is empty
   void populate_frame_map_on_demand() const;
 
-  /// The keyframe data container
-  vital::simple_keyframe_data_sptr kf_data_;
+  /// The frame data map
+  std::map<vital::frame_id_t, vital::track_set_frame_data_sptr> frame_data_;
 
 private:
   /// The vector of all tracks

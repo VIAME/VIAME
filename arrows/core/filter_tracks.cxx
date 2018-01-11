@@ -146,7 +146,8 @@ filter_tracks
         good_trks.push_back(t);
       }
     }
-    tracks = std::make_shared<kwiver::vital::track_set>(good_trks,tracks->get_keyframe_data()->clone());    
+    tracks = std::make_shared<kwiver::vital::track_set>(good_trks,
+                                                        tracks->all_frame_data());
   }
 
   if( d_->min_mm_importance > 0 )
@@ -171,7 +172,8 @@ filter_tracks
       }
     }
 
-    tracks = std::make_shared<kwiver::vital::track_set>(good_trks,tracks->get_keyframe_data()->clone());
+    tracks = std::make_shared<kwiver::vital::track_set>(good_trks,
+                                                        tracks->all_frame_data());
   }
   return tracks;
 }
