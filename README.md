@@ -33,6 +33,9 @@ Documentation
 [Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
+[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
+
+
 [Detector Examples](examples/detector_pipelines) > > > [Running Detectors Overview](doc/detector_introduction.md) > > > [Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
@@ -46,9 +49,6 @@ Documentation
 
 
 [Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
-
-
-[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
 Pre-Built Binaries

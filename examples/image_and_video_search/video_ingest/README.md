@@ -1,11 +1,11 @@
-This folder contains an example for video search.
+This folder contains an example for video search. <br>
 
-It currently requires Linux or Mac systems, and a VIAME build with SMQTK turned on.
+It is a work in progress, and should only be attempted by advanced users for the time being. <br>
 
-Building and running this examples requires:
+Building and running this examples requires: <br>
 
-  (a) The python packages:
-  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA.
+  (a) The python packages: <br>
+  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA. <br>
 
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
 representing object candidate locations in video. Descriptors are generated around these
