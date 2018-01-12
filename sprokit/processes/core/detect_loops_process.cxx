@@ -273,6 +273,9 @@ detect_loops_process::priv
   vital::feature_track_set_sptr curr_tracks =
     std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
+  //need to pull the key-frame data from next_tracks
+  curr_tracks->set_frame_data(next_tracks->all_frame_data());
+
   // ok, next tracks will have some tracks that are longer or newer than
   // loop_back_tracks.
   std::vector< vital::track_sptr> next_active_tracks =
