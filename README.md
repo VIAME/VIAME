@@ -256,5 +256,5 @@ License and Citation
 
 VIAME is released under a BSD-3 license.
 
-A system paper summarizing VIAME was published in IEEE WACV 2017 (citation below)
-which is available [here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
+A system paper summarizing VIAME was published in IEEE WACV 2017 which is available
+[here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
