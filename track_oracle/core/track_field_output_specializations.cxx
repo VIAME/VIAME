@@ -18,6 +18,7 @@ using std::runtime_error;
 using std::set;
 using std::string;
 using std::vector;
+using std::map;
 
 namespace kwiver {
 namespace track_oracle {
@@ -190,6 +191,14 @@ ostream& operator<<( ostream& os,
   {
     os << " (no row set)";
   }
+  return os;
+}
+
+template< >
+ostream& operator<<( ostream& os,
+                     const track_field< map< string, double > >& f )
+{
+  os << " (" << f.field_handle << ") " << f.name;
   return os;
 }
 

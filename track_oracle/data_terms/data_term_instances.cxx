@@ -50,7 +50,6 @@ TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::event_ty
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::event_probability );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::source_track_ids );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::actor_track_rows );
-TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_label );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_domain );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_start );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_stop );
