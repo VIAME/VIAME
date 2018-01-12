@@ -1,6 +1,7 @@
 This folder contains an example for video search. <br>
 
-It is a work in progress, and should only be attempted by advanced users for the time being. <br>
+WARNING: This example is a work in progress, and should only be attempted by advanced users
+for the time being. <br>
 
 Building and running this examples requires: <br>
 
