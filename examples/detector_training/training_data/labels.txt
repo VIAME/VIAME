@@ -1,4 +1,7 @@
-# fish 524 533 1003 1001
-live_scallop 185 197 207 211 515 912 919 920
-# dead_scallop 188
-# crab 158 258
+live_scallop 185 196 197 207 210 515 517 525 915 916 912 919 920
+#dead_scallop 188 909 211 212
+#skate 524 533
+#roundfish 1001 1002
+#flatfish 1003 1004
+#other 235 381 403 527
+#crab 158 258
