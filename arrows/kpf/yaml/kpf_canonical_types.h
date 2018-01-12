@@ -56,7 +56,7 @@ namespace canonical
 //
 
 template< typename T >
-struct KPF_YAML_EXPORT scoped
+struct scoped
 {
   T t;
   int domain;
