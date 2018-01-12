@@ -222,5 +222,12 @@ feature_track_set
   return keyframes;
 }
 
+feature_track_set_frame_data_sptr
+feature_track_set
+::feature_frame_data(frame_id_t offset) const
+{
+  return std::dynamic_pointer_cast<feature_track_set_frame_data>(impl_->frame_data(offset));
+}
+
 
 } } // end namespace vital

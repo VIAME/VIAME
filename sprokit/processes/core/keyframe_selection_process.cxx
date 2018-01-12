@@ -102,7 +102,7 @@ public:
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
 
-  make_ports(); 
+  make_ports();
   make_config();
 }
 
@@ -169,7 +169,7 @@ keyframe_selection_process
   }
 
   // return by value
-  push_to_port_using_trait(feature_track_set, new_kf_tracks );  
+  push_to_port_using_trait(feature_track_set, new_kf_tracks );
 }
 
 
