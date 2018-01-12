@@ -28,7 +28,7 @@ Input data used for training should be put in the following format: <br>
 ......groundtruth.gt <br>
 
 where groundtruth can be in any file format for which a
-"detected_object_set_input.h" implementation exists (e.g. kw18, habcam),
+"detected_object_set_input" implementation exists (e.g. kw18, habcam),
 and labels.txt contains a list of output categories (one per line) for
 the trained detection model. "labels.txt" can also contain any alternative
 names in the groundtruth which map back to the same output category label.
