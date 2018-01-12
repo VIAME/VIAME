@@ -74,7 +74,7 @@ public:
 
   /**
    * @brief Disable copy constructor.
-   * 
+   *
    * Typically smart pointers to this class should be passed around.
    */
   category_hierarchy( const category_hierarchy& other ) = delete;
@@ -220,7 +220,7 @@ public:
    *
    * Throwns on invalid file.
    */
-  void load_from_file( std::string filename );
+  void load_from_file( const std::string& filename );
 
 private:
 

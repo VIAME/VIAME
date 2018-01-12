@@ -30,6 +30,8 @@
 
 #include "category_hierarchy.h"
 
+#include <vital/util/data_stream_reader.h>
+
 #include <string>
 #include <stdexcept>
 #include <algorithm>
@@ -92,7 +94,7 @@ category_hierarchy
     {
       if( !parent_names[i].empty() )
       {
-        this->add_relationship( class_names[i], parent_names[i] ); 
+        this->add_relationship( class_names[i], parent_names[i] );
       }
     }
   }
@@ -264,7 +266,7 @@ category_hierarchy
 // -----------------------------------------------------------------------------
 void
 category_hierarchy
-::load_from_file( std::string filename )
+::load_from_file( const std::string& filename )
 {
   std::ifstream in( filename.c_str() );
 
@@ -280,7 +282,8 @@ category_hierarchy
 
   int entry_num = 0;
 
-  while( std::getline( in, line ) )
+  kwiver::vital::data_stream_reader dsr( in );
+  while( dsr.getline( line ) )
   {
     std::vector< label_t > tokens;
     std::istringstream iss( line );

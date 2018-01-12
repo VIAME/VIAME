@@ -111,7 +111,7 @@ public:
    * @param score Probability score for the class
    */
   detected_object_type( const std::string& class_name,
-                        const double score );
+                        double score );
 
   /**
    * @brief Determine if class-name is present.

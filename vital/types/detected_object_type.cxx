@@ -100,7 +100,7 @@ detected_object_type( const std::vector< std::string >& class_names,
 }
 
 detected_object_type::
-detected_object_type( const std::string& class_name, const double score )
+detected_object_type( const std::string& class_name, double score )
 {
   set_score( class_name, score );
 }
