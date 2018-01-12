@@ -5,26 +5,32 @@
 set( EXAMPLE_INSTALL_FILES
      README.md )
 
+DownloadAndExtract(
+  https://data.kitware.com/api/v1/item/5a5839318d777f5e872f8393/download
+  ea0553ee4cc14f5941ad055a4468146c
+  ${VIAME_DOWNLOAD_DIR}/training_example_set1.tar.gz
+  ${CMAKE_CURRENT_SOURCE_DIR} )
+
 if( VIAME_ENABLE_YOLO )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       dnet_544_kw18.conf
-       dnet_high_res_kw18.conf
-       dnet_high_res_habcam.conf )
+       yolo_v2_544_kw18.conf
+       yolo_v2_high_res_kw18.conf
+       yolo_v2_high_res_habcam.conf )
 
   if( VIAME_DOWNLOAD_MODELS )
-#    DownloadAndExtract(
-#      https://data.kitware.com/api/v1/item/595a6ccf8d777f16d01e993a/download
-#      e3a3931b8a802b26c39f2873e91002ba
-#      ${VIAME_DOWNLOAD_DIR}/habcam_models_v0.1.0.tar.gz
-#      ${CMAKE_CURRENT_SOURCE_DIR} )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5a5839ec8d777f5e872f8396/download
+      64ed76909df326e6239742cbca78d7b7
+      ${VIAME_DOWNLOAD_DIR}/yolo_v2_seed_model.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR} )
   endif()
 
   if( NOT WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_dnet_habcam.sh
-         train_dnet_kw18.sh )
+         train_yolo_v2_habcam.sh
+         train_yolo_v2_kw18.sh )
   endif()
 endif()
 
