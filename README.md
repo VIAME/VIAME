@@ -30,25 +30,37 @@ Example Capabilities
 Documentation
 -------------
 
-[Build and Install Guide](doc/build_and_install_guide.rst) > > > [Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > > [Known Issues](doc/build_and_install_guide.rst#known-issues)
+[Build and Install Guide](doc/build_and_install_guide.rst) > > >
+[Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > >
+[Known Issues](doc/build_and_install_guide.rst#known-issues)
 
 
-[KWIVER Overview](https://github.com/Kitware/kwiver) > > > [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > > [Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
+[KWIVER Overview](https://github.com/Kitware/kwiver) > > >
+[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > >
+[Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
 
 
-[Detector Examples](examples/detector_pipelines) > > > [Running Detectors Overview](doc/detector_introduction.md) > > > [Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
+[Detector Examples](examples/detector_pipelines) > > >
+[Running Detectors Overview](doc/detector_introduction.md) > > >
+[Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > > [Example Integrations](plugins) > > > [Example Templates](plugins/templates)
+[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > >
+[Example Integrations](plugins) > > >
+[Example Templates](plugins/templates)
 
 
-[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > > [Examples](examples/visualizing_detections_in_gui)
+[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > >
+[Examples](examples/visualizing_detections_in_gui)
 
 
-[Detector Training API](examples/detector_training) > > > [Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
+[Detector Training API](examples/detector_training) > > >
+[Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
 
 
-[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > > [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > > [Examples](examples/scoring_and_roc_generation)
+[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > >
+[Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > >
+[Examples](examples/scoring_and_roc_generation)
 
 
 Pre-Built Binaries
