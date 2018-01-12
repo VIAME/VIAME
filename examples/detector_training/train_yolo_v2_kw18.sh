@@ -1,3 +1,3 @@
-source /home/matt/Dev/viame/build/install/setup_viame.sh
+source ../../setup_viame.sh
 
-viame_train_detector -i training_data -c darknet_544.conf
+viame_train_detector -i training_data -c yolo_v2_high_res_kw18.conf
