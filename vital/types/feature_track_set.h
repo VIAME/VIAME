@@ -187,6 +187,9 @@ public:
   virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1,
     bool only_features_with_descriptors = true) const;
 
+  /// Return the additional data associated with all feature tracks on the given frame
+  feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
+
 };
 
 

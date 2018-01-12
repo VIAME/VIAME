@@ -237,6 +237,18 @@ read_feature_track_file( path_t const& file_path )
     fts->set_frame_data(frame_data, fid);
   }
 
+  //create frame_data with is_keyframe set to false for all non-keyframes
+  auto frame_ids = fts->all_frame_ids();
+  for (auto fid : frame_ids)
+  {
+    if (!fts->frame_data(fid))
+    {
+      auto frame_data = std::make_shared<feature_track_set_frame_data>();
+      frame_data->is_keyframe = false;
+      fts->set_frame_data(frame_data, fid);
+    }
+  }
+
   return fts;
 } // read_track_file
 
