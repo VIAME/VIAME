@@ -39,7 +39,7 @@ import unittest
 import nose.tools as ntools
 import numpy
 
-from vital.types.bindings._camera_intrinsics import CameraIntrinsics
+from vital.types import CameraIntrinsics
 
 
 class TestVitalCameraIntrinsics (unittest.TestCase):

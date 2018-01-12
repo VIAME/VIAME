@@ -37,7 +37,7 @@ import unittest
 
 import numpy
 
-from vital.types.bindings import Descriptor, DescriptorSet
+from vital.types import Descriptor, DescriptorSet
 
 
 class TestDescriptorSet (unittest.TestCase):

@@ -40,7 +40,7 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings._rotation import Rotation
+from vital.types import Rotation
 
 
 def array_normalize(a, dtype=None):

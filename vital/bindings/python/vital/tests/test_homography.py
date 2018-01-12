@@ -42,7 +42,7 @@ import nose.tools
 import numpy
 
 from vital.exceptions.math import PointMapsToInfinityException
-from vital.types.bindings import (
+from vital.types import (
     EigenArray,
     Homography,
 )

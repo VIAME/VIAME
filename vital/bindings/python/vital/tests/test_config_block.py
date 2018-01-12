@@ -53,12 +53,7 @@ class TestVitalConfigBlock (object):
 
     def test_construction(self):
         cb1 = ConfigBlock()
-        nose.tools.assert_true(cb1._inst_ptr, "Received null pointer from "
-                                              "ConfigBlock construction")
         cb2 = ConfigBlock("A Name")
-        nose.tools.assert_true(cb2._inst_ptr, "Received a null pointer "
-                                              "from named ConfigBlock "
-                                              "construction.")
 
     def test_name_access(self):
         cb = ConfigBlock()
@@ -121,7 +116,7 @@ class TestVitalConfigBlock (object):
         cb = ConfigBlock()
 
         nose.tools.assert_raises(
-            VitalConfigBlockNoSuchValueException,
+            RuntimeError,
             cb.get_value_bool, 'not-a-key'
         )
 
@@ -153,7 +148,7 @@ class TestVitalConfigBlock (object):
         v2 = '2'
 
         nose.tools.assert_raises(
-            VitalConfigBlockNoSuchValueException,
+            RuntimeError,
             cb.get_value, k1
         )
         nose.tools.assert_equal(cb.get_value(k2, v2), v2)
@@ -168,7 +163,7 @@ class TestVitalConfigBlock (object):
 
         nose.tools.assert_false(cb.has_value('a'))
         nose.tools.assert_raises(
-            VitalConfigBlockNoSuchValueException,
+            RuntimeError,
             cb.get_value, 'a'
         )
 
@@ -192,7 +187,7 @@ class TestVitalConfigBlock (object):
         nose.tools.assert_equal(cb.get_value('a'), '1')
 
         nose.tools.assert_raises(
-            VitalConfigBlockReadOnlyException,
+            RuntimeError,
             cb.set_value, 'a', '2'
         )
         nose.tools.assert_equal(cb.get_value('a'), '1')
@@ -202,7 +197,7 @@ class TestVitalConfigBlock (object):
         cb.set_value('a', '1')
         cb.mark_read_only('a')
         nose.tools.assert_raises(
-            VitalConfigBlockReadOnlyException,
+            RuntimeError,
             cb.unset_value, 'a'
         )
         nose.tools.assert_true(cb.has_value('a'))
@@ -406,7 +401,7 @@ class TestVitalConfigBlock (object):
         nose.tools.assert_equal(cb.get_description(kc), "")
 
     def test_read_no_file(self):
-        nose.tools.assert_raises(VitalConfigBlockIoFileNotFoundException,
+        nose.tools.assert_raises(RuntimeError,
                                  ConfigBlock.from_file,
                                  'not-a-file.foobar')
 
@@ -447,6 +442,6 @@ class TestVitalConfigBlock (object):
         cb = ConfigBlock()
         cb.set_value('foo', 'bar')
 
-        nose.tools.assert_raises(VitalConfigBlockIoException,
+        nose.tools.assert_raises(RuntimeError,
                                  cb.write,
                                  '/not/valid')

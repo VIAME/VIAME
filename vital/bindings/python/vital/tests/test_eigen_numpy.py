@@ -41,7 +41,8 @@ import numpy
 from six.moves import range
 
 from vital.exceptions.eigen import VitalInvalidStaticEigenShape
-from vital.types.bindings._eigen import EigenArray
+
+from vital.types import EigenArray
 
 
 class TestVitalEigenMatrix (unittest.TestCase):

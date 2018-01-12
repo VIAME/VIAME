@@ -39,7 +39,7 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings import Covariance, EigenArray, Feature, RGBColor
+from vital.types import Covariance, EigenArray, Feature, RGBColor
 
 
 class TestFeature (unittest.TestCase):

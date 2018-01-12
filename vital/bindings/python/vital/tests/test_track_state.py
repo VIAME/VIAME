@@ -38,7 +38,7 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings import TrackState, Feature, Descriptor
+from vital.types import TrackState, Feature, Descriptor
 
 
 # kwiver::vital::track_state doesn't have features or descriptors
