@@ -54,9 +54,10 @@ class KWIVER_ALGO_OCV_EXPORT image_container
 {
 public:
 
+  enum ColorMode{RGB,BGR};
+
   /// Constructor - from a cv::Mat
-  explicit image_container(const cv::Mat& d)
-  : data_(d) {}
+  explicit image_container(const cv::Mat& d, ColorMode cm = RGB);
 
   /// Constructor - convert kwiver image to cv::Mat
   explicit image_container(const vital::image& vital_image)
@@ -98,7 +99,7 @@ public:
   static vital::image_pixel_traits ocv_to_vital(int type);
 
   /// Convert a VITAL image to an OpenCV cv::Mat
-  static cv::Mat vital_to_ocv(const vital::image& img);
+  static cv::Mat vital_to_ocv(const vital::image& img, ColorMode cm = RGB);
 
   /// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
   static int vital_to_ocv(const vital::image_pixel_traits& pt);
@@ -117,7 +118,7 @@ protected:
  *
  * \param img Image container to convert to cv::mat
  */
-KWIVER_ALGO_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img);
+KWIVER_ALGO_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img, image_container::ColorMode cm = image_container::RGB);
 
 
 } // end namespace ocv
