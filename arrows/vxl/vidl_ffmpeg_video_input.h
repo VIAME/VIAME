@@ -75,7 +75,7 @@ public:
   virtual bool end_of_video() const;
   virtual bool good() const;
   virtual bool seekable() const;
-  virtual kwiver::vital::timestamp::frame_t num_frames() const;
+  virtual kwiver::vital::timestamp::frame_t num_frames();
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );

@@ -75,6 +75,7 @@ public:
       d_have_frame( false ),
       d_at_eov( false ),
       d_frame_advanced( false ),
+      d_num_frames( -2 ),
       d_have_frame_time( false ),
       d_have_abs_frame_time( false ),
       d_have_metadata( false ),
@@ -100,6 +101,12 @@ public:
   bool d_have_frame;
   bool d_at_eov;
   bool d_frame_advanced;
+
+  /**
+   * This holds the number of frames in the video. If it is set to -2 it means
+   * this number still needs to be calculated.
+   */
+  kwiver::vital::timestamp::frame_t d_num_frames;
 
   /**
    * This is set to indicate that we can supply a frame time of some
@@ -566,22 +573,6 @@ vidl_ffmpeg_video_input
   d->d_frame_advanced = false;
   d->d_frame_number = 1;
 
-  if ( d->c_start_at_frame != 0 &&  d->c_start_at_frame > 1 )
-  {
-    // move stream to specified frame number
-    unsigned int frame_num = d->d_video_stream.frame_number(); // get first/current frame number
-
-    while (frame_num < d->c_start_at_frame)
-    {
-      if( ! d->d_video_stream.advance() )
-      {
-        break;
-      }
-
-      frame_num = d->d_video_stream.frame_number();
-    }
-  }
-
   // check for metadata
   d->d_have_metadata = d->d_video_stream.has_metadata();
 
@@ -609,6 +600,25 @@ vidl_ffmpeg_video_input
     throw kwiver::vital::video_stream_exception( "could not initialize timestamp" );
   }
 
+  // Move stream to starting frame if needed
+  if ( d->c_start_at_frame != 0 && d->c_start_at_frame > 1 )
+  {
+    // move stream to specified frame number
+    unsigned int frame_num = d->d_video_stream.frame_number() + 1;
+
+    while (frame_num < d->c_start_at_frame) // have to insure at least one call to advance so frame number is valid
+    {
+      if( ! d->d_video_stream.advance() )
+      {
+        break;
+      }
+
+      frame_num = d->d_video_stream.frame_number() + 1;
+    }
+
+    d->d_frame_number = frame_num;
+  }
+
   // Set capabilities
   set_capability(vital::algo::video_input::HAS_TIMEOUT, false );
 
@@ -633,6 +643,7 @@ vidl_ffmpeg_video_input
   d->d_have_frame = false;
   d->d_at_eov = false;
   d->d_frame_advanced = false;
+  d->d_num_frames = -2;
   d->d_have_frame_time = false;
   d->d_have_abs_frame_time = false;
   d->d_have_metadata = false;
@@ -673,14 +684,13 @@ vidl_ffmpeg_video_input
     }
   }
 
-  unsigned int frame_num = d->d_video_stream.frame_number();
-  if( (d->c_stop_after_frame != 0) && (d->c_stop_after_frame < frame_num ))
+  d->process_frame_timestamp( ts );
+
+  if( (d->c_stop_after_frame != 0) && (ts.get_frame() > d->c_stop_after_frame))
   {
     d->d_at_eov = true;  // logical end of file
     return false;
   }
-
-  d->process_frame_timestamp( ts );
 
   return true;
 }
@@ -717,8 +727,8 @@ vidl_ffmpeg_video_input
   // file to reset to start
   if (curr_frame_num > frame_number)
   {
-    this->close();
-    this->open( d->video_path );
+    std::lock_guard< std::mutex > lock( d->s_open_mutex );
+    d->d_video_stream.open( d->video_path ); // Calls close on current video
     curr_frame_num = d->d_video_stream.frame_number() + 1;
   }
 
@@ -817,9 +827,35 @@ vidl_ffmpeg_video_input
 // ------------------------------------------------------------------
 kwiver::vital::timestamp::frame_t
 vidl_ffmpeg_video_input
-::num_frames() const
+::num_frames()
 {
-  return d->d_video_stream.num_frames();
+  // VXL method does not appear to be working - this is likely very inefficient
+  if (d->d_num_frames == -2)
+  {
+    std::lock_guard< std::mutex > lock( d->s_open_mutex );
+    // Run through all the frames
+    auto old_frame_number = d->d_frame_number;
+    if (d->d_frame_advanced)
+    {
+      d->d_num_frames = d->d_frame_number;
+    }
+    else
+    {
+      d->d_num_frames = 0;
+    }
+    kwiver::vital::timestamp ts;
+    while ( this->next_frame(ts) )
+    {
+      d->d_num_frames++;
+    }
+    // Close and repon to reset
+    d->d_video_stream.open( d->video_path );
+    this->seek_frame(ts, old_frame_number);
+    d->d_at_eov = false;
+    d->d_have_frame = true;
+  }
+
+  return d->d_num_frames - d->c_start_at_frame;
 }
 
 } } } // end namespace

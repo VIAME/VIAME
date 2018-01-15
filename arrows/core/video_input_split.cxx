@@ -213,7 +213,7 @@ video_input_split
 // ------------------------------------------------------------------
 kwiver::vital::timestamp::frame_t
 video_input_split
-::num_frames() const
+::num_frames()
 {
   if (d->d_image_source && d->d_metadata_source)
   {

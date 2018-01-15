@@ -51,6 +51,7 @@ kwiver::vital::path_t g_data_dir;
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 static int num_expected_frames = 50;
+static int num_expected_frames_subset = 20;
 static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
@@ -125,6 +126,10 @@ TEST_F(video_input_filter, read_list)
 
   kwiver::vital::timestamp ts;
 
+  EXPECT_EQ( num_expected_frames, vif.num_frames() )
+    << "Number of frames before extracting frames should be "
+    << num_expected_frames;
+
   int num_frames = 0;
   while ( vif.next_frame( ts ) )
   {
@@ -143,7 +148,12 @@ TEST_F(video_input_filter, read_list)
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
-  EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames )
+    << "Number of frames found should be "
+    << num_expected_frames;
+  EXPECT_EQ( num_expected_frames, vif.num_frames() )
+    << "Number of frames after extracting frames should be "
+    << num_expected_frames;
 }
 
 
@@ -171,6 +181,10 @@ TEST_F(video_input_filter, read_list_subset)
 
   kwiver::vital::timestamp ts;
 
+  EXPECT_EQ( num_expected_frames_subset, vif.num_frames() )
+    << "Number of frames before extracting frames should be "
+    << num_expected_frames_subset;
+
   int num_frames = 0;
   int frame_idx = 10;
   while ( vif.next_frame( ts ) )
@@ -191,7 +205,12 @@ TEST_F(video_input_filter, read_list_subset)
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
-  EXPECT_EQ( 20, num_frames );
+  EXPECT_EQ( num_expected_frames_subset, num_frames )
+    << "Number of frames found should be "
+    << num_expected_frames_subset;
+  EXPECT_EQ( num_expected_frames_subset, vif.num_frames() )
+    << "Number of frames after extracting frames should be "
+    << num_expected_frames_subset;
 }
 
 TEST_F(video_input_filter, seek_frame)

@@ -224,7 +224,7 @@ video_input_pos
 // ------------------------------------------------------------------
 kwiver::vital::timestamp::frame_t
 video_input_pos
-::num_frames() const
+::num_frames()
 {
   return d->d_img_md_files.size();
 }

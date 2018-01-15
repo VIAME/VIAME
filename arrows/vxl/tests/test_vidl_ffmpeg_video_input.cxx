@@ -48,6 +48,7 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 static int num_expected_frames = 50;
+static int num_expected_frames_subset = 20;
 static std::string video_file_name = "video.mp4";
 
 // ----------------------------------------------------------------------------
@@ -91,6 +92,10 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
 
   kwiver::vital::timestamp ts;
 
+  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
+    << "Number of frames before extracting frames should be "
+    << num_expected_frames;
+
   int num_frames = 0;
   while ( vfvi.next_frame( ts ) )
   {
@@ -109,7 +114,55 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
-  EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames )
+    << "Number of frames found should be "
+    << num_expected_frames;
+  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
+    << "Number of frames after extracting frames should be "
+    << num_expected_frames;
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, read_video_subset)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "start_at_frame", "11" );
+  config->set_value( "stop_after_frame", "30" );
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  vfvi.check_configuration( config );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  vfvi.open( video_file );
+
+  kwiver::vital::timestamp ts;
+
+  int num_frames = 0;
+  int frame_idx = 10;
+  while ( vfvi.next_frame( ts ) )
+  {
+    auto img = vfvi.frame_image();
+    auto md = vfvi.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
+
+    ++num_frames;
+    ++frame_idx;
+    EXPECT_EQ( frame_idx, ts.get_frame() )
+      << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
+  }
+  EXPECT_EQ( num_expected_frames_subset, num_frames );
+  EXPECT_EQ( num_expected_frames_subset, vfvi.num_frames() );
 }
 
 // ----------------------------------------------------------------------------
@@ -155,6 +208,9 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
       << "Video state on frame " << ts.get_frame();
   }
   EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
+    << "Number of frames after checking frames should be "
+    << num_expected_frames;
 }
 
 TEST_F(vidl_ffmpeg_video_input, seek_frame)

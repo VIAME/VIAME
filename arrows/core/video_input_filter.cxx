@@ -228,14 +228,22 @@ video_input_filter
 // ------------------------------------------------------------------
 kwiver::vital::timestamp::frame_t
 video_input_filter
-::num_frames() const
+::num_frames()
 {
   if( ! d->d_video_input )
   {
     return -1;
   }
-  return std::min(d->d_video_input->num_frames(), d->c_stop_after_frame)
-         - d->c_start_at_frame + 1;
+  if (d->c_stop_after_frame > 0 )
+  {
+    return std::min(d->d_video_input->num_frames(), d->c_stop_after_frame + 1)
+           - d->c_start_at_frame;
+  }
+  else
+  {
+    return d->d_video_input->num_frames() - d->c_start_at_frame;
+  }
+
 }
 
 // ------------------------------------------------------------------

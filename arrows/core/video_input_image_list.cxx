@@ -271,7 +271,7 @@ video_input_image_list
 // ------------------------------------------------------------------
 kwiver::vital::timestamp::frame_t
 video_input_image_list
-::num_frames() const
+::num_frames()
 {
   return d->m_files.size();
 }

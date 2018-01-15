@@ -228,7 +228,8 @@ public:
    *
    * \throws video_stream_exception when there is an error in the video stream.
    */
-  virtual kwiver::vital::timestamp::frame_t num_frames() const = 0;
+  // TODO: make this const once VXL ffmpeg implementation is replaced.
+  virtual kwiver::vital::timestamp::frame_t num_frames() = 0;
 
   /**
    * \brief Advance to next frame in video stream.
