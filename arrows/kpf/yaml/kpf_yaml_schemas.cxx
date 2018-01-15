@@ -69,7 +69,7 @@ required_packets( KPF::schema_style schema )
   case KPF::schema_style::TYPES:
     return {
       KPF::validation_data( KPF::packet_style::ID ),
-      KPF::validation_data( KPF::packet_style::KV, "obj_type" )
+      KPF::validation_data( KPF::packet_style::CSET )
     };
 
   case KPF::schema_style::REGIONS:
