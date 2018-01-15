@@ -226,9 +226,9 @@ video_input_filter
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::timestamp::frame_t
+size_t
 video_input_filter
-::num_frames()
+::num_frames() const
 {
   if( ! d->d_video_input )
   {
@@ -236,8 +236,10 @@ video_input_filter
   }
   if (d->c_stop_after_frame > 0 )
   {
-    return std::min(d->d_video_input->num_frames(), d->c_stop_after_frame + 1)
-           - d->c_start_at_frame;
+    return std::min(
+      static_cast<vital::timestamp::frame_t>(d->d_video_input->num_frames()),
+      d->c_stop_after_frame + 1)
+      - d->c_start_at_frame;
   }
   else
   {

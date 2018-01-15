@@ -269,9 +269,9 @@ video_input_image_list
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::timestamp::frame_t
+size_t
 video_input_image_list
-::num_frames()
+::num_frames() const
 {
   return d->m_files.size();
 }

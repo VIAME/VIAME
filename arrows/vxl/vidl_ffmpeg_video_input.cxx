@@ -75,11 +75,12 @@ public:
       d_have_frame( false ),
       d_at_eov( false ),
       d_frame_advanced( false ),
-      d_num_frames( -2 ),
+      d_num_frames( 0 ),
       d_have_frame_time( false ),
       d_have_abs_frame_time( false ),
       d_have_metadata( false ),
       d_is_seekable( false ),
+      d_have_num_frames( false ),
       pts_of_meta_ts( 0.0 ),
       meta_ts( 0 ),
       d_frame_time( 0 ),
@@ -106,7 +107,7 @@ public:
    * This holds the number of frames in the video. If it is set to -2 it means
    * this number still needs to be calculated.
    */
-  kwiver::vital::timestamp::frame_t d_num_frames;
+  size_t d_num_frames;
 
   /**
    * This is set to indicate that we can supply a frame time of some
@@ -133,6 +134,12 @@ public:
    * to report the IS_SEEKABLE capability.
    */
   bool d_is_seekable;
+
+  /**
+   * This is set to indicate the number of frames in the video has been
+   * determined.
+   */
+  bool d_have_num_frames;
 
   double pts_of_meta_ts;            // probably seconds
   vital::timestamp::time_t meta_ts; // time in usec
@@ -606,7 +613,7 @@ vidl_ffmpeg_video_input
     // move stream to specified frame number
     unsigned int frame_num = d->d_video_stream.frame_number() + 1;
 
-    while (frame_num < d->c_start_at_frame) // have to insure at least one call to advance so frame number is valid
+    while (frame_num < d->c_start_at_frame)
     {
       if( ! d->d_video_stream.advance() )
       {
@@ -643,11 +650,12 @@ vidl_ffmpeg_video_input
   d->d_have_frame = false;
   d->d_at_eov = false;
   d->d_frame_advanced = false;
-  d->d_num_frames = -2;
+  d->d_num_frames = 0;
   d->d_have_frame_time = false;
   d->d_have_abs_frame_time = false;
   d->d_have_metadata = false;
   d->d_is_seekable = false;
+  d->d_have_num_frames = false;
   d->d_frame_time = 0;
   d->d_frame_number = 1;
 }
@@ -825,37 +833,54 @@ vidl_ffmpeg_video_input
 }
 
 // ------------------------------------------------------------------
-kwiver::vital::timestamp::frame_t
+size_t
 vidl_ffmpeg_video_input
-::num_frames()
+::num_frames() const
 {
   // VXL method does not appear to be working - this is likely very inefficient
-  if (d->d_num_frames == -2)
+  if (!d->d_have_num_frames)
   {
     std::lock_guard< std::mutex > lock( d->s_open_mutex );
-    // Run through all the frames
-    auto old_frame_number = d->d_frame_number;
+
+    // Const cast used here since we must loop through the video to count frames
+    auto privateData = const_cast<vidl_ffmpeg_video_input::priv*>(d.get());
+
     if (d->d_frame_advanced)
     {
-      d->d_num_frames = d->d_frame_number;
+      privateData->d_num_frames = d->d_frame_number;
     }
     else
     {
-      d->d_num_frames = 0;
+      privateData->d_num_frames = 1;
     }
-    kwiver::vital::timestamp ts;
-    while ( this->next_frame(ts) )
+
+    // Advance video stream to end
+    while ( privateData->d_video_stream.advance() )
     {
-      d->d_num_frames++;
+      privateData->d_num_frames++;
     }
-    // Close and repon to reset
-    d->d_video_stream.open( d->video_path );
-    this->seek_frame(ts, old_frame_number);
-    d->d_at_eov = false;
-    d->d_have_frame = true;
+    // Close and reopen to reset
+    privateData->d_video_stream.open( d->video_path );
+
+    // Advance back to original frame number
+    for (int i=0; i<d->d_frame_number; ++i)
+    {
+      privateData->d_video_stream.advance();
+    }
+
+    privateData->d_have_num_frames = true;
   }
 
-  return d->d_num_frames - d->c_start_at_frame;
+  if (d->c_stop_after_frame > 0)
+  {
+    return std::min
+        (static_cast<size_t>(d->c_stop_after_frame + 1), d->d_num_frames)
+        - d->c_start_at_frame;
+  }
+  else
+  {
+    return d->d_num_frames - d->c_start_at_frame;
+  }
 }
 
 } } } // end namespace
