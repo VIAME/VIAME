@@ -286,30 +286,23 @@ kpf_utils::add_to_row( kwiver::logging_map_type& log_map,
       ostringstream oss;
       oss << KPF::style2str( p.header.style ) << "_" << p.header.domain;
       field_handle_type f = track_oracle_core::lookup_by_name( oss.str() );
-      field_handle_type s2i_f = INVALID_FIELD_HANDLE;
       if ( f == INVALID_FIELD_HANDLE )
       {
-        // create the string-to-index field as well
-        string s2i_name = oss.str()+"_s2i";
-        s2i_f = track_oracle_core::lookup_by_name( s2i_name );
-        if (s2i_f != INVALID_FIELD_HANDLE)
-        {
-          LOG_ERROR( main_logger, "Logic error: " << s2i_name << " exists but " << oss.str() << " does not?" );
-        }
-        else
-        {
-          element_descriptor s2i_e( s2i_name,
-                                    "KPF cset string-to-index helper",
-                                    typeid( kpf_cset_s2i_type ).name(),
-                                    element_descriptor::SYSTEM );
-          s2i_f = track_oracle_core::create_element< kpf_cset_s2i_type >( s2i_e );
-        }
-
         element_descriptor e( oss.str(),
                               "KPF ad-hoc cset",
                               typeid( kpf_cset_sys_type ).name(),
                               element_descriptor::ADHOC );
         f = track_oracle_core::create_element< kpf_cset_sys_type >( e );
+      }
+      string s2i_name = oss.str()+"_s2i";
+      field_handle_type s2i_f = track_oracle_core::lookup_by_name( s2i_name );
+      if (s2i_f == INVALID_FIELD_HANDLE)
+      {
+        element_descriptor s2i_e( s2i_name,
+                                  "KPF cset string-to-index helper",
+                                  typeid( kpf_cset_s2i_type ).name(),
+                                  element_descriptor::SYSTEM );
+        s2i_f = track_oracle_core::create_element< kpf_cset_s2i_type >( s2i_e );
       }
 
       // iterate over the string / double pairs in the KPF packet, inserting
