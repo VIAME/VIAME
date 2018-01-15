@@ -84,6 +84,7 @@ public:
     , m_resize_j( 0 )
     , m_chip_step( 100 )
     , m_gs_to_rgb( true )
+    , m_chip_edge_filter( -1 )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -109,6 +110,7 @@ public:
   int m_resize_j;
   int m_chip_step;
   bool m_gs_to_rgb;
+  int m_chip_edge_filter;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -118,8 +120,14 @@ public:
   float **m_probs;                /*  */
 
   // Helper functions
-  image cvmat_to_image( const cv::Mat& src );
-  vital::detected_object_set_sptr process_image( const cv::Mat& cv_image );
+  image cvmat_to_image(
+    const cv::Mat& src );
+  vital::detected_object_set_sptr process_image(
+    const cv::Mat& cv_image );
+  vital::detected_object_set_sptr filter_detections(
+    const vital::detected_object_set_sptr& dets,
+    const cv::Rect& roi,
+    int edge_ignore_dist );
 
   kwiver::vital::logger_handle_t m_logger;
 };
@@ -174,6 +182,8 @@ get_configuration() const
     "When in chip mode, the chip step size between chips." );
   config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
     "Convert input greyscale images to rgb before processing." );
+  config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
+    "If using chipping, filter out detections this pixel count near borders." );
 
   return config;
 }
@@ -203,6 +213,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
+  this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -334,20 +345,21 @@ detect( vital::image_container_sptr image_data ) const
       {
         int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
 
-        cv::Mat cropped_image = cv_resized_image( cv::Rect( li, lj, ti-li, tj-lj ) );
+        cv::Rect roi( li, lj, ti-li, tj-lj );
+
+        cv::Mat cropped_image = cv_resized_image( roi );
         cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
           cropped_image, scaled_crop, d->m_resize_i, d->m_resize_j );
-        cv::cvtColor(scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB);
+        cv::cvtColor( scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB );
 
         vital::detected_object_set_sptr new_dets = d->process_image( tmp_cropped );
         new_dets->scale( 1.0 / scaled_crop_scale );
         new_dets->shift( li, lj );
         new_dets->scale( 1.0 / scale_factor );
 
-
-        detections->add( new_dets );
+        detections->add( d->filter_detections( new_dets, roi, d->m_chip_edge_filter ) );
       }
     }
 
@@ -363,7 +375,8 @@ detect( vital::image_container_sptr image_data ) const
 
       new_dets->scale( 1.0 / scaled_original_scale );
 
-      detections->add( new_dets );
+      cv::Rect image_dims( 0, 0, cv_image.cols, cv_image.rows );
+      detections->add( d->filter_detections( new_dets, image_dims, 0 ) );
     }
   }
 
@@ -521,6 +534,40 @@ cvmat_to_image( const cv::Mat& src )
   }
 
   return out;
+}
+
+
+vital::detected_object_set_sptr
+darknet_detector::priv::
+filter_detections( const vital::detected_object_set_sptr& dets, const cv::Rect& roi, int dist )
+{
+  return dets;
+
+  std::vector< vital::detected_object_sptr > filtered_dets;
+
+  for( auto det : *dets )
+  {
+    if( roi.x > 0 && det->bounding_box().min_x() < roi.x + dist )
+    {
+      continue;
+    }
+    if( roi.y > 0 && det->bounding_box().min_y() < roi.y + dist )
+    {
+      continue;
+    }
+    if( det->bounding_box().max_x() > roi.x + roi.width - dist )
+    {
+      continue;
+    }
+    if( det->bounding_box().max_y() > roi.y + roi.height - dist )
+    {
+      continue;
+    }
+
+    filtered_dets.push_back( det );
+  }
+
+  return vital::detected_object_set_sptr( new vital::detected_object_set( filtered_dets ) );
 }
 
 } } } // end namespace
