@@ -7,10 +7,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/array_wrapping.py
   vital/util
   array_wrapping )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/error_handle.py
-  vital/util
-  error_handle )
-
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/find_vital_library.py
   vital/util
   find_vital_library )
