@@ -41,7 +41,7 @@ process split
 connect from input.image
         to   split.image
 
-# =================================== YOLO v2 SCALLOP ====================================
+# =================================== YOLO V2 SCALLOP ====================================
 
 process scallop_yolo_v2_detector
   :: image_object_detector
@@ -81,7 +81,7 @@ process scallop_yolo_v2_kw18_writer
 
   # Write out FSO classifications alongside tracks
   :writer:kw18:write_tot         true
-  :writer:kw18:tot_field1_ids    skate
+  :writer:kw18:tot_field1_ids    dead_scallop
   :writer:kw18:tot_field2_ids    live_scallop
 
 process scallop_yolo_v2_csv_writer
@@ -109,16 +109,16 @@ connect from scallop_yolo_v2_filter.detected_object_set
 connect from input.image_file_name
         to   scallop_yolo_v2_csv_writer.image_file_name
 
-# ==================================== YOLO v2 SKATE =====================================
+# ==================================== YOLO V2 SKATE =====================================
 
 #process skate_yolo_v2_detector
 #  :: image_object_detector
-#  :detector:type    darknet
+#  :detector:type                     darknet
 #
 #  # Network config, weights, and names
-#  :detector:darknet:net_config       models/habcam_yolo_v2.cfg
-#  :detector:darknet:weight_file      models/habcam_yolo_v2.weights
-#  :detector:darknet:class_names      models/habcam_yolo_v2.lbl
+#  :detector:darknet:net_config       models/default_yolo_v2.cfg
+#  :detector:darknet:weight_file      models/skate_and_flatfish.weights
+#  :detector:darknet:class_names      models/skate_and_flatfish.lbl
 #
 #  # Detector parameters
 #  :detector:darknet:thresh           0.001
@@ -138,7 +138,7 @@ connect from input.image_file_name
 #  # Filter parameters
 #  :filter:class_probablity_filter:threshold        0.001
 #  :filter:class_probablity_filter:keep_all_classes true
-#  :filter:class_probablity_filter:keep_classes     skate
+#  :filter:class_probablity_filter:keep_classes     skate;flatfish
 #
 #process skate_yolo_v2_kw18_writer
 #  :: detected_object_output
@@ -150,7 +150,7 @@ connect from input.image_file_name
 #  # Write out FSO classifications alongside tracks
 #  :writer:kw18:write_tot         true
 #  :writer:kw18:tot_field1_ids    skate
-#  :writer:kw18:tot_field2_ids    live_scallop
+#  :writer:kw18:tot_field2_ids    flatfish
 #
 #process skate_yolo_v2_csv_writer
 #  :: detected_object_output
