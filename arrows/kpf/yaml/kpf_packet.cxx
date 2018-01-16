@@ -247,8 +247,12 @@ operator<<( std::ostream& os, const packet_t& p )
   case packet_style::ACT:
     {
       const canonical::activity_t& act = p.activity;
-      os << act.activity_label
-         << " id " << act.activity_id.t.d << "/" << act.activity_id.domain
+      os << " what [ ";
+      for (auto t: act.activity_labels.d)
+      {
+        os << t.first << ": " << t.second << ", ";
+      }
+      os << " ] id " << act.activity_id.t.d << "/" << act.activity_id.domain
          << " [ ";
       for (auto t: act.timespan )
       {

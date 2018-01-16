@@ -120,6 +120,14 @@ typedef std::vector< size_t > csv_header_index_type;
 typedef std::map< field_handle_type, csv_header_index_type > csv_handler_map_type;
 typedef std::map< field_handle_type, csv_header_index_type >::const_iterator csv_handler_map_cit;
 
+///
+/// typedefs for the KPF cset map types
+///
+
+typedef std::map< std::string, double > kpf_cset_type;
+typedef std::map< std::string, size_t > kpf_cset_s2i_type;
+typedef std::map< size_t, double > kpf_cset_sys_type;
+
 namespace dt {
 
 struct TRACK_ORACLE_EXPORT context

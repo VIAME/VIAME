@@ -214,5 +214,35 @@ ostream& kwiver_write( ostream& os, const vital::timestamp& ts )
   return os;
 }
 
+bool kwiver_read( const std::string& s, kpf_cset_type& cset )
+{
+  return false;
+}
+
+ostream& kwiver_write( std::ostream& os, const kpf_cset_type& cset )
+{
+  return os;
+}
+
+bool kwiver_read( const std::string& s, kpf_cset_sys_type& cset )
+{
+  return false;
+}
+
+ostream& kwiver_write( std::ostream& os, const kpf_cset_sys_type& cset )
+{
+  return os;
+}
+
+bool kwiver_read( const std::string& s, kpf_cset_s2i_type& cset )
+{
+  return false;
+}
+
+ostream& kwiver_write( std::ostream& os, const kpf_cset_s2i_type& cset )
+{
+  return os;
+}
+
 } // ...track_oracle
 } // ...kwiver

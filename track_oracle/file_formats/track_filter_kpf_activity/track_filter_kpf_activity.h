@@ -63,16 +63,16 @@ struct TRACK_FILTER_KPF_ACTIVITY_EXPORT track_filter_kpf_activity:
 {
 
   track_field< dt::events::event_id > activity_id;
-  track_field< dt::events::kpf_activity_label > activity_label;
+  track_field< kpf_cset_type >& activity_labels;
   track_field< dt::events::kpf_activity_domain > activity_domain;
   track_field< dt::events::actor_track_rows > actors;
   track_field< dt::events::kpf_activity_start > activity_start;
   track_field< dt::events::kpf_activity_stop > activity_stop;
 
-  track_filter_kpf_activity()
+  track_filter_kpf_activity():
+    activity_labels( Track.add_field< kpf_cset_type >( "kpf_activity_labels" ))
   {
     Track.add_field( activity_id );
-    Track.add_field( activity_label );
     Track.add_field( activity_domain );
     Track.add_field( actors );
     Track.add_field( activity_start );
