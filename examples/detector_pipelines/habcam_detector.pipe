@@ -24,7 +24,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 5
+       :capacity                     5
 
 # ================================== INPUT FRAME LIST ====================================
 process input
@@ -45,7 +45,7 @@ connect from input.image
 
 process scallop_yolo_v2_detector
   :: image_object_detector
-  :detector:type    darknet
+  :detector:type                     darknet
 
   # Network config, weights, and names
   :detector:darknet:net_config       models/habcam_yolo_v2.cfg
@@ -76,20 +76,20 @@ process scallop_yolo_v2_kw18_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name     output/scallop_yolo_v2_detections.kw18
-  :writer:type   kw18
+  :file_name                         output/scallop_yolo_v2_detections.kw18
+  :writer:type                       kw18
 
   # Write out FSO classifications alongside tracks
-  :writer:kw18:write_tot         true
-  :writer:kw18:tot_field1_ids    dead_scallop
-  :writer:kw18:tot_field2_ids    live_scallop
+  :writer:kw18:write_tot             true
+  :writer:kw18:tot_field1_ids        dead_scallop
+  :writer:kw18:tot_field2_ids        live_scallop
 
 process scallop_yolo_v2_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name     output/scallop_yolo_v2_detections.csv
-  :writer:type   csv
+  :file_name                         output/scallop_yolo_v2_detections.csv
+  :writer:type                       csv
 
 connect from split.left_image
         to   scallop_yolo_v2_detector.image
@@ -116,7 +116,7 @@ connect from input.image_file_name
 #  :detector:type                     darknet
 #
 #  # Network config, weights, and names
-#  :detector:darknet:net_config       models/default_yolo_v2.cfg
+#  :detector:darknet:net_config       models/skate_and_flatfish.cfg
 #  :detector:darknet:weight_file      models/skate_and_flatfish.weights
 #  :detector:darknet:class_names      models/skate_and_flatfish.lbl
 #
@@ -144,13 +144,13 @@ connect from input.image_file_name
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name     output/skate_yolo_v2_detections.kw18
-#  :writer:type   kw18
+#  :file_name                         output/skate_yolo_v2_detections.kw18
+#  :writer:type                       kw18
 #
 #  # Write out FSO classifications alongside tracks
-#  :writer:kw18:write_tot         true
-#  :writer:kw18:tot_field1_ids    skate
-#  :writer:kw18:tot_field2_ids    flatfish
+#  :writer:kw18:write_tot             true
+#  :writer:kw18:tot_field1_ids        skate
+#  :writer:kw18:tot_field2_ids        flatfish
 #
 #process skate_yolo_v2_csv_writer
 #  :: detected_object_output
@@ -182,26 +182,26 @@ connect from input.image_file_name
 #process scallop_tk_detector
 #  :: image_object_detector
 #  :detector:type    scallop_tk
-#  :detector:scallop_tk:config_file models/scallop_tk/SYSTEM_SETTINGS
+#  :detector:scallop_tk:config_file   models/scallop_tk/SYSTEM_SETTINGS
 #
 #process scallop_tk_kw18_writer
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name     output/scallop_tk_detections.kw18
-#  :writer:type   kw18
+#  :file_name                         output/scallop_tk_detections.kw18
+#  :writer:type                       kw18
 #
 #  # Write out FSO classifications alongside tracks
-#  :writer:kw18:write_tot         true
-#  :writer:kw18:tot_field1_ids    fish
-#  :writer:kw18:tot_field2_ids    live_scallop
+#  :writer:kw18:write_tot             true
+#  :writer:kw18:tot_field1_ids        fish
+#  :writer:kw18:tot_field2_ids        live_scallop
 #
 #process scallop_tk_csv_writer
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name     output/scallop_tk_detections.csv
-#  :writer:type   csv
+#  :file_name                         output/scallop_tk_detections.csv
+#  :writer:type                       csv
 #
 #connect from split.left_image
 #        to   scallop_tk_detector.image
@@ -223,27 +223,27 @@ connect from input.image_file_name
 
 #process lanl_detector
 #  :: image_object_detector
-#   :detector:type                matlab
-#   :detector:matlab:program_file ../../matlab/lanl_scallop_finder/ScallopFinder.m
+#   :detector:type                    matlab
+#   :detector:matlab:program_file     ../../matlab/lanl_scallop_finder/ScallopFinder.m
 #
 #process lanl_kw18_writer
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name     output/lanl_detections.kw18
-#  :writer:type   kw18
+#  :file_name                         output/lanl_detections.kw18
+#  :writer:type                       kw18
 #
 #  # Write out FSO classifications alongside tracks
-#  :writer:kw18:write_tot         true
-#  :writer:kw18:tot_field1_ids    fish
-#  :writer:kw18:tot_field2_ids    live_scallop
+#  :writer:kw18:write_tot             true
+#  :writer:kw18:tot_field1_ids        fish
+#  :writer:kw18:tot_field2_ids        live_scallop
 #
 #process lanl_csv_writer
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name     output/lanl_detections.csv
-#  :writer:type   csv
+#  :file_name                         output/lanl_detections.csv
+#  :writer:type                       csv
 #
 #
 #connect from split.left_image
