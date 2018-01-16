@@ -68,7 +68,7 @@ process scallop_yolo_v2_filter
   :filter:type                       class_probablity_filter
 
   # Filter parameters
-  :filter:class_probablity_filter:threshold        0.010
+  :filter:class_probablity_filter:threshold        0.100
   :filter:class_probablity_filter:keep_all_classes false
   :filter:class_probablity_filter:keep_classes     live_scallop;dead_scallop
 
@@ -136,7 +136,7 @@ process skate_yolo_v2_filter
   :filter:type                       class_probablity_filter
 
   # Filter parameters
-  :filter:class_probablity_filter:threshold        0.001
+  :filter:class_probablity_filter:threshold        0.100
   :filter:class_probablity_filter:keep_all_classes false
   :filter:class_probablity_filter:keep_classes     fish
 
