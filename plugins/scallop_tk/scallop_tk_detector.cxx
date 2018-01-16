@@ -113,7 +113,8 @@ detect( kwiver::vital::image_container_sptr image_data ) const
 {
   auto detected_set = std::make_shared< kwiver::vital::detected_object_set >();
 
-  cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat src = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
+    kwiver::arrows::ocv::image_container::BGR );
 
   auto det_list = d->m_detector->processFrame( src );
 
