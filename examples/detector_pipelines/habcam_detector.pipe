@@ -4,8 +4,8 @@
 #
 # Un-comment each detector in order to use it (memory usage / load will increase):
 #
-#    (a) YOLOv2 - High Res YOLOv2 Scallop Detector Edition
-#    (b) YOLOv2 - Low Res YOLOv2 Skate and Roundfish Detector (disabled by default)
+#    (a) YOLOv2 - High Res YOLOv2 Scallop Detector Edition (enabled by default)
+#    (b) YOLOv2 - Low Res YOLOv2 Generic Fish Detector (enabled by default)
 #    (c) Scallop-TK - Alternative Scallop Detector (disabled by default)
 #    (d) Scallop-Finder - Alternative Scallop Detector (disabled by default)
 #
@@ -111,71 +111,71 @@ connect from input.image_file_name
 
 # ==================================== YOLO V2 SKATE =====================================
 
-#process skate_yolo_v2_detector
-#  :: image_object_detector
-#  :detector:type                     darknet
-#
-#  # Network config, weights, and names
-#  :detector:darknet:net_config       models/skate_and_flatfish.cfg
-#  :detector:darknet:weight_file      models/skate_and_flatfish.weights
-#  :detector:darknet:class_names      models/skate_and_flatfish.lbl
-#
-#  # Detector parameters
-#  :detector:darknet:thresh           0.001
-#  :detector:darknet:hier_thresh      0.001
-#  :detector:darknet:gpu_index        0
-#
-#  # Image scaling parameters
-#  :detector:darknet:resize_option    maintain_ar
-#  :detector:darknet:resize_ni        544
-#  :detector:darknet:resize_nj        544
-#  :detector:darknet:scale            1.0
-#
-#process skate_yolo_v2_filter
-#  :: detected_object_filter
-#  :filter:type                       class_probablity_filter
-#
-#  # Filter parameters
-#  :filter:class_probablity_filter:threshold        0.001
-#  :filter:class_probablity_filter:keep_all_classes false
-#  :filter:class_probablity_filter:keep_classes     skate;flatfish
-#
-#process skate_yolo_v2_kw18_writer
-#  :: detected_object_output
-#
-#  # Type of file to output
-#  :file_name                         output/skate_yolo_v2_detections.kw18
-#  :writer:type                       kw18
-#
-#  # Write out FSO classifications alongside tracks
-#  :writer:kw18:write_tot             true
-#  :writer:kw18:tot_field1_ids        skate
-#  :writer:kw18:tot_field2_ids        flatfish
-#
-#process skate_yolo_v2_csv_writer
-#  :: detected_object_output
-#
-#  # Type of file to output
-#  :file_name     output/skate_yolo_v2_detections.csv
-#  :writer:type   csv
-#
-#connect from split.left_image
-#        to   skate_yolo_v2_detector.image
-#
-#connect from skate_yolo_v2_detector.detected_object_set
-#        to   skate_yolo_v2_filter.detected_object_set
-#
-#connect from skate_yolo_v2_filter.detected_object_set
-#        to   skate_yolo_v2_kw18_writer.detected_object_set
-#
-#connect from input.image_file_name
-#        to   skate_yolo_v2_kw18_writer.image_file_name
-#
-#connect from skate_yolo_v2_filter.detected_object_set
-#        to   skate_yolo_v2_csv_writer.detected_object_set
-#
-#connect from input.image_file_name
-#        to   skate_yolo_v2_csv_writer.image_file_name
+process skate_yolo_v2_detector
+  :: image_object_detector
+  :detector:type                     darknet
+
+  # Network config, weights, and names
+  :detector:darknet:net_config       models/default_yolo_v2.cfg
+  :detector:darknet:weight_file      models/default_yolo_v2.weights
+  :detector:darknet:class_names      models/default_yolo_v2.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh           0.001
+  :detector:darknet:hier_thresh      0.001
+  :detector:darknet:gpu_index        0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option    maintain_ar
+  :detector:darknet:resize_ni        544
+  :detector:darknet:resize_nj        544
+  :detector:darknet:scale            1.0
+
+process skate_yolo_v2_filter
+  :: detected_object_filter
+  :filter:type                       class_probablity_filter
+
+  # Filter parameters
+  :filter:class_probablity_filter:threshold        0.001
+  :filter:class_probablity_filter:keep_all_classes false
+  :filter:class_probablity_filter:keep_classes     fish
+
+process skate_yolo_v2_kw18_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                         output/skate_yolo_v2_detections.kw18
+  :writer:type                       kw18
+
+  # Write out FSO classifications alongside tracks
+  :writer:kw18:write_tot             true
+  :writer:kw18:tot_field1_ids        fish
+  :writer:kw18:tot_field2_ids        scallop
+
+process skate_yolo_v2_csv_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name     output/skate_yolo_v2_detections.csv
+  :writer:type   csv
+
+connect from split.left_image
+        to   skate_yolo_v2_detector.image
+
+connect from skate_yolo_v2_detector.detected_object_set
+        to   skate_yolo_v2_filter.detected_object_set
+
+connect from skate_yolo_v2_filter.detected_object_set
+        to   skate_yolo_v2_kw18_writer.detected_object_set
+
+connect from input.image_file_name
+        to   skate_yolo_v2_kw18_writer.image_file_name
+
+connect from skate_yolo_v2_filter.detected_object_set
+        to   skate_yolo_v2_csv_writer.detected_object_set
+
+connect from input.image_file_name
+        to   skate_yolo_v2_csv_writer.image_file_name
 
 # ====================================== SCALLOP-TK ======================================
 
