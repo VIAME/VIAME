@@ -15,10 +15,10 @@
 # on the other side.
 #
 # Notes: YOLOv2, Scallop-TK, and Scallop-Finder algorithm performance still needs to
-# be compared in detail, preliminary results indicates Scallop-TK is more accurate but
-# slower, YOLOv2 being faster. Scallop-Finder does not currently do any sand dollar vs
-# scallop classification, but it's proposal generation technique could still be compared
-# to the others with an additional classifier built on top.
+# be compared in detail. Speed-wise YOLOv2 is fast if you have a powerful GPU.
+# Scallop-Finder does not currently do any sand dollar vs scallop classification, but it's
+# proposal generation technique could still be compared to the other two with an additional
+# classifier built on top.
 
 # ================================= GLOBAL PROPERTIES ====================================
 # global pipeline config
