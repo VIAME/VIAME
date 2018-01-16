@@ -68,8 +68,8 @@ process scallop_yolo_v2_filter
   :filter:type                       class_probablity_filter
 
   # Filter parameters
-  :filter:class_probablity_filter:threshold        0.001
-  :filter:class_probablity_filter:keep_all_classes true
+  :filter:class_probablity_filter:threshold        0.010
+  :filter:class_probablity_filter:keep_all_classes false
   :filter:class_probablity_filter:keep_classes     live_scallop;dead_scallop
 
 process scallop_yolo_v2_kw18_writer
@@ -137,7 +137,7 @@ connect from input.image_file_name
 #
 #  # Filter parameters
 #  :filter:class_probablity_filter:threshold        0.001
-#  :filter:class_probablity_filter:keep_all_classes true
+#  :filter:class_probablity_filter:keep_all_classes false
 #  :filter:class_probablity_filter:keep_classes     skate;flatfish
 #
 #process skate_yolo_v2_kw18_writer
