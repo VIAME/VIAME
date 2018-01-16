@@ -446,7 +446,26 @@ frame_index_track_set_impl
 ::clone() const
 {
   /// TODO CODE THIS!!!!
-  return nullptr;
+  std::unique_ptr<frame_index_track_set_impl> the_clone =
+    std::unique_ptr<frame_index_track_set_impl>(new frame_index_track_set_impl());
+
+  // clone the track data
+  for (auto trk : all_tracks_)
+  {
+    the_clone->all_tracks_.push_back(trk->clone());
+  }
+  the_clone->populate_frame_map();
+
+  //clone the frame data
+  for (auto fd : frame_data_)
+  {
+    if (fd.second)
+    {
+      the_clone->frame_data_[fd.first] = fd.second->clone();
+    }
+  }
+
+  return std::unique_ptr<track_set_implementation>(static_cast<track_set_implementation*>(the_clone.release()));
 }
 
 
