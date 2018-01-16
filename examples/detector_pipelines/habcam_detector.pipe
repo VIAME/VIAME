@@ -1,112 +1,183 @@
 # Habcam Pipeline
 #
-# Runs multiple object detectors in a pipeline. Un-comment each
-# detector in order to use it:
+# Runs multiple object detectors in a pipeline.
 #
-#    (a) YOLOv2
-#    (b) Scallop-TK (commented by default)
+# Un-comment each detector in order to use it (memory usage / load will increase):
 #
-# This pipeline assumes stereo imagery together in a composite
-# image as input. The first 'splitting' process selects either
-# the left or right side of the image to perform detection
-# on. Replace 'split.left_image' with 'split.right_image'
-# to perform detection on the other side.
+#    (a) YOLOv2 - High Res YOLOv2 Scallop Detector Edition
+#    (b) YOLOv2 - Low Res YOLOv2 Skate and Roundfish Detector (disabled by default)
+#    (c) Scallop-TK - Alternative Scallop Detector (disabled by default)
+#    (d) Scallop-Finder - Alternative Scallop Detector (disabled by default)
+#
+# This pipeline assumes stereo imagery together in a composite image as input. The first
+# 'splitting' process selects either the left or right side of the image to perform
+# detection on. Replace 'split.left_image' with 'split.right_image' to perform detection
+# on the other side.
+#
+# Notes: YOLOv2, Scallop-TK, and Scallop-Finder algorithm performance still needs to
+# be compared in detail, preliminary results indicates Scallop-TK is more accurate but
+# slower, YOLOv2 being faster. Scallop-Finder does not currently do any sand dollar vs
+# scallop classification, but it's proposal generation technique could still be compared
+# to the others with an additional classifier built on top.
 
-# ===================== GLOBAL PROPERTIES ========================
+# ================================= GLOBAL PROPERTIES ====================================
 # global pipeline config
 #
 config _pipeline:_edge
        :capacity 5
 
-# ====================== INPUT FRAME LIST ========================
+# ================================== INPUT FRAME LIST ====================================
 process input
   :: frame_list_input
-  :image_list_file     habcam_list.txt
-  :frame_time          .03333
-  :image_reader:type   ocv
+  :image_list_file                   habcam_list.txt
+  :frame_time                        0.03333
+  :image_reader:type                 ocv
 
-# ========================= CROP INPUTS ==========================
+# ===================================== CROP INPUTS ======================================
 process split
   :: split_image
-  :split_image:type    ocv
+  :split_image:type                  ocv
 
 connect from input.image
         to   split.image
 
-# =========================== YOLO v2 ============================
+# =================================== YOLO v2 SCALLOP ====================================
 
-process yolo_v2_detector
+process scallop_yolo_v2_detector
   :: image_object_detector
   :detector:type    darknet
 
   # Network config, weights, and names
-  :detector:darknet:net_config    models/model2.cfg
-  :detector:darknet:weight_file   models/scallop_and_fish.weights
-  :detector:darknet:class_names   models/scallop_and_fish.lbl
-  #:detector:darknet:weight_file   models/skate_and_flatfish.weights
-  #:detector:darknet:class_names   models/skate_and_flatfish.lbl
+  :detector:darknet:net_config       models/habcam_yolo_v2.cfg
+  :detector:darknet:weight_file      models/habcam_yolo_v2.weights
+  :detector:darknet:class_names      models/habcam_yolo_v2.lbl
 
   # Detector parameters
-  :detector:darknet:thresh        0.001
-  :detector:darknet:hier_thresh   0.001
-  :detector:darknet:gpu_index     0
+  :detector:darknet:thresh           0.001
+  :detector:darknet:hier_thresh      0.001
+  :detector:darknet:gpu_index        0
 
   # Image scaling parameters
-  :detector:darknet:resize_option maintain_ar
-  :detector:darknet:resize_ni     544
-  :detector:darknet:resize_nj     544
-  :detector:darknet:scale         1.0
+  :detector:darknet:resize_option    maintain_ar
+  :detector:darknet:resize_ni        960
+  :detector:darknet:resize_nj        960
+  :detector:darknet:scale            1.0
 
-process yolo_v2_filter
+process scallop_yolo_v2_filter
   :: detected_object_filter
-  :filter:type       class_probablity_filter
+  :filter:type                       class_probablity_filter
 
   # Filter parameters
   :filter:class_probablity_filter:threshold        0.001
-  :filter:class_probablity_filter:keep_all_classes false
-  :filter:class_probablity_filter:keep_classes     fish;scallop
-  #:filter:class_probablity_filter:keep_classes     skate;flatfish
+  :filter:class_probablity_filter:keep_all_classes true
+  :filter:class_probablity_filter:keep_classes     live_scallop;dead_scallop
 
-process yolo_v2_kw18_writer
+process scallop_yolo_v2_kw18_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name     output/yolo_v2_detections.kw18
+  :file_name     output/scallop_yolo_v2_detections.kw18
   :writer:type   kw18
 
   # Write out FSO classifications alongside tracks
   :writer:kw18:write_tot         true
-  :writer:kw18:tot_field1_ids    fish
-  :writer:kw18:tot_field2_ids    scallop
-  #:writer:kw18:tot_field1_ids    skate
-  #:writer:kw18:tot_field2_ids    flatfish
+  :writer:kw18:tot_field1_ids    skate
+  :writer:kw18:tot_field2_ids    live_scallop
 
-process yolo_v2_csv_writer
+process scallop_yolo_v2_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name     output/yolo_v2_detections.csv
+  :file_name     output/scallop_yolo_v2_detections.csv
   :writer:type   csv
 
 connect from split.left_image
-        to   yolo_v2_detector.image
+        to   scallop_yolo_v2_detector.image
 
-connect from yolo_v2_detector.detected_object_set
-        to   yolo_v2_filter.detected_object_set
+connect from scallop_yolo_v2_detector.detected_object_set
+        to   scallop_yolo_v2_filter.detected_object_set
 
-connect from yolo_v2_filter.detected_object_set
-        to   yolo_v2_kw18_writer.detected_object_set
-
-connect from input.image_file_name
-        to   yolo_v2_kw18_writer.image_file_name
-
-connect from yolo_v2_filter.detected_object_set
-        to   yolo_v2_csv_writer.detected_object_set
+connect from scallop_yolo_v2_filter.detected_object_set
+        to   scallop_yolo_v2_kw18_writer.detected_object_set
 
 connect from input.image_file_name
-        to   yolo_v2_csv_writer.image_file_name
+        to   scallop_yolo_v2_kw18_writer.image_file_name
 
-# ========================== Scallop-TK ==========================
+connect from scallop_yolo_v2_filter.detected_object_set
+        to   scallop_yolo_v2_csv_writer.detected_object_set
+
+connect from input.image_file_name
+        to   scallop_yolo_v2_csv_writer.image_file_name
+
+# ==================================== YOLO v2 SKATE =====================================
+
+#process skate_yolo_v2_detector
+#  :: image_object_detector
+#  :detector:type    darknet
+#
+#  # Network config, weights, and names
+#  :detector:darknet:net_config       models/habcam_yolo_v2.cfg
+#  :detector:darknet:weight_file      models/habcam_yolo_v2.weights
+#  :detector:darknet:class_names      models/habcam_yolo_v2.lbl
+#
+#  # Detector parameters
+#  :detector:darknet:thresh           0.001
+#  :detector:darknet:hier_thresh      0.001
+#  :detector:darknet:gpu_index        0
+#
+#  # Image scaling parameters
+#  :detector:darknet:resize_option    maintain_ar
+#  :detector:darknet:resize_ni        544
+#  :detector:darknet:resize_nj        544
+#  :detector:darknet:scale            1.0
+#
+#process skate_yolo_v2_filter
+#  :: detected_object_filter
+#  :filter:type                       class_probablity_filter
+#
+#  # Filter parameters
+#  :filter:class_probablity_filter:threshold        0.001
+#  :filter:class_probablity_filter:keep_all_classes true
+#  :filter:class_probablity_filter:keep_classes     skate
+#
+#process skate_yolo_v2_kw18_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name     output/skate_yolo_v2_detections.kw18
+#  :writer:type   kw18
+#
+#  # Write out FSO classifications alongside tracks
+#  :writer:kw18:write_tot         true
+#  :writer:kw18:tot_field1_ids    skate
+#  :writer:kw18:tot_field2_ids    live_scallop
+#
+#process skate_yolo_v2_csv_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name     output/skate_yolo_v2_detections.csv
+#  :writer:type   csv
+#
+#connect from split.left_image
+#        to   skate_yolo_v2_detector.image
+#
+#connect from skate_yolo_v2_detector.detected_object_set
+#        to   skate_yolo_v2_filter.detected_object_set
+#
+#connect from skate_yolo_v2_filter.detected_object_set
+#        to   skate_yolo_v2_kw18_writer.detected_object_set
+#
+#connect from input.image_file_name
+#        to   skate_yolo_v2_kw18_writer.image_file_name
+#
+#connect from skate_yolo_v2_filter.detected_object_set
+#        to   skate_yolo_v2_csv_writer.detected_object_set
+#
+#connect from input.image_file_name
+#        to   skate_yolo_v2_csv_writer.image_file_name
+
+# ====================================== SCALLOP-TK ======================================
 
 #process scallop_tk_detector
 #  :: image_object_detector
@@ -123,7 +194,7 @@ connect from input.image_file_name
 #  # Write out FSO classifications alongside tracks
 #  :writer:kw18:write_tot         true
 #  :writer:kw18:tot_field1_ids    fish
-#  :writer:kw18:tot_field2_ids    scallop
+#  :writer:kw18:tot_field2_ids    live_scallop
 #
 #process scallop_tk_csv_writer
 #  :: detected_object_output
@@ -147,4 +218,47 @@ connect from input.image_file_name
 #connect from input.image_file_name
 #        to   scallop_tk_csv_writer.image_file_name
 #
+
+# ==================================== SCALLOP-FINDER ====================================
+
+#process lanl_detector
+#  :: image_object_detector
+#   :detector:type                matlab
+#   :detector:matlab:program_file ../../matlab/lanl_scallop_finder/ScallopFinder.m
+#
+#process lanl_kw18_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name     output/lanl_detections.kw18
+#  :writer:type   kw18
+#
+#  # Write out FSO classifications alongside tracks
+#  :writer:kw18:write_tot         true
+#  :writer:kw18:tot_field1_ids    fish
+#  :writer:kw18:tot_field2_ids    live_scallop
+#
+#process lanl_csv_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name     output/lanl_detections.csv
+#  :writer:type   csv
+#
+#
+#connect from split.left_image
+#        to   lanl_detector.image
+#
+#connect from lanl_detector.detected_object_set
+#        to   lanl_kw18_writer.detected_object_set
+#
+#connect from input.image_file_name
+#        to   lanl_kw18_writer.image_file_name
+#
+#connect from lanl_detector.detected_object_set
+#        to   lanl_csv_writer.detected_object_set
+#
+#connect from input.image_file_name
+#        to   lanl_csv_writer.image_file_name
+
 # -- end of file --
