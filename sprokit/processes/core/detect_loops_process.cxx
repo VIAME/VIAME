@@ -351,11 +351,13 @@ detect_loops_process::priv
       continue;
     }
 
+    auto ts_clone = next_tk->back()->clone();
     //ok, we have next_tk and curr_track which contain the same features.
-    if (!curr_track->append(next_tk->back()->clone()))
+    if (!curr_track->append(ts_clone))
     {
-      LOG_ERROR(m_logger, "Failed to append track state to loop back track");
+      LOG_ERROR(m_logger, "Failed to append track state to loop back track (detect_loops_process");
     }
+    curr_tracks->notify_new_state(ts_clone);
   }
 
   return curr_tracks;
