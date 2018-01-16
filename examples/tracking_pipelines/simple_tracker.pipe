@@ -19,23 +19,23 @@ process input
 
 process detector
   :: image_object_detector
-  :detector:type                  darknet
+  :detector:type                 darknet
 
   # Network config
-  :detector:darknet:net_config    ../detector_pipelines/models/model2.cfg
-  :detector:darknet:weight_file   ../detector_pipelines/models/model2.weights
-  :detector:darknet:class_names   ../detector_pipelines/models/scallop_and_fish.lbl
+  :detector:darknet:net_config   ../detector_pipelines/models/default_yolo_v2.cfg
+  :detector:darknet:weight_file  ../detector_pipelines/models/default_yolo_v2.weights
+  :detector:darknet:class_names  ../detector_pipelines/models/default_yolo_v2.lbl
 
   # Detector parameters
-  :detector:darknet:thresh        0.001
-  :detector:darknet:hier_thresh   0.001
-  :detector:darknet:gpu_index     0
+  :detector:darknet:thresh       0.001
+  :detector:darknet:hier_thresh  0.001
+  :detector:darknet:gpu_index    0
 
   # Image scaling parameters
   :detector:darknet:resize_option maintain_ar
-  :detector:darknet:resize_ni     544
-  :detector:darknet:resize_nj     544
-  :detector:darknet:scale         1.0
+  :detector:darknet:resize_ni    544
+  :detector:darknet:resize_nj    544
+  :detector:darknet:scale        1.0
 
 process detector_writer
   :: detected_object_output
@@ -45,9 +45,9 @@ process detector_writer
   :writer:type   kw18
 
   # Write out FSO classifications alongside tracks
-  :writer:kw18:write_tot          true
-  :writer:kw18:tot_field1_ids     fish
-  :writer:kw18:tot_field2_ids     scallop
+  :writer:kw18:write_tot         true
+  :writer:kw18:tot_field1_ids    fish
+  :writer:kw18:tot_field2_ids    scallop
 
 connect from input.image
         to   detector.image

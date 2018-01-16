@@ -2,10 +2,9 @@
 #
 # Runs multiple CNN-based object detectors in the VIAME framework:
 #
-#    (a) Faster R-CNN
-#    (b) YOLOv1
-#    (c) YOLOv2
-#    (d) Scallop-TK
+#    (a) YOLOv2
+#    (b) Scallop-TK
+#    (c) Faster R-CNN
 
 # ===================== GLOBAL PROPERTIES ========================
 # global pipeline config
@@ -17,38 +16,8 @@ config _pipeline:_edge
 process input
   :: frame_list_input
   :image_list_file     input_list.txt
-  :frame_time          .03333
+  :frame_time          0.03333
   :image_reader:type   vxl
-
-# ========================== YOLO v1 =============================
-
-#process yolo_v1
-#  :: image_object_detector
-#  :detector:type    darknet
-
-#  # Network config, weights, and names
-#  :detector:darknet:net_config   models/model1.cfg
-#  :detector:darknet:weight_file  models/model1_v1.weights
-#  :detector:darknet:class_names  models/scallop_and_fish.lbl
-
-#  # Detector parameters
-#  :detector:darknet:thresh       0.001
-#  :detector:darknet:hier_thresh  0.001
-#  :detector:darknet:gpu_index    0
-
-#process yolo_v1_writer
-#  :: detected_object_output
-#  :file_name     output/yolo_v1_detections.kw18
-#  :writer:type   kw18
-
-#connect from input.image
-#        to   yolo_v1.image
-
-#connect from yolo_v1.detected_object_set
-#        to   yolo_v1_writer.detected_object_set
-
-#connect from input.image_file_name
-#        to   yolo_v1_writer.image_file_name
 
 # =========================== YOLO v2 ============================
 
@@ -57,14 +26,14 @@ process yolo_v2
   :detector:type    darknet
 
   # Network config, weights, and names
-  :detector:darknet:net_config   models/model2.cfg
-  :detector:darknet:weight_file  models/model2.weights
-  :detector:darknet:class_names  models/scallop_and_fish.lbl
+  :detector:darknet:net_config    models/default_yolo_v2.cfg
+  :detector:darknet:weight_file   models/default_yolo_v2.weights
+  :detector:darknet:class_names   models/default_yolo_v2.lbl
 
   # Detector parameters
-  :detector:darknet:thresh       0.001
-  :detector:darknet:hier_thresh  0.001
-  :detector:darknet:gpu_index    0
+  :detector:darknet:thresh        0.001
+  :detector:darknet:hier_thresh   0.001
+  :detector:darknet:gpu_index     0
 
   # Image scaling parameters
   :detector:darknet:resize_option maintain_ar
