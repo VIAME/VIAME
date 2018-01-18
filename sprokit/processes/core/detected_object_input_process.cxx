@@ -133,15 +133,25 @@ void detected_object_input_process
 {
   std::string image_name;
   kwiver::vital::detected_object_set_sptr set;
-  bool result = false;
-  {
-    scoped_step_instrumentation();
+  bool result = true;
 
-    if ( has_input_port_edge_using_trait( image_file_name ) )
+  if ( has_input_port_edge_using_trait( image_file_name ) )
+  {
+    auto port_info = peek_at_port_using_trait( image_file_name );
+
+    if( port_info.datum->type() == sprokit::datum::complete )
+    {
+      result = false;
+    }
+    else
     {
       image_name = grab_from_port_using_trait( image_file_name );
     }
+  }
 
+  if ( result )
+  {
+    scoped_step_instrumentation();
     result = d->m_reader->read_set( set, image_name );
   }
 
