@@ -23,6 +23,6 @@ VIAME Integrated Detection Formats
 |
 | HABCAM - Annotation format used by the HabCam project
 |
-|   detection1
+|   v1
 |
 |
