@@ -45,7 +45,7 @@
  *
  * Written by Dorian Galvez-Lopez,
  * University of Zaragoza
- * 
+ *
  * Check my website to obtain updates: http://doriangalvez.com
  *
  * \section requirements Requirements
@@ -56,7 +56,7 @@
  * If you use this software in academic works, please cite:
  <pre>
    @@ARTICLE{GalvezTRO12,
-    author={Galvez-Lopez, Dorian and Tardos, J. D.}, 
+    author={Galvez-Lopez, Dorian and Tardos, J. D.},
     journal={IEEE Transactions on Robotics},
     title={Bags of Binary Words for Fast Place Recognition in Image Sequences},
     year={2012},
@@ -87,12 +87,12 @@ namespace DBoW2
 #include "FORB.h"
 
 /// ORB Vocabulary
-typedef DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> 
+typedef DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB>
   OrbVocabulary;
 
 /// FORB Database
-typedef DBoW2::TemplatedDatabase<DBoW2::FORB::TDescriptor, DBoW2::FORB> 
-  OrbDatabase; 
+typedef DBoW2::TemplatedDatabase<DBoW2::FORB::TDescriptor, DBoW2::FORB>
+  OrbDatabase;
 
 #endif
 

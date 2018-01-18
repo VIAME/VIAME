@@ -62,7 +62,7 @@ ostream & operator<<(ostream& os, const QueryResults& ret )
     os << "1 result:" << endl;
   else
     os << ret.size() << " results:" << endl;
-    
+
   QueryResults::const_iterator rit;
   for(rit = ret.begin(); rit != ret.end(); ++rit)
   {
@@ -77,13 +77,13 @@ ostream & operator<<(ostream& os, const QueryResults& ret )
 void QueryResults::saveM(const std::string &filename) const
 {
   fstream f(filename.c_str(), ios::out);
-  
+
   QueryResults::const_iterator qit;
   for(qit = begin(); qit != end(); ++qit)
   {
     f << qit->Id << " " << qit->Score << endl;
   }
-  
+
   f.close();
 }
 

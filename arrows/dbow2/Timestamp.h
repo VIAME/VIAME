@@ -56,22 +56,22 @@ public:
     CURRENT_TIME = 0x1,
     ZERO = 0x2
   };
-  
+
 public:
-  
+
   /**
-   * Creates a timestamp 
+   * Creates a timestamp
    * @param option option to set the initial time stamp
    */
 	Timestamp(Timestamp::tOptions option = NONE);
-	
+
 	/**
 	 * Destructor
 	 */
 	virtual ~Timestamp(void);
 
   /**
-   * Says if the timestamp is "empty": seconds and usecs are both 0, as 
+   * Says if the timestamp is "empty": seconds and usecs are both 0, as
    * when initiated with the ZERO flag
    * @return true iif secs == usecs == 0
    */
@@ -91,7 +91,7 @@ public:
 		m_secs = secs;
 		m_usecs = usecs;
 	}
-	
+
 	/**
 	 * Returns the timestamp in seconds and microseconds
 	 * @param secs seconds
@@ -108,13 +108,13 @@ public:
 	 * @param stime: string such as "1235603336.036609"
 	 */
   void setTime(const std::string &stime);
-	
+
 	/**
 	 * Sets the timestamp from a number of seconds from the epoch
 	 * @param s seconds from the epoch
 	 */
 	void setTime(double s);
-	
+
 	/**
 	 * Returns this timestamp as the number of seconds in (long) float format
 	 */
@@ -133,7 +133,7 @@ public:
 	 */
 	double operator- (const Timestamp &t) const;
 
-	/** 
+	/**
 	 * Returns a copy of this timestamp + s seconds + us microseconds
 	 * @param s seconds
 	 * @param us microseconds
@@ -153,7 +153,7 @@ public:
    * @return reference to this timestamp
    */
   Timestamp& operator+= (double s);
-  
+
   /**
    * Substracts s seconds to this timestamp and returns a reference to itself
    * @param s seconds
@@ -185,7 +185,7 @@ public:
 	 */
 	bool operator>= (const Timestamp &t) const;
 
-	/** 
+	/**
 	 * Returns whether this timestamp and t represent the same instant
 	 * @param t
 	 */
@@ -218,7 +218,7 @@ public:
 	 * @param s: elapsed seconds (given by getFloatTime) to format
 	 */
   static std::string Format(double s);
-	
+
 
 protected:
   /// Seconds

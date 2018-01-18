@@ -39,10 +39,10 @@ set( dbow2_sources
 	ScoringObject.cxx
 	TimeStamp.cxx
   )
-  
+
 if( KWIVER_HAS_OPENCV_VER_3 )
   add_definitions(-DKWIVER_HAS_OPENCV_VER_3)
-endif()  
+endif()
 
 kwiver_add_library( kwiver_algo_dbow2
   ${dbow2_headers_public}
@@ -52,7 +52,7 @@ kwiver_add_library( kwiver_algo_dbow2
 target_link_libraries( kwiver_algo_dbow2
   PUBLIC               kwiver_algo_core
                        ${OpenCV_LIBS}
-  PRIVATE              kwiversys                       
+  PRIVATE              kwiversys
   )
 
 
