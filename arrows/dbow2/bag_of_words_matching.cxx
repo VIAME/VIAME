@@ -33,7 +33,7 @@
  * \brief Implementation of bag of words matching
  */
 
-#include "arrows/DBow2/bag_of_words_matching.h"
+#include "arrows/dbow2/bag_of_words_matching.h"
 #include "DBoW2.h"
 #include <opencv2/features2d.hpp>
 
