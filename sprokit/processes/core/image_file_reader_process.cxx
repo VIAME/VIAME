@@ -81,7 +81,11 @@ create_config_trait( path, std::string, "",
 create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds. "
                      "The generated timestamps will have the specified number of seconds in the generated "
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
-                     "video stream application.");
+                     "video stream application." );
+
+create_config_trait( no_path_in_name, bool, "true",
+                     "Set to true if the output image file path should not contain a full path to"
+                     "the image file and just contain the file name for the image." );
 
 create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock." )
 
@@ -109,6 +113,7 @@ public:
   int m_config_error_mode; // error mode
   std::vector< std::string > m_config_path;
   kwiver::vital::time_usec_t m_config_frame_time;
+  bool m_no_path_in_name;
 
   // local state
   kwiver::vital::frame_id_t m_frame_number;
@@ -148,6 +153,7 @@ void image_file_reader_process
   std::string mode = config_value_using_trait( error_mode );
   std::string path = config_value_using_trait( path );
   d->m_config_frame_time = config_value_using_trait( frame_time ) * 1e6; // in usec
+  d->m_no_path_in_name = config_value_using_trait( no_path_in_name );
 
   kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
@@ -230,6 +236,16 @@ void image_file_reader_process
     d->m_frame_time += d->m_config_frame_time;
   }
 
+  if ( d->m_no_path_in_name )
+  {
+    const size_t last_slash_idx = resolved_file.find_last_of("\\/");
+
+    if ( std::string::npos != last_slash_idx )
+    {
+      resolved_file.erase( 0, last_slash_idx + 1 );
+    }
+  }
+
   push_to_port_using_trait( timestamp, frame_ts );
   push_to_port_using_trait( image, img_c );
   push_to_port_using_trait( image_file_name, resolved_file );
@@ -254,7 +270,6 @@ void image_file_reader_process
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
   declare_output_port_using_trait( image_file_name, optional );
-
 }
 
 
@@ -265,6 +280,7 @@ void image_file_reader_process
   declare_config_using_trait( error_mode );
   declare_config_using_trait( path );
   declare_config_using_trait( image_reader );
+  declare_config_using_trait( no_path_in_name );
 }
 
 
