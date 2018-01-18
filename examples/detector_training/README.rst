@@ -26,8 +26,8 @@ file structures.
 | ......image001.png
 | ......image002.png
 | ......groundtruth.gt
-
-where groundtruth can be in any file format for which a
+|
+| where groundtruth can be in any file format for which a
 "detected_object_set_input" implementation exists (e.g. kw18, habcam),
 and labels.txt contains a list of output categories (one per line) for
 the trained detection model. "labels.txt" can also contain any alternative
