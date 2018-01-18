@@ -220,15 +220,13 @@ public:
   /**
    * \brief Get the number of frames in the video stream.
    *
-   * Get the number of frames available in the video stream. If the video stream
-   * is not seekable it returns -1
+   * Get the number of frames available in the video stream.
    *
-   * \return the number of frames in the video stream, or -1 if the video stream
+   * \return the number of frames in the video stream, or 0 if the video stream
    * is not seekable.
    *
    * \throws video_stream_exception when there is an error in the video stream.
    */
-  // TODO: make this const once VXL ffmpeg implementation is replaced.
   virtual size_t num_frames() const = 0;
 
   /**

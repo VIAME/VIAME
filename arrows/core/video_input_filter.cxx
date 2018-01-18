@@ -232,7 +232,7 @@ video_input_filter
 {
   if( ! d->d_video_input )
   {
-    return -1;
+    return 0;
   }
   if (d->c_stop_after_frame > 0 )
   {

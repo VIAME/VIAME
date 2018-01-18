@@ -222,7 +222,7 @@ video_input_split
   }
   else
   {
-    return -1;
+    return 0;
   }
 }
 
