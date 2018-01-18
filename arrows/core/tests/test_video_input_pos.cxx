@@ -105,6 +105,7 @@ TEST_F(video_input_pos, read_list)
       << "Frame numbers should be sequential";
   }
   EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, vip.num_frames() );
 }
 
 // ----------------------------------------------------------------------------

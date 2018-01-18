@@ -143,6 +143,7 @@ TEST_F(video_input_split, read_list)
       << "Frame number should match barcode in frame image";
   }
   EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, vis.num_frames() );
 }
 
 TEST_F(video_input_split, seek_frame)
