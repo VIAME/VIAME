@@ -3,7 +3,7 @@
 ##
 
 set( EXAMPLE_INSTALL_FILES
-     README.md )
+     README.rst )
 
 DownloadAndExtract(
   https://data.kitware.com/api/v1/item/5a5839318d777f5e872f8393/download
