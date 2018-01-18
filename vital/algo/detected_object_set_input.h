@@ -108,9 +108,10 @@ public:
    * \param[out] set Pointer to the new set of detections. Set may be
    * empty if there are no detections on an image.
    *
-   * \param[out] image_name Name of the image that goes with the
+   * \param[in,out] image_name Name of the image that goes with the
    * detections. This string may be empty depending on the source
-   * format.
+   * format. If the read format also contains filenames, the string
+   * can be used as an input to get all detections on said frame.
    *
    * @return \b true if detections are returned, \b false if end of file.
    */
