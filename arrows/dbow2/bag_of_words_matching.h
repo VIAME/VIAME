@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace DBoW2_kw {
+namespace dbow2 {
 
 /// class for bag of words image matching
 /**
