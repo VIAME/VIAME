@@ -38,7 +38,7 @@
 
 
 #include <vital/vital_config.h>
-#include <vital/algo/detect_features_if_keyframe.h>
+#include <vital/algo/track_features.h>
 
 #include <arrows/core/kwiver_algo_core_export.h>
 
@@ -48,85 +48,95 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-  /// detect_features_if_keyframe core implementation
+/// detect_features_if_keyframe core implementation
+/**
+* Uses open cv to detect features on images if they are marked as keyframes.
+* Does nothing if it is not a keyframe.
+*/
+class KWIVER_ALGO_CORE_EXPORT detect_features_if_keyframe
+  : public vital::algo::track_features
+{
+public:
+
+  /// Default constructor
+  detect_features_if_keyframe();
+
+  /// Destructor
+  virtual ~detect_features_if_keyframe() noexcept;
+
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
-  * Uses open cv to detect features on images if they are marked as keyframes.
-  * Does nothing if it is not a keyframe.
+  * This base virtual function implementation returns an empty configuration
+  * block whose name is set to \c this->type_name.
+  *
+  * \returns \c config_block containing the configuration for this algorithm
+  *          and any nested components.
   */
-  class KWIVER_ALGO_CORE_EXPORT detect_features_if_keyframe
-    : public vital::algo::detect_features_if_keyframe
-  {
-  public:
+  virtual vital::config_block_sptr get_configuration() const;
 
-    /// Default constructor
-    detect_features_if_keyframe();
+  /// Set this algorithm's properties via a config block
+  /**
+  * \throws no_such_configuration_value_exception
+  *    Thrown if an expected configuration value is not present.
+  * \throws algorithm_configuration_exception
+  *    Thrown when the algorithm is given an invalid \c config_block or is'
+  *    otherwise unable to configure itself.
+  *
+  * \param config  The \c config_block instance containing the configuration
+  *                parameters for this algorithm
+  */
+  virtual void set_configuration(vital::config_block_sptr config);
 
-    /// Destructor
-    virtual ~detect_features_if_keyframe() noexcept;
-
-    /// Get this algorithm's \link vital::config_block configuration block \endlink
-    /**
-    * This base virtual function implementation returns an empty configuration
-    * block whose name is set to \c this->type_name.
-    *
-    * \returns \c config_block containing the configuration for this algorithm
-    *          and any nested components.
-    */
-    virtual vital::config_block_sptr get_configuration() const;
-
-    /// Set this algorithm's properties via a config block
-    /**
-    * \throws no_such_configuration_value_exception
-    *    Thrown if an expected configuration value is not present.
-    * \throws algorithm_configuration_exception
-    *    Thrown when the algorithm is given an invalid \c config_block or is'
-    *    otherwise unable to configure itself.
-    *
-    * \param config  The \c config_block instance containing the configuration
-    *                parameters for this algorithm
-    */
-    virtual void set_configuration(vital::config_block_sptr config);
-
-    /// Check that the algorithm's currently configuration is valid
-    /**
-    * This checks solely within the provided \c config_block and not against
-    * the current state of the instance. This isn't static for inheritence
-    * reasons.
-    *
-    * \param config  The config block to check configuration of.
-    *
-    * \returns true if the configuration check passed and false if it didn't.
-    */
-    virtual bool check_configuration(vital::config_block_sptr config) const;
+  /// Check that the algorithm's currently configuration is valid
+  /**
+  * This checks solely within the provided \c config_block and not against
+  * the current state of the instance. This isn't static for inheritence
+  * reasons.
+  *
+  * \param config  The config block to check configuration of.
+  *
+  * \returns true if the configuration check passed and false if it didn't.
+  */
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
 
-    /// Extract a set of image features from the provided image.  If a track_set
-    /// has been provided it will only extract features if the image is a keyframe.
-    /**
-    * A given mask image should be one-channel (mask->depth() == 1). If the
-    * given mask image has more than one channel, only the first will be
-    * considered.
-    *
-    * \param image_data contains the image data to process
-    * \param mask Mask image where regions of positive values (boolean true)
-    *             indicate regions to consider. Only the first channel will be
-    *             considered.
-    * \returns a set of image features
-    */
+  /// Augment existing tracks with additional feature if a keyframe
+  /**
+   * This special tracking algorithm runs an additional feature detector
+   * on frames which have been labeled as keyframes.  If the specified
+   * frame is a keyframe in the track set, additional features are detected,
+   * descriptors are extracted, and new track states are added on this frame.
+   * If the specified frame is not a keyframe the tracks are returned unchanged.
+   *
+   * This tracking algorithm currently does not link any of the newly added
+   * tracks states to previous track states.
+   *
+   * \throws image_size_mismatch_exception
+   *    When the given non-zero mask image does not match the size of the
+   *    dimensions of the given image data.
+   *
+   * \param [in] tracks the feature tracks from previous tracking steps
+   * \param [in] frame_number the frame number of the current frame
+   * \param [in] image_data the image pixels for the current frame
+   * \param [in] mask Optional mask image that uses positive values to denote
+   *                  regions of the input image to consider for feature
+   *                  tracking. An empty sptr indicates no mask (default
+   *                  value).
+   * \returns an updated set of feature tracks including the current frame
+   */
+  virtual kwiver::vital::feature_track_set_sptr
+  track(kwiver::vital::feature_track_set_sptr prev_tracks,
+        unsigned int frame_number,
+        kwiver::vital::image_container_sptr image_data,
+        kwiver::vital::image_container_sptr mask =
+          kwiver::vital::image_container_sptr()) const;
 
-    virtual kwiver::vital::feature_track_set_sptr
-    detect(kwiver::vital::image_container_sptr image_data,
-           unsigned int frame_number,
-           kwiver::vital::feature_track_set_sptr feature_tracks,
-           kwiver::vital::image_container_sptr mask =
-             kwiver::vital::image_container_sptr()) const;
+protected:
 
-  protected:
-
-    /// the feature detector algorithm
-    class priv;
-    std::shared_ptr<priv> d_;
-  };
+  /// the feature detector algorithm
+  class priv;
+  std::shared_ptr<priv> d_;
+};
 
 } // end namespace core
 } // end namespace arrows

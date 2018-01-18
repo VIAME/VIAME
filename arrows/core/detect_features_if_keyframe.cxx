@@ -68,22 +68,23 @@ public:
   }
 };
 
-/// Extract a set of image features from the provided image
+
+/// Augment existing tracks with additional feature if a keyframe
 vital::feature_track_set_sptr
 detect_features_if_keyframe
-::detect(kwiver::vital::image_container_sptr image_data,
-         unsigned int frame_number,
-         kwiver::vital::feature_track_set_sptr feat_track_set,
-         kwiver::vital::image_container_sptr mask) const
+::track(kwiver::vital::feature_track_set_sptr tracks,
+        unsigned int frame_number,
+        kwiver::vital::image_container_sptr image_data,
+        kwiver::vital::image_container_sptr mask) const
 {
 
-  auto fmap = feat_track_set->all_feature_frame_data();
+  auto fmap = tracks->all_feature_frame_data();
   auto ftsfd = fmap.find(frame_number);
   if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
   {
-    // this is not a keyframe, so return the orignial feat_track_set
+    // this is not a keyframe, so return the orignial tracks
     // no changes made so no deep copy necessary
-    return feat_track_set;
+    return tracks;
   }
 
   //detect the features
@@ -96,7 +97,7 @@ detect_features_if_keyframe
   std::vector<feature_sptr> vf = new_feat->features();
   std::vector<descriptor_sptr> df = new_desc->descriptors();
   // get the last track id in the existing set of tracks and increment it
-  track_id_t next_track_id = (*feat_track_set->all_track_ids().crbegin()) + 1;
+  track_id_t next_track_id = (*tracks->all_track_ids().crbegin()) + 1;
 
   for (size_t i = 0; i < vf.size(); ++i)
   {
@@ -106,13 +107,13 @@ detect_features_if_keyframe
     auto t = vital::track::create();
     t->append(fts);
     t->set_id(next_track_id++);
-    feat_track_set->insert(t);
+    tracks->insert(t);
   }
 
   // Note that right now are haven't done any matching.  Each newly detected
   // feature is in its own track.
 
-  return feat_track_set;
+  return tracks;
 }
 
 detect_features_if_keyframe
