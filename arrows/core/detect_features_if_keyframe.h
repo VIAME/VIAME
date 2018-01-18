@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017 by Kitware, Inc.
+* Copyright 2017-2018 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,30 @@
 
 /**
 * \file
-* \brief OCV detect_features_if_keyframe
+* \brief Header defining the core detect_features_if_keyframe
 */
 
-#ifndef KWIVER_ARROWS_OCV_DETECT_FEATURES_IF_KEYFRAME_H_
-#define KWIVER_ARROWS_OCV_DETECT_FEATURES_IF_KEYFRAME_H_
+#ifndef KWIVER_ARROWS_CORE_DETECT_FEATURES_IF_KEYFRAME_H_
+#define KWIVER_ARROWS_CORE_DETECT_FEATURES_IF_KEYFRAME_H_
 
 
 #include <vital/vital_config.h>
 #include <vital/algo/detect_features_if_keyframe.h>
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/feature_track_set.h>
 
 namespace kwiver {
 namespace arrows {
-namespace ocv {
+namespace core {
 
-  /// OCV detect_features_if_keyframe derived class using open cv
+  /// detect_features_if_keyframe core implementation
   /**
   * Uses open cv to detect features on images if they are marked as keyframes.
-  * Does nothing if it is not a keyframe.  
+  * Does nothing if it is not a keyframe.
   */
-  class KWIVER_ALGO_OCV_EXPORT detect_features_if_keyframe
+  class KWIVER_ALGO_CORE_EXPORT detect_features_if_keyframe
     : public vital::algo::detect_features_if_keyframe
   {
   public:
@@ -118,7 +118,7 @@ namespace ocv {
     detect(kwiver::vital::image_container_sptr image_data,
            unsigned int frame_number,
            kwiver::vital::feature_track_set_sptr feature_tracks,
-           kwiver::vital::image_container_sptr mask = 
+           kwiver::vital::image_container_sptr mask =
              kwiver::vital::image_container_sptr()) const;
 
   protected:
@@ -128,8 +128,8 @@ namespace ocv {
     std::shared_ptr<priv> d_;
   };
 
-} // end namespace ocv
+} // end namespace core
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_DETECT_FEATURES_IF_KEYFRAME_H_
+#endif // KWIVER_ARROWS_CORE_DETECT_FEATURES_IF_KEYFRAME_H_

@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief OCV detect_features algorithm implementation
+ * \brief Implementation of core detect_features_if_keyframe
  */
 
 #include "detect_features_if_keyframe.h"
@@ -38,15 +38,13 @@
 #include <vector>
 
 #include <vital/exceptions/image.h>
-#include <arrows/ocv/feature_set.h>
-#include <arrows/ocv/image_container.h>
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace ocv {
+namespace core {
 
 
 class detect_features_if_keyframe::priv
@@ -78,7 +76,7 @@ detect_features_if_keyframe
          kwiver::vital::feature_track_set_sptr feat_track_set,
          kwiver::vital::image_container_sptr mask) const
 {
-  
+
   auto fmap = feat_track_set->all_feature_frame_data();
   auto ftsfd = fmap.find(frame_number);
   if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
@@ -92,7 +90,7 @@ detect_features_if_keyframe
   vital::feature_set_sptr new_feat = d_->detector->detect(image_data, mask);
 
   //describe the features
-  vital::descriptor_set_sptr new_desc = 
+  vital::descriptor_set_sptr new_desc =
     d_->extractor->extract(image_data, new_feat, mask);
 
   std::vector<feature_sptr> vf = new_feat->features();
@@ -111,7 +109,7 @@ detect_features_if_keyframe
     feat_track_set->insert(t);
   }
 
-  // Note that right now are haven't done any matching.  Each newly detected 
+  // Note that right now are haven't done any matching.  Each newly detected
   // feature is in its own track.
 
   return feat_track_set;
@@ -188,6 +186,6 @@ detect_features_if_keyframe
   return config_valid;
  }
 
-} // end namespace ocv
+} // end namespace core
 } // end namespace arrows
 } // end namespace kwiver

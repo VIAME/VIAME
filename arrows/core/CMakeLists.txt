@@ -8,6 +8,7 @@ set( plugin_core_headers
   close_loops_multi_method.h
   compute_ref_homography_core.h
   convert_image_bypass.h
+  detect_features_if_keyframe.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
@@ -66,6 +67,7 @@ set( plugin_core_sources
   close_loops_multi_method.cxx
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
+  detect_features_if_keyframe.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx
