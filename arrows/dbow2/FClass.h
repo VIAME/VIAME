@@ -94,6 +94,9 @@ class FClass
    */
   static void toMat32F(const std::vector<TDescriptor> &descriptors, 
     cv::Mat &mat);
+
+protected:
+  virtual ~FClass() = default;
 };
 
 } // namespace DBoW2

@@ -60,6 +60,8 @@ public:
   /// Descriptor length (in bytes)
   static const int L = 32;
 
+  virtual ~FORB() = default;
+
   /**
    * Calculates the mean value of a set of descriptors
    * @param descriptors

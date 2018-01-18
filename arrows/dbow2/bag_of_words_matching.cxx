@@ -406,8 +406,8 @@ bag_of_words_matching::priv
 
 bag_of_words_matching
 ::bag_of_words_matching()
+ : d_(new priv)
 {
-  d_ = std::make_unique<priv>();
   attach_logger("bag_of_words_matching");
   d_->m_logger = this->logger();
 }
