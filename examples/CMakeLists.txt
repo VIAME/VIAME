@@ -18,3 +18,6 @@ if( VIAME_INSTALL_EXAMPLES )
   add_subdirectory( visualizing_detections_in_gui )
 
 endif()
+
+# Install overview readme
+install( FILES README.rst DESTINATION examples )
