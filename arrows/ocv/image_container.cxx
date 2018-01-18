@@ -44,6 +44,7 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
+// ----------------------------------------------------------------------------
 image_container
 ::image_container(const cv::Mat& d, ColorMode cm)
   : data_(d)
@@ -52,14 +53,25 @@ image_container
   {
     if ( data_.channels() == 3 )
     {
-      cv::cvtColor(data_, data_, CV_BGR2RGB);
+      cv::Mat new_color;
+      new_color.create( d.rows, d.cols, d.type() );
+
+      cv::cvtColor(data_, new_color, CV_BGR2RGB);
+      data_ = new_color;
     }
     else if ( data_.channels() == 4 )
     {
-      cv::cvtColor(data_, data_, CV_BGRA2RGBA);
+      cv::Mat new_color;
+      new_color.create( d.rows, d.cols, d.type() );
+
+      cv::cvtColor(data_, new_color, CV_BGRA2RGBA);
+      data_ = new_color;
     }
   }
 }
+
+
+// ----------------------------------------------------------------------------
 /// Constructor - convert base image container to cv::Mat
 image_container
 ::image_container(const vital::image_container& image_cont)
@@ -87,6 +99,7 @@ image_container
 }
 
 
+// ----------------------------------------------------------------------------
 /// Convert an OpenCV cv::Mat to a VITAL image
 image
 image_container
@@ -112,6 +125,7 @@ image_container
 }
 
 
+// ----------------------------------------------------------------------------
 /// Convert an OpenCV cv::Mat type value to a vital::image_pixel_traits
 vital::image_pixel_traits
 image_container
@@ -140,6 +154,7 @@ image_container
 }
 
 
+// ----------------------------------------------------------------------------
 /// Convert a VITAL image to an OpenCV cv::Mat
 cv::Mat
 image_container
@@ -225,6 +240,7 @@ image_container
 }
 
 
+// ----------------------------------------------------------------------------
 /// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
 int
 image_container
@@ -279,6 +295,7 @@ image_container
 }
 
 
+// ----------------------------------------------------------------------------
 /// Extract a cv::Mat from any image container
 cv::Mat
 image_container_to_ocv_matrix(const vital::image_container& img, image_container::ColorMode cm)
