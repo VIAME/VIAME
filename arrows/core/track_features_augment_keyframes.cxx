@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of core detect_features_if_keyframe
+ * \brief Implementation of core track_features_augment_keyframes
  */
 
-#include "detect_features_if_keyframe.h"
+#include "track_features_augment_keyframes.h"
 
 #include <vector>
 
@@ -47,7 +47,7 @@ namespace arrows {
 namespace core {
 
 
-class detect_features_if_keyframe::priv
+class track_features_augment_keyframes::priv
 {
 public:
 
@@ -71,7 +71,7 @@ public:
 
 /// Augment existing tracks with additional feature if a keyframe
 vital::feature_track_set_sptr
-detect_features_if_keyframe
+track_features_augment_keyframes
 ::track(kwiver::vital::feature_track_set_sptr tracks,
         unsigned int frame_number,
         kwiver::vital::image_container_sptr image_data,
@@ -116,22 +116,22 @@ detect_features_if_keyframe
   return tracks;
 }
 
-detect_features_if_keyframe
-::detect_features_if_keyframe()
+track_features_augment_keyframes
+::track_features_augment_keyframes()
   :d_(new priv)
 {
 }
 
 
 /// Destructor
-detect_features_if_keyframe
-::~detect_features_if_keyframe() noexcept
+track_features_augment_keyframes
+::~track_features_augment_keyframes() noexcept
 {
 }
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-detect_features_if_keyframe
+track_features_augment_keyframes
 ::get_configuration() const
 {
   // get base config from base class
@@ -152,7 +152,7 @@ detect_features_if_keyframe
 
 /// Set this algo's properties via a config block
 void
-detect_features_if_keyframe
+track_features_augment_keyframes
 ::set_configuration(vital::config_block_sptr in_config)
 {
   // Starting with our generated config_block to ensure that assumed values are present
@@ -173,7 +173,7 @@ detect_features_if_keyframe
 
 
 bool
-detect_features_if_keyframe
+track_features_augment_keyframes
 ::check_configuration(vital::config_block_sptr config) const
 {
   bool config_valid = true;

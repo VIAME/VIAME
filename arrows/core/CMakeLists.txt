@@ -8,7 +8,6 @@ set( plugin_core_headers
   close_loops_multi_method.h
   compute_ref_homography_core.h
   convert_image_bypass.h
-  detect_features_if_keyframe.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
@@ -28,6 +27,7 @@ set( plugin_core_headers
   example_detector.h
   track_descriptor_set_output_csv.h
   match_tracks.h
+  track_features_augment_keyframes.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
@@ -67,7 +67,6 @@ set( plugin_core_sources
   close_loops_multi_method.cxx
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
-  detect_features_if_keyframe.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx
@@ -87,6 +86,7 @@ set( plugin_core_sources
   example_detector.cxx
   track_descriptor_set_output_csv.cxx
   match_tracks.cxx
+  track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
