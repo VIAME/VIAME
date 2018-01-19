@@ -29,87 +29,65 @@
 */
 
 /**
- * File: FeatureVector.cpp
- * Date: November 2011
+ * File: QueryResults.cpp
+ * Date: March, November 2011
  * Author: Dorian Galvez-Lopez
- * Description: feature vector
+ * Description: structure to store results of database queries
  * License: see the LICENSE_DBoW2.txt file
  *
  */
 
-#include "FeatureVector.h"
-#include <map>
-#include <vector>
 #include <iostream>
+#include <fstream>
+#include "QueryResults.h"
 
-namespace DBoW2 {
+using namespace std;
+
+namespace DBoW2
+{
 
 // ---------------------------------------------------------------------------
 
-FeatureVector::FeatureVector(void)
+ostream & operator<<(ostream& os, const Result& ret )
 {
+  os << "<EntryId: " << ret.Id << ", Score: " << ret.Score << ">";
+  return os;
 }
 
 // ---------------------------------------------------------------------------
 
-FeatureVector::~FeatureVector(void)
+ostream & operator<<(ostream& os, const QueryResults& ret )
 {
-}
-
-// ---------------------------------------------------------------------------
-
-void FeatureVector::addFeature(NodeId id, unsigned int i_feature)
-{
-  FeatureVector::iterator vit = this->lower_bound(id);
-  
-  if(vit != this->end() && vit->first == id)
-  {
-    vit->second.push_back(i_feature);
-  }
+  if(ret.size() == 1)
+    os << "1 result:" << endl;
   else
+    os << ret.size() << " results:" << endl;
+
+  QueryResults::const_iterator rit;
+  for(rit = ret.begin(); rit != ret.end(); ++rit)
   {
-    vit = this->insert(vit, FeatureVector::value_type(id, 
-      std::vector<unsigned int>() ));
-    vit->second.push_back(i_feature);
+    os << *rit;
+    if(rit + 1 != ret.end()) os << endl;
   }
+  return os;
 }
 
 // ---------------------------------------------------------------------------
 
-std::ostream& operator<<(std::ostream &out, 
-  const FeatureVector &v)
+void QueryResults::saveM(const std::string &filename) const
 {
-  if(!v.empty())
-  {
-    FeatureVector::const_iterator vit = v.begin();
-    
-    const std::vector<unsigned int>* f = &vit->second;
+  fstream f(filename.c_str(), ios::out);
 
-    out << "<" << vit->first << ": [";
-    if(!f->empty()) out << (*f)[0];
-    for(unsigned int i = 1; i < f->size(); ++i)
-    {
-      out << ", " << (*f)[i];
-    }
-    out << "]>";
-    
-    for(++vit; vit != v.end(); ++vit)
-    {
-      f = &vit->second;
-      
-      out << ", <" << vit->first << ": [";
-      if(!f->empty()) out << (*f)[0];
-      for(unsigned int i = 1; i < f->size(); ++i)
-      {
-        out << ", " << (*f)[i];
-      }
-      out << "]>";
-    }
+  QueryResults::const_iterator qit;
+  for(qit = begin(); qit != end(); ++qit)
+  {
+    f << qit->Id << " " << qit->Score << endl;
   }
-  
-  return out;  
+
+  f.close();
 }
 
 // ---------------------------------------------------------------------------
 
 } // namespace DBoW2
+

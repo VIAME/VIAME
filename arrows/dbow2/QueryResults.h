@@ -51,22 +51,22 @@ typedef unsigned int EntryId;
 class Result
 {
 public:
-  
+
   /// Entry id
   EntryId Id;
-  
+
   /// Score obtained
   double Score;
-  
+
   /// debug
   int nWords; // words in common
   // !!! this is filled only by Bhatt score!
   // (and for BCMatching, BCThresholding then)
-  
+
   double bhatScore, chiScore;
   /// debug
-  
-  // only done by ChiSq and BCThresholding 
+
+  // only done by ChiSq and BCThresholding
   double sumCommonVi;
   double sumCommonWi;
   double expectedChiScore;
@@ -76,7 +76,7 @@ public:
    * Empty constructors
    */
   inline Result(){}
-  
+
   /**
    * Creates a result with the given data
    * @param _id entry id
@@ -110,7 +110,7 @@ public:
   {
     return this->Id == id;
   }
-  
+
   /**
    * Compares the score of this entry with a given one
    * @param s score to compare with
@@ -120,7 +120,7 @@ public:
   {
     return this->Score < s;
   }
-  
+
   /**
    * Compares the score of this entry with a given one
    * @param s score to compare with
@@ -130,7 +130,7 @@ public:
   {
     return this->Score > s;
   }
-  
+
   /**
    * Compares the score of two results
    * @param a
@@ -141,7 +141,7 @@ public:
   {
     return a.Score > b.Score;
   }
-  
+
   /**
    * Compares the scores of two results
    * @return true iff a.Score > b.Score
@@ -150,7 +150,7 @@ public:
   {
     return a.Score > b.Score;
   }
-  
+
   /**
    * Returns true iff a.Score >= b.Score
    * @param a
@@ -161,7 +161,7 @@ public:
   {
     return a.Score >= b.Score;
   }
-  
+
   /**
    * Returns true iff a.Score >= s
    * @param a
@@ -172,8 +172,8 @@ public:
   {
     return a.Score >= s;
   }
-  
-  
+
+
   /**
    * Returns true iff a.Id < b.Id
    * @param a
@@ -184,7 +184,7 @@ public:
   {
     return a.Id < b.Id;
   }
-  
+
   /**
    * Prints a string version of the result
    * @param os ostream
@@ -198,38 +198,38 @@ class QueryResults: public std::vector<Result>
 {
 public:
 
-  /** 
+  /**
    * Multiplies all the scores in the vector by factor
    * @param factor
    */
   inline void scaleScores(double factor);
-  
+
   /**
    * Prints a string version of the results
    * @param os ostream
    * @param ret QueryResults to print
    */
   friend std::ostream & operator<<(std::ostream& os, const QueryResults& ret );
-  
+
   /**
-   * Saves a matlab file with the results 
-   * @param filename 
+   * Saves a matlab file with the results
+   * @param filename
    */
   void saveM(const std::string &filename) const;
-  
+
 };
 
 // --------------------------------------------------------------------------
 
 inline void QueryResults::scaleScores(double factor)
 {
-  for(QueryResults::iterator qit = begin(); qit != end(); ++qit) 
+  for(QueryResults::iterator qit = begin(); qit != end(); ++qit)
     qit->Score *= factor;
 }
 
 // --------------------------------------------------------------------------
 
 } // namespace TemplatedBoW
-  
+
 #endif
 

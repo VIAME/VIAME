@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,38 @@
 
 /**
  * \file
- * \brief Interface for bag_of_words_matching \link kwiver::vital::algo::algorithm_def
- *   algorithm definition \endlink.
+ * \brief Header defining DBoW2 implementation of match_descriptor_sets
  */
 
-#ifndef VITAL_DBOW2_BAG_OF_WORDS_MATCHING_H_
-#define VITAL_DBOW2_BAG_OF_WORDS_MATCHING_H_
+#ifndef VITAL_DBOW2_MATCH_DESCRIPTOR_SETS_H_
+#define VITAL_DBOW2_MATCH_DESCRIPTOR_SETS_H_
 
 #include <vital/vital_config.h>
 
-#include <arrows/DBow2/kwiver_algo_DBoW2_export.h>
+#include <arrows/dbow2/kwiver_algo_dbow2_export.h>
 
-#include <vital/algo/bag_of_words_matching.h>
+#include <vital/algo/match_descriptor_sets.h>
 
 
 namespace kwiver {
 namespace arrows {
-namespace DBoW2_kw {
+namespace dbow2 {
 
 /// class for bag of words image matching
 /**
- * This class implements bag of words image matching
+ * This class implements bag of words image matching with DBoW2
  */
-class KWIVER_ALGO_DBOW2_EXPORT bag_of_words_matching
-  : public vital::algorithm_impl<bag_of_words_matching, vital::algo::bag_of_words_matching>
+class KWIVER_ALGO_DBOW2_EXPORT match_descriptor_sets
+  : public vital::algorithm_impl<match_descriptor_sets,
+                                 vital::algo::match_descriptor_sets>
 {
 public:
 
   /// Default constructor
-  bag_of_words_matching();
+  match_descriptor_sets();
 
   /// Desctuctor
-  virtual ~bag_of_words_matching();
+  virtual ~match_descriptor_sets();
 
   /// Add an image to the inverted file system.
   /**
@@ -94,7 +94,6 @@ public:
   * \param[in] frame id of the query image
   * \returns vector of possibly matching frames found by the query
   */
-
   virtual
   std::vector<vital::frame_id_t>
   query_and_append( const vital::descriptor_set_sptr desc,
@@ -144,8 +143,8 @@ protected:
 
 
 /// Shared pointer type for generic image_io definition type.
-typedef std::shared_ptr<bag_of_words_matching> bag_of_words_matching_sptr;
+typedef std::shared_ptr<match_descriptor_sets> match_descriptor_sets_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_DBOW2_BAG_OF_WORDS_MATCHING_H_
+#endif // VITAL_DBOW2_MATCH_DESCRIPTOR_SETS_H_

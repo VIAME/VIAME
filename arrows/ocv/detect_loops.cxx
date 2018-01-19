@@ -48,7 +48,7 @@ using namespace kwiver::vital;
 
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm.h>
-#include <vital/algo/bag_of_words_matching.h>
+#include <vital/algo/match_descriptor_sets.h>
 #include <vital/algo/detect_features.h>
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/image_io.h>
@@ -87,7 +87,7 @@ public:
   vital::algo::match_features_sptr m_matcher;
 
   // The bag of words matching image finder
-  vital::algo::bag_of_words_matching_sptr m_bow;
+  vital::algo::match_descriptor_sets_sptr m_bow;
 
   unsigned m_min_loop_inlier_matches;
 
@@ -303,7 +303,7 @@ detect_loops
   algo::match_features::
     get_nested_algo_configuration("match_features", config, d_->m_matcher);
 
-  algo::bag_of_words_matching::
+  algo::match_descriptor_sets::
     get_nested_algo_configuration("bag_of_words_matching", config, d_->m_bow);
 
   config->set_value("min_loop_inlier_matches",
@@ -334,8 +334,8 @@ detect_loops
     "match_features", config, mf);
   d_->m_matcher = mf;
 
-  algo::bag_of_words_matching_sptr bow;
-  algo::bag_of_words_matching::set_nested_algo_configuration(
+  algo::match_descriptor_sets_sptr bow;
+  algo::match_descriptor_sets::set_nested_algo_configuration(
     "bag_of_words_matching", config, bow);
   d_->m_bow = bow;
 
@@ -358,7 +358,7 @@ detect_loops
       "match_features", config) && config_valid;
 
   config_valid =
-    algo::bag_of_words_matching::check_nested_algo_configuration(
+    algo::match_descriptor_sets::check_nested_algo_configuration(
       "bag_of_words_matching", config) && config_valid;
 
   int min_loop_matches =

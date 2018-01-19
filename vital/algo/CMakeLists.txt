@@ -11,7 +11,6 @@ set( public_headers
   algorithm.h
   algorithm_factory.h
   analyze_tracks.h
-  bag_of_words_matching.h
   bundle_adjust.h
   close_loops.h
   compute_ref_homography.h
@@ -44,6 +43,7 @@ set( public_headers
   initialize_cameras_landmarks.h
   integrate_depth_maps.h
   keyframe_selection.h
+  match_descriptor_sets.h
   match_features.h
   optimize_cameras.h
   refine_detections.h
@@ -62,7 +62,6 @@ set( sources
   algorithm.cxx
   algorithm_factory.cxx
   analyze_tracks.cxx
-  bag_of_words_matching.cxx
   bundle_adjust.cxx
   close_loops.cxx
   compute_ref_homography.cxx
@@ -95,6 +94,7 @@ set( sources
   initialize_cameras_landmarks.cxx
   keyframe_selection.cxx
   integrate_depth_maps.cxx
+  match_descriptor_sets.cxx
   match_features.cxx
   optimize_cameras.cxx
   refine_detections.cxx

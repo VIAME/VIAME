@@ -41,6 +41,7 @@ Arrows - DBoW2
  * Added bag of words image matching based on DBoW2 library.  Includes a new vital
    algorithm base class bag_of_words_matching.
 
+
 Arrows - VXL
 
  * Implemented the seekable() and seek_frame() methods for the
