@@ -31,8 +31,14 @@ Arrows - Core
 Arrows - OpenCV
 
  * Added an OpenCV based KLT feature tracker.
- 
+
  * Added perspective three point pose estimation.
+ 
+Arrows - DBoW2
+
+ * Added bag of words image matching based on DBoW2 library.  Includes a new vital
+   algorithm base class bag_of_words_matching.
+
 
 Arrows - VXL
 

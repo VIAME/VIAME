@@ -40,6 +40,7 @@ set( public_headers
   image_object_detector.h
   initialize_cameras_landmarks.h
   integrate_depth_maps.h
+  match_descriptor_sets.h
   match_features.h
   optimize_cameras.h
   refine_detections.h
@@ -87,6 +88,7 @@ set( sources
   image_object_detector.cxx
   initialize_cameras_landmarks.cxx
   integrate_depth_maps.cxx
+  match_descriptor_sets.cxx
   match_features.cxx
   optimize_cameras.cxx
   refine_detections.cxx
