@@ -41,7 +41,7 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #endif
 
-#include <arrows/dbow2/bag_of_words_matching.h>
+#include <arrows/dbow2/match_descriptor_sets.h>
 
 namespace kwiver {
 namespace arrows {
@@ -63,7 +63,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 #endif
 
   // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "dbow2", kwiver::arrows::dbow2::bag_of_words_matching );
+  auto fact = vpm.ADD_ALGORITHM( "dbow2", kwiver::arrows::dbow2::match_descriptor_sets );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Use DBoW2 bag of words image retrieval." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
