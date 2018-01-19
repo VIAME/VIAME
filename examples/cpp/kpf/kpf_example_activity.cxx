@@ -251,7 +251,7 @@ int main()
 {
 
   vector< user_activity_t > src = make_sample_activities();
-  for (auto i=0; i<src.size(); ++i)
+  for (size_t i=0; i<src.size(); ++i)
   {
     std::cout << "Source act " << i << ": " << src[i] << "\n";
   }
@@ -264,7 +264,7 @@ int main()
 
   std::cout << "\nAbout to read KPF:\n";
   vector< user_activity_t> new_acts = read_activities_from_stream( ss );
-  for (auto i=0; i<new_acts.size(); ++i)
+  for (size_t i=0; i<new_acts.size(); ++i)
   {
     std::cout << "Converted act " << i << ": " << new_acts[i] << "\n";
   }
@@ -275,7 +275,7 @@ int main()
 
     std::cout << "\nAbout to convert a shuffled V3 activity:\n" << shuffle.str() << "\n";
     vector< user_activity_t> shuffle_acts = read_activities_from_stream( shuffle );
-    for (auto i=0; i<shuffle_acts.size(); ++i)
+    for (size_t i=0; i<shuffle_acts.size(); ++i)
     {
       std::cout << "Converted act " << i << ": " << shuffle_acts[i] << "\n";
     }
