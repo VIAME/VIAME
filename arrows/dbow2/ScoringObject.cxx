@@ -89,7 +89,7 @@ double L1Scoring::score(const BowVector &v1, const BowVector &v2) const
   }
 
   // ||v - w||_{L1} = 2 + Sum(|v_i - w_i| - |v_i| - |w_i|)
-  //		for all i | v_i != 0 and w_i != 0
+  //    for all i | v_i != 0 and w_i != 0
   // (Nister, 2006)
   // scaled_||v - w||_{L1} = 1 - 0.5 * ||v - w||_{L1}
   score = -score/2.0;
@@ -139,11 +139,11 @@ double L2Scoring::score(const BowVector &v1, const BowVector &v2) const
   }
 
   // ||v - w||_{L2} = sqrt( 2 - 2 * Sum(v_i * w_i) )
-	//		for all i | v_i != 0 and w_i != 0 )
-	// (Nister, 2006)
-	if(score >= 1) // rounding errors
-	  score = 1.0;
-	else
+  //    for all i | v_i != 0 and w_i != 0 )
+  // (Nister, 2006)
+  if(score >= 1) // rounding errors
+    score = 1.0;
+  else
     score = 1.0 - sqrt(1.0 - score); // [0..1]
 
   return score;
