@@ -42,6 +42,8 @@
 
 #include <sprokit/python/util/python_gil.h>
 
+#include <vital/types/image_container.h>
+
 #include <limits>
 #include <string>
 #include <cstdint>
@@ -54,10 +56,8 @@
 
 using namespace pybind11;
 
-static sprokit::datum new_datum(object const& obj);
-static sprokit::datum new_int_datum(object const& obj);
-static sprokit::datum new_float_datum(object const& obj);
-static sprokit::datum new_string_datum(object const& obj);
+static sprokit::datum new_datum_no_cast(object const& obj);
+template<class T> sprokit::datum new_datum(object const& obj);
 static sprokit::datum empty_datum();
 static sprokit::datum flush_datum();
 static sprokit::datum complete_datum();
@@ -69,6 +69,8 @@ static std::string datum_datum_type(sprokit::datum const& self);
 
 static PyObject* datum_get_datum_ptr(sprokit::datum& self);
 static sprokit::datum_t datum_from_capsule( PyObject* cap );
+
+template<class T> T datum_get_object(sprokit::datum &);
 
 char const* sprokit_datum_PyCapsule_name() { return  "sprokit::datum"; }
 
@@ -87,21 +89,24 @@ PYBIND11_MODULE(datum, m)
   ;
 
   // constructors
-  m.def("new", &new_datum
+  m.def("new", &new_datum_no_cast
     , (arg("dat"))
     , "Creates a new datum packet containing a python object.");
-  m.def("new_int", &new_int_datum
+  m.def("new_int", &new_datum<int>
     , (arg("dat"))
     , "Creates a new datum packet containing an int.");
-  m.def("new_float", &new_float_datum
+  m.def("new_float", &new_datum<float>
     , (arg("dat"))
     , "Creates a new datum packet containing a float.");
-  m.def("new_string", &new_string_datum
+  m.def("new_string", &new_datum<std::string>
     , (arg("dat"))
     , "Creates a new datum packet containing a string.");
+  m.def("new_image_container", &new_datum<std::shared_ptr<kwiver::vital::image_container>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing an image container.");
   m.def("datum_from_capsule", &datum_from_capsule
-      , (arg("dptr"))
-      , "Converts datum* in capsule to datum_t");
+    , (arg("dptr"))
+    , "Converts datum* in capsule to datum_t");
   m.def("empty", &empty_datum
     , "Creates an empty datum packet.");
   m.def("flush", &flush_datum
@@ -122,9 +127,11 @@ PYBIND11_MODULE(datum, m)
     .def("get_error", &datum_get_error
       , "The error contained within the datum packet.")
     .def("get_datum", &datum_get_datum
-      , "Get the data contained within the packet.")
+      , "Get the data contained within the packet (if coming from a python process).")
     .def("get_datum_ptr", &datum_get_datum_ptr
       , "Get pointer to datum object as a PyCapsule.")
+    .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
+      , "Convert the data to an image container")
   ;
 
 } // end module
@@ -135,27 +142,16 @@ PYBIND11_MODULE(datum, m)
 // For now, we need to manually specify how we want to cast our datum
 // This should be fixed when we move away from kwiver::vital::any
 sprokit::datum
-new_datum(object const& obj)
+new_datum_no_cast(object const& obj)
 {
   return *(sprokit::datum::new_datum(obj));
 }
 
+template<class T>
 sprokit::datum
-new_int_datum(object const& obj)
+new_datum(object const& obj)
 {
-  return *(sprokit::datum::new_datum(cast<int>(obj)));
-}
-
-sprokit::datum
-new_float_datum(object const& obj)
-{
-  return *(sprokit::datum::new_datum(cast<float>(obj)));
-}
-
-sprokit::datum
-new_string_datum(object const& obj)
-{
-  return *(sprokit::datum::new_datum(cast<std::string>(obj)));
+  return *(sprokit::datum::new_datum(cast<T>(obj)));
 }
 
 sprokit::datum
@@ -194,6 +190,9 @@ datum_get_error(sprokit::datum const& self)
   return self.get_error();
 }
 
+// This converts straight to a pybind11::object
+// It can be useful if we can assume we're dealing specifically with python
+// otherwise, use a converter like get_image_container
 object
 datum_get_datum(sprokit::datum const& self)
 {
@@ -260,4 +259,24 @@ datum_from_capsule( PyObject* cap )
   }
 
   return sprokit::datum::error_datum( "Invalid PyCapsule" );
+}
+
+// ------------------------------------------------------------------
+// Converter
+
+/**
+ * \brief Converter from python datum object to a value
+ *
+ * This function allows python to choose the type to convert a datum to.
+ * The type, T, must have a pybind11 binding.
+ * To use this, add a binding with an explicit type.
+ *
+ * \return shared_ptr<T> to the converted object
+ */
+template<class T>
+T
+datum_get_object(sprokit::datum &self)
+{
+  kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
+  return kwiver::vital::any_cast<T>(any);
 }

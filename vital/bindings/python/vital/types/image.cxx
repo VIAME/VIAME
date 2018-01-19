@@ -38,8 +38,15 @@ namespace py = pybind11;
 typedef kwiver::vital::image image_t;
 typedef kwiver::vital::image_pixel_traits pixel_traits;
 
+pixel_traits::pixel_type
+pixel_type(std::shared_ptr<image_t> &self)
+{
+  auto traits = self->pixel_traits();
+  return traits.type;
+}
+
 std::string
-pixel_type_name(std::shared_ptr<image_t> self)
+pixel_type_name(std::shared_ptr<image_t> &self)
 {
   auto traits = self->pixel_traits();
   pixel_traits::pixel_type type = traits.type;
@@ -68,11 +75,19 @@ pixel_type_name(std::shared_ptr<image_t> self)
   return name + std::to_string(bytes*8);
 }
 
+size_t
+pixel_num_bytes(std::shared_ptr<image_t> &self)
+{
+  auto traits = self->pixel_traits();
+  return traits.num_bytes;
+}
+
 py::object
 get_pixel2(std::shared_ptr<image_t> &img, unsigned i, unsigned j)
 {
   std::string type = pixel_type_name(img);
 
+  // We need to make sure we cast it from the correct type of pixel
   #define QUOTE(X) #X
   #define GET_PIXEL(TYPE, NAME) \
   if(type == QUOTE(NAME)) \
@@ -103,6 +118,7 @@ get_pixel3(std::shared_ptr<image_t> &img, unsigned i, unsigned j, unsigned k)
 {
   std::string type = pixel_type_name(img);
 
+  // We need to make sure we cast it from the correct type of pixel
   #define QUOTE(X) #X
   #define GET_PIXEL(TYPE, NAME) \
   if(type == QUOTE(NAME)) \
@@ -131,7 +147,7 @@ get_pixel3(std::shared_ptr<image_t> &img, unsigned i, unsigned j, unsigned k)
 // __getitem__ has 2 or 3 dimensions, each calling a different function
 // so the index has to be passed in as a vector
 py::object
-get_pixel(std::shared_ptr<image_t> img, std::vector<unsigned> idx)
+get_pixel(std::shared_ptr<image_t> &img, std::vector<unsigned> idx)
 {
   if(idx.size() == 2)
   {
@@ -144,6 +160,12 @@ get_pixel(std::shared_ptr<image_t> img, std::vector<unsigned> idx)
   return py::none();
 }
 
+void*
+first_pixel(std::shared_ptr<image_t> &img)
+{
+  return img->first_pixel();
+}
+
 image_t
 new_image(size_t width, size_t height, size_t depth, bool interleave,
           pixel_traits::pixel_type &type, size_t bytes)
@@ -152,9 +174,24 @@ new_image(size_t width, size_t height, size_t depth, bool interleave,
   return image_t(width, height, depth, interleave, traits);
 }
 
+image_t
+new_image_from_data( char* first_pixel,
+                     size_t width, size_t height, size_t depth,
+                     int32_t w_step, int32_t h_step, int32_t d_step,
+                     pixel_traits::pixel_type pixel_type,
+                     size_t bytes)
+{
+  pixel_traits traits(pixel_type, bytes);
+  image_t img = image_t(first_pixel, width, height, depth,
+                        w_step, h_step, d_step, traits);
+  image_t new_img = image_t(); // copy so we can use fresh memory not used elsewhere
+  new_img.copy_from(img);
+  return new_img;
+}
+
 PYBIND11_MODULE(image, m)
 {
-  py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image");
+  py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image", py::buffer_protocol());
 
   py::enum_<pixel_traits::pixel_type>(img, "Types")
   .value("PIXEL_UNKNOWN", pixel_traits::pixel_type::UNKNOWN)
@@ -168,11 +205,27 @@ PYBIND11_MODULE(image, m)
     py::arg("width")=0, py::arg("height")=0, py::arg("depth")=1,
     py::arg("interleave")=false, py::arg("pixel_type")=pixel_traits::pixel_type::UNSIGNED,
     py::arg("bytes")=1)
+  .def(py::init(&new_image_from_data),
+   py::arg("first_pixel"), py::arg("width"), py::arg("height"), py::arg("depth"),
+   py::arg("w_step"), py::arg("h_step"), py::arg("d_step"),
+   py::arg("pixel_type"), py::arg("bytes"))
+  .def("copy_from", &image_t::copy_from,
+    py::arg("other"))
   .def("size", &image_t::size)
-  .def("height", &image_t::height)
   .def("width", &image_t::width)
+  .def("height", &image_t::height)
   .def("depth", &image_t::depth)
+  .def("w_step", &image_t::w_step)
+  .def("h_step", &image_t::h_step)
+  .def("d_step", &image_t::d_step)
+  .def("first_pixel_address", &first_pixel)
+  .def("pixel_type", &pixel_type)
   .def("pixel_type_name", &pixel_type_name)
+  .def("pixel_num_bytes", &pixel_num_bytes)
   .def("__getitem__", &get_pixel)
+  .def_buffer([](image_t &img) -> py::buffer_info
+       {
+         return py::buffer_info(img.first_pixel(), 1, "B", img.size());
+       })
   ;
 }

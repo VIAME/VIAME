@@ -151,11 +151,11 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("timestamp", "kwiver:timestamp")
         self.add_type_trait("gsd", "kwiver:gsd")
         self.add_type_trait("image", "kwiver:image",
-                            VTC._convert_image_container_in,
-                            VTC._convert_image_container_out)
+                            datum.Datum.get_image_container,
+                            datum.new_image_container)
         self.add_type_trait("mask", "kwiver:image",
-                            VTC._convert_image_container_in,
-                            VTC._convert_image_container_out)
+                            datum.Datum.get_image_container,
+                            datum.new_image_container)
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set",
                             VTC.convert_descriptor_set_in,
@@ -305,7 +305,7 @@ class KwiverProcess(process.PythonProcess):
         pipeline_datum = self.grab_datum_from_port(pt.name)
         tt = pt.type_trait
         if tt.converter_in is not None:
-            data = tt.converter_in(pipeline_datum.get_datum_ptr())
+            data = tt.converter_in(pipeline_datum)
             return data
 
         return pipeline_datum
@@ -377,9 +377,8 @@ class KwiverProcess(process.PythonProcess):
         tt = pt.type_trait
         if tt.converter_out is not None:
             # convert handle to PyCapsule around datum ptr
-            cap = tt.converter_out(val)
+            dat = tt.converter_out(val)
             # convert to datum_t
-            dat = datum.datum_from_capsule(cap)
             self.push_datum_to_port(pt.name, dat)
         else:
             # no registered converter - hope for the best

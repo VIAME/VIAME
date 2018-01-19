@@ -34,23 +34,37 @@
 
 namespace py = pybind11;
 
-typedef kwiver::vital::simple_image_container image_cont;
+typedef kwiver::vital::image_container image_cont;
+typedef kwiver::vital::simple_image_container s_image_cont;
 
-std::shared_ptr<image_cont>
+// We need to return a shared pointer--otherwise, pybind11 may lose the subtype
+std::shared_ptr<s_image_cont>
 new_cont(kwiver::vital::image &img)
 {
-  return std::shared_ptr<image_cont>(new image_cont(img));
+  return std::shared_ptr<s_image_cont>(new s_image_cont(img));
+}
+
+// We need to do a deep copy instead of just calling get_image, so we can ref track in python
+kwiver::vital::image
+get_image(std::shared_ptr<image_cont> self)
+{
+  kwiver::vital::image img;
+  img.copy_from(self->get_image());
+  return img;
 }
 
 PYBIND11_MODULE(image_container, m)
 {
-  py::class_<image_cont, std::shared_ptr<image_cont>>(m, "ImageContainer")
-  .def(py::init(&new_cont),
-    py::arg("image"))
+  py::class_<image_cont, std::shared_ptr<image_cont>>(m, "BaseImageContainer")
   .def("size", &image_cont::size)
   .def("width", &image_cont::width)
   .def("height", &image_cont::height)
   .def("depth", &image_cont::depth)
-  .def("image", &image_cont::get_image)
+  .def("image", &get_image)
+  ;
+
+  py::class_<s_image_cont, image_cont, std::shared_ptr<s_image_cont>>(m, "ImageContainer")
+  .def(py::init(&new_cont),
+    py::arg("image"))
   ;
 }
