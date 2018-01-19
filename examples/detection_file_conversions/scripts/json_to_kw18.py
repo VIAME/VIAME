@@ -1,8 +1,13 @@
 import json
+import sys
 
-data = json.load(open('testvideo1_annotations.json'))
+if len( sys.argv ) < 3 or len( sys.argv ) > 4:
+  print "json_to_kw18.py [input_file] [output_file]"
+  sys.exit(0)
 
-f = open('output.kw18', 'w')
+data = json.load( open( sys.argv[1] ) )
+
+f = open( sys.argv[2], 'w' )
 
 id_counter = 0;
 
@@ -25,6 +30,6 @@ for frame in data["frames"]:
       output_str = str( id_counter ) + " 1 " + str( frame["frame_id"] ) + " 0 0 0 0 "
       output_str = output_str + str(int(x+w/2)) + " " + str(int(y+h/2)) + " "
       output_str = output_str + str(x) + " " + str(y)+ " " + str(x+w) + " " + str(y+h)
-      output_str = output_str + " 0 0 0 0\n"
+      output_str = output_str + " 0 0 0 0 0\n"
 
       f.write( output_str )
