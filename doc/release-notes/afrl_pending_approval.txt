@@ -16,6 +16,10 @@ Arrows - Core
    video_input implementations. In general this means most of these
    implementations now support seeking to a specific frame in the video.
 
+ * Implemented a num_frames() method for the various video_input
+   implementations. This method returns the number of frames available in
+   the video or 0 if the video is not seekable.
+
  * Expanding the tests for the video_input implementations to test the new
    seek frame functionality.
 
@@ -47,6 +51,10 @@ Arrows - VXL
  * Implemented the seekable() and seek_frame() methods for the
    vidl_ffmpeg_video_input video source. This source now supports seeking by
    frame if the underlying video stream supports it.
+
+ * Implemented a num_frames() method for the vidl_ffmpeg_video_input video
+   source. This method returns the number of frames available in the video or
+   0 if the video is not seekable.
 
  * Added a test for the vidl_ffmpeg_video_input. This test tests the same
    functionality as the tests for video_input implementations in Core. This

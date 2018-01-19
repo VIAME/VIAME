@@ -269,6 +269,14 @@ video_input_image_list
 }
 
 // ------------------------------------------------------------------
+size_t
+video_input_image_list
+::num_frames() const
+{
+  return d->m_files.size();
+}
+
+// ------------------------------------------------------------------
 bool
 video_input_image_list
 ::next_frame( kwiver::vital::timestamp& ts,
@@ -309,7 +317,7 @@ video_input_image_list
               uint32_t                  timeout )
 {
   // Check if requested frame exists
-  if (frame_number > static_cast<int>( d->m_files.size() ) || frame_number < 0)
+  if (frame_number > static_cast<int>( d->m_files.size() ) || frame_number <= 0)
   {
     return false;
   }
