@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  * \brief Implementation of bag of words matching
  */
 
-#include "arrows/dbow2/bag_of_words_matching.h"
+#include "arrows/dbow2/match_descriptor_sets.h"
 #include "DBoW2.h"
 #include <opencv2/features2d.hpp>
 
@@ -50,9 +50,9 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace DBoW2_kw {
+namespace dbow2 {
 
-class bag_of_words_matching::priv
+class match_descriptor_sets::priv
 {
 public:
   priv();
@@ -110,7 +110,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::priv()
   :m_max_num_candidate_matches_from_vocabulary_tree(10)
 {
@@ -120,7 +120,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::setup_voc()
 {
   if (!m_voc)
@@ -153,7 +153,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::append_to_index(const vital::descriptor_set_sptr desc,
   vital::frame_id_t frame_number)
 {
@@ -189,7 +189,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 std::vector<frame_id_t>
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::query( kwiver::vital::descriptor_set_sptr desc,
          frame_id_t frame_number,
          bool append_to_index_on_query)
@@ -259,7 +259,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::train_vocabulary(
   std::string training_image_list,
   std::string vocabulary_output_file)
@@ -273,7 +273,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::train(
   std::vector<std::vector<cv::Mat > > const &features,
   std::string voc_file_path)
@@ -295,7 +295,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::load_vocabulary(std::string voc_file_path)
 {
   if (!kwiversys::SystemTools::FileExists(voc_file_path))
@@ -314,7 +314,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::load_features(
   std::string training_image_list,
   std::vector<std::vector<cv::Mat > > &features)
@@ -365,7 +365,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 void
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::descriptor_set_to_vec(
   descriptor_set_sptr im_descriptors,
   std::vector<cv::Mat> &features) const
@@ -389,7 +389,7 @@ bag_of_words_matching::priv
 //-----------------------------------------------------------------------------
 
 cv::Mat
-bag_of_words_matching::priv
+match_descriptor_sets::priv
 ::descriptor_to_mat(descriptor_sptr desc) const
 {
   std::vector<kwiver::vital::byte> desc_bytes = desc->as_bytes();
@@ -404,36 +404,36 @@ bag_of_words_matching::priv
 
 //-----------------------------------------------------------------------------
 
-bag_of_words_matching
-::bag_of_words_matching()
+match_descriptor_sets
+::match_descriptor_sets()
  : d_(new priv)
 {
-  attach_logger("bag_of_words_matching");
+  attach_logger("match_descriptor_sets");
   d_->m_logger = this->logger();
 }
 
-bag_of_words_matching
-::~bag_of_words_matching()
+match_descriptor_sets
+::~match_descriptor_sets()
 {
 
 }
 
 void
-bag_of_words_matching
+match_descriptor_sets
 ::append_to_index(const descriptor_set_sptr desc, frame_id_t frame_number)
 {
   d_->append_to_index(desc, frame_number);
 }
 
 std::vector<frame_id_t>
-bag_of_words_matching
+match_descriptor_sets
 ::query( const descriptor_set_sptr desc )
 {
   return d_->query(desc,-1,false);
 }
 
 std::vector<frame_id_t>
-bag_of_words_matching
+match_descriptor_sets
 ::query_and_append( const vital::descriptor_set_sptr desc,
                     frame_id_t frame)
 {
@@ -443,7 +443,7 @@ bag_of_words_matching
 // ------------------------------------------------------------------
 
 vital::config_block_sptr
-bag_of_words_matching::
+match_descriptor_sets::
 get_configuration() const
 {
   // Get base config from base class
@@ -471,7 +471,7 @@ get_configuration() const
 // ------------------------------------------------------------------
 
 void
-bag_of_words_matching::
+match_descriptor_sets::
 set_configuration(vital::config_block_sptr config_in)
 {
   // Starting with our generated config_block to ensure that assumed values are present
@@ -505,7 +505,7 @@ set_configuration(vital::config_block_sptr config_in)
 // ------------------------------------------------------------------
 
 bool
-bag_of_words_matching::
+match_descriptor_sets::
 check_configuration(vital::config_block_sptr config) const
 {
   bool config_valid = true;

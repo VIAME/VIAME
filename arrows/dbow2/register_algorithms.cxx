@@ -45,7 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace DBoW2_kw {
+namespace dbow2 {
 
 extern "C"
 KWIVER_ALGO_DBOW2_PLUGIN_EXPORT
@@ -63,7 +63,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 #endif
 
   // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "dbow2", kwiver::arrows::DBoW2_kw::bag_of_words_matching );
+  auto fact = vpm.ADD_ALGORITHM( "dbow2", kwiver::arrows::dbow2::bag_of_words_matching );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Use DBoW2 bag of words image retrieval." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -75,6 +75,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   vpm.mark_module_as_loaded( module_name );
 }
 
-} // end namespace DBoW2_kw
+} // end namespace dbow2
 } // end namespace arrows
 } // end namespace kwiver

@@ -2,10 +2,9 @@
 # structures
 
 set( dbow2_headers_public
-  bag_of_words_matching.h
+  match_descriptor_sets.h
   )
 set( dbow2_headers_private
-	bag_of_words_matching.h
 	BowVector.h
 	DBoW2.h
 	FClass.h
@@ -30,7 +29,7 @@ kwiver_install_headers(
   )
 
 set( dbow2_sources
-	bag_of_words_matching.cxx
+	match_descriptor_sets.cxx
 	BowVector.cxx
 	FeatureVector.cxx
 	FORB.cxx

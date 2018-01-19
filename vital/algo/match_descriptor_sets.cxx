@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
  */
 
 
-#include <vital/algo/bag_of_words_matching.h>
+#include <vital/algo/match_descriptor_sets.h>
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
 #include <vital/vital_types.h>
@@ -46,15 +46,15 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-bag_of_words_matching
-::bag_of_words_matching()
+match_descriptor_sets
+::match_descriptor_sets()
 {
-  attach_logger( "bag_of_words_matching" );
+  attach_logger( "match_descriptor_sets" );
 }
 
 
 std::vector<vital::frame_id_t>
-bag_of_words_matching
+match_descriptor_sets
 ::query_and_append(const vital::descriptor_set_sptr desc,
   frame_id_t frame)
 {
@@ -67,5 +67,5 @@ bag_of_words_matching
 } } } // end namespace
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::bag_of_words_matching);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::match_descriptor_sets);
 /// \endcond

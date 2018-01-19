@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,38 @@
 
 /**
  * \file
- * \brief Interface for bag_of_words_matching \link kwiver::vital::algo::algorithm_def
- *   algorithm definition \endlink.
+ * \brief Header defining DBoW2 implementation of match_descriptor_sets
  */
 
-#ifndef VITAL_ALGO_BAG_OF_WORDS_MATCHING_H_
-#define VITAL_ALGO_BAG_OF_WORDS_MATCHING_H_
+#ifndef VITAL_DBOW2_MATCH_DESCRIPTOR_SETS_H_
+#define VITAL_DBOW2_MATCH_DESCRIPTOR_SETS_H_
 
 #include <vital/vital_config.h>
 
-#include <string>
+#include <arrows/dbow2/kwiver_algo_dbow2_export.h>
 
-#include <vital/algo/algorithm.h>
-#include <vital/types/descriptor_set.h>
-#include <vital/vital_types.h>
+#include <vital/algo/match_descriptor_sets.h>
 
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace dbow2 {
 
-/// An abstract base class for bag of words image matching
+/// class for bag of words image matching
 /**
- * This class represents an abstract interface for bag of words image matching
+ * This class implements bag of words image matching with DBoW2
  */
-class VITAL_ALGO_EXPORT bag_of_words_matching
-  : public kwiver::vital::algorithm_def<bag_of_words_matching>
+class KWIVER_ALGO_DBOW2_EXPORT match_descriptor_sets
+  : public vital::algorithm_impl<match_descriptor_sets,
+                                 vital::algo::match_descriptor_sets>
 {
 public:
 
-  /// Desctuctor
-  virtual ~bag_of_words_matching() = default;
+  /// Default constructor
+  match_descriptor_sets();
 
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "bag_of_words_matching"; }
+  /// Desctuctor
+  virtual ~match_descriptor_sets();
 
   /// Add an image to the inverted file system.
   /**
@@ -75,8 +73,8 @@ public:
   */
   virtual
   void
-  append_to_index(const vital::descriptor_set_sptr desc,
-                  vital::frame_id_t frame_number) = 0;
+  append_to_index( const vital::descriptor_set_sptr desc,
+                   vital::frame_id_t frame_number);
 
   /// Query the inverted file system for similar images.
   /**
@@ -86,7 +84,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query(const vital::descriptor_set_sptr desc) = 0;
+  query( const vital::descriptor_set_sptr desc);
 
   /// Query the inverted file system for similar images and append the querying image.
   /**
@@ -96,24 +94,57 @@ public:
   * \param[in] frame id of the query image
   * \returns vector of possibly matching frames found by the query
   */
-
   virtual
   std::vector<vital::frame_id_t>
-  query_and_append(const vital::descriptor_set_sptr desc,
-                   frame_id_t frame);
+  query_and_append( const vital::descriptor_set_sptr desc,
+                    vital::frame_id_t frame);
+
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  /**
+  * This base virtual function implementation returns an empty configuration
+  * block whose name is set to \c this->type_name.
+  *
+  * \returns \c config_block containing the configuration for this algorithm
+  *          and any nested components.
+  */
+  virtual vital::config_block_sptr get_configuration() const;
+
+  /// Set this algorithm's properties via a config block
+  /**
+  * \throws no_such_configuration_value_exception
+  *    Thrown if an expected configuration value is not present.
+  * \throws algorithm_configuration_exception
+  *    Thrown when the algorithm is given an invalid \c config_block or is'
+  *    otherwise unable to configure itself.
+  *
+  * \param config  The \c config_block instance containing the configuration
+  *                parameters for this algorithm
+  */
+  virtual void set_configuration(vital::config_block_sptr config);
+
+  /// Check that the algorithm's currently configuration is valid
+  /**
+  * This checks solely within the provided \c config_block and not against
+  * the current state of the instance. This isn't static for inheritence
+  * reasons.
+  *
+  * \param config  The config block to check configuration of.
+  *
+  * \returns true if the configuration check passed and false if it didn't.
+  */
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
 protected:
-
-  /// Default constructor
-  bag_of_words_matching();
+  /// the feature m_detector algorithm
+  class priv;
+  std::shared_ptr<priv> d_;
 
 };
 
 
 /// Shared pointer type for generic image_io definition type.
-typedef std::shared_ptr<bag_of_words_matching> bag_of_words_matching_sptr;
-
+typedef std::shared_ptr<match_descriptor_sets> match_descriptor_sets_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_BAG_OF_WORDS_MATCHING_H_
+#endif // VITAL_DBOW2_MATCH_DESCRIPTOR_SETS_H_
