@@ -39,7 +39,7 @@
 
 #include <vital/vital_config.h>
 
-#include <arrows/DBow2/kwiver_algo_DBoW2_export.h>
+#include <arrows/dbow2/kwiver_algo_dbow2_export.h>
 
 #include <vital/algo/bag_of_words_matching.h>
 

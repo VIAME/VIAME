@@ -29,65 +29,76 @@
 */
 
 /**
- * File: QueryResults.cpp
- * Date: March, November 2011
+ * File: FClass.h
+ * Date: November 2011
  * Author: Dorian Galvez-Lopez
- * Description: structure to store results of database queries
+ * Description: generic FClass to instantiate templated classes
  * License: see the LICENSE_DBoW2.txt file
  *
  */
 
-#include <iostream>
-#include <fstream>
-#include "QueryResults.h"
+#ifndef __D_T_FCLASS__
+#define __D_T_FCLASS__
 
-using namespace std;
+#include <opencv2/core.hpp>
+#include <vector>
+#include <string>
 
-namespace DBoW2
+namespace DBoW2 {
+
+/// Generic class to encapsulate functions to manage descriptors.
+/**
+ * This class must be inherited. Derived classes can be used as the
+ * parameter F when creating Templated structures
+ * (TemplatedVocabulary, TemplatedDatabase, ...)
+ */
+class FClass
 {
+  class TDescriptor;
+  typedef const TDescriptor *pDescriptor;
 
-// ---------------------------------------------------------------------------
+  /**
+   * Calculates the mean value of a set of descriptors
+   * @param descriptors
+   * @param mean mean descriptor
+   */
+  virtual void meanValue(const std::vector<pDescriptor> &descriptors,
+    TDescriptor &mean) = 0;
 
-ostream & operator<<(ostream& os, const Result& ret )
-{
-  os << "<EntryId: " << ret.Id << ", Score: " << ret.Score << ">";
-  return os;
-}
+  /**
+   * Calculates the distance between two descriptors
+   * @param a
+   * @param b
+   * @return distance
+   */
+  static double distance(const TDescriptor &a, const TDescriptor &b);
 
-// ---------------------------------------------------------------------------
+  /**
+   * Returns a string version of the descriptor
+   * @param a descriptor
+   * @return string version
+   */
+  static std::string toString(const TDescriptor &a);
 
-ostream & operator<<(ostream& os, const QueryResults& ret )
-{
-  if(ret.size() == 1)
-    os << "1 result:" << endl;
-  else
-    os << ret.size() << " results:" << endl;
-    
-  QueryResults::const_iterator rit;
-  for(rit = ret.begin(); rit != ret.end(); ++rit)
-  {
-    os << *rit;
-    if(rit + 1 != ret.end()) os << endl;
-  }
-  return os;
-}
+  /**
+   * Returns a descriptor from a string
+   * @param a descriptor
+   * @param s string version
+   */
+  static void fromString(TDescriptor &a, const std::string &s);
 
-// ---------------------------------------------------------------------------
+  /**
+   * Returns a mat with the descriptors in float format
+   * @param descriptors
+   * @param mat (out) NxL 32F matrix
+   */
+  static void toMat32F(const std::vector<TDescriptor> &descriptors,
+    cv::Mat &mat);
 
-void QueryResults::saveM(const std::string &filename) const
-{
-  fstream f(filename.c_str(), ios::out);
-  
-  QueryResults::const_iterator qit;
-  for(qit = begin(); qit != end(); ++qit)
-  {
-    f << qit->Id << " " << qit->Score << endl;
-  }
-  
-  f.close();
-}
-
-// ---------------------------------------------------------------------------
+protected:
+  virtual ~FClass() = default;
+};
 
 } // namespace DBoW2
 
+#endif

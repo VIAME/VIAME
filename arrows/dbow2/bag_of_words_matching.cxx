@@ -33,7 +33,7 @@
  * \brief Implementation of bag of words matching
  */
 
-#include "arrows/DBow2/bag_of_words_matching.h"
+#include "arrows/dbow2/bag_of_words_matching.h"
 #include "DBoW2.h"
 #include <opencv2/features2d.hpp>
 
@@ -406,8 +406,8 @@ bag_of_words_matching::priv
 
 bag_of_words_matching
 ::bag_of_words_matching()
+ : d_(new priv)
 {
-  d_ = std::make_unique<priv>();
   attach_logger("bag_of_words_matching");
   d_->m_logger = this->logger();
 }
