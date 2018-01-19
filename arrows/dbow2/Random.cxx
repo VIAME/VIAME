@@ -46,9 +46,9 @@ using namespace std;
 bool DUtils::Random::m_already_seeded = false;
 
 void DUtils::Random::SeedRand(){
-	Timestamp time;
-	time.setToCurrentTime();
-	srand((unsigned)time.getFloatTime());
+  Timestamp time;
+  time.setToCurrentTime();
+  srand((unsigned)time.getFloatTime());
 }
 
 void DUtils::Random::SeedRandOnce()
@@ -62,7 +62,7 @@ void DUtils::Random::SeedRandOnce()
 
 void DUtils::Random::SeedRand(int seed)
 {
-	srand(seed);
+  srand(seed);
 }
 
 void DUtils::Random::SeedRandOnce(int seed)
@@ -75,8 +75,8 @@ void DUtils::Random::SeedRandOnce(int seed)
 }
 
 int DUtils::Random::RandomInt(int min, int max){
-	int d = max - min + 1;
-	return int(((double)rand()/((double)RAND_MAX + 1.0)) * d) + min;
+  int d = max - min + 1;
+  return int(((double)rand()/((double)RAND_MAX + 1.0)) * d) + min;
 }
 
 // ---------------------------------------------------------------------------

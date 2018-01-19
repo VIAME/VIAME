@@ -569,8 +569,8 @@ void TemplatedVocabulary<TDescriptor,F>::create(
   m_words.clear();
 
   // expected_nodes = Sum_{i=0..L} ( k^i )
-	int expected_nodes =
-		(int)((pow((double)m_k, (double)m_L + 1) - 1)/(m_k - 1));
+  int expected_nodes =
+    (int)((pow((double)m_k, (double)m_L + 1) - 1)/(m_k - 1));
 
   m_nodes.reserve(expected_nodes); // avoid allocations when creating the tree
 
@@ -654,10 +654,10 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
   // features associated to each cluster
   std::vector<TDescriptor> clusters;
   std::vector<std::vector<unsigned int> > groups; // groups[i] = [j1, j2, ...]
-	// j1, j2, ... indices of descriptors associated to cluster i
+  // j1, j2, ... indices of descriptors associated to cluster i
 
   clusters.reserve(m_k);
-	groups.reserve(m_k);
+  groups.reserve(m_k);
 
   //const int msizes[] = { m_k, descriptors.size() };
   //cv::SparseMat assoc(2, msizes, CV_8U);
@@ -689,8 +689,8 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
     {
       // 1. Calculate clusters
 
-			if(first_time)
-			{
+      if(first_time)
+      {
         // random sample
         initiateClusters(descriptors, clusters);
       }
@@ -778,14 +778,14 @@ void TemplatedVocabulary<TDescriptor,F>::HKmeansStep(NodeId parent_id,
         }
       }
 
-			if(goon)
-			{
-				// copy last feature-cluster association
-				last_association = current_association;
-				//last_assoc = assoc.clone();
-			}
+      if(goon)
+      {
+        // copy last feature-cluster association
+        last_association = current_association;
+        //last_assoc = assoc.clone();
+      }
 
-		} // while(goon)
+    } // while(goon)
 
   } // if must run kmeans
 

@@ -5,17 +5,17 @@ set( dbow2_headers_public
   match_descriptor_sets.h
   )
 set( dbow2_headers_private
-	BowVector.h
-	DBoW2.h
-	FClass.h
-	FeatureVector.h
-	FORB.h
-	QueryResults.h
-	Random.h
-	ScoringObject.h
-	TemplatedDatabase.h
-	TemplatedVocabulary.h
-	TimeStamp.h
+  BowVector.h
+  DBoW2.h
+  FClass.h
+  FeatureVector.h
+  FORB.h
+  QueryResults.h
+  Random.h
+  ScoringObject.h
+  TemplatedDatabase.h
+  TemplatedVocabulary.h
+  TimeStamp.h
   )
 
 kwiver_install_headers(
@@ -29,14 +29,14 @@ kwiver_install_headers(
   )
 
 set( dbow2_sources
-	match_descriptor_sets.cxx
-	BowVector.cxx
-	FeatureVector.cxx
-	FORB.cxx
-	QueryResults.cxx
-	Random.cxx
-	ScoringObject.cxx
-	TimeStamp.cxx
+  match_descriptor_sets.cxx
+  BowVector.cxx
+  FeatureVector.cxx
+  FORB.cxx
+  QueryResults.cxx
+  Random.cxx
+  ScoringObject.cxx
+  TimeStamp.cxx
   )
 
 if( KWIVER_HAS_OPENCV_VER_3 )

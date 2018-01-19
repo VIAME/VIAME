@@ -706,7 +706,7 @@ void TemplatedDatabase<TDescriptor, F>::queryL1(const BowVector &vec,
 
   // complete and scale score to [0 worst .. 1 best]
   // ||v - w||_{L1} = 2 + Sum(|v_i - w_i| - |v_i| - |w_i|)
-  //		for all i | v_i != 0 and w_i != 0
+  //    for all i | v_i != 0 and w_i != 0
   // (Nister, 2006)
   // scaled_||v - w||_{L1} = 1 - 0.5 * ||v - w||_{L1}
   QueryResults::iterator qit;
@@ -787,9 +787,9 @@ void TemplatedDatabase<TDescriptor, F>::queryL2(const BowVector &vec,
 
   // complete and scale score to [0 worst .. 1 best]
   // ||v - w||_{L2} = sqrt( 2 - 2 * Sum(v_i * w_i)
-	//		for all i | v_i != 0 and w_i != 0 )
-	// (Nister, 2006)
-	QueryResults::iterator qit;
+  //    for all i | v_i != 0 and w_i != 0 )
+  // (Nister, 2006)
+  QueryResults::iterator qit;
   for(qit = ret.begin(); qit != ret.end(); qit++)
   {
     if(qit->Score <= -1.0) // rounding error

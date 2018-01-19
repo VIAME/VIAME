@@ -103,7 +103,7 @@ void BowVector::normalize(LNorm norm_type)
   {
     for(it = begin(); it != end(); ++it)
       norm += it->second * it->second;
-		norm = sqrt(norm);
+    norm = sqrt(norm);
   }
 
   if(norm > 0.0)
