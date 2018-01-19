@@ -20,38 +20,38 @@ Some of the dependencies required for VIAME can be installed with one quick and 
 required. Different Linux distributions may have different packages already installed, or may use a different package
 manager than apt, but on Ubuntu this should help to provide a starting point.
 
-`sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev`
+.. code-block:: bash
 
-`sudo apt-get build-dep libboost-all-dev qt5-default`
+   sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
+   sudo apt-get build-dep libboost-all-dev qt5-default
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy, e.g.:
 
-`sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy`
+.. code-block:: bash
+
+   sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
 
 Install CMAKE
 =============
 
 Depending on the OS, the version of cmake you get with apt/yum is often too old to use for VIAME (you currently need
 at least CMake 3.3) so you may need to do a manual install. Go to the cmake website,
-`https://cmake.org/download`, and download the appropriate binary distribution (for Ubuntu, this would be something
+``https://cmake.org/download``, and download the appropriate binary distribution (for Ubuntu, this would be something
 like cmake-3.6.1-Linux-x86_64.sh, depending on version). Alternatively, download the source code, e.g. cmake-3.6.1.tar.gz,
 and build the binaries from source. To untar and build the source, use the following set of commands. Keep in mind
 that if you're not using version 3.6.1, you'll need to update the version number in the
 below to match your downloaded version.
 
-`cd ~/Downloads`
 
-`tar zxfv cmake-3.6.1.tar.gz`
+.. code-block:: bash
 
-`cd cmake-3.6.1`
-
-`./bootstrap --system-curl --no-system-libs`
-
-`make`
-
-`sudo make install`
-
-`sudo ln -s /usr/local/bin/cmake /bin/cmake`
+   cd ~/Downloads
+   tar zxfv cmake-3.6.1.tar.gz
+   cd cmake-3.6.1
+   ./bootstrap --system-curl --no-system-libs
+   make
+   sudo make install
+   sudo ln -s /usr/local/bin/cmake /bin/cmake
 
 These instructions build the source code into a working executable, installs the executable into a personal system
 directory, and then lets the operating system know where that directory is so it can find cmake in the future in
@@ -63,13 +63,13 @@ Prepare the Source
 
 With all our dependencies installed, we need to build the environment for VIAME itself. VIAME uses git submodules rather
 than requiring the user to grab each repository totally separately. To prepare the environment and obtain all the necessary
-source code, use the following commands. Note that you can change `src` to whatever you want to name your VIAME source directory.
+source code, use the following commands. Note that you can change ``src`` to whatever you want to name your VIAME source directory.
 
-`git clone git@github.com:Kitware/VIAME.git src`
+.. code-block:: bash
 
-`cd src`
-
-`git submodule update --init --recursive`
+   git clone git@github.com:Kitware/VIAME.git src
+   cd src
+   git submodule update --init --recursive
 
 ***********
 Build VIAME
@@ -77,7 +77,7 @@ Build VIAME
 
 VIAME may be built with a number of optional plugins--VXL, Caffe, OpenCV, Scallop_TK, and Matlab--with a corresponding option
 called VIAME_ENABLE_[option], in all caps. For each plugin to install, you need a cmake build flag setting the option. The
-flag looks like `-DVIAME_ENABLE_OPENCV:BOOL=ON`, of course changing OPENCV to match the plugin. Multiple plugins may be
+flag looks like ``-DVIAME_ENABLE_OPENCV:BOOL=ON``, of course changing OPENCV to match the plugin. Multiple plugins may be
 used, or none. They are listed below:
 
 
@@ -131,13 +131,12 @@ There are also a number of flags which control which system utilities and optimi
 VIAME can be built either in the source directory tree or in a seperate build directory (recommended). Replace
 "[build-directory]" with your location of choice, and run the following commands:
 
-`mkdir [build-directory]`
+.. code-block:: bash
 
-`cd [build-directory]`
-
-`cmake [build_flags] [path_to_source_tree]`
-
-`make` or `make -j10` for a threaded build
+   mkdir [build-directory]
+   cd [build-directory]
+   cmake [build_flags] [path_to_source_tree]
+   make # or make -j10 for a threaded build
 
 Depending on which enable flags you have set and your system configuration, you may need to set additional cmake variables
 to point to dependency locations. An example is below for a system with CUDA, Python, and Matlab enabled.
@@ -163,22 +162,22 @@ follow the same Linux build instructions above.
 Building VIAME (Windows)
 ========================
 
-Building on windows can be very similar to Linux if using a shell like cygwin (`https://www.cygwin.com/`), though if not you
-may want to go grab the GUI versions of CMake (`https://cmake.org/`) and TortoiseGit (`https://tortoisegit.org/`). Currently
+Building on windows can be very similar to Linux if using a shell like cygwin (``https://www.cygwin.com/``), though if not you
+may want to go grab the GUI versions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``). Currently
 Visual Studio 2013, 2015 and 2017 are supported.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this involves right clicking in your folder of
-choice, selecting Git Clone, and then entering the URL to VIAME (`https://github.com/Kitware/VIAME.git`) and the location
+choice, selecting Git Clone, and then entering the URL to VIAME (``https://github.com/Kitware/VIAME.git``) and the location
 of where you want to put the downloaded source code.
 
 Next, do a git submodule update to pull down all required packages. In TortoiseGit right click on the folder you checked
-out the source into, move to the TortoiseGit menu section, and select `Submodule Update`.
+out the source into, move to the TortoiseGit menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA, version 8.0 is desired, along with
 Python 2.7. Other versions have yet to be tested extensively. On Windows it can also be beneficial to use Anaconda to get 
 multiple python packages. Boost Python (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
-Finally, create a build folder and run the CMake GUI (`https://cmake.org/runningcmake/`). Point it to your source and build
+Finally, create a build folder and run the CMake GUI (``https://cmake.org/runningcmake/``). Point it to your source and build
 directories, select your compiler of choice, and setup and build flags you want.
 
 
@@ -191,13 +190,13 @@ Updating VIAME
 If you already have a checkout of VIAME and want to switch branches or
 update your code, it is important to re-run:
 
-`git submodule update --init --recursive`
+``git submodule update --init --recursive``
 
 After switching branches to ensure that you have on the correct hashes
 of sub-packages within the build (e.g. fletch or KWIVER). Very rarely
 you may also need to run:
 
-`git submodule sync`
+``git submodule sync``
 
 Just in case the address of submodules has changed. You only need to
 run this command if you get a "cannot fetch hash #hashid" error.
@@ -234,8 +233,12 @@ Known Issues
 
 When compiling with CUDA turned on:
 
-nvcc fatal   : Visual Studio configuration file 'vcvars64.bat' could not be found for
-installation at 'Microsoft Visual Studio XX.0/VC/bin/x86_amd64/../../..' or similar
+.. code-block:: console
+
+   nvcc fatal   : Visual Studio configuration file 'vcvars64.bat' could not be found for
+   installation at 'Microsoft Visual Studio XX.0/VC/bin/x86_amd64/../../..'
+
+or similar.
 
 **Solution:**
 
@@ -244,25 +247,27 @@ You can add one manually be placing a bat file called 'vcvars64.bat' in folder
 'Microsoft Visual Studio XX.0\VC\bin\amd64' for your version of visual studio. This
 file should contain just a single line:
 
-CALL setenv /x64
+``CALL setenv /x64``
 
 
 **Issue:**
 
 Boost fails to build early with error in *_out.txt:
 
-"c++: internal compiler error: Killed (program cc1plus)"
+.. code-block:: console
+
+   c++: internal compiler error: Killed (program cc1plus)
 
 **Solution:**
 
 You are likely running out of memory and your C++ compiler is crashing (common on VMs
-with a small amount of memory). Increase the amount of memory availably to your VM or
+with a small amount of memory). Increase the amount of memory availability to your VM or
 buy a better computer if not running a VM with at least 1 Gb of RAM.
 
 
 **Issue:**
 
-On VS2013 with Python enabled: error LNK1104: cannot open file 'python27_d.lib'
+On VS2013 with Python enabled: ``error LNK1104: cannot open file 'python27_d.lib'``
 
 **Solution:**
 
@@ -273,7 +278,9 @@ Alternatively switch to Release or RelWDebug modes.
 
 **Issue:**
 
-ImportError: No module named numpy.distutils
+.. code-block:: console
+
+   ImportError: No module named numpy.distutils
 
 **Solution:**
 
@@ -282,43 +289,40 @@ You have python installed, but not numpy. Install numpy.
 
 **Issue:**
 
-`cannot find cublas_v2.h` or linking issues against CUDA
+``cannot find cublas_v2.h`` or linking issues against CUDA
 
 **Solution:**
 
-VIAME contains a `VIAME_DISABLE_GPU_SUPPORT` flag due to numerous issues relating to GPU code building.
+VIAME contains a ``VIAME_DISABLE_GPU_SUPPORT`` flag due to numerous issues relating to GPU code building.
 Alternatively you can debug the issue (incorrect CUDA drivers for OpenCV, Caffe, etc...), or alternatively
 not having your CUDA headers set to be in your include path.
 
 
 **Issue:**
 
-When VIAME_ENABLE_DOC is turned on and doing a multi-threaded build, sometimes the build fails.
+When ``VIAME_ENABLE_DOC`` is turned on and doing a multi-threaded build, sometimes the build fails.
 
 **Solution:**
 
-Run make -jX multiple times, or don't run make -jX when VIAME_ENABLE_DOCS is enabled.
+Run ``make -jX`` multiple times, or don't run ``make -jX`` when ``VIAME_ENABLE_DOCS`` is enabled.
 
 
 **Issue:**
 
-CMake says it cannot find matlab
+CMake says it cannot find MATLAB
 
 **Solution:**
 
 Make sure your matlab CMake paths are set to something like the following
 
-Matlab_ENG_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libeng.so
+.. code-block:: console
 
-Matlab_INCLUDE_DIRS:PATH=[matlab_install_loc]/extern/include
-
-Matlab_MEX_EXTENSION:STRING=mexa64
-
-Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so
-
-Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so
-
-Matlab_ROOT_DIR:PATH=[matlab_install_loc]
+   Matlab_ENG_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libeng.so
+   Matlab_INCLUDE_DIRS:PATH=[matlab_install_loc]/extern/include
+   Matlab_MEX_EXTENSION:STRING=mexa64
+   Matlab_MEX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmex.so
+   Matlab_MX_LIBRARY:FILEPATH=[matlab_install_loc]/bin/glnxa64/libmx.so
+   Matlab_ROOT_DIR:PATH=[matlab_install_loc]
 
 
 
@@ -326,27 +330,25 @@ Matlab_ROOT_DIR:PATH=[matlab_install_loc]
 
 When PYTHON is enabled, getting the below error.
 
+.. code-block:: console
 
-[100%] Building CXX object python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o
+   [100%] Building CXX object python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o
+   _caffe.cpp:8:41: error: boost/python/raw_function.hpp: No such file or directory
+   _caffe.cpp: In function ‘void caffe::init_module__caffe()’:
+   _caffe.cpp:349: error: ‘raw_function’ is not a member of ‘bp’
+   _caffe.cpp:406: error: ‘raw_function’ is not a member of ‘bp’
+   make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1
+   make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2
+   make: *** [all] Error 2
 
-_caffe.cpp:8:41: error: boost/python/raw_function.hpp: No such file or directory
 
-_caffe.cpp: In function ‘void caffe::init_module__caffe()’:
-
-_caffe.cpp:349: error: ‘raw_function’ is not a member of ‘bp’
-
-_caffe.cpp:406: error: ‘raw_function’ is not a member of ‘bp’
-
-make[2]: *** [python/CMakeFiles/pycaffe.dir/caffe/_caffe.cpp.o] Error 1
-
-make[1]: *** [python/CMakeFiles/pycaffe.dir/all] Error 2
-
-make: *** [all] Error 2
 
 **Solution:**
 
 raw_function.hpp doesn't get installed for some reason on some systems. Manually copy it from:
 
-[VIAME_BUILD]/build/src/fletch-build/build/src/Boost/boost/python/raw_function.hpp
+``[VIAME_BUILD]/build/src/fletch-build/build/src/Boost/boost/python/raw_function.hpp``
+
 to
-[VIAME_BUILD]/install/include/boost/python/
+
+``[VIAME_BUILD]/install/include/boost/python/``
