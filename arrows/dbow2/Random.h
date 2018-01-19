@@ -54,66 +54,66 @@ public:
   class UnrepeatedRandomizer;
 
 public:
-	/**
-	 * Sets the random number seed to the current time
-	 */
-	static void SeedRand();
+  /**
+   * Sets the random number seed to the current time
+   */
+  static void SeedRand();
 
-	/**
-	 * Sets the random number seed to the current time only the first
-	 * time this function is called
-	 */
-	static void SeedRandOnce();
+  /**
+   * Sets the random number seed to the current time only the first
+   * time this function is called
+   */
+  static void SeedRandOnce();
 
-	/**
-	 * Sets the given random number seed
-	 * @param seed
-	 */
-	static void SeedRand(int seed);
+  /**
+   * Sets the given random number seed
+   * @param seed
+   */
+  static void SeedRand(int seed);
 
-	/**
-	 * Sets the given random number seed only the first time this function
-	 * is called
-	 * @param seed
-	 */
-	static void SeedRandOnce(int seed);
+  /**
+   * Sets the given random number seed only the first time this function
+   * is called
+   * @param seed
+   */
+  static void SeedRandOnce(int seed);
 
-	/**
-	 * Returns a random number in the range [0..1]
-	 * @return random T number in [0..1]
-	 */
-	template <class T>
-	static T RandomValue(){
-		return (T)rand()/(T)RAND_MAX;
-	}
+  /**
+   * Returns a random number in the range [0..1]
+   * @return random T number in [0..1]
+   */
+  template <class T>
+  static T RandomValue(){
+    return (T)rand()/(T)RAND_MAX;
+  }
 
-	/**
-	 * Returns a random number in the range [min..max]
-	 * @param min
-	 * @param max
-	 * @return random T number in [min..max]
-	 */
-	template <class T>
-	static T RandomValue(T min, T max){
-		return Random::RandomValue<T>() * (max - min) + min;
-	}
+  /**
+   * Returns a random number in the range [min..max]
+   * @param min
+   * @param max
+   * @return random T number in [min..max]
+   */
+  template <class T>
+  static T RandomValue(T min, T max){
+    return Random::RandomValue<T>() * (max - min) + min;
+  }
 
-	/**
-	 * Returns a random int in the range [min..max]
-	 * @param min
-	 * @param max
-	 * @return random int in [min..max]
-	 */
-	static int RandomInt(int min, int max);
+  /**
+   * Returns a random int in the range [min..max]
+   * @param min
+   * @param max
+   * @return random int in [min..max]
+   */
+  static int RandomInt(int min, int max);
 
-	/**
-	 * Returns a random number from a gaussian distribution
-	 * @param mean
-	 * @param sigma standard deviation
-	 */
-	template <class T>
-	static T RandomGaussianValue(T mean, T sigma)
-	{
+  /**
+   * Returns a random number from a gaussian distribution
+   * @param mean
+   * @param sigma standard deviation
+   */
+  template <class T>
+  static T RandomGaussianValue(T mean, T sigma)
+  {
     // Box-Muller transformation
     T x1, x2, w, y1;
 
@@ -127,7 +127,7 @@ public:
     y1 = x1 * w;
 
     return( mean + y1 * sigma );
-	}
+  }
 
 private:
 
