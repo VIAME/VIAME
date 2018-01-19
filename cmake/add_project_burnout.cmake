@@ -21,6 +21,7 @@ ExternalProject_Add(burnout
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_VXL}
 
+    -DBURNOUT_DISABLE_GDAL:BOOL=ON
     -DBUILD_TESTING:BOOL=OFF
     -DVIDTK_BUILD_TESTS:BOOL=OFF
 
