@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ private:
 
     class priv;
     const std::unique_ptr<priv> d;
- }; // end class detect_features_process
+ }; // end class detect_features_if_keyframe_process
 
 
 } // end namespace

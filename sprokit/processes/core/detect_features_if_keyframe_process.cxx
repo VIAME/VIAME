@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,11 +51,11 @@ namespace kwiver
     "Algorithm configuration subblock." )
 
 /**
- * \class detect_features_if_Keyframe_proces
+ * \class detect_features_if_keyframe_process
  *
  * \brief detect features if the frame is a keyframe
  *
- * \process This checks if the image is a keyfram in the tracks and
+ * \process This checks if the image is a keyframe in the tracks and
  *          detects features if it is.
  *
  * \iports
@@ -152,8 +152,8 @@ void detect_features_if_keyframe_process
   algo::track_features::get_nested_algo_configuration(
     track_features_name, algo_config, d->m_tracker);
 
-  //// Check config so it will give run-time diagnostic if any config problems
-  /// are found
+  // Check config so it will give run-time diagnostic if any config problems
+  // are found
   if ( ! algo::track_features::check_nested_algo_configuration(
         track_features_name, algo_config ) )
   {
@@ -275,11 +275,12 @@ detect_features_if_keyframe_process::priv
     f.second = f.second->clone();
   }
 
+  // clone loop back tracks so we can change it.
   vital::feature_track_set_sptr curr_tracks =
     std::dynamic_pointer_cast<vital::feature_track_set>(
-      loop_back_tracks->clone() );  //clone loop back tracks so we can change it.
+      loop_back_tracks->clone() );
 
-  // copy the next kfd into the current tracks.
+  // copy the next frame data into the current tracks.
   curr_tracks->set_frame_data(next_fd);
 
   // ok, next tracks will have some tracks that are longer or newer than
@@ -297,7 +298,7 @@ detect_features_if_keyframe_process::priv
 
   // need a fast way to search which track a feature is in.  Feature pointers
   // are not cloned, so we can search on those.
-  //make a map from feature pointer to curr track pointer.
+  // make a map from feature pointer to curr track pointer.
 
   typedef std::pair<vital::feature*, vital::track_sptr> feat_track_pair;
 
@@ -305,7 +306,7 @@ detect_features_if_keyframe_process::priv
   for (auto curr_tk : curr_active_tracks)
   {
     for (auto curr_tk_state = curr_tk->begin();
-           curr_tk_state != curr_tk->end(); ++curr_tk_state)
+         curr_tk_state != curr_tk->end(); ++curr_tk_state)
     {
       vital::feature_track_state_sptr fts =
         std::dynamic_pointer_cast<vital::feature_track_state>(*curr_tk_state);
@@ -318,7 +319,7 @@ detect_features_if_keyframe_process::priv
     }
   }
 
-  //what is the next track id in the looped back tracks?
+  // what is the next track id in the looped back tracks?
   kwiver::vital::track_id_t next_track_id =
     *curr_tracks->all_track_ids().crbegin() + 1;
 
@@ -326,13 +327,14 @@ detect_features_if_keyframe_process::priv
   {
     if (next_tk->size() == 1)
     {
-      //this is a new track.  Just add it to curr_tracks
-      next_tk->set_id(next_track_id++);  //change the track id to account for
-      // any new detected features.  The KLT tracker was not aware these
-      // detected features existed so could not have adjusted its IDs to
-      // account for them.
+      // This is a new track.  Just add it to curr_tracks
+      // Change the track id to account for any new detected features.
+      // The KLT tracker was not aware these detected features existed so
+      // could not have adjusted its IDs to account for them.
+      next_tk->set_id(next_track_id++);
 
-      //clone the track and add it to curr_tracks
+
+      // clone the track and add it to curr_tracks
       curr_tracks->insert(next_tk->clone());
       continue;
     }
@@ -349,8 +351,8 @@ detect_features_if_keyframe_process::priv
       }
 
       kwiver::vital::feature *feat = fts->feature.get();
-      // ok, we have the feature pointer in next active tracks.  Let's find it
-      // in loop back tracks.
+      // ok, we have the feature pointer in next active tracks.
+      // Let's find it in loop back tracks.
       auto feature_to_curr_track_it = feature_to_curr_track.find(feat);
       if (feature_to_curr_track_it != feature_to_curr_track.end())
       {
@@ -360,12 +362,12 @@ detect_features_if_keyframe_process::priv
     }
     if (!curr_track)
     {
-      //we didn't find the matching track in next_active_tracks
+      // we didn't find the matching track in next_active_tracks
       continue;
     }
 
     auto ts_clone = next_tk->back()->clone();
-    //ok, we have next_tk and curr_track which contain the same features.
+    // ok, we have next_tk and curr_track which contain the same features.
     if (!curr_track->append(ts_clone))
     {
       LOG_ERROR(m_logger, "Failed to append track state to loop back track (detect_features_if_keyframe_process)");
