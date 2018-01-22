@@ -188,7 +188,7 @@ int main()
 
   vector< user_simple_detection_t > src_dets = make_sample_detections();
   std::cout << "\n";
-  for (auto i=0; i<src_dets.size(); ++i)
+  for (size_t i=0; i<src_dets.size(); ++i)
   {
     std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
   }
@@ -201,7 +201,7 @@ int main()
 
   std::cout << "\nAbout to read KPF:\n";
   vector< user_simple_detection_t> new_dets = read_detections_from_stream( ss );
-  for (auto i=0; i<new_dets.size(); ++i)
+  for (size_t i=0; i<new_dets.size(); ++i)
   {
     std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";
   }

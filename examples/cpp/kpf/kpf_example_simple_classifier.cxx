@@ -155,7 +155,7 @@ read_detections_from_stream( std::istream& is )
     )
   {
     // move the confidence values in
-    for ( auto i=0; i<conf_tags.size(); ++i)
+    for ( size_t i=0; i<conf_tags.size(); ++i)
     {
       const auto& tag = conf_tags[i];
       auto probe = conf_map.d.find( tag );
@@ -206,7 +206,7 @@ write_detections_to_stream( ostream& os,
     //
 
     KPFC::cset_t conf_map;
-    for (auto i=0; i<conf_tags.size(); ++i)
+    for (size_t i=0; i<conf_tags.size(); ++i)
     {
       conf_map.d.insert( make_pair( conf_tags[i], det.confidence[i] ));
     }
@@ -224,7 +224,7 @@ int main()
 
   vector< user_simple_detection_t > src_dets = make_sample_detections();
   std::cout << "\n";
-  for (auto i=0; i<src_dets.size(); ++i)
+  for (size_t i=0; i<src_dets.size(); ++i)
   {
     std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
   }
@@ -237,7 +237,7 @@ int main()
 
   std::cout << "\nAbout to read KPF:\n";
   vector< user_simple_detection_t> new_dets = read_detections_from_stream( ss );
-  for (auto i=0; i<new_dets.size(); ++i)
+  for (size_t i=0; i<new_dets.size(); ++i)
   {
     std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";
   }

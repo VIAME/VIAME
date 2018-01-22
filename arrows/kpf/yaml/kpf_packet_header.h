@@ -50,7 +50,7 @@ namespace kpf {
  *
  */
 
-enum class KPF_YAML_EXPORT packet_style
+enum class packet_style
 {
   INVALID,  // invalid, uninitialized
   META,     // an uninterpreted string (consumes all following tokens)
