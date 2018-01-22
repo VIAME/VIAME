@@ -36,6 +36,7 @@
 // -- list processes to register --
 #include "compute_homography_process.h"
 #include "compute_stereo_depth_map_process.h"
+#include "detect_features_if_keyframe_process.h"
 #include "detect_features_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
@@ -48,6 +49,7 @@
 #include "image_filter_process.h"
 #include "image_object_detector_process.h"
 #include "image_writer_process.h"
+#include "keyframe_selection_process.h"
 #include "matcher_process.h"
 #include "read_descriptor_process.h"
 #include "refine_detections_process.h"
@@ -55,6 +57,7 @@
 #include "stabilize_image_process.h"
 #include "track_descriptor_input_process.h"
 #include "track_descriptor_output_process.h"
+#include "track_features_process.h"
 #include "video_input_process.h"
 
 // ----------------------------------------------------------------
@@ -273,6 +276,27 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
+  fact = vpm.ADD_PROCESS(kwiver::track_features_process);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_tracker");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Tracks features from frame to frame.");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
+
+  fact = vpm.ADD_PROCESS(kwiver::keyframe_selection_process);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection_process");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Selects keyframes from a track set.");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
+
+  fact = vpm.ADD_PROCESS(kwiver::detect_features_if_keyframe_process);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features_if_keyframe_process");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Detects feautres in an image if it is a keyframe.");
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

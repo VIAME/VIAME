@@ -176,6 +176,7 @@ read_feature_track_file( path_t const& file_path )
           "Could not open file at given path." );
   }
 
+  std::set<frame_id_t> frames_in_track_set;
   // Read the file
   std::vector< track_sptr > tracks;
   std::map< track_id_t, track_sptr > track_map;
@@ -185,7 +186,19 @@ read_feature_track_file( path_t const& file_path )
     frame_id_t fid;
     auto feat = std::make_shared<feature_d>();
     std::stringstream ss( line );
+    if (ss.str() == "keyframes")
+    {
+      break;
+    }
+
+    bool has_desc = false;
+
     ss >> tid >> fid >> *feat;
+    if (!(ss >> has_desc))
+    {
+      //all older files without has_desc used only descriptor based features
+      has_desc = true;
+    }
 
     track_sptr t;
     std::map< track_id_t, track_sptr >::const_iterator it = track_map.find( tid );
@@ -200,12 +213,43 @@ read_feature_track_file( path_t const& file_path )
     {
       t = it->second;
     }
+    frames_in_track_set.insert(fid);
+
     auto ftsd = std::make_shared<feature_track_state>(fid);
     ftsd->feature = feat;
+    if (has_desc)
+    {
+      ftsd->descriptor = std::make_shared<descriptor_fixed<unsigned char,1>>();  //dummy descriptor.
+      //this will be overwritten when the descriptor file is read.
+    }
     t->append( ftsd );
   }
 
-  return std::make_shared<feature_track_set>( tracks );
+  feature_track_set_sptr fts = std::make_shared<feature_track_set>( tracks );
+
+  for (std::string line; std::getline(input_stream, line); )
+  {
+    frame_id_t fid;
+    std::stringstream ss(line);
+    ss >> fid;
+    auto frame_data = std::make_shared<feature_track_set_frame_data>();
+    frame_data->is_keyframe = true;
+    fts->set_frame_data(frame_data, fid);
+  }
+
+  //create frame_data with is_keyframe set to false for all non-keyframes
+  auto frame_ids = fts->all_frame_ids();
+  for (auto fid : frame_ids)
+  {
+    if (!fts->frame_data(fid))
+    {
+      auto frame_data = std::make_shared<feature_track_set_frame_data>();
+      frame_data->is_keyframe = false;
+      fts->set_frame_data(frame_data, fid);
+    }
+  }
+
+  return fts;
 } // read_track_file
 
 
@@ -254,7 +298,18 @@ write_feature_track_file( feature_track_set_sptr const& tracks,
       {
         throw invalid_data( "Provided track doest not contain a valid feature" );
       }
-      ofile << t->id() << " " << s->frame() << " " << *ftsd->feature << "\n";
+      bool has_desc = ftsd->descriptor.get() != NULL;
+      ofile << t->id() << " " << s->frame() << " " << *ftsd->feature << " " << has_desc << "\n";
+    }
+  }
+
+  std::set<frame_id_t> keyframes = tracks->keyframes();
+  if ( !keyframes.empty() )
+  {
+    ofile << "keyframes" << "\n";
+    for (auto k : keyframes)
+    {
+      ofile << k << "\n";
     }
   }
   ofile.close();

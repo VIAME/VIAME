@@ -60,7 +60,7 @@ class KWIVER_ALGO_CORE_EXPORT frame_index_track_set_impl
 {
 public:
   /// Default Constructor
-  frame_index_track_set_impl() { }
+  frame_index_track_set_impl();
 
   /// Constructor from a vector of tracks
   explicit frame_index_track_set_impl( const std::vector< vital::track_sptr >& tracks );
@@ -131,12 +131,38 @@ public:
   virtual std::vector< vital::track_state_sptr >
   frame_states( vital::frame_id_t offset = -1 ) const;
 
+  /// Returns all frame data as map of frame index to track_set_frame_data
+  virtual vital::track_set_frame_data_map_t all_frame_data() const
+  {
+    return frame_data_;
+  }
+
+  /// Return the additional data associated with all tracks on the given frame
+  virtual vital::track_set_frame_data_sptr
+  frame_data( vital::frame_id_t offset = -1 ) const;
+
+  /// Set additional frame data associated with all tracks for all frames
+  virtual bool set_frame_data( vital::track_set_frame_data_map_t const& fmap )
+  {
+    frame_data_ = fmap;
+    return true;
+  }
+
+  /// Set additional data associated with all tracks on the given frame
+  virtual bool set_frame_data( vital::track_set_frame_data_sptr data,
+                               vital::frame_id_t offset = -1 );
+
+  virtual vital::track_set_implementation_uptr clone() const;
+
 protected:
   /// Populate frame_map_ with data from all_tracks_
   void populate_frame_map() const;
 
   /// Populate frame_map_ only if it is empty
   void populate_frame_map_on_demand() const;
+
+  /// The frame data map
+  vital::track_set_frame_data_map_t frame_data_;
 
 private:
   /// The vector of all tracks

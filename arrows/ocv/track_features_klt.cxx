@@ -54,6 +54,8 @@
 
 #include <opencv2/video/tracking.hpp>
 
+#include <arrows/core/track_set_impl.h>
+
 using namespace kwiver::vital;
 
 namespace kwiver {
@@ -292,7 +294,7 @@ public:
       {
         other.dist_image.copyTo(dist_image);
       }
-      return *this;
+        return *this;
     }
 
     bool should_redetect(const feature_distribution_image &lastDetectDist,
@@ -351,7 +353,6 @@ public:
   /// The feature detector algorithm to use
   vital::algo::detect_features_sptr detector;
   cv::Mat prev_image;
-  std::vector<cv::Point2f> prev_points;
   size_t last_detect_num_features;
   float redetect_threshold;
   cv::Mat tracked_feature_location_mask;
@@ -485,30 +486,53 @@ track_features_klt
   }
 
   //setup stuff complete
-  feature_track_set_sptr cur_tracks = prev_tracks;
+  feature_track_set_sptr cur_tracks = prev_tracks;  //no clone here.  It is done in the process.
 
   //points to be tracked in the next frame.  Empty at first.
   std::vector<cv::Point2f> next_points;
 
+  //gets the active tracks for the previous frame
+  std::vector<track_sptr> active_tracks;
+  if (cur_tracks)
+  {
+    active_tracks = cur_tracks->active_tracks();
+  }
+
   //track features if there are any to track
-  if (!d_->prev_points.empty())
+  if (!active_tracks.empty())
   {
     //track
-    std::vector<cv::Point2f> tracked_points;
+    std::vector<cv::Point2f> tracked_points, prev_points;
     std::vector<uchar> status;
     std::vector<float> err;
-    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, d_->prev_points,
-      tracked_points, status, err,cv::Size(d_->win_size, d_->win_size),d_->max_pyramid_level);
 
-    //gets the active tracks for the previous frame
-    std::vector<track_sptr> active_tracks = cur_tracks->active_tracks();
-    //copy last frame's features
-    std::vector<feature_sptr> vf =
-      cur_tracks->last_frame_features()->features();
-    for (unsigned int i = 0; i< active_tracks.size(); ++i)
+    std::vector<track_sptr> prev_klt_tracks;
+    for (auto at : active_tracks)
     {
-      vector_2f tp(tracked_points[i].x, tracked_points[i].y);
-      if (!status[i]
+      auto  bk = std::dynamic_pointer_cast<feature_track_state>(at->back());
+      if (bk->frame() != (frame_number - 1))
+      {
+        continue;
+      }
+      if (bk->descriptor)
+      {
+        //skip features with descriptors
+        continue;
+      }
+      prev_points.push_back(cv::Point2f(bk->feature->loc().x(), bk->feature->loc().y()));
+      prev_klt_tracks.push_back(at);
+    }
+
+    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, prev_points,
+      tracked_points, status, err,cv::Size(d_->win_size, d_->win_size),d_->max_pyramid_level);
+    //copy last frame's features
+    for (unsigned int kf_feat_i = 0; kf_feat_i< prev_klt_tracks.size(); ++kf_feat_i)
+    {
+      //first we check if the active track has a descriptor.  If it does, it's not a klt track so we skip over it.
+      track_sptr t = prev_klt_tracks[kf_feat_i];
+
+      vector_2f tp(tracked_points[kf_feat_i].x, tracked_points[kf_feat_i].y);
+      if (!status[kf_feat_i]
           || tp.x() <= d_->half_win_size
           || tp.y() <= d_->half_win_size
           || tp.x() >= image_data->width()- d_->half_win_size
@@ -519,16 +543,16 @@ track_features_klt
         continue;
       }
       //info from feature detector (location, scale etc.)
-      auto f = std::make_shared<feature_f>(*vf[i]);
+      auto last_fts = std::dynamic_pointer_cast<feature_track_state>(t->back());
+      auto f = std::make_shared<feature_f>(*last_fts->feature);
       f->set_loc(tp);  //feature
       //feature, descriptor and frame number together
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = f;
-      track_sptr t = active_tracks[i];
       // append the feature's current location to it's track.  Track was picked
       // up with active_tracks() call on previous_tracks.
       t->append(fts);
-      next_points.push_back(tracked_points[i]);
+      next_points.push_back(tracked_points[kf_feat_i]);
       //increment the feature distribution bins
     }
   }
@@ -559,7 +583,9 @@ track_features_klt
     feature_set_sptr detected_feat;
     if(!cur_tracks)
     {
-      cur_tracks = std::make_shared<kwiver::vital::feature_track_set>();
+      typedef std::unique_ptr<track_set_implementation> tsi_uptr;
+      cur_tracks = std::make_shared<feature_track_set>(
+        tsi_uptr(new kwiver::arrows::core::frame_index_track_set_impl()));
     }
 
     // get the last track id in the existing set of tracks and increment it
@@ -617,7 +643,6 @@ track_features_klt
 
   //set up previous data structures for next call
   d_->prev_image = cv_img.clone();
-  d_->prev_points = next_points;
 
   return cur_tracks;
 }

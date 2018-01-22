@@ -27,10 +27,16 @@ Arrows - Core
    that allows an additional check that the video source is on the correct
    frame. This done using barcodes embedded in the test imagery that encode
    the frame number.
+   
+ * Added keyframe selection classes.  These facilitate choosing particularly
+   important frames in an image sequence and then only doing later operations
+   (e.g. structure from motion) on these frames.
 
 Arrows - OpenCV
 
  * Added an OpenCV based KLT feature tracker.
+ 
+ * Added feature detection if a frame is a keyframe.  
 
  * Added perspective three point pose estimation.
  

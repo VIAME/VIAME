@@ -8,6 +8,7 @@ set( sources
 
   compute_homography_process.cxx
   compute_stereo_depth_map_process.cxx
+  detect_features_if_keyframe_process.cxx
   detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
@@ -20,6 +21,7 @@ set( sources
   image_filter_process.cxx
   image_object_detector_process.cxx
   image_writer_process.cxx
+  keyframe_selection_process.cxx
   matcher_process.cxx
   read_descriptor_process.cxx
   refine_detections_process.cxx
@@ -27,12 +29,14 @@ set( sources
   stabilize_image_process.cxx
   track_descriptor_input_process.cxx
   track_descriptor_output_process.cxx
+  track_features_process.cxx
   video_input_process.cxx
 )
 
 set( private_headers
   compute_homography_process.h
   compute_stereo_depth_map_process.h
+  detect_features_if_keyframe_process.h
   detect_features_process.h
   detected_object_output_process.h
   detected_object_input_process.h
@@ -45,6 +49,7 @@ set( private_headers
   image_filter_process.h
   image_object_detector_process.h
   image_writer_process.h
+  keyframe_selection_process.h
   matcher_process.h
   read_descriptor_process.h
   refine_detections_process.h
@@ -52,6 +57,7 @@ set( private_headers
   stabilize_image_process.h
   track_descriptor_input_process.h
   track_descriptor_output_process.h
+  track_features_process.h
   video_input_process.h
 )
 

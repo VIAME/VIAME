@@ -21,11 +21,13 @@ set( plugin_core_headers
   filter_tracks.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
+  keyframe_selector_basic.h
   match_features_fundamental_matrix.h
   match_features_homography.h
   example_detector.h
   track_descriptor_set_output_csv.h
   match_tracks.h
+  track_features_augment_keyframes.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
@@ -78,11 +80,13 @@ set( plugin_core_sources
   filter_tracks.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
+  keyframe_selector_basic.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   example_detector.cxx
   track_descriptor_set_output_csv.cxx
   match_tracks.cxx
+  track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx
