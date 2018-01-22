@@ -222,6 +222,14 @@ video_input_pos
 }
 
 // ------------------------------------------------------------------
+size_t
+video_input_pos
+::num_frames() const
+{
+  return d->d_img_md_files.size();
+}
+
+// ------------------------------------------------------------------
 bool
 video_input_pos
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
@@ -292,7 +300,7 @@ video_input_pos
   ts = kwiver::vital::timestamp();
 
   // Check if requested frame exists
-  if (frame_number > static_cast<int>( d->d_img_md_files.size() ) || frame_number < 0)
+  if (frame_number > static_cast<int>( d->d_img_md_files.size() ) || frame_number <= 0)
   {
     return false;
   }

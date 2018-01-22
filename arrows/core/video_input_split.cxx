@@ -211,6 +211,22 @@ video_input_split
 }
 
 // ------------------------------------------------------------------
+size_t
+video_input_split
+::num_frames() const
+{
+  if (d->d_image_source && d->d_metadata_source)
+  {
+    return std::min(d->d_image_source->num_frames(),
+                    d->d_metadata_source->num_frames());
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+// ------------------------------------------------------------------
 bool
 video_input_split
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp

@@ -41,6 +41,7 @@ set( public_headers
   initialize_cameras_landmarks.h
   integrate_depth_maps.h
   keyframe_selection.h
+  match_descriptor_sets.h
   match_features.h
   optimize_cameras.h
   refine_detections.h
@@ -89,6 +90,7 @@ set( sources
   initialize_cameras_landmarks.cxx
   keyframe_selection.cxx
   integrate_depth_maps.cxx
+  match_descriptor_sets.cxx
   match_features.cxx
   optimize_cameras.cxx
   refine_detections.cxx
