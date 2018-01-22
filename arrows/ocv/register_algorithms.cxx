@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@
 #include <arrows/ocv/detect_features_AGAST.h>
 #include <arrows/ocv/detect_features_FAST.h>
 #include <arrows/ocv/detect_features_GFTT.h>
-#include <arrows/ocv/detect_features_if_keyframe.h>
 #include <arrows/ocv/detect_features_MSD.h>
 #include <arrows/ocv/detect_features_MSER.h>
 #include <arrows/ocv/detect_features_simple_blob.h>
@@ -389,14 +388,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM("standard", kwiver::arrows::ocv::detect_features_if_keyframe);
-  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Detect and describe features if image is a keyframe")
-    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
-    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
-    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
     ;
 
   fact = vpm.ADD_ALGORITHM("standard", kwiver::arrows::ocv::detect_loops);

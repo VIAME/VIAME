@@ -18,7 +18,6 @@ set( public_headers
   compute_track_descriptors.h
   convert_image.h
   detect_features.h
-  detect_features_if_keyframe.h
   detect_loops.h
   detected_object_filter.h
   detected_object_set_input.h
@@ -69,7 +68,6 @@ set( sources
   compute_track_descriptors.cxx
   convert_image.cxx
   detect_features.cxx
-  detect_features_if_keyframe.cxx
   detect_loops.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
