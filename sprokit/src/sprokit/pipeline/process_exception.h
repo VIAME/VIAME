@@ -45,9 +45,9 @@
  * \brief Header for exceptions used within \link sprokit::process processes\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
+// ----------------------------------------------------------------------------
 /**
  * \class process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -69,6 +69,7 @@ class SPROKIT_PIPELINE_EXPORT process_exception
     virtual ~process_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class null_process_config_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -90,6 +91,7 @@ class SPROKIT_PIPELINE_EXPORT null_process_config_exception
     ~null_process_config_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class already_initialized_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -116,6 +118,7 @@ class SPROKIT_PIPELINE_EXPORT already_initialized_exception
     process::name_t const m_name;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class unconfigured_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -142,6 +145,7 @@ class SPROKIT_PIPELINE_EXPORT unconfigured_exception
     process::name_t const m_name;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class reconfigured_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -168,6 +172,7 @@ class SPROKIT_PIPELINE_EXPORT reconfigured_exception
     process::name_t const m_name;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class reinitialization_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -194,6 +199,7 @@ class SPROKIT_PIPELINE_EXPORT reinitialization_exception
     process::name_t const m_name;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class null_conf_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -223,6 +229,7 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
     kwiver::vital::config_block_key_t const m_key;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class null_port_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -253,6 +260,7 @@ class SPROKIT_PIPELINE_EXPORT null_port_info_exception
     process::port_t const m_port;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class null_input_port_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -277,6 +285,7 @@ class SPROKIT_PIPELINE_EXPORT null_input_port_info_exception
     ~null_input_port_info_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class null_output_port_info_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -301,6 +310,7 @@ class SPROKIT_PIPELINE_EXPORT null_output_port_info_exception
     ~null_output_port_info_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class flag_mismatch_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -333,6 +343,7 @@ class SPROKIT_PIPELINE_EXPORT flag_mismatch_exception
     std::string const m_reason;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class set_type_on_initialized_process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -365,6 +376,7 @@ class SPROKIT_PIPELINE_EXPORT set_type_on_initialized_process_exception
     process::port_type_t const m_type;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class set_frequency_on_initialized_process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -383,7 +395,9 @@ class SPROKIT_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
      * \param port The name of the port on the \ref process.
      * \param frequency The frequency that was attempted to be set.
      */
-    set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) noexcept;
+    set_frequency_on_initialized_process_exception(process::name_t const& name,
+                                                   process::port_t const& port,
+                                                   process::port_frequency_t const& frequency) noexcept;
     /**
      * \brief Destructor.
      */
@@ -397,6 +411,7 @@ class SPROKIT_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
     process::port_frequency_t const m_frequency;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class uninitialized_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -423,6 +438,7 @@ class SPROKIT_PIPELINE_EXPORT uninitialized_exception
     process::name_t const m_name;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class port_connection_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -452,6 +468,7 @@ class SPROKIT_PIPELINE_EXPORT port_connection_exception
     process::port_t const m_port;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class connect_to_initialized_process_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -476,6 +493,7 @@ class SPROKIT_PIPELINE_EXPORT connect_to_initialized_process_exception
     ~connect_to_initialized_process_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class no_such_port_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -494,12 +512,25 @@ class SPROKIT_PIPELINE_EXPORT no_such_port_exception
      * \param port The name of the port.
      */
     no_such_port_exception(process::name_t const& name, process::port_t const& port) noexcept;
+
+    /**
+     * \brief Constructor.
+     *
+     * \param name The name of the process.
+     * \param port The name of the port.
+     * \param all_ports List of all available ports
+     */
+    no_such_port_exception(process::name_t const& name, process::port_t const& port,
+                                        process::ports_t const& all_ports) noexcept;
+
+
     /**
      * \brief Destructor.
      */
     ~no_such_port_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class null_edge_port_connection_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -518,12 +549,14 @@ class SPROKIT_PIPELINE_EXPORT null_edge_port_connection_exception
      * \param port The name of the port.
      */
     null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) noexcept;
+
     /**
      * \brief Destructor.
      */
     ~null_edge_port_connection_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class static_type_reset_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -555,6 +588,7 @@ class SPROKIT_PIPELINE_EXPORT static_type_reset_exception
     process::port_type_t const m_new_type;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class port_reconnect_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -579,6 +613,7 @@ class SPROKIT_PIPELINE_EXPORT port_reconnect_exception
     ~port_reconnect_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class missing_connection_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -607,6 +642,7 @@ class SPROKIT_PIPELINE_EXPORT missing_connection_exception
     std::string const m_reason;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class process_configuration_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -628,6 +664,7 @@ class SPROKIT_PIPELINE_EXPORT process_configuration_exception
     virtual ~process_configuration_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class unknown_configuration_value_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -657,6 +694,7 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
     kwiver::vital::config_block_key_t const m_key;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class invalid_configuration_value_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
@@ -692,6 +730,7 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
     kwiver::vital::config_block_description_t const m_desc;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class invalid_configuration_exception process_exception.h <sprokit/pipeline/process_exception.h>
  *
