@@ -445,7 +445,6 @@ track_set_implementation_uptr
 frame_index_track_set_impl
 ::clone() const
 {
-  /// TODO CODE THIS!!!!
   std::unique_ptr<frame_index_track_set_impl> the_clone =
     std::unique_ptr<frame_index_track_set_impl>(new frame_index_track_set_impl());
 
@@ -456,7 +455,7 @@ frame_index_track_set_impl
   }
   the_clone->populate_frame_map();
 
-  //clone the frame data
+  // clone the frame data
   for (auto fd : frame_data_)
   {
     if (fd.second)
