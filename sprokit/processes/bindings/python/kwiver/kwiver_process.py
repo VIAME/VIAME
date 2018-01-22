@@ -158,28 +158,31 @@ class KwiverProcess(process.PythonProcess):
                             datum.new_image_container)
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set",
-                            VTC.convert_descriptor_set_in,
-                            VTC.convert_descriptor_set_out)
+                            datum.Datum.get_descriptor_set,
+                            datum.new_descriptor_set)
         self.add_type_trait("detected_object_set", "kwiver:detected_object_set",
-                            VTC._convert_detected_object_set_in,
-                            VTC._convert_detected_object_set_out)
+                            datum.Datum.get_detected_object,
+                            datum.new_detected_object)
         self.add_type_trait("track_set", "kwiver:track_set",
-                            VTC._convert_track_set_handle)
+                            datum.Datum.get_track_set,
+                            datum.new_track_set)
         self.add_type_trait("feature_track_set", "kwiver:feature_track_set",
-                            VTC._convert_track_set_handle)
+                            datum.Datum.get_track_set,
+                            datum.new_track_set)
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
-                            VTC._convert_track_set_handle)
+                            datum.Datum.get_track_set,
+                            datum.new_track_set)
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
         self.add_type_trait("image_file_name", "kwiver:image_file_name")
         self.add_type_trait("video_file_name", "kwiver:video_file_name")
 
         self.add_type_trait("double_vector", "kwiver:d_vector",
-                            VTC._convert_double_vector_in,
-                            VTC._convert_double_vector_out)
+                            datum.Datum.get_double_vector,
+                            datum.new_double_vector)
         self.add_type_trait("string_vector", "kwiver:string_vector",
-                            VTC.convert_string_vector_in,
-                            VTC.convert_string_vector_out)
+                            datum.Datum.get_string_vector,
+                            datum.new_string_vector)
 
         #                   port-name    type-trait-name    description
         self.add_port_trait("timestamp", "timestamp",

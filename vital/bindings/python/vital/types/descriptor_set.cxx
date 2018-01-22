@@ -34,27 +34,6 @@
 
 namespace py = pybind11;
 
-class PyDescriptorSet
-{
-  std::vector<std::shared_ptr<PyDescriptorBase>> descriptors;
-
-  public:
-
-    PyDescriptorSet() {};
-    PyDescriptorSet(py::list desc_arg)
-     {
-       for(auto py_desc: desc_arg)
-       {
-         std::shared_ptr<PyDescriptorBase> desc = py_desc.cast<std::shared_ptr<PyDescriptorBase>>();
-         descriptors.push_back(desc);
-       }
-     };
-
-    size_t size() { return descriptors.size(); };
-
-    std::vector<std::shared_ptr<PyDescriptorBase>> get_descriptors() { return descriptors; };
-};
-
 PYBIND11_MODULE(descriptor_set, m)
 {
   py::class_<PyDescriptorSet, std::shared_ptr<PyDescriptorSet>>(m, "DescriptorSet")

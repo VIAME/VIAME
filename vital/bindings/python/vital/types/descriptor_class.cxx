@@ -211,3 +211,23 @@ new_descriptor(size_t len, char ctype)
   return retVal;
 }
 
+class PyDescriptorSet
+{
+  std::vector<std::shared_ptr<PyDescriptorBase>> descriptors;
+
+  public:
+
+    PyDescriptorSet() {};
+    PyDescriptorSet(py::list desc_arg)
+     {
+       for(auto py_desc: desc_arg)
+       {
+         std::shared_ptr<PyDescriptorBase> desc = py_desc.cast<std::shared_ptr<PyDescriptorBase>>();
+         descriptors.push_back(desc);
+       }
+     };
+
+    size_t size() { return descriptors.size(); };
+
+    std::vector<std::shared_ptr<PyDescriptorBase>> get_descriptors() { return descriptors; };
+};

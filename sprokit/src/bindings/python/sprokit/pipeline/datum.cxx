@@ -42,7 +42,11 @@
 
 #include <sprokit/python/util/python_gil.h>
 
+// Type conversions
+#include <vital/bindings/python/vital/types/descriptor_class.cxx>
 #include <vital/types/image_container.h>
+#include <vital/types/detected_object_set.h>
+#include <vital/types/track_set.h>
 
 #include <limits>
 #include <string>
@@ -104,6 +108,21 @@ PYBIND11_MODULE(datum, m)
   m.def("new_image_container", &new_datum<std::shared_ptr<kwiver::vital::image_container>>
     , (arg("dat"))
     , "Creates a new datum packet containing an image container.");
+  m.def("new_descriptor_set", &new_datum<std::shared_ptr<PyDescriptorSet>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a descriptor set.");
+  m.def("new_detected_object_set", &new_datum<std::shared_ptr<kwiver::vital::detected_object_set>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a detected object set.");
+  m.def("new_track_set", &new_datum<std::shared_ptr<kwiver::vital::track_set>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a track set.");
+  m.def("new_double_vector", &new_datum<std::vector<double>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a double vector.");
+  m.def("new_string_vector", &new_datum<std::vector<std::string>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a string vector.");
   m.def("datum_from_capsule", &datum_from_capsule
     , (arg("dptr"))
     , "Converts datum* in capsule to datum_t");
@@ -132,6 +151,16 @@ PYBIND11_MODULE(datum, m)
       , "Get pointer to datum object as a PyCapsule.")
     .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
       , "Convert the data to an image container")
+    .def("get_descriptor_set", &datum_get_object<std::shared_ptr<PyDescriptorSet>>
+      , "Convert the data to a descriptor set")
+    .def("get_detected_object_set", &datum_get_object<std::shared_ptr<kwiver::vital::detected_object_set>>
+      , "Convert the data to a detected object set")
+    .def("get_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::track_set>>
+      , "Convert the data to a track set")
+    .def("get_double_vector", &datum_get_object<std::vector<double>>
+      , "Convert the data to a double vector")
+    .def("get_string_vector", &datum_get_object<std::vector<std::string>>
+      , "Convert the data to a string vector")
   ;
 
 } // end module
