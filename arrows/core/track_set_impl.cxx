@@ -453,7 +453,6 @@ frame_index_track_set_impl
   {
     the_clone->all_tracks_.push_back(trk->clone());
   }
-  the_clone->populate_frame_map();
 
   // clone the frame data
   for (auto fd : frame_data_)
