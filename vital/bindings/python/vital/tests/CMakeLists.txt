@@ -9,7 +9,6 @@ set(__testable_modnames
   test_camera_intrinsics
   test_camera_map
   test_color
-  test_config_block
   test_covariance
   test_descriptor
   test_descriptor_set
