@@ -35,7 +35,6 @@
 
 #include "estimate_canonical_transform.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <algorithm>
@@ -149,7 +148,7 @@ estimate_canonical_transform
   vital::vector_3d center(0,0,0);
   double s=0.0;
   vital::matrix_3x3d covar = vital::matrix_3x3d::Zero();
-  VITAL_FOREACH(const lm_map_t::value_type& p, landmarks->landmarks())
+  for(const lm_map_t::value_type& p : landmarks->landmarks())
   {
     vital::vector_3d pt = p.second->loc();
     center += pt;
@@ -175,7 +174,7 @@ estimate_canonical_transform
     vital::vector_3d cam_center(0,0,0);
     vital::vector_3d cam_up(0,0,0);
     typedef vital::camera_map::map_camera_t cam_map_t;
-    VITAL_FOREACH(const cam_map_t::value_type& p, cameras->cameras())
+    for(const cam_map_t::value_type& p : cameras->cameras())
     {
       cam_center += p.second->center();
     }
@@ -195,7 +194,7 @@ estimate_canonical_transform
   {
     const vital::vector_3d z = rot.col(2);
     std::vector<double> heights;
-    VITAL_FOREACH(const lm_map_t::value_type& p, landmarks->landmarks())
+    for(const lm_map_t::value_type& p : landmarks->landmarks())
     {
       vital::vector_3d pt = p.second->loc();
       heights.push_back(z.dot(pt-center));

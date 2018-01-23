@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
 #define KWIVER_ARROWS_CORE_CLOSE_LOOPS_MULTI_METHOD_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
@@ -66,10 +65,7 @@ public:
   close_loops_multi_method();
 
   /// Destructor
-  virtual ~close_loops_multi_method() VITAL_DEFAULT_DTOR;
-
-  /// Returns implementation description string
-  virtual std::string description() const;
+  virtual ~close_loops_multi_method() = default;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

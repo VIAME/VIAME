@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,14 @@
  * \brief test camera interpolation
  */
 
-#include <test_common.h>
+#include <arrows/core/interpolate_camera.h>
+
+#include <gtest/gtest.h>
 
 #include <iostream>
 
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 #if defined M_PIl
 #define LOCAL_PI M_PIl
@@ -46,25 +48,15 @@
 #define LOCAL_PI M_PI
 #endif
 
-#include <vital/vital_foreach.h>
-#include <arrows/core/interpolate_camera.h>
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(interpolation)
+// ----------------------------------------------------------------------------
+TEST(interpolate_camera, interpolation)
 {
   using namespace kwiver;
   using namespace std;
@@ -85,20 +77,20 @@ IMPLEMENT_TEST(interpolation)
   cerr << "b.rotation: " << b.rotation().axis() << ' '  << b.rotation().angle() << endl;
 
   cerr << "c.center  : " << c.center() << endl;
-  TEST_NEAR("c.center.x", c.center().x(), 1, 1e-16);
-  TEST_NEAR("c.center.y", c.center().y(), 1, 1e-16);
-  TEST_NEAR("c.center.z", c.center().z(), 1, 1e-16);
+  EXPECT_NEAR( 1.0, c.center().x(), 1e-16 );
+  EXPECT_NEAR( 1.0, c.center().y(), 1e-16 );
+  EXPECT_NEAR( 1.0, c.center().z(), 1e-16 );
 
   cerr << "c.rotation (aa): " << c.rotation().axis() << ' ' << c.rotation().angle() << endl;
   cerr << "c.rotation  (q): " << c.rotation() << endl;
-  TEST_NEAR("c.rotation.axis.x", c.rotation().axis().x(),  0, 1e-15);
-  TEST_NEAR("c.rotation.axis.y", c.rotation().axis().y(),  0, 1e-15);
-  TEST_NEAR("c.rotation.axis.z", c.rotation().axis().z(), -1, 1e-15);
-  TEST_NEAR("c.rotation.angle" , c.rotation().angle()   , pi / 4, 1e-15);
+  EXPECT_NEAR(  0.0, c.rotation().axis().x(), 1e-15 );
+  EXPECT_NEAR(  0.0, c.rotation().axis().y(), 1e-15 );
+  EXPECT_NEAR( -1.0, c.rotation().axis().z(), 1e-15 );
+  EXPECT_NEAR( pi / 4.0, c.rotation().angle(), 1e-15 );
 }
 
-
-IMPLEMENT_TEST(multiple_interpolations)
+// ----------------------------------------------------------------------------
+TEST(interpolate_camera, multiple_interpolations)
 {
   using namespace kwiver;
   using namespace std;
@@ -119,8 +111,8 @@ IMPLEMENT_TEST(multiple_interpolations)
   cams.push_back(b);
 
   cerr << "Vector size: " << cams.size() << endl;
-  TEST_EQUAL("vector size", cams.size(), 5);
-  VITAL_FOREACH(simple_camera cam, cams)
+  EXPECT_EQ(5, cams.size());
+  for (auto const& cam : cams)
   {
     cerr << "\t" << cam.center() << " :: " << cam.rotation().axis() << " " << cam.rotation().angle() << endl;
   }
@@ -132,31 +124,30 @@ IMPLEMENT_TEST(multiple_interpolations)
   cerr << "i2 .25 c : " << i2.center() << " :: " << i2.rotation().axis() << ' ' << i2.rotation().angle() << endl;
   cerr << "i3 .25 c : " << i3.center() << " :: " << i3.rotation().axis() << ' ' << i3.rotation().angle() << endl;
 
-  TEST_NEAR("i1 center.x", i1.center().x(), 0, 1e-15);
-  TEST_NEAR("i1 center.y", i1.center().y(), 0, 1e-15);
-  TEST_NEAR("i1 center.z", i1.center().z(), 0, 1e-15);
-  TEST_NEAR("i1 r.axis.x", i1.rotation().axis().x(), 0, 1e-15);
-  TEST_NEAR("i1 r.axis.y", i1.rotation().axis().y(), 0, 1e-15);
-  TEST_NEAR("i1 r.axis.z", i1.rotation().axis().z(), -1, 1e-15);
-  TEST_NEAR("i1 r.angle",  i1.rotation().angle(), pi / 8, 1e-15);
+  EXPECT_NEAR(  0.0, i1.center().x(), 1e-15 );
+  EXPECT_NEAR(  0.0, i1.center().y(), 1e-15 );
+  EXPECT_NEAR(  0.0, i1.center().z(), 1e-15 );
+  EXPECT_NEAR(  0.0, i1.rotation().axis().x(), 1e-15 );
+  EXPECT_NEAR(  0.0, i1.rotation().axis().y(), 1e-15 );
+  EXPECT_NEAR( -1.0, i1.rotation().axis().z(), 1e-15 );
+  EXPECT_NEAR( pi / 8.0, i1.rotation().angle(), 1e-15 );
 
-  TEST_NEAR("i2 center.x", i2.center().x(), 1, 1e-15);
-  TEST_NEAR("i2 center.y", i2.center().y(), 1, 1e-15);
-  TEST_NEAR("i2 center.z", i2.center().z(), 1, 1e-15);
-  TEST_NEAR("i2 r.axis.x", i2.rotation().axis().x(), 0, 1e-15);
-  TEST_NEAR("i2 r.axis.y", i2.rotation().axis().y(), 0, 1e-15);
-  TEST_NEAR("i2 r.axis.z", i2.rotation().axis().z(), -1, 1e-15);
-  TEST_NEAR("i2 r.angle",  i2.rotation().angle(), pi / 4, 1e-15);
+  EXPECT_NEAR(  1.0, i2.center().x(), 1e-15 );
+  EXPECT_NEAR(  1.0, i2.center().y(), 1e-15 );
+  EXPECT_NEAR(  1.0, i2.center().z(), 1e-15 );
+  EXPECT_NEAR(  0.0, i2.rotation().axis().x(), 1e-15 );
+  EXPECT_NEAR(  0.0, i2.rotation().axis().y(), 1e-15 );
+  EXPECT_NEAR( -1.0, i2.rotation().axis().z(), 1e-15 );
+  EXPECT_NEAR( pi / 4.0, i2.rotation().angle(), 1e-15 );
 
-  TEST_NEAR("i3 center.x", i3.center().x(), 2, 1e-15);
-  TEST_NEAR("i3 center.y", i3.center().y(), 2, 1e-15);
-  TEST_NEAR("i3 center.z", i3.center().z(), 2, 1e-15);
-  TEST_NEAR("i3 r.axis.x", i3.rotation().axis().x(), 0, 1e-15);
-  TEST_NEAR("i3 r.axis.y", i3.rotation().axis().y(), 0, 1e-15);
-  TEST_NEAR("i3 r.axis.z", i3.rotation().axis().z(), -1, 1e-15);
-  TEST_NEAR("i3 r.angle",  i3.rotation().angle(), 3*pi / 8, 1e-15);
+  EXPECT_NEAR(  2.0, i3.center().x(), 1e-15 );
+  EXPECT_NEAR(  2.0, i3.center().y(), 1e-15 );
+  EXPECT_NEAR(  2.0, i3.center().z(), 1e-15 );
+  EXPECT_NEAR(  0.0, i3.rotation().axis().x(), 1e-15 );
+  EXPECT_NEAR(  0.0, i3.rotation().axis().y(), 1e-15 );
+  EXPECT_NEAR( -1.0, i3.rotation().axis().z(), 1e-15 );
+  EXPECT_NEAR( 3.0 * pi / 8.0, i3.rotation().angle(), 1e-15 );
 }
-
 
 // TODO: Full test case for camera interpolation would be to create a full,
 // connected ring of cameras looking at a point (or even multiple loops), and

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,9 +98,6 @@ image_writer_process
   : process( config ),
     d( new image_writer_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -116,6 +113,8 @@ image_writer_process
 void image_writer_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_template = config_value_using_trait( file_name_template );
 
@@ -172,9 +171,15 @@ void image_writer_process
 
   vital::image_container_sptr input = grab_from_port_using_trait( image );
 
-  std::string a_file = kwiver::vital::string_format( d->m_file_template, d->m_frame_number );
+  std::string a_file;
 
-  LOG_DEBUG( logger(), "Writing image to file \"" << a_file << "\"" );
+  {
+    scoped_step_instrumentation();
+
+    a_file = kwiver::vital::string_format( d->m_file_template, d->m_frame_number );
+    LOG_DEBUG( logger(), "Writing image to file \"" << a_file << "\"" );
+  }
+
   d->m_image_writer->save( a_file, input );
 }
 

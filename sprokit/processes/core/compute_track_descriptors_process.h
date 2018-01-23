@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 
 #include <sprokit/pipeline/process.h>
 
+#include <vital/types/track_descriptor_set.h>
+
 #include <memory>
 
 namespace kwiver
@@ -69,6 +71,8 @@ class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
   private:
     void make_ports();
     void make_config();
+
+    void push_outputs( vital::track_descriptor_set_sptr& to_output );
 
     class priv;
     const std::unique_ptr<priv> d;

@@ -30,7 +30,6 @@
 
 #include "darknet_custom_resize.h"
 
-#include <vital/vital_foreach.h>
 
 #include <opencv2/imgproc/imgproc.hpp>
 

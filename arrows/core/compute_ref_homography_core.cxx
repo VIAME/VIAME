@@ -45,7 +45,6 @@
 
 #include <vital/algo/estimate_homography.h>
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 
 #include <Eigen/LU>
 
@@ -105,6 +104,7 @@ typedef std::vector< track_info_t > track_info_buffer_t;
 typedef std::shared_ptr< track_info_buffer_t > track_info_buffer_sptr;
 
 
+// ----------------------------------------------------------------------------
 // Helper function for sorting tis
 bool
 compare_ti( const track_info_t& c1, const track_info_t& c2 )
@@ -113,6 +113,7 @@ compare_ti( const track_info_t& c1, const track_info_t& c2 )
 }
 
 
+// ----------------------------------------------------------------------------
 // Find a track in a given buffer
 track_info_buffer_t::iterator
 find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
@@ -123,11 +124,12 @@ find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
 }
 
 
+// ----------------------------------------------------------------------------
 // Reset all is found flags
 void
 reset_active_flags( track_info_buffer_sptr buffer )
 {
-  VITAL_FOREACH ( track_info_t& ti , *buffer )
+  for ( track_info_t& ti : *buffer )
   {
     ti.active = false;
   }
@@ -231,7 +233,7 @@ public:
 
       // Check for positive inlier count
       unsigned inlier_count = 0;
-      VITAL_FOREACH (bool b , inliers)
+      for (bool b : inliers)
       {
         if ( b )
         {
@@ -283,6 +285,7 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
 compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
@@ -298,15 +301,8 @@ compute_ref_homography_core
 }
 
 
-std::string
-compute_ref_homography_core
-::description() const
-{
-  return "Default online sequential-frame reference homography estimator";
-}
-
-
-  vital::config_block_sptr
+// ----------------------------------------------------------------------------
+vital::config_block_sptr
 compute_ref_homography_core
 ::get_configuration() const
 {
@@ -344,6 +340,7 @@ compute_ref_homography_core
 }
 
 
+// ----------------------------------------------------------------------------
 void
 compute_ref_homography_core
 ::set_configuration( vital::config_block_sptr in_config )
@@ -372,6 +369,7 @@ compute_ref_homography_core
 }
 
 
+// ----------------------------------------------------------------------------
 bool
 compute_ref_homography_core
 ::check_configuration(vital::config_block_sptr config) const
@@ -383,6 +381,7 @@ compute_ref_homography_core
 }
 
 
+// ----------------------------------------------------------------------------
 // Perform actual current to reference frame estimation
 f2f_homography_sptr
 compute_ref_homography_core
@@ -408,7 +407,7 @@ compute_ref_homography_core
 
   // Flag tracks on this frame as new tracks, or "active" tracks, or tracks
   // that are not new.
-  VITAL_FOREACH ( track_sptr trk , active_tracks )
+  for ( track_sptr trk : active_tracks )
   {
     track_info_buffer_t::iterator p = find_track( trk, d_->buffer );
 
@@ -433,7 +432,7 @@ compute_ref_homography_core
   // a while.
   frame_id_t earliest_ref = std::numeric_limits<frame_id_t>::max();
 
-  VITAL_FOREACH ( track_info_t& ti , *(d_->buffer) )
+  for ( track_info_t& ti : *(d_->buffer) )
   {
     if( ti.active || ++ti.missed_count < d_->forget_track_threshold )
     {
@@ -452,7 +451,7 @@ compute_ref_homography_core
              "Earliest Ref: " << earliest_ref );
 
   // Add new tracks to buffer.
-  VITAL_FOREACH ( track_sptr trk , new_tracks )
+  for ( track_sptr trk : new_tracks )
   {
     track::history_const_itr itr = trk->find( frame_number );
     if( itr == trk->end() )
@@ -489,7 +488,7 @@ compute_ref_homography_core
   size_t track_size_thresh = std::min( d_->min_track_length, d_->frames_since_reset + 1 );
 
   // Collect cur/ref points from track infos that have earliest-frame references
-  VITAL_FOREACH ( track_info_t& ti , *new_buffer )
+  for ( track_info_t& ti : *new_buffer )
   {
     // If the track is active and have a state on the earliest ref frame,
     // also include those points for homography estimation.
@@ -537,7 +536,7 @@ compute_ref_homography_core
   //  - With a valid homography, transform the reference location of active
   //    tracks with a different reference frame than the current earliest_ref
   unsigned int ti_reset_count = 0;
-  VITAL_FOREACH ( track_info_t& ti , *new_buffer )
+  for ( track_info_t& ti : *new_buffer )
   {
     track::history_const_itr itr = ti.trk->find( frame_number );
 

@@ -39,6 +39,13 @@ track_oracle_core
   return *track_oracle_core::impl;
 }
 
+vector< field_handle_type >
+track_oracle_core
+::get_all_field_handles()
+{
+  return track_oracle_core::get_instance().get_all_field_handles();
+}
+
 field_handle_type
 track_oracle_core
 ::lookup_by_name( const string& name )
@@ -79,6 +86,13 @@ track_oracle_core
 ::fields_at_row( oracle_entry_handle_type row )
 {
   return track_oracle_core::get_instance().fields_at_row( row );
+}
+
+vector< vector< field_handle_type > >
+track_oracle_core
+::fields_at_rows( const vector< oracle_entry_handle_type > rows )
+{
+  return track_oracle_core::get_instance().fields_at_rows( rows );
 }
 
 oracle_entry_handle_type

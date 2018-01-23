@@ -39,6 +39,7 @@
 #include <vital/config/vital_config_export.h>
 #include <vital/noncopyable.h>
 #include <vital/util/source_location.h>
+#include <vital/util/tokenize.h>
 
 #include "config_block_types.h"
 #include "config_block_exception.h"
@@ -56,6 +57,9 @@
 
 namespace kwiver {
 namespace vital {
+
+template < typename R >
+R config_block_get_value_cast_default( config_block_value_t const& value );
 
 // ----------------------------------------------------------------
 /**
@@ -172,20 +176,35 @@ public:
    * \returns The value stored within the configuration, or \p def if something goes wrong.
    */
   template < typename T >
-  T get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW;
+  T get_value( config_block_key_t const& key, T const& def ) const noexcept;
 
 
   /**
    * \brief Convert string to enum value.
    *
    * \param key The index of the configuration value to retrieve.
-   * \tparam E Type of the enum value.
    * \tparam C Type of the enum converter. Must be derived from
    * enum_converter struct.
    * \return
    */
   template < typename C>
-  typename C::enum_type get_enum_value( const config_block_key_t& key );
+  typename C::enum_type get_enum_value( const config_block_key_t& key ) const;
+
+
+  /**
+   * \brief Convert string to vector of values.
+   *
+   * Convert config string into a vector of values of the same type. This method
+   * splits the config string associated with the key using the supplied delimeter
+   * string. Each of these resulting strings is converted to the templated type and
+   * added to the output vector. The final set of values is returned in the vector.
+   *
+   * \param key The index of the configuration value to retrieve.
+   * \param delim List of delimeter characters for splitting vector elements.
+   * \tparam T Type of vector element.
+   */
+  template< typename T >
+  std::vector< T > get_value_as_vector( config_block_key_t const& key, const std::string& delim = " " ) const;
 
 
   /// Get the description associated to a value
@@ -639,9 +658,33 @@ config_block
 template < typename C >
 typename C::enum_type
 config_block
-::get_enum_value( const config_block_key_t& key )
+::get_enum_value( const config_block_key_t& key ) const
 {
   return C().from_string( get_value < std::string >( key ) );
+}
+
+
+// ------------------------------------------------------------------
+template< typename T >
+std::vector< T >
+config_block
+::get_value_as_vector( config_block_key_t const& key, const std::string& delim ) const
+{
+  config_block_value_t val = get_value< std::string >( key );
+
+  std::vector< std::string> sv;
+  // Split string by delimeter into vector of strings
+  tokenize( val, sv, delim, kwiver::vital::TokenizeTrimEmpty );
+
+  std::vector< T > val_vector;
+  // iterate over all strings and convert to target type
+  for (std::string str : sv )
+  {
+    T val = config_block_get_value_cast<T>( str );
+    val_vector.push_back( val );
+  }
+
+  return val_vector;
 }
 
 
@@ -650,7 +693,7 @@ config_block
 template < typename T >
 T
 config_block
-::get_value( config_block_key_t const& key, T const& def ) const VITAL_NOTHROW
+::get_value( config_block_key_t const& key, T const& def ) const noexcept
 {
   try
   {

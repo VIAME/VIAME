@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@
 
 #include <vital/types/detected_object.h>
 
+#include <iterator>
+
 namespace kwiver {
 namespace vital {
 
@@ -68,6 +70,8 @@ class VITAL_EXPORT detected_object_set
   : private noncopyable
 {
 public:
+  typedef std::vector< detected_object_sptr >::iterator iterator;
+  typedef std::vector< detected_object_sptr >::const_iterator const_iterator;
 
   /**
    * @brief Create an empty detection set.
@@ -77,7 +81,7 @@ public:
    */
   detected_object_set();
 
-  ~detected_object_set() VITAL_DEFAULT_DTOR
+  ~detected_object_set() = default;
 
   /**
    * @brief Create new set of detected objects.
@@ -88,7 +92,7 @@ public:
    *
    * @param objs Vector of detected objects.
    */
-  detected_object_set( detected_object::vector_t const& objs );
+  detected_object_set( std::vector< detected_object_sptr > const& objs );
 
   /**
    * @brief Create deep copy.
@@ -127,6 +131,53 @@ public:
   size_t size() const;
 
   /**
+   * @brief Returns whether or not this set is empty.
+   *
+   * This method returns true if the set is empty, false otherwise.
+   *
+   * @return Whether or not the set is empty.
+   */
+  bool empty() const;
+
+  //@{
+  /**
+   * @brief Detected object set iterators;
+   *
+   * This method returns an iterator for the set of detected
+   * objects. The iterator points to a shared pointer to a detected
+   * object.
+   *
+   * @return An iterator over the objects in this set;
+   */
+  iterator begin();
+  iterator end();
+
+  const_iterator cbegin() const;
+  const_iterator cend() const;
+  //@}
+
+  //@{
+  /**
+   * @brief Return pointer to detected object at specified index.
+   *
+   * Returns a reference to the element at specified location pos,
+   * with bounds checking.
+   *
+   * If pos is not within the range of the container, an exception of
+   * type std::out_of_range is thrown.
+   *
+   * @param pos Position of element to return (from zero).
+   *
+   * @return Shared pointer to specified element.
+   *
+   * @throws std::range if position is now within the range of objects
+   * in container.
+   */
+  detected_object_sptr at( size_t pos );
+  const detected_object_sptr at( size_t pos ) const;
+  //@}
+
+  /**
    * @brief Select detections based on confidence value.
    *
    * This method returns a vector of detections ordered by confidence
@@ -145,7 +196,7 @@ public:
    *
    * @return List of detections.
    */
-  detected_object::vector_t select( double threshold = detected_object_type::INVALID_SCORE ) const;
+  detected_object_set_sptr select( double threshold = detected_object_type::INVALID_SCORE ) const;
 
   /**
    * @brief Select detections based on class_name
@@ -166,8 +217,8 @@ public:
    *
    * @return List of detections.
    */
-  detected_object::vector_t select( const std::string& class_name,
-                                    double             threshold = detected_object_type::INVALID_SCORE ) const;
+  detected_object_set_sptr select( const std::string& class_name,
+                                   double             threshold = detected_object_type::INVALID_SCORE ) const;
 
   /**
    * @brief Scale all detection locations by some scale factor.
@@ -184,6 +235,11 @@ public:
    *
    * This method shifts the bounding boxes within all stored detections
    * by a supplied column and row shift.
+   *
+   * Note: Detections in this set can be shared by multiple sets, so
+   * shifting the detections in this set will also shift the detection
+   * in other sets that share this detection. If this is going to be a
+   * problem, clone() this set before shifting.
    *
    * @param col_shift Column  (a.k.a. x, i, width) translation factor
    * @param row_shift Row (a.k.a. y, j, height) translation factor
@@ -212,7 +268,7 @@ public:
 
 private:
   // List of detections ordered by confidence value.
-  detected_object::vector_t m_detected_objects;
+  std::vector< detected_object_sptr > m_detected_objects;
 
   attribute_set_sptr m_attrs;
 };

@@ -38,8 +38,6 @@
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 
-#include <vital/vital_foreach.h>
-
 
 namespace kwiver {
 namespace arrows {

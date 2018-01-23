@@ -45,6 +45,39 @@ bool kwiver_csv_read( const vector<string>& headers,
   return kwiver::track_oracle::kwiver_read( s, d );
 }
 
+void
+vector_unsigned_to_stream( ostream& os, const vector<unsigned>& d )
+{
+  for (size_t i=0, n=d.size(); i<n; ++i)
+  {
+    os << d[i];
+    if ( i != n-1)
+    {
+      os << ":";
+    }
+  }
+}
+
+void
+vector_unsigned_from_str( const string& s, vector<unsigned>& d )
+{
+  string src(s);
+  size_t found = src.find_first_of( ":" );
+  while ( found != string::npos )
+  {
+    src[found] = ' ';
+    found = src.find_first_of( ":", found+1);
+  }
+  istringstream iss( src );
+  d.clear();
+  unsigned tmp;
+  while ((iss >> tmp))
+  {
+    d.push_back( tmp );
+  }
+}
+
+
 } // anon
 
 namespace kwiver {
@@ -54,6 +87,10 @@ namespace dt {
 
 #define DEF_DT(NAME) \
   context NAME::c( NAME::get_context_name(), NAME::get_context_description() );
+
+namespace detection {
+  DEF_DT( detection_id );
+}
 
 namespace tracking {
 
@@ -337,6 +374,10 @@ namespace events {
   DEF_DT( event_type );
   DEF_DT( event_probability );
   DEF_DT( source_track_ids );
+  DEF_DT( actor_track_rows );
+  DEF_DT( kpf_activity_domain );
+  DEF_DT( kpf_activity_start );
+  DEF_DT( kpf_activity_stop );
 
 //
 // event type
@@ -474,35 +515,43 @@ bool event_type::read_xml( const TiXmlElement* const_e, int& d ) const
 
 ostream& source_track_ids::to_stream( ostream& os, const vector<unsigned>& d ) const
 {
-  for (size_t i=0, n=d.size(); i<n; ++i)
-  {
-    os << d[i];
-    if ( i != n-1)
-    {
-      os << ":";
-    }
-  }
+  vector_unsigned_to_stream( os, d );
   return os;
 }
 
 bool source_track_ids::from_str( const string& s, vector<unsigned>& d ) const
 {
-  string src(s);
-  size_t found = src.find_first_of( ":" );
-  while ( found != string::npos )
+  vector_unsigned_from_str( s, d );
+  return true;
+}
+
+//
+// actor track rows (hmm, not really PORTABLE)
+//
+
+
+ostream& actor_track_rows::to_stream( ostream& os, const track_handle_list_type& d ) const
+{
+  vector<unsigned> tmp;
+  for (auto i: d)
   {
-    src[found] = ' ';
-    found = src.find_first_of( ":", found+1);
+    tmp.push_back( i.row );
   }
-  istringstream iss( src );
-  d.clear();
-  unsigned tmp;
-  while ((iss >> tmp))
+  vector_unsigned_to_stream( os, tmp );
+  return os;
+}
+
+bool actor_track_rows::from_str( const string& s, track_handle_list_type& d ) const
+{
+  vector<unsigned> tmp;
+  vector_unsigned_from_str( s, tmp );
+  for (auto i: tmp)
   {
-    d.push_back( tmp );
+    d.push_back( track_handle_type( i ));
   }
   return true;
 }
+
 
 } // ...events
 

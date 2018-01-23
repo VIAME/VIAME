@@ -35,8 +35,6 @@
 #include <vital/config/config_block.h>
 #include <sprokit/pipeline/process_exception.h>
 
-#include <boost/cstdint.hpp>
-
 #include <string>
 
 /**

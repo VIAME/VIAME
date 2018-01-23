@@ -31,7 +31,7 @@
 #ifndef SPROKIT_TOOLS_PIPELINE_BUILDER_H
 #define SPROKIT_TOOLS_PIPELINE_BUILDER_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline/types.h>

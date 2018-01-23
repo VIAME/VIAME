@@ -38,7 +38,6 @@
 #include <algorithm>
 
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 
 namespace {
 
@@ -61,7 +60,7 @@ namespace vital {
 /// Default Constructor
 track
 ::track(track_data_sptr d)
-  : id_( 0 )
+  : id_( invalid_track_id )
   , data_(d)
 {
 }
@@ -161,6 +160,9 @@ track
     this->history_.push_back(ts);
   }
   to_append.history_.clear();
+  to_append.data_ = std::make_shared<track_data_redirect>(
+                        this->shared_from_this(),
+                        to_append.data_ );
   return true;
 }
 

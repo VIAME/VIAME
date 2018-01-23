@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
 #define SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 #include <sprokit/pipeline/types.h>
@@ -80,7 +80,7 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
 };
 
 /// A handle to information about a cluster.
-typedef boost::shared_ptr<cluster_info> cluster_info_t;
+typedef std::shared_ptr<cluster_info> cluster_info_t;
 
 } // end namespace sprokit
 

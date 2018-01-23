@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -40,19 +40,12 @@ def test_create():
     from sprokit.pipeline import datum
     from sprokit.pipeline import process
 
-    process.ProcessType()
     process.ProcessTypes()
-    process.ProcessName()
     process.ProcessNames()
-    process.ProcessProperty()
     process.ProcessProperties()
-    process.PortDescription()
     process.PortFrequency(1)
     process.PortFrequency(1, 1)
-    process.Port()
     process.Ports()
-    process.PortType()
-    process.PortFlag()
     process.PortFlags()
     process.PortAddr()
     process.PortAddrs()
@@ -138,14 +131,6 @@ def test_flags_as_set():
     # adding invalid objects
     expect_exception('adding a value of an invalid type', TypeError,
                      process.PortFlags.add, a, True),
-
-    # indexing failures
-    expect_exception('getting an item by index', TypeError,
-                     process.PortFlags.__getitem__, a, 0)
-    expect_exception('deleting an item by index', TypeError,
-                     process.PortFlags.__delitem__, a, 0)
-    expect_exception('setting an item by index', TypeError,
-                     process.PortFlags.__setitem__, a, 0, process.PythonProcess.flag_input_mutable)
 
     # 'in' keyword
     if process.PythonProcess.flag_required not in a:

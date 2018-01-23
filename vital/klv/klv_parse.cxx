@@ -39,7 +39,7 @@
 #include "klv_0601.h"
 #include "klv_0104.h"
 
-#include <vital/exceptions/klv.h>
+#include <vital/exceptions/metadata.h>
 
 #include <vital/logger/logger.h>
 
@@ -385,7 +385,7 @@ print_klv( std::ostream& str, klv_data const& klv )
             << std::endl;
 
       }
-      catch ( kwiver::vital::klv_exception const& e )
+      catch ( kwiver::vital::metadata_exception const& e )
       {
         str << "Error in 0104 klv: " << e.what() << "\n";
       }

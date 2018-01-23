@@ -9,10 +9,13 @@ Welcome to KWIVER's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 6
 
    introduction
-   install_guide
+   architecture
+   tools
+   tutorials
+   extentions
 
 Indices and tables
 ==================
@@ -20,4 +23,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H
 #define SPROKIT_PIPELINE_SCHEDULER_EXCEPTION_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "types.h"
 
@@ -60,11 +60,11 @@ class SPROKIT_PIPELINE_EXPORT scheduler_exception
     /**
      * \brief Constructor.
      */
-    scheduler_exception() VITAL_NOTHROW;
+    scheduler_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~scheduler_exception() VITAL_NOTHROW;
+    virtual ~scheduler_exception() noexcept;
 };
 
 /**
@@ -81,11 +81,11 @@ class SPROKIT_PIPELINE_EXPORT incompatible_pipeline_exception
     /**
      * \brief Constructor.
      */
-    incompatible_pipeline_exception(std::string const& reason) VITAL_NOTHROW;
+    incompatible_pipeline_exception(std::string const& reason) noexcept;
     /**
      * \brief Destructor.
      */
-    ~incompatible_pipeline_exception() VITAL_NOTHROW;
+    ~incompatible_pipeline_exception() noexcept;
 
     /// The reason why the scheduler cannot run the given pipeline.
     std::string const m_reason;
@@ -105,11 +105,11 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_config_exception
     /**
      * \brief Constructor.
      */
-    null_scheduler_config_exception() VITAL_NOTHROW;
+    null_scheduler_config_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_scheduler_config_exception() VITAL_NOTHROW;
+    ~null_scheduler_config_exception() noexcept;
 };
 
 /**
@@ -126,11 +126,11 @@ class SPROKIT_PIPELINE_EXPORT null_scheduler_pipeline_exception
     /**
      * \brief Constructor.
      */
-    null_scheduler_pipeline_exception() VITAL_NOTHROW;
+    null_scheduler_pipeline_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_scheduler_pipeline_exception() VITAL_NOTHROW;
+    ~null_scheduler_pipeline_exception() noexcept;
 };
 
 /**
@@ -147,11 +147,11 @@ class SPROKIT_PIPELINE_EXPORT restart_scheduler_exception
     /**
      * \brief Constructor.
      */
-    restart_scheduler_exception() VITAL_NOTHROW;
+    restart_scheduler_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~restart_scheduler_exception() VITAL_NOTHROW;
+    ~restart_scheduler_exception() noexcept;
 };
 
 /**
@@ -168,11 +168,11 @@ class SPROKIT_PIPELINE_EXPORT wait_before_start_exception
     /**
      * \brief Constructor.
      */
-    wait_before_start_exception() VITAL_NOTHROW;
+    wait_before_start_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~wait_before_start_exception() VITAL_NOTHROW;
+    ~wait_before_start_exception() noexcept;
 };
 
 /**
@@ -189,11 +189,11 @@ class SPROKIT_PIPELINE_EXPORT pause_before_start_exception
     /**
      * \brief Constructor.
      */
-    pause_before_start_exception() VITAL_NOTHROW;
+    pause_before_start_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~pause_before_start_exception() VITAL_NOTHROW;
+    ~pause_before_start_exception() noexcept;
 };
 
 /**
@@ -210,11 +210,11 @@ class SPROKIT_PIPELINE_EXPORT repause_scheduler_exception
     /**
      * \brief Constructor.
      */
-    repause_scheduler_exception() VITAL_NOTHROW;
+    repause_scheduler_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~repause_scheduler_exception() VITAL_NOTHROW;
+    ~repause_scheduler_exception() noexcept;
 };
 
 /**
@@ -231,11 +231,11 @@ class SPROKIT_PIPELINE_EXPORT resume_before_start_exception
     /**
      * \brief Constructor.
      */
-    resume_before_start_exception() VITAL_NOTHROW;
+    resume_before_start_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~resume_before_start_exception() VITAL_NOTHROW;
+    ~resume_before_start_exception() noexcept;
 };
 
 /**
@@ -252,11 +252,11 @@ class SPROKIT_PIPELINE_EXPORT resume_unpaused_scheduler_exception
     /**
      * \brief Constructor.
      */
-    resume_unpaused_scheduler_exception() VITAL_NOTHROW;
+    resume_unpaused_scheduler_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~resume_unpaused_scheduler_exception() VITAL_NOTHROW;
+    ~resume_unpaused_scheduler_exception() noexcept;
 };
 
 /**
@@ -273,11 +273,11 @@ class SPROKIT_PIPELINE_EXPORT stop_before_start_exception
     /**
      * \brief Constructor.
      */
-    stop_before_start_exception() VITAL_NOTHROW;
+    stop_before_start_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~stop_before_start_exception() VITAL_NOTHROW;
+    ~stop_before_start_exception() noexcept;
 };
 
 }

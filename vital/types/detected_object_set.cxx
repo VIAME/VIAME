@@ -31,7 +31,6 @@
 #include "detected_object_set.h"
 #include "bounding_box.h"
 
-#include <vital/vital_foreach.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -79,12 +78,9 @@ detected_object_set()
 
 // ------------------------------------------------------------------
 detected_object_set::
-detected_object_set( detected_object::vector_t const& objs )
+detected_object_set( std::vector< detected_object_sptr > const& objs )
   : m_detected_objects( objs )
 {
-  // sort objects based on confidence
-  std::sort( m_detected_objects.begin(), m_detected_objects.end(),
-             descending_confidence() );
 }
 
 
@@ -95,11 +91,11 @@ clone() const
 {
   auto new_obj = std::make_shared<detected_object_set>();
 
-  const auto det_list = const_cast< detected_object_set* >(this)->select();
-  VITAL_FOREACH( const auto det, det_list)
+  auto ie = cend();
+  for ( auto ix = cbegin(); ix != ie; ++ix )
   {
     // copy detection
-    new_obj->add( det->clone() );
+    new_obj->add( (*ix)->clone() );
   }
 
   // duplicate attributes
@@ -131,9 +127,10 @@ void
 detected_object_set::
 add( detected_object_set_sptr detections )
 {
-  VITAL_FOREACH( auto detection, detections->select() )
+  auto ie = detections->cend();
+  for ( auto ix = detections->cbegin(); ix != ie; ++ix )
   {
-    this->add( detection );
+    this->add( *ix );
   }
 }
 
@@ -148,29 +145,39 @@ size() const
 
 
 // ------------------------------------------------------------------
-detected_object::vector_t
+bool
+detected_object_set::
+empty() const
+{
+  return m_detected_objects.empty();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_set_sptr
 detected_object_set::
 select( double threshold ) const
 {
   // The main list can get out of order if somebody updates the
   // confidence value of a detection directly
-  detected_object::vector_t vect;
+  std::vector< detected_object_sptr> vect;
 
-  VITAL_FOREACH( auto i, m_detected_objects )
+  auto ie =  cend();
+  for ( auto ix = cbegin(); ix != ie; ++ix )
   {
-    if ( i->confidence() >= threshold )
+    if ( (*ix)->confidence() >= threshold )
     {
-      vect.push_back( i );
+      vect.push_back( *ix );
     }
   }
 
   std::sort( vect.begin(), vect.end(), descending_confidence() );
-  return vect;
+  return std::make_shared< detected_object_set > (vect);
 }
 
 
 // ------------------------------------------------------------------
-detected_object::vector_t
+detected_object_set_sptr
 detected_object_set::
 select( const std::string& class_name, double threshold )const
 {
@@ -178,9 +185,10 @@ select( const std::string& class_name, double threshold )const
   std::vector< std::pair< double, detected_object_sptr > > data;
 
   // Create a sortable list by selecting
-  VITAL_FOREACH( auto i, m_detected_objects )
+  auto ie = cend();
+  for ( auto ix = cbegin(); ix != ie; ++ix )
   {
-    auto obj_type = i->type();
+    auto obj_type = (*ix)->type();
     if ( ! obj_type )
     {
       continue;  // Must have a type assigned
@@ -204,7 +212,7 @@ select( const std::string& class_name, double threshold )const
     // Select those not below threshold
     if ( score >= threshold )
     {
-      data.push_back( std::pair< double, detected_object_sptr >( score, i ) );
+      data.push_back( std::pair< double, detected_object_sptr >( score, *ix ) );
     }
   } // end foreach
 
@@ -212,14 +220,14 @@ select( const std::string& class_name, double threshold )const
   std::sort( data.begin(), data.end(), more_first< double,  detected_object_sptr >() );
 
   // Create new vector for return
-  detected_object::vector_t vect;
+  std::vector< detected_object_sptr > vect;
 
-  VITAL_FOREACH( auto i, data )
+  for( auto i : data )
   {
     vect.push_back( i.second );
   }
 
-  return vect;
+  return std::make_shared< detected_object_set > (vect);
 }
 
 // ------------------------------------------------------------------
@@ -232,7 +240,7 @@ scale( double scale_factor )
     return;
   }
 
-  VITAL_FOREACH( auto detection, m_detected_objects )
+  for( auto detection : m_detected_objects )
   {
     auto bbox = detection->bounding_box();
     bbox = kwiver::vital::scale( bbox, scale_factor );
@@ -250,7 +258,7 @@ shift( double col_shift, double row_shift )
     return;
   }
 
-  VITAL_FOREACH( auto detection, m_detected_objects )
+  for( auto detection : m_detected_objects )
   {
     auto bbox = detection->bounding_box();
     bbox = kwiver::vital::translate( bbox,
@@ -274,6 +282,60 @@ detected_object_set::
 set_attributes( attribute_set_sptr attrs )
 {
   m_attrs = attrs;
+}
+
+
+// ------------------------------------------------------------------
+detected_object_set::iterator
+detected_object_set::
+begin()
+{
+  return m_detected_objects.begin();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_set::iterator
+detected_object_set::
+end()
+{
+  return m_detected_objects.end();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_set::const_iterator
+detected_object_set::
+cbegin() const
+{
+  return m_detected_objects.begin();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_set::const_iterator
+detected_object_set::
+cend() const
+{
+  return m_detected_objects.end();
+}
+
+
+// ----------------------------------------------------------------------------
+detected_object_sptr
+detected_object_set::
+at( size_t pos )
+{
+  return m_detected_objects.at( pos );
+}
+
+
+// ----------------------------------------------------------------------------
+const detected_object_sptr
+detected_object_set::
+at( size_t pos ) const
+{
+  return m_detected_objects.at( pos );
 }
 
 } } // end namespace

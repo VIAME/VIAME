@@ -31,9 +31,7 @@
 #ifndef SPROKIT_PIPELINE_VERSION_H
 #define SPROKIT_PIPELINE_VERSION_H
 
-#include "pipeline-config.h"
-
-#include <boost/cstdint.hpp>
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <string>
 

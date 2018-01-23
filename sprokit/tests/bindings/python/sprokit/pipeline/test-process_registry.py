@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -37,14 +37,6 @@ def test_import():
         test_error("Failed to import the process_factory module")
 
 
-def test_create():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import process_factory
-
-    process_factory.ProcessDescription()
-    process_factory.ProcessModule()
-
-
 def test_api_calls():
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
@@ -56,8 +48,8 @@ def test_api_calls():
     proc_type = 'orphan'
     c = config.empty_config()
 
-    process_factory.create_process(proc_type, process.ProcessName())
-    process_factory.create_process(proc_type, process.ProcessName(), c)
+    process_factory.create_process(proc_type, '')
+    process_factory.create_process(proc_type, '', c)
     process_factory.types()
     process_factory.description(proc_type)
 
@@ -77,10 +69,6 @@ def test_api_calls():
     process_factory.Process.flag_input_mutable
     process_factory.Process.flag_input_nodep
     process_factory.Process.flag_required
-
-    cluster_bases = process_factory.ProcessCluster.__bases__
-    if not cluster_bases[0] == process_factory.Process:
-        test_error("The cluster class does not inherit from the process class")
 
 
 def example_process(check_init):
@@ -250,7 +238,7 @@ def test_register():
         test_error("Description was not preserved when registering")
 
     try:
-        p = process_factory.create_process(proc_type, process.ProcessName())
+        p = process_factory.create_process(proc_type, '')
         if p is None:
             raise Exception()
     except:
@@ -274,7 +262,7 @@ def test_register_cluster():
     p = None
 
     try:
-        p = process_factory.create_process(proc_type, process.ProcessName())
+        p = process_factory.create_process(proc_type, '')
         if p is None:
             raise Exception()
     except BaseException:
@@ -356,10 +344,10 @@ def test_wrapper_api():
 
         del p
 
-    p = process_factory.create_process(proc_type, process.ProcessName())
+    p = process_factory.create_process(proc_type, '')
     check_process(p)
 
-    p = process_factory.create_process(proc_base_type, process.ProcessName())
+    p = process_factory.create_process(proc_base_type, '')
     check_process(p)
 
 

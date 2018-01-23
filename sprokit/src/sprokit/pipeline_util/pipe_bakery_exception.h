@@ -37,7 +37,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_BAKERY_EXCEPTION_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 
@@ -72,11 +72,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT pipe_bakery_exception
     /**
      * \brief Constructor.
      */
-    pipe_bakery_exception() VITAL_NOTHROW;
+    pipe_bakery_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~pipe_bakery_exception() VITAL_NOTHROW;
+    virtual ~pipe_bakery_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -94,11 +94,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT missing_cluster_block_exception
     /**
      * \brief Constructor.
      */
-    missing_cluster_block_exception() VITAL_NOTHROW;
+    missing_cluster_block_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~missing_cluster_block_exception() VITAL_NOTHROW;
+    ~missing_cluster_block_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -116,11 +116,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT multiple_cluster_blocks_exception
     /**
      * \brief Constructor.
      */
-    multiple_cluster_blocks_exception() VITAL_NOTHROW;
+    multiple_cluster_blocks_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~multiple_cluster_blocks_exception() VITAL_NOTHROW;
+    ~multiple_cluster_blocks_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -138,12 +138,12 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_processes_exception
     /**
      * \brief Constructor.
      */
-    cluster_without_processes_exception() VITAL_NOTHROW;
+    cluster_without_processes_exception() noexcept;
 
     /**
      * \brief Destructor.
      */
-    virtual ~cluster_without_processes_exception() VITAL_NOTHROW;
+    virtual ~cluster_without_processes_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -161,12 +161,12 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_without_ports_exception
     /**
      * \brief Constructor.
      */
-    cluster_without_ports_exception() VITAL_NOTHROW;
+    cluster_without_ports_exception() noexcept;
 
     /**
      * \brief Destructor.
      */
-    virtual ~cluster_without_ports_exception() VITAL_NOTHROW;
+    virtual ~cluster_without_ports_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -184,12 +184,12 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_port_exception
     /**
      * \brief Constructor.
      */
-    duplicate_cluster_port_exception(process::port_t const& port, char const* const side) VITAL_NOTHROW;
+    duplicate_cluster_port_exception(process::port_t const& port, char const* const side) noexcept;
 
     /**
      * \brief Destructor.
      */
-    virtual ~duplicate_cluster_port_exception() VITAL_NOTHROW;
+    virtual ~duplicate_cluster_port_exception() noexcept;
 
     /// The name of the duplicate port.
     process::port_t const m_port;
@@ -210,12 +210,12 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_input_port_exception
     /**
      * \brief Constructor.
      */
-    duplicate_cluster_input_port_exception(process::port_t const& port) VITAL_NOTHROW;
+    duplicate_cluster_input_port_exception(process::port_t const& port) noexcept;
 
     /**
      * \brief Destructor.
      */
-    virtual ~duplicate_cluster_input_port_exception() VITAL_NOTHROW;
+    virtual ~duplicate_cluster_input_port_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -233,12 +233,12 @@ class SPROKIT_PIPELINE_UTIL_EXPORT duplicate_cluster_output_port_exception
     /**
      * \brief Constructor.
      */
-    duplicate_cluster_output_port_exception(process::port_t const& port) VITAL_NOTHROW;
+    duplicate_cluster_output_port_exception(process::port_t const& port) noexcept;
 
     /**
      * \brief Destructor.
      */
-    virtual ~duplicate_cluster_output_port_exception() VITAL_NOTHROW;
+    virtual ~duplicate_cluster_output_port_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -259,11 +259,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT unrecognized_config_flag_exception
      * \param key The key the flag was on.
      * \param flag The unrecognized flag.
      */
-    unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) VITAL_NOTHROW;
+    unrecognized_config_flag_exception(kwiver::vital::config_block_key_t const& key, config_flag_t const& flag) noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~unrecognized_config_flag_exception() VITAL_NOTHROW;
+    virtual ~unrecognized_config_flag_exception() noexcept;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
@@ -290,11 +290,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT config_flag_mismatch_exception
      * \param key The key the flag was on.
      * \param reason The reason for the mismatch.
      */
-    config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) VITAL_NOTHROW;
+    config_flag_mismatch_exception(kwiver::vital::config_block_key_t const& key, std::string const& reason) noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~config_flag_mismatch_exception() VITAL_NOTHROW;
+    virtual ~config_flag_mismatch_exception() noexcept;
 
     /// The key the flag was on.
     kwiver::vital::config_block_key_t const m_key;
@@ -312,12 +312,12 @@ public:
    * \brief Constructor.
    */
   relativepath_exception( const std::string& msg,
-                          const kwiver::vital::source_location& loc) VITAL_NOTHROW;
+                          const kwiver::vital::source_location& loc) noexcept;
 
   /**
    * \brief Destructor.
    */
-  virtual ~relativepath_exception() VITAL_NOTHROW;
+  virtual ~relativepath_exception() noexcept;
 
 };
 
@@ -331,14 +331,14 @@ public:
    * \brief Constructor.
    */
   provider_error_exception( const std::string& msg,
-                            const kwiver::vital::source_location& loc) VITAL_NOTHROW;
+                            const kwiver::vital::source_location& loc) noexcept;
 
-  provider_error_exception( const std::string& msg ) VITAL_NOTHROW;
+  provider_error_exception( const std::string& msg ) noexcept;
 
   /**
    * \brief Destructor.
    */
-  virtual ~provider_error_exception() VITAL_NOTHROW;
+  virtual ~provider_error_exception() noexcept;
 
 };
 

@@ -34,7 +34,6 @@
 #include <vital/vital_config.h>
 
 #include <string>
-#include <memory>
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
@@ -50,11 +49,6 @@ class VITAL_ALGO_EXPORT split_image
 public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "split_image"; }
-
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(kwiver::vital::config_block_sptr config);
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
   /// Split image
   virtual std::vector< kwiver::vital::image_container_sptr >

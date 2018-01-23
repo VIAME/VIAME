@@ -57,6 +57,8 @@ function (sprokit_add_test_plugin    name    directory)
   endforeach ()
 endfunction ()
 
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
 sprokit_add_test_plugin(processes_test multiple_load
   processes_test.cxx)
 
@@ -72,9 +74,6 @@ sprokit_discover_tests(modules test_libraries test_modules.cxx)
 # Process tests
 ##############################
 sprokit_discover_tests(process test_libraries test_process.cxx)
-
-set( non_b_libs ${test_libraries} kwiver_adapter)
-sprokit_discover_tests(non_blocking non_b_libs test_non_blocking.cxx)
 
 ##############################
 # Process cluster tests
@@ -100,7 +99,7 @@ set(test_python_path)
 
 if (KWIVER_ENABLE_PYTHON)
   set(python_module_path
-    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}/${sprokit_python_subdir}")
+    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}/${kwiver_python_subdir}")
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")
@@ -148,9 +147,7 @@ function (sprokit_add_tooled_run_test group instance)
     if (KWIVER_ENABLE_PYTHON)
       if (scheduler STREQUAL "pythread_per_process" OR
           instance STREQUAL "pysimple_pipeline")
-          _sprokit_python_site_package_dir( python_site_packages )
-
-        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/${python_site_packages}")
+        set(sprokit_test_environment "PYTHONPATH=${test_python_path}/${python_sitename}")
       endif ()
     endif ()
 

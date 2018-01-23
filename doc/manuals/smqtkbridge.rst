@@ -14,7 +14,7 @@ the structure of the solution.
 
 
 .. _smqtkcplusplusbridgeblock:
-.. figure:: images/smqtkcplusplusbridge.png
+.. figure:: _images/smqtkcplusplusbridge.png
    :align: center
 
    *Block Diagramm of the SMQTK/C++ Bridge*
@@ -34,7 +34,7 @@ The instructions assume that you will set up a directory structure
 similar to the :ref:`smqtkbridgesourceorganiziation` shown.
 
 .. _smqtkbridgesourceorganiziation:
-.. figure:: images/sourcestructure.png
+.. figure:: _images/sourcestructure.png
    :align: center
 
    *SMQTK/C++ Bridge Source Organization*
@@ -84,7 +84,8 @@ In the CAFFE directory::
     ./scripts/download_model_binary.py models/bvlc_reference_caffenet
     ./data/ilsvrc12/get_ilsvrc_aux.sh
 
-For CAFFE, in addition to obtaining the source code, we're fetching some pre-trained models  that we can use.
+For CAFFE, in addition to obtaining the source code, we're fetching
+some pre-trained models that we can use.
 
 
 Setting up a Python Environment
@@ -128,7 +129,8 @@ From your Fletch directory::
     cd build
     cmake -C ../source/sprokit/processes/examples/call_SMQTK_pipeline/fletch-precache.cmake ../source/
 
-This will configure Fletch to build the projects that KWIVER needs to build properly for use with SMQTK/C++ bridge.
+This will configure Fletch to build the projects that KWIVER needs to
+build properly for use with SMQTK/C++ bridge.
 
 To actually build Fletch execute the command::
 
@@ -170,8 +172,9 @@ And finally, build KWIVER::
 CAFFE
 +++++
 
-One of the feature's of SMQTK is that it can use a CAFFE based CNNN as a descriptor.  In general, you simply need to build
-CAFFE with it's Python bindings turned on::
+One of the feature's of SMQTK is that it can use a CAFFE based CNNN as
+a descriptor.  In general, you simply need to build CAFFE with it's
+Python bindings turned on::
 
     mkdir build
     cd build
@@ -189,10 +192,12 @@ From the SMQTK directory::
     cmake ../source
 
 .. _smqtkbridgetesting:
+
 Testing the Code
 ----------------
 
-Set your PATH to include the new projects. The following commands will set the environment so the examples can be run::
+Set your PATH to include the new projects. The following commands will
+set the environment so the examples can be run::
 
     source kwiver/build/install/setup_KWIVER.sh
     source smqtk/build/setup_env.build.sh
@@ -252,9 +257,14 @@ Which represents the first 50 elements of the returned feature
 vector.  If all of the elements are the value ``0.223``, then
 something went wrong and the feature vector was not run
 
-If you wish to use a different model, say AlexNet_, make sure you run ``./scripts/download_model_binary.py models/bvlc_alexnet`` in the
-Caffe source directory and then you can create a different configuration file that specifies ``/path/to/caffe/source/models/bvlc_alexnet/bvlc_alexnet.caffemodel``
-for ``network_model_filepath`` and ``/path/to/caffe/source/models/bvlc_alexnet/deploy.prototxt`` for ``network_prototxt_filepath``.
+If you wish to use a different model, say AlexNet_, make sure you run
+``./scripts/download_model_binary.py models/bvlc_alexnet`` in the
+Caffe source directory and then you can create a different
+configuration file that specifies
+``/path/to/caffe/source/models/bvlc_alexnet/bvlc_alexnet.caffemodel``
+for ``network_model_filepath`` and
+``/path/to/caffe/source/models/bvlc_alexnet/deploy.prototxt`` for
+``network_prototxt_filepath``.
 
 .. _AlexNet: https://github.com/BVLC/caffe/tree/master/models/bvlc_alexnet
 
@@ -262,13 +272,16 @@ for ``network_model_filepath`` and ``/path/to/caffe/source/models/bvlc_alexnet/d
 Using the SMQTK/C++ Bridge in Your Code
 ---------------------------------------
 
-The C++ interface to SMQTK descriptors is through the SMQTK_Descriptor class as defined in the include file ``SMQTK_Descriptor.h``.
+The C++ interface to SMQTK descriptors is through the SMQTK_Descriptor
+class as defined in the include file ``SMQTK_Descriptor.h``.
 
-The SMQTK descriptor API is built as part of kwiver and is available in the library ``libSMQTK_Descriptor.so``.
-You will need to add this to your build instructions as ``-lSMQTK_Descriptor`` or in an equivalent manner appropriate
-for your build system.
+The SMQTK descriptor API is built as part of kwiver and is available
+in the library ``libSMQTK_Descriptor.so``.  You will need to add this
+to your build instructions as ``-lSMQTK_Descriptor`` or in an
+equivalent manner appropriate for your build system.
 
-The class provides a single method to apply the descriptor to an image and return the descriptor vector, which is described as follows:
+The class provides a single method to apply the descriptor to an image
+and return the descriptor vector, which is described as follows:
 
 .. code-block:: c++
 
@@ -281,18 +294,21 @@ The class provides a single method to apply the descriptor to an image and retur
     The name of the SMQTK descriptor configuration file in JSON format.  See :ref:`Testing the Code <smqtkbridgetesting>` for details.
 
 
-The ExtractSMQTK() method is synchronous in that it will return with the descriptor vector even though the descriptor calculation may be multi-threaded.
+The ExtractSMQTK() method is synchronous in that it will return with
+the descriptor vector even though the descriptor calculation may be
+multi-threaded.
 
 The source code for the ``call_SMQTK_pipeline`` provides an example of how to use this call in your own programs:
 
-.. literalinclude:: /../examples/call_SMQTK_pipeline/SMQTK_Descriptor_test.cxx
+.. literalinclude:: /../../sprokit/processes/examples/call_SMQTK_pipeline/SMQTK_Descriptor_test.cxx
    :language: c++
    :lines: 31-71
    :emphasize-lines: 27
    :linenos:
 
 
-Include the file SMQTK_Descriptor.h in the source code to get the interface to the SMQTK_Descriptor class, as shown below::
+Include the file SMQTK_Descriptor.h in the source code to get the
+interface to the SMQTK_Descriptor class, as shown below::
 
     #include "SMQTK_Descriptor.h"
 
@@ -301,7 +317,8 @@ The following two source statements implement and apply the descriptor::
     kwiver::SMQTK_Descriptor des; // Create object
     std::vector< double > results = des.ExtractSMQTK( img, file_name );
 
-The inputs are the OpenCV format image and the name of the descriptor configuration file. The output is the descriptor vector of doubles.
+The inputs are the OpenCV format image and the name of the descriptor
+configuration file. The output is the descriptor vector of doubles.
 
 A sample program is provided in the source file SMQTK_Descriptor_test.cxx
 which serves as a test of the API and an example of how it is used.

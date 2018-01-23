@@ -42,7 +42,7 @@ bool has_algorithm_impl_name(std::string const& type_name,
   auto fact_list = vpm.get_factories( type_name );
 
   // Find the one that provides the impl_name
-  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+  for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string attr_val;
     if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val ) && ( attr_val == impl_name ) )
@@ -64,7 +64,7 @@ kwiver::vital::algorithm_sptr create_algorithm( std::string const& algo_name,
   auto fact_list = vpm.get_factories( algo_name );
 
   // Find the one that provides the impl_name
-  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+  for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string attr_val;
     if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val ) && ( attr_val == impl_name ) )

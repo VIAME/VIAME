@@ -8,4 +8,4 @@ set( test_libraries vital vital_vpm )
 # Loader tests
 ##############################
 
-kwiver_discover_tests(vital-plugin-loader             test_libraries test_plugin_loader.cxx)
+kwiver_discover_gtests(vital plugin_loader LIBRARIES ${test_libraries})

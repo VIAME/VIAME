@@ -35,6 +35,7 @@ public:
   virtual bool exists( const track_handle_type& h ) const;
   virtual bool exists( const frame_handle_type& h ) const;
   virtual bool exists( const oracle_entry_handle_type& h ) const;
+  virtual std::vector< bool > exists( const std::vector< oracle_entry_handle_type >& sorted_hlist ) const;
 
   virtual bool remove( const track_handle_type& h );
   virtual bool remove( const frame_handle_type& h );

@@ -50,7 +50,7 @@ namespace kwiver
  * \iport{image}
  *
  * \oports
- * \oport{src_to_ref_homography}
+ * \oport{feature_set}
  *
  */
 class KWIVER_PROCESSES_NO_EXPORT detect_features_process

@@ -31,55 +31,58 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 #define SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 
-#include "util-config.h"
+#include <sprokit/python/util/sprokit_python_util_export.h>
 
 namespace sprokit {
 namespace python {
 
 /// \todo More useful output?
 
-#define SPROKIT_PYTHON_HANDLE_EXCEPTION(call)     \
-  try                                             \
-  {                                               \
-    call;                                         \
-  }                                               \
-  catch (boost::python::error_already_set const&) \
-  {                                               \
-    sprokit::python::python_print_exception();    \
-                                                  \
-    throw;                                        \
+#define SPROKIT_PYTHON_HANDLE_EXCEPTION(call)                     \
+  try                                                             \
+  {                                                               \
+    call;                                                         \
+  }                                                               \
+  catch (pybind11::error_already_set const& e)                    \
+  {                                                               \
+    auto logger = kwiver::vital::get_logger("python_exceptions"); \
+    LOG_WARN(logger, "Ignore Python Exception:\n" << e.what());   \
+    sprokit::python::python_print_exception();                    \
+                                                                  \
+    throw;                                                        \
   }
 
-#define SPROKIT_PYTHON_IGNORE_EXCEPTION(call)      \
-  try                                              \
-  {                                                \
-    call;                                          \
-  }                                                \
-  catch (boost::python::error_already_set const&)  \
-  {                                                \
-    sprokit::python::python_print_exception();     \
+#define SPROKIT_PYTHON_IGNORE_EXCEPTION(call)                     \
+  try                                                             \
+  {                                                               \
+    call;                                                         \
+  }                                                               \
+  catch (pybind11::error_already_set const& e)                    \
+  {                                                               \
+    auto logger = kwiver::vital::get_logger("python_exceptions"); \
+    LOG_WARN(logger, "Ignore Python Exception:\n" << e.what());   \
+    sprokit::python::python_print_exception();                    \
   }
 
-#define SPROKIT_PYTHON_TRANSLATE_EXCEPTION(call)   \
-  try                                              \
-  {                                                \
-    call;                                          \
-  }                                                \
-  catch (std::exception const& e)                  \
-  {                                                \
-    sprokit::python::python_gil const gil;         \
-                                                   \
-    (void)gil;                                     \
-                                                   \
-    PyErr_SetString(PyExc_RuntimeError, e.what()); \
-                                                   \
-    throw;                                         \
+#define SPROKIT_PYTHON_TRANSLATE_EXCEPTION(call)                  \
+  try                                                             \
+  {                                                               \
+    call;                                                         \
+  }                                                               \
+  catch (std::exception const& e)                                 \
+  {                                                               \
+    sprokit::python::python_gil const gil;                        \
+                                                                  \
+    (void)gil;                                                    \
+                                                                  \
+    PyErr_SetString(PyExc_RuntimeError, e.what());                \
+                                                                  \
+    throw;                                                        \
   }
 
 SPROKIT_PYTHON_UTIL_EXPORT void python_print_exception();
 
 }
-
 }
 
 #endif // SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H

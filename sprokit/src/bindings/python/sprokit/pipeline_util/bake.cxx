@@ -38,10 +38,7 @@
 #include <sprokit/python/util/pystream.h>
 #include <sprokit/python/util/python_gil.h>
 
-#include <boost/python/class.hpp>
-#include <boost/python/def.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/exception_translator.hpp>
+#include <pybind11/pybind11.h>
 
 #include <stdexcept>
 #include <string>
@@ -52,7 +49,7 @@
  * \brief Python bindings for baking pipelines.
  */
 
-using namespace boost::python;
+using namespace pybind11;
 
 static sprokit::process::type_t cluster_info_type(sprokit::cluster_info_t const& self);
 static sprokit::process::description_t cluster_info_description(sprokit::cluster_info_t const& self);
@@ -64,11 +61,10 @@ static sprokit::pipeline_t bake_pipe(object stream);
 static sprokit::cluster_info_t bake_cluster_file(std::string const& path);
 static sprokit::cluster_info_t bake_cluster(object stream);
 
-BOOST_PYTHON_MODULE(bake)
+PYBIND11_MODULE(bake, m)
 {
-  class_<sprokit::cluster_info_t>("ClusterInfo"
-    , "Information loaded from a cluster file."
-    , no_init)
+  class_<sprokit::cluster_info, sprokit::cluster_info_t>(m, "ClusterInfo"
+    , "Information loaded from a cluster file.")
     .def("type", &cluster_info_type)
     .def("description", &cluster_info_description)
     .def("create", &cluster_info_create
@@ -78,29 +74,29 @@ BOOST_PYTHON_MODULE(bake)
       , "Create an instance of the cluster.")
   ;
 
-  def("register_cluster", &register_cluster
+  m.def("register_cluster", &register_cluster
     , (arg("cluster_info"))
     , "Register a cluster with the registry.");
 
-  def("bake_pipe_file", &bake_pipe_file
+  m.def("bake_pipe_file", &bake_pipe_file
     , (arg("path"))
     , "Build a pipeline from a file.");
-  def("bake_pipe", &bake_pipe
+  m.def("bake_pipe", &bake_pipe
     , (arg("stream"))
     , "Build a pipeline from a stream.");
-  def("bake_pipe_blocks", &sprokit::bake_pipe_blocks
+  m.def("bake_pipe_blocks", &sprokit::bake_pipe_blocks
     , (arg("blocks"))
     , "Build a pipeline from pipe blocks.");
-  def("bake_cluster_file", &bake_cluster_file
+  m.def("bake_cluster_file", &bake_cluster_file
     , (arg("path"))
     , "Build a cluster from a file.");
-  def("bake_cluster", &bake_cluster
+  m.def("bake_cluster", &bake_cluster
     , (arg("stream"))
     , "Build a cluster from a stream.");
-  def("bake_cluster_blocks", &sprokit::bake_cluster_blocks
+  m.def("bake_cluster_blocks", &sprokit::bake_cluster_blocks
     , (arg("blocks"))
     , "Build a cluster from cluster blocks.");
-  def("extract_configuration", &sprokit::extract_configuration
+  m.def("extract_configuration", &sprokit::extract_configuration
     , (arg("blocks"))
     , "Extract the configuration from pipe blocks.");
 }
@@ -160,9 +156,9 @@ register_cluster(sprokit::cluster_info_t const& info)
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   sprokit::process::type_t derived_type = "python::";
-  auto fact = vpm.add_factory( new sprokit::process_factory( derived_type + type, // derived type name string
-                                                             type, // name of the cluster/process
-                                                             ctor ) );
+  auto fact = vpm.add_factory( new sprokit::cpp_process_factory( derived_type + type, // derived type name string
+                                                                 type, // name of the cluster/process
+                                                                 ctor ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime-cluster" )

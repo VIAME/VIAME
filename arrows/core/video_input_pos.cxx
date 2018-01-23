@@ -31,13 +31,13 @@
 #include "video_input_pos.h"
 
 #include <vital/vital_types.h>
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
 #include <vital/types/timestamp.h>
 #include <vital/exceptions.h>
 #include <vital/util/data_stream_reader.h>
 
-#include <vital/video_metadata/video_metadata.h>
-#include <vital/video_metadata/video_metadata_traits.h>
-#include <vital/video_metadata/pos_metadata_io.h>
+#include <vital/io/metadata_io.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -69,7 +69,7 @@ public:
   std::vector < path_pair_t >::const_iterator d_current_files;
   kwiver::vital::timestamp::frame_t d_frame_number;
 
-  vital::video_metadata_sptr d_metadata;
+  vital::metadata_sptr d_metadata;
 };
 
 
@@ -283,11 +283,11 @@ video_input_pos
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 video_input_pos
 ::frame_metadata()
 {
-  kwiver::vital::video_metadata_vector vect;
+  kwiver::vital::metadata_vector vect;
   if ( d->d_metadata )
   {
     vect.push_back( d->d_metadata );

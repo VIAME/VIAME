@@ -40,10 +40,6 @@
 namespace kwiver {
 
 // ----------------------------------------------------------------
-/**
- * @brief Object detection refiner process.
- *
- */
 class KWIVER_PROCESSES_NO_EXPORT compute_stereo_depth_map_process
   : public sprokit::process
 {

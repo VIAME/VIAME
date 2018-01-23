@@ -39,13 +39,10 @@
 // Only available in OpenCV 3.x
 #ifdef KWIVER_HAS_OPENCV_VER_3
 
-#include <memory>
-#include <string>
-
-#include <vital/vital_config.h>
-
 #include <arrows/ocv/detect_features.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
+
+#include <string>
 
 namespace kwiver {
 namespace arrows {

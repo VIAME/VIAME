@@ -76,8 +76,8 @@ kwiver_logger_manager* kwiver_logger_manager::s_instance = 0;
 class kwiver_logger_manager::impl
 {
 public:
-  impl() VITAL_DEFAULT_CTOR
-  ~impl() VITAL_DEFAULT_DTOR
+  impl() = default;
+  ~impl() = default;
 
   std::unique_ptr< logger_ns::kwiver_logger_factory > m_logFactory;
 

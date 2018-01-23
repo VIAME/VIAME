@@ -72,7 +72,7 @@ class VITAL_EXPORT camera
 {
 public:
   /// Destructor
-  virtual ~camera() VITAL_DEFAULT_DTOR
+  virtual ~camera() = default;
 
   /// Create a clone of this camera object
   virtual camera_sptr clone() const = 0;
@@ -206,8 +206,9 @@ public:
    * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    * \returns New clone, but set to look at the given point.
    */
-  virtual camera_sptr clone_look_at( const vector_3d &stare_point,
-                                     const vector_3d &up_direction ) const;
+  virtual camera_sptr clone_look_at(
+    const vector_3d &stare_point,
+    const vector_3d &up_direction = vector_3d::UnitZ() ) const override;
 
   /// Accessor for the camera center of projection using underlying data type
   const vector_3d& get_center() const { return center_; }

@@ -7,5 +7,3 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/kwiver_process.py
 #  kwiver
 #  __init__ )
 
-# Move down to subdirectories
-add_subdirectory( util )

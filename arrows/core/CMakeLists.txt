@@ -16,6 +16,7 @@ set( plugin_core_headers
   detected_object_set_output_csv.h
   dynamic_config_none.h
   estimate_canonical_transform.h
+  example_detector.h
   feature_descriptor_io.h
   filter_features_magnitude.h
   filter_features_scale.h
@@ -26,7 +27,7 @@ set( plugin_core_headers
   initialize_object_tracks_threshold.h
   match_features_fundamental_matrix.h
   match_features_homography.h
-  merge_tracks.h
+  match_tracks.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   track_features_core.h
@@ -46,6 +47,7 @@ set( plugin_core_headers
   metrics.h
   projected_track_set.h
   track_features_core.h
+  track_set_impl.h
   transform.h
   triangulate.h
   triangulate_landmarks.h
@@ -77,6 +79,7 @@ set( plugin_core_sources
   detected_object_set_output_csv.cxx
   dynamic_config_none.cxx
   estimate_canonical_transform.cxx
+  example_detector.cxx
   feature_descriptor_io.cxx
   filter_features_magnitude.cxx
   filter_features_scale.cxx
@@ -87,7 +90,7 @@ set( plugin_core_sources
   initialize_object_tracks_threshold.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
-  merge_tracks.cxx
+  match_tracks.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
   track_features_core.cxx
@@ -107,6 +110,7 @@ set( plugin_core_sources
   metrics.cxx
   projected_track_set.cxx
   track_features_core.cxx
+  track_set_impl.cxx
   transform.cxx
   triangulate.cxx
   triangulate_landmarks.cxx
@@ -129,7 +133,6 @@ kwiver_add_library( kwiver_algo_core
 target_link_libraries( kwiver_algo_core
   PUBLIC               vital_algo
   PRIVATE              kwiversys
-                       vital_video_metadata
                        vital_config
   )
 

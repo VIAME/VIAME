@@ -37,8 +37,6 @@
 
 #include <time.h>
 
-#include <vital/vital_foreach.h>
-
 namespace kwiver {
 namespace arrows {
 namespace core {
@@ -91,11 +89,11 @@ write_object_track_set_kw18
 write_object_track_set_kw18
 ::~write_object_track_set_kw18()
 {
-  VITAL_FOREACH( auto trk_pair, d->m_tracks )
+  for( auto trk_pair : d->m_tracks )
   {
     auto trk_ptr = trk_pair.second;
 
-    VITAL_FOREACH( auto ts_ptr, *trk_ptr )
+    for( auto ts_ptr : *trk_ptr )
     {
       vital::object_track_state* ts =
         dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
@@ -127,7 +125,7 @@ write_object_track_set_kw18
                << "0 "                     // 15: world-loc x
                << "0 "                     // 16: world-loc y
                << "0 "                     // 17: world-loc z
-               << "-1 "                    // 18: timestamp
+               << ts->frame() << " "       // 18: timestamp
                << det->confidence()        // 19: confidence
                << std::endl;
     }
@@ -187,7 +185,7 @@ write_object_track_set_kw18
     d->m_first = false;
   }
 
-  VITAL_FOREACH( auto trk, set->tracks() )
+  for( auto trk : set->tracks() )
   {
     d->m_tracks[ trk->id() ] = trk;
   }

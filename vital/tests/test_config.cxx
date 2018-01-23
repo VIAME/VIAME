@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,68 +33,44 @@
  * \brief core config_block tests
  */
 
-#include <tests/test_common.h>
+#include <test_eigen.h>
 
 #include <vital/config/config_block.h>
 #include <vital/io/eigen_io.h>
 #include <vital/types/vector.h>
 
-#define TEST_ARGS ()
+using namespace kwiver::vital;
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(value_conversion)
+// ----------------------------------------------------------------------------
+TEST(config, value_conversion)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("key");
+  config_block_sptr const config = config_block::empty_config();
+  config_block_key_t const key = config_block_key_t{ "key" };
 
-  {
-    config->set_value(key, 123.456);
-    double val = config->get_value<double>(key);
+  constexpr static double double_value = 123.456;
+  config->set_value( key, double_value );
+  EXPECT_DOUBLE_EQ( double_value, config->get_value<double>( key ) );
 
-    TEST_EQUAL("A double value is not converted to a config value and back again",
-               val, 123.456);
-  }
-  {
-    config->set_value(key, 1234567);
-    unsigned int val = config->get_value<unsigned int>(key);
+  constexpr static unsigned int uint_value = 1234567;
+  config->set_value( key, uint_value );
+  EXPECT_EQ( uint_value, config->get_value<unsigned int>( key ) );
 
-    TEST_EQUAL("An unsigned int value is not converted to a config value and back again",
-               val, 1234567);
-  }
+  vector_2d const vec2d_value{ 2.34, 0.0567 };
+  config->set_value( key, vec2d_value );
+  EXPECT_MATRIX_EQ( vec2d_value, config->get_value<vector_2d>( key ) );
 
-  {
-    kwiver::vital::vector_2d in_val(2.34, 0.0567);
-    config->set_value(key, in_val);
-    kwiver::vital::vector_2d val = config->get_value<kwiver::vital::vector_2d>(key);
+  std::string const string_value{ "some string" };
+  config->set_value( key, string_value );
+  EXPECT_EQ( string_value, config->get_value<std::string>( key ) );
 
-    TEST_EQUAL("A vector_2d value is not converted to a config value and back again",
-               val, in_val);
-  }
-
-  {
-    config->set_value(key, "some string");
-    std::string val = config->get_value<std::string>(key);
-    TEST_EQUAL("A std::string value was not converted to a config value and back again",
-               val, "some string");
-  }
-  {
-    kwiver::vital::config_block_value_t in_val("Some value string");
-    config->set_value(key, in_val);
-    kwiver::vital::config_block_value_t val = config->get_value<kwiver::vital::config_block_key_t>(key);
-    TEST_EQUAL("A cb_value_t value was not converted to a config value and back again",
-               val, in_val);
-  }
+  config_block_value_t cbv_value{ "some value string" };
+  config->set_value( key, cbv_value );
+  EXPECT_EQ( cbv_value, config->get_value<config_block_value_t>( key ) );
 }

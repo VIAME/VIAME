@@ -151,7 +151,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::split_image );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Split image into multiple smaller images" )
+                       "Split a larger image into multiple smaller images" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

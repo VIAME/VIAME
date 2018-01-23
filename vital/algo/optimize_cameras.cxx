@@ -37,7 +37,6 @@
 
 #include <vital/algo/algorithm.txx>
 #include <vital/algo/optimize_cameras.h>
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace vital {
@@ -56,7 +55,7 @@ optimize_cameras
 ::optimize(camera_map_sptr & cameras,
            feature_track_set_sptr tracks,
            landmark_map_sptr landmarks,
-           video_metadata_map_sptr metadata) const
+           metadata_map_sptr metadata) const
 {
   if (!cameras || !tracks || !landmarks)
   {
@@ -77,7 +76,7 @@ optimize_cameras
 
   states_map_t states_map;
   // O( len(trks) * avg_t_len )
-  VITAL_FOREACH(track_sptr const& t, trks)
+  for(track_sptr const& t : trks)
   {
     // Only record a state if there is a corresponding landmark for the
     // track (constant-time check), the track state has a feature and thus a
@@ -85,7 +84,7 @@ optimize_cameras
     // state's frame (constant-time check).
     if (lms.count(t->id()))
     {
-      VITAL_FOREACH (auto const& ts, *t)
+      for (auto const& ts : *t)
       {
         auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
         if (fts && fts->feature && cams.count(ts->frame()))
@@ -102,16 +101,16 @@ optimize_cameras
   map_camera_t optimized_cameras;
   std::vector< feature_sptr > v_feat;
   std::vector< landmark_sptr > v_lms;
-  video_metadata_map::map_video_metadata_t metadata_map;
+  metadata_map::map_metadata_t metadata_map;
   if(metadata)
   {
-    metadata_map = metadata->video_metadata();
+    metadata_map = metadata->metadata();
   }
-  VITAL_FOREACH(map_camera_t::value_type const& p, cams)
+  for(map_camera_t::value_type const& p : cams)
   {
     v_feat.clear();
     v_lms.clear();
-    video_metadata_vector v_metadata;
+    metadata_vector v_metadata;
 
     auto mdv = metadata_map.find(p.first);
     if(mdv != metadata_map.end())
@@ -120,7 +119,7 @@ optimize_cameras
     }
 
     // Construct 2d<->3d correspondences
-    VITAL_FOREACH(inner_map_t::value_type const& q, states_map[p.first])
+    for(inner_map_t::value_type const& q : states_map[p.first])
     {
       // Already guaranteed that feat and landmark exists above.
       v_feat.push_back(q.second);

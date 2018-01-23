@@ -35,7 +35,6 @@
 
 #include "output_adapter_process.h"
 
-#include <vital/vital_foreach.h>
 #include <kwiver_type_traits.h>
 
 #include <stdexcept>
@@ -78,9 +77,6 @@ output_adapter_process
   : process( config )
   , d( new output_adapter_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   declare_config_using_trait( wait_on_queue_full );
 }
 
@@ -109,7 +105,7 @@ output_adapter_process
 
   // formulate list of current output ports
   auto ports = this->output_ports();
-  VITAL_FOREACH( auto port, ports )
+  for( auto port : ports )
   {
     port_info[port] = this->output_port_info( port );
   }
@@ -172,7 +168,7 @@ output_adapter_process
   auto data_set = kwiver::adapter::adapter_data_set::create();
 
   // The grab call is blocking, so it will wait until data is there.
-  VITAL_FOREACH( auto const p, m_active_ports )
+  for( auto const p : m_active_ports )
   {
     LOG_TRACE( logger(), "Getting data from port \"" << p <<"\"" );
 

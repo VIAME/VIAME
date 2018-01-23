@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,878 +33,467 @@
  * \brief vital config_block tests
  */
 
-#include <tests/test_common.h>
-
 #include <vital/config/config_block.h>
 #include <vital/util/enum_converter.h>
+#include <vital/types/vector.h>
 
+#include <gtest/gtest.h>
+
+#include <vector>
 #include <functional>
 
-#define TEST_ARGS ()
+using namespace kwiver::vital;
 
-DECLARE_TEST_MAP();
+namespace {
 
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
+// Some test keys/values, so we don't have to declare them in every test case
+auto const keya = config_block_key_t{ "keya" };
+auto const keyb = config_block_key_t{ "keyb" };
+auto const keyc = config_block_key_t{ "keyc" };
 
-  testname_t const testname = argv[1];
+auto const valuea = config_block_value_t{ "valuea" };
+auto const valueb = config_block_value_t{ "valueb" };
+auto const valuec = config_block_value_t{ "valuec" };
 
-  RUN_TEST(testname);
+auto const block1_name = config_block_key_t{ "block1" };
+auto const block2_name = config_block_key_t{ "block2" };
+
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(block_sep_size)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  if (kwiver::vital::config_block::block_sep.size() != 1)
-  {
-    TEST_ERROR("Block separator is not size 1; quite a "
-               "few places rest on this assumption now");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(has_value)
+// ----------------------------------------------------------------------------
+TEST(config_block, block_sep_size)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
-
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-
-  config->set_value(keya, valuea);
-
-  if (!config->has_value(keya))
-  {
-    TEST_ERROR("Block does not have value which was set");
-  }
-
-  if (config->has_value(keyb))
-  {
-    TEST_ERROR("Block has value which was not set");
-  }
+  // Quite a few places assume that the block separator size is 1
+  EXPECT_EQ( 1, config_block::block_sep.size() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(get_value)
+// ----------------------------------------------------------------------------
+TEST(config_block, has_value)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  config->set_value( keya, valuea );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-
-  config->set_value(keya, valuea);
-
-  kwiver::vital::config_block_value_t const get_valuea = config->get_value<kwiver::vital::config_block_value_t>(keya);
-
-  if (valuea != get_valuea)
-  {
-    TEST_ERROR("Did not retrieve value that was set");
-  }
+  EXPECT_TRUE( config->has_value( keya ) );
+  EXPECT_FALSE( config->has_value( keyb ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(get_value_nested)
+// ----------------------------------------------------------------------------
+TEST(config_block, get_value)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-
-  config->set_value(keya + kwiver::vital::config_block::block_sep + keyb, valuea);
-
-  kwiver::vital::config_block_sptr const nested_config = config->subblock(keya);
-
-  kwiver::vital::config_block_value_t const get_valuea = nested_config->get_value<kwiver::vital::config_block_value_t>(keyb);
-
-  if (valuea != get_valuea)
-  {
-    TEST_ERROR("Did not retrieve value that was set");
-  }
+  config->set_value( keya, valuea );
+  EXPECT_EQ( valuea, config->get_value<config_block_value_t>( keya ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(get_value_no_exist)
+// ----------------------------------------------------------------------------
+TEST(config_block, get_value_nested)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-
-  EXPECT_EXCEPTION(kwiver::vital::no_such_configuration_value_exception,
-                   config->get_value<kwiver::vital::config_block_value_t>(keya),
-                   "retrieving an unset value");
-
-  kwiver::vital::config_block_value_t const get_valueb = config->get_value<kwiver::vital::config_block_value_t>(keyb, valueb);
-
-  if (valueb != get_valueb)
-  {
-    TEST_ERROR("Did not retrieve default when requesting unset value");
-  }
+  config->set_value( keya + config_block::block_sep + keyb, valuea );
+  EXPECT_EQ(
+    valuea,
+    config->subblock( keya )->get_value<config_block_value_t>( keyb ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(get_value_type_mismatch)
+// ----------------------------------------------------------------------------
+TEST(config_block, get_value_no_exist)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  auto const no_such_key = config_block_key_t{ "lalala" };
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  int const valueb = 100;
+  EXPECT_THROW(
+    config->get_value<config_block_value_t>( no_such_key ),
+    no_such_configuration_value_exception );
 
-  config->set_value(keya, valuea);
-
-  EXPECT_EXCEPTION(kwiver::vital::bad_config_block_cast_exception,
-                   config->get_value<int>(keya),
-                   "doing an invalid cast");
-
-  int const get_valueb = config->get_value<int>(keya, valueb);
-
-  if (valueb != get_valueb)
-  {
-    TEST_ERROR("Did not retrieve default when requesting a bad cast");
-  }
+  EXPECT_EQ(
+    valueb,
+    config->get_value<config_block_value_t>( no_such_key, valueb ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(value_conversion)
+// ----------------------------------------------------------------------------
+TEST(config_block, get_value_type_mismatch)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("key");
+  auto const config = config_block::empty_config();
 
-  {
-    config->set_value(key, 123.456);
-    double val = config->get_value<double>(key);
+  auto const str_value_key = keya;
+  auto const str_value = config_block_value_t{ "hello" };
+  int const int_value = 100;
 
-    TEST_EQUAL("A double value is not converted to a config value and back again",
-               val, 123.456);
-  }
-  {
-    config->set_value(key, 1234567);
-    unsigned int val = config->get_value<unsigned int>(key);
+  config->set_value( str_value_key, str_value );
 
-    TEST_EQUAL("An unsigned int value is not converted to a config value and back again",
-               val, 1234567);
-  }
+  EXPECT_THROW(
+    config->get_value<int>( str_value_key ),
+    bad_config_block_cast_exception );
+
+  EXPECT_EQ( int_value, config->get_value<int>( str_value_key, int_value ) );
+}
+
+// ----------------------------------------------------------------------------
+TEST(config_block, value_conversion)
+{
+  auto const config = config_block::empty_config();
+  auto const key = config_block_key_t{ "key" };
+
+  config->set_value( key, 123.456 );
+  EXPECT_EQ( 123.456, config->get_value<double>( key ) );
+
+  config->set_value( key, 1234567 );
+  EXPECT_EQ( 1234567, config->get_value<int>( key ) );
+
   /*
-  {
-    kwiver::vector_2d in_val(2.34, 0.0567);
-    config->set_value(key, in_val);
-    kwiver::vector_2d val = config->get_value<kwiver::vector_2d>(key);
-
-    TEST_EQUAL("A vector_2d value is not converted to a config value and back again",
-               val, in_val);
-  }
+  config->set_value( key, vector_2d{ 2.34, 0.0567 } );
+  EXPECT_EQ( ( vector_2d{ 2.34, 0.0567 } ),
+             config->get_value<vector_2d>( key ) );
   */
-  {
-    config->set_value(key, "some string");
-    std::string val = config->get_value<std::string>(key);
-    TEST_EQUAL("A std::string value was not converted to a config value and back again",
-               val, "some string");
-  }
-  {
-    kwiver::vital::config_block_value_t in_val("Some value string");
-    config->set_value(key, in_val);
-    kwiver::vital::config_block_value_t val = config->get_value<kwiver::vital::config_block_key_t>(key);
-    TEST_EQUAL("A cb_value_t value was not converted to a config value and back again",
-               val, in_val);
-  }
+
+  config->set_value( key, "some string" );
+  EXPECT_EQ( "some string", config->get_value<std::string>( key ) );
+
+  config_block_value_t value{ "Some value string" };
+  config->set_value( key, value );
+  EXPECT_EQ( value, config->get_value<config_block_key_t>( key ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(bool_conversion)
+// ----------------------------------------------------------------------------
+TEST(config_block, bool_conversion)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t("key");
+  auto const key = config_block_key_t{ "key" };
 
-  kwiver::vital::config_block_value_t const lit_true = kwiver::vital::config_block_value_t("true");
-  kwiver::vital::config_block_value_t const lit_false = kwiver::vital::config_block_value_t("false");
-  kwiver::vital::config_block_value_t const lit_True = kwiver::vital::config_block_value_t("True");
-  kwiver::vital::config_block_value_t const lit_False = kwiver::vital::config_block_value_t("False");
-  kwiver::vital::config_block_value_t const lit_1 = kwiver::vital::config_block_value_t("1");
-  kwiver::vital::config_block_value_t const lit_0 = kwiver::vital::config_block_value_t("0");
-  kwiver::vital::config_block_value_t const lit_yes = kwiver::vital::config_block_value_t("yes");
-  kwiver::vital::config_block_value_t const lit_no = kwiver::vital::config_block_value_t("no");
+  config->set_value( key, config_block_value_t{ "true" } );
+  EXPECT_EQ( true, config->get_value<bool>( key ) );
 
-  bool val;
+  config->set_value(key, config_block_value_t{ "false" });
+  EXPECT_EQ( false, config->get_value<bool>( key ) );
 
-  config->set_value(key, lit_true);
-  val = config->get_value<bool>(key);
+  config->set_value(key, config_block_value_t{ "True" });
+  EXPECT_EQ( true, config->get_value<bool>( key ) );
 
-  if (!val)
-  {
-    TEST_ERROR("The value \'true\' did not get converted to true when read as a boolean");
-  }
+  config->set_value(key, config_block_value_t{ "False" });
+  EXPECT_EQ( false, config->get_value<bool>( key ) );
 
-  config->set_value(key, lit_false);
-  val = config->get_value<bool>(key);
+  config->set_value( key, config_block_value_t{ "1" } );
+  EXPECT_EQ( true, config->get_value<bool>( key ) );
 
-  if (val)
-  {
-    TEST_ERROR("The value \'false\' did not get converted to false when read as a boolean");
-  }
+  config->set_value( key, config_block_value_t{ "0" } );
+  EXPECT_EQ( false, config->get_value<bool>( key ) );
 
-  config->set_value(key, lit_True);
-  val = config->get_value<bool>(key);
+  config->set_value( key, config_block_value_t{ "yes" } );
+  EXPECT_EQ( true, config->get_value<bool>( key ) );
 
-  if (!val)
-  {
-    TEST_ERROR("The value \'True\' did not get converted to true when read as a boolean");
-  }
+  config->set_value( key, config_block_value_t{ "no" } );
+  EXPECT_EQ( false, config->get_value<bool>( key ) );
 
-  config->set_value(key, lit_False);
-  val = config->get_value<bool>(key);
+  config->set_value( key, true );
+  EXPECT_EQ( true, config->get_value<bool>( key ) );
 
-  if (val)
-  {
-    TEST_ERROR("The value \'False\' did not get converted to false when read as a boolean");
-  }
-
-  config->set_value(key, lit_1);
-  val = config->get_value<bool>(key);
-
-  if (!val)
-  {
-    TEST_ERROR("The value \'1\' did not get converted to true when read as a boolean");
-  }
-
-  config->set_value(key, lit_0);
-  val = config->get_value<bool>(key);
-
-  if (val)
-  {
-    TEST_ERROR("The value \'0\' did not get converted to false when read as a boolean");
-  }
-
-  config->set_value(key, lit_yes);
-  val = config->get_value<bool>(key);
-
-  if (!val)
-  {
-    TEST_ERROR("The value \'yes\' did not get converted to true when read as a boolean");
-  }
-
-  config->set_value(key, lit_no);
-  val = config->get_value<bool>(key);
-
-  if (val)
-  {
-    TEST_ERROR("The value \'no\' did not get converted to false when read as a boolean");
-  }
-
-  config->set_value(key, true);
-  val = config->get_value<bool>(key);
-
-  if (!val)
-  {
-    TEST_ERROR("The value true did not get converted back to true when read as a boolean");
-  }
-
-  config->set_value(key, false);
-  val = config->get_value<bool>(key);
-
-  if (val)
-  {
-    TEST_ERROR("The value false did not get converted back to false when read as a boolean");
-  }
+  config->set_value( key, false );
+  EXPECT_EQ( false, config->get_value<bool>( key ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(unset_value)
+// ----------------------------------------------------------------------------
+TEST(config_block, unset_value)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
+  config->set_value( keya, valuea );
+  config->set_value( keyb, valueb );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
+  config->unset_value( keya );
 
-  config->set_value(keya, valuea);
-  config->set_value(keyb, valueb);
+  EXPECT_THROW( config->get_value<config_block_value_t>( keya ),
+                no_such_configuration_value_exception );
 
-  config->unset_value(keya);
-
-  EXPECT_EXCEPTION(kwiver::vital::no_such_configuration_value_exception,
-                   config->get_value<kwiver::vital::config_block_value_t>(keya),
-                   "retrieving an unset value");
-
-  kwiver::vital::config_block_value_t const get_valueb = config->get_value<kwiver::vital::config_block_value_t>(keyb);
-
-  if (valueb != get_valueb)
-  {
-    TEST_ERROR("Did not retrieve value when requesting after an unrelated unset");
-  }
+  // Check that an unrelated value wasn't also unset
+  EXPECT_EQ( valueb, config->get_value<config_block_value_t>( keyb ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(available_values)
+// ----------------------------------------------------------------------------
+TEST(config_block, available_values)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
+  config->set_value( keya, valuea );
+  config->set_value( keyb, valueb );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
+  config_block_keys_t keys;
 
-  config->set_value(keya, valuea);
-  config->set_value(keyb, valueb);
+  keys.push_back( keya );
+  keys.push_back( keyb );
 
-  kwiver::vital::config_block_keys_t keys;
-
-  keys.push_back(keya);
-  keys.push_back(keyb);
-
-  kwiver::vital::config_block_keys_t const get_keys = config->available_values();
-
-  if (keys.size() != get_keys.size())
-  {
-    TEST_ERROR("Did not retrieve correct number of keys");
-  }
+  EXPECT_EQ( keys.size(), config->available_values().size() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(read_only)
+// ----------------------------------------------------------------------------
+TEST(config_block, read_only)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  config->set_value( keya, valuea );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
+  config->mark_read_only( keya );
 
-  config->set_value(keya, valuea);
+  EXPECT_THROW( config->set_value( keya, valueb ),
+                set_on_read_only_value_exception );
 
-  config->mark_read_only(keya);
+  EXPECT_EQ( valuea, config->get_value<config_block_value_t>( keya ) );
 
-  EXPECT_EXCEPTION(kwiver::vital::set_on_read_only_value_exception,
-                   config->set_value(keya, valueb),
-                   "setting a read only value");
+  EXPECT_THROW( config->unset_value( keya ),
+                unset_on_read_only_value_exception );
 
-  kwiver::vital::config_block_value_t const get_valuea = config->get_value<kwiver::vital::config_block_value_t>(keya);
-
-  if (valuea != get_valuea)
-  {
-    TEST_ERROR("Read only value changed");
-  }
+  EXPECT_EQ( valuea, config->get_value<config_block_value_t>( keya ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(read_only_unset)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  config->set_value( block1_name + config_block::block_sep + keya, valuea );
+  config->set_value( block1_name + config_block::block_sep + keyb, valueb );
+  config->set_value( block2_name + config_block::block_sep + keyc, valuec );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
+  auto const subblock = config->subblock( block1_name );
 
-  config->set_value(keya, valuea);
+  [&]{
+    ASSERT_TRUE( subblock->has_value( keya ) );
+    EXPECT_EQ( valuea, subblock->get_value<config_block_value_t>( keya ) );
+  }();
 
-  config->mark_read_only(keya);
+  [&]{
+    ASSERT_TRUE( subblock->has_value( keyb ) );
+    EXPECT_EQ( valueb, subblock->get_value<config_block_value_t>( keyb ) );
+  }();
 
-  EXPECT_EXCEPTION(kwiver::vital::unset_on_read_only_value_exception,
-                   config->unset_value(keya),
-                   "unsetting a read only value");
-
-  kwiver::vital::config_block_value_t const get_valuea = config->get_value<kwiver::vital::config_block_value_t>(keya);
-
-  if (valuea != get_valuea)
-  {
-    TEST_ERROR("Read only value was unset");
-  }
+  EXPECT_FALSE( subblock->has_value( keyc ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_nested)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
-  kwiver::vital::config_block_key_t const other_block_name = kwiver::vital::config_block_key_t("other_block");
+  auto const nested_block_name =
+    block1_name + config_block::block_sep + block2_name;
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-  kwiver::vital::config_block_key_t const keyc = kwiver::vital::config_block_key_t("keyc");
+  config->set_value(
+    nested_block_name + config_block::block_sep + keya, valuea );
+  config->set_value(
+    nested_block_name + config_block::block_sep + keyb, valueb );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-  kwiver::vital::config_block_value_t const valuec = kwiver::vital::config_block_value_t("valuec");
+  auto const subblock = config->subblock( nested_block_name );
 
-  config->set_value(block_name + kwiver::vital::config_block::block_sep + keya, valuea);
-  config->set_value(block_name + kwiver::vital::config_block::block_sep + keyb, valueb);
-  config->set_value(other_block_name + kwiver::vital::config_block::block_sep + keyc, valuec);
+  [&]{
+    ASSERT_TRUE( subblock->has_value( keya ) );
+    EXPECT_EQ( valuea, subblock->get_value<config_block_value_t>( keya ) );
+  }();
 
-  kwiver::vital::config_block_sptr const subblock = config->subblock(block_name);
-
-  if (subblock->has_value(keya))
-  {
-    kwiver::vital::config_block_value_t const get_valuea = subblock->get_value<kwiver::vital::config_block_value_t>(keya);
-
-    if (valuea != get_valuea)
-    {
-      TEST_ERROR("Subblock did not inherit expected keys");
-    }
-  }
-  else
-  {
-    TEST_ERROR("Subblock did not inherit expected keys");
-  }
-
-  if (subblock->has_value(keyb))
-  {
-    kwiver::vital::config_block_value_t const get_valueb = subblock->get_value<kwiver::vital::config_block_value_t>(keyb);
-
-    if (valueb != get_valueb)
-    {
-      TEST_ERROR("Subblock did not inherit expected keys");
-    }
-  }
-  else
-  {
-    TEST_ERROR("Subblock did not inherit expected keys");
-  }
-
-  if (subblock->has_value(keyc))
-  {
-    TEST_ERROR("Subblock inherited unrelated key");
-  }
+  [&]{
+    ASSERT_TRUE( subblock->has_value( keyb ) );
+    EXPECT_EQ( valueb, subblock->get_value<config_block_value_t>( keyb ) );
+  }();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_nested)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_match)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
-  kwiver::vital::config_block_key_t const other_block_name = kwiver::vital::config_block_key_t("other_block");
-  kwiver::vital::config_block_key_t const nested_block_name = block_name + kwiver::vital::config_block::block_sep + other_block_name;
+  config->set_value( block1_name, valuea );
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-
-  config->set_value(nested_block_name + kwiver::vital::config_block::block_sep + keya, valuea);
-  config->set_value(nested_block_name + kwiver::vital::config_block::block_sep + keyb, valueb);
-
-  kwiver::vital::config_block_sptr const subblock = config->subblock(nested_block_name);
-
-  if (subblock->has_value(keya))
-  {
-    kwiver::vital::config_block_value_t const get_valuea = subblock->get_value<kwiver::vital::config_block_value_t>(keya);
-
-    if (valuea != get_valuea)
-    {
-      TEST_ERROR("Nested subblock did not inherit expected keys");
-    }
-  }
-  else
-  {
-    TEST_ERROR("Subblock did not inherit expected keys");
-  }
-
-  if (subblock->has_value(keyb))
-  {
-    kwiver::vital::config_block_value_t const get_valueb = subblock->get_value<kwiver::vital::config_block_value_t>(keyb);
-
-    if (valueb != get_valueb)
-    {
-      TEST_ERROR("Nested subblock did not inherit expected keys");
-    }
-  }
-  else
-  {
-    TEST_ERROR("Subblock did not inherit expected keys");
-  }
+  EXPECT_TRUE( config->subblock( block1_name )->available_values().empty() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_match)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_prefix_match)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
+  config->set_value( block1_name + keya, valuea );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-
-  config->set_value(block_name, valuea);
-
-  kwiver::vital::config_block_sptr const subblock = config->subblock(block_name);
-
-  kwiver::vital::config_block_keys_t const keys = subblock->available_values();
-
-  if (!keys.empty())
-  {
-    TEST_ERROR("A subblock inherited a value that shared the block name");
-  }
+  EXPECT_TRUE( config->subblock( block1_name )->available_values().empty() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_prefix_match)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_view)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
+  config->set_value( block1_name + config_block::block_sep + keya, valuea );
+  config->set_value( block1_name + config_block::block_sep + keyb, valueb );
+  config->set_value( block2_name + config_block::block_sep + keyc, valuec );
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  config_block_sptr const subblock = config->subblock_view( block1_name );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
+  EXPECT_TRUE( subblock->has_value( keya ) );
+  EXPECT_TRUE( subblock->has_value( keyb ) );
+  EXPECT_FALSE( subblock->has_value( keyc ) );
 
-  config->set_value(block_name + keya, valuea);
+  config->set_value( block1_name + config_block::block_sep + keya, valueb );
+  EXPECT_EQ( valueb, subblock->get_value<config_block_value_t>( keya ) );
 
-  kwiver::vital::config_block_sptr const subblock = config->subblock(block_name);
+  subblock->set_value( keya, valuea );
+  EXPECT_EQ( valuea, config->get_value<config_block_value_t>(
+                       block1_name + config_block::block_sep + keya ) );
 
-  kwiver::vital::config_block_keys_t const keys = subblock->available_values();
+  subblock->unset_value( keyb );
+  EXPECT_FALSE(
+    config->has_value( block1_name + config_block::block_sep + keyb ) );
 
-  if (!keys.empty())
-  {
-    TEST_ERROR("A subblock inherited a value that shared a prefix with the block name");
-  }
+  config->set_value( block1_name + config_block::block_sep + keyc, valuec );
+
+  config_block_keys_t keys;
+
+  keys.push_back( keya );
+  keys.push_back( keyc );
+
+  EXPECT_EQ( keys.size(), subblock->available_values().size() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_view)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_view_nested)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
-  kwiver::vital::config_block_key_t const other_block_name = kwiver::vital::config_block_key_t("other_block");
+  auto const nested_block_name =
+    block1_name + config_block::block_sep + block2_name;
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-  kwiver::vital::config_block_key_t const keyc = kwiver::vital::config_block_key_t("keyc");
+  config->set_value(
+    nested_block_name + config_block::block_sep + keya, valuea );
+  config->set_value(
+    nested_block_name + config_block::block_sep + keyb, valueb );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-  kwiver::vital::config_block_value_t const valuec = kwiver::vital::config_block_value_t("valuec");
+  auto const subblock = config->subblock_view( nested_block_name );
 
-  config->set_value(block_name + kwiver::vital::config_block::block_sep + keya, valuea);
-  config->set_value(block_name + kwiver::vital::config_block::block_sep + keyb, valueb);
-  config->set_value(other_block_name + kwiver::vital::config_block::block_sep + keyc, valuec);
+  [&]{
+    ASSERT_TRUE( subblock->has_value( keya ) );
+    EXPECT_EQ( valuea, subblock->get_value<config_block_value_t>( keya ) );
+  }();
 
-  kwiver::vital::config_block_sptr const subblock = config->subblock_view(block_name);
-
-  if (!subblock->has_value(keya))
-  {
-    TEST_ERROR("Subblock view did not inherit key");
-  }
-
-  if (subblock->has_value(keyc))
-  {
-    TEST_ERROR("Subblock view inherited unrelated key");
-  }
-
-  config->set_value(block_name + kwiver::vital::config_block::block_sep + keya, valueb);
-
-  kwiver::vital::config_block_value_t const get_valuea1 = subblock->get_value<kwiver::vital::config_block_value_t>(keya);
-
-  if (valueb != get_valuea1)
-  {
-    TEST_ERROR("Subblock view persisted a changed value");
-  }
-
-  subblock->set_value(keya, valuea);
-
-  kwiver::vital::config_block_value_t const get_valuea2 = config->get_value<kwiver::vital::config_block_value_t>(block_name + kwiver::vital::config_block::block_sep + keya);
-
-  if (valuea != get_valuea2)
-  {
-    TEST_ERROR("Subblock view set value was not changed in parent");
-  }
-
-  subblock->unset_value(keyb);
-
-  if (config->has_value(block_name + kwiver::vital::config_block::block_sep + keyb))
-  {
-    TEST_ERROR("Unsetting from a subblock view did not unset in parent view");
-  }
-
-  config->set_value(block_name + kwiver::vital::config_block::block_sep + keyc, valuec);
-
-  kwiver::vital::config_block_keys_t keys;
-
-  keys.push_back(keya);
-  keys.push_back(keyc);
-
-  kwiver::vital::config_block_keys_t const get_keys = subblock->available_values();
-
-  if (keys.size() != get_keys.size())
-  {
-    TEST_ERROR("Did not retrieve correct number of keys from the subblock");
-  }
+  [&]{
+    ASSERT_TRUE( subblock->has_value( keyb ) );
+    EXPECT_EQ( valueb, subblock->get_value<config_block_value_t>( keyb ) );
+  }();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_view_nested)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_view_match)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
-  kwiver::vital::config_block_key_t const other_block_name = kwiver::vital::config_block_key_t("other_block");
-  kwiver::vital::config_block_key_t const nested_block_name = block_name + kwiver::vital::config_block::block_sep + other_block_name;
+  config->set_value( block1_name, valuea );
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-
-  config->set_value(nested_block_name + kwiver::vital::config_block::block_sep + keya, valuea);
-  config->set_value(nested_block_name + kwiver::vital::config_block::block_sep + keyb, valueb);
-
-  kwiver::vital::config_block_sptr const subblock = config->subblock_view(nested_block_name);
-
-  if (subblock->has_value(keya))
-  {
-    kwiver::vital::config_block_value_t const get_valuea = subblock->get_value<kwiver::vital::config_block_value_t>(keya);
-
-    if (valuea != get_valuea)
-    {
-      TEST_ERROR("Nested subblock did not inherit expected keys");
-    }
-  }
-  else
-  {
-    TEST_ERROR("Subblock did not inherit expected keys");
-  }
-
-  if (subblock->has_value(keyb))
-  {
-    kwiver::vital::config_block_value_t const get_valueb = subblock->get_value<kwiver::vital::config_block_value_t>(keyb);
-
-    if (valueb != get_valueb)
-    {
-      TEST_ERROR("Nested subblock did not inherit expected keys");
-    }
-  }
-  else
-  {
-    TEST_ERROR("Subblock did not inherit expected keys");
-  }
+  EXPECT_TRUE(
+    config->subblock_view( block1_name )->available_values().empty() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_view_match)
+// ----------------------------------------------------------------------------
+TEST(config_block, subblock_view_prefix_match)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
+  config->set_value( block1_name + keya, valuea );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-
-  config->set_value(block_name, valuea);
-
-  kwiver::vital::config_block_sptr const subblock = config->subblock_view(block_name);
-
-  kwiver::vital::config_block_keys_t const keys = subblock->available_values();
-
-  if (!keys.empty())
-  {
-    TEST_ERROR("A subblock inherited a value that shared the block name");
-  }
+  EXPECT_TRUE(
+    config->subblock_view( block1_name )->available_values().empty() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(subblock_view_prefix_match)
+// ----------------------------------------------------------------------------
+TEST(config_block, merge_config)
 {
-  kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+  auto const configa = config_block::empty_config();
+  auto const configb = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const block_name = kwiver::vital::config_block_key_t("block");
+  configa->set_value( keya, valuea );
+  configa->set_value( keyb, valuea );
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
+  configb->set_value( keyb, valueb );
+  configb->set_value( keyc, valuec );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
+  configa->merge_config( configb );
 
-  config->set_value(block_name + keya, valuea);
-
-  kwiver::vital::config_block_sptr const subblock = config->subblock_view(block_name);
-
-  kwiver::vital::config_block_keys_t const keys = subblock->available_values();
-
-  if (!keys.empty())
-  {
-    TEST_ERROR("A subblock inherited a value that shared a prefix with the block name");
-  }
+  EXPECT_EQ( valuea, configa->get_value<config_block_value_t>( keya ) );
+  EXPECT_EQ( valueb, configa->get_value<config_block_value_t>( keyb ) );
+  EXPECT_EQ( valuec, configa->get_value<config_block_value_t>( keyc ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(merge_config)
+// ----------------------------------------------------------------------------
+TEST(config_block, difference_config)
 {
-  kwiver::vital::config_block_sptr const configa = kwiver::vital::config_block::empty_config();
-  kwiver::vital::config_block_sptr const configb = kwiver::vital::config_block::empty_config();
+  auto const configa = config_block::empty_config();
+  auto const configb = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-  kwiver::vital::config_block_key_t const keyc = kwiver::vital::config_block_key_t("keyc");
+  auto filename = std::make_shared<std::string>( __FILE__ );
+  configa->set_value( keya, valuea );
+  configa->set_location( keya, filename, __LINE__ );
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-  kwiver::vital::config_block_value_t const valuec = kwiver::vital::config_block_value_t("valuec");
+  configa->set_value( keyb, valueb );
+  configa->set_location( keyb, filename, __LINE__ );
 
-  configa->set_value(keya, valuea);
-  configa->set_value(keyb, valuea);
+  configb->set_value( keyb, valueb );
+  configb->set_location( keyb, filename, __LINE__ );
 
-  configb->set_value(keyb, valueb);
-  configb->set_value(keyc, valuec);
+  configb->set_value( keyc, valuec );
+  configb->set_location( keyc, filename, __LINE__ );
 
-  configa->merge_config(configb);
+  auto configa_diffb = configa->difference_config(configb);
 
-  kwiver::vital::config_block_value_t const get_valuea = configa->get_value<kwiver::vital::config_block_value_t>(keya);
+  // should be (a - b) => keya
+  EXPECT_TRUE( configa_diffb->has_value( keya ) );
+  EXPECT_FALSE( configa_diffb->has_value( keyb ) );
 
-  if (valuea != get_valuea)
-  {
-    TEST_ERROR("Unmerged key changed");
-  }
+  auto configb_diffa = configb->difference_config(configa);
 
-  kwiver::vital::config_block_value_t const get_valueb = configa->get_value<kwiver::vital::config_block_value_t>(keyb);
-
-  if (valueb != get_valueb)
-  {
-    TEST_ERROR("Conflicting key was not overwritten");
-  }
-
-  kwiver::vital::config_block_value_t const get_valuec = configa->get_value<kwiver::vital::config_block_value_t>(keyc);
-
-  if (valuec != get_valuec)
-  {
-    TEST_ERROR("New key did not appear");
-  }
+  // should be (b - a) => keyc
+  EXPECT_TRUE( configb_diffa->has_value( keyc ) );
+  EXPECT_FALSE( configb_diffa->has_value( keya ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(difference_config)
+// ----------------------------------------------------------------------------
+TEST(config_block, set_value_description)
 {
-  kwiver::vital::config_block_sptr const configa = kwiver::vital::config_block::empty_config();
-  kwiver::vital::config_block_sptr const configb = kwiver::vital::config_block::empty_config();
+  auto const config = config_block::empty_config();
 
-  kwiver::vital::config_block_key_t const keya = kwiver::vital::config_block_key_t("keya");
-  kwiver::vital::config_block_key_t const keyb = kwiver::vital::config_block_key_t("keyb");
-  kwiver::vital::config_block_key_t const keyc = kwiver::vital::config_block_key_t("keyc");
+  auto const keyx = block1_name + config_block::block_sep + keyb;
 
-  kwiver::vital::config_block_value_t const valuea = kwiver::vital::config_block_value_t("valuea");
-  kwiver::vital::config_block_value_t const valueb = kwiver::vital::config_block_value_t("valueb");
-  kwiver::vital::config_block_value_t const valuec = kwiver::vital::config_block_value_t("valuec");
+  auto const descra = config_block_description_t{ "This is config value A" };
+  auto const descrx = config_block_description_t{ "This is config value X" };
 
-  auto filename = std::make_shared<std::string>(__FILE__);
-  configa->set_value(keya, valuea);
-  configa->set_location(keya, filename, __LINE__);
+  config->set_value( keya, valuea, descra );
+  config->set_value( keyx, valueb, descrx );
+  config->set_value( keyc, valuec );
 
-  configa->set_value(keyb, valueb);
-  configa->set_location(keyb, filename, __LINE__);
+  EXPECT_EQ( descra, config->get_description( keya ) );
+  EXPECT_EQ( config_block_description_t{}, config->get_description( keyc ) );
 
-  configb->set_value(keyb, valueb);
-  configb->set_location(keyb, filename, __LINE__);
+  config_block_sptr subblock = config->subblock_view( block1_name );
 
-  configb->set_value(keyc, valuec);
-  configb->set_location(keyc, filename, __LINE__);
+  EXPECT_EQ( descrx, subblock->get_description( keyb ) );
 
-  {
-    auto diff_config = configa->difference_config(configb);
-    // should be (a - b) => keya
-    if ( ! diff_config->has_value( keya ) )
-    {
-      TEST_ERROR( "(1) keya not present in diff" );
-    }
+  EXPECT_THROW(
+    config->get_description( config_block_key_t{ "not_a_key" } ),
+    no_such_configuration_value_exception );
 
-    if ( diff_config->has_value( keyb ) )
-    {
-      TEST_ERROR( "(1) keyb present in diff" );
-    }
-  }
+  config->unset_value( keya );
 
-  {
-    auto diff_config = configb->difference_config(configa);
-    // should be (b - a) => keyc
-    if ( ! diff_config->has_value( keyc ) )
-    {
-      TEST_ERROR( "(2) keyc not present in diff" );
-    }
-
-    if ( diff_config->has_value( keya ) )
-    {
-      TEST_ERROR( "(2) keya present in diff" );
-    }
-  }
+  EXPECT_THROW(
+    config->get_description( keya ),
+    no_such_configuration_value_exception );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(set_value_description)
-{
-  using namespace kwiver::vital;
-
-  config_block_sptr const config = config_block::empty_config();
-
-  config_block_key_t const keya = config_block_key_t("keya");
-  config_block_key_t const keyb = config_block_key_t("sub:keyb");
-  config_block_key_t const keyc = config_block_key_t("keyc");
-
-  config_block_value_t const valuea = config_block_value_t("valuea");
-  config_block_value_t const valueb = config_block_value_t("valueb");
-  config_block_value_t const valuec = config_block_value_t("valuec");
-
-  config_block_description_t const descra = config_block_description_t("This is config value A");
-  config_block_description_t const descrb = config_block_description_t("This is config value B");
-
-  config->set_value(keya, valuea, descra);
-  config->set_value(keyb, valueb, descrb);
-  config->set_value(keyc, valuec);
-
-  config_block_sptr subblock = config->subblock_view("sub");
-
-  TEST_EQUAL("descra", config->get_description(keya), descra);
-  TEST_EQUAL("descrc", config->get_description(keyc), config_block_description_t());
-  TEST_EQUAL("descrb", subblock->get_description("keyb"), descrb);
-
-  EXPECT_EXCEPTION(
-    kwiver::vital::no_such_configuration_value_exception,
-      config->get_description(config_block_key_t("not_a_key")),
-      "accessing description of invalid key"
-      );
-
-  config->unset_value(keya);
-
-  EXPECT_EXCEPTION(
-    kwiver::vital::no_such_configuration_value_exception,
-      config->get_description(keya),
-      "accessing description of unset key"
-      );
-}
-
-
+// ----------------------------------------------------------------------------
 // Test macro
 ENUM_CONVERTER( my_ec, int,
           // init stuff
@@ -915,28 +504,52 @@ ENUM_CONVERTER( my_ec, int,
           { "five",  5 }
   )
 
+// ----------------------------------------------------------------------------
+TEST(config_block, enum_conversion)
+{
+  auto const config = config_block::empty_config();
+
+  config->set_value( keya, "three" );
+  config->set_value( keyb, "foo" );
+
+  EXPECT_EQ( 3, config->get_enum_value < my_ec >( keya ) );
+
+  EXPECT_THROW(
+    config->get_enum_value < my_ec >( keyb ),
+    std::runtime_error );
+
+  EXPECT_THROW(
+    config->get_enum_value< my_ec >( config_block_key_t{ "not_a_key" } ),
+    no_such_configuration_value_exception );
+}
+
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(enum_conversion)
+TEST(config_block, as_vector)
 {
-  using namespace kwiver::vital;
-
   config_block_sptr const config = config_block::empty_config();
 
-  config->set_value("keya", "three");
-  config->set_value("keyb", "foo");
+  config->set_value( keya, "0.0 1.0 2.0 3.0" );
+  config->set_value( keyb, "1, 2, 3, 4, 5, 6" );
 
-  int val = config->get_enum_value < my_ec >( "keya" );
-  TEST_EQUAL("enum value", val, 3 );
+  [&]{
+    auto const& values = config->get_value_as_vector<double>( keya );
 
-  EXPECT_EXCEPTION( std::runtime_error,
-                    config->get_enum_value < my_ec >( "keyb" ),
-                    "enum conversion error");
+    ASSERT_EQ( 4, values.size() );
 
-  EXPECT_EXCEPTION(
-    kwiver::vital::no_such_configuration_value_exception,
-    config->get_enum_value< my_ec >(config_block_key_t("not_a_key")),
-      "accessing description of invalid key"
-      );
+    EXPECT_EQ( 0.0, values[0] );
+    EXPECT_EQ( 1.0, values[1] );
+    EXPECT_EQ( 2.0, values[2] );
+    EXPECT_EQ( 3.0, values[3] );
+  }();
 
+  auto const& values = config->get_value_as_vector<double>( keyb, ", " );
+
+  EXPECT_EQ( 6, values.size() );
+
+  for ( size_t i = 0; i < values.size(); ++i )
+  {
+    SCOPED_TRACE( "At " + std::to_string( i ) );
+    EXPECT_EQ( i + 1, values[i] );
+  }
 }

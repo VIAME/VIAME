@@ -36,8 +36,9 @@
 #include "draw_detected_object_set.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
+#include <vital/util/string.h>
+#include <vital/config/config_difference.h>
 
 #include <kwiversys/RegularExpression.hxx>
 #include <arrows/ocv/image_container.h>
@@ -220,20 +221,21 @@ public:
                                                vital::detected_object_set_sptr  in_set ) const
   {
     cv::Mat image = image_container_to_ocv_matrix( *image_data ).clone();
-    auto det_list = in_set->select( );
 
-    VITAL_FOREACH( auto det, det_list )
+    // process the detection set
+    auto ie =  in_set->cend();
+    for ( auto det = in_set->cbegin(); det != ie; ++det )
     {
-      auto det_type = det->type();
+      auto det_type = (*det)->type();
       if ( ! det_type )
       {
         // No type has been assigned. Just filter on threshold
-        if (det->confidence() < m_threshold )
+        if ((*det)->confidence() < m_threshold )
         {
           continue;
         }
 
-        draw_box( image, det, "", det->confidence() );
+        draw_box( image, *det, "", (*det)->confidence() );
         continue;
       }
 
@@ -245,7 +247,7 @@ public:
       int count( 0 );
 
       // Draw once for each selected class_name
-      VITAL_FOREACH( auto n, names )
+      for( auto n : names )
       {
         double score = det_type->score( n );
         if ( score < m_threshold || ! name_selected( n ) )
@@ -254,7 +256,7 @@ public:
         }
 
         LOG_TRACE( m_parent->logger(), "Drawing box for class: " << n << "   score: " << score );
-        draw_box( image, det, n, score, text_only, count );
+        draw_box( image, *det, n, score, text_only, count );
         text_only = true; // skip box on all subsequent calls
       }
     } // end foreach
@@ -293,7 +295,7 @@ process_config()
     std::vector< std::string > cspec;
     kwiver::vital::tokenize( m_tmp_custom, cspec, ";", true );
 
-    VITAL_FOREACH( auto cs, cspec )
+    for( auto cs : cspec )
     {
       kwiversys::RegularExpression exp( "\\$([^/]+)/([0-9.]+)/([0-9]+) ([0-9]+) ([0-9]+)" );
 
@@ -412,6 +414,15 @@ set_configuration(vital::config_block_sptr config_in)
   // Starting with our generated config_block to ensure that assumed values are present
   // An alternative is to check for key presence before performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
+
+  kwiver::vital::config_difference cd( config, config_in );
+  const auto key_list = cd.extra_keys();
+  if ( ! key_list.empty() )
+  {
+    // This may be considered an error in some cases
+    LOG_WARN( logger(), "Additional parameters found in config block that are not required or desired: "
+              << kwiver::vital::join( key_list, ", " ) );
+  }
 
   config->merge_config( config_in );
 

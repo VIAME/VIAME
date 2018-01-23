@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,108 +33,100 @@
  * \brief core polygon class tests
  */
 
-#include <test_common.h>
-
 #include <vital/types/polygon.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
 
-// ------------------------------------------------------------------
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
-  testname_t const testname = argv[1];
+namespace {
+static const polygon::point_t p1{ 10, 10 };
+static const polygon::point_t p2{ 10, 50 };
+static const polygon::point_t p3{ 50, 50 };
+static const polygon::point_t p4{ 30, 30 };
+}
 
-  RUN_TEST(testname);
+// ----------------------------------------------------------------------------
+TEST(polygon, default_constructor)
+{
+  polygon p;
+  EXPECT_EQ( 0, p.num_vertices() );
+}
+
+// ----------------------------------------------------------------------------
+TEST(polygon, construct_from_vector)
+{
+  std::vector<polygon::point_t> vec;
+
+  vec.push_back( p1 );
+  vec.push_back( p2 );
+  vec.push_back( p3 );
+  vec.push_back( p4 );
+
+  polygon p( vec );
+  EXPECT_EQ( 4, p.num_vertices() );
 }
 
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(default_constructor)
+// ----------------------------------------------------------------------------
+TEST(polygon, add_points)
 {
-  kwiver::vital::polygon p;
+  polygon p;
 
-  if ( p.num_vertices() != 0 )
-  {
-    TEST_ERROR("The default polygon is not empty");
-  }
+  p.push_back( p1 );
+  ASSERT_EQ( 1, p.num_vertices() );
+
+  p.push_back( p2 );
+  ASSERT_EQ( 2, p.num_vertices() );
+
+  p.push_back( p3 );
+  ASSERT_EQ( 3, p.num_vertices() );
+
+  p.push_back( p4 );
+  ASSERT_EQ( 4, p.num_vertices() );
+
+  EXPECT_EQ( p1, p.at( 0 ) );
+  EXPECT_EQ( p2, p.at( 1 ) );
+  EXPECT_EQ( p3, p.at( 2 ) );
+  EXPECT_EQ( p4, p.at( 3 ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(constructor_vec)
+// ----------------------------------------------------------------------------
+TEST(polygon, contains)
 {
-  std::vector< kwiver::vital::polygon::point_t > vec;
+  polygon p;
 
-  //                                              X    Y
-  vec.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
-  vec.push_back( kwiver::vital::polygon::point_t( 10, 50 ) );
-  vec.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
-  vec.push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
+  p.push_back( p1 );
+  p.push_back( p2 );
+  p.push_back( p3 );
+  p.push_back( p4 );
 
-  kwiver::vital::polygon p( vec );
-  if ( p.num_vertices() != 4 )
-  {
-    TEST_ERROR("The polygon has too few vertices");
-  }
+  EXPECT_TRUE( p.contains( 30, 30 ) );
+  EXPECT_FALSE( p.contains( 70, 70 ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(constructor_point)
+// ----------------------------------------------------------------------------
+TEST(polygon, get_vertices)
 {
-  kwiver::vital::polygon p;
+  polygon p;
 
-  //                                              X    Y
-  p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 10, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 30, 30 ) );
-
-  if ( p.num_vertices() != 4 )
-  {
-    TEST_ERROR("The polygon has too few vertices");
-  }
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(api)
-{
-  kwiver::vital::polygon p;
-
-  //                                              X    Y
-  p.push_back( kwiver::vital::polygon::point_t( 10, 10 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 10, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 50, 50 ) );
-  p.push_back( kwiver::vital::polygon::point_t( 50, 10 ) );
-
-  if ( ! p.contains( 30, 30 ) )
-  {
-    TEST_ERROR("The polygon does contain (30,30)");
-  }
-
-  if ( p.contains( 70, 70 ) )
-  {
-    TEST_ERROR("The polygon does not contain (70,70)");
-  }
-
-  auto pt = p.at(1);
-  if ( pt[0] != 10 || pt[1] != 50 )
-  {
-    TEST_ERROR("The polygon point 1 is not correct" );
-  }
+  p.push_back( p1 );
+  p.push_back( p2 );
+  p.push_back( p3 );
+  p.push_back( p4 );
 
   auto vec = p.get_vertices();
 
-  // print vector
-  const size_t limit = vec.size();
-  for ( size_t i = 0; i < limit; ++i )
-  {
-    std::cout << "[" << vec[i][0] << ", " << vec[i][1] << "]" << std::endl;
-  } // end for
+  ASSERT_EQ( 4, vec.size() );
+  EXPECT_EQ( p1, vec.at( 0 ) );
+  EXPECT_EQ( p2, vec.at( 1 ) );
+  EXPECT_EQ( p3, vec.at( 2 ) );
+  EXPECT_EQ( p4, vec.at( 3 ) );
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,6 +122,12 @@ plugin_manager()
 
   // Add the built-in search path
   ST::Split( default_module_paths, m_priv->m_search_paths, PATH_SEPARATOR_CHAR );
+#ifdef CMAKE_INTDIR
+  for ( auto& p : m_priv->m_search_paths )
+  {
+    ST::ReplaceString( p, "$<CONFIGURATION>", CMAKE_INTDIR );
+  }
+#endif
 
   // Add paths to the real loader
   m_priv->m_loader->add_search_path( m_priv->m_search_paths );

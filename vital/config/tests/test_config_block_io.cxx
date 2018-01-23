@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,248 +33,188 @@
  * \brief core config_block_io tests
  */
 
-#include <test_common.h>
-
-#include <string>
-#include <iostream>
-#include <stdlib.h>
+#include <test_gtest.h>
+#include <test_tmpfn.h>
 
 #include <vital/vital_types.h>
 #include <vital/config/config_block_io.h>
-#include <vital/vital_foreach.h>
 
 #include <kwiversys/SystemTools.hxx>
+
+#include <cstdlib>
 #include <functional>
+#include <iostream>
+#include <string>
 
-#if defined _WIN32
-
-#include <fcntl.h>
-#include <io.h>
-#include <sys/stat.h>
-int mkstemp(char *tmpl)
-{
-  int ret=-1;
-
-  _mktemp(tmpl);
-  ret=open(tmpl,O_RDWR|O_BINARY|O_CREAT|O_EXCL|_O_SHORT_LIVED,
-           _S_IREAD|_S_IWRITE);
-  return ret;
-}
-
-#else
-
-#include <unistd.h>
-
-#endif
-
-
-#define TEST_ARGS (kwiver::vital::config_path_t const& data_dir)
-DECLARE_TEST_MAP();
+kwiver::vital::config_path_t g_data_dir;
 
 using namespace kwiver::vital;
 typedef kwiversys::SystemTools ST;
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 int
 main( int argc, char* argv[] )
 {
-  // expecting test name and data directory path
-  CHECK_ARGS( 2 );
-  testname_t const testname = argv[1];
-  config_path_t data_dir( argv[2] );
-  RUN_TEST( testname, data_dir );
+  ::testing::InitGoogleTest( &argc, argv );
+
+  GET_ARG(1, g_data_dir);
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+class config_block_io : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
 
-#define print_config( config )                                          \
-  VITAL_FOREACH( config_block_key_t key, config->available_values() )   \
-  {                                                                     \
-    std::cerr << "\t"                                                   \
-              << key << " = " << config->get_value< config_block_key_t > ( key ) \
-              << std::endl;                                             \
-  }
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( config_path_not_exist )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, config_path_not_exist )
 {
   path_t fp( "/this/shouldnt/exist/anywhere" );
 
-  EXPECT_EXCEPTION(
-    kwiver::vital::config_file_not_found_exception,
+  EXPECT_THROW(
     kwiver::vital::read_config_file( fp ),
-    "calling config read with non-existent file"
-                  );
+    kwiver::vital::config_file_not_found_exception )
+    << "Calling read_config_file with non-existent file";
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( config_path_not_file )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, config_path_not_file )
 {
   path_t fp = ST::GetCurrentWorkingDirectory();
 
-  EXPECT_EXCEPTION(
-    kwiver::vital::config_file_not_found_exception,
+  EXPECT_THROW(
     kwiver::vital::read_config_file( fp ),
-    "calling config read with directory path as argument"
-                  );
+    kwiver::vital::config_file_not_found_exception )
+    << "calling read_config_file with directory path as argument";
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( successful_config_read )
+// ----------------------------------------------------------------------------
+static
+void
+print_config( config_block_sptr const& config, bool include_location = false,
+              char const* message = "Available keys in the config_block" )
+{
+  using std::cerr;
+  using std::endl;
+
+  cerr << message << ":" << endl;
+  for ( auto const& key : config->available_values() )
+  {
+    cerr << "\t\"" << key << "\""
+         << ( config->is_read_only( key ) ? " [RO]" : "" )
+         << " := \"" << config->get_value< std::string > ( key ) << "\""
+         << endl;
+    if (include_location)
+    {
+      std::string file( "undefined" );
+      int line(0);
+      config->get_location( key, file, line );
+
+      cerr << "\t   Defined at: " << file << ":" << line
+           << endl;
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, successful_config_read )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
 
-  using std::cerr;
-  using std::endl;
-  cerr << "Available keys in the config_block:" << endl;
-  VITAL_FOREACH( config_block_key_t key, config->available_values() )
-  {
-    std::string file( "undefined" );
-    int line(0);
-    config->get_location( key, file, line );
-    cerr << "\t\"" << key
-         << ( config->is_read_only( key ) ? "[RO] " : "" )
-         << "\" := \"" << config->get_value< std::string > ( key ) << "\""
-         << endl
-         << "\t   Defined at: " << file << ":" << line
-         << endl
-      ;
-  }
+  print_config( config, true );
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              25 );
-  TEST_EQUAL( "foo:bar read",
-              config->get_value< std::string > ( "foo:bar" ),
-              "baz" );
-  TEST_EQUAL( "foo:things read",
-              config->get_value< std::string > ( "foo:things" ),
-              "stuff" );
-  TEST_EQUAL( "foo:sublevel:value read",
-              config->get_value< std::string > ( "foo:sublevel:value" ),
-              "cool things and stuff" );
-  TEST_EQUAL( "second_block:has read",
-              config->get_value< std::string > ( "second_block:has" ),
-              "a value    with  spaces" );
-  TEST_EQUAL( "second_block:mode read",
-              config->get_value< std::string > ( "second_block:more" ),
-              "has a trailing comment" );
-  TEST_NEAR( "global_var read",
-             config->get_value< float > ( "global_var" ),
-             3.14159,
-             0.000001 );
+  EXPECT_EQ( 25,
+             config->available_values().size() );
+  EXPECT_EQ( "baz",
+             config->get_value< std::string > ( "foo:bar" ) );
+  EXPECT_EQ( "stuff",
+             config->get_value< std::string > ( "foo:things" ) );
+  EXPECT_EQ( "cool things and stuff",
+             config->get_value< std::string > ( "foo:sublevel:value" ) );
+  EXPECT_EQ( "a value    with  spaces",
+             config->get_value< std::string > ( "second_block:has" ) );
+  EXPECT_EQ( "has a trailing comment",
+             config->get_value< std::string > ( "second_block:more" ) );
+  EXPECT_NEAR( 3.14159,
+               config->get_value< float > ( "global_var" ),
+               0.000001 );
 
-  TEST_EQUAL( "Read only entry", config->is_read_only( "global_var" ), true );
+  EXPECT_TRUE( config->is_read_only( "global_var" ) );
 
-  TEST_NEAR( "global_var2 read",
-             config->get_value< double > ( "global_var2" ),
-             1.12,
-             0.000001 );
-  TEST_EQUAL( "tabbed:value read",
-              config->get_value< std::string > ( "tabbed:value" ),
-              "should be valid" );
+  EXPECT_NEAR( 1.12,
+               config->get_value< double > ( "global_var2" ),
+               0.000001 );
+  EXPECT_EQ( "should be valid",
+             config->get_value< std::string > ( "tabbed:value" ) );
 
   // extract sub-block, see that value access maintained
   config_block_sptr foo_subblock = config->subblock_view( "foo" );
-  TEST_EQUAL( "foo subblock bar read",
-              foo_subblock->get_value< std::string > ( "bar" ),
-              "baz" );
-  TEST_EQUAL( "foo subblock sublevel read",
-              foo_subblock->get_value< std::string > ( "sublevel:value" ),
-              "cool things and stuff" );
-  TEST_EQUAL( "foo nested extraction",
-              config->subblock_view( "foo" )->subblock_view( "sublevel" )
-                ->get_value< std::string > ( "value" ),
-              "cool things and stuff" );
+  EXPECT_EQ( "baz",
+             foo_subblock->get_value< std::string > ( "bar" ) );
+  EXPECT_EQ( "cool things and stuff",
+             foo_subblock->get_value< std::string > ( "sublevel:value" ) );
+  EXPECT_EQ( "cool things and stuff",
+             config->subblock_view( "foo" )->subblock_view( "sublevel" )
+                ->get_value< std::string > ( "value" ) );
 
-  TEST_EQUAL( "Local value from macro",
-              config->get_value< std::string > ( "local" ),
-              "new value" );
+  EXPECT_EQ( "new value",
+             config->get_value< std::string > ( "local" ) )
+    << "Value from macro";
 
-  TEST_EQUAL( "nested blocks",
-              config->get_value< std::string > ( "new_block:next_level:has" ),
-              "a value    with  spaces" );
-
-
+  EXPECT_EQ( "a value    with  spaces",
+             config->get_value< std::string > ( "new_block:next_level:has" ) );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( successful_config_read_named_block )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, successful_config_read_named_block )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-valid_file.txt" );
 
-  using std::cerr;
-  using std::endl;
-  cerr << "Available keys in the config_block:" << endl;
-  VITAL_FOREACH( config_block_key_t key, config->available_values() )
-  {
-    cerr << "\t\"" << key
-         << ( config->is_read_only( key ) ? "[RO] " : "" )
-         << "\" := \"" << config->get_value< std::string > ( key ) << "\""
-         << endl;
-  }
+  print_config( config );
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              25 );
-  TEST_EQUAL( "foo:bar read",
-              config->get_value< std::string > ( "foo:bar" ),
-              "baz" );
-  TEST_EQUAL( "foo:things read",
-              config->get_value< std::string > ( "foo:things" ),
-              "stuff" );
-  TEST_EQUAL( "foo:sublevel:value read",
-              config->get_value< std::string > ( "foo:sublevel:value" ),
-              "cool things and stuff" );
-  TEST_EQUAL( "second_block:has read",
-              config->get_value< std::string > ( "second_block:has" ),
-              "a value    with  spaces" );
-  TEST_EQUAL( "second_block:mode read",
-              config->get_value< std::string > ( "second_block:more" ),
-              "has a trailing comment" );
-  TEST_NEAR( "global_var read",
-             config->get_value< float > ( "global_var" ),
-             3.14159,
-             0.000001 );
-  TEST_NEAR( "global_var2 read",
-             config->get_value< double > ( "global_var2" ),
-             1.12,
-             0.000001 );
-  TEST_EQUAL( "tabbed:value read",
-              config->get_value< std::string > ( "tabbed:value" ),
-              "should be valid" );
+  EXPECT_EQ( 25,
+             config->available_values().size() );
+  EXPECT_EQ( "baz",
+             config->get_value< std::string > ( "foo:bar" ) );
+  EXPECT_EQ( "stuff",
+             config->get_value< std::string > ( "foo:things" ) );
+  EXPECT_EQ( "cool things and stuff",
+             config->get_value< std::string > ( "foo:sublevel:value" ) );
+  EXPECT_EQ( "a value    with  spaces",
+             config->get_value< std::string > ( "second_block:has" ) );
+  EXPECT_EQ( "has a trailing comment",
+             config->get_value< std::string > ( "second_block:more" ) );
+  EXPECT_NEAR( 3.14159,
+               config->get_value< float > ( "global_var" ),
+               0.000001 );
+  EXPECT_NEAR( 1.12,
+               config->get_value< double > ( "global_var2" ),
+               0.000001 );
+  EXPECT_EQ( "should be valid",
+             config->get_value< std::string > ( "tabbed:value" ) );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( include_files )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, include_files )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-include-a.txt" );
-  using std::cerr;
-  using std::endl;
-  cerr << "Available keys in the config_block:" << endl;
-  VITAL_FOREACH( config_block_key_t key, config->available_values() )
-  {
-    cerr << "\t\"" << key
-         << ( config->is_read_only( key ) ? "[RO] " : "" )
-         << "\" := \"" << config->get_value< std::string > ( key ) << "\""
-         << endl;
-  }
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              6 );
-  TEST_EQUAL( "a:var outer",
-              config->get_value< std::string > ( "a:var" ),
-              "outer" );
-  TEST_EQUAL( "outer_block key",
-              config->get_value< std::string > ( "outer_block:b:key" ),
-              "val" );
-  TEST_EQUAL( "outer_block logging",
-              config->get_value< std::string > ( "outer_block:general:logging" ),
-              "on" );
+  print_config( config );
+
+  EXPECT_EQ( 6,
+             config->available_values().size() );
+  EXPECT_EQ( "outer",
+             config->get_value< std::string > ( "a:var" ) );
+  EXPECT_EQ( "val",
+             config->get_value< std::string > ( "outer_block:b:key" ) );
+  EXPECT_EQ( "on",
+             config->get_value< std::string > ( "outer_block:general:logging" ) );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( include_files_in_path )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, include_files_in_path )
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
   char const *pathSep = ";";
@@ -288,12 +228,10 @@ IMPLEMENT_TEST( include_files_in_path )
                 + pathSep + data_dir + "/test_config-standard-dir-second" );
   auto config_a =
     kwiver::vital::read_config_file( data_dir + "/test_config-include_files_in_path.txt" );
-  TEST_EQUAL( "[A] num config opts",
-              config_a->available_values().size(),
-              1 );
-  TEST_EQUAL( "[A] included:a value",
-              config_a->get_value< std::string >( "included:a" ),
-              "a" );
+  EXPECT_EQ( 1,
+             config_a->available_values().size() );
+  EXPECT_EQ( "a",
+             config_a->get_value< std::string >( "included:a" ) );
 
   // If we set the KCP in reverse order, we should see
   kwiversys::SystemTools::PutEnv(
@@ -301,78 +239,67 @@ IMPLEMENT_TEST( include_files_in_path )
                 + pathSep + data_dir + "/test_config-standard-dir-first");
   auto config_b =
     kwiver::vital::read_config_file( data_dir + "/test_config-include_files_in_path.txt" );
-  TEST_EQUAL( "[B] num config opts",
-              config_b->available_values().size(),
-              2 );
-  TEST_EQUAL( "[B] included:a value",
-              config_b->get_value< std::string >( "included:a" ),
-              "b" );
-  TEST_EQUAL( "[B] included:b value",
-              config_b->get_value< std::string >( "included:b" ),
-              "c" );
+  EXPECT_EQ( 2,
+             config_b->available_values().size() );
+  EXPECT_EQ( "b",
+             config_b->get_value< std::string >( "included:a" ) );
+  EXPECT_EQ( "c",
+             config_b->get_value< std::string >( "included:b" ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( include_files_failure )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, include_files_failure )
 {
   // NOT setting KWIVER_CONFIG_PATH
 
   // Should pick up file with the same name in the first directory in the
   // path list: test_config-standard-dir-first/test_config-standard.txt
-  EXPECT_EXCEPTION(
-    config_file_not_found_exception,
+  EXPECT_THROW(
     kwiver::vital::read_config_file( data_dir + "/test_config-include_files_in_path.txt" ),
-    "included file not in search path dirs"
-  );
+    config_file_not_found_exception )
+    << "Included file not in search path dirs";
 }
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( invalid_config_file )
+
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, invalid_config_file )
 {
-  EXPECT_EXCEPTION(
-    kwiver::vital::config_file_not_parsed_exception,
+  EXPECT_THROW(
     kwiver::vital::read_config_file( data_dir + "/test_config-invalid_file.txt" ),
-    "calling config_block read on badly formatted file"
-                  );
+    kwiver::vital::config_file_not_parsed_exception )
+    << "Calling config_block read on badly formatted file";
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( invalid_keypath )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, invalid_keypath )
 {
-  EXPECT_EXCEPTION(
-    kwiver::vital::config_file_not_parsed_exception,
+  EXPECT_THROW(
     kwiver::vital::read_config_file( data_dir + "/test_config-invalid_keypath.txt" ),
-    "read attempt on file with invalid key path"
-                  );
+    kwiver::vital::config_file_not_parsed_exception )
+    << "Read attempt on file with invalid key path";
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( config_with_comments )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, config_with_comments )
 {
   config_block_sptr config = kwiver::vital::read_config_file( data_dir + "/test_config-comments.txt" );
 
   using std::string;
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              4 );
+  EXPECT_EQ( 4,
+             config->available_values().size() );
 
-  TEST_EQUAL( "general:logging param",
-              config->get_value< string > ( "general:logging" ),
-              "on" );
-  TEST_EQUAL( "general:another_var param",
-              config->get_value< string > ( "general:another_var" ),
-              "foo" );
-  TEST_EQUAL( "general:yet_more param",
-              config->get_value< string > ( "general:yet_more" ),
-              "bar" );
-  TEST_EQUAL( "final:value param",
-              config->get_value< string > ( "final:value" ),
-              "things and stuff" );
+  EXPECT_EQ( "on",
+             config->get_value< string > ( "general:logging" ) );
+  EXPECT_EQ( "foo",
+             config->get_value< string > ( "general:another_var" ) );
+  EXPECT_EQ( "bar",
+             config->get_value< string > ( "general:yet_more" ) );
+  EXPECT_EQ( "things and stuff",
+             config->get_value< string > ( "final:value" ) );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( write_config_simple_success )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, write_config_simple_success )
 {
   using namespace kwiver;
   using namespace std;
@@ -425,21 +352,16 @@ IMPLEMENT_TEST( write_config_simple_success )
   orig_config->set_value( keyF, valueF, descrF );
   orig_config->set_value( keyG, valueG, descrG );
 
-  cerr << "ConfigBlock for writing:" << endl;
-  print_config( orig_config );
+  print_config( orig_config, false, "ConfigBlock for writing" );
 
-  char output_path_1[128] = "test_config_output_1.conf.XXXXXX";
-  int fd1 = mkstemp( output_path_1 );
-  close( fd1 );
-  ST::RemoveFile( output_path_1 );
+  auto const& output_path_1 =
+    kwiver::testing::temp_file_name("test_config_output_1-", ".conf");
 
   cerr << "Writing config_block to: " << output_path_1 << endl;
   write_config_file( orig_config, std::string( output_path_1 ) );
 
-  char output_path_2[128] =  "test_config_output_2.conf.XXXXXX";
-  int fd2 = mkstemp( output_path_2 );
-  close( fd2 );
-  ST::RemoveFile( output_path_2 );
+  auto const& output_path_2 =
+    kwiver::testing::temp_file_name("test_config_output_2-", ".conf");
 
   cerr << "Writing config_block to: " << output_path_2 << endl;
   write_config_file( orig_config, std::string( output_path_2 ) );
@@ -450,31 +372,25 @@ IMPLEMENT_TEST( write_config_simple_success )
   configs.push_back( read_config_file( output_path_1 ) );
   configs.push_back( read_config_file( output_path_2 ) );
 
-  VITAL_FOREACH( config_block_sptr config, configs )
+  for ( config_block_sptr config : configs )
   {
-    TEST_EQUAL( "num params", config->available_values().size(), 7 );
-    TEST_EQUAL( "key-A read",
-                config->get_value< config_block_value_t > ( keyA ),
-                valueA );
-    TEST_EQUAL( "key-B read",
-                config->get_value< config_block_value_t > ( keyB ),
-                valueB );
-    TEST_EQUAL( "subblock key-C read",
-                config->get_value< config_block_value_t > ( subblock_name + config_block::block_sep + keyC ),
-                valueC );
-    TEST_EQUAL( "key-D read",
-                config->get_value< config_block_value_t > ( keyD ),
-                valueD );
-    TEST_EQUAL( "key-E read",
-                config->get_value< config_block_value_t > ( keyE ),
-                valueE );
-    TEST_EQUAL( "key-F read",
-                config->get_value< config_block_value_t > ( keyF ),
-                valueF );
-    TEST_EQUAL( "key-G read",
-                config->get_value< config_block_value_t > ( keyG ),
-                valueG );
+    EXPECT_EQ( 7, config->available_values().size() );
+    EXPECT_EQ( valueA,
+             config->get_value< config_block_value_t > ( keyA ) );
+    EXPECT_EQ( valueB,
+             config->get_value< config_block_value_t > ( keyB ) );
+    EXPECT_EQ( valueC,
+             config->get_value< config_block_value_t > ( subblock_name + config_block::block_sep + keyC ) );
+    EXPECT_EQ( valueD,
+             config->get_value< config_block_value_t > ( keyD ) );
+    EXPECT_EQ( valueE,
+             config->get_value< config_block_value_t > ( keyE ) );
+    EXPECT_EQ( valueF,
+             config->get_value< config_block_value_t > ( keyF ) );
+    EXPECT_EQ( valueG,
+             config->get_value< config_block_value_t > ( keyG ) );
   }
+
   // Clean up generated configuration files
   if( ! ST::RemoveFile( output_path_1 ) )
   {
@@ -486,44 +402,41 @@ IMPLEMENT_TEST( write_config_simple_success )
   }
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( invalid_directory_write )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, invalid_directory_write )
 {
   using namespace kwiver;
   config_block_sptr config = config_block::empty_config( "empty" );
   config->set_value( "foo", "bar" );
-  EXPECT_EXCEPTION(
-    config_file_write_exception,
+  EXPECT_THROW(
     write_config_file( config, data_dir ),
-    "attempting write on a directory path"
-                  );
+    config_file_write_exception )
+    << "Attempting write on a directory path";
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( empty_config_write_failure )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, empty_config_write_failure )
 {
   using namespace kwiver;
   using namespace std;
 
   config_block_sptr config = config_block::empty_config( "empty" );
-  char output_file[128] = "test_config_output_1.conf.XXXXXX";
-  int fd1 = mkstemp( output_file );
-  close( fd1 );
-  ST::RemoveFile( output_file );
+  auto const& output_path =
+    kwiver::testing::temp_file_name("test_config_output_empty-", ".conf");
 
-  EXPECT_EXCEPTION(
-    config_file_write_exception,
-    write_config_file( config, output_file ),
-    "attempted write of a config with nothing in it"
-                  );
+  EXPECT_THROW(
+    write_config_file( config, output_path ),
+    config_file_write_exception )
+    << "Attempting write of a config with nothing in it";
+
   // If the test failed, clean-up the file created.
-  if ( 0 == ST::RemoveFile( output_file ) )
+  if ( 0 == ST::RemoveFile( output_path ) )
   {
     cerr << "Test failed and output file created. Removing." << endl;
   }
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// Return KWIVER_CONFIG_PATH string referring to two sub-directories in dir
 static
 std::string
@@ -539,8 +452,8 @@ test_standard_paths( kwiver::vital::config_path_t const& data_dir )
          data_dir + "/test_config-standard-dir-second";
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( standard_config_read_without_merge )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, standard_config_read_without_merge )
 {
   kwiversys::SystemTools::PutEnv(
     "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
@@ -552,22 +465,18 @@ IMPLEMENT_TEST( standard_config_read_without_merge )
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", {}, {}, false );
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              2 );
+  EXPECT_EQ( 2,
+             config->available_values().size() );
 
-  TEST_EQUAL( "general:zero param",
-              config->get_value< int >( "general:zero" ),
-              1 );
+  EXPECT_EQ( 1,
+             config->get_value< int >( "general:zero" ) );
 
-  TEST_EQUAL( "general:first param",
-              config->get_value< std::string > ( "general:first" ),
-              "foo" );
+  EXPECT_EQ( "foo",
+             config->get_value< std::string > ( "general:first" ) );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( standard_config_read_without_merge_with_cwd )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, standard_config_read_without_merge_with_cwd )
 {
   kwiversys::SystemTools::ChangeDirectory( data_dir );
   kwiversys::SystemTools::PutEnv(
@@ -581,18 +490,16 @@ IMPLEMENT_TEST( standard_config_read_without_merge_with_cwd )
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", {}, {}, false );
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              1 );
+  EXPECT_EQ( 1,
+             config->available_values().size() );
 
-  TEST_EQUAL( "general:zero param",
-              config->get_value< int > ( "general:zero" ),
-              0 );
+  EXPECT_EQ( 0,
+             config->get_value< int > ( "general:zero" ) );
 }
 
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( standard_config_read_with_merge )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, standard_config_read_with_merge )
 {
   kwiversys::SystemTools::PutEnv(
     "KWIVER_CONFIG_PATH=" + test_standard_paths( data_dir ) );
@@ -603,21 +510,18 @@ IMPLEMENT_TEST( standard_config_read_with_merge )
   auto const config =
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", {}, {}, true );
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              3 );
+  EXPECT_EQ( 3,
+             config->available_values().size() );
 
-  TEST_EQUAL( "general:first param",
-              config->get_value< std::string > ( "general:first" ),
-              "foo" );
+  EXPECT_EQ( "foo",
+             config->get_value< std::string > ( "general:first" ) );
 
-  TEST_EQUAL( "general:second param",
-              config->get_value< std::string > ( "general:second" ),
-              "bar" );
+  EXPECT_EQ( "bar",
+             config->get_value< std::string > ( "general:second" ) );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( standard_config_read_with_merge_with_cwd )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, standard_config_read_with_merge_with_cwd )
 {
   kwiversys::SystemTools::ChangeDirectory( data_dir );
   kwiversys::SystemTools::PutEnv(
@@ -631,25 +535,21 @@ IMPLEMENT_TEST( standard_config_read_with_merge_with_cwd )
     kwiver::vital::read_config_file( "test_config-standard.txt",
                                      "vital", {}, {}, true );
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              3 );
+  EXPECT_EQ( 3,
+             config->available_values().size() );
 
-  TEST_EQUAL( "general:zero param",
-              config->get_value< int > ( "general:zero" ),
-              0 );
+  EXPECT_EQ( 0,
+             config->get_value< int > ( "general:zero" ) );
 
-  TEST_EQUAL( "general:first param",
-              config->get_value< std::string > ( "general:first" ),
-              "foo" );
+  EXPECT_EQ( "foo",
+             config->get_value< std::string > ( "general:first" ) );
 
-  TEST_EQUAL( "general:second param",
-              config->get_value< std::string > ( "general:second" ),
-              "bar" );
+  EXPECT_EQ( "bar",
+             config->get_value< std::string > ( "general:second" ) );
 }
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST( standard_config_read_from_prefix )
+// ----------------------------------------------------------------------------
+TEST_F( config_block_io, standard_config_read_from_prefix )
 {
   auto const config =
     kwiver::vital::read_config_file( "test_config-standard.txt",
@@ -658,19 +558,15 @@ IMPLEMENT_TEST( standard_config_read_from_prefix )
             << kwiversys::SystemTools::GetCurrentWorkingDirectory()
             << std::endl;
 
-  TEST_EQUAL( "num config params",
-              config->available_values().size(),
-              3 );
+  EXPECT_EQ( 3,
+             config->available_values().size() );
 
-  TEST_EQUAL( "animal:dog param",
-              config->get_value< std::string > ( "animal:dog" ),
-              "woof" );
+  EXPECT_EQ( "woof",
+             config->get_value< std::string > ( "animal:dog" ) );
 
-  TEST_EQUAL( "animal:cat param",
-              config->get_value< std::string > ( "animal:cat" ),
-              "meow" );
+  EXPECT_EQ( "meow",
+             config->get_value< std::string > ( "animal:cat" ) );
 
-  TEST_EQUAL( "animal:pig param",
-              config->get_value< std::string > ( "animal:pig" ),
-              "oink" );
+  EXPECT_EQ( "oink",
+             config->get_value< std::string > ( "animal:pig" ) );
 }

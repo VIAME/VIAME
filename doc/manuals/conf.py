@@ -37,7 +37,18 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinx.ext.graphviz',
+    'breathe',
 ]
+
+# Breathe support - need to make directory name more flexible
+breathe_projects = { "kwiver": "./_build/xml" }
+breathe_default_project = "kwiver"
+
+import subprocess, os
+read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
+if read_the_docs_build:
+    subprocess.call('cd ../doxygen; doxygen', shell=True)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -55,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'KWIVER'
-copyright = u'2016, Kitware, Inc.'
+copyright = u'2017, Kitware, Inc.'
 author = u'Kitware, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -141,7 +152,7 @@ html_theme = 'sphinx_rtd_theme'
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = None
+html_favicon = '../favicon.ico'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -362,6 +373,6 @@ epub_exclude_files = ['search.html']
 # If false, no index is generated.
 #epub_use_index = True
 
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+

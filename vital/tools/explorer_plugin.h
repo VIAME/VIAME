@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,16 @@ public:
   std::string wrap_text( const std::string& text ) const;
 
   /**
+   * @brief Return formatting type string.
+   *
+   * This method returns the formatting type string that was specified
+   * on the commane line.
+   *
+   * @return Formatting type string.
+   */
+  const std::string& formatting_type() const;
+
+  /**
    * @brief Display all factory attributes.
    *
    * This method displays all the attributes in the supplied
@@ -100,7 +110,6 @@ public:
   void display_attr( const kwiver::vital::plugin_factory_handle_t fact) const;
 
   bool if_detail() const;
-  bool if_config() const;
   bool if_brief() const;
 
   class priv;
@@ -146,8 +155,8 @@ class category_explorer
 {
 public:
   // -- CONSTRUCTORS --
-  category_explorer() VITAL_DEFAULT_CTOR
-  virtual ~category_explorer() VITAL_DEFAULT_DTOR
+  category_explorer() = default;
+  virtual ~category_explorer() = default;
 
   /**
    * @brief Initialize the plugin

@@ -35,7 +35,6 @@
 
 #include "algorithm.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
 
@@ -116,7 +115,7 @@ algorithm
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact_list = vpm.get_factories( type_name );
 
-  VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+  for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string reg_name;
     if ( ! a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )
@@ -174,8 +173,20 @@ algorithm
     }
     else
     {
-      LOG_WARN( logger, "Could not find implementation \"" << iname
-                << "\" for \"" << type_name << "\"." );
+      std::stringstream msg;
+      msg << "Could not find implementation \"" << iname
+          << "\" for \"" << type_name << "\"";
+
+      // Add line number if known
+      std::string file;
+      int line(0);
+      if ( config->get_location( type_key, file, line ) )
+      {
+        msg << " as requested from "
+                << file << ":" << line;
+      }
+
+      LOG_WARN( logger, msg.str() );
     }
   }
   else
@@ -202,12 +213,12 @@ algorithm
     return false;
   }
 
-  const std::string iname = config->get_value< std::string > ( type_key );
-  if ( ! has_algorithm_impl_name( type_name, iname ) )
+  const std::string instance_name = config->get_value< std::string >( type_key );
+  if ( ! has_algorithm_impl_name( type_name, instance_name ) )
   {
     std::stringstream msg;
     msg << "Configuration Failure: invalid option\n"
-        << "   " << type_key << " = " << iname << "\n"
+        << "   " << type_key << " = " << instance_name << "\n"
         << "   valid options are";
 
     // Get list of factories for the algo_name
@@ -215,8 +226,9 @@ algorithm
     auto fact_list = vpm.get_factories( type_name );
 
     // Find the one that provides the impl_name
-    VITAL_FOREACH( kwiver::vital::plugin_factory_handle_t a_fact, fact_list )
+    for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
     {
+      // Collect a list of all available implementations for this algorithm
       std::string reg_name;
       if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )
       {
@@ -228,17 +240,17 @@ algorithm
     return false;
   }
 
-  // retursively check the configuration of the sub-algorithm
-  const std::string qualified_name = type_name + ":" + iname;
+  // recursively check the configuration of the sub-algorithm
+  const std::string qualified_name = name + config_block::block_sep + instance_name;
 
   // Need a real algorithm object to check with
   try
   {
-    if ( ! create_algorithm( type_name, iname )->check_configuration(
-      config->subblock_view( name + config_block::block_sep + iname ) ) )
+    if ( ! create_algorithm( type_name, instance_name )->check_configuration(
+      config->subblock_view( qualified_name ) ) )
     {
       LOG_WARN( logger,  "Configuration Failure Backtrace: "
-                << name + config_block::block_sep + iname );
+                << qualified_name );
       return false;
     }
   }

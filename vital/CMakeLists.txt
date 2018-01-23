@@ -58,43 +58,15 @@ set( CMAKE_CXX_FLAGS ${save_flags} )
 
 # ==================================================================
 ###
-# Generate correct timer header based on availbility of timer
-#
-
-if (VITAL_USE_STD_CHRONO)
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/wall_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h" )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/cpu_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h" )
-
-else()
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/no-wall_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h" )
-
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/util/no-cpu_timer.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h" )
-
-endif()
-
-
-# ==================================================================
-###
 # These headers are installed
 #
 set( vital_public_headers
   vital_types.h
-  vital_foreach.h
   noncopyable.h
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  iterator.h
 
   exceptions.h
   exceptions/algorithm.h
@@ -102,8 +74,8 @@ set( vital_public_headers
   exceptions/image.h
   exceptions/io.h
   exceptions/math.h
+  exceptions/metadata.h
   exceptions/video.h
-  exceptions/klv.h
   exceptions/plugin.h
 
   io/camera_io.h
@@ -111,6 +83,7 @@ set( vital_public_headers
   io/eigen_io.h
   io/landmark_map_io.h
   io/mesh_io.h
+  io/metadata_io.h
   io/track_set_io.h
 
   types/bounding_box.h
@@ -134,9 +107,6 @@ set( vital_public_headers
   types/feature_track_set.h
   types/fundamental_matrix.h
   types/geo_MGRS.h
-  types/geo_UTM.h
-  types/geo_corner_points.h
-  types/geo_lat_lon.h
   types/geo_point.h
   types/geo_polygon.h
   types/geodesy.h
@@ -151,6 +121,10 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/metadata.h
+  types/metadata_map.h
+  types/metadata_traits.h
+  types/metadata_tags.h
   types/object_track_set.h
   types/polygon.h
   types/query_result.h
@@ -177,14 +151,15 @@ set( vital_sources
   exceptions/image.cxx
   exceptions/io.cxx
   exceptions/math.cxx
+  exceptions/metadata.cxx
   exceptions/video.cxx
-  exceptions/klv.cxx
   exceptions/plugin.cxx
 
   io/camera_io.cxx
   io/camera_map_io.cxx
   io/landmark_map_io.cxx
   io/mesh_io.cxx
+  io/metadata_io.cxx
   io/track_set_io.cxx
 
   types/bounding_box.cxx
@@ -200,9 +175,6 @@ set( vital_sources
   types/feature_track_set.cxx
   types/fundamental_matrix.cxx
   types/geo_MGRS.cxx
-  types/geo_UTM.cxx
-  types/geo_corner_points.cxx
-  types/geo_lat_lon.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
   types/geodesy.cxx
@@ -213,6 +185,8 @@ set( vital_sources
   types/iqr_feedback.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/metadata.cxx
+  types/metadata_traits.cxx
   types/object_track_set.cxx
   types/polygon.cxx
   types/query_result.cxx
@@ -238,21 +212,11 @@ kwiver_install_headers(
   NOPATH
   )
 
-# install generated header
-kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
-  ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
-  SUBDIR   vital/util
-  NOPATH
-  )
-
 kwiver_add_library( vital
   ${vital_public_headers}
   ${vital_sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
-  ${CMAKE_CURRENT_BINARY_DIR}/util/cpu_timer.h
-  ${CMAKE_CURRENT_BINARY_DIR}/util/wall_timer.h
   )
 
 target_link_libraries( vital
@@ -330,7 +294,6 @@ add_subdirectory( config )
 add_subdirectory( klv )
 add_subdirectory( logger )
 add_subdirectory( plugin_loader )
-add_subdirectory( video_metadata )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )

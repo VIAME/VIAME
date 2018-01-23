@@ -38,9 +38,8 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
 #include <vital/exceptions/video.h>
-#include <vital/video_metadata/convert_metadata.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
+#include <vital/klv/convert_metadata.h>
 #include <vital/klv/misp_time.h>
 #include <vital/klv/klv_data.h>
 
@@ -129,7 +128,7 @@ public:
   std::string video_path; // name of video we opened
 
   std::deque<uint8_t> md_buffer; // working buffer for metadata stream
-  kwiver::vital::video_metadata_vector metadata_collection; // current collection
+  kwiver::vital::metadata_vector metadata_collection; // current collection
 
   kwiver::vital::convert_metadata converter; // metadata converter object
 
@@ -164,7 +163,7 @@ public:
     // If we have collected enough of the stream to make a KLV packet
     while ( klv_pop_next_packet( md_buffer, klv_packet ) )
     {
-      auto meta = std::make_shared<kwiver::vital::video_metadata>();
+      auto meta = std::make_shared<kwiver::vital::metadata>();
 
       converter.convert( klv_packet, *(meta) );
 
@@ -222,11 +221,11 @@ public:
     }
     else if ( time_source == "klv0601" )
     {
-      retval = klv_time( kwiver::vital::video_metadata::MISB_0601 );
+      retval = klv_time( kwiver::vital::convert_metadata::MISB_0601 );
     }
     else if ( time_source == "klv0104" )
     {
-      retval = klv_time( kwiver::vital::video_metadata::MISB_0104 );
+      retval = klv_time( kwiver::vital::convert_metadata::MISB_0104 );
     }
     else if ( time_source == "none" )
     {
@@ -323,7 +322,7 @@ public:
         // A metadata collection was created
         // check to see if it is of the desired type.
         std::string collection_type;
-        VITAL_FOREACH( auto meta, this->metadata_collection)
+        for( auto meta : this->metadata_collection)
         {
           // Test to see if the collection is from the specified standard (0104/0601)
           if (meta->has( kwiver::vital::VITAL_META_METADATA_ORIGIN ) )
@@ -455,7 +454,7 @@ vidl_ffmpeg_video_input
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
             time_source, " ,", true );
 
-  VITAL_FOREACH( auto source, time_source )
+  for( auto source : time_source )
   {
     if (source != "none"
         && source != "misp"
@@ -475,12 +474,15 @@ vidl_ffmpeg_video_input
   }
 
   // validate start frame
-  vital::timestamp::frame_t frame =  config->get_value<vital::timestamp::frame_t>( "start_at_frame");
-  //  zero indicates not set, otherwise must be 1 or greater
-  if (frame < 0 )
+  if (config->has_value("start_at_frame"))
   {
-    LOG_ERROR( logger(), "start_at_frame must be greater than 0" );
-    retcode = false;
+    vital::timestamp::frame_t frame = config->get_value<vital::timestamp::frame_t>("start_at_frame");
+    //  zero indicates not set, otherwise must be 1 or greater
+    if (frame < 0)
+    {
+      LOG_ERROR(logger(), "start_at_frame must be greater than 0");
+      retcode = false;
+    }
   }
 
   return retcode;
@@ -544,7 +546,7 @@ vidl_ffmpeg_video_input
   // See if we can generate a time base
   d->d_have_frame = true;
   bool time_found( false );
-  VITAL_FOREACH( auto time_source, d->c_time_source_list )
+  for( auto time_source : d->c_time_source_list )
   {
     LOG_DEBUG( d->d_logger, "Looking for " << time_source << " as time source" );
     if( d->init_timestamp( time_source ) )  // will call advance()
@@ -680,13 +682,13 @@ vidl_ffmpeg_video_input
 
 
 // ------------------------------------------------------------------
-kwiver::vital::video_metadata_vector
+kwiver::vital::metadata_vector
 vidl_ffmpeg_video_input
 ::frame_metadata()
 {
   if (d->d_at_eov)
   {
-    return kwiver::vital::video_metadata_vector();
+    return kwiver::vital::metadata_vector();
   }
 
   // ---- process metadata ---

@@ -97,7 +97,7 @@ public:
   const char* active_backend() const;
 
   /// Return the names of the available backends
-  std::vector<std::string> available_backends() const;
+  static std::vector<std::string> available_backends();
 
   /// Set the backend
   /**
@@ -122,7 +122,7 @@ public:
     backend()  VITAL_DEFAULT_CTOR
 
     /// Destructor
-    virtual ~backend() VITAL_DEFAULT_DTOR
+    virtual ~backend() = default;
 
     /// Returns the number of worker threads
     virtual size_t num_threads() const = 0;
@@ -141,7 +141,7 @@ private:
   thread_pool();
 
   /// Destructor
-  ~thread_pool() VITAL_DEFAULT_DTOR
+  ~thread_pool() = default;
 
   /// Enqueue a void function in the thread pool
   void enqueue_task(std::function<void()> task);

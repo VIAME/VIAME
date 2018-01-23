@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@
 #include <iterator>
 #include <exception>
 
-#include <vital/vital_foreach.h>
 #include <vital/types/descriptor_request.h>
 #include <vital/algo/algorithm.h>
 #include <vital/exceptions/algorithm.h>

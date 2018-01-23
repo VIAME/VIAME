@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iostream>
-#include <vector>
-
-#include <test_common.h>
+#include <test_eigen.h>
 #include <test_random_point.h>
+
+#include <arrows/vxl/estimate_similarity_transform.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -41,47 +40,42 @@
 #include <vital/types/similarity.h>
 #include <vital/types/vector.h>
 
-#include <arrows/vxl/estimate_similarity_transform.h>
-
-#include <vital/vital_foreach.h>
-
-
-#define TEST_ARGS ()
-DECLARE_TEST_MAP();
-
-int main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-  testname_t const testname = argv[1];
-  RUN_TEST(testname);
-}
+#include <iostream>
+#include <vector>
 
 using namespace kwiver::vital;
-using namespace std;
 
-IMPLEMENT_TEST(creation)
+using std::cerr;
+using std::endl;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  kwiver::vital::algo::estimate_similarity_transform_sptr est_ST = kwiver::vital::algo::estimate_similarity_transform::create("vxl");
-  if (!est_ST)
-  {
-    TEST_ERROR("Unable to create vxl::estimate_similarity_transform by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, create)
+{
+  plugin_manager::instance().load_all_plugins();
 
-IMPLEMENT_TEST(not_enough_points)
+  EXPECT_NE( nullptr, algo::estimate_similarity_transform::create("vxl") );
+}
+
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, not_enough_points)
 {
   kwiver::arrows::vxl::estimate_similarity_transform est_ST;
   std::vector<vector_3d> from, to;
-  EXPECT_EXCEPTION(
-    algorithm_exception,
+  EXPECT_THROW(
     est_ST.estimate_transform(from, to),
-    "estimating with zero points");
+    algorithm_exception)
+    << "Estimating with zero points";
 }
 
-
-IMPLEMENT_TEST(uneven_sets)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, uneven_sets)
 {
   kwiver::arrows::vxl::estimate_similarity_transform est_ST;
   std::vector<vector_3d> from, to;
@@ -91,14 +85,14 @@ IMPLEMENT_TEST(uneven_sets)
   from.push_back(dummy_vec);
   to.push_back(dummy_vec);
 
-  EXPECT_EXCEPTION(
-    algorithm_exception,
+  EXPECT_THROW(
     est_ST.estimate_transform(from, to),
-    "estimating with uneven sets");
+    algorithm_exception)
+    << "Estimating with uneven sets";
 }
 
-
-IMPLEMENT_TEST(reprojection_100pts)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, reprojection_100pts)
 {
   // Process:
   //  1) generated points
@@ -106,9 +100,8 @@ IMPLEMENT_TEST(reprojection_100pts)
   //  3) generate similarity transform via estimation between two points sets
   //  4) check difference between crafted and estimated similarity transforms
 
-
   cerr << "Constructing 100 original, random points (std dev: 1.0)" << endl;
-  vector<vector_3d> original_points;
+  std::vector<vector_3d> original_points;
   for (int i=0; i < 100; ++i)
   {
     original_points.push_back(kwiver::testing::random_point3d(1.0));
@@ -120,8 +113,8 @@ IMPLEMENT_TEST(reprojection_100pts)
                      vector_3d(2.24, 1.51, 4.23));
 
   cerr << "Transforming original points by crafted transformation" << endl;
-  vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  std::vector<vector_3d> transformed_points;
+  for (vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -135,9 +128,8 @@ IMPLEMENT_TEST(reprojection_100pts)
        << "Estimated Transform: " << e_sim << endl
        << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
-  TEST_NEAR("Crafted and estimated similarity transforms match",
-            (m_sim.matrix() - e_sim.matrix()).norm(),
-            0.0, 1e-12);
+  EXPECT_MATRIX_NEAR( m_sim.matrix(), e_sim.matrix(), 1e-12 )
+    << "Crafted and estimated similarity transforms should match";
 
   cerr << "Constructing crafted similarity transformation WITH ZERO TRANSLATION" << endl;
   m_sim = similarity_d(5.623,
@@ -146,7 +138,7 @@ IMPLEMENT_TEST(reprojection_100pts)
 
   cerr << "Transforming original points by crafted transformation" << endl;
   transformed_points.clear();
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  for (vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -158,13 +150,12 @@ IMPLEMENT_TEST(reprojection_100pts)
        << "Estimated Transform: " << e_sim << endl
        << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
-  TEST_NEAR("Crafted and estimated similarity transforms match",
-            (m_sim.matrix() - e_sim.matrix()).norm(),
-            0.0, 1e-12);
+  EXPECT_MATRIX_NEAR( m_sim.matrix(), e_sim.matrix(), 1e-12 )
+    << "Crafted and estimated similarity transforms should match";
 }
 
-
-IMPLEMENT_TEST(reprojection_4pts)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, reprojection_4pts)
 {
   // Process:
   //  1) generated points
@@ -173,7 +164,7 @@ IMPLEMENT_TEST(reprojection_4pts)
   //  4) check difference between crafted and estimated similarity transforms
 
   cerr << "Constructing 4 original, random points (std dev: 1.0)" << endl;
-  vector<vector_3d> original_points;
+  std::vector<vector_3d> original_points;
   cerr << "Random points:" << endl;
   for (int i=0; i < 4; ++i)
   {
@@ -187,8 +178,8 @@ IMPLEMENT_TEST(reprojection_4pts)
                      vector_3d(2.24, 1.51, 4.23));
 
   cerr << "Transforming original points by crafted transformation" << endl;
-  vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  std::vector<vector_3d> transformed_points;
+  for (vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -202,13 +193,12 @@ IMPLEMENT_TEST(reprojection_4pts)
        << "Estimated Transform: " << e_sim << endl
        << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
-  TEST_NEAR("Crafted and estimated similarity transforms match",
-            (m_sim.matrix() - e_sim.matrix()).norm(),
-            0.0, 1e-12);
+  EXPECT_MATRIX_NEAR( m_sim.matrix(), e_sim.matrix(), 1e-12 )
+    << "Crafted and estimated similarity transforms should match";
 }
 
-
-IMPLEMENT_TEST(reprojection_3pts)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, reprojection_3pts)
 {
   // Process:
   //  1) generated points
@@ -217,7 +207,7 @@ IMPLEMENT_TEST(reprojection_3pts)
   //  4) check difference between crafted and estimated similarity transforms
 
   cerr << "Constructing 3 original, random points (std dev: 1.0)" << endl;
-  vector<vector_3d> original_points;
+  std::vector<vector_3d> original_points;
   cerr << "Random points:" << endl;
   for (int i=0; i < 3; ++i)
   {
@@ -231,8 +221,8 @@ IMPLEMENT_TEST(reprojection_3pts)
                      vector_3d(2.24, 1.51, 4.23));
 
   cerr << "Transforming original points by crafted transformation" << endl;
-  vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  std::vector<vector_3d> transformed_points;
+  for (vector_3d o_vec : original_points)
   {
     transformed_points.push_back(m_sim * o_vec);
   }
@@ -246,13 +236,12 @@ IMPLEMENT_TEST(reprojection_3pts)
        << "Estimated Transform: " << e_sim << endl
        << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
-  TEST_NEAR("Crafted and estimated similarity transforms match",
-            (m_sim.matrix() - e_sim.matrix()).norm(),
-            0.0, 1e-12);
+  EXPECT_MATRIX_NEAR( m_sim.matrix(), e_sim.matrix(), 1e-12 )
+    << "Crafted and estimated similarity transforms should match";
 }
 
-
-IMPLEMENT_TEST(reprojection_100pts_noisy)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity, reprojection_100pts_noisy)
 {
   // Process:
   //  1) generated points
@@ -261,7 +250,7 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
   //  4) check difference between crafted and estimated similarity transforms
 
   cerr << "Constructing 100 original, random points (std dev: 1.0)" << endl;
-  vector<vector_3d> original_points;
+  std::vector<vector_3d> original_points;
   for (int i=0; i < 100; ++i)
   {
     original_points.push_back(kwiver::testing::random_point3d(1.0));
@@ -273,8 +262,8 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
                      vector_3d(2.24, 1.51, 4.23));
 
   cerr << "Transforming original points by crafted transformation" << endl;
-  vector<vector_3d> transformed_points;
-  VITAL_FOREACH(vector_3d o_vec, original_points)
+  std::vector<vector_3d> transformed_points;
+  for (vector_3d o_vec : original_points)
   {
     transformed_points.push_back((m_sim * o_vec) + kwiver::testing::random_point3d(0.01));
   }
@@ -288,7 +277,6 @@ IMPLEMENT_TEST(reprojection_100pts_noisy)
        << "Estimated Transform: " << e_sim << endl
        << "Euclidian norm     : " << (m_sim.matrix() - e_sim.matrix()).norm() << endl;
 
-  TEST_NEAR("Crafted and estimated similarity transforms match",
-            (m_sim.matrix() - e_sim.matrix()).norm(),
-            0.0, 0.01);
+  EXPECT_MATRIX_NEAR( m_sim.matrix(), e_sim.matrix(), 1e-2 )
+    << "Crafted and estimated similarity transforms should match";
 }

@@ -31,7 +31,6 @@
 #include "handle_descriptor_request_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
 #include <vital/types/image_container.h>
@@ -164,7 +163,7 @@ handle_descriptor_request_process
   }
 
   // Step image output pipeline if connected
-  VITAL_FOREACH( auto image, images )
+  for( auto image : images )
   {
     vital::timestamp ts;
 

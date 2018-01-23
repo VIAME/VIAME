@@ -36,10 +36,8 @@
 #ifndef KWIVER_ARROWS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
 #define KWIVER_ARROWS_CORE_CLOSE_LOOPS_BAD_FRAMES_ONLY_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 #include <vital/types/feature_track_set.h>
 
@@ -67,10 +65,7 @@ public:
   close_loops_bad_frames_only();
 
   /// Destructor
-  virtual ~close_loops_bad_frames_only() VITAL_DEFAULT_DTOR;
-
-  /// Returns implementation description
-  virtual std::string description() const;
+  virtual ~close_loops_bad_frames_only() = default;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

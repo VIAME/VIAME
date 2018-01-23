@@ -75,9 +75,6 @@ read_track_descriptor_process
   : process( config ),
     d( new read_track_descriptor_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -93,6 +90,8 @@ read_track_descriptor_process
 void read_track_descriptor_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
 
@@ -140,10 +139,17 @@ void read_track_descriptor_process
 void read_track_descriptor_process
 ::_step()
 {
+  bool status = false;
+
   std::string image_name;
   kwiver::vital::track_descriptor_set_sptr set;
 
-  if( d->m_reader->read_set( set ) )
+  {
+    scoped_step_instrumentation();
+    status = d->m_reader->read_set( set );
+  }
+
+  if( status )
   {
     push_to_port_using_trait( track_descriptor_set, set );
   }

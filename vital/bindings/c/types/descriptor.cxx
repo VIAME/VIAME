@@ -38,7 +38,6 @@
 #include <vector>
 
 #include <vital/bindings/c/helpers/descriptor.h>
-#include <vital/vital_foreach.h>
 
 
 namespace kwiver {
@@ -51,6 +50,8 @@ SharedPointerCache< kwiver::vital::descriptor, vital_descriptor_t >
 }
 
 using namespace kwiver;
+
+
 
 
 /// Destroy a descriptor instance

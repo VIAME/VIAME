@@ -66,6 +66,6 @@ private:
 
   class priv;
   std::unique_ptr< priv > d;
-};   // end class stabilize_image
+};   // end class
 
 } // end namespace

@@ -85,6 +85,55 @@ starts_with( const std::string& input, const std::string& pattern)
 VITAL_UTIL_EXPORT std::string
 join( const std::vector<std::string>& elements, const std::string& str_separator);
 
+
+/**
+ * @brief Removes duplicate strings while preserving original order.
+ *
+ * Modifies a vector of strings inplace by removing duplicates encountered in a
+ * forward iteration. The result is a unique vector of strings that preserves
+ * the forwards order.
+ *
+ * @param items Vector of strings to modify inplace
+ */
+VITAL_UTIL_EXPORT void
+erase_duplicates(std::vector<std::string>& items);
+
+
+/**
+ * @brief Removes whitespace from left side of string.
+ *
+ * @param[in,out] s String to be trimmed in place.
+ */
+inline void
+left_trim( std::string& s )
+{
+  s.erase(  0, s.find_first_not_of( " \t\n\r\f\v" ) );
+}
+
+
+/**
+ * @brief Removes whitespace from right size of string.
+ *
+ * @param[in,out] s String to be trimmed in place
+ */
+inline void
+right_trim( std::string& s )
+{
+  s.erase( s.find_last_not_of( " \t\n\r\f\v" ) + 1 );
+}
+
+
+/**
+ * @brief Removes whitespace from both ends of a string.
+ *
+ * @param[in,out] s String to be trimmed in place
+ */inline void
+string_trim( std::string& s )
+{
+  right_trim(s);
+  left_trim(s);
+}
+
 } } // end namespace
 
 #endif /* KWIVER_VITAL_UTIL_STRING_FORMAT_H */

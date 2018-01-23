@@ -35,14 +35,12 @@
 
 #include "adapter_data_set.h"
 
-#include <boost/make_shared.hpp>
-
 namespace kwiver {
 namespace adapter {
 
 namespace {
 
-// Hack to allow boost::make_shared<> work when CTOR is private.
+// Hack to allow std::make_shared<> work when CTOR is private.
 struct local_ads : public adapter_data_set {
   local_ads( data_set_type type ) : adapter_data_set(type) {}
 };
@@ -67,7 +65,7 @@ adapter_data_set_t
 adapter_data_set
 ::create( data_set_type type )
 {
-  adapter_data_set_t set = boost::make_shared<local_ads>( type );
+  adapter_data_set_t set = std::make_shared<local_ads>( type );
   return set;
 }
 
@@ -100,6 +98,15 @@ adapter_data_set
 
 
 // ------------------------------------------------------------------
+kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+adapter_data_set
+::cbegin() const
+{
+  return m_port_datum_set.begin();
+}
+
+
+// ------------------------------------------------------------------
 kwiver::adapter::adapter_data_set::datum_map_t::iterator
 adapter_data_set
 ::end()
@@ -112,6 +119,15 @@ adapter_data_set
 kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
 adapter_data_set
 ::end() const
+{
+  return m_port_datum_set.end();
+}
+
+
+// ------------------------------------------------------------------
+kwiver::adapter::adapter_data_set::datum_map_t::const_iterator
+adapter_data_set
+::cend() const
 {
   return m_port_datum_set.end();
 }

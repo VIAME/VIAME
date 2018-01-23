@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,28 @@
 
 namespace kwiver {
 namespace vital {
+
+template <typename T> VITAL_EXPORT
+image_pixel_traits::pixel_type const image_pixel_traits_of<T>::static_type;
+
+template struct image_pixel_traits_of<char>;
+template struct image_pixel_traits_of<signed char>;
+template struct image_pixel_traits_of<unsigned char>;
+template struct image_pixel_traits_of<signed short>;
+template struct image_pixel_traits_of<unsigned short>;
+template struct image_pixel_traits_of<signed int>;
+template struct image_pixel_traits_of<unsigned int>;
+template struct image_pixel_traits_of<signed long>;
+template struct image_pixel_traits_of<unsigned long>;
+template struct image_pixel_traits_of<signed long long>;
+template struct image_pixel_traits_of<unsigned long long>;
+template struct image_pixel_traits_of<float>;
+template struct image_pixel_traits_of<double>;
+
+VITAL_EXPORT
+image_pixel_traits::pixel_type const image_pixel_traits_of<bool>::static_type;
+
+template <> struct image_pixel_traits_of<bool>;
 
 /// Output stream operator for image_pixel_traits::pixel_type
 std::ostream& operator<<(std::ostream& os, image_pixel_traits::pixel_type pt)

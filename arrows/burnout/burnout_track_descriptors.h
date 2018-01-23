@@ -33,8 +33,6 @@
 
 #include <arrows/burnout/kwiver_algo_burnout_export.h>
 
-#include <vital/vital_config.h>
-
 #include <vital/algo/compute_track_descriptors.h>
 
 namespace kwiver {
@@ -64,6 +62,8 @@ public:
   compute( kwiver::vital::timestamp ts,
            kwiver::vital::image_container_sptr image_data,
            kwiver::vital::object_track_set_sptr tracks );
+
+  virtual kwiver::vital::track_descriptor_set_sptr flush();
 
 private:
 

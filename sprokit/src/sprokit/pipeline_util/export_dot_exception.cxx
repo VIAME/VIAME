@@ -42,18 +42,18 @@ namespace sprokit
 {
 
 export_dot_exception
-::export_dot_exception() VITAL_NOTHROW
+::export_dot_exception() noexcept
   : pipeline_exception()
 {
 }
 
 export_dot_exception
-::~export_dot_exception() VITAL_NOTHROW
+::~export_dot_exception() noexcept
 {
 }
 
 null_pipeline_export_dot_exception
-::null_pipeline_export_dot_exception() VITAL_NOTHROW
+::null_pipeline_export_dot_exception() noexcept
   : export_dot_exception()
 {
   std::stringstream sstr;
@@ -64,12 +64,12 @@ null_pipeline_export_dot_exception
 }
 
 null_pipeline_export_dot_exception
-::~null_pipeline_export_dot_exception() VITAL_NOTHROW
+::~null_pipeline_export_dot_exception() noexcept
 {
 }
 
 null_cluster_export_dot_exception
-::null_cluster_export_dot_exception() VITAL_NOTHROW
+::null_cluster_export_dot_exception() noexcept
   : export_dot_exception()
 {
   std::stringstream sstr;
@@ -80,12 +80,12 @@ null_cluster_export_dot_exception
 }
 
 null_cluster_export_dot_exception
-::~null_cluster_export_dot_exception() VITAL_NOTHROW
+::~null_cluster_export_dot_exception() noexcept
 {
 }
 
 empty_name_export_dot_exception
-::empty_name_export_dot_exception() VITAL_NOTHROW
+::empty_name_export_dot_exception() noexcept
   : export_dot_exception()
 {
   std::stringstream sstr;
@@ -97,7 +97,7 @@ empty_name_export_dot_exception
 }
 
 empty_name_export_dot_exception
-::~empty_name_export_dot_exception() VITAL_NOTHROW
+::~empty_name_export_dot_exception() noexcept
 {
 }
 

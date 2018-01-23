@@ -39,8 +39,36 @@
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-  create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block." );
+  create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block./n/n"
+                       "Specify an implementation of the draw_detected_object_set algorithm "
+                       "as draw_algo:type = <type>");
 
+// ----------------------------------------------------------------
+/**
+ * \class draw_detected_object_set_process
+ *
+ * \brief Draw detected objects on reference imagery.
+ *
+ * \process This process draws the bounding box outlines of the
+ * detections in the supplied set on the supplied reference
+ * imagery. The actual rendering is done by the selected \b
+ * draw_detected_object_set algorithm implementation.
+ *
+ * \iports
+ *
+ * \iport{detected_object_set} Set of detected objects to render on reference image.
+ *
+ * \iport{image} Reference image for rendering.
+ *
+ * \oports
+ *
+ * \oport{image} A copy of the input image with bounding boxes rendered.
+ *
+ * \configs
+ *
+ * \config{draw_algo} Name of the configuration subblock that selects
+ * and configures the drawing algorithm.
+ */
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -62,9 +90,6 @@ draw_detected_object_set_process
   : process( config ),
     d( new draw_detected_object_set_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -80,7 +105,9 @@ draw_detected_object_set_process
 void draw_detected_object_set_process
 ::_configure()
 {
-  vital::config_block_sptr algo_config = get_config();
+  scoped_configure_instrumentation();
+
+  auto algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
   if ( ! vital::algo::draw_detected_object_set::check_nested_algo_configuration( "draw_algo", algo_config ) )
@@ -103,7 +130,13 @@ void draw_detected_object_set_process
   auto input_image = grab_from_port_using_trait( image );
   auto obj_set = grab_from_port_using_trait( detected_object_set );
 
-  auto out_image = d->m_algo->draw( obj_set, input_image );
+  kwiver::vital::image_container_sptr out_image;
+
+  {
+    scoped_step_instrumentation();
+
+    out_image = d->m_algo->draw( obj_set, input_image );
+  }
 
   push_to_port_using_trait( image, out_image );
 }

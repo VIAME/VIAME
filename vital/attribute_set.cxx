@@ -50,7 +50,7 @@ attribute_set_exception( std::string const& str )
 
 
 attribute_set_exception::
-~attribute_set_exception() VITAL_NOTHROW
+~attribute_set_exception() noexcept
 { }
 
 

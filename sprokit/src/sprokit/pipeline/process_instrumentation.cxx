@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,5 +60,14 @@ void
 process_instrumentation::
 configure( kwiver::vital::config_block_sptr const config )
 { }
+
+
+kwiver::vital::config_block_sptr
+process_instrumentation::
+get_configuration() const
+{
+  auto conf = kwiver::vital::config_block::empty_config();
+  return conf;
+}
 
 } // end namespace sprokit

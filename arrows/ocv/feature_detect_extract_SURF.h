@@ -39,14 +39,11 @@
 #include <opencv2/opencv_modules.hpp>
 #if defined(HAVE_OPENCV_NONFREE) || defined(HAVE_OPENCV_XFEATURES2D)
 
-#include <memory>
-#include <string>
-
-#include <vital/vital_config.h>
-
 #include <arrows/ocv/detect_features.h>
 #include <arrows/ocv/extract_descriptors.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
+
+#include <string>
 
 namespace kwiver {
 namespace arrows {

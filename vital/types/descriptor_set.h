@@ -55,7 +55,7 @@ class descriptor_set
 {
 public:
   /// Destructor
-  virtual ~descriptor_set() VITAL_DEFAULT_DTOR
+  virtual ~descriptor_set() = default;
 
   /// Return the number of descriptors in the set
   virtual size_t size() const = 0;
@@ -64,7 +64,9 @@ public:
   virtual std::vector< descriptor_sptr > descriptors() const = 0;
 
 protected:
-  descriptor_set() : m_logger( kwiver::vital::get_logger( "vital.descriptor_set" ) ) { }
+  descriptor_set()
+   : m_logger( kwiver::vital::get_logger( "vital.descriptor_set" ) )
+  {}
 
   kwiver::vital::logger_handle_t m_logger;
 };

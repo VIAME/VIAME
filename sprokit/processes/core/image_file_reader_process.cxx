@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -127,9 +127,6 @@ image_file_reader_process
   : process( config ),
     d( new image_file_reader_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -145,6 +142,8 @@ image_file_reader_process
 void image_file_reader_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Examine the configuration
   std::string mode = config_value_using_trait( error_mode );
   std::string path = config_value_using_trait( path );
@@ -200,30 +199,36 @@ void image_file_reader_process
     }
   }
 
-  LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );
-
-  // read image file
-  //
-  // This call returns a *new* image container. This is good since
-  // we are going to pass it downstream using the sptr.
   kwiver::vital::image_container_sptr img_c;
-  img_c = d->m_image_reader->load( resolved_file );
+  kwiver::vital::timestamp frame_ts;
 
-  // --- debug
+  {
+    scoped_step_instrumentation();
+
+    LOG_DEBUG( logger(), "reading image from file \"" << resolved_file << "\"." );
+
+    // read image file
+    //
+    // This call returns a *new* image container. This is good since
+    // we are going to pass it downstream using the sptr.
+    img_c = d->m_image_reader->load( resolved_file );
+
+    // --- debug
 #if defined DEBUG
-  cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( img_c->get_image() );
-  namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
-  imshow( "Display window", image );                   // Show our image inside it.
+    cv::Mat image = algorithms::ocv::image_container::vital_to_ocv( img_c->get_image() );
+    namedWindow( "Display window", cv::WINDOW_NORMAL );// Create a window for display.
+    imshow( "Display window", image );                   // Show our image inside it.
 
-  waitKey(0);                 // Wait for a keystroke in the window
+    waitKey(0);                 // Wait for a keystroke in the window
 #endif
-  // -- end debug
+    // -- end debug
 
-  kwiver::vital::timestamp frame_ts( d->m_frame_time, d->m_frame_number );
+    frame_ts = kwiver::vital::timestamp( d->m_frame_time, d->m_frame_number );
 
-  // update timestamp
-  ++d->m_frame_number;
-  d->m_frame_time += d->m_config_frame_time;
+    // update timestamp
+    ++d->m_frame_number;
+    d->m_frame_time += d->m_config_frame_time;
+  }
 
   push_to_port_using_trait( timestamp, frame_ts );
   push_to_port_using_trait( image, img_c );

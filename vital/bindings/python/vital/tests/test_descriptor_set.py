@@ -74,13 +74,13 @@ class TestDescriptorSet (unittest.TestCase):
         self.assertEqual(len(ds), 1)
 
     def test_get_descriptors_empty(self):
-        # Try getting descirptor list from a set constructed with no
+        # Try getting descriptor list from a set constructed with no
         # descriptors.
         ds = DescriptorSet()
         r_list = ds.descriptors()
         self.assertEqual(len(r_list), 0)
 
-    def test_det_descriptors_multiple(self):
+    def test_get_descriptors_multiple(self):
         # Test getting descriptors given to the set in its constructor.
         d_list = [
             Descriptor(1),

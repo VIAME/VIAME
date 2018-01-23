@@ -1,0 +1,26 @@
+# ================================================================
+process numbersource
+  :: numbers
+
+  # Starting Number
+  start = 1
+
+  # Ending Number
+  end = 7
+
+# ================================================================
+process numbersink
+  :: kw_print_number_process
+
+  output = @EXAMPLE_DIR@/pipelines/output/numbers_from_python.txt
+
+# ================================================================
+# connections
+connect from numbersource.number
+        to   numbersink.input
+
+# ================================================================
+config _scheduler
+  type = pythread_per_process
+
+# -- end of file --

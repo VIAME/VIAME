@@ -31,7 +31,6 @@
 #ifndef VITAL_UTIL_ENUM_CONVERTER_H
 #define VITAL_UTIL_ENUM_CONVERTER_H
 
-#include <vital/vital_foreach.h>
 
 #include <vector>
 #include <utility>
@@ -76,7 +75,7 @@ std::string name = ec.to_string( one );
  *
 \code
 // Converter implemented as a derived type using MACRO helper
-ENUM_CONVERSION( my_ec, numbers,
+ENUM_CONVERTER( my_ec, numbers,
       { "ONE", one },
       { "TWO", two },
       { "THREE", three },
@@ -164,7 +163,7 @@ struct enum_converter
    */
   T from_string( const std::string& name )
   {
-    VITAL_FOREACH( const auto& elem, m_table )
+    for( const auto& elem : m_table )
     {
       if ( elem.first == name ) return elem.second;
     }
@@ -189,7 +188,7 @@ struct enum_converter
    */
   std::string to_string( T val )
   {
-    VITAL_FOREACH( const auto& elem, m_table )
+    for( const auto& elem : m_table )
     {
       if ( elem.second == val ) return elem.first;
     }
@@ -212,7 +211,7 @@ struct enum_converter
     bool first(true);
     std::stringstream str;
 
-    VITAL_FOREACH( const auto& elem, m_table )
+    for( const auto& elem : m_table )
     {
       if ( ! first )
       {

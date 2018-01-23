@@ -76,7 +76,14 @@ void
 read_track_descriptor_set
 ::open( std::string const& filename )
 {
-    // Make sure that the given file path exists and is a file.
+  if( m_stream && m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
+
+  // Make sure that the given file path exists and is a file.
   if( ! kwiversys::SystemTools::FileExists( filename ) )
   {
     throw path_not_exists(filename);

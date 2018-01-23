@@ -39,6 +39,32 @@ namespace kwiver {
 
 create_config_trait( computer, std::string, "", "Algorithm configuration subblock" );
 
+// ----------------------------------------------------------------
+/**
+ * \class compute_stereo_depth_map_process
+ *
+ * \brief Compute stereo depth map image.
+ *
+ * \process This process generates a depth map image from a pair of
+ * stereo images. The actual calculation is done by the selected \b
+ * compute_stereo_depth_map algorithm implementation.
+ *
+ * \iports
+ *
+ * \iport{left_image} Left image of the stereo image pair.
+ *
+ * \iport{right_image} Right image if the stereo pair.
+ *
+ * \oports
+ *
+ * \oport{depth_map} Resulting depth map.
+ *
+ * \configs
+ *
+ * \config{computer} Name of the configuration subblock that selects
+ * and configures the algorithm.
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class compute_stereo_depth_map_process::priv
@@ -58,9 +84,6 @@ compute_stereo_depth_map_process( kwiver::vital::config_block_sptr const& config
   : process( config ),
     d( new compute_stereo_depth_map_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -77,6 +100,8 @@ void
 compute_stereo_depth_map_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   vital::algo::compute_stereo_depth_map::set_nested_algo_configuration( "computer", algo_config, d->m_computer );
@@ -104,8 +129,14 @@ _step()
   vital::image_container_sptr left_image = grab_from_port_using_trait( left_image );
   vital::image_container_sptr right_image = grab_from_port_using_trait( right_image );
 
-  // Get detections from computer on image
-  vital::image_container_sptr depth_map = d->m_computer->compute( left_image, right_image );
+  vital::image_container_sptr depth_map;
+
+  {
+    scoped_step_instrumentation();
+
+    // Get detections from computer on image
+    depth_map = d->m_computer->compute( left_image, right_image );
+  }
 
   push_to_port_using_trait( depth_map, depth_map );
 }

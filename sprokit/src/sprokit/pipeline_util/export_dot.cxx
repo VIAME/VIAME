@@ -31,17 +31,13 @@
 #include "export_dot.h"
 #include "export_dot_exception.h"
 
-#include <vital/vital_foreach.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/ref.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <ostream>
@@ -50,6 +46,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <functional>
 
 /// \todo Implement a depth option to suppress recursion into too many clusters.
 /// \todo Improve the color scheme.
@@ -73,16 +70,21 @@ static std::string const node_prefix_output = "_output_";
 static std::string const style_global = "clusterrank=local;";
 static std::string const style_process_subgraph = "color=lightgray;style=filled;fillcolor=lightgray;";
 static std::string const style_process = "shape=ellipse,rank=same";
+static std::string const style_process_subgraph_rst = "color=lightgray;";
+static std::string const style_process_rst = "shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href=\"";
 static std::string const style_cluster = "labelloc=t;labeljust=l;color=black;style=filled;fillcolor=gray;";
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
+static std::string const style_port_rst = "shape=none,height=0,width=0,fontsize=12";
 static std::string const style_port_edge = "arrowhead=none,color=black";
 static std::string const style_map_edge = "color=\"#808080\"";
 static std::string const style_input_subgraph = "clusterrank=local;rankdir=BT;";
 static std::string const style_input_port = style_port;
+static std::string const style_input_port_rst = style_port_rst;
 static std::string const style_input_port_edge = style_port_edge;
 static std::string const style_input_map_edge = style_map_edge;
 static std::string const style_output_subgraph = "clusterrank=local;rankdir=BT;";
 static std::string const style_output_port = style_port;
+static std::string const style_output_port_rst = style_port_rst;
 static std::string const style_output_port_edge = style_port_edge;
 static std::string const style_output_map_edge = style_map_edge;
 static std::string const style_connection_edge = "minlen=1,color=black,weight=1";
@@ -97,14 +99,16 @@ typedef std::pair<process::name_t, name_type_t> name_info_t;
 typedef std::vector<name_info_t> name_infos_t;
 typedef std::map<process::name_t, name_infos_t> parent_names_t;
 
-typedef boost::function<void ()> callback_t;
+typedef std::function<void ()> callback_t;
 
 }
 
-static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map);
+static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map, std::string const& link_prefix);
 
+
+// ----------------------------------------------------------------------------
 void
-export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
+export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name, std::string const& link_prefix)
 {
   if (!pipe)
   {
@@ -119,7 +123,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   parent_names_t parent_map;
 
-  VITAL_FOREACH (process::name_t const& name, proc_names)
+  for (process::name_t const& name : proc_names)
   {
     if (name.empty())
     {
@@ -133,7 +137,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
     parent_map[parent].push_back(info);
   }
 
-  VITAL_FOREACH (process::name_t const& name, cluster_names)
+  for (process::name_t const& name : cluster_names)
   {
     if (name.empty())
     {
@@ -149,21 +153,21 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   ostr << std::endl;
 
-  output_cluster(ostr, process::name_t(), pipe, parent_map);
+  output_cluster(ostr, process::name_t(), pipe, parent_map, link_prefix);
 
   // Output connections
-  VITAL_FOREACH (process::name_t const& name, proc_names)
+  for (process::name_t const& name : proc_names)
   {
     process_t const proc = pipe->process_by_name(name);
 
     process::ports_t const oports = proc->output_ports();
-    VITAL_FOREACH (process::port_t const& port, oports)
+    for (process::port_t const& port : oports)
     {
       std::string const node_from_port_name = name + node_prefix_output + port;
 
       process::port_addrs_t const addrs = pipe->connections_from_addr(name, port);
 
-      VITAL_FOREACH (process::port_addr_t const& addr, addrs)
+      for (process::port_addr_t const& addr : addrs)
       {
         process::name_t const& recv_name = addr.first;
         process::port_t const& recv_port = addr.second;
@@ -178,18 +182,18 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
     }
   }
 
-  VITAL_FOREACH (process::name_t const& name, cluster_names)
+  for (process::name_t const& name : cluster_names)
   {
     process_t const proc = pipe->cluster_by_name(name);
 
     process::ports_t const oports = proc->output_ports();
-    VITAL_FOREACH (process::port_t const& port, oports)
+    for (process::port_t const& port : oports)
     {
       std::string const node_from_port_name = name + node_prefix_output + port;
 
       process::port_addrs_t const addrs = pipe->connections_from_addr(name, port);
 
-      VITAL_FOREACH (process::port_addr_t const& addr, addrs)
+      for (process::port_addr_t const& addr : addrs)
       {
         process::name_t const& recv_name = addr.first;
         process::port_t const& recv_port = addr.second;
@@ -209,6 +213,16 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   ostr << "}" << std::endl;
 }
 
+
+// ----------------------------------------------------------------------------
+void
+export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
+{
+  export_dot(ostr, pipe, graph_name, "");
+}
+
+
+// ----------------------------------------------------------------------------
 void
 export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name)
 {
@@ -217,18 +231,21 @@ export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string con
     throw null_cluster_export_dot_exception();
   }
 
-  pipeline_t const pipe = boost::make_shared<pipeline>();
+  pipeline_t const pipe = std::make_shared<pipeline>();
 
   pipe->add_process(cluster);
 
   export_dot(ostr, pipe, graph_name);
 }
 
-static void output_process(std::ostream& ostr, process_t const& process);
+
+static void output_process(std::ostream& ostr, process_t const& process, std::string const& link_prefix);
 static void output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, callback_t const& output_children);
 
+
+// ----------------------------------------------------------------------------
 void
-output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map)
+output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map, std::string const& link_prefix)
 {
   parent_names_t::const_iterator const i = parent_map.find(name);
 
@@ -242,7 +259,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
 
   name_infos_t const& name_infos = i->second;
 
-  VITAL_FOREACH (name_info_t const& info, name_infos)
+  for (name_info_t const& info : name_infos)
   {
     process::name_t const& child_name = info.first;
     name_type_t const& type = info.second;
@@ -253,7 +270,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
       {
         process_t const proc = pipe->process_by_name(child_name);
 
-        output_process(ostr, proc);
+        output_process(ostr, proc, link_prefix);
 
         break;
       }
@@ -261,7 +278,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
       {
         process_cluster_t const proc = pipe->cluster_by_name(child_name);
 
-        callback_t const callback = boost::bind(&output_cluster, boost::ref(ostr), child_name, pipe, parent_map);
+        callback_t const callback = std::bind(&output_cluster, std::ref(ostr), child_name, pipe, parent_map, link_prefix);
 
         output_process_cluster(ostr, proc, callback);
 
@@ -273,29 +290,43 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
   }
 }
 
+
+// ----------------------------------------------------------------------------
 void
-output_process(std::ostream& ostr, process_t const& process)
+output_process(std::ostream& ostr, process_t const& process, std::string const& link_prefix)
 {
   process::name_t const& name = process->name();
   process::type_t const& type = process->type();
 
+  bool const has_link = link_prefix != "";
+
   ostr << "subgraph \"cluster_" << name << "\" {" << std::endl;
-  ostr << style_process_subgraph << std::endl;
+  ostr << (has_link ? style_process_subgraph_rst : style_process_subgraph) << std::endl;
   ostr << std::endl;
 
   std::string const node_name = name + node_suffix_main;
 
   // Central node
+  if(has_link)
+  {
+  ostr << "\"" << node_name << "\" ["
+          "label=<<u>" << name << "<br/>:: " << type << "</u>>,"
+       << style_process_rst << link_prefix << type << ".html"
+       << "\"];" << std::endl;
+  }
+  else
+  {
   ostr << "\"" << node_name << "\" ["
           "label=\"" << name << "\\n:: " << type << "\","
        << style_process
        << "];" << std::endl;
+  }
 
   ostr << std::endl;
 
   // Input ports
   process::ports_t const iports = process->input_ports();
-  VITAL_FOREACH (process::port_t const& port, iports)
+  for (process::port_t const& port : iports)
   {
     process::port_type_t const ptype = process->input_port_info(port)->type;
 
@@ -303,7 +334,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
     ostr << "\"" << node_port_name << "\" ["
             "label=\"" << port << "\\n:: " << ptype << "\","
-         << style_input_port
+         << (has_link ? style_input_port_rst : style_input_port)
          << "];" << std::endl;
     ostr << "\"" << node_port_name << "\" -> "
             "\"" << node_name << "\" ["
@@ -315,7 +346,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
   // Output ports
   process::ports_t const oports = process->output_ports();
-  VITAL_FOREACH (process::port_t const& port, oports)
+  for (process::port_t const& port : oports)
   {
     process::port_type_t const ptype = process->output_port_info(port)->type;
 
@@ -323,7 +354,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
     ostr << "\"" << node_port_name << "\" ["
          << "label=\"" << port << "\\n:: " << ptype << "\","
-         << style_output_port
+         << (has_link ? style_output_port_rst : style_output_port)
          << "];" << std::endl;
     ostr << "\"" << node_name << "\" -> "
          << "\"" << node_port_name << "\" ["
@@ -356,7 +387,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   // Input ports
   process::connections_t const input_mappings = cluster->input_mappings();
   unique_ports_t input_ports;
-  VITAL_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  for (process::connection_t const& input_mapping : input_mappings)
   {
     process::port_addr_t const& upstream_addr = input_mapping.first;
 
@@ -381,7 +412,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   ostr << "}" << std::endl;
   ostr << std::endl;
 
-  VITAL_FOREACH (process::connection_t const& input_mapping, input_mappings)
+  for (process::connection_t const& input_mapping : input_mappings)
   {
     process::port_addr_t const& upstream_addr = input_mapping.first;
     process::port_addr_t const& downstream_addr = input_mapping.second;
@@ -411,7 +442,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
   // Output ports
   process::connections_t const output_mappings = cluster->output_mappings();
   unique_ports_t output_ports;
-  VITAL_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  for (process::connection_t const& output_mapping : output_mappings)
   {
     process::port_addr_t const& downstream_addr = output_mapping.second;
 
@@ -436,7 +467,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
        << "}" << std::endl
        << std::endl;
 
-  VITAL_FOREACH (process::connection_t const& output_mapping, output_mappings)
+  for (process::connection_t const& output_mapping : output_mappings)
   {
     process::port_addr_t const& upstream_addr = output_mapping.first;
     process::port_addr_t const& downstream_addr = output_mapping.second;
@@ -467,7 +498,7 @@ output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, cal
     // Output cluster connections
     process::connections_t const connections = cluster->internal_connections();
 
-    VITAL_FOREACH (process::connection_t const& connection, connections)
+    for (process::connection_t const& connection : connections)
     {
       process::port_addr_t const& upstream_addr = connection.first;
       process::port_addr_t const& downstream_addr = connection.second;

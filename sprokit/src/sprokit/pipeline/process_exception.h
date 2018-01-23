@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_EXCEPTION_H
 #define SPROKIT_PIPELINE_PROCESS_EXCEPTION_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/config/config_block.h>
 #include "process.h"
@@ -62,11 +62,11 @@ class SPROKIT_PIPELINE_EXPORT process_exception
     /**
      * \brief Constructor.
      */
-    process_exception() VITAL_NOTHROW;
+    process_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~process_exception() VITAL_NOTHROW;
+    virtual ~process_exception() noexcept;
 };
 
 /**
@@ -83,11 +83,11 @@ class SPROKIT_PIPELINE_EXPORT null_process_config_exception
     /**
      * \brief Constructor.
      */
-    null_process_config_exception() VITAL_NOTHROW;
+    null_process_config_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_process_config_exception() VITAL_NOTHROW;
+    ~null_process_config_exception() noexcept;
 };
 
 /**
@@ -106,11 +106,11 @@ class SPROKIT_PIPELINE_EXPORT already_initialized_exception
      *
      * \param name The name of the process.
      */
-    already_initialized_exception(process::name_t const& name) VITAL_NOTHROW;
+    already_initialized_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~already_initialized_exception() VITAL_NOTHROW;
+    ~already_initialized_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -132,11 +132,11 @@ class SPROKIT_PIPELINE_EXPORT unconfigured_exception
      *
      * \param name The name of the process.
      */
-    unconfigured_exception(process::name_t const& name) VITAL_NOTHROW;
+    unconfigured_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~unconfigured_exception() VITAL_NOTHROW;
+    ~unconfigured_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -158,11 +158,11 @@ class SPROKIT_PIPELINE_EXPORT reconfigured_exception
      *
      * \param name The name of the process.
      */
-    reconfigured_exception(process::name_t const& name) VITAL_NOTHROW;
+    reconfigured_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~reconfigured_exception() VITAL_NOTHROW;
+    ~reconfigured_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -184,11 +184,11 @@ class SPROKIT_PIPELINE_EXPORT reinitialization_exception
      *
      * \param name The name of the process.
      */
-    reinitialization_exception(process::name_t const& name) VITAL_NOTHROW;
+    reinitialization_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~reinitialization_exception() VITAL_NOTHROW;
+    ~reinitialization_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -211,11 +211,11 @@ class SPROKIT_PIPELINE_EXPORT null_conf_info_exception
      * \param name The name of the process.
      * \param key The configuration key with \c NULL information.
      */
-    null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) VITAL_NOTHROW;
+    null_conf_info_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_conf_info_exception() VITAL_NOTHROW;
+    ~null_conf_info_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -241,11 +241,11 @@ class SPROKIT_PIPELINE_EXPORT null_port_info_exception
      * \param port The port with \c NULL information.
      * \param type The type of port.
      */
-    null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) VITAL_NOTHROW;
+    null_port_info_exception(process::name_t const& name, process::port_t const& port, std::string const& type) noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_port_info_exception() VITAL_NOTHROW;
+    ~null_port_info_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -270,11 +270,11 @@ class SPROKIT_PIPELINE_EXPORT null_input_port_info_exception
      * \param name The name of the \ref process.
      * \param port The port with \c NULL information.
      */
-    null_input_port_info_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    null_input_port_info_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_input_port_info_exception() VITAL_NOTHROW;
+    ~null_input_port_info_exception() noexcept;
 };
 
 /**
@@ -294,11 +294,11 @@ class SPROKIT_PIPELINE_EXPORT null_output_port_info_exception
      * \param name The name of the \ref process.
      * \param port The port with \c NULL information.
      */
-    null_output_port_info_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    null_output_port_info_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_output_port_info_exception() VITAL_NOTHROW;
+    ~null_output_port_info_exception() noexcept;
 };
 
 /**
@@ -319,11 +319,11 @@ class SPROKIT_PIPELINE_EXPORT flag_mismatch_exception
      * \param port The port with \c NULL information.
      * \param reason The reason why the flags are incompatible.
      */
-    flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) VITAL_NOTHROW;
+    flag_mismatch_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) noexcept;
     /**
      * \brief Destructor.
      */
-    ~flag_mismatch_exception() VITAL_NOTHROW;
+    ~flag_mismatch_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -351,11 +351,11 @@ class SPROKIT_PIPELINE_EXPORT set_type_on_initialized_process_exception
      * \param port The name of the port on the \ref process.
      * \param type The type that was attempted to be set.
      */
-    set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) VITAL_NOTHROW;
+    set_type_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& type) noexcept;
     /**
      * \brief Destructor.
      */
-    ~set_type_on_initialized_process_exception() VITAL_NOTHROW;
+    ~set_type_on_initialized_process_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -383,11 +383,11 @@ class SPROKIT_PIPELINE_EXPORT set_frequency_on_initialized_process_exception
      * \param port The name of the port on the \ref process.
      * \param frequency The frequency that was attempted to be set.
      */
-    set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) VITAL_NOTHROW;
+    set_frequency_on_initialized_process_exception(process::name_t const& name, process::port_t const& port, process::port_frequency_t const& frequency) noexcept;
     /**
      * \brief Destructor.
      */
-    ~set_frequency_on_initialized_process_exception() VITAL_NOTHROW;
+    ~set_frequency_on_initialized_process_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -413,11 +413,11 @@ class SPROKIT_PIPELINE_EXPORT uninitialized_exception
      *
      * \param name The name of the process.
      */
-    uninitialized_exception(process::name_t const& name) VITAL_NOTHROW;
+    uninitialized_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~uninitialized_exception() VITAL_NOTHROW;
+    ~uninitialized_exception() noexcept;
 
     /// The name of the \ref process.
     process::name_t const m_name;
@@ -440,11 +440,11 @@ class SPROKIT_PIPELINE_EXPORT port_connection_exception
      * \param name The name of the process.
      * \param port The name of the port.
      */
-    port_connection_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    port_connection_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~port_connection_exception() VITAL_NOTHROW;
+    virtual ~port_connection_exception() noexcept;
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
@@ -469,11 +469,11 @@ class SPROKIT_PIPELINE_EXPORT connect_to_initialized_process_exception
      * \param name The name of the process.
      * \param port The name of the port.
      */
-    connect_to_initialized_process_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    connect_to_initialized_process_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~connect_to_initialized_process_exception() VITAL_NOTHROW;
+    ~connect_to_initialized_process_exception() noexcept;
 };
 
 /**
@@ -493,11 +493,11 @@ class SPROKIT_PIPELINE_EXPORT no_such_port_exception
      * \param name The name of the process.
      * \param port The name of the port.
      */
-    no_such_port_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    no_such_port_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~no_such_port_exception() VITAL_NOTHROW;
+    ~no_such_port_exception() noexcept;
 };
 
 /**
@@ -517,11 +517,11 @@ class SPROKIT_PIPELINE_EXPORT null_edge_port_connection_exception
      * \param name The name of the process.
      * \param port The name of the port.
      */
-    null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    null_edge_port_connection_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_edge_port_connection_exception() VITAL_NOTHROW;
+    ~null_edge_port_connection_exception() noexcept;
 };
 
 /**
@@ -543,11 +543,11 @@ class SPROKIT_PIPELINE_EXPORT static_type_reset_exception
      * \param orig_type The original type of the port.
      * \param new_type The type that was attempted to be set on the port.
      */
-    static_type_reset_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) VITAL_NOTHROW;
+    static_type_reset_exception(process::name_t const& name, process::port_t const& port, process::port_type_t const& orig_type, process::port_type_t const& new_type) noexcept;
     /**
      * \brief Destructor.
      */
-    ~static_type_reset_exception() VITAL_NOTHROW;
+    ~static_type_reset_exception() noexcept;
 
     /// The original type on the port.
     process::port_type_t const m_orig_type;
@@ -572,11 +572,11 @@ class SPROKIT_PIPELINE_EXPORT port_reconnect_exception
      * \param name The name of the process.
      * \param port The name of the port.
      */
-    port_reconnect_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    port_reconnect_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~port_reconnect_exception() VITAL_NOTHROW;
+    ~port_reconnect_exception() noexcept;
 };
 
 /**
@@ -597,11 +597,11 @@ class SPROKIT_PIPELINE_EXPORT missing_connection_exception
      * \param port The name of the port.
      * \param reason The reason why the connection is necessary.
      */
-    missing_connection_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) VITAL_NOTHROW;
+    missing_connection_exception(process::name_t const& name, process::port_t const& port, std::string const& reason) noexcept;
     /**
      * \brief Destructor.
      */
-    ~missing_connection_exception() VITAL_NOTHROW;
+    ~missing_connection_exception() noexcept;
 
     /// A reason for the missing connection.
     std::string const m_reason;
@@ -621,11 +621,11 @@ class SPROKIT_PIPELINE_EXPORT process_configuration_exception
     /**
      * \brief Constructor.
      */
-    process_configuration_exception() VITAL_NOTHROW;
+    process_configuration_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~process_configuration_exception() VITAL_NOTHROW;
+    virtual ~process_configuration_exception() noexcept;
 };
 
 /**
@@ -645,11 +645,11 @@ class SPROKIT_PIPELINE_EXPORT unknown_configuration_value_exception
      * \param name The name of the process.
      * \param key The key requested.
      */
-    unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) VITAL_NOTHROW;
+    unknown_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key) noexcept;
     /**
      * \brief Destructor.
      */
-    ~unknown_configuration_value_exception() VITAL_NOTHROW;
+    ~unknown_configuration_value_exception() noexcept;
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
@@ -676,11 +676,11 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_value_exception
      * \param value The value given.
      * \param desc A description of the configuration value.
      */
-    invalid_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value, kwiver::vital::config_block_description_t const& desc) VITAL_NOTHROW;
+    invalid_configuration_value_exception(process::name_t const& name, kwiver::vital::config_block_key_t const& key, kwiver::vital::config_block_value_t const& value, kwiver::vital::config_block_description_t const& desc) noexcept;
     /**
      * \brief Destructor.
      */
-    ~invalid_configuration_value_exception() VITAL_NOTHROW;
+    ~invalid_configuration_value_exception() noexcept;
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;
@@ -709,11 +709,11 @@ class SPROKIT_PIPELINE_EXPORT invalid_configuration_exception
      * \param name The name of the process.
      * \param reason The reason why the configuration is invalid.
      */
-    invalid_configuration_exception(process::name_t const& name, std::string const& reason) VITAL_NOTHROW;
+    invalid_configuration_exception(process::name_t const& name, std::string const& reason) noexcept;
     /**
      * \brief Destructor.
      */
-    ~invalid_configuration_exception() VITAL_NOTHROW;
+    ~invalid_configuration_exception() noexcept;
 
     /// The name of the \ref process which was connected to.
     process::name_t const m_name;

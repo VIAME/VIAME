@@ -44,23 +44,4 @@ split_image
   attach_logger( "split_image" );
 }
 
-
-/// Set this algorithm's properties via a config block
-void
-split_image
-::set_configuration(kwiver::vital::config_block_sptr config)
-{
-  (void) config;
-}
-
-/// Check that the algorithm's current configuration is valid
-bool
-split_image
-::check_configuration(kwiver::vital::config_block_sptr config) const
-{
-  (void) config;
-  return true;
-}
-
-
 } } } // end namespace

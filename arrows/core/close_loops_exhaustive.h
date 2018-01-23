@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS__CLOSE_LOOPS_EXHAUSTIVE_H_
 #define KWIVER_ARROWS__CLOSE_LOOPS_EXHAUSTIVE_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
@@ -45,8 +44,6 @@
 
 #include <vital/algo/close_loops.h>
 #include <vital/config/config_block.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {
@@ -65,10 +62,7 @@ public:
   close_loops_exhaustive();
 
   /// Destructor
-  virtual ~close_loops_exhaustive() VITAL_NOTHROW;
-
-  /// Returns implementation description
-  virtual std::string description() const;
+  virtual ~close_loops_exhaustive() noexcept;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

@@ -26,45 +26,6 @@ if (SPROKIT_ENABLE_CDASH)
     @ONLY)
 endif ()
 
-set(sprokit_config_file "${sprokit_binary_dir}/sprokit-config.cmake")
-sprokit_configure_file(sprokit-config.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config-common.cmake.in"
-  "${sprokit_config_file}"
-  KWIVER_VERSION
-  Boost_MAJOR_VERSION
-  Boost_MINOR_VERSION
-  Boost_SUBMINOR_VERSION
-  BOOST_MANGLE_NAMESPACE
-  Boost_USE_STATIC_LIBS
-  Boost_INCLUDE_DIR)
-
-set(config_vars
-  KWIVER_ENABLE_PYTHON
-  SPROKIT_ENABLE_PYTHON3
-  PYTHON_EXECUTABLE
-  PYTHON_VERSION
-  PYTHON_ABIFLAGS
-  BUILD_SHARED_LIBS
-  SPROKIT_ENABLE_CXX11)
-
-set(sprokit_config_build_file "${sprokit_binary_dir}/sprokit-config-variables.cmake")
-sprokit_configure_file(sprokit-config-build.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config-build.cmake.in"
-  "${sprokit_config_build_file}"
-  sprokit_source_dir
-  sprokit_binary_dir
-  sprokit_python_output_path
-  ${config_vars})
-
-set(sprokit_config_install_file "${sprokit_binary_dir}/sprokit-config-install.cmake")
-sprokit_configure_file(sprokit-config-install.cmake
-  "${CMAKE_CURRENT_SOURCE_DIR}/sprokit-config-install.cmake.in"
-  "${sprokit_config_install_file}"
-  KWIVER_VERSION
-  CMAKE_INSTALL_PREFIX
-  LIB_SUFFIX
-  ${config_vars})
-
 if (WIN32)
   set(cmakedir cmake)
 else ()
@@ -116,24 +77,8 @@ endforeach ()
 
 # Configure the CMake EXPORT file during installation
 sprokit_install(
-  FILES       "${sprokit_config_file}"
-  DESTINATION "${cmakedir}"
-  COMPONENT   development
-  RENAME      sprokit-config.cmake)
-sprokit_install(
   FILES       "${sprokit_macros_file}"
   DESTINATION "${cmakedir}"
-  COMPONENT   development)
-sprokit_install(
-  FILES       "${sprokit_config_install_file}"
-  DESTINATION "${cmakedir}"
-  COMPONENT   development
-  RENAME      sprokit-config-variables.cmake)
-sprokit_export_targets("${sprokit_binary_dir}/sprokit-config-targets.cmake")
-sprokit_install(
-  EXPORT      ${kwiver_export_name}
-  DESTINATION "${cmakedir}"
-  FILE        sprokit-config-targets.cmake
   COMPONENT   development)
 
 ## sprokit_configure_pkgconfig(sprokit)

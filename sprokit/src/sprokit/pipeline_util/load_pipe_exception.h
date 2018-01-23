@@ -37,7 +37,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
 #define SPROKIT_PIPELINE_UTIL_LOAD_PIPE_EXCEPTION_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include <vital/vital_types.h>
 
@@ -62,12 +62,12 @@ class SPROKIT_PIPELINE_UTIL_EXPORT load_pipe_exception
     /**
      * \brief Constructor.
      */
-    load_pipe_exception() VITAL_NOTHROW;
+    load_pipe_exception() noexcept;
 
     /**
      * \brief Destructor.
      */
-    virtual ~load_pipe_exception() VITAL_NOTHROW;
+    virtual ~load_pipe_exception() noexcept;
 };
 
 /**
@@ -86,11 +86,11 @@ class SPROKIT_PIPELINE_UTIL_EXPORT file_no_exist_exception
      *
      * \param fname The path that does not exist.
      */
-  file_no_exist_exception(kwiver::vital::path_t const& fname) VITAL_NOTHROW;
+  file_no_exist_exception(kwiver::vital::path_t const& fname) noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~file_no_exist_exception() VITAL_NOTHROW;
+    virtual ~file_no_exist_exception() noexcept;
 
     /// The path that does not exist.
     kwiver::vital::path_t const m_fname;
@@ -105,12 +105,12 @@ public:
   /**
    * \brief Constructor.
    */
-  parsing_exception( const std::string& msg) VITAL_NOTHROW;
+  parsing_exception( const std::string& msg) noexcept;
 
   /**
    * \brief Destructor.
    */
-  virtual ~parsing_exception() VITAL_NOTHROW;
+  virtual ~parsing_exception() noexcept;
 
 };
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,9 +73,6 @@ detected_object_input_process
   : process( config ),
     d( new detected_object_input_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -91,6 +88,8 @@ detected_object_input_process
 void detected_object_input_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -122,6 +121,8 @@ void detected_object_input_process
 void detected_object_input_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   d->m_reader->open( d->m_file_name ); // throws
 }
 
@@ -132,7 +133,14 @@ void detected_object_input_process
 {
   std::string image_name;
   kwiver::vital::detected_object_set_sptr set;
-  if ( d->m_reader->read_set( set, image_name ) )
+  bool result(false);
+  {
+    scoped_step_instrumentation();
+
+    result = d->m_reader->read_set( set, image_name );
+  }
+
+  if ( result )
   {
     push_to_port_using_trait( image_file_name, image_name );
     push_to_port_using_trait( detected_object_set, set );

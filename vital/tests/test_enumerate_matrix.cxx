@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,83 +33,78 @@
  * \brief test core enumerate matrix utility
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
+#include <test_gtest.h>
 
 #include <vital/util/enumerate_matrix.h>
 
 #include <array>
 #include <iostream>
 
+using namespace kwiver::vital;
 
-#define TEST_ARGS ()
+using data_value_t = int;
+using data_vector_t = std::array<data_value_t, 5>;
+using data_matrix_t = std::array<data_vector_t, 5>;
 
-DECLARE_TEST_MAP();
-
-typedef int data_value_t;
-typedef std::array<data_value_t, 5> data_vector_t;
-typedef std::array<data_vector_t, 5> data_matrix_t;
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+static
+void
+verify( Eigen::SparseMatrix<data_value_t> const& m,
+        Eigen::SparseMatrix<data_value_t>::InnerIterator const& it )
+{
+  SCOPED_TRACE( "At " + std::to_string( it.row() ) +
+                ", " + std::to_string( it.col() ) );
+
+  ASSERT_WITHIN( 0, it.row(), 4 );
+  ASSERT_WITHIN( 0, it.col(), 4 );
+
+  EXPECT_EQ( m.coeff( it.row(), it.col() ), it.value() )
+    << "Iterator value should match coefficient of stated cell";
+}
+
+// ----------------------------------------------------------------------------
 static
 data_value_t
 sparse_sum( Eigen::SparseMatrix<data_value_t> const& m )
 {
-  auto result = data_value_t{0};
+  auto result = data_value_t{ 0 };
 
-  VITAL_FOREACH (auto it, kwiver::vital::enumerate(m))
+  for ( auto it : enumerate( m ) )
   {
-    auto const a = m.coeff(it.row(), it.col());
-    if (a != it.value())
-    {
-      TEST_ERROR("TEST_EQUAL check '"
-                 << "iterator value matches coefficient of stated cell"
-                 << "' failed:\n"
-                 << "    At      : ``" << it.row() << "``, ``"
-                                       << it.col() << "``\n"
-                 << "    Expected: ``" << a << "``\n"
-                 << "    Got     : ``" << it.value() << "``");
-    }
+    verify( m, it );
     result += it.value();
   }
 
   return result;
 }
 
-
+// ----------------------------------------------------------------------------
 static
 data_value_t
 sparse_apply_kernel( Eigen::SparseMatrix<data_value_t> const& m,
                      data_matrix_t const& data )
 {
-  using namespace kwiver::testing;
-  using namespace kwiver::vital;
+  auto result = data_value_t{ 0 };
 
-  auto result = data_value_t{0};
-
-  VITAL_FOREACH (auto it, enumerate(m))
+  for ( auto it : enumerate( m ) )
   {
-    test_bound("matrix coefficient row is within expected range",
-               it.row(), 0, 4);
-    test_bound("matrix coefficient column is within expected range",
-               it.col(), 0, 4);
-
+    verify( m, it );
     result += it.value() * data[it.row()][it.col()];
   }
 
   return result;
 }
 
-
-IMPLEMENT_TEST(enumerate_matrix_iterators)
+// ----------------------------------------------------------------------------
+TEST(enumerate_matrix, distinct_iterators)
 {
   // This test exists to validate that enumeration iterators on the same outer
   // index are distinct. This test exists due to a bug that was discovered
@@ -117,9 +112,6 @@ IMPLEMENT_TEST(enumerate_matrix_iterators)
   // except via a cast to bool. This gave an incorrect result because the
   // enumeration iterators would compare equal if the outer indices were the
   // same and the inner iterators were both VALID, but not necessarily equal.
-
-  using namespace kwiver::testing;
-  using namespace kwiver::vital;
 
   // Prepare matrix
   Eigen::SparseMatrix<data_value_t> mat(3, 3);
@@ -136,26 +128,24 @@ IMPLEMENT_TEST(enumerate_matrix_iterators)
   ++next_u;
 
   // Test distinctiveness
-  test_equal("enumeration iterators are distinct", begin_u == next_u, false);
+  EXPECT_NE( begin_u, next_u );
 
   // Repeat test with the matrix compressed
   mat.makeCompressed();
 
   // Obtain iterators
-  auto const& e_c = enumerate(mat);
+  auto const& e_c = enumerate( mat );
   auto const& begin_c = e_c.begin();
   auto next_c = begin_c;
   ++next_c;
 
   // Test distinctiveness
-  test_equal("enumeration iterators are distinct", begin_c == next_c, false);
+  EXPECT_NE( begin_c, next_c );
 }
 
-IMPLEMENT_TEST(enumerate_matrix)
+// ----------------------------------------------------------------------------
+TEST(enumerate_matrix, enumeration)
 {
-  using namespace kwiver::testing;
-  using namespace kwiver::vital;
-
   // Test data
   auto const data = data_matrix_t{{
     {{ 226, 225,  85,   5,  36 }},
@@ -221,26 +211,21 @@ IMPLEMENT_TEST(enumerate_matrix)
   mat_theta.insert(2, 2) = +10;
 
   // Test that operating on an empty matrix does not crash
-  test_equal("empty matrix has expected weight", sparse_sum(mat_empty), 0);
+  EXPECT_EQ( 0, sparse_sum( mat_empty ) );
 
   // Check coefficient sums
-  test_equal("identity matrix has expected weight", sparse_sum(mat_ident), 16);
-  test_equal("cross matrix has expected weight", sparse_sum(mat_cross), 16);
-  test_equal("checker matrix has expected weight", sparse_sum(mat_checker), 16);
-  test_equal("phi matrix has expected weight", sparse_sum(mat_phi), 16);
-  test_equal("theta matrix has expected weight", sparse_sum(mat_theta), 16);
+  EXPECT_EQ( 16, sparse_sum( mat_ident ) );
+  EXPECT_EQ( 16, sparse_sum( mat_cross ) );
+  EXPECT_EQ( 16, sparse_sum( mat_checker ) );
+  EXPECT_EQ( 16, sparse_sum( mat_phi ) );
+  EXPECT_EQ( 16, sparse_sum( mat_theta ) );
 
   // Check applied kernel sums
-  test_equal("result of identity kernel applied to data",
-             sparse_apply_kernel(mat_ident, data), 400);
-  test_equal("result of cross kernel applied to data",
-             sparse_apply_kernel(mat_cross, data), 340);
-  test_equal("result of checker kernel applied to data",
-             sparse_apply_kernel(mat_checker, data), 706);
-  test_equal("result of phi kernel applied to data",
-             sparse_apply_kernel(mat_phi, data), 394);
-  test_equal("result of theta kernel applied to data",
-             sparse_apply_kernel(mat_theta, data), -20);
+  EXPECT_EQ( 400, sparse_apply_kernel( mat_ident,   data ) );
+  EXPECT_EQ( 340, sparse_apply_kernel( mat_cross,   data ) );
+  EXPECT_EQ( 706, sparse_apply_kernel( mat_checker, data ) );
+  EXPECT_EQ( 394, sparse_apply_kernel( mat_phi,     data ) );
+  EXPECT_EQ( -20, sparse_apply_kernel( mat_theta,   data ) );
 
   // Compress matrices
   mat_ident.makeCompressed();
@@ -251,17 +236,14 @@ IMPLEMENT_TEST(enumerate_matrix)
 
   // Re-run tests (yes, this is relevant; compressing will tweak the iteration
   // in subtle ways); first, check coefficient sums...
-  test_equal("identity matrix has expected weight", sparse_sum(mat_ident), 16);
-  test_equal("cross matrix has expected weight", sparse_sum(mat_cross), 16);
-  test_equal("checker matrix has expected weight", sparse_sum(mat_checker), 16);
-  test_equal("phi matrix has expected weight", sparse_sum(mat_phi), 16);
-  test_equal("theta matrix has expected weight", sparse_sum(mat_theta), 16);
+  EXPECT_EQ( 16, sparse_sum( mat_ident ) );
+  EXPECT_EQ( 16, sparse_sum( mat_cross ) );
+  EXPECT_EQ( 16, sparse_sum( mat_checker ) );
+  EXPECT_EQ( 16, sparse_sum( mat_phi ) );
+  EXPECT_EQ( 16, sparse_sum( mat_theta ) );
 
   // ...then applied kernel sums
-  test_equal("result of identity kernel applied to data",
-             sparse_apply_kernel(mat_ident, data), 400);
-  test_equal("result of cross kernel applied to data",
-             sparse_apply_kernel(mat_cross, data), 340);
-  test_equal("result of checker kernel applied to data",
-             sparse_apply_kernel(mat_checker, data), 706);
+  EXPECT_EQ( 400, sparse_apply_kernel( mat_ident,   data ) );
+  EXPECT_EQ( 340, sparse_apply_kernel( mat_cross,   data ) );
+  EXPECT_EQ( 706, sparse_apply_kernel( mat_checker, data ) );
 }

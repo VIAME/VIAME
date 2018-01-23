@@ -46,6 +46,33 @@ namespace kwiver {
 
 create_config_trait( filter, std::string, "", "Algorithm configuration subblock." )
 
+// ----------------------------------------------------------------
+/**
+ * \class detected_object_filter_process
+ *
+ * \brief Filter detected image object sets.
+ *
+ * \process This process filters a set of detected image objects and
+ * produces a new set of detected image objects. The actual processing
+ * is done by the selected \b detected_object_filter algorithm
+ * implementation.
+ *
+ * \iports
+ *
+ * \iport{detected_object_set} Set of objects to be passed to the
+ * filtering algorithm.
+ *
+ * \oports
+ *
+ * \oport{detected_object_set} SEt of objects produced by the
+ * filtering algorithm.
+ *
+ * \configs
+ *
+ * \config{filter} Name of the configuration subblock that selects
+ * and configures the drawing algorithm.
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class detected_object_filter_process::priv
@@ -66,9 +93,6 @@ detected_object_filter_process
   : process( config )
   , d( new detected_object_filter_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -85,6 +109,8 @@ void
 detected_object_filter_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -107,7 +133,14 @@ detected_object_filter_process
 ::_step()
 {
   vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
-  vital::detected_object_set_sptr result = d->m_filter->filter( input );
+
+  vital::detected_object_set_sptr result;
+
+  {
+    scoped_step_instrumentation();
+
+    result = d->m_filter->filter( input );
+  }
 
   push_to_port_using_trait( detected_object_set, result );
 }
@@ -152,6 +185,5 @@ detected_object_filter_process::priv
 ::~priv()
 {
 }
-
 
 } //end namespace

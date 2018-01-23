@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_H
 #define SPROKIT_PIPELINE_PROCESS_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "edge.h"
 #include "datum.h"
@@ -46,8 +46,7 @@
 #pragma warning (disable : 4244)
 #pragma warning (disable : 4267)
 #endif
-#include <boost/noncopyable.hpp>
-#include <boost/cstdint.hpp>
+
 #include <boost/rational.hpp>
 #ifdef WIN32
 #pragma warning (pop)
@@ -105,7 +104,6 @@ typedef std::vector<process_t> processes_t;
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT process
-  : private boost::noncopyable
 {
   public:
     /// The type for the type of a process.
@@ -220,7 +218,7 @@ class SPROKIT_PIPELINE_EXPORT process
         port_frequency_t const frequency;
     };
     /// Type for information about a port.
-    typedef boost::shared_ptr<port_info const> port_info_t;
+    typedef std::shared_ptr<port_info const> port_info_t;
 
     /**
      * \class conf_info process.h <sprokit/pipeline/process.h>
@@ -253,7 +251,7 @@ class SPROKIT_PIPELINE_EXPORT process
         bool const tunable;
     };
     /// Type for information about a configuration parameter.
-    typedef boost::shared_ptr<conf_info const> conf_info_t;
+    typedef std::shared_ptr<conf_info const> conf_info_t;
 
     /**
      * \class data_info process.h <sprokit/pipeline/process.h>
@@ -285,7 +283,7 @@ class SPROKIT_PIPELINE_EXPORT process
         datum::type_t const max_status;
     };
     /// Type for information about a set of data.
-    typedef boost::shared_ptr<data_info const> data_info_t;
+    typedef std::shared_ptr<data_info const> data_info_t;
 
     /**
      * \brief Data checking levels. All levels include lower levels.
@@ -550,6 +548,8 @@ class SPROKIT_PIPELINE_EXPORT process
     static property_t const property_unsync_output;
     /// Indicates that the process supports instrumentation call
     static property_t const property_instrumented;
+    /// Indicates the process is written in Python
+    static property_t const property_python;
 
     /// The name of the heartbeat port.
     static port_t const port_heartbeat;
@@ -680,8 +680,6 @@ class SPROKIT_PIPELINE_EXPORT process
     static port_flag_t const flag_required;
 
 
-  protected:
-
     /**
      * \brief Constructor.
      *
@@ -695,6 +693,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Destructor.
      */
     virtual ~process();
+
+  protected:
 
     /**
      * \brief Pre-connection initialization for subclasses.
@@ -857,6 +857,9 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /**
      * \brief Subclass available configuration keys.
+     *
+     * This method returns the list of all config keys that are
+     * available to this process.
      *
      * \returns The names of all available configuration keys.
      */
@@ -1272,15 +1275,22 @@ class SPROKIT_PIPELINE_EXPORT process
      * The start call is used to indicate the beginning of substantial processing.
      * The end call is used to indicate the end of substantial processing.
      *
+     * The \c data parameter, if specified, is passed to the
+     * instrumentation provider. How this data is used is
+     * implementation dependent.
+     *
      * Instrumentation is enabled by supplying the following config
      * entries in the pipeline definition file for each process that
      * is to be instrumented.
      *
      * process process_type
      *   :: my_proc
-     *     : _instrumentation:type  none   # default value. disabled
-     *     : _instrumentation:type  RightTrack  # enables RightTrack instrumentation for this process
-     *     : _instrumentation:RightTrack:foo   value    # instrumentation provider specific config.
+     *     block _instrumentation
+     *       type =  none   # default value. disabled
+     *       # optionally specify instrumentation provider
+     *       type =  RightTrack  # enables RightTrack instrumentation for this process
+     *       RightTrack:foo   value    # instrumentation provider specific config.
+     *     endblock
      *
      */
     void start_init_processing( std::string const& data );
@@ -1308,6 +1318,55 @@ class SPROKIT_PIPELINE_EXPORT process
     void stop_reconfigure_processing( );
 //@}
 
+/*
+ * Helper macro and structure to make scoped instrumentation using the
+ * allocation is acquisition pattern.
+ */
+#define SCOPED_INSTRUMENTATION(T)                                       \
+struct scoped_ ## T ## _instrumentation_                                \
+{                                                                       \
+  scoped_ ## T ## _instrumentation_(process* proc)                      \
+  : m_process(proc)                                                     \
+  {                                                                     \
+    m_process->start_ ## T ## _processing();                            \
+  }                                                                     \
+  scoped_ ## T ## _instrumentation_(process* proc, const std::string& data) \
+  : m_process(proc)                                                     \
+  {                                                                     \
+    m_process->start_ ## T ## _processing(data);                        \
+  }                                                                     \
+  ~scoped_ ## T ## _instrumentation_() { m_process->stop_ ## T ## _processing(); } \
+private:                                                                \
+  process* m_process;                                                   \
+}
+
+SCOPED_INSTRUMENTATION(init);
+SCOPED_INSTRUMENTATION(reset);
+SCOPED_INSTRUMENTATION(flush);
+SCOPED_INSTRUMENTATION(step);
+SCOPED_INSTRUMENTATION(configure);
+SCOPED_INSTRUMENTATION(reconfigure);
+
+#undef SCOPED_INSTRUMENTATION
+
+///@{
+/**
+ * Scoped instrumetation macros provide an alternative to inserting
+ * individual start and stop calls in the process methods. The start
+ * call is made when the scope is entered and the stop call is made
+ * when the scope is exited.
+ */
+#define scoped_init_instrumentation()        scoped_init_instrumentation_( this )
+#define scoped_reset_instrumentation()       scoped_reset_instrumentation_( this )
+#define scoped_flush_instrumentation()       scoped_flush_instrumentation_( this )
+#define scoped_step_instrumentation()        scoped_step_instrumentation_( this )
+#define scoped_configure_instrumentation()   scoped_configure_instrumentation_( this )
+#define scoped_reconfigure_instrumentation() scoped_reconfigure_instrumentation_( this )
+///@}
+
+    class SPROKIT_PIPELINE_NO_EXPORT priv;
+    std::shared_ptr<priv> d;
+
   private:
     kwiver::vital::config_block_value_t config_value_raw(kwiver::vital::config_block_key_t const& key) const;
 
@@ -1321,10 +1380,11 @@ class SPROKIT_PIPELINE_EXPORT process
     friend class process_cluster;
     SPROKIT_PIPELINE_NO_EXPORT void reconfigure_with_provides(kwiver::vital::config_block_sptr const& conf);
 
-    class SPROKIT_PIPELINE_NO_EXPORT priv;
-    boost::shared_ptr<priv> d;
+    friend class process_factory;
+    SPROKIT_PIPELINE_NO_EXPORT void add_property ( const property_t& prop );
 };
 
+// ----------------------------------------------------------------------------
 template <typename T>
 T
 process

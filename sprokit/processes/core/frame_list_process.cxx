@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -112,9 +112,6 @@ frame_list_process
   : process( config ),
     d( new frame_list_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -130,6 +127,7 @@ frame_list_process
 void frame_list_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
 
   // Examine the configuration
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
@@ -163,6 +161,8 @@ void frame_list_process
 void frame_list_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   // open file and read lines
   std::ifstream ifs( d->m_config_image_list_filename.c_str() );
   if ( ! ifs )
@@ -202,6 +202,8 @@ void frame_list_process
 {
   if ( d->m_current_file != d->m_files.end() )
   {
+    scoped_step_instrumentation();
+
     // still have an image to read
     std::string a_file = *d->m_current_file;
 

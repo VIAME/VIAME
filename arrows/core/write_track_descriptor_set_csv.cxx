@@ -37,7 +37,6 @@
 
 #include <time.h>
 
-#include <vital/vital_foreach.h>
 
 namespace kwiver {
 namespace arrows {
@@ -126,7 +125,7 @@ write_track_descriptor_set_csv
   }
 
   // Get detections from set
-  VITAL_FOREACH( auto desc, *set )
+  for( auto desc : *set )
   {
     if( !desc )
     {
@@ -137,7 +136,7 @@ write_track_descriptor_set_csv
     stream() << desc->get_type() << d->m_delim;
 
     stream() << desc->get_track_ids().size() << d->m_delim;
-    VITAL_FOREACH( auto id, desc->get_track_ids() )
+    for( auto id : desc->get_track_ids() )
     {
       stream() << id << d->m_sub_delim;
     }
@@ -157,12 +156,12 @@ write_track_descriptor_set_csv
     }
     else
     {
-      stream() << 0 << d->m_delim << d->m_delim;
+      stream() << 0 << d->m_delim << " " << d->m_delim;
     }
 
     // Process classifications if there are any
     stream() << desc->get_history().size() << d->m_delim;
-    VITAL_FOREACH( auto h, desc->get_history() )
+    for( auto h : desc->get_history() )
     {
       stream() << h.get_timestamp().get_frame() << d->m_sub_delim;
       stream() << h.get_timestamp().get_time_usec() << d->m_sub_delim;

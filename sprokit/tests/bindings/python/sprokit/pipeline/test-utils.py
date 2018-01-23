@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -34,12 +34,6 @@ def test_import():
         import sprokit.pipeline.utils
     except:
         test_error("Failed to import the utils module")
-
-
-def test_create():
-    from sprokit.pipeline import utils
-
-    utils.ThreadName()
 
 
 def test_name_thread():

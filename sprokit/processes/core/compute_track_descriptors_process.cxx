@@ -31,7 +31,6 @@
 #include "compute_track_descriptors_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/vital_foreach.h>
 
 #include <vital/types/timestamp.h>
 #include <vital/types/timestamp_config.h>
@@ -53,9 +52,15 @@ namespace algo = vital::algo;
 create_config_trait( inject_to_detections, bool, "false",
   "If the input are single frame detections (not tracks) then "
   "put the computed descriptors into the detection objects." );
-create_config_trait( add_file_name_uid, bool, "false",
+create_config_trait( add_custom_uid, bool, "false",
   "Compute a unique UID comprised of filename, timestamp, and "
   "descriptor index, over-writing the default in each descriptor." );
+create_config_trait( uid_basename, std::string, "",
+  "UID basename to be used in conjunction with with descriptor "
+  "index and frame identifier" );
+create_config_trait( flush_on_last, bool, "true",
+  "Flushes descriptors on the last frame of the pipeline, outputing "
+  "any remaining descriptors currently in progress" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -66,10 +71,16 @@ public:
   ~priv();
 
   bool inject_to_detections;
-  bool add_file_name_uid;
+  bool add_custom_uid;
+  std::string uid_basename;
+  bool flush_on_last;
+  unsigned detection_offset;
 
   algo::compute_track_descriptors_sptr m_computer;
-}; // end priv class
+
+  void add_custom_uids( vital::track_descriptor_set_sptr& output,
+                        const std::string& frame_id_stamp );
+};
 
 
 // =============================================================================
@@ -81,6 +92,9 @@ compute_track_descriptors_process
 {
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
+
+  // Required so that we can do 1 step past the end of video for flushing
+  set_data_checking_level( check_none );
 
   make_ports();
   make_config();
@@ -120,7 +134,8 @@ void compute_track_descriptors_process
   }
 
   d->inject_to_detections = config_value_using_trait( inject_to_detections );
-  d->add_file_name_uid = config_value_using_trait( add_file_name_uid );
+  d->add_custom_uid = config_value_using_trait( add_custom_uid );
+  d->uid_basename = config_value_using_trait( uid_basename );
 }
 
 
@@ -129,12 +144,39 @@ void
 compute_track_descriptors_process
 ::_step()
 {
+  // Peek at next input to see if we're at end of video
+  auto port_info = peek_at_port_using_trait( image );
+
+  if( port_info.datum->type() == sprokit::datum::complete )
+  {
+    grab_edge_datum_using_trait( image );
+    mark_process_as_complete();
+
+    // Push last outputs
+    if( d->flush_on_last )
+    {
+      vital::track_descriptor_set_sptr output;
+      output = d->m_computer->flush();
+      d->add_custom_uids( output, "final" );
+      push_outputs( output );
+    }
+
+    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+
+    push_datum_to_port_using_trait( track_descriptor_set, dat );
+    push_datum_to_port_using_trait( string_vector, dat );
+    push_datum_to_port_using_trait( descriptor_set, dat );
+    push_datum_to_port_using_trait( detected_object_set, dat );
+    return;
+  }
+
   // Retrieve inputs from ports
-  vital::timestamp ts;
   vital::image_container_sptr image;
+  vital::timestamp ts;
   vital::object_track_set_sptr tracks;
   vital::detected_object_set_sptr detections;
-  std::string file_name;
+
+  image = grab_from_port_using_trait( image );
 
   if( process::has_input_port_edge( "timestamp" ) )
   {
@@ -144,24 +186,15 @@ compute_track_descriptors_process
     LOG_DEBUG( logger(), "Processing frame " << ts );
   }
 
-  if( process::has_input_port_edge( "image" ) )
-  {
-    image = grab_from_port_using_trait( image );
-  }
-
   if( process::has_input_port_edge( "detected_object_set" ) )
   {
     detections = grab_from_port_using_trait( detected_object_set );
+    d->flush_on_last = false; // No final flushing required for detections
   }
 
   if( process::has_input_port_edge( "object_track_set" ) )
   {
     tracks = grab_from_port_using_trait( object_track_set );
-  }
-
-  if( process::has_input_port_edge( "file_name" ) )
-  {
-    file_name = grab_from_port_using_trait( file_name );
   }
 
   if( detections && tracks )
@@ -185,15 +218,14 @@ compute_track_descriptors_process
   if( detections )
   {
     std::vector< vital::track_sptr > det_tracks;
-    std::vector< vital::detected_object_sptr > det_objects = detections->select();
 
     for( unsigned i = 0; i < detections->size(); ++i )
     {
       vital::track_sptr new_track( vital::track::create() );
-      new_track->set_id( i );
+      new_track->set_id( i + d->detection_offset );
 
       vital::track_state_sptr first_track_state(
-        new vital::object_track_state( ts.get_frame(), det_objects[i] ) );
+        new vital::object_track_state( ts.get_frame(), detections->begin()[i] ) );
 
       new_track->append( first_track_state );
 
@@ -208,71 +240,32 @@ compute_track_descriptors_process
     if( d->inject_to_detections )
     {
       // Reset all descriptors stored in detections
-      auto detection_sptrs = detections->select();
-
-      VITAL_FOREACH( vital::detected_object_sptr det, detection_sptrs )
+      for( vital::detected_object_sptr det : *detections )
       {
         det->set_descriptor( vital::detected_object::descriptor_sptr() );
       }
 
       // Inject computed descriptors
-      VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
+      for( vital::track_descriptor_sptr desc : *output )
       {
         auto ids = desc->get_track_ids();
 
-        VITAL_FOREACH( auto id, ids )
+        for( auto id : ids )
         {
-          detection_sptrs[id]->set_descriptor( desc->get_descriptor() );
+          detections->begin()[ id - d->detection_offset ]->set_descriptor(
+            desc->get_descriptor() );
         }
       }
     }
+
+    d->detection_offset = d->detection_offset + detections->size();
   }
 
-  if( d->add_file_name_uid )
-  {
-    unsigned counter = 1;
-
-    VITAL_FOREACH( vital::track_descriptor_sptr desc, *output )
-    {
-      std::string new_uid = file_name +
-        "_ts_" + std::to_string( ts.get_frame() ) +
-        "_id_" + std::to_string( counter );
-
-      desc->set_uid( vital::uid( new_uid ) );
-
-      counter++;
-    }
-  }
+  // Add custom uids
+  d->add_custom_uids( output, std::to_string( ts.get_frame() ) );
 
   // Return all outputs
-  push_to_port_using_trait( track_descriptor_set, output );
-
-  if( process::count_output_port_edges( "string_vector" ) > 0 )
-  {
-    vital::string_vector_sptr uids( new vital::string_vector() );
-
-    VITAL_FOREACH( auto desc, *output )
-    {
-      uids->push_back( desc->get_uid().value() );
-    }
-
-    push_to_port_using_trait( string_vector, uids );
-  }
-
-  if( process::count_output_port_edges( "descriptor_set" ) > 0 )
-  {
-    std::vector< vital::descriptor_sptr > raw_descs;
-
-    VITAL_FOREACH( auto desc, *output )
-    {
-      raw_descs.push_back( desc->get_descriptor() );
-    }
-
-    vital::descriptor_set_sptr dset(
-      new vital::simple_descriptor_set( raw_descs ) );
-
-    push_to_port_using_trait( descriptor_set, dset );
-  }
+  push_outputs( output );
 
   if( process::count_output_port_edges( "detected_object_set" ) > 0 )
   {
@@ -297,7 +290,6 @@ void compute_track_descriptors_process
   declare_input_port_using_trait( image, required );
   declare_input_port_using_trait( object_track_set, optional );
   declare_input_port_using_trait( detected_object_set, optional );
-  declare_input_port_using_trait( file_name, optional );
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
@@ -312,7 +304,44 @@ void compute_track_descriptors_process
 ::make_config()
 {
   declare_config_using_trait( inject_to_detections );
-  declare_config_using_trait( add_file_name_uid );
+  declare_config_using_trait( add_custom_uid );
+  declare_config_using_trait( uid_basename );
+  declare_config_using_trait( flush_on_last );
+}
+
+
+// -----------------------------------------------------------------------------
+void compute_track_descriptors_process
+::push_outputs( vital::track_descriptor_set_sptr& output )
+{
+  push_to_port_using_trait( track_descriptor_set, output );
+
+  if( process::count_output_port_edges( "string_vector" ) > 0 )
+  {
+    vital::string_vector_sptr uids( new vital::string_vector() );
+
+    for( auto desc : *output )
+    {
+      uids->push_back( desc->get_uid().value() );
+    }
+
+    push_to_port_using_trait( string_vector, uids );
+  }
+
+  if( process::count_output_port_edges( "descriptor_set" ) > 0 )
+  {
+    std::vector< vital::descriptor_sptr > raw_descs;
+
+    for( auto desc : *output )
+    {
+      raw_descs.push_back( desc->get_descriptor() );
+    }
+
+    vital::descriptor_set_sptr dset(
+      new vital::simple_descriptor_set( raw_descs ) );
+
+    push_to_port_using_trait( descriptor_set, dset );
+  }
 }
 
 
@@ -320,7 +349,10 @@ void compute_track_descriptors_process
 compute_track_descriptors_process::priv
 ::priv()
   : inject_to_detections( true )
-  , add_file_name_uid( false )
+  , add_custom_uid( false )
+  , uid_basename( "" )
+  , flush_on_last( true )
+  , detection_offset( 0 )
 {
 }
 
@@ -329,5 +361,28 @@ compute_track_descriptors_process::priv
 ::~priv()
 {
 }
+
+
+void compute_track_descriptors_process::priv
+::add_custom_uids( vital::track_descriptor_set_sptr& output,
+                   const std::string& frame_id_stamp )
+{
+  if( add_custom_uid )
+  {
+    unsigned counter = 1;
+
+    for( vital::track_descriptor_sptr desc : *output )
+    {
+      std::string new_uid = uid_basename +
+        "_frame_" + frame_id_stamp +
+        "_item_" + std::to_string( counter );
+
+      desc->set_uid( vital::uid( new_uid ) );
+
+      counter++;
+    }
+  }
+}
+
 
 } // end namespace

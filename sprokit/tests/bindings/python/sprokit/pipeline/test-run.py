@@ -1,4 +1,4 @@
-#!@PYTHON_EXECUTABLE@
+#!/usr/bin/env python
 #ckwg +28
 # Copyright 2011-2013 by Kitware, Inc.
 # All rights reserved.
@@ -28,6 +28,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+cpp_scheds = ["sync","thread_per_process"] # One shop stop if we add any more c++ schedulers to the tests
 
 def make_source(conf):
     from sprokit.pipeline import process
@@ -62,7 +63,7 @@ def make_source(conf):
                 self.mark_process_as_complete()
                 dat = datum.complete()
             else:
-                dat = datum.new(self.counter)
+                dat = datum.new_int(self.counter)
                 self.counter += 1
 
             self.push_datum_to_port(self.port_output, dat)
@@ -125,16 +126,26 @@ def run_pipeline(sched_type, pipe, conf):
     from sprokit.pipeline import config
     from sprokit.pipeline import modules
     from sprokit.pipeline import scheduler_factory
+    import sys
 
     modules.load_known_modules()
 
-    s = scheduler_factory.create_scheduler(sched_type, pipe, conf)
+    if sched_type in cpp_scheds:
+        expect_exception("trying to run a python process on a C++ scheduler", RuntimeError,
+                         scheduler_factory.create_scheduler, sched_type, pipe, conf)
 
-    s.start()
-    s.wait()
+    else:
+        s = scheduler_factory.create_scheduler(sched_type, pipe, conf)
+
+        s.start()
+        s.wait()
 
 
 def check_file(fname, expect):
+    # Don't check for c++ scheds--we shouldn't have produced a file, and don't want to get caught up with leftovers
+    if sched_type in cpp_scheds:
+        return
+
     with open(fname, 'r') as fin:
         ints = list([int(l.strip()) for l in list(fin)])
 

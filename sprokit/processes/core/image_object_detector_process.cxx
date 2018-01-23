@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,9 +58,6 @@ image_object_detector_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new image_object_detector_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -77,6 +74,8 @@ void
 image_object_detector_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -100,8 +99,13 @@ _step()
 {
   vital::image_container_sptr input = grab_from_port_using_trait( image );
 
-  // Get detections from detector on image
-  vital::detected_object_set_sptr result = d->m_detector->detect( input );
+  vital::detected_object_set_sptr result;
+  {
+    scoped_step_instrumentation();
+
+    // Get detections from detector on image
+    result = d->m_detector->detect( input );
+  }
 
   push_to_port_using_trait( detected_object_set, result );
 }

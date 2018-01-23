@@ -33,75 +33,64 @@
  * \brief test Vital thread pool class
  */
 
-#include <test_common.h>
+#include <vital/util/thread_pool.h>
+
+#include <gtest/gtest.h>
 
 #include <vector>
 
-#include <vital/util/thread_pool.h>
+using namespace kwiver::vital;
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(number_of_threads)
+// ----------------------------------------------------------------------------
+TEST(thread_pool, number_of_threads)
 {
-  using namespace kwiver::vital;
-
-  TEST_EQUAL( "Num thread == num CPU cores",
-              thread_pool::instance().num_threads(),
-              std::thread::hardware_concurrency());
+  EXPECT_EQ( std::thread::hardware_concurrency(),
+             thread_pool::instance().num_threads() );
 }
 
-
-void run_jobs_impl()
+// ----------------------------------------------------------------------------
+class thread_pool_backend : public ::testing::TestWithParam<std::string>
 {
-  using namespace kwiver::vital;
+};
+
+// ----------------------------------------------------------------------------
+TEST_P(thread_pool_backend, run_jobs)
+{
+  thread_pool::instance().set_backend( GetParam() );
+  EXPECT_EQ( GetParam(), thread_pool::instance().active_backend() );
 
   // futures to collect
   std::vector<std::future<double> > futures;
   // lamda function to run in threads
-  auto func = [] (unsigned i)
+  auto func = []( unsigned i )
   {
-    double x = static_cast<double>(i);
-    return x*x;
+    double x = static_cast<double>( i );
+    return x * x;
   };
 
   // enqueue all the jobs
-  for( unsigned i=0; i<100; i++ )
+  for ( unsigned i = 0; i < 100; ++i )
   {
     futures.push_back( thread_pool::instance().enqueue( func, i ) );
   }
 
   // collect all the results
-  for( unsigned i=0; i<100; i++ )
+  for ( unsigned i = 0; i < 100; ++i )
   {
-    TEST_EQUAL( "threaded value "+std::to_string(i), futures[i].get(), func(i) );
-  }
-
-}
-
-
-IMPLEMENT_TEST(run_jobs)
-{
-  using namespace kwiver::vital;
-  VITAL_FOREACH( std::string const& backend,
-                 thread_pool::instance().available_backends() )
-  {
-    std::cout << "Testing with thread pool backend: " << backend << std::endl;
-    thread_pool::instance().set_backend(backend);
-    TEST_EQUAL( "Backend set correctly",
-                thread_pool::instance().active_backend(), backend );
-    run_jobs_impl();
+    SCOPED_TRACE( "For thread " + std::to_string( i ) );
+    EXPECT_EQ( func( i ), futures[i].get() );
   }
 }
+
+// ----------------------------------------------------------------------------
+INSTANTIATE_TEST_CASE_P(
+  ,
+  thread_pool_backend,
+  ::testing::ValuesIn( thread_pool::available_backends() ) );

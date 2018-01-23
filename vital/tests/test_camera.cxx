@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,109 +33,100 @@
  * \brief test core camera class
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 
-#include <iostream>
 #include <vital/types/camera.h>
 #include <vital/io/camera_io.h>
 
-#define TEST_ARGS ()
+#include <iostream>
 
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
 
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(clone)
+// ----------------------------------------------------------------------------
+TEST(camera, clone)
 {
-  using namespace kwiver::vital;
-  vector_2d pp(300,400);
-  simple_camera_intrinsics K(1000, pp);
-  kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
+  vector_2d pp{ 300, 400 };
+  simple_camera_intrinsics K{ 1000, pp };
+  simple_camera cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
 
-  auto cam2 = cam.clone();
-  TEST_EQUAL("Center should be the same object after clone",
-             cam.center(), cam2->center());
-  TEST_EQUAL("Rotation should be the same object after clone",
-             cam.rotation(), cam2->rotation());
-  TEST_EQUAL("Instrinics should be the same object after clone",
-             cam.intrinsics(), cam2->intrinsics());
+  auto cam_clone = cam.clone();
+  EXPECT_MATRIX_EQ( cam.center(), cam_clone->center() );
+  EXPECT_MATRIX_EQ( cam.rotation().quaternion(),
+                    cam_clone->rotation().quaternion() );
+  EXPECT_EQ( cam.intrinsics(), cam_clone->intrinsics() );
 }
 
-
-IMPLEMENT_TEST(clone_look_at)
+// ----------------------------------------------------------------------------
+TEST(camera, clone_look_at)
 {
-  using namespace kwiver::vital;
-  vector_2d pp(300,400);
-  simple_camera_intrinsics K(1000, pp);
-  vector_3d focus(0, 1, -2);
+  vector_2d pp{ 300, 400 };
+  simple_camera_intrinsics K{ 1000, pp };
+  vector_3d focus{ 0, 1, -2 };
 
-  auto cam =
-    std::shared_ptr<camera>(
-      new simple_camera( vector_3d( 3, -4, 7 ), rotation_d(), K ) )
-      ->clone_look_at( focus );
+  auto cam_in = simple_camera{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
+  auto cam = cam_in.clone_look_at( focus );
 
-  vector_2d ifocus = cam->project(focus);
-  TEST_NEAR("clone_look_at focus projects to origin",
-            (ifocus-pp).norm(), 0.0, 1e-12);
+  EXPECT_MATRIX_NEAR( pp, cam->project( focus ), 1e-12 );
 
-  vector_2d ifocus_up = cam->project(focus + vector_3d(0,0,2));
-  vector_2d tmp = ifocus_up - pp;
-  TEST_NEAR("clone_look_at vertical projects vertical",
-            tmp.x(), 0.0, 1e-12);
-  // "up" in image space is actually negative Y because the
-  // Y axis is inverted
-  TEST_EQUAL("clone_look_at up projects up", tmp.y() < 0.0, true);
+  vector_2d ifocus_up = cam->project( focus + vector_3d{ 0, 0, 2 } );
+  vector_2d clone_look_at_vertical = ifocus_up - pp;
+  EXPECT_NEAR( 0.0, clone_look_at_vertical.x(), 1e-12 )
+    << "clone_look_at vertical should project vertical";
+  // "Up" in image space is actually negative Y because the Y axis is inverted
+  EXPECT_GT( 0.0, clone_look_at_vertical.y() )
+    << "clone_look_at up should project up";
 }
 
-
-IMPLEMENT_TEST(look_at)
+// ----------------------------------------------------------------------------
+TEST(camera, look_at)
 {
-  using namespace kwiver::vital;
-  vector_2d pp(300,400);
-  simple_camera_intrinsics K(1000, pp);
-  vector_3d focus(0, 1, -2);
-  kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
+  vector_2d pp{ 300, 400 };
+  simple_camera_intrinsics K{ 1000, pp };
+  vector_3d focus{ 0, 1, -2 };
+  simple_camera cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
   cam.look_at( focus );
 
-  vector_2d ifocus = cam.project(focus);
-  TEST_NEAR("look_at focus projects to origin",
-            (ifocus-pp).norm(), 0.0, 1e-12);
+  EXPECT_MATRIX_NEAR( pp, cam.project( focus ), 1e-12 );
 
-  vector_2d ifocus_up = cam.project(focus + vector_3d(0,0,2));
-  vector_2d tmp = ifocus_up - pp;
-  TEST_NEAR("look_at vertical projects vertical",
-            tmp.x(), 0.0, 1e-12);
-  // "up" in image space is actually negative Y because the
-  // Y axis is inverted
-  TEST_EQUAL("look_at up projects up", tmp.y() < 0.0, true);
+  vector_2d ifocus_up = cam.project( focus + vector_3d{ 0, 0, 2 } );
+  vector_2d look_at_vertical = ifocus_up - pp;
+  EXPECT_NEAR( 0.0, look_at_vertical.x(), 1e-12 )
+    << "look_at vertical should project vertical";
+  // "Up" in image space is actually negative Y because the Y axis is inverted
+  EXPECT_GT( 0.0, look_at_vertical.y() )
+    << "look_at up should project up";
 }
 
-
-IMPLEMENT_TEST(projection)
+// ----------------------------------------------------------------------------
+TEST(camera, projection)
 {
-  using namespace kwiver::vital;
-  vector_2d pp(300,400);
-  simple_camera_intrinsics K(1000, pp);
-  vector_3d focus(0, 1, -2);
-  kwiver::vital::simple_camera cam(vector_3d(3, -4, 7), rotation_d(), K);
+  vector_2d pp{ 300, 400 };
+  simple_camera_intrinsics K{ 1000, pp };
+  vector_3d focus{ 0, 1, -2 };
+  simple_camera cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
   cam.look_at( focus );
 
-  matrix_3x4d P(cam.as_matrix());
-  vector_3d test_pt(1,2,3);
-  vector_4d test_hpt(test_pt.x(), test_pt.y(), test_pt.z(), 1.0);
+  matrix_3x4d P{ cam.as_matrix() };
 
-  vector_3d proj_hpt = P * test_hpt;
-  vector_2d proj_pt(proj_hpt.x()/proj_hpt.z(), proj_hpt.y()/proj_hpt.z());
+  auto test = [&]( vector_3d const& test_pt ){
+    vector_4d test_hpt{ test_pt.x(), test_pt.y(), test_pt.z(), 1.0 };
 
-  TEST_NEAR("camera projection = matrix multiplication",
-             (cam.project(test_pt) - proj_pt).norm(), 0.0, 1e-12);
+    vector_3d proj_hpt = P * test_hpt;
+    vector_2d proj_pt{ proj_hpt.x() / proj_hpt.z(),
+                       proj_hpt.y() / proj_hpt.z() };
+
+    EXPECT_MATRIX_NEAR( proj_pt, cam.project( test_pt ), 1e-12 )
+      << "Camera projection should be equivalent to matrix multiplication";
+  };
+
+  test( { 1, 2, 3 } );
+  test( { 0, 1, -2 } );
+  test( { 5, -42, 67 } );
 }

@@ -156,26 +156,27 @@ compute_association_matrix_from_features
 {
   considered = d_->m_filter->filter( detections );
 
-  auto filtered_dets = considered->select();
+  auto filtered_dets = considered;
   auto filtered_tracks = tracks->tracks();
 
   const double invalid_value = std::numeric_limits< double >::max();
 
-  if( filtered_tracks.empty() || filtered_dets.empty() )
+  if( filtered_tracks.empty() || filtered_dets->empty() )
   {
     matrix = kwiver::vital::matrix_d();
   }
   else
   {
-    matrix = kwiver::vital::matrix_d( filtered_tracks.size(), filtered_dets.size() );
+    matrix = kwiver::vital::matrix_d( filtered_tracks.size(), filtered_dets->size() );
 
     for( unsigned t = 0; t < filtered_tracks.size(); ++t )
     {
-      for( unsigned d = 0; d < filtered_dets.size(); ++d )
+      for( unsigned d = 0; d < filtered_dets->size(); ++d )
       {
         track_sptr trk = filtered_tracks[t];
+        detected_object_sptr det = filtered_dets->begin()[d];
 
-        detected_object::descriptor_sptr det_features = filtered_dets[d]->descriptor();
+        detected_object::descriptor_sptr det_features = det->descriptor();
         detected_object::descriptor_sptr trk_features;
 
         if( !trk->empty() )
@@ -190,14 +191,14 @@ compute_association_matrix_from_features
             if( d_->m_max_distance > 0.0 )
             {
               auto center1 = trk_state->detection->bounding_box().center();
-              auto center2 = filtered_dets[d]->bounding_box().center();
+              auto center2 = det->bounding_box().center();
 
-              double dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
+              dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
               dist += ( ( center1[1] - center2[1] ) * ( center1[1] - center2[1] ) );
               dist = std::sqrt( dist );
             }
 
-            if( dist <= d_->m_max_distance )
+            if( d_->m_max_distance <= 0.0 || dist < d_->m_max_distance )
             {
               trk_features = trk_state->detection->descriptor();
             }
@@ -214,8 +215,9 @@ compute_association_matrix_from_features
           double sum_sqr = 0.0;
 
           for( double *pos1 = det_features->raw_data(),
-                      *pos2 = trk_features->raw_data();
-               pos1 != pos1 + det_features->size(); ++pos1, ++pos2 )
+                      *pos2 = trk_features->raw_data(),
+                      *end = pos1 + det_features->size();
+               pos1 != end; ++pos1, ++pos2 )
           {
             sum_sqr += ( ( *pos1 - *pos2 ) * ( *pos1 - *pos2 ) );
           }

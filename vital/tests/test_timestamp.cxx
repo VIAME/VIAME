@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,133 +33,133 @@
  * \brief core image class tests
  */
 
-#include <test_common.h>
-
 #include <vital/types/timestamp.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-
-// ------------------------------------------------------------------
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(timestamp_API)
+// ----------------------------------------------------------------------------
+TEST(timestamp, api)
 {
   kwiver::vital::timestamp ts;
 
-  TEST_EQUAL( "Valid timestamp", ts.is_valid(), false );
-  TEST_EQUAL( "Valid time", ts.has_valid_time(), false );
-  TEST_EQUAL( "Valid frame", ts.has_valid_frame(), false );
+  EXPECT_FALSE( ts.is_valid() );
+  EXPECT_FALSE( ts.has_valid_time() );
+  EXPECT_FALSE( ts.has_valid_frame() );
 
   kwiver::vital::timestamp tsv( 5000000, 2);
 
-  TEST_EQUAL( "Valid timestamp", tsv.is_valid(), true );
-  TEST_EQUAL( "Valid time", tsv.has_valid_time(), true );
-  TEST_EQUAL( "Valid frame", tsv.has_valid_frame(), true );
-  TEST_EQUAL( "Correct time", tsv.get_time_usec(), 5000000 );
-  TEST_EQUAL( "Correct time", tsv.get_time_seconds(), 5 );
-  TEST_EQUAL( "Correct frame", tsv.get_frame(), 2 );
+  EXPECT_TRUE( tsv.is_valid() );
+  EXPECT_TRUE( tsv.has_valid_time() );
+  EXPECT_TRUE( tsv.has_valid_frame() );
+  EXPECT_EQ( 5000000, tsv.get_time_usec() );
+  EXPECT_EQ( 5, tsv.get_time_seconds() );
+  EXPECT_EQ( 2, tsv.get_frame() );
 
-  // Test copy constructor
-  ts = kwiver::vital::timestamp( 5000000, 2 );
-  TEST_EQUAL( "Equal from temp", ts, tsv );
-
-  ts = tsv;
-  TEST_EQUAL( "Equal from other ts", ts, tsv );
+  kwiver::vital::timestamp ts_copy{ tsv };
+  EXPECT_EQ( tsv, ts_copy = kwiver::vital::timestamp( 5000000, 2 ) );
+  EXPECT_EQ( tsv, ts_copy = tsv );
 
   ts.set_frame( 123 );
-  TEST_EQUAL( "Direct frame access", ts.get_frame(), 123 );
+  EXPECT_EQ( 123, ts.get_frame() );
 
-  ts.set_time_seconds( 123 );
-  TEST_EQUAL( "Direct time access", ts.get_time_seconds(), 123 );
-  TEST_EQUAL( "Direct time access", ts.get_time_usec(), 123000000 );
+  ts.set_time_usec( 123000000 );
+  EXPECT_EQ( 123, ts.get_time_seconds() );
+  EXPECT_EQ( 123000000, ts.get_time_usec() );
+
+  ts.set_time_seconds( 456 );
+  EXPECT_EQ( 456, ts.get_time_seconds() );
+  EXPECT_EQ( 456000000, ts.get_time_usec() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(timestamp_relop)
+// ----------------------------------------------------------------------------
+TEST(timestamp, comparisons)
 {
-  kwiver::vital::timestamp tsiv; // invalid TS
+  kwiver::vital::timestamp tsii; // invalid TS
   kwiver::vital::timestamp   ts( 5000000, 123 );
-  kwiver::vital::timestamp ts11( 5000000, 122 );
-  kwiver::vital::timestamp ts12( 5000000, 124 );
-  kwiver::vital::timestamp ts21( 4000000, 122 );
-  kwiver::vital::timestamp ts22( 6000000, 124 );
+  kwiver::vital::timestamp tsll( 4000000, 122 );
+  kwiver::vital::timestamp tsel( 5000000, 122 );
+  kwiver::vital::timestamp tseg( 5000000, 124 );
+  kwiver::vital::timestamp tsgg( 6000000, 124 );
 
-  TEST_EQUAL( "Invalid timestamp ==", (ts == tsiv), false );
-  TEST_EQUAL( "Invalid timestamp !=", (ts != tsiv), true );
-  TEST_EQUAL( "Invalid timestamp <", (ts < tsiv), false );
-  TEST_EQUAL( "Invalid timestamp >", (ts > tsiv), false );
+  // Compare to invalid
+  EXPECT_FALSE( ts == tsii );
+  EXPECT_TRUE(  ts != tsii );
+  EXPECT_FALSE( ts < tsii );
+  EXPECT_FALSE( ts > tsii );
 
-  TEST_EQUAL( "Same timestamp ==", (ts == ts), true );
-  TEST_EQUAL( "Same timestamp !=", (ts != ts), false );
-  TEST_EQUAL( "Same timestamp <", (ts < ts), false );
-  TEST_EQUAL( "Same timestamp >", (ts > ts), false );
+  // Compare to self
+  EXPECT_TRUE(  ts == ts );
+  EXPECT_FALSE( ts != ts );
+  EXPECT_FALSE( ts < ts );
+  EXPECT_FALSE( ts > ts );
 
-  TEST_EQUAL( "ts11 timestamp ==", (ts == ts11), false );
-  TEST_EQUAL( "ts11 timestamp !=", (ts != ts11), true );
-  TEST_EQUAL( "ts11 timestamp <", (ts < ts11), false );
-  TEST_EQUAL( "ts11 timestamp >", (ts > ts11), false );
+  // Compare to lesser time and frame number
+  EXPECT_FALSE( ts == tsll );
+  EXPECT_TRUE(  ts != tsll );
+  EXPECT_FALSE( ts < tsll );
+  EXPECT_TRUE(  ts > tsll );
 
-  TEST_EQUAL( "ts12 timestamp ==", (ts == ts12), false );
-  TEST_EQUAL( "ts12 timestamp !=", (ts != ts12), true );
-  TEST_EQUAL( "ts12 timestamp <", (ts < ts12), false );
-  TEST_EQUAL( "ts12 timestamp >", (ts > ts12), false );
+  // Compare to lesser frame number
+  EXPECT_FALSE( ts == tsel );
+  EXPECT_TRUE(  ts != tsel );
+  EXPECT_FALSE( ts < tsel );
+  EXPECT_FALSE( ts > tsel ); // eh?
 
-  TEST_EQUAL( "ts21 timestamp ==", (ts == ts21), false );
-  TEST_EQUAL( "ts21 timestamp !=", (ts != ts21), true );
-  TEST_EQUAL( "ts21 timestamp <", (ts < ts21), false );
-  TEST_EQUAL( "ts21 timestamp >", (ts > ts21), true );
+  // Compare to greater frame number
+  EXPECT_FALSE( ts == tseg );
+  EXPECT_TRUE(  ts != tseg );
+  EXPECT_FALSE( ts < tseg ); // eh?
+  EXPECT_FALSE( ts > tseg );
 
-  TEST_EQUAL( "ts22 timestamp ==", (ts == ts22), false );
-  TEST_EQUAL( "ts22 timestamp !=", (ts != ts22), true );
-  TEST_EQUAL( "ts22 timestamp <", (ts < ts22), true );
-  TEST_EQUAL( "ts22 timestamp >", (ts > ts22), false );
+  // Compare to greater time and frame number
+  EXPECT_FALSE( ts == tsgg );
+  EXPECT_TRUE(  ts != tsgg );
+  EXPECT_TRUE(  ts < tsgg );
+  EXPECT_FALSE( ts > tsgg );
 
-  kwiver::vital::timestamp ts10;
-  ts10.set_time_seconds( 5 );
+  // Compare to equal time with no frame number
+  kwiver::vital::timestamp tsei;
+  tsei.set_time_seconds( 5 );
+  EXPECT_TRUE(  ts == tsei ); // eh?
+  EXPECT_FALSE( ts != tsei ); // eh?
+  EXPECT_FALSE( ts < tsei );
+  EXPECT_FALSE( ts > tsei );
 
-  TEST_EQUAL( "ts10 timestamp ==", (ts == ts10), true );
-  TEST_EQUAL( "ts10 timestamp !=", (ts != ts10), false );
-  TEST_EQUAL( "ts10 timestamp <", (ts < ts10), false );
-  TEST_EQUAL( "ts10 timestamp >", (ts > ts10), false );
+  // Compare to greater time with no frame number
+  kwiver::vital::timestamp tsgi;
+  tsgi.set_time_seconds( 6 );
+  EXPECT_FALSE( ts == tsgi );
+  EXPECT_TRUE(  ts != tsgi );
+  EXPECT_TRUE(  ts < tsgi );
+  EXPECT_FALSE( ts > tsgi );
 
-  ts10.set_time_seconds( 6 );
+  // Compare to lesser frame number with no time
+  kwiver::vital::timestamp tsil;
+  tsil.set_frame( 122 );
+  EXPECT_FALSE( ts == tsil );
+  EXPECT_TRUE(  ts != tsil );
+  EXPECT_FALSE( ts < tsil );
+  EXPECT_TRUE(  ts > tsil );
 
-  TEST_EQUAL( "ts10 timestamp ==", (ts == ts10), false );
-  TEST_EQUAL( "ts10 timestamp !=", (ts != ts10), true );
-  TEST_EQUAL( "ts10 timestamp <", (ts < ts10), true );
-  TEST_EQUAL( "ts10 timestamp >", (ts > ts10), false );
+  // Compare time-only to frame-only
+  EXPECT_FALSE( tsei == tsil );
+  EXPECT_TRUE(  tsei != tsil );
+  EXPECT_FALSE( tsei < tsil );
+  EXPECT_FALSE( tsei > tsil );
 
-  kwiver::vital::timestamp ts01;
-  ts01.set_frame( 121 );
+  // Compare to different domain
+  kwiver::vital::timestamp tsdd = ts;
+  tsdd.set_time_domain_index( 1 );
 
-  TEST_EQUAL( "ts01 frame only timestamp ==", (ts == ts01), false );
-  TEST_EQUAL( "ts01 frame only timestamp !=", (ts != ts01), true );
-  TEST_EQUAL( "ts01 frame only timestamp <", (ts < ts01), false );
-  TEST_EQUAL( "ts01 frame only timestamp >", (ts > ts01), true );
-
-  ts01.set_time_domain_index( 1 );
-
-  TEST_EQUAL( "ts01 frame only timestamp ==", (ts == ts01), false );
-  TEST_EQUAL( "ts01 frame only timestamp !=", (ts != ts01), true );
-  TEST_EQUAL( "ts01 frame only timestamp <", (ts < ts01), false );
-  TEST_EQUAL( "ts01 frame only timestamp >", (ts > ts01), false );
-
-  TEST_EQUAL( "ts10:ts01 timestamp ==", (ts10 == ts01), false );
-  TEST_EQUAL( "ts10:ts01 timestamp !=", (ts10 != ts01), true );
-  TEST_EQUAL( "ts10:ts01 timestamp <", (ts10 < ts01), false );
-  TEST_EQUAL( "ts10:ts01 timestamp >", (ts10 > ts01), false  );
+  EXPECT_FALSE( ts == tsdd );
+  EXPECT_TRUE(  ts != tsdd );
+  EXPECT_FALSE( ts < tsdd );
+  EXPECT_FALSE( ts > tsdd );
 }

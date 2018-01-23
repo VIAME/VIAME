@@ -69,6 +69,9 @@ namespace dt {
 /// want to use custom XML attributes.)
 ///
 
+namespace detection {
+  DECL_DT( detection_id, unsigned long long, "detection ID; unique within a session but not a UUID" );
+}
 
 namespace tracking {
 
@@ -101,6 +104,11 @@ namespace events {
   DECL_DT_RW_STRXMLCSV( event_type, int, "event type: currently always in the VIRAT domain" );
   DECL_DT( event_probability, double, "event probability" );
   DECL_DT_RW_STR( source_track_ids, std::vector<unsigned>, "Track IDs contributing to the event" );
+  DECL_DT_RW_STR( actor_track_rows, track_handle_list_type, "Track handles participating in the event" );
+
+  DECL_DT( kpf_activity_domain, int, "KPF activity domain" );
+  DECL_DT( kpf_activity_start, unsigned, "KPF activity start (frame number)" );
+  DECL_DT( kpf_activity_stop, unsigned, "KPF activity stop (frame number)" );
 
 } // ...events
 

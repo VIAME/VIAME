@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-
-#include <vector>
-
 #include <vital/vital_types.h>
 #include <vital/vital_config.h>
 
@@ -47,15 +43,22 @@
 #include <vital/types/similarity.h>
 #include <vital/types/vector.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
+using namespace std;
 
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
 namespace
 {
 
-
+// ----------------------------------------------------------------------------
 /// Dummy algo impl to test function wrappers
 class dummy_est
   : public kwiver::vital::algorithm_impl < dummy_est, kwiver::vital::algo::estimate_similarity_transform >
@@ -69,7 +72,7 @@ public:
     : expected_size(expected_size)
   {}
 
-  virtual ~dummy_est() VITAL_DEFAULT_DTOR
+  virtual ~dummy_est() = default;
 
   void set_configuration(kwiver::vital::config_block_sptr config) {}
   bool check_configuration(kwiver::vital::config_block_sptr config) const {return true;}
@@ -80,9 +83,8 @@ public:
   estimate_transform(std::vector<kwiver::vital::vector_3d> const& from,
                      std::vector<kwiver::vital::vector_3d> const& to) const
   {
-    TEST_EQUAL("input vector length equality", from.size() == to.size(), true);
-    TEST_EQUAL("from vector size", from.size(), expected_size);
-    TEST_EQUAL("to vector size", to.size(), expected_size);
+    EXPECT_EQ( expected_size, from.size() );
+    EXPECT_EQ( expected_size, to.size() );
 
     return kwiver::vital::similarity_d();
   }
@@ -92,29 +94,16 @@ public:
 
 }
 
-
-int
-main(int argc, char *argv[])
-{
-  CHECK_ARGS(1);
-  testname_t const testname = argv[1];
-  RUN_TEST(testname);
-}
-
-
-using namespace kwiver::vital;
-using namespace std;
-
-
-IMPLEMENT_TEST(baseline)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, baseline)
 {
   algo::estimate_similarity_transform_sptr est(new dummy_est());
   vector<vector_3d> pts1, pts2;
   est->estimate_transform(pts1, pts2);
 }
 
-
-IMPLEMENT_TEST(vector_of_cameras)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, vector_of_cameras)
 {
   size_t N(100);
   vector<camera_sptr> from_cams, to_cams;
@@ -128,8 +117,8 @@ IMPLEMENT_TEST(vector_of_cameras)
   est->estimate_transform(from_cams, to_cams);
 }
 
-
-IMPLEMENT_TEST(vector_of_landmarks)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, vector_of_landmarks)
 {
   size_t N(73);
   vector<landmark_sptr> from_lmks, to_lmks;
@@ -143,8 +132,8 @@ IMPLEMENT_TEST(vector_of_landmarks)
   est->estimate_transform(from_lmks, to_lmks);
 }
 
-
-IMPLEMENT_TEST(sync_camera_map)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, sync_camera_map)
 {
   size_t N(63);
 
@@ -161,8 +150,8 @@ IMPLEMENT_TEST(sync_camera_map)
   est->estimate_transform(from_cmap, to_cmap);
 }
 
-
-IMPLEMENT_TEST(disjoint_camera_maps)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, disjoint_camera_maps)
 {
   // uniform overlap
   frame_id_t i_b=0, i_e=50,
@@ -209,8 +198,8 @@ IMPLEMENT_TEST(disjoint_camera_maps)
   est2->estimate_transform(from_cmap2, to_cmap2);
 }
 
-
-IMPLEMENT_TEST(sync_landmark_map)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, sync_landmark_map)
 {
   size_t N(63);
 
@@ -227,8 +216,8 @@ IMPLEMENT_TEST(sync_landmark_map)
   est->estimate_transform(from_cmap, to_cmap);
 }
 
-
-IMPLEMENT_TEST(disjoint_landmark_maps)
+// ----------------------------------------------------------------------------
+TEST(estimate_similarity_transform, disjoint_landmark_maps)
 {
   // uniform overlap
   frame_id_t i_b=0, i_e=50,

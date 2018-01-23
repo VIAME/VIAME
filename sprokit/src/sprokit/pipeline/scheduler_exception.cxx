@@ -42,18 +42,18 @@ namespace sprokit
 {
 
 scheduler_exception
-::scheduler_exception() VITAL_NOTHROW
+::scheduler_exception() noexcept
   : pipeline_exception()
 {
 }
 
 scheduler_exception
-::~scheduler_exception() VITAL_NOTHROW
+::~scheduler_exception() noexcept
 {
 }
 
 incompatible_pipeline_exception
-::incompatible_pipeline_exception(std::string const& reason) VITAL_NOTHROW
+::incompatible_pipeline_exception(std::string const& reason) noexcept
   : scheduler_exception()
   , m_reason(reason)
 {
@@ -65,12 +65,12 @@ incompatible_pipeline_exception
 }
 
 incompatible_pipeline_exception
-::~incompatible_pipeline_exception() VITAL_NOTHROW
+::~incompatible_pipeline_exception() noexcept
 {
 }
 
 null_scheduler_config_exception
-::null_scheduler_config_exception() VITAL_NOTHROW
+::null_scheduler_config_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -81,12 +81,12 @@ null_scheduler_config_exception
 }
 
 null_scheduler_config_exception
-::~null_scheduler_config_exception() VITAL_NOTHROW
+::~null_scheduler_config_exception() noexcept
 {
 }
 
 null_scheduler_pipeline_exception
-::null_scheduler_pipeline_exception() VITAL_NOTHROW
+::null_scheduler_pipeline_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -97,12 +97,12 @@ null_scheduler_pipeline_exception
 }
 
 null_scheduler_pipeline_exception
-::~null_scheduler_pipeline_exception() VITAL_NOTHROW
+::~null_scheduler_pipeline_exception() noexcept
 {
 }
 
 restart_scheduler_exception
-::restart_scheduler_exception() VITAL_NOTHROW
+::restart_scheduler_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -113,12 +113,12 @@ restart_scheduler_exception
 }
 
 restart_scheduler_exception
-::~restart_scheduler_exception() VITAL_NOTHROW
+::~restart_scheduler_exception() noexcept
 {
 }
 
 wait_before_start_exception
-::wait_before_start_exception() VITAL_NOTHROW
+::wait_before_start_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -129,12 +129,12 @@ wait_before_start_exception
 }
 
 wait_before_start_exception
-::~wait_before_start_exception() VITAL_NOTHROW
+::~wait_before_start_exception() noexcept
 {
 }
 
 pause_before_start_exception
-::pause_before_start_exception() VITAL_NOTHROW
+::pause_before_start_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -145,12 +145,12 @@ pause_before_start_exception
 }
 
 pause_before_start_exception
-::~pause_before_start_exception() VITAL_NOTHROW
+::~pause_before_start_exception() noexcept
 {
 }
 
 repause_scheduler_exception
-::repause_scheduler_exception() VITAL_NOTHROW
+::repause_scheduler_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -161,12 +161,12 @@ repause_scheduler_exception
 }
 
 repause_scheduler_exception
-::~repause_scheduler_exception() VITAL_NOTHROW
+::~repause_scheduler_exception() noexcept
 {
 }
 
 resume_before_start_exception
-::resume_before_start_exception() VITAL_NOTHROW
+::resume_before_start_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -177,12 +177,12 @@ resume_before_start_exception
 }
 
 resume_before_start_exception
-::~resume_before_start_exception() VITAL_NOTHROW
+::~resume_before_start_exception() noexcept
 {
 }
 
 resume_unpaused_scheduler_exception
-::resume_unpaused_scheduler_exception() VITAL_NOTHROW
+::resume_unpaused_scheduler_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -193,12 +193,12 @@ resume_unpaused_scheduler_exception
 }
 
 resume_unpaused_scheduler_exception
-::~resume_unpaused_scheduler_exception() VITAL_NOTHROW
+::~resume_unpaused_scheduler_exception() noexcept
 {
 }
 
 stop_before_start_exception
-::stop_before_start_exception() VITAL_NOTHROW
+::stop_before_start_exception() noexcept
   : scheduler_exception()
 {
   std::ostringstream sstr;
@@ -209,7 +209,7 @@ stop_before_start_exception
 }
 
 stop_before_start_exception
-::~stop_before_start_exception() VITAL_NOTHROW
+::~stop_before_start_exception() noexcept
 {
 }
 

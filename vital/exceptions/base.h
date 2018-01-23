@@ -55,16 +55,16 @@ class VITAL_EXPORT vital_core_base_exception
 {
 public:
   /// Constructor
-  vital_core_base_exception() VITAL_NOTHROW;
+  vital_core_base_exception() noexcept;
 
   /// Destructor
-  virtual ~vital_core_base_exception() VITAL_NOTHROW;
+  virtual ~vital_core_base_exception() noexcept;
 
   /**
    * \brief Description of the exception
    * \returns A string describing what went wrong.
    */
-  char const* what() const VITAL_NOTHROW;
+  char const* what() const noexcept;
 
   /**
    * \brief Set optional location of exception.
@@ -95,9 +95,9 @@ class VITAL_EXPORT invalid_value
 {
 public:
   /// Constructor
-  invalid_value(std::string reason) VITAL_NOTHROW;
+  invalid_value(std::string reason) noexcept;
   /// Destructor
-  virtual ~invalid_value() VITAL_NOTHROW;
+  virtual ~invalid_value() noexcept;
 protected:
   /// Reason for invalidity
   std::string m_reason;
@@ -119,7 +119,7 @@ protected:
 #define VITAL_THROW_MSG(E, MSG) do {            \
     std::stringstream _oss_;                    \
     _oss_ << MSG;                               \
-    E except(_oss.str();                        \
+    E except( _oss.str() );                     \
     except.set_location( __file, __line );      \
     throw except;                               \
   } while (0)

@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_PIPE_PARSER_H
 #define SPROKIT_PIPELINE_UTIL_PIPE_PARSER_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 #include "token.h"
@@ -55,7 +55,7 @@ namespace sprokit {
  * @brief Pipe and cluster parser.
  *
  */
-class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser VITAL_FINAL
+class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser final
 {
 public:
   // -- CONSTRUCTORS --

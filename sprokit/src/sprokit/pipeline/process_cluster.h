@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_CLUSTER_H
 #define SPROKIT_PIPELINE_PROCESS_CLUSTER_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "process.h"
 
@@ -92,7 +92,6 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
     /// A property which indicates that the process is a cluster of processes.
     static property_t const property_cluster;
 
-  protected:
     /**
      * \brief Constructor.
      *
@@ -107,6 +106,7 @@ class SPROKIT_PIPELINE_EXPORT process_cluster
      */
     virtual ~process_cluster();
 
+  protected:
     /**
      * \brief Map a configuration value to a process.
      *

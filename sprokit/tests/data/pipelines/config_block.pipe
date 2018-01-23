@@ -3,4 +3,4 @@ config myblock
   :mykey myvalue
 
 # new style config entry
-otherkey = value
+  otherkey = value

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,31 @@ create_config_trait( file_name, std::string, "", "Name of the detection set file
 create_config_trait( writer, std::string , "", "Block name for algorithm parameters. "
                      "e.g. writer:type would be used to specify the algorithm type." );
 
+/**
+ * \class detected_object_output_process
+ *
+ * \brief Writes detected objects to a file.
+ *
+ * \process This process writes the detected objecs in the set to a
+ * file. The actual renderingwriting is done by the selected \b
+ * detected_object_set_output algorithm implementation.
+ *
+ * \iports
+ *
+ * \iport{image_file_name} Optional name of an image file to associate
+ * with the set of detections.
+ *
+ * \iport{detected_object_set} Set ob objects to pass to writer
+ * algorithm.
+ *
+ * \configs
+ *
+ * \config{file_name} Name of the file that the detections are written.
+ *
+ * \config{writer} Name of the configuration subblock that selects
+ * and configures the writing algorithm
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class detected_object_output_process::priv
@@ -74,9 +99,6 @@ detected_object_output_process
   : process( config ),
     d( new detected_object_output_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -92,6 +114,8 @@ detected_object_output_process
 void detected_object_output_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -123,6 +147,8 @@ void detected_object_output_process
 void detected_object_output_process
 ::_init()
 {
+  scoped_init_instrumentation();
+
   d->m_writer->open( d->m_file_name ); // throws
 }
 
@@ -141,7 +167,11 @@ void detected_object_output_process
 
   kwiver::vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
 
-  d->m_writer->write_set( input, file_name );
+  {
+    scoped_step_instrumentation();
+
+    d->m_writer->write_set( input, file_name );
+  }
 }
 
 

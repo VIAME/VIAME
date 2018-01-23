@@ -33,7 +33,7 @@
  * \brief test reading images and metadata with video_input_split
  */
 
-#include <test_common.h>
+#include <test_gtest.h>
 
 #include "dummy_image_io.h"
 
@@ -44,39 +44,37 @@
 #include <string>
 #include <iostream>
 
-#define TEST_ARGS ( kwiver::vital::path_t data_dir )
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(2);
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-  kwiver::vital::path_t data_dir( argv[2] );
-
-  RUN_TEST(testname, data_dir);
-}
+kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int
+main(int argc, char* argv[])
 {
-  algo::video_input_sptr vi = algo::video_input::create("split");
-  if (!vi)
-  {
-    TEST_ERROR("Unable to create core::video_input_split by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
+
+  GET_ARG(1, g_data_dir);
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+class video_input_split : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+TEST_F(video_input_split, create)
+{
+  EXPECT_NE( nullptr, algo::video_input::create("split") );
+}
+
+// ----------------------------------------------------------------------------
+static
 kwiver::vital::config_block_sptr
 make_config(std::string const& data_dir)
 {
@@ -91,9 +89,8 @@ make_config(std::string const& data_dir)
   return config;
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(read_list)
+// ----------------------------------------------------------------------------
+TEST_F(video_input_split, read_list)
 {
   // register the dummy_image_io so we can use it in this test
   register_dummy_image_io();
@@ -103,7 +100,7 @@ IMPLEMENT_TEST(read_list)
 
   kwiver::arrows::core::video_input_split vis;
 
-  TEST_EQUAL("Check configuration", vis.check_configuration( config ), true);
+  EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
@@ -124,14 +121,14 @@ IMPLEMENT_TEST(read_list)
     }
 
     ++num_frames;
-    TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
+    EXPECT_EQ( num_frames, ts.get_frame() )
+      << "Frame numbers should be sequential";
   }
-  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+  EXPECT_EQ( 5, num_frames );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(test_capabilities)
+// ----------------------------------------------------------------------------
+TEST_F(video_input_split, test_capabilities)
 {
   // register the dummy_image_io so we can use it in this test
   register_dummy_image_io();
@@ -141,7 +138,7 @@ IMPLEMENT_TEST(test_capabilities)
 
   kwiver::arrows::core::video_input_split vis;
 
-  vis.check_configuration( config );
+  EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
@@ -150,7 +147,7 @@ IMPLEMENT_TEST(test_capabilities)
   auto cap = vis.get_implementation_capabilities();
   auto cap_list = cap.capability_list();
 
-  VITAL_FOREACH( auto one, cap_list )
+  for( auto one : cap_list )
   {
     std::cout << one << " -- "
               << ( cap.capability( one ) ? "true" : "false" )

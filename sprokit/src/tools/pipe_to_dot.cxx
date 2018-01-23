@@ -36,6 +36,8 @@
 #include <sprokit/pipeline_util/export_dot.h>
 
 #include <vital/config/config_block.h>
+#include <vital/plugin_loader/plugin_manager.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
@@ -69,6 +71,10 @@ sprokit_tool_main(int argc, char const* argv[])
 
   boost::program_options::variables_map const vm = sprokit::tool_parse(argc, argv, desc, "");
 
+  // Load all known modules
+  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  vpm.load_all_plugins();
+
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;
 
@@ -76,6 +82,7 @@ sprokit_tool_main(int argc, char const* argv[])
   bool const have_cluster_type = (0 != vm.count("cluster-type"));
   bool const have_pipeline = (0 != vm.count("pipeline"));
   bool const have_setup = (0 != vm.count("setup"));
+  bool const have_link = (0 != vm.count("link-prefix"));
 
   bool const export_cluster = (have_cluster || have_cluster_type);
 
@@ -126,14 +133,14 @@ sprokit_tool_main(int argc, char const* argv[])
       conf->set_value(sprokit::process::config_name, graph_name);
 
       sprokit::process_t const proc = info->ctor(conf);
-      cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+      cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
     }
     else if (have_cluster_type)
     {
       sprokit::process::type_t const type = vm["cluster-type"].as<sprokit::process::type_t>();
 
       sprokit::process_t const proc = sprokit::create_process(type, graph_name, conf);
-      cluster = boost::dynamic_pointer_cast<sprokit::process_cluster>(proc);
+      cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(proc);
 
       if (!cluster)
       {
@@ -194,7 +201,15 @@ sprokit_tool_main(int argc, char const* argv[])
       pipe->setup_pipeline();
     }
 
-    sprokit::export_dot(*ostr, pipe, graph_name);
+    if (have_link)
+    {
+      std::string const link_prefix = vm["link-prefix"].as<std::string>();
+      sprokit::export_dot(*ostr, pipe, graph_name, link_prefix);
+    }
+    else
+    {
+      sprokit::export_dot(*ostr, pipe, graph_name);
+    }
   }
 
   return EXIT_SUCCESS;
@@ -225,6 +240,7 @@ pipe_to_dot_pipeline_options()
   desc.add_options()
     ("name,n", boost::program_options::value<std::string>()->value_name("NAME")->default_value("unnamed"), "the name of the graph")
     ("setup", "whether to setup the pipeline before exporting or not")
+    ("link-prefix,P", boost::program_options::value<std::string>()->value_name("LINK_PREFIX"), "prefix for links when formatting for sphinx")
   ;
 
   return desc;

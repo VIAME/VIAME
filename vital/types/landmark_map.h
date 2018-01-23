@@ -55,7 +55,7 @@ public:
   typedef std::map< landmark_id_t, landmark_sptr > map_landmark_t;
 
   /// Destructor
-  virtual ~landmark_map() VITAL_DEFAULT_DTOR
+  virtual ~landmark_map() = default;
 
   /// Return the number of landmarks in the map
   virtual size_t size() const = 0;

@@ -33,7 +33,7 @@
  * \brief test reading video from a list of images.
  */
 
-#include <test_common.h>
+#include <test_gtest.h>
 
 #include "dummy_image_io.h"
 
@@ -44,40 +44,37 @@
 #include <string>
 #include <iostream>
 
-#define TEST_ARGS ( kwiver::vital::path_t data_dir )
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(2);
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-  kwiver::vital::path_t data_dir( argv[2] );
-
-  RUN_TEST(testname, data_dir);
-}
+kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int
+main(int argc, char* argv[])
 {
-  algo::video_input_sptr vi = algo::video_input::create("image_list");
-  if (!vi)
-  {
-    TEST_ERROR("Unable to create core::video_input_image_list by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
+
+  GET_ARG(1, g_data_dir);
+
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+class video_input_image_list : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(read_list)
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, create)
+{
+  EXPECT_NE( nullptr, algo::video_input::create("image_list") );
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, read_list)
 {
   // register the dummy_image_io so we can use it in this test
   register_dummy_image_io();
@@ -109,14 +106,14 @@ IMPLEMENT_TEST(read_list)
     }
 
     ++num_frames;
-    TEST_EQUAL( "Sequential frame numbers", ts.get_frame(), num_frames );
+    EXPECT_EQ( num_frames, ts.get_frame() )
+      << "Frame numbers should be sequential";
   }
-  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+  EXPECT_EQ( 5, num_frames );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(is_good)
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, is_good)
 {
   // register the dummy_image_io so we can use it in this test
   register_dummy_image_io();
@@ -127,26 +124,29 @@ IMPLEMENT_TEST(is_good)
 
   kwiver::arrows::core::video_input_image_list viil;
 
-  viil.check_configuration( config );
+  EXPECT_TRUE( viil.check_configuration( config ) );
   viil.set_configuration( config );
 
   kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
   kwiver::vital::timestamp ts;
 
-  TEST_EQUAL( "Video state is not \"good\" before open", viil.good(), false );
+  EXPECT_FALSE( viil.good() )
+    << "Video state before open";
 
   // open the video
   viil.open( list_file );
-  TEST_EQUAL( "Video state is not \"good\" after open but before first frame",
-              viil.good(), false );
+  EXPECT_FALSE( viil.good() )
+    << "Video state after open but before first frame";
 
   // step one frame
   viil.next_frame( ts );
-  TEST_EQUAL( "Video state is \"good\" on first frame", viil.good(), true );
+  EXPECT_TRUE( viil.good() )
+    << "Video state on first frame";
 
   // close the video
   viil.close();
-  TEST_EQUAL( "Video state is not \"good\" after close", viil.good(), false );
+  EXPECT_FALSE( viil.good() )
+    << "Video state after close";
 
   // Reopen the video
   viil.open( list_file );
@@ -155,8 +155,8 @@ IMPLEMENT_TEST(is_good)
   while ( viil.next_frame( ts ) )
   {
     ++num_frames;
-    TEST_EQUAL( "Video state is \"good\" on frame" << ts.get_frame(),
-                viil.good(), true );
+    EXPECT_TRUE( viil.good() )
+      << "Video state on frame " << ts.get_frame();
   }
-  TEST_EQUAL( "Number of frames read", num_frames, 5 );
+  EXPECT_EQ( 5, num_frames );
 }

@@ -55,7 +55,8 @@ void register_factories( kwiver::vital::plugin_loader& vpm )
   auto fact = vpm.ADD_PROCESS( kwiver::kw_archive_writer_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "kw_archive_writer" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Writes kw archives" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Writes kw archives." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
   // - - - - - - - - - - - - - - - - - - - - - - -

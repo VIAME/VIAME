@@ -29,11 +29,12 @@
 # Only ModuleLoader is here since we only care about it.
 
 """Facility to load plugins."""
-
+from __future__ import print_function
 import sys
 import os
-
 from importlib import import_module
+from sprokit import sprokit_logging
+logger = sprokit_logging.getLogger(__name__)
 
 
 class Loader(object):
@@ -41,8 +42,8 @@ class Loader(object):
     def __init__(self, *args, **kwargs):
         self._cache = []
 
-    def load(self, *args, **kwargs):
-        self._fill_cache(*args, **kwargs)
+    def load(self, namespace):
+        self._fill_cache(namespace)
         self._post_fill()
         self._order()
         return self._cache
@@ -84,17 +85,36 @@ class ModuleLoader(Loader):
         return False
 
     def _findPluginFilePaths(self, namespace):
+        """
+        Searches for modules in `namespace` that are reachable from the paths
+        defined in the `PYTHONPATH` environment variable.
+
+        Args:
+            namespace (str): the importable name of a python module or package
+
+        Yields:
+            str: mod_rel_path - the paths (relative to PYTHONPATH) of
+                the modules in the namespace.
+        """
         already_seen = set()
+
+        py_exts = ['.py', '.pyc', '.pyo']
+
+        for ext in py_exts:
+            if namespace.endswith(ext):
+                logger.warn(('do not specify .py extension for the {} '
+                             'sprokit python module').format(namespace))
+                namespace = namespace[:-len(ext)]
+
+        namespace_rel_path = namespace.replace('.', os.path.sep)
 
         # Look in each location in the path
         for path in sys.path:
-
             # Within this, we want to look for a package for the namespace
-            namespace_rel_path = namespace.replace(".", os.path.sep)
             namespace_path = os.path.join(path, namespace_rel_path)
-            if os.path.exists(namespace_path):
+            if os.path.isdir(namespace_path):
+                # Find all top-level modules in the namespace package
                 for possible in os.listdir(namespace_path):
-
                     poss_path = os.path.join(namespace_path, possible)
                     if os.path.isdir(poss_path):
                         if not self._isPackage(poss_path):
@@ -104,22 +124,39 @@ class ModuleLoader(Loader):
                         base, ext = os.path.splitext(possible)
                         if base == '__init__' or ext != '.py':
                             continue
-
                     if base not in already_seen:
                         already_seen.add(base)
-                        yield os.path.join(namespace, possible)
+                        mod_rel_path = os.path.join(namespace_rel_path,
+                                                    possible)
+                        yield mod_rel_path
+            else:
+                # namespace was not a package, check if it was a pyfile
+                base = namespace_path
+                if base not in already_seen:
+                    for ext in py_exts:
+                        mod_fpath = base + ext
+                        if os.path.isfile(mod_fpath):
+                            already_seen.add(base)
+                            mod_rel_path = namespace_rel_path + ext
+                            yield mod_rel_path
+                            # Dont test remaining pyc / pyo extensions.
+                            break
 
     def _findPluginModules(self, namespace):
         for filepath in self._findPluginFilePaths(namespace):
             path_segments = list(filepath.split(os.path.sep))
             path_segments = [p for p in path_segments if p]
             path_segments[-1] = os.path.splitext(path_segments[-1])[0]
-            import_path = '.'.join(path_segments)
+            module_name = '.'.join(path_segments)
 
             try:
-                module = import_module(import_path)
+                module = import_module(module_name)
             except ImportError as e:
-                print "[DEBUG] Could not import:", import_path, " Reason: ", e
+                logger.warn('Could not import: {}, Reason: {}'.format(module_name, e))
+                import traceback
+                exc_info = sys.exc_info()
+                tbtext = ''.join(traceback.format_exception(*exc_info))
+                logger.debug(tbtext)
                 module = None
 
             if module is not None:

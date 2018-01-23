@@ -38,7 +38,6 @@
 #include <iostream>
 #include <set>
 
-#include <vital/vital_foreach.h>
 
 #include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
@@ -224,7 +223,7 @@ bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
            feature_track_set_sptr tracks,
-           video_metadata_map_sptr metadata) const
+           metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
   {
@@ -239,7 +238,7 @@ bundle_adjust
 
   // Extract the landmark locations into a mutable map
   d_->landmark_params.clear();
-  VITAL_FOREACH(const landmark_map::map_landmark_t::value_type& lm, d_->lms)
+  for(const landmark_map::map_landmark_t::value_type& lm : d_->lms)
   {
     vector_3d loc = lm.second->loc();
     d_->landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
@@ -272,7 +271,7 @@ bundle_adjust
 
   // Add the residuals for each relevant observation
   std::set<unsigned int> used_intrinsics;
-  VITAL_FOREACH(const track_sptr& t, trks)
+  for(const track_sptr& t : trks)
   {
     const track_id_t id = t->id();
     lm_param_map_t::iterator lm_itr = d_->landmark_params.find(id);
@@ -309,7 +308,7 @@ bundle_adjust
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  VITAL_FOREACH(const unsigned int idx, used_intrinsics)
+  for(const unsigned int idx : used_intrinsics)
   {
     std::vector<double>& cip = d_->camera_intr_params[idx];
     // apply the constraints
@@ -347,7 +346,7 @@ bundle_adjust
   }
 
   // Update the landmarks with the optimized values
-  VITAL_FOREACH(const lm_param_map_t::value_type& lmp, d_->landmark_params)
+  for(const lm_param_map_t::value_type& lmp : d_->landmark_params)
   {
     auto& lmi = d_->lms[lmp.first];
     auto updated_lm = std::make_shared<landmark_d>(*lmi);
@@ -392,7 +391,7 @@ bundle_adjust
   {
     // Update the landmarks with the optimized values
     typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
-    VITAL_FOREACH(const lm_param_map_t::value_type& lmp, d_->landmark_params)
+    for(const lm_param_map_t::value_type& lmp : d_->landmark_params)
     {
       auto& lmi = d_->lms[lmp.first];
       auto updated_lm = std::make_shared<landmark_d>(*lmi);

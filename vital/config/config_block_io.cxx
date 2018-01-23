@@ -38,7 +38,6 @@
 #include "config_parser.h"
 
 #include <vital/logger/logger.h>
-#include <vital/vital_foreach.h>
 #include <vital/util/wrap_text_block.h>
 
 #include <kwiversys/SystemTools.hxx>
@@ -80,7 +79,7 @@ application_paths( config_path_list_t const& paths,
                    std::string const& application_version )
 {
   auto result = config_path_list_t{};
-  VITAL_FOREACH ( auto const& path, paths )
+  for ( auto const& path : paths )
   {
     auto const& app_path = path + "/" + application_name;
 
@@ -205,7 +204,7 @@ application_config_file_paths(std::string const& application_name,
                  data_paths, application_name, application_version );
 
   // ...then into config paths and add to final list
-  VITAL_FOREACH ( auto const& path, data_paths )
+  for ( auto const& path : data_paths )
   {
     paths.push_back( path + "/config" );
   }
@@ -285,7 +284,7 @@ read_config_file( std::string const& file_name,
   config_path_list_t local_search_paths( search_paths );
 
   // File name is relative, so go through the search process.
-  VITAL_FOREACH( auto const& search_path, local_search_paths )
+  for( auto const& search_path : local_search_paths )
   {
     auto const& config_path = search_path + "/" + file_name;
 
@@ -387,7 +386,7 @@ void write_config( config_block_sptr const& config,
 
 
   bool prev_had_descr = false;  // for additional spacing
-  VITAL_FOREACH( config_block_key_t key, avail_keys )
+  for( config_block_key_t key : avail_keys )
   {
     // Each key may or may not have an associated description string. If there
     // is one, write that out as a comment.

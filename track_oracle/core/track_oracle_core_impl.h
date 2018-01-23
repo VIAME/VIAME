@@ -108,6 +108,7 @@ public:
 
   template< typename T > field_handle_type create_element( const element_descriptor& e );
 
+  std::vector< field_handle_type > get_all_field_handles() const;
   field_handle_type lookup_by_name( const std::string& name ) const;
 
   element_descriptor get_element_descriptor( field_handle_type f ) const;
@@ -138,6 +139,9 @@ public:
 
   // return fields which have entries at this row
   std::vector< field_handle_type > fields_at_row( oracle_entry_handle_type row ) const;
+
+  // return fields which have entries for these rows (faster than one-at-time calls to above)
+  std::vector< std::vector< field_handle_type > > fields_at_rows( const std::vector< oracle_entry_handle_type >& rows ) const;
 
   // return the row containing the value-- return first if multiple; probably should alert somehow
   template< typename T> oracle_entry_handle_type lookup( field_handle_type field, const T& val, domain_handle_type domain );

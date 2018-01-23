@@ -34,7 +34,6 @@
 
 // -- list processes to register --
 #include "image_viewer_process.h"
-#include "draw_detected_object_boxes_process.h"
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -55,16 +54,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // ----------------------------------------------------------------
 
   auto fact = vpm.ADD_PROCESS( kwiver::image_viewer_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "image_viewer" );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Display input image and delay" );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "image_viewer" )
+    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Display input image and delay" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
-  fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_boxes_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,  "draw_detected_object_boxes" );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Draw detected object boxes on images." );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
 // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

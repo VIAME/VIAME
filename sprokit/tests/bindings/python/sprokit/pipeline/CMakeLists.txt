@@ -1,80 +1,49 @@
 project(sprokit_test_python_sprokit_pipeline)
 
-##############################
-# Config tests
-##############################
-sprokit_discover_python_tests(config test-config.py)
+# Simple testables require no pytest paramatarization
+set(__simple_testable_modnames
+  config
+  datum
+  edge
+  modules
+  pipeline
+  process
+  process_cluster
+  process_registry
+  scheduler
+  scheduler_registry
+  stamp
+  utils
+  version
+  )
 
-##############################
-# Datum tests
-##############################
-sprokit_discover_python_tests(datum test-datum.py)
 
-##############################
-# Edge tests
-##############################
-sprokit_discover_python_tests(edge test-edge.py)
+###
+# Setup simple tests with no parameters
 
-##############################
-# Modules tests
-##############################
-sprokit_discover_python_tests(modules test-modules.py)
+# KWIVER_ENABLE_TESTS is always true for now (because we are in the test
+# subdir), but the python tests should be moved to the python source dir.
+if (KWIVER_ENABLE_TESTS)
+  include(kwiver-test-setup)
+  # Register individual tests with ctest
+  foreach (group IN LISTS __simple_testable_modnames)
+    # SeeAlso:
+    #     # defines sprokit_discover_python_tests
+    #     sprokit/conf/sprokit-macro-python-tests.cmake
+    sprokit_discover_python_tests(${group} test-${group}.py)
+  endforeach()
+endif()
 
-##############################
-# Pipeline tests
-##############################
-sprokit_discover_python_tests(pipeline test-pipeline.py)
 
-##############################
-# Process tests
-##############################
-sprokit_discover_python_tests(process test-process.py)
-
-##############################
-# Process cluster tests
-##############################
-sprokit_discover_python_tests(process_cluster test-process_cluster.py)
-
-##############################
-# Process registry tests
-##############################
-sprokit_discover_python_tests(process_registry test-process_registry.py)
-
-##############################
-# Scheduler tests
-##############################
-sprokit_discover_python_tests(scheduler test-scheduler.py)
-
-##############################
-# Scheduler registry tests
-##############################
-sprokit_discover_python_tests(scheduler_registry test-scheduler_registry.py)
-
-##############################
-# Stamp tests
-##############################
-sprokit_discover_python_tests(stamp test-stamp.py)
-
-##############################
-# Utils tests
-##############################
-sprokit_discover_python_tests(utils test-utils.py)
-
-##############################
-# Version tests
-##############################
-sprokit_discover_python_tests(version test-version.py)
-
-##############################
-# Run tests
-##############################
-sprokit_build_python_test(run test-run.py)
+###
+# Setup tests with parameters
 
 set(schedulers
   pythread_per_process
   sync
   thread_per_process)
 
+sprokit_build_python_test(run test-run.py)
 function (sprokit_add_python_run_test group instance)
   foreach (scheduler IN LISTS schedulers)
     sprokit_add_python_test(${group} ${instance}-${scheduler})

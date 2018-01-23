@@ -42,7 +42,7 @@ namespace sprokit {
 
 // ------------------------------------------------------------------
 datum_t
-datum::new_datum(boost::any const& dat)
+datum::new_datum(kwiver::vital::any const& dat)
 {
   return datum_t(new datum(dat));
 }
@@ -101,7 +101,7 @@ datum
   return m_error;
 }
 
-static bool any_equal(boost::any const& a, boost::any const& b);
+static bool any_equal(kwiver::vital::any const& a, kwiver::vital::any const& b);
 
 
 // ------------------------------------------------------------------
@@ -169,7 +169,7 @@ datum
 
 // ------------------------------------------------------------------
 datum
-::datum(boost::any const& dat)
+::datum(kwiver::vital::any const& dat)
   : m_type(data)
   , m_error()
   , m_datum(dat)
@@ -179,14 +179,14 @@ datum
 
 // ------------------------------------------------------------------
 datum_exception
-::datum_exception() VITAL_NOTHROW
+::datum_exception() noexcept
   : pipeline_exception()
 {
 }
 
 
 datum_exception
-::~datum_exception() VITAL_NOTHROW
+::~datum_exception() noexcept
 {
 }
 
@@ -200,7 +200,7 @@ bad_datum_cast_exception
                            std::string const& typeid_,
                            datum::type_t const& type,
                            datum::error_t const& error,
-                           char const* reason) VITAL_NOTHROW
+                           char const* reason) noexcept
   : datum_exception()
   , m_requested_typeid(requested_typeid)
   , m_typeid(typeid_)
@@ -238,14 +238,14 @@ bad_datum_cast_exception
 
 // ------------------------------------------------------------------
 bad_datum_cast_exception
-::~bad_datum_cast_exception() VITAL_NOTHROW
+::~bad_datum_cast_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 bool
-any_equal(boost::any const& a, boost::any const& b)
+any_equal(kwiver::vital::any const& a, kwiver::vital::any const& b)
 {
   if (a.empty() && b.empty())
   {

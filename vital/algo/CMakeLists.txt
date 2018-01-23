@@ -35,7 +35,6 @@ set( public_headers
   feature_descriptor_io.h
   filter_features.h
   filter_tracks.h
-  geo_map.h
   handle_descriptor_request.h
   image_filter.h
   image_io.h
@@ -86,7 +85,6 @@ set( sources
   feature_descriptor_io.cxx
   filter_features.cxx
   filter_tracks.cxx
-  geo_map.cxx
   handle_descriptor_request.cxx
   image_filter.cxx
   image_io.cxx

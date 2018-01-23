@@ -37,7 +37,6 @@
 #include <arrows/vxl/image_container.h>
 
 #include <vital/exceptions.h>
-#include <vital/vital_foreach.h>
 
 #include <descriptors/online_descriptor_computer_process.h>
 
@@ -210,24 +209,27 @@ burnout_track_descriptors
   vil_image_view< vxl_byte > input_image;
   std::vector< vidtk::track_sptr > input_tracks;
 
-  VITAL_FOREACH( auto vital_t, tracks->tracks() )
+  if( tracks )
   {
-    vidtk::track_sptr vidtk_t( new vidtk::track() );
-
-    vidtk_t->set_id( vital_t->id() );
-
-    VITAL_FOREACH( auto vital_ts, *vital_t )
+    for( auto vital_t : tracks->tracks() )
     {
-      vital::object_track_state* ots =
-        dynamic_cast< vital::object_track_state* >( vital_ts.get() );
+      vidtk::track_sptr vidtk_t( new vidtk::track() );
 
-      if( ots )
+      vidtk_t->set_id( vital_t->id() );
+
+      for( auto vital_ts : *vital_t )
       {
-        vidtk_t->add_state( vital_to_vidtk( ots ) );
-      }
-    }
+        vital::object_track_state* ots =
+          dynamic_cast< vital::object_track_state* >( vital_ts.get() );
 
-    input_tracks.push_back( vidtk_t );
+        if( ots )
+        {
+          vidtk_t->add_state( vital_to_vidtk( ots ) );
+        }
+      }
+
+      input_tracks.push_back( vidtk_t );
+    }
   }
 
   if( image_data )
@@ -253,7 +255,7 @@ burnout_track_descriptors
   vital::track_descriptor_set_sptr output( new vital::track_descriptor_set() );
   vidtk::raw_descriptor::vector_t computed_desc = d->m_process.descriptors();
 
-  VITAL_FOREACH( auto vidtk_d, computed_desc )
+  for( auto vidtk_d : computed_desc )
   {
     vital::track_descriptor_sptr vital_d =
       vital::track_descriptor::create( vidtk_d->get_type() );
@@ -271,12 +273,12 @@ burnout_track_descriptors
 
     vital_d->set_descriptor( vital_rd );
 
-    VITAL_FOREACH( auto id, vidtk_d->get_track_ids() )
+    for( auto id : vidtk_d->get_track_ids() )
     {
       vital_d->add_track_id( id );
     }
 
-    VITAL_FOREACH( auto hist_ent, vidtk_d->get_history() )
+    for( auto hist_ent : vidtk_d->get_history() )
     {
       vital::track_descriptor::history_entry vital_ent(
         vidtk_to_vital( hist_ent.get_timestamp() ),
@@ -317,5 +319,14 @@ burnout_track_descriptors
 #endif
 }
 
+
+vital::track_descriptor_set_sptr
+burnout_track_descriptors
+::flush()
+{
+  return compute( vital::timestamp(),
+    vital::image_container_sptr(),
+    vital::object_track_set_sptr() );
+}
 
 } } } // end namespace

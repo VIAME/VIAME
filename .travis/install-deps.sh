@@ -2,9 +2,10 @@
 set -e
 
 INSTALL_DIR=$HOME/deps
-FLETCH_DIR=/opt/fletch
+FLETCH_DIR=/opt/kitware/fletch
 export PATH=$INSTALL_DIR/bin:$FLETCH_DIR/bin:$PATH
-HASH_DIR=$FLETCH_DIR/hashes
+HASH_DIR=/opt/kitware/hashes
+mkdir -p $FLETCH_DIR
 mkdir -p $HASH_DIR
 mkdir -p $INSTALL_DIR
 
@@ -24,7 +25,14 @@ fi
 # download and unpack Fletch
 HASH_FILE="$HASH_DIR/fletch.sha512"
 cd /tmp
-TAR_FILE_ID=59822a8e8d777f16d01ea140
+if [ -f $TRAVIS_BUILD_DIR/doc/release-notes/master.txt ]; then
+  TAR_FILE_ID=599c39468d777f7d33e9cbe5
+  echo "Using master branch of Fletch"
+else
+  TAR_FILE_ID=599f2db18d777f7d33e9cc9e
+  echo "Using release branch of Fletch"
+fi
+
 wget https://data.kitware.com/api/v1/file/$TAR_FILE_ID/hashsum_file/sha512 -O fletch.sha512
 RHASH=`cat fletch.sha512`
 echo "Current Fletch tarball hash: " $RHASH
@@ -33,6 +41,6 @@ if [ -f $HASH_FILE ] && [ -n "$RHASH" ] && grep -q $RHASH $HASH_FILE ; then
 else
   wget https://data.kitware.com/api/v1/file/$TAR_FILE_ID/download -O fletch.tgz
   rm -rf $FLETCH_DIR/*
-  tar -xzf fletch.tgz -C $FLETCH_DIR
+  tar -xzf fletch.tgz -C /opt/kitware
   cp fletch.sha512 $HASH_FILE
 fi

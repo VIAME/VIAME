@@ -35,6 +35,9 @@
 #include <track_oracle/file_formats/track_vpd/file_format_vpd_track.h>
 #include <track_oracle/file_formats/track_vpd/file_format_vpd_event.h>
 #include <track_oracle/file_formats/track_e2at_callout/file_format_e2at_callout.h>
+#if KWIVER_ENABLE_KPF
+#include <track_oracle/file_formats/track_kpf_geom/file_format_kpf_geom.h>
+#endif
 #ifdef TRACK_4676_ENABLED
 #include <track_oracle/file_formats/track_4676/file_format_4676.h>
 #endif
@@ -120,6 +123,9 @@ file_format_manager_impl
 #endif
   formats[ TF_CSV ] = new file_format_csv();
   formats[ TF_KWIVER ] = new file_format_kwiver();
+#ifdef KWIVER_ENABLE_KPF
+  formats[ TF_KPF_GEOM ] = new file_format_kpf_geom();
+#endif
 
   // get instances of all the schemas, for introspection
   for (format_map_cit i = formats.begin(); i != formats.end(); ++i)

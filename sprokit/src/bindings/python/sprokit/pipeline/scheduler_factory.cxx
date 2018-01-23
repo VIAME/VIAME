@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,41 +34,20 @@
  * \brief Python bindings for \link sprokit::scheduler_factory\endlink.
  */
 
+#include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
+#include <sprokit/pipeline/scheduler_registry_exception.h>
 
 #include <sprokit/python/util/python_threading.h>
 #include <sprokit/python/util/python_gil.h>
 #include <sprokit/python/util/python_exceptions.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
-#include <vital/vital_foreach.h>
 
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/python/class.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/object.hpp>
-#include <boost/python/wrapper.hpp>
-#include <boost/python/def.hpp>
+#include <pybind11/stl_bind.h>
 
-#ifdef WIN32
- // Windows get_pointer const volatile workaround
-namespace boost
-{
-  template <> inline sprokit::scheduler const volatile*
-  get_pointer(class sprokit::scheduler const volatile* p)
-  {
-    return p;
-  }
-  template <> inline sprokit::scheduler_factory const volatile*
-  get_pointer(class sprokit::scheduler_factory const volatile* p)
-  {
-    return p;
-  }
-}
-#endif
-
-using namespace boost::python;
+using namespace pybind11;
 
 static void register_scheduler( sprokit::scheduler::type_t const& type,
                                 sprokit::scheduler::description_t const& desc,
@@ -79,66 +58,92 @@ static std::string get_description( const std::string& name );
 static std::vector< std::string > scheduler_names();
 static std::string get_default_type();
 
-//==================================================================
-BOOST_PYTHON_MODULE(scheduler_factory)
+// ============================================================================
+typedef std::function< pybind11::object( sprokit::pipeline_t const& pipe,
+                               kwiver::vital::config_block_sptr const& config ) > py_scheduler_factory_func_t;
+
+class python_scheduler_factory
+  : public sprokit::scheduler_factory
 {
-  // Define types
-  class_<sprokit::scheduler::description_t>("SchedulerDescription"
-    , "The type for a description of a process type.");
-  class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
-    , "The type for a process module name.");
+  public:
+
+  python_scheduler_factory( const std::string& type,
+                            const std::string& itype,
+                            py_scheduler_factory_func_t factory );
+
+  virtual ~python_scheduler_factory() = default;
+
+  virtual sprokit::scheduler_t create_object(sprokit::pipeline_t const& pipe,
+                                             kwiver::vital::config_block_sptr const& config);
+
+private:
+  py_scheduler_factory_func_t m_factory;
+};
+
+
+// ------------------------------------------------------------------
+python_scheduler_factory::
+python_scheduler_factory( const std::string& type,
+                          const std::string& itype,
+                          py_scheduler_factory_func_t factory )
+  : scheduler_factory( type, itype )
+  , m_factory( factory )
+{
+  this->add_attribute( CONCRETE_TYPE, type)
+    .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
+    .add_attribute( PLUGIN_CATEGORY, "scheduler" );
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::scheduler_t
+python_scheduler_factory::
+create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
+{
+  // Call sprokit factory function.
+  pybind11::object obj = m_factory(pipe, config);
+  obj.inc_ref();
+  sprokit::scheduler_t schd_ptr = obj.cast<sprokit::scheduler_t>();
+  return schd_ptr;
+}
+
+
+//==================================================================
+PYBIND11_MODULE(scheduler_factory, m)
+{
+
+  bind_vector<std::vector< std::string > >(m, "string_vector");
 
   // Define unbound functions.
-  def("add_scheduler", &register_scheduler
-      , (arg("type"), arg("description"), arg("ctor"))
-      , "Registers a function which creates a scheduler of the given type.");
+  m.def("add_scheduler", &register_scheduler
+      , arg("type"), arg("description"), arg("ctor")
+      , "Registers a function which creates a scheduler of the given type."
+      , return_value_policy::reference_internal);
 
-  def("create_scheduler", &sprokit::create_scheduler
-      , (arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config())
+  m.def("create_scheduler", &sprokit::create_scheduler
+      , arg("type"), arg("pipeline"), arg("config") = kwiver::vital::config_block::empty_config()
       , "Creates a new scheduler of the given type.");
 
-
-  def("is_scheduler_module_loaded", &is_scheduler_loaded
+  m.def("is_scheduler_module_loaded", &is_scheduler_loaded
       , (arg("module"))
       , "Returns True if the module has already been loaded, False otherwise.");
 
-  def("mark_scheduler_module_as_loaded", &mark_scheduler_loaded
+  m.def("mark_scheduler_module_as_loaded", &mark_scheduler_loaded
       , (arg("module"))
       , "Marks a module as loaded.");
 
-  def("types", &scheduler_names
+  m.def("types", &scheduler_names
       , "A list of known scheduler types.");
 
-  def("description", &get_description
+  m.def("description", &get_description
       , (arg("type"))
       , "The description for the given scheduler type.");
 
-  def("default_type", &get_default_type
+  m.def("default_type", &get_default_type
       , "The default scheduler type.");
 
+  m.attr("Scheduler") = m.import("sprokit.pipeline.scheduler").attr("PythonScheduler");
 
-  class_<sprokit::scheduler::type_t>("SchedulerType"
-    , "The type for a type of scheduler.");
-
-  class_<kwiver::vital::plugin_manager::module_t>("SchedulerModule"
-    , "The type for a scheduler module name.");
-
-  class_<sprokit::scheduler, sprokit::scheduler_t, boost::noncopyable>("Scheduler"
-    , "An abstract class which offers an interface for pipeline execution strategies."
-    , no_init)
-    .def("start", &sprokit::scheduler::start
-      , "Start the execution of the pipeline.")
-    .def("wait", &sprokit::scheduler::wait
-      , "Wait until the pipeline execution is complete.")
-    .def("stop", &sprokit::scheduler::stop
-      , "Stop the execution of the pipeline.")
-  ;
-
-  class_<sprokit::scheduler_factory, sprokit::scheduler_factory, boost::noncopyable>("SchedulerFactory"
-    , "A registry of all known scheduler types."
-    , no_init)
-
-  ;
 }
 
 
@@ -149,29 +154,25 @@ class python_scheduler_wrapper
     python_scheduler_wrapper(object obj);
     ~python_scheduler_wrapper();
 
-    sprokit::scheduler_t operator () (sprokit::pipeline_t const& pipeline,
+    object operator () (sprokit::pipeline_t const& pipeline,
                                       kwiver::vital::config_block_sptr const& config);
   private:
     object const m_obj;
 };
 
 
-// ------------------------------------------------------------------
+
 void
 register_scheduler( sprokit::scheduler::type_t const& type,
                     sprokit::scheduler::description_t const& desc,
                     object obj )
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
   python_scheduler_wrapper const wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact = vpm.add_factory( new sprokit::scheduler_factory( type,
-                                                               typeid( sprokit::scheduler ).name(),
-                                                               wrap ) );
+  auto fact = vpm.add_factory( new python_scheduler_factory( type,
+                                                             typeid( sprokit::scheduler ).name(),
+                                                             wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, "python-runtime" )
@@ -198,13 +199,27 @@ void mark_scheduler_loaded( const std::string& name )
 // ------------------------------------------------------------------
 std::string get_description( const std::string& type )
 {
-  typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > proc_factory;
-  proc_factory ifact;
-
   kwiver::vital::plugin_factory_handle_t a_fact;
-  SPROKIT_PYTHON_TRANSLATE_EXCEPTION(
-    a_fact = ifact.find_factory( type );
-    )
+
+  try
+  {
+    typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > proc_factory;
+    proc_factory ifact;
+
+    SPROKIT_PYTHON_TRANSLATE_EXCEPTION(
+      a_fact = ifact.find_factory( type );
+      )
+  }
+  catch ( const std::exception &e )
+  {
+    typedef kwiver::vital::implementation_factory_by_name< object > proc_factory;
+    proc_factory ifact;
+
+    SPROKIT_PYTHON_TRANSLATE_EXCEPTION(
+      a_fact = ifact.find_factory( type );
+      )
+  }
+
 
   std::string buf = "-- Not Set --";
   a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
@@ -216,11 +231,11 @@ std::string get_description( const std::string& type )
 // ------------------------------------------------------------------
 std::vector< std::string > scheduler_names()
 {
+  std::vector< std::string > name_list;
+
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact_list = vpm.get_factories<sprokit::scheduler>();
-
-  std::vector<std::string> name_list;
-  VITAL_FOREACH( auto fact, fact_list )
+  for( auto fact : fact_list )
   {
     std::string buf;
     if (fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf ))
@@ -254,13 +269,9 @@ python_scheduler_wrapper
 
 
 // ------------------------------------------------------------------
-sprokit::scheduler_t
+object
 python_scheduler_wrapper
 ::operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config)
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
-  return extract<sprokit::scheduler_t>(m_obj(pipeline, config));
+  return m_obj(pipeline, config);
 }

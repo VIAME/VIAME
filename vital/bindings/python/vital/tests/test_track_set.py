@@ -33,7 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Tests for Python interface to vital::track_set
 
 """
-import ctypes
+from six.moves import range
 
 from vital.types import Track, TrackState
 from vital.types import TrackSet
@@ -45,11 +45,9 @@ class TestVitalTrackSet (object):
 
     def test_new(self):
         ts = TrackSet()
-        nt.assert_true(ts, "Invalid track set instance constructed")
 
     def test_empty_len_size(self):
         ts = TrackSet()
-        nt.assert_true(ts, "Invalid track set instance constructed")
         l = len(ts)
         s = ts.size()
         nt.assert_equal(l, 0)
@@ -57,30 +55,20 @@ class TestVitalTrackSet (object):
 
     def test_new_nonempty(self):
         n = 10
-        tracks = [Track(i) for i in xrange(n)]
+        tracks = [Track(i) for i in range(n)]
         ts = TrackSet(tracks)
-        nt.assert_true(ts, "Invalid track set instance constructed")
         nt.assert_equal(len(ts), n)
         nt.assert_equal(ts.size(), n)
 
     def test_tracklist_accessor(self):
         n = 10
-        tracks = [Track(i) for i in xrange(n)]
+        tracks = [Track(i) for i in range(n)]
         ts = TrackSet(tracks)
         ts_tracks = ts.tracks()
 
         nt.assert_equal(len(ts_tracks), n)
         for i, t in enumerate(ts_tracks):
             nt.assert_equal(t.id, i)
-
-        # constructing a new trackset from the returned list of tracks should
-        # yield a trackset whose accessor should return the same list of tracks
-        # (same C/C++ instances).
-        ts2 = TrackSet(ts_tracks)
-        ts2_tracks = ts2.tracks()
-        for i in xrange(n):
-            ctypes.addressof(ts2_tracks[0].c_pointer.contents) \
-                == ctypes.addressof(ts2_tracks[0].c_pointer.contents)
 
     def test_all_frame_ids_single_track(self):
         # From a single track
@@ -159,11 +147,6 @@ class TestVitalTrackSet (object):
         t = Track(0)
         ts = TrackSet([t])
         u = ts.get_track(0)
-        # Check that they're the same underlying instance
-        nt.assert_equal(
-            ctypes.addressof(t.c_pointer.contents),
-            ctypes.addressof(u.c_pointer.contents)
-        )
 
     def test_get_track_missing(self):
         # test failure to get track from set when set does have contents, but
@@ -173,15 +156,3 @@ class TestVitalTrackSet (object):
             IndexError,
             ts.get_track, 2
         )
-
-    def test_get_track_multiple(self):
-        n = 10
-        tracks = [Track(i) for i in range(n)]
-        ts = TrackSet(tracks)
-
-        # Check that they're the same underlying instance
-        for i in range(n):
-            nt.assert_equal(
-                ctypes.addressof(ts.get_track(i).c_pointer.contents),
-                ctypes.addressof(tracks[i].c_pointer.contents)
-            )

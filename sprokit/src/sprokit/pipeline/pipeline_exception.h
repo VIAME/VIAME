@@ -31,7 +31,7 @@
 #ifndef SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H
 #define SPROKIT_PIPELINE_PIPELINE_EXCEPTION_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 #include <vital/vital_config.h>
 
 #include "process.h"
@@ -60,11 +60,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_addition_exception
     /**
      * \brief Constructor.
      */
-    pipeline_addition_exception() VITAL_NOTHROW;
+    pipeline_addition_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_addition_exception() VITAL_NOTHROW;
+    virtual ~pipeline_addition_exception() noexcept;
 };
 
 /**
@@ -81,11 +81,11 @@ class SPROKIT_PIPELINE_EXPORT null_pipeline_config_exception
     /**
      * \brief Constructor.
      */
-    null_pipeline_config_exception() VITAL_NOTHROW;
+    null_pipeline_config_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_pipeline_config_exception() VITAL_NOTHROW;
+    ~null_pipeline_config_exception() noexcept;
 };
 
 /**
@@ -104,11 +104,11 @@ class SPROKIT_PIPELINE_EXPORT add_after_setup_exception
      *
      * \param name The name of the process.
      */
-    add_after_setup_exception(process::name_t const& name) VITAL_NOTHROW;
+    add_after_setup_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~add_after_setup_exception() VITAL_NOTHROW;
+    ~add_after_setup_exception() noexcept;
 
     /// The name of the process.
     process::name_t const m_name;
@@ -128,11 +128,11 @@ class SPROKIT_PIPELINE_EXPORT null_process_addition_exception
     /**
      * \brief Constructor.
      */
-    null_process_addition_exception() VITAL_NOTHROW;
+    null_process_addition_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~null_process_addition_exception() VITAL_NOTHROW;
+    ~null_process_addition_exception() noexcept;
 };
 
 /**
@@ -151,11 +151,11 @@ class SPROKIT_PIPELINE_EXPORT duplicate_process_name_exception
      *
      * \param name The name requested.
      */
-    duplicate_process_name_exception(process::name_t const& name) VITAL_NOTHROW;
+    duplicate_process_name_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~duplicate_process_name_exception() VITAL_NOTHROW;
+    ~duplicate_process_name_exception() noexcept;
 
     /// The name of the process.
     process::name_t const m_name;
@@ -175,11 +175,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_removal_exception
     /**
      * \brief Constructor.
      */
-    pipeline_removal_exception() VITAL_NOTHROW;
+    pipeline_removal_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_removal_exception() VITAL_NOTHROW;
+    virtual ~pipeline_removal_exception() noexcept;
 };
 
 /**
@@ -198,11 +198,11 @@ class SPROKIT_PIPELINE_EXPORT remove_after_setup_exception
      *
      * \param name The name of the process.
      */
-    remove_after_setup_exception(process::name_t const& name) VITAL_NOTHROW;
+    remove_after_setup_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~remove_after_setup_exception() VITAL_NOTHROW;
+    ~remove_after_setup_exception() noexcept;
 
     /// The name of the process.
     process::name_t const m_name;
@@ -222,11 +222,11 @@ class SPROKIT_PIPELINE_EXPORT reconfigure_before_setup_exception
     /**
      * \brief Constructor.
      */
-    reconfigure_before_setup_exception() VITAL_NOTHROW;
+    reconfigure_before_setup_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~reconfigure_before_setup_exception() VITAL_NOTHROW;
+    virtual ~reconfigure_before_setup_exception() noexcept;
 };
 
 /**
@@ -243,11 +243,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_connection_exception
     /**
      * \brief Constructor.
      */
-    pipeline_connection_exception() VITAL_NOTHROW;
+    pipeline_connection_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_connection_exception() VITAL_NOTHROW;
+    virtual ~pipeline_connection_exception() noexcept;
 };
 
 /**
@@ -272,11 +272,11 @@ class SPROKIT_PIPELINE_EXPORT connection_after_setup_exception
     connection_after_setup_exception(process::name_t const& upstream_name,
                                      process::port_t const& upstream_port,
                                      process::name_t const& downstream_name,
-                                     process::port_t const& downstream_port) VITAL_NOTHROW;
+                                     process::port_t const& downstream_port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~connection_after_setup_exception() VITAL_NOTHROW;
+    ~connection_after_setup_exception() noexcept;
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -310,11 +310,11 @@ class SPROKIT_PIPELINE_EXPORT disconnection_after_setup_exception
     disconnection_after_setup_exception(process::name_t const& upstream_name,
                                         process::port_t const& upstream_port,
                                         process::name_t const& downstream_name,
-                                        process::port_t const& downstream_port) VITAL_NOTHROW;
+                                        process::port_t const& downstream_port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~disconnection_after_setup_exception() VITAL_NOTHROW;
+    ~disconnection_after_setup_exception() noexcept;
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -342,11 +342,11 @@ class SPROKIT_PIPELINE_EXPORT no_such_process_exception
      *
      * \param name The name requested.
      */
-    no_such_process_exception(process::name_t const& name) VITAL_NOTHROW;
+    no_such_process_exception(process::name_t const& name) noexcept;
     /**
      * \brief Destructor.
      */
-    ~no_such_process_exception() VITAL_NOTHROW;
+    ~no_such_process_exception() noexcept;
 
     /// The name of the process requested.
     process::name_t const m_name;
@@ -378,11 +378,11 @@ class SPROKIT_PIPELINE_EXPORT connection_dependent_type_exception
                                         process::name_t const& downstream_name,
                                         process::port_t const& downstream_port,
                                         process::port_type_t const& type,
-                                        bool push_upstream) VITAL_NOTHROW;
+                                        bool push_upstream) noexcept;
     /**
      * \brief Destructor.
      */
-    ~connection_dependent_type_exception() VITAL_NOTHROW;
+    ~connection_dependent_type_exception() noexcept;
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -430,11 +430,11 @@ class SPROKIT_PIPELINE_EXPORT connection_dependent_type_cascade_exception
                                                 process::name_t const& downstream_name,
                                                 process::port_t const& downstream_port,
                                                 process::port_type_t const& cascade_type,
-                                                bool push_upstream) VITAL_NOTHROW;
+                                                bool push_upstream) noexcept;
     /**
      * \brief Destructor.
      */
-    ~connection_dependent_type_cascade_exception() VITAL_NOTHROW;
+    ~connection_dependent_type_cascade_exception() noexcept;
 
     /// The name of the process which had a type set.
     process::name_t const m_name;
@@ -482,11 +482,11 @@ class SPROKIT_PIPELINE_EXPORT connection_type_mismatch_exception
                                        process::port_type_t const& upstream_type,
                                        process::name_t const& downstream_name,
                                        process::port_t const& downstream_port,
-                                       process::port_type_t const& downstream_type) VITAL_NOTHROW;
+                                       process::port_type_t const& downstream_type) noexcept;
     /**
      * \brief Destructor.
      */
-    ~connection_type_mismatch_exception() VITAL_NOTHROW;
+    ~connection_type_mismatch_exception() noexcept;
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -524,11 +524,11 @@ class SPROKIT_PIPELINE_EXPORT connection_flag_mismatch_exception
     connection_flag_mismatch_exception(process::name_t const& upstream_name,
                                        process::port_t const& upstream_port,
                                        process::name_t const& downstream_name,
-                                       process::port_t const& downstream_port) VITAL_NOTHROW;
+                                       process::port_t const& downstream_port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~connection_flag_mismatch_exception() VITAL_NOTHROW;
+    ~connection_flag_mismatch_exception() noexcept;
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -554,11 +554,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_setup_exception
     /**
      * \brief Constructor.
      */
-    pipeline_setup_exception() VITAL_NOTHROW;
+    pipeline_setup_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    virtual ~pipeline_setup_exception() VITAL_NOTHROW;
+    virtual ~pipeline_setup_exception() noexcept;
 };
 
 /**
@@ -575,11 +575,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_duplicate_setup_exception
     /**
      * \brief Constructor.
      */
-    pipeline_duplicate_setup_exception() VITAL_NOTHROW;
+    pipeline_duplicate_setup_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~pipeline_duplicate_setup_exception() VITAL_NOTHROW;
+    ~pipeline_duplicate_setup_exception() noexcept;
 };
 
 /**
@@ -596,11 +596,11 @@ class SPROKIT_PIPELINE_EXPORT no_processes_exception
     /**
      * \brief Constructor.
      */
-    no_processes_exception() VITAL_NOTHROW;
+    no_processes_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~no_processes_exception() VITAL_NOTHROW;
+    ~no_processes_exception() noexcept;
 };
 
 /**
@@ -617,11 +617,11 @@ class SPROKIT_PIPELINE_EXPORT orphaned_processes_exception
     /**
      * \brief Constructor.
      */
-    orphaned_processes_exception() VITAL_NOTHROW;
+    orphaned_processes_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~orphaned_processes_exception() VITAL_NOTHROW;
+    ~orphaned_processes_exception() noexcept;
 };
 
 /**
@@ -638,11 +638,11 @@ class SPROKIT_PIPELINE_EXPORT not_a_dag_exception
     /**
      * \brief Constructor.
      */
-    not_a_dag_exception() VITAL_NOTHROW;
+    not_a_dag_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~not_a_dag_exception() VITAL_NOTHROW;
+    ~not_a_dag_exception() noexcept;
 };
 
 /**
@@ -662,11 +662,11 @@ class SPROKIT_PIPELINE_EXPORT untyped_data_dependent_exception
      * \param name The name of the process.
      * \param port The name of the untyped port on the process.
      */
-    untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) VITAL_NOTHROW;
+    untyped_data_dependent_exception(process::name_t const& name, process::port_t const& port) noexcept;
     /**
      * \brief Destructor.
      */
-    ~untyped_data_dependent_exception() VITAL_NOTHROW;
+    ~untyped_data_dependent_exception() noexcept;
 
     /// The name of the process.
     process::name_t const m_name;
@@ -688,11 +688,11 @@ class SPROKIT_PIPELINE_EXPORT untyped_connection_exception
     /**
      * \brief Constructor.
      */
-    untyped_connection_exception() VITAL_NOTHROW;
+    untyped_connection_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~untyped_connection_exception() VITAL_NOTHROW;
+    ~untyped_connection_exception() noexcept;
 };
 
 /**
@@ -725,11 +725,11 @@ class SPROKIT_PIPELINE_EXPORT frequency_mismatch_exception
                                  process::name_t const& downstream_name,
                                  process::port_t const& downstream_port,
                                  process::port_frequency_t const& downstream_frequency,
-                                 process::port_frequency_t const& downstream_port_frequency) VITAL_NOTHROW;
+                                 process::port_frequency_t const& downstream_port_frequency) noexcept;
     /**
      * \brief Destructor.
      */
-    ~frequency_mismatch_exception() VITAL_NOTHROW;
+    ~frequency_mismatch_exception() noexcept;
 
     /// The name of the upstream process requested.
     process::name_t const m_upstream_name;
@@ -763,11 +763,11 @@ class SPROKIT_PIPELINE_EXPORT reset_running_pipeline_exception
     /**
      * \brief Constructor.
      */
-    reset_running_pipeline_exception() VITAL_NOTHROW;
+    reset_running_pipeline_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~reset_running_pipeline_exception() VITAL_NOTHROW;
+    ~reset_running_pipeline_exception() noexcept;
 };
 
 /**
@@ -784,11 +784,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_not_setup_exception
     /**
      * \brief Constructor.
      */
-    pipeline_not_setup_exception() VITAL_NOTHROW;
+    pipeline_not_setup_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~pipeline_not_setup_exception() VITAL_NOTHROW;
+    ~pipeline_not_setup_exception() noexcept;
 };
 
 /**
@@ -805,11 +805,11 @@ class SPROKIT_PIPELINE_EXPORT pipeline_not_ready_exception
     /**
      * \brief Constructor.
      */
-    pipeline_not_ready_exception() VITAL_NOTHROW;
+    pipeline_not_ready_exception() noexcept;
     /**
      * \brief Destructor.
      */
-    ~pipeline_not_ready_exception() VITAL_NOTHROW;
+    ~pipeline_not_ready_exception() noexcept;
 };
 
 }

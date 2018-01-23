@@ -30,7 +30,6 @@
 
 #include "detected_object_set_output_kw18.h"
 
-#include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
 
 #include <memory>
@@ -226,11 +225,11 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     }
   } // end first
 
-  // Get detections from set
-  const auto detections = set->select();
-  VITAL_FOREACH( const auto det, detections )
+  // process all detections
+  auto ie =  set->cend();
+  for ( auto det = set->cbegin(); det != ie; ++det )
   {
-    const kwiver::vital::bounding_box_d bbox( det->bounding_box() );
+    const kwiver::vital::bounding_box_d bbox( (*det)->bounding_box() );
     double ilx = ( bbox.min_x() + bbox.max_x() ) / 2.0;
     double ily = ( bbox.min_y() + bbox.max_y() ) / 2.0;
 
@@ -255,24 +254,24 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
              << "0 "                // 16: world-loc y
              << "0 "                // 17: world-loc z
              << "-1 "                // 18: timestamp
-             << det->confidence()   // 19: confidence
+             << (*det)->confidence()   // 19: confidence
              << std::endl;
 
     // optionally write tot to corresponding file
     if( d->m_write_tot )
     {
-      vital::detected_object_type_sptr clf = det->type();
+      vital::detected_object_type_sptr clf = (*det)->type();
 
       double f1 = 0.0, f2 = 0.0, f3 = 0.0;
 
-      VITAL_FOREACH( const std::string id, d->m_parsed_tot_ids1 )
+      for( const std::string id : d->m_parsed_tot_ids1 )
       {
         if( clf->has_class_name( id ) )
         {
           f1 = std::max( f1, clf->score( id ) );
         }
       }
-      VITAL_FOREACH( const std::string id, d->m_parsed_tot_ids2 )
+      for( const std::string id : d->m_parsed_tot_ids2 )
       {
         if( clf->has_class_name( id ) )
         {

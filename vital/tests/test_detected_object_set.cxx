@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,218 +33,145 @@
  * \brief test detected_object class
  */
 
-#include <test_common.h>
-
 #include <vital/types/detected_object_set.h>
-#include <vital/vital_foreach.h>
 
-#define TEST_ARGS       ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
+using namespace kwiver::vital;
 
-int
-main(int argc, char* argv[])
+namespace {
+
+std::vector<std::string> const names =
+  { "person", "vehicle", "other", "clam", "barnacle" };
+
+std::vector<double> const scores  = { 0.65, 0.6, 0.005, 0.07, 0.005 };
+std::vector<double> const scores1 = { 0.0065, 0.006, 0.005, 0.775, 0.605 };
+std::vector<double> const scores2 = { 0.0065, 0.006, 0.005, 0.605, 0.775 };
+std::vector<double> const scores3 = { 0.5065, 0.006, 0.005, 0.775, 0.605 };
+
+}
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
 namespace {
 
-  kwiver::vital::detected_object_type_sptr create_dot( const char* n[], const double s[] )
-  {
-    std::vector< std::string > names;
-    std::vector< double > scores;
+// ----------------------------------------------------------------------------
+detected_object_set_sptr make_do_set()
+{
+  auto do_set = std::make_shared<detected_object_set>();
 
-    for ( size_t i = 0; n[i] != 0; ++i )
-    {
-      names.push_back( std::string( n[i] ) );
-      scores.push_back( s[i] );
-    } // end for
+  bounding_box_d bb{ 10, 20, 30, 40 };
 
-    return  std::make_shared< kwiver::vital::detected_object_type >( names, scores );
-  }
+  auto dot = std::make_shared<detected_object_type>( names, scores );
+
+  do_set->add( std::make_shared<detected_object>( bb ) ); // using defaults
+
+  EXPECT_EQ( 1, do_set->size() );
+
+  do_set->add( std::make_shared<detected_object>( bb, 0.65, dot ) );
+
+  auto dot1 = std::make_shared<detected_object_type>( names, scores1 );
+  do_set->add( std::make_shared<detected_object>( bb, 0.75, dot1 ) );
+
+  auto dot2 = std::make_shared<detected_object_type>( names, scores2 );
+  do_set->add( std::make_shared<detected_object>( bb, 0.78, dot2 ) );
+
+  auto dot3 = std::make_shared<detected_object_type>( names, scores3 );
+  do_set->add( std::make_shared<detected_object>( bb, 0.70, dot3 ) );
+
+  EXPECT_EQ( 5, do_set->size() );
+
+  return do_set;
+}
+
+// ----------------------------------------------------------------------------
+void test_do_set( detected_object_set_sptr const& do_set )
+{
+  [&]{
+    // get whole list sorted by confidence
+    auto const& list = do_set->select();
+
+    ASSERT_EQ( 5, list->size() );
+
+    auto it = list->cbegin();
+
+    EXPECT_EQ( 1.00, ( *it++ )->confidence() );
+    EXPECT_EQ( 0.78, ( *it++ )->confidence() );
+    EXPECT_EQ( 0.75, ( *it++ )->confidence() );
+    EXPECT_EQ( 0.70, ( *it++ )->confidence() );
+    EXPECT_EQ( 0.65, ( *it++ )->confidence() );
+  }();
+
+  [&]{
+    // get list with confidence threshold
+    auto const& list = do_set->select( 0.75 );
+
+    ASSERT_EQ( 3, list->size() );
+
+    auto it = list->cbegin();
+
+    EXPECT_EQ( 1.00, ( *it++ )->confidence() );
+    EXPECT_EQ( 0.78, ( *it++ )->confidence() );
+    EXPECT_EQ( 0.75, ( *it++ )->confidence() );
+  }();
+
+  [&]{
+    // get list by object type
+    auto const& list = do_set->select( "clam" );
+
+    ASSERT_EQ( 4, list->size() );
+
+    EXPECT_EQ( 0.775, list->at( 0 )->type()->score( "clam" ) );
+    EXPECT_EQ( 0.775, list->at( 1 )->type()->score( "clam" ) );
+    EXPECT_EQ( 0.605, list->at( 2 )->type()->score( "clam" ) );
+    EXPECT_EQ( 0.07,  list->at( 3 )->type()->score( "clam" ) );
+
+    EXPECT_THROW( list->at( 4 ), std::out_of_range );
+
+    auto it = list->cbegin();
+
+    EXPECT_EQ( 0.775, ( *it++ )->type()->score( "clam" ) );
+    EXPECT_EQ( 0.775, ( *it++ )->type()->score( "clam" ) );
+    EXPECT_EQ( 0.605, ( *it++ )->type()->score( "clam" ) );
+    EXPECT_EQ( 0.07,  ( *it++ )->type()->score( "clam" ) );
+  }();
+}
 
 } // end namespace
 
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(object_creation)
+// ----------------------------------------------------------------------------
+TEST(detected_object_set, api)
 {
-  kwiver::vital::detected_object_set do_set;
-
-  kwiver::vital::bounding_box_d bb1( 10, 20, 30, 40 );
-
-  const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
-  double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
-
-  auto dot = create_dot( n, s );
-
-  auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
-  do_set.add( detection );
-
-  TEST_EQUAL( "set size one", do_set.size(), 1 );
-
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, dot  );
-  do_set.add( detection );
-
-  double s1[] = {   .0065,      .006,       .005,    .775,     .605,     0 };
-  dot = create_dot( n, s1 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, dot  );
-  do_set.add( detection );
-
-  double s2[] = {   .0065,      .006,       .005,    .605,     .775,     0 };
-  dot = create_dot( n, s2 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, dot  );
-  do_set.add( detection );
-
-  double s3[] = {   .5065,      .006,       .005,    .775,     .605,     0 };
-  dot = create_dot( n, s3 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, dot  );
-  do_set.add( detection );
-
-  // get whole list sorted by confidence
-  auto list_1 = do_set.select();
-
-  TEST_EQUAL( "size of list", list_1.size(), 5 );
-
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
-  TEST_EQUAL( "expected confidence 3", list_1[3]->confidence(), 0.70 );
-  TEST_EQUAL( "expected confidence 4", list_1[4]->confidence(), 0.65 );
-
-  list_1 = do_set.select( 0.75 );
-
-  TEST_EQUAL( "size of list", list_1.size(), 3 );
-
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
-
-  list_1 = do_set.select( "clam" );
-
-  TEST_EQUAL( "size of list", list_1.size(), 4 );
-
-  dot = list_1[0]->type();
-  double score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 0", score, 0.775 );
-
-  dot = list_1[1]->type();
-  score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 1", score, 0.775 );
-
-  dot = list_1[2]->type();
-  score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 2", score, 0.605 );
-
-  dot = list_1[3]->type();
-  score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 3", score, 0.07 );
+  test_do_set( make_do_set() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(set_copy)
+// ----------------------------------------------------------------------------
+TEST(detected_object_set, clone)
 {
-  kwiver::vital::detected_object_set do_set;
-
-  kwiver::vital::bounding_box_d bb1( 10, 20, 30, 40 );
-
-  const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
-  double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
-
-  auto dot = create_dot( n, s );
-
-  auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
-  do_set.add( detection );
-
-  TEST_EQUAL( "set size one", do_set.size(), 1 );
-
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.65, dot  );
-  do_set.add( detection );
-
-  double s1[] = {   .0065,      .006,       .005,    .775,     .605,     0 };
-  dot = create_dot( n, s1 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.75, dot  );
-  do_set.add( detection );
-
-  double s2[] = {   .0065,      .006,       .005,    .605,     .775,     0 };
-  dot = create_dot( n, s2 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.78, dot  );
-  do_set.add( detection );
-
-  double s3[] = {   .5065,      .006,       .005,    .775,     .605,     0 };
-  dot = create_dot( n, s3 );
-  detection = std::make_shared< kwiver::vital::detected_object >( bb1, 0.70, dot  );
-  do_set.add( detection );
-
-  auto do_set_clone = do_set.clone();
-
-  // get whole list sorted by confidence
-  auto list_1 = do_set_clone->select();
-
-  TEST_EQUAL( "size of list", list_1.size(), 5 );
-
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
-  TEST_EQUAL( "expected confidence 3", list_1[3]->confidence(), 0.70 );
-  TEST_EQUAL( "expected confidence 4", list_1[4]->confidence(), 0.65 );
-
-  list_1 = do_set_clone->select( 0.75 );
-
-  TEST_EQUAL( "size of list", list_1.size(), 3 );
-
-  TEST_EQUAL( "expected confidence 0", list_1[0]->confidence(), 1.0 );
-  TEST_EQUAL( "expected confidence 1", list_1[1]->confidence(), 0.78 );
-  TEST_EQUAL( "expected confidence 2", list_1[2]->confidence(), 0.75 );
-
-  list_1 =do_set_clone->select( "clam" );
-
-  TEST_EQUAL( "size of list", list_1.size(), 4 );
-
-  dot = list_1[0]->type();
-  double score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 0", score, 0.775 );
-
-  dot = list_1[1]->type();
-  score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 1", score, 0.775 );
-
-  dot = list_1[2]->type();
-  score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 2", score, 0.605 );
-
-  dot = list_1[3]->type();
-  score = dot->score( "clam" );
-  TEST_EQUAL( "expected score 3", score, 0.07 );
+  test_do_set( make_do_set()->clone() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(clone_2)
+// ----------------------------------------------------------------------------
+TEST(detected_object_set, clone_2)
 {
-  kwiver::vital::detected_object_set do_set;
+  detected_object_set do_set;
 
-  kwiver::vital::bounding_box_d bb1( 10, 20, 30, 40 );
+  bounding_box_d bb{ 10, 20, 30, 40 };
 
-  const char* n[]  = { "person", "vehicle", "other", "clam", "barnacle", 0 };
-  double s[] = {   .65,      .6,       .005,    .07,     .005,     0 };
+  auto dot = std::make_shared<detected_object_type>( names, scores );
 
-  auto dot = create_dot( n, s );
-
-  auto detection = std::make_shared< kwiver::vital::detected_object >( bb1 ); // using defaults
+  auto detection = std::make_shared<detected_object>( bb ); // using defaults
   do_set.add( detection );
 
-  auto do_set2 =  do_set.clone();
-  TEST_EQUAL( "(1) set size one", do_set2->size(), 1 );
+  EXPECT_EQ( 1, do_set.clone()->size() );
 
-  auto attr_set = std::make_shared< kwiver::vital::attribute_set >();
+  auto attr_set = std::make_shared<attribute_set>();
   do_set.set_attributes( attr_set );
 
-  do_set2 = do_set.clone();
-  TEST_EQUAL( "(2) set size one", do_set2->size(), 1 );
+  EXPECT_EQ( 1, do_set.clone()->size() );
 }

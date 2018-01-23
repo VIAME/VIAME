@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,8 @@ namespace group_ns {
  *
  * \brief Process template
  *
+ * \process Full description of process.
+ *
  * \iports
  *
  * \iport{timestamp} time stamp for incoming images.
@@ -108,7 +110,6 @@ template_process
   : process( config ),
     d( new template_process::priv )
 {
-  attach_logger( kwiver::vital::get_logger( name() ) );
   make_ports(); // create process ports
   make_config(); // declare process configuration
 }
@@ -131,6 +132,8 @@ void
 template_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   //++ Use config traits to access the value for the parameters.
   //++ Values are usually stored in the private structure.
   //++ These config items are not really used in this process.
@@ -158,12 +161,22 @@ template_process
 
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  kwiver::vital::image_container_sptr out_image;
 
-  cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+  // Process Instrumentation call should be just before the real core
+  // of the process step processing. It must be after getting the
+  // inputs because those calls can stall until inputs are available.
+  {
+    scoped_step_instrumentation();
 
-  //++ Here is where the process does its work.
-  kwiver::vital::image_container_sptr out_image (new kwiver::arrows::ocv::image_container( d->process_image( in_image ) ) );
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
+
+    cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+
+    //++ Here is where the process does its work.
+    out_image = std::make_shared<kwiver::arrows::ocv::image_container>( d->process_image( in_image ) );
+  }
+
 
   push_to_port_using_trait( image, out_image );
 }
@@ -177,7 +190,12 @@ template_process
 void
 template_process
 ::_init()
-{ }
+{
+  scoped_init_instrumentation();
+
+  // do initialization, if applicable.
+
+}
 
 
 // ------------------------------------------------------------------
@@ -185,7 +203,12 @@ template_process
 void
 template_process
 ::_reset()
-{ }
+{
+  scoped_reset_instrumentation();
+
+  // do reset processing if applicable.
+
+}
 
 
 // ------------------------------------------------------------------
@@ -195,7 +218,12 @@ template_process
 void
 template_process
 ::_flush()
-{ }
+{
+  scoped_flush_instrumentation();
+
+  // perform flush processing if applicable.
+
+}
 
 
 // ------------------------------------------------------------------
@@ -205,8 +233,12 @@ template_process
 void
 template_process
 ::_reconfigure(kwiver::vital::config_block_sptr const& conf)
-{ }
+{
+  scoped_reconfigure_instrumentation();
 
+  // perform reconfigure processing if applicable.
+
+}
 
 
 // ----------------------------------------------------------------
@@ -241,8 +273,8 @@ template_process
 }
 
 
-// ================================================================
-//++ Initialize any private data here
+// ================================================================ ++
+//Initialize any private data here
 template_process::priv
 ::priv()
   : m_gsd( 0.1122 )

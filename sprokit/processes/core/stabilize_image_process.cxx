@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -78,8 +78,6 @@ stabilize_image_process
   : process( config ),
     d( new stabilize_image_process::priv )
 {
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -95,6 +93,8 @@ stabilize_image_process
 void stabilize_image_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   algo::track_features::set_nested_algo_configuration( "track_features", algo_config, d->m_feature_tracker );
@@ -118,7 +118,6 @@ void stabilize_image_process
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
-
 }
 
 
@@ -135,16 +134,20 @@ stabilize_image_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  {
+    scoped_step_instrumentation();
 
-  // Get feature tracks
-  d->m_tracks = d->m_feature_tracker->track( d->m_tracks,
-                                             static_cast<unsigned int>(frame_time.get_frame()),
-                                             img );
+    // LOG_DEBUG - this is a good thing to have in all processes that handle frames.
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  // Get stabilization homography
-  src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
+    // Get feature tracks
+    d->m_tracks = d->m_feature_tracker->track( d->m_tracks,
+                                               static_cast<unsigned int>(frame_time.get_frame()),
+                                               img );
+
+    // Get stabilization homography
+    src_to_ref_homography = d->m_compute_homog->estimate( frame_time.get_frame(), d->m_tracks );
+  }
 
   // return by value
   push_to_port_using_trait( homography_src_to_ref, *src_to_ref_homography );

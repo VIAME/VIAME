@@ -45,7 +45,6 @@ public:
   kwiversys::CommandLineArguments m_args;
 
   // Global options
-  bool opt_config;
   bool opt_detail;
   bool opt_help;
   bool opt_path_list;
@@ -79,13 +78,17 @@ public:
   bool opt_type_filt;
   std::string opt_type_regex;
 
+  // Formatting type string. This is used as a suffix to the category
+  // name to select specific explorer plugin when different formatting
+  // styles are requested.
+  std::string formatting_type;
+
   std::string opt_load_module;
 
   std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
 
   priv()
   {
-    opt_config = false;
     opt_detail = false;
     opt_help = false;
     opt_path_list = false;

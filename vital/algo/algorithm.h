@@ -64,13 +64,13 @@ typedef std::shared_ptr< algorithm > algorithm_sptr;
 class VITAL_ALGO_EXPORT algorithm
 {
 public:
-  virtual ~algorithm() VITAL_DEFAULT_DTOR;
+  virtual ~algorithm() = default;
 
   /// Return the name of the base algorithm
   virtual std::string type_name() const = 0;
 
   /// Return the name of this implementation
-  virtual std::string impl_name() const VITAL_FINAL;
+  virtual std::string impl_name() const final;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   /**
@@ -140,9 +140,10 @@ public:
   /**
    * If the value for the config parameter "type" is supported by the
    * concrete algorithm class, then a new algorithm object is created,
-   * configured and returned via the \c nested_algo pointer.
+   * configured using the set_configuration() method and returned via
+   * the \c nested_algo pointer.
    *
-   * The nested algorithm will not be set if the implementation switch (as
+   * The nested algorithm will not be set if the implementation type (as
    * defined in the \c get_nested_algo_configuration) is not present or set to
    * an invalid value relative to the registered names for this
    * \c type_name
@@ -152,7 +153,7 @@ public:
    * \param[in] config              The \c config_block instance from which we will
    *                                draw configuration needed for the nested
    *                                algorithm instance.
-   * \param[in,out] nested_algo The nested algorithm's sptr variable.
+   * \param[out] nested_algo The nested algorithm's sptr variable.
    */
   static void set_nested_algo_configuration(std::string const& type_name,
                                             std::string const& name,
@@ -234,7 +235,7 @@ public:
   /// Shared pointer type of the templated vital::algorithm_def class
   typedef std::shared_ptr<Self> base_sptr;
 
-  virtual ~algorithm_def() VITAL_DEFAULT_DTOR;
+  virtual ~algorithm_def() = default;
 
   /// Factory method to make an instance of this algorithm by impl_name
   static base_sptr create(std::string const& impl_name);
@@ -347,7 +348,7 @@ class algorithm_impl
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
 
-  virtual ~algorithm_impl() VITAL_DEFAULT_DTOR;
+  virtual ~algorithm_impl() = default;
 };
 
 

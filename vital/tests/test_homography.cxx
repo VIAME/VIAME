@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  * \brief Homography and derived class functionality regression tests
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 
 #include <vital/exceptions/math.h>
 #include <vital/types/homography.h>
@@ -41,38 +41,32 @@
 
 #include <Eigen/LU>
 
-
-#define TEST_ARGS ()
-DECLARE_TEST_MAP();
-
-
-#define TEST_LOG( msg ) \
-  std::cerr << "test::core::homography" << msg
-
-
-int main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  // only expecting the test name
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST( testname );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-namespace // anonymous
+// ----------------------------------------------------------------------------
+template <typename T>
+class homography : public ::testing::Test
 {
+};
 
+using types = ::testing::Types<float, double>;
+TYPED_TEST_CASE(homography, types);
 
+// ----------------------------------------------------------------------------
 // Test invert function Eigen::Matrix derived classes
-template< typename T >
-static bool test_numeric_invertibility()
+TYPED_TEST(homography, inversion)
 {
-  kwiver::vital::homography_<T> invertible,
-                        expected_result,
-                        noninvertable,
-                        ni_result;
+  using homography_t = typename kwiver::vital::homography_<TypeParam>;
+
+  homography_t invertible;
+  homography_t expected_result;
+  homography_t noninvertable;
+  homography_t ni_result;
 
   invertible.get_matrix() << 1, 1, 2,
                              3, 4, 5,
@@ -81,136 +75,76 @@ static bool test_numeric_invertibility()
                                   -1.5,  1.5, -0.5,
                                    1.5,  0.5, -0.5;
 
-  kwiver::vital::homography_<T> h_inverse( *invertible.inverse() );
-  if( ! h_inverse.get_matrix().isApprox( expected_result.get_matrix() ) )
-  {
-    return false;
-  }
+  homography_t h_inverse( *invertible.inverse() );
+  EXPECT_MATRIX_EQ( expected_result.matrix(), h_inverse.matrix() );
 
   noninvertable.get_matrix() << 1, 2, 3,
                                 4, 5, 6,
                                 7, 8, 9;
   bool is_invertible;
-  noninvertable.get_matrix().computeInverseWithCheck( ni_result.get_matrix(), is_invertible );
-  return is_invertible == false;
+  noninvertable.get_matrix().computeInverseWithCheck(
+    ni_result.get_matrix(), is_invertible );
+  EXPECT_FALSE( is_invertible );
 }
 
-
+// ----------------------------------------------------------------------------
 // Test mapping a point for a homography/point data type
-template <typename T>
-static void test_point_map()
+TYPED_TEST(homography, map_point_zero_div)
 {
-  Eigen::Matrix<T,2,1> test_p(1, 1);
-  T e = Eigen::NumTraits<T>::dummy_precision();
+  using homography_t = typename kwiver::vital::homography_<TypeParam>;
+  using vector_t = typename Eigen::Matrix<TypeParam, 2, 1>;
 
-  {
+  vector_t test_p{ 1, 1 };
+  TypeParam e = Eigen::NumTraits<TypeParam>::dummy_precision();
+
   // Where [2,2] = 0
-  kwiver::vital::homography_<T> h_0;
+  homography_t h_0;
   h_0.get_matrix() << 1.0, 0.0, 1.0,
                       0.0, 1.0, 1.0,
                       0.0, 0.0, 0.0;
-  EXPECT_EXCEPTION(
-    kwiver::vital::point_maps_to_infinity,
+  EXPECT_THROW(
     h_0.map_point( test_p ),
-    "Applying point to matrix with 0-value lower-right corner"
-    );
-  }
+    kwiver::vital::point_maps_to_infinity )
+    << "Applying point to matrix with 0-value lower-right corner";
 
-  {
   // Where [2,2] = e, which is the approximately-zero threshold
-  kwiver::vital::homography_<T> h_e;
+  homography_t h_e;
   h_e.get_matrix() << 1.0, 0.0, 1.0,
                       0.0, 1.0, 1.0,
                       0.0, 0.0,  e ;
-  EXPECT_EXCEPTION(
-    kwiver::vital::point_maps_to_infinity,
+  EXPECT_THROW(
     h_e.map_point( test_p ),
-    "Applying point to matrix with e-value lower-right corner"
-    );
-  }
+    kwiver::vital::point_maps_to_infinity )
+    << "Applying point to matrix with e-value lower-right corner";
 
-  {
-  // Matrix: [ 1 0 1  ]
-  //         [ 0 1 1  ]
-  //         [ 0 0 .5 ]
   // Where [2,2] = 0.5, which should be valid.
-  kwiver::vital::homography_<T> h_half;
+  homography_t h_half;
   h_half.get_matrix() << 1.0, 0.0, 1.0,
                          0.0, 1.0, 1.0,
                          0.0, 0.0, 0.5;
-  Eigen::Matrix<T,2,1> r = h_half.map_point( test_p );
-  TEST_NEAR( "test_point_map::0", r[0], 4, e );
-  TEST_NEAR( "test_point_map::1", r[1], 4, e );
-  }
+  EXPECT_MATRIX_NEAR( ( vector_t{ 4, 4 } ), h_half.map_point( test_p ), e );
 }
 
-
-} // end anonymous namespace
-
-
-IMPLEMENT_TEST(homography_inversion)
+// ----------------------------------------------------------------------------
+TYPED_TEST(homography, map_point)
 {
-  TEST_LOG( "Testing basic homography functions" );
-
-  TEST_EQUAL( "homography::inverse-double",
-              test_numeric_invertibility<double>(),
-              true );
-  TEST_EQUAL( "homography::inverse-float",
-              test_numeric_invertibility<float>(),
-              true );
-}
-
-
-IMPLEMENT_TEST(f2f_homography_inversion)
-{
-  TEST_LOG( "Testing Frame-to-frame homography functions" );
-
-  // testing from and to frame swapping during inversion
-  kwiver::vital::matrix_3x3d i( kwiver::vital::matrix_3x3d::Identity() );
-  kwiver::vital::f2f_homography h( i, 0, 10 ),
-                        h_inv(0);
-  h_inv = h.inverse();
-
-  TEST_EQUAL( "f2f-homog ref frame inversion - From slot",
-              h_inv.from_id(), 10 );
-  TEST_EQUAL( "f2f-homog ref frame inversion - To slot",
-              h_inv.to_id(), 0 );
-}
-
-
-IMPLEMENT_TEST(map_point)
-{
-  TEST_LOG( "Testing mapping of a point to against a homography "
-            "transformation" );
+  using homography_t = typename kwiver::vital::homography_<TypeParam>;
+  using vector_t = typename Eigen::Matrix<TypeParam, 2, 1>;
 
   // Identity transformation
-  kwiver::vital::homography_<float> h_f;
-  kwiver::vital::homography_<double> h_d;
-
-  typedef Eigen::Matrix<float,2,1> pf_t;
-  typedef Eigen::Matrix<double,2,1> pd_t;
-
-  pf_t p_f( 2.2, 3.3 );
-  pd_t p_d( 5.5, 6.6 );
-
-  // Float Homography
-  TEST_LOG( "Calling float H with float P" );
-  pf_t rf_hf = h_f.map_point(p_f);
-  TEST_EQUAL( "map_point::float_H::float_p::return_float",
-              rf_hf, p_f );
-
-  // Double homography
-  TEST_LOG( "Calling double H with double P" );
-  pd_t rd_hd = h_d.map_point(p_d);
-  TEST_EQUAL( "map_point::double_h::double_p",
-              rd_hd, p_d );
+  homography_t h;
+  vector_t p{ static_cast<TypeParam>( 2.2 ), static_cast<TypeParam>( 5.5 ) };
+  EXPECT_EQ( p, h.map_point( p ) );
 }
 
-
-IMPLEMENT_TEST(map_point_zero_div)
+// ----------------------------------------------------------------------------
+TEST(f2f_homography, inversion)
 {
-  TEST_LOG( "Testing zero-division protection when mapping points with a "
-            "homography" );
-  test_point_map<float>();
-  test_point_map<double>();
+  // Testing from and to frame swapping during inversion
+  kwiver::vital::matrix_3x3d i{ kwiver::vital::matrix_3x3d::Identity() };
+  kwiver::vital::f2f_homography h{ i, 0, 10 };
+  kwiver::vital::f2f_homography h_inv = h.inverse();
+
+  EXPECT_EQ( 10, h_inv.from_id() );
+  EXPECT_EQ( 0, h_inv.to_id() );
 }

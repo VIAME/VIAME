@@ -34,7 +34,7 @@
  */
 
 #include "close_loops_keyframe.h"
-#include "merge_tracks.h"
+#include "match_tracks.h"
 
 #include <set>
 #include <string>
@@ -95,6 +95,7 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
 /// Constructor
 close_loops_keyframe
 ::close_loops_keyframe()
@@ -105,19 +106,12 @@ close_loops_keyframe
 
 /// Destructor
 close_loops_keyframe
-::~close_loops_keyframe() VITAL_NOTHROW
+::~close_loops_keyframe() noexcept
 {
 }
 
 
-std::string
-close_loops_keyframe
-::description() const
-{
-  return "Establishes keyframes matches to all keyframes";
-}
-
-
+// ----------------------------------------------------------------------------
 /// Get this alg's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 close_loops_keyframe
@@ -152,6 +146,7 @@ close_loops_keyframe
 }
 
 
+// ----------------------------------------------------------------------------
 /// Set this algo's properties via a config block
 void
 close_loops_keyframe
@@ -173,6 +168,7 @@ close_loops_keyframe
 }
 
 
+// ----------------------------------------------------------------------------
 bool
 close_loops_keyframe
 ::check_configuration(vital::config_block_sptr config) const
@@ -186,6 +182,7 @@ close_loops_keyframe
 }
 
 
+// ----------------------------------------------------------------------------
 /// Frame stitching using keyframe-base matching
 vital::feature_track_set_sptr
 close_loops_keyframe
@@ -277,7 +274,6 @@ close_loops_keyframe
   }
 
 
-  track_map_t track_replacement;
   // stitch with all frames within a neighborhood of the current frame
   for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
   {
@@ -286,7 +282,13 @@ close_loops_keyframe
     int num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = merge_tracks(matches, track_replacement);
+      for( auto const& m : matches )
+      {
+        if( input->merge_tracks(m.first, m.second) )
+        {
+          ++num_linked;
+        }
+      }
     }
     // accumulate matches to help assign keyframes later
     d_->frame_matches[frame_number] += num_matched;
@@ -326,7 +328,13 @@ close_loops_keyframe
     int num_linked = 0;
     if( num_matched >= d_->match_req )
     {
-      num_linked = merge_tracks(matches, track_replacement);
+      for( auto const& m : matches )
+      {
+        if( input->merge_tracks(m.first, m.second) )
+        {
+          ++num_linked;
+        }
+      }
     }
     LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to keyframe "<< *kitr
                            << " has "<< num_matched << " matches and "
@@ -345,10 +353,6 @@ close_loops_keyframe
       break;
     }
   }
-
-  // remove all tracks from 'input' that have now been replaced by
-  // merging with another track
-  input = remove_replaced_tracks(input, track_replacement);
 
 
   // keep track of frames that matched no keyframes

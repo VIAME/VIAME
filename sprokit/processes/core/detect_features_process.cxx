@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS [yas] elisp error!AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -49,6 +49,32 @@ namespace kwiver
 
   create_config_trait( feature_detector, std::string, "", "Algorithm configuration subblock." )
 
+/**
+ * \class detect_features_process
+ *
+ * \brief Detect feature points in supplied images.
+ *
+ * \process This process generates a list of detected features that
+ * can be used to determine coordinate transforms between images. The
+ * actual rendering is done by the selected \b detect_features
+ * algorithm implementation
+ *
+ * \iports
+ *
+ * \iport{timestamp} time stamp for incoming images.
+ *
+ * \iport{image} Input image to be processed.
+ *
+ * \oports
+ *
+ * \oport{feature_set} Set of detected features for input image.
+ *
+ * \configs
+ *
+ * \config{feature_detector} Name of the configuration subblock that selects
+ * and configures the feature detector algorithm
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class detect_features_process::priv
@@ -73,9 +99,6 @@ detect_features_process
   : process( config ),
     d( new detect_features_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }
@@ -91,6 +114,8 @@ detect_features_process
 void detect_features_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
@@ -120,10 +145,16 @@ detect_features_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  LOG_DEBUG( logger(), "Processing frame " << frame_time );
+  kwiver::vital::feature_set_sptr curr_feat;
 
-  // detect features on the current frame
-  kwiver::vital::feature_set_sptr curr_feat = d->m_detector->detect( img );
+  {
+    scoped_step_instrumentation();
+
+    LOG_DEBUG( logger(), "Processing frame " << frame_time );
+
+    // detect features on the current frame
+    curr_feat = d->m_detector->detect( img );
+  }
 
   // return by value
   push_to_port_using_trait( feature_set, curr_feat );

@@ -26,10 +26,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+from __future__ import print_function
 import sprokit.pipeline.process
 import sprokit.pipeline.config
-from sprokit.pipeline.process_factory import ProcessFactory
 
 import os.path
 
@@ -76,7 +75,7 @@ class kw_print_number_process(sprokit.pipeline.process.PythonProcess):
     def _step(self):
         num = self.grab_value_from_port('input')
 
-        print "Number received:", num
+        print("Number received:", num)
         self.fout.write('%d\n' % num)
 
         self._base_step()

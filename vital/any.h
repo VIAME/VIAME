@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ public:
    * @brief Create empty object.
    *
    */
-  any() VITAL_NOTHROW
+  any() noexcept
     : m_content( 0 )
   { }
 
@@ -83,7 +83,7 @@ public:
     : m_content( other.m_content ? other.m_content->clone() : 0 )
   { }
 
-  ~any() VITAL_NOTHROW
+  ~any() noexcept
   {
     delete m_content;
   }
@@ -99,7 +99,7 @@ public:
    *
    * @return Modified current (this) object.
    */
-  any& swap(any& rhs) VITAL_NOTHROW
+  any& swap(any& rhs) noexcept
   {
     std::swap(m_content, rhs.m_content);
     return *this;
@@ -148,7 +148,7 @@ public:
    * @return \b true if no value in object, \b false if there is a
    * value.
    */
-  bool empty() const VITAL_NOTHROW
+  bool empty() const noexcept
   {
     return ! m_content;
   }
@@ -161,7 +161,7 @@ public:
    * object. The empty() method will return /b true after this call.
    *
    */
-  void clear() VITAL_NOTHROW
+  void clear() noexcept
   {
     any().swap( *this );
   }
@@ -184,7 +184,7 @@ public:
    *
    * @return The type info for the datum in this object is returned.
    */
-  std::type_info const& type() const VITAL_NOTHROW
+  std::type_info const& type() const noexcept
   {
     return m_content ? m_content->type() : typeid(void);
   }
@@ -197,7 +197,7 @@ public:
    *
    * @return Demangled type name string.
    */
-  std::string type_name() const VITAL_NOTHROW
+  std::string type_name() const noexcept
   {
     return demangle( this->type().name() );
   }
@@ -209,7 +209,7 @@ private:
   {
   public:
     virtual ~internal() { }
-    virtual std::type_info const& type() const VITAL_NOTHROW = 0;
+    virtual std::type_info const& type() const noexcept = 0;
     virtual internal* clone() const = 0;
   };
 
@@ -219,7 +219,7 @@ private:
   {
   public:
     internal_typed( T const& value ) : m_any_data( value ) { }
-    virtual std::type_info const& type() const VITAL_NOTHROW
+    virtual std::type_info const& type() const noexcept
     {
       return typeid(T);
     }
@@ -232,13 +232,13 @@ private:
     T m_any_data;
 
     // -- NOT IMPLEMENTED --
-    internal_typed& operator=( const internal_typed& ) VITAL_DELETE_DECL;
+    internal_typed& operator=( const internal_typed& ) = delete;
   };
 
 
 private:
   template < typename T >
-  friend T* any_cast( any * aval ) VITAL_NOTHROW;
+  friend T* any_cast( any * aval ) noexcept;
 
   template < typename T >
   friend T any_cast(any const& aval);
@@ -265,12 +265,19 @@ public:
                 std::string const& to_type )
   {
     // Construct helpful message
-    m_message = "vital::bad_any_cast: failed conversion using kwiver::vital::any_cast from type \""
-      + demangle( from_type ) + "\" to type \"" + demangle( to_type ) + "\"";
+    if( from_type != "")
+    {
+      m_message = "vital::bad_any_cast: failed conversion using kwiver::vital::any_cast from type \""
+        + demangle( from_type ) + "\" to type \"" + demangle( to_type ) + "\"";
+    }
+    else
+    {
+      m_message = "vital::bad_any_cast: attempted to cast an uninitialized kwiver::vital::any object";
+    }
   }
 
-  virtual ~bad_any_cast() VITAL_NOTHROW {}
-  virtual const char * what() const VITAL_NOTHROW
+  virtual ~bad_any_cast() noexcept {}
+  virtual const char * what() const noexcept
   {
     return m_message.c_str();
   }
@@ -294,7 +301,7 @@ private:
  */
 template < typename T >
 inline T*
-any_cast( any* operand ) VITAL_NOTHROW
+any_cast( any* operand ) noexcept
 {
   if ( operand && ( operand->type() == typeid( T ) ) )
   {
@@ -317,7 +324,7 @@ any_cast( any* operand ) VITAL_NOTHROW
  */
 template < typename T >
 inline const T*
-any_cast( any const* operand ) VITAL_NOTHROW
+any_cast( any const* operand ) noexcept
 {
   return any_cast< T > ( const_cast< any* > ( operand ) );
 }
@@ -338,12 +345,17 @@ inline T
 any_cast( any const& aval )
 {
   // Is the type requested compatible with the type represented.
-  if ( typeid( T ) == aval.m_content->type() )
+  if (aval.m_content)
   {
-    return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
+    if ( typeid( T ) == aval.m_content->type() )
+    {
+      return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
+    }
+
+    throw bad_any_cast( aval.m_content->type().name(), typeid( T ).name() );
   }
 
-  throw bad_any_cast( aval.m_content->type().name(), typeid( T ).name() );
+  throw bad_any_cast( "", typeid( T ).name() );
 }
 
 } }  // end namespace

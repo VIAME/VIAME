@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,55 +33,37 @@
  * \brief test VXL bundle adjustment functionality
  */
 
-#include <test_common.h>
-
 #include <arrows/vxl/bounding_box.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(convert_bb2vgl)
+// ----------------------------------------------------------------------------
+TEST(bounding_box, convert_bb2vgl)
 {
-
   kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-
   vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
 
-  if ( bbox.min_x() != vbox.min_x() ||
-       bbox.min_y() != vbox.min_y() ||
-       bbox.max_x() != vbox.max_x() ||
-       bbox.max_y() != vbox.max_y() )
-  {
-    TEST_ERROR( "Assignment vbox = bbox failed" );
-  }
+  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
+  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
+  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
+  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(convert_vgl2bb)
+// ----------------------------------------------------------------------------
+TEST(bounding_box, convert_vgl2bb)
 {
   vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
   kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
 
-  if ( bbox.min_x() != vbox.min_x() ||
-       bbox.min_y() != vbox.min_y() ||
-       bbox.max_x() != vbox.max_x() ||
-       bbox.max_y() != vbox.max_y() )
-  {
-    TEST_ERROR( "Assignment vbox = bbox failed" );
-  }
+  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
+  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
+  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
+  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
 }

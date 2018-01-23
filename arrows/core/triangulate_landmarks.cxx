@@ -37,7 +37,6 @@
 
 #include <set>
 
-#include <vital/vital_foreach.h>
 #include <vital/logger/logger.h>
 
 #include <arrows/core/triangulate.h>
@@ -160,7 +159,7 @@ triangulate_landmarks
   // build a track map by id
   typedef std::map<vital::track_id_t, vital::track_sptr> track_map_t;
   track_map_t track_map;
-  VITAL_FOREACH(const vital::track_sptr& t, trks)
+  for(const vital::track_sptr& t : trks)
   {
     track_map[t->id()] = t;
   }
@@ -169,7 +168,7 @@ triangulate_landmarks
   std::set<vital::landmark_id_t> failed_landmarks;
 
   map_landmark_t triangulated_lms;
-  VITAL_FOREACH(const map_landmark_t::value_type& p, lms)
+  for(const map_landmark_t::value_type& p : lms)
   {
     // get the corresponding track
     track_map_t::const_iterator t_itr = track_map.find(p.first);
@@ -224,7 +223,7 @@ triangulate_landmarks
       {
         pt3d = kwiver::arrows::triangulate_inhomog(lm_cams, lm_image_pts);
       }
-      VITAL_FOREACH(vital::simple_camera const& cam, lm_cams)
+      for(vital::simple_camera const& cam : lm_cams)
       {
         if(cam.depth(pt3d) < 0.0)
         {

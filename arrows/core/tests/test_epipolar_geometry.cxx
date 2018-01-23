@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,69 +28,88 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
-#include <test_math.h>
 #include <test_scene.h>
 
 #include <arrows/core/projected_track_set.h>
 #include <arrows/core/epipolar_geometry.h>
 
+#include <gtest/gtest.h>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
+#include <algorithm>
 
 using namespace kwiver::vital;
 
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
+// ----------------------------------------------------------------------------
+// Apply transform to elements in a vector; return vector of transformed
+// elements
+template <typename T, typename Func>
+static
+auto transform( std::vector<T> const& in, Func xf )
+  -> std::vector< decltype( xf( std::declval<T>() ) ) >
+{
+  std::vector< decltype( xf( std::declval<T>() ) ) > result;
+  result.reserve( in.size() );
+
+  std::transform(
+    in.begin(), in.end(), std::back_inserter( result ), xf );
+
+  return result;
+}
+
+// ----------------------------------------------------------------------------
 // Print epipolar distance of pairs of points given a fundamental matrix
-void print_epipolar_distances(const kwiver::vital::matrix_3x3d& F,
-                              const std::vector<kwiver::vital::vector_2d> right_pts,
-                              const std::vector<kwiver::vital::vector_2d> left_pts)
+void print_epipolar_distances(
+  kwiver::vital::matrix_3x3d const& F,
+  std::vector<kwiver::vital::vector_2d> const& right_pts,
+  std::vector<kwiver::vital::vector_2d> const& left_pts)
 {
   using namespace kwiver::arrows;
+
   matrix_3x3d Ft = F.transpose();
-  for(unsigned i=0; i<right_pts.size(); ++i)
+  for ( unsigned i = 0; i < right_pts.size(); ++i )
   {
-    const vector_2d& pr = right_pts[i];
-    const vector_2d& pl = left_pts[i];
-    vector_3d vr(pr.x(), pr.y(), 1.0);
-    vector_3d vl(pl.x(), pl.y(), 1.0);
+    auto const& pr = right_pts[i];
+    auto const& pl = left_pts[i];
+
+    vector_3d vr( pr.x(), pr.y(), 1.0 );
+    vector_3d vl( pl.x(), pl.y(), 1.0 );
     vector_3d lr = F * vr;
     vector_3d ll = Ft * vl;
-    double sr = 1.0 / sqrt(lr.x()*lr.x() + lr.y()*lr.y());
-    double sl = 1.0 / sqrt(ll.x()*ll.x() + ll.y()*ll.y());
-    // sum of point to epipolar line distance in both images
-    double d = vr.dot(ll);
-    std::cout <<" dist right = "<<d*sr<<"  dist left = "<<d*sl << std::endl;
+
+    double sr = 1.0 / sqrt( lr.x() * lr.x() + lr.y() * lr.y() );
+    double sl = 1.0 / sqrt( ll.x() * ll.x() + ll.y() * ll.y() );
+
+    // Sum of point to epipolar line distance in both images
+    double d = vr.dot( ll );
+
+    std::cout << " dist right = " << d * sr
+              << "  dist left = " << d * sl
+              << std::endl;
   }
 }
 
-
-// test essential matrix estimation with ideal points
-IMPLEMENT_TEST(ideal_points)
+// ----------------------------------------------------------------------------
+// Test essential matrix estimation with ideal points
+TEST(epipolar_geometry, ideal_points)
 {
   using namespace kwiver::arrows;
 
   // create landmarks at the random locations
-  landmark_map_sptr landmarks = kwiver::testing::init_landmarks(100);
-  landmarks = kwiver::testing::noisy_landmarks(landmarks, 1.0);
+  auto landmarks = kwiver::testing::init_landmarks( 100 );
+  landmarks = kwiver::testing::noisy_landmarks( landmarks, 1.0 );
 
   // create a camera sequence (elliptical path)
-  camera_map_sptr cameras = kwiver::testing::camera_seq();
+  auto const& cameras = kwiver::testing::camera_seq();
 
   // create tracks from the projections
-  track_set_sptr tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
+  auto const& tracks = kwiver::arrows::projected_tracks( landmarks, cameras );
 
   const frame_id_t frame1 = 0;
   const frame_id_t frame2 = 10;
@@ -102,47 +121,37 @@ IMPLEMENT_TEST(ideal_points)
   camera_intrinsics_sptr cal2 = cam2->intrinsics();
 
   // compute the true essential matrix from the cameras
-  essential_matrix_sptr em = kwiver::arrows::essential_matrix_from_cameras(*cam1, *cam2);
-  fundamental_matrix_sptr fm = kwiver::arrows::fundamental_matrix_from_cameras(*cam1, *cam2);
+  auto const& em = kwiver::arrows::essential_matrix_from_cameras( *cam1, *cam2 );
+  auto const& fm = kwiver::arrows::fundamental_matrix_from_cameras( *cam1, *cam2 );
 
-  // extract coresponding image points
-  std::vector<track_sptr> trks = tracks->tracks();
+  // Extract corresponding image points
   std::vector<vector_2d> pts1, pts2;
-  for(unsigned int i=0; i<trks.size(); ++i)
+  for ( auto const& track : tracks->tracks() )
   {
-    auto fts1 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame1));
-    auto fts2 = std::dynamic_pointer_cast<feature_track_state>(*trks[i]->find(frame2));
-    pts1.push_back(fts1->feature->loc());
-    pts2.push_back(fts2->feature->loc());
+    auto const fts1 =
+      std::dynamic_pointer_cast<feature_track_state>( *track->find( frame1 ) );
+    auto const fts2 =
+      std::dynamic_pointer_cast<feature_track_state>( *track->find( frame2 ) );
+    pts1.push_back( fts1->feature->loc() );
+    pts2.push_back( fts2->feature->loc() );
   }
 
-  std::vector<vector_2d> norm_pts1, norm_pts2;
-  VITAL_FOREACH(const vector_2d& p, pts1)
-  {
-    norm_pts1.push_back(cal1->unmap(p));
-  }
-  VITAL_FOREACH(const vector_2d& p, pts2)
-  {
-    norm_pts2.push_back(cal2->unmap(p));
-  }
+  using std::placeholders::_1;
+  auto const unmap = &camera_intrinsics::unmap;
+  auto const& norm_pts1 = transform( pts1, std::bind( unmap, cal1, _1 ) );
+  auto const& norm_pts2 = transform( pts2, std::bind( unmap, cal2, _1 ) );
 
-  // print the epipolar distances using this fundamental matrix
-  print_epipolar_distances(fm->matrix(), pts1, pts2);
+  // Print the epipolar distances using this fundamental matrix
+  print_epipolar_distances( fm->matrix(), pts1, pts2 );
 
-  // compute the inliers with a small scale
-  std::vector<bool> inliers = kwiver::arrows::mark_fm_inliers(*fm, pts1, pts2, 1e-8);
+  // Compute the inliers with a small scale
+  auto const& inliers =
+    kwiver::arrows::mark_fm_inliers( *fm, pts1, pts2, 1e-8 );
+  EXPECT_EQ( pts1.size(), inliers.size() );
 
-  unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                          inliers.end(), true));
-  std::cout << "fundamental matrix - num inliers "<<num_inliers<<std::endl;
-  TEST_EQUAL("All points are inliers", num_inliers, pts1.size());
-
-  // compute the inliers with a small scalet
-  inliers = kwiver::arrows::mark_fm_inliers(fundamental_matrix_d(em->matrix()),
-                            norm_pts1, norm_pts2, 1e-8);
-
-  num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
-                                                 inliers.end(), true));
-  std::cout << "essential matrix - num inliers "<<num_inliers<<std::endl;
-  TEST_EQUAL("All points are inliers", num_inliers, norm_pts1.size());
+  // Compute the inliers with a small scale
+  auto const& norm_inliers =
+    kwiver::arrows::mark_fm_inliers( fundamental_matrix_d( em->matrix() ),
+                                     norm_pts1, norm_pts2, 1e-8 );
+  EXPECT_EQ( norm_pts1.size(), norm_inliers.size() );
 }

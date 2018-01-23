@@ -36,14 +36,11 @@
 #ifndef KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
 #define KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/bundle_adjust.h>
 #include <vital/config/config_block.h>
-
-#include <memory>
 
 
 namespace kwiver {
@@ -59,7 +56,7 @@ public:
   /// Constructor
   hierarchical_bundle_adjust();
   /// Destructor
-  virtual ~hierarchical_bundle_adjust() VITAL_NOTHROW;
+  virtual ~hierarchical_bundle_adjust() noexcept;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -72,7 +69,7 @@ public:
   virtual void optimize(vital::camera_map_sptr & cameras,
                         vital::landmark_map_sptr & landmarks,
                         vital::feature_track_set_sptr tracks,
-                        vital::video_metadata_map_sptr metadata = nullptr) const;
+                        vital::metadata_map_sptr metadata = nullptr) const;
 
 private:
   // private implementation class
