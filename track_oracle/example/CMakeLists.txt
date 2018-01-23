@@ -18,17 +18,21 @@ target_link_libraries( track_oracle_example
 # example track reader
 #
 
-add_executable( track_reader_example
-  track_reader_example.cxx
-)
+if( KWIVER_ENABLE_KPF )
 
-target_link_libraries( track_reader_example
- track_oracle
- data_terms
- track_oracle_file_formats
- kpf_utils
- ${Boost_SYSTEM_LIBRARY}
-)
+  add_executable( track_reader_example
+    track_reader_example.cxx
+  )
+
+  target_link_libraries( track_reader_example
+   track_oracle
+   data_terms
+   track_oracle_file_formats
+   kpf_utils
+   ${Boost_SYSTEM_LIBRARY}
+  )
+
+endif()
 
 #
 # example track writer
@@ -46,17 +50,14 @@ target_link_libraries( track_writer_example
 # example track schema introspection
 #
 
-if( KWIVER_ENABLE_KPF )
+add_executable( track_format_example
+  track_format_example.cxx
+)
 
-  add_executable( track_format_example
-    track_format_example.cxx
-  )
-
-  target_link_libraries( track_format_example
-   track_oracle
-   track_oracle_file_formats
-  )
-endif()
+target_link_libraries( track_format_example
+ track_oracle
+ track_oracle_file_formats
+)
 
 #
 # example user-specified field manipulation
