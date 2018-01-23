@@ -156,7 +156,7 @@ vital_image_container_from_datum( PyObject* args )
  *
  * @param handle Opaque handle to image container
  *
- * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ * @return Wrapped Pointer to PyCapsule as PyObject.
  */
 PyObject*
 vital_image_container_to_datum( vital_image_container_t* handle )
@@ -228,7 +228,7 @@ vital_detected_object_set_from_datum( PyObject* args )
  *
  * @param handle Opaque handle to detected object set container
  *
- * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ * @return Wrapped Pointer to PyCapsule as PyObject.
  */
 PyObject*
 vital_detected_object_set_to_datum( vital_detected_object_set_t* handle )
@@ -382,7 +382,7 @@ vital_trackset_from_datum( PyObject* args )
  *
  * @param handle Opaque handle to detected object set container
  *
- * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ * @return Wrapped Pointer to PyCapsule as PyObject.
  */
 PyObject*
 vital_trackset_to_datum( vital_trackset_t* handle )
@@ -419,10 +419,11 @@ vital_object_trackset_from_datum( PyObject* args )
 
   try
   {
-    boost::any const any = dptr->get_datum< boost::any > ();
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any >();
+
     kwiver::vital::track_set_sptr sptr =
       std::static_pointer_cast< kwiver::vital::track_set >(
-        boost::any_cast< kwiver::vital::object_track_set_sptr >( any ) );
+        kwiver::vital::any_cast< kwiver::vital::object_track_set_sptr >( any ) );
 
     // Register this object with the main track_set interface
     vital_trackset_t* ptr = vital_trackset_from_sptr( reinterpret_cast< void* >( &sptr ) );
@@ -446,7 +447,7 @@ vital_object_trackset_from_datum( PyObject* args )
  *
  * @param handle Opaque handle to detected object set container
  *
- * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ * @return Wrapped Pointer to PyCapsule as PyObject.
  */
 PyObject*
 vital_object_trackset_to_datum( vital_trackset_t* handle )
