@@ -46,15 +46,14 @@ static constexpr double outlier_tolerance = 0.01;
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 TEST(estimate_fundamental_matrix, create)
 {
+  plugin_manager::instance().load_all_plugins();
+
   EXPECT_NE( nullptr, algo::estimate_fundamental_matrix::create("ocv") );
 }
 

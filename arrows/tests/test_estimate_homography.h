@@ -38,8 +38,6 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 using namespace kwiver::arrows;
 using namespace kwiver::testing;

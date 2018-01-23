@@ -39,23 +39,20 @@
 
 #include <Eigen/LU>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 TEST(estimate_essential_matrix, create)
 {
+  plugin_manager::instance().load_all_plugins();
+
   EXPECT_NE( nullptr, algo::estimate_essential_matrix::create("vxl") );
 }
 

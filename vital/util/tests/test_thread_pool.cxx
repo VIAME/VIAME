@@ -93,4 +93,4 @@ TEST_P(thread_pool_backend, run_jobs)
 INSTANTIATE_TEST_CASE_P(
   ,
   thread_pool_backend,
-  ::testing::ValuesIn( thread_pool::instance().available_backends() ) );
+  ::testing::ValuesIn( thread_pool::available_backends() ) );

@@ -36,15 +36,13 @@
 #ifndef SPROKIT_PIPELINE_TOKEN_H
 #define SPROKIT_PIPELINE_TOKEN_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include <vital/util/source_location.h>
 
 #include <iostream>
 #include <string>
 #include <memory>
-
-#include <boost/shared_ptr.hpp>
 
 namespace sprokit {
 

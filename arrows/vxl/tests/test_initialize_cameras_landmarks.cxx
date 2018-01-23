@@ -28,6 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <test_gtest.h>
 #include <test_eigen.h>
 #include <test_scene.h>
 
@@ -43,16 +44,13 @@
 
 #include <vital/types/similarity.h>
 
-#include <gtest/gtest.h>
-
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
+  TEST_LOAD_PLUGINS();
   return RUN_ALL_TESTS();
 }
 

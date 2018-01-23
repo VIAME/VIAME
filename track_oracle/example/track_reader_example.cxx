@@ -17,6 +17,7 @@
 #include <stdexcept>
 
 #include <vul/vul_arg.h>
+#include <vul/vul_timer.h>
 
 #include <track_oracle/core/track_oracle_core.h>
 #include <track_oracle/core/element_descriptor.h>
@@ -26,6 +27,7 @@
 #include <track_oracle/file_formats/file_format_schema.h>
 #include <track_oracle/file_formats/file_format_manager.h>
 #include <track_oracle/file_formats/file_format_base.h>
+#include <track_oracle/file_formats/kpf_utils/kpf_utils.h>
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/data_terms/data_terms.h>
 
@@ -43,7 +45,7 @@ using std::vector;
 
 using namespace kwiver::track_oracle;
 
-int load_tracks( const string& fn, track_handle_list_type& tracks, const string& unique_key );
+int load_tracks( const string& fn, track_handle_list_type& tracks, const string& unique_key, bool kpf_any );
 int probe_formats( const string& fn );
 
 int main( int argc, char *argv[] )
@@ -53,6 +55,8 @@ int main( int argc, char *argv[] )
   vul_arg< string > kwiver_arg( "-kwiver", "write out as kwiver to this file" );
   vul_arg< string > kw18_arg( "-kw18", "write out as kw18 to this file" );
   vul_arg< string > csv_arg( "-csv", "write out as csv to this file" );
+  vul_arg< string > kpf_g_arg( "-kpf-g", "write out as KPF geometry to this file" );
+  vul_arg< bool > kpf_any_arg( "-kpf-any", "read file as unstructured yaml" );
   vul_arg< string > csv_v1_arg( "-csv-v1", "write out as old-style csv to this file" );
   vul_arg< string > kwxml_ts_arg( "-kwxml_ts", "if writing kwxml, set default track style to this", "trackObjectKitware" );
   vul_arg< string > tag_arg( "-tag", "if writing kwiver, test tags by setting track-level 'test' flag to this" );
@@ -101,7 +105,7 @@ int main( int argc, char *argv[] )
   else
   {
     track_handle_list_type tracks;
-    rc = load_tracks( fn_arg(), tracks, unique_arg() );
+    rc = load_tracks( fn_arg(), tracks, unique_arg(), kpf_any_arg() );
     if ( kwiver_arg.set() )
     {
       ofstream os( kwiver_arg().c_str() );
@@ -142,6 +146,11 @@ int main( int argc, char *argv[] )
         LOG_ERROR( main_logger, "Could not write CSV to '" << csv_arg() << "'" );
       }
     }
+    if ( kpf_g_arg.set() )
+    {
+      bool okay = file_format_manager::get_format( TF_KPF_GEOM )->write( kpf_g_arg(), tracks );
+      LOG_INFO( main_logger, "Wrote KPF geometry to " << kpf_g_arg() << " success: " << okay );
+    }
   }
   return rc;
 }
@@ -174,12 +183,19 @@ trim( string s )
   return s;
 }
 
-int load_tracks( const string& track_fn, track_handle_list_type& tracks, const string& unique_key )
+int load_tracks( const string& track_fn, track_handle_list_type& tracks, const string& unique_key, bool kpf_any )
 {
-  if (! file_format_manager::read( track_fn, tracks ))
+  if (kpf_any)
   {
-    LOG_ERROR( main_logger, "Error: couldn't read tracks from '" << track_fn << "'; exiting");
-    return EXIT_FAILURE;
+    tracks = kpf_utils::read_unstructured_yaml( track_fn );
+  }
+  else
+  {
+    if (! file_format_manager::read( track_fn, tracks ))
+    {
+      LOG_ERROR( main_logger, "Error: couldn't read tracks from '" << track_fn << "'; exiting");
+      return EXIT_FAILURE;
+    }
   }
   if ( tracks.empty() )
   {
@@ -197,6 +213,7 @@ int load_tracks( const string& track_fn, track_handle_list_type& tracks, const s
   map< field_handle_type, size_t > track_stats, frame_stats;
   size_t frame_count = 0;
 
+  vul_timer timer;
   for (size_t i=0; i<tracks.size(); ++i)
   {
     vector< field_handle_type > ts = track_oracle_core::fields_at_row( tracks[i].row );
@@ -204,10 +221,29 @@ int load_tracks( const string& track_fn, track_handle_list_type& tracks, const s
 
     frame_handle_list_type frames = track_oracle_core::get_frames( tracks[i] );
     frame_count += frames.size();
+    vector< oracle_entry_handle_type > frame_handles( frames.size() );
+    for (auto j=0; j<frames.size(); ++j)
+    {
+      frame_handles[j] = frames[j].row;
+    }
+    /*
     for (size_t j=0; j<frames.size(); ++j)
     {
       vector< field_handle_type > fs = track_oracle_core::fields_at_row( frames[j].row );
       for (size_t t=0; t<fs.size(); ++t) ++frame_stats[ fs[t] ];
+    }
+    */
+    for (auto fields_at_frame: track_oracle_core::fields_at_rows( frame_handles ))
+    {
+      for (auto field: fields_at_frame)
+      {
+        ++frame_stats[ field ];
+      }
+    }
+    if (timer.real() > 5 * 1000)
+    {
+      LOG_INFO( main_logger, "Computed stats on " << i << " of " << tracks.size() << "; " << frame_count << " frames" );
+      timer.mark();
     }
   }
 

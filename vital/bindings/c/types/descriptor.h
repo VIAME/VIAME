@@ -50,7 +50,7 @@ extern "C"
 // General Descriptor functions
 
 /// Base opaque descriptor instance type
-typedef struct vital_descriptor_s vital_descriptor_t;
+typedef struct vital_descriptor_s {} vital_descriptor_t;
 
 
 /// Destroy a descriptor instance

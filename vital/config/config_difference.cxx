@@ -46,11 +46,13 @@ namespace vital {
 config_difference::
 config_difference( const config_block_sptr reference, const config_block_sptr other )
 {
-  auto extra_config = reference->difference_config( other );
-  m_extra_keys = extra_config->available_values();
-
-  auto missing_keys = other->difference_config( reference );
+  // keys that are in reference, but not in other.
+  auto missing_keys = reference->difference_config( other );
   m_missing_keys = missing_keys->available_values();
+
+  // keys that are in other, but not in reference
+  auto extra_config = other->difference_config( reference );
+  m_extra_keys = extra_config->available_values();
 }
 
 

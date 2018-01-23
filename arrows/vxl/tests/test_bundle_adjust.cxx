@@ -47,15 +47,14 @@ using kwiver::arrows::vxl::bundle_adjust;
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 TEST(bundle_adjust, create)
 {
+  plugin_manager::instance().load_all_plugins();
+
   EXPECT_NE( nullptr, algo::bundle_adjust::create("vxl") );
 }
 

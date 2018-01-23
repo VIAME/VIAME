@@ -36,13 +36,9 @@
 #ifndef KWIVER_ARROWS_OCV_DRAW_TRACKS_H_
 #define KWIVER_ARROWS_OCV_DRAW_TRACKS_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/draw_tracks.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {
@@ -90,7 +86,7 @@ private:
 
   /// private implementation class
   class priv;
-  const std::unique_ptr<priv> d_;
+  const std::unique_ptr<priv> d;
 };
 
 } // end namespace ocv

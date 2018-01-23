@@ -66,6 +66,7 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  iterator.h
 
   exceptions.h
   exceptions/algorithm.h
@@ -73,16 +74,16 @@ set( vital_public_headers
   exceptions/image.h
   exceptions/io.h
   exceptions/math.h
+  exceptions/metadata.h
   exceptions/video.h
-  exceptions/klv.h
   exceptions/plugin.h
-  exceptions/kpf.h
 
   io/camera_io.h
   io/camera_map_io.h
   io/eigen_io.h
   io/landmark_map_io.h
   io/mesh_io.h
+  io/metadata_io.h
   io/track_set_io.h
 
   types/bounding_box.h
@@ -118,6 +119,10 @@ set( vital_public_headers
   types/match_set.h
   types/matrix.h
   types/mesh.h
+  types/metadata.h
+  types/metadata_map.h
+  types/metadata_traits.h
+  types/metadata_tags.h
   types/object_track_set.h
   types/polygon.h
   types/query_plan.h
@@ -144,15 +149,15 @@ set( vital_sources
   exceptions/image.cxx
   exceptions/io.cxx
   exceptions/math.cxx
+  exceptions/metadata.cxx
   exceptions/video.cxx
-  exceptions/klv.cxx
   exceptions/plugin.cxx
-  exceptions/kpf.cxx
 
   io/camera_io.cxx
   io/camera_map_io.cxx
   io/landmark_map_io.cxx
   io/mesh_io.cxx
+  io/metadata_io.cxx
   io/track_set_io.cxx
 
   types/bounding_box.cxx
@@ -176,6 +181,8 @@ set( vital_sources
   types/image.cxx
   types/landmark.cxx
   types/mesh.cxx
+  types/metadata.cxx
+  types/metadata_traits.cxx
   types/object_track_set.cxx
   types/polygon.cxx
   types/query_plan.cxx
@@ -283,8 +290,6 @@ add_subdirectory( config )
 add_subdirectory( klv )
 add_subdirectory( logger )
 add_subdirectory( plugin_loader )
-add_subdirectory( video_metadata )
-add_subdirectory( kpf )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )

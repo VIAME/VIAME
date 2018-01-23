@@ -21,6 +21,8 @@
 
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::utility::state_flags);
 
+TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::detection::detection_id );
+
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::external_id );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::timestamp_usecs );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::tracking::frame_number );
@@ -47,6 +49,10 @@ TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::event_id
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::event_type );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::event_probability );
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::source_track_ids );
+TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::actor_track_rows );
+TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_domain );
+TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_start );
+TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::events::kpf_activity_stop );
 
 TRACK_ORACLE_INSTANTIATE_DATA_TERM( ::kwiver::track_oracle::dt::virat::descriptor_classifier );
 

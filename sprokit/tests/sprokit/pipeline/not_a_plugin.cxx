@@ -28,11 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/config.h>
+#include "not_a_plugin_export.h"
 
 extern "C"
 {
 
-SPROKIT_EXPORT void external_function();
+NOT_A_PLUGIN_EXPORT void external_function();
 
 }

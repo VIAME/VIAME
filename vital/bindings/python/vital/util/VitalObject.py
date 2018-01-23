@@ -67,7 +67,7 @@ class VitalObject (object):
     Basic VITAL python interface class.
 
     This class defines the ``_new`` and ``_destroy`` abstract methods. These
-    should define how to create create a new C instance and to desctory the
+    should define how to create create a new C instance and to destroy the
     current C instance, respectively.
 
     Guarantees that should be maintained:

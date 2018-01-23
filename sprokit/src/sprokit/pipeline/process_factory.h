@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PIPELINE_PROCESS_FACTORY_H
 #define SPROKIT_PIPELINE_PROCESS_FACTORY_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>
@@ -105,6 +105,8 @@ public:
   virtual ~process_factory() = default;
 
   virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config) = 0;
+
+  void copy_attributes( sprokit::process_t proc );
 };
 
 

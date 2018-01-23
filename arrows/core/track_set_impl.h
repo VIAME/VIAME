@@ -39,20 +39,13 @@
 
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/vital_config.h>
-#include <vital/vital_types.h>
 #include <vital/types/track_set.h>
 
 #include <map>
-#include <memory>
-#include <set>
-#include <vector>
-
 
 namespace kwiver {
 namespace arrows {
 namespace core {
-
 
 /// A custom track set implementation that provides fast indexing by frame id
 /**

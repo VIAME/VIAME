@@ -37,7 +37,7 @@
 #ifndef SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
 #define SPROKIT_PIPELINE_SCHEDULER_REGISTRY_EXCEPTION_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "pipeline_exception.h"
 #include "scheduler.h"

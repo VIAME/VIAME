@@ -31,6 +31,7 @@
 #include "process_factory.h"
 #include "process_registry_exception.h"
 
+#include <vital/util/tokenize.h>
 #include <vital/logger/logger.h>
 
 #include <algorithm>
@@ -49,7 +50,27 @@ process_factory( const std::string& type,
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void
+process_factory::
+copy_attributes( sprokit::process_t proc )
+{
+  // Add any properties from the factory attributes
+  std::string props;
+  if ( get_attribute( kwiver::vital::plugin_factory::PLUGIN_PROCESS_PROPERTIES, props ) )
+  {
+    // split props by " " or "," then add to process props.
+    std::vector< std::string > fact_props;
+    kwiver::vital::tokenize( props, fact_props, ", ", kwiver::vital::TokenizeTrimEmpty );
+    for ( std::string a_prop : fact_props )
+    {
+      proc->add_property( a_prop );
+    }
+  }
+}
+
+
+// ============================================================================
 cpp_process_factory::
 cpp_process_factory( const std::string& type,
                  const std::string& itype,
@@ -70,7 +91,12 @@ create_object(kwiver::vital::config_block_sptr const& config)
 {
   // Call sprokit factory function. Need to use this factory
   // function approach to handle clusters transparently.
-  return m_factory( config );
+  sprokit::process_t proc = m_factory( config );
+
+  // Copy attributes from factory to process.
+  copy_attributes( proc );
+
+  return proc;
 }
 
 
@@ -112,9 +138,10 @@ create_process( const sprokit::process::type_t&         type,
     throw no_such_process_type_exception( type );
   }
 
+  sprokit::process_t proc;
   try
   {
-    return pf->create_object( config );
+    proc = pf->create_object( config );
   }
   catch ( const std::exception &e )
   {
@@ -122,6 +149,8 @@ create_process( const sprokit::process::type_t&         type,
     LOG_ERROR( logger, "Exception from creating process: " << e.what() );
     throw;
   }
+
+  return proc;
 }
 
 
@@ -155,6 +184,5 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list()
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   return vpm.get_factories<sprokit::process>();
 }
-
 
 } // end namespace

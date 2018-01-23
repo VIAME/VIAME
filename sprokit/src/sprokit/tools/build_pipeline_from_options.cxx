@@ -55,8 +55,6 @@ build_pipeline_from_options( boost::program_options::variables_map const& vm,
   kwiver::vital::path_t const ipath = vm["pipeline"].as<kwiver::vital::path_t>();
   istream_t const istr = open_istream(ipath);
 
-  /// \todo Include paths?
-
   this->load_pipeline(*istr, ipath);
   this->load_from_options(vm);
 }

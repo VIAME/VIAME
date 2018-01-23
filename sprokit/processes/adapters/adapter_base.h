@@ -96,7 +96,7 @@ protected:
   // must remain active until the last user gets deleted.
   interface_ref_t  m_interface_queue;
 
-}; // end class frame_list_process
+}; // end class
 
 } }  // end namespace
 

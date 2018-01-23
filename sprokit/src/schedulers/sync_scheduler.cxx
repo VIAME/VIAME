@@ -44,7 +44,6 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include <boost/bind.hpp>
 
 #include <deque>
 #include <iterator>
@@ -58,8 +57,7 @@
  * \brief Implementation of the synchronized scheduler.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 static thread_name_t const thread_name = thread_name_t("sync_scheduler");
 
@@ -79,18 +77,23 @@ class sync_scheduler::priv
     mutable mutex_t mut;
 };
 
+
+// ============================================================================
 sync_scheduler
 ::sync_scheduler(pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
   : scheduler(pipe, config)
   , d(new priv)
 {
+  m_logger = kwiver::vital::get_logger( "scheduler.sync" );
+
   pipeline_t const p = pipeline();
 
   process_t proc = p->get_python_process();
   if(proc)
   {
-      std::string const reason = "The process \'" + proc->name() + "\' is "
-                                 "a python process and is not supported by this scheduler.";
+        std::string const reason = "The process \'" + proc->name() + "\' of type \'" + proc->type()
+      + "\' is a python process and that type of process is not supported by this scheduler.";
+
       throw incompatible_pipeline_exception(reason);
   }
 
@@ -119,19 +122,24 @@ sync_scheduler
   }
 }
 
+
 sync_scheduler
 ::~sync_scheduler()
 {
   shutdown();
 }
 
+
+// ----------------------------------------------------------------------------
 void
 sync_scheduler
 ::_start()
 {
-  d->thread = boost::thread(boost::bind(&priv::run, d.get(), pipeline()));
+  d->thread = boost::thread(std::bind(&priv::run, d.get(), pipeline()));
 }
 
+
+// ----------------------------------------------------------------------------
 void
 sync_scheduler
 ::_wait()
@@ -139,6 +147,8 @@ sync_scheduler
   d->thread.join();
 }
 
+
+// ----------------------------------------------------------------------------
 void
 sync_scheduler
 ::_pause()
@@ -146,6 +156,8 @@ sync_scheduler
   d->mut.lock();
 }
 
+
+// ----------------------------------------------------------------------------
 void
 sync_scheduler
 ::_resume()
@@ -153,6 +165,8 @@ sync_scheduler
   d->mut.unlock();
 }
 
+
+// ----------------------------------------------------------------------------
 void
 sync_scheduler
 ::_stop()
@@ -160,6 +174,8 @@ sync_scheduler
   d->thread.interrupt();
 }
 
+
+// ============================================================================
 sync_scheduler::priv
 ::priv()
   : thread()
@@ -167,14 +183,17 @@ sync_scheduler::priv
 {
 }
 
+
 sync_scheduler::priv
 ::~priv()
 {
 }
 
+
 static process::names_t sorted_names(pipeline_t const& pipe);
 static kwiver::vital::config_block_sptr monitor_edge_config();
 
+// ----------------------------------------------------------------------------
 void
 sync_scheduler::priv
 ::run(pipeline_t const& pipe)
@@ -237,19 +256,24 @@ sync_scheduler::priv
   }
 }
 
-namespace
-{
+
+// ----------------------------------------------------------------------------
+namespace {
 
 typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS, process::name_t> pipeline_graph_t;
 typedef boost::graph_traits<pipeline_graph_t>::vertex_descriptor vertex_t;
 typedef std::deque<vertex_t> vertices_t;
 typedef std::map<process::name_t, vertex_t> vertex_map_t;
 
-}
+} // end anonymous
 
+
+// ----------------------------------------------------------------------------
 process::names_t
 sorted_names(pipeline_t const& pipe)
 {
+  kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "scheduler.sync" ) );
+
   pipeline_graph_t graph;
 
   // Create the graph.
@@ -289,6 +313,9 @@ sorted_names(pipeline_t const& pipe)
         if (!edge)
         {
           /// \todo Throw an exception.
+          // This means that there is no edge connecting the two processes.
+          LOG_ERROR( logger, "Edge not found from " << sender_name << "." << sender_port
+                    << " to " << name << "." << port );
           continue;
         }
 
@@ -313,6 +340,7 @@ sorted_names(pipeline_t const& pipe)
   catch (boost::not_a_dag const&)
   {
     /// \todo Throw an exception.
+    LOG_ERROR( logger, "Pipeline is not a DAG" );
   }
 
   process::names_t names;
@@ -325,6 +353,8 @@ sorted_names(pipeline_t const& pipe)
   return names;
 }
 
+
+// ----------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
 monitor_edge_config()
 {

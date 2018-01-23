@@ -54,8 +54,7 @@ int
 main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest( &argc, argv );
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
+  TEST_LOAD_PLUGINS();
 
   GET_ARG(1, g_data_dir);
 

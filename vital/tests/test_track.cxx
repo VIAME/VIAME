@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,33 +33,23 @@
  * \brief test core track class
  */
 
-#include <test_common.h>
-
-#include <iostream>
-#include <vector>
 #include <vital/types/track.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(track_id)
+// ----------------------------------------------------------------------------
+TEST(track, id)
 {
-  using namespace kwiver::vital;
-  auto t = track::create();
-  TEST_EQUAL("Initial Track ID", t->id(), invalid_track_id);
+  auto t = kwiver::vital::track::create();
+  EXPECT_EQ( kwiver::vital::invalid_track_id, t->id() );
 
-  t->set_id(25);
-  TEST_EQUAL("Get/Set Track ID", t->id(), 25);
+  t->set_id( 25 );
+  EXPECT_EQ( 25, t->id() );
 }

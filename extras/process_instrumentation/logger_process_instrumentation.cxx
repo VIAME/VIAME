@@ -51,7 +51,7 @@ void
 logger_process_instrumentation::
   start_init_processing( std::string const& data )
 {
-  LOG_INFO( m_logger, process().name() << ": start_init_processing" );
+  LOG_INFO( m_logger, process()->name() << ": start_init_processing" );
 }
 
 
@@ -60,7 +60,7 @@ void
 logger_process_instrumentation::
 stop_init_processing()
 {
-  LOG_INFO( m_logger, process().name() << ": stop_init_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_init_processing" );
 }
 
 
@@ -69,7 +69,7 @@ void
 logger_process_instrumentation::
 start_reset_processing( std::string const& data )
 {
-  LOG_INFO( m_logger, process().name() << ": stop_init_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_init_processing" );
 }
 
 
@@ -78,7 +78,7 @@ void
 logger_process_instrumentation::
 stop_reset_processing()
 {
-  LOG_INFO( m_logger, process().name() << ": stop_reset_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_reset_processing" );
 }
 
 
@@ -87,7 +87,7 @@ void
 logger_process_instrumentation::
 start_flush_processing( std::string const& data )
 {
-  LOG_INFO( m_logger, process().name() << ": start_reset_processing" );
+  LOG_INFO( m_logger, process()->name() << ": start_reset_processing" );
 }
 
 
@@ -96,7 +96,7 @@ void
 logger_process_instrumentation::
 stop_flush_processing()
 {
-  LOG_INFO( m_logger, process().name() << ": stop_flush_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_flush_processing" );
 }
 
 
@@ -105,7 +105,7 @@ void
 logger_process_instrumentation::
 start_step_processing( std::string const& data )
 {
-  LOG_INFO( m_logger, process().name() << ": start_step_processing" );
+  LOG_INFO( m_logger, process()->name() << ": start_step_processing" );
 }
 
 
@@ -114,7 +114,7 @@ void
 logger_process_instrumentation::
 stop_step_processing()
 {
-  LOG_INFO( m_logger, process().name() << ": stop_step_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_step_processing" );
 }
 
 
@@ -123,7 +123,7 @@ void
 logger_process_instrumentation::
 start_configure_processing( std::string const& data )
 {
-  LOG_INFO( m_logger, process().name() << ": start_configure_processing" );
+  LOG_INFO( m_logger, process()->name() << ": start_configure_processing" );
 }
 
 
@@ -132,7 +132,7 @@ void
 logger_process_instrumentation::
 stop_configure_processing()
 {
-  LOG_INFO( m_logger, process().name() << ": stop_configure_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_configure_processing" );
 }
 
 
@@ -141,7 +141,7 @@ void
 logger_process_instrumentation::
 start_reconfigure_processing( std::string const& data )
 {
-  LOG_INFO( m_logger, process().name() << ": start_reconfigure_processing" );
+  LOG_INFO( m_logger, process()->name() << ": start_reconfigure_processing" );
 }
 
 
@@ -150,7 +150,7 @@ void
 logger_process_instrumentation::
 stop_reconfigure_processing()
 {
-  LOG_INFO( m_logger, process().name() << ": stop_reconfigure_processing" );
+  LOG_INFO( m_logger, process()->name() << ": stop_reconfigure_processing" );
 }
 
 

@@ -1,7 +1,6 @@
-sprokit_configure_file(config.h
-  "${CMAKE_CURRENT_SOURCE_DIR}/config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-  SPROKIT_HAVE_GCC_VISIBILITY)
+#
+#
+#
 
 set(SPROKIT_BUILT_FROM_GIT)
 
@@ -85,7 +84,6 @@ add_subdirectory(scoring)
 add_subdirectory(tools)
 
 install(
-  FILES       "${CMAKE_CURRENT_BINARY_DIR}/config.h"
-              "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/version.h"
   DESTINATION include/sprokit
   COMPONENT   development)

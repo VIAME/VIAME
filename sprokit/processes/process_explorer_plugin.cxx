@@ -110,6 +110,8 @@ public:
   explorer_context* m_context;
 
   bool opt_hidden;
+
+  kwiver::vital::logger_handle_t m_logger;
 }; // end class process_explorer
 
 
@@ -117,6 +119,7 @@ public:
 process_explorer::
 process_explorer()
   :opt_hidden( false )
+  , m_logger( kwiver::vital::get_logger( "process_explorer_plugin" ) )
 { }
 
 
@@ -174,6 +177,12 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   }
 
   sprokit::process_factory* pf = dynamic_cast< sprokit::process_factory* > ( fact.get() );
+
+  if ( ! pf )
+  {
+    LOG_ERROR( m_logger, "Could not convert factory to process_factory" );
+    return;
+  }
 
   sprokit::process_t const proc = pf->create_object( kwiver::vital::config_block::empty_config() );
 
@@ -357,7 +366,7 @@ wrap_rst_text( const std::string& txt )
 
   // trim trailing whitesapce new line
   wtxt.erase( wtxt.find_last_not_of( " \t\n\r\f\v" ) + 1 );
-  return std::regex_replace( wtxt, std::regex("\n"), " |br|\\ " );
+  return std::regex_replace( wtxt, std::regex("\n"), std::string(" |br|\\ ") );
 }
 
 

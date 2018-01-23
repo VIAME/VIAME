@@ -38,6 +38,7 @@ public:
   virtual bool exists( const track_handle_type& h ) const = 0;
   virtual bool exists( const frame_handle_type& h ) const = 0;
   virtual bool exists( const oracle_entry_handle_type& h ) const = 0;
+  virtual std::vector< bool > exists( const std::vector< oracle_entry_handle_type >& sorted_hlist ) const = 0;
 
   virtual bool copy_value( const oracle_entry_handle_type& src, const oracle_entry_handle_type& dst ) = 0;
   virtual std::ostream& emit_as_kwiver( std::ostream& os, const oracle_entry_handle_type& h, const std::string& indent ) const = 0;

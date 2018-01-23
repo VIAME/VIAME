@@ -140,9 +140,10 @@ public:
   /**
    * If the value for the config parameter "type" is supported by the
    * concrete algorithm class, then a new algorithm object is created,
-   * configured and returned via the \c nested_algo pointer.
+   * configured using the set_configuration() method and returned via
+   * the \c nested_algo pointer.
    *
-   * The nested algorithm will not be set if the implementation switch (as
+   * The nested algorithm will not be set if the implementation type (as
    * defined in the \c get_nested_algo_configuration) is not present or set to
    * an invalid value relative to the registered names for this
    * \c type_name
@@ -152,7 +153,7 @@ public:
    * \param[in] config              The \c config_block instance from which we will
    *                                draw configuration needed for the nested
    *                                algorithm instance.
-   * \param[in,out] nested_algo The nested algorithm's sptr variable.
+   * \param[out] nested_algo The nested algorithm's sptr variable.
    */
   static void set_nested_algo_configuration(std::string const& type_name,
                                             std::string const& name,

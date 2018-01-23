@@ -59,13 +59,6 @@ public:
   priv()
     : logger( kwiver::vital::get_logger( "vital.thread_pool" ) )
   {
-    available_backends = {
-#if __APPLE__
-      thread_pool_gcd_backend::static_name,
-#endif
-      thread_pool_builtin_backend::static_name,
-      thread_pool_sync_backend::static_name
-    };
     backend.reset( new thread_pool_builtin_backend() );
   }
 
@@ -74,9 +67,6 @@ public:
 
   // a pointer to the active backend
   std::unique_ptr<thread_pool::backend> backend;
-
-  // a vector of names of the available backends
-  std::vector<std::string> available_backends;
 };
 
 
@@ -113,9 +103,17 @@ thread_pool::active_backend() const
 
 /// Return the names of the available backends
 std::vector<std::string>
-thread_pool::available_backends() const
+thread_pool::available_backends()
 {
-  return d_->available_backends;
+  static std::vector<std::string> available_backends_list = {
+#if __APPLE__
+    thread_pool_gcd_backend::static_name,
+#endif
+    thread_pool_builtin_backend::static_name,
+    thread_pool_sync_backend::static_name
+  };
+
+  return available_backends_list;
 }
 
 

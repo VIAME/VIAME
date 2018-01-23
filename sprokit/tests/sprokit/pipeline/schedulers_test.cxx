@@ -31,13 +31,13 @@
 #include <sprokit/pipeline/scheduler.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 
-#include <sprokit/config.h>
+#include "schedulers_test_export.h"
 
 #include <memory>
 
 using namespace sprokit;
 
-class SPROKIT_NO_EXPORT test_scheduler
+class SCHEDULERS_TEST_NO_EXPORT test_scheduler
   : public sprokit::scheduler
 {
   public:
@@ -94,7 +94,7 @@ test_scheduler
 
 
 extern "C"
-SPROKIT_EXPORT
+SCHEDULERS_TEST_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

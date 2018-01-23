@@ -36,7 +36,7 @@
 #ifndef SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
 #define SPROKIT_PIPELINE_UTIL_CLUSTER_INFO_H
 
-#include "pipeline_util-config.h"
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include "pipe_declaration_types.h"
 #include <sprokit/pipeline/types.h>
