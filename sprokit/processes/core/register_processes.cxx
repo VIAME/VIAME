@@ -248,8 +248,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_detected_object_set" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Draws border around detected objects in the set using the selected algorithm.\n\n"
-                       "This process is a wrapper around a draw_detected_object_set algorithm.")
+                    "Draws border around detected objects in the set using the selected algorithm.\n\n"
+                    "This process is a wrapper around a draw_detected_object_set algorithm.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
@@ -280,6 +280,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::read_object_track_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_object_track" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -287,6 +288,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Reads object track sets from an input file." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
+
 
   fact = vpm.ADD_PROCESS( kwiver::write_object_track_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "write_object_track" )
@@ -296,6 +298,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::associate_detections_to_tracks_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "associate_detections_to_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -303,6 +306,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Associates new detections to existing tracks given a cost matrix." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
+
 
   fact = vpm.ADD_PROCESS( kwiver::compute_association_matrix_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_association_matrix" )
@@ -312,6 +316,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::initialize_object_tracks_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "initialize_object_tracks" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -319,6 +324,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Initialize new object tracks given detections for the current frame." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
+
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
