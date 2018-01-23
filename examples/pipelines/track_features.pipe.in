@@ -36,17 +36,19 @@ process detect_if_keyframe
 process loop_detector
   :: detect_loops_process
   detect_loops_algo:type = standard
+  
   detect_loops_algo:standard:min_loop_inlier_matches = 50
-
   detect_loops_algo:standard:match_features:type = homography_guided
   detect_loops_algo:standard:match_features:homography_guided:homography_estimator:type = ocv
   detect_loops_algo:standard:match_features:homography_guided:feature_matcher1:type = ocv_brute_force  
   
-  detect_loops_algo:standard:bag_of_words_matching:type = DBoW2
-  detect_loops_algo:standard:bag_of_words_matching:DBoW2:feature_detector:type = ocv_ORB
-  detect_loops_algo:standard:bag_of_words_matching:DBoW2:descriptor_extractor:type = ocv_ORB
-  detect_loops_algo:standard:bag_of_words_matching:DBoW2:image_io:type = ocv
-  detect_loops_algo:standard:bag_of_words_matching:DBoW2:max_num_candidate_matches_from_vocabulary_tree = 20
+  detect_loops_algo:standard:bag_of_words_matching:type = dbow2
+  detect_loops_algo:standard:bag_of_words_matching:dbow2:feature_detector:type = ocv_ORB
+  detect_loops_algo:standard:bag_of_words_matching:dbow2:descriptor_extractor:type = ocv_ORB
+  detect_loops_algo:standard:bag_of_words_matching:dbow2:image_io:type = ocv
+  detect_loops_algo:standard:bag_of_words_matching:dbow2:max_num_candidate_matches_from_vocabulary_tree = 20
+  detect_loops_algo:standard:bag_of_words_matching:dbow2:training_image_list_path = @EXAMPLE_DIR@/pipelines/training_image_list.txt
+  detect_loops_algo:standard:bag_of_words_matching:dbow2:vocabulary_path = @EXAMPLE_DIR@/pipelines/kwiver_voc.yml.gz
   
 
 # ================================================================
@@ -88,13 +90,13 @@ connect from tracker.feature_track_set
         to   tracker.feature_track_set
         
 connect from tracker.feature_track_set
-        to   keyframes.feature_track_set
+        to   keyframes.next_tracks
         
 connect from input.timestamp
         to   keyframes.timestamp
         
-connect from keyframes.keyframe_data_const
-        to   keyframes.keyframe_data_const
+connect from keyframes.feature_track_set
+        to   keyframes.loop_back_tracks
 
 connect from keyframes.feature_track_set
         to   detect_if_keyframe.next_tracks
