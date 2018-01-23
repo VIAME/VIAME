@@ -36,16 +36,11 @@
 #ifndef KWIVER_ARROWS_VXL_ESTIMATE_ESSENTIAL_MATRIX_H_
 #define KWIVER_ARROWS_VXL_ESTIMATE_ESSENTIAL_MATRIX_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
 #include <vital/types/camera_intrinsics.h>
 
 #include <vital/algo/estimate_essential_matrix.h>
-
-#include <memory>
-
 
 namespace kwiver {
 namespace arrows {

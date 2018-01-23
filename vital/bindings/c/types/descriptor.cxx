@@ -52,6 +52,8 @@ SharedPointerCache< kwiver::vital::descriptor, vital_descriptor_t >
 using namespace kwiver;
 
 
+
+
 /// Destroy a descriptor instance
 void
 vital_descriptor_destroy( vital_descriptor_t const *d,

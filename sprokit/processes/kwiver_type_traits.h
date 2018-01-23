@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -48,11 +48,11 @@
 #include <vital/types/image_container.h>
 #include <vital/types/iqr_feedback.h>
 #include <vital/types/matrix.h>
+#include <vital/types/metadata.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/query_result_set.h>
 #include <vital/types/track_descriptor_set.h>
 #include <vital/types/uid.h>
-#include <vital/video_metadata/video_metadata.h>
 
 #include "trait_utils.h"
 
@@ -82,7 +82,7 @@ namespace vital {
 //
 create_type_trait( bounding_box, "kwiver:bounding_box", kwiver::vital::bounding_box_d );
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
-create_type_trait( gsd, "kwiver:gsd", kwiver::vital::gsd_t );
+create_type_trait( gsd, "kwiver:gsd", double );
 create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
@@ -107,7 +107,7 @@ create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital
 create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
 create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
-create_type_trait( video_metadata, "kwiver:video_metadata", kwiver::vital::video_metadata_vector );
+create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 
 
@@ -141,8 +141,8 @@ create_port_trait( matrix_d, matrix_d, "2-dimensional double matrix." );
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
 create_port_trait( file_name, file_name, "Name of an arbitrary data file." );
 create_port_trait( image_file_name, image_file_name, "Name of an image file." );
-create_port_trait( video_file_name, video_file_name, "Name of a video file." );
-create_port_trait( video_metadata, video_metadata, "Video metadata vector for a frame." );
+create_port_trait( video_file_name, video_file_name, "Name of video file." );
+create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

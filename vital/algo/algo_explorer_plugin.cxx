@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,6 @@ public:
   virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
 
   void display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact );
-  void gen_pipefile_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact );
-
 
   // instance data
   explorer_context* m_context;
@@ -101,14 +99,7 @@ algo_explorer::
     return;
   }
 
-  if (m_context->if_pipeline_format() )
-  {
-    gen_pipefile_algo( pf );
-  }
-  else
-  {
-    display_algo( pf );
-  }
+  display_algo( pf );
 }
 
 
@@ -167,19 +158,78 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
 } // algo_explorer::explore
 
 
+
+
+// ==================================================================
+/**
+ * @brief Plugin to provide detailed dsplay of algorithm plugins.
+ *
+ * This class implements a plugin category formatter for the plugin_explorer
+ * tool generating output in pipeline file format.
+ */
+class algo_explorer_pipe
+  : public category_explorer
+{
+public:
+  // -- CONSTRUCTORS --
+  algo_explorer_pipe();
+  virtual ~algo_explorer_pipe();
+
+  virtual bool initialize( explorer_context* context );
+  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
+
+
+  // instance data
+  explorer_context* m_context;
+
+  // Need special indent prefix so we can not use normal text wrapper.
+  kwiver::vital::wrap_text_block m_wtb;
+
+}; // end class algo_explorer_pipe
+
+
+// ==================================================================
+algo_explorer_pipe::
+algo_explorer_pipe()
+{
+  m_wtb.set_indent_string( "#      " );
+}
+
+
+algo_explorer_pipe::
+~algo_explorer_pipe()
+{ }
+
+
+// ------------------------------------------------------------------
+bool
+algo_explorer_pipe::
+initialize( explorer_context* context )
+{
+  m_context = context;
+  return true;
+}
+
+
 // ------------------------------------------------------------------
 void
-algo_explorer::
-gen_pipefile_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
+algo_explorer_pipe::
+  explore( const kwiver::vital::plugin_factory_handle_t pf )
 {
-  // Need special indent prefix so we can not use normal text wrapper.
-  kwiver::vital::wrap_text_block wtb;
-  wtb.set_indent_string( "#      " );
+  // downcast to correct factory type.
+  std::shared_ptr< kwiver::vital::algorithm_factory > fact =
+    std::dynamic_pointer_cast< kwiver::vital::algorithm_factory > ( pf );
 
+  if ( ! fact )
+  {
+    // Wrong type of factory returned.
+    m_context->output_stream() << "Factory for algorithm could not be converted to algorithm_factory type.";
+    return;
+  }
 
   std::string descrip = "-- Not_Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
-  descrip = wtb.wrap_text( descrip );
+  descrip = m_wtb.wrap_text( descrip );
 
   std::string impl = "-- not set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl );
@@ -203,7 +253,7 @@ gen_pipefile_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
     m_context->output_stream() << "    " << key << " = " << val << std::endl;
 
     kwiver::vital::config_block_description_t descr = config->get_description( key );
-    m_context->output_stream() << wtb.wrap_text( descr ) << std::endl;
+    m_context->output_stream() << m_wtb.wrap_text( descr ) << std::endl;
   } // end foreach over config
 
   m_context->output_stream() << "endblock\n" << std::endl;
@@ -225,6 +275,12 @@ void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
   auto fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::algo_explorer );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "algorithm" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Plugin explorer for algorithm category." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_FACTORY( kwiver::vital::category_explorer, kwiver::vital::algo_explorer_pipe );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "algorithm-pipe" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Plugin explorer for algorithm category. Generates pipeline format output." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
     vpm.mark_module_as_loaded( module );

@@ -37,14 +37,12 @@
 #ifndef SPROKIT_PIPELINE_TYPES_H
 #define SPROKIT_PIPELINE_TYPES_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/vital_config.h>
 #include <exception>
 #include <string>
 #include <memory>
-
-#include <boost/shared_ptr.hpp>
 
 /**
  * \brief The namespace for all sprokit-related symbols.

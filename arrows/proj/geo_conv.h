@@ -49,13 +49,16 @@ namespace arrows {
 namespace proj {
 
 /// PROJ implementation of geo_conversion functor
-class KWIVER_ALGO_PROJ_EXPORT geo_conversion : public vital::geo_conversion
+class KWIVER_ALGO_PROJ_EXPORT geo_conversion
+  : public vital::geo_conversion
 {
 public:
   geo_conversion() {}
   virtual ~geo_conversion();
 
   virtual char const* id() const override;
+
+  virtual vital::geo_crs_description_t describe( int crs ) override;
 
   /// Conversion operator
   virtual vital::vector_2d operator()( vital::vector_2d const& point,

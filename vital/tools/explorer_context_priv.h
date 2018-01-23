@@ -57,7 +57,6 @@ public:
   bool opt_scheduler;
   bool opt_summary;
   bool opt_attrs;
-  bool opt_pipe_format;
 
   std::ostream* m_out_stream;
 
@@ -79,6 +78,11 @@ public:
   bool opt_type_filt;
   std::string opt_type_regex;
 
+  // Formatting type string. This is used as a suffix to the category
+  // name to select specific explorer plugin when different formatting
+  // styles are requested.
+  std::string formatting_type;
+
   std::string opt_load_module;
 
   std::function<void(kwiver::vital::plugin_factory_handle_t const)> display_attr;
@@ -97,7 +101,6 @@ public:
 
     opt_attr_filter = false;
     opt_fact_filt = false;
-    opt_pipe_format = false;
 
     m_out_stream = 0;
   }

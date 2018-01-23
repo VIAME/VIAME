@@ -3,12 +3,41 @@ In order to generate the files needed for the sphinx server, enter the following
 $ make html
 
 A local copy of the sphinx server can be started that will serve up the pages created
-by the previous command by entering the folloeing command
+by the previous command by entering the following command
 
 $ sphinx_server.py
 
-You may need to install the following to get the server working
+You will need to have Python installed on your system and in a bash or cmd shell that can execute pythong scripts
 
-apt install -y python-sphinx
+You will need to install several packages in your python environment
+While not strictly required, it is recommended to create a virtual environment these required packages from other python packages. 
+To generate a new virtual environment, first install/update the virtualenv and pip packages:
+
+sudo pip install -U virtualenv pip
+#sudo is not necessary on windows machines
+
+Now create a virtual environment using the virtualenv command. 
+You can place the virtual environment directory wherever you want, but it should not be moved. 
+The following command will generate a new directory called kwiver_env in your home directory:
+
+virtualenv ~/kwiver_env
+# On windows, it is recommended to create this directory in your user folder with out the ~
+
+Enter the virtual environment:
+
+#Linux
+. ~/kwiver_env/bin/activate
+#Windows, execute this script in your python cmd window
+kwiver_env/bin/Scripts/activate.bat
+
+This call will tell you what environment python is currently in
+
+pip -V
+
+
+Now install your packages, they will only be assocated with the kwiver_env virtualenv
+
+pip install sphinx
+pip install sphinx_rtd_theme
 pip install livereload
 pip install breathe

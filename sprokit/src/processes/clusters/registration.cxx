@@ -93,7 +93,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     LOG_DEBUG( logger, "Loading clusters from directory: " << include_dir );
     if ( ! kwiversys::SystemTools::FileExists( include_dir) )
     {
-      LOG_WARN( logger, "Path not found loading clusters: " << include_dir );
+      LOG_DEBUG( logger, "Path not found loading clusters: " << include_dir );
       continue;
     }
 
@@ -155,7 +155,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
         try
         {
           // Add cluster to process registry with a specific factory function
-          auto fact = vpm.add_factory( new sprokit::process_factory( type, typeid( sprokit::process ).name(), ctor ) );
+          auto fact = vpm.add_factory( new sprokit::cpp_process_factory( type, typeid( sprokit::process ).name(), ctor ) );
           fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
 
           // Indicate this is a cluster and add source file name

@@ -32,8 +32,6 @@
 
 #include <vital/config/config_block.h>
 
-#include <boost/cstdint.hpp>
-
 /**
  * \file any_source_process.cxx
  *

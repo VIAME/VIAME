@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,87 +33,55 @@
  * \brief test core vector functionality
  */
 
-#include <test_common.h>
-
 #include <vital/types/vector.h>
 
-#define TEST_ARGS ()
+#include <gtest/gtest.h>
 
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-IMPLEMENT_TEST(construct_2d)
+// ----------------------------------------------------------------------------
+TEST(vector, construct_2d)
 {
-  kwiver::vital::vector_2d v2d(10.0, 33.3);
-  kwiver::vital::vector_2f v2f(5.0f, 4.5f);
+  kwiver::vital::vector_2d v2d{ 10.0, 33.3 };
+  EXPECT_EQ( 10.0, v2d.x() );
+  EXPECT_EQ( 33.3, v2d.y() );
 
-  if (v2d.x() != 10.0 || v2f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_2_ not initialized correctly");
-  }
-
-  if (v2d.y() != 33.3 || v2f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_2_ not initialized correctly");
-  }
-
+  kwiver::vital::vector_2f v2f{ 5.0f, 4.5f };
+  EXPECT_EQ( 5.0f, v2f.x() );
+  EXPECT_EQ( 4.5f, v2f.y() );
 }
 
-
-IMPLEMENT_TEST(construct_3d)
+// ----------------------------------------------------------------------------
+TEST(vector, construct_3d)
 {
-  kwiver::vital::vector_3d v3d(10.0, 33.3, 12.1);
-  kwiver::vital::vector_3f v3f(5.0f, 4.5f, -6.3f);
+  kwiver::vital::vector_3d v3d{ 10.0, 33.3, 12.1 };
+  EXPECT_EQ( 10.0, v3d.x() );
+  EXPECT_EQ( 33.3, v3d.y() );
+  EXPECT_EQ( 12.1, v3d.z() );
 
-  if (v3d.x() != 10.0 || v3f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_3_ not initialized correctly");
-  }
-
-  if (v3d.y() != 33.3 || v3f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_3_ not initialized correctly");
-  }
-
-  if (v3d.z() != 12.1 || v3f.z() != -6.3f)
-  {
-    TEST_ERROR("Z coordinate of vector_3_ not initialized correctly");
-  }
+  kwiver::vital::vector_3f v3f{ 5.0f, 4.5f, -6.3f };
+  EXPECT_EQ( 5.0f, v3f.x() );
+  EXPECT_EQ( 4.5f, v3f.y() );
+  EXPECT_EQ( -6.3f, v3f.z() );
 }
 
-
-IMPLEMENT_TEST(construct_4d)
+// ----------------------------------------------------------------------------
+TEST(vector, construct_4d)
 {
-  kwiver::vital::vector_4d v4d(10.0, 33.3, 12.1, 0.0);
-  kwiver::vital::vector_4f v4f(5.0f, 4.5f, -6.3f, 100.0f);
+  kwiver::vital::vector_4d v4d{ 10.0, 33.3, 12.1, 0.0 };
+  EXPECT_EQ( 10.0, v4d.x() );
+  EXPECT_EQ( 33.3, v4d.y() );
+  EXPECT_EQ( 12.1, v4d.z() );
+  EXPECT_EQ( 0.0, v4d.w() );
 
-  if (v4d.x() != 10.0 || v4f.x() != 5.0f)
-  {
-    TEST_ERROR("X coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.y() != 33.3 || v4f.y() != 4.5f)
-  {
-    TEST_ERROR("Y coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.z() != 12.1 || v4f.z() != -6.3f)
-  {
-    TEST_ERROR("Z coordinate of vector_4_ not initialized correctly");
-  }
-
-  if (v4d.w() != 0.0 || v4f.w() != 100.0f)
-  {
-    TEST_ERROR("W coordinate of vector_4_ not initialized correctly");
-  }
+  kwiver::vital::vector_4f v4f{ 5.0f, 4.5f, -6.3f, 100.0f };
+  EXPECT_EQ( 5.0f, v4f.x() );
+  EXPECT_EQ( 4.5f, v4f.y() );
+  EXPECT_EQ( -6.3f, v4f.z() );
+  EXPECT_EQ( 100.0f, v4f.w() );
 }

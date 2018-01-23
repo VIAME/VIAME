@@ -55,7 +55,7 @@ optimize_cameras
 ::optimize(camera_map_sptr & cameras,
            feature_track_set_sptr tracks,
            landmark_map_sptr landmarks,
-           video_metadata_map_sptr metadata) const
+           metadata_map_sptr metadata) const
 {
   if (!cameras || !tracks || !landmarks)
   {
@@ -101,16 +101,16 @@ optimize_cameras
   map_camera_t optimized_cameras;
   std::vector< feature_sptr > v_feat;
   std::vector< landmark_sptr > v_lms;
-  video_metadata_map::map_video_metadata_t metadata_map;
+  metadata_map::map_metadata_t metadata_map;
   if(metadata)
   {
-    metadata_map = metadata->video_metadata();
+    metadata_map = metadata->metadata();
   }
   for(map_camera_t::value_type const& p : cams)
   {
     v_feat.clear();
     v_lms.clear();
-    video_metadata_vector v_metadata;
+    metadata_vector v_metadata;
 
     auto mdv = metadata_map.find(p.first);
     if(mdv != metadata_map.end())

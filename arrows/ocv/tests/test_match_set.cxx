@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,44 +33,29 @@
  * \brief test OCV match set class
  */
 
-#include <test_common.h>
-
 #include <arrows/ocv/match_set.h>
 
-
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
+#include <gtest/gtest.h>
 
 using namespace kwiver::vital;
+using namespace kwiver::arrows;
 
-
-IMPLEMENT_TEST(default_set)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  using namespace kwiver::arrows;
-  ocv::match_set ms;
-  if (ms.size() != 0)
-  {
-    TEST_ERROR("Default match_set is not empty");
-  }
-  if (!ms.matches().empty())
-  {
-    TEST_ERROR("Default match_set produces non-empty features");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(match_set, default_set)
+{
+  ocv::match_set ms;
+  EXPECT_EQ( 0, ms.size() );
+  EXPECT_TRUE( ms.matches().empty() );
+}
 
+// ----------------------------------------------------------------------------
 // It seems operator== on cv::DMatch is not defined in OpenCV
 static bool dmatch_equal(const cv::DMatch& dm1, const cv::DMatch& dm2)
 {
@@ -80,37 +65,31 @@ static bool dmatch_equal(const cv::DMatch& dm1, const cv::DMatch& dm2)
          dm1.distance == dm2.distance;
 }
 
-
-IMPLEMENT_TEST(populated_set)
+// ----------------------------------------------------------------------------
+TEST(match_set, populated_set)
 {
-  using namespace kwiver::arrows;
-  const unsigned num_matches = 100;
+  static constexpr unsigned num_matches = 100;
+
   std::vector<cv::DMatch> dms;
   for (unsigned i=0; i<num_matches; ++i)
   {
     cv::DMatch dm(i, num_matches-i-1, FLT_MAX);
     dms.push_back(dm);
   }
+
   ocv::match_set ms(dms);
-  if (ms.size() != num_matches)
-  {
-    TEST_ERROR("match_set is not the expected size");
-  }
+  EXPECT_EQ( num_matches, ms.size() );
+
   std::vector<cv::DMatch> dms2 = ms.ocv_matches();
-  if (!std::equal(dms.begin(), dms.end(), dms2.begin(), dmatch_equal))
-  {
-    TEST_ERROR("match_set does not contain original cv::DMatch");
-  }
+  EXPECT_TRUE( std::equal( dms.begin(), dms.end(),
+                           dms2.begin(), dmatch_equal ) );
+
   std::vector<match> mats = ms.matches();
-  if (mats.size() != ms.size())
-  {
-    TEST_ERROR("match_set does not produce expected number of matches");
-  }
+  EXPECT_EQ( ms.size(), mats.size() );
 
   simple_match_set simp_ms(mats);
   dms2 = ocv::matches_to_ocv_dmatch(simp_ms);
-  if (!std::equal(dms.begin(), dms.end(), dms2.begin(), dmatch_equal))
-  {
-    TEST_ERROR("conversion to and from ARROWS matches does not preserve cv::DMatch");
-  }
+  EXPECT_TRUE( std::equal( dms.begin(), dms.end(),
+                           dms2.begin(), dmatch_equal ) )
+    << "Conversion to and from ARROWS features should preserve cv::DMatch";
 }

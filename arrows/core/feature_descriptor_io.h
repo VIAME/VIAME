@@ -36,12 +36,9 @@
 #ifndef KWIVER_ARROWS_CORE_FEATURE_DESCRIPTOR_IO_H_
 #define KWIVER_ARROWS_CORE_FEATURE_DESCRIPTOR_IO_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/feature_descriptor_io.h>
-
 
 namespace kwiver {
 namespace arrows {

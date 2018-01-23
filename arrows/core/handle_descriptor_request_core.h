@@ -36,8 +36,6 @@
 #ifndef ARROWS_PLUGINS_CORE_FORMULATE_QUERY_CORE_H_
 #define ARROWS_PLUGINS_CORE_FORMULATE_QUERY_CORE_H_
 
-
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/algorithm.h>
@@ -45,7 +43,6 @@
 
 #include <vital/algo/image_io.h>
 #include <vital/algo/compute_track_descriptors.h>
-
 
 namespace kwiver {
 namespace arrows {

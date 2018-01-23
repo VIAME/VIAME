@@ -72,6 +72,7 @@ process::property_t const process::property_no_reentrancy = property_t("_no_reen
 process::property_t const process::property_unsync_input = property_t("_unsync_input");
 process::property_t const process::property_unsync_output = property_t("_unsync_output");
 process::property_t const process::property_instrumented = property_t("_instrumented");
+process::property_t const process::property_python = property_t("_python");
 
 process::port_t const process::port_heartbeat = port_t("_heartbeat");
 
@@ -215,7 +216,7 @@ class process::priv
     mutable mutex_t output_edges_mut;
 
     process* const q;
-   kwiver::vital::config_block_sptr conf;
+    kwiver::vital::config_block_sptr conf;
 
     typedef std::set<port_t> port_set_t;
 
@@ -245,6 +246,9 @@ class process::priv
 
     kwiver::vital::logger_handle_t m_logger;
     std::unique_ptr< sprokit::process_instrumentation > m_proc_instrumentation; // instrumentation provider
+
+    // List of properties that are associated with this object
+    properties_t m_properties;
 
     static kwiver::vital::config_block_value_t const default_name;
 };
@@ -382,12 +386,29 @@ process
 }
 
 
+// ----------------------------------------------------------------------------
+void
+process
+::add_property( const property_t& prop )
+{
+  d->m_properties.insert( prop );
+}
+
+
 // ------------------------------------------------------------------
 process::properties_t
 process
 ::properties() const
 {
-  return _properties();
+  // Fetch property set from this
+  properties_t result( d->m_properties );
+
+  // Get properties from derived class
+  properties_t derived = _properties();
+
+  result.insert( derived.begin(), derived.end() );
+
+  return result;
 }
 
 
@@ -639,11 +660,14 @@ process
 
       kwiver::vital::config_block_sptr prov_block = instr_block->subblock_view( instr_prov );
       d->m_proc_instrumentation->configure( instr_block );
+
+      // Add this as a property
+      add_property( property_instrumented );
     }
   }
 
   // Set default logger name
-  attach_logger( kwiver::vital::get_logger( std::string( "process." ) + name() ) );
+  attach_logger( kwiver::vital::get_logger( std::string( "sprokit.process." ) + name() ) );
 }
 
 

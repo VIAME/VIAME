@@ -127,8 +127,8 @@ void
 detected_object_set::
 add( detected_object_set_sptr detections )
 {
-  auto ie = cend();
-  for ( auto ix = cbegin(); ix != ie; ++ix )
+  auto ie = detections->cend();
+  for ( auto ix = detections->cbegin(); ix != ie; ++ix )
   {
     this->add( *ix );
   }
@@ -320,5 +320,22 @@ cend() const
   return m_detected_objects.end();
 }
 
+
+// ----------------------------------------------------------------------------
+detected_object_sptr
+detected_object_set::
+at( size_t pos )
+{
+  return m_detected_objects.at( pos );
+}
+
+
+// ----------------------------------------------------------------------------
+const detected_object_sptr
+detected_object_set::
+at( size_t pos ) const
+{
+  return m_detected_objects.at( pos );
+}
 
 } } // end namespace

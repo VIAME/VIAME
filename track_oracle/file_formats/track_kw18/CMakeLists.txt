@@ -31,8 +31,8 @@ kwiver_add_library( track_kw18
 target_link_libraries( track_kw18
   PUBLIC               track_oracle
                        data_terms
+                       track_oracle_format_base
   PRIVATE              vital_logger
                        vul
                        vgl
-                       track_oracle_format_base
 )

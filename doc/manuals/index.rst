@@ -9,20 +9,13 @@ Welcome to KWIVER's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 6
 
    introduction
-   install_guide
-   tutorial
-   overview_of_components
-   algorithms
-   plugins
-   plugin_explorer
-   pipeline_example
-   sprokit_architecture
-   how_to_pipeline
-   extending_kwiver
-   doxy-bridge
+   architecture
+   tools
+   tutorials
+   extentions
 
 Indices and tables
 ==================

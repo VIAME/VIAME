@@ -34,13 +34,11 @@
  */
 
 #include <test_eigen.h>
+#include <test_gtest.h>
 
 #include <vital/types/geo_point.h>
 #include <vital/types/geodesy.h>
 #include <vital/plugin_loader/plugin_manager.h>
-
-#include <gtest/gtest.h>
-
 
 static auto const loc1 = kwiver::vital::vector_2d{ -73.759291, 42.849631 };
 static auto const loc2 = kwiver::vital::vector_2d{ -73.757161, 42.849764 };
@@ -53,8 +51,6 @@ static auto constexpr crs_utm_18n = kwiver::vital::SRID::UTM_WGS84_north + 18;
 int
 main(int argc, char* argv[])
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   ::testing::InitGoogleTest( &argc, argv );
   return RUN_ALL_TESTS();
 }
@@ -138,6 +134,8 @@ TEST(geo_point, api)
 // ----------------------------------------------------------------------------
 TEST(geo_point, conversion)
 {
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   kwiver::vital::geo_point p_ll{ loc1, crs_ll };
   kwiver::vital::geo_point p_utm{ loc3, crs_utm_18n };
 

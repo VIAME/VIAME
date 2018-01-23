@@ -36,12 +36,9 @@
 #ifndef KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
 #define KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_H_
 
-#include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/algo/initialize_cameras_landmarks.h>
-
-#include <memory>
 
 namespace kwiver {
 namespace arrows {
@@ -84,7 +81,7 @@ public:
   initialize(vital::camera_map_sptr& cameras,
              vital::landmark_map_sptr& landmarks,
              vital::feature_track_set_sptr tracks,
-             vital::video_metadata_map_sptr metadata = nullptr) const;
+             vital::metadata_map_sptr metadata = nullptr) const;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

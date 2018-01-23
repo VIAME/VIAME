@@ -12,7 +12,8 @@ _sprokit_add_python_library(datum
   datum.cxx)
 target_link_libraries(python-sprokit.pipeline-datum
   PRIVATE             sprokit_pipeline
-                      sprokit_python_util)
+                      sprokit_python_util
+                      vital_util)
 
 _sprokit_add_python_library(edge
   sprokit/pipeline
@@ -43,7 +44,8 @@ _sprokit_add_python_library(process
   process.cxx)
 target_link_libraries(python-sprokit.pipeline-process
   PRIVATE             sprokit_pipeline
-                      sprokit_python_util)
+                      sprokit_python_util
+                      vital_util)
 
 _sprokit_add_python_library(process_cluster
   sprokit/pipeline

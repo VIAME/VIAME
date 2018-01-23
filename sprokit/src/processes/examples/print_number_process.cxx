@@ -36,7 +36,6 @@
 #include <sprokit/pipeline/process_exception.h>
 
 #include <boost/filesystem/fstream.hpp>
-#include <boost/cstdint.hpp>
 
 #include <string>
 

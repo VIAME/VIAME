@@ -68,9 +68,6 @@ algo_wrapper_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new algo_wrapper_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }

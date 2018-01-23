@@ -31,12 +31,12 @@
 #ifndef SPROKIT_PIPELINE_PIPELINE_H
 #define SPROKIT_PIPELINE_PIPELINE_H
 
-#include "pipeline-config.h"
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include "process.h"
 #include "types.h"
 
-#include <boost/noncopyable.hpp>
+#include <vital/noncopyable.h>
 
 /**
  * \file pipeline.h
@@ -44,8 +44,7 @@
  * \brief Header for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /**
  * \class pipeline pipeline.h <sprokit/pipeline/pipeline.h>
@@ -55,7 +54,7 @@ namespace sprokit
  * \ingroup base_classes
  */
 class SPROKIT_PIPELINE_EXPORT pipeline
-  : private boost::noncopyable
+  : private kwiver::vital::noncopyable
 {
   public:
     /**
@@ -224,6 +223,7 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns True if the pipeline has been setup, false otherwise.
      */
     bool is_setup() const;
+
     /**
      * \brief Query whether the pipeline has been setup successfully.
      *
@@ -489,6 +489,13 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * \returns All edges that carry data from \p name's \p port.
      */
     edges_t output_edges_for_port(process::name_t const& name, process::port_t const& port) const;
+
+    /**
+     * \brief Check to see if the pipeline has any python processes.
+     *
+     * \returns Return a python process if any exist, or a null pointer otherwise
+     */
+    process_t get_python_process() const;
 
   private:
     friend class scheduler;

@@ -39,6 +39,16 @@
 
 #include <gtest/gtest.h>
 
+#define TEST_LOAD_PLUGINS() \
+  class _test_plugin_helper : public ::testing::EmptyTestEventListener \
+  { \
+  public: \
+    virtual void OnTestProgramStart(::testing::UnitTest const&) override \
+    { kwiver::vital::plugin_manager::instance().load_all_plugins(); } \
+  }; \
+  ::testing::UnitTest::GetInstance()->listeners().Append( \
+    new _test_plugin_helper )
+
 // ----------------------------------------------------------------------------
 /** @brief Consume a required command line argument.
  *
@@ -87,5 +97,43 @@
  */
 #define TEST_ARG(var) \
   public: decltype(g_ ## var) const& var = g_ ## var
+
+namespace kwiver {
+namespace testing {
+
+// ----------------------------------------------------------------------------
+template <typename V, typename L, typename U>
+::testing::AssertionResult
+is_in_inclusive_range(
+  char const* expr_value, char const* expr_lower, char const* expr_upper,
+  V value, L lower, U upper )
+{
+  using namespace ::testing;
+
+  if ( value >= lower && value <= upper )
+  {
+    return AssertionSuccess();
+  }
+
+  return AssertionFailure()
+    << "Expected: ("
+    << expr_lower << ") ≤ ("
+    << expr_value << ") ≤ ("
+    << expr_upper << "), where\n"
+    << expr_lower << " evaluates to " << PrintToString(lower) << ",\n"
+    << expr_upper << " evaluates to " << PrintToString(upper) << ", and\n"
+    << expr_value << " evaluates to " << PrintToString(value) << ".";
+}
+
+#define EXPECT_WITHIN( lower, value, upper ) \
+  EXPECT_PRED_FORMAT3( ::kwiver::testing::is_in_inclusive_range, \
+                       value, lower, upper )
+
+#define ASSERT_WITHIN( lower, value, upper ) \
+  ASSERT_PRED_FORMAT3( ::kwiver::testing::is_in_inclusive_range, \
+                       value, lower, upper )
+
+}
+}
 
 #endif

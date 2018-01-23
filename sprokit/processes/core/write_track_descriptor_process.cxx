@@ -76,9 +76,6 @@ write_track_descriptor_process
   : process( config ),
     d( new write_track_descriptor_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }

@@ -57,6 +57,8 @@ function (sprokit_add_test_plugin    name    directory)
   endforeach ()
 endfunction ()
 
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+
 sprokit_add_test_plugin(processes_test multiple_load
   processes_test.cxx)
 
@@ -72,9 +74,6 @@ sprokit_discover_tests(modules test_libraries test_modules.cxx)
 # Process tests
 ##############################
 sprokit_discover_tests(process test_libraries test_process.cxx)
-
-set( non_b_libs ${test_libraries} kwiver_adapter)
-sprokit_discover_tests(non_blocking non_b_libs test_non_blocking.cxx)
 
 ##############################
 # Process cluster tests

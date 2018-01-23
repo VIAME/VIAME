@@ -63,17 +63,8 @@ close_loops_bad_frames_only
 }
 
 
-std::string
-close_loops_bad_frames_only
-::description() const
-{
-  return "Attempts short-term loop closure based on percentage of feature "
-    "points tracked.";
-}
-
-
-/// Get this alg's \link vital::config_block configuration block \endlink
-  vital::config_block_sptr
+// ----------------------------------------------------------------------------
+vital::config_block_sptr
 close_loops_bad_frames_only
 ::get_configuration() const
 {
@@ -109,6 +100,7 @@ close_loops_bad_frames_only
 }
 
 
+// ----------------------------------------------------------------------------
 /// Set this algo's properties via a config block
 void
 close_loops_bad_frames_only
@@ -134,7 +126,8 @@ close_loops_bad_frames_only
 }
 
 
-bool
+// ----------------------------------------------------------------------------
+  bool
 close_loops_bad_frames_only
 ::check_configuration(vital::config_block_sptr config) const
 {
@@ -146,6 +139,7 @@ close_loops_bad_frames_only
 }
 
 
+// ----------------------------------------------------------------------------
 /// Handle track bad frame detection if enabled
 vital::feature_track_set_sptr
 close_loops_bad_frames_only

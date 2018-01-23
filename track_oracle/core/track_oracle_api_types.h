@@ -38,6 +38,9 @@ typedef size_t field_handle_type;
 const oracle_entry_handle_type INVALID_ROW_HANDLE = static_cast<oracle_entry_handle_type>( -1 );
 const field_handle_type INVALID_FIELD_HANDLE = static_cast<field_handle_type>( -1 );
 
+// special row for system bookkeeping
+const oracle_entry_handle_type SYSTEM_ROW_HANDLE = 0;
+
 //
 // The only structure track oracle imposes on the data is the abstract
 // structure of a moving object track:
@@ -116,6 +119,14 @@ const domain_handle_type DOMAIN_ALL = 0;
 typedef std::vector< size_t > csv_header_index_type;
 typedef std::map< field_handle_type, csv_header_index_type > csv_handler_map_type;
 typedef std::map< field_handle_type, csv_header_index_type >::const_iterator csv_handler_map_cit;
+
+///
+/// typedefs for the KPF cset map types
+///
+
+typedef std::map< std::string, double > kpf_cset_type;
+typedef std::map< std::string, size_t > kpf_cset_s2i_type;
+typedef std::map< size_t, double > kpf_cset_sys_type;
 
 namespace dt {
 

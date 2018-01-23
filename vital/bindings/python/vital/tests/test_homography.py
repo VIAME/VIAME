@@ -34,7 +34,6 @@ Tests for python Homography interface
 
 """
 from __future__ import print_function
-import ctypes
 import sys
 import os
 import unittest
@@ -53,7 +52,7 @@ class TestHomography (unittest.TestCase):
 
     def test_ident_init(self):
         h_d = Homography()
-        h_f = Homography(ctypes.c_float)
+        h_f = Homography('f')
 
     def test_matrix_init(self):
         # Test that construction does not fail when passing valid matrices as
@@ -61,36 +60,36 @@ class TestHomography (unittest.TestCase):
         m1 = [[0,     1,   3],
               [0.3, 0.1,  10],
               [-1,  8.1, 4.7]]
-        m2_d = EigenArray.from_iterable(m1, ctypes.c_double, (3, 3))
-        m2_f = EigenArray.from_iterable(m1, ctypes.c_float, (3, 3))
+        m2_d = EigenArray.from_array(m1, 'd')
+        m2_f = EigenArray.from_array(m1, 'f')
 
-        Homography.from_matrix(m1, ctypes.c_double)
-        Homography.from_matrix(m1, ctypes.c_float)
-        Homography.from_matrix(m2_d, ctypes.c_double)
-        Homography.from_matrix(m2_d, ctypes.c_float)
-        Homography.from_matrix(m2_f, ctypes.c_double)
-        Homography.from_matrix(m2_f, ctypes.c_float)
+        Homography.from_matrix(m1, 'd')
+        Homography.from_matrix(m1, 'f')
+        Homography.from_matrix(m2_d.get_matrix(), 'd')
+        Homography.from_matrix(m2_d.get_matrix(), 'f')
+        Homography.from_matrix(m2_f.get_matrix(), 'd')
+        Homography.from_matrix(m2_f.get_matrix(), 'f')
 
-    def random(self):
-        Homography.random(ctypes.c_double)
-        Homography.random(ctypes.c_float)
+    def test_random(self):
+        Homography.random('d')
+        Homography.random('f')
 
     def test_typename(self):
-        h_d = Homography(ctypes.c_double)
-        h_f = Homography(ctypes.c_float)
+        h_d = Homography('d')
+        h_f = Homography('f')
 
         nose.tools.assert_equal(h_d.type_name, 'd')
         nose.tools.assert_equal(h_f.type_name, 'f')
 
     def test_as_matrix(self):
         numpy.testing.assert_almost_equal(
-            Homography(ctypes.c_double).as_matrix(),
+            Homography('d').as_matrix(),
             [[1, 0, 0],
              [0, 1, 0],
              [0, 0, 1]]
         )
         numpy.testing.assert_almost_equal(
-            Homography(ctypes.c_float).as_matrix(),
+            Homography('f').as_matrix(),
             [[1, 0, 0],
              [0, 1, 0],
              [0, 0, 1]]
@@ -100,11 +99,11 @@ class TestHomography (unittest.TestCase):
              [4, 5, 6],
              [7, 8, 9]]
         numpy.testing.assert_almost_equal(
-            Homography.from_matrix(m, ctypes.c_double).as_matrix(),
+            Homography.from_matrix(m, 'd').as_matrix(),
             m
         )
         numpy.testing.assert_almost_equal(
-            Homography.from_matrix(m, ctypes.c_float).as_matrix(),
+            Homography.from_matrix(m, 'f').as_matrix(),
             m
         )
 
@@ -112,11 +111,11 @@ class TestHomography (unittest.TestCase):
              [.4, .5, .6],
              [.7, .8, .9]]
         numpy.testing.assert_almost_equal(
-            Homography.from_matrix(m, ctypes.c_double).as_matrix(),
+            Homography.from_matrix(m, 'd').as_matrix(),
             m
         )
         numpy.testing.assert_almost_equal(
-            Homography.from_matrix(m, ctypes.c_float).as_matrix(),
+            Homography.from_matrix(m, 'f').as_matrix(),
             m
         )
 
@@ -137,30 +136,6 @@ class TestHomography (unittest.TestCase):
         nose.tools.assert_not_equal(h1, Homography())
         nose.tools.assert_not_equal(h2, Homography())
 
-        # Should not be equal to these
-        nose.tools.assert_not_equal(h1, 0)
-        nose.tools.assert_not_equal(h2, 'foo')
-
-    def test_clone(self):
-        m = [[.1, .2, .3],
-             [.4, .5, .6],
-             [.7, .8, .9]]
-        # Cloning a matrix should yield a new instance that has the same value
-        # as the original
-        h1 = Homography.from_matrix(m, ctypes.c_double)
-        h2 = h1.clone()
-        nose.tools.assert_false(h1 is h2)
-        nose.tools.assert_not_equal(ctypes.addressof(h1.c_pointer.contents),
-                                    ctypes.addressof(h2.c_pointer.contents))
-        numpy.testing.assert_almost_equal(h1.as_matrix(), h2.as_matrix())
-
-        # Cloning should carry over data type
-        nose.tools.assert_equal(h1.type_name, h2.type_name)
-
-        h3 = Homography.from_matrix(m, ctypes.c_float)
-        h4 = h3.clone()
-        nose.tools.assert_equal(h3.type_name, h4.type_name)
-
     def test_numeric_invertibility(self):
         exp_result = Homography.from_matrix([[-.5, -2.5, 1.5],
                                              [-1.5, 1.5, -.5],
@@ -170,14 +145,14 @@ class TestHomography (unittest.TestCase):
                                     [3, 4, 5],
                                     [6, 7, 9]])
         h_inv = h.inverse()
-        nose.tools.assert_equal(h_inv, exp_result)
+        numpy.testing.assert_array_equal(h_inv, exp_result.as_matrix())
 
         h = Homography.from_matrix([[1, 1, 2],
                                     [3, 4, 5],
                                     [6, 7, 9]],
-                                   ctypes.c_float)
+                                   'f')
         h_inv = h.inverse()
-        nose.tools.assert_equal(h_inv, exp_result)
+        numpy.testing.assert_array_equal(h_inv, exp_result.as_matrix())
 
     def test_normalize(self):
         h = Homography.from_matrix([[-.5, -2.5, 1.5],
@@ -186,14 +161,16 @@ class TestHomography (unittest.TestCase):
         e = Homography.from_matrix([[1,   5, -3],
                                     [3,  -3,  1],
                                     [-3, -1,  1]])
-        nose.tools.assert_equal(h.normalize(), e)
+        numpy.testing.assert_array_equal(h.normalize(), e.as_matrix())
 
     def test_point_map(self):
-        h_f = Homography(ctypes.c_float)
-        h_d = Homography(ctypes.c_double)
+        h_f = Homography('f')
+        h_d = Homography('d')
 
-        p_f = EigenArray.from_iterable([2.2, 3.3], ctypes.c_float)
-        p_d = EigenArray.from_iterable([5.5, 6.6], ctypes.c_double)
+        p_af = EigenArray.from_array([[2.2, 3.3]], 'f')
+        p_f = p_af.get_matrix()[0]
+        p_ad = EigenArray.from_array([[5.5, 6.6]], 'd')
+        p_d = p_ad.get_matrix()[0]
 
         # float-float
         numpy.testing.assert_almost_equal(
@@ -218,7 +195,7 @@ class TestHomography (unittest.TestCase):
         p0 = numpy.random.rand(3); p0[2] = 1
         p1 = numpy.dot(h, p0)
         p1 = p1[:2]/p1[2]
-        h_d = Homography.from_matrix(h, ctypes.c_double)
+        h_d = Homography.from_matrix(h, 'd')
 
         # map from Numpy array.
         numpy.testing.assert_almost_equal(
@@ -226,9 +203,9 @@ class TestHomography (unittest.TestCase):
         )
 
         # map from EigenArray
-        p0 = EigenArray.from_iterable(p0[:2])
+        p0 = EigenArray.from_array([p0[:2]])
         numpy.testing.assert_almost_equal(
-            h_d.map(p0).ravel(), p1
+            h_d.map(p0.get_matrix()[0]).ravel(), p1
         )
 
         # Another explicit case.
@@ -241,17 +218,17 @@ class TestHomography (unittest.TestCase):
                           1]])
         p1 = numpy.dot(h, p0);      p1 = p1[:2]/p1[2]
         H = Homography.from_matrix(h)
-        P = EigenArray.from_iterable(p0[:2])
+        P = EigenArray.from_array([p0[:2]])
         numpy.testing.assert_almost_equal(
-            H.map(P).ravel(), p1
+            H.map(P.get_matrix()[0]).ravel(), p1
         )
 
 
     def test_point_map_zero_div(self):
         test_p = [1, 1]
 
-        for dtype, e in [[ctypes.c_float, numpy.finfo(ctypes.c_float).min],
-                         [ctypes.c_double, sys.float_info.min]]:
+        for dtype, e in [['f', numpy.finfo('f').min],
+                         ['d', sys.float_info.min]]:
             print("Dtype:", dtype)
             print("E:", e)
 
@@ -261,7 +238,7 @@ class TestHomography (unittest.TestCase):
                                         [0, 0, 0]],
                                        dtype)
             nose.tools.assert_raises(
-                PointMapsToInfinityException,
+                RuntimeError,
                 h.map, test_p
             )
 
@@ -273,7 +250,7 @@ class TestHomography (unittest.TestCase):
                                        dtype)
             print("E Matrix:", h.as_matrix())
             nose.tools.assert_raises(
-                PointMapsToInfinityException,
+                RuntimeError,
                 h.map, test_p
             )
 
@@ -301,61 +278,3 @@ class TestHomography (unittest.TestCase):
 
         r3 = h_valued * h_ident
         nose.tools.assert_equal(r3, h_valued)
-
-        # Failure, multiplying against non-homography
-        def h_mult(h, v):
-            return h * v
-
-        nose.tools.assert_raises(
-            ValueError,
-            h_mult, h_ident, 1
-        )
-        nose.tools.assert_raises(
-            TypeError,
-            h_mult, h_ident, 'a string'
-        )
-
-    def test_write_to_file(self):
-        # Use a random string filename to avoid name collision.
-        fname = 'temp_homography_test_write_to_file.txt'
-
-        h = Homography.from_matrix([[1, 0,  1],
-                                    [0, 12.01321561,  1],
-                                    [0, 0, .5]])
-
-        try:
-            # Try writing with the string filename.
-            h.write_to_file(fname)
-
-            # Try writing with an open file.
-            with open(fname, 'w') as f:
-                h.write_to_file(f)
-        finally:
-            if os.path.isfile(fname):
-                os.remove(fname)
-
-    def test_read_from_file(self):
-        # Use a random string filename to avoid name collision.
-        fname = 'temp_homography_test_read_from_file.txt'
-
-        # Reference homography
-        h = Homography.from_matrix([[1, 0,  1],
-                                    [0, 12.01321561,  1],
-                                    [0, 0, .5]])
-
-        try:
-            h.write_to_file(fname)
-
-            # Try reading with the string filename.
-            h2 = Homography.read_from_file(fname)
-            assert h == h2
-
-            # Try reading from an open file.
-            with open(fname, 'r') as f:
-                h2 = Homography.read_from_file(f)
-
-            numpy.testing.assert_almost_equal(h.as_matrix(),
-                                              h2.as_matrix())
-        finally:
-            if os.path.isfile(fname):
-                os.remove(fname)

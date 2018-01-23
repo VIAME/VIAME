@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,94 +28,81 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <test_common.h>
 #include <test_scene.h>
+
+#include <arrows/tests/test_triangulate_landmarks.h>
+#include <arrows/vxl/triangulate_landmarks.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <arrows/core/tests/test_triangulate_landmarks.h>
-#include <arrows/vxl/triangulate_landmarks.h>
-
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
 using namespace kwiver::vital;
 
-IMPLEMENT_TEST(create)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  using namespace kwiver::arrows;
-  algo::triangulate_landmarks_sptr tri_lm = algo::triangulate_landmarks::create("vxl");
-  if (!tri_lm)
-  {
-    TEST_ERROR("Unable to create vxl::triangulate_landmarks by name");
-  }
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
+// ----------------------------------------------------------------------------
+TEST(triangulate_landmarks, create)
+{
+  plugin_manager::instance().load_all_plugins();
 
-// input to triangulation is the ideal solution, make sure it doesn't diverge
-IMPLEMENT_TEST(from_solution)
+  EXPECT_NE(nullptr, algo::triangulate_landmarks::create("vxl"));
+}
+
+// ----------------------------------------------------------------------------
+// Input to triangulation is the ideal solution, make sure it doesn't diverge
+TEST(triangulate_landmarks, from_solution)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_from_solution(tri_lm);
 }
 
-
-// add noise to landmarks before input to triangulation
-IMPLEMENT_TEST(noisy_landmarks)
+// ----------------------------------------------------------------------------
+// Add noise to landmarks before input to triangulation
+TEST(triangulate_landmarks, noisy_landmarks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_noisy_landmarks(tri_lm);
 }
 
-
-// initialize all landmarks to the origin as input to triangulation
-IMPLEMENT_TEST(zero_landmarks)
+// ----------------------------------------------------------------------------
+// Initialize all landmarks to the origin as input to triangulation
+TEST(triangulate_landmarks, zero_landmarks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_zero_landmarks(tri_lm);
 }
 
-
-// select a subset of cameras to triangulation from
-IMPLEMENT_TEST(subset_cameras)
+// ----------------------------------------------------------------------------
+// Select a subset of cameras to triangulation from
+TEST(triangulate_landmarks, subset_cameras)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_subset_cameras(tri_lm);
 }
 
-
-// select a subset of landmarks to triangulate
-IMPLEMENT_TEST(subset_landmarks)
+// ----------------------------------------------------------------------------
+// Select a subset of landmarks to triangulate
+TEST(triangulate_landmarks, subset_landmarks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_subset_landmarks(tri_lm);
 }
 
-
-// select a subset of tracks/track_states to constrain the problem
-IMPLEMENT_TEST(subset_tracks)
+// ----------------------------------------------------------------------------
+// Select a subset of tracks/track_states to constrain the problem
+TEST(triangulate_landmarks, subset_tracks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_subset_tracks(tri_lm);
 }
 
-
-// select a subset of tracks/track_states and add noise
-IMPLEMENT_TEST(noisy_tracks)
+// ----------------------------------------------------------------------------
+// Select a subset of tracks/track_states and add noise
+TEST(triangulate_landmarks, noisy_tracks)
 {
   kwiver::arrows::vxl::triangulate_landmarks tri_lm;
   kwiver::testing::test_noisy_tracks(tri_lm);

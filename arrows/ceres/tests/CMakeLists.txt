@@ -16,6 +16,6 @@ endif()
 ##############################
 # Algorithms Ceres tests
 ##############################
-kwiver_discover_tests(ceres_bundle_adjust       test_libraries test_bundle_adjust.cxx)
-kwiver_discover_tests(ceres_optimize_cameras    test_libraries test_optimize_cameras.cxx)
-kwiver_discover_tests(ceres_reprojection_error  test_libraries test_reprojection_error.cxx)
+kwiver_discover_gtests(ceres bundle_adjust      LIBRARIES ${test_libraries})
+kwiver_discover_gtests(ceres optimize_cameras   LIBRARIES ${test_libraries})
+kwiver_discover_gtests(ceres reprojection_error LIBRARIES ${test_libraries})

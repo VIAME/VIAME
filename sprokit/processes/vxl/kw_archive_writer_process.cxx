@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -190,12 +190,12 @@ void
 kw_archive_writer_process
 ::_init()
 {
-  scoped_init_instrumentation();
-
   if( d->m_base_filename.empty() )
   {
     return;
   }
+
+  scoped_init_instrumentation();
 
   std::string path = d->m_output_directory + "/" + d->m_base_filename;
 
@@ -366,7 +366,7 @@ kw_archive_writer_process
   {
     scoped_step_instrumentation();
 
-    // Beginning writing this frame to KWA
+    // Begin writing this frame to KWA
     LOG_DEBUG( logger(), "processing frame " << frame_time );
 
     *d->m_index_stream
@@ -493,7 +493,7 @@ priv_t
 
   std::vector< vnl_vector_fixed< double, 2 > > corners; // (x,y)
   auto const pts = corner_pts.polygon( kwiver::vital::SRID::lat_lon_WGS84 );
-  for ( auto n = 0; n < pts.num_vertices(); ++n )
+  for ( size_t n = 0; n < pts.num_vertices(); ++n )
   {
     auto const& pt = pts.at( n );
     corners.push_back( vnl_double_2( pt[0], pt[1] ) );

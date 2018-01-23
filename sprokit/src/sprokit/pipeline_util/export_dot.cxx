@@ -37,8 +37,6 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/ref.hpp>
 
 #include <map>
@@ -48,6 +46,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <functional>
 
 /// \todo Implement a depth option to suppress recursion into too many clusters.
 /// \todo Improve the color scheme.
@@ -71,16 +70,21 @@ static std::string const node_prefix_output = "_output_";
 static std::string const style_global = "clusterrank=local;";
 static std::string const style_process_subgraph = "color=lightgray;style=filled;fillcolor=lightgray;";
 static std::string const style_process = "shape=ellipse,rank=same";
+static std::string const style_process_subgraph_rst = "color=lightgray;";
+static std::string const style_process_rst = "shape=ellipse,rank=same,fontcolor=blue,fontsize=16,href=\"";
 static std::string const style_cluster = "labelloc=t;labeljust=l;color=black;style=filled;fillcolor=gray;";
 static std::string const style_port = "shape=none,height=0,width=0,fontsize=7";
+static std::string const style_port_rst = "shape=none,height=0,width=0,fontsize=12";
 static std::string const style_port_edge = "arrowhead=none,color=black";
 static std::string const style_map_edge = "color=\"#808080\"";
 static std::string const style_input_subgraph = "clusterrank=local;rankdir=BT;";
 static std::string const style_input_port = style_port;
+static std::string const style_input_port_rst = style_port_rst;
 static std::string const style_input_port_edge = style_port_edge;
 static std::string const style_input_map_edge = style_map_edge;
 static std::string const style_output_subgraph = "clusterrank=local;rankdir=BT;";
 static std::string const style_output_port = style_port;
+static std::string const style_output_port_rst = style_port_rst;
 static std::string const style_output_port_edge = style_port_edge;
 static std::string const style_output_map_edge = style_map_edge;
 static std::string const style_connection_edge = "minlen=1,color=black,weight=1";
@@ -95,14 +99,16 @@ typedef std::pair<process::name_t, name_type_t> name_info_t;
 typedef std::vector<name_info_t> name_infos_t;
 typedef std::map<process::name_t, name_infos_t> parent_names_t;
 
-typedef boost::function<void ()> callback_t;
+typedef std::function<void ()> callback_t;
 
 }
 
-static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map);
+static void output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map, std::string const& link_prefix);
 
+
+// ----------------------------------------------------------------------------
 void
-export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
+export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name, std::string const& link_prefix)
 {
   if (!pipe)
   {
@@ -147,7 +153,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 
   ostr << std::endl;
 
-  output_cluster(ostr, process::name_t(), pipe, parent_map);
+  output_cluster(ostr, process::name_t(), pipe, parent_map, link_prefix);
 
   // Output connections
   for (process::name_t const& name : proc_names)
@@ -207,6 +213,16 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   ostr << "}" << std::endl;
 }
 
+
+// ----------------------------------------------------------------------------
+void
+export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name)
+{
+  export_dot(ostr, pipe, graph_name, "");
+}
+
+
+// ----------------------------------------------------------------------------
 void
 export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name)
 {
@@ -222,11 +238,14 @@ export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string con
   export_dot(ostr, pipe, graph_name);
 }
 
-static void output_process(std::ostream& ostr, process_t const& process);
+
+static void output_process(std::ostream& ostr, process_t const& process, std::string const& link_prefix);
 static void output_process_cluster(std::ostream& ostr, process_cluster_t const& cluster, callback_t const& output_children);
 
+
+// ----------------------------------------------------------------------------
 void
-output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map)
+output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const& pipe, parent_names_t const& parent_map, std::string const& link_prefix)
 {
   parent_names_t::const_iterator const i = parent_map.find(name);
 
@@ -251,7 +270,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
       {
         process_t const proc = pipe->process_by_name(child_name);
 
-        output_process(ostr, proc);
+        output_process(ostr, proc, link_prefix);
 
         break;
       }
@@ -259,7 +278,7 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
       {
         process_cluster_t const proc = pipe->cluster_by_name(child_name);
 
-        callback_t const callback = boost::bind(&output_cluster, boost::ref(ostr), child_name, pipe, parent_map);
+        callback_t const callback = std::bind(&output_cluster, std::ref(ostr), child_name, pipe, parent_map, link_prefix);
 
         output_process_cluster(ostr, proc, callback);
 
@@ -271,23 +290,37 @@ output_cluster(std::ostream& ostr, process::name_t const& name, pipeline_t const
   }
 }
 
+
+// ----------------------------------------------------------------------------
 void
-output_process(std::ostream& ostr, process_t const& process)
+output_process(std::ostream& ostr, process_t const& process, std::string const& link_prefix)
 {
   process::name_t const& name = process->name();
   process::type_t const& type = process->type();
 
+  bool const has_link = link_prefix != "";
+
   ostr << "subgraph \"cluster_" << name << "\" {" << std::endl;
-  ostr << style_process_subgraph << std::endl;
+  ostr << (has_link ? style_process_subgraph_rst : style_process_subgraph) << std::endl;
   ostr << std::endl;
 
   std::string const node_name = name + node_suffix_main;
 
   // Central node
+  if(has_link)
+  {
+  ostr << "\"" << node_name << "\" ["
+          "label=<<u>" << name << "<br/>:: " << type << "</u>>,"
+       << style_process_rst << link_prefix << type << ".html"
+       << "\"];" << std::endl;
+  }
+  else
+  {
   ostr << "\"" << node_name << "\" ["
           "label=\"" << name << "\\n:: " << type << "\","
        << style_process
        << "];" << std::endl;
+  }
 
   ostr << std::endl;
 
@@ -301,7 +334,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
     ostr << "\"" << node_port_name << "\" ["
             "label=\"" << port << "\\n:: " << ptype << "\","
-         << style_input_port
+         << (has_link ? style_input_port_rst : style_input_port)
          << "];" << std::endl;
     ostr << "\"" << node_port_name << "\" -> "
             "\"" << node_name << "\" ["
@@ -321,7 +354,7 @@ output_process(std::ostream& ostr, process_t const& process)
 
     ostr << "\"" << node_port_name << "\" ["
          << "label=\"" << port << "\\n:: " << ptype << "\","
-         << style_output_port
+         << (has_link ? style_output_port_rst : style_output_port)
          << "];" << std::endl;
     ostr << "\"" << node_name << "\" -> "
          << "\"" << node_port_name << "\" ["

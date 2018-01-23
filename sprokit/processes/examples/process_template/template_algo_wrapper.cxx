@@ -111,7 +111,6 @@ template_algo_wrapper
   : process( config ),
     d( new template_algo_wrapper::priv )
 {
-  attach_logger( kwiver::vital::get_logger( name() ) );
   make_ports(); // create process ports
   make_config(); // declare process configuration
 }

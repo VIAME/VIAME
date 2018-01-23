@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,23 +36,21 @@
 #ifndef VITAL_C_DESCRIPTOR_H_
 #define VITAL_C_DESCRIPTOR_H_
 
+#include <cstddef>
+
+#include <vital/bindings/c/error_handle.h>
+#include <vital/bindings/c/vital_c_export.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include <cstddef>
-
-#include <vital/bindings/c/error_handle.h>
-#include <vital/bindings/c/vital_c_export.h>
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // General Descriptor functions
 
 /// Base opaque descriptor instance type
-typedef struct vital_descriptor_s vital_descriptor_t;
+typedef struct vital_descriptor_s {} vital_descriptor_t;
 
 
 /// Destroy a descriptor instance

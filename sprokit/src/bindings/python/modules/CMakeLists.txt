@@ -30,6 +30,13 @@ kwiver_add_plugin(modules_python
                   ${PYTHON_LIBRARIES}
                   )
 
+
+# Add definition to tell registration.cxx the name of the python_library it was
+# compiled with. It will attempt to load symbols from this library dynamically.
+get_filename_component(PYTHON_LIBRARY_NAME "${PYTHON_LIBRARY}" NAME)
+target_compile_definitions(modules_python PRIVATE "-DPYTHON_LIBRARY=${PYTHON_LIBRARY_NAME}")
+
+
 sprokit_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/modules.py"
   sprokit/modules
   modules)

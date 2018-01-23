@@ -58,9 +58,6 @@ image_filter_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new image_filter_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) ); // could use a better approach
-
   make_ports();
   make_config();
 }

@@ -36,17 +36,16 @@
 #ifndef VITAL_C_DESCRIPTOR_SET_H_
 #define VITAL_C_DESCRIPTOR_SET_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 #include <cstddef>
 
 #include <vital/bindings/c/error_handle.h>
 #include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/types/descriptor.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /// Base opaque descriptor instance type
 typedef struct vital_descriptor_set_s vital_descriptor_set_t;

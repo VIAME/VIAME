@@ -42,10 +42,6 @@
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/math/common_factor_rt.hpp>
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-#include <boost/functional.hpp>
-#include <boost/make_shared.hpp>
 
 #include <functional>
 #include <map>
@@ -434,8 +430,10 @@ pipeline
   process::port_addr_t const downstream_addr = process::port_addr_t(downstream_name, downstream_port);
   process::connection_t const conn = process::connection_t(upstream_addr, downstream_addr);
 
-  boost::function<bool (process::connection_t const&)> const eq = boost::bind(std::equal_to<process::connection_t>(), conn, _1);
-  boost::function<bool (priv::cluster_connection_t const&)> const cluster_eq = boost::bind(&priv::is_cluster_connection_for, conn, _1);
+  std::function<bool (process::connection_t const&)> const eq = std::bind(std::equal_to<process::connection_t>(),
+                                                                          conn, std::placeholders::_1);
+  std::function<bool (priv::cluster_connection_t const&)> const cluster_eq = std::bind(&priv::is_cluster_connection_for,
+                                                                                       conn, std::placeholders::_1);
 
 #define FORGET_CONNECTION(T, f, conns)                                   \
   do                                                                     \
@@ -1130,6 +1128,27 @@ pipeline
 
 
 // ------------------------------------------------------------------
+process_t
+pipeline
+::get_python_process() const
+{
+  // Run through each process, checking to see if any are python
+  process_t python_process; // Start with a null pointer, return it if no python procs are found
+  for (priv::process_map_t::value_type const& process_index : d->process_map)
+  {
+    process_t proc = process_index.second;
+    auto properties = proc->properties();
+    if ( properties.find("_python") != properties.end() )
+    {
+      python_process = proc;
+      break;
+    }
+  }
+
+  return python_process;
+}
+
+// ------------------------------------------------------------------
 pipeline::priv
 ::priv(pipeline* pipe, kwiver::vital::config_block_sptr conf)
   : q(pipe)
@@ -1179,8 +1198,10 @@ void
 pipeline::priv
 ::remove_from_pipeline(process::name_t const& name)
 {
-  boost::function<bool (process::connection_t const&)> const is = boost::bind(&is_connection_with, name, _1);
-  boost::function<bool (cluster_connection_t const&)> const cluster_is = boost::bind(&is_cluster_connection_with, name, _1);
+  std::function<bool (process::connection_t const&)> const is = std::bind(&is_connection_with, name,
+                                                                          std::placeholders::_1);
+  std::function<bool (cluster_connection_t const&)> const cluster_is = std::bind(&is_cluster_connection_with,
+                                                                                 name, std::placeholders::_1);
 
 #define FORGET_CONNECTIONS(T, f, conns)                                  \
   do                                                                     \
@@ -1436,11 +1457,12 @@ pipeline::priv
           process_cluster_t const& cluster = cluster_it->second;
           process::connections_t mapped_connections = cluster->output_mappings();
 
-          boost::function<bool (process::connection_t const&)> const is_port = boost::bind(&is_downstream_for, upstream_addr, _1);
+          std::function<bool (process::connection_t const&)> const is_port = std::bind(&is_downstream_for,
+                                                                      upstream_addr, std::placeholders::_1);
 
           process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(),
                                                                     mapped_connections.end(),
-                                                                    boost::not1(is_port));
+                                                                    std::not1(is_port));
           mapped_connections.erase(i, mapped_connections.end());
 
           if (mapped_connections.empty())
@@ -1466,6 +1488,7 @@ pipeline::priv
         }
 
         break;
+
       case cluster_downstream:
         {
           process::name_t const& cluster_name = downstream_name;
@@ -1481,11 +1504,12 @@ pipeline::priv
           process_cluster_t const& cluster = cluster_it->second;
           process::connections_t mapped_connections = cluster->input_mappings();
 
-          boost::function<bool (process::connection_t const&)> const is_port = boost::bind(&is_upstream_for, downstream_addr, _1);
+          std::function<bool (process::connection_t const&)> const is_port = std::bind(&is_upstream_for, downstream_addr,
+                                                                                       std::placeholders::_1);
 
           process::connections_t::iterator const i = std::remove_if(mapped_connections.begin(),
                                                                     mapped_connections.end(),
-                                                                    boost::not1(is_port));
+                                                                    std::not1(is_port));
           mapped_connections.erase(i, mapped_connections.end());
 
           if (mapped_connections.empty())
@@ -1504,8 +1528,8 @@ pipeline::priv
                        mapped_name, mapped_port);
           }
         }
-
         break;
+
       default:
         break;
     }

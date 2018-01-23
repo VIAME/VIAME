@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,160 +32,129 @@
  * \file
  * \brief test util timer class
  */
-#include <test_common.h>
 
 #include <vital/util/cpu_timer.h>
 #include <vital/util/wall_timer.h>
 #include <kwiversys/SystemTools.hxx>
 
+#include <gtest/gtest.h>
+
 #include <iostream>
 
-typedef kwiversys::SystemTools ST;
-
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
 namespace  {
 
-// classic bad Fibonacci implementation.
-long fibonacci(unsigned n)
+// Which Fibonacci number to compute for tests; must be large enough that the
+// computation takes non-negligible time
+constexpr unsigned fib_n = 37;
+
+// Expected value of fibonacci( fib_n )
+constexpr long fib_n_value = 24157817;
+
+// Millisecond sleep duration; must be larger than clock resolution
+constexpr unsigned sleep_duration = 100;
+
+// ----------------------------------------------------------------------------
+// Classic bad Fibonacci implementation
+long fibonacci( unsigned n )
 {
-    if (n < 2) return n;
-    return fibonacci(n-1) + fibonacci(n-2);
+    if ( n < 2 ) return n;
+    return fibonacci( n - 1 ) + fibonacci( n - 2 );
 }
 
 } // end namespace
 
-// ------------------------------------------------------------------
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(cpu_timer_test)
+// ----------------------------------------------------------------------------
+TEST(timer, cpu_timer)
 {
   kwiver::vital::cpu_timer timer;
+  double t1, t2;
+  long fib;
 
-  if ( ! timer.timer_available() )
-  {
-    std::cout << "Skipping tests, CPU Timer support not available\n";
-    return;
-  }
+  // As of the current implementation, CPU timers should always be available
+  ASSERT_TRUE( timer.timer_available() );
 
-  TEST_EQUAL( "CPU Timers supported", timer.timer_available(), true );
-  TEST_EQUAL( "CPU Timer not active", timer.is_active(), false );
-  TEST_EQUAL( "Inactive CPU Timer interval", timer.elapsed(), 0 );
+  EXPECT_FALSE( timer.is_active() );
+  EXPECT_EQ( 0, timer.elapsed() );
 
   timer.start();
-  TEST_EQUAL( "CPU Timer active", timer.is_active(), true );
+  EXPECT_TRUE( timer.is_active() );
 
-  long fib = fibonacci(40);
+  fib = fibonacci( fib_n );
+  EXPECT_NE( 0, t1 = timer.elapsed() );
 
-  double t1 = timer.elapsed();
-  bool value = (t1 != 0);
-  TEST_EQUAL( "CPU Timer 1 not zero", value, true );
-  // Displaying the result of this call is important.  Otherwise
-  // it can be optimized out of generated code resulting in no elapsed
-  // time.
-  std::cout << "fib(40) = " << fib << std::endl;
+  // Displaying the result of this call is important; otherwise it can be
+  // optimized out of generated code resulting in no elapsed time
+  std::cout << "fib(" << fib_n << ") = " << fib << std::endl;
 
-  // Computing a different value is important.  Otherwise this
-  // call could be optimized out.
-  fib = fibonacci(41);
+  // Computing a different value is important; otherwise this call could be
+  // optimized out
+  fib = fibonacci( fib_n + 1 );
+  EXPECT_NE( 0, t2 = timer.elapsed() );
+  EXPECT_LT( t1, t2 );
 
-  double t2 = timer.elapsed();
-  value = (t2 != 0);
-  TEST_EQUAL( "CPU Timer 2 not zero", value, true );
-  std::cout << "fib(41) = " << fib << std::endl;
-
-  value = (t1 == t2);
-  TEST_EQUAL( "CPU Timers not the same", value, false );
+  std::cout << "fib(" << fib_n + 1 << ") = " << fib << std::endl;
 
   timer.stop();
   t1 = timer.elapsed();
 
-  fib = fibonacci(39);
-  std::cout << "fib(39) = " << fib << std::endl;
+  fib = fibonacci( fib_n - 1 );
+  std::cout << "fib(" << fib_n - 1 << ") = " << fib << std::endl;
 
-  t2 = timer.elapsed();
-
-  TEST_EQUAL( "Stopped CPU Timer does not change", t1, t2 );
+  EXPECT_EQ( t1, timer.elapsed() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(wall_timer_test)
+// ----------------------------------------------------------------------------
+TEST(timer, wall_timer)
 {
   kwiver::vital::wall_timer timer;
+  double t1, t2;
 
-  if ( ! timer.timer_available() )
-  {
-    std::cout << "Skipping tests, timer support not available\n";
-    return;
-  }
+  // As of the current implementation, wall timers should always be available
+  ASSERT_TRUE( timer.timer_available() );
 
-  TEST_EQUAL( "Wall Timers supported", timer.timer_available(), true );
-  TEST_EQUAL( "Wall Timer not active", timer.is_active(), false );
-  TEST_EQUAL( "Inactive Wall Timer interval", timer.elapsed(), 0 );
+  EXPECT_FALSE( timer.is_active() );
+  EXPECT_EQ( 0, timer.elapsed() );
 
   timer.start();
-  TEST_EQUAL( "Wall Timer active", timer.is_active(), true );
+  EXPECT_TRUE( timer.is_active() );
 
-  ST::Delay(1000);
+  kwiversys::SystemTools::Delay( sleep_duration );
+  EXPECT_NE( 0, t1 = timer.elapsed() );
 
-  double t1 = timer.elapsed();
-  bool value = (t1 != 0);
-  TEST_EQUAL( "Wall Timer 1 not zero", value, true );
-
-  ST::Delay(1000);
-
-  double t2 = timer.elapsed();
-  value = (t2 != 0);
-  TEST_EQUAL( "Wall Timer 2 not zero", value, true );
-
-  value = (t1 == t2);
-  TEST_EQUAL( "Wall Timers not the same", value, false );
+  kwiversys::SystemTools::Delay( sleep_duration );
+  EXPECT_NE( 0, t2 = timer.elapsed() );
+  EXPECT_LT( t1, t2 );
 
   timer.stop();
   t1 = timer.elapsed();
-  ST::Delay(1000);
-  t2 = timer.elapsed();
 
-  TEST_EQUAL( "Stopped Wall Timer does not change", t1, t2 );
+  kwiversys::SystemTools::Delay( sleep_duration );
+  EXPECT_EQ( t1, timer.elapsed() );
 }
 
-
-// ------------------------------------------------------------------
-IMPLEMENT_TEST(fib_test)
+// ----------------------------------------------------------------------------
+TEST(timer, scoped_cpu_timer)
 {
-  kwiver::vital::cpu_timer a_timer;
-  if ( ! a_timer.timer_available() )
-  {
-    std::cout << "Skipping tests, timer support not available\n";
-    std::cout << "Timer support not available\n";
+  // As of the current implementation, CPU timers should always be available
+  ASSERT_TRUE( kwiver::vital::cpu_timer{}.timer_available() );
 
-  }
+  kwiver::vital::scoped_cpu_timer timer( "cpu_fib_test" );
+  EXPECT_EQ( fib_n_value, fibonacci( fib_n ) );
+}
 
-  long fib(0);
-  {
-    kwiver::vital::scoped_cpu_timer timer( "cpu_fib_test" );
-    fib = fibonacci(42);
-    std::cout << "  f(42) = " << fib << std::endl;
-  }
+// ----------------------------------------------------------------------------
+TEST(timer, scoped_wall_timer)
+{
+  // As of the current implementation, wall timers should always be available
+  ASSERT_TRUE( kwiver::vital::wall_timer{}.timer_available() );
 
-  {
-    kwiver::vital::scoped_wall_timer timer( "wall_fib_test" );
-    fib = fibonacci(42);
-    std::cout << "  f(42) = " << fib << std::endl;
-  }
-
-  TEST_EQUAL( "Expected Fibonacci number", fib, 267914296 );
+  kwiver::vital::scoped_wall_timer timer( "wall_fib_test" );
+  EXPECT_EQ( fib_n_value, fibonacci( fib_n ) );
 }

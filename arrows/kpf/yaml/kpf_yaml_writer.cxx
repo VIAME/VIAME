@@ -1,0 +1,231 @@
+/*ckwg +29
+ * Copyright 2017 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * \file
+ * \brief YAML writers.
+ *
+ * We just write the text directly; it ensures we have inline YAML and also
+ * reinforces the concept that KPF-YAML is a subset of YAML.
+ *
+ */
+
+#include "kpf_yaml_writer.h"
+#include <arrows/kpf/yaml/kpf_yaml_schemas.h>
+
+#include <vital/logger/logger.h>
+static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
+
+#include <ios>
+
+kwiver::vital::kpf::private_endl_t kwiver::vital::kpf::record_yaml_writer::endl;
+
+namespace kwiver {
+namespace vital {
+namespace kpf {
+
+record_yaml_writer&
+record_yaml_writer
+::set_schema( schema_style new_schema )
+{
+  if (this->line_started)
+  {
+    LOG_ERROR( main_logger, "KPF yaml writer: can't change schemas mid-stream; was "
+               << validation_data::schema_style_to_str( this->schema )
+               << "; attempted to change to "
+               << validation_data::schema_style_to_str( new_schema ) );
+    this->s.setstate( std::ios::failbit );
+  }
+  else
+  {
+    this->schema = new_schema;
+  }
+  return *this;
+}
+
+void
+record_yaml_writer
+::reset()
+{
+  this->line_started = false;
+  this->schema = schema_style::UNSPECIFIED;
+  this->has_meta = false;
+  this->oss.str("");
+  this->oss.clear();
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const private_endl_t& )
+{
+  if (w.has_meta)
+  {
+    w.s << "- { " << w.oss.str() << " }" << std::endl;
+  }
+  else
+  {
+    w.s << "- { " << validation_data::schema_style_to_str( w.schema )
+        << ": { " << w.oss.str() << " } }" << std::endl;
+  }
+  w.reset();
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::id_t >& io)
+{
+  w.oss << "id" << io.domain << ": " << io.id.d << ", ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::bbox_t >& io)
+{
+  w.oss << "g" << io.domain << ": " << io.box.x1 << " " << io.box.y1 << " " << io.box.x2 << " " << io.box.y2 << ", ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::timestamp_t >& io)
+{
+  w.oss << "ts" << io.domain << ": " << io.ts.d << ", ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::kv_t >& io)
+{
+  w.oss << io.kv.key << ": " << io.kv.val << ", ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::conf_t >& io)
+{
+  w.oss << "conf" << io.domain << ": " << io.conf.d << ", ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::cset_t >& io)
+{
+  w.oss << "cset" << io.domain << ": {";
+  for (auto p: io.cset.d )
+  {
+    w.oss << p.first << ": " << p.second << ", ";
+  }
+  w.oss << "}, ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::eval_t >& io)
+{
+  w.oss << "eval" << io.domain << ": " << io.eval.d << ", ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::poly_t >& io)
+{
+  w.oss << "poly" << io.domain << ": [";
+  for (const auto& p : io.poly.xy )
+  {
+    w.oss << "[ " << p.first << ", " << p.second << " ],";
+  }
+  w.oss << "], ";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::meta_t >& io)
+{
+  w.oss << "meta: " << io.meta.txt;
+  w.has_meta = true;
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::timestamp_range_t >& io )
+{
+  w.oss << "tsr" << io.domain << ": [" << io.tsr.start << " , " << io.tsr.stop << "] ,";
+  return w;
+}
+
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
+{
+  const canonical::activity_t& act = io.activity;
+
+  w.oss << "act" << io.domain << ": ";
+  w.oss << "{ ";
+  for (auto p:act.activity_labels.d)
+  {
+    w.oss << p.first << ": " << p.second << ", ";
+  }
+  w.oss << "}, ";
+
+  w.oss << "id" << act.activity_id.domain << ": " << act.activity_id.t.d << ", ";
+
+  w.oss << "timespan: [{ ";
+  for (auto t: act.timespan )
+  {
+    w.oss << "tsr" << t.domain << ": [" << t.t.start << " , " << t.t.stop << "], ";
+  }
+  w.oss << " }], ";
+
+  for (auto k: act.attributes )
+  {
+    w << writer<canonical::kv_t>( k );
+  }
+
+  for (auto e: act.evals )
+  {
+    w << writer< canonical::eval_t>( e );
+  }
+
+  w.oss << "actors: [{ ";
+  for (auto a: act.actors)
+  {
+    w.oss << "id" << a.actor_id.domain << ": " << a.actor_id.t.d << ", ";
+    w.oss << "timespan: [{ ";
+    for (auto t: a.actor_timespan )
+    {
+      w.oss << "tsr" << t.domain << ": [" << t.t.start << " , " << t.t.stop << "], ";
+    }
+    w.oss << " }], ";
+  }
+  w.oss << "}], ";
+
+  return w;
+}
+
+} // ...kpf
+} // ...vital
+} // ...kwiver

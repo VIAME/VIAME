@@ -43,8 +43,8 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
+#include <vital/types/metadata.h>
 #include <vital/types/timestamp.h>
-#include <vital/video_metadata/video_metadata.h>
 
 #include <string>
 #include <vector>
@@ -285,7 +285,7 @@ public:
    *
    * \throws video_stream_exception when there is an error in the video stream.
    */
-  virtual kwiver::vital::video_metadata_vector frame_metadata() = 0;
+  virtual kwiver::vital::metadata_vector frame_metadata() = 0;
 
 
   /**

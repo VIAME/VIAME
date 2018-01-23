@@ -14,7 +14,7 @@ the structure of the solution.
 
 
 .. _smqtkcplusplusbridgeblock:
-.. figure:: images/smqtkcplusplusbridge.png
+.. figure:: _images/smqtkcplusplusbridge.png
    :align: center
 
    *Block Diagramm of the SMQTK/C++ Bridge*
@@ -34,7 +34,7 @@ The instructions assume that you will set up a directory structure
 similar to the :ref:`smqtkbridgesourceorganiziation` shown.
 
 .. _smqtkbridgesourceorganiziation:
-.. figure:: images/sourcestructure.png
+.. figure:: _images/sourcestructure.png
    :align: center
 
    *SMQTK/C++ Bridge Source Organization*

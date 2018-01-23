@@ -37,9 +37,9 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/scheduler.h>
+#include <sprokit/pipeline/scheduler_exception.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 
-#include <boost/cstdint.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <memory>
@@ -217,44 +217,56 @@ IMPLEMENT_TEST(pysimple_pipeline)
 
     pipeline->setup_pipeline();
 
-    sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
-
-    scheduler->start();
-    scheduler->wait();
-  }
-
-  std::ifstream fin(output_path.c_str());
-
-  if (!fin.good())
-  {
-    TEST_ERROR("Could not open the output file");
-  }
-
-  std::string line;
-
-  for (int32_t i = start_value; i < end_value; ++i)
-  {
-    if (!std::getline(fin, line))
+    if(scheduler_type == "pythread_per_process")
     {
-      TEST_ERROR("Failed to read a line from the file");
+      sprokit::scheduler_t const scheduler = sprokit::create_scheduler(scheduler_type, pipeline);
+
+      scheduler->start();
+      scheduler->wait();
     }
-
-    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i))
+    else
     {
-      TEST_ERROR("Did not get expected value: "
-                 "Expected: " << i << " "
-                 "Received: " << line);
+      EXPECT_EXCEPTION(sprokit::incompatible_pipeline_exception,
+                       sprokit::create_scheduler(scheduler_type, pipeline),
+                       "using python processes with a C++ scheduler");
     }
   }
 
-  if (std::getline(fin, line))
+  if(scheduler_type == "pythread_per_process")
   {
-    TEST_ERROR("More results than expected in the file");
-  }
+    std::ifstream fin(output_path.c_str());
 
-  if (!fin.eof())
-  {
-    TEST_ERROR("Not at end of file");
+    if (!fin.good())
+    {
+      TEST_ERROR("Could not open the output file");
+    }
+
+    std::string line;
+
+    for (int32_t i = start_value; i < end_value; ++i)
+    {
+      if (!std::getline(fin, line))
+      {
+        TEST_ERROR("Failed to read a line from the file");
+      }
+
+      if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i))
+      {
+        TEST_ERROR("Did not get expected value: "
+                   "Expected: " << i << " "
+                   "Received: " << line);
+      }
+    }
+
+    if (std::getline(fin, line))
+    {
+      TEST_ERROR("More results than expected in the file");
+    }
+
+    if (!fin.eof())
+    {
+      TEST_ERROR("Not at end of file");
+    }
   }
 }
 

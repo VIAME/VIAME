@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,30 +33,25 @@
  * \brief tests comparing MAP-Tk lens distortion to OpenCV
  */
 
-#include <test_common.h>
+#include <test_eigen.h>
 #include <test_random_point.h>
 
 #include <vital/types/camera_intrinsics.h>
+
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
 
-#define TEST_ARGS ()
-
-DECLARE_TEST_MAP();
-
-int
-main(int argc, char* argv[])
-{
-  CHECK_ARGS(1);
-
-  testname_t const testname = argv[1];
-
-  RUN_TEST(testname);
-}
-
 using namespace kwiver::vital;
 
-void test_distortion(const Eigen::VectorXd& d)
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
+{
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
+
+// ----------------------------------------------------------------------------
+static void test_distortion(const Eigen::VectorXd& d)
 {
   simple_camera_intrinsics K;
   K.set_dist_coeffs(d.transpose());
@@ -96,45 +91,44 @@ void test_distortion(const Eigen::VectorXd& d)
     std::cout << "OpenCV distorted: " << cv_distorted_test.transpose()
               << std::endl;
 
-    TEST_NEAR("OpenCV and MAP-TK distortion match",
-              (distorted_test-cv_distorted_test).norm(), 0.0, 1e-10);
+    EXPECT_MATRIX_NEAR( distorted_test, cv_distorted_test, 1e-12 );
   }
 }
 
-
-IMPLEMENT_TEST(distort_r1)
+// ----------------------------------------------------------------------------
+TEST(distortion, distort_r1)
 {
   Eigen::VectorXd d(1);
   d << -0.01;
   test_distortion(d);
 }
 
-
-IMPLEMENT_TEST(distort_r2)
+// ----------------------------------------------------------------------------
+TEST(distortion, distort_r2)
 {
   Eigen::VectorXd d(2);
   d << -0.03, 0.007;
   test_distortion(d);
 }
 
-
-IMPLEMENT_TEST(distort_r3)
+// ----------------------------------------------------------------------------
+TEST(distortion, distort_r3)
 {
   Eigen::VectorXd d(5);
   d << -0.03, 0.01, 0, 0, -0.02;
   test_distortion(d);
 }
 
-
-IMPLEMENT_TEST(distort_tang_r3)
+// ----------------------------------------------------------------------------
+TEST(distortion, distort_tang_r3)
 {
   Eigen::VectorXd d(5);
   d << -0.03, 0.01, -1e-3, 5e-4, -0.02;
   test_distortion(d);
 }
 
-
-IMPLEMENT_TEST(distort_tang_r6)
+// ----------------------------------------------------------------------------
+TEST(distortion, distort_tang_r6)
 {
   Eigen::VectorXd d(8);
   d << -0.03, 0.01, -1e-3, 5e-4, -0.02, 1e-4, -2e-3, 3e-4;
