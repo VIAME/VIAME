@@ -46,14 +46,17 @@ target_link_libraries( track_writer_example
 # example track schema introspection
 #
 
-add_executable( track_format_example
-  track_format_example.cxx
-)
+if( KWIVER_ENABLE_KPF )
 
-target_link_libraries( track_format_example
- track_oracle
- track_oracle_file_formats
-)
+  add_executable( track_format_example
+    track_format_example.cxx
+  )
+
+  target_link_libraries( track_format_example
+   track_oracle
+   track_oracle_file_formats
+  )
+endif()
 
 #
 # example user-specified field manipulation
