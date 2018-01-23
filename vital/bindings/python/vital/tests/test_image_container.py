@@ -35,7 +35,7 @@ Test Python interface to vital::image_container
 """
 # -*- coding: utf-8 -*-
 
-from vital.types.bindings import (
+from vital.types import (
     Image,
     ImageContainer
 )

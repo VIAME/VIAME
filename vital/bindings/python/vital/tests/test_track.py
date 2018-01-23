@@ -37,7 +37,7 @@ Tests for Track interface class
 import nose.tools
 import numpy
 
-from vital.types.bindings import Track, TrackState, Feature, Descriptor
+from vital.types import Track, TrackState, Feature, Descriptor
 
 
 class TestVitalTrack (object):

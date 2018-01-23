@@ -145,6 +145,9 @@ void declare_configuration_key_4(sprokit::process &self,
                                  kwiver::vital::config_block_description_t const& description_,
                                  bool tunable_);
 
+wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, size_t idx);
+wrap_edge_datum grab_from_port(sprokit::process &self, sprokit::process::port_t const& port);
+sprokit::datum grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 object grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 
 void push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj);
@@ -487,19 +490,19 @@ PYBIND11_MODULE(process, m)
     .def("count_output_port_edges", static_cast<pybind11::size_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::count_output_port_edges)
       , arg("port")
       , "The number of edges that are connected to a port.")
-    .def("peek_at_port", static_cast<sprokit::edge_datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_port)
+    .def("peek_at_port", &peek_at_port
       , arg("port"), arg("idx") = 0
       , "Peek at a port.")
     .def("peek_at_datum_on_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_datum_on_port)
       , arg("port"), arg("idx") = 0
       , "Peek at a datum on a port.")
-    .def("grab_from_port", static_cast<sprokit::edge_datum_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::grab_from_port)
+    .def("grab_from_port", &grab_from_port
       , arg("port")
       , "Grab a datum packet from a port.")
     .def("grab_value_from_port", &grab_value_from_port
       , arg("port")
       , "Grab a value from a port.")
-    .def("grab_datum_from_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::grab_datum_from_port)
+    .def("grab_datum_from_port", &grab_datum_from_port
       , arg("port")
       , "Grab a datum from a port.")
     .def("push_to_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::edge_datum_t const&) const>(&wrap_process::push_to_port)
@@ -776,6 +779,20 @@ declare_configuration_key_4(sprokit::process &self,
   ((wrap_process*) self_ptr)->declare_configuration_key(key, def_, description_, tunable_);
 }
 
+wrap_edge_datum
+peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, size_t idx)
+{
+  sprokit::process* self_ptr = &self;
+  return wrap_edge_datum(((wrap_process*) self_ptr)->peek_at_port(port, idx));
+}
+
+wrap_edge_datum
+grab_from_port(sprokit::process &self, sprokit::process::port_t const& port)
+{
+  sprokit::process* self_ptr = &self;
+  return wrap_edge_datum(((wrap_process*) self_ptr)->grab_from_port(port));
+}
+
 object
 grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port)
 {
@@ -783,35 +800,39 @@ grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& por
   sprokit::datum_t const dat = ((wrap_process*) self_ptr)->grab_datum_from_port(port);
   kwiver::vital::any const any = dat->get_datum<kwiver::vital::any>();
 
-  //kwiver::vital::any and pybind11::object don't play nice, so we have to try different types
-  //TODO: fix this! preferably by making datum no longer use kwiver::vital::any
+  //We have to explicitly list the different types we try
   object return_val = none();
   try
   {
     return_val = kwiver::vital::any_cast<object>(any);
   } catch(...){}
-  try
-  {
-    return_val = cast(kwiver::vital::any_cast<int>(any));
-  } catch(...){}
-  try
-  {
-    return_val = cast(kwiver::vital::any_cast<long>(any));
-  } catch(...){}
-  try
-  {
-    return_val = cast(kwiver::vital::any_cast<float>(any));
-  } catch(...){}
-  try
-  {
-    return_val = cast(kwiver::vital::any_cast<std::string>(any));
-  } catch(...){}
-  try
-  {
-    return_val = cast(kwiver::vital::any_cast<char*>(any));
+
+#define CONVERT_ANY(T) \
+  try \
+  { \
+    return_val = cast<T>(kwiver::vital::any_cast<T>(any)); \
   } catch(...){}
 
+  CONVERT_ANY(int)
+  CONVERT_ANY(long)
+  CONVERT_ANY(double)
+  CONVERT_ANY(float)
+  CONVERT_ANY(bool)
+  CONVERT_ANY(std::string)
+  CONVERT_ANY(char*)
+
+#undef CONVERT_ANY
+
   return return_val;
+}
+
+sprokit::datum
+grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port)
+{
+  sprokit::process* self_ptr = &self;
+  auto const edat = ((wrap_process*) self_ptr)->grab_from_port(port);
+  sprokit::datum dat = *edat.datum;
+  return dat;
 }
 
 void

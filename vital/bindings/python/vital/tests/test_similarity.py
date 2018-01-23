@@ -39,7 +39,7 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings import (
+from vital.types import (
     Rotation,
     Similarity
 )

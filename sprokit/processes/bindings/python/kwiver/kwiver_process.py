@@ -39,8 +39,6 @@ Interface to KWIVER kwiver_process class.
 from sprokit.pipeline import process
 from sprokit.pipeline import datum
 
-import util.vital_type_converters as VTC
-
 # import kwiver_process_utils
 
 
@@ -151,35 +149,38 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("timestamp", "kwiver:timestamp")
         self.add_type_trait("gsd", "kwiver:gsd")
         self.add_type_trait("image", "kwiver:image",
-                            VTC._convert_image_container_in,
-                            VTC._convert_image_container_out)
+                            datum.Datum.get_image_container,
+                            datum.new_image_container)
         self.add_type_trait("mask", "kwiver:image",
-                            VTC._convert_image_container_in,
-                            VTC._convert_image_container_out)
+                            datum.Datum.get_image_container,
+                            datum.new_image_container)
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set",
-                            VTC.convert_descriptor_set_in,
-                            VTC.convert_descriptor_set_out)
+                            datum.Datum.get_descriptor_set,
+                            datum.new_descriptor_set)
         self.add_type_trait("detected_object_set", "kwiver:detected_object_set",
-                            VTC._convert_detected_object_set_in,
-                            VTC._convert_detected_object_set_out)
+                            datum.Datum.get_detected_object,
+                            datum.new_detected_object)
         self.add_type_trait("track_set", "kwiver:track_set",
-                            VTC._convert_track_set_handle)
+                            datum.Datum.get_track_set,
+                            datum.new_track_set)
         self.add_type_trait("feature_track_set", "kwiver:feature_track_set",
-                            VTC._convert_track_set_handle)
+                            datum.Datum.get_track_set,
+                            datum.new_track_set)
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
-                            VTC._convert_track_set_handle)
+                            datum.Datum.get_track_set,
+                            datum.new_track_set)
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
         self.add_type_trait("image_file_name", "kwiver:image_file_name")
         self.add_type_trait("video_file_name", "kwiver:video_file_name")
 
         self.add_type_trait("double_vector", "kwiver:d_vector",
-                            VTC._convert_double_vector_in,
-                            VTC._convert_double_vector_out)
+                            datum.Datum.get_double_vector,
+                            datum.new_double_vector)
         self.add_type_trait("string_vector", "kwiver:string_vector",
-                            VTC.convert_string_vector_in,
-                            VTC.convert_string_vector_out)
+                            datum.Datum.get_string_vector,
+                            datum.new_string_vector)
 
         #                   port-name    type-trait-name    description
         self.add_port_trait("timestamp", "timestamp",
@@ -305,7 +306,7 @@ class KwiverProcess(process.PythonProcess):
         pipeline_datum = self.grab_datum_from_port(pt.name)
         tt = pt.type_trait
         if tt.converter_in is not None:
-            data = tt.converter_in(pipeline_datum.get_datum_ptr())
+            data = tt.converter_in(pipeline_datum)
             return data
 
         return pipeline_datum
@@ -377,9 +378,8 @@ class KwiverProcess(process.PythonProcess):
         tt = pt.type_trait
         if tt.converter_out is not None:
             # convert handle to PyCapsule around datum ptr
-            cap = tt.converter_out(val)
+            dat = tt.converter_out(val)
             # convert to datum_t
-            dat = datum.datum_from_capsule(cap)
             self.push_datum_to_port(pt.name, dat)
         else:
             # no registered converter - hope for the best

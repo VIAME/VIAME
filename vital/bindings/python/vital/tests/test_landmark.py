@@ -39,7 +39,7 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings import Landmark, Covariance, RGBColor
+from vital.types import Landmark, Covariance, RGBColor
 
 
 class TestLandmark (unittest.TestCase):

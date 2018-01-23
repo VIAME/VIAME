@@ -41,7 +41,7 @@ import nose.tools
 from six.moves import range
 import numpy
 
-from vital.types.bindings import Descriptor
+from vital.types import Descriptor
 
 
 class TestDescriptor (unittest.TestCase):

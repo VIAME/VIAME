@@ -39,10 +39,8 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings._covariance import Covariance
-from vital.types.bindings._eigen import EigenArray
-from vital.util import VitalObject, VitalErrorHandle
-
+from vital.types import Covariance
+from vital.types import EigenArray
 
 class TestVitalCovariance (unittest.TestCase):
 

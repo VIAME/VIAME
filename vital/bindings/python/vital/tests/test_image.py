@@ -36,7 +36,7 @@ Test Python interface to vital::image
 # -*- coding: utf-8 -*-
 import nose.tools
 
-from vital.types.bindings import Image
+from vital.types import Image
 
 
 class TestVitalImage (object):

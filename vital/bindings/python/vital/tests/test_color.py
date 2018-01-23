@@ -38,7 +38,7 @@ import unittest
 import nose.tools
 import numpy
 
-from vital.types.bindings import RGBColor
+from vital.types import RGBColor
 
 
 class TestRGBColor (unittest.TestCase):
