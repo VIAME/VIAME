@@ -29,6 +29,8 @@ ExternalProject_Add(vivia
   CMAKE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    ${VIAME_ARGS_burnout}
+    ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
     ${VIAME_ARGS_VTK}
 
@@ -51,9 +53,6 @@ ExternalProject_Add(vivia
     -DVISGUI_ENABLE_KWIVER:BOOL=${VIAME_ENABLE_SMQTK}
     -DVVQS_ENABLE_FAKE_BACKEND:BOOL=OFF
     -DVISGUI_DISABLE_FIXUP_BUNDLE:BOOL=${VIVIA_DISABLE_FIXUP}
-
-    -Dvidtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/burnout-build
-    -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build
 
     -DLIBJSON_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include/json
     -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_QMAKE_EXE}
