@@ -72,7 +72,7 @@ class hello_world_detector(KwiverProcess):
         in_img_c = self.grab_input_using_trait('image')
 
         # Get python image from conatiner (just for show)
-        in_img = in_img_c.get_image()
+        in_img = in_img_c.image()
 
         # Print out text to screen
         print "Text: " + str( self.text )
