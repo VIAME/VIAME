@@ -159,8 +159,8 @@ class KwiverProcess(process.PythonProcess):
                             datum.Datum.get_descriptor_set,
                             datum.new_descriptor_set)
         self.add_type_trait("detected_object_set", "kwiver:detected_object_set",
-                            datum.Datum.get_detected_object,
-                            datum.new_detected_object)
+                            datum.Datum.get_detected_object_set,
+                            datum.new_detected_object_set)
         self.add_type_trait("track_set", "kwiver:track_set",
                             datum.Datum.get_track_set,
                             datum.new_track_set)
