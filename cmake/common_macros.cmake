@@ -53,6 +53,14 @@ function( CopyFiles _inRegex _outDir )
   endif()
 endfunction()
 
+function( CopyFileIfExists _inFile _outFile )
+  file( COPY ${_inFile} DESTINATION ${_outFile} )
+endfunction()
+
+function( CreateSymlink _inFile _outFile )
+  execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${_inFile} ${_outFile} )
+endfunction()
+
 function( RemoveDir _inDir )
   file( REMOVE_RECURSE ${_inDir} )
 endfunction()
