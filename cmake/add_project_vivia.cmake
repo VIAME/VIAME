@@ -33,6 +33,7 @@ ExternalProject_Add(vivia
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
     ${VIAME_ARGS_VTK}
+    ${VIAME_ARGS_VXL}
 
     # Required
     -DBUILD_SHARED_LIBS:BOOL=ON
