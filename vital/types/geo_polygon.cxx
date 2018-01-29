@@ -72,7 +72,12 @@ bool geo_polygon
 geo_raw_polygon_t geo_polygon
 ::polygon() const
 {
-  return m_poly.at( m_original_crs );
+  if( m_original_crs >= 0 )
+  {
+    return m_poly.at( m_original_crs );
+  }
+
+  return geo_raw_polygon_t();
 }
 
 // ----------------------------------------------------------------------------
