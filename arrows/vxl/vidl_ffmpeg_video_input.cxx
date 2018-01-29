@@ -81,6 +81,7 @@ public:
       d_have_metadata( false ),
       d_is_seekable( false ),
       d_have_num_frames( false ),
+      d_have_metadata_map( false ),
       pts_of_meta_ts( 0.0 ),
       meta_ts( 0 ),
       d_frame_time( 0 ),
@@ -108,6 +109,11 @@ public:
    * this number still needs to be calculated.
    */
   size_t d_num_frames;
+
+  /**
+   * Storage for the metadata map.
+   */
+  vital::metadata_map::map_metadata_t d_metadata_map;
 
   /**
    * This is set to indicate that we can supply a frame time of some
@@ -140,6 +146,12 @@ public:
    * determined.
    */
   bool d_have_num_frames;
+
+  /**
+   * This is set to indicate the metadat map for the video has been
+   * determined.
+   */
+  bool d_have_metadata_map;
 
   double pts_of_meta_ts;            // probably seconds
   vital::timestamp::time_t meta_ts; // time in usec
@@ -804,6 +816,15 @@ vidl_ffmpeg_video_input
   }
 
   return d->metadata_collection;
+}
+
+
+kwiver::vital::metadata_map_sptr
+vidl_ffmpeg_video_input
+::metadata_map()
+{
+  // TODO: calculate map on first pass
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
 }
 
 

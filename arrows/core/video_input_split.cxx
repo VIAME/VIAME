@@ -347,4 +347,11 @@ video_input_split
   return d->d_metadata_source->frame_metadata();
 }
 
+kwiver::vital::metadata_map_sptr
+video_input_split
+::metadata_map()
+{
+  return d->d_metadata_source->metadata_map();
+}
+
 } } }     // end namespace

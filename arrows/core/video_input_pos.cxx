@@ -70,6 +70,10 @@ public:
   kwiver::vital::timestamp::frame_t d_frame_number;
 
   vital::metadata_sptr d_metadata;
+
+  // metadata map
+  bool d_have_metadata_map;
+  vital::metadata_map::map_metadata_t d_metadata_map;
 };
 
 
@@ -368,6 +372,14 @@ video_input_pos
   }
 
   return vect;
+}
+
+kwiver::vital::metadata_map_sptr
+video_input_pos
+::metadata_map()
+{
+  // TODO: calculate map on first pass
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
 }
 
 } } }     // end namespace
