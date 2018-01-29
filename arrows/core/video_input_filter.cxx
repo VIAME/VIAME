@@ -60,10 +60,6 @@ public:
 
   // processing classes
   vital::algo::video_input_sptr d_video_input;
-
-  // metadata map
-  bool d_have_metadata_map;
-  vital::metadata_map::map_metadata_t d_metadata_map;
 };
 
 
@@ -341,8 +337,20 @@ kwiver::vital::metadata_map_sptr
 video_input_filter
 ::metadata_map()
 {
-  // TODO: calculate map on first pass
-  return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
+  vital::metadata_map::map_metadata_t output_map;
+
+  auto internal_map = d->d_video_input->metadata_map()->metadata();
+  if (d->c_stop_after_frame > 0)
+  {
+    output_map.insert(internal_map.find(d->c_start_at_frame),
+                      internal_map.find(d->c_stop_after_frame));
+  }
+  else
+  {
+    output_map.insert(internal_map.find(d->c_start_at_frame), internal_map.end());
+  }
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(output_map);
 }
 
 } } }     // end namespace

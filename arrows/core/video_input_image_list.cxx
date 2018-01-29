@@ -390,7 +390,23 @@ kwiver::vital::metadata_map_sptr
 video_input_image_list
 ::metadata_map()
 {
-  // TODO: calculate map on first pass
+  if ( !d->m_have_metadata_map )
+  {
+    kwiver::vital::timestamp::frame_t fn = 0;
+    for (const auto& f: d->m_files)
+    {
+      ++fn;
+      // For now, the only metadata is the filename
+      auto md = std::make_shared<vital::metadata>();
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME, f ) );
+      vital::metadata_vector mdv(1, md);
+      std::pair<vital::timestamp::frame_t, vital::metadata_vector> el(fn, mdv);
+      d->m_metadata_map.insert( el );
+    }
+
+    d->m_have_metadata_map = true;
+  }
+
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->m_metadata_map);
 }
 
