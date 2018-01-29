@@ -54,6 +54,8 @@ namespace DBoW2 {
  */
 class FClass
 {
+public:
+
   class TDescriptor;
   typedef const TDescriptor *pDescriptor;
 
