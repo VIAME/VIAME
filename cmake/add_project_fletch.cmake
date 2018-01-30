@@ -215,7 +215,7 @@ endif()
 if( VIAME_ENABLE_VXL )
   set(VIAME_ARGS_VXL
     ${VIAME_ARGS_VXL}
-    -DVXL_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/src/fletch-build/build/src/VXL-build
+    -DVXL_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VXL-build
     )
   set(VIAME_ARGS_VXL_INSTALL
     ${VIAME_ARGS_VXL_INSTALL}
