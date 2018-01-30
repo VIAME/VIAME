@@ -32,6 +32,8 @@
 #include "descriptor_db.h"
 #include <arrows/database/descriptor_db_defs.h>
 
+#include <iomanip>
+
 namespace kwiver {
 namespace arrows {
 namespace database {
@@ -63,13 +65,31 @@ descriptor_db::add_descriptor( kwiver::vital::descriptor_sptr const desc )
 {
   db_conn_.open( connect_string_ );
 
-  //  std::size_t desc_size = desc->size();
+  std::size_t desc_size = desc->size();
   //std::vector< kwiver::vital::byte > bytes = desc->as_bytes();
-  //std::vector<double> data = desc->as_double();
+  std::vector<double> data = desc->as_double();
   //std::size_t num_bytes = desc->num_bytes();
 
 
-  std::string query = "insert into descriptor (data_size, data) values (5, '{.234243, .23452, .647347, .54567, .2345234}')";
+  std::stringstream data_str;
+  data_str << "'{";
+
+  std::vector<double>::const_iterator iter = data.begin();
+  bool first = true;
+  for (; iter != data.end(); ++iter)
+  {
+    if  (!first)
+    {
+      data_str << ",";
+    }
+    first = false;
+    double d = *iter;
+    data_str << std::fixed << std::setprecision( 20 ) << d;
+  }
+
+  data_str << "}'";
+
+  std::string query = "insert into descriptor (data_size, data) values (5," + data_str.str() + ")";
   cppdb::transaction guard(db_conn_);
   try
   {

@@ -57,7 +57,7 @@ main(int argc, char* argv[])
 
 
 // ------------------------------------------------------------------
-IMPLEMENT_TEST(database_connection)
+IMPLEMENT_TEST(descriptor_database)
 {
 
   std::string db_host = "ceres";
@@ -71,11 +71,22 @@ IMPLEMENT_TEST(database_connection)
   conn_str += ";dbname=" + db_name + ";port=" + db_port;
 
   kwiver::arrows::database::descriptor_db desc_db(conn_str);
+  std::size_t data_size = 5;
 
-  kwiver::vital::descriptor_sptr desc = std::make_shared<kwiver::vital::descriptor_dynamic<double> >(5);
+  double data[5];
+  for (int i = 0; i < data_size; ++i)
+  {
+    double f = (double)rand() / RAND_MAX;
+    data[i] =  0 + f * (10 - 0);
+  }
+
+  // = {5.323234, 0.2341234, 1.345345, 0.347345, 0.4575673};
+  kwiver::vital::descriptor_sptr desc =
+    std::make_shared<kwiver::vital::descriptor_dynamic<double> >(5, data);
 
   desc_db.add_descriptor(desc);
   desc_db.get_descriptor();
+
   /*
   kwiver::arrows::database::db_connection db_conn(conn_str);
   bool is_connected = db_conn.is_connected();
