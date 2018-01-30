@@ -33,6 +33,7 @@
 #pragma warning (disable : 4244)
 #endif
 #include <pybind11/pybind11.h>
+#include <pybind11/stl_bind.h>
 #include <vital/any.h>
 #if WIN32
 #pragma warning (pop)
@@ -43,9 +44,9 @@
 #include <sprokit/python/util/python_gil.h>
 
 // Type conversions
-#include <vital/bindings/python/vital/types/descriptor_class.cxx>
 #include <vital/types/image_container.h>
 #include <vital/types/detected_object_set.h>
+#include <vital/types/descriptor_set.h>
 #include <vital/types/track_set.h>
 
 #include <limits>
@@ -59,6 +60,9 @@
  */
 
 using namespace pybind11;
+
+PYBIND11_MAKE_OPAQUE(std::vector<double>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
 
 static sprokit::datum new_datum_no_cast(object const& obj);
 template<class T> sprokit::datum new_datum(object const& obj);
@@ -108,7 +112,7 @@ PYBIND11_MODULE(datum, m)
   m.def("new_image_container", &new_datum<std::shared_ptr<kwiver::vital::image_container>>
     , (arg("dat"))
     , "Creates a new datum packet containing an image container.");
-  m.def("new_descriptor_set", &new_datum<std::shared_ptr<PyDescriptorSet>>
+  m.def("new_descriptor_set", &new_datum<std::shared_ptr<kwiver::vital::descriptor_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing a descriptor set.");
   m.def("new_detected_object_set", &new_datum<std::shared_ptr<kwiver::vital::detected_object_set>>
@@ -136,6 +140,9 @@ PYBIND11_MODULE(datum, m)
     , arg("err")
     , "Creates an error datum packet.");
 
+  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
+  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
+
   // Methods on datum
   class_<sprokit::datum>(m, "Datum"
     , "A packet of data within the pipeline.")
@@ -151,15 +158,15 @@ PYBIND11_MODULE(datum, m)
       , "Get pointer to datum object as a PyCapsule.")
     .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
       , "Convert the data to an image container")
-    .def("get_descriptor_set", &datum_get_object<std::shared_ptr<PyDescriptorSet>>
+    .def("get_descriptor_set", &datum_get_object<std::shared_ptr<kwiver::vital::descriptor_set>>
       , "Convert the data to a descriptor set")
     .def("get_detected_object_set", &datum_get_object<std::shared_ptr<kwiver::vital::detected_object_set>>
       , "Convert the data to a detected object set")
     .def("get_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::track_set>>
       , "Convert the data to a track set")
-    .def("get_double_vector", &datum_get_object<std::vector<double>>
+    .def("get_double_vector", &datum_get_object<std::shared_ptr<std::vector<double>>>
       , "Convert the data to a double vector")
-    .def("get_string_vector", &datum_get_object<std::vector<std::string>>
+    .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
       , "Convert the data to a string vector")
   ;
 
