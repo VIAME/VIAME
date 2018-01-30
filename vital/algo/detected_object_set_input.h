@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,6 +129,7 @@ protected:
   detected_object_set_input();
 
   std::istream& stream();
+  std::string const& filename();
 
   // Called when a new stream is specified. Allows derived classes to
   // reinitialize.
@@ -137,6 +138,7 @@ protected:
 private:
   std::istream* m_stream;
   bool m_stream_owned;
+  std::string m_filename;
 };
 
 

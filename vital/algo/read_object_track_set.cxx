@@ -102,6 +102,7 @@ read_object_track_set
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
+  m_filename = filename;
   m_stream = file;
   m_stream_owned = true;
 
@@ -157,6 +158,15 @@ read_object_track_set
 ::stream()
 {
   return *m_stream;
+}
+
+
+// ------------------------------------------------------------------------------------
+std::string const&
+read_object_track_set
+::filename()
+{
+  return m_filename;
 }
 
 

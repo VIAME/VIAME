@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 
+#include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
 namespace arrows {
@@ -70,7 +71,7 @@ enum{
 class read_object_track_set_kw18::priv
 {
 public:
-  priv( read_object_track_set_kw18* parent)
+  priv( read_object_track_set_kw18* parent )
     : m_parent( parent )
     , m_logger( vital::get_logger( "read_object_track_set_kw18" ) )
     , m_first( true )
@@ -99,6 +100,9 @@ public:
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
   std::map< int, vital::track_sptr > m_all_tracks;
+
+  // Compilation of all loaded track IDs, track id -> type string
+  std::map< int, std::string > m_track_ids;
 };
 
 
@@ -194,7 +198,26 @@ read_object_track_set_kw18::priv
 
   m_tracks_by_frame_id.clear();
   m_all_tracks.clear();
+  m_track_ids.clear();
 
+  // Check for types file
+  std::string types_fn = m_parent->filename() + ".types";
+
+  if( kwiversys::SystemTools::FileExists( types_fn ) )
+  {
+    std::ifstream fin( types_fn );
+    while( !fin.eof() )
+    {
+      int id;
+      std::string lbl;
+
+      fin >> id >> lbl;
+      m_track_ids[id] = lbl;
+    }
+    fin.close();
+  }
+
+  // Read track file
   while( stream_reader.getline( line ) )
   {
     if( !line.empty() && line[0] == '#' )

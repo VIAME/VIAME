@@ -124,6 +124,7 @@ protected:
   read_object_track_set();
 
   std::istream& stream();
+  std::string const& filename();
 
   // Called when a new stream is specified. Allows derived classes to
   // reinitialize.
@@ -132,6 +133,7 @@ protected:
 private:
   std::istream* m_stream;
   bool m_stream_owned;
+  std::string m_filename;
 };
 
 
