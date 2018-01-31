@@ -18,9 +18,15 @@ if( WIN32 )
 
 endif()
 
+# Current caffe quick hacks
 if( CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT WIN32 AND VIAME_ENABLE_CAFFE )
   CreateSymlink( ${VIAME_BUILD_INSTALL_PREFIX}/lib/libcaffe-d.so
                  ${VIAME_BUILD_INSTALL_PREFIX}/lib/libcaffe.so )
+endif()
+
+if( NOT WIN32 AND VIAME_ENABLE_CAFFE )
+  CreateSymlink( ${VIAME_BUILD_INSTALL_PREFIX}/lib/libleveldb.so
+                 ${VIAME_BUILD_INSTALL_PREFIX}/lib/libleveldb.so.1 )
 endif()
 
 message("Done")
