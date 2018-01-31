@@ -58,7 +58,9 @@ function( CopyFileIfExists _inFile _outFile )
 endfunction()
 
 function( CreateSymlink _inFile _outFile )
-  execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${_inFile} ${_outFile} )
+  if( NOT EXISTS ${_outFile} )
+    execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink ${_inFile} ${_outFile} )
+  endif()
 endfunction()
 
 function( RemoveDir _inDir )
