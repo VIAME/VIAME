@@ -3,6 +3,7 @@
         "descriptor_index": {
             "type": "PostgresDescriptorIndex",
             "PostgresDescriptorIndex": {
+                "create_table": false,
                 "db_host": "localhost",
                 "db_name": "postgres",
                 "db_pass": null,
@@ -11,9 +12,22 @@
                 "element_col": "element",
                 "multiquery_batch_size": 1000,
                 "pickle_protocol": -1,
-                "read_only": false,
+                "read_only": true,
                 "table_name": "descriptor_index",
                 "uuid_col": "uid"
+            }
+        },
+        "hash2uuid_kvstore": {
+            "type": "MemoryKeyValueStore",
+            "MemoryKeyValueStore": {
+                "cache_element": {
+                    "type": "DataFileElement",
+                    "DataFileElement": {
+                        "explicit_mimetype": null,
+                        "filepath": "database/ITQ/hash2uuids.memKvStore.pickle",
+                        "readonly": false
+                    }
+                }
             }
         },
         "lsh_functor": {
@@ -25,7 +39,7 @@
                     "DataFileElement": {
                         "explicit_mimetype": null,
                         "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
-                        "readonly": false
+                        "readonly": true
                     },
                     "type": "DataFileElement"
                 },
@@ -35,7 +49,7 @@
                     "DataFileElement": {
                         "explicit_mimetype": null,
                         "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
-                        "readonly": false
+                        "readonly": true
                     },
                     "type": "DataFileElement"
                 }
