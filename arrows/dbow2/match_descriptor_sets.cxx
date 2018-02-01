@@ -120,7 +120,7 @@ match_descriptor_sets::priv
 ::priv()
   :m_max_num_candidate_matches_from_vocabulary_tree(10)
   ,training_image_list_path("")
-  ,vocabulary_path("")
+  ,vocabulary_path("kwiver_voc.yml.gz")
 {
 
 }
