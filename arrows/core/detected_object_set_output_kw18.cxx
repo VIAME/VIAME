@@ -236,25 +236,25 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     static std::atomic<unsigned> id_counter( 0 );
     const unsigned id = id_counter++;
 
-    stream() << id                  // 1: track id
-             << " 1 "               // 2: track length
-             << d->m_frame_number-1 // 3: frame number / set number
-             << " 0 "               // 4: tracking plane x
-             << " 0 "               // 5: tracking plane y
-             << "0 "                // 6: velocity x
-             << "0 "                // 7: velocity y
-             << ilx << " "          // 8: image location x
-             << ily << " "          // 9: image location y
-             << bbox.min_x() << " " // 10: TL-x
-             << bbox.min_y() << " " // 11: TL-y
-             << bbox.max_x() << " " // 12: BR-x
-             << bbox.max_y() << " " // 13: BR-y
-             << bbox.area() << " "  // 14: area
-             << "0 "                // 15: world-loc x
-             << "0 "                // 16: world-loc y
-             << "0 "                // 17: world-loc z
-             << "-1 "                // 18: timestamp
-             << (*det)->confidence()   // 19: confidence
+    stream() << id << " "                   // 1: track id
+             << "1 "                        // 2: track length
+             << d->m_frame_number-1 << " "  // 3: frame number / set number
+             << "0 "                        // 4: tracking plane x
+             << "0 "                        // 5: tracking plane y
+             << "0 "                        // 6: velocity x
+             << "0 "                        // 7: velocity y
+             << ilx << " "                  // 8: image location x
+             << ily << " "                  // 9: image location y
+             << bbox.min_x() << " "         // 10: TL-x
+             << bbox.min_y() << " "         // 11: TL-y
+             << bbox.max_x() << " "         // 12: BR-x
+             << bbox.max_y() << " "         // 13: BR-y
+             << bbox.area() << " "          // 14: area
+             << "0 "                        // 15: world-loc x
+             << "0 "                        // 16: world-loc y
+             << "0 "                        // 17: world-loc z
+             << "-1 "                       // 18: timestamp
+             << (*det)->confidence()        // 19: confidence
              << std::endl;
 
     // optionally write tot to corresponding file
