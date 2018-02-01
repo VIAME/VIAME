@@ -2,11 +2,13 @@
 set( database_headers
   descriptor_db.h
   connection/db_connection.h
+  write_object_track_set_db.h
   )
 
 set( database_sources
   descriptor_db.cxx
   connection/db_connection.cxx
+  write_object_track_set_db.cxx
   )
 
 kwiver_install_headers(
@@ -26,9 +28,13 @@ kwiver_add_library( kwiver_algo_database
 
 target_link_libraries( kwiver_algo_database
   PUBLIC vital
+         vital_algo
   PRIVATE ${CppDB_LIBRARY}
   )
 
+algorithms_create_plugin( kwiver_algo_database
+  register_algorithms.cxx
+  )
 
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
