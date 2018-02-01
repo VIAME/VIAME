@@ -255,3 +255,25 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
 
   vfvi.close();
 }
+
+TEST_F(vidl_ffmpeg_video_input, metadata_map)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  vfvi.check_configuration( config );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open( video_file );
+
+  // Get metadata map
+  auto md_map = vfvi.metadata_map()->metadata();
+
+  // Currently test video has no metadata
+  EXPECT_EQ( md_map.size(), 0 );
+}

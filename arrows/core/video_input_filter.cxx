@@ -44,7 +44,7 @@ class video_input_filter::priv
 {
 public:
   priv()
-    : c_start_at_frame( 0 )
+    : c_start_at_frame( 1 )
     , c_stop_after_frame( 0 )
     , c_frame_rate( 30.0 )
     , d_at_eov( false )
@@ -238,14 +238,12 @@ video_input_filter
   {
     return std::min(
       static_cast<vital::timestamp::frame_t>(d->d_video_input->num_frames()),
-      d->c_stop_after_frame + 1)
-      - d->c_start_at_frame;
+      d->c_stop_after_frame) - (d->c_start_at_frame - 1);
   }
   else
   {
-    return d->d_video_input->num_frames() - d->c_start_at_frame;
+    return d->d_video_input->num_frames() - (d->c_start_at_frame - 1);
   }
-
 }
 
 // ------------------------------------------------------------------
@@ -340,14 +338,17 @@ video_input_filter
   vital::metadata_map::map_metadata_t output_map;
 
   auto internal_map = d->d_video_input->metadata_map()->metadata();
+  auto start = internal_map.find(d->c_start_at_frame);
+  auto stop = internal_map.find(d->c_stop_after_frame);
+  stop++; // stop frame should be included
+
   if (d->c_stop_after_frame > 0)
   {
-    output_map.insert(internal_map.find(d->c_start_at_frame),
-                      internal_map.find(d->c_stop_after_frame));
+    output_map.insert(start, stop);
   }
   else
   {
-    output_map.insert(internal_map.find(d->c_start_at_frame), internal_map.end());
+    output_map.insert(start, internal_map.end());
   }
 
   return std::make_shared<kwiver::vital::simple_metadata_map>(output_map);

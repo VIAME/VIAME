@@ -56,6 +56,7 @@ public:
   , d_current_files( d_img_md_files.end() )
   , d_frame_number( 0 )
   , d_metadata( nullptr )
+  , d_have_metadata_map( false )
   {}
 
   // Configuration values
