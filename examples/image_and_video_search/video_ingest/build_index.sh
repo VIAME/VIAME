@@ -12,10 +12,6 @@ SMQTK_HCODE_PICKLE="database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.p
 
 SMQTK_BTREE_CONFIG="configs/smqtk_make_balltree.json"
 
-SMQTK_HCODE_BTREE_LEAFSIZE=40
-SMQTK_HCODE_BTREE_RAND=0
-SMQTK_HCODE_BTREE_OUTPUT="database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz"
-
 # Train ITQ models on ingested descriptors
 train_itq -vc "${SMQTK_ITQ_TRAIN_CONFIG}"
 

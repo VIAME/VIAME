@@ -18,7 +18,7 @@
             "type": "DataFileElement",
             "DataFileElement": {
                 "explicit_mimetype": null,
-                "filepath": "database/ITQ/balltree_hash_index.npz",
+                "filepath": "database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz",
                 "readonly": false
             }
         },
