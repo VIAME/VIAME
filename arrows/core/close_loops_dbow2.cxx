@@ -41,11 +41,6 @@
 
 using namespace kwiver::vital;
 
-
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/features2d.hpp>
-
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm.h>
 #include <vital/algo/match_descriptor_sets.h>
