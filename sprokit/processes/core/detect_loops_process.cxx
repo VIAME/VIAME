@@ -37,7 +37,7 @@
 #include <vital/types/image_container.h>
 #include <vital/types/feature_set.h>
 
-#include <vital/algo/detect_loops.h>
+#include <vital/algo/close_loops.h>
 
 #include <kwiver_type_traits.h>
 
@@ -98,7 +98,7 @@ public:
   // There are many config items for the tracking and stabilization that
   // go directly to the algo.
 
-  algo::detect_loops_sptr m_loop_detector;
+  algo::close_loops_sptr m_loop_closer;
 
   //static port_t const port_input;
   //static port_type_t const type_custom_feedback;
@@ -146,24 +146,24 @@ void detect_loops_process
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  const std::string algo_name = "detect_loops_algo";
+  const std::string algo_name = "close_loops";
 
   // Instantiate the configured algorithm
-  algo::detect_loops::set_nested_algo_configuration(algo_name, algo_config,
-    d->m_loop_detector );
+  algo::close_loops::set_nested_algo_configuration(algo_name, algo_config,
+    d->m_loop_closer );
 
-  if ( ! d->m_loop_detector )
+  if ( ! d->m_loop_closer )
   {
     throw sprokit::invalid_configuration_exception( name(),
-      "Unable to create detect_loops_algo" );
+      "Unable to create close_loops" );
   }
 
-  algo::detect_loops::get_nested_algo_configuration(algo_name, algo_config,
-    d->m_loop_detector);
+  algo::close_loops::get_nested_algo_configuration(algo_name, algo_config,
+    d->m_loop_closer);
 
   //// Check config so it will give run-time diagnostic if any config problems
   // are found
-  if ( ! algo::detect_loops::check_nested_algo_configuration(
+  if ( ! algo::close_loops::check_nested_algo_configuration(
       algo_name, algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(),
@@ -206,7 +206,7 @@ detect_loops_process
     LOG_DEBUG( logger(), "detecting loops with frame " << frame_time );
 
     // detect features on the current frame
-    curr_tracks = d->m_loop_detector->detect(curr_tracks, frame_time.get_frame());
+    curr_tracks = d->m_loop_closer->stitch(frame_time.get_frame(),curr_tracks,kwiver::vital::image_container_sptr());
   }
 
   // return by value

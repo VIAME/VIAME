@@ -30,13 +30,13 @@
 
 /**
  * \file
- * \brief OCV detect_loops algorithm implementation
+ * \brief OCV close_loops_dbow2 algorithm implementation
  */
 
 #include <map>
 #include <algorithm>
 
-#include "detect_loops.h"
+#include "close_loops_dbow2.h"
 
 
 using namespace kwiver::vital;
@@ -57,9 +57,9 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace ocv {
+namespace core {
 
-class detect_loops::priv
+class close_loops_dbow2::priv
 {
 public:
   priv();
@@ -95,7 +95,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-detect_loops::priv
+close_loops_dbow2::priv
 ::priv()
   : m_min_loop_inlier_matches(50)
 {
@@ -104,7 +104,7 @@ detect_loops::priv
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
-detect_loops::priv
+close_loops_dbow2::priv
 ::verify_and_add_image_matches(
   kwiver::vital::feature_track_set_sptr feat_tracks,
   kwiver::vital::frame_id_t frame_number,
@@ -175,7 +175,7 @@ detect_loops::priv
 //-----------------------------------------------------------------------------
 
 match_set_sptr
-detect_loops::priv
+close_loops_dbow2::priv
 ::remove_duplicate_matches(match_set_sptr mset,
                            feature_info_sptr fi1,
                            feature_info_sptr fi2)
@@ -246,13 +246,10 @@ detect_loops::priv
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
-detect_loops::priv
+close_loops_dbow2::priv
 ::detect(kwiver::vital::feature_track_set_sptr feat_tracks,
   kwiver::vital::frame_id_t frame_number)
 {
-
-
-
   if (!m_bow)
   {
     return feat_tracks;
@@ -269,29 +266,31 @@ detect_loops::priv
 
 // ----------------------------------------------------------------------------
 
-detect_loops
-::detect_loops()
+close_loops_dbow2
+::close_loops_dbow2()
 {
   d_ = std::make_shared<priv>();
-  attach_logger("detect_loops");
+  attach_logger("close_loops_dbow2");
   d_->m_logger = this->logger();
 }
 
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
-detect_loops
-::detect(kwiver::vital::feature_track_set_sptr feat_tracks,
-  kwiver::vital::frame_id_t frame_number)
+close_loops_dbow2
+::stitch(kwiver::vital::frame_id_t frame_number,
+  kwiver::vital::feature_track_set_sptr input,
+  kwiver::vital::image_container_sptr image,
+  kwiver::vital::image_container_sptr mask) const
 {
-  return d_->detect(feat_tracks, frame_number);
+  return d_->detect(input, frame_number);
 }
 
 //-----------------------------------------------------------------------------
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-detect_loops
+close_loops_dbow2
 ::get_configuration() const
 {
   // get base config from base class
@@ -317,7 +316,7 @@ detect_loops
 
 /// Set this algo's properties via a config block
 void
-detect_loops
+close_loops_dbow2
 ::set_configuration(vital::config_block_sptr in_config)
 {
   // Starting with our generated config_block to ensure that assumed values
@@ -348,7 +347,7 @@ detect_loops
 //-----------------------------------------------------------------------------
 
 bool
-detect_loops
+close_loops_dbow2
 ::check_configuration(vital::config_block_sptr config) const
 {
   bool config_valid = true;

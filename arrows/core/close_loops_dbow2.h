@@ -39,38 +39,45 @@
 #include <string>
 
 #include <vital/vital_config.h>
-#include <vital/algo/detect_loops.h>
+#include <vital/algo/close_loops.h>
 
-#include <arrows/ocv/kwiver_algo_ocv_export.h>
+#include <arrows/core/kwiver_algo_core_export.h>
 
 #include <opencv2/features2d/features2d.hpp>
 
 namespace kwiver {
 namespace arrows {
-namespace ocv {
+namespace core {
 
 /// OCV Specific base definition for algorithms that detect feature points
 /**
  * This extended algorithm_def provides a common implementation for the detect
  * method.
  */
-class KWIVER_ALGO_OCV_EXPORT detect_loops
-  : public kwiver::vital::algo::detect_loops
+class KWIVER_ALGO_CORE_EXPORT close_loops_dbow2
+  : public kwiver::vital::algo::close_loops
 {
 public:
 
   /// Default constructor
-  detect_loops();
+  close_loops_dbow2();
 
   /// Find loops in a feature_track_set
+
+  /// Attempt to perform closure operation and stitch tracks together.
   /**
-  * \param[in] feat_tracks set of feature tracks on which to detect loops
-  * \param[in] frame_number frame to detect loops with
-  * \returns a feature track set with any found loops included
+  * \param frame_number the frame number of the current frame
+  * \param input the input feature track set to stitch
+  * \param image image data for the current frame
+  * \param mask Optional mask image where positive values indicate
+  *                  regions to consider in the input image.
+  * \returns an updated set of feature tracks after the stitching operation
   */
   virtual kwiver::vital::feature_track_set_sptr
-    detect(kwiver::vital::feature_track_set_sptr feat_tracks,
-      kwiver::vital::frame_id_t frame_number);
+    stitch(kwiver::vital::frame_id_t frame_number,
+      kwiver::vital::feature_track_set_sptr input,
+      kwiver::vital::image_container_sptr image,
+      kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) const;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
@@ -111,7 +118,7 @@ public:
 protected:
   /// the feature m_detector algorithm
   class priv;
-  std::shared_ptr<priv> d_;  
+  std::shared_ptr<priv> d_;
 };
 
 } // end namespace ocv
