@@ -31,6 +31,8 @@ Arrows - Core
  * Added keyframe selection classes.  These facilitate choosing particularly
    important frames in an image sequence and then only doing later operations
    (e.g. structure from motion) on these frames.
+   
+ * Added a new loop closure algorithm that uses bag of words image matching.
 
 Arrows - OpenCV
 
