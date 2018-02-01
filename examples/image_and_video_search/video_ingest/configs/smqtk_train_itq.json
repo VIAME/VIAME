@@ -2,6 +2,7 @@
     "descriptor_index": {
         "type": "PostgresDescriptorIndex",
         "PostgresDescriptorIndex": {
+            "create_table": false,
             "db_host": "localhost",
             "db_name": "postgres",
             "db_pass": null,

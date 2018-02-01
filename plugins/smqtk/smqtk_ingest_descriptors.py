@@ -123,7 +123,7 @@ class SmqtkIngestDescriptors (KwiverProcess):
             )
             # A descriptor may already exist in the backend (if its persistant)
             # for the given UID. We currently always overwrite.
-            smqtk_descr.set_vector(vital_descr)
+            smqtk_descr.set_vector(vital_descr.todoublearray())
             # Queue up element for adding to set.
             smqtk_descriptor_elements.append(smqtk_descr)
 
