@@ -20,22 +20,22 @@
         "bit_length": 256,
         "itq_iterations": 100,
         "mean_vec_cache": {
+            "type": "DataFileElement",
             "DataFileElement": {
                 "explicit_mimetype": null,
                 "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
                 "readonly": false
-            },
-            "type": "DataFileElement"
+            }
         },
         "normalize": null,
         "random_seed": 0,
         "rotation_cache": {
+            "type": "DataFileElement",
             "DataFileElement": {
                 "explicit_mimetype": null,
                 "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
                 "readonly": false
-            },
-            "type": "DataFileElement"
+            }
         }
 
     },
