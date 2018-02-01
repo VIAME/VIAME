@@ -91,6 +91,14 @@ set_slice(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, py::slice 
 }
 
 template<class T>
+void
+set_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx, T val)
+{
+  T* data = self->raw_data();
+  data[idx] = val;
+}
+
+template<class T>
 std::vector<T>
 get_slice(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, py::slice slice)
 {
@@ -104,7 +112,14 @@ get_slice(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, py::slice 
     ret_vec.push_back(data[idx]);
   }
   return ret_vec;
+}
 
+template<class T>
+T
+get_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx)
+{
+  T* data = self->raw_data();
+  return data[idx];
 }
 
 PYBIND11_MODULE(descriptor, m)
@@ -129,10 +144,18 @@ PYBIND11_MODULE(descriptor, m)
   .def("__setitem__", &set_slice<double>,
     py::arg("slice"), py::arg("value"))
   .def("__getitem__", &get_slice<double>,
-    py::arg("slice"));
+    py::arg("slice"))
+  .def("__setitem__", &set_index<double>,
+    py::arg("index"), py::arg("value"))
+  .def("__getitem__", &get_index<double>,
+    py::arg("index"));
   py::class_<kwiver::vital::descriptor_dynamic<float>, kwiver::vital::descriptor, std::shared_ptr<kwiver::vital::descriptor_dynamic<float>>>(m, "DescriptorF")
   .def("__setitem__", &set_slice<float>,
     py::arg("slice"), py::arg("value"))
   .def("__getitem__", &get_slice<float>,
-    py::arg("slice"));
+    py::arg("slice"))
+  .def("__setitem__", &set_index<float>,
+    py::arg("index"), py::arg("value"))
+  .def("__getitem__", &get_index<float>,
+    py::arg("index"));
 }
