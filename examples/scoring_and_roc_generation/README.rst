@@ -13,7 +13,7 @@ The scoring tool takes two files: the actual detections in the truth
 file and the computed detections. The computed detections are scored
 against the truth file to give a set of statistics as shown below:
 
-`` HADWAV Scoring Results:
+` HADWAV Scoring Results:
      Detection-Pd: 0.748387
      Detection-FA: 8
      Detection-PFA: 0.0338983
@@ -24,7 +24,7 @@ against the truth file to give a set of statistics as shown below:
      Track-NFAR: not computed
      Avg track (continuity, purity ): 13.693, 1
      Avg target (continuity, purity ): 20.1419, 0.748387
-     Track-frame-precision: 0.947826``
+     Track-frame-precision: 0.947826`
 
 The tool was originally written to analyze object tracks in full
 motion video imagery so some of the terminology and calculated metrics
@@ -41,11 +41,11 @@ converters. One downside to using the kw18 writer in the pipeline is
 that the image file name is not captured.  All the converters take the
 same set of command line options. For example:
 
-``Usage: habcam_to_kw18.pl [opts] file
+` Usage: habcam_to_kw18.pl [opts] file
     Options:
       --help                     print usage
       --write-file file-name     Write image file/index correspondence to file
-      --read-file  file-name     Read image file/index correspondence to file``
+      --read-file  file-name     Read image file/index correspondence to file`
 
 In order to get the best statistics the number of images processed
 must be the same as the number of images in the truth set. Computed
@@ -61,6 +61,6 @@ second conversion to cause images not in the first step to be skipped.
 
 The score_tracks tool is run as follows:
 
-``score_tracks --computed-tracks computed_det.kw18 --truth-tracks ground_truth2.kw18``
+`score_tracks --computed-tracks computed_det.kw18 --truth-tracks ground_truth2.kw18`
 
 A full list of the options can be coaxed from the tool by using the `-?` option.
