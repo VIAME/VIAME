@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Docs
+_build
+
+# Custom IDE
+/.project
