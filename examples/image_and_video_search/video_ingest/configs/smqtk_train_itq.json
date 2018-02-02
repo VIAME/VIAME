@@ -2,7 +2,6 @@
     "descriptor_index": {
         "type": "PostgresDescriptorIndex",
         "PostgresDescriptorIndex": {
-            "create_table": false,
             "db_host": "localhost",
             "db_name": "postgres",
             "db_pass": null,
@@ -19,25 +18,10 @@
     "itq_config": {
         "bit_length": 256,
         "itq_iterations": 100,
-        "mean_vec_cache": {
-            "type": "DataFileElement",
-            "DataFileElement": {
-                "explicit_mimetype": null,
-                "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
-                "readonly": false
-            }
-        },
+        "mean_vec_filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
         "normalize": null,
         "random_seed": 0,
-        "rotation_cache": {
-            "type": "DataFileElement",
-            "DataFileElement": {
-                "explicit_mimetype": null,
-                "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
-                "readonly": false
-            }
-        }
-
+        "rotation_filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy"
     },
     "uuids_list_filepath": null
 }

@@ -33,24 +33,10 @@
             "ItqFunctor": {
                 "bit_length": 256,
                 "itq_iterations": 100,
-                "mean_vec_cache": {
-                    "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
-                        "readonly": false
-                    },
-                    "type": "DataFileElement"
-                },
+                "mean_vec_filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
                 "normalize": null,
                 "random_seed": 0,
-                "rotation_cache": {
-                    "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
-                        "readonly": false
-                    },
-                    "type": "DataFileElement"
-                }
+                "rotation_filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy"
             }
         },
         "read_only": false,

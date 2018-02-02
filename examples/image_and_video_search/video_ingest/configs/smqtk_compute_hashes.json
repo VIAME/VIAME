@@ -3,7 +3,6 @@
         "descriptor_index": {
             "type": "PostgresDescriptorIndex",
             "PostgresDescriptorIndex": {
-                "create_table": false,
                 "db_host": "localhost",
                 "db_name": "postgres",
                 "db_pass": null,
@@ -12,22 +11,9 @@
                 "element_col": "element",
                 "multiquery_batch_size": 1000,
                 "pickle_protocol": -1,
-                "read_only": true,
+                "read_only": false,
                 "table_name": "descriptor_index",
                 "uuid_col": "uid"
-            }
-        },
-        "hash2uuid_kvstore": {
-            "type": "MemoryKeyValueStore",
-            "MemoryKeyValueStore": {
-                "cache_element": {
-                    "type": "DataFileElement",
-                    "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/hash2uuids.memKvStore.pickle",
-                        "readonly": false
-                    }
-                }
             }
         },
         "lsh_functor": {
@@ -35,24 +21,10 @@
             "ItqFunctor": {
                 "bit_length": 256,
                 "itq_iterations": 100,
-                "mean_vec_cache": {
-                    "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
-                        "readonly": true
-                    },
-                    "type": "DataFileElement"
-                },
+                "mean_vec_filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
                 "normalize": null,
                 "random_seed": 0,
-                "rotation_cache": {
-                    "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
-                        "readonly": true
-                    },
-                    "type": "DataFileElement"
-                }
+                "rotation_filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy"
             }
         }
     },
