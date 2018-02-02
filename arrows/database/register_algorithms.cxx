@@ -37,6 +37,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/database/write_object_track_set_db.h>
+#include <arrows/database/write_track_descriptor_set_db.h>
 
 
 namespace kwiver {
@@ -55,18 +56,17 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory                  implementation-name       type-to-create
-  // TODO
-  /*auto fact = vpm.ADD_ALGORITHM( "db", kwiver::arrows::database::read_object_track_set_db );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Object track set db reader\n")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;*/
-
   auto fact = vpm.ADD_ALGORITHM( "db", kwiver::arrows::database::write_object_track_set_db );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Object track set db writer\n")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "db", kwiver::arrows::database::write_track_descriptor_set_db );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Track descriptor set db writer\n")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
