@@ -58,6 +58,7 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   cppdb::session m_conn;
   std::string m_conn_str;
+  std::string m_video_name;
 };
 
 
@@ -80,7 +81,8 @@ void
 write_object_track_set_db
 ::set_configuration(vital::config_block_sptr config)
 {
-  d->m_conn_str = config->get_value<std::string>( "conn_str", "" );
+  d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
+  d->m_video_name = config->get_value< std::string > ( "video_name", "" );
 }
 
 
@@ -92,6 +94,12 @@ write_object_track_set_db
   if( !config->has_value( "conn_str" ) )
   {
     LOG_ERROR( d->m_logger, "missing required value: conn_str" );
+    return false;
+  }
+
+  if( !config->has_value( "video_name" ) )
+  {
+    LOG_ERROR( d->m_logger, "missing required value: video_name" );
     return false;
   }
 
@@ -125,12 +133,13 @@ write_object_track_set_db
   cppdb::statement stmt = d->m_conn.create_statement( "INSERT INTO OBJECT_TRACK("
     "TRACK_ID, "
     "FRAME_NUMBER, "
+    "VIDEO_NAME, "
     "IMAGE_BBOX_TL_X, "
     "IMAGE_BBOX_TL_Y, "
     "IMAGE_BBOX_BR_X, "
     "IMAGE_BBOX_BR_Y, "
     "TRACK_CONFIDENCE"
-    ") VALUES(?, ?, ?, ?, ?, ?, ?)"
+    ") VALUES(?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
   for( auto trk : set->tracks() )
@@ -150,13 +159,14 @@ write_object_track_set_db
       const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
       vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
-      stmt.bind(1, trk->id());
-      stmt.bind(2, ts->frame());
-      stmt.bind(3, bbox.min_x());
-      stmt.bind(4, bbox.min_y());
-      stmt.bind(5, bbox.max_x());
-      stmt.bind(6, bbox.max_y());
-      stmt.bind(7, det->confidence());
+      stmt.bind( 1, trk->id() );
+      stmt.bind( 2, ts->frame() );
+      stmt.bind( 3, d->m_video_name );
+      stmt.bind( 4, bbox.min_x() );
+      stmt.bind( 5, bbox.min_y() );
+      stmt.bind( 6, bbox.max_x() );
+      stmt.bind( 7, bbox.max_y() );
+      stmt.bind( 8, det->confidence() );
 
       stmt.exec();
       stmt.reset();
