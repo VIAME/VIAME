@@ -36,10 +36,12 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_pos.h>
+#include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
+#include <fstream>
 #include <iostream>
 
 kwiver::vital::path_t g_data_dir;
@@ -191,6 +193,55 @@ TEST_F(video_input_pos, seek_frame)
     EXPECT_FALSE( vip.seek_frame( ts, requested_frame) );
     EXPECT_NE( requested_frame, ts.get_frame() );
   }
+
+  vip.close();
+}
+
+TEST_F(video_input_pos, metadata_map)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
+
+  kwiver::arrows::core::video_input_pos vip;
+
+  EXPECT_TRUE( vip.check_configuration( config ) );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vip.open( list_file );
+
+  // Get metadata map
+  auto md_map = vip.metadata_map()->metadata();
+
+  EXPECT_EQ( md_map.size(), num_expected_frames )
+    << "There should be metadata for every frame";
+
+  // Open the list file directly and construct metadata file names and compare
+  std::ifstream list_file_stream( list_file );
+  int frame_number = 1;
+  std::string file_name;
+  while ( std::getline( list_file_stream, file_name ) )
+  {
+    file_name.replace(0, 6, "pos");
+    file_name.replace(file_name.length() - 3, 3, "pos");
+
+    auto md_test = kwiver::vital::read_pos_file( data_dir + "/" + file_name );
+    auto md = md_map[frame_number][0];
+
+    // Loop over metadata items and compare
+    for (auto iter = md_test->begin(); iter != md_test->end(); ++iter)
+    {
+      EXPECT_TRUE( md->has( iter->first ))
+        << "Metadata should have item " << iter->second->name();
+    }
+
+    frame_number++;
+  }
+  list_file_stream.close();
 
   vip.close();
 }

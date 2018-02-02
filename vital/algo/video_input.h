@@ -44,6 +44,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/types/timestamp.h>
 
 #include <string>
@@ -344,6 +345,26 @@ public:
    * \throws video_stream_exception when there is an error in the video stream.
    */
   virtual kwiver::vital::metadata_vector frame_metadata() = 0;
+
+
+  /**
+   * \brief Get metadata map for video.
+   *
+   * This method returns a metadata map for the video assuming the video is
+   * seekable. If the video is not seekable it will return an empty map.
+   * Depending on the implementation if the metamap has not been previously
+   * requested then the video will have to loop over to create and store the
+   * metadata map.
+   *
+   * In video streams without metadata (as determined by the stream
+   * capability), this method will return an empty map, indicating no
+   * metadata has been found.
+   *
+   * @return Map of vectors of metadata pointers.
+   *
+   * \throws video_stream_exception when there is an error in the video stream.
+   */
+  virtual kwiver::vital::metadata_map_sptr metadata_map() = 0;
 
 
   /**

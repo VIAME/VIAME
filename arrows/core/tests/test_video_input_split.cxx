@@ -37,10 +37,12 @@
 
 #include <arrows/core/video_input_split.h>
 #include <vital/algo/algorithm_factory.h>
+#include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
+#include <fstream>
 #include <iostream>
 
 #include "barcode_decode.h"
@@ -167,6 +169,63 @@ TEST_F(video_input_split, seek_frame)
   vis.open( list_file );
 
   test_seek_frame( vis );
+
+  vis.close();
+}
+
+TEST_F(video_input_split, metadata_map)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_split vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  // Get metadata map
+  auto md_map = vis.metadata_map()->metadata();
+
+  EXPECT_EQ( md_map.size(), num_expected_frames )
+    << "There should be metadata for every frame";
+
+  // Open the list file directly and construct metadata file names and compare
+  std::ifstream list_file_stream( list_file );
+  int frame_number = 1;
+  std::string file_name;
+  while ( std::getline( list_file_stream, file_name ) )
+  {
+    file_name.replace(0, 6, "pos");
+    file_name.replace(file_name.length() - 3, 3, "pos");
+
+    auto md_test = kwiver::vital::read_pos_file( data_dir + "/" + file_name );
+    auto md_vec = md_map[frame_number];
+
+    // Loop over metadata items and compare
+    for (auto iter = md_test->begin(); iter != md_test->end(); ++iter)
+    {
+      bool found_item = false;
+      for (auto md : md_vec)
+      {
+        found_item = found_item || md->has( iter->first );
+      }
+      EXPECT_TRUE( found_item )
+        << "Metadata should have item " << iter->second->name();
+    }
+
+    frame_number++;
+  }
+  list_file_stream.close();
 
   vis.close();
 }

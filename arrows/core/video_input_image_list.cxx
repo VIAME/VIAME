@@ -58,6 +58,7 @@ public:
   : m_current_file( m_files.end() )
   , m_frame_number( 0 )
   , m_image( nullptr )
+  , m_have_metadata_map( false )
   {}
 
   // Configuration values
@@ -68,6 +69,10 @@ public:
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
   kwiver::vital::timestamp::frame_t m_frame_number;
   kwiver::vital::image_container_sptr m_image;
+
+  // metadata map
+  bool m_have_metadata_map;
+  vital::metadata_map::map_metadata_t m_metadata_map;
 
   // processing classes
   vital::algo::image_io_sptr m_image_reader;
@@ -379,6 +384,29 @@ video_input_image_list
                               *d->m_current_file ) );
   vital::metadata_vector mdv(1, md);
   return mdv;
+}
+
+kwiver::vital::metadata_map_sptr
+video_input_image_list
+::metadata_map()
+{
+  if ( !d->m_have_metadata_map )
+  {
+    kwiver::vital::timestamp::frame_t fn = 0;
+    for (const auto& f: d->m_files)
+    {
+      ++fn;
+      // For now, the only metadata is the filename
+      auto md = std::make_shared<vital::metadata>();
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME, f ) );
+      vital::metadata_vector mdv(1, md);
+      d->m_metadata_map[fn] = mdv;
+    }
+
+    d->m_have_metadata_map = true;
+  }
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->m_metadata_map);
 }
 
 } } }     // end namespace

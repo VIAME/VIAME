@@ -42,6 +42,7 @@
 #include <memory>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 #include "barcode_decode.h"
 #include "seek_frame_common.h"
@@ -213,6 +214,49 @@ TEST_F(video_input_image_list, seek_frame)
   viil.open( list_file );
 
   test_seek_frame( viil );
+
+  viil.close();
+}
+
+TEST_F(video_input_image_list, metadata_map)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  // Get metadata map
+  auto md_map = viil.metadata_map()->metadata();
+
+  EXPECT_EQ( md_map.size(), num_expected_frames )
+    << "There should be metadata for every frame";
+
+  // Open the list file directly and compare name to metadata
+  std::ifstream list_file_stream( list_file );
+  int frame_number = 1;
+  std::string file_name;
+  while ( std::getline( list_file_stream, file_name ) )
+  {
+    auto md_file_name = md_map[frame_number][0]->find(
+        kwiver::vital::VITAL_META_IMAGE_FILENAME).as_string();
+    EXPECT_TRUE( md_file_name.find( file_name ) != std::string::npos )
+      << "File path in metadata should contain " << file_name;
+    frame_number++;
+  }
+  list_file_stream.close();
 
   viil.close();
 }
