@@ -2,6 +2,7 @@
 set( database_headers
   descriptor_db.h
   connection/db_connection.h
+  query_track_descriptor_set_db.h
   write_object_track_set_db.h
   write_track_descriptor_set_db.h
   )
@@ -9,6 +10,7 @@ set( database_headers
 set( database_sources
   descriptor_db.cxx
   connection/db_connection.cxx
+  query_track_descriptor_set_db.cxx
   write_object_track_set_db.cxx
   write_track_descriptor_set_db.cxx
   )
