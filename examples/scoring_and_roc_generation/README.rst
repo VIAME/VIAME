@@ -14,6 +14,7 @@ file and the computed detections. The computed detections are scored
 against the truth file to give a set of statistics as shown below:
 
 ::
+
   HADWAV Scoring Results:
      Detection-Pd: 0.748387
      Detection-FA: 8
@@ -43,6 +44,7 @@ that the image file name is not captured.  All the converters take the
 same set of command line options. For example:
 
 ::
+
   Usage: habcam_to_kw18.pl [opts] file
     Options:
       --help                     print usage
@@ -64,6 +66,7 @@ second conversion to cause images not in the first step to be skipped.
 The score_tracks tool is run as follows:
 
 ::
+
   score_tracks --computed-tracks computed_det.kw18 --truth-tracks ground_truth2.kw18
 
 A full list of the options can be coaxed from the tool by using the `-?` option.
