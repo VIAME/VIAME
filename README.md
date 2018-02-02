@@ -41,16 +41,16 @@ Documentation
 
 
 [Detector Examples](examples/detector_pipelines) > > >
-[Running Detectors Overview](doc/detector_introduction.md) > > >
+[Running Detectors Overview](examples/detector_pipelines/README.rst) > > >
 [Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > >
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline/README.rst) > > >
 [Example Integrations](plugins) > > >
 [Example Templates](plugins/templates)
 
 
-[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > >
+[Graphical User Interfaces for Visualization and Annotation](examples/visualizing_detections_in_gui/README.rst) > > >
 [Examples](examples/visualizing_detections_in_gui)
 
 
@@ -58,7 +58,7 @@ Documentation
 [Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
 
 
-[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > >
+[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation/README.rst) > > >
 [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > >
 [Examples](examples/scoring_and_roc_generation)
 
