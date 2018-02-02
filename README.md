@@ -85,9 +85,9 @@ be moved back into the main plugin directory or added to your path to use them.
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](doc/build_and_install_guide.rst),
-with additional tips [here](doc/build_and_install_guide.rst#build-tips-n-tricks), and common issues
-[here](doc/build_and_install_guide.rst#known-issues).
+More in-depth build instructions can be found [here](examples/building_viame/README.rst),
+with additional tips [here](examples/building_viame/README.rst#build-tips-n-tricks), and common issues
+[here](examples/building_viame/README.rst#known-issues).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
