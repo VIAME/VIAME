@@ -400,8 +400,7 @@ video_input_image_list
       auto md = std::make_shared<vital::metadata>();
       md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME, f ) );
       vital::metadata_vector mdv(1, md);
-      std::pair<vital::timestamp::frame_t, vital::metadata_vector> el(fn, mdv);
-      d->m_metadata_map.insert( el );
+      d->m_metadata_map[fn] = mdv;
     }
 
     d->m_have_metadata_map = true;

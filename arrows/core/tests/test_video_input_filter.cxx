@@ -278,12 +278,17 @@ TEST_F(video_input_filter, metadata_map)
     file_name.replace(file_name.length() - 3, 3, "pos");
 
     auto md_test = kwiver::vital::read_pos_file( data_dir + "/" + file_name );
-    auto md = md_map[frame_number][0];
+    auto md_vec = md_map[frame_number];
 
     // Loop over metadata items and compare
     for (auto iter = md_test->begin(); iter != md_test->end(); ++iter)
     {
-      EXPECT_TRUE( md->has( iter->first ))
+      bool found_item = false;
+      for (auto md : md_vec)
+      {
+        found_item = found_item || md->has( iter->first );
+      }
+      EXPECT_TRUE( found_item )
         << "Metadata should have item " << iter->second->name();
     }
 
@@ -363,12 +368,17 @@ TEST_F(video_input_filter, metadata_map_sublist)
       file_name.replace(file_name.length() - 3, 3, "pos");
 
       auto md_test = kwiver::vital::read_pos_file( data_dir + "/" + file_name );
-      auto md = md_map[frame_number][0];
+      auto md_vec = md_map[frame_number];
 
       // Loop over metadata items and compare
       for (auto iter = md_test->begin(); iter != md_test->end(); ++iter)
       {
-        EXPECT_TRUE( md->has( iter->first ))
+        bool found_item = false;
+        for (auto md : md_vec)
+        {
+          found_item = found_item || md->has( iter->first );
+        }
+        EXPECT_TRUE( found_item )
           << "Metadata should have item " << iter->second->name();
       }
     }

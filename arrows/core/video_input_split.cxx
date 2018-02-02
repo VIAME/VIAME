@@ -344,14 +344,43 @@ kwiver::vital::metadata_vector
 video_input_split
 ::frame_metadata()
 {
-  return d->d_metadata_source->frame_metadata();
+  auto md_vec1 = d->d_image_source->frame_metadata();
+  auto md_vec2 = d->d_metadata_source->frame_metadata();
+  md_vec1.insert( md_vec1.end(), md_vec2.begin(), md_vec2.end() );
+  return md_vec1;
 }
 
 kwiver::vital::metadata_map_sptr
 video_input_split
 ::metadata_map()
 {
-  return d->d_metadata_source->metadata_map();
+  vital::metadata_map::map_metadata_t output_map;
+
+  auto md_map1 = d->d_image_source->metadata_map()->metadata();
+  auto md_map2 = d->d_metadata_source->metadata_map()->metadata();
+  std::set<kwiver::vital::frame_id_t> merged_keys;
+  for ( auto& md : md_map1 )
+  {
+    if ( md_map2.find(md.first) != md_map2.end() )
+    {
+      md.second.insert( md.second.end(),
+                        md_map2[md.first].begin(),
+                        md_map2[md.first].end() );
+      merged_keys.insert(md.first);
+    }
+  }
+  for (auto md : md_map2 )
+  {
+    if ( md_map1.find(md.first) != md_map1.end() &&
+         merged_keys.find(md.first) == merged_keys.end() )
+    {
+      md_map1[md.first].insert( md_map1[md.first].end(),
+                                md.second.begin(),
+                                md.second.end() );
+    }
+  }
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(md_map1);
 }
 
 } } }     // end namespace
