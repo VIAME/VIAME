@@ -37,7 +37,7 @@
 #define KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_DB_H
 
 #include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/database/kwiver_algo_database_export.h>
 
 #include <vital/algo/write_object_track_set.h>
 
@@ -47,7 +47,7 @@ namespace kwiver {
 namespace arrows {
 namespace database {
 
-class KWIVER_ALGO_CORE_EXPORT write_object_track_set_db
+class KWIVER_ALGO_DATABASE_EXPORT write_object_track_set_db
   : public vital::algorithm_impl< write_object_track_set_db,
       vital::algo::write_object_track_set >
 {
