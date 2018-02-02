@@ -30,9 +30,9 @@ Example Capabilities
 Documentation
 -------------
 
-[Build and Install Guide](doc/build_and_install_guide.rst) > > >
-[Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > >
-[Known Issues](doc/build_and_install_guide.rst#known-issues)
+[Build and Install Guide](examples/building_viame/README.rst) > > >
+[Tips and Tricks](examples/building_viame/README.rst#build-tips-n-tricks) > > >
+[Known Issues](examples/building_viame/README.rst#known-issues)
 
 
 [KWIVER Overview](https://github.com/Kitware/kwiver) > > >
@@ -41,16 +41,16 @@ Documentation
 
 
 [Detector Examples](examples/detector_pipelines) > > >
-[Running Detectors Overview](doc/detector_introduction.md) > > >
+[Running Detectors Overview](examples/detector_pipelines/README.rst) > > >
 [Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
 
 
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > >
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline/README.rst) > > >
 [Example Integrations](plugins) > > >
 [Example Templates](plugins/templates)
 
 
-[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > >
+[Graphical User Interfaces for Visualization and Annotation](examples/visualizing_detections_in_gui/README.rst) > > >
 [Examples](examples/visualizing_detections_in_gui)
 
 
@@ -58,7 +58,7 @@ Documentation
 [Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
 
 
-[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > >
+[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation/README.rst) > > >
 [Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > >
 [Examples](examples/scoring_and_roc_generation)
 
@@ -85,9 +85,9 @@ be moved back into the main plugin directory or added to your path to use them.
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](doc/build_and_install_guide.rst),
-with additional tips [here](doc/build_and_install_guide.rst#build-tips-n-tricks), and common issues
-[here](doc/build_and_install_guide.rst#known-issues).
+More in-depth build instructions can be found [here](examples/building_viame/README.rst),
+with additional tips [here](examples/building_viame/README.rst#build-tips-n-tricks), and common issues
+[here](examples/building_viame/README.rst#known-issues).
 
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
@@ -196,7 +196,7 @@ Another good initial test is to run the [install-directory]/bin/plugin_explorer 
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
-```
+``
 ---- Algorithm search path
 
 Factories that create type "image_object_detector"
@@ -228,7 +228,7 @@ Info on algorithm type "video_input" implementation "vxl"
     Plugin module name: arrows.vxl
 
 etc...
-```
+``
 
 The plugin loaded line represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm
