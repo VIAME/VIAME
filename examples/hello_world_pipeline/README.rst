@@ -39,6 +39,8 @@ Most detectors take images in OpenCV MAT format. This data structure
 can be extracted from the image_container_sptr that is available using
 the following code:
 
+::
+
     // input image is kwiver::vital::image_container_sptr image_data
     // CV format image is extracted using the following line
     cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
@@ -47,6 +49,8 @@ Now that you have the image in a compatible format, it can be passed
 to the detector. Detectors usually return a set of bounding boxes,
 each annotated with one or more classification labels. These boxes can
 be converted to a detected_object_set using the following pseudo-code.
+
+::
 
     // Allocate a detected object set that we will fill with new detections
     auto detected_objects = std::make_shared<kwiver::vital::detected_object_set>();
