@@ -196,7 +196,7 @@ Another good initial test is to run the [install-directory]/bin/plugin_explorer 
 will generate a prodigious number of log messages and then list all the loadable
 algorithms. The output should look as follows:
 
-```
+``
 ---- Algorithm search path
 
 Factories that create type "image_object_detector"
@@ -228,7 +228,7 @@ Info on algorithm type "video_input" implementation "vxl"
     Plugin module name: arrows.vxl
 
 etc...
-```
+``
 
 The plugin loaded line represents the shared objects that have been detected
 and loaded. Each shared object can contain multiple algorithms. The algorithm

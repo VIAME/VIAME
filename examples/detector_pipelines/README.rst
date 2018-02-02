@@ -37,23 +37,23 @@ Vital provides an algorithm to load an image. We will use this to get
 the images for the detector. The `image_io` algorithm provides a
 method that accepts a file name and returns an image.
 
-```
+``
   kwiver::vital::image_container_sptr load(std::string const& filename) const;
-```
+``
 
 Now that we have an image, we can pass it to the detector using the following method on
 `hough_circle_detector` and get a list of detections.
 
-```
+``
   virtual vital::detected_object_set_sptr detect( vital::image_container_sptr image_data ) const;
-```
+``
 
 The detections, for example, can be drawn on the original image to see
 how well the detector is performing.
 
 The following program implements a simple single object detector.
 
-```
+``
   #include <arrows/ocv/image_container.h>
   #include <arrows/ocv/image_io.h>
   #include <arrows/ocv/hough_circle_detector.h>
@@ -82,7 +82,7 @@ The following program implements a simple single object detector.
 
     return 0;
   }
-```
+``
 
 This sample program implements the essential steps of a detector.
 
@@ -97,7 +97,7 @@ Vital provides logging support through macros that are used in the
 code to format and display informational messages. The following piece
 of code implements a logger and generates a message.
 
-```
+``
   // Include the logger interface
   #include <vital/logger/logger.h>
 
@@ -109,7 +109,7 @@ of code implements a logger and generates a message.
   // log a message
   LOG_ERROR( logger, "Message " << data );
 
-```
+``
 
 The vital logger is similar to most loggers in that it needs logging
 object to provide context for the log message. Each logger object has
@@ -124,10 +124,10 @@ specified as an output stream expression allowing type specific output
 operators to provide formatting. The output line in the above example
 could have been written as a log message.
 
-```
+``
   kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "detector_test" ));
   LOG_INFO( logger, "There were " << detections->size() << " detections in the image." );
-```
+``
 
 Note that log messages do not need an end-of-line at the end.
 
@@ -160,7 +160,7 @@ parameters can be changed and sent back to the algorithm with the
 set_configuration() method. The hough_circle_detector, the
 configuration is as follows:
 
-```
+``
 dp = 1
 
 Description: Inverse ratio of the accumulator resolution to the
@@ -196,11 +196,11 @@ CV_HOUGH_GRADIENT , it is the accumulator threshold for the circle
 centers at the detection stage. The smaller it is, the more false
 circles may be detected. Circles, corresponding to the larger
 accumulator values, will be returned first.
-```
+``
 
 Lets modify the preceding detector to accept a configuration file.
 
-```
+``
   #include <vital/config/config_block_io.h>
   #include <arrows/ocv/image_container.h>
   #include <arrows/ocv/image_io.h>
@@ -243,7 +243,7 @@ Lets modify the preceding detector to accept a configuration file.
 
     return 0;
   }
-```
+``
 
 We have added code to handle the optional second command line
 parameter in section (2). The read_config_file() function converts a
@@ -253,11 +253,11 @@ has been created, it is passed to the algorithm.
 The configuration file is as follows. Note that parameters that are
 not specified in the file retain their default values.
 
-```
+``
   dp = 2
   min_dist = 120
   param1 = 100
-```
+``
 
 Configurable detector type
 --------------------------
@@ -265,7 +265,7 @@ Configurable detector type
 To further expand on our example, the actual detector algorithm can be
 selected at run time based on the contents of our config file.
 
-```
+``
   #include <vital/algorithm_plugin_manager.h>
   #include <vital/config/config_block_io.h>
   #include <vital/algo/image_object_detector.h>
@@ -312,7 +312,7 @@ selected at run time based on the contents of our config file.
 
     return 0;
   }
-```
+``
 
 Since we are going to select the detector algorithm at run time, we no
 longer need to include the hough_circle_detector header file. New code
@@ -323,7 +323,7 @@ architecture will be discussed in a following section.
 The following config file will select and configure our favourite
 hough_circle_detector
 
-```
+``
   # select detector type
   detector:type =   hough_circle_detector
 
@@ -334,7 +334,7 @@ hough_circle_detector
   detector:hough_circle_detector:param2 =       100
   detector:hough_circle_detector:min_radius =   0
   detector:hough_circle_detector:max_radius =   0
-```
+``
 
 First you will notice that the config file entries have a longer key
 specification. The ':' character separates the different levels or
@@ -346,12 +346,12 @@ the "detector" algorithm specifies which detector is to be used. If an
 alternate detector type "foo" were to be specified, the config would
 be as follows.
 
-```
+``
   # select detector type
   detector:type =             foo
   detector:foo:param1 =       20
   detector:foo:param2 =       10
-```
+``
 
 Since the individual detector (or algorithm) parameters are
 effectively in their own namespace, configurations for multiple
@@ -384,7 +384,7 @@ Lets first look at an example application/pipeline that runs our
 hough_circle_detector on a set of images, draws the detections on the
 image and then displays the annotated image.
 
-```
+``
   # ================================================================
   process input
     :: frame_list_input
@@ -432,7 +432,7 @@ image and then displays the annotated image.
           to   disp.image
 
   # -- end of file --
-```
+``
 
 Our example pipeline configuration file is made up of process
 definitions and connections. The first process handles image input and
