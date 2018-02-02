@@ -30,9 +30,9 @@ Example Capabilities
 Documentation
 -------------
 
-[Build and Install Guide](doc/build_and_install_guide.rst) > > >
-[Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > >
-[Known Issues](doc/build_and_install_guide.rst#known-issues)
+[Build and Install Guide](examples/building_viame/README.rst) > > >
+[Tips and Tricks](examples/building_viame/README.rst#build-tips-n-tricks) > > >
+[Known Issues](examples/building_viame/README.rst#known-issues)
 
 
 [KWIVER Overview](https://github.com/Kitware/kwiver) > > >
