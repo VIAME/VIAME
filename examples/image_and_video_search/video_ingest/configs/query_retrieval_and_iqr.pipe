@@ -29,6 +29,7 @@ connect from descriptor_generator.track_descriptor_set
 process database_query_handler
  :: perform_query
  :external_handler                             true
+ relativepath external_pipeline_file =         smqtk_query.pipe
  :database_folder                              $CONFIG{global:database_folder}
  :max_result_count                             1000
  :descriptor_reader:type                       csv
