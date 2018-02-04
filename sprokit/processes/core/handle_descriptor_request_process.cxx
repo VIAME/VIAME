@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +31,26 @@
 #include "handle_descriptor_request_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/timestamp_config.h>
-#include <vital/types/image_container.h>
-#include <vital/types/object_track_set.h>
-#include <vital/types/matrix.h>
-
 #include <vital/algo/handle_descriptor_request.h>
 
 #include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
+#include <sprokit/processes/adapters/embedded_pipeline.h>
 
 #include <boost/filesystem/path.hpp>
+
+#include <memory>
+#include <fstream>
 
 namespace kwiver
 {
 
 namespace algo = vital::algo;
 
-create_port_trait( filename, file_name,
-  "KWA input filename" );
-create_port_trait( stream_id, string,
-  "Stream ID to place in file" );
+create_config_trait( image_pipeline_file, std::string, "",
+  "Filename for the image processing pipeline. This pipeline should take, "
+  "as input, a filename and produce descriptors as output." );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -63,9 +60,9 @@ public:
   priv();
   ~priv();
 
-  unsigned track_read_delay;
+  std::string image_pipeline_file;
 
-  algo::handle_descriptor_request_sptr m_handler;
+  std::unique_ptr< embedded_pipeline > image_pipeline;
 }; // end priv class
 
 
@@ -87,33 +84,60 @@ handle_descriptor_request_process
 handle_descriptor_request_process
 ::~handle_descriptor_request_process()
 {
+  if( d->image_pipeline )
+  {
+    d->image_pipeline->send_end_of_input();
+    d->image_pipeline->receive();
+    d->image_pipeline->wait();
+    d->image_pipeline.reset();
+  }
 }
 
 
 // -----------------------------------------------------------------------------
-void handle_descriptor_request_process
+void
+handle_descriptor_request_process
 ::_configure()
 {
   vital::config_block_sptr algo_config = get_config();
 
-  algo::handle_descriptor_request::set_nested_algo_configuration(
-    "handler", algo_config, d->m_handler );
+  d->image_pipeline_file = config_value_using_trait( image_pipeline_file );
+}
 
-  if( !d->m_handler )
+
+// -----------------------------------------------------------------------------
+void
+handle_descriptor_request_process
+::_init()
+{
+  auto dir = boost::filesystem::path( d->image_pipeline_file ).parent_path();
+
+  if( !d->image_pipeline_file.empty() )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Unable to create handle_descriptor_request" );
-  }
+    std::unique_ptr< embedded_pipeline > new_pipeline =
+      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
 
-  algo::handle_descriptor_request::get_nested_algo_configuration(
-    "handler", algo_config, d->m_handler );
+    std::ifstream pipe_stream;
+    pipe_stream.open( d->image_pipeline_file, std::ifstream::in );
 
-  // Check config so it will give run-time diagnostic of config problems
-  if( !algo::handle_descriptor_request::check_nested_algo_configuration(
-    "handler", algo_config ) )
-  {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Configuration check failed." );
+    if( !pipe_stream )
+    {
+      throw sprokit::invalid_configuration_exception(
+        name(), "Unable to open pipeline file: " + d->image_pipeline_file );
+    }
+
+    try
+    {
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
+      new_pipeline->start();
+    }
+    catch( const std::exception& e )
+    {
+      throw sprokit::invalid_configuration_exception( name(), e.what() );
+    }
+
+    d->image_pipeline = std::move( new_pipeline );
+    pipe_stream.close();
   }
 }
 
@@ -128,50 +152,53 @@ handle_descriptor_request_process
 
   request = grab_from_port_using_trait( descriptor_request );
 
-  // Special case, output empty results
+  // Special case, output empty results and pass thru if not specified
   if( !request )
   {
     push_to_port_using_trait( track_descriptor_set, vital::track_descriptor_set_sptr() );
-
-    push_to_port_using_trait( image, vital::image_container_sptr() );
-    push_to_port_using_trait( timestamp, vital::timestamp() );
-    push_to_port_using_trait( filename, "" );
-    push_to_port_using_trait( stream_id, "" );
-    return;
+    return; // Normal return, no failure
   }
 
-  // Get output matrix and detections
+  // Get output descriptors from internal pipeline
   vital::track_descriptor_set_sptr descriptors;
-  std::vector< vital::image_container_sptr > images;
 
-  vital::string_t filename;
-  vital::string_t stream_id;
+  // Get filepaths
+  boost::filesystem::path p( request->data_location() );
 
-  if( request && !d->m_handler->handle( request, descriptors, images ) )
+  vital::string_t filename = p.string();
+  vital::string_t stream_id = p.stem().string();
+
+  if( d->image_pipeline )
   {
-    LOG_ERROR( logger(), "Could not handle descriptor request" );
+    // Set request on pipeline inputs
+    auto ids = adapter::adapter_data_set::create();
+
+    ids->add_value( "filename", filename );
+    ids->add_value( "stream_id", stream_id );
+
+    // Send the request through the pipeline and wait for a result
+    d->image_pipeline->send( ids );
+
+    auto const& ods = d->image_pipeline->receive();
+
+    if( ods->is_end_of_data() )
+    {
+      throw std::runtime_error( "Pipeline terminated unexpectingly" );
+    }
+
+    // Grab result from pipeline output data set
+    auto const& iter = ods->find( "track_descriptor_set" );
+
+    if( iter == ods->end() )
+    {
+      throw std::runtime_error( "Empty pipeline output" );
+    }
+
+    descriptors = iter->second->get_datum< vital::track_descriptor_set_sptr >();
   }
 
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, descriptors );
-
-  if( request )
-  {
-    boost::filesystem::path p( request->data_location() );
-    filename = p.stem().string();
-    stream_id = filename;
-  }
-
-  // Step image output pipeline if connected
-  for( auto image : images )
-  {
-    vital::timestamp ts;
-
-    push_to_port_using_trait( image, image );
-    push_to_port_using_trait( timestamp, ts );
-    push_to_port_using_trait( filename, filename );
-    push_to_port_using_trait( stream_id, stream_id );
-  }
 }
 
 
@@ -190,11 +217,6 @@ void handle_descriptor_request_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
-
-  declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( filename, optional );
-  declare_output_port_using_trait( stream_id, optional );
 }
 
 
@@ -202,12 +224,15 @@ void handle_descriptor_request_process
 void handle_descriptor_request_process
 ::make_config()
 {
+  declare_config_using_trait( image_pipeline_file );
 }
 
 
 // =============================================================================
 handle_descriptor_request_process::priv
 ::priv()
+  : image_pipeline_file("")
+  , image_pipeline()
 {
 }
 
