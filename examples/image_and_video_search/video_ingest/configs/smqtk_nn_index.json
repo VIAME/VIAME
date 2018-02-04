@@ -19,7 +19,19 @@
             }
         },
         "distance_method": "euclidean",
-        "hash2uuid_cache_filepath": "database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle",
+        "hash2uuids_kvstore": {
+            "type": "MemoryKeyValueStore",
+            "MemoryKeyValueStore": {
+                "type": "DataFileElement",
+                "cache_element": {
+                    "DataFileElement": {
+                        "explicit_mimetype": null,
+                        "filepath": "database/ITQ/hash2uuids.memKvStore.pickle",
+                        "readonly": false
+                    }
+                }
+            }
+        },
         "hash_index": {
             "type": "SkLearnBallTreeHashIndex",
             "SkLearnBallTreeHashIndex": {
@@ -42,22 +54,22 @@
                 "bit_length": 256,
                 "itq_iterations": 100,
                 "mean_vec_cache": {
+                    "type": "DataFileElement",
                     "DataFileElement": {
                         "explicit_mimetype": null,
                         "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
                         "readonly": false
-                    },
-                    "type": "DataFileElement"
+                    }
                 },
                 "normalize": null,
                 "random_seed": 0,
                 "rotation_cache": {
+                    "type": "DataFileElement",
                     "DataFileElement": {
                         "explicit_mimetype": null,
                         "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
                         "readonly": false
-                    },
-                    "type": "DataFileElement"
+                    }
                 }
             }
         },
