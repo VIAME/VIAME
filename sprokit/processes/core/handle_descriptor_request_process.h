@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,12 +60,13 @@ class KWIVER_PROCESSES_NO_EXPORT handle_descriptor_request_process
   : public sprokit::process
 {
   public:
-  handle_descriptor_request_process( vital::config_block_sptr const& config );
-  virtual ~handle_descriptor_request_process();
+    handle_descriptor_request_process( vital::config_block_sptr const& config );
+    virtual ~handle_descriptor_request_process();
 
   protected:
     virtual void _configure();
     virtual void _step();
+    virtual void _init();
 
   private:
     void make_ports();
