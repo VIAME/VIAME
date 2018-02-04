@@ -1,0 +1,66 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   20
+
+config _scheduler
+   :type                                       pythread_per_process
+
+config global
+   :database_folder                            database
+   :query_folder                               database/Queries
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+process query_formulator
+ :: handle_descriptor_request
+
+  relativepath image_pipeline_file             image_query.pipe
+
+connect from in_adapt.descriptor_request
+        to   query_formulator.descriptor_request
+connect from query_formulator.track_descriptor_set
+        to   out_adapt.track_descriptor_set
+
+# ==================================================================================
+process query_handler
+ :: perform_query
+ :external_handler                             true
+ :database_folder                              $CONFIG{global:database_folder}
+ :max_result_count                             1000
+ :descriptor_reader:type                       csv
+ :track_reader:type                            kw18
+
+connect from in_adapt.database_query
+        to   query_handler.database_query
+connect from in_adapt.iqr_feedback
+        to   query_handler.iqr_feedback
+
+process smqtk_query_handler
+  :: smqtk_process_query
+  relativepath descriptor_index_config_file =  smqtk_desc_index.json
+  relativepath neighbor_index_config_file   =  smqtk_nn_index.json
+
+connect from query_handler.external_descriptor_set
+        to   smqtk_query_handler.descriptor_set
+connect from query_handler.external_exemplar_uids
+        to   smqtk_query_handler.exemplar_uids
+connect from query_handler.external_positive_uids
+        to   smqtk_query_handler.positive_uids
+connect from query_handler.external_negative_uids
+        to   smqtk_query_handler.negative_uids
+
+connect from smqtk_query_handler.result_descriptor_uids
+        to   query_handler.result_descriptor_uids
+connect from smqtk_query_handler.result_descriptor_scores
+        to   query_handler.result_descriptor_scores
+
+connect from query_handler.query_result
+        to   out_adapt.query_result

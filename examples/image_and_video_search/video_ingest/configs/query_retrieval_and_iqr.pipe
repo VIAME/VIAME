@@ -2,10 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   20
-
-config _scheduler
-   :type                                       pythread_per_process
+   :capacity                                   10
 
 config global
    :database_folder                            database
@@ -19,42 +16,17 @@ process out_adapt
  :: output_adapter
 
 # ==================================================================================
-process query_formulator
+process descriptor_generator
  :: handle_descriptor_request
-
-  :handler:type                                core
-  :handler:core:image_reader:type              vxl
-  :handler:core:descriptor_extractor:type      burnout
-
-  block handler:core:descriptor_extractor:burnout
-    relativepath config_file =                 burnout_det_descriptors.conf
-  endblock
-
-process kwa_writer
- :: kw_archive_writer
-
-  :output_directory                            $CONFIG{global:query_folder}
-  :mission_id                                  0
+  relativepath image_pipeline_file =           image_query.pipe
 
 connect from in_adapt.descriptor_request
-        to   query_formulator.descriptor_request
-connect from query_formulator.track_descriptor_set
+        to   descriptor_generator.descriptor_request
+connect from descriptor_generator.track_descriptor_set
         to   out_adapt.track_descriptor_set
 
-connect from query_formulator.image
-        to   kwa_writer.image
-connect from query_formulator.timestamp
-        to   kwa_writer.timestamp
-connect from query_formulator.filename
-        to   kwa_writer.filename
-connect from query_formulator.stream_id
-        to   kwa_writer.stream_id
-
-connect from kwa_writer.complete_flag
-        to   out_adapt.complete_flag
-
 # ==================================================================================
-process query_handler
+process database_query_handler
  :: perform_query
  :external_handler                             true
  :database_folder                              $CONFIG{global:database_folder}
@@ -63,28 +35,10 @@ process query_handler
  :track_reader:type                            kw18
 
 connect from in_adapt.database_query
-        to   query_handler.database_query
+        to   database_query_handler.database_query
 connect from in_adapt.iqr_feedback
-        to   query_handler.iqr_feedback
+        to   database_query_handler.iqr_feedback
 
-connect from query_handler.query_result
+connect from database_query_handler.query_result
         to   out_adapt.query_result
 
-process smqtk_query_handler
-  :: smqtk_process_query
-  relativepath descriptor_index_config_file =  smqtk_desc_index.json
-  relativepath neighbor_index_config_file   =  smqtk_nn_index.json
-
-connect from query_handler.external_descriptor_set
-        to   smqtk_query_handler.descriptor_set
-connect from query_handler.external_exemplar_uids
-        to   smqtk_query_handler.exemplar_uids
-connect from query_handler.external_positive_uids
-        to   smqtk_query_handler.positive_uids
-connect from query_handler.external_negative_uids
-        to   smqtk_query_handler.negative_uids
-
-connect from smqtk_query_handler.result_descriptor_uids
-        to   query_handler.result_descriptor_uids
-connect from smqtk_query_handler.result_descriptor_scores
-        to   query_handler.result_descriptor_scores
