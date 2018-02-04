@@ -15,9 +15,7 @@ SMQTK_BTREE_CONFIG="configs/smqtk_make_balltree.json"
 train_itq -vc "${SMQTK_ITQ_TRAIN_CONFIG}"
 
 # Compute hash codes for descriptors
-compute_hash_codes \
-    -vc "${SMQTK_HCODE_CONFIG}" \
-    --output-hash2uuids "${SMQTK_HCODE_PICKLE}"
+compute_hash_codes -vc "${SMQTK_HCODE_CONFIG}"
 
 # Compute balltree hash index
-make_balltree -c "${SMQTK_BTREE_PICKLE}"
+make_balltree -vc "${SMQTK_BTREE_PICKLE}"
