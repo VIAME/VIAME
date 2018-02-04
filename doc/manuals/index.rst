@@ -9,7 +9,7 @@ VIAME is a computer vision library designed to integrate several image and video
 in a common distributed processing framework, majorly targeting marine species analytics. 
 As it contains many common algorithms and compiles several other popular repositories together as a part of its build process,
 VIAME is also useful as a general computer vision toolkit. 
-Thecore infrastructure connecting different system components is currently the KWIVER library, 
+The core infrastructure connecting different system components is currently the KWIVER library, 
 which can connect C/C++, python, and matlab nodes together in a graph-like pipeline architecture. 
 Alongside the pipelined image processing system are a number of standalone utilties for model training, 
 output detection visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search, and rapid model generation. 
