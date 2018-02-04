@@ -7,8 +7,8 @@ set( EXAMPLE_INSTALL_FILES
      build_index.sh
      db_tool.sh
      ingest_video.sh
-     launch_gui.sh
-     launch_viewer.sh
+     launch_query_gui.sh
+     launch_track_viewer.sh
      view_tracks.prj
      view_detections.prj )
 
