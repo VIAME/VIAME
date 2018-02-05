@@ -303,8 +303,8 @@ class SRNN_tracking(KwiverProcess):
                 if self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold:
                     self._track_set[ti].active_flag = False
 
-            #print('track_set len {}'.format(len(self._track_set)))
-            #print('track_state_list len {}'.format(len(track_state_list)))
+            print('track_set len {}'.format(len(self._track_set)))
+            print('track_state_list len {}'.format(len(track_state_list)))
             
             # call IOU tracker
             if self._IOU_flag is True:
@@ -313,8 +313,8 @@ class SRNN_tracking(KwiverProcess):
                 IOU_end = timer()
                 print('%%%IOU tracking eclapsed time: {}'.format(IOU_end - IOU_begin))
 
-            #print('***track_set len {}'.format(len(self._track_set)))
-            #print('***track_state_list len {}'.format(len(track_state_list)))
+            print('***track_set len {}'.format(len(self._track_set)))
+            print('***track_state_list len {}'.format(len(track_state_list)))
 
             # estimate similarity matrix
             ttu_begin = timer()
