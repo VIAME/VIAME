@@ -31,7 +31,9 @@ Contents:
    example_links/visualizing_detections_in_gui
    example_links/scoring_and_roc_generation
    example_links/external_plugin_creation
-   example_links/external_kwiver.rst
+   Core Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
+   Basic Processing Elements <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
+   KWIVER Pipelining <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
 
 
 .. |br| raw:: html
