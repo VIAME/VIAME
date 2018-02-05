@@ -1,7 +1,7 @@
 
-=====================
-Detector Training API
-=====================
+==========================
+Detector Training Examples
+==========================
 
 The common detector training API is used for training multiple object
 detectors from the same input format for both experimentation and

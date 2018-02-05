@@ -42,7 +42,7 @@ Contents:
    example_links/visualizing_detections_in_gui
    example_links/scoring_and_roc_generation
    example_links/external_plugin_creation
-   KWIVER Manual <http://kwiver.readthedocs.io/en/latest/>
+   KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
 
 .. |br| raw:: html

@@ -27,9 +27,9 @@ Requirements
 | run_lanl.sh/bat - VIAME_ENABLE_MATLAB
 
 
-**************************************
-Running the object detection exammples
-**************************************
+*************************************
+Running the object detection examples
+*************************************
 
 Each run script contains 2 calls. A first ('source setup_viame.sh') which
 runs a script configuring all paths required to run VIAME calls, and a second
