@@ -1,3 +1,8 @@
+
+************************
+Video Search using VIAME
+************************
+
 This folder contains an example for video search. 
 |
 | WARNING: This example is a work in progress, and should only be attempted

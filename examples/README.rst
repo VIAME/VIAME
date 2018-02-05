@@ -46,4 +46,4 @@ Detector Evaluation
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 50
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/master/examples/scoring_and_roc_generatio
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/scoring_and_roc_generation
