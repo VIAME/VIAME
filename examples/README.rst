@@ -43,7 +43,7 @@ GUI Visualization and Annotation Support
 Detector Evaluation
 *******************
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring.png
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 50
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/scoring_and_roc_generatio
