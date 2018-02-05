@@ -10,7 +10,7 @@ Object Detection
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/many_scallop_detections_gui.png
    :scale: 50
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/detector_pipelines
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines
 
 ***********************************
 Measuring Fish Lengths Using Stereo
@@ -19,7 +19,7 @@ Measuring Fish Lengths Using Stereo
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/fish_measurement_example.png
    :scale: 50
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/measurement_using_stereo
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/measurement_using_stereo
 
 *************************************************
 Image and Video Search for Rapid Model Generation
@@ -28,7 +28,7 @@ Image and Video Search for Rapid Model Generation
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
    :scale: 50
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/image_and_video_search
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search
 
 *************************************
 GUIs for Visualization and Annotation
@@ -37,7 +37,7 @@ GUIs for Visualization and Annotation
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example.png
    :scale: 50
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/visualizing_detections_in_gui
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/visualizing_detections_in_gui
 
 *******************
 Detector Evaluation
@@ -46,4 +46,4 @@ Detector Evaluation
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 50
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/scoring_and_roc_generatio
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/scoring_and_roc_generatio
