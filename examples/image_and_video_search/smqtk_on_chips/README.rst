@@ -6,18 +6,18 @@ Image Search Using SMQTK
 This folder contains examples covering image search on top of an archive of images. 
 
 |
-|Building and running this examples requires: 
+| Building and running this examples requires: 
 |
-| (a) The python packages: numpy 
-| (b) Linux or Mac systems, Windows is not fully supported. 
-| (c) A VIAME build with the following flags enabled:
-|      - VIAME_ENABLE_SMQTK
-|      - VIAME_ENABLE_CAFFE
-|      - VIAME_ENABLE_CUDA (Optional, but desired for performance)
-|      - VIAME_ENABLE_YOLO (Optional, for detector ingest example)
-| (d) An installation of MongoDB to run the web client 
+|  (a) The python packages: numpy 
+|  (b) Linux or Mac systems, Windows is not fully supported. 
+|  (c) A VIAME build with the following flags enabled:
+|        - VIAME_ENABLE_SMQTK
+|        - VIAME_ENABLE_CAFFE
+|        - VIAME_ENABLE_CUDA (Optional, but desired for performance)
+|        - VIAME_ENABLE_YOLO (Optional, for detector ingest example)
+|  (d) An installation of MongoDB to run the web client 
 |
-|The system can either be configured to perform queries via: 
+| The system can either be configured to perform queries via: 
 |
 | (a) Indexing descriptors around each full input image as-is.
 | (b) Tiling up each input image into fixed-size tiles. 
