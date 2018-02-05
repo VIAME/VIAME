@@ -30,6 +30,10 @@ Example Capabilities
 Documentation
 -------------
 
+The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive,
+but select entries are also listed below:
+
+
 [Build and Install Guide](examples/building_viame/README.rst) > > >
 [Tips and Tricks](examples/building_viame/README.rst#build-tips-n-tricks) > > >
 [Known Issues](examples/building_viame/README.rst#known-issues)
