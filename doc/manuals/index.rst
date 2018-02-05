@@ -3,8 +3,10 @@
    contain the root `toctree` directive.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/into_image.png
-   :scale: 80 %
+   :scale: 60 %
    :align: center
+
+|
 
 VIAME is a computer vision library designed to integrate several image and video
 processing algorithms together in a common distributed processing framework, majorly
