@@ -165,11 +165,11 @@ class KwiverProcess(process.PythonProcess):
                             datum.Datum.get_track_set,
                             datum.new_track_set)
         self.add_type_trait("feature_track_set", "kwiver:feature_track_set",
-                            datum.Datum.get_track_set,
-                            datum.new_track_set)
+                            datum.Datum.get_feature_track_set,
+                            datum.new_feature_track_set)
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
-                            datum.Datum.get_track_set,
-                            datum.new_track_set)
+                            datum.Datum.get_object_track_set,
+                            datum.new_object_track_set)
 
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
