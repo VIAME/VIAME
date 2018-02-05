@@ -3,6 +3,13 @@
 Image Search Using SMQTK
 ************************
 
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/smqtk_on_chips
+
+
+
 This folder contains examples covering image search on top of an archive of images. 
 
 |

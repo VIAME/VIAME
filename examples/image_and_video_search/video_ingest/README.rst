@@ -3,6 +3,13 @@
 Video Search using VIAME
 ************************
 
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/video_query_start.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/video_ingest
+
+
+
 This folder contains an example for video search. 
 
 |

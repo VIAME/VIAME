@@ -3,6 +3,16 @@
 Object Detection Examples
 =========================
 
+****************
+Object Detection
+****************
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines
+
+
 This document corresponds to the example located online at:
 https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines.
 This folder contains assorted examples of object detection pipelines
