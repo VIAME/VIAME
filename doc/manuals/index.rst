@@ -20,19 +20,18 @@ Contents:
    :maxdepth: 1
 
    example_links/building_viame
-   example_links/common_data
-   example_links/detection_file_conversions
+   example_links/example_capabilities
+   example_links/hello_world_pipeline
    example_links/detector_pipelines
    example_links/detector_training
-   example_links/detector_training_old_api
-   example_links/external_plugin_creation
-   example_links/hello_world_pipeline
-   example_links/image_and_video_search
-   example_links/scoring_and_roc_generation
+   example_links/detection_file_conversions
    example_links/tracking_pipeline
-   example_links/using_detectors_in_gui
+   example_links/image_and_video_search
+   example_links/using_detectors_in_cxx_code
    example_links/visualizing_detections_in_gui
-
+   example_links/scoring_and_roc_generation
+   example_links/external_plugin_creation
+   example_links/external_kwiver.rst
 
 
 .. |br| raw:: html
