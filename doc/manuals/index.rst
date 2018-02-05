@@ -5,6 +5,7 @@
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/into_image.png
    :scale: 60 %
    :align: center
+   :target: http://viame.readthedocs.io/en/latest/index.html
 
 |
 
