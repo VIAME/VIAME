@@ -4,17 +4,22 @@
 
 .. _linux-label:
 
-======================
-Building VIAME (Linux)
-======================
+==============
+Building VIAME
+==============
+
+See the platform-specific guides below, though the process is similar for each.
+
+*****************
+Building on Linux
+*****************
 
 These instructions are designed to help build VIAME on a fresh machine. They were written for and tested on Ubuntu
 16.04 Desktop version. Other Linux machines will have similar directions, but some steps (particularly the dependency
 install) may not be exactly identical. VIAME has also been built on: CentOS/RHEL 6+, Fedora 19+, Ubuntu 14.04+.
 
-********************
 Install Dependencies
-********************
+====================
 
 Some of the dependencies required for VIAME can be installed with one quick and easy instruction with no configuration
 required. Different Linux distributions may have different packages already installed, or may use a different package
@@ -57,9 +62,8 @@ These instructions build the source code into a working executable, installs the
 directory, and then lets the operating system know where that directory is so it can find cmake in the future in
 case /usr/local/bin isn't in your PATH variable by default.
 
-******************
 Prepare the Source
-******************
+==================
 
 With all our dependencies installed, we need to build the environment for VIAME itself. VIAME uses git submodules rather
 than requiring the user to grab each repository totally separately. To prepare the environment and obtain all the necessary
@@ -71,9 +75,8 @@ source code, use the following commands. Note that you can change ``src`` to wha
    cd src
    git submodule update --init --recursive
 
-***********
 Build VIAME
-***********
+===========
 
 VIAME may be built with a number of optional plugins--VXL, Caffe, OpenCV, Scallop_TK, and Matlab--with a corresponding option
 called VIAME_ENABLE_[option], in all caps. For each plugin to install, you need a cmake build flag setting the option. The
@@ -147,9 +150,9 @@ to point to dependency locations. An example is below for a system with CUDA, Py
 
 .. _mac-label:
 
-====================
-Building VIAME (Mac)
-====================
+*******************
+Building on Mac OSX
+*******************
 
 Building on Mac is very similar to Linux, minus the dependency install stage. Currently, we have only tested VIAME
 with OSX 10.11.5 and Clang 7.3.0, but other versions may also work. Make sure you have a C/C++ development
@@ -158,13 +161,13 @@ follow the same Linux build instructions above.
 
 .. _windows-label:
 
-========================
-Building VIAME (Windows)
-========================
+*******************
+Building on Windows
+*******************
 
 Building on windows can be very similar to Linux if using a shell like cygwin (``https://www.cygwin.com/``), though if not you
 may want to go grab the GUI versions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``). Currently
-Visual Studio 2013, 2015 and 2017 are supported.
+Visual Studio 2013, 2015 and EARLY VERSION ONLY of 2017 are supported. Latest 2017 is not yet supported but will be shortly.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this involves right clicking in your folder of
 choice, selecting Git Clone, and then entering the URL to VIAME (``https://github.com/Kitware/VIAME.git``) and the location
@@ -183,9 +186,9 @@ directories, select your compiler of choice, and setup and build flags you want.
 
 .. _tips-label:
 
-==============
+**************
 Updating VIAME
-==============
+**************
 
 If you already have a checkout of VIAME and want to switch branches or
 update your code, it is important to re-run:
@@ -201,9 +204,9 @@ you may also need to run:
 Just in case the address of submodules has changed. You only need to
 run this command if you get a "cannot fetch hash #hashid" error.
 
-====================
+********************
 Build Tips 'n Tricks
-====================
+********************
 
 **Super-Build Optimizations:**
 
@@ -225,9 +228,9 @@ don't).
 
 .. _issues-label:
 
-============
-Known Issues
-============
+******************
+Known Build Issues
+******************
 
 **Issue:**
 
