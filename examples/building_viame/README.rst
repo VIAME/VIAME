@@ -10,15 +10,15 @@
 Building VIAME From Source
 ==========================
 
-|See the platform-specific guides below, though the process is similar for each.
+See the platform-specific guides below, though the process is similar for each.
 |
-|Example location online:
+Example location online:
 |
-|https://github.com/Kitware/VIAME/tree/master/examples/building_viame
+https://github.com/Kitware/VIAME/tree/master/examples/building_viame
 |
-|Example location in VIAME installation:
+Example location in VIAME installation:
 |
-|[viame-install]/examples/building_viame
+[viame-install]/examples/building_viame
 
 
 *****************
