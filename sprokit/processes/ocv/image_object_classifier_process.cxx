@@ -31,7 +31,6 @@
 #include "image_object_classifier_process.h"
 #include <arrows/ocv/image_container.h>
 
-#include <vital/vital_foreach.h>
 #include <vital/algo/image_object_detector.h>
 #include <vital/util/wall_timer.h>
 
@@ -67,6 +66,7 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   vital::algo::image_object_detector_sptr m_detector;
 
+
   // ------------------------------------------------------------------
   /**
    * @brief Classify regions defined within the provided detected object set.
@@ -75,26 +75,25 @@ public:
   * mean square over the channels.
   *
   * @param src_image Full-resolution image
-  * @param dets_in_sptr dets_in_sptr Detections with bounding boxes defined in
+  * @param dets_in dets_in_sptr Detections with bounding boxes defined in
    *  the full-image coordinate system. These will define ROI that will be
    *  chipped and sent individually to the detector.
   * @param dets_out_sptr Output classifications.
   */
   void
   classify( const vital::image_container_sptr &src_image,
-            const vital::detected_object_set_sptr &dets_in_sptr,
+            const vital::detected_object_set_sptr &dets_in,
             vital::detected_object_set_sptr &dets_out_sptr )
   {
     kwiver::vital::wall_timer timer;
     cv::Mat cv_src = arrows::ocv::image_container::vital_to_ocv( src_image->get_image() );
 
-    vital::detected_object::vector_t dets_in = dets_in_sptr->select();
     vital::detected_object::vector_t dets_out;
 
     if( m_include_input_dets )
     {
       // Add in the detections that defined the ROI
-      dets_out.insert( dets_out.end(), dets_in.begin(), dets_in.end() );
+      dets_out.insert( dets_out.end(), dets_in->cbegin(), dets_in->cend() );
     }
 
     // Define the bound box representing the entire image.
@@ -103,8 +102,8 @@ public:
                                vital::bounding_box_d::vector_type( s.width, s.height ) );
 
     kwiver::vital::image_container_sptr windowed_image;
-    LOG_DEBUG( m_logger, "Considering " << dets_in.size() << " ROI" );
-    VITAL_FOREACH( vital::detected_object_sptr det, dets_in )
+    LOG_DEBUG( m_logger, "Considering " << dets_in->size() << " ROI" );
+    for( auto det : *dets_in )
     {
       timer.start();
       vital::bounding_box_d bbox = det->bounding_box();
@@ -136,9 +135,9 @@ public:
       // Detect within the region of interest.
       windowed_image = vital::image_container_sptr( new arrows::ocv::image_container( cv_src(roi) ) );
 
-      vital::detected_object::vector_t dets = m_detector->detect( windowed_image )->select();
+      auto dets = m_detector->detect( windowed_image );
 
-      VITAL_FOREACH( auto det, dets )
+      for( auto det : *dets )
       {
         auto det_bbox = det->bounding_box();
         kwiver::vital::translate( det_bbox, bbox.upper_left() );
@@ -146,7 +145,8 @@ public:
       }
 
       // Add detections set to the output detection set
-      dets_out.insert( dets_out.end(), dets.begin(), dets.end() );
+      dets_out.insert( dets_out.end(), dets->cbegin(), dets->cend() );
+
       timer.stop();
       LOG_TRACE( m_logger, "Time to classify window: " << timer.elapsed() );
     } // end foreach
@@ -183,6 +183,8 @@ void
 image_object_classifier_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -197,7 +199,7 @@ _configure()
     throw sprokit::invalid_configuration_exception( name(), "Unable to create detector" );
   }
 
-  d->m_include_input_dets       = config_value_using_trait( include_input_dets );
+  d->m_include_input_dets = config_value_using_trait( include_input_dets );
 }
 
 
@@ -206,20 +208,26 @@ void
 image_object_classifier_process::
 _step()
 {
+  vital::detected_object_set_sptr dets_out;
+  double elapsed_time(0);;
+
   LOG_TRACE( logger(), "Starting process" );
+
   kwiver::vital::wall_timer timer;
   timer.start();
 
   vital::image_container_sptr src_image = grab_from_port_using_trait( image );
   vital::detected_object_set_sptr dets_in = grab_from_port_using_trait( detected_object_set );
 
-  // Get detections from detector on image
-  vital::detected_object_set_sptr dets_out;
-  d->classify( src_image, dets_in, dets_out );
+  {
+    scoped_step_instrumentation();
+    // Get detections from detector on image
+    d->classify( src_image, dets_in, dets_out );
 
-  timer.stop();
-  double elapsed_time = timer.elapsed();
-  LOG_DEBUG( logger(), "Total processing time: " << elapsed_time );
+    timer.stop();
+    elapsed_time = timer.elapsed();
+    LOG_DEBUG( logger(), "Total processing time: " << elapsed_time );
+  }
 
   push_to_port_using_trait( detection_time, elapsed_time);
   push_to_port_using_trait( detected_object_set, dets_out );
