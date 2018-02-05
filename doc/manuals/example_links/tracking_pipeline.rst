@@ -1,1 +1,1 @@
-.. include:: ../../../examples/tracking_pipeline/README.rst
+.. include:: ../../../examples/tracking_pipelines/README.rst

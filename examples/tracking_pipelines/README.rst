@@ -7,6 +7,7 @@ Object Tracking Example
    :scale: 60
    :align: center
 
-`Coming Soon`_
+Note: a simple object tracker already exists in the video search example, but this doc
+page will be improved over time as we land other trackers (e.g. `PR 25`_).
 
-.. _Coming Soon: https://github.com/Kitware/VIAME/pull/30
+.. _PR 25: https://github.com/Kitware/VIAME/pull/30

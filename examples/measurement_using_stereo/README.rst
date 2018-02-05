@@ -7,6 +7,6 @@ Length Measurement Examples
    :scale: 60
    :align: center
 
-`Coming Soon, Pull Request 25`_
+`Coming Soon`_  on Pull Request 25
 
 .. _Coming Soon: https://github.com/Kitware/VIAME/pull/25
