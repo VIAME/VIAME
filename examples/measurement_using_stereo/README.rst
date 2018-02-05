@@ -7,4 +7,6 @@ Size Measurement Using Stereo Cameras
    :scale: 60
    :align: center
 
-`Coming Soon <https://github.com/Kitware/VIAME/pull/25`_
+`Coming Soon`_
+
+.. _Coming Soon: https://github.com/Kitware/VIAME/pull/25

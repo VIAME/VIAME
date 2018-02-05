@@ -1,16 +1,12 @@
 
-===============
-Object Tracking
-===============
+=======================
+Object Tracking Example
+=======================
 
-This folder contains a simple, but efficient, object tracking example.
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/computed_track_example.png
+   :scale: 60
+   :align: center
 
-A better tracker (based on 'tracking the untrackable') will be available
-shortly.
+`Coming Soon`_
 
-The example currently requires:
-
-  (a) A VIAME build with VIAME_ENABLE_BURNOUT and VIAME_ENABLE_VXL turned on
-
-It's inoperable at the moment but will be updated shortly.
-
+.. _Coming Soon: https://github.com/Kitware/VIAME/pull/30

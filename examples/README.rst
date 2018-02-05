@@ -21,18 +21,18 @@ Measuring Fish Lengths Using Stereo
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/measurement_using_stereo
 
-********************************************************
-Image and Appearance Matching for Rapid Model Generation
-********************************************************
+*************************************************
+Image and Video Search for Rapid Model Generation
+*************************************************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
    :scale: 50
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/dev/more-doc/examples/image_and_video_search
 
-****************************************
-GUI Visualization and Annotation Support
-****************************************
+*************************************
+GUIs for Visualization and Annotation
+*************************************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example.png
    :scale: 50

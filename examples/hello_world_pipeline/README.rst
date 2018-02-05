@@ -1,9 +1,17 @@
 
-===================
-New Module Creation
-===================
+============================
+New Module Creation Examples
+============================
 
-Example c++ plugin
+See the platform-specific guides below, though the process is similar for each.
+This document corresponds to the example located online at:
+https://github.com/Kitware/VIAME/tree/master/examples/building_viame
+and also to the following directory in your VIAME installation:
+[viame-install]/examples/building_viame.
+
+**********************************
+Example C++ Object Detector Plugin
+**********************************
 
 A new detector plugin is added by creating a class that implements the
 kwiver::vital::algo::image_object_detector interface. This interface
