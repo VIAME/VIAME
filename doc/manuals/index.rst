@@ -26,14 +26,16 @@ Contents:
    example_links/detector_training
    example_links/detection_file_conversions
    example_links/tracking_pipeline
+   example_links/measurement_using_stereo
    example_links/image_and_video_search
    example_links/using_detectors_in_cxx_code
    example_links/visualizing_detections_in_gui
    example_links/scoring_and_roc_generation
    example_links/external_plugin_creation
-   Core Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
-   Basic Processing Elements <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
-   KWIVER Pipelining <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
+   Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
+   Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
+   Basic Processing Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
+   KWIVER Manual <http://kwiver.readthedocs.io/en/latest/>
 
 
 .. |br| raw:: html
