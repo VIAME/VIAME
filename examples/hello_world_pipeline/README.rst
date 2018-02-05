@@ -1,4 +1,9 @@
-# Example c++ plugin
+
+===================
+New Module Creation
+===================
+
+Example c++ plugin
 
 A new detector plugin is added by creating a class that implements the
 kwiver::vital::algo::image_object_detector interface. This interface

@@ -1,5 +1,6 @@
-Scoring Notes
--------------
+==============================
+Scoring Detectors and Trackers
+==============================
 
 The KWANT package provides scoring tools that can be used to
 calculate the probability of detecting an item, along with other scoring

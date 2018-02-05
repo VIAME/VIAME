@@ -1,12 +1,14 @@
 
-Detector Pipelines
-------------------
+================
+Object Detection
+================
 
 This folder contains assorted examples of object detection pipelines running different
 detectors such as YOLOv2, ScallopTK, Faster RCNN, etc...
 
+************
 Requirements
-------------
+************
 
 | Minimum:
 | 
@@ -20,8 +22,9 @@ Requirements
 | run_lanl - VIAME_ENABLE_MATLAB
 
 
+***************************************
 Running a single detector from C++ code
----------------------------------------
+***************************************
 
 We will be using a Hough circle detector as an and example of the
 mechanics of implementing a VIAME detector in cxx code.
@@ -91,8 +94,9 @@ Now that we have a simple program running, there are two concepts that
 are supported by vital that are essential for building larger
 applications; logging and configuration support.
 
+*******
 Logging
--------
+*******
 
 Vital provides logging support through macros that are used in the
 code to format and display informational messages. The following piece
@@ -134,9 +138,9 @@ Note that log messages do not need an end-of-line at the end.
 
 Refer to the separate logger documentation for more details.
 
-
+*********************
 Configuration Support
----------------------
+*********************
 
 In our detector example we just used the detector in its default state
 without specifying any configuration options. This works well in this
@@ -261,8 +265,9 @@ not specified in the file retain their default values.
   param1 = 100
 
 
+**************************
 Configurable detector type
---------------------------
+**************************
 
 To further expand on our example, the actual detector algorithm can be
 selected at run time based on the contents of our config file.
@@ -363,8 +368,9 @@ algorithms can be in the same file, which is exactly how more
 complicated applications are configured.
 
 
+********************************************
 Sequencing Multiple Algorithms in a Pipeline
---------------------------------------------
+********************************************
 
 In a real application, the input images may come from places other
 than a file on the disk and there may be algorithms applied to

@@ -1,5 +1,7 @@
-Detection File Conversions Examples
------------------------------------
+
+======================================
+Detection File Formats and Conversions
+======================================
 
 A folder containing misc examples of how to convert between textual
 formats representing object detections, tracks, results, etc. There
@@ -10,8 +12,9 @@ are simple, containing a detection input node (reader) and output
 node (writer).
 
 
+**********************************
 VIAME Integrated Detection Formats
-----------------------------------
+**********************************
 |
 | CSV - Comma Seperated Value Detection Formats
 | 
@@ -26,3 +29,7 @@ VIAME Integrated Detection Formats
 |   v1
 |
 |
+
+*******************
+Example Conversions
+*******************
