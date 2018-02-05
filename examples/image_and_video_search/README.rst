@@ -1,7 +1,21 @@
 
+======================
+Rapid Model Generation
+======================
+
+Rapid model generation can be performed using the same method as image and video search
+(below), just saving out the resultant trained detection models after performing iterative
+query refinement.
+
+Additional documentation coming soon.
+
 ===============================
 Image and Video Search Examples
 ===============================
+
+********
+Overview
+********
 
 This directory contains methods to accomplish two tasks: 
 
@@ -12,9 +26,8 @@ This directory contains methods to accomplish two tasks:
 
 Only Linux and Mac are currently supported for running these examples. 
 
-********************
 Image Archive Search
-********************
+====================
 
 The "smqtk_on_chips" directory contains multiple methods for running image
 queries on an image archive, including: 
@@ -32,9 +45,8 @@ IQR generates an SVM classifier on user-nominated positive and negative
 examples from the result set to refine results.
 
 
-********************
 Video Archive Search
-********************
+====================
 
 Video archive search can be performed via a few methods. The default includes
 a pipeline which generates object detections, tracks, and lastly temporal
@@ -44,14 +56,3 @@ table, or other). At query time, descriptors on a query image or video are
 matched against the entries in this database. A default GUI (provided via
 the VIVIA toolkit) is provided which has similar capabilities to the SMQTK
 GUI, ie, search and IQR.
-
-
-======================
-Rapid Model Generation
-======================
-
-Rapid model generation can be performed in the same way as image and video search,
-just saving out the resultant trained detection models after performing iterative
-query refinement.
-
-Additional documentation coming soon.
