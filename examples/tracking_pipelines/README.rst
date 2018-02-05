@@ -1,3 +1,8 @@
+
+===============
+Object Tracking
+===============
+
 This folder contains a simple, but efficient, object tracking example.
 
 A better tracker (based on 'tracking the untrackable') will be available

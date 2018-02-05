@@ -1,5 +1,7 @@
+
+=====================
 Detector Training API
----------------------
+=====================
 
 The common detector training API is used for training multiple object
 detectors from the same input format for both experimentation and
@@ -40,8 +42,9 @@ tool, the only modification required from the scripts in this folder being
 setting your .conf files to the correct groundtruth file format type.
 
 
+******************
 Build Requirements
-------------------
+******************
 
 | VIAME_ENABLE_OPENCV set to ON
 | VIAME_ENABLE_PYTHON set to ON
@@ -49,8 +52,9 @@ Build Requirements
 | VIAME_ENABLE_SCALLOP_TK set to ON (for scallop_tk training)
 
 
+********************
 Code Used in Example
---------------------
+********************
 
 | plugins/core/viame_train_detector.cxx
 | packages/kwiver/vital/algo/train_detector.h
