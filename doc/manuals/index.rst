@@ -32,6 +32,7 @@ Contents:
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
    example_links/hello_world_pipeline
+   example_links/external_plugin_creation
    example_links/detector_pipelines
    example_links/tracking_pipeline
    example_links/detection_file_conversions
@@ -41,7 +42,6 @@ Contents:
    example_links/using_detectors_in_cxx_code
    example_links/visualizing_detections_in_gui
    example_links/scoring_and_roc_generation
-   example_links/external_plugin_creation
    KWIVER Full Manual <http://kwiver.readthedocs.io/en/latest/>
 
 
