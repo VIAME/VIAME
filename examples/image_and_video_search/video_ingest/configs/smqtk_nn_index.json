@@ -47,7 +47,6 @@
                 "random_seed": 0
             }
         },
-        "live_reload": false,
         "lsh_functor": {
             "type": "ItqFunctor",
             "ItqFunctor": {
