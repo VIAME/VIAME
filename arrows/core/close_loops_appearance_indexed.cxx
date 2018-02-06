@@ -211,7 +211,7 @@ close_loops_appearance_indexed::priv
     feature_sptr f1 = fi1->features->features()[mwc.m1];
     feature_sptr f2 = fi2->features->features()[mwc.m2];
     //using relative scale as cost
-    mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());
+    mwc.cost = f1->scale() / f2->scale();
   }
   std::sort(mwc_vec.begin(), mwc_vec.end());
   //now get the median cost (scale change)
