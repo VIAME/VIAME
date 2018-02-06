@@ -213,7 +213,18 @@ close_loops_dbow2::priv
     //using relative scale as cost
     mwc.cost = std::max(f1->scale() / f2->scale(), f2->scale() / f1->scale());
   }
+  std::sort(mwc_vec.begin(), mwc_vec.end());
+  //now get the median cost (scale change)
+  double median_cost = mwc_vec[mwc_vec.size() / 2].cost;
+  // now adjust the costs according to how different they are from the median cost.
+  // Adjusting to the median cost accounts for changes in zoom.  If most matches have a
+  // scale change, then that should be the low cost option to pick when sorting.
+  for (auto &m : mwc_vec)
+  {
+    m.cost = fabs(m.cost - median_cost);
+  }
 
+  //sort again.  This time with the median adjusted costs.
   std::sort(mwc_vec.begin(), mwc_vec.end());
 
   // sorting makes us add the lowest cost matches first.  This means if we have
