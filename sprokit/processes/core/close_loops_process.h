@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_DETECT_LOOPS_PROCESS_H_
-#define _KWIVER_DETECT_LOOPS_PROCESS_H_
+#ifndef _KWIVER_CLOSE_LOOPS_PROCESS_H_
+#define _KWIVER_CLOSE_LOOPS_PROCESS_H_
 
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_export.h"
@@ -41,9 +41,9 @@ namespace kwiver
 
 // ----------------------------------------------------------------
 /**
- * \class detect_loops_process
+ * \class close_loops_process
  *
- * \brief Detects loops in a set of images
+ * \brief closes loops in a set of images
  *
  * \iports
  * \iport{timestamp}
@@ -54,14 +54,14 @@ namespace kwiver
  * \oport{feature_track_set}
  *
  */
-class KWIVER_PROCESSES_NO_EXPORT detect_loops_process
+class KWIVER_PROCESSES_NO_EXPORT close_loops_process
   : public sprokit::process
 {
 public:
   typedef sprokit::process base_t;
 
-  detect_loops_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~detect_loops_process();
+  close_loops_process( kwiver::vital::config_block_sptr const& config );
+    virtual ~close_loops_process();
 
 protected:
     virtual void _configure();
@@ -77,4 +77,4 @@ private:
 
 
 } // end namespace
-#endif /* _KWIVER_DETECT_LOOPS_PROCESS_H_ */
+#endif /* _KWIVER_CLOSE_LOOPS_PROCESS_H_ */

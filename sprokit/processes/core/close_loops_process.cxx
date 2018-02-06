@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "detect_loops_process.h"
+#include "close_loops_process.h"
 
 #include <vital/vital_types.h>
 #include <vital/io/track_set_io.h>
@@ -81,7 +81,7 @@ namespace kwiver
 
 //----------------------------------------------------------------
 // Private implementation class
-class detect_loops_process::priv
+class close_loops_process::priv
 {
 public:
   priv();
@@ -112,10 +112,10 @@ public:
 
 // ================================================================
 
-  detect_loops_process
-::detect_loops_process( kwiver::vital::config_block_sptr const& config )
+  close_loops_process
+::close_loops_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new detect_loops_process::priv )
+    d( new close_loops_process::priv )
 {
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) );
@@ -125,8 +125,8 @@ public:
 }
 
 
-  detect_loops_process
-::~detect_loops_process()
+  close_loops_process
+::~close_loops_process()
 {
     if (d && d->m_last_output_tracks)
     {
@@ -137,7 +137,7 @@ public:
 
 
 // ----------------------------------------------------------------
-void detect_loops_process
+void close_loops_process
 ::_configure()
 {
   scoped_configure_instrumentation();
@@ -175,7 +175,7 @@ void detect_loops_process
 
 // ----------------------------------------------------------------
 void
-detect_loops_process
+close_loops_process
 ::_step()
 {
   // timestamp
@@ -216,7 +216,7 @@ detect_loops_process
 
 
 // ----------------------------------------------------------------
-void detect_loops_process
+void close_loops_process
 ::make_ports()
 {
   // Set up for required ports
@@ -243,7 +243,7 @@ void detect_loops_process
 
 
 // ----------------------------------------------------------------
-void detect_loops_process
+void close_loops_process
 ::make_config()
 {
   declare_config_using_trait( detect_loops );
@@ -251,19 +251,19 @@ void detect_loops_process
 
 
 // ================================================================
-detect_loops_process::priv
+close_loops_process::priv
 ::priv():first(true)
 {
 }
 
 
-detect_loops_process::priv
+close_loops_process::priv
 ::~priv()
 {
 }
 
 vital::feature_track_set_sptr
-detect_loops_process::priv
+close_loops_process::priv
 ::merge_next_tracks_into_loop_back_track(
   vital::feature_track_set_sptr next_tracks,
   vital::frame_id_t next_tracks_frame_num,
@@ -355,7 +355,7 @@ detect_loops_process::priv
     //ok, we have next_tk and curr_track which contain the same features.
     if (!curr_track->append(ts_clone))
     {
-      LOG_ERROR(m_logger, "Failed to append track state to loop back track (detect_loops_process");
+      LOG_ERROR(m_logger, "Failed to append track state to loop back track (close_loops_process");
     }
     curr_tracks->notify_new_state(ts_clone);
   }
