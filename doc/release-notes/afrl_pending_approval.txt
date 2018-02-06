@@ -34,11 +34,14 @@ Arrows - Core
    
  * Added a new loop closure algorithm that uses bag of words image matching.
 
+ * Added a special feature tracker that augments keyframes with additional
+   detections.  This tracker does not actually "track" anything but runs
+   a feature detector and descriptor only on key frames and creates single
+   frame tracks for later matching and linking.
+
 Arrows - OpenCV
 
  * Added an OpenCV based KLT feature tracker.
- 
- * Added feature detection if a frame is a keyframe.  
 
  * Added perspective three point pose estimation.
 
@@ -46,7 +49,6 @@ Arrows - DBoW2
 
  * Added bag of words image matching based on DBoW2 library.  Includes a new vital
    algorithm base class bag_of_words_matching.
-
 
 Arrows - VXL
 
@@ -62,6 +64,15 @@ Arrows - VXL
    functionality as the tests for video_input implementations in Core. This
    includes the new seek frame functionality.
 
+Sprokit - Processes
+
+ * Added sprokit processes corresponding the feature tracker and keyframe
+   selection vital algorithms.
+
+ * Added a detect_feature_if_keyframe process that calls the new augment
+   features tracker and also merges tracks.  This may be refactored in the
+   future to split out track merging and reuse the feature tracker process.
+
 Vital
 
  * Expanded video_input API to include a seek_frame() method which will seek
@@ -72,6 +83,13 @@ Vital
  * Added a new abstract algorithm, integrate_depth_maps, for the integration
    of depth map images into an implicit surface volume using truncated signed
    distance functions (TSDF) or similar approaches.
+
+ * Added clone() functions to the track_set and the class that it contains
+   to allow deep copies of track sets.
+
+ * Added a track_set_frame_data class to store frame-level data along side
+   the tracks.  The feature_track_set uses this to mark frames as key frames.
+
 
 Fixes since last public release
 -------------------------------

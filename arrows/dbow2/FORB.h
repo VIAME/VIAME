@@ -53,6 +53,8 @@ class FORB: protected FClass
 {
 public:
 
+  using FClass::meanValue;
+
   /// Descriptor type
   typedef cv::Mat TDescriptor; // CV_8U
   /// Pointer to a single descriptor

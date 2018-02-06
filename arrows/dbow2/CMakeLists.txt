@@ -15,7 +15,7 @@ set( dbow2_headers_private
   ScoringObject.h
   TemplatedDatabase.h
   TemplatedVocabulary.h
-  TimeStamp.h
+  Timestamp.h
   )
 
 kwiver_install_headers(
@@ -36,7 +36,7 @@ set( dbow2_sources
   QueryResults.cxx
   Random.cxx
   ScoringObject.cxx
-  TimeStamp.cxx
+  Timestamp.cxx
   )
 
 if( KWIVER_HAS_OPENCV_VER_3 )

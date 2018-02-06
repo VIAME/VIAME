@@ -80,7 +80,7 @@ public:
       d_have_abs_frame_time( false ),
       d_have_metadata( false ),
       d_is_seekable( false ),
-      d_have_num_frames( false ),
+      d_have_loop_vars( false ),
       pts_of_meta_ts( 0.0 ),
       meta_ts( 0 ),
       d_frame_time( 0 ),
@@ -110,6 +110,11 @@ public:
   size_t d_num_frames;
 
   /**
+   * Storage for the metadata map.
+   */
+  vital::metadata_map::map_metadata_t d_metadata_map;
+
+  /**
    * This is set to indicate that we can supply a frame time of some
    * form. If this is false, the output timestamp will not have a time
    * set. This also is used to report the HAS_FRAME_TIME capability.
@@ -136,10 +141,11 @@ public:
   bool d_is_seekable;
 
   /**
-   * This is set to indicate the number of frames in the video has been
+   * This is set to indicate that any variables that require a pass through the
+   * video like the number of frames or the metadata map have already been
    * determined.
    */
-  bool d_have_num_frames;
+  bool d_have_loop_vars;
 
   double pts_of_meta_ts;            // probably seconds
   vital::timestamp::time_t meta_ts; // time in usec
@@ -409,6 +415,70 @@ public:
     return retval;
   } // klv_time
 
+// ------------------------------------------------------------------
+  void push_metadata_to_map(vital::timestamp::frame_t fn)
+  {
+    if (fn >= c_start_at_frame && fn < c_stop_after_frame)
+    {
+      auto curr_md = d_video_stream.current_metadata();
+      if (process_metadata( curr_md ) )
+      {
+        std::pair<vital::timestamp::frame_t, vital::metadata_vector>
+          el(fn, metadata_collection);
+        d_metadata_map.insert( el );
+      }
+    }
+  }
+
+// ------------------------------------------------------------------
+  void process_loop_dependencies()
+  {
+    // is stream open?
+    if ( ! d_video_stream.is_open() )
+    {
+      throw vital::file_not_read_exception( video_path, "Video not open" );
+    }
+
+    if ( !d_have_loop_vars )
+    {
+      if ( d_video_stream.is_seekable() )
+      {
+        std::lock_guard< std::mutex > lock( s_open_mutex );
+
+        if (d_frame_advanced)
+        {
+          d_num_frames = d_frame_number;
+        }
+        else
+        {
+          d_num_frames = 1;
+        }
+
+        // Add metadata for current frame
+        push_metadata_to_map(d_num_frames);
+
+        // Advance video stream to end
+        while ( d_video_stream.advance() )
+        {
+          d_num_frames++;
+          push_metadata_to_map(d_num_frames);
+        }
+
+        // Close and reopen to reset
+        d_video_stream.open( video_path );
+
+        // Advance back to original frame number
+        for (int i=0; i < d_frame_number; ++i)
+        {
+          d_video_stream.advance();
+          push_metadata_to_map(i);
+        }
+      }
+
+      d_have_loop_vars = true;
+    }
+  }
+
 }; // end of internal class.
 
 // static open interlocking mutex
@@ -655,7 +725,7 @@ vidl_ffmpeg_video_input
   d->d_have_abs_frame_time = false;
   d->d_have_metadata = false;
   d->d_is_seekable = false;
-  d->d_have_num_frames = false;
+  d->d_have_loop_vars = false;
   d->d_frame_time = 0;
   d->d_frame_number = 1;
 }
@@ -807,6 +877,16 @@ vidl_ffmpeg_video_input
 }
 
 
+kwiver::vital::metadata_map_sptr
+vidl_ffmpeg_video_input
+::metadata_map()
+{
+  d->process_loop_dependencies();
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
+}
+
+
 // ------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
@@ -837,39 +917,9 @@ size_t
 vidl_ffmpeg_video_input
 ::num_frames() const
 {
-  // VXL method does not appear to be working - this is likely very inefficient
-  if (!d->d_have_num_frames)
-  {
-    std::lock_guard< std::mutex > lock( d->s_open_mutex );
-
-    // Const cast used here since we must loop through the video to count frames
-    auto privateData = const_cast<vidl_ffmpeg_video_input::priv*>(d.get());
-
-    if (d->d_frame_advanced)
-    {
-      privateData->d_num_frames = d->d_frame_number;
-    }
-    else
-    {
-      privateData->d_num_frames = 1;
-    }
-
-    // Advance video stream to end
-    while ( privateData->d_video_stream.advance() )
-    {
-      privateData->d_num_frames++;
-    }
-    // Close and reopen to reset
-    privateData->d_video_stream.open( d->video_path );
-
-    // Advance back to original frame number
-    for (int i=0; i<d->d_frame_number; ++i)
-    {
-      privateData->d_video_stream.advance();
-    }
-
-    privateData->d_have_num_frames = true;
-  }
+  // Const cast needed so this can be called from const method
+  auto privateData = const_cast<vidl_ffmpeg_video_input::priv*>((d.get()));
+  privateData->process_loop_dependencies();
 
   if (d->c_stop_after_frame > 0)
   {
