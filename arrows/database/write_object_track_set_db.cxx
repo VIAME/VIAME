@@ -130,7 +130,13 @@ void
 write_object_track_set_db
 ::write_set( const kwiver::vital::object_track_set_sptr set )
 {
-  cppdb::statement stmt = d->m_conn.create_statement( "INSERT INTO OBJECT_TRACK("
+  cppdb::statement select_stmt = d->m_conn.create_statement( "SELECT "
+    "COUNT(*) "
+    "FROM OBJECT_TRACK "
+    "WHERE TRACK_ID = ? AND FRAME_NUMBER = ? AND VIDEO_NAME = ?"
+  );
+
+  cppdb::statement insert_stmt = d->m_conn.create_statement( "INSERT INTO OBJECT_TRACK("
     "TRACK_ID, "
     "FRAME_NUMBER, "
     "VIDEO_NAME, "
@@ -155,21 +161,36 @@ write_object_track_set_db
         continue;
       }
 
-      vital::detected_object_sptr det = ts->detection;
-      const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
-      vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+      cppdb::transaction guard(d->m_conn);
 
-      stmt.bind( 1, trk->id() );
-      stmt.bind( 2, ts->frame() );
-      stmt.bind( 3, d->m_video_name );
-      stmt.bind( 4, bbox.min_x() );
-      stmt.bind( 5, bbox.min_y() );
-      stmt.bind( 6, bbox.max_x() );
-      stmt.bind( 7, bbox.max_y() );
-      stmt.bind( 8, det->confidence() );
+      select_stmt.bind( 1, trk->id() );
+      select_stmt.bind( 2, ts->frame() );
+      select_stmt.bind( 3, d->m_video_name );
 
-      stmt.exec();
-      stmt.reset();
+      cppdb::result result = select_stmt.row();
+      int count;
+      result.fetch( 0, count );
+      select_stmt.reset();
+
+      if( count == 0 )
+      {
+        vital::detected_object_sptr det = ts->detection;
+        const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
+        vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+
+        insert_stmt.bind( 1, trk->id() );
+        insert_stmt.bind( 2, ts->frame() );
+        insert_stmt.bind( 3, d->m_video_name );
+        insert_stmt.bind( 4, bbox.min_x() );
+        insert_stmt.bind( 5, bbox.min_y() );
+        insert_stmt.bind( 6, bbox.max_x() );
+        insert_stmt.bind( 7, bbox.max_y() );
+        insert_stmt.bind( 8, det->confidence() );
+
+        insert_stmt.exec();
+        insert_stmt.reset();
+      }
+      guard.commit();
     }
   }
 }
