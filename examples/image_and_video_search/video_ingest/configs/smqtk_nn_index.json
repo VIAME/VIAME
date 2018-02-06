@@ -22,8 +22,8 @@
         "hash2uuids_kvstore": {
             "type": "MemoryKeyValueStore",
             "MemoryKeyValueStore": {
-                "type": "DataFileElement",
                 "cache_element": {
+                    "type": "DataFileElement",
                     "DataFileElement": {
                         "explicit_mimetype": null,
                         "filepath": "database/ITQ/hash2uuids.memKvStore.pickle",
@@ -73,8 +73,6 @@
                 }
             }
         },
-        "read_only": false,
-        "reload_mon_interval": 0.1,
-        "reload_settle_window": 1.0
+        "read_only": false
     }
 }
