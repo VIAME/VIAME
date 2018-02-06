@@ -1,4 +1,19 @@
-# Example c++ plugin
+
+============================
+New Module Creation Examples
+============================
+
+This document corresponds to the example located online at:
+https://github.com/Kitware/VIAME/tree/master/examples/hello_world_pipeline
+and the basic C++/Python/Matlab templates located in:
+https://github.com/Kitware/VIAME/tree/master/plugins/templates
+
+They can additionally be found in a VIAME installation at:
+[viame-install]/examples/hello_world_pipeline.
+
+*******************
+C++ Detector Plugin
+*******************
 
 A new detector plugin is added by creating a class that implements the
 kwiver::vital::algo::image_object_detector interface. This interface
@@ -35,7 +50,7 @@ VIAME framework is to convert the input image from the VIAME format to
 the format needed by the detector, and to convert the detections to a
 detected_object_set as needed by the framework.
 
-Most detectors take images in OpenCV MAT format. This data structure
+Many detectors take images in OpenCV MAT format. This data structure
 can be extracted from the image_container_sptr that is available using
 the following code:
 
@@ -80,3 +95,11 @@ be converted to a detected_object_set using the following pseudo-code.
     // When all detections have been processed, the detected object set for this input
     // image is just returned from the detect() method
     return detected_objects;
+
+**********************
+Python Detector Plugin
+**********************
+
+Similarly to the above C++ object detector, the python templates in the above directory
+can be copied into a new plugin module, and the template keywords replaced with a module
+name of your choosing.

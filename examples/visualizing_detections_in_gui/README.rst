@@ -1,14 +1,26 @@
-General GUI Notes
------------------
+
+=====================================
+GUIs for Visualization and Annotation
+=====================================
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example_painted.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/blob/master/examples/visualizing_detections_in_gui/README.rst
+
 
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
 GUIs are useful for displaying detections, their respective probabilities, and for making
 new annotations in video. There are additionally simpler GUIs which can be enabled in .pipe
 files that are a part of KWIVER. For examples on how to run both of these GUIs see the
-"visualizing_detections_in_gui" example folder.
+"visualizing_detections_in_gui" example folder. vpView doesn't load imagery by default,
+but instead loads project files (details below) which are simple text files pointing to imagery,
+groundtruth, and/or homographies for the input data. If you just want to use the tool to make
+annotations you don't need to specify the later two, and just need to set a DataSetSpecifier.
 
-vpView GUI Notes
-----------------
+************************
+vpView GUI Project Files
+************************
 
 vpView does not open videos directory, but instead open prj files containing a pointer
 to any imagery and detections we want to load. Listed below are the parameters available in

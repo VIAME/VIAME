@@ -1,5 +1,12 @@
-Scoring Notes
--------------
+==============================
+Scoring Detectors and Trackers
+==============================
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/scoring_and_roc_generation
+
 
 The KWANT package provides scoring tools that can be used to
 calculate the probability of detecting an item, along with other scoring

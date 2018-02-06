@@ -1,4 +1,17 @@
+
+************************
+Video Search using VIAME
+************************
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/video_query_start.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/video_ingest
+
+
+
 This folder contains an example for video search. 
+
 |
 | WARNING: This example is a work in progress, and should only be attempted
   by advanced users for the time being. 
@@ -8,6 +21,7 @@ This folder contains an example for video search.
 |  (a) The python packages: 
 |  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA. 
 |
+
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
 representing object candidate locations in video. Descriptors are generated around these
 object tracks, which get indexed into a database and can be queried upon. By indicating

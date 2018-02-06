@@ -1,12 +1,29 @@
 
-Detector Pipelines
-------------------
+=========================
+Object Detection Examples
+=========================
 
-This folder contains assorted examples of object detection pipelines running different
-detectors such as YOLOv2, ScallopTK, Faster RCNN, etc...
+****************
+Object Detection
+****************
 
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
+   :scale: 30
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines
+
+
+This document corresponds to the example located online at:
+https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines.
+This folder contains assorted examples of object detection pipelines
+running different detectors such as YOLOv2, ScallopTK, Faster RCNN, and others.
+
+They can additionally be found in a VIAME installation at:
+[viame-install]/examples/detector_pipelines.
+
+************
 Requirements
-------------
+************
 
 | Minimum:
 | 
@@ -15,13 +32,31 @@ Requirements
 |
 | Per-Example:
 |
-| run_habcam - VIAME_ENABLE_OPENCV, VIAME_ENABLE_SCALLOP_TK
-| run_yolo - VIAME_ENABLE_DARKNET
-| run_lanl - VIAME_ENABLE_MATLAB
+| run_habcam.sh/bat - VIAME_ENABLE_OPENCV, VIAME_ENABLE_YOLO, VIAME_ENABLE_SCALLOP_TK
+| run_yolo.sh/bat - VIAME_ENABLE_YOLO
+| run_lanl.sh/bat - VIAME_ENABLE_MATLAB
 
 
-Running a single detector from C++ code
----------------------------------------
+*************************************
+Running the object detection examples
+*************************************
+
+Each run script contains 2 calls. A first ('source setup_viame.sh') which
+runs a script configuring all paths required to run VIAME calls, and a second
+to 'pipeline_runner' running the desired detection pipeline. For more information
+about pipeline configuration, see the pipeline examples. Each example processes
+a list of images and produces detections in various format as output, as configured
+in the pipeline files.
+
+Each pipeline contains 2-10 nodes, including a imagery source, in this case an image
+list loader, the actual detector, detection filters, and detection writers. In the
+habcam example an additional split processes is added early in the pipeline, as
+habcam imagery has stereo pairs typically encoded in the same png.
+
+
+********************************
+Running a detector from C++ code
+********************************
 
 We will be using a Hough circle detector as an and example of the
 mechanics of implementing a VIAME detector in cxx code.
@@ -91,8 +126,9 @@ Now that we have a simple program running, there are two concepts that
 are supported by vital that are essential for building larger
 applications; logging and configuration support.
 
+*******
 Logging
--------
+*******
 
 Vital provides logging support through macros that are used in the
 code to format and display informational messages. The following piece
@@ -134,9 +170,9 @@ Note that log messages do not need an end-of-line at the end.
 
 Refer to the separate logger documentation for more details.
 
-
-Configuration Support
----------------------
+******************************
+Detector configuration support
+******************************
 
 In our detector example we just used the detector in its default state
 without specifying any configuration options. This works well in this
@@ -261,8 +297,9 @@ not specified in the file retain their default values.
   param1 = 100
 
 
+**************************
 Configurable detector type
---------------------------
+**************************
 
 To further expand on our example, the actual detector algorithm can be
 selected at run time based on the contents of our config file.
@@ -363,8 +400,9 @@ algorithms can be in the same file, which is exactly how more
 complicated applications are configured.
 
 
-Sequencing Multiple Algorithms in a Pipeline
---------------------------------------------
+***********************************************
+Sequencing one or more algorithms in a pipeline
+***********************************************
 
 In a real application, the input images may come from places other
 than a file on the disk and there may be algorithms applied to
