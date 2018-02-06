@@ -2,8 +2,8 @@
 
 set( plugin_core_headers
   class_probablity_filter.h
+  close_loops_appearance_indexed.h
   close_loops_bad_frames_only.h
-  close_loops_dbow2.h
   close_loops_exhaustive.h
   close_loops_keyframe.h
   close_loops_multi_method.h
@@ -62,8 +62,8 @@ kwiver_install_headers(
 
 set( plugin_core_sources
   class_probablity_filter.cxx
+  close_loops_appearance_indexed.cxx
   close_loops_bad_frames_only.cxx
-  close_loops_dbow2.cxx
   close_loops_exhaustive.cxx
   close_loops_keyframe.cxx
   close_loops_multi_method.cxx

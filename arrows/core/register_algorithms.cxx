@@ -38,7 +38,7 @@
 
 #include <arrows/core/class_probablity_filter.h>
 #include <arrows/core/close_loops_bad_frames_only.h>
-#include <arrows/core/close_loops_dbow2.h>
+#include <arrows/core/close_loops_appearance_indexed.h>
 #include <arrows/core/close_loops_exhaustive.h>
 #include <arrows/core/close_loops_keyframe.h>
 #include <arrows/core/close_loops_multi_method.h>
@@ -96,9 +96,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
-  fact = vpm.ADD_ALGORITHM("dbow2", kwiver::arrows::core::close_loops_dbow2);
+  fact = vpm.ADD_ALGORITHM("appearance_indexed", kwiver::arrows::core::close_loops_appearance_indexed);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Uses bag of words matching on orb features to close loops")
+    "Uses descriptor set matching to identify candidate frames and close loops")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")

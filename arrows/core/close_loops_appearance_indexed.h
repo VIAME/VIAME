@@ -33,8 +33,8 @@
  * \brief OCV detect_features algorithm impl interface
  */
 
-#ifndef KWIVER_ARROWS_OCV_DETECT_LOOPS_H_
-#define KWIVER_ARROWS_OCV_DETECT_LOOPS_H_
+#ifndef KWIVER_CORE_CLOSE_LOOPS_APPEARANCE_INDEXED_H_
+#define KWIVER_CORE_CLOSE_LOOPS_APPEARANCE_INDEXED_H_
 
 #include <string>
 
@@ -54,13 +54,13 @@ namespace core {
  * This extended algorithm_def provides a common implementation for the detect
  * method.
  */
-class KWIVER_ALGO_CORE_EXPORT close_loops_dbow2
+class KWIVER_ALGO_CORE_EXPORT close_loops_appearance_indexed
   : public kwiver::vital::algo::close_loops
 {
 public:
 
   /// Default constructor
-  close_loops_dbow2();
+  close_loops_appearance_indexed();
 
   /// Find loops in a feature_track_set
 
@@ -125,4 +125,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_DETECT_LOOPS_H_
+#endif // KWIVER_CORE_CLOSE_LOOPS_APPEARANCE_INDEXED_H_

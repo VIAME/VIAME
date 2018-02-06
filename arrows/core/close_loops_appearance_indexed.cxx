@@ -30,13 +30,13 @@
 
 /**
  * \file
- * \brief OCV close_loops_dbow2 algorithm implementation
+ * \brief close_loops_appearance_indexed algorithm implementation
  */
 
 #include <map>
 #include <algorithm>
 
-#include "close_loops_dbow2.h"
+#include "close_loops_appearance_indexed.h"
 
 
 using namespace kwiver::vital;
@@ -54,7 +54,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-class close_loops_dbow2::priv
+class close_loops_appearance_indexed::priv
 {
 public:
   priv();
@@ -90,7 +90,7 @@ public:
 
 //-----------------------------------------------------------------------------
 
-close_loops_dbow2::priv
+close_loops_appearance_indexed::priv
 ::priv()
   : m_min_loop_inlier_matches(50)
 {
@@ -99,7 +99,7 @@ close_loops_dbow2::priv
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
-close_loops_dbow2::priv
+close_loops_appearance_indexed::priv
 ::verify_and_add_image_matches(
   kwiver::vital::feature_track_set_sptr feat_tracks,
   kwiver::vital::frame_id_t frame_number,
@@ -170,7 +170,7 @@ close_loops_dbow2::priv
 //-----------------------------------------------------------------------------
 
 match_set_sptr
-close_loops_dbow2::priv
+close_loops_appearance_indexed::priv
 ::remove_duplicate_matches(match_set_sptr mset,
                            feature_info_sptr fi1,
                            feature_info_sptr fi2)
@@ -252,7 +252,7 @@ close_loops_dbow2::priv
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
-close_loops_dbow2::priv
+close_loops_appearance_indexed::priv
 ::detect(kwiver::vital::feature_track_set_sptr feat_tracks,
   kwiver::vital::frame_id_t frame_number)
 {
@@ -272,18 +272,18 @@ close_loops_dbow2::priv
 
 // ----------------------------------------------------------------------------
 
-close_loops_dbow2
-::close_loops_dbow2()
+close_loops_appearance_indexed
+::close_loops_appearance_indexed()
 {
   d_ = std::make_shared<priv>();
-  attach_logger("close_loops_dbow2");
+  attach_logger("close_loops_appearance_indexed");
   d_->m_logger = this->logger();
 }
 
 //-----------------------------------------------------------------------------
 
 kwiver::vital::feature_track_set_sptr
-close_loops_dbow2
+close_loops_appearance_indexed
 ::stitch(kwiver::vital::frame_id_t frame_number,
   kwiver::vital::feature_track_set_sptr input,
   kwiver::vital::image_container_sptr image,
@@ -296,7 +296,7 @@ close_loops_dbow2
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-close_loops_dbow2
+close_loops_appearance_indexed
 ::get_configuration() const
 {
   // get base config from base class
@@ -322,7 +322,7 @@ close_loops_dbow2
 
 /// Set this algo's properties via a config block
 void
-close_loops_dbow2
+close_loops_appearance_indexed
 ::set_configuration(vital::config_block_sptr in_config)
 {
   // Starting with our generated config_block to ensure that assumed values
@@ -353,7 +353,7 @@ close_loops_dbow2
 //-----------------------------------------------------------------------------
 
 bool
-close_loops_dbow2
+close_loops_appearance_indexed
 ::check_configuration(vital::config_block_sptr config) const
 {
   bool config_valid = true;
