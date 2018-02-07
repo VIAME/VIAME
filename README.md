@@ -34,18 +34,18 @@ The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive
 but select entries are also listed below, which include some run examples:
 
 
-[Build and Install Guide](examples/building_viame) > 
-[KWIVER Overview](https://github.com/Kitware/kwiver) > 
-[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > 
-[Object Detector Examples](examples/detector_pipelines) >
-[Stereo Measurement Examples](examples/measurement_using_stereo) > 
-[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) >
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline) > 
-[Example Integrations](plugins) > 
-[Example Plugin Templates](plugins/templates) > 
-[GUIs for Visualization and Annotation](examples/visualizing_detections_in_gui) > 
-[Detector Training API](examples/detector_training) > 
-[Video Search for Object Matching and Model Generation](examples/image_and_video_search) > 
+[Build and Install Guide](examples/building_viame) <> 
+[KWIVER Overview](https://github.com/Kitware/kwiver) <> 
+[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
+[Object Detector Examples](examples/detector_pipelines) <>
+[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
+[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <> 
+[Example Integrations](plugins) <> 
+[Example Plugin Templates](plugins/templates) <> 
+[GUIs for Visualization and Annotation](examples/visualizing_detections_in_gui) <> 
+[Detector Training API](examples/detector_training) <> 
+[Video Search for Object Matching and Model Generation](examples/image_and_video_search) <> 
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation)
 
 
