@@ -35,7 +35,7 @@ but select entries are also listed below, which include some run examples:
 
 
 [Build and Install Guide](examples/building_viame) > 
-[KWIVER Overview](https://github.com/Kitware/kwiver) >  
+[KWIVER Overview](https://github.com/Kitware/kwiver) > 
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > 
 [Object Detector Examples](examples/detector_pipelines) >
 [Stereo Measurement Examples](examples/measurement_using_stereo) > 
