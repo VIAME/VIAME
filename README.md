@@ -31,40 +31,22 @@ Documentation
 -------------
 
 The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive,
-but select entries are also listed below, which include run examples:
+but select entries are also listed below, which include some run examples:
 
 
-[Build and Install Guide](examples/building_viame/README.rst) > > >
-[Tips and Tricks](examples/building_viame/README.rst#build-tips-n-tricks) > > >
-[Known Issues](examples/building_viame/README.rst#known-issues)
-
-
-[KWIVER Overview](https://github.com/Kitware/kwiver) > > >
-[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > >
-[Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
-
-
-[Detector Examples](examples/detector_pipelines) > > >
-[Running Detectors Overview](examples/detector_pipelines/README.rst) > > >
-[Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
-
-
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline/README.rst) > > >
-[Example Integrations](plugins) > > >
-[Example Templates](plugins/templates)
-
-
-[Graphical User Interfaces for Visualization and Annotation](examples/visualizing_detections_in_gui/README.rst) > > >
-[Examples](examples/visualizing_detections_in_gui)
-
-
-[Detector Training API](examples/detector_training) > > >
-[Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
-
-
-[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation/README.rst) > > >
-[Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > >
-[Examples](examples/scoring_and_roc_generation)
+[Build and Install Guide](examples/building_viame), 
+[KWIVER Overview](https://github.com/Kitware/kwiver), 
+[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html), 
+[Object Detector Examples](examples/detector_pipelines), 
+[Stereo Measurement Examples](examples/measurement_using_stereo), 
+[Embedded Detector Usage in C++ Code](examples/using_detectors_in_cxx_code), 
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline), 
+[Example Integrations](plugins), 
+[Example Plugin Templates](plugins/templates), 
+[GUIs for Visualization and Annotation](examples/visualizing_detections_in_gui), 
+[Detector Training API](examples/detector_training), 
+[Video Search for Object Matching and Model Generation](examples/image_and_video_search), 
+[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation)
 
 
 Pre-Built Binaries
