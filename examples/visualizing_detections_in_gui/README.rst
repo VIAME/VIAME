@@ -9,7 +9,7 @@ GUIs for Visualization and Annotation
    :target: https://github.com/Kitware/VIAME/blob/master/examples/visualizing_detections_in_gui/README.rst
 
 This document corresponds to `this example online`_, in addition to the
-[viame-install]/examples/visualizing_detections_in_gui folder in a VIAME installation.
+examples/visualizing_detections_in_gui folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/visualizing_detections_in_gui
 

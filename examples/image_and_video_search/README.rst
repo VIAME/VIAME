@@ -19,7 +19,7 @@ Overview
 ********
 
 This document corresponds to `this online example`_, in addition to the
-[viame-install]/examples/image_and_video_search folder in a VIAME installation.
+examples/image_and_video_search folder in a VIAME installation.
 
 .. _this online example: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search
 
