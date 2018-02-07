@@ -14,7 +14,6 @@ covering image search on top of an archive of videos.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/video_ingest
 
-|
 | WARNING: This example is a work in progress, and should only be attempted
   by advanced users and developers for the time being. 
 |
@@ -22,7 +21,6 @@ covering image search on top of an archive of videos.
 |
 |  (a) The python packages: numpy
 |  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA enabled.
-|
 
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
 representing object candidate locations in video. Descriptors are generated around these
