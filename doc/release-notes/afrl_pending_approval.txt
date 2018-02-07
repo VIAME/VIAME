@@ -31,6 +31,8 @@ Arrows - Core
  * Added keyframe selection classes.  These facilitate choosing particularly
    important frames in an image sequence and then only doing later operations
    (e.g. structure from motion) on these frames.
+   
+ * Added a new loop closure algorithm that uses bag of words image matching.
 
  * Added a special feature tracker that augments keyframes with additional
    detections.  This tracker does not actually "track" anything but runs
@@ -42,7 +44,7 @@ Arrows - OpenCV
  * Added an OpenCV based KLT feature tracker.
 
  * Added perspective three point pose estimation.
- 
+
 Arrows - DBoW2
 
  * Added bag of words image matching based on DBoW2 library.  Includes a new vital

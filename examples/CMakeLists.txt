@@ -22,4 +22,5 @@ configure_file(pipelines/SMQTK.pipe.in ${EXAMPLE_DIR}/pipelines/SMQTK.pipe)
 configure_file(pipelines/images_to_kwa.pipe.in ${EXAMPLE_DIR}/pipelines/images_to_kwa.pipe)
 configure_file(pipelines/images_to_kwa_split.pipe.in ${EXAMPLE_DIR}/pipelines/images_to_kwa_split.pipe)
 configure_file(pipelines/stabilize_images.pipe.in ${EXAMPLE_DIR}/pipelines/stabilize_images.pipe)
+configure_file(pipelines/track_features.pipe.in ${EXAMPLE_DIR}/pipelines/track_features.pipe)
 

@@ -74,7 +74,7 @@ feature_track_set
 {
   track_set_implementation_uptr new_imp =
     this->impl_->clone();
-  feature_track_set_sptr new_fts = 
+  feature_track_set_sptr new_fts =
     std::make_shared<feature_track_set>(std::move(new_imp));
   return std::dynamic_pointer_cast<track_set>(new_fts);
 }
@@ -151,7 +151,7 @@ feature_track_set
   std::vector<feature_sptr> features;
   std::vector<descriptor_sptr> descriptors;
   std::vector<track_state_sptr> fsd = this->frame_states(offset);
-  
+
   for (auto const data : fsd)
   {
     feature_sptr f = nullptr;
@@ -168,12 +168,12 @@ feature_track_set
       if (only_features_with_descriptors && !d)
       {
         continue;
-      }   
+      }
 
       features.push_back(f);
       descriptors.push_back(d);
       fi->corresponding_tracks.push_back(t);
-    }    
+    }
   }
 
   fi->features = feature_set_sptr(new simple_feature_set(features));
