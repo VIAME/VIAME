@@ -8,6 +8,8 @@
    :target: http://viame.readthedocs.io/en/latest/index.html
 
 |
+VIAME
+=====
 
 VIAME is a computer vision library designed to integrate several image and video
 processing algorithms together in a common distributed processing framework, majorly
