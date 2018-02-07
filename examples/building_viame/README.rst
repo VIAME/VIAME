@@ -46,6 +46,12 @@ If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-
 
    sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
 
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA:
+
+..code-blocks:: bash
+
+   https://developer.nvidia.com/cuda-80-ga2-download-archive
+
 Install CMAKE
 =============
 
