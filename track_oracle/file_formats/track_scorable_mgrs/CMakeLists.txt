@@ -18,12 +18,12 @@ set( track_oracle_scorable_mgrs_sources
 
 kwiver_install_headers(
   ${track_oracle_scorable_mgrs_public_headers}
-  SUBDIR       track_oracle/scorable_mgrs
+  SUBDIR       track_oracle/file_formats/scorable_mgrs
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/scorable_mgrs_export.h
-  NOPATH SUBDIR       track_oracle/scorable_mgrs
+  NOPATH SUBDIR       track_oracle/file_formats/scorable_mgrs
 )
 
 kwiver_add_library( scorable_mgrs
