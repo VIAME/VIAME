@@ -35,20 +35,20 @@ process detect_if_keyframe
 
 process loop_detector
   :: detect_loops_process
-  close_loops:type = dbow2
+  close_loops:type = appearance_indexed
   
-  close_loops:dbow2:min_loop_inlier_matches = 50
-  close_loops:dbow2:match_features:type = homography_guided
-  close_loops:dbow2:match_features:homography_guided:homography_estimator:type = ocv
-  close_loops:dbow2:match_features:homography_guided:feature_matcher1:type = ocv_brute_force  
+  close_loops:appearance_indexed:min_loop_inlier_matches = 50
+  close_loops:appearance_indexed:match_features:type = homography_guided
+  close_loops:appearance_indexed:match_features:homography_guided:homography_estimator:type = ocv
+  close_loops:appearance_indexed:match_features:homography_guided:feature_matcher1:type = ocv_brute_force  
   
-  close_loops:dbow2:bag_of_words_matching:type = dbow2
-  close_loops:dbow2:bag_of_words_matching:dbow2:feature_detector:type = ocv_ORB
-  close_loops:dbow2:bag_of_words_matching:dbow2:descriptor_extractor:type = ocv_ORB
-  close_loops:dbow2:bag_of_words_matching:dbow2:image_io:type = ocv
-  close_loops:dbow2:bag_of_words_matching:dbow2:max_num_candidate_matches_from_vocabulary_tree = 20
-  close_loops:dbow2:bag_of_words_matching:dbow2:training_image_list_path = @EXAMPLE_DIR@/pipelines/training_image_list.txt
-  close_loops:dbow2:bag_of_words_matching:dbow2:vocabulary_path = @EXAMPLE_DIR@/pipelines/kwiver_voc.yml.gz
+  close_loops:appearance_indexed:bag_of_words_matching:type = dbow2
+  close_loops:appearance_indexed:bag_of_words_matching:dbow2:feature_detector:type = ocv_ORB
+  close_loops:appearance_indexed:bag_of_words_matching:dbow2:descriptor_extractor:type = ocv_ORB
+  close_loops:appearance_indexed:bag_of_words_matching:dbow2:image_io:type = ocv
+  close_loops:appearance_indexed:bag_of_words_matching:dbow2:max_num_candidate_matches_from_vocabulary_tree = 20
+  close_loops:appearance_indexed:bag_of_words_matching:dbow2:training_image_list_path = @EXAMPLE_DIR@/pipelines/training_image_list.txt
+  close_loops:appearance_indexed:bag_of_words_matching:dbow2:vocabulary_path = @EXAMPLE_DIR@/pipelines/kwiver_voc.yml.gz
   
 
 # ================================================================
