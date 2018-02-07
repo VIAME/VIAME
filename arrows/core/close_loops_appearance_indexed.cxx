@@ -221,7 +221,8 @@ close_loops_appearance_indexed::priv
   // scale change, then that should be the low cost option to pick when sorting.
   for (auto &m : mwc_vec)
   {
-    m.cost = fabs(m.cost - median_cost);
+    m.cost = std::max(m.cost, 1.0 / m.cost);
+    m.cost /= median_cost;
   }
 
   //sort again.  This time with the median adjusted costs.
