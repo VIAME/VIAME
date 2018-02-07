@@ -28,8 +28,9 @@ have to press ctrl-F5 to see the latest updates to avoid using your browser cach
 this webpage.
 
 
+*********
 Contents:
----------
+*********
 
 .. toctree::
    :maxdepth: 1
