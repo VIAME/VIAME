@@ -13,7 +13,7 @@ written in python and C++.
 
 .. _this runable example: https://github.com/Kitware/VIAME/tree/master/examples/hello_world_pipeline
 .. _these example simple plugins: https://github.com/Kitware/VIAME/tree/master/plugins/hello_world
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/plugins/templates
+.. _these example plugin templates: https://github.com/Kitware/VIAME/tree/master/plugins/templates
 
 
 *******************
