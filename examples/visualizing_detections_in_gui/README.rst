@@ -8,6 +8,10 @@ GUIs for Visualization and Annotation
    :align: center
    :target: https://github.com/Kitware/VIAME/blob/master/examples/visualizing_detections_in_gui/README.rst
 
+This document corresponds to `this example online`_, in addition to the
+[viame-install]/examples/visualizing_detections_in_gui folder in a VIAME installation.
+
+.. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/visualizing_detections_in_gui
 
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
 GUIs are useful for displaying detections, their respective probabilities, and for making

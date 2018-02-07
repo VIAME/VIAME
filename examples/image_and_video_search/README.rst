@@ -5,7 +5,8 @@ Rapid Model Generation
 
 Rapid model generation can be performed using the same method as image and video search
 (below), just saving out the resultant trained detection models after performing iterative
-query refinement.
+query refinement. These models can then be used in detection pipelines, or further refined
+or used in future video searches.
 
 Additional documentation coming soon.
 
@@ -16,6 +17,11 @@ Image and Video Search Examples
 ********
 Overview
 ********
+
+This document corresponds to `this example online`_, in addition to the
+[viame-install]/examples/image_and_video_search folder in a VIAME installation.
+
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search
 
 This directory contains methods to accomplish two tasks: 
 

@@ -8,9 +8,12 @@ Image Search Using SMQTK
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/smqtk_on_chips
 
+This section corresponds to `this example online`_, in addition to the
+smqtk_on_chips example folder in a VIAME installation. This folder contains examples
+covering image search on top of an archive of images.
 
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/smqtk_on_chips
 
-This folder contains examples covering image search on top of an archive of images. 
 
 |
 | Building and running this examples requires: 
@@ -21,8 +24,9 @@ This folder contains examples covering image search on top of an archive of imag
 |        - VIAME_ENABLE_SMQTK
 |        - VIAME_ENABLE_CAFFE
 |        - VIAME_ENABLE_CUDA (Optional, but desired for performance)
-|        - VIAME_ENABLE_YOLO (Optional, for detector ingest example)
-|  (d) An installation of MongoDB to run the web client 
+|        - VIAME_ENABLE_YOLO (Optional, for detector ingest example (c))
+|  (d) An installation of MongoDB to run the web GUI client 
+|      (https://docs.mongodb.com/manual/administration/install-on-linux/)
 |
 | The system can either be configured to perform queries via: 
 |
@@ -34,14 +38,15 @@ This folder contains examples covering image search on top of an archive of imag
 First, reset_database.sh should be called to initialize a new database. 
 
 Next, depending on which indexing paradigm you are using, one of the 3 ingesting shell
-scripts can be called.
+scripts can be called (ingest_[].sh).
 
 Which ingesting paradigm you want to use depends on a few factors: does your object
 take up the entire image? Use (a). Are your object(s) a fixed known size in your image?
-Use (b). Are your objects multiple scales? Use (c).
+Use (b). Are your objects multiple scales and do you have a detector which works decently
+on your dataset? Use (c).
 
 After ingesting data, you want to launch the web-GUI service (launch_gui_backend.sh), and connect
-to the GUI via going to the default website 'http://0.0.0.0:5000/' if you didn't change any
+to the GUI via going to the default website 'http://0.0.0.0:5000/', at least if you didn't change any
 hosting settings. The default GUI log in is username: demo, password: demo after which
 you can log in, perform image queries, and iterative refinement on the results to generate
-an improved model for your query.
+an improved model for your initial query.

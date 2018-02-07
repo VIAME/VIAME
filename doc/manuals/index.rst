@@ -21,6 +21,11 @@ for model training, output detection visualization, groundtruth annotation,
 detector/tracker evaluation (a.k.a. scoring), image/video search, and rapid model
 generation. 
 
+This manual is synced to the VIAME 'master' branch and is updated frequently, you may
+have to press ctrl-F5 to see the latest updates to avoid using your browser cache of
+this webpage.
+
+
 Contents:
 
 .. toctree::

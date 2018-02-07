@@ -8,18 +8,20 @@ Video Search using VIAME
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/video_ingest
 
+This section corresponds to `this example online`_, in addition to the
+video_ingest example folder in a VIAME installation. This folder contains examples
+covering image search on top of an archive of videos.
 
-
-This folder contains an example for video search. 
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search/video_ingest
 
 |
 | WARNING: This example is a work in progress, and should only be attempted
-  by advanced users for the time being. 
+  by advanced users and developers for the time being. 
 |
 | Building and running this examples requires: 
 |
-|  (a) The python packages: 
-|  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA. 
+|  (a) The python packages: numpy
+|  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA enabled.
 |
 
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
@@ -27,3 +29,6 @@ representing object candidate locations in video. Descriptors are generated arou
 object tracks, which get indexed into a database and can be queried upon. By indicating
 which query results are correct, a model can be trained for a new object category and
 saved to an output file to be reused again in future pipelines or query requests.
+
+First, db_init.sh should be called to initialize a new database. Next 'ingest_video.sh'
+in order to pre-process a video or image sequence of your choice.

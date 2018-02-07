@@ -3,10 +3,11 @@
 Detection File Formats and Conversions
 ======================================
 
-This document corresponds to the example located online at:
-https://github.com/Kitware/VIAME/tree/master/examples/detection_file_conversions.
-They can additionally be found in a VIAME installation at:
-[viame-install]/examples/detection_file_conversions.
+This document corresponds to `this example online`_, in addition to the
+[viame-install]/examples/detection_file_conversions folder in a VIAME
+installation.
+
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/detection_file_conversions
 
 This folder contains examples of how to convert between textual
 formats representing object detections, tracks, results, etc. There
@@ -15,7 +16,6 @@ pipelines with reader/writer nodes (e.g. see pipelines directory) or
 using quick standalone scripts (see scripts). Conversion pipelines
 are simple, containing a detection input node (reader) and output
 node (writer).
-
 
 ****************************
 Integrated Detection Formats
@@ -33,7 +33,7 @@ produces detected_object_sets or object_track_sets.
 |
 |   - 1: frame number
 |   - 2: file name
-|   - 3: TL-x (top left of the image is the origin)
+|   - 3: TL-x (top left of the image is the origin: 0,0)
 |   - 4: TL-y
 |   - 5: BR-x
 |   - 6: BR-y
@@ -60,6 +60,12 @@ produces detected_object_sets or object_track_sets.
 |   date, annot_type [either boundingBox, line, or point], tl_x, tl_y, bl_x, bl_y
 |
 |   For the point type, only 1 set of coordinate is provided
+|
+|   An alternative format that reader supports looks like:
+|
+|     201503.20150517.png,527,scallop,"""line"": [[458, 970], [521, 1021]]"
+|
+|   which is more or less the same, just formatted differently.
 |
 
 *******************

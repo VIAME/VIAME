@@ -3,13 +3,18 @@
 New Module Creation Examples
 ============================
 
-This document corresponds to the example located online at:
-https://github.com/Kitware/VIAME/tree/master/examples/hello_world_pipeline
-and the basic C++/Python/Matlab templates located in:
-https://github.com/Kitware/VIAME/tree/master/plugins/templates
+This document corresponds to `this runable example`_ of `these example simple plugins`_,
+alongside `these example plugin templates`_. Additionally, all of the last can be found in
+[viame-install]/examples/hello_world_pipeline folder,
+[viame-source]/plugins/hello_world folder,
+and [viame-source]/plugins/templates folder in a VIAME installation, respectively.
+Throughout these folders are example object detectors, image filters, and image classifiers
+written in python and C++.
 
-They can additionally be found in a VIAME installation at:
-[viame-install]/examples/hello_world_pipeline.
+.. _this runable example: https://github.com/Kitware/VIAME/tree/master/examples/hello_world_pipeline
+.. _these example simple plugins: https://github.com/Kitware/VIAME/tree/master/plugins/hello_world
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/plugins/templates
+
 
 *******************
 C++ Detector Plugin
