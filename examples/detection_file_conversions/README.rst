@@ -26,7 +26,6 @@ New formats can be integrated to the system by implementing a derived version of
 vital::algo::detected_object_set_input class in C++, or via making a python process which
 produces detected_object_sets or object_track_sets.
 
-|
 | CSV - Default Comma Seperated Value Detection Format
 | 
 |  The default CSV format contains 1 detection per line, with each line as follows:
@@ -66,7 +65,6 @@ produces detected_object_sets or object_track_sets.
 |     201503.20150517.png,527,scallop,"""line"": [[458, 970], [521, 1021]]"
 |
 |   which is more or less the same, just formatted differently.
-|
 
 *******************
 Example Conversions
