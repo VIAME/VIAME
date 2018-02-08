@@ -21,7 +21,7 @@ The scoring tool takes two files: the actual detections in the truth
 file and the computed detections. The computed detections are scored
 against the truth file to give a set of statistics as shown below. Additional
 parameters that can be passed to the tool and other options can be found in
-the `KWANT documentation`.
+the `KWANT documentation`_.
 
 .. _here: https://github.com/Kitware/VIAME/blob/master/examples/scoring_and_roc_generation/
 .. _KWANT documentation: https://github.com/Kitware/kwant/blob/master/doc/manuals/introduction.rst
