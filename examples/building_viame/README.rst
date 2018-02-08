@@ -11,10 +11,10 @@ Building VIAME From Source
 ==========================
 
 See the platform-specific guides below, though the process is similar for each.
-This document corresponds to the example located online at:
-https://github.com/Kitware/VIAME/tree/master/examples/building_viame
-and also to the following directory in your VIAME installation:
-[viame-install]/examples/building_viame.
+This document corresponds to the example `located online here`_ and also to the
+following directory in your VIAME installation: examples/building_viame.
+
+.. _located online here: https://github.com/Kitware/VIAME/tree/master/examples/building_viame
 
 
 *****************
@@ -30,15 +30,20 @@ Ubuntu 14.04+.
 Install Dependencies
 ====================
 
-Some of the dependencies required for VIAME can be installed with one quick and easy
-instruction with no configuration required. Different Linux distributions may have
-different packages already installed, or may use a different package manager than
-apt, but on Ubuntu this should help to provide a starting point.
+Different Linux distributions may have different packages already installed, or may
+use a different package manager than apt, but on Ubuntu this should help to provide
+a starting point.
 
 .. code-block:: bash
 
    sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
    sudo apt-get build-dep libboost-all-dev qt5-default
+
+If using VIAME_ENABLE VIVIA for building GUIs, you also may need to run:
+
+.. code-block:: bash
+
+  sudo apt-get build-dep qt5-default
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy, e.g.:
 
@@ -46,10 +51,16 @@ If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-
 
    sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
 
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA:
+
+.. code-block:: bash
+
+   https://developer.nvidia.com/cuda-80-ga2-download-archive
+
 Install CMAKE
 =============
 
-Depending on the OS, the version of cmake you get with apt/yum is often too old to
+Depending on the OS, the version of cmake you get with apt/yum/dnf is often too old to
 use for VIAME (you currently need at least CMake 3.3) so you may need to do a manual
 install. Go to the cmake website, ``https://cmake.org/download``, and download the
 appropriate binary distribution (for Ubuntu, this would be something like 
@@ -158,7 +169,7 @@ and run the following commands:
    mkdir [build-directory]
    cd [build-directory]
    cmake [build_flags] [path_to_source_tree]
-   make # or make -j10 for a threaded build
+   make -j8 # or just make for a unthreaded build
 
 Depending on which enable flags you have set and your system configuration, you may
 need to set additional cmake variables to point to dependency locations. An example

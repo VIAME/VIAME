@@ -14,11 +14,17 @@ metrics such as ROC curves, specificity, sensitivities, etc. The input to
 these tools must be in the Kitware kw18 format. Several scripts are provided to
 convert other formats (such as habcam annotations and Scallop-tk outputs) to
 kw18 format. The format is very simple so additional converters can be easily
-created.
+created. 
 
+An example of running scoring tools can be found `here`_.
 The scoring tool takes two files: the actual detections in the truth
 file and the computed detections. The computed detections are scored
-against the truth file to give a set of statistics as shown below:
+against the truth file to give a set of statistics as shown below. Additional
+parameters that can be passed to the tool and other options can be found in
+the `KWANT documentation`_.
+
+.. _here: https://github.com/Kitware/VIAME/blob/master/examples/scoring_and_roc_generation/
+.. _KWANT documentation: https://github.com/Kitware/kwant/blob/master/doc/manuals/introduction.rst
 
 ::
 

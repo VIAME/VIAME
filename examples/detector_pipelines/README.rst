@@ -11,15 +11,17 @@ Object Detection
    :scale: 30
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines
+|
 
+This document corresponds to `this example online`_, in addition to the
+examples/detector_pipelines folder in a VIAME installation.
 
-This document corresponds to the example located online at:
-https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines.
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines
+
 This folder contains assorted examples of object detection pipelines
 running different detectors such as YOLOv2, ScallopTK, Faster RCNN, and others.
-
-They can additionally be found in a VIAME installation at:
-[viame-install]/examples/detector_pipelines.
+Several different models are found in the examples, trained on a variety of different
+sensors.
 
 ************
 Requirements
