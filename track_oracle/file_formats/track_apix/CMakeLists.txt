@@ -21,12 +21,12 @@ set( track_apix_sources
 
 kwiver_install_headers(
   ${track_apix_public_headers}
-  SUBDIR          track_oracle/track_apix
+  SUBDIR          track_oracle/file_formats/track_apix
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_apix_export.h
-  NOPATH SUBDIR          track_oracle/track_apix
+  NOPATH SUBDIR          track_oracle/file_formats/track_apix
 )
 
 kwiver_add_library( track_apix

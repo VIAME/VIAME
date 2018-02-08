@@ -13,12 +13,12 @@ set( track_kwxml_sources
 
 kwiver_install_headers(
   ${track_kwxml_public_headers}
-  SUBDIR        track_oracle/track_kwxml
+  SUBDIR        track_oracle/file_formats/track_kwxml
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_kwxml_export.h
-  NOPATH SUBDIR        track_oracle/track_kwxml
+  NOPATH SUBDIR        track_oracle/file_formats/track_kwxml
 )
 
 kwiver_add_library( track_kwxml

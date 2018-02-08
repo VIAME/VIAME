@@ -16,6 +16,7 @@ set( sources
 )
 
 set( public_headers
+  kpf_bounce_buffer.h
   kpf_packet_header.h
   kpf_packet.h
   kpf_canonical_types.h
@@ -60,13 +61,13 @@ target_link_libraries( kpf_yaml
 
 kwiver_install_headers(
   ${public_headers}
-  SUBDIR arrows/kpf
+  SUBDIR arrows/kpf/yaml
   )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kpf_yaml_export.h
   NOPATH
-  SUBDIR   arrows/kpf
+  SUBDIR   arrows/kpf/yaml
 )
 
 if (KWIVER_ENABLE_TESTS)
