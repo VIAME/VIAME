@@ -48,11 +48,8 @@ matched against the entries in this database. A default GUI (provided via
 the VIVIA toolkit) is provided which has similar capabilities to the SMQTK
 GUI, ie, search and IQR.
 
-.. toctree::
-    :maxdepth: 2
-
-    smqtk_on_chips/README.rst
-    video_ingest/README.rst
+.. include:: smqtk_on_chips/README.rst
+.. include:: video_ingest/README.rst
 
 ======================
 Rapid Model Generation
