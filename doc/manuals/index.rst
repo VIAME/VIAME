@@ -37,7 +37,7 @@ Contents:
 
    example_links/building_viame
    example_links/example_capabilities
-   Core C++/Python Object Types <http://kwiver.readthedocs.io/en/latest/vital/architecture.html>
+   example_links/core_types
    Core Pipelining Architecture <http://kwiver.readthedocs.io/en/latest/sprokit/architecture.html>
    Basic Pipeline Nodes <http://kwiver.readthedocs.io/en/latest/arrows/architecture.html>
    example_links/hello_world_pipeline
