@@ -74,10 +74,7 @@ or added to your path to use them.
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](examples/building_viame/README.rst),
-with additional tips [here](examples/building_viame/README.rst#build-tips-n-tricks),
-and common issues [here](examples/building_viame/README.rst#known-issues).
-
+More in-depth build instructions can be found [here](examples/building_viame), but
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.

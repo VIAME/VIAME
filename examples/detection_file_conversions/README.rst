@@ -26,7 +26,7 @@ New formats can be integrated to the system by implementing a derived version of
 vital::algo::detected_object_set_input class in C++, or via making a python process which
 produces detected_object_sets or object_track_sets.
 
-| CSV - Default Comma Seperated Value Detection Format
+| **bold** CSV - Default Comma Seperated Value Detection Format
 | 
 |  The default CSV format contains 1 detection per line, with each line as follows:
 |
@@ -39,7 +39,7 @@ produces detected_object_sets or object_track_sets.
 |   - 7: detection confidence
 |   - 8,9+  : class-name  score (this pair may be omitted or repeated)
 |
-| KW18 - Kitware KW18 Column Seperated Track Format
+| **bold** KW18 - Kitware KW18 Column Seperated Track Format
 |
 |   KW18s are a space seperated file format for representing detections or tracks.
 |
@@ -49,7 +49,7 @@ produces detected_object_sets or object_track_sets.
 |   11:Img-bbox(TL_y) 12:Img-bbox(BR_x) 13:Img-bbox(BR_y) 14:Area 15:World-loc(x)
 |   16:World-loc(y) 17:World-loc(z) 18:timestamp 19:track-confidence
 |
-| HABCAM - Annotation format used by the HabCam project
+| **bold** HABCAM - Annotation format used by the HabCam project
 |
 |   A typical habcam annotation looks like:
 |
