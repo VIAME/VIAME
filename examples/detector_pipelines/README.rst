@@ -11,7 +11,7 @@ Object Detection
    :scale: 30
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/detector_pipelines
-
+|
 
 This document corresponds to `this example online`_, in addition to the
 examples/detector_pipelines folder in a VIAME installation.
