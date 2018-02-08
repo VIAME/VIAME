@@ -19,7 +19,7 @@ covering image search on top of an archive of videos.
 |
 | Building and running this examples requires: 
 |
-|  (a) The python packages: numpy
+|  (a) The python packages: numpy, pymongo
 |  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA enabled.
 
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
