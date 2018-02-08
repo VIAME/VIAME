@@ -47,17 +47,3 @@ table, or other). At query time, descriptors on a query image or video are
 matched against the entries in this database. A default GUI (provided via
 the VIVIA toolkit) is provided which has similar capabilities to the SMQTK
 GUI, ie, search and IQR.
-
-.. include:: smqtk_on_chips/README.rst
-.. include:: video_ingest/README.rst
-
-======================
-Rapid Model Generation
-======================
-
-Rapid model generation can be performed using the same method as image and video search
-(above), just saving out the resultant trained detection models after performing iterative
-query refinement. These models can then be used in detection pipelines, or further refined
-or used in future video searches.
-
-Additional documentation coming soon.
