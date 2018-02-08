@@ -10,7 +10,7 @@ Image Search Using SMQTK
 
 | Building and running `this example`_ requires: 
 |
-|  (a) The python packages: numpy 
+|  (a) The python packages: numpy, pymongo
 |  (b) Linux or Mac systems, Windows is not fully supported. 
 |  (c) A VIAME build with the following flags enabled:
 |        - VIAME_ENABLE_SMQTK
