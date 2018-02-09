@@ -418,8 +418,10 @@ public:
 // ------------------------------------------------------------------
   void push_metadata_to_map(vital::timestamp::frame_t fn)
   {
-    if (fn >= c_start_at_frame && fn < c_stop_after_frame)
+    if (fn >= c_start_at_frame &&
+        (c_stop_after_frame == 0 || fn < c_stop_after_frame))
     {
+      metadata_collection.clear();
       auto curr_md = d_video_stream.current_metadata();
       if (process_metadata( curr_md ) )
       {
@@ -463,6 +465,8 @@ public:
           d_num_frames++;
           push_metadata_to_map(d_num_frames);
         }
+
+        metadata_collection.clear();
 
         // Close and reopen to reset
         d_video_stream.open( video_path );
