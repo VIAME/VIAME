@@ -123,7 +123,7 @@ PYBIND11_MODULE(datum, m)
   m.def("new_track_set", &new_datum<std::shared_ptr<kwiver::vital::track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing a track set.");
-  m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::feature_track_set>>
+  m.def("new_feature_track_set", &new_datum<std::shared_ptr<kwiver::vital::feature_track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing a feature track set.");
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
