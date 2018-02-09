@@ -48,6 +48,7 @@
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+#include <iostream>
 #include <string>
 #include <vector>
 
