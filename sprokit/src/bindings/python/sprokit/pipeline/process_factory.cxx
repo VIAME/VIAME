@@ -40,8 +40,6 @@
 #include <sprokit/pipeline/process_registry_exception.h>
 
 #include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python_gil.h>
-#include <sprokit/python/util/python_threading.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -116,6 +114,9 @@ sprokit::process_t
 python_process_factory::
 create_object(kwiver::vital::config_block_sptr const& config)
 {
+  pybind11::gil_scoped_acquire acquire;
+  (void)acquire;
+
   // Call sprokit factory function.
   pybind11::object obj = m_factory(config);
 
@@ -134,27 +135,27 @@ PYBIND11_MODULE(process_factory, m)
 
   bind_vector<std::vector<std::string> >(m, "StringVector");
 
-  m.def("is_process_module_loaded", &is_process_loaded
+  m.def("is_process_module_loaded", &is_process_loaded, call_guard<gil_scoped_release>()
        , (arg("module"))
        , "Returns True if the module has already been loaded, False otherwise.");
 
-  m.def("mark_process_module_as_loaded", &mark_process_loaded
+  m.def("mark_process_module_as_loaded", &mark_process_loaded, call_guard<gil_scoped_release>()
        , (arg("module"))
        , "Marks a module as loaded.");
 
-  m.def("add_process", &register_process
+  m.def("add_process", &register_process, call_guard<gil_scoped_release>()
       , arg("type"), arg("description"), arg("ctor")
        , "Registers a function which creates a process of the given type.");
 
-  m.def("create_process", &sprokit::create_process
+  m.def("create_process", &sprokit::create_process, call_guard<gil_scoped_release>()
       , arg("type"), arg("name"), arg("config") = kwiver::vital::config_block::empty_config()
       , "Creates a new process of the given type.", return_value_policy::reference_internal);
 
-  m.def("description", &get_description
+  m.def("description", &get_description, call_guard<gil_scoped_release>()
        , (arg("type"))
        , "Returns description for the process");
 
-  m.def("types", &process_names
+  m.def("types", &process_names, call_guard<gil_scoped_release>()
        , "Returns list of process names" );
 
   m.attr("Process") = m.import("sprokit.pipeline.process").attr("PythonProcess");
@@ -164,7 +165,6 @@ PYBIND11_MODULE(process_factory, m)
 
 // ==================================================================
 class python_process_wrapper
-  : sprokit::python::python_threading
 {
 public:
   python_process_wrapper( object obj );
@@ -184,10 +184,8 @@ register_process( sprokit::process::type_t const&        type,
                   sprokit::process::description_t const& desc,
                   object                                 obj )
 {
-
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
+  pybind11::gil_scoped_acquire acquire;
+  (void)acquire;
 
   python_process_wrapper const& wrap(obj);
 
@@ -288,9 +286,7 @@ object
 python_process_wrapper
   ::operator()( kwiver::vital::config_block_sptr const& config )
 {
-  sprokit::python::python_gil const gil;
-
-  (void)gil;
-
+  pybind11::gil_scoped_acquire acquire;
+  (void)acquire;
   return m_obj( config );
 }
