@@ -41,7 +41,7 @@ but select entries are also listed below, which include some run examples:
 [Stereo Measurement Examples](examples/measurement_using_stereo) <> 
 [Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <> 
-[Example Integrations](plugins) 
+[Example Integrations](plugins) <>
 [Example Plugin Templates](plugins/templates) <> 
 [GUIs for Visualization and Annotation](examples/visualizing_detections_in_gui) <> 
 [Detector Training API](examples/detector_training) <> 
