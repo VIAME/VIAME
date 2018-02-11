@@ -42,6 +42,7 @@
 
 #include <memory>
 #include <fstream>
+#include <chrono>
 
 namespace kwiver
 {
@@ -51,6 +52,9 @@ namespace algo = vital::algo;
 create_config_trait( image_pipeline_file, std::string, "",
   "Filename for the image processing pipeline. This pipeline should take, "
   "as input, a filename and produce descriptors as output." );
+create_config_trait( assign_uids, bool, "true",
+  "Whether or not this process should assign unique UIDs to each output "
+  "descriptor produced by this process" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -61,8 +65,11 @@ public:
   ~priv();
 
   std::string image_pipeline_file;
+  bool assign_uids;
 
   std::unique_ptr< embedded_pipeline > image_pipeline;
+
+  std::string generate_uid();
 }; // end priv class
 
 
@@ -102,6 +109,7 @@ handle_descriptor_request_process
   vital::config_block_sptr algo_config = get_config();
 
   d->image_pipeline_file = config_value_using_trait( image_pipeline_file );
+  d->assign_uids = config_value_using_trait( assign_uids );
 }
 
 
@@ -195,6 +203,15 @@ handle_descriptor_request_process
     }
 
     descriptors = iter->second->get_datum< vital::track_descriptor_set_sptr >();
+
+    // Assign optional UID to descriptors
+    if( d->assign_uids )
+    {
+      for( auto track_desc : *descriptors )
+      {
+        track_desc->set_uid( d->generate_uid() );
+      }
+    }
   }
 
   // Return all outputs
@@ -225,6 +242,7 @@ void handle_descriptor_request_process
 ::make_config()
 {
   declare_config_using_trait( image_pipeline_file );
+  declare_config_using_trait( assign_uids );
 }
 
 
@@ -232,6 +250,7 @@ void handle_descriptor_request_process
 handle_descriptor_request_process::priv
 ::priv()
   : image_pipeline_file("")
+  , assign_uids( true )
   , image_pipeline()
 {
 }
@@ -240,6 +259,25 @@ handle_descriptor_request_process::priv
 handle_descriptor_request_process::priv
 ::~priv()
 {
+}
+
+
+std::string
+handle_descriptor_request_process::priv
+::generate_uid()
+{
+  static unsigned query_id = 0;
+
+  auto current_time =
+    std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
+
+  std::string uid =
+    "query_" + std::to_string( query_id ) + "_" +
+    "time_" + std::to_string( current_time );
+
+  query_id++;
+
+  return uid;
 }
 
 } // end namespace
