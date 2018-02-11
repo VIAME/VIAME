@@ -182,13 +182,13 @@ class SmqtkProcessQuery (KwiverProcess):
         # Vector of UIDs for vector of descriptors in descriptor_set.
         #
         #: :type: list[str]
-        positive_tuple = self.grap_input_using_trait('positive_uids')
-        negative_tuple = self.grap_input_using_trait('negative_uids')
+        positive_tuple = self.grab_input_using_trait('positive_uids')
+        negative_tuple = self.grab_input_using_trait('negative_uids')
 
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]
         user_pos_elements = []
-        z = itertools.izip(vital_descriptor_set.descriptors(), exemplar_uids)
+        z = itertools.izip(vital_descriptor_set.descriptors(), vital_descriptor_uids)
         for vital_descr, uid_str in z:
             smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
                 'from_sprokit', uid_str
@@ -197,7 +197,7 @@ class SmqtkProcessQuery (KwiverProcess):
             # for the given UID. We currently always overwrite.
             smqtk_descr.set_vector(vital_descr)
             # Queue up element for adding to set.
-            smqtk_descriptor_elements.append(smqtk_descr)
+            user_pos_elements.append(smqtk_descr)
 
         # Get SMQTK descriptor elements from index for given pos/neg UUID-
         # values.
