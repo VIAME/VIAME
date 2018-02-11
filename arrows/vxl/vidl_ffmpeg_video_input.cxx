@@ -70,6 +70,7 @@ public:
   priv()
     : c_start_at_frame( 0 ),
       c_stop_after_frame( 0 ),
+      c_frame_skip( 0 ),
       c_time_source( "none" ), // initialization string
       c_time_scan_frame_limit( 100 ),
       d_have_frame( false ),
@@ -94,6 +95,7 @@ public:
   // Configuration values
   unsigned int c_start_at_frame;
   unsigned int c_stop_after_frame;
+  unsigned int c_frame_skip;
   std::string  c_time_source; // default sources string
   std::vector< std::string >  c_time_source_list;
   int c_time_scan_frame_limit; // number of frames to scan looking for time
@@ -460,10 +462,16 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        while ( d_video_stream.advance() )
+        unsigned int frames_left_to_skip = 0;
+        while ( d_video_stream.advance())
         {
           d_num_frames++;
-          push_metadata_to_map(d_num_frames);
+          if (frames_left_to_skip == 0)
+          {
+            push_metadata_to_map(d_num_frames);
+            frames_left_to_skip = c_frame_skip;
+          }
+          frames_left_to_skip--;
         }
 
         metadata_collection.clear();
@@ -472,10 +480,16 @@ public:
         d_video_stream.open( video_path );
 
         // Advance back to original frame number
+        frames_left_to_skip = 0;
         for (int i=0; i < d_frame_number; ++i)
         {
-          d_video_stream.advance();
-          push_metadata_to_map(i);
+          if (frames_left_to_skip == 0)
+          {
+            d_video_stream.advance();
+            push_metadata_to_map(i);
+            frames_left_to_skip = c_frame_skip;
+          }
+          frames_left_to_skip--;
         }
       }
 
@@ -565,6 +579,9 @@ vidl_ffmpeg_video_input
 
   d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
     "stop_after_frame", d->c_stop_after_frame );
+
+  d->c_frame_skip = config->get_value<vital::timestamp::frame_t>(
+    "frame_skip", d->c_frame_skip );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
             d->c_time_source_list, " ,", true );
@@ -759,10 +776,13 @@ vidl_ffmpeg_video_input
   }
   else
   {
-    if( ! d->d_video_stream.advance() )
+    for (int i = 0; i < d->c_frame_skip + 1; i++)
     {
-      d->d_at_eov = true;
-      return false;
+      if( ! d->d_video_stream.advance() )
+      {
+        d->d_at_eov = true;
+        return false;
+      }
     }
   }
 
@@ -792,6 +812,12 @@ vidl_ffmpeg_video_input
 
   // negative or zero frame number not allowed
   if ( frame_number <= 0 )
+  {
+    return false;
+  }
+
+  // Check if requested frame would have been skipped
+  if ( ( frame_number - 1 )%( d->c_frame_skip + 1) != 0 )
   {
     return false;
   }
