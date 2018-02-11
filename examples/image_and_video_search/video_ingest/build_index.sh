@@ -20,5 +20,5 @@ echo "2. Computing Hash Codes"
 compute_hash_codes -vc "${SMQTK_HCODE_CONFIG}"
 
 # Compute balltree hash index
-echo "3. Generating Ball Tree"
-make_balltree -vc "${SMQTK_BTREE_CONFIG}"
+#echo "3. Generating Ball Tree"
+#make_balltree -vc "${SMQTK_BTREE_CONFIG}"

@@ -33,19 +33,7 @@
             }
         },
         "hash_index": {
-            "type": "SkLearnBallTreeHashIndex",
-            "SkLearnBallTreeHashIndex": {
-                "cache_element": {
-                    "type": "DataFileElement",
-                    "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz",
-                        "readonly": false
-                    }
-                },
-                "leaf_size": 40,
-                "random_seed": 0
-            }
+            "type": null
         },
         "lsh_functor": {
             "type": "ItqFunctor",
