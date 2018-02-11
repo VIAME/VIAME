@@ -9,7 +9,7 @@ Length Measurement Examples
 
 This section corresponds to `this example online`_, in addition to the
 measurement_using_stereo example folder in a VIAME installation. This folder contains
-examples covering image search on top of an archive of images.
+examples covering fish measurement using stereo.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/measurement_using_stereo
 
