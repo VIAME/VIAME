@@ -74,7 +74,7 @@ track_descriptor_set_output
   std::ostream* file( new std::ofstream( filename ) );
   if ( ! file )
   {
-    kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
   m_stream = file;
