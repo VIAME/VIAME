@@ -138,6 +138,9 @@ PYBIND11_MODULE(datum, m)
   m.def("new_string_vector", &new_datum<std::shared_ptr<std::vector<std::string>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a string vector.");
+  m.def("new_uchar_vector", &new_datum<std::shared_ptr<std::vector<unsigned char>>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing an unsigned char vector.");
   m.def("datum_from_capsule", &datum_from_capsule
     , (arg("dptr"))
     , "Converts datum* in capsule to datum_t");
@@ -180,6 +183,8 @@ PYBIND11_MODULE(datum, m)
       , "Convert the data to a double vector")
     .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
       , "Convert the data to a string vector")
+    .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>
+      , "Convert the data to an unsigned char vector")
   ;
 
 } // end module

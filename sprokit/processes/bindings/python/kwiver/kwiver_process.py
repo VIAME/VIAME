@@ -183,6 +183,9 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("string_vector", "kwiver:string_vector",
                             datum.Datum.get_string_vector,
                             datum.new_string_vector)
+        self.add_type_trait("uchar_vector", "kwiver:uchar_vector",
+                            datum.Datum.get_uchar_vector,
+                            datum.new_uchar_vector)
 
         #                   port-name    type-trait-name    description
         self.add_port_trait("timestamp", "timestamp",
