@@ -462,14 +462,14 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        unsigned int frames_left_to_skip = 0;
+        unsigned int frames_left_to_skip = c_frame_skip;
         while ( d_video_stream.advance())
         {
-          d_num_frames++;
           if (frames_left_to_skip == 0)
           {
+            d_num_frames++;
             push_metadata_to_map(d_num_frames);
-            frames_left_to_skip = c_frame_skip;
+            frames_left_to_skip = c_frame_skip + 1;
           }
           frames_left_to_skip--;
         }
@@ -540,6 +540,11 @@ vidl_ffmpeg_video_input
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
                      "Number of frames to supply. If set to zero then supply all frames after start frame." );
 
+  config->set_value( "output_nth_frame", d->c_frame_skip,
+                     "Only outputs every nth frame of the video starting at the first frame. The output "
+                     "of num_frames is adjusted accordingly and skip_frame is valid only every nth "
+                     "frame only.");
+
   config->set_value( "absolute_time_source", d->c_time_source,
                      "List of sources for absolute frame time information. "
                      "This entry specifies a comma separated list of sources that are "
@@ -581,7 +586,7 @@ vidl_ffmpeg_video_input
     "stop_after_frame", d->c_stop_after_frame );
 
   d->c_frame_skip = config->get_value<vital::timestamp::frame_t>(
-    "frame_skip", d->c_frame_skip );
+    "output_nth_frame", d->c_frame_skip );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
             d->c_time_source_list, " ,", true );
@@ -776,7 +781,7 @@ vidl_ffmpeg_video_input
   }
   else
   {
-    for (int i = 0; i < d->c_frame_skip + 1; i++)
+    for (unsigned int i = 0; i < d->c_frame_skip + 1; i++)
     {
       if( ! d->d_video_stream.advance() )
       {
