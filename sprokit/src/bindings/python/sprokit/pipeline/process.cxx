@@ -359,48 +359,48 @@ PYBIND11_MODULE(process, m)
 
   class_<sprokit::process, process_trampoline, sprokit::process_t>(m, "PythonProcess"
     , "The base class for Python processes.")
-    .def(init<kwiver::vital::config_block_sptr>())
-    .def("configure", &sprokit::process::configure, "Configure the process.")
-    .def("init", &sprokit::process::init
+    .def(init<kwiver::vital::config_block_sptr>(), call_guard<gil_scoped_release>())
+    .def("configure", &sprokit::process::configure, "Configure the process.", call_guard<gil_scoped_release>())
+    .def("init", &sprokit::process::init, call_guard<gil_scoped_release>()
       , "Initializes the process.")
-    .def("reset", &sprokit::process::reset
+    .def("reset", &sprokit::process::reset, call_guard<gil_scoped_release>()
       , "Resets the process.")
     .def("step", &sprokit::process::step, call_guard<gil_scoped_release>()
       , "Steps the process for one iteration.")
-    .def("properties", &sprokit::process::properties
+    .def("properties", &sprokit::process::properties, call_guard<gil_scoped_release>()
       , "Returns the properties on the process.")
-    .def("connect_input_port", &sprokit::process::connect_input_port
+    .def("connect_input_port", &sprokit::process::connect_input_port, call_guard<gil_scoped_release>()
       , arg("port"), arg("edge")
       , "Connects the given edge to the input port.")
-    .def("connect_output_port", &sprokit::process::connect_output_port
+    .def("connect_output_port", &sprokit::process::connect_output_port, call_guard<gil_scoped_release>()
       , arg("port"), arg("edge")
       , "Connects the given edge to the output port.")
-    .def("input_ports", &sprokit::process::input_ports
+    .def("input_ports", &sprokit::process::input_ports, call_guard<gil_scoped_release>()
       , "Returns a list of input ports on the process.")
-    .def("output_ports", &sprokit::process::output_ports
+    .def("output_ports", &sprokit::process::output_ports, call_guard<gil_scoped_release>()
       , "Returns a list of output ports on the process.")
-    .def("input_port_info", &sprokit::process::input_port_info
+    .def("input_port_info", &sprokit::process::input_port_info, call_guard<gil_scoped_release>()
       , (arg("port"))
       , "Returns information about the given input port.")
-    .def("output_port_info", &sprokit::process::output_port_info
+    .def("output_port_info", &sprokit::process::output_port_info, call_guard<gil_scoped_release>()
       , (arg("port"))
       , "Returns information about the given output port.")
-    .def("set_input_port_type", &sprokit::process::set_input_port_type
+    .def("set_input_port_type", &sprokit::process::set_input_port_type, call_guard<gil_scoped_release>()
       , arg("port"), arg("new_type")
       , "Sets the type for an input port.")
-    .def("set_output_port_type", &sprokit::process::set_output_port_type
+    .def("set_output_port_type", &sprokit::process::set_output_port_type, call_guard<gil_scoped_release>()
       , arg("port"), arg("new_type")
       , "Sets the type for an output port.")
-    .def("available_config", &sprokit::process::available_config
+    .def("available_config", &sprokit::process::available_config, call_guard<gil_scoped_release>()
       , "Returns a list of available configuration keys for the process.")
-    .def("available_tunable_config", &sprokit::process::available_tunable_config
+    .def("available_tunable_config", &sprokit::process::available_tunable_config, call_guard<gil_scoped_release>()
       , "Returns a list of available tunable configuration keys for the process.")
-    .def("config_info", &sprokit::process::config_info
+    .def("config_info", &sprokit::process::config_info, call_guard<gil_scoped_release>()
       , (arg("config"))
       , "Returns information about the given configuration key.")
-    .def("name", &sprokit::process::name
+    .def("name", &sprokit::process::name, call_guard<gil_scoped_release>()
       , "Returns the name of the process.")
-    .def("type", &sprokit::process::type
+    .def("type", &sprokit::process::type, call_guard<gil_scoped_release>()
       , "Returns the type of the process.")
     .def_readonly_static("property_no_threads", &sprokit::process::property_no_threads)
     .def_readonly_static("property_no_reentrancy", &sprokit::process::property_no_reentrancy)
@@ -419,107 +419,107 @@ PYBIND11_MODULE(process, m)
     .def_readonly_static("flag_input_mutable", &sprokit::process::flag_input_mutable)
     .def_readonly_static("flag_input_nodep", &sprokit::process::flag_input_nodep)
     .def_readonly_static("flag_required", &sprokit::process::flag_required)
-    .def("_base_configure", static_cast<void (sprokit::process::*)()>(&wrap_process::_configure), "Configure the base process.")
-    .def("_base_init", static_cast<void (sprokit::process::*)()>(&wrap_process::_init), "Base class initialization.")
-    .def("_base_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), "Base class reset.")
-    .def("_base_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), "Base class flush.")
-    .def("_base_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), "Base class step.")
-    .def("_base_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), arg("conf"), "Base class reconfigure.")
-    .def("_base_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), "Base class properties.")
-    .def("_base_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), "Base class input ports.")
-    .def("_base_output_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_output_ports), "Base class output ports.")
-    .def("_base_input_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_input_port_info), arg("port"), "Base class input port info.")
-    .def("_base_output_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_output_port_info), arg("port"), "Base class output port info.")
-    .def("_base_set_input_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_input_port_type), arg("port"), arg("new_type"), "Base class input port type setting.")
-    .def("_base_set_output_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_output_port_type), arg("port"), arg("new_type"), "Base class output port type setting.")
-    .def("_base_available_config", static_cast<kwiver::vital::config_block_keys_t (sprokit::process::*)() const>(&wrap_process::_available_config), "Base class available configuration information.")
-    .def("_base_config_info", static_cast<sprokit::process::conf_info_t (sprokit::process::*)(kwiver::vital::config_block_key_t const&)>(&wrap_process::_config_info), return_value_policy::reference, arg("config"), "Base class configuration information.")
-    .def("_configure", static_cast<void (sprokit::process::*)()>(&wrap_process::_configure), "Configure the sub process.")
-    .def("_init", static_cast<void (sprokit::process::*)()>(&wrap_process::_init), "Sub class initialization.")
-    .def("_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), "Sub class reset.")
-    .def("_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), "Sub class flush.")
+    .def("_base_configure", static_cast<void (sprokit::process::*)()>(&wrap_process::_configure), call_guard<gil_scoped_release>(), "Configure the base process.")
+    .def("_base_init", static_cast<void (sprokit::process::*)()>(&wrap_process::_init), call_guard<gil_scoped_release>(), "Base class initialization.")
+    .def("_base_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), call_guard<gil_scoped_release>(), "Base class reset.")
+    .def("_base_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), call_guard<gil_scoped_release>(), "Base class flush.")
+    .def("_base_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), call_guard<gil_scoped_release>(), "Base class step.")
+    .def("_base_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), call_guard<gil_scoped_release>(), arg("conf"), "Base class reconfigure.")
+    .def("_base_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), call_guard<gil_scoped_release>(), "Base class properties.")
+    .def("_base_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), call_guard<gil_scoped_release>(), "Base class input ports.")
+    .def("_base_output_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_output_ports), call_guard<gil_scoped_release>(), "Base class output ports.")
+    .def("_base_input_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_input_port_info), call_guard<gil_scoped_release>(), arg("port"), "Base class input port info.")
+    .def("_base_output_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_output_port_info), call_guard<gil_scoped_release>(), arg("port"), "Base class output port info.")
+    .def("_base_set_input_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_input_port_type), call_guard<gil_scoped_release>(), arg("port"), arg("new_type"), "Base class input port type setting.")
+    .def("_base_set_output_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_output_port_type), call_guard<gil_scoped_release>(), arg("port"), arg("new_type"), "Base class output port type setting.")
+    .def("_base_available_config", static_cast<kwiver::vital::config_block_keys_t (sprokit::process::*)() const>(&wrap_process::_available_config), call_guard<gil_scoped_release>(), "Base class available configuration information.")
+    .def("_base_config_info", static_cast<sprokit::process::conf_info_t (sprokit::process::*)(kwiver::vital::config_block_key_t const&)>(&wrap_process::_config_info), call_guard<gil_scoped_release>(), return_value_policy::reference, arg("config"), "Base class configuration information.")
+    .def("_configure", static_cast<void (sprokit::process::*)()>(&wrap_process::_configure), call_guard<gil_scoped_release>(), "Configure the sub process.")
+    .def("_init", static_cast<void (sprokit::process::*)()>(&wrap_process::_init), call_guard<gil_scoped_release>(), "Sub class initialization.")
+    .def("_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), call_guard<gil_scoped_release>(), "Sub class reset.")
+    .def("_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), call_guard<gil_scoped_release>(), "Sub class flush.")
     .def("_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), call_guard<gil_scoped_release>(), "Sub class step.")
-    .def("_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), arg("conf"), "Sub class reconfigure.")
-    .def("_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), "Sub class properties.")
-    .def("_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), "Sub class input ports.")
-    .def("_output_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_output_ports), "Sub class output ports.")
+    .def("_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), call_guard<gil_scoped_release>(), arg("conf"), "Sub class reconfigure.")
+    .def("_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), call_guard<gil_scoped_release>(), "Sub class properties.")
+    .def("_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), call_guard<gil_scoped_release>(), "Sub class input ports.")
+    .def("_output_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_output_ports), call_guard<gil_scoped_release>(), "Sub class output ports.")
     .def("_input_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_input_port_info), arg("port"), call_guard<gil_scoped_release>(), "Sub class input port info.")
     .def("_output_port_info", static_cast<sprokit::process::port_info_t (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::_output_port_info), arg("port"), call_guard<gil_scoped_release>(), "Sub class output port info.")
-    .def("_set_input_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_input_port_type), arg("port"), arg("new_type"), "Sub class input port type setting.")
-    .def("_set_output_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_output_port_type), arg("port"), arg("new_type"), "Sub class output port type setting.")
-    .def("_available_config", static_cast<kwiver::vital::config_block_keys_t (sprokit::process::*)() const>(&wrap_process::_available_config), "Sub class available configuration information.")
-    .def("_config_info", static_cast<sprokit::process::conf_info_t (sprokit::process::*)(kwiver::vital::config_block_key_t const&)>(&wrap_process::_config_info), arg("config"), "Sub class configuration information.")
-    .def("declare_input_port", &declare_input_port_2
+    .def("_set_input_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_input_port_type), call_guard<gil_scoped_release>(), arg("port"), arg("new_type"), "Sub class input port type setting.")
+    .def("_set_output_port_type", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_type_t const&)>(&wrap_process::_set_output_port_type), call_guard<gil_scoped_release>(), arg("port"), arg("new_type"), "Sub class output port type setting.")
+    .def("_available_config", static_cast<kwiver::vital::config_block_keys_t (sprokit::process::*)() const>(&wrap_process::_available_config), call_guard<gil_scoped_release>(), "Sub class available configuration information.")
+    .def("_config_info", static_cast<sprokit::process::conf_info_t (sprokit::process::*)(kwiver::vital::config_block_key_t const&)>(&wrap_process::_config_info), call_guard<gil_scoped_release>(), arg("config"), "Sub class configuration information.")
+    .def("declare_input_port", &declare_input_port_2, call_guard<gil_scoped_release>()
       , arg("port"), arg("info")
       , "Declare an input port on the process.")
-    .def("declare_input_port", &declare_input_port_5
+    .def("declare_input_port", &declare_input_port_5, call_guard<gil_scoped_release>()
       , arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = sprokit::process::port_frequency_t(1)
       , "Declare an input port on the process.")
-    .def("declare_output_port", &declare_output_port_2
+    .def("declare_output_port", &declare_output_port_2, call_guard<gil_scoped_release>()
       , arg("port"), arg("info")
       , "Declare an output port on the process.")
-    .def("declare_output_port", &declare_output_port_5
+    .def("declare_output_port", &declare_output_port_5, call_guard<gil_scoped_release>()
       , arg("port"), arg("type"), arg("flags"), arg("description"), arg("frequency") = sprokit::process::port_frequency_t(1)
       , "Declare an output port on the process.")
-    .def("declare_configuration_key", &declare_configuration_key_2
+    .def("declare_configuration_key", &declare_configuration_key_2, call_guard<gil_scoped_release>()
       , arg("key"), arg("info")
       , "Declare a configuration key for the process")
-    .def("declare_configuration_key", &declare_configuration_key_3
+    .def("declare_configuration_key", &declare_configuration_key_3, call_guard<gil_scoped_release>()
       , arg("key"), arg("default"), arg("description")
       , "Declare a configuration key for the process")
-    .def("declare_configuration_key", &declare_configuration_key_4
+    .def("declare_configuration_key", &declare_configuration_key_4, call_guard<gil_scoped_release>()
       , arg("key"), arg("default"), arg("description"), arg("tunable")
       , "Declare a configuration key for the process")
-    .def("set_input_port_frequency", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_frequency_t const&)>(&wrap_process::set_input_port_frequency)
+    .def("set_input_port_frequency", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_frequency_t const&)>(&wrap_process::set_input_port_frequency), call_guard<gil_scoped_release>()
       , arg("port"), arg("new_frequency")
       , "Set an input port\'s frequency.")
-    .def("set_output_port_frequency", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_frequency_t const&)>(&wrap_process::set_output_port_frequency)
+    .def("set_output_port_frequency", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::process::port_frequency_t const&)>(&wrap_process::set_output_port_frequency), call_guard<gil_scoped_release>()
       , arg("port"), arg("new_frequency")
       , "Set an output port\'s frequency.")
-    .def("remove_input_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::remove_input_port)
+    .def("remove_input_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::remove_input_port), call_guard<gil_scoped_release>()
       , arg("port")
       , "Remove an input port from the process.")
-    .def("remove_output_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::remove_output_port)
+    .def("remove_output_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&)>(&wrap_process::remove_output_port), call_guard<gil_scoped_release>()
       , arg("port")
       , "Remove an output port from the process.")
-    .def("mark_process_as_complete", static_cast<void (sprokit::process::*)()>(&wrap_process::mark_process_as_complete)
+    .def("mark_process_as_complete", static_cast<void (sprokit::process::*)()>(&wrap_process::mark_process_as_complete), call_guard<gil_scoped_release>()
       , "Tags the process as complete.")
-    .def("has_input_port_edge", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::has_input_port_edge)
+    .def("has_input_port_edge", static_cast<bool (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::has_input_port_edge), call_guard<gil_scoped_release>()
       , arg("port")
       , "True if there is an edge that is connected to the port, False otherwise.")
-    .def("count_output_port_edges", static_cast<pybind11::size_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::count_output_port_edges)
+    .def("count_output_port_edges", static_cast<pybind11::size_t (sprokit::process::*)(sprokit::process::port_t const&) const>(&wrap_process::count_output_port_edges), call_guard<gil_scoped_release>()
       , arg("port")
       , "The number of edges that are connected to a port.")
-    .def("peek_at_port", &peek_at_port
+    .def("peek_at_port", &peek_at_port, call_guard<gil_scoped_release>()
       , arg("port"), arg("idx") = 0
       , "Peek at a port.")
-    .def("peek_at_datum_on_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_datum_on_port)
+    .def("peek_at_datum_on_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_datum_on_port), call_guard<gil_scoped_release>()
       , arg("port"), arg("idx") = 0
       , "Peek at a datum on a port.")
-    .def("grab_from_port", &grab_from_port
+    .def("grab_from_port", &grab_from_port, call_guard<gil_scoped_release>()
       , arg("port")
       , "Grab a datum packet from a port.")
-    .def("grab_value_from_port", &grab_value_from_port
+    .def("grab_value_from_port", &grab_value_from_port, call_guard<gil_scoped_release>()
       , arg("port")
       , "Grab a value from a port.")
-    .def("grab_datum_from_port", &grab_datum_from_port
+    .def("grab_datum_from_port", &grab_datum_from_port, call_guard<gil_scoped_release>()
       , arg("port")
       , "Grab a datum from a port.")
-    .def("push_to_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::edge_datum_t const&) const>(&wrap_process::push_to_port)
+    .def("push_to_port", static_cast<void (sprokit::process::*)(sprokit::process::port_t const&, sprokit::edge_datum_t const&) const>(&wrap_process::push_to_port), call_guard<gil_scoped_release>()
       , arg("port"), arg("datum")
       , "Push a datum packet to a port.")
-    .def("push_value_to_port", &push_value_to_port
+    .def("push_value_to_port", &push_value_to_port, call_guard<gil_scoped_release>()
       , arg("port"), arg("value")
       , "Push a value to a port.")
-    .def("push_datum_to_port", &push_datum_to_port
+    .def("push_datum_to_port", &push_datum_to_port, call_guard<gil_scoped_release>()
       , arg("port"), arg("datum")
       , "Push a datum to a port.")
-    .def("get_config", static_cast<kwiver::vital::config_block_sptr (sprokit::process::*)() const>(&wrap_process::get_config)
+    .def("get_config", static_cast<kwiver::vital::config_block_sptr (sprokit::process::*)() const>(&wrap_process::get_config), call_guard<gil_scoped_release>()
       , "Gets the configuration for a process.")
-    .def("config_value", &config_value
+    .def("config_value", &config_value, call_guard<gil_scoped_release>()
       , arg("key")
       , "Gets a value from the configuration for a process.")
-    .def("set_data_checking_level", static_cast<void (sprokit::process::*)(sprokit::process::data_check_t)>(&wrap_process::set_data_checking_level)
+    .def("set_data_checking_level", static_cast<void (sprokit::process::*)(sprokit::process::data_check_t)>(&wrap_process::set_data_checking_level), call_guard<gil_scoped_release>()
       , arg("check")
       , "Set the level to which the inputs are automatically checked.")
   ;
@@ -573,8 +573,6 @@ void
 process_trampoline
 ::_step()
 {
-  gil_scoped_acquire acquire;
-
   PYBIND11_OVERLOAD(
     void,
     process,
@@ -640,8 +638,6 @@ sprokit::process::port_info_t
 process_trampoline
 ::_input_port_info(port_t const& port)
 {
-  gil_scoped_acquire acquire;
-
   PYBIND11_OVERLOAD(
     sprokit::process::port_info_t,
     process,
@@ -654,8 +650,6 @@ sprokit::process::port_info_t
 process_trampoline
 ::_output_port_info(port_t const& port)
 {
-  gil_scoped_acquire acquire;
-
   PYBIND11_OVERLOAD(
     sprokit::process::port_info_t,
     process,

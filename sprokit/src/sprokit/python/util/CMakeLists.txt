@@ -1,17 +1,11 @@
 project(sprokit_python_util)
 
 set(python_util_srcs
-  python_allow_threads.cxx
-  python_exceptions.cxx
-  python_gil.cxx
-  python_threading.cxx)
+  python_exceptions.cxx)
 
 set(python_util_headers
-  python_allow_threads.h
   python_exceptions.h
-  python_gil.h
-  python.h
-  python_threading.h)
+  python.h)
 
 if( NOT WIN32 )
   set(python_util_srcs

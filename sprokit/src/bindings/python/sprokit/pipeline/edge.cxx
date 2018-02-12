@@ -32,8 +32,6 @@
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/stamp.h>
 
-#include <sprokit/python/util/python_gil.h>
-
 #include <pybind11/stl_bind.h>
 
 #include "python_wrappers.cxx"

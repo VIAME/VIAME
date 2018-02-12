@@ -33,7 +33,6 @@
 #include <sprokit/pipeline/process_cluster.h>
 
 #include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python_gil.h>
 
 #include "python_wrappers.cxx"
 
