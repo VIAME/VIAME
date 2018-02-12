@@ -336,10 +336,13 @@ perform_query_process
 
     vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
 
-    for( auto track_desc : *query->descriptors() )
+    if( query )
     {
-      exemplar_uids->push_back( track_desc->get_uid().value() );
-      exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+      for( auto track_desc : *query->descriptors() )
+      {
+        exemplar_uids->push_back( track_desc->get_uid().value() );
+        exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+      }
     }
 
     vital::descriptor_set_sptr exemplar_descs(
