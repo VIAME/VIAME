@@ -49,7 +49,8 @@ kwiver::vital::path_t g_data_dir;
 namespace algo = kwiver::vital::algo;
 static int num_expected_frames = 50;
 static int num_expected_frames_subset = 20;
-static int num_expected_frames_skip = 17;
+static int nth_frame_output = 3;
+static int num_expected_frames_nth_output = 17;
 static std::string video_file_name = "video.mp4";
 
 // ----------------------------------------------------------------------------
@@ -280,12 +281,12 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map)
 }
 
 // ----------------------------------------------------------------------------
-TEST_F(vidl_ffmpeg_video_input, read_video_frame_skip)
+TEST_F(vidl_ffmpeg_video_input, read_video_nth_frame_output)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "output_nth_frame", "2" );
+  config->set_value( "output_nth_frame", nth_frame_output );
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
@@ -297,9 +298,9 @@ TEST_F(vidl_ffmpeg_video_input, read_video_frame_skip)
 
   kwiver::vital::timestamp ts;
 
-  EXPECT_EQ( num_expected_frames_skip, vfvi.num_frames() )
+  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
     << "Number of frames before extracting frames should be "
-    << num_expected_frames_skip;
+    << num_expected_frames;
 
   int num_frames = 0;
   int expected_frame_num = 1;
@@ -321,20 +322,20 @@ TEST_F(vidl_ffmpeg_video_input, read_video_frame_skip)
       << "Frame number should match barcode in frame image";
     expected_frame_num += 3;
   }
-  EXPECT_EQ( num_expected_frames_skip, num_frames )
+  EXPECT_EQ( num_expected_frames_nth_output, num_frames )
     << "Number of frames found should be "
-    << num_expected_frames_skip;
-  EXPECT_EQ( num_expected_frames_skip, vfvi.num_frames() )
+    << num_expected_frames;
+  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
     << "Number of frames after extracting frames should be "
-    << num_expected_frames_skip;
+    << num_expected_frames;
 }
 
-TEST_F(vidl_ffmpeg_video_input, seek_frame_skip)
+TEST_F(vidl_ffmpeg_video_input, seek_nth_frame_output)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "output_nth_frame", "2" );
+  config->set_value( "output_nth_frame", nth_frame_output );
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 

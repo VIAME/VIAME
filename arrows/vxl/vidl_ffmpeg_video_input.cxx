@@ -70,7 +70,7 @@ public:
   priv()
     : c_start_at_frame( 0 ),
       c_stop_after_frame( 0 ),
-      c_frame_skip( 0 ),
+      c_frame_skip( 1 ),
       c_time_source( "none" ), // initialization string
       c_time_scan_frame_limit( 100 ),
       d_have_frame( false ),
@@ -462,14 +462,14 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        unsigned int frames_left_to_skip = c_frame_skip;
+        unsigned int frames_left_to_skip = c_frame_skip - 1;
         while ( d_video_stream.advance())
         {
+          d_num_frames++;
           if (frames_left_to_skip == 0)
           {
-            d_num_frames++;
             push_metadata_to_map(d_num_frames);
-            frames_left_to_skip = c_frame_skip + 1;
+            frames_left_to_skip = c_frame_skip;
           }
           frames_left_to_skip--;
         }
@@ -542,8 +542,8 @@ vidl_ffmpeg_video_input
 
   config->set_value( "output_nth_frame", d->c_frame_skip,
                      "Only outputs every nth frame of the video starting at the first frame. The output "
-                     "of num_frames is adjusted accordingly and skip_frame is valid only every nth "
-                     "frame only.");
+                     "of num_frames still reports the total frames in the video but skip_frame is valid "
+                     "every nth frame only and there are metadata_map entries for only every nth frame.");
 
   config->set_value( "absolute_time_source", d->c_time_source,
                      "List of sources for absolute frame time information. "
@@ -781,7 +781,7 @@ vidl_ffmpeg_video_input
   }
   else
   {
-    for (unsigned int i = 0; i < d->c_frame_skip + 1; i++)
+    for (unsigned int i = 0; i < d->c_frame_skip; i++)
     {
       if( ! d->d_video_stream.advance() )
       {
@@ -822,7 +822,7 @@ vidl_ffmpeg_video_input
   }
 
   // Check if requested frame would have been skipped
-  if ( ( frame_number - 1 )%( d->c_frame_skip + 1) != 0 )
+  if ( ( frame_number - 1 )%d->c_frame_skip != 0 )
   {
     return false;
   }
