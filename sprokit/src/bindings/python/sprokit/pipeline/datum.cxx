@@ -98,6 +98,9 @@ PYBIND11_MODULE(datum, m)
     .value("error", sprokit::datum::error)
   ;
 
+  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
+  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
+
   // constructors
   m.def("new", &new_datum_no_cast
     , (arg("dat"))
@@ -129,10 +132,10 @@ PYBIND11_MODULE(datum, m)
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing an object track set.");
-  m.def("new_double_vector", &new_datum<std::vector<double>>
+  m.def("new_double_vector", &new_datum<std::shared_ptr<std::vector<double>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a double vector.");
-  m.def("new_string_vector", &new_datum<std::vector<std::string>>
+  m.def("new_string_vector", &new_datum<std::shared_ptr<std::vector<std::string>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a string vector.");
   m.def("datum_from_capsule", &datum_from_capsule
@@ -147,9 +150,6 @@ PYBIND11_MODULE(datum, m)
   m.def("error", &error_datum
     , arg("err")
     , "Creates an error datum packet.");
-
-  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
-  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
 
   // Methods on datum
   class_<sprokit::datum>(m, "Datum"
