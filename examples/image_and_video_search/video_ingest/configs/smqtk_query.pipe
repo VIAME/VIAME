@@ -34,7 +34,7 @@ connect from in_adapt.positive_uids
 connect from in_adapt.negative_uids
         to   smqtk_query_handler.negative_uids
 
-connect from smqtk_query_handler.result_descriptor_uids
-        to   out_adapt.result_descriptor_uids
-connect from smqtk_query_handler.result_descriptor_scores
-        to   out_adapt.result_descriptor_scores
+connect from smqtk_query_handler.result_uids
+        to   out_adapt.result_uids
+connect from smqtk_query_handler.result_scores
+        to   out_adapt.result_scores

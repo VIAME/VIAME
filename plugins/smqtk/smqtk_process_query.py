@@ -32,6 +32,7 @@ import itertools
 import json
 
 from sprokit.pipeline import process
+from sprokit.pipeline import datum
 
 from kwiver.kwiver_process import KwiverProcess
 
@@ -72,9 +73,9 @@ class SmqtkProcessQuery (KwiverProcess):
         self.declare_input_port_using_trait('negative_uids', optional)
 
         # Output, ranked descriptor UUIDs
-        self.declare_output_port_using_trait('result_descriptor_uids', optional)
+        self.declare_output_port_using_trait('result_uids', optional)
         # Output, ranked descriptor scores.
-        self.declare_output_port_using_trait('result_descriptor_scores', optional)
+        self.declare_output_port_using_trait('result_scores', optional)
 
         ## Member variables to be configured in ``_configure``.
         # Path to the json config file for the DescriptorIndex
@@ -105,9 +106,9 @@ class SmqtkProcessQuery (KwiverProcess):
                             "Positive sample UIDs")
         self.add_port_trait("negative_uids", "string_vector",
                             "Negative sample UIDs")
-        self.add_port_trait("result_descriptor_uids", "string_vector",
+        self.add_port_trait("result_uids", "string_vector",
                             "Result ranked descriptor UUIDs in rank order.")
-        self.add_port_trait("result_descriptor_scores", "double_vector",
+        self.add_port_trait("result_scores", "double_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
 
@@ -222,7 +223,7 @@ class SmqtkProcessQuery (KwiverProcess):
         return_uuids = [e.uuid() for e in return_elems]
 
         # Pass on input descriptors and UIDs
-        self.push_to_port_using_trait('result_descriptor_uids', return_uuids)
-        self.push_to_port_using_trait('result_descriptor_scores', return_dists)
+        self.push_to_port_using_trait('result_uids', datum.VectorString(return_uuids) )
+        self.push_to_port_using_trait('result_scores', datum.VectorDouble(return_dists) )
 
         self._base_step()
