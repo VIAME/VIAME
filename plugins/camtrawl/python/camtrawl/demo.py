@@ -533,8 +533,6 @@ def demo():
     logger.info('begin camtrawl iteration')
 
     import tqdm
-    # prog = tqdm.tqdm(iter(stream), total=len(stream), desc='camtrawl',
-    #                  leave=True)  # clearline=False)
     # prog = ub.ProgIter(iter(stream), total=len(stream), desc='camtrawl demo',
     #                    clearline=False, freq=1, adjust=False)
     prog = tqdm.tqdm(iter(stream), total=len(stream), desc='camtrawl demo',
