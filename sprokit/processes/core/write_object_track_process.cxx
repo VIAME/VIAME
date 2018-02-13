@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2020 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,7 @@ write_object_track_process
 {
   make_ports();
   make_config();
+  set_data_checking_level( check_sync );
 }
 
 
@@ -133,6 +134,14 @@ void write_object_track_process
 void write_object_track_process
 ::_step()
 {
+  auto const& port_info = peek_at_port_using_trait( object_track_set );
+  if( port_info.datum->type() == sprokit::datum::complete )
+  {
+    grab_edge_datum_using_trait( object_track_set );
+    d->m_writer->close();
+    mark_process_as_complete();
+    return;
+  }
 
   auto const& input = grab_from_port_using_trait( object_track_set );
   auto const& ts = grab_from_port_using_trait( timestamp );
