@@ -71,10 +71,10 @@ public:
   */
   virtual image_container_sptr
   compute(const std::vector<image_container_sptr> &frames,
-      const std::vector<camera> &cameras,
-        const std::vector<landmark_sptr> &landmarks,
-      unsigned int reference_frame,
-      std::vector<image_container_sptr> *masks = NULL) const = 0;
+          const std::vector<camera_sptr> &cameras,
+          const std::vector<landmark_sptr> &landmarks,
+          unsigned int reference_frame,
+          std::vector<image_container_sptr> *masks = NULL) const = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::image_container_sptr,

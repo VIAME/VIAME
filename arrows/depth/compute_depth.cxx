@@ -35,7 +35,7 @@
 
 #include <arrows/depth/compute_depth.h>
 #include <arrows/vxl/image_container.h>
-#include <vital/types/landmark.h>>
+#include <vital/types/landmark.h>
 #include <arrows/vxl/camera.h>
 #include <vnl/vnl_double_3.h>
 #include <vil/vil_image_view.h>
@@ -155,7 +155,7 @@ compute_depth::check_configuration(vital::config_block_sptr config) const
 
 image_container_sptr
 compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
-                       const std::vector<camera> &cameras_in,
+                       const std::vector<camera_sptr> &cameras_in,
                        const std::vector<landmark_sptr> &landmarks_in,
                        unsigned int ref_frame,
                        std::vector<image_container_sptr> *masks_in) const
@@ -181,7 +181,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   //convert cameras
   std::vector<vpgl_perspective_camera<double> > cameras(cameras_in.size());
   for (unsigned int i = 0; i < cameras.size(); i++) {
-    vxl::vital_to_vpgl_camera<double>(cameras_in[i], cameras[i]);
+    vxl::vital_to_vpgl_camera<double>(*cameras_in[i], cameras[i]);
   }
 
   //convert landmarks
