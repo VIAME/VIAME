@@ -498,9 +498,8 @@ def demo():
 
     # n_frames = 2000
     # stream.aligned_frameids = stream.aligned_frameids[:stream.index]
-
-    prog = ub.ProgIter(stream, clearline=True, length=len(stream),
-                       adjust=False, label='camtrawl')
+    import tqdm
+    prog = tqdm.tqdm(stream, total=len(stream), desc='camtrawl', leave=True)
     _iter = prog
 
     if DRAWING:
