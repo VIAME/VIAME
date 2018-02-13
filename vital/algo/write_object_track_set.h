@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,24 +78,23 @@ public:
    * \throws kwiver::vital::path_not_a_file Thrown when the given path does
    *    not point to a file (i.e. it points to a directory).
    */
-  void open( std::string const& filename );
+  virtual void open( std::string const& filename );
 
   /// Write object tracks to an existing stream
   /**
-   * This method specifies the output stream to use for reading
-   * object tracks. Using a stream is handy when the object tracks are
-   * available in a stream format.
+   * This method specifies the output stream to use for writing
+   * object tracks.
    *
    * @param strm output stream to use
    */
-  void use_stream( std::ostream* strm );
+  virtual void use_stream( std::ostream* strm );
 
   /// Close object track set file.
   /**
    * The currently open object track set file is closed. If there is no
    * currently open file, then this method does nothing.
    */
-  void close();
+  virtual void close();
 
   /// Write object track set.
   /**

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,8 @@ public:
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
   virtual void write_set( const kwiver::vital::object_track_set_sptr set );
+
+  virtual void close();
 
 private:
   class priv;
