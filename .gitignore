@@ -36,3 +36,5 @@ _build
 # Compiled Python
 *.pyc
 __pycache__
+
+build-py*
