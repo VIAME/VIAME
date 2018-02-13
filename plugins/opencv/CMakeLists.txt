@@ -30,7 +30,6 @@ kwiver_add_library( viame_opencv
   ${plugin_sources}
   )
 
-
 get_target_property(results viame_opencv COMPILE_DEFINITIONS )
 
 if (VIAME_OPENCV_VERSION MATCHES "2.*")
@@ -40,11 +39,20 @@ endif()
 get_target_property(results viame_opencv COMPILE_DEFINITIONS )
 
 target_link_libraries( viame_opencv
-  PUBLIC               vital kwiversys
+  PUBLIC               vital
+                       vital_algo
+                       vital_config
+                       vital_logger
+                       vital_util
+                       kwiversys
                        kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
   )
 
 algorithms_create_plugin( viame_opencv
   register_algorithms.cxx
+  )
+
+target_link_libraries( viame_opencv_plugin
+  PUBLIC               vital_vpm
   )
