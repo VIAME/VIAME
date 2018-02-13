@@ -300,6 +300,12 @@ detect( vital::image_container_sptr image_data ) const
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
     image_data->get_image(), kwiver::arrows::ocv::image_container::BGR );
 
+  if( cv_image.rows == 0 || cv_image.cols == 0 )
+  {
+    LOG_WARN( d->m_logger, "Input image is empty." );
+    return vital::detected_object_set_sptr();
+  }
+
   cv::Mat cv_resized_image;
 
   vital::detected_object_set_sptr detections;
