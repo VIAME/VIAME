@@ -66,6 +66,8 @@ public:
     kwiver::vital::timestamp const& ts = {},
     std::string const& frame_identifier = {} ) override;
 
+  void close() override;
+
 private:
   class priv;
   std::unique_ptr< priv > d;
