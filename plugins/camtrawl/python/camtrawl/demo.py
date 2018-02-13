@@ -14,6 +14,10 @@ import ubelt as ub
 import threading
 from .imutils import (imscale, overlay_heatmask, putMultiLineText)
 from . import algos as ctalgo
+import logging
+from six.moves import zip, range
+
+logger = logging.getLogger(__name__)
 
 try:
     import queue
@@ -201,6 +205,7 @@ class FrameStream(ub.NiceRepr):
     def __getitem__(self, index):
         img_fpath = self.image_path_list[index]
         frame_id = self._frame_id(img_fpath)
+        logging.debug('Reading img_fpath={}'.format(img_fpath))
         img = cv2.imread(img_fpath)
         return frame_id, img
 
@@ -228,6 +233,8 @@ def buffered_imread(image_path_list, buffer_size=2):
     References:
         # Adapted from
         https://github.com/benanne/kaggle-ndsb/blob/11a66cdbddee16c69514b9530a727df0ac6e136f/buffering.py
+
+        Note: a torch DataLoader might be a better option
     """
     if buffer_size < 2:
         raise ValueError('Minimal buffer size is 2')
@@ -252,6 +259,7 @@ def buffered_imread(image_path_list, buffer_size=2):
 
 def serial_imread(image_path_list):
     for fpath in image_path_list:
+        logger.debug('Reading {}'.format(fpath))
         yield cv2.imread(fpath)
 
 
@@ -283,7 +291,7 @@ class StereoFrameStream(object):
         >>>     pass
         >>> print('prog_serial._total_seconds = {!r}'.format(prog_serial._total_seconds))
     """
-    def __init__(self, img_path1, img_path2):
+    def __init__(self, img_path1, img_path2, buffer_size=1):
         self.img_path1 = img_path1
         self.img_path2 = img_path2
         self.image_path_list1 = None
@@ -292,9 +300,10 @@ class StereoFrameStream(object):
         self.aligned_idx1 = None
         self.aligned_idx2 = None
         self.index = 0
-        self.buffer_size = 2
+        self.buffer_size = buffer_size
 
     def seek(self, index):
+        logging.debug('seek {}'.format(index))
         self.index = index
 
     def __len__(self):
@@ -304,8 +313,10 @@ class StereoFrameStream(object):
         if buffer_size is None:
             buffer_size = self.buffer_size
         if buffer_size and buffer_size > 1:
+            logging.debug('Reading image stream using thread buffer')
             buffer_func = partial(buffered_imread, buffer_size=buffer_size)
         else:
+            logging.debug('Reading image stream using serial buffer')
             buffer_func = serial_imread
 
         idx1_slice = self.aligned_idx1[self.index:]
@@ -314,12 +325,15 @@ class StereoFrameStream(object):
 
         fpath_gen1 = ub.take(self.image_path_list1, idx1_slice)
         fpath_gen2 = ub.take(self.image_path_list2, idx2_slice)
+
         img_gen1 = buffer_func(fpath_gen1)
         img_gen2 = buffer_func(fpath_gen2)
 
+        logging.debug('Begin reading buffers')
         for frame_id, img1, img2 in zip(frame_ids, img_gen1, img_gen2):
             yield frame_id, img1, img2
             self.index += 1
+        logging.debug('Stream is finished')
 
     def __iter__(self):
         for data in self._stream():
@@ -366,8 +380,8 @@ class StereoFrameStream(object):
             # print('missing_from1 = {!r}'.format(sorted(missing_from1)))
             # print('missing_from2 = {!r}'.format(sorted(missing_from2)))
             n_aligned = len(aligned_idx1)
-            print('Camera1 aligned {}/{} frames'.format(n_aligned, n_imgs1))
-            print('Camera2 aligned {}/{} frames'.format(n_aligned, n_imgs2))
+            logging.info('Camera1 aligned {}/{} frames'.format(n_aligned, n_imgs1))
+            logging.info('Camera2 aligned {}/{} frames'.format(n_aligned, n_imgs2))
 
         self.aligned_frameids = aligned_frameids
         self.aligned_idx1 = aligned_idx1
@@ -429,7 +443,7 @@ def demodata_detections(dataset='haul83', target_step='detect', target_frame_num
         masks2 = detector2._masks
 
         n_detect1, n_detect2 = len(detections1), len(detections2)
-        print('frame_num, (n_detect1, n_detect2) = {} ({}, {})'.format(
+        logging.info('frame_num, (n_detect1, n_detect2) = {} ({}, {})'.format(
             frame_num, n_detect1, n_detect2))
 
         if frame_num == target_frame_num:
@@ -475,14 +489,15 @@ def demo():
         import pyfiglet
         print(pyfiglet.figlet_format('CAMTRAWL', font='cybermedium'))
     except ImportError:
+        logging.debug('pyfiglet is not installed')
         print('========')
         print('CAMTRAWL')
         print('========')
-    print('dataset = {!r}'.format(dataset))
-    print('Detector1 Config: ' + ub.repr2(detector1.config, nl=1))
-    print('Detector2 Config: ' + ub.repr2(detector2.config, nl=1))
-    print('Triangulate Config: ' + ub.repr2(triangulator.config, nl=1))
-    print('DRAWING = {!r}'.format(DRAWING))
+    logging.info('dataset = {!r}'.format(dataset))
+    logging.info('Detector1 Config: ' + ub.repr2(detector1.config, nl=1))
+    logging.info('Detector2 Config: ' + ub.repr2(detector2.config, nl=1))
+    logging.info('Triangulate Config: ' + ub.repr2(triangulator.config, nl=1))
+    logging.info('DRAWING = {!r}'.format(DRAWING))
 
     cal = ctalgo.StereoCalibration.from_file(cal_fpath)
 
@@ -498,9 +513,6 @@ def demo():
 
     # n_frames = 2000
     # stream.aligned_frameids = stream.aligned_frameids[:stream.index]
-    import tqdm
-    prog = tqdm.tqdm(stream, total=len(stream), desc='camtrawl', leave=True)
-    _iter = prog
 
     if DRAWING:
         drawing_dpath = ub.ensuredir('out_{}'.format(dataset))
@@ -518,8 +530,17 @@ def demo():
 
     measurements = []
 
-    print('begin iteration')
-    for frame_num, (frame_id, img1, img2) in enumerate(_iter):
+    logger.info('begin camtrawl iteration')
+
+    import tqdm
+    # prog = tqdm.tqdm(iter(stream), total=len(stream), desc='camtrawl',
+    #                  leave=True)  # clearline=False)
+    # prog = ub.ProgIter(iter(stream), total=len(stream), desc='camtrawl demo',
+    #                    clearline=False, freq=1, adjust=False)
+    prog = tqdm.tqdm(iter(stream), total=len(stream), desc='camtrawl demo',
+                     leave=True)
+    for frame_num, (frame_id, img1, img2) in enumerate(prog):
+        logger.debug('frame_num = {!r}'.format(frame_num))
 
         detections1 = list(detector1.detect(img1))
         detections2 = list(detector2.detect(img2))
@@ -560,13 +581,29 @@ def demo():
     output_file.close()
 
     n_total = len(measurements)
-    print('n_total = {!r}'.format(n_total))
+    logger.info('n_total = {!r}'.format(n_total))
     if n_total:
         all_errors = np.array([d['error'] for d in measurements])
         all_lengths = np.array([d['fishlen'] for d in measurements])
-        print('ave_error = {:.2f} +- {:.2f}'.format(all_errors.mean(), all_errors.std()))
-        print('ave_lengths = {:.2f} +- {:.2f} '.format(all_lengths.mean(), all_lengths.std()))
+        logger.info('ave_error = {:.2f} +- {:.2f}'.format(all_errors.mean(), all_errors.std()))
+        logger.info('ave_lengths = {:.2f} +- {:.2f} '.format(all_lengths.mean(), all_lengths.std()))
     return measurements
+
+
+def setup_demo_logger():
+    import logging
+    import logging.config
+    from os.path import exists
+    import ubelt as ub
+
+    logconf_fpath = 'logging.conf'
+    if exists(logconf_fpath):
+        logging.config.fileConfig(logconf_fpath)
+    else:
+        level = getattr(logging, ub.argval('--level', default='INFO').upper())
+        logfmt = '%(levelname)s %(name)s(%(lineno)d): %(message)s'
+        logging.basicConfig(format=logfmt, level=level)
+    logger.debug('Setup logging in demo script')
 
 
 if __name__ == '__main__':
@@ -583,4 +620,5 @@ if __name__ == '__main__':
 
         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """
+    setup_demo_logger()
     measurements = demo()

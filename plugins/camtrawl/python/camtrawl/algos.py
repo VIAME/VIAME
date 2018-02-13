@@ -12,9 +12,14 @@ import cv2
 import itertools as it
 import numpy as np
 import scipy.optimize
-from imutils import (imscale, ensure_grayscale, from_homog, to_homog)
+from .imutils import (imscale, ensure_grayscale, from_homog, to_homog)
 from os.path import splitext
 import ubelt as ub
+import logging
+import warnings
+from six.moves import zip
+
+logger = logging.getLogger(__name__)
 
 
 OrientedBBox = namedtuple('OrientedBBox', ('center', 'extent', 'angle'))
@@ -47,7 +52,7 @@ class BoundingBox(ub.NiceRepr):
         bbox.coords = coords
 
     def __nice__(self):
-        return 'center={}, wh={}'.format(self.center, self.size)
+        return 'center={}, wh={}'.format(self.center, (self.width, self.height))
 
     @classmethod
     def from_coords(self, xmin, ymin, xmax, ymax):
@@ -69,6 +74,14 @@ class BoundingBox(ub.NiceRepr):
     @property
     def ymax(bbox):
         return bbox.coords[3]
+
+    @property
+    def width(bbox):
+        return bbox.xmax - bbox.xmin
+
+    @property
+    def height(bbox):
+        return bbox.ymax - bbox.ymin
 
     @property
     def center(self):
@@ -261,6 +274,8 @@ class GMMForegroundObjectDetector(object):
             >>> plt.gca().grid(False)
             >>> plt.show()
         """
+        logger.debug('detect forground')
+
         detector._masks = {}
 
         # Downsample and convert to grayscale
@@ -327,9 +342,33 @@ class GMMForegroundObjectDetector(object):
         Args:
             mask (ndarray): mask where non-zero pixels indicate all candidate
                 objects
+
+        Example:
+            >>> detector = GMMForegroundObjectDetector()
+            >>> detector.config['min_num_pixels'] = 2
+            >>> x, y = np.indices((10, 10))
+            >>> s = 2
+            >>> mask = (((x // s) % s == 0) & ((y // s) % s == 0)).astype(np.uint8)
+            >>> mask[0, -2:] = 0
+            >>> mask[1, -1] = 0
+            >>> mask[2, 2] = 1
+            >>> mask[-1, 2] = 1
+            >>> mask[-5:-1, -3] = 1
+            >>> detections = list(detector.detections_in_mask(mask))
+            >>> assert len(detections) == 7
         """
         # 4-way connected compoment algorithm
-        n_ccs, cc_mask = cv2.connectedComponents(mask, connectivity=8)
+        try:
+            n_ccs, cc_mask = cv2.connectedComponents(mask, connectivity=8)
+        except AttributeError:
+            warnings.warn('OpenCV version is old. Please upgrade to 3.x')
+            from skimage import measure
+            cc_mask, n_ccs_sk = measure.label(mask, neighbors=8, background=0,
+                                              return_num=True)
+            # Be consistent with opencv, which always includes the background
+            # label in the num (even if no background exists).
+            n_ccs = n_ccs_sk + 1
+
         factor = detector.config['factor']
 
         # Process only labels with enough points
@@ -489,6 +528,7 @@ class FishStereoMeasurments(object):
             >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.triangulate(cal, det1, det2)
         """
+        logger.debug('triangulate')
         _debug = 0
         if _debug:
             # Use 4 corners and center to ensure matrix math is good
@@ -610,6 +650,7 @@ class FishStereoMeasurments(object):
             >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.find_matches(cal, detections1, detections2)
         """
+        logger.debug('find matches')
         n_detect1, n_detect2 = len(detections1), len(detections2)
         cand_data = {}
 
@@ -749,6 +790,7 @@ class StereoCalibration(object):
 
     @classmethod
     def from_npzfile(StereoCalibration, cal_fpath):
+        logger.debug('Loading npzfile {}'.format(cal_fpath))
         data = dict(np.load(cal_fpath))
         flat_dict = {}
         flat_dict['om'] = cv2.Rodrigues(data['R'])[0].ravel()
@@ -791,6 +833,7 @@ class StereoCalibration(object):
             >>> print('cal = {}'.format(cal))
         """
         import scipy.io
+        logger.debug('Loading matfile {}'.format(cal_fpath))
         cal_data = scipy.io.loadmat(cal_fpath)
         keys = ['om', 'T', 'fc_left', 'fc_right', 'cc_left', 'cc_right',
                 'kc_left', 'kc_right', 'alpha_c_left', 'alpha_c_right']
@@ -838,22 +881,30 @@ class StereoCalibration(object):
         return cal
 
 
+# if __name__ == '__main__':
+#     r"""
+#     CommandLine:
+
+#         workon_py2
+#         source ~/code/VIAME/build/install/setup_viame.sh
+#         export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
+#         export PYTHONPATH=$(pwd):$PYTHONPATH
+#         python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
+#         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
+#     """
+#     from . import demo
+#     logging.basicConfig()
+#     demo.demo()
+#     # import camtrawl_demo
+#     # camtrawl_demo.demo()
+#     # import utool as ut
+#     # ut.dump_profile_text()
+#     # import pytest
+#     # pytest.main([__file__, '--doctest-modules'])
 if __name__ == '__main__':
     r"""
     CommandLine:
-
-        workon_py2
-        source ~/code/VIAME/build/install/setup_viame.sh
-        export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
-        export PYTHONPATH=$(pwd):$PYTHONPATH
-
-        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
-
-        ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
+        python -m camtrawl.algos
     """
-    import camtrawl_demo
-    camtrawl_demo.demo()
-    # import utool as ut
-    # ut.dump_profile_text()
-    # import pytest
-    # pytest.main([__file__, '--doctest-modules'])
+    import xdoctest
+    xdoctest.doctest_module(__file__)

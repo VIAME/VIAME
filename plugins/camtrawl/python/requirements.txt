@@ -3,3 +3,4 @@ numpy
 #python-opencv
 pyfiglet
 tqdm
+scikit-image  # only if opencv is less than 3.0

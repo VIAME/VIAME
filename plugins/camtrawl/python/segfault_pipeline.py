@@ -8,7 +8,6 @@ import logging
 import os
 # import ubelt as ub
 
-logging.basicConfig(level=getattr(logging, os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper(), logging.DEBUG))
 log = logging.getLogger(__name__)
 print = log.info
 
@@ -176,4 +175,7 @@ if __name__ == '__main__':
         export PYTHONPATH=$PYTHONPATH:/home/joncrall/code/VIAME/plugins/camtrawl/python
         python ~/code/VIAME/plugins/camtrawl/python/segfault_pipeline.py
     """
+    level = os.environ.get('KWIVER_DEFAULT_LOG_LEVEL', 'INFO').upper()
+    level = getattr(logging, level, logging.DEBUG)
+    logging.basicConfig(level=level)
     main()

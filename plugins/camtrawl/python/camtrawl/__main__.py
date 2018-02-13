@@ -1,3 +1,4 @@
+
 if __name__ == '__main__':
     r"""
     CommandLine:
@@ -18,4 +19,6 @@ if __name__ == '__main__':
         import sys
         sys.path.append(dirname(dirname(__file__)))
         from camtrawl import demo
+
+    demo.setup_demo_logger()
     measurements = demo.demo()
