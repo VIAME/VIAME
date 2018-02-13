@@ -173,6 +173,9 @@ if __name__ == '__main__':
         python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
 
     Testing:
+        unlink $HOME/code/VIAME/build
+        ln -s $HOME/code/VIAME/build-py2.7 $HOME/code/VIAME/build
+
         # export SPROKIT_MODULE_PATH=$(pwd):$SPROKIT_MODULE_PATH
 
         workon_py2

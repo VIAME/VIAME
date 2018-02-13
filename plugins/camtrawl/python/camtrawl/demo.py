@@ -570,11 +570,10 @@ if __name__ == '__main__':
     CommandLine:
 
         workon_py2
-        source ~/code/VIAME/build/install/setup_viame.sh
+        source ~/code/VIAME/build-py2.7/install/setup_viame.sh
 
-        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
+        python ~/code/VIAME/plugins/camtrawl/python/camtrawl
 
         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """
-    import camtrawl_demo
-    measurements = camtrawl_demo.demo()
+    measurements = demo()
