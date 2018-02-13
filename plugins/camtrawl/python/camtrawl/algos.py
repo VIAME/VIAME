@@ -208,10 +208,22 @@ class GMMForegroundObjectDetector(object):
         dict_update_subset(detector.config, kwargs)
 
         # Setup GMM background subtraction algorithm
-        detector.background_model = cv2.createBackgroundSubtractorMOG2(
-            history=detector.config['n_training_frames'],
-            varThreshold=detector.config['gmm_thresh'],
-            detectShadows=False)
+        if cv2.__version__.startswith('2.4'):
+            # not sure about these params
+            import warnings
+            warnings.warn('Using an old OpenCV version. '
+                          'This may cause unexpected results. '
+                          'Please update to 3.x')
+            detector.background_model = cv2.BackgroundSubtractorMOG(
+                history=detector.config['n_training_frames'],
+                nmixtures=2,
+                backgroundRatio=detector.config['gmm_thresh'],
+            )
+        else:
+            detector.background_model = cv2.createBackgroundSubtractorMOG2(
+                history=detector.config['n_training_frames'],
+                varThreshold=detector.config['gmm_thresh'],
+                detectShadows=False)
 
         # Setup detection filter algorithm
         filter_config = dict_subset(

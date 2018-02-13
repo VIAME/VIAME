@@ -1,3 +1,5 @@
 ubelt>=0.0.40
 numpy
 #python-opencv
+pyfiglet
+tqdm

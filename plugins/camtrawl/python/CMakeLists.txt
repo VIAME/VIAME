@@ -12,6 +12,7 @@ set(_rel_modnames
   imutils
   processes
   __init__
+  __main__
   )
 
 #kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/camtrawl/processes.py

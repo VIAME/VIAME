@@ -6,6 +6,7 @@ Runs camtrawl algos with no dependency on kwiver
 from __future__ import division, print_function, unicode_literals
 from os.path import expanduser, basename, join
 from functools import partial
+import textwrap
 import glob
 import cv2
 import numpy as np
@@ -90,7 +91,6 @@ class DrawHelper(object):
         Draws stereo detections side-by-side and draws lines indicating
         assignments (and near-assignments for debugging)
         """
-        import textwrap
         BGR_RED = (0, 0, 255)
         BGR_PURPLE = (255, 0, 255)
 
@@ -471,8 +471,13 @@ def demo():
     detector2 = ctalgo.GMMForegroundObjectDetector(**gmm_params)
     triangulator = ctalgo.FishStereoMeasurments(**triangulate_params)
 
-    import pyfiglet
-    print(pyfiglet.figlet_format('CAMTRAWL', font='cybermedium'))
+    try:
+        import pyfiglet
+        print(pyfiglet.figlet_format('CAMTRAWL', font='cybermedium'))
+    except ImportError:
+        print('========')
+        print('CAMTRAWL')
+        print('========')
     print('dataset = {!r}'.format(dataset))
     print('Detector1 Config: ' + ub.repr2(detector1.config, nl=1))
     print('Detector2 Config: ' + ub.repr2(detector2.config, nl=1))
@@ -573,6 +578,9 @@ if __name__ == '__main__':
         source ~/code/VIAME/build-py2.7/install/setup_viame.sh
 
         python ~/code/VIAME/plugins/camtrawl/python/camtrawl
+
+        # To run the installed version:
+        python -m viame.processes.camtrawl.demo
 
         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """

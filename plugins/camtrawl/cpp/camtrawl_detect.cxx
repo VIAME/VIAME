@@ -32,7 +32,7 @@
 
 #include <arrows/ocv/image_container.h>
 //#include <opencv2/core/core.hpp>
-#include <vital/vital_foreach.h>
+//#include <vital/vital_foreach.h>
 
 #include <cmath>
 #include <iostream>
