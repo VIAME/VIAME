@@ -26,7 +26,7 @@ class siameseDataLoader(data.Dataset):
             bb = self._bbox_list[index]
         else:
             bb = self._bbox_list[index].bounding_box()
-
+        
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
 
@@ -48,7 +48,7 @@ class pytorch_siamese_f_extractor(object):
     model
     """
 
-    def __init__(self, siamese_model_path, img_size, batch_size=64):
+    def __init__(self, siamese_model_path, img_size, batch_size=128):
         # load siamese model
         self._siamese_model = Siamese()
         self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=[0]).cuda()
@@ -85,9 +85,9 @@ class pytorch_siamese_f_extractor(object):
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
         for idx, imgs in enumerate(bbox_loader):
-
             v_imgs = Variable(imgs, volatile=True).cuda()
             output, _, _ = self._siamese_model(v_imgs, v_imgs)
+
             if idx == 0:
                 app_features = output.data
             else:
