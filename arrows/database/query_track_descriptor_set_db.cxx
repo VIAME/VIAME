@@ -51,6 +51,7 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   cppdb::session m_conn;
   std::string m_conn_str;
+  kwiver::vital::timestamp::time_t m_config_frame_time;
 };
 
 query_track_descriptor_set_db::query_track_descriptor_set_db()
@@ -65,6 +66,7 @@ query_track_descriptor_set_db::~query_track_descriptor_set_db()
 void query_track_descriptor_set_db::set_configuration( vital::config_block_sptr config )
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
+  d->m_config_frame_time = config->get_value< double > ( "frame_time", 0.03333333 ) * 1e6;
 }
 
 bool query_track_descriptor_set_db::check_configuration( vital::config_block_sptr config ) const
@@ -174,7 +176,7 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
 
       // TODO Make this configurable - either get the history entry from the
       // tracks or from a separate table. Get it from the tracks for now.
-      vital::timestamp ts( frame_index * 500000, frame_index );
+      vital::timestamp ts( frame_index * d->m_config_frame_time, frame_index );
       td->add_history_entry( vital::track_descriptor::history_entry( ts, bbox ) );
     }
 
