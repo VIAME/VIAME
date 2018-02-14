@@ -93,7 +93,7 @@ class TargetRNNDataLoader(data.Dataset):
 
 
 class SRNN_matching(object):
-    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size=256):
+    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size):
 
         self._batch_size = batch_size
 
