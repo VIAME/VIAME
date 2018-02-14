@@ -14,6 +14,7 @@ class track_state(object):
         self._app_feature = app_feature
         self._motion_feature = torch.FloatTensor(2).zero_()
         self._interaction_feature = interaction_feature
+        self._bbar_feature = torch.FloatTensor(2).zero_()
 
         self._track_id = -1
         self._frame_id = frame_id
@@ -65,6 +66,14 @@ class track_state(object):
     @interaction_feature.setter
     def interaction_feature(self, val):
         self._interaction_feature = val
+
+    @property
+    def bbar_feature(self):
+        return self._bbar_feature
+
+    @bbar_feature.setter
+    def bbar_feature(self, val):
+        self._bbar_feature = val
 
     @property
     def track_id(self):
@@ -182,6 +191,8 @@ class track(object):
             du_track = track(self._track_id)  
             du_track.track_state_list = list(self._track_state_list)
             du_track.updated_flag = self._updated_flag
+            du_track.active_flag = self._active_flag
+            du_track.max_conf = self._max_conf
 
             cur_size = len(du_track)
             for i in range(timestep_len - cur_size):
