@@ -31,5 +31,16 @@ if( VIAME_DOWNLOAD_MODELS )
     examples/common_data
     mouss_example_image_set1 )
 
+  # Download default caffe classification models
+  if( VIAME_ENABLE_CAFFE )
+    DownloadExtractAndInstall(
+      https://data.kitware.com/api/v1/item/5a83a7d88d777f0685782a56/download
+      2cdbe7ca51b49b12e59911aadec20e98
+      ${VIAME_DOWNLOAD_DIR}/default_caffe_models_v0.1.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      examples/common_data
+      models )
+  endif()
+
 endif()
 

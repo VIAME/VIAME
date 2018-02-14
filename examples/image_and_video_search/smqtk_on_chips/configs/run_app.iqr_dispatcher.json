@@ -19,15 +19,15 @@
                     "batch_size": 100,
                     "data_layer": "data",
                     "gpu_device_id": 0,
-                    "image_mean_filepath": "configs/imagenet_mean.binaryproto",
+                    "image_mean_filepath": "../../common_data/models/default_caffe_mean.binaryproto"",
                     "input_scale": null,
                     "load_truncated_images": true,
                     "network_is_bgr": true,
-                    "network_model_filepath": "configs/bvlc_alexnet.caffemodel",
-                    "network_prototxt_filepath": "configs/deploy.prototxt",
+                    "network_model_filepath": "../../common_data/models/default_caffe_clfr.caffemodel",
+                    "network_prototxt_filepath": "../../common_data/models/default_caffe_clfr.prototxt",
                     "pixel_rescale": null,
                     "return_layer": "fc7",
-                    "use_gpu": false
+                    "use_gpu": true
                 },
                 "type": "CaffeDescriptorGenerator"
             },

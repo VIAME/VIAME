@@ -7,5 +7,5 @@
 source ../../../setup_viame.sh
 
 runApplication -a IqrSearchApp \
-  -c configs/runApp.IqrSearchDispatcher.json \
+  -c configs/run_app.iqr_dispatcher.json \
   -tv
