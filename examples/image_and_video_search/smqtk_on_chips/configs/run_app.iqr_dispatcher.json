@@ -19,7 +19,7 @@
                     "batch_size": 100,
                     "data_layer": "data",
                     "gpu_device_id": 0,
-                    "image_mean_filepath": "../../common_data/models/default_caffe_mean.binaryproto"",
+                    "image_mean_filepath": "../../common_data/models/default_caffe_mean.binaryproto",
                     "input_scale": null,
                     "load_truncated_images": true,
                     "network_is_bgr": true,
