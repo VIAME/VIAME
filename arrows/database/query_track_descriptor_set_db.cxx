@@ -87,7 +87,8 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
     "TYPE, "
     "VIDEO_NAME "
     "FROM TRACK_DESCRIPTOR "
-    "WHERE UID = ?" );
+    "WHERE UID = ?"
+  );
   stmt.bind( 1, uid );
   cppdb::result row = stmt.query();
   if( !row.next() )
@@ -96,18 +97,19 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
   }
 
   std::string type;
-  if( !row.fetch( 1, type ) )
+  if( !row.fetch( 0, type ) )
   {
     return false;
   }
 
   vital::track_descriptor_sptr td = vital::track_descriptor::create( type );
+  td->resize_descriptor( 0 );
   std::get< 1 >( result ) = td;
 
   td->set_uid( uid );
 
   std::string video_name;
-  if( !row.fetch( 2, video_name ) )
+  if( !row.fetch( 1, video_name ) )
   {
     return false;
   }
@@ -116,7 +118,8 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
   stmt = d->m_conn.create_statement( "SELECT "
     "TRACK_ID "
     "FROM TRACK_DESCRIPTOR_TRACK "
-    "WHERE UID = ?" );
+    "WHERE UID = ?"
+  );
   stmt.bind( 1, uid );
   row = stmt.query();
 
@@ -135,7 +138,9 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
     "IMAGE_BBOX_BR_Y, "
     "TRACK_CONFIDENCE "
     "FROM OBJECT_TRACK "
-    "WHERE TRACK_ID = ? AND VIDEO_NAME = ?" );
+    "WHERE TRACK_ID = ? AND VIDEO_NAME = ? "
+    "ORDER BY FRAME_NUMBER"
+  );
   std::vector< uint64_t > track_ids = td->get_track_ids();
   std::get< 2 >( result ).clear();
   for( uint64_t track_id : track_ids )
