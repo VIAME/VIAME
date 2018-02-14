@@ -1,4 +1,4 @@
-# Compiled Object files
+ Compiled Object files
 *.slo
 *.lo
 *.o
@@ -37,5 +37,7 @@ _build
 *.pyc
 __pycache__
 
-build-py*
+build-*
 build
+
+_ignore
