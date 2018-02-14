@@ -45,3 +45,14 @@ and connect to the GUI via going to the default website 'http://0.0.0.0:5000/', 
 if you didn't change any hosting settings. The default GUI log in is username: demo,
 password: demo after which you can log in, perform image queries, and iterative
 refinement on the results to generate an improved model for your initial query.
+
+Common Errors
+=============
+
+.. code-block:: bash
+
+  ConfigurationError: Server at 127.0.0.1:27017 reports wire version 0,
+  but this version of PyMongo requires at least 2 (MongoDB 2.6).
+
+Your system mongod package is too old and doesn't match your python version, install a mongodb
+from the above website and add it to your path.
