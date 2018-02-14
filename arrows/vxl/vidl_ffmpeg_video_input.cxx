@@ -73,6 +73,7 @@ public:
       c_frame_skip( 1 ),
       c_time_source( "none" ), // initialization string
       c_time_scan_frame_limit( 100 ),
+      c_use_metadata( true ),
       d_have_frame( false ),
       d_at_eov( false ),
       d_frame_advanced( false ),
@@ -99,6 +100,11 @@ public:
   std::string  c_time_source; // default sources string
   std::vector< std::string >  c_time_source_list;
   int c_time_scan_frame_limit; // number of frames to scan looking for time
+
+  /**
+   * If this is set then we ignore any metadata included in the video stream.
+   */
+  bool c_use_metadata;
 
   // local state
   bool d_have_frame;
@@ -421,7 +427,8 @@ public:
   void push_metadata_to_map(vital::timestamp::frame_t fn)
   {
     if (fn >= c_start_at_frame &&
-        (c_stop_after_frame == 0 || fn < c_stop_after_frame))
+        (c_stop_after_frame == 0 || fn < c_stop_after_frame) &&
+        c_use_metadata)
     {
       metadata_collection.clear();
       auto curr_md = d_video_stream.current_metadata();
@@ -462,16 +469,10 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        unsigned int frames_left_to_skip = c_frame_skip - 1;
         while ( d_video_stream.advance())
         {
           d_num_frames++;
-          if (frames_left_to_skip == 0)
-          {
-            push_metadata_to_map(d_num_frames);
-            frames_left_to_skip = c_frame_skip;
-          }
-          frames_left_to_skip--;
+          push_metadata_to_map(d_num_frames);
         }
 
         metadata_collection.clear();
@@ -480,16 +481,10 @@ public:
         d_video_stream.open( video_path );
 
         // Advance back to original frame number
-        frames_left_to_skip = 0;
         for (int i=0; i < d_frame_number; ++i)
         {
-          if (frames_left_to_skip == 0)
-          {
-            d_video_stream.advance();
-            push_metadata_to_map(i);
-            frames_left_to_skip = c_frame_skip;
-          }
-          frames_left_to_skip--;
+          d_video_stream.advance();
+          push_metadata_to_map(i);
         }
       }
 
@@ -544,6 +539,9 @@ vidl_ffmpeg_video_input
                      "Only outputs every nth frame of the video starting at the first frame. The output "
                      "of num_frames still reports the total frames in the video but skip_frame is valid "
                      "every nth frame only and there are metadata_map entries for only every nth frame.");
+
+  config->set_value( "use_metadata", d->c_use_metadata,
+                     "Whether to use any metadata provided by the for video stream." );
 
   config->set_value( "absolute_time_source", d->c_time_source,
                      "List of sources for absolute frame time information. "
