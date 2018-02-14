@@ -36,6 +36,7 @@ set( plugin_core_headers
 
   epipolar_geometry.h
   interpolate_camera.h
+  interpolate_track_spline.h
   match_features_homography.h
   match_matrix.h
   metrics.h
@@ -93,6 +94,7 @@ set( plugin_core_sources
 
   epipolar_geometry.cxx
   interpolate_camera.cxx
+  interpolate_track_spline.cxx
   match_features_homography.cxx
   match_matrix.cxx
   metrics.cxx
