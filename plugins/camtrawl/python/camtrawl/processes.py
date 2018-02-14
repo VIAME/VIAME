@@ -171,11 +171,10 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
         """
         logger.debug(' ----- ' + self.__class__.__name__ + ' step')
-        print(' ----- ' + self.__class__.__name__ + ' step')
         # grab image container from port using traits
         img_container = self.grab_input_using_trait('image')
 
-        print(' ----- ' + self.__class__.__name__ + ' convert')
+        # print(' ----- ' + self.__class__.__name__ + ' convert')
         vital_img = img_container.image()
         # does this come in as float01?
         # np_img = vital_img.asarray().astype(np.uint8)
@@ -184,7 +183,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         pil_img = get_pil_image(vital_img)
         np_img = np.asarray(pil_img)
 
-        print(' ----- ' + self.__class__.__name__ + ' detect')
+        # print(' ----- ' + self.__class__.__name__ + ' detect')
 
         detection_set = DetectedObjectSet()
         ct_detections = self.detector.detect(np_img)
@@ -195,14 +194,14 @@ class CamtrawlDetectFishProcess(KwiverProcess):
             obj = DetectedObject(bbox, 1.0, mask=mask)
             detection_set.add(obj)
 
-        print(' ----- ' + self.__class__.__name__ + ' push to port')
+        # print(' ----- ' + self.__class__.__name__ + ' push to port')
 
         # # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('detected_object_set', detection_set)
-        print(' ----- ' + self.__class__.__name__ + ' base step')
+        # print(' ----- ' + self.__class__.__name__ + ' base step')
 
         self._base_step()
-        print(' ----- ' + self.__class__.__name__ + ' end')
+        # print(' ----- ' + self.__class__.__name__ + ' end')
 
 
 @tmp_sprokit_register_process(name='camtrawl_measure',
@@ -253,7 +252,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
         logger.debug(' ----- ' + self.__class__.__name__ + ' configure')
         config = tmp_smart_cast_config(self)
 
-        print('triangulator config = {}'.format(ub.repr2(config, nl=2)))
+        logger.info('triangulator config = {}'.format(ub.repr2(config, nl=2)))
         output_fpath = config.pop('output_fpath')
         cal_fpath = config.pop('cal_fpath')
         self.triangulator = ctalgo.FishStereoMeasurments(**config)
@@ -264,7 +263,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
         if not os.path.exists(cal_fpath):
             raise KeyError('must specify a valid camera calibration path')
         self.cal = ctalgo.StereoCalibration.from_file(cal_fpath)
-        print('self.cal = {!r}'.format(self.cal))
+        logger.info('self.cal = {!r}'.format(self.cal))
 
         self.headers = ['current_frame', 'fishlen', 'range', 'error', 'dz',
                         'box_pts1', 'box_pts2']
@@ -343,6 +342,8 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         assignment, assign_data, cand_errors = self.triangulator.find_matches(
             self.cal, detections1, detections2)
+
+        logger.debug(' ----- ' + self.__class__.__name__ + ' found {} matches'.format(len(assign_data)))
 
         # Append assignments to the measurements
         for data in assign_data:
