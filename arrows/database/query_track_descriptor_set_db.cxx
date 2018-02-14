@@ -171,6 +171,11 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
       vital::track_state_sptr ots =
         std::make_shared< vital::object_track_state > ( frame_index, det );
       trk->append( ots );
+
+      // TODO Make this configurable - either get the history entry from the
+      // tracks or from a separate table. Get it from the tracks for now.
+      vital::timestamp ts( frame_index * 500000, frame_index );
+      td->add_history_entry( vital::track_descriptor::history_entry( ts, bbox ) );
     }
 
     std::get< 2 >( result ).push_back( trk );
