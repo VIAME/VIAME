@@ -58,11 +58,12 @@ def simple_pipeline():
         export KWIVER_DEFAULT_LOG_LEVEL=info
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
-        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
+        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=haul83-small
     """
 
     # Setup the input files
-    dataset = 'haul83'
+    import ubelt as ub
+    dataset = ub.argval('--dataset', default='haul83-small')
 
     if dataset == 'test':
         data_fpath = expanduser('~/data/autoprocess_test_set')
@@ -73,7 +74,7 @@ def simple_pipeline():
             'img_path2': join(data_fpath, 'image_data/right'),
         }
     elif dataset == 'haul83-small':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data/small')
+        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data_small')
         cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
         datakw = {
             'data_fpath': data_fpath,
@@ -90,6 +91,8 @@ def simple_pipeline():
             'start_frame': 2000,
             'end_frame': 5000,
         }
+    else:
+        raise KeyError('Unknown dataset {}'.format(dataset))
 
     make_image_input_files(**datakw)
 
@@ -166,11 +169,14 @@ if __name__ == '__main__':
         # RUNNING
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
-        export KWIVER_DEFAULT_LOG_LEVEL=info
+        export KWIVER_DEFAULT_LOG_LEVEL=DEBUG
         export PYTHONPATH=$HOME/code/VIAME/plugins/camtrawl:$PYTHONPATH
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
         python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
+
+    Ignore:
+        pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
 
     Testing:
         unlink $HOME/code/VIAME/build

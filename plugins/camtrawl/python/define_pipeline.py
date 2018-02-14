@@ -345,6 +345,7 @@ class Pipeline(object):
         """
         cache_dir = ensure_app_cache_dir('sprokit', 'temp_pipelines')
         # TODO make a name based on a hash of the text to avoid race conditions
+        # or just use a builtin tempfile
         pipe_fpath = join(cache_dir, 'temp_pipeline_file.pipe')
         self.write(pipe_fpath)
         run_pipe_file(pipe_fpath, dry=dry)

@@ -93,15 +93,15 @@ def main():
     """
     Processing_with_species_id.m is their main file
 
+    AlternetSetup:
+        we-py2debug
+        source ~/code/VIAME/build-relwithdeb/install/setup_viame.sh
+
     CommandLine:
-        # SPROKIT_PIPELINE_RUNNER=pipeline_runner
         cd ~/code/VIAME/plugins/camtrawl/python
 
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
-
-        we-py2debug
-        source ~/code/VIAME/build-relwithdeb/install/setup_viame.sh
 
         cd ~/code/VIAME/plugins/camtrawl/python
         # Ensure python and sprokit knows about our module
@@ -112,6 +112,9 @@ def main():
         python ~/code/VIAME/plugins/camtrawl/python/segfault_pipeline.py
 
         /home/joncrall/code/VIAME/build/install/bin/pipeline_runner -p /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
+
+    Ignore:
+        # SPROKIT_PIPELINE_RUNNER=pipeline_runner
 
         gdb -ex=r --args /home/joncrall/code/VIAME/build/install/bin/pipeline_runner -p /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
     """

@@ -43,6 +43,7 @@ CommandLine:
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
     workon_py2
+    source ~/code/VIAME/build/install/setup_viame.sh
 
     export KWIVER_PLUGIN_PATH=""
     export SPROKIT_MODULE_PATH=""
@@ -83,6 +84,8 @@ from . import algos as ctalgo
 
 from sprokit import sprokit_logging
 logger = sprokit_logging.getLogger(__name__)
+import logging
+logger.setLevel(logging.DEBUG)
 print = logger.info
 
 
@@ -157,14 +160,30 @@ class CamtrawlDetectFishProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _step(self):
-        logger.debug(' ----- step ' + self.__class__.__name__)
+        """
+        Ignore:
+            from vital.types import ImageContainer, Image
+            >>>
+
+        """
+        logger.debug(' ----- ' + self.__class__.__name__ + ' step')
+        print(' ----- ' + self.__class__.__name__ + ' step')
         # grab image container from port using traits
         img_container = self.grab_input_using_trait('image')
 
-        img = img_container.asarray()
+        print(' ----- ' + self.__class__.__name__ + ' convert')
+        vital_img = img_container.image()
+        # does this come in as float01?
+        # np_img = vital_img.asarray().astype(np.uint8)
+
+        from vital.util.VitalPIL import get_pil_image
+        pil_img = get_pil_image(vital_img)
+        np_img = np.asarray(pil_img)
+
+        print(' ----- ' + self.__class__.__name__ + ' detect')
 
         detection_set = DetectedObjectSet()
-        ct_detections = self.detector.detect(img)
+        ct_detections = self.detector.detect(np_img)
 
         for detection in ct_detections:
             bbox = BoundingBox.from_coords(*detection.bbox.coords)
@@ -172,10 +191,14 @@ class CamtrawlDetectFishProcess(KwiverProcess):
             obj = DetectedObject(bbox, 1.0, mask=mask)
             detection_set.add(obj)
 
+        print(' ----- ' + self.__class__.__name__ + ' push to port')
+
         # # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('detected_object_set', detection_set)
+        print(' ----- ' + self.__class__.__name__ + ' base step')
 
         self._base_step()
+        print(' ----- ' + self.__class__.__name__ + ' end')
 
 
 @tmp_sprokit_register_process(name='camtrawl_measure',
@@ -187,7 +210,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
     """
     # ----------------------------------------------
     def __init__(self, conf):
-        logger.debug(' ----- init ' + self.__class__.__name__)
+        logger.debug(' ----- ' + self.__class__.__name__ + ' init')
 
         KwiverProcess.__init__(self, conf)
 
@@ -223,7 +246,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
-        logger.debug(' ----- configure ' + self.__class__.__name__)
+        logger.debug(' ----- ' + self.__class__.__name__ + ' configure')
         config = tmp_smart_cast_config(self)
 
         print('triangulator config = {}'.format(ub.repr2(config, nl=2)))
@@ -253,15 +276,15 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
     # ----------------------------------------------
     def _step(self):
-        logger.debug(' ----- step ' + self.__class__.__name__)
+        logger.debug(' ----- ' + self.__class__.__name__ + ' step')
         self.prog.step()
 
         if self.cal is None:
             self.cal = True
-            logger.debug(' ----- grab cam1 ' + self.__class__.__name__)
+            logger.debug(' ----- ' + self.__class__.__name__ + ' grab cam1')
             # grab camera only if we dont have one yet
             camera1 = self.grab_input_using_trait('camera' + '1')
-            logger.debug(' ----- grab cam2 ' + self.__class__.__name__)
+            logger.debug(' ----- ' + self.__class__.__name__ + ' grab cam2')
             camera2 = self.grab_input_using_trait('camera' + '2')
 
             def _cal_from_vital(vital_camera):
@@ -280,12 +303,12 @@ class CamtrawlMeasureProcess(KwiverProcess):
                 }
                 return cam_dict
 
-            logger.debug(' ----- parse cameras ' + self.__class__.__name__)
+            logger.debug(' ----- ' + self.__class__.__name__ + ' parse cameras')
             self.cal = ctalgo.StereoCalibration({
                 'left': _cal_from_vital(camera1),
                 'right': _cal_from_vital(camera2),
             })
-            logger.debug(' ----- no more need for cameras ' + self.__class__.__name__)
+            logger.debug(' ----- ' + self.__class__.__name__ + ' no more need for cameras')
 
         image_file_name1 = self.grab_input_using_trait('image_file_name1').get_datum()
         image_file_name2 = self.grab_input_using_trait('image_file_name2').get_datum()
