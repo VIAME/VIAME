@@ -1,5 +1,5 @@
 #ckwg +28
-# Copyright 2017 by Kitware, Inc.
+# Copyright 2017-2018 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,8 @@ class SmqtkProcessQuery (KwiverProcess):
         self.declare_output_port_using_trait('result_uids', optional)
         # Output, ranked descriptor scores.
         self.declare_output_port_using_trait('result_scores', optional)
+        # Output, trained IQR model.
+        self.declare_output_port_using_trait('result_model', optional)
 
         ## Member variables to be configured in ``_configure``.
         # Path to the json config file for the DescriptorIndex
@@ -109,6 +111,9 @@ class SmqtkProcessQuery (KwiverProcess):
         self.add_port_trait("result_uids", "string_vector",
                             "Result ranked descriptor UUIDs in rank order.")
         self.add_port_trait("result_scores", "double_vector",
+                            "Result ranked descriptor distance score values "
+                            "in rank order.")
+        self.add_port_trait("result_model", "uchar_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
 
@@ -222,8 +227,12 @@ class SmqtkProcessQuery (KwiverProcess):
         return_elems, return_dists = zip(*ordered_results)
         return_uuids = [e.uuid() for e in return_elems]
 
+        # Retrive IQR model from class
+        return_model = [ 1, 2, 3 ]
+
         # Pass on input descriptors and UIDs
         self.push_to_port_using_trait('result_uids', datum.VectorString(return_uuids) )
         self.push_to_port_using_trait('result_scores', datum.VectorDouble(return_dists) )
+        self.push_to_port_using_trait('result_model', datum.VectorUChar(return_model) )
 
         self._base_step()
