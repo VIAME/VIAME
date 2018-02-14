@@ -51,7 +51,8 @@ If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-
 
    sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
 
-If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA:
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 8.0 is recommended,
+other versions may work depending on your build settings but are untested):
 
 .. code-block:: bash
 
