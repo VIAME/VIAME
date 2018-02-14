@@ -97,6 +97,10 @@ class SRNN_tracking(KwiverProcess):
                               'Model input image size')
         self.declare_config_using_trait('siamese_model_input_size')
 
+        self.add_config_trait("siamese_batch_size", "siamese_batch_size", '128',
+                              'siamese model processing batch size')
+        self.declare_config_using_trait('siamese_batch_size')
+
         # detection select threshold
         self.add_config_trait("detection_select_threshold", "detection_select_threshold", '0.0',
                               'detection select threshold')
@@ -113,6 +117,11 @@ class SRNN_tracking(KwiverProcess):
                               '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/targetRNN_AI/App_LSTM_epoch_51.pt',
                               'Trained targetRNN AIM with variable input size PyTorch model.')
         self.declare_config_using_trait('targetRNN_AIM_V_model_path')
+
+        # target RNN batch size
+        self.add_config_trait("targetRNN_batch_size", "targetRNN_batch_size", '256',
+                              'targetRNN model processing batch size')
+        self.declare_config_using_trait('targetRNN_batch_size')
 
         # matching similarity threshold
         self.add_config_trait("similarity_threshold", "similarity_threshold", '0.5',
@@ -189,13 +198,15 @@ class SRNN_tracking(KwiverProcess):
 
         # Siamese model config
         siamese_img_size = int(self.config_value('siamese_model_input_size'))
+        siamese_batch_size = int(self.config_value('siamese_batch_size'))
         siamese_model_path = self.config_value('siamese_model_path')
-        self._app_feature_extractor = pytorch_siamese_f_extractor(siamese_model_path, siamese_img_size)
+        self._app_feature_extractor = pytorch_siamese_f_extractor(siamese_model_path, siamese_img_size, siamese_batch_size)
 
         # targetRNN_full model config
+        targetRNN_batch_size = int(self.config_value('targetRNN_batch_size'))
         targetRNN_AIM_model_path = self.config_value('targetRNN_AIM_model_path')
         targetRNN_AIM_V_model_path = self.config_value('targetRNN_AIM_V_model_path')
-        self._SRNN_matching = SRNN_matching(targetRNN_AIM_model_path, targetRNN_AIM_V_model_path)
+        self._SRNN_matching = SRNN_matching(targetRNN_AIM_model_path, targetRNN_AIM_V_model_path, targetRNN_batch_size)
 
         self._GTbbox_flag = False
         # use MOT gt detection

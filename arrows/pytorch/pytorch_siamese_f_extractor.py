@@ -48,7 +48,7 @@ class pytorch_siamese_f_extractor(object):
     model
     """
 
-    def __init__(self, siamese_model_path, img_size, batch_size=128):
+    def __init__(self, siamese_model_path, img_size, batch_size):
         # load siamese model
         self._siamese_model = Siamese()
         self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=[0]).cuda()
