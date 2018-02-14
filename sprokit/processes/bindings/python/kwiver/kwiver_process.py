@@ -173,7 +173,9 @@ class KwiverProcess(process.PythonProcess):
 
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
-        self.add_type_trait("image_file_name", "kwiver:image_file_name")
+        self.add_type_trait("image_file_name", "kwiver:image_file_name",
+                            datum.Datum.get_string,
+                            datum.new_string)
         self.add_type_trait("video_file_name", "kwiver:video_file_name")
         self.add_type_trait("matrix_d", "kwiver:matrix_d")
 
