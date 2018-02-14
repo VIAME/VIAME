@@ -39,7 +39,10 @@ class siameseDataLoader(data.Dataset):
         return im
 
     def __len__(self):
-        return len(self._bbox_list) 
+        if self._mot_flag is True:
+            return len(self._bbox_list) 
+        else:
+            return self._bbox_list.size()
     
 
 class pytorch_siamese_f_extractor(object):

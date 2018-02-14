@@ -268,7 +268,7 @@ class SRNN_tracking(KwiverProcess):
             dos = self._m_bbox[self._step_id] 
         else:
             dos = dos_ptr.select(self._select_threshold)
-        #print('bbox list len is {}'.format(len(dos)))
+        #print('bbox list len is {}'.format(dos.size()))
 
         # interaction features
         grid_f_begin = timer()
