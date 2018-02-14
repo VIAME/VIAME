@@ -342,6 +342,23 @@ OpenCV, Caffe, etc...), or alternatively not having your CUDA headers set to be 
 
 **Issue:**
 
+.. code-block:: console
+
+   CMake Error at CMakeLists.txt:200 (message):
+     Unable to locate CUDNN library
+
+**Solution:**
+
+You have enabled CUDNN but the system is unable to locate CUDNN, as the message says.
+
+Note CUDNN is installed seperately from CUDA, they are different things.
+
+You need to set the VIAME flag CUDNN_LIBRARY to something like /usr/local/cuda/lib64/libcudnn.so.
+Alternatively you can set CUDNN_ROOT to /usr/local/cuda/lib64 manually if that's where you installed it.
+
+
+**Issue:**
+
 When ``VIAME_ENABLE_DOC`` is turned on and doing a multi-threaded build, sometimes the build fails.
 
 **Solution:**
