@@ -113,13 +113,17 @@ def camtrawl_setup_config(self, default_params):
 
 def tmp_smart_cast_config(self):
     # import ubelt as ub
-    import utool as ut
+    # import utool as ut
     config = {}
     keys = [k for k in list(self.available_config())
             if not k.startswith('_')]
     for key in keys:
         strval = self.config_value(key)
-        val = ut.smart_cast2(strval)
+        # print('strval = {!r}'.format(strval))
+        try:
+            val = eval(strval, {}, {})
+        except SyntaxError:
+            val = strval
         config[key] = val
     return config
 
@@ -310,8 +314,8 @@ class CamtrawlMeasureProcess(KwiverProcess):
             })
             logger.debug(' ----- ' + self.__class__.__name__ + ' no more need for cameras')
 
-        image_file_name1 = self.grab_input_using_trait('image_file_name1').get_datum()
-        image_file_name2 = self.grab_input_using_trait('image_file_name2').get_datum()
+        image_file_name1 = self.grab_input_using_trait('image_file_name1')  # .get_datum()
+        image_file_name2 = self.grab_input_using_trait('image_file_name2')  # .get_datum()
 
         def _parse_frameid(fname):
             return int(os.path.basename(fname).split('_')[0])
