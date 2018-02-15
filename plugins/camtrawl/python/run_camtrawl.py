@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
+from os.path import exists
 import glob
 import numpy as np
 import define_pipeline
@@ -63,9 +64,30 @@ def simple_pipeline():
 
     # Setup the input files
     import ubelt as ub
-    dataset = ub.argval('--dataset', default='haul83-small')
+    dataset = ub.argval('--dataset', default='demo')
 
-    if dataset == 'test':
+    if dataset == 'demo':
+        import zipfile
+        from os.path import commonprefix
+        dpath = ub.ensure_app_cache_dir('camtrawl')
+        try:
+            demodata_zip = ub.grabdata('http://acidalia:8000/data/camtrawl_demodata.zip', dpath=dpath)
+        except Exception:
+            raise ValueError(
+                'Demo data is currently only available on Kitware VPN')
+        with zipfile.ZipFile(demodata_zip) as zfile:
+            dname = commonprefix(zfile.namelist())
+            data_fpath = join(dpath, dname)
+            if not exists(data_fpath):
+                zfile.extractall()
+
+        cal_fpath = join(data_fpath, 'cal.npz')
+        datakw = {
+            'data_fpath': data_fpath,
+            'img_path1': join(data_fpath, 'left'),
+            'img_path2': join(data_fpath, 'right'),
+        }
+    elif dataset == 'test':
         data_fpath = expanduser('~/data/autoprocess_test_set')
         cal_fpath = join(data_fpath, 'cal_201608.mat')
         datakw = {
