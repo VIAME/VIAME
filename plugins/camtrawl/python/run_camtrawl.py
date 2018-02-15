@@ -59,7 +59,7 @@ def simple_pipeline():
         export KWIVER_DEFAULT_LOG_LEVEL=info
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
-        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=haul83-small
+        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=demo
     """
 
     # Setup the input files
@@ -87,6 +87,7 @@ def simple_pipeline():
             'img_path1': join(data_fpath, 'left'),
             'img_path2': join(data_fpath, 'right'),
         }
+        print('datakw = {!r}'.format(datakw))
     elif dataset == 'test':
         data_fpath = expanduser('~/data/autoprocess_test_set')
         cal_fpath = join(data_fpath, 'cal_201608.mat')
