@@ -273,18 +273,40 @@ def putMultiLineText(img, text, org, **kwargs):
     """
     References:
         https://stackoverflow.com/questions/27647424/
+
+    Example:
+        >>> from viame.processes.camtrawl.imutils import *
+        >>> img = np.zeros((100, 500, 3), dtype=np.uint8) + 50
+        >>> img = putMultiLineText(img, 'Hello World\nHow are you?', (50, 50))
+        >>> # xdoc: +REQUIRES(--show)
+        >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/putMultiLineText.png'
+        >>> cv2.imwrite(fpath, img)
+        >>> ub.startfile(fpath)
     """
+    if 'fontFace' not in kwargs:
+        kwargs['fontFace'] = cv2.FONT_HERSHEY_SIMPLEX
+    if 'fontScale' not in kwargs:
+        kwargs['fontScale'] = 1
+    if 'thickness' not in kwargs:
+        kwargs['thickness'] = 1
+    if 'color' not in kwargs:
+        kwargs['color'] = [255, 255, 255]
+
     getsize_kw = {
         k: kwargs[k]
         for k in ['fontFace', 'fontScale', 'thickness']
         if k in kwargs
     }
+
     x0, y0 = org
     ypad = kwargs.get('thickness', 2) + 4
     y = y0
     for i, line in enumerate(text.split('\n')):
         (w, h), text_sz = cv2.getTextSize(text, **getsize_kw)
-        img = cv2.putText(img, line, (x0, y), **kwargs)
+        if cv2.__version__.startswith('2'):
+            cv2.putText(img, line, (x0, y), **kwargs)
+        else:
+            img = cv2.putText(img, line, (x0, y), **kwargs)
         y += (h + ypad)
     return img
 

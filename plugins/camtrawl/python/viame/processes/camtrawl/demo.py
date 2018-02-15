@@ -5,6 +5,7 @@ Runs camtrawl algos with no dependency on kwiver
 """
 from __future__ import division, print_function, unicode_literals
 from os.path import expanduser, basename, join
+from os.path import exists
 from functools import partial
 import textwrap
 import glob
@@ -46,7 +47,9 @@ class DrawHelper(object):
         CommandLine:
             cd ~/code/VIAME/build
             source install/setup_viame.sh
-            python -m xdoctest viame.processes.camtrawl.demo DrawHelper.draw_detections
+
+            cd ~/code/VIAME/plugins/camtrawl/python/
+            python -m xdoctest viame.processes.camtrawl.demo DrawHelper.draw_detections --show
 
         Example:
             >>> from viame.processes.camtrawl.algos import *
@@ -107,34 +110,14 @@ class DrawHelper(object):
             bbox_color = BGR_GREEN if i in assigned else BGR_PURPLE
 
             if cv2.__version__.startswith('2'):
-                cv = cv2.cv
-                cc_y, cc_x = np.where(detection.mask)
-                points = np.vstack([cc_x, cc_y]).T
-                cv_mem = cv.CreateMemStorage()
-                cv_points = cv2.cv.fromarray(np.ascontiguousarray(points.astype(np.int32)))
-                cv_hull = cv2.cv.ConvexHull2(cv_points, cv_mem)
+                # 2.4 seems to operate inplace
+                cv2.drawContours(
+                    image=draw_img, contours=[hull_points], contourIdx=-1,
+                    color=hull_color, thickness=2)
 
-                cvmat = cv2.cv.fromarray(draw_img.astype(np.uint8))
-                # nc = cv.FindContours(cvmat, mem,
-                #                      cv.CV_RETR_LIST,
-                #                      cv.CV_CHAIN_APPROX_SIMPLE, (0, 0))
-
-                cv2.cv.DrawContours(
-                    img=cvmat,
-                    contour=cv_hull,
-                    external_color=hull_color,
-                    hole_color=hull_color,
-                    max_level=1,
-                    thickness=2)
-                # draw_img = cv2.cv.DrawContours(
-                #     img=cvmat,
-                #     contour=cv2.cv.BoxPoints(detection.oriented_bbox()),
-                #     hole_color=bbox_color,
-                #     external_color=bbox_color,
-                #     max_level=1,
-                #     thickness=2)
-
-                draw_img = np.array(cvmat)
+                cv2.drawContours(
+                    image=draw_img, contours=[box_points], contourIdx=-1,
+                    color=bbox_color, thickness=2)
             else:
                 draw_img = cv2.drawContours(
                     image=draw_img, contours=[hull_points], contourIdx=-1,
@@ -187,19 +170,33 @@ class DrawHelper(object):
                 center1 = tuple(center1.astype(np.int))
                 center2_ = tuple(center2_.astype(np.int))
 
-                stacked = cv2.line(stacked, center1, center2_,
-                                   color=rejected_color, lineType=cv2.LINE_AA,
-                                   thickness=1)
                 text = textwrap.dedent(
                     '''
                     error = {error:.2f}
                     '''
                 ).strip().format(error=error)
 
-                stacked = putMultiLineText(stacked, text, org=center2_,
-                                           fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                           fontScale=1.5, color=rejected_color,
-                                           thickness=2, lineType=cv2.LINE_AA)
+                if cv2.__version__.startswith('2'):
+                    cv2.line(stacked, center1, center2_, color=rejected_color,
+                             lineType=cv2.cv.CV_AA, thickness=1)
+
+                    stacked = putMultiLineText(stacked, text, org=center2_,
+                                               fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                               fontScale=1.5,
+                                               color=rejected_color,
+                                               thickness=2,
+                                               lineType=cv2.cv.CV_AA)
+                else:
+                    stacked = cv2.line(stacked, center1, center2_,
+                                       color=rejected_color, lineType=cv2.LINE_AA,
+                                       thickness=1)
+
+                    stacked = putMultiLineText(stacked, text, org=center2_,
+                                               fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                               fontScale=1.5,
+                                               color=rejected_color,
+                                               thickness=2,
+                                               lineType=cv2.LINE_AA)
 
             # Draw accepted assignments
             for (i, j), info in zip(assignment, assign_data):
@@ -214,10 +211,6 @@ class DrawHelper(object):
                 center1 = tuple(center1.astype(np.int))
                 center2_ = tuple(center2_.astype(np.int))
 
-                stacked = cv2.line(stacked, center1, center2_,
-                                   color=accepted_color, lineType=cv2.LINE_AA,
-                                   thickness=2)
-
                 text = textwrap.dedent(
                     '''
                     len = {fishlen:.2f}mm
@@ -226,10 +219,27 @@ class DrawHelper(object):
                     '''
                 ).strip().format(**info)
 
-                stacked = putMultiLineText(stacked, text, org=center1,
-                                           fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                           fontScale=1.5, color=accepted_color,
-                                           thickness=2, lineType=cv2.LINE_AA)
+                if cv2.__version__.startswith('2'):
+                    cv2.line(stacked, center1, center2_, color=accepted_color,
+                             lineType=cv2.cv.CV_AA, thickness=2)
+
+                    stacked = putMultiLineText(stacked, text, org=center1,
+                                               fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                               fontScale=1.5,
+                                               color=accepted_color,
+                                               thickness=2,
+                                               lineType=cv2.CV_AA)
+                else:
+                    stacked = cv2.line(stacked, center1, center2_,
+                                       color=accepted_color,
+                                       lineType=cv2.LINE_AA, thickness=2)
+
+                    stacked = putMultiLineText(stacked, text, org=center1,
+                                               fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                               fontScale=1.5,
+                                               color=accepted_color,
+                                               thickness=2,
+                                               lineType=cv2.LINE_AA)
 
         with_orig = False
         if with_orig:
@@ -360,6 +370,8 @@ class StereoFrameStream(object):
 
     def seek(self, index):
         logging.debug('seek {}'.format(index))
+        if index > len(self.aligned_frameids):
+            raise IndexError('Out of bounds')
         self.index = index
 
     def __len__(self):
@@ -454,7 +466,7 @@ def demodata_input(dataset='test'):
         img_path1 = join(data_fpath, 'image_data/left')
         img_path2 = join(data_fpath, 'image_data/right')
     elif dataset == 'haul83-small':
-        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data/small')
+        data_fpath = expanduser('~/data/camtrawl_stereo_sample_data_small')
         cal_fpath = join(data_fpath, '201608_calibration_data/selected/Camtrawl_2016.npz')
         img_path1 = join(data_fpath, 'Haul_83/left')
         img_path2 = join(data_fpath, 'Haul_83/right')
@@ -512,14 +524,68 @@ def demodata_detections(dataset='haul83', target_step='detect', target_frame_num
     return detections1, detections2, cal
 
 
-def demo():
+class FrozenKeyDict(dict):
+    """
+    Example:
+        >>> self = FrozenKeyDict({1: 2, 3: 4})
+    """
+    def __init__(self, *args, **kwargs):
+        super(FrozenKeyDict, self).__init__(*args, **kwargs)
+
+    def __setitem__(self, key, value):
+        if key not in self:
+            raise ValueError('FrozenKeyDict keys cannot be modified')
+        super(FrozenKeyDict, self).__setitem__(key, value)
+
+    def clear(self, *args, **kw):
+        raise ValueError('FrozenKeyDict keys cannot be modified')
+
+    def pop(self, *args, **kw):
+        raise ValueError('FrozenKeyDict keys cannot be modified')
+
+    def __delitem__(self, *args, **kw):
+        raise ValueError('FrozenKeyDict keys cannot be modified')
+
+
+def demo(config=None):
     """
     Runs the algorithm end-to-end.
     """
     # dataset = 'test'
-    dataset = 'haul83'
+    # dataset = 'haul83'
 
-    img_path1, img_path2, cal_fpath = demodata_input(dataset=dataset)
+    if config is None:
+        import argparse
+        parser = argparse.ArgumentParser(description='Standalone camtrawl demo')
+
+        parser.add_argument('--cal', help='path to matlab or numpy stereo calibration file', default='cal.npz')
+        parser.add_argument('--left', help='path to directory containing left images', default='left')
+        parser.add_argument('--right', help='path to directory containing right images', default='right')
+        parser.add_argument('--out', help='output directory', default='./out')
+        parser.add_argument('--overwrite', action='store_true', help='will delete any existing output')
+        parser.add_argument('--draw', action='store_true', help='will delete any existing output')
+
+        parser.add_argument('--dataset', default=None,
+                            help='Developer convenience assumes you have demo '
+                                 ' data downloaded and available. If you dont '
+                                 ' specify the other args.')
+
+        args = parser.parse_args()
+        config = args.__dict__.copy()
+        config = FrozenKeyDict(config)
+
+    if config['dataset'] is not None:
+        img_path1, img_path2, cal_fpath = demodata_input(dataset=config['dataset'])
+        config['left'] = img_path1
+        config['right'] = img_path2
+        config['cal'] = cal_fpath
+
+    img_path1, img_path2, cal_fpath = ub.take(config, [
+        'left', 'right', 'cal'])
+    out_dpath = config['out']
+    logging.info('Demo Config = {!r}'.format(config))
+
+    ub.ensuredir(out_dpath)
 
     # ----
     # Choose parameter configurations
@@ -531,7 +597,7 @@ def demo():
     triangulate_params = {
     }
 
-    DRAWING = 0
+    DRAWING = config['draw']
 
     # ----
     # Initialize algorithms
@@ -549,7 +615,6 @@ def demo():
         print('========')
         print('CAMTRAWL')
         print('========')
-    logging.info('dataset = {!r}'.format(dataset))
     logging.info('Detector1 Config: ' + ub.repr2(detector1.config, nl=1))
     logging.info('Detector2 Config: ' + ub.repr2(detector2.config, nl=1))
     logging.info('Triangulate Config: ' + ub.repr2(triangulator.config, nl=1))
@@ -561,7 +626,8 @@ def demo():
     stream.preload()
 
     # HACK IN A BEGIN FRAME
-    stream.seek(2200)
+    if len(stream) > 2200:
+        stream.seek(2200)
 
     # ----
     # Run the algorithm
@@ -570,14 +636,22 @@ def demo():
     # n_frames = 2000
     # stream.aligned_frameids = stream.aligned_frameids[:stream.index]
 
-    if DRAWING:
-        drawing_dpath = ub.ensuredir('out_{}'.format(dataset))
-        ub.delete(drawing_dpath)
-        ub.ensuredir(drawing_dpath)
-
-    measure_fpath = ub.ensuredir('measurements_{}.csv'.format(dataset))
-    ub.delete(measure_fpath)
+    measure_fpath = join(out_dpath, 'measurements.csv')
+    if exists(measure_fpath):
+        if config['overwrite']:
+            ub.delete(measure_fpath)
+        else:
+            raise IOError('Measurement path already exists')
     output_file = open(measure_fpath, 'a')
+
+    if DRAWING:
+        drawing_dpath = join(out_dpath, 'visual')
+        if exists(drawing_dpath):
+            if config['overwrite']:
+                ub.delete(drawing_dpath)
+            else:
+                raise IOError('Output path already exists')
+        ub.ensuredir(drawing_dpath)
 
     headers = ['current_frame', 'fishlen', 'range', 'error', 'dz', 'box_pts1',
                'box_pts2']
@@ -593,6 +667,13 @@ def demo():
     #                    clearline=False, freq=1, adjust=False)
     prog = tqdm.tqdm(iter(stream), total=len(stream), desc='camtrawl demo',
                      leave=True)
+
+    def csv_repr(d):
+        if isinstance(d, np.ndarray):
+            d = d.tolist()
+        s = repr(d)
+        return s.replace('\n', '').replace(',', ';').replace(' ', '')
+
     for frame_num, (frame_id, img1, img2) in enumerate(prog):
         logger.debug('frame_num = {!r}'.format(frame_num))
 
@@ -610,8 +691,7 @@ def demo():
             for data in assign_data:
                 data['current_frame'] = int(frame_id)
                 measurements.append(data)
-                line = ','.join([repr(d).replace('\n', ' ').replace(',', ';')
-                                 for d in ub.take(data, headers)])
+                line = ','.join([csv_repr(d) for d in ub.take(data, headers)])
                 output_file.write(line + '\n')
                 output_file.flush()
         else:
@@ -624,13 +704,22 @@ def demo():
                                                         img2, detections2, masks2,
                                                         assignment, assign_data,
                                                         cand_errors)
-            stacked = cv2.putText(stacked,
-                                  text='frame #{}, id={}'.format(frame_num,
-                                                                 frame_id),
-                                  org=(10, 50),
-                                  fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                                  fontScale=1, color=(255, 0, 0),
-                                  thickness=2, lineType=cv2.LINE_AA)
+            if cv2.__version__.startswith('2'):
+                cv2.putText(stacked,
+                            text='frame #{}, id={}'.format(frame_num,
+                                                           frame_id),
+                            org=(10, 50),
+                            fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                            fontScale=1, color=(255, 0, 0),
+                            thickness=2, lineType=cv2.cv.CV_AA)
+            else:
+                stacked = cv2.putText(stacked,
+                                      text='frame #{}, id={}'.format(frame_num,
+                                                                     frame_id),
+                                      org=(10, 50),
+                                      fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+                                      fontScale=1, color=(255, 0, 0),
+                                      thickness=2, lineType=cv2.LINE_AA)
             cv2.imwrite(drawing_dpath + '/mask{}_draw.png'.format(frame_id), stacked)
     output_file.close()
 
@@ -662,17 +751,40 @@ def setup_demo_logger():
 
 if __name__ == '__main__':
     r"""
-    CommandLine:
-
+    Developer:
         workon_py2
         source ~/code/VIAME/build-py2.7/install/setup_viame.sh
 
-        python ~/code/VIAME/plugins/camtrawl/python/camtrawl
+        cd ~/code/VIAME/plugins/camtrawl/python/camtrawl
 
-        # To run the installed version:
-        python -m viame.processes.camtrawl.demo
+        python -m viame.processes.camtrawl.demo --dataset=haul83-small
+        python -m viame.processes.camtrawl.demo --level=DEBUG
 
-        ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
+        # Create a movie rom the frames
+        ffmpeg -y -f image2 -i out/visual/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
+
+    Python2:
+        workon_py2
+        source ~/code/VIAME/build-py2.7/install/setup_viame.sh
+        python -m viame.processes.camtrawl.demo --dataset=haul83-small --draw --out=out-py2
+
+    Python3:
+        workon_py3
+        cd ~/code/VIAME/plugins/camtrawl/python
+        python -m viame.processes.camtrawl.demo --dataset=haul83-small --draw --out=out-py3
+
+
+    CommandLine:
+        python -m viame.processes.camtrawl.demo --help
+
+        # Move to the data directory
+        cd ~/data/camtrawl_stereo_sample_data_small
+
+        # Run with args specific to that data directory
+        python -m viame.processes.camtrawl.demo \
+            --left=Haul_83/left --right=Haul_83/right \
+            --cal=201608_calibration_data/selected/Camtrawl_2016.npz \
+            --out=out_haul83 --draw
     """
     setup_demo_logger()
     measurements = demo()

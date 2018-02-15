@@ -25,6 +25,15 @@ logger = logging.getLogger(__name__)
 OrientedBBox = namedtuple('OrientedBBox', ('center', 'extent', 'angle'))
 
 
+__OPENCV_VERSION_2__ = cv2.__version__.startswith('2')
+if __OPENCV_VERSION_2__:
+    warnings.warn('Using an old OpenCV version. '
+                  'This may cause unexpected results. '
+                  'Please update to 3.x')
+    import skimage  # NOQA
+    import skimage.measure  # NOQA
+
+
 def dict_subset(dict_, keys):
     return {k: dict_[k] for k in keys}
 
@@ -195,8 +204,7 @@ class DetectedObject(ub.NiceRepr):
             >>> print(ub.repr2(points.tolist(), precision=2, nl=0))
             [[4.00, 6.00], [1.00, 3.00], [3.00, 1.00], [6.00, 4.00]]
         """
-        if cv2.__version__.startswith('2'):
-            warnings.warn('Using an old OpenCV version.')
+        if __OPENCV_VERSION_2__:
             return np.array(cv2.cv.BoxPoints(self.oriented_bbox()),
                             dtype=np.float32)
         else:
@@ -278,9 +286,6 @@ class GMMForegroundObjectDetector(object):
         logger.debug('Using GMM from cv2.__version__ = {}'.format(cv2.__version__))
         if cv2.__version__.startswith('2'):
             # not sure about these params
-            warnings.warn('Using an old OpenCV version. '
-                          'This may cause unexpected results. '
-                          'Please update to 3.x')
             detector.background_model = cv2.BackgroundSubtractorMOG2(
                 history=detector.config['n_training_frames'],
                 varThreshold=detector.config['gmm_thresh'],
@@ -407,6 +412,7 @@ class GMMForegroundObjectDetector(object):
                 objects
 
         Example:
+            >>> from viame.processes.camtrawl.algos import *
             >>> detector = GMMForegroundObjectDetector()
             >>> detector.config['min_num_pixels'] = 2
             >>> x, y = np.indices((10, 10))
@@ -421,16 +427,16 @@ class GMMForegroundObjectDetector(object):
             >>> assert len(detections) == 7
         """
         # 4-way connected compoment algorithm
-        try:
-            n_ccs, cc_mask = cv2.connectedComponents(mask, connectivity=8)
-        except AttributeError:
-            warnings.warn('OpenCV version is old. Please upgrade to 3.x')
-            from skimage import measure
-            cc_mask, n_ccs_sk = measure.label(mask, neighbors=8, background=0,
-                                              return_num=True)
+        if __OPENCV_VERSION_2__:
+            # opencv2 doesnt have a builtin CC algo, need to use skimage
+            cc_mask, n_ccs_sk = skimage.measure.label(mask, neighbors=8,
+                                                      background=0,
+                                                      return_num=True)
             # Be consistent with opencv, which always includes the background
             # label in the num (even if no background exists).
             n_ccs = n_ccs_sk + 1
+        else:
+            n_ccs, cc_mask = cv2.connectedComponents(mask, connectivity=8)
 
         factor = detector.config['factor']
 
