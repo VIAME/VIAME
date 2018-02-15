@@ -30,7 +30,6 @@ kwiver_add_library( viame_opencv
   ${plugin_sources}
   )
 
-
 get_target_property(results viame_opencv COMPILE_DEFINITIONS )
 
 if (VIAME_OPENCV_VERSION MATCHES "2.*")

@@ -51,7 +51,8 @@ If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-
 
    sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
 
-If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA:
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 8.0 is recommended,
+other versions may work depending on your build settings but are untested):
 
 .. code-block:: bash
 
@@ -338,6 +339,23 @@ You have python installed, but not numpy. Install numpy.
 VIAME contains a ``VIAME_DISABLE_GPU_SUPPORT`` flag due to numerous issues relating to
 GPU code building. Alternatively you can debug the issue (incorrect CUDA drivers for
 OpenCV, Caffe, etc...), or alternatively not having your CUDA headers set to be in your include path.
+
+
+**Issue:**
+
+.. code-block:: console
+
+   CMake Error at CMakeLists.txt:200 (message):
+     Unable to locate CUDNN library
+
+**Solution:**
+
+You have enabled CUDNN but the system is unable to locate CUDNN, as the message says.
+
+Note CUDNN is installed seperately from CUDA, they are different things.
+
+You need to set the VIAME flag CUDNN_LIBRARY to something like /usr/local/cuda/lib64/libcudnn.so.
+Alternatively you can set CUDNN_ROOT to /usr/local/cuda/lib64 manually if that's where you installed it.
 
 
 **Issue:**

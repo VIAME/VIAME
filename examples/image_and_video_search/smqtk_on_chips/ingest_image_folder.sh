@@ -11,7 +11,11 @@ source ../../../setup_viame.sh
 
 # PARAMETERS ###################################################################
 
-IMAGE_TILES_DIR=$1
+IMAGE_FILE_DIR=$1
+
+mkdir -p "models"
+
+IMAGE_INGEST_LIST="models/ingested_image_list.txt"
 
 SMQTK_GEN_IMG_TILES="configs/generate_image_transform.tiles.json"
 
@@ -30,13 +34,12 @@ SMQTK_HCODE_BTREE_RAND=0
 SMQTK_HCODE_BTREE_OUTPUT="models/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz"
 
 # Use these tiles for new imagelist
-mv "${IMAGE_DIR_FILELIST}" "${IMAGE_DIR_FILELIST}.ORIG"
-find "${IMAGE_TILES_DIR}" -type f >"${IMAGE_DIR_FILELIST}"
+find "${IMAGE_FILE_DIR}" -type f >"${IMAGE_INGEST_LIST}"
 
 # Compute descriptors
 compute_many_descriptors \
     -v -b ${SMQTK_CMD_BATCH_SIZE} --check-image -c "${SMQTK_CMD_CONFIG}" \
-    -f "${IMAGE_DIR_FILELIST}" -p "${SMQTK_CMD_PROCESSED_CSV}"
+    -f "${IMAGE_INGEST_LIST}" -p "${SMQTK_CMD_PROCESSED_CSV}"
 
 # Train ITQ models
 train_itq -vc "${SMQTK_ITQ_TRAIN_CONFIG}"
