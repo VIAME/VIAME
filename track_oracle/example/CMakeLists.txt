@@ -18,20 +18,21 @@ target_link_libraries( track_oracle_example
 # example track reader
 #
 
+add_executable( track_reader_example
+  track_reader_example.cxx
+)
+
+target_link_libraries( track_reader_example
+ track_oracle
+ data_terms
+ track_oracle_file_formats
+ ${Boost_SYSTEM_LIBRARY}
+)
+
 if( KWIVER_ENABLE_KPF )
-
-  add_executable( track_reader_example
-    track_reader_example.cxx
-  )
-
   target_link_libraries( track_reader_example
-   track_oracle
-   data_terms
-   track_oracle_file_formats
-   kpf_utils
-   ${Boost_SYSTEM_LIBRARY}
+    kpf_utils
   )
-
 endif()
 
 #
