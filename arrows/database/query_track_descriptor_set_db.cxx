@@ -51,7 +51,6 @@ public:
   kwiver::vital::logger_handle_t m_logger;
   cppdb::session m_conn;
   std::string m_conn_str;
-  kwiver::vital::timestamp::time_t m_config_frame_time;
 };
 
 query_track_descriptor_set_db::query_track_descriptor_set_db()
@@ -66,7 +65,6 @@ query_track_descriptor_set_db::~query_track_descriptor_set_db()
 void query_track_descriptor_set_db::set_configuration( vital::config_block_sptr config )
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
-  d->m_config_frame_time = config->get_value< double > ( "frame_time", 0.03333333 ) * 1e6;
 }
 
 bool query_track_descriptor_set_db::check_configuration( vital::config_block_sptr config ) const
@@ -132,7 +130,7 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
     td->add_track_id( track_id );
   }
 
-  stmt = d->m_conn.create_statement( "SELECT "
+  stmt = d->m_conn.create_prepared_statement( "SELECT "
     "FRAME_NUMBER, "
     "IMAGE_BBOX_TL_X, "
     "IMAGE_BBOX_TL_Y, "
@@ -173,16 +171,84 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
       vital::track_state_sptr ots =
         std::make_shared< vital::object_track_state > ( frame_index, det );
       trk->append( ots );
-
-      // TODO Make this configurable - either get the history entry from the
-      // tracks or from a separate table. Get it from the tracks for now.
-      vital::timestamp ts( frame_index * d->m_config_frame_time, frame_index );
-      td->add_history_entry( vital::track_descriptor::history_entry( ts, bbox ) );
     }
 
     std::get< 2 >( result ).push_back( trk );
 
     stmt.reset();
+  }
+
+  // TODO Add an option to instead get this information from the track frames,
+  // if so desired, so that we don't duplicate information. We would need to
+  // add a timestamp to the track frames.
+  stmt = d->m_conn.create_statement( "SELECT "
+    "FRAME_NUMBER, "
+    "TIMESTAMP, "
+    "IMAGE_BBOX_TL_X, "
+    "IMAGE_BBOX_TL_Y, "
+    "IMAGE_BBOX_BR_X, "
+    "IMAGE_BBOX_BR_Y, "
+    "WORLD_BBOX_TL_X, "
+    "WORLD_BBOX_TL_Y, "
+    "WORLD_BBOX_BR_X, "
+    "WORLD_BBOX_BR_Y "
+    "FROM TRACK_DESCRIPTOR_HISTORY "
+    "WHERE UID = ? "
+    "ORDER BY FRAME_NUMBER"
+  );
+  stmt.bind( 1, uid );
+  row = stmt.query();
+  while( row.next() )
+  {
+    vital::timestamp::frame_t frame_number;
+    vital::timestamp::time_t timestamp;
+
+    row.fetch( 0, frame_number );
+    row.fetch( 1, timestamp );
+    vital::timestamp ts( timestamp, frame_number );
+
+    double image_bbox_tl_x;
+    double image_bbox_tl_y;
+    double image_bbox_br_x;
+    double image_bbox_br_y;
+
+    row.fetch( 2, image_bbox_tl_x );
+    row.fetch( 3, image_bbox_tl_y );
+    row.fetch( 4, image_bbox_br_x );
+    row.fetch( 5, image_bbox_br_y );
+
+    vital::bounding_box_d bbox(
+      image_bbox_tl_x,
+      image_bbox_tl_y,
+      image_bbox_br_x,
+      image_bbox_br_y );
+
+    double world_bbox_tl_x;
+    double world_bbox_tl_y;
+    double world_bbox_br_x;
+    double world_bbox_br_y;
+
+    if( row.fetch( 6, world_bbox_tl_x ) &&
+        row.fetch( 7, world_bbox_tl_y ) &&
+        row.fetch( 8, world_bbox_br_x ) &&
+        row.fetch( 9, world_bbox_br_y ) )
+    {
+      vital::bounding_box_d world_bbox(
+        world_bbox_tl_x,
+        world_bbox_tl_y,
+        world_bbox_br_x,
+        world_bbox_br_y );
+
+      td->add_history_entry(
+        vital::track_descriptor::history_entry(
+          ts, bbox, world_bbox ) );
+    }
+    else
+    {
+      td->add_history_entry(
+        vital::track_descriptor::history_entry(
+          ts, bbox ) );
+    }
   }
 
   return true;
