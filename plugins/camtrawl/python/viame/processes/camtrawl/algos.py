@@ -103,9 +103,7 @@ class BoundingBox(ub.NiceRepr):
 class DetectedObject(ub.NiceRepr):
     """
     Example:
-        >>> import sys
-        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-        >>> from camtrawl.algos import *
+        >>> from viame.processes.camtrawl.algos import *
         >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
         >>> cc_mask[3:5, 2:7] = 1
         >>> self = DetectedObject.from_connected_component(cc_mask)
@@ -146,7 +144,12 @@ class DetectedObject(ub.NiceRepr):
         return oriented_bbox
 
     def box_points(self):
-        return cv2.boxPoints(self.oriented_bbox())
+        if cv2.__version__.startswith('2'):
+            warnings.warn('Using an old OpenCV version. '
+                          'This may cause unexpected results. '
+                          'Please update to 3.x')
+        else:
+            return cv2.boxPoints(self.oriented_bbox())
 
     def scale(self, factor):
         """ inplace """
@@ -222,9 +225,8 @@ class GMMForegroundObjectDetector(object):
 
         # Setup GMM background subtraction algorithm
         logger.debug('Using GMM from cv2.__version__ = {}'.format(cv2.__version__))
-        if cv2.__version__.startswith('2.4'):
+        if cv2.__version__.startswith('2'):
             # not sure about these params
-            import warnings
             warnings.warn('Using an old OpenCV version. '
                           'This may cause unexpected results. '
                           'Please update to 3.x')
@@ -260,10 +262,10 @@ class GMMForegroundObjectDetector(object):
             detections : list of DetectedObjects
 
         Doctest:
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl.algos import *
-            >>> from camtrawl.demo import *
+            >>> import matplotlib as mpl
+            >>> mpl.use('agg')
+            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.camtrawl.demo import *
             >>> detector, img = demodata_detections(target_step='detect', target_frame_num=7)
             >>> detections = detector.detect(img)
             >>> print('detections = {!r}'.format(detections))
@@ -527,10 +529,8 @@ class FishStereoMeasurments(object):
 
         Doctest:
             >>> # Rows are detections in img1, cols are detections in img2
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl.algos import *
-            >>> from camtrawl.demo import *
+            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.camtrawl.demo import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
             >>> det1, det2 = detections1[0], detections2[0]
             >>> self = FishStereoMeasurments()
@@ -612,9 +612,7 @@ class FishStereoMeasurments(object):
 
         Doctest:
             >>> # Rows are detections in img1, cols are detections in img2
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl.algos import *
+            >>> from viame.processes.camtrawl.algos import *
             >>> self = FishStereoMeasurments()
             >>> cost_errors = np.array([
             >>>     [9, 2, 1, 9],
@@ -651,9 +649,7 @@ class FishStereoMeasurments(object):
 
         Doctest:
             >>> # Rows are detections in img1, cols are detections in img2
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl.algos import *
+            >>> from viame.processes.camtrawl.algos import *
             >>> detections1, detections2, cal = demodata_detections(target_step='triangulate', target_frame_num=6)
             >>> self = FishStereoMeasurments()
             >>> assignment, assign_data, cand_errors = self.find_matches(cal, detections1, detections2)
@@ -730,9 +726,7 @@ class StereoCalibration(object):
     Helper class for reading / accessing stereo camera calibration params
 
     Doctest:
-        >>> import sys
-        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-        >>> from camtrawl.algos import *
+        >>> from viame.processes.camtrawl.algos import *
         >>> cal_fpath = '/home/joncrall/data/camtrawl_stereo_sample_data/201608_calibration_data/selected/Camtrawl_2016.npz'
         >>> cal = StereoCalibration.from_file(cal_fpath)
     """
@@ -832,10 +826,8 @@ class StereoCalibration(object):
             http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/example5.html
 
         Doctest:
-            >>> import sys
-            >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-            >>> from camtrawl.algos import *
-            >>> from camtrawl.demo import *
+            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.camtrawl.demo import *
             >>> cal_fpath = '/home/joncrall/data/autoprocess_test_set/cal_201608.mat'
             >>> cal = StereoCalibration.from_matfile(cal_fpath)
             >>> print('cal = {}'.format(cal))
@@ -890,16 +882,6 @@ class StereoCalibration(object):
 
 
 # if __name__ == '__main__':
-#     r"""
-#     CommandLine:
-
-#         workon_py2
-#         source ~/code/VIAME/build/install/setup_viame.sh
-#         export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
-#         export PYTHONPATH=$(pwd):$PYTHONPATH
-#         python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
-#         ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
-#     """
 #     from . import demo
 #     logging.basicConfig()
 #     demo.demo()
@@ -913,6 +895,14 @@ if __name__ == '__main__':
     r"""
     CommandLine:
         python -m camtrawl.algos
+
+    Ignore:
+        workon_py2
+        source ~/code/VIAME/build/install/setup_viame.sh
+        export SPROKIT_PYTHON_MODULES=camtrawl_processes:kwiver.processes:viame.processes
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        python ~/code/VIAME/plugins/camtrawl/python/camtrawl_demo.py
+        ffmpeg -y -f image2 -i out_haul83/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
     """
     import xdoctest
     xdoctest.doctest_module(__file__)

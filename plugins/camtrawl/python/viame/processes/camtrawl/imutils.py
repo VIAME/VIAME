@@ -287,3 +287,12 @@ def putMultiLineText(img, text, org, **kwargs):
         img = cv2.putText(img, line, (x0, y), **kwargs)
         y += (h + ypad)
     return img
+
+
+if __name__ == '__main__':
+    r"""
+    CommandLine:
+        python -m viame.processes.camtrawl.imutils
+    """
+    import xdoctest
+    xdoctest.doctest_module(__file__)

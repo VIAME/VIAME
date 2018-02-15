@@ -274,9 +274,7 @@ def _imreader_thread(image_path_list, buffer):
 class StereoFrameStream(object):
     """
     Exmaple:
-        >>> import sys
-        >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
-        >>> from camtrawl_demo import *
+        >>> from viame.processes.camtrawl.demo import *
         >>> img_path1, img_path2, cal = demodata_input(dataset='haul83')
         >>> self = StereoFrameStream(img_path1, img_path2)
         >>> self.preload()
