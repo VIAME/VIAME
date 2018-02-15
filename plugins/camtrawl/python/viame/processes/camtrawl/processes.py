@@ -146,7 +146,7 @@ def tmp_smart_cast_config(self):
         # print('strval = {!r}'.format(strval))
         try:
             val = eval(strval, {}, {})
-        except SyntaxError:
+        except Exception:
             val = strval
         config[key] = val
     return config

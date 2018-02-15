@@ -473,7 +473,7 @@ def demodata_input(dataset='demo'):
             dname = commonprefix(zfile.namelist())
             data_fpath = join(dpath, dname)
             if not exists(data_fpath):
-                zfile.extractall()
+                zfile.extractall(dpath)
 
         cal_fpath = join(data_fpath, 'cal.npz')
         img_path1 = join(data_fpath, 'left')

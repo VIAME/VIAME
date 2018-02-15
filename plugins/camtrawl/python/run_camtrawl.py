@@ -50,7 +50,7 @@ def simple_pipeline():
     """
     Processing_with_species_id.m is their main file
 
-    CommandLine:
+    OpenCV2:
         cd ~/code/VIAME/plugins/camtrawl/python
         workon_py2
         source ~/code/VIAME/build/install/setup_viame.sh
@@ -60,11 +60,24 @@ def simple_pipeline():
         export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
         python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=demo
+
+    OpenCV3:
+        cd ~/code/VIAME/plugins/camtrawl/python
+        workon_py2
+        source ~/code/VIAME/build-cv3-py2/install/setup_viame.sh
+        # Ensure python and sprokit knows about our module
+        export PYTHONPATH=$(pwd):$PYTHONPATH
+        export KWIVER_DEFAULT_LOG_LEVEL=info
+        export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
+
+        python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=demo
+
+        /home/joncrall/code/VIAME/build-cv3-py2/install/bin/pipeline_runner -p /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
     """
 
     # Setup the input files
     import ubelt as ub
-    dataset = ub.argval('--dataset', default='demo')
+    dataset = ub.argval('--dataset', default=None)
 
     if dataset == 'demo':
         import zipfile
@@ -115,7 +128,30 @@ def simple_pipeline():
             'end_frame': 5000,
         }
     else:
-        raise KeyError('Unknown dataset {}'.format(dataset))
+        import argparse
+        import os
+        parser = argparse.ArgumentParser(description='Camtrawl pipline demo')
+        parser.add_argument('--cal', help='path to matlab or numpy stereo calibration file', default='cal.npz')
+        parser.add_argument('--left', help='path to directory containing left images', default='left')
+        parser.add_argument('--right', help='path to directory containing right images', default='right')
+        args = parser.parse_args()
+        config = args.__dict__.copy()
+        img_path1, img_path2, cal_fpath = ub.take(config, [
+            'left', 'right', 'cal'])
+        data_fpath = os.path.dirname(img_path1)
+        datakw = {
+            'data_fpath': data_fpath,
+            'img_path1': img_path1,
+            'img_path2': img_path2,
+        }
+        if not exists(img_path1):
+            raise IOError('left image path does not exist')
+        if not exists(img_path2):
+            raise IOError('right image path does not exist')
+        if not exists(cal_fpath):
+            raise IOError('calibration file path does not exist')
+
+        # raise KeyError('Unknown dataset {}'.format(dataset))
 
     make_image_input_files(**datakw)
 
@@ -199,7 +235,7 @@ if __name__ == '__main__':
         python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
 
     Ignore:
-        pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
+        pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
 
     Testing:
         unlink $HOME/code/VIAME/build
