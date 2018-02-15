@@ -132,6 +132,7 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
 
   stmt = d->m_conn.create_prepared_statement( "SELECT "
     "FRAME_NUMBER, "
+    "TIMESTAMP, "
     "IMAGE_BBOX_TL_X, "
     "IMAGE_BBOX_TL_Y, "
     "IMAGE_BBOX_BR_X, "
@@ -154,22 +155,24 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
     while( row.next() )
     {
       int frame_index;
+      time_t time;
       row.fetch( 0, frame_index );
+      row.fetch( 1, time );
 
       double min_x, min_y, max_x, max_y;
-      row.fetch( 1, min_x );
-      row.fetch( 2, min_y );
-      row.fetch( 3, max_x );
-      row.fetch( 4, max_y );
+      row.fetch( 2, min_x );
+      row.fetch( 3, min_y );
+      row.fetch( 4, max_x );
+      row.fetch( 5, max_y );
       vital::bounding_box_d bbox( min_x, min_y, max_x, max_y );
 
       double conf;
-      row.fetch( 5, conf );
+      row.fetch( 6, conf );
 
       vital::detected_object_sptr det =
         std::make_shared< vital::detected_object > ( bbox, conf );
       vital::track_state_sptr ots =
-        std::make_shared< vital::object_track_state > ( frame_index, det );
+        std::make_shared< vital::object_track_state > ( frame_index, time, det );
       trk->append( ots );
     }
 

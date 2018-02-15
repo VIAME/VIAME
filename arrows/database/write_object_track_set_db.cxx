@@ -137,6 +137,7 @@ write_object_track_set_db
 ::write_set( const kwiver::vital::object_track_set_sptr set )
 {
   cppdb::statement update_stmt = d->m_conn.create_prepared_statement( "UPDATE OBJECT_TRACK SET "
+    "TIMESTAMP = ?, "
     "IMAGE_BBOX_TL_X = ?, "
     "IMAGE_BBOX_TL_Y = ?, "
     "IMAGE_BBOX_BR_X = ?, "
@@ -149,12 +150,13 @@ write_object_track_set_db
     "TRACK_ID, "
     "FRAME_NUMBER, "
     "VIDEO_NAME, "
+    "TIMESTAMP, "
     "IMAGE_BBOX_TL_X, "
     "IMAGE_BBOX_TL_Y, "
     "IMAGE_BBOX_BR_X, "
     "IMAGE_BBOX_BR_Y, "
     "TRACK_CONFIDENCE"
-    ") VALUES(?, ?, ?, ?, ?, ?, ?, ?)"
+    ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)"
   );
 
   for( auto trk : set->tracks() )
@@ -176,14 +178,15 @@ write_object_track_set_db
 
       cppdb::transaction guard(d->m_conn);
 
-      update_stmt.bind( 1, bbox.min_x() );
-      update_stmt.bind( 2, bbox.min_y() );
-      update_stmt.bind( 3, bbox.max_x() );
-      update_stmt.bind( 4, bbox.max_y() );
-      update_stmt.bind( 5, det->confidence() );
-      update_stmt.bind( 6, trk->id() );
-      update_stmt.bind( 7, ts->frame() );
-      update_stmt.bind( 8, d->m_video_name );
+      update_stmt.bind( 1, ts->time() );
+      update_stmt.bind( 2, bbox.min_x() );
+      update_stmt.bind( 3, bbox.min_y() );
+      update_stmt.bind( 4, bbox.max_x() );
+      update_stmt.bind( 5, bbox.max_y() );
+      update_stmt.bind( 6, det->confidence() );
+      update_stmt.bind( 7, trk->id() );
+      update_stmt.bind( 8, ts->frame() );
+      update_stmt.bind( 9, d->m_video_name );
 
       update_stmt.exec();
       unsigned long long count = update_stmt.affected();
@@ -194,11 +197,12 @@ write_object_track_set_db
         insert_stmt.bind( 1, trk->id() );
         insert_stmt.bind( 2, ts->frame() );
         insert_stmt.bind( 3, d->m_video_name );
-        insert_stmt.bind( 4, bbox.min_x() );
-        insert_stmt.bind( 5, bbox.min_y() );
-        insert_stmt.bind( 6, bbox.max_x() );
-        insert_stmt.bind( 7, bbox.max_y() );
-        insert_stmt.bind( 8, det->confidence() );
+        insert_stmt.bind( 4, ts->time() );
+        insert_stmt.bind( 5, bbox.min_x() );
+        insert_stmt.bind( 6, bbox.min_y() );
+        insert_stmt.bind( 7, bbox.max_x() );
+        insert_stmt.bind( 8, bbox.max_y() );
+        insert_stmt.bind( 9, det->confidence() );
 
         insert_stmt.exec();
         insert_stmt.reset();
