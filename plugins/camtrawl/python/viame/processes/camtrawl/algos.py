@@ -107,6 +107,8 @@ class DetectedObject(ub.NiceRepr):
         >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
         >>> cc_mask[3:5, 2:7] = 1
         >>> self = DetectedObject.from_connected_component(cc_mask)
+        >>> print(self)
+        <DetectedObject(center=(4.0, 3.5), wh=(4, 1))>
     """
 
     def __init__(self, bbox, mask):
@@ -121,12 +123,30 @@ class DetectedObject(ub.NiceRepr):
         return self.bbox.__nice__()
 
     def num_pixels(self):
+        """
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
+            >>> cc_mask[3:5, 2:7] = 1
+            >>> self = DetectedObject.from_connected_component(cc_mask)
+            >>> print(str(self.num_pixels()))
+            10
+        """
         # number of pixels in the mask
         # scale to the number that would be in the original image
-        n_pixels = (self.mask > 0).sum() * (self.bbox_factor ** 2)
+        n_pixels = int((self.mask > 0).sum() * (self.bbox_factor ** 2))
         return n_pixels
 
     def hull(self):
+        """
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
+            >>> cc_mask[3:5, 2:7] = 1
+            >>> self = DetectedObject.from_connected_component(cc_mask)
+            >>> print(self.hull().tolist())
+            [[[6, 4]], [[2, 4]], [[2, 3]], [[6, 3]]]
+        """
         cc_y, cc_x = np.where(self.mask)
         points = np.vstack([cc_x, cc_y]).T
         # Find a minimum oriented bounding box around the points
@@ -139,15 +159,46 @@ class DetectedObject(ub.NiceRepr):
         return hull
 
     def oriented_bbox(self):
+        """
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> cc_mask = np.zeros((11, 11), dtype=np.uint8)
+            >>> cc_mask[3:5, 2:7] = 1
+            >>> self = DetectedObject.from_connected_component(cc_mask)
+            >>> print(str(self.oriented_bbox()))
+            OrientedBBox(center=(4.0, 3.5), extent=(1.0, 4.0), angle=-90.0)
+        """
         hull = self.hull()
         oriented_bbox = OrientedBBox(*cv2.minAreaRect(hull))
         return oriented_bbox
 
     def box_points(self):
+        """
+        CommandLine:
+            python -m viame.processes.camtrawl.algos DetectedObject.box_points
+
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> _, B = 0, 1
+            >>> cc_mask = np.array([
+            >>>     [_, _, _, _, _, _, _, _],
+            >>>     [_, _, _, B, _, _, _, _],
+            >>>     [_, _, B, B, B, _, _, _],
+            >>>     [_, B, B, B, B, B, _, _],
+            >>>     [_, _, B, B, B, B, B, _],
+            >>>     [_, _, _, B, B, B, _, _],
+            >>>     [_, _, _, _, B, _, _, _],
+            >>>     [_, _, _, _, _, _, _, _],
+            >>> ])
+            >>> self = DetectedObject.from_connected_component(cc_mask)
+            >>> points = self.box_points()
+            >>> print(ub.repr2(points.tolist(), precision=2, nl=0))
+            [[4.00, 6.00], [1.00, 3.00], [3.00, 1.00], [6.00, 4.00]]
+        """
         if cv2.__version__.startswith('2'):
-            warnings.warn('Using an old OpenCV version. '
-                          'This may cause unexpected results. '
-                          'Please update to 3.x')
+            warnings.warn('Using an old OpenCV version.')
+            return np.array(cv2.cv.BoxPoints(self.oriented_bbox()),
+                            dtype=np.float32)
         else:
             return cv2.boxPoints(self.oriented_bbox())
 
@@ -261,6 +312,9 @@ class GMMForegroundObjectDetector(object):
         Returns:
             detections : list of DetectedObjects
 
+        CommandLine:
+            python -m viame.processes.camtrawl.algos GMMForegroundObjectDetector.detect
+
         Doctest:
             >>> import matplotlib as mpl
             >>> mpl.use('agg')
@@ -270,9 +324,9 @@ class GMMForegroundObjectDetector(object):
             >>> detections = detector.detect(img)
             >>> print('detections = {!r}'.format(detections))
             >>> masks = detector._masks
-            >>> draw_img = DrawHelper.draw_detections(img, detections, masks)
             >>> # xdoc: REQUIRES(--show)
-            >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/tmp.png'
+            >>> draw_img = DrawHelper.draw_detections(img, detections, masks)
+            >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/GMMForegroundObjectDetector.detect.png'
             >>> cv2.imwrite(fpath, draw_img)
             >>> ub.startfile(fpath)
             >>> #from matplotlib import pyplot as plt
@@ -894,7 +948,7 @@ class StereoCalibration(object):
 if __name__ == '__main__':
     r"""
     CommandLine:
-        python -m camtrawl.algos
+        python -m viame.processes.camtrawl.algos
 
     Ignore:
         workon_py2

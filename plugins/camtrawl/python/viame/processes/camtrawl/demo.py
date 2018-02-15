@@ -36,6 +36,33 @@ class DrawHelper(object):
         """
         Draws heatmasks showing where detector was triggered.
         Bounding boxes and contours are drawn over accepted detections.
+
+        Args:
+            img (ndarray) :
+            detections (list) :
+            mask (list) :
+            assigned (dict) :
+
+        CommandLine:
+            cd ~/code/VIAME/build
+            source install/setup_viame.sh
+            python -m xdoctest viame.processes.camtrawl.demo DrawHelper.draw_detections
+
+        Example:
+            >>> from viame.processes.camtrawl.algos import *
+            >>> from viame.processes.camtrawl.demo import *
+            >>> cc = np.zeros((110, 110), dtype=np.uint8)
+            >>> cc[30:50, 20:70] = 1
+            >>> detections = [DetectedObject.from_connected_component(cc)]
+            >>> img = np.random.rand(*cc.shape)
+            >>> masks = {}
+            >>> assigned = {}
+            >>> draw_img = DrawHelper.draw_detections(img, detections, masks, assigned)
+            >>> # xdoc: +REQUIRES(--show)
+            >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/DrawHelper.draw_detections.png'
+            >>> cv2.imwrite(fpath, draw_img)
+            >>> ub.startfile(fpath)
+
         """
         # Upscale masks to original image size
         dsize = tuple(img.shape[0:2][::-1])
@@ -78,12 +105,43 @@ class DrawHelper(object):
             hull_points = detection.hull()
             hull_color = BGR_BLUE
             bbox_color = BGR_GREEN if i in assigned else BGR_PURPLE
-            draw_img = cv2.drawContours(
-                image=draw_img, contours=[hull_points], contourIdx=-1,
-                color=hull_color, thickness=2)
-            draw_img = cv2.drawContours(
-                image=draw_img, contours=[box_points], contourIdx=-1,
-                color=bbox_color, thickness=2)
+
+            if cv2.__version__.startswith('2'):
+                cv = cv2.cv
+                cc_y, cc_x = np.where(detection.mask)
+                points = np.vstack([cc_x, cc_y]).T
+                cv_mem = cv.CreateMemStorage()
+                cv_points = cv2.cv.fromarray(np.ascontiguousarray(points.astype(np.int32)))
+                cv_hull = cv2.cv.ConvexHull2(cv_points, cv_mem)
+
+                cvmat = cv2.cv.fromarray(draw_img.astype(np.uint8))
+                # nc = cv.FindContours(cvmat, mem,
+                #                      cv.CV_RETR_LIST,
+                #                      cv.CV_CHAIN_APPROX_SIMPLE, (0, 0))
+
+                cv2.cv.DrawContours(
+                    img=cvmat,
+                    contour=cv_hull,
+                    external_color=hull_color,
+                    hole_color=hull_color,
+                    max_level=1,
+                    thickness=2)
+                # draw_img = cv2.cv.DrawContours(
+                #     img=cvmat,
+                #     contour=cv2.cv.BoxPoints(detection.oriented_bbox()),
+                #     hole_color=bbox_color,
+                #     external_color=bbox_color,
+                #     max_level=1,
+                #     thickness=2)
+
+                draw_img = np.array(cvmat)
+            else:
+                draw_img = cv2.drawContours(
+                    image=draw_img, contours=[hull_points], contourIdx=-1,
+                    color=hull_color, thickness=2)
+                draw_img = cv2.drawContours(
+                    image=draw_img, contours=[box_points], contourIdx=-1,
+                    color=bbox_color, thickness=2)
         return draw_img
 
     @staticmethod

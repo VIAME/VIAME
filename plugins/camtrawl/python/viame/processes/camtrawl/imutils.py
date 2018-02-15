@@ -237,14 +237,14 @@ def make_heatmask(mask, cmap='plasma'):
     """
     Colorizes a single-channel intensity mask (with an alpha channel)
     """
-    # import matplotlib as mpl
-    # current_backend = mpl.get_backend()
-    # for backend in ['Qt5Agg', 'Agg']:
-    #     try:
-    #         mpl.use(backend, warn=True, force=False)
-    #         break
-    #     except Exception:
-    #         pass
+    import matplotlib as mpl
+    # Hack to set backend to agg when qt5 doesnt exist
+    current_backend = mpl.get_backend()
+    if current_backend == 'Qt5Agg':
+        try:
+            import PyQt5  # NOQA
+        except ImportError:
+            mpl.use('agg')
     import matplotlib.pyplot as plt
     assert len(mask.shape) == 2
     mask = ensure_float01(mask)
