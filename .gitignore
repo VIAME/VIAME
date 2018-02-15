@@ -45,3 +45,4 @@ _ignore
 examples/detector_pipelines/models/*.weights
 examples/detector_training/cfg/yolo_v2_seed.wt
 examples/detector_training/training_data/seq1
+examples/camtrawl_fishlen/camtrawl_demodata
