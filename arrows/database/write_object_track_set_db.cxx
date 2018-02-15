@@ -113,6 +113,12 @@ write_object_track_set_db
 ::open(std::string const& filename)
 {
   d->m_conn.open( d->m_conn_str );
+
+  cppdb::statement delete_stmt = d->m_conn.create_statement( "DELETE FROM OBJECT_TRACK "
+    "WHERE VIDEO_NAME = ?"
+  );
+  delete_stmt.bind( 1, d->m_video_name );
+  delete_stmt.exec();
 }
 
 
@@ -130,13 +136,16 @@ void
 write_object_track_set_db
 ::write_set( const kwiver::vital::object_track_set_sptr set )
 {
-  cppdb::statement select_stmt = d->m_conn.create_statement( "SELECT "
-    "COUNT(*) "
-    "FROM OBJECT_TRACK "
+  cppdb::statement update_stmt = d->m_conn.create_prepared_statement( "UPDATE OBJECT_TRACK SET "
+    "IMAGE_BBOX_TL_X = ?, "
+    "IMAGE_BBOX_TL_Y = ?, "
+    "IMAGE_BBOX_BR_X = ?, "
+    "IMAGE_BBOX_BR_Y = ?, "
+    "TRACK_CONFIDENCE = ? "
     "WHERE TRACK_ID = ? AND FRAME_NUMBER = ? AND VIDEO_NAME = ?"
   );
 
-  cppdb::statement insert_stmt = d->m_conn.create_statement( "INSERT INTO OBJECT_TRACK("
+  cppdb::statement insert_stmt = d->m_conn.create_prepared_statement( "INSERT INTO OBJECT_TRACK("
     "TRACK_ID, "
     "FRAME_NUMBER, "
     "VIDEO_NAME, "
@@ -161,23 +170,27 @@ write_object_track_set_db
         continue;
       }
 
+      vital::detected_object_sptr det = ts->detection;
+      const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
+      vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+
       cppdb::transaction guard(d->m_conn);
 
-      select_stmt.bind( 1, trk->id() );
-      select_stmt.bind( 2, ts->frame() );
-      select_stmt.bind( 3, d->m_video_name );
+      update_stmt.bind( 1, bbox.min_x() );
+      update_stmt.bind( 2, bbox.min_y() );
+      update_stmt.bind( 3, bbox.max_x() );
+      update_stmt.bind( 4, bbox.max_y() );
+      update_stmt.bind( 5, det->confidence() );
+      update_stmt.bind( 6, trk->id() );
+      update_stmt.bind( 7, ts->frame() );
+      update_stmt.bind( 8, d->m_video_name );
 
-      cppdb::result result = select_stmt.row();
-      int count;
-      result.fetch( 0, count );
-      select_stmt.reset();
+      update_stmt.exec();
+      unsigned long long count = update_stmt.affected();
+      update_stmt.reset();
 
       if( count == 0 )
       {
-        vital::detected_object_sptr det = ts->detection;
-        const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
-        vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
-
         insert_stmt.bind( 1, trk->id() );
         insert_stmt.bind( 2, ts->frame() );
         insert_stmt.bind( 3, d->m_video_name );
