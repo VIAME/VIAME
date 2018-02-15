@@ -1,15 +1,11 @@
 
 set( database_headers
-  descriptor_db.h
-  connection/db_connection.h
   query_track_descriptor_set_db.h
   write_object_track_set_db.h
   write_track_descriptor_set_db.h
   )
 
 set( database_sources
-  descriptor_db.cxx
-  connection/db_connection.cxx
   query_track_descriptor_set_db.cxx
   write_object_track_set_db.cxx
   write_track_descriptor_set_db.cxx
@@ -39,7 +35,3 @@ target_link_libraries( kwiver_algo_database
 algorithms_create_plugin( kwiver_algo_database
   register_algorithms.cxx
   )
-
-if (KWIVER_ENABLE_TESTS)
-  add_subdirectory(tests)
-endif()
