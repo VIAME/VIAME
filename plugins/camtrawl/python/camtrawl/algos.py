@@ -221,16 +221,17 @@ class GMMForegroundObjectDetector(object):
         dict_update_subset(detector.config, kwargs)
 
         # Setup GMM background subtraction algorithm
+        logger.debug('Using GMM from cv2.__version__ = {}'.format(cv2.__version__))
         if cv2.__version__.startswith('2.4'):
             # not sure about these params
             import warnings
             warnings.warn('Using an old OpenCV version. '
                           'This may cause unexpected results. '
                           'Please update to 3.x')
-            detector.background_model = cv2.BackgroundSubtractorMOG(
+            detector.background_model = cv2.BackgroundSubtractorMOG2(
                 history=detector.config['n_training_frames'],
-                nmixtures=2,
-                backgroundRatio=detector.config['gmm_thresh'],
+                varThreshold=detector.config['gmm_thresh'],
+                bShadowDetection=False
             )
         else:
             detector.background_model = cv2.createBackgroundSubtractorMOG2(
@@ -259,7 +260,6 @@ class GMMForegroundObjectDetector(object):
             detections : list of DetectedObjects
 
         Doctest:
-            >>> % pylab qt5
             >>> import sys
             >>> sys.path.append('/home/joncrall/code/VIAME/plugins/camtrawl/python')
             >>> from camtrawl.algos import *
@@ -269,12 +269,15 @@ class GMMForegroundObjectDetector(object):
             >>> print('detections = {!r}'.format(detections))
             >>> masks = detector._masks
             >>> draw_img = DrawHelper.draw_detections(img, detections, masks)
-            >>> from matplotlib import pyplot as plt
-            >>> plt.imshow(cv2.cvtColor(draw_img, cv2.COLOR_BGR2RGB))
-            >>> plt.gca().grid(False)
-            >>> plt.show()
+            >>> # xdoc: REQUIRES(--show)
+            >>> fpath = ub.ensure_app_cache_dir('camtrawl') + '/tmp.png'
+            >>> cv2.imwrite(fpath, draw_img)
+            >>> ub.startfile(fpath)
+            >>> #from matplotlib import pyplot as plt
+            >>> #plt.imshow(cv2.cvtColor(draw_img, cv2.COLOR_BGR2RGB))
+            >>> #plt.gca().grid(False)
+            >>> #plt.show()
         """
-        logger.debug('detect forground')
 
         detector._masks = {}
 
@@ -282,6 +285,7 @@ class GMMForegroundObjectDetector(object):
         img_, upfactor = detector.preprocess_image(img)
 
         # Run detection / update background model
+        logger.debug('detect background')
         mask = detector.background_model.apply(img_)
         detector._masks['orig'] = mask.copy()
 
@@ -305,12 +309,14 @@ class GMMForegroundObjectDetector(object):
             detections = list(detectgen)
 
         detector.n_iters += 1
+        logger.debug('made {} detections'.format(len(detections)))
         return detections
 
     def preprocess_image(detector, img):
         """
         Preprocess image before subtracting backround
         """
+        logger.debug('preprocess image before detect')
         # Convert to grayscale
         img_ = ensure_grayscale(img)
         # Downsample image before running detection
@@ -326,6 +332,7 @@ class GMMForegroundObjectDetector(object):
 
     def postprocess_mask(detector, mask):
         """ remove noise from detection intensity masks """
+        logger.debug('postprocess mask')
         ksize = np.array(detector.config['smooth_ksize'])
         ksize = tuple(np.round(ksize / detector.config['factor']).astype(np.int))
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize)
@@ -429,6 +436,7 @@ class DetectionShapeFilter(object):
         dict_update_subset(self.config, kwargs)
 
     def filter_detections(self, detections, img_dsize=None):
+        logger.debug('filter detections')
         for detection in detections:
             if self.is_valid(detection, img_dsize):
                 yield detection

@@ -28,7 +28,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-CommandLine:
+Ignore:
     workon_py2
     source ~/code/VIAME/build/install/setup_viame.sh
     cd ~/code/VIAME/plugins/camtrawl
@@ -43,7 +43,29 @@ CommandLine:
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
     workon_py2
-    source ~/code/VIAME/build/install/setup_viame.sh
+    cd ~/code/VIAME/build-cv3-py2
+
+    export KWIVER_PLUGIN_PATH=""
+    export SPROKIT_MODULE_PATH=""
+    source install/setup_viame.sh
+
+    export KWIVER_DEFAULT_LOG_LEVEL=debug
+    export KWIVER_DEFAULT_LOG_LEVEL=info
+    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=debug
+    export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
+
+    python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
+    python run_camtrawl.py
+
+    ~/code/VIAME/build/install/bin/pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
+    ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
+
+CommandLine:
+    cd ~/code/VIAME/plugins/camtrawl/python
+    export PYTHONPATH=$(pwd):$PYTHONPATH
+
+    workon_py2
+    cd ~/code/VIAME/build
 
     export KWIVER_PLUGIN_PATH=""
     export SPROKIT_MODULE_PATH=""
@@ -58,7 +80,7 @@ CommandLine:
     python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
     python run_camtrawl.py
 
-    ~/code/VIAME/build/install/bin/pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
+    ~/code/VIAME/build/install/bin/pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
     ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
 
 SeeAlso
@@ -83,8 +105,8 @@ import itertools as it
 from . import algos as ctalgo
 
 from sprokit import sprokit_logging
-logger = sprokit_logging.getLogger(__name__)
 import logging
+logger = sprokit_logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 print = logger.info
 
