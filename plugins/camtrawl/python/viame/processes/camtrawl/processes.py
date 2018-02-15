@@ -39,6 +39,7 @@ Ignore:
     np.sum((feat1.location - feat2.location) ** 2)
 
 CommandLine:
+    # OPENCV 3.X VERSION
     cd ~/code/VIAME/plugins/camtrawl/python
     export PYTHONPATH=$(pwd):$PYTHONPATH
 
@@ -61,6 +62,7 @@ CommandLine:
     ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
 
 CommandLine:
+    # OPENCV 2.4 VERSION
     cd ~/code/VIAME/plugins/camtrawl/python
     export PYTHONPATH=$(pwd):$PYTHONPATH
 

@@ -456,11 +456,29 @@ class StereoFrameStream(object):
         self.aligned_idx2 = aligned_idx2
 
 
-def demodata_input(dataset='test'):
+def demodata_input(dataset='demo'):
     """
     Specifies the input files for testing and demos
     """
-    if dataset == 'test':
+    if dataset == 'demo':
+        import zipfile
+        from os.path import commonprefix
+        dpath = ub.ensure_app_cache_dir('camtrawl')
+        try:
+            demodata_zip = ub.grabdata('http://acidalia:8000/data/camtrawl_demodata.zip', dpath=dpath)
+        except Exception:
+            raise ValueError(
+                'Demo data is currently only available on Kitware VPN')
+        with zipfile.ZipFile(demodata_zip) as zfile:
+            dname = commonprefix(zfile.namelist())
+            data_fpath = join(dpath, dname)
+            if not exists(data_fpath):
+                zfile.extractall()
+
+        cal_fpath = join(data_fpath, 'cal.npz')
+        img_path1 = join(data_fpath, 'left')
+        img_path2 = join(data_fpath, 'right')
+    elif dataset == 'test':
         data_fpath = expanduser('~/data/autoprocess_test_set')
         cal_fpath = join(data_fpath, 'cal_201608.mat')
         img_path1 = join(data_fpath, 'image_data/left')
@@ -562,8 +580,8 @@ def demo(config=None):
         parser.add_argument('--left', help='path to directory containing left images', default='left')
         parser.add_argument('--right', help='path to directory containing right images', default='right')
         parser.add_argument('--out', help='output directory', default='./out')
-        parser.add_argument('--overwrite', action='store_true', help='will delete any existing output')
-        parser.add_argument('--draw', action='store_true', help='will delete any existing output')
+        parser.add_argument('-f', '--overwrite', action='store_true', help='will delete any existing output')
+        parser.add_argument('--draw', action='store_true', help='draw visualization of algorithm steps')
 
         parser.add_argument('--dataset', default=None,
                             help='Developer convenience assumes you have demo '
@@ -764,14 +782,18 @@ if __name__ == '__main__':
         ffmpeg -y -f image2 -i out/visual/%*.png -vcodec mpeg4 -vf "setpts=10*PTS" haul83-results.avi
 
     Python2:
+        # Runs in about 2-3 it/s
         workon_py2
         source ~/code/VIAME/build-py2.7/install/setup_viame.sh
-        python -m viame.processes.camtrawl.demo --dataset=haul83-small --draw --out=out-py2
+        python -m viame.processes.camtrawl.demo --dataset=demo --out=out-py2 -f
+        python -m viame.processes.camtrawl.demo --dataset=demo --draw --out=out-py2
 
     Python3:
+        # Runs in about 3-4 it/s
         workon_py3
         cd ~/code/VIAME/plugins/camtrawl/python
-        python -m viame.processes.camtrawl.demo --dataset=haul83-small --draw --out=out-py3
+        python -m viame.processes.camtrawl.demo --dataset=demo --out=out-py3 -f
+        python -m viame.processes.camtrawl.demo --dataset=demo --draw --out=out-py3
 
 
     CommandLine:
