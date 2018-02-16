@@ -38,6 +38,7 @@
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_io.h>
 #include <vital/exceptions.h>
+#include <vital/util/get_paths.h>
 
 #include <vital/algo/video_input.h>
 
@@ -121,6 +122,8 @@ int main( int argc, char** argv )
   arg.DeleteRemainingArguments(newArgc, &newArgv);
 
   // register the algorithm implementations
+  std::string rel_plugin_path = kwiver::vital::get_executable_path() + "/../lib/modules";
+  kwiver::vital::plugin_manager::instance().add_search_path(rel_plugin_path);
   kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::algo::video_input_sptr video_reader;
   kwiver::vital::config_block_sptr config = default_config();
