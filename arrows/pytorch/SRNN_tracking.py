@@ -88,6 +88,8 @@ class SRNN_tracking(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
+        print('!!!!SRNN tracking init!!!!')
+
         self.add_config_trait("siamese_model_path", "siamese_model_path",
                               '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/siamese/snapshot_epoch_6.pt',
                               'Trained PyTorch model.')
@@ -374,6 +376,8 @@ class SRNN_tracking(KwiverProcess):
 
         self._base_step()
 
+    def __del__(self):
+        print('!!!!SRNN tracking Deleting python process!!!!')
 
 # ==================================================================
 def __sprokit_register__():
