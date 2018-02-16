@@ -52,3 +52,7 @@ Testing
  * The sprokit non-blocking pipeline test was failing intermittently and
    taking a long time to run.  Adjustments to the process timing using short
    sleep calls make this test more reliable and run faster.
+
+Tools
+
+ * Fixed the name of the video_reader in the dump_klv tool.
