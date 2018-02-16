@@ -56,6 +56,13 @@ class KWIVER_ALGO_CORE_EXPORT interpolate_track_spline
                                  vital::algo::interpolate_track>
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "spline";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Fill in missing object track intervals using spline-based interpolation.";
+
   /// Default Constructor
   interpolate_track_spline();
 
