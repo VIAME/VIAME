@@ -26,7 +26,7 @@ ExternalProject_Add(viame
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${CMAKE_SOURCE_DIR}
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
