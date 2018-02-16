@@ -88,10 +88,6 @@ mark_as_advanced( VIAME_BUILD_TESTS )
 ###
 # Add logic relating to enable flags
 ##
-if( VIAME_ENABLE_CAFFE AND WIN32 )
-  message( FATAL_ERROR "Caffe on windows temporarily broken, please disable" )
-endif()
-
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
     VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_YOLO )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"   FORCE )
