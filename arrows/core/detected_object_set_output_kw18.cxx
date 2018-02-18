@@ -70,7 +70,7 @@ public:
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "detected_object_set_output_kw18" ) )
     , m_first( true )
-    , m_frame_number( 1 )
+    , m_frame_number( 0 )
     , m_write_tot( false )
   {}
 
@@ -238,7 +238,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
     stream() << id << " "                   // 1: track id
              << "1 "                        // 2: track length
-             << d->m_frame_number-1 << " "  // 3: frame number / set number
+             << d->m_frame_number << " "    // 3: frame number / set number
              << "0 "                        // 4: tracking plane x
              << "0 "                        // 5: tracking plane y
              << "0 "                        // 6: velocity x
