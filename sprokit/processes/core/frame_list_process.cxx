@@ -78,6 +78,9 @@ create_config_trait( frame_time, double, "0.03333333", "Inter frame time in seco
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
 
+create_config_trait( zero_based_id, bool, "true",
+                     "Should the first frame be labeled with frame ID 0 instead of frame 1." );
+
 create_config_trait( no_path_in_name, bool, "true",
                      "Set to true if the output image file path should not contain a full path to"
                      "the image file and just contain the file name for the image." );
@@ -102,6 +105,7 @@ public:
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
   kwiver::vital::timestamp::frame_t m_frame_number;
   kwiver::vital::timestamp::time_t m_frame_time;
+  bool m_zero_based_id;
   bool m_no_path_in_name;
 
   // processing classes
@@ -137,6 +141,7 @@ void frame_list_process
   // Examine the configuration
   d->m_config_image_list_filename = config_value_using_trait( image_list_file );
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
+  d->m_zero_based_id              = config_value_using_trait( zero_based_id );
   d->m_no_path_in_name            = config_value_using_trait( no_path_in_name );
 
   std::string path = config_value_using_trait( path );
@@ -198,7 +203,7 @@ void frame_list_process
   } // end for
 
   d->m_current_file = d->m_files.begin();
-  d->m_frame_number = 1;
+  d->m_frame_number = ( !d->m_zero_based_id ? 1 : 0 );
 }
 
 
@@ -289,6 +294,7 @@ void frame_list_process
   declare_config_using_trait( frame_time );
   declare_config_using_trait( image_reader );
   declare_config_using_trait( path );
+  declare_config_using_trait( zero_based_id );
   declare_config_using_trait( no_path_in_name );
 }
 
