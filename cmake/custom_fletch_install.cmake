@@ -16,6 +16,9 @@ if( WIN32 )
     CopyFiles( ${VIAME_BUILD_INSTALL_PREFIX}/x64/*/lib/*.lib ${VIAME_BUILD_INSTALL_PREFIX}/lib )
   endif()
 
+  if( VIAME_ENABLE_CAFFE )
+    MoveFiles( ${VIAME_BUILD_INSTALL_PREFIX}/lib/caffe*.dll ${VIAME_BUILD_INSTALL_PREFIX}/bin )
+  endif()
 endif()
 
 # Current caffe quick hacks
