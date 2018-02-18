@@ -144,7 +144,9 @@ ExternalProject_Add(fletch
     -Dfletch_FORCE_CUDA_CSTD98:BOOL=${VIAME_FORCE_CUDA_CSTD98}
 
     -Dfletch_ENABLE_PostgreSQL:BOOL=${VIAME_ENABLE_SMQTK}
+
     -Dfletch_ENABLE_pybind11:BOOL=${VIAME_ENABLE_PYTHON}
+    -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
     # Set fletch install path to be viame install path
     -Dfletch_ENABLE_GTest:PATH=${VIAME_BUILD_TESTS}
@@ -210,6 +212,16 @@ if( VIAME_ENABLE_VIVIA )
      ${VIAME_ARGS_VTK}
     -DVTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VTK-build
     )
+  set(VIAME_ARGS_PROJ4
+     ${VIAME_ARGS_PROJ4}
+    -DPROJ4_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/install/include
+    )
+  if( WIN32 )
+    set(VIAME_ARGS_PROJ4
+       ${VIAME_ARGS_PROJ4}
+      -DPROJ4_LIBRARY:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/proj_4_9.lib
+      )
+  endif()
 endif()
 
 if( VIAME_ENABLE_VXL )

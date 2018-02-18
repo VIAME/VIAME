@@ -26,12 +26,13 @@ ExternalProject_Add(vivia
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/vivia
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_burnout}
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
+    ${VIAME_ARGS_PROJ4}
     ${VIAME_ARGS_VTK}
     ${VIAME_ARGS_VXL_INSTALL}
 
