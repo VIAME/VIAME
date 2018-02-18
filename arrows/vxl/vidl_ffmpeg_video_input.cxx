@@ -70,8 +70,10 @@ public:
   priv()
     : c_start_at_frame( 0 ),
       c_stop_after_frame( 0 ),
+      c_frame_skip( 1 ),
       c_time_source( "none" ), // initialization string
       c_time_scan_frame_limit( 100 ),
+      c_use_metadata( true ),
       d_have_frame( false ),
       d_at_eov( false ),
       d_frame_advanced( false ),
@@ -94,9 +96,15 @@ public:
   // Configuration values
   unsigned int c_start_at_frame;
   unsigned int c_stop_after_frame;
+  unsigned int c_frame_skip;
   std::string  c_time_source; // default sources string
   std::vector< std::string >  c_time_source_list;
   int c_time_scan_frame_limit; // number of frames to scan looking for time
+
+  /**
+   * If this is set then we ignore any metadata included in the video stream.
+   */
+  bool c_use_metadata;
 
   // local state
   bool d_have_frame;
@@ -419,7 +427,8 @@ public:
   void push_metadata_to_map(vital::timestamp::frame_t fn)
   {
     if (fn >= c_start_at_frame &&
-        (c_stop_after_frame == 0 || fn < c_stop_after_frame))
+        (c_stop_after_frame == 0 || fn < c_stop_after_frame) &&
+        c_use_metadata)
     {
       metadata_collection.clear();
       auto curr_md = d_video_stream.current_metadata();
@@ -460,7 +469,7 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        while ( d_video_stream.advance() )
+        while ( d_video_stream.advance())
         {
           d_num_frames++;
           push_metadata_to_map(d_num_frames);
@@ -526,6 +535,14 @@ vidl_ffmpeg_video_input
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
                      "Number of frames to supply. If set to zero then supply all frames after start frame." );
 
+  config->set_value( "output_nth_frame", d->c_frame_skip,
+                     "Only outputs every nth frame of the video starting at the first frame. The output "
+                     "of num_frames still reports the total frames in the video but skip_frame is valid "
+                     "every nth frame only and there are metadata_map entries for only every nth frame.");
+
+  config->set_value( "use_metadata", d->c_use_metadata,
+                     "Whether to use any metadata provided by the for video stream." );
+
   config->set_value( "absolute_time_source", d->c_time_source,
                      "List of sources for absolute frame time information. "
                      "This entry specifies a comma separated list of sources that are "
@@ -565,6 +582,9 @@ vidl_ffmpeg_video_input
 
   d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
     "stop_after_frame", d->c_stop_after_frame );
+
+  d->c_frame_skip = config->get_value<vital::timestamp::frame_t>(
+    "output_nth_frame", d->c_frame_skip );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
             d->c_time_source_list, " ,", true );
@@ -759,10 +779,13 @@ vidl_ffmpeg_video_input
   }
   else
   {
-    if( ! d->d_video_stream.advance() )
+    for (unsigned int i = 0; i < d->c_frame_skip; i++)
     {
-      d->d_at_eov = true;
-      return false;
+      if( ! d->d_video_stream.advance() )
+      {
+        d->d_at_eov = true;
+        return false;
+      }
     }
   }
 
@@ -792,6 +815,12 @@ vidl_ffmpeg_video_input
 
   // negative or zero frame number not allowed
   if ( frame_number <= 0 )
+  {
+    return false;
+  }
+
+  // Check if requested frame would have been skipped
+  if ( ( frame_number - 1 )%d->c_frame_skip != 0 )
   {
     return false;
   }
