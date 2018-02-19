@@ -40,6 +40,10 @@ Vital
     temporary object.  (In particular, this was causing several VXL arrow tests
     to fail.)
 
+ * The conversion from 0601 KLV to vital metadata was missing a case for
+   "Outside Air Temperature".  When this field was encountered an exception was
+   thrown.  The correct conversion has been added.
+
 Sprokit
 
  * Previously the Python path used in Sprokit Python tests was incorrect due to
