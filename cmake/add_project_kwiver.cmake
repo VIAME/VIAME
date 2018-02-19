@@ -85,14 +85,7 @@ ExternalProject_Add(kwiver
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(kwiver forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+VIAME_ExternalProject_Add_Step_Forcebuild(kwiver)
 
 set(VIAME_ARGS_kwiver
   -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build

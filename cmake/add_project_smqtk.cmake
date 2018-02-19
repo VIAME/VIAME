@@ -56,14 +56,7 @@ ExternalProject_Add_Step(smqtk installpy
   DEPENDEES build
   )
 
-ExternalProject_Add_Step(smqtk forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/smqtk-stamp/smqtk-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+VIAME_ExternalProject_Add_Step_Forcebuild(smqtk)
 
 set(VIAME_ARGS_smqtk
   -Dsmqtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/smqtk-build

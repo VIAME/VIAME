@@ -8,6 +8,7 @@ project( VIAME )
 
 include( CMakeDependentOption )
 
+
 ###
 # Add paths used throughout CMakeLists files
 ##
@@ -264,6 +265,62 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   # Specifies internal arguments passed to all projects (CXX flag passdowns, etc)
   include( common_args )
+
+  # -----------
+
+  ###
+  # Prevent make from recompiling specific packages.
+  # For developer convinience only, do not use.
+  # Turning any of these off may make rebuild faster, but the build will fail
+  # (posibly silently) if any changes are made to those packages
+  ##
+  #set (VIAME_FORCEBUILD_KWIVER True)
+  #set (VIAME_FORCEBUILD_KWANT True)
+  #set (VIAME_FORCEBUILD_FLETCH True)
+  #set (VIAME_FORCEBUILD_BURNOUT True)
+  #set (VIAME_FORCEBUILD_SMQTK True)
+  #set (VIAME_FORCEBUILD_SCALLOP_TK True)
+  #set (VIAME_FORCEBUILD_VIAME True)
+  #set (VIAME_FORCEBUILD_VIVA True)
+  set (_viame_external_projects
+    burnout
+    darknet
+    fletch
+    kwant
+    kwiver
+    py-faster-rcnn
+    scallop_tk
+    smqtk
+    viame
+    vivia
+    )
+  foreach (target_name ${_viame_external_projects})
+    string(TOUPPER "${target_name}" target_name_upper)
+    set (_forcebuild_varname "VIAME_FORCEBUILD_${target_name_upper}")
+    set (_forcebuild_value ${${_forcebuild_varname}})
+
+    set(_give_forcebuild_option True)
+
+    if ("${target_name}" STREQUAL "viame")
+      # always force build viame dont give any option
+      set (_give_forcebuild_option False)
+    elseif ("${target_name}" STREQUAL "fletch")
+      # fletch is always enabled
+      set (_give_forcebuild_option True)
+    elseif ("${target_name}" STREQUAL "darknet")
+      set (_give_forcebuild_option ${VIAME_ENABLE_YOLO})  # name alias
+    elseif ("${target_name}" STREQUAL "py-faster-rcnn")
+      set (_give_forcebuild_option ${VIAME_ENABLE_FASTER_RCNN})  # name alias
+    else()
+      set (_give_forcebuild_option ${VIAME_ENABLE_${target_name_upper}})
+    endif()
+
+    if (_give_forcebuild_option)
+      option(${_forcebuild_varname} "always force this build" True)
+      mark_as_advanced(${_forcebuild_varname})
+    endif()
+  endforeach()
+
 
   # Hard VIAME requirements
   include( add_project_fletch )
