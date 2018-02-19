@@ -1,5 +1,6 @@
+
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +29,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief test VXL bouding_box functionality
- */
+#ifndef __ARROWS_DATATBASE_DESCRIPTOR_DB_H__
+#define __ARROWS_DATATBASE_DESCRIPTOR_DB_H__
 
-#include <arrows/vxl/bounding_box.h>
+#include <arrows/database/kwiver_algo_database_export.h>
+#include <arrows/database/connection/db_connection.h>
 
-#include <gtest/gtest.h>
+#include <vital/types/descriptor.h>
+#include <vital/types/descriptor_set.h>
 
-// ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+#include <cppdb/frontend.h>
+
+#include <string>
+
+namespace kwiver {
+namespace arrows {
+namespace database {
+
+class KWIVER_ALGO_DATABASE_EXPORT descriptor_db
 {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
-}
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_bb2vgl)
-{
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
+public:
 
-  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
-  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
-  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
-  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
-}
+  descriptor_db( std::string conn_str );
+  virtual ~descriptor_db();
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_vgl2bb)
-{
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
+  bool add_descriptor( kwiver::vital::descriptor_sptr const desc );
+  bool add_descriptor_set( kwiver::vital::descriptor_set_sptr const desc_set );
+  kwiver::vital::descriptor_sptr get_descriptor( );
 
-  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
-  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
-  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
-  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
-}
+private:
+
+  cppdb::session db_conn_;
+  std::string connect_string_;
+
+  //db_connection db_conn_;
+
+}; // class descriptor_db
+
+} } } // end namespace
+
+#endif // __ARROWS_DATATBASE_DESCRIPTOR_DB_H__

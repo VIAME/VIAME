@@ -1,5 +1,6 @@
+
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +29,66 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief test VXL bouding_box functionality
- */
+#include "db_connection.h"
 
-#include <arrows/vxl/bounding_box.h>
 
-#include <gtest/gtest.h>
+namespace kwiver {
+namespace arrows {
+namespace database {
 
-// ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+class db_connection::priv
 {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
+public:
+
+  /// Constructor
+  priv()
+    : connect_string_(""),
+      is_connected_(false)
+  {
+  }
+  std::string connect_string_;
+  bool is_connected_;
+  cppdb::session raw_connection_;
+
+};
+
+db_connection::db_connection(std::string conn_str)
+  : d_(new priv)
+{
+
+  /* kwiver connection string is of the following format
+     host=db_host;user=db_user;password=db_pass;dbname=db_name;port=db_port
+   */
+  d_->connect_string_ += ( "postgresql:" );
+#ifdef MODULE_PATH
+  d_->connect_string_ += "@modules_path="  MODULE_PATH;
+#endif
+  d_->connect_string_ += ( ";@blob=bytea");
+  d_->connect_string_ += ";" + conn_str;
 }
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_bb2vgl)
+db_connection::~db_connection()
 {
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
 
-  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
-  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
-  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
-  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
 }
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_vgl2bb)
+bool db_connection::connect()
 {
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
-
-  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
-  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
-  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
-  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
+  d_->raw_connection_.open( d_->connect_string_ );
+  d_->is_connected_ = true;
+  return d_->is_connected_;
 }
+
+void db_connection::close_connection()
+{
+  d_->raw_connection_.close();
+  d_->is_connected_ = false;
+}
+
+bool db_connection::is_connected()
+{
+  return d_->is_connected_;
+}
+
+
+} } } // end namespace

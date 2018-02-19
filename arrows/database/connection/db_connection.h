@@ -1,5 +1,6 @@
+
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +29,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief test VXL bouding_box functionality
- */
+#ifndef __ARROWS_DATATBASE_CONNECTION_H__
+#define __ARROWS_DATABASE_CONNECTION_H__
 
-#include <arrows/vxl/bounding_box.h>
+#include <string>
+#include <arrows/database/kwiver_algo_database_export.h>
 
-#include <gtest/gtest.h>
+#include <cppdb/frontend.h>
 
-// ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+namespace kwiver {
+namespace arrows {
+namespace database {
+
+class KWIVER_ALGO_DATABASE_EXPORT db_connection
 {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
-}
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_bb2vgl)
-{
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
+public:
 
-  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
-  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
-  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
-  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
-}
+  db_connection(std::string conn_str);
+  virtual ~db_connection();
+  virtual bool connect();
+  virtual void close_connection();
+  virtual bool is_connected();
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_vgl2bb)
-{
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
+private:
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
+};
 
-  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
-  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
-  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
-  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
-}
+} } } // end namespace
+
+#endif // __ARROWS_DATABASE_CONNECTION_H__
