@@ -4,6 +4,7 @@ set(python_util_srcs
   python_exceptions.cxx)
 
 set(python_util_headers
+  pybind11.h
   python_exceptions.h
   python.h)
 

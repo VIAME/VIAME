@@ -33,6 +33,7 @@
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/export_dot_exception.h>
 
+#include <sprokit/python/util/pybind11.h>
 #include <sprokit/python/util/pystream.h>
 
 #include <pybind11/pybind11.h>
@@ -51,7 +52,7 @@ void export_dot(object const& stream, sprokit::pipeline_t const pipe, std::strin
 
 PYBIND11_MODULE(export_, m)
 {
-  m.def("export_dot", &export_dot, call_guard<gil_scoped_release>()
+  m.def("export_dot", &export_dot, call_guard<sprokit::python::gil_scoped_release>()
     , arg("stream"), arg("pipeline"), arg("name")
     , "Writes the pipeline to the stream in dot format.");
 }

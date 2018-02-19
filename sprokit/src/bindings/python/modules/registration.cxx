@@ -40,6 +40,7 @@
 #endif
 
 #include <sprokit/pipeline/utils.h>
+#include <sprokit/python/util/pybind11.h>
 #include <sprokit/python/util/python_exceptions.h>
 #include <sprokit/python/util/python.h>
 
@@ -108,8 +109,7 @@ register_factories(kwiver::vital::plugin_loader& vpm)
   {
     {
       // Let pybind11 initialize threads and set up its internal data structures
-      pybind11::gil_scoped_acquire acquire;
-      (void)acquire;
+      pybind11::detail::get_internals();
     }
     // Release the GIL
     PyEval_SaveThread();
@@ -118,7 +118,7 @@ register_factories(kwiver::vital::plugin_loader& vpm)
   _load_python_library_symbols();
 
   {
-    pybind11::gil_scoped_acquire acquire;
+    sprokit::python::gil_scoped_acquire acquire;
     (void)acquire;
     SPROKIT_PYTHON_IGNORE_EXCEPTION(load())
   }
