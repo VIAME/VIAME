@@ -36,12 +36,32 @@ namespace py = pybind11;
 
 typedef kwiver::vital::detected_object det_obj;
 
+// We want to be able to add a mask in the python constructor
+// so we need a pass-through cstor
+std::shared_ptr<det_obj>
+new_detected_object(kwiver::vital::bounding_box<double> bbox,
+                    double conf,
+                    kwiver::vital::detected_object_type_sptr type,
+                    kwiver::vital::image_container_sptr mask)
+{
+  std::shared_ptr<det_obj> new_obj(new det_obj(bbox, conf, type));
+
+  if(mask)
+  {
+    new_obj->set_mask(mask);
+  }
+
+  return new_obj;
+}
+
 PYBIND11_MODULE(detected_object, m)
 {
 
   py::class_<det_obj, std::shared_ptr<det_obj>>(m, "DetectedObject")
-  .def(py::init<kwiver::vital::bounding_box<double>, double, kwiver::vital::detected_object_type_sptr>(),
-    py::arg("bbox"), py::arg("confidence")=1.0, py::arg("classifications")=kwiver::vital::detected_object_type_sptr())
+  .def(py::init(&new_detected_object),
+    py::arg("bbox"), py::arg("confidence")=1.0,
+    py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
+    py::arg("mask")=kwiver::vital::image_container_sptr())
   .def("bounding_box", &det_obj::bounding_box)
   .def("set_bounding_box", &det_obj::set_bounding_box,
     py::arg("bbox"))
@@ -51,5 +71,6 @@ PYBIND11_MODULE(detected_object, m)
   .def("type", &det_obj::type)
   .def("set_type", &det_obj::set_type,
     py::arg("c"))
+  .def_property("mask", &det_obj::mask, &det_obj::set_mask)
   ;
 }

@@ -166,13 +166,13 @@ sprokit_create_python_init(vital/types
   descriptor
   descriptor_set
   detected_object_type
+  image
+  image_container
   detected_object
   detected_object_set
   eigen
   feature
   homography
-  image
-  image_container
   landmark
   rotation
   similarity
