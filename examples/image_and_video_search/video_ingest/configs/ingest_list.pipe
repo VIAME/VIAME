@@ -12,20 +12,19 @@ config _scheduler
    :type                                       pythread_per_process
 
 config global
-   :input_filename                             input.mpg
-   :output_basename                            input
+   :input_filename                             input_list.txt
    :output_folder                              database
+   :output_basename                            output
+   :output_detection_file                      database/output_detections.kw18
+   :output_track_file                          database/output_tracks.kw18
+   :output_descriptor_file                     database/output_descriptors.csv
 
-   :output_detection_file          database/$CONFIG{global:basename}_detections.kw18
-   :output_track_file              database/$CONFIG{global:basename}_tracks.kw18
-   :output_descriptor_file         database/$CONFIG{global:basename}_descriptors.csv
-
-# ================================== VIDEO INPUT ===================================
+# =============================== INPUT FRAME LIST =================================
 process input
-  :: video_input
+  :: frame_list_input
   :image_list_file                             $CONFIG{global:input_filename}
-  :frame_time                                  0.033
-  :video_reader:type                           vxl
+  :frame_time                                  0.50
+  :image_reader:type                           vxl
 
 # =================================== DETECTOR =====================================
 

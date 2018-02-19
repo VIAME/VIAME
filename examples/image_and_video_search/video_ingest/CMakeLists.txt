@@ -5,10 +5,12 @@
 set( EXAMPLE_INSTALL_FILES
      input_list.txt
      build_index.sh
-     db_tool.sh
-     ingest_video.sh
-     launch_query_gui.sh
-     launch_track_viewer.sh
+     db_tool.py
+     ingest_list.sh
+     ingest_video.py
+     launch_query_gui.py
+     launch_track_viewer.py
+     launch_annotator.py
      view_tracks.prj
      view_detections.prj )
 

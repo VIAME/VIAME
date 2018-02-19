@@ -6,4 +6,4 @@ source ../../../setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p configs/ingest_video.pipe
+pipeline_runner -p configs/ingest_list.pipe
