@@ -51,6 +51,7 @@
 #include <iterator>
 #include <memory>
 #include <map>
+#include <algorithm>
 
 
 /*
@@ -430,6 +431,11 @@ void load_explorer_plugins( const std::string& path )
     p.append( "/plugin_explorer" );
   }
 
+  // Remove duplicates
+  std::sort( pathl.begin(), pathl.end() );
+  pathl.erase(std::unique( pathl.begin(), pathl.end()), pathl.end() );
+
+  // Load plugins
   pl.load_plugins( pathl );
 
   auto fact_list = pl.get_factories( typeid( kwiver::vital::category_explorer ).name() );

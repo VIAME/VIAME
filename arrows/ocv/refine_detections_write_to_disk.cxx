@@ -141,9 +141,15 @@ refine_detections_write_to_disk
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image(),
+    kwiver::arrows::ocv::image_container::BGR );
 
-  for( auto det : *detections->select() )
+  if( !detections )
+  {
+    return detections;
+  }
+
+  for( auto det : *detections )
   {
     // Generate output filename
     std::string ofn;

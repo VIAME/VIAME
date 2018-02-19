@@ -37,6 +37,11 @@
 
 namespace py=pybind11;
 
+// TODO
+// We don't actually need all this extra crap, I wrote this class
+// when trying to figure out how to deal with templates in pybind11
+// Use one of the other (better!) bindings as a guide to redo.
+// When we redo this, make sure to update feature_track_state to match
 class PyFeatureBase
 {
   public:
@@ -62,6 +67,8 @@ class PyFeatureBase
 
     virtual kwiver::vital::rgb_color get_color() {return kwiver::vital::rgb_color();};
     virtual void set_color(kwiver::vital::rgb_color) {};
+
+    virtual kwiver::vital::feature_sptr get_feature() = 0;
 };
 
 class PyFeatureD
@@ -117,6 +124,8 @@ class PyFeatureD
 
     kwiver::vital::rgb_color get_color() { return feature.get_color(); };
     void set_color(kwiver::vital::rgb_color color) { feature.set_color(color); };
+
+    kwiver::vital::feature_sptr get_feature() {return kwiver::vital::feature_sptr(&feature);};
 };
 
 class PyFeatureF
@@ -173,6 +182,8 @@ class PyFeatureF
 
     kwiver::vital::rgb_color get_color() { return feature.get_color(); };
     void set_color(kwiver::vital::rgb_color color) { feature.set_color(color); };
+
+    kwiver::vital::feature_sptr get_feature() {return kwiver::vital::feature_sptr(&feature);};
 };
 
 std::shared_ptr<PyFeatureBase>

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,6 +96,7 @@ detected_object_set_input
 
   m_stream = file;
   m_stream_owned = true;
+  m_filename = filename;
 
   new_stream();
 }
@@ -150,6 +151,16 @@ detected_object_set_input
 {
   return *m_stream;
 }
+
+
+// ------------------------------------------------------------------
+std::string const&
+detected_object_set_input
+::filename()
+{
+  return m_filename;
+}
+
 
 
 // ------------------------------------------------------------------

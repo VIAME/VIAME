@@ -41,7 +41,7 @@ import nose.tools
 from six.moves import range
 import numpy
 
-from vital.types import Descriptor
+from vital.types import new_descriptor
 
 
 class TestDescriptor (unittest.TestCase):
@@ -51,14 +51,14 @@ class TestDescriptor (unittest.TestCase):
         random.seed(0)
         for i in range(100):
             n = random.randint(1, 4096)
-            Descriptor(n, 'd')
-            Descriptor(n, 'f')
+            new_descriptor(n, 'd')
+            new_descriptor(n, 'f')
 
     def test_new_invalid_size(self):
         # Check that we need to pass an integer size.
         nose.tools.assert_raises(
             TypeError,
-            Descriptor, 42.3
+            new_descriptor, 42.3
         )
 
     def test_size(self):
@@ -66,7 +66,7 @@ class TestDescriptor (unittest.TestCase):
         random.seed(0)
         for i in range(100):
             n = random.randint(1, 4096)
-            nose.tools.assert_equal(Descriptor(n).size, n)
+            nose.tools.assert_equal(new_descriptor(n).size, n)
 
     def test_num_bytes(self):
         # While not calling the C function, it should still be a correct value
@@ -76,16 +76,16 @@ class TestDescriptor (unittest.TestCase):
             print(n, end=' ')
 
             nose.tools.assert_equal(
-                Descriptor(n, 'd').nbytes,
+                new_descriptor(n, 'd').nbytes,
                 8 * n
             )
             nose.tools.assert_equal(
-                Descriptor(n, 'f').nbytes,
+                new_descriptor(n, 'f').nbytes,
                 4 * n
             )
 
     def test_raw_data(self):
-        d = Descriptor(64)
+        d = new_descriptor(64)
         d[:] = 1
         nose.tools.assert_equal(d.sum(), 64)
 
@@ -97,7 +97,7 @@ class TestDescriptor (unittest.TestCase):
     def test_tobytearray(self):
         # Expect 0-valued descriptor to have 0-valued byte array of the
         # appropriate size
-        d = Descriptor(64)
+        d = new_descriptor(64)
         d[:] = 0
         b = d.tobytearray()
         nose.tools.assert_equal(len(b), d.nbytes)

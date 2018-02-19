@@ -165,15 +165,19 @@ class KwiverProcess(process.PythonProcess):
                             datum.Datum.get_track_set,
                             datum.new_track_set)
         self.add_type_trait("feature_track_set", "kwiver:feature_track_set",
-                            datum.Datum.get_track_set,
-                            datum.new_track_set)
+                            datum.Datum.get_feature_track_set,
+                            datum.new_feature_track_set)
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
-                            datum.Datum.get_track_set,
-                            datum.new_track_set)
+                            datum.Datum.get_object_track_set,
+                            datum.new_object_track_set)
+
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
-        self.add_type_trait("image_file_name", "kwiver:image_file_name")
+        self.add_type_trait("image_file_name", "kwiver:image_file_name",
+                            datum.Datum.get_string,
+                            datum.new_string)
         self.add_type_trait("video_file_name", "kwiver:video_file_name")
+        self.add_type_trait("matrix_d", "kwiver:matrix_d")
 
         self.add_type_trait("double_vector", "kwiver:d_vector",
                             datum.Datum.get_double_vector,
@@ -181,6 +185,9 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("string_vector", "kwiver:string_vector",
                             datum.Datum.get_string_vector,
                             datum.new_string_vector)
+        self.add_type_trait("uchar_vector", "kwiver:uchar_vector",
+                            datum.Datum.get_uchar_vector,
+                            datum.new_uchar_vector)
 
         #                   port-name    type-trait-name    description
         self.add_port_trait("timestamp", "timestamp",
@@ -206,6 +213,10 @@ class KwiverProcess(process.PythonProcess):
                             "a video.")
         self.add_port_trait("video_file_name", "video_file_name",
                             "Name of video file.")
+        self.add_port_trait("matrix_d", "matrix_d",
+                            "2-dimensional double matrix.")
+        self.add_port_trait("string_vector", "string_vector",
+                            "Vector of strings.")
 
     def add_type_trait(self, ttn, tn, conv_in=None, conv_out=None):
         """
@@ -294,7 +305,7 @@ class KwiverProcess(process.PythonProcess):
         function. If there is no converter regietered, then the raw datum is
         returned.
 
-        This call is used to return managed types such as image_container, 
+        This call is used to return managed types such as image_container,
         track_set.
 
         The raw datum contains the port data and other metadata.
@@ -362,12 +373,12 @@ class KwiverProcess(process.PythonProcess):
         :param ptn: port trait name
         :param val: value to put on port
 
-        If the trait has a converter function, the supplied value will be 
+        If the trait has a converter function, the supplied value will be
         converted by that function to a datum which will be pushed to the port.
 
-        If no converter is associated with the trait, the raw value supplied 
-        will be pushed to the port. If the value is already a datum, then all is 
-        well. If it is some other data type, such as a fundamental type, it will 
+        If no converter is associated with the trait, the raw value supplied
+        will be pushed to the port. If the value is already a datum, then all is
+        well. If it is some other data type, such as a fundamental type, it will
         be automatically be converted to a datum.
 
         """

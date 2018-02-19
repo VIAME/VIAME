@@ -90,8 +90,10 @@ set( vital_public_headers
   types/camera.h
   types/camera_intrinsics.h
   types/camera_map.h
+  types/category_hierarchy.h
   types/color.h
   types/covariance.h
+  types/database_query.h
   types/descriptor.h
   types/descriptor_set.h
   types/descriptor_request.h
@@ -114,6 +116,7 @@ set( vital_public_headers
   types/homography_f2w.h
   types/image.h
   types/image_container.h
+  types/iqr_feedback.h
   types/landmark.h
   types/landmark_map.h
   types/match_set.h
@@ -125,7 +128,8 @@ set( vital_public_headers
   types/metadata_tags.h
   types/object_track_set.h
   types/polygon.h
-  types/query_plan.h
+  types/query_result.h
+  types/query_result_set.h
   types/rotation.h
   types/similarity.h
   types/timestamp.h
@@ -136,7 +140,6 @@ set( vital_public_headers
   types/track_descriptor_set.h
   types/vector.h
   types/uid.h
-
 )
 
 # ----------------------
@@ -163,6 +166,8 @@ set( vital_sources
   types/bounding_box.cxx
   types/camera.cxx
   types/camera_intrinsics.cxx
+  types/category_hierarchy.cxx
+  types/database_query.cxx
   types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
@@ -179,13 +184,14 @@ set( vital_sources
   types/homography_f2f.cxx
   types/homography_f2w.cxx
   types/image.cxx
+  types/iqr_feedback.cxx
   types/landmark.cxx
   types/mesh.cxx
   types/metadata.cxx
   types/metadata_traits.cxx
   types/object_track_set.cxx
   types/polygon.cxx
-  types/query_plan.cxx
+  types/query_result.cxx
   types/rotation.cxx
   types/similarity.cxx
   types/timestamp.cxx
