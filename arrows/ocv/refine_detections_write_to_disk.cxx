@@ -141,7 +141,13 @@ refine_detections_write_to_disk
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image(),
+    kwiver::arrows::ocv::image_container::BGR );
+
+  if( !detections )
+  {
+    return detections;
+  }
 
   for( auto det : *detections )
   {
@@ -170,11 +176,7 @@ refine_detections_write_to_disk
       bbox.width(), bbox.height() );
 
     cv::Mat crop = img( r );
-    cv::Mat output;
-
-    cv::cvtColor( crop, output, cv::COLOR_BGR2RGB);
-
-    cv::imwrite( ofn, output );
+    cv::imwrite( ofn, crop );
   }
 
   return detections;

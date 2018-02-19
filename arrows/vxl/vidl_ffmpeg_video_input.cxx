@@ -437,7 +437,7 @@ vidl_ffmpeg_video_input
     "stop_after_frame", d->c_stop_after_frame );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
-            d->c_time_source_list, " ,", true );
+            d->c_time_source_list, " ,", kwiver::vital::TokenizeTrimEmpty );
 }
 
 
@@ -452,7 +452,7 @@ vidl_ffmpeg_video_input
   bool valid_src( true );
   std::vector< std::string > time_source;
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
-            time_source, " ,", true );
+            time_source, " ,", kwiver::vital::TokenizeTrimEmpty );
 
   for( auto source : time_source )
   {

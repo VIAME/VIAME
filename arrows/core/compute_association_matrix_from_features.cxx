@@ -232,7 +232,6 @@ compute_association_matrix_from_features
     }
   }
 
-  considered = detections;
   return ( matrix.size() > 0 );
 }
 

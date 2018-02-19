@@ -116,7 +116,7 @@ class ApplyDescriptor(KwiverProcess):
 
 
             # convert generic image to PIL image
-            pil_image = get_pil_image()
+            pil_image = get_pil_image(in_img)
             pix = np.array(pil_image)
 
             # get image in acceptable format

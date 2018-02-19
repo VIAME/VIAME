@@ -30,8 +30,6 @@
 
 #include "detected_object_set_output_kpf.h"
 
-#include <vital/util/tokenize.h>
-
 #include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
 #include <arrows/kpf/yaml/kpf_yaml_writer.h>
 
@@ -88,7 +86,7 @@ detected_object_set_output_kpf()
 detected_object_set_output_kpf::
 ~detected_object_set_output_kpf()
 {
-  
+
 }
 
 

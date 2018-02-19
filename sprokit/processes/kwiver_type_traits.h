@@ -70,6 +70,8 @@ namespace vital {
   typedef std::shared_ptr< double_vector > double_vector_sptr;
   typedef std::vector< std::string > string_vector;
   typedef std::shared_ptr< string_vector > string_vector_sptr;
+  typedef std::vector< unsigned char > uchar_vector;
+  typedef std::shared_ptr< uchar_vector > uchar_vector_sptr;
 
 } }
 
@@ -98,6 +100,7 @@ create_type_trait( track_set, "kwiver:track_set", kwiver::vital::track_set_sptr 
 create_type_trait( feature_track_set, "kwiver:feature_track_set", kwiver::vital::feature_track_set_sptr );
 create_type_trait( object_track_set, "kwiver:object_track_set", kwiver::vital::object_track_set_sptr );
 create_type_trait( double_vector,  "kwiver:d_vector", kwiver::vital::double_vector_sptr );
+create_type_trait( uchar_vector,  "kwiver:uchar_vector", kwiver::vital::uchar_vector_sptr );
 create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vital::detected_object_set_sptr );
 create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::vital::track_descriptor_set_sptr );
 create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );

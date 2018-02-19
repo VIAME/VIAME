@@ -216,7 +216,7 @@ read_all()
   while ( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, " ", true );
+    kwiver::vital::tokenize( line, col, " ", kwiver::vital::TokenizeTrimEmpty );
 
     if ( ( col.size() < 18 ) || ( col.size() > 20 ) )
     {

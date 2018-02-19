@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,9 +60,9 @@ static kwiver::vital::config_block_sptr default_config()
   kwiver::vital::config_block_sptr config =
     kwiver::vital::config_block::empty_config( "dump_klv_tool" );
 
-  config->set_value( "video_reader:type", "vxl",
+  config->set_value( "video_reader:type", "vidl_ffmpeg",
                      "Implementation for video reader." );
-  config->set_value( "video_reader:vxl:time_source",  "misp",
+  config->set_value( "video_reader:vidl_ffmpeg:time_source",  "misp",
                      "Time source for reader." );
 
   kwiver::vital::algo::video_input::get_nested_algo_configuration(

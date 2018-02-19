@@ -18,12 +18,12 @@ set( track_filter_kpf_activity_sources
 
 kwiver_install_headers(
   ${track_filter_kpf_activity_public_headers}
-  SUBDIR     track_oracle/track_filter_kpf_activity
+  SUBDIR     track_oracle/file_formats/track_filter_kpf_activity
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_filter_kpf_activity_export.h
-  NOPATH SUBDIR     track_oracle/track_filter_kpf_activity
+  NOPATH SUBDIR     track_oracle/file_formats/track_filter_kpf_activity
 )
 
 kwiver_add_library( track_filter_kpf_activity

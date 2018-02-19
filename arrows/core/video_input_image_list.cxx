@@ -131,7 +131,7 @@ video_input_image_list
 
   // Extract string and create vector of directories
   std::string path = config->get_value<std::string>( "path", "" );
-  kwiver::vital::tokenize( path, d->c_search_path, ":", true );
+  kwiver::vital::tokenize( path, d->c_search_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->c_search_path.push_back( "." ); // add current directory
 
   // Setup actual reader algorithm

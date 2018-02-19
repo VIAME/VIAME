@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@
 #include <vital/algo/read_object_track_set.h>
 #include <vital/algo/read_track_descriptor_set.h>
 
+#include <sprokit/processes/adapters/embedded_pipeline.h>
+
 #include <boost/filesystem.hpp>
 
 #include <tuple>
@@ -44,25 +46,12 @@
 namespace kwiver
 {
 
-#define DUMMY_OUTPUT 1
-
 namespace algo = vital::algo;
-
-create_port_trait( external_descriptor_set, descriptor_set,
-  "Descriptor set to be processed by external query handler" );
-create_port_trait( external_exemplar_uids, string_vector,
-  "Descriptor set UIDs to be processed by external query handler" );
-create_port_trait( external_positive_uids, string_vector,
-  "Descriptor set positive IQR exemplars" );
-create_port_trait( external_negative_uids, string_vector,
-  "Descriptor set negative IQR exemplars" );
-create_port_trait( result_descriptor_uids, string_vector,
-  "Descriptor set response from external query handler" );
-create_port_trait( result_descriptor_scores, double_vector,
-  "Descriptor set scores from external query handler" );
 
 create_config_trait( external_handler, bool,
   "true", "Whether or not an external query handler is used" );
+create_config_trait( external_pipeline_file, std::string,
+  "", "External pipeline definition file location" );
 create_config_trait( database_folder, std::string,
   "", "Folder containing all track and descriptor files" );
 create_config_trait( max_result_count, unsigned,
@@ -85,11 +74,14 @@ public:
   perform_query_process* parent;
 
   bool external_handler;
+  std::string external_pipeline_file;
   std::string database_folder;
 
   std::string track_postfix;
   std::string descriptor_postfix;
   std::string index_postfix;
+
+  std::unique_ptr< embedded_pipeline > external_pipeline;
 
   unsigned max_result_count;
 
@@ -130,9 +122,6 @@ perform_query_process
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
 
-  // Required for external feedback loop
-  set_data_checking_level( check_none );
-
   make_ports();
   make_config();
 }
@@ -141,6 +130,13 @@ perform_query_process
 perform_query_process
 ::~perform_query_process()
 {
+  if( d->external_pipeline )
+  {
+    d->external_pipeline->send_end_of_input();
+    d->external_pipeline->receive();
+    d->external_pipeline->wait();
+    d->external_pipeline.reset();
+  }
 }
 
 
@@ -151,6 +147,7 @@ void perform_query_process
   vital::config_block_sptr algo_config = get_config();
 
   d->external_handler = config_value_using_trait( external_handler );
+  d->external_pipeline_file = config_value_using_trait( external_pipeline_file );
   d->database_folder = config_value_using_trait( database_folder );
   d->max_result_count = config_value_using_trait( max_result_count );
   d->track_postfix = config_value_using_trait( track_postfix );
@@ -203,6 +200,43 @@ void perform_query_process
 // -----------------------------------------------------------------------------
 void
 perform_query_process
+::_init()
+{
+  auto dir = boost::filesystem::path( d->external_pipeline_file ).parent_path();
+
+  if( d->external_handler && !d->external_pipeline_file.empty() )
+  {
+    std::unique_ptr< embedded_pipeline > new_pipeline =
+      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
+
+    std::ifstream pipe_stream;
+    pipe_stream.open( d->external_pipeline_file, std::ifstream::in );
+
+    if( !pipe_stream )
+    {
+      throw sprokit::invalid_configuration_exception(
+        name(), "Unable to open pipeline file: " + d->external_pipeline_file );
+    }
+
+    try
+    {
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
+      new_pipeline->start();
+    }
+    catch( const std::exception& e )
+    {
+      throw sprokit::invalid_configuration_exception( name(), e.what() );
+    }
+
+    d->external_pipeline = std::move( new_pipeline );
+    pipe_stream.close();
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+void
+perform_query_process
 ::_step()
 {
   // Check for termination since we are in manual mode
@@ -217,15 +251,6 @@ perform_query_process
     const sprokit::datum_t dat = sprokit::datum::complete_datum();
 
     push_datum_to_port_using_trait( query_result, dat );
-
-    if( d->external_handler )
-    {
-      push_datum_to_port_using_trait( external_descriptor_set, dat );
-      push_datum_to_port_using_trait( external_exemplar_uids, dat );
-      push_datum_to_port_using_trait( external_positive_uids, dat );
-      push_datum_to_port_using_trait( external_negative_uids, dat );
-    }
-
     return;
   }
 
@@ -311,27 +336,49 @@ perform_query_process
 
     vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
 
-    for( auto track_desc : *query->descriptors() )
+    if( query )
     {
-      exemplar_uids->push_back( track_desc->get_uid().value() );
-      exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+      for( auto track_desc : *query->descriptors() )
+      {
+        exemplar_uids->push_back( track_desc->get_uid().value() );
+        exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+      }
     }
 
     vital::descriptor_set_sptr exemplar_descs(
       new vital::simple_descriptor_set( exemplar_raw_descs ) );
 
-    vital::string_vector_sptr result_uids;
-    vital::double_vector_sptr result_scores;
+    // Set request on pipeline inputs
+    auto ids = adapter::adapter_data_set::create();
 
-    // Send data to external process
-    push_to_port_using_trait( external_descriptor_set, exemplar_descs );
-    push_to_port_using_trait( external_exemplar_uids, exemplar_uids );
-    push_to_port_using_trait( external_positive_uids, positive_uids );
-    push_to_port_using_trait( external_negative_uids, negative_uids );
+    ids->add_value( "descriptor_set", exemplar_descs );
+    ids->add_value( "exemplar_uids", exemplar_uids );
+    ids->add_value( "positive_uids", positive_uids );
+    ids->add_value( "negative_uids", negative_uids );
 
-    // Receive data from external process (halts until finished)
-    result_uids = grab_from_port_using_trait( result_descriptor_uids );
-    result_scores = grab_from_port_using_trait( result_descriptor_scores );
+    // Send the request through the pipeline and wait for a result
+    d->external_pipeline->send( ids );
+
+    auto const& ods = d->external_pipeline->receive();
+
+    if( ods->is_end_of_data() )
+    {
+      throw std::runtime_error( "Pipeline terminated unexpectingly" );
+    }
+
+    // Grab result from pipeline output data set
+    auto const& iter1 = ods->find( "result_uids" );
+    auto const& iter2 = ods->find( "result_scores" );
+
+    if( iter1 == ods->end() || iter2 == ods->end() )
+    {
+      throw std::runtime_error( "Empty pipeline output" );
+    }
+
+    vital::string_vector_sptr result_uids =
+      iter1->second->get_datum< vital::string_vector_sptr >();
+    vital::double_vector_sptr result_scores =
+      iter2->second->get_datum< vital::double_vector_sptr >();
 #else
     // Format data to simplified format for external
     vital::string_vector_sptr result_uids( new vital::string_vector() );
@@ -474,11 +521,9 @@ void perform_query_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t optional_no_dep;
   sprokit::process::port_flags_t required;
 
   required.insert( flag_required );
-  optional_no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( database_query, required );
@@ -486,15 +531,6 @@ void perform_query_process
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
-
-  // -- feedback loop --
-  declare_output_port_using_trait( external_descriptor_set, optional );
-  declare_output_port_using_trait( external_exemplar_uids, optional );
-  declare_output_port_using_trait( external_positive_uids, optional );
-  declare_output_port_using_trait( external_negative_uids, optional );
-
-  declare_input_port_using_trait( result_descriptor_uids, optional_no_dep );
-  declare_input_port_using_trait( result_descriptor_scores, optional_no_dep );
 }
 
 
@@ -503,6 +539,7 @@ void perform_query_process
 ::make_config()
 {
   declare_config_using_trait( external_handler );
+  declare_config_using_trait( external_pipeline_file );
   declare_config_using_trait( database_folder );
   declare_config_using_trait( max_result_count );
   declare_config_using_trait( descriptor_postfix );
@@ -516,6 +553,7 @@ perform_query_process::priv
 ::priv( perform_query_process* p )
  : parent( p )
  , external_handler( true )
+ , external_pipeline_file( "" )
  , database_folder( "" )
  , max_result_count( 100 )
  , is_first( true )

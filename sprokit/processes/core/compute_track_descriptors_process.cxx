@@ -136,6 +136,7 @@ void compute_track_descriptors_process
   d->inject_to_detections = config_value_using_trait( inject_to_detections );
   d->add_custom_uid = config_value_using_trait( add_custom_uid );
   d->uid_basename = config_value_using_trait( uid_basename );
+  d->flush_on_last = config_value_using_trait( flush_on_last );
 }
 
 

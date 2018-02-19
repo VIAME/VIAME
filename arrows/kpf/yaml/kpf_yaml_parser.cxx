@@ -155,7 +155,7 @@ bool
 parse_geom( KPF::packet_t& p, const string& s )
 {
   vector< string > tokens;
-  ::kwiver::vital::tokenize( s, tokens, " ", true );
+  ::kwiver::vital::tokenize( s, tokens, " ", kwiver::vital::TokenizeTrimEmpty );
   if ( tokens.size() != 4 )
   {
     LOG_ERROR( main_logger, "YAML parser: geometry: Expected four tokens from '"
@@ -609,4 +609,3 @@ kpf_yaml_parser_t
 } // ...kpf
 } // ...vital
 } // ...kwiver
-

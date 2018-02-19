@@ -293,7 +293,7 @@ process_config()
   // e.g. person/3.5/0 0 255;
   {
     std::vector< std::string > cspec;
-    kwiver::vital::tokenize( m_tmp_custom, cspec, ";", true );
+    kwiver::vital::tokenize( m_tmp_custom, cspec, ";", kwiver::vital::TokenizeTrimEmpty );
 
     for( auto cs : cspec )
     {
@@ -350,7 +350,7 @@ process_config()
   } // end local scope
 
   // Parse selected class_names
-  kwiver::vital::tokenize( m_tmp_class_select, m_select_classes, ";", true );
+  kwiver::vital::tokenize( m_tmp_class_select, m_select_classes, ";", kwiver::vital::TokenizeTrimEmpty );
 }
 
 }; // end priv class

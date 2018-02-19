@@ -41,14 +41,13 @@
 
 #include <sprokit/pipeline/datum.h>
 
-#include <sprokit/python/util/python_gil.h>
-
 // Type conversions
 #include <vital/types/image_container.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/feature_track_set.h>
 
 #include <limits>
 #include <string>
@@ -62,6 +61,7 @@
 
 using namespace pybind11;
 
+PYBIND11_MAKE_OPAQUE(std::vector<unsigned char>);
 PYBIND11_MAKE_OPAQUE(std::vector<double>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
 
@@ -97,6 +97,10 @@ PYBIND11_MODULE(datum, m)
     .value("error", sprokit::datum::error)
   ;
 
+  bind_vector<std::vector<unsigned char>, std::shared_ptr<std::vector<unsigned char>>>(m, "VectorUChar");
+  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
+  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
+
   // constructors
   m.def("new", &new_datum_no_cast
     , (arg("dat"))
@@ -122,15 +126,21 @@ PYBIND11_MODULE(datum, m)
   m.def("new_track_set", &new_datum<std::shared_ptr<kwiver::vital::track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing a track set.");
+  m.def("new_feature_track_set", &new_datum<std::shared_ptr<kwiver::vital::feature_track_set>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a feature track set.");
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing an object track set.");
-  m.def("new_double_vector", &new_datum<std::vector<double>>
+  m.def("new_double_vector", &new_datum<std::shared_ptr<std::vector<double>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a double vector.");
-  m.def("new_string_vector", &new_datum<std::vector<std::string>>
+  m.def("new_string_vector", &new_datum<std::shared_ptr<std::vector<std::string>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a string vector.");
+  m.def("new_uchar_vector", &new_datum<std::shared_ptr<std::vector<unsigned char>>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing an unsigned char vector.");
   m.def("datum_from_capsule", &datum_from_capsule
     , (arg("dptr"))
     , "Converts datum* in capsule to datum_t");
@@ -143,9 +153,6 @@ PYBIND11_MODULE(datum, m)
   m.def("error", &error_datum
     , arg("err")
     , "Creates an error datum packet.");
-
-  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
-  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
 
   // Methods on datum
   class_<sprokit::datum>(m, "Datum"
@@ -160,6 +167,8 @@ PYBIND11_MODULE(datum, m)
       , "Get the data contained within the packet (if coming from a python process).")
     .def("get_datum_ptr", &datum_get_datum_ptr
       , "Get pointer to datum object as a PyCapsule.")
+    .def("get_string", &datum_get_object<std::string>
+      , "Convert the data to a string")
     .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
       , "Convert the data to an image container")
     .def("get_descriptor_set", &datum_get_object<std::shared_ptr<kwiver::vital::descriptor_set>>
@@ -168,12 +177,16 @@ PYBIND11_MODULE(datum, m)
       , "Convert the data to a detected object set")
     .def("get_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::track_set>>
       , "Convert the data to a track set")
-	.def("get_object_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::object_track_set>>
-      , "Convert the data to a track set")
+    .def("get_feature_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::feature_track_set>>
+      , "Convert the data to a feature track set")
+    .def("get_object_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::object_track_set>>
+      , "Convert the data to an object track set")
     .def("get_double_vector", &datum_get_object<std::shared_ptr<std::vector<double>>>
       , "Convert the data to a double vector")
     .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
       , "Convert the data to a string vector")
+    .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>
+      , "Convert the data to an unsigned char vector")
   ;
 
 } // end module

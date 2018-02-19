@@ -533,7 +533,7 @@ vital_string_vector_to_datum( PyObject *list )
   for( size_t i = 0; i < num_elem; ++i )
   {
     PyObject* item = PyList_GetItem( list, i );
-    vect_sptr->push_back( std::string( PyString_AsString( item ) ) );
+    vect_sptr->push_back( std::string( PyBytes_AsString( item ) ) );
   }
 
   PyObject* cap = put_in_datum_capsule( vect_sptr );
