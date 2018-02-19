@@ -11,21 +11,12 @@ config _pipeline:_edge
 config _scheduler
    :type                                       pythread_per_process
 
-config global
-   :input_filename                             input.mpg
-   :output_basename                            input
-   :output_folder                              database
-
-   :output_detection_file          database/$CONFIG{global:basename}_detections.kw18
-   :output_track_file              database/$CONFIG{global:basename}_tracks.kw18
-   :output_descriptor_file         database/$CONFIG{global:basename}_descriptors.csv
-
 # ================================== VIDEO INPUT ===================================
 process input
   :: video_input
-  :image_list_file                             $CONFIG{global:input_filename}
+  :video_filename                              [INSERT_ME]
   :frame_time                                  0.033
-  :video_reader:type                           vxl
+  :video_reader:type                           vidl_ffmpeg
 
 # =================================== DETECTOR =====================================
 
@@ -53,7 +44,7 @@ process detector_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   $CONFIG{global:output_detection_file}
+  :file_name                                   [INSERT_ME]
   :writer:type                                 kw18
 
   # Write out FSO classifications alongside tracks
@@ -65,8 +56,6 @@ connect from input.image
         to   detector.image
 connect from detector.detected_object_set
         to   detector_writer.detected_object_set
-connect from input.image_file_name
-        to   detector_writer.image_file_name
 
 # ================================= CORE TRACKER ===================================
 
@@ -149,7 +138,7 @@ connect from track_associator.unused_detections
 
 process track_writer
   :: write_object_track
-  :file_name                                  $CONFIG{global:output_track_file}
+  :file_name                                  [INSERT_ME]
   :writer:type                                kw18
 
 connect from track_initializer.object_track_set
@@ -157,10 +146,10 @@ connect from track_initializer.object_track_set
 
 process kwa_writer
   :: kw_archive_writer
-  :output_directory                           $CONFIG{global:output_folder}
-  :base_filename                              $CONFIG{global:output_basename}
+  :output_directory                           [INSERT_ME]
+  :base_filename                              [INSERT_ME]
   :separate_meta                              true
-  :stream_id                                  $CONFIG{global:output_basename}
+  :stream_id                                  [INSERT_ME]
   :compress_image                             true
   :static/gsd[ro]                             common:fixed_gsd
   :static/corner_points[ro]                   0 0 0 0 0 0 0 0
@@ -173,7 +162,7 @@ connect from input.image
 process track_descriptor
  :: compute_track_descriptors
   :add_custom_uid                             true
-  :uid_basename                               $CONFIG{global:output_basename}
+  :uid_basename                               [INSERT_ME]
   :computer:type                              burnout
   relativepath computer:burnout:config_file = burnout_trk_descriptors.conf
 
@@ -186,7 +175,7 @@ connect from track_initializer.object_track_set
 
 process descriptor_writer
   :: write_track_descriptor
-  :file_name                                  $CONFIG{global:output_descriptor_file}
+  :file_name                                  [INSERT_ME]
   :writer:type                                csv
   :writer:csv:write_raw_descriptor            false
   :writer:csv:write_world_loc                 false

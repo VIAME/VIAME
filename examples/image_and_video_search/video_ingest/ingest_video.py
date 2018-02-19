@@ -9,7 +9,7 @@ import argparse
 def list_files_in_dir( folder ):
   return glob.glob( folder + '/*' )
 
-def list_files_in_dir( folder, extension ):
+def list_files_in_dir_w_ext( folder, extension ):
   return glob.glob( folder + '/*' + extension )
 
 # Create a directory if it doesn't exist
@@ -47,9 +47,9 @@ def get_path_prefix_with_and():
 
 def get_log_postfix( output_prefix ):
   if os.name == 'nt':
-    return '1> ' + output_fn + '.out.txt 2> ' + output_fn + '.err.txt'
+    return '1> ' + output_prefix + '.out.txt 2> ' + output_prefix + '.err.txt'
   else:
-    return '> ' + output_fn + '.txt 2>&1'
+    return '> ' + output_prefix + '.txt 2>&1'
 
 # Process a single video
 def process_video_kwiver( pipeline_location, video_name, extra_options, logging_dir ):
@@ -62,15 +62,21 @@ def process_video_kwiver( pipeline_location, video_name, extra_options, logging_
   # Formulate command
   command = get_path_prefix_with_and() + \
             get_pipeline_cmd() + \
-            '-p ' + pipeline_location + \
-            '-c global:input_filename=' + video_name + ' ' + \
-            '-c global:output_basename=' + basename + ' '
+            '-p ' + pipeline_location + ' ' + \
+            '-s input:video_filename=' + video_name + ' ' + \
+            '-s detector_writer:file_name=database/' + basename + '_detections.kw18 ' + \
+            '-s track_writer:file_name=database/' + basename + '_tracks.kw18 ' + \
+            '-s descriptor_writer:file_name=database/' + basename + '_descriptors.csv ' + \
+            '-s track_descriptor:uid_basename=' + basename + ' ' + \
+            '-s kwa_writer:output_directory=database ' + \
+            '-s kwa_writer:base_filename=' + basename + ' ' + \
+            '-s kwa_writer:stream_id=' + basename
 
   if len( extra_options ) > 0:
-    command = command + '-c ' + extra_options
+    command = command + '-s ' + extra_options
 
   if len( logging_dir ) > 0:
-    command = command + get_log_postix( logging_dir + '/' + basename )
+    command = command + get_log_postfix( logging_dir + '/' + basename )
 
   # Process command
   res = execute_command( command )
@@ -98,8 +104,11 @@ if __name__ == "__main__" :
   parser.add_argument("-l", dest="log_dir", default="database/Logs",
                       help="Directory for log files, if empty will not use files")
 
+  parser.add_argument("-e", dest="extra_options", default="",
+                      help="Extra command line arguments for the pipeline runner")
+
   parser.add_argument("--rel-to-script", dest="rel_to_script", action="store_true",
-                      help="Pipeline file relative to script location")
+                      help="Pipeline file is relative to script location")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")
