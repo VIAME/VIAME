@@ -5,7 +5,7 @@
 set( EXAMPLE_INSTALL_FILES
      input_list.txt
      build_index.sh
-     db_tool.py
+     db_tool.sh
      ingest_list.sh
      ingest_video.py
      launch_query_gui.py

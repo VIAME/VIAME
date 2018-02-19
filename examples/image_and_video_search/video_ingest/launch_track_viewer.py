@@ -13,6 +13,12 @@ def list_files_in_dir( folder, extension ):
   return glob.glob( folder + '/*' + extension )
 
 # Get correct OS-specific calls
+def execute_command( cmd ):
+  if os.name == 'nt':
+    return os.system( cmd )
+  else:
+    return os.system( '/bin/bash -c \"' + cmd + '\"'  )
+
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
@@ -40,7 +46,7 @@ if __name__ == "__main__" :
   parser = argparse.ArgumentParser(description="Launch annotation GUI",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-d", dest="input_dir", "database",
+  parser.add_argument("-d", dest="input_dir", default="database",
                       help="Input directory containing results")
 
   args = parser.parse_args()
@@ -50,4 +56,4 @@ if __name__ == "__main__" :
             get_gui_cmd()
 
   # Process command
-  res = os.system( command )
+  res = execute_command( command )

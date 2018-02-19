@@ -18,6 +18,12 @@ def create_dir( dirname ):
     os.makedirs( dirname )
 
 # Get correct OS-specific calls
+def execute_command( cmd ):
+  if os.name == 'nt':
+    return os.system( cmd )
+  else:
+    return os.system( '/bin/bash -c \"' + cmd + '\"'  )
+
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
@@ -67,7 +73,7 @@ def process_video_kwiver( pipeline_location, video_name, extra_options, logging_
     command = command + get_log_postix( logging_dir + '/' + basename )
 
   # Process command
-  res = os.system( command )
+  res = execute_command( command )
 
   if res == 0:
     print( 'Success' )
@@ -80,16 +86,16 @@ if __name__ == "__main__" :
   parser = argparse.ArgumentParser(description="Ingest new videos",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-v", dest="input_video", default=None,
+  parser.add_argument("-v", dest="input_video", default="",
                       help="Input single video to ingest")
 
-  parser.add_argument("-d", dest="input_dir", default=None,
+  parser.add_argument("-d", dest="input_dir", default="",
                       help="Input directory to ingest")
 
-  parser.add_argument("-p", dest="pipeline", "configs/ingest_video.pipe",
+  parser.add_argument("-p", dest="pipeline", default="configs/ingest_video.pipe",
                       help="Input pipeline for ingestation")
 
-  parser.add_argument("-l", dest="log_dir", "database/logs",
+  parser.add_argument("-l", dest="log_dir", default="database/Logs",
                       help="Directory for log files, if empty will not use files")
 
   parser.add_argument("--rel-to-script", dest="rel_to_script", action="store_true",

@@ -18,6 +18,12 @@ def create_dir( dirname ):
     os.makedirs( dirname )
 
 # Get correct OS-specific calls
+def execute_command( cmd ):
+  if os.name == 'nt':
+    return os.system( cmd )
+  else:
+    return os.system( '/bin/bash -c \"' + cmd + '\"'  )
+
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
@@ -45,16 +51,15 @@ if __name__ == "__main__" :
   parser = argparse.ArgumentParser(description="Launch annotation GUI",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-d", dest="input_dir", "database",
+  parser.add_argument("-d", dest="input_dir", default="database",
                       help="Input directory containing results")
 
-  parser.add_argument("-q", dest="query_dir", "database/Queries",
+  parser.add_argument("-q", dest="query_dir", default="database/Queries",
                       help="Directory for writing new queries to")
 
   parser.add_argument("-c", dest="context_file",
-                      "configs/context_view_bluemarble_low_res.kst",
+                      default="configs/context_view_bluemarble_low_res.kst",
                       help="GUI context file")
-
 
   args = parser.parse_args()
 
@@ -67,4 +72,4 @@ if __name__ == "__main__" :
             "--add-layer " + get_script_path() + "/" + args.context_file
 
   # Process command
-  res = os.system( command )
+  res = execute_command( command )
