@@ -41,7 +41,11 @@ import smqtk.iqr
 import smqtk.representation
 import smqtk.representation.descriptor_element.local_elements
 import smqtk.utils.plugin
-
+import svmutil
+import svm
+import os
+import ctypes
+import filecmp
 
 class SmqtkProcessQuery (KwiverProcess):
     """
@@ -147,6 +151,41 @@ class SmqtkProcessQuery (KwiverProcess):
         )
         self.declare_config_using_trait('query_return_size')
 
+    def get_svm_bytes(self):
+        svm_model = self.iqr_session.rel_index.get_model()
+        tmp_file_name = "tmp_svm.model"
+
+        svmutil.svm_save_model(tmp_file_name, svm_model)
+        with open(tmp_file_name, "rb") as f:
+            model_file = f.read()
+            b = bytearray(model_file)
+        os.remove(tmp_file_name)
+        return b
+
+    def get_model_from_bytes(self, bytes):
+        c_bytes = (ctypes.c_ubyte * len(bytes))(*bytes)
+        model = svmutil.svm_load_model_from_bytes(c_bytes)
+        return model
+
+    # (TODO (Mmanu)) Remove, intended for testing the code!
+    def test_model_from_byte(self):
+        # The original model
+        svm_model_1 = self.iqr_session.rel_index.get_model()
+        model_1_file, model_2_file = "tmp_svm_1.model", "tmp_svm_2.model"
+        svmutil.svm_save_model(model_1_file, svm_model_1)
+
+        # Get the bytes for the model first.
+        bytes = self.get_svm_bytes()
+        # Use the bytes to created a model
+        svm_model_2 = self.get_model_from_bytes(bytes)
+        # Save the model created using the bytes
+        svmutil.svm_save_model(model_2_file, svm_model_2)
+
+        # Check that the model created using the bytes is the same as the
+        # original model.
+        assert(filecmp.cmp(model_1_file, model_2_file) is True)
+        os.remove(model_1_file)
+        os.remove(model_2_file)
 
     def _configure(self):
         self.di_json_config_path = self.config_value('descriptor_index_config_file')
@@ -228,7 +267,8 @@ class SmqtkProcessQuery (KwiverProcess):
         return_uuids = [e.uuid() for e in return_elems]
 
         # Retrive IQR model from class
-        return_model = [ 1, 2, 3 ]
+        return_model = self.get_svm_bytes()
+        self.test_model_from_byte()
 
         # Pass on input descriptors and UIDs
         self.push_to_port_using_trait('result_uids', datum.VectorString(return_uuids) )
