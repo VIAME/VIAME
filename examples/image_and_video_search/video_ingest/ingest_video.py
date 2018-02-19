@@ -4,6 +4,7 @@ import sys
 import os
 import glob
 import argparse
+import signal
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
@@ -50,6 +51,11 @@ def get_log_postfix( output_prefix ):
     return '1> ' + output_prefix + '.out.txt 2> ' + output_prefix + '.err.txt'
   else:
     return '> ' + output_prefix + '.txt 2>&1'
+
+# Other helpers
+def signal_handler( signal, frame ):
+  print( 'Ingest aborted, see you next time' )
+  sys.exit(0)
 
 # Process a single video
 def process_video_kwiver( pipeline_location, video_name, extra_options, logging_dir ):
@@ -130,6 +136,8 @@ if __name__ == "__main__" :
   if len( args.input_video ) > 0 and len( args.input_dir ) > 0:
     print( "Only an input video or directory should be specified, not both" )
     sys.exit( 0 ) 
+
+  signal.signal( signal.SIGINT, signal_handler )
 
   # Identify all videos to process
   video_list = []
