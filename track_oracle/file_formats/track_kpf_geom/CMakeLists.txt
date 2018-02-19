@@ -19,12 +19,12 @@ set( track_kpf_geom_sources
 
 kwiver_install_headers(
   ${track_kpf_geom_public_headers}
-  SUBDIR     track_oracle/track_kpf_geom
+  SUBDIR     track_oracle/file_formats/track_kpf_geom
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_kpf_geom_export.h
-  NOPATH SUBDIR     track_oracle/track_kpf_geom
+  NOPATH SUBDIR     track_oracle/file_formats/track_kpf_geom
 )
 
 kwiver_add_library( track_kpf_geom

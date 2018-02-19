@@ -155,7 +155,7 @@ void image_file_reader_process
   d->m_config_frame_time = config_value_using_trait( frame_time ) * 1e6; // in usec
   d->m_no_path_in_name = config_value_using_trait( no_path_in_name );
 
-  kwiver::vital::tokenize( path, d->m_config_path, ":", true );
+  kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
 
   d->m_config_error_mode = priv::mode_converter().from_string( mode );

@@ -71,10 +71,8 @@ namespace python {
   }                                                               \
   catch (std::exception const& e)                                 \
   {                                                               \
-    sprokit::python::python_gil const gil;                        \
-                                                                  \
-    (void)gil;                                                    \
-                                                                  \
+    pybind11::gil_scoped_acquire acquire;                         \
+    (void)acquire;                                                \
     PyErr_SetString(PyExc_RuntimeError, e.what());                \
                                                                   \
     throw;                                                        \

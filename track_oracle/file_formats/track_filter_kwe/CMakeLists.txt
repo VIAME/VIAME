@@ -12,12 +12,12 @@ set( track_filter_kwe_sources
 
 kwiver_install_headers(
   ${track_filter_kwe_public_headers}
-  SUBDIR        track_oracle/track_filter_kwe
+  SUBDIR        track_oracle/file_formats/track_filter_kwe
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_filter_kwe_export.h
-  NOPATH SUBDIR        track_oracle/track_filter_kwe
+  NOPATH SUBDIR        track_oracle/file_formats/track_filter_kwe
 )
 
 kwiver_add_library( track_filter_kwe

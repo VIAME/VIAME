@@ -120,8 +120,8 @@ set_configuration( vital::config_block_sptr config_in )
   d->m_tot_field1_ids = config->get_value<std::string>( "tot_field1_ids" , d->m_tot_field1_ids );
   d->m_tot_field2_ids = config->get_value<std::string>( "tot_field2_ids" , d->m_tot_field2_ids );
 
-  vital::tokenize( d->m_tot_field1_ids, d->m_parsed_tot_ids1, ",;", true );
-  vital::tokenize( d->m_tot_field2_ids, d->m_parsed_tot_ids2, ",;", true );
+  vital::tokenize( d->m_tot_field1_ids, d->m_parsed_tot_ids1, ",;", kwiver::vital::TokenizeTrimEmpty );
+  vital::tokenize( d->m_tot_field2_ids, d->m_parsed_tot_ids2, ",;", kwiver::vital::TokenizeTrimEmpty );
 }
 
 

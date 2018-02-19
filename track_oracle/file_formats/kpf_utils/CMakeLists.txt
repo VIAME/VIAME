@@ -22,12 +22,12 @@ set( kpf_utils_sources
 
 kwiver_install_headers(
   ${kpf_utils_public_headers}
-  SUBDIR track_oracle/kpf_utils
+  SUBDIR track_oracle/file_formats/kpf_utils
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kpf_utils_export.h
-  NOPATH SUBDIR   track_oracle/kpf_utils
+  NOPATH SUBDIR   track_oracle/file_formats/kpf_utils
 )
 
 kwiver_add_library( kpf_utils

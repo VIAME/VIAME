@@ -344,6 +344,23 @@ protected:
    */
   virtual bool connect_output_adapter();
 
+  /**
+   * @brief Update pipeline config.
+   *
+   * This method provides the ability for a derived class to inspect
+   * and update the pipeline config before it is used to create the
+   * pipeline. Additional config entries can be added or existing ones
+   * modified to suit a specific application.
+   *
+   * The default implementation does not modify the config in any way.
+   *
+   * @param[in,out] config Configuration to update.
+   */
+  virtual void update_config( kwiver::vital::config_block_sptr config );
+
+  /**
+   * Reference to logger.
+   */
   kwiver::vital::logger_handle_t m_logger;
 
 private:

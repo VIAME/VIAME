@@ -32,7 +32,6 @@
 #include <sprokit/pipeline/scheduler.h>
 
 #include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python_gil.h>
 
 #include "python_wrappers.cxx"
 
@@ -77,28 +76,28 @@ PYBIND11_MODULE(scheduler, m)
 {
   class_<sprokit::scheduler, scheduler_trampoline, sprokit::scheduler_t>(m, "PythonScheduler"
     , "The base class for Python schedulers.")
-    .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>())
-    .def("start", &sprokit::scheduler::start
+    .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>(), call_guard<gil_scoped_release>())
+    .def("start", &sprokit::scheduler::start, call_guard<gil_scoped_release>()
       , "Start the execution of the pipeline.")
-    .def("wait", &sprokit::scheduler::wait
+    .def("wait", &sprokit::scheduler::wait, call_guard<gil_scoped_release>()
       , "Wait until the pipeline execution is complete.")
-    .def("pause", &sprokit::scheduler::pause
+    .def("pause", &sprokit::scheduler::pause, call_guard<gil_scoped_release>()
       , "Pause execution.")
-    .def("resume", &sprokit::scheduler::resume
+    .def("resume", &sprokit::scheduler::resume, call_guard<gil_scoped_release>()
       , "Resume execution.")
-    .def("stop", &sprokit::scheduler::stop
+    .def("stop", &sprokit::scheduler::stop, call_guard<gil_scoped_release>()
       , "Stop the execution of the pipeline.")
-    .def("_start", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_start)
+    .def("_start", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_start), call_guard<gil_scoped_release>()
       , "Implementation of starting the pipeline.")
-    .def("_wait", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_wait)
+    .def("_wait", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_wait), call_guard<gil_scoped_release>()
       , "Implementation of waiting until execution is complete.")
-    .def("_pause", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_pause)
+    .def("_pause", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_pause), call_guard<gil_scoped_release>()
       , "Implementation of pausing execution.")
-    .def("_resume", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_resume)
+    .def("_resume", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_resume), call_guard<gil_scoped_release>()
       , "Implementation of resuming execution.")
-    .def("_stop", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_stop)
+    .def("_stop", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_stop), call_guard<gil_scoped_release>()
       , "Implementation of stopping the pipeline.")
-    .def("pipeline", static_cast<sprokit::pipeline_t (sprokit::scheduler::*)() const>(&wrap_scheduler::pipeline)
+    .def("pipeline", static_cast<sprokit::pipeline_t (sprokit::scheduler::*)() const>(&wrap_scheduler::pipeline), call_guard<gil_scoped_release>()
       , "Scheduler pipeline.")
   ;
 }
