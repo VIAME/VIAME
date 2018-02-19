@@ -226,7 +226,7 @@ compute_track_descriptors_process
       new_track->set_id( i + d->detection_offset );
 
       vital::track_state_sptr first_track_state(
-        new vital::object_track_state( ts.get_frame(), detections->begin()[i] ) );
+        new vital::object_track_state( ts.get_frame(), ts.get_time_usec(), detections->begin()[i] ) );
 
       new_track->append( first_track_state );
 
