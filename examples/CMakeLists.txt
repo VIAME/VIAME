@@ -16,7 +16,6 @@ if( VIAME_INSTALL_EXAMPLES )
   add_subdirectory( tracking_pipelines )
   add_subdirectory( using_detectors_in_cxx_code )
   add_subdirectory( visualizing_detections_in_gui )
-  add_subdirectory( camtrawl_fishlen )
 
 endif()
 
