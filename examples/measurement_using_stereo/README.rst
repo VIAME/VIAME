@@ -28,29 +28,31 @@ Alternatively you can download the demo data `directly`_.
 
 .. _directly: https://data.kitware.com/#item/5a8607858d777f068578345e`
 
-Building:
----------
+Setup:
+------
 
 Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and
 `VIAME_ENABLE_CAMTRAWL=True`.  (For development it is useful to set
 `VIAME_SYMLINK_PYTHON=True`)
 
+For simplicity this tutorial will assume that the VIAME source directory is
+`~/code/VIAME` and the build directory is `~/code/VIAME/build`. Please modify
+these as needeed to match your system setup. We also assume that you have built
+VIAME.
 
-Remember to source the setup VIAME script. Then change directory to this example folder.
+After you build viame, remember to source the setup VIAME script. Then change directory to this example folder.
 
 ::
 
-    cd /path/to/your/viame/build
-
+    # move to your VIAME build directory
+    cd ~/code/VIAME/build
+    # Run the setup script to setup the proper paths and environment variables
     source install/setup_viame.sh
 
     # you may also want to set these environment variables
     # export KWIVER_DEFAULT_LOG_LEVEL=debug
     export KWIVER_DEFAULT_LOG_LEVEL=info
     export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
-
-
-    cd /path/to/your/viame/examples/measurement_using_stereo
 
 
 Running via the pipeline runner
@@ -62,6 +64,10 @@ development)
 
 ::
 
+    # First move to the example directory
+    cd ~/code/VIAME/examples/measurement_using_stereo
+
+    # Then run the pipeline file
     pipeline_runner -p camtrawl_demo.pipe -S pythread_per_process
 
 
@@ -95,6 +101,10 @@ VIAME)
 
 ::
 
+    # First move to the example directory
+    cd ~/code/VIAME/examples/measurement_using_stereo
+
+    # Run the camtrawl module directly via the path
     python ../../plugins/camtrawl/python/viame/processes/camtrawl \
         --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
         --cal=camtrawl_demodata/cal.npz \
