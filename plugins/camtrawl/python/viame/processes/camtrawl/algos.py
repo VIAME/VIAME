@@ -454,6 +454,7 @@ class GMMForegroundObjectDetector(object):
             valid_labels = bins[0:-1][hist >= min_num_pixels_]
 
         # Filter ccs to generate only "good" detections
+        # We may be able to speed this up using ndimage.find_objects
         for cc_label in valid_labels:
             cc = (cc_mask == cc_label)
             detection = DetectedObject.from_connected_component(cc)
