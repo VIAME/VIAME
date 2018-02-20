@@ -48,6 +48,8 @@ public:
   explicit priv( downsample_process* p );
   ~priv();
 
+  bool skip_frame( vital::timestamp const& ts );
+
   downsample_process* parent;
 
   double target_frame_rate_;
@@ -114,16 +116,9 @@ void downsample_process
 void downsample_process
 ::_step()
 {
-  bool send_frame = false;
-
-  d->ds_counter_ += 1.0;
-  if( d->ds_counter_ >= d->ds_factor_ )
-  {
-    send_frame = true;
-    d->ds_counter_ = std::fmod( d->ds_counter_, d->ds_factor_ );
-  }
-
   kwiver::vital::timestamp ts = grab_from_port_using_trait( timestamp );
+  bool send_frame = !d->skip_frame( ts );
+
   if( send_frame )
   {
     LOG_DEBUG( logger(), "Sending frame " << ts.get_frame() );
@@ -177,6 +172,23 @@ void downsample_process
 {
   declare_config_using_trait( target_frame_rate );
   declare_config_using_trait( source_frame_rate );
+}
+
+
+bool downsample_process::priv
+::skip_frame( vital::timestamp const& ts )
+{
+  ds_counter_ += 1.0;
+  if( ds_counter_ < ds_factor_ )
+  {
+    return true;
+  }
+  else
+  {
+    ds_counter_ = std::fmod( ds_counter_, ds_factor_ );
+  }
+
+  return false;
 }
 
 
