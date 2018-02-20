@@ -40,6 +40,7 @@ namespace kwiver
 using sprokit::process;
 
 create_config_trait( target_frame_rate, double, "1.0", "Target frame rate" );
+create_config_trait( source_frame_rate, double, "30.0", "Source frame rate" );
 
 class downsample_process::priv
 {
@@ -49,7 +50,10 @@ public:
 
   downsample_process* parent;
 
-  double target_frame_rate;
+  double target_frame_rate_;
+  double source_frame_rate_;
+  double ds_factor_;
+  double ds_counter_;
 
   static port_t const port_inputs[5];
   static port_t const port_outputs[5];
@@ -94,30 +98,47 @@ downsample_process
 void downsample_process
 ::_configure()
 {
-  d->target_frame_rate = config_value_using_trait( target_frame_rate );
+  d->target_frame_rate_ = config_value_using_trait( target_frame_rate );
+  d->source_frame_rate_ = config_value_using_trait( source_frame_rate );
 }
 
 
 void downsample_process
 ::_init()
 {
+  d->ds_factor_ = d->source_frame_rate_ / d->target_frame_rate_;
+  d->ds_counter_ = 0.0;
 }
 
 
 void downsample_process
 ::_step()
 {
-  kwiver::vital::timestamp ts;
+  bool send_frame = false;
 
-  ts = grab_from_port_using_trait( timestamp );
-  push_to_port_using_trait( timestamp, ts );
+  d->ds_counter_ += 1.0;
+  if( d->ds_counter_ >= d->ds_factor_ )
+  {
+    send_frame = true;
+    d->ds_counter_ = std::fmod( d->ds_counter_, d->ds_factor_ );
+  }
+
+  kwiver::vital::timestamp ts = grab_from_port_using_trait( timestamp );
+  if( send_frame )
+  {
+    LOG_DEBUG( logger(), "Sending frame " << ts.get_frame() );
+    push_to_port_using_trait( timestamp, ts );
+  }
 
   for( size_t i = 0; i < 5; i++ )
   {
     if( has_input_port_edge( d->port_inputs[i] ) )
     {
       sprokit::edge_datum_t datum = grab_from_port( d->port_inputs[i] );
-      push_to_port( d->port_outputs[i], datum );
+      if( send_frame )
+      {
+        push_to_port( d->port_outputs[i], datum );
+      }
     }
   }
 }
@@ -155,6 +176,7 @@ void downsample_process
 ::make_config()
 {
   declare_config_using_trait( target_frame_rate );
+  declare_config_using_trait( source_frame_rate );
 }
 
 
