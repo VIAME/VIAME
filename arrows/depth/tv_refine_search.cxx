@@ -109,11 +109,6 @@ refine_depth(vil_image_view<double> &cost_volume,
 
     if (drm)
     {
-      if (*drm->interrupted_)
-      {
-        return;
-      }
-
       if (drm->callback_ && !(iter % drm->interval_))
       {
         depth_refinement_monitor::update_data data;

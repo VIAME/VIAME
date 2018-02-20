@@ -81,6 +81,9 @@ public:
           const std::vector<kwiver::vital::landmark_sptr> &landmarks,
           unsigned int reference_frame,
           std::vector<kwiver::vital::image_container_sptr> *masks = NULL) const;
+  
+  /// Set callback for receiving incremental updates
+  virtual void set_callback(callback_t cb);
 
 private:
   /// private implementation class

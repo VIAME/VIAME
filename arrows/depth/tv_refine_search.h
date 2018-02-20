@@ -71,11 +71,8 @@ public:
     unsigned int num_iterations;
   };
 
-  depth_refinement_monitor(std::function<void (update_data)> callback,
-                           unsigned int interval,
-                           std::shared_ptr<bool> interrupted) : callback_(callback),
-                                                                  interval_(interval),
-                                                                  interrupted_(interrupted) {}
+  depth_refinement_monitor(std::function<void (update_data)> callback, int interval) :
+                           callback_(callback), interval_(interval)  {}
 
 private:
 
@@ -90,8 +87,7 @@ private:
                            depth_refinement_monitor *drm);
 
   std::function<void (update_data)> callback_;
-  unsigned int interval_;
-  std::shared_ptr<bool const> interrupted_;
+  int interval_;
 };
 
 
