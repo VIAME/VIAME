@@ -33,8 +33,8 @@
 * \brief Header file for world space defines how the volumes slices the world
 */
 
-#ifndef KWIVER_ARROWS_DEPTH_WORLD_SPACE_H_
-#define KWIVER_ARROWS_DEPTH_WORLD_SPACE_H_
+#ifndef KWIVER_ALGO_SUPER3D_WORLD_SPACE_H_
+#define KWIVER_ALGO_SUPER3D_WORLD_SPACE_H_
 
 #include <vital/vital_config.h>
 
@@ -48,7 +48,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 class world_space
 {
@@ -111,9 +111,9 @@ compute_offset_range(const std::vector<vnl_double_3> &landmarks,
   const double outlier_thresh = 0.05,
   const double safety_margin_factor = 0.33);
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
 
 
-#endif
+#endif // KWIVER_ALG_SUPER3D_WORLD_SPACE_H_

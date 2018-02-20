@@ -68,7 +68,7 @@ bool is_identity( vgl_h_matrix_2d<double> const& H )
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 // Helper routine.  Defined in .cxx
 bool
@@ -395,6 +395,6 @@ safe_cast(U const& value)
   return T(value);
 }
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

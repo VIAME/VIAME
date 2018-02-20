@@ -50,7 +50,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 void
 refine_depth(vil_image_view<double> &cost_volume,
@@ -273,6 +273,6 @@ min_search_bound(vil_image_view<double> &a,
 
 //*****************************************************************************
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

@@ -21,20 +21,20 @@ set(cxx_files
   )
 
 kwiver_install_headers(
-  SUBDIR     arrows/depth
+  SUBDIR     arrows/super3d
   ${header_files}
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_depth_export.h
-  NOPATH   SUBDIR     arrows/depth
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_super3d_export.h
+  NOPATH   SUBDIR     arrows/super3d
   )
 
-kwiver_add_library(kwiver_algo_depth ${header_files} ${cxx_files})
-target_link_libraries(kwiver_algo_depth kwiver_algo_core kwiver_algo_vxl
+kwiver_add_library(kwiver_algo_super3d ${header_files} ${cxx_files})
+target_link_libraries(kwiver_algo_super3d kwiver_algo_core kwiver_algo_vxl
   vil vpgl vnl vul vil_algo vgl_algo vbl
   )
 
-algorithms_create_plugin( kwiver_algo_depth
+algorithms_create_plugin( kwiver_algo_super3d
   register_algorithms.cxx
   )

@@ -32,18 +32,18 @@
 #include <vil/vil_bicub_interp.hxx>
 
 #define INSTANTIATE( PixType )                                              \
-template bool kwiver::arrows::depth::warp_image( vil_image_view<PixType> const& src,        \
+template bool kwiver::arrows::super3d::warp_image( vil_image_view<PixType> const& src,        \
                                  vil_image_view<PixType>& dest,             \
                                  vgl_h_matrix_2d<double> const& dest_to_src_homography, \
                                  vil_image_view< bool > * const unmapped_mask );  \
                                                                             \
-template bool kwiver::arrows::depth::warp_image( vil_image_view<PixType> const& src,        \
+template bool kwiver::arrows::super3d::warp_image( vil_image_view<PixType> const& src,        \
                                  vil_image_view<PixType>& dest,             \
                                  vgl_h_matrix_2d<double> const& dest_to_src_homography, \
                                  int, int,                                  \
                                  vil_image_view< bool > * const unmapped_mask );  \
                                                                             \
-template bool kwiver::arrows::depth::warp_image( vil_image_view<PixType> const& src,        \
+template bool kwiver::arrows::super3d::warp_image( vil_image_view<PixType> const& src,        \
                                  vil_image_view<PixType>& dest,             \
                                  vgl_h_matrix_2d<double> const& dest_to_src_homography, \
                                  warp_image_parameters const& param,        \

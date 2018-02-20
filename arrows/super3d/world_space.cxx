@@ -45,14 +45,14 @@
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
   : ni_(pixel_width), nj_(pixel_height)
 {
   wip.set_fill_unmapped(true);
   wip.set_unmapped_value(-1.0);
-  wip.set_interpolator(kwiver::arrows::depth::warp_image_parameters::LINEAR);
+  wip.set_interpolator(kwiver::arrows::super3d::warp_image_parameters::LINEAR);
 }
 
 //*****************************************************************************
@@ -169,6 +169,6 @@ compute_offset_range(const std::vector<vnl_double_3> &landmarks,
 
 //*****************************************************************************
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

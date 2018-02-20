@@ -33,7 +33,7 @@
 * \brief Source file for compute_depth, driver for depth estimation from an image sequence
 */
 
-#include <arrows/depth/compute_depth.h>
+#include <arrows/super3d/compute_depth.h>
 #include <arrows/vxl/image_container.h>
 #include <vital/types/landmark.h>
 #include <arrows/vxl/camera.h>
@@ -55,7 +55,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 /// Private implementation class
 class compute_depth::priv
@@ -267,6 +267,6 @@ void compute_depth::priv::iterative_update_callback(depth_refinement_monitor::up
   }  
 }
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

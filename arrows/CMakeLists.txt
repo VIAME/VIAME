@@ -14,9 +14,9 @@ if( KWIVER_ENABLE_CERES )
 endif()
 
 
-# Add depth plugin if enabled
-if( KWIVER_ENABLE_DEPTH )
-  add_subdirectory( depth )
+# Add super3d plugin if enabled
+if( KWIVER_ENABLE_SUPER3D )
+  add_subdirectory( super3d )
 endif()
 
 # Add OpenCV plugin if enabled

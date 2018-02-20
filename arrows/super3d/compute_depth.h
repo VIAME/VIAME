@@ -33,20 +33,20 @@
 * \brief Header file for compute depth
 */
 
-#ifndef KWIVER_ALGO_DEPTH_COMPUTE_DEPTH_H_
-#define KWIVER_ALGO_DEPTH_COMPUTE_DEPTH_H_
+#ifndef KWIVER_ALGO_SUPER3D_COMPUTE_DEPTH_H_
+#define KWIVER_ALGO_SUPER3D_COMPUTE_DEPTH_H_
 
-#include <arrows/depth/kwiver_algo_depth_export.h>
+#include <arrows/super3d/kwiver_algo_super3d_export.h>
 
 #include <vital/algo/compute_depth.h>
 #include <vital/vital_config.h>
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 /// A class for bundle adjustment of feature tracks using VXL
-class KWIVER_ALGO_DEPTH_EXPORT compute_depth
+class KWIVER_ALGO_SUPER3D_EXPORT compute_depth
   : public vital::algorithm_impl<compute_depth, vital::algo::compute_depth>
 {
 public:
@@ -91,8 +91,8 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
-}  // end namespace depth
+}  // end namespace super3d
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ALGO_DEPTH_COMPUTE_DEPTH_H_
+#endif // KWIVER_ALGO_SUPER3D_COMPUTE_SUPER3D_H_

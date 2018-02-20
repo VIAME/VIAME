@@ -27,37 +27,28 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
  /**
  * \file
- * \brief Source file for util
+ * \brief Header file for util, various helper functions for depth estimation
  */
 
-#include "util.h"
+#ifndef KWIVER_ALGO_SUPER3D_UTIL_H_
+#define KWIVER_ALGO_SUPER3D_UTIL_H_
+
+#include <vpgl/vpgl_perspective_camera.h>
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 /// Produce the camera corresponding to a downsampled image
 /// \param camera The input camera
 /// \param scale The scale of the downsampled image (default is 0.5)
 /// \return A camera corresponding to the downsampled image
 vpgl_perspective_camera<double>
-scale_camera(const vpgl_perspective_camera<double>& camera, double scale)
-{
-  vpgl_perspective_camera<double> cam(camera);
-  vpgl_calibration_matrix<double> K = cam.get_calibration();
-  vgl_point_2d<double> pp = K.principal_point();
-  pp.x() *= scale;
-  pp.y() *= scale;
-  K.set_principal_point(pp);
-  K.set_focal_length(K.focal_length()*scale);
-  cam.set_calibration(K);
-  return cam;
-}
+scale_camera(const vpgl_perspective_camera<double>& camera,
+             double scale);
 
-//*****************************************************************************
 
 /// Produce the camera corresponding to a cropped image
 /// \param camera The input camera
@@ -65,20 +56,13 @@ scale_camera(const vpgl_perspective_camera<double>& camera, double scale)
 /// \param top the left coordinate of the cropping
 /// \return A camera corresponding to the cropped image
 vpgl_perspective_camera<double>
-crop_camera(const vpgl_perspective_camera<double>& camera, double left, double top)
-{
-  vpgl_perspective_camera<double> cam(camera);
-  vpgl_calibration_matrix<double> K = cam.get_calibration();
-  vgl_point_2d<double> pp = K.principal_point();
-  pp.x() -= left;
-  pp.y() -= top;
-  K.set_principal_point(pp);
-  cam.set_calibration(K);
-  return cam;
-}
+crop_camera(const vpgl_perspective_camera<double>& camera,
+      double left,
+      double top);
 
-//*****************************************************************************
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
+
+#endif // KWIVER_ALGO_SUPER3D_UTIL_H_

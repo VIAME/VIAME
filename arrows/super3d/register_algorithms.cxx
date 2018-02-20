@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2018 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,51 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
- /**
+/**
  * \file
- * \brief Header file for cost_volume
+ * \brief Register depth algorithms implementation
  */
 
-#ifndef KWIVER_ALGO_DEPTH_COST_VOLUME_H_
-#define KWIVER_ALGO_DEPTH_COST_VOLUME_H_
+#include <arrows/super3d/kwiver_algo_super3d_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <vector>
-#include <vil/vil_image_view.h>
-#include <vpgl/vpgl_perspective_camera.h>
-
-#include "world_space.h"
+#include <arrows/super3d/compute_depth.h>
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
+extern "C"
+KWIVER_ALGO_SUPER3D_PLUGIN_EXPORT
 void
-compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
-                          const std::vector<vpgl_perspective_camera<double> > &cameras,
-                          world_space *ws,
-                          unsigned int ref_frame,
-                          unsigned int S,
-                          vil_image_view<double> &cost_volume,
-                          std::vector<vil_image_view<double> > *masks = NULL);
+register_factories( kwiver::vital::plugin_loader& vpm )
+{
+  static auto const module_name = std::string( "arrows.super3d" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
+ 
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM("super3d", kwiver::arrows::super3d::compute_depth);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "compute depth maps from image sequences.")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
+    ;    
 
-//Compute gradient weights
-void compute_g(const vil_image_view<double> &ref_img,
-         vil_image_view<double> &g,
-         double alpha,
-         double beta,
-         vil_image_view<double> *mask = NULL);
+  vpm.mark_module_as_loaded( module_name );
+}
 
-void save_cost_volume(const vil_image_view<double> &cost_volume,
-                      const vil_image_view<double> &g_weight,
-                      const char *file_name);
-
-void load_cost_volume(vil_image_view<double> &cost_volume,
-                      vil_image_view<double> &g_weight,
-                      const char *file_name);
-
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
-
-
-#endif // KWIVER_ALGO_DEPTH_COST_VOLUME_H_

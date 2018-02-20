@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2010-2013 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
+ /**
  * \file
- * \brief Register depth algorithms implementation
+ * \brief Source file for warp_image
  */
 
-#include <arrows/depth/kwiver_algo_depth_plugin_export.h>
-#include <vital/algo/algorithm_factory.h>
-
-#include <arrows/depth/compute_depth.h>
+#include <vgl/algo/vgl_h_matrix_2d.h>
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
-extern "C"
-KWIVER_ALGO_DEPTH_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+
+bool
+warp_image_is_identity( vgl_h_matrix_2d<double> const& H )
 {
-  static auto const module_name = std::string( "arrows.depth" );
-  if (vpm.is_module_loaded( module_name ) )
-  {
-    return;
-  }
- 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM("depth", kwiver::arrows::depth::compute_depth);
-  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "compute depth maps from image sequences.")
-    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
-    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
-    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
-    ;    
-
-  vpm.mark_module_as_loaded( module_name );
+  vnl_matrix_fixed<double,3,3> const& M = H.get_matrix();
+  return ( M(0,1) == 0.0 && M(0,2) == 0.0 &&
+           M(1,0) == 0.0 && M(1,2) == 0.0 &&
+           M(2,0) == 0.0 && M(2,1) == 0.0 &&
+           M(0,0) == M(1,1) && M(1,1) == M(2,2) );
 }
 
-} // end namespace depth
+
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

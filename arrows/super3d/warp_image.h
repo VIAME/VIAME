@@ -31,8 +31,8 @@
  * \file
  * \brief Header file for warp_image, warps an image using a homography
  */
-#ifndef KWIVER_ALGO_DEPTH_WARP_IMAGE_H_
-#define KWIVER_ALGO_DEPTH_WARP_IMAGE_H_
+#ifndef KWIVER_ALGO_SUPER3D_WARP_IMAGE_H_
+#define KWIVER_ALGO_SUPER3D_WARP_IMAGE_H_
 
 /// \file
 #include <vgl/algo/vgl_h_matrix_2d.h>
@@ -42,7 +42,7 @@ class vil_image_view;
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 /// Parameters for warp_image().
 ///
@@ -163,4 +163,4 @@ warp_image( vil_image_view<T> const& src,
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ALGO_DEPTH_WARP_IMAGE_H_
+#endif // KWIVER_ALGO_SUPER3D_WARP_IMAGE_H_

@@ -32,14 +32,14 @@
  * \brief Header file for world_angled_frustum, world space with an angled frustum that
  *        aligned with a normal (often the ground plane's)
  */
-#ifndef KWIVER_ALGO_WORLD_ANGLED_FRUSTUM_H_
-#define KWIVER_ALGO_WORLD_ANGLED_FRUSTUM_H_
+#ifndef KWIVER_ALGO_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
+#define KWIVER_ALGO_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
 
 #include "world_space.h"
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 /// A world represetation using camera frustum and angled world planes
 ///
@@ -105,8 +105,8 @@ private:
   vnl_double_3 denom_vec_;
 };
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ALGO_WORLD_ANGLED_FRUSTUM_H_
+#endif // KWIVER_ALGO_SUPER3D_WORLD_ANGLED_FRUSTUM_H_

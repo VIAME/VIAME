@@ -51,7 +51,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 void
 compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
@@ -248,6 +248,6 @@ load_cost_volume(vil_image_view<double> &cost_volume,
   fclose(file);
 }
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver

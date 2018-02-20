@@ -33,8 +33,8 @@
  *        exhaustive searching.
  */
 
-#ifndef KWIVER_ALGO_DEPTH_TV_REFINE_SEARCH_H_
-#define KWIVER_ALGO_DEPTH_TV_REFINE_SEARCH_H_
+#ifndef KWIVER_ALGO_SUPER3D_TV_REFINE_SEARCH_H_
+#define KWIVER_ALGO_SUPER3D_TV_REFINE_SEARCH_H_
 
 #include <vector>
 #include <functional>
@@ -45,7 +45,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 class depth_refinement_monitor;
 
@@ -109,8 +109,8 @@ min_search_bound(vil_image_view<double> &a,
   double theta,
   double lambda);
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ALGO_DEPTH_TV_REFINE_SEARCH_H_
+#endif // KWIVER_ALGO_SUPER3D_TV_REFINE_SEARCH_H_

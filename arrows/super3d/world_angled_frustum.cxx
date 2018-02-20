@@ -39,7 +39,7 @@
 
 namespace kwiver {
 namespace arrows {
-namespace depth {
+namespace super3d {
 
 /// Constructor
 world_angled_frustum
@@ -103,6 +103,6 @@ world_angled_frustum
 
 //*****************************************************************************
 
-} // end namespace depth
+} // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
