@@ -41,6 +41,8 @@ using sprokit::process;
 
 create_config_trait( target_frame_rate, double, "1.0", "Target frame rate" );
 create_config_trait( source_frame_rate, double, "30.0", "Source frame rate" );
+create_config_trait( burst_frame_count, unsigned, "0", "Burst frame count" );
+create_config_trait( burst_frame_break, unsigned, "0", "Burst frame break" );
 
 class downsample_process::priv
 {
@@ -54,8 +56,13 @@ public:
 
   double target_frame_rate_;
   double source_frame_rate_;
+  unsigned burst_frame_count_;
+  unsigned burst_frame_break_;
+
   double ds_factor_;
   double ds_counter_;
+  unsigned burst_counter_;
+  bool burst_skip_mode_;
 
   static port_t const port_inputs[5];
   static port_t const port_outputs[5];
@@ -102,6 +109,8 @@ void downsample_process
 {
   d->target_frame_rate_ = config_value_using_trait( target_frame_rate );
   d->source_frame_rate_ = config_value_using_trait( source_frame_rate );
+  d->burst_frame_count_ = config_value_using_trait( burst_frame_count );
+  d->burst_frame_break_ = config_value_using_trait( burst_frame_break );
 }
 
 
@@ -110,6 +119,8 @@ void downsample_process
 {
   d->ds_factor_ = d->source_frame_rate_ / d->target_frame_rate_;
   d->ds_counter_ = 0.0;
+  d->burst_counter_ = 0;
+  d->burst_skip_mode_ = false;
 }
 
 
@@ -172,6 +183,8 @@ void downsample_process
 {
   declare_config_using_trait( target_frame_rate );
   declare_config_using_trait( source_frame_rate );
+  declare_config_using_trait( burst_frame_count );
+  declare_config_using_trait( burst_frame_break );
 }
 
 
@@ -186,6 +199,27 @@ bool downsample_process::priv
   else
   {
     ds_counter_ = std::fmod( ds_counter_, ds_factor_ );
+  }
+
+  if( burst_frame_count_ != 0 && burst_frame_break_ != 0 )
+  {
+    burst_counter_++;
+
+    if( burst_skip_mode_ )
+    {
+      if( burst_counter_ >= burst_frame_break_ )
+      {
+        burst_counter_ = 0;
+        burst_skip_mode_ = false;
+      }
+
+      return true;
+    }
+    else if( burst_counter_ >= burst_frame_count_ )
+    {
+      burst_counter_ = 0;
+      burst_skip_mode_ = true;
+    }
   }
 
   return false;
