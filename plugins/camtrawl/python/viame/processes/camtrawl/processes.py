@@ -33,8 +33,8 @@ Ignore:
     source ~/code/VIAME/build/install/setup_viame.sh
     cd ~/code/VIAME/plugins/camtrawl
 
-    feat1 = Feature(loc=(10, 1))
-    feat2 = Feature(loc=(2, 3))
+    feat1 = vital.types.Feature(loc=(10, 1))
+    feat2 = vital.types.Feature(loc=(2, 3))
 
     np.sum((feat1.location - feat2.location) ** 2)
 
@@ -90,17 +90,10 @@ SeeAlso
 """
 from __future__ import absolute_import, print_function, division
 import numpy as np
+import vital.types
 from sprokit.pipeline import process
 from sprokit.pipeline import datum  # NOQA
 from kwiver.kwiver_process import KwiverProcess
-from vital.types import (  # NOQA
-    Image,
-    BoundingBox,
-    DetectedObjectSet,
-    DetectedObjectType,
-    DetectedObject,
-    Feature,
-)
 import ubelt as ub
 import os
 import itertools as it
@@ -187,45 +180,64 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         self._base_configure()
 
     # ----------------------------------------------
-    def _step(self):
+    def _dowork(self, img_container):
         """
-        Ignore:
-            from vital.types import ImageContainer, Image
-            >>>
+        Helper to decouple the algorithm and pipeline logic
 
+        CommandLine:
+            python -m xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
+
+        Example:
+            >>> from viame.processes.camtrawl.processes import *
+            >>> from vital.types import ImageContainer
+            >>> import sprokit.pipeline.config
+            >>> # construct dummy process instance
+            >>> conf = sprokit.pipeline.config.empty_config()
+            >>> self = CamtrawlDetectFishProcess(conf)
+            >>> self._configure()
+            >>> # construct test data
+            >>> from vital.util import VitalPIL
+            >>> from PIL import Image as PILImage
+            >>> pil_img = PILImage.open(ub.grabdata('https://i.imgur.com/Jno2da3.png'))
+            >>> pil_img = PILImage.fromarray(np.zeros((512, 512, 3), dtype=np.uint8))
+            >>> img_container = ImageContainer(VitalPIL.from_pil(pil_img))
+            >>> # Initialize the background detector by sending 10 black frames
+            >>> for i in range(10):
+            >>>     empty_set = self._dowork(img_container)
+            >>> # now add a white box that should be detected
+            >>> np_img = np.zeros((512, 512, 3), dtype=np.uint8)
+            >>> np_img[300:340, 220:380] = 255
+            >>> img_container = ImageContainer.fromarray(np_img)
+            >>> detection_set = self._dowork(img_container)
+            >>> assert len(detection_set) == 1
+            >>> obj = detection_set[0]
         """
+        # This should be read as np.uint8
+        np_img = img_container.asarray()
+
+        detection_set = vital.types.DetectedObjectSet()
+        ct_detections = self.detector.detect(np_img)
+
+        for detection in ct_detections:
+            bbox = vital.types.BoundingBox(*detection.bbox.coords)
+            mask = detection.mask.astype(np.uint8)
+            vital_mask = vital.types.ImageContainer.fromarray(mask)
+            obj = vital.types.DetectedObject(bbox, 1.0, mask=vital_mask)
+            detection_set.add(obj)
+        return detection_set
+
+    def _step(self):
         logger.debug(' ----- ' + self.__class__.__name__ + ' step')
         # grab image container from port using traits
         img_container = self.grab_input_using_trait('image')
 
-        # print(' ----- ' + self.__class__.__name__ + ' convert')
-        vital_img = img_container.image()
-        # does this come in as float01?
-        # np_img = vital_img.asarray().astype(np.uint8)
+        # Process image container
+        detection_set = self._dowork(img_container)
 
-        from vital.util.VitalPIL import get_pil_image
-        pil_img = get_pil_image(vital_img)
-        np_img = np.asarray(pil_img)
-
-        # print(' ----- ' + self.__class__.__name__ + ' detect')
-
-        detection_set = DetectedObjectSet()
-        ct_detections = self.detector.detect(np_img)
-
-        for detection in ct_detections:
-            bbox = BoundingBox.from_coords(*detection.bbox.coords)
-            mask = detection.mask.astype(np.uint8)
-            obj = DetectedObject(bbox, 1.0, mask=mask)
-            detection_set.add(obj)
-
-        # print(' ----- ' + self.__class__.__name__ + ' push to port')
-
-        # # push dummy image object (same as input) to output port
+        # Push the output
         self.push_to_port_using_trait('detected_object_set', detection_set)
-        # print(' ----- ' + self.__class__.__name__ + ' base step')
 
         self._base_step()
-        # print(' ----- ' + self.__class__.__name__ + ' end')
 
 
 @tmp_sprokit_register_process(name='camtrawl_measure',
@@ -356,8 +368,10 @@ class CamtrawlMeasureProcess(KwiverProcess):
         # Convert back to the format the algorithm understands
         def _detections_from_vital(detection_set):
             for vital_det in detection_set:
-                coords = vital_det.bounding_box().coords()
-                mask = vital_det.mask().asarray()
+                bbox = vital_det.bounding_box()
+                coords = [bbox.min_x(), bbox.min_y(),
+                          bbox.max_x(), bbox.max_y()]
+                mask = vital_det.mask.asarray()
                 ct_bbox = ctalgo.BoundingBox(coords)
                 ct_det = ctalgo.DetectedObject(ct_bbox, mask)
                 yield ct_det
@@ -385,7 +399,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
             self.output_file.flush()
 
         # push dummy image object (same as input) to output port
-        # self.push_to_port_using_trait('out_image', ImageContainer(in_img))
+        # self.push_to_port_using_trait('out_image', vital.types.ImageContainer(in_img))
         self._base_step()
 
 
