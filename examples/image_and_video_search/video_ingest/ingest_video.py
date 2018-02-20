@@ -28,11 +28,17 @@ def execute_command( cmd ):
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
-def get_pipeline_cmd():
+def get_pipeline_cmd( debug=False ):
   if os.name == 'nt':
-    return 'pipeline_runner.exe '
+    if debug:
+      return 'pipeline_runner.exe '
+    else:
+      return 'pipeline_runner.exe '
   else:
-    return 'pipeline_runner '
+    if debug:
+      return 'gdb --args pipeline_runner '
+    else:
+      return 'pipeline_runner '
 
 def get_path_prefix():
   if os.name == 'nt':
@@ -58,7 +64,7 @@ def signal_handler( signal, frame ):
   sys.exit(0)
 
 # Process a single video
-def process_video_kwiver( pipeline_location, video_name, extra_options, logging_dir ):
+def process_video_kwiver( pipeline_location, video_name, extra_options, logging_dir, debug ):
 
   print( 'Processing: ' + video_name + "... " )
 
@@ -67,7 +73,7 @@ def process_video_kwiver( pipeline_location, video_name, extra_options, logging_
 
   # Formulate command
   command = get_path_prefix_with_and() + \
-            get_pipeline_cmd() + \
+            get_pipeline_cmd( debug ) + \
             '-p ' + pipeline_location + ' ' + \
             '-s input:video_filename=' + video_name + ' ' + \
             '-s detector_writer:file_name=database/' + basename + '_detections.kw18 ' + \
@@ -81,7 +87,7 @@ def process_video_kwiver( pipeline_location, video_name, extra_options, logging_
   if len( extra_options ) > 0:
     command = command + '-s ' + extra_options
 
-  if len( logging_dir ) > 0:
+  if len( logging_dir ) > 0 and not debug:
     command = command + get_log_postfix( logging_dir + '/' + basename )
 
   # Process command
@@ -122,9 +128,13 @@ if __name__ == "__main__" :
   parser.add_argument("--build-index", dest="build_index", action="store_true",
                       help="Build searchable index on completion")
 
+  parser.add_argument("--debug", dest="debug", action="store_true",
+                      help="Run with debugger attached to process")
+
   parser.set_defaults( init_db=False )
   parser.set_defaults( rel_to_script=False )
   parser.set_defaults( build_index=False )
+  parser.set_defaults( debug=False )
 
   args = parser.parse_args()
 
@@ -163,7 +173,7 @@ if __name__ == "__main__" :
 
   # Process videos 
   for video_name in video_list:
-    process_video_kwiver( pipeline_loc, video_name, args.extra_options, args.log_dir )
+    process_video_kwiver( pipeline_loc, video_name, args.extra_options, args.log_dir, args.debug )
 
   # Build index
   if args.build_index:
