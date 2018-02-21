@@ -239,6 +239,7 @@ void video_input_process
     push_to_port_using_trait( timestamp, ts );
     push_to_port_using_trait( image, frame );
     push_to_port_using_trait( metadata, metadata );
+    push_to_port_using_trait( frame_rate, d->m_video_reader->frame_rate() );
   }
   else
   {
@@ -251,6 +252,7 @@ void video_input_process
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
     push_datum_to_port_using_trait( metadata, dat );
+    push_datum_to_port_using_trait( frame_rate, dat );
   }
 }
 
@@ -265,6 +267,7 @@ void video_input_process
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
   declare_output_port_using_trait( metadata, optional );
+  declare_output_port_using_trait( frame_rate, optional );
 }
 
 
