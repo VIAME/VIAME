@@ -38,6 +38,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
 #include <vital/exceptions/video.h>
+#include <vital/exceptions/klv.h>
 #include <vital/video_metadata/convert_metadata.h>
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
@@ -166,7 +167,15 @@ public:
     {
       auto meta = std::make_shared<kwiver::vital::video_metadata>();
 
-      converter.convert( klv_packet, *(meta) );
+      try
+      {
+        converter.convert( klv_packet, *(meta) );
+      }
+      catch ( kwiver::vital::klv_exception const& e )
+      {
+        LOG_WARN( this->d_logger, "Metadata exception: " << e.what() );
+        continue;
+      }
 
       // If the metadata was even partially decided, then add to the list.
       if ( ! meta->empty() )
