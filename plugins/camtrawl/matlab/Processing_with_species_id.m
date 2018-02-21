@@ -176,7 +176,7 @@ end
         end
         % resample using mean 
         imLd=imresize(imL,1/factor);
-%         imLd=resize_image(imL,factor);
+        % imLd=resize_image(imL,factor);
         % subtract background
         fg_dL = step(GMM_detector_L, uint8(imLd));
         ele = strel('disk',2);
