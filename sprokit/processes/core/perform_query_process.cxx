@@ -270,6 +270,7 @@ perform_query_process
   if( !query && !feedback && !model )
   {
     push_to_port_using_trait( query_result, output );
+    push_to_port_using_trait( iqr_model, model );
     return;
   }
 
