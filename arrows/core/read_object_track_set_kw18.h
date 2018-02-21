@@ -55,6 +55,8 @@ public:
   read_object_track_set_kw18();
   virtual ~read_object_track_set_kw18();
 
+  virtual void open( std::string const& filename );
+
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
