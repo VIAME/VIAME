@@ -95,6 +95,10 @@ class SRNN_tracking(KwiverProcess):
                               'Trained PyTorch model.')
         self.declare_config_using_trait('siamese_model_path')
 
+        self.add_config_trait("GPU_list", "GPU_list", 'all',
+                              'define which GPU to use for SRNN tracking. e.g., all, 1,2')
+        self.declare_config_using_trait('GPU_list')
+
         self.add_config_trait("siamese_model_input_size", "siamese_model_input_size", '224',
                               'Model input image size')
         self.declare_config_using_trait('siamese_model_input_size')
@@ -198,17 +202,24 @@ class SRNN_tracking(KwiverProcess):
     def _configure(self):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
+        #GPU_list
+        GPU_list_str = self.config_value('GPU_list')
+        if GPU_list_str == 'all':
+            self._GPU_list = None
+        else:
+            self._GPU_list = list(map(int, GPU_list_str.split(',')))
+
         # Siamese model config
         siamese_img_size = int(self.config_value('siamese_model_input_size'))
         siamese_batch_size = int(self.config_value('siamese_batch_size'))
         siamese_model_path = self.config_value('siamese_model_path')
-        self._app_feature_extractor = pytorch_siamese_f_extractor(siamese_model_path, siamese_img_size, siamese_batch_size)
+        self._app_feature_extractor = pytorch_siamese_f_extractor(siamese_model_path, siamese_img_size, siamese_batch_size, self._GPU_list)
 
         # targetRNN_full model config
         targetRNN_batch_size = int(self.config_value('targetRNN_batch_size'))
         targetRNN_AIM_model_path = self.config_value('targetRNN_AIM_model_path')
         targetRNN_AIM_V_model_path = self.config_value('targetRNN_AIM_V_model_path')
-        self._SRNN_matching = SRNN_matching(targetRNN_AIM_model_path, targetRNN_AIM_V_model_path, targetRNN_batch_size)
+        self._SRNN_matching = SRNN_matching(targetRNN_AIM_model_path, targetRNN_AIM_V_model_path, targetRNN_batch_size, self._GPU_list)
 
         self._GTbbox_flag = False
         # use MOT gt detection
