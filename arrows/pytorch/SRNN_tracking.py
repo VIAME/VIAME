@@ -265,106 +265,111 @@ class SRNN_tracking(KwiverProcess):
         im = get_pil_image(in_img_c.image())
         self._app_feature_extractor.frame = im
 
+        bbox_num = 0
         # Get detection bbox
         if self._GTbbox_flag is True:
             dos = self._m_bbox[self._step_id] 
+            bbox_num = len(dos)
         else:
             dos = dos_ptr.select(self._select_threshold)
+            bbox_num = dos.size()
         #print('bbox list len is {}'.format(dos.size()))
 
-        # interaction features
-        grid_f_begin = timer()
-        grid_feature_list = self._grid(im.size, dos, self._GTbbox_flag)
-        grid_f_end = timer()
-        print('%%%grid feature eclapsed time: {}'.format(grid_f_end - grid_f_begin))
-        
-    
-        # appearance features (format: pytorch tensor)
-        app_f_begin = timer()
-        pt_app_features = self._app_feature_extractor(dos, self._GTbbox_flag) 
-        app_f_end = timer()
-        print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
-
-        track_state_list = []
-        next_trackID = int(self._track_set.get_max_track_ID()) + 1
-        
-        # get new track state from new frame and detections
-        for idx, item in enumerate(dos):
-            if self._GTbbox_flag is True:
-                bbox = item
-                d_obj = DetectedObject(bbox=item , confidence=1.0)
-            else:
-                bbox = item.bounding_box()
-                d_obj = item
-
-            # center of bbox
-            center = tuple((bbox.center()))
-
-            # build track state for current bbox for matching
-            cur_ts = track_state(frame_id=self._step_id, bbox_center=center, interaction_feature=grid_feature_list[idx],
-                                 app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()), 
-                                                                int(bbox.width()), int(bbox.height())],
-                                 detectedObject=d_obj)
-            track_state_list.append(cur_ts)
-            
-        # if there is no tracks, generate new tracks from the track_state_list
-        if self._track_flag is False:
-            next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list)
-            self._track_flag = True
+        if bbox_num == 0:
+            print('!!! No bbox is provided on this frame and skip this frame !!!')
         else:
-            # check whether we need to terminate a track
-            for ti in range(len(self._track_set)):
-                if self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold:
-                    self._track_set[ti].active_flag = False
-
-            #print('track_set len {}'.format(len(self._track_set)))
-            #print('track_state_list len {}'.format(len(track_state_list)))
+            # interaction features
+            grid_f_begin = timer()
+            grid_feature_list = self._grid(im.size, dos, self._GTbbox_flag)
+            grid_f_end = timer()
+            print('%%%grid feature eclapsed time: {}'.format(grid_f_end - grid_f_begin))
             
-            # call IOU tracker
-            if self._IOU_flag is True:
-                IOU_begin = timer()
-                self._track_set, track_state_list = self._iou_tracker(self._track_set, track_state_list)
-                IOU_end = timer()
-                print('%%%IOU tracking eclapsed time: {}'.format(IOU_end - IOU_begin))
+            # appearance features (format: pytorch tensor)
+            app_f_begin = timer()
+            pt_app_features = self._app_feature_extractor(dos, self._GTbbox_flag) 
+            app_f_end = timer()
+            print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
 
-            #print('***track_set len {}'.format(len(self._track_set)))
-            #print('***track_state_list len {}'.format(len(track_state_list)))
-
-            # estimate similarity matrix
-            ttu_begin = timer()
-            similarity_mat, track_idx_list = self._SRNN_matching(self._track_set, track_state_list, self._ts_threshold)
-            ttu_end = timer()
-            print('%%%TTU assication eclapsed time: {}'.format(ttu_end - ttu_begin))
-
-            #reset update_flag
-            self._track_set.reset_updated_flag()
-
-            # Hungarian algorithm
-            hung_begin = timer()
-            row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(similarity_mat)
-            hung_end = timer()
-            print('%%%Hungarian alogrithm eclapsed time: {}'.format(hung_end - hung_begin))
+            track_state_list = []
+            next_trackID = int(self._track_set.get_max_track_ID()) + 1
             
-            for i in range(len(row_idx_list)):
-                r = row_idx_list[i]
-                c = col_idx_list[i]
-
-                if -similarity_mat[r, c] < self._similarity_threshold:
-                    # initialize a new track
-                    self._track_set.add_new_track_state(next_trackID, track_state_list[c])
-                    next_trackID += 1
+            # get new track state from new frame and detections
+            for idx, item in enumerate(dos):
+                if self._GTbbox_flag is True:
+                    bbox = item
+                    d_obj = DetectedObject(bbox=item , confidence=1.0)
                 else:
-                    # add to existing track
-                    self._track_set.update_track(track_idx_list[r], track_state_list[c])
-            
-            # for rest unmatched track_state, we initialize new tracks
-            if len(track_state_list) - len(col_idx_list) > 0:
-                for i in range(len(track_state_list)):
-                    if i not in col_idx_list:
-                        self._track_set.add_new_track_state(next_trackID, track_state_list[i])
-                        next_trackID += 1
+                    bbox = item.bounding_box()
+                    d_obj = item
 
-        print('total tracks {}'.format(len(self._track_set)))
+                # center of bbox
+                center = tuple((bbox.center()))
+
+                # build track state for current bbox for matching
+                cur_ts = track_state(frame_id=self._step_id, bbox_center=center, interaction_feature=grid_feature_list[idx],
+                                     app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()), 
+                                                                    int(bbox.width()), int(bbox.height())],
+                                     detectedObject=d_obj)
+                track_state_list.append(cur_ts)
+                
+            # if there is no tracks, generate new tracks from the track_state_list
+            if self._track_flag is False:
+                next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list)
+                self._track_flag = True
+            else:
+                # check whether we need to terminate a track
+                for ti in range(len(self._track_set)):
+                    if self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold:
+                        self._track_set[ti].active_flag = False
+
+                #print('track_set len {}'.format(len(self._track_set)))
+                #print('track_state_list len {}'.format(len(track_state_list)))
+                
+                # call IOU tracker
+                if self._IOU_flag is True:
+                    IOU_begin = timer()
+                    self._track_set, track_state_list = self._iou_tracker(self._track_set, track_state_list)
+                    IOU_end = timer()
+                    print('%%%IOU tracking eclapsed time: {}'.format(IOU_end - IOU_begin))
+
+                #print('***track_set len {}'.format(len(self._track_set)))
+                #print('***track_state_list len {}'.format(len(track_state_list)))
+
+                # estimate similarity matrix
+                ttu_begin = timer()
+                similarity_mat, track_idx_list = self._SRNN_matching(self._track_set, track_state_list, self._ts_threshold)
+                ttu_end = timer()
+                print('%%%SRNN assication eclapsed time: {}'.format(ttu_end - ttu_begin))
+
+                #reset update_flag
+                self._track_set.reset_updated_flag()
+
+                # Hungarian algorithm
+                hung_begin = timer()
+                row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(similarity_mat)
+                hung_end = timer()
+                print('%%%Hungarian alogrithm eclapsed time: {}'.format(hung_end - hung_begin))
+                
+                for i in range(len(row_idx_list)):
+                    r = row_idx_list[i]
+                    c = col_idx_list[i]
+
+                    if -similarity_mat[r, c] < self._similarity_threshold:
+                        # initialize a new track
+                        self._track_set.add_new_track_state(next_trackID, track_state_list[c])
+                        next_trackID += 1
+                    else:
+                        # add to existing track
+                        self._track_set.update_track(track_idx_list[r], track_state_list[c])
+                
+                # for rest unmatched track_state, we initialize new tracks
+                if len(track_state_list) - len(col_idx_list) > 0:
+                    for i in range(len(track_state_list)):
+                        if i not in col_idx_list:
+                            self._track_set.add_new_track_state(next_trackID, track_state_list[i])
+                            next_trackID += 1
+
+            print('total tracks {}'.format(len(self._track_set)))
 
         # push track set to output port
         ot_list = ts2ot_list(self._track_set)
