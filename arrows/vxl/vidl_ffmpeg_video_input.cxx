@@ -166,7 +166,15 @@ public:
     {
       auto meta = std::make_shared<kwiver::vital::video_metadata>();
 
-      converter.convert( klv_packet, *(meta) );
+      try
+      {
+        converter.convert( klv_packet, *(meta) );
+      }
+      catch ( kwiver::vital::metadata_exception const& e )
+      {
+        LOG_WARN( this->d_logger, "Metadata exception: " << e.what() );
+        continue;
+      }
 
       // If the metadata was even partially decided, then add to the list.
       if ( ! meta->empty() )
