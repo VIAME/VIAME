@@ -132,6 +132,7 @@ create_port_trait( database_query, database_query, "A database query." );
 create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
 create_port_trait( descriptor_request, descriptor_request, "A request to compute descriptors." );
 create_port_trait( iqr_feedback, iqr_feedback, "IQR feedback." );
+create_port_trait( iqr_model, uchar_vector, "IQR model." );
 create_port_trait( query_result, query_result, "Set of query results." );
 create_port_trait( string_vector, string_vector, "Vector of strings." );
 create_port_trait( track_set, track_set, "Set of arbitrary tracks." );

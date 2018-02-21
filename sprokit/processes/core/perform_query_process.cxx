@@ -257,17 +257,20 @@ perform_query_process
   // Retrieve inputs from ports
   vital::database_query_sptr query;
   vital::iqr_feedback_sptr feedback;
+  vital::uchar_vector_sptr model;
 
   query = grab_from_port_using_trait( database_query );
   feedback = grab_from_port_using_trait( iqr_feedback );
+  model = grab_from_port_using_trait( iqr_model );
 
   // Declare output
   vital::query_result_set_sptr output( new vital::query_result_set() );
 
   // No query received, do nothing, return no results
-  if( !query && !feedback )
+  if( !query && !feedback && !model )
   {
     push_to_port_using_trait( query_result, output );
+    push_to_port_using_trait( iqr_model, model );
     return;
   }
 
@@ -355,6 +358,7 @@ perform_query_process
     ids->add_value( "exemplar_uids", exemplar_uids );
     ids->add_value( "positive_uids", positive_uids );
     ids->add_value( "negative_uids", negative_uids );
+    ids->add_value( "query_model", model );
 
     // Send the request through the pipeline and wait for a result
     d->external_pipeline->send( ids );
@@ -369,8 +373,9 @@ perform_query_process
     // Grab result from pipeline output data set
     auto const& iter1 = ods->find( "result_uids" );
     auto const& iter2 = ods->find( "result_scores" );
+    auto const& iter3 = ods->find( "result_model" );
 
-    if( iter1 == ods->end() || iter2 == ods->end() )
+    if( iter1 == ods->end() || iter2 == ods->end() || iter3 == ods->end() )
     {
       throw std::runtime_error( "Empty pipeline output" );
     }
@@ -379,10 +384,14 @@ perform_query_process
       iter1->second->get_datum< vital::string_vector_sptr >();
     vital::double_vector_sptr result_scores =
       iter2->second->get_datum< vital::double_vector_sptr >();
+
+    model = iter3->second->get_datum< vital::uchar_vector_sptr >();
 #else
     // Format data to simplified format for external
     vital::string_vector_sptr result_uids( new vital::string_vector() );
     vital::double_vector_sptr result_scores( new vital::double_vector() );
+
+    model = vital::uchar_vector_sptr( new vital::uchar_vector() );
 
     result_uids->push_back( "output_frame_final_item_14" );
     result_uids->push_back( "output_frame_final_item_13" );
@@ -512,6 +521,7 @@ perform_query_process
 
   // Push outputs downstream
   push_to_port_using_trait( query_result, output );
+  push_to_port_using_trait( iqr_model, model );
 }
 
 
@@ -528,9 +538,11 @@ void perform_query_process
   // -- input --
   declare_input_port_using_trait( database_query, required );
   declare_input_port_using_trait( iqr_feedback, optional );
+  declare_input_port_using_trait( iqr_model, optional );
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
+  declare_output_port_using_trait( iqr_model, optional );
 }
 
 
