@@ -170,6 +170,12 @@ Sprokit
    in the pipeline. If a python process is found, an exception is
    thrown.
 
+Tools
+
+ * Added built-in plugin search paths to the plugin_explorer and dump_klv
+   tools.  These search paths are relative to the executable location so
+   plugins are can be found in installations without an environment variable.
+
 Unit Tests
 
  * KWIVER is in the process of transitioning to Google Test as its primary

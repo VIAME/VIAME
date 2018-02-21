@@ -29,6 +29,13 @@ Arrows - Core
     invalid triangulated points.  It was failing to catch points that contained
     NaN or infinity value.  This has been corrected.
 
+Arrows - VXL
+
+ * The vidl_ffmpeg_video_input algorithm was not catching exceptions caused by
+   corrupt metadata.  This typically led programs like dump_klv to crash.  The
+   exception is now caught in the video_input and logged as a warning so that
+   the rest of the data can be read.
+
 Vital
 
   * The simple_camera::clone_look_at now has the same parameter default as the
