@@ -195,7 +195,16 @@ void video_input_process
       if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
       {
         // create an internal time standard
-        d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
+        double frame_rate = d->m_video_reader->frame_rate();
+        if( frame_rate > 0 )
+        {
+          time_t frame_time_usec = ( 1.0 / frame_rate ) * 1e6;
+          d->m_frame_time = d->m_frame_number * frame_time_usec;
+        }
+        else
+        {
+          d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
+        }
         ts.set_time_usec( d->m_frame_time );
       }
 
