@@ -1,17 +1,17 @@
-function	[out,dout]=rodrigues(in)
+function    [out,dout]=rodrigues(in)
 
-% RODRIGUES	Transform rotation matrix into rotation vector and viceversa.
-%		
-%		Sintax:  [OUT]=RODRIGUES(IN)
-% 		If IN is a 3x3 rotation matrix then OUT is the
-%		corresponding 3x1 rotation vector
-% 		if IN is a rotation 3-vector then OUT is the 
-%		corresponding 3x3 rotation matrix
+% RODRIGUES    Transform rotation matrix into rotation vector and viceversa.
+%        
+%        Sintax:  [OUT]=RODRIGUES(IN)
+%         If IN is a 3x3 rotation matrix then OUT is the
+%        corresponding 3x1 rotation vector
+%         if IN is a rotation 3-vector then OUT is the 
+%        corresponding 3x3 rotation matrix
 %
 
 %%
-%%		Copyright (c) March 1993 -- Pietro Perona
-%%		California Institute of Technology
+%%        Copyright (c) March 1993 -- Pietro Perona
+%%        California Institute of Technology
 %%
 
 %% ALL CHECKED BY JEAN-YVES BOUGUET, October 1995.
@@ -50,7 +50,7 @@ if ((m==1) & (n==3)) | ((m==3) & (n==1)) %% it is a rotation vector
         %end;
 
     else
-        if n==length(in)  in=in'; end; 	%% make it a column vec. if necess.
+        if n==length(in)  in=in'; end;     %% make it a column vec. if necess.
 
         %m3 = [in,theta]
 
@@ -153,7 +153,7 @@ elseif ((m==n) & (m==3) & (norm(in' * in - eye(3)) < bigeps)...
 
 
     else
-        if tr > 0; 			% case norm(om)=0;
+        if tr > 0;             % case norm(om)=0;
 
             out = [0 0 0]';
 

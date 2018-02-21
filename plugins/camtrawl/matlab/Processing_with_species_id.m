@@ -269,7 +269,3 @@ end
         params=[ranges,max_err,min_size,ROI,min_aspect,max_aspect,factor, by_n];
         eval(['save ',pwd,save_path,'\Haul_',haulstr,' lengths params Cal']);
     end
-
-
-
-
