@@ -38,6 +38,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
 #include <vital/exceptions/video.h>
+#include <vital/exceptions/klv.h>
 #include <vital/video_metadata/convert_metadata.h>
 #include <vital/vital_foreach.h>
 #include <vital/util/tokenize.h>
@@ -170,7 +171,7 @@ public:
       {
         converter.convert( klv_packet, *(meta) );
       }
-      catch ( kwiver::vital::metadata_exception const& e )
+      catch ( kwiver::vital::klv_exception const& e )
       {
         LOG_WARN( this->d_logger, "Metadata exception: " << e.what() );
         continue;
