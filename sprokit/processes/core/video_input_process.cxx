@@ -75,6 +75,7 @@ public:
   // Configuration values
   std::string                             m_config_video_filename;
   kwiver::vital::timestamp::time_t        m_config_frame_time;
+  bool                                    m_has_config_frame_time;
 
   kwiver::vital::algo::video_input_sptr   m_video_reader;
   kwiver::vital::algorithm_capabilities m_video_traits;
@@ -117,6 +118,10 @@ void video_input_process
                                config_value_using_trait( frame_time ) * 1e6); // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  if( algo_config->has_value( "frame_time" ) )
+  {
+    d->m_has_config_frame_time = true;
+  }
 
   if ( ! algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
   {
@@ -196,14 +201,14 @@ void video_input_process
       {
         // create an internal time standard
         double frame_rate = d->m_video_reader->frame_rate();
-        if( frame_rate > 0 )
+        if( frame_rate <= 0 || d->m_has_config_frame_time )
         {
-          time_t frame_time_usec = ( 1.0 / frame_rate ) * 1e6;
-          d->m_frame_time = d->m_frame_number * frame_time_usec;
+          d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
         }
         else
         {
-          d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
+          time_t frame_time_usec = ( 1.0 / frame_rate ) * 1e6;
+          d->m_frame_time = d->m_frame_number * frame_time_usec;
         }
         ts.set_time_usec( d->m_frame_time );
       }
@@ -276,7 +281,8 @@ void video_input_process
 // ================================================================
 video_input_process::priv
 ::priv()
-  : m_frame_number( 1 ),
+  : m_has_config_frame_time( false ),
+    m_frame_number( 1 ),
     m_frame_time( 0 )
 {
 }
