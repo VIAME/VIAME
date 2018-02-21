@@ -717,6 +717,15 @@ vidl_ffmpeg_video_input
 
 
 // ------------------------------------------------------------------
+double
+vidl_ffmpeg_video_input
+::frame_rate()
+{
+  return d->d_video_stream.frame_rate();
+}
+
+
+// ------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::end_of_video() const

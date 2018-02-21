@@ -65,6 +65,15 @@ video_input
 
 
 // ------------------------------------------------------------------
+double
+video_input
+::frame_rate()
+{
+  return -1.0;
+}
+
+
+// ------------------------------------------------------------------
 algorithm_capabilities const&
 video_input
 ::get_implementation_capabilities() const
