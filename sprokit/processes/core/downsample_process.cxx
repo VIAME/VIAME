@@ -40,7 +40,6 @@ namespace kwiver
 using sprokit::process;
 
 create_config_trait( target_frame_rate, double, "1.0", "Target frame rate" );
-create_config_trait( source_frame_rate, double, "30.0", "Source frame rate" );
 create_config_trait( burst_frame_count, unsigned, "0", "Burst frame count" );
 create_config_trait( burst_frame_break, unsigned, "0", "Burst frame break" );
 
@@ -50,12 +49,11 @@ public:
   explicit priv( downsample_process* p );
   ~priv();
 
-  bool skip_frame( vital::timestamp const& ts );
+  bool skip_frame( vital::timestamp const& ts, double frame_rate );
 
   downsample_process* parent;
 
   double target_frame_rate_;
-  double source_frame_rate_;
   unsigned burst_frame_count_;
   unsigned burst_frame_break_;
 
@@ -108,7 +106,6 @@ void downsample_process
 ::_configure()
 {
   d->target_frame_rate_ = config_value_using_trait( target_frame_rate );
-  d->source_frame_rate_ = config_value_using_trait( source_frame_rate );
   d->burst_frame_count_ = config_value_using_trait( burst_frame_count );
   d->burst_frame_break_ = config_value_using_trait( burst_frame_break );
 }
@@ -117,7 +114,6 @@ void downsample_process
 void downsample_process
 ::_init()
 {
-  d->ds_factor_ = d->source_frame_rate_ / d->target_frame_rate_;
   d->ds_counter_ = 0.0;
   d->burst_counter_ = 0;
   d->burst_skip_mode_ = false;
@@ -128,7 +124,8 @@ void downsample_process
 ::_step()
 {
   kwiver::vital::timestamp ts = grab_from_port_using_trait( timestamp );
-  bool send_frame = !d->skip_frame( ts );
+  double frame_rate = grab_from_port_using_trait( frame_rate );
+  bool send_frame = !d->skip_frame( ts, frame_rate );
 
   if( send_frame )
   {
@@ -159,6 +156,7 @@ void downsample_process
   required.insert( flag_required );
 
   declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( frame_rate, required );
   for( size_t i = 0; i < 5; i++ )
   {
     declare_input_port( priv::port_inputs[i],
@@ -182,15 +180,15 @@ void downsample_process
 ::make_config()
 {
   declare_config_using_trait( target_frame_rate );
-  declare_config_using_trait( source_frame_rate );
   declare_config_using_trait( burst_frame_count );
   declare_config_using_trait( burst_frame_break );
 }
 
 
 bool downsample_process::priv
-::skip_frame( vital::timestamp const& ts )
+::skip_frame( vital::timestamp const& ts, double frame_rate )
 {
+  ds_factor_ = frame_rate / target_frame_rate_;
   ds_counter_ += 1.0;
   if( ds_counter_ < ds_factor_ )
   {
