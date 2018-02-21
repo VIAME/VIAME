@@ -33,8 +33,12 @@ connect from in_adapt.positive_uids
         to   smqtk_query_handler.positive_uids
 connect from in_adapt.negative_uids
         to   smqtk_query_handler.negative_uids
+connect from in_adapt.query_model
+        to   smqtk_query_handler.query_model
 
 connect from smqtk_query_handler.result_uids
         to   out_adapt.result_uids
 connect from smqtk_query_handler.result_scores
         to   out_adapt.result_scores
+connect from smqtk_query_handler.result_model
+        to   out_adapt.result_model

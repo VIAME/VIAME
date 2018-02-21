@@ -190,6 +190,11 @@ class SmqtkProcessQuery (KwiverProcess):
         #: :type: list[str]
         positive_tuple = self.grab_input_using_trait('positive_uids')
         negative_tuple = self.grab_input_using_trait('negative_uids')
+        #
+        # Optional input SVM model
+        #
+        #: :type: vital.types.UCharVector
+        query_model = self.grab_input_using_trait('query_model')
 
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]

@@ -8,10 +8,14 @@ import signal
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
-  return glob.glob( folder + '/*' )
+  output = glob.glob( folder + '/*' )
+  output.sort()
+  return output
 
 def list_files_in_dir_w_ext( folder, extension ):
-  return glob.glob( folder + '/*' + extension )
+  output = glob.glob( folder + '/*' + extension )
+  output.sort()
+  return output
 
 # Create a directory if it doesn't exist
 def create_dir( dirname ):

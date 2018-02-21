@@ -39,7 +39,10 @@ connect from in_adapt.database_query
         to   database_query_handler.database_query
 connect from in_adapt.iqr_feedback
         to   database_query_handler.iqr_feedback
+connect from in_adapt.iqr_model
+        to   database_query_handler.iqr_model
 
 connect from database_query_handler.query_result
         to   out_adapt.query_result
-
+connect from database_query_handler.iqr_model
+        to   out_adapt.iqr_model
