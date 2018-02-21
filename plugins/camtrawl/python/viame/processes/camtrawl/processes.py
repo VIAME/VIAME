@@ -52,7 +52,7 @@ CommandLine:
 
     export KWIVER_DEFAULT_LOG_LEVEL=debug
     export KWIVER_DEFAULT_LOG_LEVEL=info
-    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=debug
+    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=info
     export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
     python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
@@ -74,7 +74,7 @@ CommandLine:
     source ~/code/VIAME/build/install/setup_viame.sh
     export KWIVER_DEFAULT_LOG_LEVEL=debug
     export KWIVER_DEFAULT_LOG_LEVEL=info
-    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=debug
+    export KWIVER_PYTHON_DEFAULT_LOG_LEVEL=info
     export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
     # export KWIVER_PYTHON_COLOREDLOGS=1
@@ -100,9 +100,9 @@ import itertools as it
 from . import algos as ctalgo
 
 from sprokit import sprokit_logging
-import logging
+# import logging
 logger = sprokit_logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 print = logger.info
 
 

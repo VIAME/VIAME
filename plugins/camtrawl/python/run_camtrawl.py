@@ -77,7 +77,7 @@ def simple_pipeline():
 
     # Setup the input files
     import ubelt as ub
-    dataset = ub.argval('--dataset', default=None)
+    dataset = ub.argval('--dataset', default='demo')
 
     if dataset == 'demo':
         import zipfile
@@ -93,6 +93,8 @@ def simple_pipeline():
             data_fpath = join(dpath, dname)
             if not exists(data_fpath):
                 zfile.extractall(dpath)
+
+        print('data_fpath = {!r}'.format(data_fpath))
 
         cal_fpath = join(data_fpath, 'cal.npz')
         datakw = {
@@ -145,11 +147,11 @@ def simple_pipeline():
             'img_path2': img_path2,
         }
         if not exists(img_path1):
-            raise IOError('left image path does not exist')
+            raise IOError('left image path {!r} does not exist'.format(img_path1))
         if not exists(img_path2):
-            raise IOError('right image path does not exist')
+            raise IOError('right image path {!r} does not exist'.format(img_path2))
         if not exists(cal_fpath):
-            raise IOError('calibration file path does not exist')
+            raise IOError('calibration file path {!r} does not exist'.format(cal_fpath))
 
         # raise KeyError('Unknown dataset {}'.format(dataset))
 

@@ -71,6 +71,10 @@ development)
     pipeline_runner -p camtrawl_demo.pipe -S pythread_per_process
 
 
+This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017
+i7 2.8Ghz Dell laptop.
+
+
 Running via installed camtrawl python module 
 --------------------------------------------
 
@@ -99,6 +103,8 @@ Alternatively you can run by specifying the path to camtrawl module (if you
 have a python environment you should be able to run this without even building
 VIAME)
 
+
+
 ::
 
     # First move to the example directory
@@ -109,3 +115,14 @@ VIAME)
         --left=camtrawl_demodata/left --right=camtrawl_demodata/right \
         --cal=camtrawl_demodata/cal.npz \
         --out=out --draw -f
+
+Without the `--draw` flag the above example, this example runs at about 2.5Hz,
+and takes 20 seconds to complete on a 2017 i7 2.8Ghz Dell laptop.
+
+With `--draw` it takes significantly longer (it runs at 0.81 Hz and takes over
+a minute to complete), but will output images like the one at the top of this
+readme as well as a CSV file.
+
+Note that the KWIVER C++ Sprokit pipline offers a significant speedup (4Hz vs
+2.5Hz), although it currently does not have the ability to output the algorithm
+visualization.
