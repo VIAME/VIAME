@@ -71,6 +71,8 @@ class SmqtkProcessQuery (KwiverProcess):
         # user adjudicated positive and negative descriptor UUIDs
         self.declare_input_port_using_trait('positive_uids', optional)
         self.declare_input_port_using_trait('negative_uids', optional)
+        # input model if pre-generated
+        self.declare_input_port_using_trait('query_model', optional)
 
         # Output, ranked descriptor UUIDs
         self.declare_output_port_using_trait('result_uids', optional)
@@ -108,6 +110,8 @@ class SmqtkProcessQuery (KwiverProcess):
                             "Positive sample UIDs")
         self.add_port_trait("negative_uids", "string_vector",
                             "Negative sample UIDs")
+        self.add_port_trait("query_model", "uchar_vector",
+                            "Input model for input queries.")
         self.add_port_trait("result_uids", "string_vector",
                             "Result ranked descriptor UUIDs in rank order.")
         self.add_port_trait("result_scores", "double_vector",
