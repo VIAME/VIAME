@@ -106,7 +106,7 @@ class SRNN_matching(object):
         snapshot = torch.load(targetRNN_full_model_path)
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_full_model.eval()
-        self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, device_ids=[0]).cuda()
+        self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model).cuda()
 
         # load  target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
@@ -115,7 +115,7 @@ class SRNN_matching(object):
         snapshot = torch.load(targetRNN_AIM_V_model_path)
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_AIM_V_model.eval()
-        self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=[0]).cuda()
+        self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model).cuda()
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
         tracks_num = len(track_set)
