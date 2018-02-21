@@ -93,29 +93,34 @@ class TargetRNNDataLoader(data.Dataset):
 
 
 class SRNN_matching(object):
-    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size):
+    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None):
+        
+        if GPU_list is None:
+            GPU_list = [x for x in range(torch.cuda.device_count())]
+            self._target_GPU = 0
+        else:
+            self._target_GPU = GPU_list[0]
 
         self._batch_size = batch_size
-
 
         # load target AIM model, trained with fixed variable timestep
         full_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
         self._targetRNN_full_model = TargetLSTM(model_list=full_model_list)
-        self._targetRNN_full_model = self._targetRNN_full_model.cuda()
+        self._targetRNN_full_model = self._targetRNN_full_model.cuda(device_id=self._target_GPU)
 
         snapshot = torch.load(targetRNN_full_model_path)
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_full_model.eval()
-        self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model).cuda()
+        self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, device_ids=GPU_list)
 
         # load  target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list).cuda()
+        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list).cuda(device_id=self._target_GPU)
 
         snapshot = torch.load(targetRNN_AIM_V_model_path)
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_AIM_V_model.eval()
-        self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model).cuda()
+        self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=GPU_list)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
         tracks_num = len(track_set)
@@ -165,8 +170,8 @@ class SRNN_matching(object):
     
             label_mask = torch.ne(pred[1].data, 0)
             
-            r_idx = t.cuda()[label_mask]
-            c_idx = ts.cuda()[label_mask]
+            r_idx = t.cuda(self._target_GPU)[label_mask]
+            c_idx = ts.cuda(self._target_GPU)[label_mask]
             val = -pred[0].data[label_mask]
             
             if len(r_idx) == 0:
