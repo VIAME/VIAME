@@ -67,8 +67,6 @@ query_track_descriptor_set_db::~query_track_descriptor_set_db()
 void query_track_descriptor_set_db::set_configuration( vital::config_block_sptr config )
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
-  d->m_use_tracks_for_history = config->get_value< bool > (
-    "use_tracks_for_history", d->m_use_tracks_for_history );
 }
 
 bool query_track_descriptor_set_db::check_configuration( vital::config_block_sptr config ) const
@@ -265,6 +263,11 @@ bool query_track_descriptor_set_db::get_track_descriptor( std::string const& uid
   }
 
   return true;
+}
+
+void query_track_descriptor_set_db::use_tracks_for_history( bool value )
+{
+  d->m_use_tracks_for_history = value;
 }
 
 void query_track_descriptor_set_db::connect_to_database_on_demand()

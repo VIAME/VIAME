@@ -62,6 +62,8 @@ create_config_trait( descriptor_postfix, std::string,
   "_descriptors.csv", "Postfix to add to basename for desc files" );
 create_config_trait( index_postfix, std::string,
   ".index", "Postfix to add to basename for reading index files" );
+create_config_trait( use_tracks_for_history, bool,
+  "false", "Use object track states for track descriptor history" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -80,6 +82,7 @@ public:
   std::string track_postfix;
   std::string descriptor_postfix;
   std::string index_postfix;
+  bool use_tracks_for_history;
 
   std::unique_ptr< embedded_pipeline > external_pipeline;
 
@@ -143,6 +146,7 @@ void perform_query_process
   d->track_postfix = config_value_using_trait( track_postfix );
   d->descriptor_postfix = config_value_using_trait( descriptor_postfix );
   d->index_postfix = config_value_using_trait( index_postfix );
+  d->use_tracks_for_history = config_value_using_trait( use_tracks_for_history );
 
   if( d->external_handler )
   {
@@ -164,6 +168,8 @@ void perform_query_process
       throw sprokit::invalid_configuration_exception(
         name(), "Configuration check failed." );
     }
+
+    d->descriptor_query->use_tracks_for_history( d->use_tracks_for_history );
   }
 }
 
@@ -513,6 +519,7 @@ void perform_query_process
   declare_config_using_trait( descriptor_postfix );
   declare_config_using_trait( track_postfix );
   declare_config_using_trait( index_postfix );
+  declare_config_using_trait( use_tracks_for_history );
 }
 
 

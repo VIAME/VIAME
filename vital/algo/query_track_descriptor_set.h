@@ -65,6 +65,9 @@ public:
   /// Destructor
   virtual ~query_track_descriptor_set() = default;
 
+  /// Set option to use object tracks for track descriptor history
+  virtual void use_tracks_for_history( bool value ) = 0;
+
   /// Get a track descriptor by UID
   virtual bool get_track_descriptor( std::string const& uid,
     desc_tuple_t& result ) = 0;

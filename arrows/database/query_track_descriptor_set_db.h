@@ -60,6 +60,8 @@ public:
   virtual bool get_track_descriptor( std::string const& uid,
     desc_tuple_t& result );
 
+  virtual void use_tracks_for_history( bool value );
+
 protected:
   void connect_to_database_on_demand();
 
