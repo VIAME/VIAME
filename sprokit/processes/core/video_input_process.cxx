@@ -201,7 +201,8 @@ void video_input_process
       {
         // create an internal time standard
         double frame_rate = d->m_video_reader->frame_rate();
-        if( frame_rate <= 0 || d->m_has_config_frame_time )
+        if( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_RATE ) ||
+            frame_rate <= 0.0 || d->m_has_config_frame_time )
         {
           d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
         }

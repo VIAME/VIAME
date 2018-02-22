@@ -141,6 +141,7 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_FRAME_NUMBERS;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_DATA;
+  static const algorithm_capabilities::capability_name_t HAS_FRAME_RATE;
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;
