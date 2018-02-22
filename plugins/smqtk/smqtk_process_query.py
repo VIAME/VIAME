@@ -155,7 +155,7 @@ class SmqtkProcessQuery (KwiverProcess):
     def _configure(self):
         self.di_json_config_path = self.config_value('descriptor_index_config_file')
         self.nn_json_config_path = self.config_value('neighbor_index_config_file')
-        pos_seed_neighbors = int(self.config_value('pos_seed_neighbors'))
+        self.pos_seed_neighbors = int(self.config_value('pos_seed_neighbors'))
         self.query_return_n = int(self.config_value('query_return_size'))
 
         # parse json files
@@ -175,7 +175,7 @@ class SmqtkProcessQuery (KwiverProcess):
 
         # Using default relevancy index configuration, which as of 2017/08/24
         # is the only one: libSVM-based relevancy ranking.
-        self.iqr_session = smqtk.iqr.IqrSession(pos_seed_neighbors)
+        self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
 
         self._base_configure()
 
@@ -199,6 +199,10 @@ class SmqtkProcessQuery (KwiverProcess):
         #
         #: :type: vital.types.UCharVector
         query_model = self.grab_input_using_trait('query_model')
+
+        # Reset index on new query, a new query is one without IQR feedback
+        if len( positive_tuple ) == 0 and len( negative_tuple ) == 0:
+          self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
 
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]
