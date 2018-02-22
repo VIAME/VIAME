@@ -89,6 +89,7 @@ write_track_descriptor_set_csv
 {
   d->m_write_raw_descriptor =
     config->get_value<bool>( "write_raw_descriptor", d->m_write_raw_descriptor);
+  d->m_write_world_loc =
     config->get_value<bool>( "write_world_loc", d->m_write_world_loc);
 }
 
