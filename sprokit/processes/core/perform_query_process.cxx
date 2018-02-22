@@ -64,6 +64,10 @@ create_config_trait( index_postfix, std::string,
   ".index", "Postfix to add to basename for reading index files" );
 create_config_trait( use_tracks_for_history, bool,
   "false", "Use object track states for track descriptor history" );
+create_config_trait( merge_duplicate_results, bool,
+  "false", "If use_tracks_for_history is on, use the track with the "
+           "highest confidence, otherwise concatenate the history of "
+           "all entries with the same track" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -83,6 +87,7 @@ public:
   std::string descriptor_postfix;
   std::string index_postfix;
   bool use_tracks_for_history;
+  bool merge_duplicate_results;
 
   std::unique_ptr< embedded_pipeline > external_pipeline;
 
@@ -147,6 +152,7 @@ void perform_query_process
   d->descriptor_postfix = config_value_using_trait( descriptor_postfix );
   d->index_postfix = config_value_using_trait( index_postfix );
   d->use_tracks_for_history = config_value_using_trait( use_tracks_for_history );
+  d->merge_duplicate_results = config_value_using_trait( merge_duplicate_results );
 
   if( d->external_handler )
   {
@@ -207,6 +213,43 @@ perform_query_process
 
     d->external_pipeline = std::move( new_pipeline );
     pipe_stream.close();
+  }
+}
+
+
+// -----------------------------------------------------------------------------
+static void
+merge_history( vital::track_descriptor::descriptor_history_t& dest,
+               vital::track_descriptor::descriptor_history_t const& src)
+{
+  auto dest_it = dest.begin();
+  auto src_it = src.begin();
+
+  while( true )
+  {
+    if( dest_it == dest.end() )
+    {
+      if( src_it == src.end() )
+      {
+        return;
+      }
+      else
+      {
+        dest.insert( dest_it, *src_it );
+        src_it++;
+        dest_it++;
+      }
+    }
+    else if( src_it == src.end() || src_it->get_timestamp().get_frame() > dest_it->get_timestamp().get_frame() )
+    {
+      dest_it++;
+    }
+    else
+    {
+      dest.insert( dest_it, *src_it );
+      src_it++;
+      dest_it++;
+    }
   }
 }
 
@@ -391,6 +434,9 @@ perform_query_process
       output->push_back( itr->second );
     }
 
+    typedef std::pair< std::string, vital::track_id_t > unique_track_id_t;
+    std::map< unique_track_id_t, vital::query_result_sptr > top_results;
+
     // Handle all new or unadjudacted results
     for( unsigned i = 0; i < result_uids->size(); ++i )
     {
@@ -418,7 +464,57 @@ perform_query_process
         continue;
       }
 
-      vital::query_result_sptr entry( new vital::query_result() );
+      vital::query_result_sptr entry;
+      bool insert = true;
+
+      // If there is more than one track for a descriptor, there's no point in
+      // trying to do any merging
+      if( d->merge_duplicate_results && std::get<2>( result ).size() == 1 )
+      {
+        vital::track_sptr track = std::get<2>( result )[0];
+        unique_track_id_t track_id;
+        track_id.first = std::get<0>( result );
+        track_id.second = track->id();
+
+        auto it = top_results.find( track_id );
+        if( it != top_results.end() )
+        {
+          if( d->use_tracks_for_history)
+          {
+            if( it->second->relevancy_score() >= result_score )
+            {
+              continue;
+            }
+            else
+            {
+              entry = it->second;
+              insert = false;
+            }
+          }
+          else
+          {
+            entry = it->second;
+            insert = false;
+            vital::track_descriptor_sptr entry_descriptor = (*entry->descriptors())[0];
+            auto hist = std::get<1>( result )->get_history();
+            auto entry_hist = entry_descriptor->get_history();
+
+            merge_history( entry_hist, hist );
+
+            entry_descriptor->set_history( entry_hist );
+          }
+        }
+        else
+        {
+          entry.reset( new vital::query_result() );
+          top_results[ track_id ] = entry;
+        }
+      }
+
+      if( ! entry )
+      {
+        entry.reset( new vital::query_result() );
+      }
 
       entry->set_query_id( d->active_uid );
       entry->set_stream_id( std::get<0>( result ) );
@@ -426,11 +522,14 @@ perform_query_process
       entry->set_relevancy_score( result_score );
 
       // Assign track descriptor set to result
-      vital::track_descriptor_set_sptr desc_set(
-        new vital::track_descriptor_set() );
+      vital::track_descriptor_set_sptr desc_set = entry->descriptors();
+      if( ! desc_set )
+      {
+        desc_set.reset( new vital::track_descriptor_set() );
 
-      desc_set->push_back( std::get<1>( result ) );
-      entry->set_descriptors( desc_set );
+        desc_set->push_back( std::get<1>( result ) );
+        entry->set_descriptors( desc_set );
+      }
 
       // Assign temporal bounds to this query result
       vital::timestamp ts1, ts2;
@@ -468,7 +567,10 @@ perform_query_process
       // Remember this descriptor result for future iterations
       d->previous_results[ entry->instance_id() ] = entry;
 
-      output->push_back( entry );
+      if( insert )
+      {
+        output->push_back( entry );
+      }
     }
 
     // Handle forced negative examples, set score to 0, make sure at end of result set
@@ -520,6 +622,7 @@ void perform_query_process
   declare_config_using_trait( track_postfix );
   declare_config_using_trait( index_postfix );
   declare_config_using_trait( use_tracks_for_history );
+  declare_config_using_trait( merge_duplicate_results );
 }
 
 
@@ -530,6 +633,8 @@ perform_query_process::priv
  , external_handler( true )
  , external_pipeline_file( "" )
  , database_folder( "" )
+ , use_tracks_for_history( false )
+ , merge_duplicate_results( false )
  , max_result_count( 100 )
  , is_first( true )
  , database_populated( false )
