@@ -244,6 +244,11 @@ merge_history( vital::track_descriptor::descriptor_history_t& dest,
     {
       dest_it++;
     }
+    else if( src_it->get_timestamp().get_frame() == dest_it->get_timestamp().get_frame() )
+    {
+      src_it++;
+      dest_it++;
+    }
     else
     {
       dest.insert( dest_it, *src_it );
