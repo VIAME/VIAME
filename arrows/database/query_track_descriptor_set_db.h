@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,40 +30,46 @@
 
 /**
  * \file
- * \brief test VXL bouding_box functionality
+ * \brief Header file for \link
+ *        kwiver::arrows::database::query_track_descriptor_set_db
+ *        query_track_descriptor_set_db \endlink
  */
 
-#include <arrows/vxl/bounding_box.h>
+#ifndef ARROWS_DATABASE_QUERY_TRACK_DESCRIPTOR_SET_DB_H_
+#define ARROWS_DATABASE_QUERY_TRACK_DESCRIPTOR_SET_DB_H_
 
-#include <gtest/gtest.h>
+#include <vital/algo/query_track_descriptor_set.h>
+#include <arrows/database/kwiver_algo_database_export.h>
 
-// ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+#include <cppdb/frontend.h>
+
+namespace kwiver {
+namespace arrows {
+namespace database {
+
+class KWIVER_ALGO_DATABASE_EXPORT query_track_descriptor_set_db
+  : public vital::algorithm_impl< query_track_descriptor_set_db,
+      vital::algo::query_track_descriptor_set >
 {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
-}
+public:
+  query_track_descriptor_set_db();
+  virtual ~query_track_descriptor_set_db();
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_bb2vgl)
-{
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual bool get_track_descriptor( std::string const& uid,
+    desc_tuple_t& result );
 
-  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
-  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
-  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
-  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
-}
+  virtual void use_tracks_for_history( bool value );
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_vgl2bb)
-{
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
+protected:
+  void connect_to_database_on_demand();
 
-  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
-  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
-  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
-  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
-}
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
+
+} } }
+
+#endif // ARROWS_DATABASE_QUERY_TRACK_DESCRIPTOR_SET_DB_H_

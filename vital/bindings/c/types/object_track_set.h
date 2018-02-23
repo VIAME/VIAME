@@ -60,6 +60,7 @@ extern "C"
 VITAL_C_EXPORT
 vital_track_state_t*
 vital_object_track_state_new( int64_t frame,
+                              int64_t time,
                               vital_detected_object_t *d,
                               vital_error_handle_t *eh );
 

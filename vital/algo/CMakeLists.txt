@@ -44,6 +44,7 @@ set( public_headers
   interpolate_track.h
   match_features.h
   optimize_cameras.h
+  query_track_descriptor_set.h
   read_object_track_set.h
   read_track_descriptor_set.h
   refine_detections.h
@@ -95,6 +96,7 @@ set( sources
   interpolate_track.cxx
   match_features.cxx
   optimize_cameras.cxx
+  query_track_descriptor_set.cxx
   read_object_track_set.cxx
   read_track_descriptor_set.cxx
   refine_detections.cxx

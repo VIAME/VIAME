@@ -283,8 +283,9 @@ read_object_track_set_kw18::priv
       std::make_shared< vital::detected_object >( bbox, conf );
 
     // Create new object track state
+    // TODO Write/read proper timestamp?
     vital::track_state_sptr ots =
-      std::make_shared< vital::object_track_state >( frame_index, det );
+      std::make_shared< vital::object_track_state >( frame_index, 0, det );
 
     // Assign object track state to track
     vital::track_sptr trk;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,40 +30,13 @@
 
 /**
  * \file
- * \brief test VXL bouding_box functionality
+ * \brief Implementation of load/save wrapping functionality.
  */
 
-#include <arrows/vxl/bounding_box.h>
+#include "query_track_descriptor_set.h"
 
-#include <gtest/gtest.h>
+#include <vital/algo/algorithm.txx>
 
-// ----------------------------------------------------------------------------
-int main(int argc, char** argv)
-{
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
-}
-
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_bb2vgl)
-{
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
-
-  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
-  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
-  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
-  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
-}
-
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_vgl2bb)
-{
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
-
-  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
-  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
-  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
-  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
-}
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::query_track_descriptor_set);
+/// \endcond

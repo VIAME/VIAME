@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,43 @@
 
 /**
  * \file
- * \brief test VXL bouding_box functionality
+ * \brief Interface for write_object_track_set_db
  */
 
-#include <arrows/vxl/bounding_box.h>
+#ifndef KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_DB_H
+#define KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_DB_H
 
-#include <gtest/gtest.h>
+#include <vital/vital_config.h>
+#include <arrows/database/kwiver_algo_database_export.h>
 
-// ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+#include <vital/algo/write_object_track_set.h>
+
+#include <memory>
+
+namespace kwiver {
+namespace arrows {
+namespace database {
+
+class KWIVER_ALGO_DATABASE_EXPORT write_object_track_set_db
+  : public vital::algorithm_impl< write_object_track_set_db,
+      vital::algo::write_object_track_set >
 {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
-}
+public:
+  write_object_track_set_db();
+  virtual ~write_object_track_set_db();
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_bb2vgl)
-{
-  kwiver::vital::bounding_box<double> bbox( 1.1, 3.4, 10.12, 34.45 );
-  vgl_box_2d<double> vbox = kwiver::arrows::vxl::convert( bbox );
+  virtual void set_configuration( vital::config_block_sptr config );
+  virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  EXPECT_EQ( bbox.min_x(), vbox.min_x() );
-  EXPECT_EQ( bbox.min_y(), vbox.min_y() );
-  EXPECT_EQ( bbox.max_x(), vbox.max_x() );
-  EXPECT_EQ( bbox.max_y(), vbox.max_y() );
-}
+  virtual void open( std::string const& filename );
+  virtual void close();
+  virtual void write_set( const kwiver::vital::object_track_set_sptr set );
 
-// ----------------------------------------------------------------------------
-TEST(bounding_box, convert_vgl2bb)
-{
-  vgl_box_2d<double> vbox( 1.1, 3.4, 10.12, 34.45 );
-  kwiver::vital::bounding_box<double> bbox = kwiver::arrows::vxl::convert( vbox );
+private:
+  class priv;
+  std::unique_ptr< priv > d;
+};
 
-  EXPECT_EQ( vbox.min_x(), bbox.min_x() );
-  EXPECT_EQ( vbox.min_y(), bbox.min_y() );
-  EXPECT_EQ( vbox.max_x(), bbox.max_x() );
-  EXPECT_EQ( vbox.max_y(), bbox.max_y() );
-}
+} } } // end namespace
+
+#endif // KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_DB_H
