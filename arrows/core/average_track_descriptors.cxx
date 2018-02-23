@@ -95,7 +95,7 @@ average_track_descriptors
     {
       std::shared_ptr< vital::object_track_state > ots =
         std::dynamic_pointer_cast< vital::object_track_state >( *it );
-      if( ots )
+      if( ots && ots->detection && ots->detection->descriptor() )
       {
         vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
 
