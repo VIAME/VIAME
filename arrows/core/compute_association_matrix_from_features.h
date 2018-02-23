@@ -48,14 +48,16 @@ class KWIVER_ALGO_CORE_EXPORT compute_association_matrix_from_features
 {
 public:
 
+  static constexpr char const* name = "from_features";
+
+  static constexpr char const* description =
+    "Populate association matrix in tracking from detector features.";
+
   /// Default Constructor
   compute_association_matrix_from_features();
 
   /// Destructor
   virtual ~compute_association_matrix_from_features() VITAL_NOTHROW;
-
-  /// Returns implementation description
-  virtual std::string description() const;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

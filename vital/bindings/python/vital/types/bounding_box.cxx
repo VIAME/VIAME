@@ -34,18 +34,51 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
+#include <pybind11/embed.h>
 
 namespace py = pybind11;
+
 
 typedef kwiver::vital::bounding_box<double> bbox;
 
 PYBIND11_MODULE(bounding_box, m)
 {
 
-  py::class_<bbox, std::shared_ptr<bbox>>(m, "BoundingBox")
+  /*
+   *
+
+    Developer:
+      python -c "import vital.types; help(vital.types.BoundingBox)"
+      python -c "import vital.types; help(vital.types.BoundingBox)"
+      python -m xdoctest vital.types BoundingBox --xdoc-dynamic
+
+   *
+   */
+
+  py::class_<bbox, std::shared_ptr<bbox>>(m, "BoundingBox", R"(
+    Coordinate aligned bounding box.
+
+    Example:
+        >>> from vital.types import *
+        >>> bbox = BoundingBox(0, 10, 100, 50)
+        >>> print(str(bbox))
+        <BoundingBox(0.0, 10.0, 100.0, 50.0)>
+        >>> print(bbox.area())
+        4000.0
+
+    )")
   .def(py::init<Eigen::Matrix<double,2,1>, Eigen::Matrix<double,2,1>>())
   .def(py::init<Eigen::Matrix<double,2,1>, double, double>())
-  .def(py::init<double, double, double, double>())
+  .def(py::init<double, double, double, double>(), py::doc(R"(
+        Create a box from four coordinates
+
+        Args:
+            xmin (float):  min x coord
+            ymin (float):  min y coord
+            xmax (float):  max x coord
+            ymax (float):  max y coord
+        )"))
+
   .def("center", &bbox::center)
   .def("upper_left", &bbox::upper_left)
   .def("lower_right", &bbox::lower_right)
@@ -56,5 +89,32 @@ PYBIND11_MODULE(bounding_box, m)
   .def("width", &bbox::width)
   .def("height", &bbox::height)
   .def("area", &bbox::area)
+
+  .def("__nice__", [](bbox& self) -> std::string {
+    auto locals = py::dict(py::arg("self")=self);
+    py::exec(R"(
+        retval = '{}, {}, {}, {}'.format(self.min_x(), self.min_y(),
+                                         self.max_x(), self.max_y())
+    )", py::globals(), locals);
+    return locals["retval"].cast<std::string>();
+    })
+  .def("__repr__", [](py::object& self) -> std::string {
+    auto locals = py::dict(py::arg("self")=self);
+    py::exec(R"(
+        classname = self.__class__.__name__
+        devnice = self.__nice__()
+        retval = '<%s(%s) at %s>' % (classname, devnice, hex(id(self)))
+    )", py::globals(), locals);
+    return locals["retval"].cast<std::string>();
+    })
+  .def("__str__", [](py::object& self) -> std::string {
+    auto locals = py::dict(py::arg("self")=self);
+    py::exec(R"(
+        classname = self.__class__.__name__
+        devnice = self.__nice__()
+        retval = '<%s(%s)>' % (classname, devnice)
+    )", py::globals(), locals);
+    return locals["retval"].cast<std::string>();
+    })
   ;
 }

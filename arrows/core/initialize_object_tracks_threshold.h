@@ -48,14 +48,16 @@ class KWIVER_ALGO_CORE_EXPORT initialize_object_tracks_threshold
 {
 public:
 
+  static constexpr char const* name = "threshold";
+
+  static constexpr char const* description =
+    "Perform thresholding on detection confidence values to create tracks.";
+
   /// Default Constructor
   initialize_object_tracks_threshold();
 
   /// Destructor
   virtual ~initialize_object_tracks_threshold() VITAL_NOTHROW;
-
-  /// Returns implementation description
-  virtual std::string description() const;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

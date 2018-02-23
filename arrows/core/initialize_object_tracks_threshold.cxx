@@ -97,14 +97,6 @@ initialize_object_tracks_threshold
 }
 
 
-std::string
-initialize_object_tracks_threshold
-::description() const
-{
-  return "Initializes new object tracks via simple thresholding";
-}
-
-
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 initialize_object_tracks_threshold
