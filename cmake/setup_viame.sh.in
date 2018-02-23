@@ -18,8 +18,8 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 # paths for python
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python2.7/dist-packages:$PYTHONPATH
+#export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/@python_site_packages@:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
 # set default log level

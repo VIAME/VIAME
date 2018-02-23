@@ -123,6 +123,9 @@ if( VIAME_ENABLE_PYTHON )
 
   option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
   mark_as_advanced( VIAME_SYMLINK_PYTHON )
+  # set flag so we can use kwiver python utils
+  set(KWIVER_SYMLINK_PYTHON VIAME_SYMLINK_PYTHON)
+
 
   find_package( PythonInterp REQUIRED )
   find_package( PythonLibs REQUIRED )
@@ -352,8 +355,8 @@ else()
 
   # Setup python directories for plugin processes in same style as KWIVER
   if( VIAME_ENABLE_PYTHON )
-    set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
-    set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
+    pycmd(python_site_packages "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix=''))")
+    set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/${python_site_packages}" )
 
     kwiver_create_python_plugin_init( viame )
     kwiver_create_python_plugin_init( viame/processes )

@@ -26,14 +26,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+from __future__ import print_function
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
-from vital.types import Image
-from vital.types import ImageContainer
-from vital.types import DetectedObject
 from vital.types import DetectedObjectSet
-from vital.types import BoundingBox
+
 
 class hello_world_detector(KwiverProcess):
     """
@@ -45,7 +42,7 @@ class hello_world_detector(KwiverProcess):
         KwiverProcess.__init__(self, conf)
 
         self.add_config_trait("text", "text", 'Hello World',
-          'Text to display to user.')
+                              'Text to display to user.')
 
         self.declare_config_using_trait('text')
 
@@ -72,10 +69,10 @@ class hello_world_detector(KwiverProcess):
         in_img_c = self.grab_input_using_trait('image')
 
         # Get python image from conatiner (just for show)
-        in_img = in_img_c.image()
+        in_img = in_img_c.image()  # NOQA
 
         # Print out text to screen
-        print "Text: " + str( self.text )
+        print("Text: " + str( self.text ))
 
         # push dummy detections object to output port
         detections = DetectedObjectSet()

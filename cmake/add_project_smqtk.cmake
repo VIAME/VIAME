@@ -14,13 +14,13 @@ if( WIN32 )
 else()
   # Logic for getting site packages is copied from kwiver
   pycmd(python_site_packages "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix=''))")
-  message(STATUS "python_site_packages = ${python_site_packages}")
   get_filename_component(python_sitename ${python_site_packages} NAME)
 
   pycmd(python_pip_version "import pip; print(pip.__version__)")
 
-  set( PYTHON_BASEPATH
-    ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
+  #set( PYTHON_BASEPATH
+  #  ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
+  set( PYTHON_BASEPATH ${VIAME_BUILD_INSTALL_PREFIX}/${python_site_packages} )
   set( CUSTOM_SITEPACKAGES ${PYTHON_BASEPATH}/${python_sitename})
   set( CUSTOM_PYTHONPATH ${CUSTOM_SITEPACKAGES}:$ENV{PYTHONPATH} )
   set( CUSTOM_PATH ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
