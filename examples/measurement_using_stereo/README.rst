@@ -14,9 +14,8 @@ examples covering fish measurement using stereo.
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/measurement_using_stereo
 
 
-`Coming Soon`_  on Pull Request 25
-
-.. _Coming Soon: https://github.com/Kitware/VIAME/pull/25
+.. _PR1: https://github.com/Kitware/VIAME/pull/25
+.. _PR2: https://github.com/Kitware/VIAME/pull/38
 
 
 Running the Demo (WIP)
