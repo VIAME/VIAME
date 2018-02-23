@@ -82,11 +82,31 @@ average_track_descriptors
 // ----------------------------------------------------------------------------------
 vital::track_descriptor_set_sptr
 average_track_descriptors
-::compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks )
+::compute( vital::timestamp ts,
+           vital::image_container_sptr image_data,
+           vital::object_track_set_sptr tracks )
 {
-  return vital::track_descriptor_set_sptr();
+  vital::track_descriptor_set_sptr tds( new vital::track_descriptor_set() );
+
+  for( vital::track_sptr track : tracks->tracks() )
+  {
+    vital::track::history_const_itr it = track->find( ts.get_frame() );
+    if( it != track->end() )
+    {
+      std::shared_ptr< vital::object_track_state > ots =
+        std::dynamic_pointer_cast< vital::object_track_state >( *it );
+      if( ots )
+      {
+        vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
+
+        td->set_descriptor( ots->detection->descriptor() );
+
+        tds->push_back( td );
+      }
+    }
+  }
+
+  return tds;
 }
 
 
