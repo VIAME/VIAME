@@ -32,6 +32,7 @@
 
 #include "tool_io.h"
 #include "tool_usage.h"
+#include <iostream>
 
 namespace sprokit {
 

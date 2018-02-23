@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,55 +28,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
-#define SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
+#include "interpolate_track.h"
 
-#include <sprokit/python/util/sprokit_python_util_export.h>
+#include <vital/algo/algorithm.txx>
 
-#include <vital/noncopyable.h>
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::interpolate_track);
+/// \endcond
 
-#include <sprokit/python/util/python.h>
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-/**
- * \file python_allow_threads.h
- *
- * \brief RAII class for calling into non-Python code.
- */
-
-namespace sprokit {
-namespace python {
-
-/**
- * \class python_allow_threads python_allow_threads.h <sprokit/python/util/python_allow_threads.h>
- *
- * \brief RAII class for calling into non-Python code.
- */
-class SPROKIT_PYTHON_UTIL_EXPORT python_allow_threads
-  : private kwiver::vital::noncopyable
+// ----------------------------------------------------------------------------
+interpolate_track::
+interpolate_track()
+  : m_progress_callback( nullptr )
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param save If \c true, saves the state; is a no-op if \c false.
-     */
-    python_allow_threads(bool save = true);
-    /**
-     * \brief Destructor.
-     */
-    ~python_allow_threads();
-
-    /**
-     * \brief Manually acquire the GIL again.
-     */
-    void release();
-
-  private:
-    PyThreadState* thread;
-};
-
+  attach_logger( "interpolate_track" );
 }
 
+// ----------------------------------------------------------------------------
+void
+interpolate_track::
+set_video_input( video_input_sptr input )
+{
+  m_video_input = input;
 }
 
-#endif // SPROKIT_PYTHON_UTIL_PYTHON_ALLOW_THREADS_H
+// ----------------------------------------------------------------------------
+void
+interpolate_track::
+set_progress_callback( progress_callback_t cb )
+{
+  m_progress_callback = cb;
+}
+
+// ----------------------------------------------------------------------------
+void
+interpolate_track::
+do_callback( float progress )
+{
+  static constexpr auto total = 1 << 25;
+
+  do_callback( static_cast<int>( std::ldexp( progress, 25 ) ), total );
+}
+
+// ----------------------------------------------------------------------------
+void
+interpolate_track::
+do_callback( int progress, int total )
+{
+  if ( m_progress_callback != nullptr )
+  {
+    m_progress_callback( progress, total );
+  }
+}
+
+} } } // end namespace

@@ -32,6 +32,7 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 namespace py = pybind11;
 
@@ -189,17 +190,195 @@ new_image_from_data( char* first_pixel,
   return new_img;
 }
 
+
+template <typename T>
+image_t
+new_image_from_numpy(py::array_t<T> array)
+{
+
+  // Request a buffer descriptor from Python
+  py::buffer_info info = array.request();
+
+  // Determine if the type has numeric_limits, is integral, and / or is signed
+  // Note: the following function does not handle float16. Should it?
+  pixel_traits traits =  kwiver::vital::image_pixel_traits_of<T>();
+
+  // numpy images are in height x width format by default (row major)
+  size_t height = info.shape[0];
+  size_t width = info.shape[1];
+  size_t depth;
+
+  size_t h_step = info.strides[0] / traits.num_bytes;
+  size_t w_step = info.strides[1] / traits.num_bytes;
+  size_t d_step;
+
+  if (info.ndim == 2)
+  {
+      depth = 1;
+      d_step = 1;
+  }
+  else if (info.ndim == 3)
+  {
+    depth = info.shape[2];
+    d_step = info.strides[2]  / traits.num_bytes;
+  }
+  else
+  {
+    throw std::runtime_error("Incompatible buffer dimension!");
+  }
+
+  char* first_pixel = static_cast<char *>(info.ptr);
+  image_t img = image_t(first_pixel, width, height, depth,
+                        w_step, h_step, d_step, traits);
+
+  // TODO: is is possible to share memory?
+
+  image_t new_img = image_t(); // copy so we can use fresh memory not used elsewhere
+  new_img.copy_from(img);
+  return new_img;
+}
+
+
+/*
+ * Get the appropriate python format descriptor string to describe pixel traits
+ *
+ * References:
+ *     https://docs.python.org/3/library/struct.html
+ */
+const char* get_trait_format_descriptor(const pixel_traits& traits)
+{
+    const size_t itemsize = traits.num_bytes;
+    switch (traits.type)
+    {
+        case pixel_traits::pixel_type::BOOL:
+            switch (traits.num_bytes)
+            {
+                case 1:
+                    return "?";
+                default:
+                    throw std::runtime_error(
+                        "Bool must have itemsize 1 not " + std::to_string(itemsize));
+            }
+        case pixel_traits::pixel_type::UNSIGNED:
+            switch (traits.num_bytes)
+            {
+                case 1:
+                    return "b";
+                case 2:
+                    return "h";
+                case 4:
+                    return "i";
+                case 8:
+                    return "q";
+                default:
+                    throw std::runtime_error(
+                        "Unsigned must have itemsize 1, 2, 4, or 8, not " + std::to_string(itemsize));
+            }
+        case pixel_traits::pixel_type::SIGNED:
+            switch (traits.num_bytes)
+            {
+                case 1:
+                    return "B";
+                case 2:
+                    return "H";
+                case 4:
+                    return "I";
+                case 8:
+                    return "Q";
+                default:
+                    throw std::runtime_error(
+                        "Signed must have itemsize 1, 2, 4, or 8, not " + std::to_string(itemsize));
+            }
+        case pixel_traits::pixel_type::FLOAT:
+            switch (traits.num_bytes)
+            {
+                case 2:
+                    return "e";
+                case 4:
+                    return "f";
+                case 8:
+                    return "d";
+                default:
+                    throw std::runtime_error(
+                        "Float must have itemsize 2, 4, or 8, not " + std::to_string(itemsize));
+            }
+        case pixel_traits::pixel_type::UNKNOWN:
+            throw std::runtime_error(
+                    "Cannot handle traits with unknown pixel type ");
+        default:
+            throw std::runtime_error("Impossible state");
+    }
+}
+
+
+py::buffer_info get_buffer_info(image_t &img)
+{
+    const pixel_traits traits = img.pixel_traits();
+    const size_t itemsize = traits.num_bytes;
+    //const char* fmt = "d";
+
+    const char* fmt_descriptor = get_trait_format_descriptor(traits);
+    const size_t ndim = 3;
+
+    return py::buffer_info(
+            // pointer to buffer
+            img.first_pixel(),
+            // size of one scalar
+            itemsize,
+            // Python struct-style format descriptor
+            fmt_descriptor,
+            // Number of dimensions
+            ndim,
+            // buffer dimensions
+            { img.height(), img.width(), img.depth() },
+            // stride (in bytes) for each
+            //{ img.h_step(),
+            //  img.w_step(),
+            //  img.d_step() }
+            { itemsize * img.h_step(),
+              itemsize * img.w_step(),
+              itemsize * img.d_step() }
+    );
+}
+
+
 PYBIND11_MODULE(image, m)
 {
   py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image", py::buffer_protocol());
+  /*
+   CommandLine:
+       python -c "from vital.types import Image; help(Image)"
 
-  py::enum_<pixel_traits::pixel_type>(img, "Types")
-  .value("PIXEL_UNKNOWN", pixel_traits::pixel_type::UNKNOWN)
-  .value("PIXEL_BOOL", pixel_traits::pixel_type::BOOL)
-  .value("PIXEL_UNSIGNED", pixel_traits::pixel_type::UNSIGNED)
-  .value("PIXEL_SIGNED", pixel_traits::pixel_type::SIGNED)
-  .value("PIXEL_FLOAT", pixel_traits::pixel_type::FLOAT)
-  .export_values();
+       # this may work in a future version of xdoctest
+       python -m xdoctest vital.types Image --xdoc-dynamic
+
+   References:
+       http://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html#buffer-protocol
+  */
+
+  img.doc() = (
+      "Python bindings for kwiver::vital::image\n"
+      "\n"
+      "Example:\n"
+      "    >>> from vital.types import Image\n"
+      "    >>> import numpy as np\n"
+      "    >>> np_img = np.arange(3 * 4, dtype=np.uint8).reshape(3, 4, 1)\n"
+      "    >>> vital_img = Image(np_img)\n"
+      "    >>> print(np_img)\n"
+      "    >>> print(vital_img.asarray())\n"
+      "    >>> assert vital_img.pixel_type_name() == 'uint8'\n"
+      "    >>> assert np.all(np_img == vital_img.asarray())\n"
+      "    >>> # Currently we never share memory\n"
+      "    >>> np_img += 1\n"
+      "    >>> assert np.all(np_img != vital_img.asarray())\n"
+  );
+
+py::enum_<pixel_traits::pixel_type>(img, "Types") .value("PIXEL_UNKNOWN",
+pixel_traits::pixel_type::UNKNOWN) .value("PIXEL_BOOL",
+pixel_traits::pixel_type::BOOL) .value("PIXEL_UNSIGNED",
+pixel_traits::pixel_type::UNSIGNED) .value("PIXEL_SIGNED",
+pixel_traits::pixel_type::SIGNED) .value("PIXEL_FLOAT",
+pixel_traits::pixel_type::FLOAT) .export_values();
 
   img.def(py::init(&new_image),
     py::arg("width")=0, py::arg("height")=0, py::arg("depth")=1,
@@ -209,6 +388,23 @@ PYBIND11_MODULE(image, m)
    py::arg("first_pixel"), py::arg("width"), py::arg("height"), py::arg("depth"),
    py::arg("w_step"), py::arg("h_step"), py::arg("d_step"),
    py::arg("pixel_type"), py::arg("bytes"))
+
+  // create initializer from typed numpy arrays
+  #define init_from_numpy( T ) \
+  .def(py::init(&new_image_from_numpy< T >), py::arg("array"),\
+       py::doc("Create (copy) a vital image from a 2D or 3D numpy array"))
+  init_from_numpy( uint8_t )
+  init_from_numpy( int8_t )
+  init_from_numpy( uint16_t )
+  init_from_numpy( int16_t )
+  init_from_numpy( uint32_t )
+  init_from_numpy( int32_t )
+  init_from_numpy( uint64_t )
+  init_from_numpy( int64_t )
+  init_from_numpy( float )
+  init_from_numpy( double )
+  init_from_numpy( bool )
+
   .def("copy_from", &image_t::copy_from,
     py::arg("other"))
   .def("size", &image_t::size)
@@ -223,9 +419,15 @@ PYBIND11_MODULE(image, m)
   .def("pixel_type_name", &pixel_type_name)
   .def("pixel_num_bytes", &pixel_num_bytes)
   .def("__getitem__", &get_pixel)
-  .def_buffer([](image_t &img) -> py::buffer_info
-       {
-         return py::buffer_info(img.first_pixel(), 1, "B", img.size());
-       })
+  .def_buffer(&get_buffer_info)
+
+  .def("asarray", [](image_t &img){
+        // It may be possible to write this method to share memory between
+        // vital and numpy using the py::capsule class. For references see:
+        // https://stackoverflow.com/questions/44659924/ret-nparrays-pybind11
+        py::object np = py::module::import("numpy");
+        py::object arr = np.attr("array")(img);
+        return arr;
+      }, py::doc("Copy the image into a numpy array'"))
   ;
 }

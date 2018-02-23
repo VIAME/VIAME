@@ -40,8 +40,6 @@
 
 #include <sprokit/pipeline/datum.h>
 
-#include <sprokit/python/util/python_gil.h>
-
 // Type conversions
 #include <vital/bindings/python/vital/types/descriptor_class.cxx>
 #include <vital/types/image_container.h>
