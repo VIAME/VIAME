@@ -35,6 +35,7 @@ Helper functions for dealing with PIL
 """
 
 from vital.types import Image
+import six
 
 def _pil_image_to_bytes(p_img):
     """
@@ -180,8 +181,12 @@ def get_pil_image(img):
         raise RuntimeError("Unsupported image format.")
 
     # get buffer from image
-    img_pixels = buffer(bytearray(img))
+    if six.PY2:
+        img_pixels = buffer(bytearray(img))
+    else:
+        img_pixels = memoryview(bytearray(img)).tobytes()
 
-    return _pil_image_from_bytes(mode, (img.width(), img.height()),
-                                 img_pixels, "raw", mode,
-                                 img.h_step() * img.pixel_num_bytes(), 1)
+    pil_img = _pil_image_from_bytes(mode, (img.width(), img.height()),
+                                    img_pixels, "raw", mode,
+                                    img.h_step() * img.pixel_num_bytes(), 1)
+    return pil_img
