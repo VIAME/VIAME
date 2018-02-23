@@ -44,8 +44,8 @@ from PIL import Image as pilImage
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
-from vital.types import DetectedObject
-from vital.types import DetectedObjectSet
+from vital.types import DetectedObject, DetectedObjectSet
+from vital.types import new_descriptor
 
 from timeit import default_timer as timer
 
@@ -65,6 +65,9 @@ from kwiver.arrows.pytorch.pytorch_siamese_f_extractor import pytorch_siamese_f_
 from kwiver.arrows.pytorch.iou_tracking import IOU_tracker
 
 from kwiver.arrows.pytorch.MOT_bbox import MOT_bbox, GTFileType
+from kwiver.arrows.pytorch.models import get_config
+
+g_config = get_config()
 
 def ts2ot_list(track_set):
     ot_list = [] 
@@ -87,17 +90,17 @@ class SRNN_tracking(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
+        #GPU list
+        self.add_config_trait("GPU_list", "GPU_list", 'all',
+                              'define which GPU to use for SRNN tracking. e.g., all, 1,2')
+        self.declare_config_using_trait('GPU_list')
 
-        print('!!!!SRNN tracking init!!!!')
-
+        # siamese 
+        #----------------------------------------------------------------------------------
         self.add_config_trait("siamese_model_path", "siamese_model_path",
                               '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/siamese/snapshot_epoch_6.pt',
                               'Trained PyTorch model.')
         self.declare_config_using_trait('siamese_model_path')
-
-        self.add_config_trait("GPU_list", "GPU_list", 'all',
-                              'define which GPU to use for SRNN tracking. e.g., all, 1,2')
-        self.declare_config_using_trait('GPU_list')
 
         self.add_config_trait("siamese_model_input_size", "siamese_model_input_size", '224',
                               'Model input image size')
@@ -106,12 +109,15 @@ class SRNN_tracking(KwiverProcess):
         self.add_config_trait("siamese_batch_size", "siamese_batch_size", '128',
                               'siamese model processing batch size')
         self.declare_config_using_trait('siamese_batch_size')
+        #----------------------------------------------------------------------------------
 
         # detection select threshold
         self.add_config_trait("detection_select_threshold", "detection_select_threshold", '0.0',
                               'detection select threshold')
         self.declare_config_using_trait('detection_select_threshold')
 
+        # SRNN
+        #----------------------------------------------------------------------------------
         # target RNN full model
         self.add_config_trait("targetRNN_AIM_model_path", "targetRNN_AIM_model_path",
                               '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/targetRNN_snapshot/App_LSTM_epoch_51.pt',
@@ -133,7 +139,10 @@ class SRNN_tracking(KwiverProcess):
         self.add_config_trait("similarity_threshold", "similarity_threshold", '0.5',
                               'similarity threshold.')
         self.declare_config_using_trait('similarity_threshold')
+        #----------------------------------------------------------------------------------
 
+        # IOU
+        #----------------------------------------------------------------------------------
         # IOU tracker flag
         self.add_config_trait("IOU_tracker_flag", "IOU_tracker_flag", 'True', 'IOU tracker flag.')
         self.declare_config_using_trait('IOU_tracker_flag')
@@ -147,6 +156,7 @@ class SRNN_tracking(KwiverProcess):
         self.add_config_trait("IOU_reject_threshold", "IOU_reject_threshold", '0.1',
                               'IOU reject threshold.')
         self.declare_config_using_trait('IOU_reject_threshold')
+        #----------------------------------------------------------------------------------
         
         # search threshold
         self.add_config_trait("track_search_threshold", "track_search_threshold", '0.1',
@@ -197,6 +207,7 @@ class SRNN_tracking(KwiverProcess):
 
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('object_track_set', optional)
+        self.declare_output_port_using_trait('detected_object_set', optional)
 
     # ----------------------------------------------
     def _configure(self):
@@ -286,6 +297,7 @@ class SRNN_tracking(KwiverProcess):
             bbox_num = dos.size()
         #print('bbox list len is {}'.format(dos.size()))
 
+        det_obj_set = DetectedObjectSet()
         if bbox_num == 0:
             print('!!! No bbox is provided on this frame and skip this frame !!!')
         else:
@@ -303,7 +315,7 @@ class SRNN_tracking(KwiverProcess):
 
             track_state_list = []
             next_trackID = int(self._track_set.get_max_track_ID()) + 1
-            
+        
             # get new track state from new frame and detections
             for idx, item in enumerate(dos):
                 if self._GTbbox_flag is True:
@@ -313,11 +325,15 @@ class SRNN_tracking(KwiverProcess):
                     bbox = item.bounding_box()
                     d_obj = item
 
-                # center of bbox
-                center = tuple((bbox.center()))
+                # store app feature to detectedObject
+                app_f = new_descriptor(g_config.A_F_num)
+                app_f[:] = pt_app_features[idx].numpy()
+                d_obj.set_descriptor(app_f)
+                det_obj_set.add(d_obj)
 
                 # build track state for current bbox for matching
-                cur_ts = track_state(frame_id=self._step_id, bbox_center=center, interaction_feature=grid_feature_list[idx],
+                cur_ts = track_state(frame_id=self._step_id, bbox_center=tuple((bbox.center())), 
+                                     interaction_feature=grid_feature_list[idx],
                                      app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()), 
                                                                     int(bbox.width()), int(bbox.height())],
                                      detectedObject=d_obj)
@@ -387,6 +403,7 @@ class SRNN_tracking(KwiverProcess):
         ots = ObjectTrackSet(ot_list)
 
         self.push_to_port_using_trait('object_track_set', ots)
+        self.push_to_port_using_trait('detected_object_set', det_obj_set)
 
         self._step_id += 1
 
