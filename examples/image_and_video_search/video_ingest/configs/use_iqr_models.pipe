@@ -8,9 +8,6 @@
 config _pipeline:_edge
    :capacity                                   10
 
-config _scheduler
-   :type                                       pythread_per_process
-
 # ================================== VIDEO INPUT ===================================
 process input
   :: video_input
