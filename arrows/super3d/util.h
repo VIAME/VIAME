@@ -36,6 +36,7 @@
 #define KWIVER_ALGO_SUPER3D_UTIL_H_
 
 #include <vpgl/vpgl_perspective_camera.h>
+#include <vil/vil_image_view.h>
 
 namespace kwiver {
 namespace arrows {
@@ -59,6 +60,23 @@ vpgl_perspective_camera<double>
 crop_camera(const vpgl_perspective_camera<double>& camera,
       double left,
       double top);
+
+/// Convert a depth map into a height map
+/// \param camera the camera corresponding to the depth map
+/// \param depth_map input depth map
+/// \param height_map output height map
+void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& depth_map,
+                             vil_image_view<double>& height_map);
+
+
+/// Convert a height map into a depth map
+/// \param camera the camera corresponding to the height map
+/// \param height_map input height map
+/// \param depth_map output depth map
+void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& height_map,
+                             vil_image_view<double>& depth_map);
 
 
 } // end namespace super3d

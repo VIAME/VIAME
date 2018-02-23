@@ -35,6 +35,8 @@
 
 #include "util.h"
 
+#include <vnl/vnl_inverse.h>
+
 namespace kwiver {
 namespace arrows {
 namespace super3d {
@@ -75,6 +77,52 @@ crop_camera(const vpgl_perspective_camera<double>& camera, double left, double t
   K.set_principal_point(pp);
   cam.set_calibration(K);
   return cam;
+}
+
+//*****************************************************************************
+
+/// Convert a depth map into a height map
+void depth_map_to_height_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& depth_map,
+                             vil_image_view<double>& height_map)
+{
+  const vnl_matrix_fixed<double, 3, 4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double, 3> v = vnl_inverse(P.extract(3, 3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(depth_map.nplanes() == 1);
+  height_map.set_size(depth_map.ni(), depth_map.nj(), 1);
+  for (unsigned j = 0; j < depth_map.nj(); ++j)
+  {
+    for (unsigned i = 0; i < depth_map.ni(); ++i)
+    {
+      const double& d = depth_map(i, j);
+      vnl_vector_fixed<double, 3> pt(i, j, 1);
+      height_map(i, j) = d * dot_product(v, pt) + o;
+    }
+  }
+}
+
+//*****************************************************************************
+
+/// Convert a height map into a depth map
+void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
+                             const vil_image_view<double>& height_map,
+                             vil_image_view<double>& depth_map)
+{
+  const vnl_matrix_fixed<double, 3, 4>& P = camera.get_matrix();
+  const vnl_vector_fixed<double, 3> v = vnl_inverse(P.extract(3, 3)).get_row(2);
+  const double o = dot_product(v, -P.get_column(3));
+  assert(height_map.nplanes() == 1);
+  depth_map.set_size(height_map.ni(), height_map.nj(), 1);
+  for (unsigned j = 0; j < height_map.nj(); ++j)
+  {
+    for (unsigned i = 0; i < height_map.ni(); ++i)
+    {
+      const double& h = height_map(i, j);
+      vnl_vector_fixed<double, 3> pt(i, j, 1);
+      depth_map(i, j) = (h - o) / dot_product(v, pt);
+    }
+  }
 }
 
 //*****************************************************************************
