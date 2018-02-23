@@ -89,14 +89,6 @@ compute_association_matrix_from_features
 }
 
 
-std::string
-compute_association_matrix_from_features
-::description() const
-{
-  return "Initializes new object tracks via simple thresholding";
-}
-
-
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 compute_association_matrix_from_features

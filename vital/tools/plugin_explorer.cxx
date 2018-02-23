@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/config/config_block.h>
 #include <vital/util/demangle.h>
+#include <vital/util/get_paths.h>
 #include <vital/util/wrap_text_block.h>
 #include <vital/logger/logger.h>
 #include <vital/algo/algorithm_factory.h>
@@ -587,6 +588,9 @@ main( int argc, char* argv[] )
   G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
                                 "Load only specified plugin file for inspection. No other plugins are loaded." );
 
+  G_context.m_args.AddArgument( "--skip-relative", argT::NO_ARGUMENT, &G_context.opt_skip_relative,
+                                "Skip built-in plugin paths that are relative to the executable location");
+
   G_context.m_args.AddArgument( "--fmt",     argT::SPACE_ARGUMENT, &G_context.formatting_type,
                                 "Generate display using alternative format, such as 'rst' or 'pipe'" );
 
@@ -723,6 +727,11 @@ main( int argc, char* argv[] )
 
   // ========
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  if (!G_context.opt_skip_relative)
+  {
+    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/modules");
+    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/sprokit");
+  }
 
   char** newArgv = 0;
   int newArgc = 0;

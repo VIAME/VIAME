@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,11 @@ class KWIVER_ALGO_CORE_EXPORT example_detector
         : public vital::algorithm_impl<example_detector, vital::algo::image_object_detector>
 {
 public:
+  static constexpr char const* name = "example_detector";
+
+  static constexpr char const* description =
+    "Simple example detector that just creates a user-specified bounding box.";
+
   example_detector();
   virtual ~example_detector();
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,12 @@ class KWIVER_ALGO_CORE_EXPORT handle_descriptor_request_core
       vital::algo::handle_descriptor_request >
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "core";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Formulate descriptors for later queries.";
 
   /// Default Constructor
   handle_descriptor_request_core();
