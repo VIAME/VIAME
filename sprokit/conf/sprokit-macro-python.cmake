@@ -54,8 +54,7 @@ define_property(GLOBAL PROPERTY kwiver_python_modules
 function (sprokit_add_python_library    name    modpath)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(library_subdir "/${kwiver_python_subdir}")
-  set(library_subdir_suffix "/${python_sitename}/${modpath}")
+  set(library_subdir "/${kwiver_python_subdir}/${python_sitename}/${modpath}")
   set(component runtime)
 
   set(no_export ON)

@@ -48,14 +48,16 @@ class KWIVER_ALGO_CORE_EXPORT associate_detections_to_tracks_threshold
 {
 public:
 
+  static constexpr char const* name = "threshold";
+
+  static constexpr char const* description =
+    "Associate detections to tracks via simple thresholding on the input matrix.";
+
   /// Default Constructor
   associate_detections_to_tracks_threshold();
 
   /// Destructor
   virtual ~associate_detections_to_tracks_threshold() VITAL_NOTHROW;
-
-  /// Returns implementation description
-  virtual std::string description() const;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

@@ -37,6 +37,7 @@
 
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
+#include <vital/exceptions/metadata.h>
 #include <vital/exceptions/video.h>
 #include <vital/util/tokenize.h>
 #include <vital/klv/convert_metadata.h>
@@ -165,7 +166,15 @@ public:
     {
       auto meta = std::make_shared<kwiver::vital::metadata>();
 
-      converter.convert( klv_packet, *(meta) );
+      try
+      {
+        converter.convert( klv_packet, *(meta) );
+      }
+      catch ( kwiver::vital::metadata_exception const& e )
+      {
+        LOG_WARN( this->d_logger, "Metadata exception: " << e.what() );
+        continue;
+      }
 
       // If the metadata was even partially decided, then add to the list.
       if ( ! meta->empty() )
@@ -437,7 +446,7 @@ vidl_ffmpeg_video_input
     "stop_after_frame", d->c_stop_after_frame );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
-            d->c_time_source_list, " ,", true );
+            d->c_time_source_list, " ,", kwiver::vital::TokenizeTrimEmpty );
 }
 
 
@@ -452,7 +461,7 @@ vidl_ffmpeg_video_input
   bool valid_src( true );
   std::vector< std::string > time_source;
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
-            time_source, " ,", true );
+            time_source, " ,", kwiver::vital::TokenizeTrimEmpty );
 
   for( auto source : time_source )
   {

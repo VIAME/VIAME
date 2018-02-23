@@ -134,7 +134,7 @@ void frame_list_process
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
 
   std::string path = config_value_using_trait( path );
-  kwiver::vital::tokenize( path, d->m_config_path, ":", true );
+  kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process

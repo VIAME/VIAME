@@ -41,6 +41,7 @@ set( public_headers
   image_object_detector.h
   initialize_cameras_landmarks.h
   initialize_object_tracks.h
+  interpolate_track.h
   match_features.h
   optimize_cameras.h
   read_object_track_set.h
@@ -91,6 +92,7 @@ set( sources
   image_object_detector.cxx
   initialize_object_tracks.cxx
   initialize_cameras_landmarks.cxx
+  interpolate_track.cxx
   match_features.cxx
   optimize_cameras.cxx
   read_object_track_set.cxx

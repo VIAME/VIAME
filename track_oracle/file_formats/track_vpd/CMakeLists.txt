@@ -18,12 +18,12 @@ set( track_vpd_sources
 
 kwiver_install_headers(
   ${track_vpd_public_headers}
-  SUBDIR        track_oracle/track_vpd
+  SUBDIR        track_oracle/file_formats/track_vpd
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_vpd_export.h
-  NOPATH SUBDIR        track_oracle/track_vpd
+  NOPATH SUBDIR        track_oracle/file_formats/track_vpd
 )
 
 kwiver_add_library( track_vpd

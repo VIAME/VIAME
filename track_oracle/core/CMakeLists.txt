@@ -7,6 +7,7 @@ set( track_oracle_public_headers
   kwiver_io_helpers.h
   element_descriptor.h
   track_base.h
+  track_base_impl.h
   track_oracle_core.h
   track_oracle_row_view.h
   track_oracle_frame_view.h
@@ -24,7 +25,6 @@ set( track_oracle_private_headers
   track_oracle_row_view_instantiation.h
   track_field_instantiation.h
   track_field_output_specializations.h
-  track_base_impl.h
   track_oracle_core_impl.h
 )
 

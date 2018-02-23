@@ -92,14 +92,6 @@ associate_detections_to_tracks_threshold
 }
 
 
-std::string
-associate_detections_to_tracks_threshold
-::description() const
-{
-  return "Performs track association of new detectionss via simple thresholding";
-}
-
-
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 associate_detections_to_tracks_threshold

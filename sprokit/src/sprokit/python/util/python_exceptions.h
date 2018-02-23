@@ -31,6 +31,7 @@
 #ifndef SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 #define SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 
+#include <sprokit/python/util/pybind11.h>
 #include <sprokit/python/util/sprokit_python_util_export.h>
 
 namespace sprokit {
@@ -71,10 +72,8 @@ namespace python {
   }                                                               \
   catch (std::exception const& e)                                 \
   {                                                               \
-    sprokit::python::python_gil const gil;                        \
-                                                                  \
-    (void)gil;                                                    \
-                                                                  \
+    sprokit::python::gil_scoped_acquire acquire;                  \
+    (void)acquire;                                                \
     PyErr_SetString(PyExc_RuntimeError, e.what());                \
                                                                   \
     throw;                                                        \
