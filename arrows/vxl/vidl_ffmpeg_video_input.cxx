@@ -507,10 +507,16 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
+        unsigned int frames_left_to_skip = c_frame_skip - 1;
         while ( d_video_stream.advance())
         {
           d_num_frames++;
-          push_metadata_to_map(d_num_frames);
+          if (frames_left_to_skip == 0)
+          {
+            push_metadata_to_map(d_num_frames);
+            frames_left_to_skip = c_frame_skip;
+          }
+          frames_left_to_skip--;
         }
 
         metadata_collection.clear();
@@ -519,10 +525,16 @@ public:
         d_video_stream.open( video_path );
 
         // Advance back to original frame number
+        frames_left_to_skip = 0;
         for (int i=0; i < d_frame_number; ++i)
         {
-          d_video_stream.advance();
-          push_metadata_to_map(i);
+          if (frames_left_to_skip == 0)
+          {
+            d_video_stream.advance();
+            push_metadata_to_map(i);
+            frames_left_to_skip = c_frame_skip;
+          }
+          frames_left_to_skip--;
         }
       }
 
