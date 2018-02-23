@@ -76,6 +76,7 @@ ExternalProject_Add(kwiver
     -DKWIVER_ENABLE_DARKNET:BOOL=${VIAME_ENABLE_YOLO}
     -DKWIVER_ENABLE_C_BINDINGS:BOOL=${VIAME_ENABLE_PYTHON}
     -DKWIVER_ENABLE_PYTHON:BOOL=${VIAME_ENABLE_PYTHON}
+    -DKWIVER_SYMLINK_PYTHON:BOOL=${VIAME_SYMLINK_PYTHON}
     -DKWIVER_ENABLE_CUDA:BOOL=${VIAME_ENABLE_CUDA}
     -DKWIVER_ENABLE_DOCS:BOOL=${VIAME_ENABLE_DOCS}
     -DENABLE_TESTING:BOOL=${VIAME_BUILD_TESTS}
@@ -87,14 +88,18 @@ ExternalProject_Add(kwiver
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(kwiver forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+
+# Why must we force kwiver to build on every make?
+if (VIAME_FORCEBUILD)
+  ExternalProject_Add_Step(kwiver forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
+    COMMENT "Removing build stamp file for build update (forcebuild)."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
+endif()
 
 set(VIAME_ARGS_kwiver
   -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build
