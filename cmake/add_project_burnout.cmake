@@ -40,7 +40,7 @@ ExternalProject_Add(burnout
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-if (VIAME_FORCEBUILD)
+if (VIAME_FORCE_DEP_REBUILD)
 ExternalProject_Add_Step(burnout forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/burnout-stamp/burnout-build

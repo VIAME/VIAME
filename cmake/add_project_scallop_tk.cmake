@@ -56,7 +56,7 @@ ExternalProject_Add(scallop_tk
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-if (VIAME_FORCEBUILD)
+if (VIAME_FORCE_DEP_REBUILD)
 ExternalProject_Add_Step(scallop_tk forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/scallop_tk-stamp/scallop_tk-build

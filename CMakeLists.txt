@@ -9,11 +9,11 @@ project( VIAME )
 include( CMakeDependentOption )
 
 
-# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
+# If VIAME_FORCE_DEP_REBUILD is False, we will assume we dont need to rebuild any
 # other superbuild proejct (except for viame). This makes development builds
 # much quicker.
-option(VIAME_FORCEBUILD True)
-mark_as_advanced( VIAME_ENABLE_KWIVER )
+option(VIAME_FORCE_DEP_REBUILD True)
+mark_as_advanced( VIAME_FORCE_DEP_REBUILD )
 
 ###
 # Add paths used throughout CMakeLists files

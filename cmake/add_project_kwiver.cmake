@@ -90,7 +90,7 @@ ExternalProject_Add(kwiver
 
 
 # Why must we force kwiver to build on every make?
-if (VIAME_FORCEBUILD)
+if (VIAME_FORCE_DEP_REBUILD)
   ExternalProject_Add_Step(kwiver forcebuild
     COMMAND ${CMAKE_COMMAND}
       -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
