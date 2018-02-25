@@ -86,7 +86,8 @@ public:
       pts_of_meta_ts( 0.0 ),
       meta_ts( 0 ),
       d_frame_time( 0 ),
-      d_frame_number( 1 )
+      d_frame_number( 1 ),
+      d_frame_number_offset(0)
   { }
 
 
@@ -161,6 +162,9 @@ public:
   // used to create timestamp output
   vital::timestamp::time_t d_frame_time; // usec
   vital::timestamp::frame_t d_frame_number;
+
+  // frames to add or subtract to make first frame number == 1.
+  vital::timestamp::frame_t d_frame_number_offset;
 
   std::string video_path; // name of video we opened
 
@@ -357,7 +361,8 @@ public:
     // presentation time stamps to foward the first metadata time stamp.
     double pts_diff = ( d_video_stream.current_pts() - pts_of_meta_ts ) * 1e6;
     d_frame_time = meta_ts + pts_diff;
-    d_frame_number = d_video_stream.frame_number() + 1;
+    d_frame_number = d_video_stream.frame_number()
+                   + d_frame_number_offset + 1;
 
     // We don't always have all components of a timestamp, so start with
     // an invalid TS and add the data we have.
@@ -727,6 +732,10 @@ vidl_ffmpeg_video_input
     }
   }
 
+  // the initial frame should be 0, but sometimes it is not, so we capture the initial
+  // frame as an offset
+  d->d_frame_number_offset = - static_cast<int>(d->d_video_stream.frame_number());
+
   if ( ! time_found )
   {
     LOG_ERROR( logger(), "Failed to initialize the timestamp for: " << d->video_path );
@@ -737,7 +746,8 @@ vidl_ffmpeg_video_input
   if ( d->c_start_at_frame != 0 && d->c_start_at_frame > 1 )
   {
     // move stream to specified frame number
-    unsigned int frame_num = d->d_video_stream.frame_number() + 1;
+    unsigned int frame_num = d->d_video_stream.frame_number()
+                           + d->d_frame_number_offset + 1;
 
     while (frame_num < d->c_start_at_frame)
     {
@@ -746,7 +756,8 @@ vidl_ffmpeg_video_input
         break;
       }
 
-      frame_num = d->d_video_stream.frame_number() + 1;
+      frame_num = d->d_video_stream.frame_number()
+                + d->d_frame_number_offset + 1;
     }
 
     d->d_frame_number = frame_num;
@@ -864,7 +875,8 @@ vidl_ffmpeg_video_input
     return false;
   }
 
-  unsigned int curr_frame_num = d->d_video_stream.frame_number() + 1;
+  int curr_frame_num = d->d_video_stream.frame_number()
+                     + d->d_frame_number_offset + 1;
 
   // If current frame number is greater than requested frame reopen
   // file to reset to start
@@ -872,7 +884,8 @@ vidl_ffmpeg_video_input
   {
     std::lock_guard< std::mutex > lock( d->s_open_mutex );
     d->d_video_stream.open( d->video_path ); // Calls close on current video
-    curr_frame_num = d->d_video_stream.frame_number() + 1;
+    curr_frame_num = d->d_video_stream.frame_number()
+                   + d->d_frame_number_offset + 1;
   }
 
   // Just advance video until the requested frame is reached
