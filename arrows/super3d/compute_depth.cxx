@@ -78,7 +78,7 @@ public:
   {
   }
 
-  void iterative_update_callback(depth_refinement_monitor::update_data data);
+  bool iterative_update_callback(depth_refinement_monitor::update_data data);
 
   unsigned int S;
   double theta0;
@@ -230,7 +230,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   }
   else if (d_->callback)
   {
-    std::function<void(depth_refinement_monitor::update_data)> f;
+    std::function<bool (depth_refinement_monitor::update_data)> f;
     f = std::bind1st(std::mem_fun(&compute_depth::priv::iterative_update_callback), this->d_.get());
     depth_refinement_monitor *drm = new depth_refinement_monitor(f, d_->callback_interval);
     refine_depth(cost_volume, g, height_map, d_->iterations, d_->theta0, d_->theta_end, d_->lambda, d_->epsilon, drm);
@@ -263,7 +263,7 @@ void compute_depth::set_callback(callback_t cb)
 //*****************************************************************************
 
 //Bridge from super3d monitor to vital image
-void compute_depth::priv::iterative_update_callback(depth_refinement_monitor::update_data data)
+bool compute_depth::priv::iterative_update_callback(depth_refinement_monitor::update_data data)
 {
   if (this->callback)
   {
@@ -271,9 +271,10 @@ void compute_depth::priv::iterative_update_callback(depth_refinement_monitor::up
     vil_math_scale_and_offset_values(data.current_result, depth_scale, this->depth_min);
     vil_image_view<double> depth;
     height_map_to_depth_map(this->ref_cam, data.current_result, depth);
-    image_container_sptr result = vital::image_container_sptr(new vxl::image_container(vxl::image_container::vxl_to_vital(depth)));
-    this->callback(result, data.num_iterations);
-  }  
+    image_container_sptr result = std::make_shared<vxl::image_container>(vxl::image_container::vxl_to_vital(depth));
+    return this->callback(result, data.num_iterations);
+  }
+  return true;
 }
 
 } // end namespace super3d

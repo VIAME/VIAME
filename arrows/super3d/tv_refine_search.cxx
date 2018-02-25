@@ -114,7 +114,12 @@ refine_depth(vil_image_view<double> &cost_volume,
         depth_refinement_monitor::update_data data;
         data.current_result.deep_copy(d);
         data.num_iterations = iter;
-        drm->callback_(data);
+        // if the callback returns false, that means
+        // the user has requested early termination
+        if (!drm->callback_(data))
+        {
+          break;
+        }
       }
     }
   }
