@@ -896,6 +896,18 @@ vidl_ffmpeg_video_input
       d->d_at_eov = true;
       return false;
     }
+    else
+    {
+      d->d_frame_advanced = true;
+      d->d_have_frame = false;
+    }
+  }
+  // if seeking to the first frame we need to mark the video as having advanced
+  // otherwise we will get the first frame twice.
+  if (frame_number == 1)
+  {
+    d->d_frame_advanced = true;
+    d->d_have_frame = false;
   }
 
   d->process_frame_timestamp( ts );
