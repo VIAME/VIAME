@@ -912,7 +912,15 @@ vidl_ffmpeg_video_input
     throw kwiver::vital::video_stream_exception( "could not convert image to vidl format" );
   }
 
-  return vital::image_container_sptr( new vxl::image_container( img ) );
+  // make an image container and add the first metadata object, if there is one
+  auto img_cont = std::make_shared<vxl::image_container>(img);
+  auto mdv = this->frame_metadata();
+  if (!mdv.empty())
+  {
+    img_cont->set_metadata(mdv[0]);
+  }
+
+  return img_cont;
 }
 
 
