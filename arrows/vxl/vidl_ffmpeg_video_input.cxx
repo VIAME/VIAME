@@ -234,6 +234,30 @@ public:
       } // end valid metadata packet.
     } // end while
 
+    // if no metadata from the stream, add a basic metadata item
+    // containing video name and timestamp
+    if (this->metadata_collection.empty())
+    {
+      auto meta = std::make_shared<kwiver::vital::metadata>();
+      kwiver::vital::timestamp ts;
+      ts.set_frame(this->d_frame_number);
+
+      if (this->d_have_frame_time)
+      {
+        ts.set_time_usec(this->d_frame_time);
+      }
+
+      meta->set_timestamp(ts);
+
+      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_FILENAME,
+        video_path));
+
+      this->metadata_collection.push_back(meta);
+
+      // TODO decide if this function should return true only for KLV metadata
+      retval = true;
+    }
+
     return retval;
   }
 
