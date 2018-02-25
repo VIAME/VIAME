@@ -154,7 +154,7 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
 
   std::istringstream ss(config->get_value<std::string>("world_plane_normal", "0 0 1"));
   ss >> d_->world_plane_normal;
-  d_->world_plane_normal.normalize();  
+  d_->world_plane_normal.normalize();
 }
 
 //*****************************************************************************
@@ -185,7 +185,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   //convert optional mask images
   std::vector<vil_image_view<double> > *masks = NULL;
   vil_image_view<double> *ref_mask = NULL;
-  if (masks_in) 
+  if (masks_in)
   {
     masks = new std::vector<vil_image_view<double> >(masks_in->size());
     for (unsigned int i = 0; i < masks->size(); i++) {
@@ -205,16 +205,16 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   for (unsigned int i = 0; i < landmarks.size(); i++) {
     landmarks[i] = vnl_vector_fixed<double, 3>(landmarks_in[i]->loc().data());
   }
-  
+
   d_-> ref_cam = cameras[ref_frame];
 
   int ni = frames[ref_frame].ni(), nj = frames[ref_frame].nj();
-  
+
   std::vector<vnl_double_3> visible_landmarks =
     filter_visible_landmarks(d_->ref_cam, 0, ni, 0, nj, landmarks);
   compute_offset_range(visible_landmarks, d_->world_plane_normal, d_->depth_min, d_->depth_max, 0.1, 0.5);
   world_space *ws = new world_angled_frustum(d_->ref_cam, d_->world_plane_normal, d_->depth_min, d_->depth_max, ni, nj);
-  
+
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
 
@@ -223,7 +223,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
 
   std::cout << "Refining Depth. ..\n";
   vil_image_view<double> height_map(cost_volume.ni(), cost_volume.nj(), 1);
-  
+
   if (d_->callback_interval <= 0)
   {
     refine_depth(cost_volume, g, height_map, d_->iterations, d_->theta0, d_->theta_end, d_->lambda, d_->epsilon);
@@ -236,7 +236,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
     refine_depth(cost_volume, g, height_map, d_->iterations, d_->theta0, d_->theta_end, d_->lambda, d_->epsilon, drm);
     delete drm;
   }
-  
+
   // map depth from normalized range back into true depth
   double scale = d_->depth_max - d_->depth_min;
   vil_math_scale_and_offset_values(height_map, scale, d_->depth_min);
