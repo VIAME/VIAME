@@ -88,21 +88,38 @@ average_track_descriptors
 {
   vital::track_descriptor_set_sptr tds( new vital::track_descriptor_set() );
 
-  for( vital::track_sptr track : tracks->tracks() )
+  if( tracks )
   {
-    vital::track::history_const_itr it = track->find( ts.get_frame() );
-    if( it != track->end() )
+    for( vital::track_sptr track : tracks->tracks() )
     {
-      std::shared_ptr< vital::object_track_state > ots =
-        std::dynamic_pointer_cast< vital::object_track_state >( *it );
-      if( ots && ots->detection && ots->detection->descriptor() )
+      if( !track )
       {
-        vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
+        std::cout << "Warning: Invalid Track" << std::endl;
+        continue;
+      }
 
-        td->add_track_id( track->id() );
-        td->set_descriptor( ots->detection->descriptor() );
+      vital::track::history_const_itr it = track->find( ts.get_frame() );
+      if( it != track->end() )
+      {
+        std::shared_ptr< vital::object_track_state > ots =
+          std::dynamic_pointer_cast< vital::object_track_state >( *it );
 
-        tds->push_back( td );
+        if( ots && ots->detection && ots->detection->descriptor() )
+        {
+          vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
+  
+          td->add_track_id( track->id() );
+          td->set_descriptor( ots->detection->descriptor() );
+  
+          // Make history entry
+          if( ots->detection )
+          {
+            vital::track_descriptor::history_entry he( ts, ots->detection->bounding_box() );
+            td->add_history_entry( he );
+          }
+
+          tds->push_back( td );
+        }
       }
     }
   }
