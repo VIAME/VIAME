@@ -180,6 +180,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   for (unsigned int i = 0; i < frames.size(); i++) {
     vil_image_view<vxl_byte> img = vxl::image_container::vital_to_vxl(frames_in[i]->get_image());
     vil_convert_planes_to_grey(img, frames[i]);
+    vil_math_scale_values(frames[i], 1.0 / 255.0);
   }
 
   //convert optional mask images
