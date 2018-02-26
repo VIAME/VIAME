@@ -87,7 +87,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
     //Warp ref image to world volume (does nothing if world space is aligned with ref camera)
     ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame], s, ref_frame);
     if (masks) ws->warp_image_to_depth((*masks)[ref_frame], warp_ref_mask, warp_cams[ref_frame], s, ref_frame);
-   
+
     counts.fill(0);
 
   //sum costs across all images into this depth slice
@@ -121,8 +121,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
         if (masks && warp_ref_mask(i, j) > 0.0)
           continue;
 
-        if (counts(i, j) == 0) 
-          cost_volume(i, j, k) = std::numeric_limits<double>::infinity();        
+        if (counts(i, j) == 0)
+          cost_volume(i, j, k) = std::numeric_limits<double>::infinity();
         else
           cost_volume(i, j, k) /= (double)counts(i,j);
       }

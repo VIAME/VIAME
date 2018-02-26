@@ -71,7 +71,7 @@ public:
     unsigned int num_iterations;
   };
 
-  depth_refinement_monitor(std::function<void (update_data)> callback, int interval) :
+  depth_refinement_monitor(std::function<bool (update_data)> callback, int interval) :
                            callback_(callback), interval_(interval)  {}
 
 private:
@@ -86,7 +86,7 @@ private:
                            double epsilon,
                            depth_refinement_monitor *drm);
 
-  std::function<void (update_data)> callback_;
+  std::function<bool (update_data)> callback_;
   int interval_;
 };
 

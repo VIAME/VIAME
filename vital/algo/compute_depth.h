@@ -77,7 +77,7 @@ public:
           std::vector<image_container_sptr> *masks = NULL) const = 0;
 
   /// Typedef for the callback function signature
-  typedef std::function<void(kwiver::vital::image_container_sptr,
+  typedef std::function<bool (kwiver::vital::image_container_sptr,
     unsigned int)> callback_t;
 
   /// Set a callback function to report intermediate progress
