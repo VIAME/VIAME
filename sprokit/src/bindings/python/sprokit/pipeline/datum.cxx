@@ -48,6 +48,7 @@
 #include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/feature_track_set.h>
+#include <vital/types/timestamp.h>
 
 #include <limits>
 #include <string>
@@ -132,6 +133,9 @@ PYBIND11_MODULE(datum, m)
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing an object track set.");
+  m.def("new_timestamp", &new_datum<std::shared_ptr<kwiver::vital::timestamp>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a timestamp.");
   m.def("new_double_vector", &new_datum<std::shared_ptr<std::vector<double>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a double vector.");
@@ -181,6 +185,8 @@ PYBIND11_MODULE(datum, m)
       , "Convert the data to a feature track set")
     .def("get_object_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::object_track_set>>
       , "Convert the data to an object track set")
+    .def("get_timestamp", &datum_get_object<std::shared_ptr<kwiver::vital::timestamp>>
+      , "Convert the data to a timestamp")
     .def("get_double_vector", &datum_get_object<std::shared_ptr<std::vector<double>>>
       , "Convert the data to a double vector")
     .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
