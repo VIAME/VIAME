@@ -170,7 +170,7 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
                             datum.Datum.get_object_track_set,
                             datum.new_object_track_set)
-        self.add_type_trait("timestamp", "timestamp",
+        self.add_type_trait("timestamp", "kwiver:timestamp",
                             datum.Datum.get_timestamp,
                             datum.new_timestamp)
 
