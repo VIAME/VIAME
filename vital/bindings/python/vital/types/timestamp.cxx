@@ -52,7 +52,7 @@ PYBIND11_MODULE(timestamp, m)
   .def("get_frame", &kwiver::vital::timestamp::get_frame) // For consistency, let's not treat frame as a property either
   .def("set_frame", &kwiver::vital::timestamp::set_frame,
     py::arg("frame"))
-  .def("set_invaild", &kwiver::vital::timestamp::set_invalid)
+  .def("set_invalid", &kwiver::vital::timestamp::set_invalid)
   .def("set_time_domain_index", &kwiver::vital::timestamp::set_time_domain_index,
     py::arg("domain"))
   .def("get_time_domain_index", &kwiver::vital::timestamp::get_time_domain_index)
