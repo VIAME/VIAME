@@ -963,12 +963,8 @@ vidl_ffmpeg_video_input
   // If the vector is empty, then try to convert metadata.
   if ( d->metadata_collection.empty() )
   {
-    std::deque< uint8_t > curr_md = d->d_video_stream.current_metadata();
-    if (curr_md.size() > 0 )
-    {
-      // will manage metadata collection object.
-      d->process_metadata( curr_md );
-    }
+    // will manage metadata collection object.
+    d->process_metadata(d->d_video_stream.current_metadata());
   }
 
   return d->metadata_collection;
