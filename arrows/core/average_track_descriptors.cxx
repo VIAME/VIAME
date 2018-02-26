@@ -99,6 +99,7 @@ average_track_descriptors
       {
         vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
 
+        td->add_track_id( track->id() );
         td->set_descriptor( ots->detection->descriptor() );
 
         tds->push_back( td );
