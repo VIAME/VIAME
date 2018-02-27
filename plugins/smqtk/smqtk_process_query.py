@@ -28,8 +28,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
-import itertools
 import json
+
+from six.moves import zip
 
 from sprokit.pipeline import process
 from sprokit.pipeline import datum
@@ -246,7 +247,7 @@ class SmqtkProcessQuery (KwiverProcess):
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]
         user_pos_elements = []
-        z = itertools.izip(vital_descriptor_set.descriptors(), vital_descriptor_uids)
+        z = zip(vital_descriptor_set.descriptors(), vital_descriptor_uids)
         for vital_descr, uid_str in z:
             smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
                 'from_sprokit', uid_str

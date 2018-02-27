@@ -28,10 +28,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
-import itertools
 import json
 
 from sprokit.pipeline import process
+from six.moves import zip
 
 from kwiver.kwiver_process import KwiverProcess
 
@@ -116,7 +116,7 @@ class SmqtkIngestDescriptors (KwiverProcess):
 
         # Convert descriptors to SMQTK elements and add to configured index
         smqtk_descriptor_elements = []
-        z = itertools.izip(vital_descriptor_set.descriptors(), string_tuple)
+        z = zip(vital_descriptor_set.descriptors(), string_tuple)
         for vital_descr, uid_str in z:
             smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
                 'from_sprokit', uid_str
