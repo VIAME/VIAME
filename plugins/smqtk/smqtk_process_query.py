@@ -48,6 +48,24 @@ import os
 import ctypes
 import filecmp
 
+import sys
+import threading
+import traceback
+
+def print(msg):
+   import threading
+   import traceback
+   try:
+       msg = '[{}] {}'.format(threading.current_thread(), msg)
+   #    with open('database/Logs/SMQTK_Query_Log', 'a') as f:
+   #        f.write(str(msg) + '\n')
+   except Exception as ex:
+       with open('database/Logs/SMQTK_Query_Error_Log', 'a') as f:
+           f.write('Error durring print! Attempting to report\n')
+           f.write(repr(ex) + '\n')
+           f.write(traceback.format_exc() + '\n')
+           raise
+
 class SmqtkProcessQuery (KwiverProcess):
     """
     Process for taking in a query descriptor set, alongside any known positive
@@ -193,6 +211,9 @@ class SmqtkProcessQuery (KwiverProcess):
         os.remove(model_2_file)
 
     def _configure(self):
+      try:
+        print( "Configuring Process" )
+
         self.di_json_config_path = self.config_value('descriptor_index_config_file')
         self.nn_json_config_path = self.config_value('neighbor_index_config_file')
         self.pos_seed_neighbors = int(self.config_value('pos_seed_neighbors'))
@@ -219,7 +240,15 @@ class SmqtkProcessQuery (KwiverProcess):
 
         self._base_configure()
 
+      except BaseException as e:
+        print( repr( e ) )
+        import traceback
+        print( traceback.format_exc() )
+        #sys.stdout.flush()
+
     def _step(self):
+      try:
+        print( "Stepping SMQTK Query Process" )
         #
         # Grab input values from ports using traits.
         #
@@ -290,3 +319,9 @@ class SmqtkProcessQuery (KwiverProcess):
         self.push_to_port_using_trait('result_model', datum.VectorUChar(return_model) )
 
         self._base_step()
+
+      except BaseException as e:
+        print( repr( e ) )
+        import traceback
+        print( traceback.format_exc() )
+        # sys.stdout.flush()
