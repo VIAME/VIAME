@@ -57,6 +57,7 @@
 #include <arrows/core/formulate_query_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/track_descriptor_set_output_csv.h>
@@ -125,6 +126,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< formulate_query_core >( vpm );
   register_algorithm< hierarchical_bundle_adjust >( vpm );
   register_algorithm< initialize_cameras_landmarks >( vpm );
+  register_algorithm< interpolate_track_spline >( vpm );
   register_algorithm< match_features_fundamental_matrix >( vpm );
   register_algorithm< match_features_homography >( vpm );
   register_algorithm< track_descriptor_set_output_csv >( vpm );
