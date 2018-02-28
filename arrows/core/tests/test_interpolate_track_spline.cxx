@@ -59,13 +59,16 @@ TEST(interpolate_track_spline, create)
 
 namespace {
 
+constexpr static auto FRAME_RATE = time_t{ 3000 };
+
 // ----------------------------------------------------------------------------
 void add_track_state( kv::track_sptr track, kv::frame_id_t frame,
                       kv::bounding_box_d bbox, double confidence )
 {
+  auto const time = frame * FRAME_RATE;
   auto d = std::make_shared< kv::detected_object >( bbox, confidence );
   track->append(
-    std::make_shared< kv::object_track_state >( frame, d ) );
+    std::make_shared< kv::object_track_state >( frame, time, d ) );
 }
 
 // ----------------------------------------------------------------------------
@@ -82,6 +85,7 @@ void check_track_state( kv::track_sptr track, kv::frame_id_t frame,
 
   EXPECT_EQ( track, state->track() );
   EXPECT_EQ( frame, state->frame() );
+  EXPECT_EQ( frame * FRAME_RATE, state->time() );
 
   ASSERT_NE( nullptr, state->detection );
 
