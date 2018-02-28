@@ -59,15 +59,18 @@ public:
 
   /// Default constructor
   object_track_state( frame_id_t frame,
+                      time_t time,
                       detected_object_sptr d = nullptr )
     : track_state( frame )
     , detection( d )
+    , time_( time )
   {}
 
   /// Copy constructor
   object_track_state( object_track_state const& ot )
     : track_state( ot.frame() )
     , detection( ot.detection )
+    , time_( ot.time() )
   {}
 
   /// Clone the track state (polymorphic copy constructor)
@@ -76,7 +79,15 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
+  time_t time() const
+  {
+    return time_;
+  }
+
   detected_object_sptr detection;
+
+private:
+  time_t time_;
 };
 
 
