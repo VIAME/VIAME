@@ -35,7 +35,7 @@ class RnnType(Enum):
 class Siamese(nn.Module):
     def __init__(self):
         super(Siamese, self).__init__()
-        self.resnet = models.resnet50(pretrained=True)
+        self.resnet = models.resnet50(pretrained=False)
         self.num_fcin = self.resnet.fc.in_features
         self.resnet.fc = nn.Linear(self.num_fcin, 500)
         self.pdist = nn.PairwiseDistance(1)
