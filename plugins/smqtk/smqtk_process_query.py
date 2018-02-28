@@ -57,8 +57,8 @@ def print(msg):
    import traceback
    try:
        msg = '[{}] {}'.format(threading.current_thread(), msg)
-   #    with open('database/Logs/SMQTK_Query_Log', 'a') as f:
-   #        f.write(str(msg) + '\n')
+       with open('database/Logs/SMQTK_Query_Log', 'a') as f:
+           f.write(str(msg) + '\n')
    except Exception as ex:
        with open('database/Logs/SMQTK_Query_Error_Log', 'a') as f:
            f.write('Error durring print! Attempting to report\n')
@@ -310,8 +310,10 @@ class SmqtkProcessQuery (KwiverProcess):
         return_uuids = [e.uuid() for e in return_elems]
 
         # Retrive IQR model from class
-        return_model = self.get_svm_bytes()
-        self.test_model_from_byte()
+        try:
+          return_model = self.get_svm_bytes()
+        except:
+          return_model = []
 
         # Pass on input descriptors and UIDs
         self.push_to_port_using_trait('result_uids', datum.VectorString(return_uuids) )
