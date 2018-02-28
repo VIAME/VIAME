@@ -5,8 +5,6 @@
 #
 # This assumes the use of the LSH nearest-neighbor index as it builds ITQ model.
 #
-set -e
-
 source ../../../setup_viame.sh
 
 # PARAMETERS ###################################################################
@@ -29,9 +27,7 @@ SMQTK_ITQ_BIT_SIZE=256
 SMQTK_HCODE_CONFIG="configs/compute_hash_codes.json"
 SMQTK_HCODE_PICKLE="models/alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle"
 
-SMQTK_HCODE_BTREE_LEAFSIZE=40
-SMQTK_HCODE_BTREE_RAND=0
-SMQTK_HCODE_BTREE_OUTPUT="models/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz"
+SMQTK_BTREE_CONFIG="configs/make_balltree.json"
 
 # Use these tiles for new imagelist
 find "${IMAGE_FILE_DIR}" -type f >"${IMAGE_INGEST_LIST}"
@@ -46,10 +42,8 @@ train_itq -vc "${SMQTK_ITQ_TRAIN_CONFIG}"
 
 # Compute hash codes for descriptors
 compute_hash_codes \
-    -vc "${SMQTK_HCODE_CONFIG}" \
-    --output-hash2uuids "${SMQTK_HCODE_PICKLE}"
+    -vc "${SMQTK_HCODE_CONFIG}"
 
 # Compute balltree hash index
-make_balltree "${SMQTK_HCODE_PICKLE}" ${SMQTK_ITQ_BIT_SIZE} \
-    ${SMQTK_HCODE_BTREE_LEAFSIZE} ${SMQTK_HCODE_BTREE_RAND} \
-    ${SMQTK_HCODE_BTREE_OUTPUT}
+make_balltree \
+    -vc "${SMQTK_BTREE_CONFIG}"
