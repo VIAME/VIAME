@@ -67,7 +67,7 @@ public:
   typedef std::pair < vital::path_t, vital::path_t > path_pair_t;
   std::vector < path_pair_t > d_img_md_files;
   std::vector < path_pair_t >::const_iterator d_current_files;
-  kwiver::vital::timestamp::frame_t d_frame_number;
+  kwiver::vital::frame_id_t d_frame_number;
 
   vital::metadata_sptr d_metadata;
 };
