@@ -232,7 +232,7 @@ int load_tracks( const string& track_fn, track_handle_list_type& tracks, const s
     frame_handle_list_type frames = track_oracle_core::get_frames( tracks[i] );
     frame_count += frames.size();
     vector< oracle_entry_handle_type > frame_handles( frames.size() );
-    for (auto j=0; j<frames.size(); ++j)
+    for (size_t j=0; j<frames.size(); ++j)
     {
       frame_handles[j] = frames[j].row;
     }

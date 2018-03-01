@@ -59,7 +59,7 @@ public:
 
   /// Default constructor
   object_track_state( frame_id_t frame,
-                      time_t time,
+                      time_us_t time,
                       detected_object_sptr d = nullptr )
     : track_state( frame )
     , detection( d )
@@ -79,7 +79,7 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
-  time_t time() const
+  time_us_t time() const
   {
     return time_;
   }
@@ -87,7 +87,7 @@ public:
   detected_object_sptr detection;
 
 private:
-  time_t time_;
+  time_us_t time_;
 };
 
 

@@ -66,7 +66,7 @@ public:
   // local state
   std::vector < kwiver::vital::path_t > m_files;
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
-  kwiver::vital::timestamp::frame_t m_frame_number;
+  kwiver::vital::frame_id_t m_frame_number;
   kwiver::vital::image_container_sptr m_image;
 
   // processing classes

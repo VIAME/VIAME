@@ -191,7 +191,7 @@ kwiver_ts_string_read( const string& frame_str,
       return false;
     }
   }
-  t.set_time_usec( static_cast< vital::timestamp::time_t >( ts * 1.0e6) );
+  t.set_time_usec( static_cast< vital::time_us_t >( ts * 1.0e6) );
   return true;
 }
 
