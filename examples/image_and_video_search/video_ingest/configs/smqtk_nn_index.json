@@ -4,6 +4,7 @@
         "descriptor_index": {
             "type": "PostgresDescriptorIndex",
             "PostgresDescriptorIndex": {
+                "create_table": false,
                 "db_host": "localhost",
                 "db_name": "postgres",
                 "db_pass": null,
@@ -18,29 +19,47 @@
             }
         },
         "distance_method": "euclidean",
-        "hash2uuid_cache_filepath": "database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle",
-        "hash_index": {
-            "type": "SkLearnBallTreeHashIndex",
-            "SkLearnBallTreeHashIndex": {
-                "file_cache": "database/ITQ/alexnet_fc7.itq_b256_i50_n2_r0.hi_btree.npz",
-                "leaf_size": 40,
-                "random_seed": 0
+        "hash2uuids_kvstore": {
+            "type": "MemoryKeyValueStore",
+            "MemoryKeyValueStore": {
+                "cache_element": {
+                    "type": "DataFileElement",
+                    "DataFileElement": {
+                        "explicit_mimetype": null,
+                        "filepath": "database/ITQ/hash2uuids.memKvStore.pickle",
+                        "readonly": false
+                    }
+                }
             }
         },
-        "live_reload": false,
+        "hash_index": {
+            "type": null
+        },
         "lsh_functor": {
             "type": "ItqFunctor",
             "ItqFunctor": {
                 "bit_length": 256,
                 "itq_iterations": 100,
-                "mean_vec_filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
+                "mean_vec_cache": {
+                    "type": "DataFileElement",
+                    "DataFileElement": {
+                        "explicit_mimetype": null,
+                        "filepath": "database/ITQ/itq.model.b256_i100_r0.mean_vec.npy",
+                        "readonly": false
+                    }
+                },
                 "normalize": null,
                 "random_seed": 0,
-                "rotation_filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy"
+                "rotation_cache": {
+                    "type": "DataFileElement",
+                    "DataFileElement": {
+                        "explicit_mimetype": null,
+                        "filepath": "database/ITQ/itq.model.b256_i100_r0.rotation.npy",
+                        "readonly": false
+                    }
+                }
             }
         },
-        "read_only": false,
-        "reload_mon_interval": 0.1,
-        "reload_settle_window": 1.0
+        "read_only": false
     }
 }

@@ -26,7 +26,7 @@ ExternalProject_Add(viame
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${CMAKE_SOURCE_DIR}
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
@@ -45,6 +45,7 @@ ExternalProject_Add(viame
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+#if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(viame forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/viame-stamp/viame-build
@@ -53,3 +54,4 @@ ExternalProject_Add_Step(viame forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+#endif()

@@ -44,13 +44,14 @@ ExternalProject_Add(kwiver
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/kwiver
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_Boost}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_VXL}
     ${VIAME_ARGS_darknet}
     ${VIAME_ARGS_burnout}
+    ${VIAME_ARGS_PROJ4}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
     ${VIAME_CUDA_FLAGS}
@@ -66,6 +67,8 @@ ExternalProject_Add(kwiver
     -DKWIVER_INSTALL_SET_UP_SCRIPT:BOOL=OFF
 
     # Optional
+    -DKWIVER_ENABLE_UUID:BOOL=OFF
+    -DKWIVER_ENABLE_PROJ4:BOOL=OFF
     -DKWIVER_ENABLE_BURNOUT:BOOL=${VIAME_ENABLE_BURNOUT}
     -DKWIVER_ENABLE_OPENCV:BOOL=${VIAME_ENABLE_OPENCV}
     -DKWIVER_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
@@ -73,9 +76,9 @@ ExternalProject_Add(kwiver
     -DKWIVER_ENABLE_DARKNET:BOOL=${VIAME_ENABLE_YOLO}
     -DKWIVER_ENABLE_C_BINDINGS:BOOL=${VIAME_ENABLE_PYTHON}
     -DKWIVER_ENABLE_PYTHON:BOOL=${VIAME_ENABLE_PYTHON}
+    -DKWIVER_SYMLINK_PYTHON:BOOL=${VIAME_SYMLINK_PYTHON}
     -DKWIVER_ENABLE_CUDA:BOOL=${VIAME_ENABLE_CUDA}
     -DKWIVER_ENABLE_DOCS:BOOL=${VIAME_ENABLE_DOCS}
-    -DKWIVER_ENABLE_UUID:BOOL=OFF
     -DENABLE_TESTING:BOOL=${VIAME_BUILD_TESTS}
     -DKWIVER_ENABLE_TESTS:BOOL=${VIAME_BUILD_TESTS}
     -DKWIVER_SYMLINK_PYTHON:BOOL=${VIAME_SYMLINK_PYTHON}
@@ -85,14 +88,18 @@ ExternalProject_Add(kwiver
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(kwiver forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+
+# Why must we force kwiver to build on every make?
+if (VIAME_FORCEBUILD)
+  ExternalProject_Add_Step(kwiver forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -E remove ${VIAME_BUILD_PREFIX}/src/kwiver-stamp/kwiver-build
+    COMMENT "Removing build stamp file for build update (forcebuild)."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
+endif()
 
 set(VIAME_ARGS_kwiver
   -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build

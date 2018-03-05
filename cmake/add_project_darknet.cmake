@@ -31,7 +31,7 @@ ExternalProject_Add(darknet
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/darknet
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_CUDA}
@@ -44,6 +44,7 @@ ExternalProject_Add(darknet
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(darknet forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/darknet-stamp/darknet-build
@@ -52,6 +53,7 @@ ExternalProject_Add_Step(darknet forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set(VIAME_ARGS_darknet
   -Ddarknet_DIR:PATH=${VIAME_BUILD_PREFIX}/src/darknet-build

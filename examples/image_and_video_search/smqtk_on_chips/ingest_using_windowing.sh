@@ -29,5 +29,5 @@ else
            -i '{}' -o "${IMAGE_TILES_DIR}"
 fi
 
-# Ingest descriptors around each chip
-#bash ingest_chip_folder.sh ${IMAGE_TILES_DIR}
+# Perform ingest on computed chips
+bash ingest_image_folder.sh "${IMAGE_TILES_DIR}"

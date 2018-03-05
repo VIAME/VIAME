@@ -39,7 +39,7 @@ ExternalProject_Add( smqtk
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/smqtk
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     -DSMQTK_BUILD_EXAMPLES:BOOL=OFF
     -DSMQTK_BUILD_LIBSVM:BOOL=ON
     -DSMQTK_INSTALL_SETUP_SCRIPT:BOOL=OFF
@@ -56,6 +56,7 @@ ExternalProject_Add_Step(smqtk installpy
   DEPENDEES build
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(smqtk forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/smqtk-stamp/smqtk-build
@@ -64,6 +65,7 @@ ExternalProject_Add_Step(smqtk forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set(VIAME_ARGS_smqtk
   -Dsmqtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/smqtk-build

@@ -14,7 +14,7 @@ ExternalProject_Add(kwant
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/kwant
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
@@ -22,6 +22,7 @@ ExternalProject_Add(kwant
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(kwant forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/kwant-stamp/kwant-build
@@ -30,6 +31,7 @@ ExternalProject_Add_Step(kwant forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set(VIAME_ARGS_kwant
   -Dkwant_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwant-build

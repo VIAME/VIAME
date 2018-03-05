@@ -41,7 +41,7 @@ ExternalProject_Add(scallop_tk
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/scallop-tk
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${ScallopTK_BUILD_SHARED}
@@ -56,6 +56,7 @@ ExternalProject_Add(scallop_tk
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(scallop_tk forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/scallop_tk-stamp/scallop_tk-build
@@ -64,6 +65,7 @@ ExternalProject_Add_Step(scallop_tk forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set(VIAME_ARGS_scallop_tk
   -DScallopTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/scallop_tk-build

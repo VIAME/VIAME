@@ -34,7 +34,7 @@ endif()
 if( VIAME_ENABLE_VIVIA )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_shapelib:BOOL=ON
+    -Dfletch_ENABLE_shapelib:BOOL=OFF
     -Dfletch_ENABLE_VTK:BOOL=ON
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
@@ -144,6 +144,8 @@ ExternalProject_Add(fletch
     -Dfletch_FORCE_CUDA_CSTD98:BOOL=${VIAME_FORCE_CUDA_CSTD98}
 
     -Dfletch_ENABLE_PostgreSQL:BOOL=${VIAME_ENABLE_SMQTK}
+
+    -Dfletch_ENABLE_pybind11:BOOL=${VIAME_ENABLE_PYTHON}
     -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
     # Set fletch install path to be viame install path
@@ -165,9 +167,12 @@ ExternalProject_Add(fletch
     -DVIAME_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
     -DMSVC=${MSVC}
     -DMSVC_VERSION=${MSVC_VERSION}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DVIAME_ENABLE_CAFFE=${VIAME_ENABLE_CAFFE}
     -P ${VIAME_SOURCE_DIR}/cmake/custom_fletch_install.cmake
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(fletch forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
@@ -176,6 +181,7 @@ ExternalProject_Add_Step(fletch forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set( VIAME_ARGS_fletch
   -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
@@ -208,11 +214,25 @@ if( VIAME_ENABLE_VIVIA )
      ${VIAME_ARGS_VTK}
     -DVTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VTK-build
     )
+  set(VIAME_ARGS_PROJ4
+     ${VIAME_ARGS_PROJ4}
+    -DPROJ4_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/install/include
+    )
+  if( WIN32 )
+    set(VIAME_ARGS_PROJ4
+       ${VIAME_ARGS_PROJ4}
+      -DPROJ4_LIBRARY:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/proj_4_9.lib
+      )
+  endif()
 endif()
 
 if( VIAME_ENABLE_VXL )
   set(VIAME_ARGS_VXL
     ${VIAME_ARGS_VXL}
     -DVXL_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VXL-build
+    )
+  set(VIAME_ARGS_VXL_INSTALL
+    ${VIAME_ARGS_VXL_INSTALL}
+    -DVXL_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/vxl/cmake
     )
 endif()

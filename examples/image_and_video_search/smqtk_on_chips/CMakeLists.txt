@@ -4,7 +4,7 @@
 
 set( EXAMPLE_INSTALL_FILES
   input_list.txt
-  ingest_chip_folder.sh
+  ingest_image_folder.sh
   ingest_using_detections.sh
   ingest_using_windowing.sh
   launch_gui_backend.sh

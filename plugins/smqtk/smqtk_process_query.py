@@ -1,5 +1,5 @@
 #ckwg +28
-# Copyright 2017 by Kitware, Inc.
+# Copyright 2017-2018 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import itertools
 import json
 
 from sprokit.pipeline import process
+from sprokit.pipeline import datum
 
 from kwiver.kwiver_process import KwiverProcess
 
@@ -70,11 +71,15 @@ class SmqtkProcessQuery (KwiverProcess):
         # user adjudicated positive and negative descriptor UUIDs
         self.declare_input_port_using_trait('positive_uids', optional)
         self.declare_input_port_using_trait('negative_uids', optional)
+        # input model if pre-generated
+        self.declare_input_port_using_trait('query_model', optional)
 
         # Output, ranked descriptor UUIDs
-        self.declare_output_port_using_trait('result_descriptor_uids', optional)
+        self.declare_output_port_using_trait('result_uids', optional)
         # Output, ranked descriptor scores.
-        self.declare_output_port_using_trait('result_descriptor_scores', optional)
+        self.declare_output_port_using_trait('result_scores', optional)
+        # Output, trained IQR model.
+        self.declare_output_port_using_trait('result_model', optional)
 
         ## Member variables to be configured in ``_configure``.
         # Path to the json config file for the DescriptorIndex
@@ -105,9 +110,14 @@ class SmqtkProcessQuery (KwiverProcess):
                             "Positive sample UIDs")
         self.add_port_trait("negative_uids", "string_vector",
                             "Negative sample UIDs")
-        self.add_port_trait("result_descriptor_uids", "string_vector",
+        self.add_port_trait("query_model", "uchar_vector",
+                            "Input model for input queries.")
+        self.add_port_trait("result_uids", "string_vector",
                             "Result ranked descriptor UUIDs in rank order.")
-        self.add_port_trait("result_descriptor_scores", "double_vector",
+        self.add_port_trait("result_scores", "double_vector",
+                            "Result ranked descriptor distance score values "
+                            "in rank order.")
+        self.add_port_trait("result_model", "uchar_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
 
@@ -145,7 +155,7 @@ class SmqtkProcessQuery (KwiverProcess):
     def _configure(self):
         self.di_json_config_path = self.config_value('descriptor_index_config_file')
         self.nn_json_config_path = self.config_value('neighbor_index_config_file')
-        pos_seed_neighbors = int(self.config_value('pos_seed_neighbors'))
+        self.pos_seed_neighbors = int(self.config_value('pos_seed_neighbors'))
         self.query_return_n = int(self.config_value('query_return_size'))
 
         # parse json files
@@ -165,7 +175,7 @@ class SmqtkProcessQuery (KwiverProcess):
 
         # Using default relevancy index configuration, which as of 2017/08/24
         # is the only one: libSVM-based relevancy ranking.
-        self.iqr_session = smqtk.iqr.IqrSession(pos_seed_neighbors)
+        self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
 
         self._base_configure()
 
@@ -182,22 +192,31 @@ class SmqtkProcessQuery (KwiverProcess):
         # Vector of UIDs for vector of descriptors in descriptor_set.
         #
         #: :type: list[str]
-        positive_tuple = self.grap_input_using_trait('positive_uids')
-        negative_tuple = self.grap_input_using_trait('negative_uids')
+        positive_tuple = self.grab_input_using_trait('positive_uids')
+        negative_tuple = self.grab_input_using_trait('negative_uids')
+        #
+        # Optional input SVM model
+        #
+        #: :type: vital.types.UCharVector
+        query_model = self.grab_input_using_trait('query_model')
+
+        # Reset index on new query, a new query is one without IQR feedback
+        if len( positive_tuple ) == 0 and len( negative_tuple ) == 0:
+          self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
 
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]
         user_pos_elements = []
-        z = itertools.izip(vital_descriptor_set.descriptors(), exemplar_uids)
+        z = itertools.izip(vital_descriptor_set.descriptors(), vital_descriptor_uids)
         for vital_descr, uid_str in z:
             smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
                 'from_sprokit', uid_str
             )
             # A descriptor may already exist in the backend (if its persistant)
             # for the given UID. We currently always overwrite.
-            smqtk_descr.set_vector(vital_descr)
+            smqtk_descr.set_vector(vital_descr.todoublearray())
             # Queue up element for adding to set.
-            smqtk_descriptor_elements.append(smqtk_descr)
+            user_pos_elements.append(smqtk_descr)
 
         # Get SMQTK descriptor elements from index for given pos/neg UUID-
         # values.
@@ -221,8 +240,12 @@ class SmqtkProcessQuery (KwiverProcess):
         return_elems, return_dists = zip(*ordered_results)
         return_uuids = [e.uuid() for e in return_elems]
 
+        # Retrive IQR model from class
+        return_model = [ 1, 2, 3 ]
+
         # Pass on input descriptors and UIDs
-        self.push_to_port_using_trait('result_descriptor_uids', return_uuids)
-        self.push_to_port_using_trait('result_descriptor_scores', return_dists)
+        self.push_to_port_using_trait('result_uids', datum.VectorString(return_uuids) )
+        self.push_to_port_using_trait('result_scores', datum.VectorDouble(return_dists) )
+        self.push_to_port_using_trait('result_model', datum.VectorUChar(return_model) )
 
         self._base_step()

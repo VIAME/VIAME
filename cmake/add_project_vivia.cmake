@@ -26,11 +26,15 @@ ExternalProject_Add(vivia
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/vivia
   CMAKE_GENERATOR ${gen}
-  CMAKE_ARGS
+  CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    ${VIAME_ARGS_burnout}
+    ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_libkml}
+    ${VIAME_ARGS_PROJ4}
     ${VIAME_ARGS_VTK}
+    ${VIAME_ARGS_VXL_INSTALL}
 
     # Required
     -DBUILD_SHARED_LIBS:BOOL=ON
@@ -52,15 +56,13 @@ ExternalProject_Add(vivia
     -DVVQS_ENABLE_FAKE_BACKEND:BOOL=OFF
     -DVISGUI_DISABLE_FIXUP_BUNDLE:BOOL=${VIVIA_DISABLE_FIXUP}
 
-    -Dvidtk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/burnout-build
-    -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build
-
     -DLIBJSON_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include/json
     -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_QMAKE_EXE}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
+if (VIAME_FORCEBUILD)
 ExternalProject_Add_Step(vivia forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/vivia-stamp/vivia-build
@@ -69,6 +71,7 @@ ExternalProject_Add_Step(vivia forcebuild
   DEPENDERS build
   ALWAYS 1
   )
+endif()
 
 set(VIAME_ARGS_vivia
   -Dvivia_DIR:PATH=${VIAME_BUILD_PREFIX}/src/vivia-build

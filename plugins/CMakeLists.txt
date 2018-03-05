@@ -17,7 +17,7 @@ if( VIAME_ENABLE_FASTER_RCNN )
   add_subdirectory( faster_rcnn )
 endif()
 
-if( VIAME_ENABLE_MATLAB )
+if( VIAME_ENABLE_CAMTRAWL )
   add_subdirectory( camtrawl )
   add_subdirectory( lanl_scallop_finder )
 endif()

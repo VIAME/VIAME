@@ -30,53 +30,42 @@ Example Capabilities
 Documentation
 -------------
 
-[Build and Install Guide](doc/build_and_install_guide.rst) > > >
-[Tips and Tricks](doc/build_and_install_guide.rst#build-tips-n-tricks) > > >
-[Known Issues](doc/build_and_install_guide.rst#known-issues)
+The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive,
+but select entries are also listed below, which include some run examples:
 
 
-[KWIVER Overview](https://github.com/Kitware/kwiver) > > >
-[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) > > >
-[Examples](https://github.com/Kitware/kwiver/tree/master/sprokit/processes)
-
-
-[Detector Examples](examples/detector_pipelines) > > >
-[Running Detectors Overview](doc/detector_introduction.md) > > >
-[Example Usage in C++ Code](examples/using_detectors_in_cxx_code)
-
-
-[How to Integrate Your Own Plugin](doc/cxx_plugin_creation.md) > > >
-[Example Integrations](plugins) > > >
-[Example Templates](plugins/templates)
-
-
-[Graphical User Interfaces for Visualization and Annotation](doc/vpview_gui_introduction.md) > > >
-[Examples](examples/visualizing_detections_in_gui)
-
-
-[Detector Training API](examples/detector_training) > > >
-[Image and Video Search for Object Matching and Model Generation](examples/image_and_video_search)
-
-
-[Scoring and Evaluation of Detectors](doc/scoring_and_evaluation.md) > > >
-[Parameters and Output Elaboration](https://github.com/Kitware/kwant/blob/master/scoring_framework/README.markdown) > > >
-[Examples](examples/scoring_and_roc_generation)
+[Build and Install Guide](examples/building_viame) <> 
+[KWIVER Overview](https://github.com/Kitware/kwiver) <> 
+[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
+[Object Detector Examples](examples/detector_pipelines) <br />
+[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
+[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <br />
+[Example Integrations](plugins) <>
+[Example Plugin Templates](plugins/templates) <> 
+[GUIs for Visualization and Annotation](examples/visualizing_detections_in_gui) <> 
+[Detector Training API](examples/detector_training) <br />
+[Video Search for Object Matching and Model Generation](examples/image_and_video_search) <> 
+[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation)
 
 
 Pre-Built Binaries
 ------------------
 
-Note: these binaries are currently very out-of-date, but will be updated in the near future. Source build is recommended.
+Note: these binaries are currently very out-of-date, but will be updated in the near
+future. Source build is recommended.
 
-Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads) (preferred) or a comparable Python2.7 with multiple packages.
+Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads)
+(preferred) or a comparable Python2.7 with multiple packages.
 
 [Windows 7/8/10, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58fe4ad68d777f16d01e0445/download)
 
 [Windows 7/8/10, 64-bit, CPU Version](https://data.kitware.com/api/v1/item/58fe4ac78d777f16d01e0442/download)
 
-The matlab plugins in the above releases were built using matlab r2016. They may or may not work
-with other versions. They were also moved to an "experimental" folder in the plugin directory, and can either
-be moved back into the main plugin directory or added to your path to use them.
+The matlab plugins in the above releases were built using matlab r2016. They may or
+may not work with other versions. They were also moved to an "experimental" folder
+in the plugin directory, and can either be moved back into the main plugin directory
+or added to your path to use them.
 
 [Ubuntu 14.04, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
 
@@ -85,10 +74,7 @@ be moved back into the main plugin directory or added to your path to use them.
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](doc/build_and_install_guide.rst),
-with additional tips [here](doc/build_and_install_guide.rst#build-tips-n-tricks), and common issues
-[here](doc/build_and_install_guide.rst#known-issues).
-
+More in-depth build instructions can be found [here](examples/building_viame), but
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
@@ -111,18 +97,19 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 
 	make -j8
 
-Or alternatively by building it in Visual Studio or your compiler of choice on Windows.
-The '-j8' tells the build to run multi-threaded using 8 threads, this is useful for a
-faster build though if you get an error it can be difficult to know where it was, in which case running just
-'make' might be more helpful. For Windows, currently VS2013 thru VS2015 (with only
-early versions of 2017, not latest) are supported. If using CUDA, version 8.0 is
-desired, along with Python 2.7. Other versions have yet to be tested extensively.
-On Windows it can also be beneficial to use Anaconda to get multiple python packages.
-Boost Python (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
+Or alternatively by building it in Visual Studio or your compiler of choice on
+Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this is
+useful for a faster build though if you get an error it can be difficult to know
+here it was, in which case running just 'make' might be more helpful. For Windows,
+urrently VS2013 thru VS2015 (with only early versions of 2017, not latest) are
+supported. If using CUDA, version 8.0 is desired, along with Python 2.7. Other 
+versions have yet to be tested extensively. On Windows it can also be beneficial
+to use Anaconda to get multiple python packages. Boost Python (turned on by default
+hen Python is enabled) requires Numpy and a few other dependencies.
 
-There are several optional arguments to viame which control which plugins get built, such
-as those listed below. If a plugin is enabled that depends on another dependency (such
-as OpenCV) then the dependency flag will be forced to on.
+There are several optional arguments to viame which control which plugins get built,
+such as those listed below. If a plugin is enabled that depends on another dependency
+such as OpenCV) then the dependency flag will be forced to on.
 
 
 <center>
@@ -182,9 +169,9 @@ run this command if you get a "cannot fetch hash #hashid" error.
 Quick Run Instructions
 ----------------------
 
-If building from the source, all final compiled binaries are placed in the [build-directory]/install
-directory, which is the same as the root directory in the pre-built binaries. This will hereby be
-refered to as the [install-directory].
+If building from the source, all final compiled binaries are placed in the
+[build-directory]/install directory, which is the same as the root directory
+in the pre-built binaries. This will hereby be refered to as the [install-directory].
 
 One way to test the system is to see if you can run the examples in the [install-directory]/examples
 folder, for example, the pipelined object detectors. There are some environment variables
