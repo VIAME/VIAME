@@ -52,22 +52,18 @@ but select entries are also listed below, which include some run examples:
 Pre-Built Binaries
 ------------------
 
-Note: these binaries are currently very out-of-date, but will be updated in the near
-future. Source build is recommended.
+We're currently in the process of setting up automated binary building, but a few examples
+are listed below. For the latest updates and support for your required features, it is recommended
+to use a build from the source.
 
 Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads)
-(preferred) or a comparable Python2.7 with multiple packages.
+(preferred) or a comparable Python 2.7 with multiple packages. Our source releases now support
+either Python 2 or Python 3, however. The below releases were both built with CUDA 8.0, Python 2.7,
+and no matlab support enabled.
 
-[Windows 7/8/10, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58fe4ad68d777f16d01e0445/download)
+[VIAME v0.9.3 Windows 7/8/10, 64-Bit, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
 
-[Windows 7/8/10, 64-bit, CPU Version](https://data.kitware.com/api/v1/item/58fe4ac78d777f16d01e0442/download)
-
-The matlab plugins in the above releases were built using matlab r2016. They may or
-may not work with other versions. They were also moved to an "experimental" folder
-in the plugin directory, and can either be moved back into the main plugin directory
-or added to your path to use them.
-
-[Ubuntu 14.04, 64-Bit, GPU Version](https://data.kitware.com/api/v1/item/58d9b38b8d777f0aef5d896a/download)
+[VIAME v0.9.3 Ubuntu 16.04, 64-Bit, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9041158d777f0685784d8a/download)
 
 
 
