@@ -80,7 +80,7 @@ public:
           const std::vector<kwiver::vital::camera_sptr> &cameras,
           const std::vector<kwiver::vital::landmark_sptr> &landmarks,
           unsigned int reference_frame,
-          std::vector<kwiver::vital::image_container_sptr> *masks = NULL) const;
+          const std::vector<kwiver::vital::image_container_sptr> &masks = std::vector<kwiver::vital::image_container_sptr>()) const;
 
   /// Set callback for receiving incremental updates
   virtual void set_callback(callback_t cb);

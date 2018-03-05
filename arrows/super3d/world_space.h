@@ -65,10 +65,11 @@ public:
 
   /// warps image \in to the world volume at depth_slice,
   /// uses ni and nj as out's dimensions
-  void warp_image_to_depth(const vil_image_view<double> &in,
-                           vil_image_view<double> &out,
+  template<typename PixT>
+  void warp_image_to_depth(const vil_image_view<PixT> &in,
+                           vil_image_view<PixT> &out,
                            const vpgl_perspective_camera<double> &cam,
-                           double depth_slice, int f) const;
+                           double depth_slice, int f, PixT fill);
 
   virtual vnl_double_3 point_at_depth(unsigned int i, unsigned int j, double depth) const = 0;
   virtual vnl_double_3 point_at_depth_on_axis(double i, double j, double depth) const = 0;

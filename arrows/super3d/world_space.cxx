@@ -50,8 +50,7 @@ namespace super3d {
 world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
   : ni_(pixel_width), nj_(pixel_height)
 {
-  wip.set_fill_unmapped(true);
-  wip.set_unmapped_value(-1.0);
+  wip.set_fill_unmapped(true);  
   wip.set_interpolator(kwiver::arrows::super3d::warp_image_parameters::LINEAR);
 }
 
@@ -67,11 +66,13 @@ world_space::warp_cams(const std::vector<vpgl_perspective_camera<double> > &came
 
 /// warps image \in to the world volume at depth_slice,
 /// uses ni and nj as out's dimensions
-void world_space::warp_image_to_depth(const vil_image_view<double> &in,
-                                      vil_image_view<double> &out,
+template<typename PixT>
+void world_space::warp_image_to_depth(const vil_image_view<PixT> &in,
+                                      vil_image_view<PixT> &out,
                                       const vpgl_perspective_camera<double> &cam,
-                                      double depth_slice, int f) const
+                                      double depth_slice, int f, PixT fill)
 {
+  wip.set_unmapped_value(fill);
   std::vector<vnl_double_3> wpts = this->get_slice(depth_slice);
 
   std::vector<vgl_homg_point_2d<double> > warp_pts;
@@ -169,6 +170,24 @@ compute_offset_range(const std::vector<vnl_double_3> &landmarks,
 
 //*****************************************************************************
 
+
+template void world_space::warp_image_to_depth(const vil_image_view<double> &in,
+                                               vil_image_view<double> &out,
+                                               const vpgl_perspective_camera<double> &cam,
+                                               double depth_slice, int f, double fill);
+
+template void world_space::warp_image_to_depth(const vil_image_view<vxl_byte> &in,
+                                               vil_image_view<vxl_byte> &out,
+                                               const vpgl_perspective_camera<double> &cam,
+                                               double depth_slice, int f, vxl_byte fill);
+
+template void world_space::warp_image_to_depth(const vil_image_view<bool> &in,
+                                               vil_image_view<bool> &out,
+                                               const vpgl_perspective_camera<double> &cam,
+                                               double depth_slice, int f, bool fill);
+
 } // end namespace super3d
 } // end namespace arrows
 } // end namespace kwiver
+
+

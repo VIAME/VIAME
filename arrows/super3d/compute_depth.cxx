@@ -173,7 +173,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
                        const std::vector<camera_sptr> &cameras_in,
                        const std::vector<landmark_sptr> &landmarks_in,
                        unsigned int ref_frame,
-                       std::vector<image_container_sptr> *masks_in) const
+                       const std::vector<image_container_sptr> &masks_in) const
 {
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
@@ -184,15 +184,15 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   }
 
   //convert optional mask images
-  std::vector<vil_image_view<double> > *masks = NULL;
-  vil_image_view<double> *ref_mask = NULL;
-  if (masks_in)
+  std::vector<vil_image_view<bool> > masks;
+  vil_image_view<bool> *ref_mask = NULL;
+  if (!masks_in.empty())
   {
-    masks = new std::vector<vil_image_view<double> >(masks_in->size());
-    for (unsigned int i = 0; i < masks->size(); i++) {
-      (*masks)[i] = vxl::image_container::vital_to_vxl((*masks_in)[i]->get_image());
+    masks.resize(masks_in.size());
+    for (unsigned int i = 0; i < masks.size(); i++) {
+      masks[i] = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
     }
-    ref_mask = &(*masks)[ref_frame];
+    ref_mask = &masks[ref_frame];
   }
 
   //convert cameras
@@ -245,10 +245,7 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   vil_image_view<double> depth;
   height_map_to_depth_map(d_->ref_cam, height_map, depth);
 
-
-
   delete ws;
-  if (masks) delete masks;
 
   return vital::image_container_sptr(new vxl::image_container(depth));
 }

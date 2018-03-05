@@ -60,7 +60,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           unsigned int ref_frame,
                           unsigned int S,
                           vil_image_view<double> &cost_volume,
-                          std::vector<vil_image_view<double> > *masks)
+                          const std::vector<vil_image_view<bool> > &masks)
 {
   const vil_image_view<double> &ref = frames[ref_frame];
   cost_volume = vil_image_view<double>(ws->ni(), ws->nj(), 1, S);
@@ -74,7 +74,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 
   int ni = ws->ni(), nj = ws->nj();
   vil_image_view<double> warp_ref(ni, nj, 1), warp(ni, nj, 1);
-  vil_image_view<double> warp_ref_mask(ni, nj, 1), warp_mask(ni, nj, 1);
+  vil_image_view<bool> warp_ref_mask(ni, nj, 1), warp_mask(ni, nj, 1);
 
   vil_image_view<int> counts(ni, nj, 1);
 
@@ -85,8 +85,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
     double s = (k + 0.5) * s_step;
 
     //Warp ref image to world volume (does nothing if world space is aligned with ref camera)
-    ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame], s, ref_frame);
-    if (masks) ws->warp_image_to_depth((*masks)[ref_frame], warp_ref_mask, warp_cams[ref_frame], s, ref_frame);
+    ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame], s, ref_frame, -1.0);
+    if (!masks.empty()) ws->warp_image_to_depth(masks[ref_frame], warp_ref_mask, warp_cams[ref_frame], s, ref_frame, false);
 
     counts.fill(0);
 
@@ -97,14 +97,14 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
         continue;
 
       //Warp frame to world volume
-      ws->warp_image_to_depth(frames[f], warp, warp_cams[f], s, f);
-      if (masks) ws->warp_image_to_depth((*masks)[f], warp_mask, warp_cams[f], s, f);
+      ws->warp_image_to_depth(frames[f], warp, warp_cams[f], s, f, -1.0);
+      if (!masks.empty()) ws->warp_image_to_depth(masks[f], warp_mask, warp_cams[f], s, f, false);
 
       for (unsigned int j = 0; j < warp_ref.nj(); j++)
       {
         for (unsigned int i = 0; i < warp_ref.ni(); i++)
         {
-          if (warp(i,j) == -1 || (masks && (warp_ref_mask(i,j) > 0.0 || warp_mask(i,j) > 0.0)))
+          if (warp(i,j) == -1 || (!masks.empty() && (warp_ref_mask(i,j) || warp_mask(i,j))))
             continue;
 
           cost_volume(i, j, k) += fabs(warp_ref(i, j) - warp(i, j));
@@ -118,7 +118,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
     {
       for (unsigned int i = 0; i < warp_ref.ni(); i++)
       {
-        if (masks && warp_ref_mask(i, j) > 0.0)
+        if (!masks.empty() && warp_ref_mask(i, j))
           continue;
 
         if (counts(i, j) == 0)
@@ -140,7 +140,7 @@ compute_g(const vil_image_view<double> &ref_img,
   vil_image_view<double> &g,
   double alpha,
   double beta,
-  vil_image_view<double> *mask)
+  vil_image_view<bool> *mask)
 {
   g.set_size(ref_img.ni(), ref_img.nj(), 1);
 
@@ -152,7 +152,7 @@ compute_g(const vil_image_view<double> &ref_img,
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)
     {
-      if (!mask || (*mask)(i, j) < 1.0)
+      if (!mask || !(*mask)(i, j))
       {
         double dx = ref_img_g(i, j, 0);
         double dy = ref_img_g(i, j, 1);
