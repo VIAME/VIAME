@@ -35,7 +35,7 @@
 #include <memory>
 #include <vector>
 #include <fstream>
-#include <time.h>
+#include <ctime>
 
 #if ( __GNUC__ == 4 && __GNUC_MINOR__ < 5 && !defined(__clang__) )
   #include <cstdatomic>

@@ -35,7 +35,7 @@
 
 #include "detected_object_set_output_csv.h"
 
-#include <time.h>
+#include <ctime>
 
 
 namespace kwiver {
