@@ -29,6 +29,12 @@ target_link_libraries( track_reader_example
  ${Boost_SYSTEM_LIBRARY}
 )
 
+if( KWIVER_ENABLE_KPF )
+  target_link_libraries( track_reader_example
+    kpf_utils
+  )
+endif()
+
 #
 # example track writer
 #
@@ -78,3 +84,21 @@ target_link_libraries( xml_tokenizer_example
   vital_logger
   track_oracle_tokenizers
 )
+
+#
+# example KPF activity parser
+#
+
+if( KWIVER_ENABLE_KPF )
+
+  add_executable( kpf_activity_example
+    kpf_activity_example.cxx
+  )
+
+  target_link_libraries( kpf_activity_example
+    vital_logger
+    track_oracle
+    data_terms
+    track_oracle_file_formats
+  )
+endif()

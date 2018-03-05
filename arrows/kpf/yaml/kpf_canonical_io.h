@@ -66,6 +66,8 @@ template <>
 struct KPF_YAML_EXPORT writer< canonical::bbox_t >
 {
   writer( const canonical::bbox_t& b, int d) : box(b), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::bbox_t >& s )
+    : box( s.t ), domain( s.domain ) {}
   const canonical::bbox_t& box;
   int domain;
 };
@@ -74,6 +76,8 @@ template <>
 struct KPF_YAML_EXPORT writer< canonical::poly_t >
 {
   writer( const canonical::poly_t& p, int d) : poly(p), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::poly_t >& s )
+    : poly( s.t ), domain( s.domain ) {}
   const canonical::poly_t& poly;
   int domain;
 };
@@ -82,6 +86,8 @@ template <>
 struct KPF_YAML_EXPORT writer< canonical::activity_t >
 {
   writer( const canonical::activity_t& a, int d) : activity(a), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::activity_t >& s )
+          : activity( s.t ), domain( s.domain ) {}
   const canonical::activity_t& activity;
   int domain;
 };
@@ -90,6 +96,8 @@ template <>
 struct KPF_YAML_EXPORT writer< canonical::id_t >
 {
   writer( size_t i, int d ): id(i), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::id_t >& s )
+    : id( s.t ), domain( s.domain ) {}
   canonical::id_t id;
   int domain;
 };
@@ -98,6 +106,8 @@ template <>
 struct KPF_YAML_EXPORT writer< canonical::timestamp_t >
 {
   writer( double t, int d ): ts(t), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::timestamp_t >& s )
+    : ts( s.t ), domain( s.domain ) {}
   canonical::timestamp_t ts;
   int domain;
 };
@@ -106,15 +116,28 @@ template<>
 struct KPF_YAML_EXPORT writer< canonical::kv_t >
 {
   writer( const std::string& k, const std::string& v ): kv(k,v) {}
+  explicit writer( const canonical::kv_t kv_in ): kv( kv_in ) {}
   canonical::kv_t kv;
-  // key/value has no domain
+  // key/value has no domain, thus no scoped version
 };
 
 template<>
 struct KPF_YAML_EXPORT writer< canonical::conf_t >
 {
   writer( double c, int d ): conf(c), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::conf_t >& s )
+    : conf( s.t ), domain( s.domain ) {}
   canonical::conf_t conf;
+  int domain;
+};
+
+template<>
+struct KPF_YAML_EXPORT writer< canonical::cset_t >
+{
+  writer( canonical::cset_t& c, int d ): cset(c), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::cset_t >& s )
+    : cset( s.t ), domain( s.domain ) {}
+  canonical::cset_t cset;
   int domain;
 };
 
@@ -122,6 +145,8 @@ template<>
 struct KPF_YAML_EXPORT writer< canonical::eval_t >
 {
   writer( double c, int d ): eval(c), domain(d) {}
+  explicit writer( const canonical::scoped< canonical::eval_t >& s )
+    : eval( s.t ), domain( s.domain ) {}
   canonical::eval_t eval;
   int domain;
 };
@@ -131,17 +156,18 @@ struct KPF_YAML_EXPORT writer< canonical::meta_t >
 {
   writer( const std::string& t ): meta(t) {}
   canonical::meta_t meta;
-  int domain;
+  // meta has no domain, thus no scoped version
 };
 
 template<>
 struct KPF_YAML_EXPORT writer< canonical::timestamp_range_t >
 {
   writer( double start, double stop ): tsr(start, stop) {}
+  explicit writer( const canonical::scoped< canonical::timestamp_range_t >& s )
+    : tsr( s.t ), domain( s.domain ) {}
   canonical::timestamp_range_t tsr;
   int domain;
 };
-
 
 /**
  * \file
@@ -220,6 +246,15 @@ struct KPF_YAML_EXPORT reader< canonical::conf_t >
   double& conf;
   int domain;
 };
+
+template <>
+struct KPF_YAML_EXPORT reader< canonical::cset_t >
+{
+  reader( canonical::cset_t& c, int d): cset(c), domain(d) {}
+  canonical::cset_t& cset;
+  int domain;
+};
+
 
 template <>
 struct KPF_YAML_EXPORT reader< canonical::eval_t >

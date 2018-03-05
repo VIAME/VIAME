@@ -36,8 +36,6 @@ vital.util module
 import ctypes
 
 from .VitalObject import VitalObject, OpaqueTypeCache
-from .error_handle import VitalErrorHandle
-
 
 # Known mapping of C++ type_info.name() values for basic types
 #: :type: dict[str, ctypes._SimpleCData]
@@ -45,16 +43,3 @@ TYPE_NAME_MAP = {
     'd': ctypes.c_double,
     'f': ctypes.c_float,
 }
-
-
-def free_void_ptr(ptr):
-    """
-    Free a C pointer as a void pointer.
-
-    :param ptr: Ctypes pointer instance
-    :type ptr: _ctypes._Pointer
-
-    """
-    c_free_ptr = VitalObject.VITAL_LIB['vital_free_pointer']
-    c_free_ptr.argtypes = [ctypes.c_void_p]
-    c_free_ptr(ptr)

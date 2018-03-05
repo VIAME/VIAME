@@ -37,6 +37,7 @@
 
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
+#include <vital/exceptions/metadata.h>
 #include <vital/exceptions/video.h>
 #include <vital/util/tokenize.h>
 #include <vital/klv/convert_metadata.h>
@@ -157,11 +158,11 @@ public:
   bool d_have_loop_vars;
 
   double pts_of_meta_ts;            // probably seconds
-  vital::timestamp::time_t meta_ts; // time in usec
+  vital::time_us_t meta_ts; // time in usec
 
   // used to create timestamp output
-  vital::timestamp::time_t d_frame_time; // usec
-  vital::timestamp::frame_t d_frame_number;
+  vital::time_us_t d_frame_time; // usec
+  vital::frame_id_t d_frame_number;
 
   // frames to add or subtract to make first frame number == 1.
   vital::timestamp::frame_t d_frame_number_offset;
@@ -614,17 +615,17 @@ vidl_ffmpeg_video_input
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_start_at_frame = config->get_value<vital::frame_id_t>(
     "start_at_frame", d->c_start_at_frame );
 
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_stop_after_frame = config->get_value<vital::frame_id_t>(
     "stop_after_frame", d->c_stop_after_frame );
 
   d->c_frame_skip = config->get_value<vital::timestamp::frame_t>(
     "output_nth_frame", d->c_frame_skip );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
-            d->c_time_source_list, " ,", true );
+            d->c_time_source_list, " ,", kwiver::vital::TokenizeTrimEmpty );
 }
 
 
@@ -639,7 +640,7 @@ vidl_ffmpeg_video_input
   bool valid_src( true );
   std::vector< std::string > time_source;
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
-            time_source, " ,", true );
+            time_source, " ,", kwiver::vital::TokenizeTrimEmpty );
 
   for( auto source : time_source )
   {
@@ -663,7 +664,7 @@ vidl_ffmpeg_video_input
   // validate start frame
   if (config->has_value("start_at_frame"))
   {
-    vital::timestamp::frame_t frame = config->get_value<vital::timestamp::frame_t>("start_at_frame");
+    vital::frame_id_t frame = config->get_value<vital::frame_id_t>("start_at_frame");
     //  zero indicates not set, otherwise must be 1 or greater
     if (frame < 0)
     {

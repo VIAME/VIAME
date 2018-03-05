@@ -81,27 +81,6 @@ class TestRGBColor (unittest.TestCase):
             IndexError,
             c.__getitem__, 4
         )
-        # This apparently currently yields a numpy warning that this will raise
-        # an error in the future, which it already does. So I'm not sure what
-        # the point of the warning is exactly.
-        nose.tools.assert_raises(
-            IndexError,
-            c.__getitem__, 'something random'
-        )
-
-    def test_numpy_interaction(self):
-        c = RGBColor(1, 2, 3)
-
-        # Slicing
-        numpy.testing.assert_almost_equal(c[:2], (1, 2))
-        numpy.testing.assert_almost_equal(c[1:], (2, 3))
-
-        # functions
-        numpy.testing.assert_almost_equal(c[:] + 1, [2, 3, 4])
-        numpy.testing.assert_almost_equal(
-            numpy.array([1, 2, 3]) + c,
-            [2, 4, 6]
-        )
 
     def test_equality(self):
         c1 = RGBColor()

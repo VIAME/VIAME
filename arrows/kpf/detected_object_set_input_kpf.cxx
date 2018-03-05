@@ -41,7 +41,6 @@
 
 #include "vital_kpf_adapters.h"
 
-#include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 #include <vital/logger/logger.h>
 #include <vital/exceptions.h>
@@ -164,7 +163,7 @@ read_all()
 {
   m_detected_sets.clear();
 
-  
+
 
   KPF::kpf_yaml_parser_t parser(m_parent->stream());
   KPF::kpf_reader_t reader(parser);
@@ -198,7 +197,7 @@ read_all()
     box_adapter.get(bbox);
     kwiver::vital::detected_object_sptr det(new kwiver::vital::detected_object(bbox, confidence, types));
     det->set_detector_name(detector_name);
-    
+
     frame_detections = m_detected_sets[frame_number];
     if (frame_detections.get() == nullptr)
     {

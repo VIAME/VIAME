@@ -51,8 +51,8 @@ public:
   { }
 
   // Configuration values
-  vital::timestamp::frame_t c_start_at_frame;
-  vital::timestamp::frame_t c_stop_after_frame;
+  vital::frame_id_t c_start_at_frame;
+  vital::frame_id_t c_stop_after_frame;
   double c_frame_rate;
 
   // local state
@@ -114,10 +114,10 @@ video_input_filter
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_start_at_frame = config->get_value<vital::frame_id_t>(
     "start_at_frame", d->c_start_at_frame );
 
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_stop_after_frame = config->get_value<vital::frame_id_t>(
     "stop_after_frame", d->c_stop_after_frame );
 
   // get frame time

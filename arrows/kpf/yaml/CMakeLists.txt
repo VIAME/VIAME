@@ -4,15 +4,20 @@
 
 
 set( sources
+  kpf_packet_header.cxx
   kpf_packet.cxx
+  kpf_canonical_types.cxx
   kpf_parse_utils.cxx
   kpf_reader.cxx
   kpf_yaml_parser.cxx
   kpf_yaml_writer.cxx
+  kpf_yaml_schemas.cxx
   kpf_exception.cxx
 )
 
 set( public_headers
+  kpf_bounce_buffer.h
+  kpf_packet_header.h
   kpf_packet.h
   kpf_canonical_types.h
   kpf_canonical_io.h
@@ -23,6 +28,7 @@ set( public_headers
   kpf_canonical_io_adapter_base.h
   kpf_canonical_io_adapter.h
   kpf_yaml_writer.h
+  kpf_yaml_schemas.h
   kpf_exception.h
 )
 
@@ -40,7 +46,7 @@ kwiver_add_library( kpf_yaml
   ${private_sources}
 )
 
-target_include_directories(kpf_yaml PUBLIC ${YAML_CPP_INCLUDE_DIR})
+target_include_directories(kpf_yaml PRIVATE ${YAML_CPP_INCLUDE_DIR})
 
 if(WIN32)
   target_compile_definitions(kpf_yaml PRIVATE YAML_CPP_DLL)
@@ -55,16 +61,15 @@ target_link_libraries( kpf_yaml
 
 kwiver_install_headers(
   ${public_headers}
-  SUBDIR arrows/kpf
+  SUBDIR arrows/kpf/yaml
   )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kpf_yaml_export.h
   NOPATH
-  SUBDIR   arrows/kpf
+  SUBDIR   arrows/kpf/yaml
 )
 
 if (KWIVER_ENABLE_TESTS)
    add_subdirectory( tests )
 endif()
-

@@ -86,7 +86,7 @@ private:
 
   /// private implementation class
   class priv;
-  const std::unique_ptr<priv> d_;
+  const std::unique_ptr<priv> d;
 };
 
 } // end namespace ocv

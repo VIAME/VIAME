@@ -90,14 +90,14 @@ public:
 
   // Configuration values
   std::string m_config_image_list_filename;
-  kwiver::vital::timestamp::time_t m_config_frame_time;
+  kwiver::vital::time_us_t m_config_frame_time;
   std::vector< std::string > m_config_path;
 
   // process local data
   std::vector < kwiver::vital::path_t > m_files;
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
-  kwiver::vital::timestamp::frame_t m_frame_number;
-  kwiver::vital::timestamp::time_t m_frame_time;
+  kwiver::vital::frame_id_t m_frame_number;
+  kwiver::vital::time_us_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -134,7 +134,7 @@ void frame_list_process
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
 
   std::string path = config_value_using_trait( path );
-  kwiver::vital::tokenize( path, d->m_config_path, ":", true );
+  kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process

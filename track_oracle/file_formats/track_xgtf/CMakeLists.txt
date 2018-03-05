@@ -13,12 +13,12 @@ set( track_xgtf_sources
 
 kwiver_install_headers(
   ${track_xgtf_public_headers}
-  SUBDIR        track_oracle/track_xgtf
+  SUBDIR        track_oracle/file_formats/track_xgtf
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_xgtf_export.h
-  NOPATH SUBDIR        track_oracle/track_xgtf
+  NOPATH SUBDIR        track_oracle/file_formats/track_xgtf
 )
 
 kwiver_add_library( track_xgtf

@@ -39,6 +39,7 @@ file_format_type
   case TF_CSV:            return "csv";
   case TF_KWIVER:         return "kwiver";
   case TF_KPF_GEOM:       return "kpf-geom";
+  case TF_KPF_ACT:       return "kpf-act";
   case TF_INVALID_TYPE:   return "invalid";
   }
   return "invalid";
@@ -63,6 +64,7 @@ file_format_type
   else if ( s == file_format_type::to_string( TF_CSV ))    return TF_CSV;
   else if ( s == file_format_type::to_string( TF_KWIVER ))  return TF_KWIVER;
   else if ( s == file_format_type::to_string( TF_KPF_GEOM ))    return TF_KPF_GEOM;
+  else if ( s == file_format_type::to_string( TF_KPF_ACT ))    return TF_KPF_ACT;
   else return TF_INVALID_TYPE;
 }
 

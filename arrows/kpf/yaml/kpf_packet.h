@@ -45,66 +45,13 @@
 #include <utility>
 #include <vector>
 
+#include <arrows/kpf/yaml/kpf_yaml_export.h>
+#include <arrows/kpf/yaml/kpf_packet_header.h>
 #include <arrows/kpf/yaml/kpf_canonical_types.h>
 
 namespace kwiver {
 namespace vital {
 namespace kpf {
-
-/**
- * @brief KPF packet styles.
- *
- */
-
-enum class KPF_YAML_EXPORT packet_style
-{
-  INVALID,  // invalid, uninitialized
-  META,     // an uninterpreted string (consumes all following tokens)
-  ID,       // a numeric identifier (detection, track, event ID)
-  TS,       // timestamp
-  TSR,      // timestamp range
-  LOC,      // location (2d / 3d)
-  GEOM,     // bounding box
-  POLY,     // polygon
-  CONF,     // a confidence value
-  ACT,      // an activity
-  EVAL,     // an evaluation result
-  ATTR,     // an attribute
-  TAG,      // a tag
-  KV        // a generic key/value pair
-};
-
-/**
- * @brief The KPF packet header.
- *
- * This is what combines the semantic type (the style) with the user-specified context
- * (the domain).
- *
- */
-
-struct KPF_YAML_EXPORT packet_header_t
-{
-  enum { NO_DOMAIN = -1 };
-
-  packet_style style;
-  int domain;
-  packet_header_t(): style( packet_style::INVALID ), domain( NO_DOMAIN ) {}
-  packet_header_t( packet_style s, int d ): style(s), domain(d) {}
-  explicit packet_header_t( packet_style s ): style(s), domain( NO_DOMAIN ) {}
-};
-
-/**
- * @brief Class for sorting packets based on their header.
- *
- * First check if styles are the same, then if domains are the same.
- *
- */
-
-class KPF_YAML_EXPORT packet_header_cmp
-{
-public:
-  bool operator()( const packet_header_t& lhs, const packet_header_t& rhs ) const;
-};
 
 /**
  * @brief The KPF packet.
@@ -123,27 +70,24 @@ struct KPF_YAML_EXPORT packet_t
     canonical::bbox_t bbox;
     canonical::kv_t kv;
     canonical::conf_t conf;
+    canonical::cset_t* cset;
     canonical::poly_t poly;
     canonical::meta_t meta;
+    canonical::eval_t eval;
     canonical::activity_t activity;
   };
   packet_t(): header( packet_header_t() ) {}
-  packet_t( const packet_header_t& h ): header(h) {}
+  packet_t( const packet_header_t& h );
   ~packet_t();
   packet_t( const packet_t& other );
   packet_t& operator=( const packet_t& other );
+
+  packet_t( packet_t&& other);
+  packet_t& operator=( packet_t&& other );
 };
 
-KPF_YAML_EXPORT std::ostream& operator<<( std::ostream& os, const packet_header_t& p );
 KPF_YAML_EXPORT std::ostream& operator<<( std::ostream& os, const packet_t& p );
 
-/**
- * @brief Utility functions to convert styles to strings and vice versa.
- *
- */
-
-KPF_YAML_EXPORT packet_style str2style( const std::string& s );
-KPF_YAML_EXPORT std::string style2str( packet_style );
 
 } // ...kpf
 } // ...vital

@@ -59,6 +59,11 @@ TRACK_ORACLE_EXPORT std::ostream&
 operator<<( std::ostream& os,
             const track_field< std::set< std::string> >& f );
 
+template< >
+TRACK_ORACLE_EXPORT std::ostream&
+operator<<( std::ostream& os,
+            const track_field< std::map< std::string, double > >& f );
+
 } // ...track_oracle
 } // ...kwiver
 

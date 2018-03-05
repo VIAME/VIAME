@@ -213,28 +213,51 @@ read_detections_from_stream( std::istream& is )
   // to copy it into the buffer before copying the buffer into the vector.
   //
 
-  while (reader
-         >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
-         >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
-         >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
-         >> KPF::reader< KPFC::kv_t>( "label", buffer.label )
-         >> KPF::reader< KPFC::conf_t>( buffer.confidence, DETECTOR_DOMAIN )
-         >> KPF::reader< KPFC::poly_t >( poly, KPFC::poly_t::IMAGE_COORDS )
-    )
+  //
+  // Here we explicitly check whether or not the parse succeeded.
+  // Note that once the reader has an issue, it's done; there's no
+  // speculative parsing or "move on to the next record."
+  //
+  bool keep_going = true;
+  while ( keep_going )
   {
-    box.get( buffer );
-    poly.get( buffer );
-    dets.push_back( buffer );
+    reader
+      >> KPF::reader< KPFC::bbox_t >( box, KPFC::bbox_t::IMAGE_COORDS )
+      >> KPF::reader< KPFC::id_t >( buffer.detection_id, KPFC::id_t::DETECTION_ID )
+      >> KPF::reader< KPFC::timestamp_t>( buffer.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
+      >> KPF::reader< KPFC::kv_t>( "label", buffer.label )
+      >> KPF::reader< KPFC::conf_t>( buffer.confidence, DETECTOR_DOMAIN )
+      >> KPF::reader< KPFC::poly_t >( poly, KPFC::poly_t::IMAGE_COORDS );
 
-    //
-    // Metadata packets can appear anywhere in the stream. The reader object
-    // buffers them up until it sees the next non-metadata record (or end-of-file.)
-    //
-
-    // did we receive any metadata?
-    for (auto m: reader.get_meta_packets())
+    bool line_parsed( reader );
+    if (line_parsed)
     {
-      std::cout << "Metadata: '" << m << "'\n";
+      box.get( buffer );
+      poly.get( buffer );
+      dets.push_back( buffer );
+
+      //
+      // Metadata packets can appear anywhere in the stream. The reader object
+      // buffers them up until it sees the next non-metadata record (or end-of-file.)
+      //
+
+      // did we receive any metadata?
+      for (auto m: reader.get_meta_packets())
+      {
+        std::cout << "Metadata: '" << m << "'\n";
+      }
+    }
+    else
+    {
+      if (parser.eof())
+      {
+        std::cout << "(EOF)\n";
+      }
+      else
+      {
+        std::cout << "(failed to parse line)\n";
+      }
+      keep_going = false;
     }
 
     reader.flush();
@@ -268,7 +291,7 @@ write_detections_to_stream( ostream& os,
     // Write out the actual detection.
     //
 
-    w
+    w.set_schema( KPF::schema_style::GEOM )
       << KPF::writer< KPFC::bbox_t >( box_adapter( det ), KPFC::bbox_t::IMAGE_COORDS )
       << KPF::writer< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
       << KPF::writer< KPFC::timestamp_t >( det.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
@@ -284,7 +307,7 @@ int main()
 
   vector< user_complex_detection_t > src_dets = make_sample_detections();
   std::cout << "\n";
-  for (auto i=0; i<src_dets.size(); ++i)
+  for (size_t i=0; i<src_dets.size(); ++i)
   {
     std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
   }
@@ -297,7 +320,7 @@ int main()
 
   std::cout << "\nAbout to read KPF:\n";
   vector< user_complex_detection_t> new_dets = read_detections_from_stream( ss );
-  for (auto i=0; i<new_dets.size(); ++i)
+  for (size_t i=0; i<new_dets.size(); ++i)
   {
     std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";
   }
