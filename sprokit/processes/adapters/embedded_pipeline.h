@@ -69,18 +69,18 @@ namespace kwiver {
  * When creating a data set for the input adapter, there must be a
  * datum for each port on the input_adapter_process. The process will
  * throw an exception if there is a datum for a port that is not
- * connected or there is a port that did not have a datum in the set.
+ * connected or there is a port that does not have a datum in the set.
  *
  * Example:
 \code
-  #include <sprokit/tools/literal_pipeline.h>
+  #include <sprokit/pipeline_util/literal_pipeline.h>
 
   // SPROKIT macros can be used to create pipeline description
   std::stringstream pipeline_desc;
   pipeline_desc << SPROKIT_PROCESS( "input_adapter",  "ia" )
                 << SPROKIT_PROCESS( "output_adapter", "oa" )
 
-                << SPROKIT_CONNECT( "ia", "port1",    "oa", "port1" )
+                << SPROKIT_CONNECT( "ia", "counter",  "oa", "out_num" )
                 << SPROKIT_CONNECT( "ia", "port2",    "oa", "port3" )
                 << SPROKIT_CONNECT( "ia", "port3",    "oa", "port2" )
     ;
@@ -107,12 +107,24 @@ namespace kwiver {
     // Create dataset for input
     auto ds = kwiver::adapter::adapter_data_set::create();
 
+    // Add value to be pushed to the named port
     ds.add_value( "counter", i );
+
+    // Data values need to be supplied to all connected ports
+    // (based on the previous pipeline definition)
+    ds.add_value( "port2", i );
+    ds.add_value( "port3", i );
     ep.send( ds ); // push into pipeline
 
     // Get output from pipeline
     auto rds = ep.receive();
-  }
+
+    // get value from the output adapter
+    int val = get_port_data<int>( "out_num" );
+
+    // val should be the same as i
+
+  } // end for
 
   ep.send_end_of_input(); // indicate end of input
 
@@ -332,6 +344,23 @@ protected:
    */
   virtual bool connect_output_adapter();
 
+  /**
+   * @brief Update pipeline config.
+   *
+   * This method provides the ability for a derived class to inspect
+   * and update the pipeline config before it is used to create the
+   * pipeline. Additional config entries can be added or existing ones
+   * modified to suit a specific application.
+   *
+   * The default implementation does not modify the config in any way.
+   *
+   * @param[in,out] config Configuration to update.
+   */
+  virtual void update_config( kwiver::vital::config_block_sptr config );
+
+  /**
+   * Reference to logger.
+   */
   kwiver::vital::logger_handle_t m_logger;
 
 private:

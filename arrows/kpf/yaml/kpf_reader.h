@@ -141,6 +141,9 @@ KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::conf_t >& r );
 
 KPF_YAML_EXPORT
+kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::cset_t >& r );
+
+KPF_YAML_EXPORT
 kpf_reader_t& operator>>( kpf_reader_t& t, const reader< canonical::meta_t >& r );
 
 KPF_YAML_EXPORT

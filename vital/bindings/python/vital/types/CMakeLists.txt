@@ -1,104 +1,182 @@
-#
-# Python support
-#
+project(vital_python_types)
 
-# Add python modules
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/bounding_box.py
-  vital/types
-  bounding_box )
+include_directories(${PYBIND11_INCLUDE_DIR})
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera.py
+kwiver_add_python_library(bounding_box
   vital/types
-  camera )
+  bounding_box.cxx)
+target_link_libraries(python-vital.types-bounding_box
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera_intrinsics.py
+kwiver_add_python_library(camera
   vital/types
-  camera_intrinsics )
+  camera.cxx)
+target_link_libraries(python-vital.types-camera
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/camera_map.py
+kwiver_add_python_library(camera_intrinsics
   vital/types
-  camera_map )
+  camera_intrinsics.cxx)
+target_link_libraries(python-vital.types-camera_intrinsics
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/color.py
+kwiver_add_python_library(camera_map
   vital/types
-  color )
+  camera_map.cxx)
+target_link_libraries(python-vital.types-camera_map
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/covariance.py
+kwiver_add_python_library(color
   vital/types
-  covariance )
+  color.cxx)
+target_link_libraries(python-vital.types-color
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor.py
+kwiver_add_python_library(covariance
   vital/types
-  descriptor )
+  covariance.cxx)
+target_link_libraries(python-vital.types-covariance
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/descriptor_set.py
+kwiver_add_python_library(descriptor
   vital/types
-  descriptor_set )
+  descriptor.cxx)
+target_link_libraries(python-vital.types-descriptor
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object.py
+kwiver_add_python_library(descriptor_set
   vital/types
-  detected_object )
+  descriptor_set.cxx)
+target_link_libraries(python-vital.types-descriptor_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_type.py
+kwiver_add_python_library(detected_object
   vital/types
-  detected_object_type )
+  detected_object.cxx)
+target_link_libraries(python-vital.types-detected_object
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/detected_object_set.py
+kwiver_add_python_library(detected_object_set
   vital/types
-  detected_object_set )
+  detected_object_set.cxx)
+target_link_libraries(python-vital.types-detected_object_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/eigen.py
+kwiver_add_python_library(detected_object_type
   vital/types
-  eigen )
+  detected_object_type.cxx)
+target_link_libraries(python-vital.types-detected_object_type
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/feature.py
+kwiver_add_python_library(eigen
   vital/types
-  feature )
+  eigen.cxx)
+target_link_libraries(python-vital.types-eigen
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/feature_track_set.py
+kwiver_add_python_library(feature
   vital/types
-  feature_track_set )
+  feature.cxx)
+target_link_libraries(python-vital.types-feature
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/homography.py
+kwiver_add_python_library(homography
   vital/types
-  homography )
+  homography.cxx)
+target_link_libraries(python-vital.types-homography
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image.py
+kwiver_add_python_library(image
   vital/types
-  image )
+  image.cxx)
+target_link_libraries(python-vital.types-image
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image_container.py
+kwiver_add_python_library(image_container
   vital/types
-  image_container )
+  image_container.cxx)
+target_link_libraries(python-vital.types-image_container
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/landmark.py
+kwiver_add_python_library(landmark
   vital/types
-  landmark )
+  landmark.cxx)
+target_link_libraries(python-vital.types-landmark
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/landmark_map.py
+kwiver_add_python_library(rotation
   vital/types
-  landmark_map )
+  rotation.cxx)
+target_link_libraries(python-vital.types-rotation
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/object_track_set.py
+kwiver_add_python_library(similarity
   vital/types
-  object_track_set )
+  similarity.cxx)
+target_link_libraries(python-vital.types-similarity
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/rotation.py
+kwiver_add_python_library(track
   vital/types
-  rotation )
+  track.cxx)
+target_link_libraries(python-vital.types-track
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/similarity.py
+kwiver_add_python_library(track_set
   vital/types
-  similarity )
+  track_set.cxx)
+target_link_libraries(python-vital.types-track_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track.py
+kwiver_add_python_library(object_track_set
   vital/types
-  track )
+  object_track_set.cxx)
+target_link_libraries(python-vital.types-object_track_set
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track_set.py
-  vital/types
-  track_set )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-  vital/types
-  __init__ )
+sprokit_create_python_init(vital/types
+  bounding_box
+  camera
+  camera_intrinsics
+  camera_map
+  color
+  covariance
+  descriptor
+  descriptor_set
+  detected_object_type
+  detected_object
+  detected_object_set
+  eigen
+  feature
+  homography
+  image
+  image_container
+  landmark
+  rotation
+  similarity
+  track
+  track_set
+  object_track_set
+)

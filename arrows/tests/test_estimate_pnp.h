@@ -39,6 +39,8 @@
 
 #include <Eigen/LU>
 
+static constexpr double pi = 3.14159265358979323846;
+
 using namespace kwiver::vital;
 using namespace kwiver::arrows;
 
@@ -91,7 +93,7 @@ TEST(estimate_pnp, ideal_points)
   std::cout << "Estimated C = " << est_cam->center() << std::endl;
 
   auto R_err = cam->rotation().inverse()*est_cam->rotation();
-  std::cout << "Rotation error = " << R_err.angle()*180.0 / M_PI << " degrees" << std::endl;
+  std::cout << "Rotation error = " << R_err.angle()*180.0 / pi << " degrees" << std::endl;
 
   EXPECT_LT(R_err.angle(), ideal_rotation_tolerance);
   EXPECT_MATRIX_SIMILAR(cam->center(), est_cam->center(), ideal_center_tolerance);
@@ -154,7 +156,7 @@ TEST(estimate_pnp, noisy_points)
   std::cout << "Estimated C = " << est_cam->center() << std::endl;
 
   auto R_err = cam->rotation().inverse()*est_cam->rotation();
-  std::cout << "Rotation error = " << R_err.angle()*180.0 / M_PI << " degrees" << std::endl;
+  std::cout << "Rotation error = " << R_err.angle()*180.0 / pi << " degrees" << std::endl;
 
   EXPECT_LT(R_err.angle(), noisy_rotation_tolerance);
   EXPECT_MATRIX_SIMILAR(cam->center(), est_cam->center(), noisy_center_tolerance);
@@ -225,7 +227,7 @@ TEST(estimate_pnp, outlier_points)
   std::cout << "Estimated C = " << est_cam->center() << std::endl;
 
   auto R_err = cam->rotation().inverse()*est_cam->rotation();
-  std::cout << "Rotation error = " << R_err.angle()*180.0 / M_PI << " degrees" << std::endl;
+  std::cout << "Rotation error = " << R_err.angle()*180.0 / pi << " degrees" << std::endl;
 
   EXPECT_LT(R_err.angle(), outlier_rotation_tolerance);
   EXPECT_MATRIX_SIMILAR(cam->center(), est_cam->center(), outlier_center_tolerance);

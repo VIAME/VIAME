@@ -44,13 +44,15 @@ class CptrWrapper (object):
         self.free = free_func
 
     def __del__(self):
-        if self.free:
-            self.free(self.cptr)
+        #TODO WRITE PROPER FREEING BINDINGS
+        pass
+        #if self.free:
+        #    self.free(self.cptr)
 
 
 class CArrayWrapper (numpy.ndarray):
 
-    def __new__(cls, cptr, size, ctype, free_func=None):
+    def __new__(cls, cptr, size, dtype, free_func=None):
         """
         Wrap the given C data pointer as a numpy array with an optional data
         free function to be called when we're not referenced any more.
@@ -61,8 +63,8 @@ class CArrayWrapper (numpy.ndarray):
         :param size: Size of the C data array
         :type size: int
 
-        :param ctype: C data type
-        :type ctype: _ctypes._SimpleCData
+        :param dtype: Numpy data type
+        :type dtype: numpy.dtype
 
         :param free_func: Optional function used to free the C data pointer when
             out of references. This function should take a single argument that
@@ -70,8 +72,7 @@ class CArrayWrapper (numpy.ndarray):
         :type free_func: (_ctypes._Pointer) -> None
 
         """
-        dtype = numpy.dtype(ctype)
-        b = numpy.ctypeslib.as_array(cptr, (size,))
+        b = numpy.asarray(cptr, dtype)
         obj = numpy.ndarray.__new__(cls, (size,), dtype, b)
         obj._cptr_container = CptrWrapper(cptr, free_func)
         return obj

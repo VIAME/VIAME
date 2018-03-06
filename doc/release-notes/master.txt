@@ -117,6 +117,11 @@ Vital
    moved into vital/io, and the KLV conversion functions have moved into
    vital/klv.
 
+ * Refactor timestamp types for time and frame number. Standardized on
+   the base kwiver::vital types for frame_id and time. Renamed time_t
+   to time_us_t to provide some distance from std::time_t and make the
+   units apparent.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring

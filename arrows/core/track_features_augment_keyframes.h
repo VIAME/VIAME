@@ -59,6 +59,13 @@ class KWIVER_ALGO_CORE_EXPORT track_features_augment_keyframes
   : public vital::algo::track_features
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "augment_keyframes";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "If the current frame is a keyframe, detect and describe "
+    "additional features and create new tracks on this frame.";
 
   /// Default constructor
   track_features_augment_keyframes();

@@ -34,7 +34,6 @@ vital::descriptor interface tests
 
 """
 from __future__ import print_function
-import ctypes
 import random
 import unittest
 
@@ -42,7 +41,6 @@ import nose.tools
 from six.moves import range
 import numpy
 
-from vital.exceptions.base import VitalDynamicCastException
 from vital.types import Descriptor
 
 
@@ -53,13 +51,13 @@ class TestDescriptor (unittest.TestCase):
         random.seed(0)
         for i in range(100):
             n = random.randint(1, 4096)
-            Descriptor(n, ctypes.c_double)
-            Descriptor(n, ctypes.c_float)
+            Descriptor(n, 'd')
+            Descriptor(n, 'f')
 
     def test_new_invalid_size(self):
         # Check that we need to pass an integer size.
         nose.tools.assert_raises(
-            ctypes.ArgumentError,
+            TypeError,
             Descriptor, 42.3
         )
 
@@ -78,12 +76,12 @@ class TestDescriptor (unittest.TestCase):
             print(n, end=' ')
 
             nose.tools.assert_equal(
-                Descriptor(n, ctypes.c_double).nbytes,
-                ctypes.sizeof(ctypes.c_double) * n
+                Descriptor(n, 'd').nbytes,
+                8 * n
             )
             nose.tools.assert_equal(
-                Descriptor(n, ctypes.c_float).nbytes,
-                ctypes.sizeof(ctypes.c_float) * n
+                Descriptor(n, 'f').nbytes,
+                4 * n
             )
 
     def test_raw_data(self):
@@ -94,12 +92,7 @@ class TestDescriptor (unittest.TestCase):
         # Check that slicing the array data yields an array with the same
         # values.
         d2 = d[:]
-        numpy.testing.assert_almost_equal(d, d2)
-
-        # Check that modifying the sliced array shared the same data as the
-        # parent descriptor.
-        d2[:] = 2
-        numpy.testing.assert_almost_equal(d, d2)
+        numpy.testing.assert_equal(d.todoublearray(), d2)
 
     def test_tobytearray(self):
         # Expect 0-valued descriptor to have 0-valued byte array of the
@@ -107,5 +100,5 @@ class TestDescriptor (unittest.TestCase):
         d = Descriptor(64)
         d[:] = 0
         b = d.tobytearray()
-        nose.tools.assert_equal(b.size, d.nbytes)
-        nose.tools.assert_equal(b.sum(), 0)
+        nose.tools.assert_equal(len(b), d.nbytes)
+        nose.tools.assert_equal(sum(b), 0)

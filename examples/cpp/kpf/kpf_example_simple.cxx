@@ -171,9 +171,11 @@ write_detections_to_stream( ostream& os,
   // each detection becomes a KPF record; its contents become packets.
   //
 
+  // Here, we explicitly leave the schema unspecified.
+
   for (const auto& det: dets )
   {
-    w
+    w.set_schema( KPF::schema_style::UNSPECIFIED )
       << KPF::writer< KPFC::id_t >( det.detection_id, KPFC::id_t::DETECTION_ID )
       << KPF::writer< KPFC::timestamp_t >( det.frame_number, KPFC::timestamp_t::FRAME_NUMBER )
       << KPF::writer< KPFC::conf_t>( det.confidence, DETECTOR_DOMAIN )
@@ -186,7 +188,7 @@ int main()
 
   vector< user_simple_detection_t > src_dets = make_sample_detections();
   std::cout << "\n";
-  for (auto i=0; i<src_dets.size(); ++i)
+  for (size_t i=0; i<src_dets.size(); ++i)
   {
     std::cout << "Source det " << i << ": " << src_dets[i] << "\n";
   }
@@ -199,7 +201,7 @@ int main()
 
   std::cout << "\nAbout to read KPF:\n";
   vector< user_simple_detection_t> new_dets = read_detections_from_stream( ss );
-  for (auto i=0; i<new_dets.size(); ++i)
+  for (size_t i=0; i<new_dets.size(); ++i)
   {
     std::cout << "Converted det " << i << ": " << new_dets[i] << "\n";
   }

@@ -10,6 +10,15 @@ target_link_libraries( kpf_example_simple
   ${YAML_CPP_LIBRARIES}
 )
 
+add_executable( kpf_example_simple_classifier kpf_example_simple_classifier.cxx )
+target_include_directories( kpf_example_simple_classifier PRIVATE ${YAML_CPP_INCLUDE_DIR})
+target_link_libraries( kpf_example_simple_classifier
+  kwiver_algo_kpf
+  kpf_yaml
+  ${YAML_CPP_LIBRARIES}
+)
+
+
 add_executable( kpf_example_complex kpf_example_complex.cxx )
 target_include_directories( kpf_example_complex PRIVATE ${YAML_CPP_INCLUDE_DIR})
 target_link_libraries( kpf_example_complex
@@ -21,6 +30,14 @@ target_link_libraries( kpf_example_complex
 add_executable( kpf_example_activity kpf_example_activity.cxx )
 target_include_directories( kpf_example_activity PRIVATE ${YAML_CPP_INCLUDE_DIR})
 target_link_libraries( kpf_example_activity
+  kwiver_algo_kpf
+  kpf_yaml
+  ${YAML_CPP_LIBRARIES}
+)
+
+add_executable( kpf_generic_reader kpf_generic_reader.cxx )
+target_include_directories( kpf_generic_reader PRIVATE ${YAML_CPP_INCLUDE_DIR})
+target_link_libraries( kpf_generic_reader
   kwiver_algo_kpf
   kpf_yaml
   ${YAML_CPP_LIBRARIES}

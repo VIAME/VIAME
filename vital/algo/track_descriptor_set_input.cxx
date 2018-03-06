@@ -91,7 +91,7 @@ track_descriptor_set_input
   std::istream* file( new std::ifstream( filename ) );
   if ( ! file )
   {
-    kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
   m_stream = file;

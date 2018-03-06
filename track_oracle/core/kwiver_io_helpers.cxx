@@ -191,7 +191,7 @@ kwiver_ts_string_read( const string& frame_str,
       return false;
     }
   }
-  t.set_time_usec( static_cast< vital::timestamp::time_t >( ts * 1.0e6) );
+  t.set_time_usec( static_cast< vital::time_us_t >( ts * 1.0e6) );
   return true;
 }
 
@@ -211,6 +211,36 @@ ostream& kwiver_write( ostream& os, const vital::timestamp& ts )
 {
   pair< string, string > ts_strings = kwiver_ts_to_strings( ts );
   os << ts_strings.first << ":" << ts_strings.second;
+  return os;
+}
+
+bool kwiver_read( const std::string& s, kpf_cset_type& cset )
+{
+  return false;
+}
+
+ostream& kwiver_write( std::ostream& os, const kpf_cset_type& cset )
+{
+  return os;
+}
+
+bool kwiver_read( const std::string& s, kpf_cset_sys_type& cset )
+{
+  return false;
+}
+
+ostream& kwiver_write( std::ostream& os, const kpf_cset_sys_type& cset )
+{
+  return os;
+}
+
+bool kwiver_read( const std::string& s, kpf_cset_s2i_type& cset )
+{
+  return false;
+}
+
+ostream& kwiver_write( std::ostream& os, const kpf_cset_s2i_type& cset )
+{
   return os;
 }
 

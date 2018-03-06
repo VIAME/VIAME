@@ -13,12 +13,12 @@ set( track_kwiver_sources
 
 kwiver_install_headers(
   ${track_kwiver_public_headers}
-  SUBDIR        track_oracle/track_kwiver
+  SUBDIR        track_oracle/file_formats/track_kwiver
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_kwiver_export.h
-  NOPATH SUBDIR        track_oracle/track_kwiver
+  NOPATH SUBDIR        track_oracle/file_formats/track_kwiver
 )
 
 kwiver_add_library( track_kwiver

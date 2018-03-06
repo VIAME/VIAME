@@ -38,8 +38,11 @@
 
 #include <arrows/kpf/yaml/kpf_yaml_export.h>
 
+#include <arrows/kpf/yaml/kpf_packet_header.h>
+
 #include <string>
 #include <vector>
+#include <map>
 
 namespace kwiver {
 namespace vital {
@@ -48,10 +51,25 @@ namespace kpf {
 namespace canonical
 {
 
+//
+// separate the *types* from the *domains*
+//
+
+template< typename T >
+struct scoped
+{
+  T t;
+  int domain;
+  scoped(): t( T() ), domain( packet_header_t::NO_DOMAIN ) {}
+  explicit scoped( const T& t_in ): t(t_in), domain( packet_header_t::NO_DOMAIN ) {}
+  scoped( const T& t_in, int domain_in ): t(t_in), domain(domain_in) {}
+};
+
 struct KPF_YAML_EXPORT bbox_t
 {
   enum {IMAGE_COORDS = 0};
   double x1, y1, x2, y2;
+  bbox_t(): x1(0), y1(0), x2(0), y2(0) {}
   bbox_t( double a, double b, double c, double d): x1(a), y1(b), x2(c), y2(d) {}
 };
 
@@ -67,6 +85,7 @@ struct KPF_YAML_EXPORT timestamp_t
 {
   enum {FRAME_NUMBER=0 };
   double d;
+  timestamp_t(): d(0.0) {}
   explicit timestamp_t( double ts ): d(ts) {}
 };
 
@@ -80,18 +99,29 @@ struct KPF_YAML_EXPORT timestamp_range_t
 struct KPF_YAML_EXPORT kv_t
 {
   std::string key, val;
-  kv_t( const std::string& k, const std::string& v ): key(k), val(v) {}
+  kv_t(): key(""), val("") {}
+  kv_t( const std::string& k, const std::string& v );
 };
 
 struct KPF_YAML_EXPORT conf_t
 {
   double d;
+  conf_t(): d(0.0) {}
   explicit conf_t( double conf ): d(conf) {}
+};
+
+struct KPF_YAML_EXPORT cset_t
+{
+  std::map< std::string, double > d;
+  cset_t() {}
+  cset_t( const std::map< std::string, double >& in_d ): d( in_d ) {}
+  cset_t( const cset_t& other ): d( other.d ) {}
 };
 
 struct KPF_YAML_EXPORT eval_t
 {
   double d;
+  eval_t(): d(0.0) {}
   explicit eval_t( double score ): d(score) {}
 };
 
@@ -107,28 +137,28 @@ struct KPF_YAML_EXPORT meta_t
 {
   std::string txt;
   meta_t( const std::string& t ): txt(t) {}
-  meta_t() {}
+  meta_t():txt("uninitialized-meta") {}
 };
 
 struct KPF_YAML_EXPORT activity_t
 {
-  struct scoped_tsr_t
-  {
-    int domain;
-    timestamp_range_t tsr;
-  };
   struct actor_t
   {
-    int id_domain;
-    id_t id;
-    std::vector< scoped_tsr_t > actor_timespan;
+    scoped< id_t > actor_id;
+    std::vector< scoped< timestamp_range_t > > actor_timespan;
   };
-  std::string activity_name;
-  id_t activity_id;
-  int activity_id_domain;
-  std::vector< scoped_tsr_t > timespan;
+
+  cset_t activity_labels;
+  scoped< id_t > activity_id;
+  std::vector< scoped< timestamp_range_t > > timespan;
   std::vector< actor_t > actors;
   std::vector< kv_t > attributes;
+  std::vector< scoped< eval_t > > evals;
+
+  activity_t():
+    activity_id( id_t(), -1 )
+    {}
+
 };
 
 } // ...canonical

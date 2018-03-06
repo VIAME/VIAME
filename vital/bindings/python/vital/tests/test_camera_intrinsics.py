@@ -54,16 +54,14 @@ class TestVitalCameraIntrinsics (unittest.TestCase):
         ntools.assert_equal(CameraIntrinsics().focal_length, 1.)
         ntools.assert_equal(CameraIntrinsics(5.2).focal_length, 5.2)
 
-    def test_get_principle_point(self):
+    def test_get_principal_point(self):
         numpy.testing.assert_array_equal(
-            CameraIntrinsics().principle_point,
-            [[0],
-             [0]]
+            CameraIntrinsics().principal_point,
+            [0, 0]
         )
         numpy.testing.assert_array_equal(
-            CameraIntrinsics(principle_point=(10, 2.3)).principle_point,
-            [[10],
-             [2.3]]
+            CameraIntrinsics(principal_point=(10, 2.3)).principal_point,
+            [10, 2.3]
         )
 
     def test_get_aspect_ratio(self):
@@ -89,14 +87,11 @@ class TestVitalCameraIntrinsics (unittest.TestCase):
     def test_get_dist_coeffs(self):
         numpy.testing.assert_array_equal(
             CameraIntrinsics().dist_coeffs,
-            numpy.zeros((0, 1))
+            numpy.zeros((1,))
         )
         numpy.testing.assert_array_equal(
             CameraIntrinsics(dist_coeffs=(10, 4, 32, 1.1)).dist_coeffs,
-            [[10],
-             [4],
-             [32],
-             [1.1]]
+            [10, 4, 32, 1.1]
         )
 
     def test_as_matrix(self):

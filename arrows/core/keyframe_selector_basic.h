@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017 by Kitware, Inc.
+* Copyright 2017-2018 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,13 @@ namespace core {
     vital::algo::keyframe_selection>
   {
   public:
+    /// Name of the algorithm
+    static constexpr char const* name = "basic";
+
+    /// Description of the algorithm
+    static constexpr char const* description =
+      "A simple implementation of keyframe selection based on statistics"
+      " of KLT tracks";
 
     /// Default Constructor
     keyframe_selector_basic();

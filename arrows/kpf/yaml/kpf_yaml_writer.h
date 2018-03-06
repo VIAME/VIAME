@@ -41,6 +41,7 @@
 #include <iostream>
 #include <arrows/kpf/yaml/kpf_canonical_types.h>
 #include <arrows/kpf/yaml/kpf_canonical_io.h>
+#include <arrows/kpf/yaml/kpf_yaml_schemas.h>
 
 namespace kwiver {
 namespace vital {
@@ -52,13 +53,15 @@ struct KPF_YAML_EXPORT private_endl_t
 class KPF_YAML_EXPORT record_yaml_writer
 {
 public:
-  explicit record_yaml_writer( std::ostream& os ) : s( os ), line_started(false) {}
+  explicit record_yaml_writer( std::ostream& os ) : s( os ), line_started(false), schema( schema_style::UNSPECIFIED ), has_meta( false ) {}
 
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::id_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::bbox_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::timestamp_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::kv_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::conf_t >& io );
+  friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::cset_t >& io );
+  friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::cset_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::eval_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::poly_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::meta_t >& io );
@@ -68,10 +71,15 @@ public:
 
   static private_endl_t endl;
 
+  record_yaml_writer& set_schema( schema_style s );
+
 private:
-  void ensure_start();
+  void reset();
   std::ostream& s;
+  std::ostringstream oss;
   bool line_started;
+  schema_style schema;
+  bool has_meta;
 };
 
 KPF_YAML_EXPORT

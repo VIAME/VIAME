@@ -30,8 +30,6 @@
 
 #include "detected_object_set_output_kpf.h"
 
-#include <vital/util/tokenize.h>
-
 #include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
 #include <arrows/kpf/yaml/kpf_yaml_writer.h>
 
@@ -88,7 +86,7 @@ detected_object_set_output_kpf()
 detected_object_set_output_kpf::
 ~detected_object_set_output_kpf()
 {
-  
+
 }
 
 
@@ -148,7 +146,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     w
       << KPF::writer< KPFC::meta_t >(oss.str())
       << KPF::record_yaml_writer::endl;
-    w
+    w.set_schema( KPF::schema_style::GEOM )
       << KPF::writer< KPFC::kv_t >("detector_name", (*det)->detector_name())
       << KPF::writer< KPFC::id_t >(id, KPFC::id_t::DETECTION_ID)
       << KPF::writer< KPFC::timestamp_t >(d->m_frame_number - 1, KPFC::timestamp_t::FRAME_NUMBER)

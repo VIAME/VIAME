@@ -35,7 +35,6 @@
 #include <sprokit/pipeline/stamp.h>
 
 #include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python_gil.h>
 
 #include <pybind11/pybind11.h>
 
@@ -126,6 +125,9 @@ class wrap_edge_datum : public sprokit::edge_datum_t
 {
   public:
     wrap_edge_datum() : sprokit::edge_datum_t() {}
+    wrap_edge_datum(sprokit::edge_datum_t dat)
+               : sprokit::edge_datum_t(dat)
+               {}
     wrap_edge_datum(sprokit::datum dat, wrap_stamp st)
                : sprokit::edge_datum_t(
                  std::make_shared<sprokit::datum>(dat), st.get_stamp())

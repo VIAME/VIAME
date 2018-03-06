@@ -769,7 +769,7 @@ process
     return i->second;
   }
 
-  throw no_such_port_exception(d->name, port);
+  throw no_such_port_exception(d->name, port, input_ports());
 }
 
 
@@ -785,7 +785,7 @@ process
     return i->second;
   }
 
-  throw no_such_port_exception(d->name, port);
+  throw no_such_port_exception(d->name, port, output_ports());
 }
 
 
