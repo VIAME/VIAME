@@ -53,7 +53,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           unsigned int ref_frame,
                           unsigned int S,
                           vil_image_view<double> &cost_volume,
-                          const std::vector<vil_image_view<bool> > &masks = std::vector<vil_image_view<bool> >());
+                          const std::vector<vil_image_view<bool> > &masks =
+                            std::vector<vil_image_view<bool> >());
 
 //Compute gradient weights
 void compute_g(const vil_image_view<double> &ref_img,

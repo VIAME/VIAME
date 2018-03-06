@@ -61,7 +61,8 @@ public:
   virtual std::vector<vnl_double_3> get_slice(double depth_slice) const = 0;
 
   virtual std::vector<vpgl_perspective_camera<double> >
-          warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const;
+          warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras,
+                    int ref_frame) const;
 
   /// warps image \in to the world volume at depth_slice,
   /// uses ni and nj as out's dimensions
@@ -71,8 +72,11 @@ public:
                            const vpgl_perspective_camera<double> &cam,
                            double depth_slice, int f, PixT fill);
 
-  virtual vnl_double_3 point_at_depth(unsigned int i, unsigned int j, double depth) const = 0;
-  virtual vnl_double_3 point_at_depth_on_axis(double i, double j, double depth) const = 0;
+  virtual vnl_double_3
+  point_at_depth(unsigned int i, unsigned int j, double depth) const = 0;
+
+  virtual vnl_double_3
+  point_at_depth_on_axis(double i, double j, double depth) const = 0;
 
   unsigned int ni() const { return ni_; }
   unsigned int nj() const { return nj_; }

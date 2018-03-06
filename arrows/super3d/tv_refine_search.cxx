@@ -228,7 +228,9 @@ min_search_bound(vil_image_view<double> &a,
         a(i, j) = d(i, j);
         continue;
       }
-      const int r = std::min(last_plane, std::max(0, static_cast<int>(S * range_coeff * sqrt_range)));
+      const int r = std::min(last_plane,
+                             std::max(0, static_cast<int>(S * range_coeff
+                                                            * sqrt_range)));
       const double dij = d(i, j) * S - 0.5;
       const int init_k = std::min(last_plane, std::max(0, static_cast<int>(dij)));
 

@@ -30,7 +30,7 @@
 
 /**
 * \file
-* \brief Source file for compute_depth, driver for depth estimation from an image sequence
+* \brief Source file for compute_depth, driver for depth from an image sequence
 */
 
 #include <arrows/super3d/compute_depth.h>
@@ -122,14 +122,22 @@ compute_depth::get_configuration() const
 {
   // get base config from base class
   vital::config_block_sptr config = vital::algo::compute_depth::get_configuration();
-  config->set_value("iterations", d_->iterations, "Number of iterations to run optimizer");
-  config->set_value("theta0", d_->theta0, "Begin value of quadratic relaxation term");
-  config->set_value("theta_end", d_->theta_end, "End value of quadratic relaxation term");
-  config->set_value("lambda", d_->lambda, "Weight of the data term");
-  config->set_value("gw_alpha", d_->gw_alpha, "gradient weighting term");
-  config->set_value("epsilon", d_->epsilon, "Huber norm term, trade off between L1 and L2 norms");
-  config->set_value("world_plane_normal", "0 0 1", "up direction in world space");
-  config->set_value("callback_interval", d_->callback_interval, "number of iterations between updates (-1 turns off updates)");
+  config->set_value("iterations", d_->iterations,
+                    "Number of iterations to run optimizer");
+  config->set_value("theta0", d_->theta0,
+                    "Begin value of quadratic relaxation term");
+  config->set_value("theta_end", d_->theta_end,
+                    "End value of quadratic relaxation term");
+  config->set_value("lambda", d_->lambda,
+                    "Weight of the data term");
+  config->set_value("gw_alpha", d_->gw_alpha,
+                    "gradient weighting term");
+  config->set_value("epsilon", d_->epsilon,
+                    "Huber norm term, trade off between L1 and L2 norms");
+  config->set_value("world_plane_normal", "0 0 1",
+                    "up direction in world space");
+  config->set_value("callback_interval", d_->callback_interval,
+                    "number of iterations between updates (-1 turns off updates)");
   return config;
 }
 
@@ -139,8 +147,9 @@ compute_depth::get_configuration() const
 void
 compute_depth::set_configuration(vital::config_block_sptr in_config)
 {
-  // Starting with our generated vital::config_block to ensure that assumed values are present
-  // An alternative is to check for key presence before performing a get_value() call.
+  // Starting with our generated vital::config_block to ensure that
+  // assumed values are present. An alternative is to check for key
+  // presence before performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
@@ -150,9 +159,11 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
   d_->lambda = config->get_value<double>("lambda", d_->lambda);
   d_->gw_alpha = config->get_value<double>("gw_alpha", d_->gw_alpha);
   d_->epsilon = config->get_value<double>("epsilon", d_->epsilon);
-  d_->callback_interval = config->get_value<double>("callback_interval", d_->callback_interval);
+  d_->callback_interval = config->get_value<double>("callback_interval",
+                                                    d_->callback_interval);
 
-  std::istringstream ss(config->get_value<std::string>("world_plane_normal", "0 0 1"));
+  std::istringstream ss(config->get_value<std::string>("world_plane_normal",
+                                                       "0 0 1"));
   ss >> d_->world_plane_normal;
   d_->world_plane_normal.normalize();
 }
@@ -178,7 +189,8 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
   for (unsigned int i = 0; i < frames.size(); i++) {
-    vil_image_view<vxl_byte> img = vxl::image_container::vital_to_vxl(frames_in[i]->get_image());
+    vil_image_view<vxl_byte> img =
+      vxl::image_container::vital_to_vxl(frames_in[i]->get_image());
     vil_convert_planes_to_grey(img, frames[i]);
     vil_math_scale_values(frames[i], 1.0 / 255.0);
   }
@@ -213,13 +225,17 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
 
   std::vector<vnl_double_3> visible_landmarks =
     filter_visible_landmarks(d_->ref_cam, 0, ni, 0, nj, landmarks);
-  compute_offset_range(visible_landmarks, d_->world_plane_normal, d_->depth_min, d_->depth_max, 0.1, 0.5);
-  world_space *ws = new world_angled_frustum(d_->ref_cam, d_->world_plane_normal, d_->depth_min, d_->depth_max, ni, nj);
+  compute_offset_range(visible_landmarks, d_->world_plane_normal,
+                       d_->depth_min, d_->depth_max, 0.1, 0.5);
+  world_space *ws =
+    new world_angled_frustum(d_->ref_cam, d_->world_plane_normal,
+                             d_->depth_min, d_->depth_max, ni, nj);
 
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
 
-  compute_world_cost_volume(frames, cameras, ws, ref_frame, d_->S, cost_volume, masks);
+  compute_world_cost_volume(frames, cameras, ws, ref_frame,
+                            d_->S, cost_volume, masks);
   compute_g(frames[ref_frame], g, d_->gw_alpha, 1.0, ref_mask);
 
   std::cout << "Refining Depth. ..\n";
@@ -227,14 +243,18 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
 
   if (d_->callback_interval <= 0)
   {
-    refine_depth(cost_volume, g, height_map, d_->iterations, d_->theta0, d_->theta_end, d_->lambda, d_->epsilon);
+    refine_depth(cost_volume, g, height_map, d_->iterations,
+                 d_->theta0, d_->theta_end, d_->lambda, d_->epsilon);
   }
   else if (d_->callback)
   {
     std::function<bool (depth_refinement_monitor::update_data)> f;
-    f = std::bind1st(std::mem_fun(&compute_depth::priv::iterative_update_callback), this->d_.get());
-    depth_refinement_monitor *drm = new depth_refinement_monitor(f, d_->callback_interval);
-    refine_depth(cost_volume, g, height_map, d_->iterations, d_->theta0, d_->theta_end, d_->lambda, d_->epsilon, drm);
+    f = std::bind1st(std::mem_fun(&compute_depth::priv::iterative_update_callback),
+                     this->d_.get());
+    depth_refinement_monitor *drm =
+      new depth_refinement_monitor(f, d_->callback_interval);
+    refine_depth(cost_volume, g, height_map, d_->iterations,
+                 d_->theta0, d_->theta_end, d_->lambda, d_->epsilon, drm);
     delete drm;
   }
 
@@ -261,15 +281,20 @@ void compute_depth::set_callback(callback_t cb)
 //*****************************************************************************
 
 //Bridge from super3d monitor to vital image
-bool compute_depth::priv::iterative_update_callback(depth_refinement_monitor::update_data data)
+bool
+compute_depth::priv
+::iterative_update_callback(depth_refinement_monitor::update_data data)
 {
   if (this->callback)
   {
     double depth_scale = this->depth_max - this->depth_min;
-    vil_math_scale_and_offset_values(data.current_result, depth_scale, this->depth_min);
+    vil_math_scale_and_offset_values(data.current_result,
+                                     depth_scale, this->depth_min);
     vil_image_view<double> depth;
     height_map_to_depth_map(this->ref_cam, data.current_result, depth);
-    image_container_sptr result = std::make_shared<vxl::image_container>(vxl::image_container::vxl_to_vital(depth));
+    image_container_sptr result =
+      std::make_shared<vxl::image_container>(
+        vxl::image_container::vxl_to_vital(depth));
     return this->callback(result, data.num_iterations);
   }
   return true;

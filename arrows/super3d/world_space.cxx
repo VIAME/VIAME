@@ -50,14 +50,16 @@ namespace super3d {
 world_space::world_space(unsigned int pixel_width, unsigned int pixel_height)
   : ni_(pixel_width), nj_(pixel_height)
 {
-  wip.set_fill_unmapped(true);  
+  wip.set_fill_unmapped(true);
   wip.set_interpolator(kwiver::arrows::super3d::warp_image_parameters::LINEAR);
 }
 
 //*****************************************************************************
 
 std::vector<vpgl_perspective_camera<double> >
-world_space::warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras, int ref_frame) const
+world_space
+::warp_cams(const std::vector<vpgl_perspective_camera<double> > &cameras,
+            int ref_frame) const
 {
   return cameras;
 }

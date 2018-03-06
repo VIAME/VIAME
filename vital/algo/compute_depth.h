@@ -74,7 +74,8 @@ public:
           const std::vector<camera_sptr> &cameras,
           const std::vector<landmark_sptr> &landmarks,
           unsigned int reference_frame,
-          const std::vector<image_container_sptr> &masks = std::vector<image_container_sptr>()) const = 0;
+          const std::vector<image_container_sptr> &masks =
+            std::vector<image_container_sptr>()) const = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<bool (kwiver::vital::image_container_sptr,

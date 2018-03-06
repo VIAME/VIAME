@@ -48,7 +48,8 @@ namespace
 {
 
 template <typename T>
-bool fuzzy_cmp(T const& a, T const& b, T const& epsilon = std::numeric_limits<T>::epsilon())
+bool fuzzy_cmp(T const& a, T const& b,
+               T const& epsilon = std::numeric_limits<T>::epsilon())
 {
   T const diff = std::fabs(a - b);
   return (diff <= epsilon);
@@ -203,7 +204,8 @@ warp_image( vil_image_view<T> const& src,
 
   // Calculate intersection with destination pixels we are looking to fill
   box_type dest_boundaries( 0, dni - 1, 0, dnj - 1 );
-  box_type intersection = vgl_intersection( src_on_dest_bounding_box, dest_boundaries );
+  box_type intersection = vgl_intersection( src_on_dest_bounding_box,
+                                            dest_boundaries );
 
   // Fill in unmapped mask and destination with default values. Maybe
   // implement a couple of loops to fill only the "boundary" regions with
@@ -231,7 +233,9 @@ warp_image( vil_image_view<T> const& src,
   // condition should only occur if we exceed the image bounds given the
   // above computation (ie one image maps to a region completely outside
   // the other, or there is less than a 1 pixel overlap)
-  if( intersection.width() == 0 && intersection.height() == 0 && !point_intercept)
+  if( intersection.width() == 0 &&
+      intersection.height() == 0 &&
+      !point_intercept)
   {
     return false;
   }
@@ -248,9 +252,11 @@ warp_image( vil_image_view<T> const& src,
   // to performance in many, but not all, instances.
 
   // Bounds, precomputed for efficiency based on the interpolation function
-  // (we perform multiple checks against these values later in order to determine spec cases)
+  // (we perform multiple checks against these values later in order to
+  // determine spec cases)
   int src_ni_low_bound, src_nj_low_bound, src_ni_up_bound, src_nj_up_bound;
-  typedef T (*interpolator_func)(double, double, const T*, int, int, std::ptrdiff_t, std::ptrdiff_t);
+  typedef T (*interpolator_func)(double, double, const T*, int, int,
+                                 std::ptrdiff_t, std::ptrdiff_t);
   interpolator_func interp;
   switch (param.interpolator_)
   {
@@ -276,7 +282,8 @@ warp_image( vil_image_view<T> const& src,
     interp = &bicubic_interp_wrapper;
     break;
   default:
-    std::cerr << "warp_image: Unrecognized interpolator: " << param.interpolator_ << std::endl;
+    std::cerr << "warp_image: Unrecognized interpolator: "
+              << param.interpolator_ << std::endl;
     return false;
   }
 
@@ -336,7 +343,8 @@ warp_image( vil_image_view<T> const& src,
     vnl_double_3* col_factor_ptr = &col_factors[0];
 
     // Iterate through each column in the BB
-    for( int i = start_i_adj; i < end_i_adj; i++, col_factor_ptr++, dest_col_ptr += dest_i_step )
+    for( int i = start_i_adj; i < end_i_adj;
+         i++, col_factor_ptr++, dest_col_ptr += dest_i_step )
     {
 
       // Compute homography mapping for this point (dest->src)
@@ -351,15 +359,20 @@ warp_image( vil_image_view<T> const& src,
       y /= w;
 
       // Check if we can perform interp at this point
-      if( !(x < src_ni_low_bound || y < src_nj_low_bound || x > src_ni_up_bound || y > src_nj_up_bound) )
+      if( !(x < src_ni_low_bound ||
+            y < src_nj_low_bound ||
+            x > src_ni_up_bound ||
+            y > src_nj_up_bound) )
       {
 
         // For each channel interpolate from src
         const T* src_plane = src_start;
         T* dest_pixel_ptr = dest_col_ptr;
-        for( ; src_plane < src_p_end; src_plane += src_p_step, dest_pixel_ptr += dest_p_step)
+        for( ; src_plane < src_p_end;
+            src_plane += src_p_step, dest_pixel_ptr += dest_p_step)
         {
-          *dest_pixel_ptr = (*interp)( x, y, src_plane, sni, snj, src_i_step, src_j_step );
+          *dest_pixel_ptr = (*interp)( x, y, src_plane, sni, snj,
+                                       src_i_step, src_j_step );
         }
 
         // If using an optional mask, mark corresp. value

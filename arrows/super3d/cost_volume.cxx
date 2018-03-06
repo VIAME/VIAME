@@ -30,7 +30,7 @@
 
  /**
  * \file
- * \brief Source file for cost_volume, computes costs of depth at discrete places in the world space
+ * \brief Source file for cost_volume, computes costs in the world space
  */
 #include "cost_volume.h"
 
@@ -70,7 +70,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 
   double s_step = 1.0/static_cast<double>(S);
 
-  std::cout << "Computing cost volume of size (" << cost_volume.ni() << ", " << cost_volume.nj() << ", " << cost_volume.nplanes() << ").\n";
+  std::cout << "Computing cost volume of size (" << cost_volume.ni() << ", "
+            << cost_volume.nj() << ", " << cost_volume.nplanes() << ").\n";
 
   int ni = ws->ni(), nj = ws->nj();
   vil_image_view<double> warp_ref(ni, nj, 1), warp(ni, nj, 1);
@@ -84,9 +85,15 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
     std::cout << k << " " << std::flush;
     double s = (k + 0.5) * s_step;
 
-    //Warp ref image to world volume (does nothing if world space is aligned with ref camera)
-    ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame], s, ref_frame, -1.0);
-    if (!masks.empty()) ws->warp_image_to_depth(masks[ref_frame], warp_ref_mask, warp_cams[ref_frame], s, ref_frame, false);
+    // Warp ref image to world volume
+    // (does nothing if world space is aligned with ref camera)
+    ws->warp_image_to_depth(ref, warp_ref, warp_cams[ref_frame],
+                            s, ref_frame, -1.0);
+    if (!masks.empty())
+    {
+      ws->warp_image_to_depth(masks[ref_frame], warp_ref_mask,
+                              warp_cams[ref_frame], s, ref_frame, false);
+    }
 
     counts.fill(0);
 
@@ -98,13 +105,17 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 
       //Warp frame to world volume
       ws->warp_image_to_depth(frames[f], warp, warp_cams[f], s, f, -1.0);
-      if (!masks.empty()) ws->warp_image_to_depth(masks[f], warp_mask, warp_cams[f], s, f, false);
+      if (!masks.empty())
+      {
+        ws->warp_image_to_depth(masks[f], warp_mask, warp_cams[f], s, f, false);
+      }
 
       for (unsigned int j = 0; j < warp_ref.nj(); j++)
       {
         for (unsigned int i = 0; i < warp_ref.ni(); i++)
         {
-          if (warp(i,j) == -1 || (!masks.empty() && (warp_ref_mask(i,j) || warp_mask(i,j))))
+          if (warp(i,j) == -1 ||
+              (!masks.empty() && (warp_ref_mask(i,j) || warp_mask(i,j))))
             continue;
 
           cost_volume(i, j, k) += fabs(warp_ref(i, j) - warp(i, j));
