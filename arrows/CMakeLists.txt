@@ -13,12 +13,6 @@ if( KWIVER_ENABLE_CERES )
   add_subdirectory( ceres )
 endif()
 
-
-# Add super3d plugin if enabled
-if( KWIVER_ENABLE_SUPER3D )
-  add_subdirectory( super3d )
-endif()
-
 # Add OpenCV plugin if enabled
 if( KWIVER_ENABLE_OPENCV )
   add_subdirectory( dbow2 )
@@ -33,6 +27,17 @@ endif()
 # Add VXL plugin if enabled
 if( KWIVER_ENABLE_VXL )
   add_subdirectory( vxl )
+
+  # Super3D depends on VXL
+  option( KWIVER_ENABLE_SUPER3D
+    "Enable SUPER3D dependent code and plugins (Arrows)"
+    ON
+    )
+
+  # Add super3d plugin if enabled
+  if( KWIVER_ENABLE_SUPER3D )
+    add_subdirectory( super3d )
+  endif()
 endif()
 
 # Add VisCL plugin if enabled
