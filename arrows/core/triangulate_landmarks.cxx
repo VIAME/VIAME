@@ -59,7 +59,7 @@ public:
   priv()
     : homogeneous(false),
       min_angle_deg(1.0f),
-      inlier_threshold_pixels(2.0),
+      inlier_threshold_pixels(100.0f),
       frac_track_inliers_to_keep_triangulated_point(0.5),
       m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
   {
