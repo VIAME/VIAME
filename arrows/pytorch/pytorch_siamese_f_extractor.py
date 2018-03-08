@@ -96,7 +96,7 @@ class pytorch_siamese_f_extractor(object):
 
         for idx, imgs in enumerate(bbox_loader):
             v_imgs = Variable(imgs, volatile=True).cuda()
-            output, _, _ = self._siamese_model(v_imgs, v_imgs)
+            output = self._siamese_model(v_imgs, v_imgs)
 
             if idx == 0:
                 app_features = output.data
