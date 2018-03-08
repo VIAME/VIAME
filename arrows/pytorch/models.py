@@ -42,10 +42,8 @@ class Siamese(nn.Module):
 
     def forward(self, input1, input2):
         output1 = self.resnet(input1)
-        output2 = self.resnet(input2)
-        output = self.pdist(output1, output2)
 
-        return output1, output2, output
+        return output1
 
 
 # Appearance LSTM
