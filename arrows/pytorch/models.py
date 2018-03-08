@@ -40,7 +40,7 @@ class Siamese(nn.Module):
         self.resnet.fc = nn.Linear(self.num_fcin, 500)
         self.pdist = nn.PairwiseDistance(1)
 
-    def forward(self, input1, input2):
+    def forward(self, input1):
         output1 = self.resnet(input1)
 
         return output1
