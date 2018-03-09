@@ -54,6 +54,17 @@
 #include <vector>
 #include <sstream>
 
+extern "C" {
+#if FFMPEG_IN_SEVERAL_DIRECTORIES
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+#else
+#include <ffmpeg/avcodec.h>
+#include <ffmpeg/avformat.h>
+#include <ffmpeg/swscale.h>
+#endif
+}
 
 namespace kwiver {
 namespace arrows {
@@ -65,8 +76,32 @@ class ffmpeg_video_input::priv
 {
 public:
   /// Constructor
-  priv()
-  { }
+  priv() :
+    format_context(nullptr),
+    video_index(-1),
+    data_index(-1),
+    video_encoding(nullptr),
+    video_stream(nullptr),
+    frame(nullptr),
+    start_time(-1),
+    frame_number_offset(0)
+  {}
+
+
+  AVFormatContext* format_context;
+  int video_index;
+  int data_index;
+  AVCodecContext* video_encoding;
+  AVStream* video_stream;
+  AVFrame* frame;
+
+  //: Start time of the stream, to offset the pts when computing the frame number.
+  //  (in stream time base)
+  int64_t start_time;
+
+  //: Some codec/file format combinations need a frame number offset.
+  // These codecs have a delay between reading packets and generating frames.
+  unsigned frame_number_offset;
 
 }; // end of internal class.
 
@@ -79,7 +114,7 @@ ffmpeg_video_input
 ::ffmpeg_video_input()
   : d( new priv() )
 {
-  attach_logger( "video_input" ); // get appropriate logger
+  attach_logger( "ffmpeg_video_input" ); // get appropriate logger
   ffmpeg_init();
 }
 
@@ -134,6 +169,115 @@ void
 ffmpeg_video_input
 ::open( std::string video_name )
 {
+  // Close any currently opened file
+  this->close();
+
+  // Open the file
+  int err = avformat_open_input(&d->format_context, video_name.c_str(), NULL, NULL);
+  if (err != 0)
+  {
+    LOG_ERROR(this->logger(), "Error " << err << " trying to open " << video_name );
+    return;
+  }
+
+  // Get the stream information by reading a bit of the file
+  if (avformat_find_stream_info(d->format_context, NULL) < 0)
+  {
+    return;
+  }
+
+  // Find a video stream, and optionally a data stream.
+  // Use the first ones we find.
+  d->video_index = -1;
+  d->data_index = -1;
+  AVCodecContext* codec_context_origin = NULL;
+  for (unsigned i = 0; i < d->format_context->nb_streams; ++i)
+  {
+    AVCodecContext *const enc = d->format_context->streams[i]->codec;
+    if (enc->codec_type == AVMEDIA_TYPE_VIDEO && d->video_index < 0)
+    {
+      d->video_index = i;
+      codec_context_origin = enc;
+    }
+    else if (enc->codec_type == AVMEDIA_TYPE_DATA && d->data_index < 0)
+    {
+      d->data_index = i;
+    }
+  }
+
+  if (d->video_index < 0)
+  {
+    LOG_ERROR(this->logger(), "Error: could not find a video stream in " << video_name);
+    return;
+  }
+
+  if (d->data_index < 0)
+  {
+    LOG_INFO(this->logger(), "No data stream available, using AVMEDIA_TYPE_UNKNOWN stream instead");
+    // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
+    for (unsigned i = 0; i < d->format_context->nb_streams; ++i)
+    {
+      AVCodecContext *enc = d->format_context->streams[i]->codec;
+      if (enc->codec_type == AVMEDIA_TYPE_UNKNOWN)
+      {
+        d->data_index = i;
+      }
+    }
+  }
+
+  assert(codec_context_origin);
+  av_dump_format(d->format_context, 0, video_name.c_str(), 0);
+
+  // Open the stream
+  AVCodec* codec = avcodec_find_decoder(codec_context_origin->codec_id);
+  if (!codec)
+  {
+    LOG_ERROR(this->logger(),
+      "Error: Codec " << codec_context_origin->codec_descriptor
+      << " (" << codec_context_origin->codec_id << ") not found");
+    return;
+  }
+
+  // Copy context
+  d->video_encoding = avcodec_alloc_context3(codec);
+  if (avcodec_copy_context(d->video_encoding, codec_context_origin) != 0)
+  {
+    LOG_ERROR(this->logger(), "Error: Could not copy codec " << d->video_encoding->codec_name);
+    return;
+  }
+
+  // Open codec
+  if (avcodec_open2(d->video_encoding, codec, NULL) < 0)
+  {
+    LOG_ERROR(this->logger(), "Error: Could not open codec " << d->video_encoding->codec_name);
+    return;
+  }
+
+  d->video_stream = d->format_context->streams[d->video_index];
+  d->frame = av_frame_alloc();
+
+  if (d->video_stream->start_time == int64_t(1) << 63)
+  {
+    d->start_time = 0;
+  }
+  else
+  {
+    d->start_time = d->video_stream->start_time;
+  }
+
+  // The MPEG 2 codec has a latency of 1 frame when encoded in an AVI
+  // stream, so the pts of the last packet (stored in pts) is
+  // actually the next frame's pts.
+  if (d->video_stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO &&
+    std::string("avi") == d->format_context->iformat->name)
+  {
+    d->frame_number_offset = 1;
+  }
+
+  /*// Not sure if this does anything, but no harm either
+  av_init_packet(&is_->packet_);
+  is_->packet_.data = 0;
+  is_->packet_.size = 0;*/
 }
 
 
@@ -142,6 +286,37 @@ void
 ffmpeg_video_input
 ::close()
 {
+  /*if (is_->packet_.data) {
+    av_free_packet(&is_->packet_);  // free last packet
+  }*/
+
+  if (d->frame)
+  {
+    av_freep(&d->frame);
+  }
+
+  if (d->video_encoding && d->video_encoding->opaque)
+  {
+    av_freep(&d->video_encoding->opaque);
+  }
+
+  //d->num_frames_ = -2;
+  //is_->contig_memory_ = 0;
+  d->video_index = -1;
+  d->data_index = -1;
+  //is_->metadata_.clear();
+  if (d->video_stream)
+  {
+    avcodec_close(d->video_stream ->codec);
+    d->video_stream = nullptr;
+  }
+  if (d->format_context)
+  {
+    avformat_close_input(&d->format_context);
+    d->format_context = nullptr;
+  }
+
+  d->video_encoding = nullptr;
 }
 
 
@@ -187,7 +362,7 @@ bool
 ffmpeg_video_input
 ::good() const
 {
-  return false;
+  return d->frame && d->frame->data[0];
 }
 
 } } } // end namespaces
