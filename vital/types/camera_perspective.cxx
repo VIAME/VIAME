@@ -30,10 +30,11 @@
 
 /**
  * \file
- * \brief Implementation of \link kwiver::vital::camera camera \endlink class
+ * \brief Implementation of \link kwiver::vital::camera_perspective
+ * camera_perspective \endlink class
  */
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/io/eigen_io.h>
 #include <vital/types/matrix.h>
 #include <Eigen/Geometry>
@@ -43,15 +44,15 @@
 namespace kwiver {
 namespace vital {
 
-camera
-::camera()
-  : m_logger( kwiver::vital::get_logger( "vital.camera" ) )
+camera_perspective
+::camera_perspective()
+  : m_logger( kwiver::vital::get_logger( "vital.camera_perspective" ) )
 {
 }
 
 /// Convert to a 3x4 homogeneous projection matrix
 matrix_3x4d
-camera
+camera_perspective
 ::as_matrix() const
 {
   matrix_3x4d P;
@@ -66,7 +67,7 @@ camera
 
 /// Project a 3D point into a 2D image point
 vector_2d
-camera
+camera_perspective
 ::project( const vector_3d& pt ) const
 {
   return this->intrinsics()->map( this->rotation() * ( pt - this->center() ));
@@ -75,16 +76,16 @@ camera
 
 /// Compute the distance of the 3D point to the image plane
 double
-camera
+camera_perspective
 ::depth(const vector_3d& pt) const
 {
   return (this->rotation() * (pt - this->center())).z();
 }
 
 
-/// output stream operator for a base class camera
+/// output stream operator for a base class camera_perspective
 std::ostream&
-operator<<( std::ostream& s, const camera& c )
+operator<<( std::ostream& s, const camera_perspective& c )
 {
   using std::setprecision;
   std::vector<double> dc = c.intrinsics()->dist_coeffs();
@@ -105,7 +106,7 @@ operator<<( std::ostream& s, const camera& c )
 
 /// Rotate the camera about its center such that it looks at the given point.
 void
-simple_camera
+simple_camera_perspective
 ::look_at( const vector_3d &stare_point,
            const vector_3d &up_direction )
 {
@@ -123,8 +124,8 @@ simple_camera
   if ( x_mag < 1e-4 )
   {
     LOG_WARN( m_logger,
-              "simple_camera::look_at up_direction nearly parallel with the "
-              "look direction" );
+              "simple_camera_perspective::look_at up_direction nearly parallel"
+              " with the look direction" );
   }
 
   x /= x_mag;
@@ -140,21 +141,21 @@ simple_camera
 
 
 /// Create a clone of this camera that is rotated to look at the given point
-camera_sptr
-simple_camera
+camera_perspective_sptr
+simple_camera_perspective
 ::clone_look_at( const vector_3d &stare_point,
                  const vector_3d &up_direction ) const
 {
-  camera_sptr c_sptr = this->clone();
-  dynamic_cast<simple_camera *>(c_sptr.get())->look_at( stare_point,
-                                                        up_direction );
+  camera_perspective_sptr c_sptr = this->clone();
+  dynamic_cast<simple_camera_perspective *>(c_sptr.get())->look_at( stare_point,
+                                                                    up_direction );
   return c_sptr;
 }
 
 
 /// input stream operator for a camera intrinsics
 std::istream&
-operator>>( std::istream& s, simple_camera& k )
+operator>>( std::istream& s, simple_camera_perspective& k )
 {
   matrix_3x3d K, R;
   vector_3d t;

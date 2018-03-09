@@ -30,12 +30,12 @@
 
 /**
  * \file
- * \brief Header for \link kwiver::vital::camera camera \endlink and
- *        \link kwiver::vital::camera_ camera_<T> \endlink classes
+ * \brief Header for \link kwiver::vital::camera_perspective camera_perspective \endlink and
+ *        \link kwiver::vital::camera_perspective_ camera_perspective_<T> \endlink classes
  */
 
-#ifndef VITAL_CAMERA_H_
-#define VITAL_CAMERA_H_
+#ifndef VITAL_CAMERA_PERSPECTIVE_H_
+#define VITAL_CAMERA_PERSPECTIVE_H_
 
 #include <vital/vital_export.h>
 
@@ -55,27 +55,27 @@
 namespace kwiver {
 namespace vital {
 
-/// forward declaration of camera class
-class camera;
-/// typedef for a camera shared pointer
-typedef std::shared_ptr< camera > camera_sptr;
+/// forward declaration of perspective camera class
+class camera_perspective;
+/// typedef for a camera_perspective shared pointer
+typedef std::shared_ptr< camera_perspective > camera_perspective_sptr;
 
 
 // ------------------------------------------------------------------
-/// An abstract representation of camera
+/// An abstract representation of perspective camera
 /**
- * The base class of cameras is abstract and provides a
+ * The base class of camera_perspectives is abstract and provides a
  * double precision interface.  The templated derived class
  * can store values in either single or double precision.
  */
-class VITAL_EXPORT camera
+class VITAL_EXPORT camera_perspective
 {
 public:
   /// Destructor
-  virtual ~camera() = default;
+  virtual ~camera_perspective() = default;
 
-  /// Create a clone of this camera object
-  virtual camera_sptr clone() const = 0;
+  /// Create a clone of this camera_perspective object
+  virtual camera_perspective_sptr clone() const = 0;
 
   /// Accessor for the camera center of projection (position)
   virtual vector_3d center() const = 0;
@@ -94,8 +94,9 @@ public:
    * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    * \returns New clone, but set to look at the given point.
    */
-  virtual camera_sptr clone_look_at( const vector_3d &stare_point,
-                                     const vector_3d &up_direction = vector_3d::UnitZ() ) const = 0;
+  virtual camera_perspective_sptr clone_look_at(
+    const vector_3d &stare_point,
+    const vector_3d &up_direction = vector_3d::UnitZ() ) const = 0;
 
   /// Convert to a 3x4 homogeneous projection matrix
   /**
@@ -114,26 +115,27 @@ public:
   virtual double depth(const vector_3d& pt) const;
 
 protected:
-  camera();
+  camera_perspective();
 
   kwiver::vital::logger_handle_t m_logger;
 
 };
 
-/// output stream operator for a base class camera
-VITAL_EXPORT std::ostream& operator<<( std::ostream& s, const camera& c );
+/// output stream operator for a base class camera_perspective
+VITAL_EXPORT std::ostream& operator<<( std::ostream& s,
+                                       const camera_perspective& c );
 
 
 /// A representation of a camera
 /**
  * Contains camera location, orientation, and intrinsics
  */
-class VITAL_EXPORT simple_camera :
-  public camera
+class VITAL_EXPORT simple_camera_perspective :
+  public camera_perspective
 {
 public:
   /// Default Constructor
-  simple_camera ( )
+  simple_camera_perspective ( )
   : center_( 0.0, 0.0, 0.0 ),
   orientation_(),
   intrinsics_( new simple_camera_intrinsics() )
@@ -144,7 +146,8 @@ public:
    *  This constructor keeps a shared pointer to the camera intrinsics object
    *  passed in, unless it is null.  If null it creates a new simple_camera_intrinsics
    */
-  simple_camera ( const vector_3d &center,
+  simple_camera_perspective (
+                  const vector_3d &center,
                   const rotation_d &rotation,
                   camera_intrinsics_sptr intrinsics = camera_intrinsics_sptr() )
   : center_( center ),
@@ -154,20 +157,20 @@ public:
                : intrinsics )
   { }
 
-  /// Constructor - from camera center, rotation, and intrinsics
+  /// Constructor - from camera_perspective center, rotation, and intrinsics
   /**
-   *  This constructor make a clone of the camera intrinsics object passed in
+   *  This constructor make a clone of the camera_perspective intrinsics object passed in
    */
-  simple_camera ( const vector_3d &center,
-                  const rotation_d &rotation,
-                  const camera_intrinsics& intrinsics )
+  simple_camera_perspective ( const vector_3d &center,
+                              const rotation_d &rotation,
+                              const camera_intrinsics& intrinsics )
   : center_( center ),
   orientation_( rotation ),
   intrinsics_( intrinsics.clone() )
   { }
 
   /// Constructor - from base class
-  simple_camera( const camera &base )
+  simple_camera_perspective( const camera_perspective &base )
   : center_( base.center() ),
     center_covar_( base.center_covar() ),
     orientation_( base.rotation() ),
@@ -175,8 +178,8 @@ public:
   {}
 
   /// Create a clone of this camera object
-  virtual camera_sptr clone() const
-  { return camera_sptr( new simple_camera( *this ) ); }
+  virtual camera_perspective_sptr clone() const
+  { return camera_perspective_sptr( new simple_camera_perspective( *this ) ); }
 
   /// Accessor for the camera center of projection (position)
   virtual vector_3d center() const
@@ -206,7 +209,7 @@ public:
    * \param up_direction the vector which is "up" in the world (defaults to Z-axis)
    * \returns New clone, but set to look at the given point.
    */
-  virtual camera_sptr clone_look_at(
+  virtual camera_perspective_sptr clone_look_at(
     const vector_3d &stare_point,
     const vector_3d &up_direction = vector_3d::UnitZ() ) const override;
 
@@ -232,7 +235,10 @@ public:
   }
 
   /// Set the covariance matrix of the feature
-  void set_center_covar( const covariance_3d& center_covar ) { center_covar_ = center_covar; }
+  void set_center_covar( const covariance_3d& center_covar )
+  {
+    center_covar_ = center_covar;
+  }
 
   /// Set the rotation
   void set_rotation( const rotation_d& rotation ) { orientation_ = rotation; }
@@ -268,16 +274,17 @@ protected:
 };
 
 
-/// input stream operator for a camera
+/// input stream operator for a camera_perspective
 /**
  * \param s input stream
- * \param c camera to stream into
+ * \param c camera_perspective to stream into
  */
-VITAL_EXPORT std::istream& operator>>( std::istream& s, simple_camera& c );
+VITAL_EXPORT std::istream& operator>>( std::istream& s,
+                                       simple_camera_perspective& c );
 
 
 }
 }   // end namespace vital
 
 
-#endif // VITAL_CAMERA_H_
+#endif // VITAL_CAMERA_PERSPECTIVE_H_
