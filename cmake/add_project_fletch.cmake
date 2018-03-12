@@ -36,6 +36,7 @@ if( VIAME_ENABLE_VIVIA )
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_shapelib:BOOL=OFF
     -Dfletch_ENABLE_VTK:BOOL=ON
+    -DVTK_SELECT_VERSION:STRING=6.2
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
     -Dfletch_ENABLE_PNG:BOOL=ON
@@ -114,6 +115,18 @@ else()
   )
 endif()
 
+if( VIAME_ENABLE_CAFFE OR VIAME_BUILD_TESTS )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_GTest:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_GTest:BOOL=OFF
+  )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -149,9 +162,6 @@ ExternalProject_Add(fletch
     -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
     # Set fletch install path to be viame install path
-    -Dfletch_ENABLE_GTest:PATH=${VIAME_BUILD_TESTS}
-
-    # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
 
     # Disable optional OpenCV build flags, these oft don't build
@@ -184,7 +194,7 @@ ExternalProject_Add_Step(fletch forcebuild
 endif()
 
 set( VIAME_ARGS_fletch
-  -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
+  -Dfletch_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/cmake
   )
 
 set( VIAME_ARGS_Boost
