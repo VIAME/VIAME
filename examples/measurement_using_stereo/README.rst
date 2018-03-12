@@ -7,21 +7,15 @@ Length Measurement Examples
    :scale: 60
    :align: center
 
-This section corresponds to `this example online`_, in addition to the
-measurement_using_stereo example folder in a VIAME installation. This folder contains
-examples covering fish measurement using stereo.
-
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/measurement_using_stereo
-
-
-`Coming Soon`_  on Pull Request 25
-
-.. _Coming Soon: https://github.com/Kitware/VIAME/pull/25
-
-
 Running the Demo (WIP)
 ======================
 
+This section corresponds to `this example online`_, in addition to the
+measurement_using_stereo example folder in a VIAME installation. This folder contains
+examples covering fish measurement using stereo. This example is currently a work
+in progress.
+
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/measurement_using_stereo
 
 Run CMake to automatically download the demo data into this example folder.
 Alternatively you can download the demo data `directly`_.
