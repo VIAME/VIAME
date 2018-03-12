@@ -194,7 +194,7 @@ ExternalProject_Add_Step(fletch forcebuild
 endif()
 
 set( VIAME_ARGS_fletch
-  -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
+  -Dfletch_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/cmake
   )
 
 set( VIAME_ARGS_Boost
