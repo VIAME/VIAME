@@ -115,6 +115,18 @@ else()
   )
 endif()
 
+if( VIAME_ENABLE_CAFFE OR VIAME_BUILD_TESTS )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_GTest:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_GTest:BOOL=OFF
+  )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -148,9 +160,6 @@ ExternalProject_Add(fletch
 
     -Dfletch_ENABLE_pybind11:BOOL=${VIAME_ENABLE_PYTHON}
     -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
-
-    # Set fletch install path to be viame install path
-    -Dfletch_ENABLE_GTest:PATH=${VIAME_BUILD_TESTS}
 
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
