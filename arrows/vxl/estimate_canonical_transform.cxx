@@ -35,6 +35,9 @@
 
 #include "estimate_canonical_transform.h"
 
+#include <vital/logger/logger.h>
+#include <vital/types/camera_perspective.h>
+
 #include <algorithm>
 
 #include <vnl/vnl_double_3.h>
@@ -328,7 +331,8 @@ estimate_canonical_transform
     typedef vital::camera_map::map_camera_t cam_map_t;
     for(const cam_map_t::value_type& p : cameras->cameras())
     {
-      cam_center += p.second->center();
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(p.second);
+      cam_center += cam_ptr->center();
     }
     cam_center /= static_cast<double>(cameras->size());
     cam_center -= center;

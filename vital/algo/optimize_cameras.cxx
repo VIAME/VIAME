@@ -126,7 +126,7 @@ optimize_cameras
       v_lms.push_back(lms[q.first]);
     }
 
-    camera_sptr cam = p.second;
+    auto cam = std::dynamic_pointer_cast<camera_perspective>(p.second);
     this->optimize(cam, v_feat, v_lms, v_metadata);
     optimized_cameras[p.first] = cam;
   }

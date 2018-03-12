@@ -102,7 +102,7 @@ public:
    *                          optimization.
    */
   virtual void
-  optimize(vital::camera_sptr & camera,
+  optimize(vital::camera_perspective_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata

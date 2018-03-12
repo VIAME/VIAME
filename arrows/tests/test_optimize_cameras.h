@@ -112,18 +112,20 @@ TEST(optimize_cameras, no_noise)
   {
     SCOPED_TRACE( "At camera " + std::to_string( p.first ) );
 
+    auto orig_cam_ptr =
+      std::dynamic_pointer_cast<camera_perspective>( p.second );
+    auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>( p.second );
     // Difference in camera center
-    EXPECT_MATRIX_NEAR( original_cams[p.first]->center(),
-                        p.second->center(), ep );
+    EXPECT_MATRIX_NEAR( orig_cam_ptr->center(), cam_ptr->center(), ep );
 
     // Difference in camera rotation
     EXPECT_MATRIX_NEAR(
-      vector_4d{ original_cams[p.first]->rotation().quaternion().coeffs() },
-      vector_4d{ p.second->rotation().quaternion().coeffs() }, ep );
+      vector_4d{ orig_cam_ptr->rotation().quaternion().coeffs() },
+      vector_4d{ cam_ptr->rotation().quaternion().coeffs() }, ep );
 
     // difference in camera intrinsics
-    EXPECT_MATRIX_NEAR( original_cams[p.first]->intrinsics()->as_matrix(),
-                        p.second->intrinsics()->as_matrix(), ep );
+    EXPECT_MATRIX_NEAR( orig_cam_ptr->intrinsics()->as_matrix(),
+                        cam_ptr->intrinsics()->as_matrix(), ep );
   }
 }
 
@@ -153,19 +155,22 @@ TEST(optimize_cameras, noisy_cameras)
   {
     SCOPED_TRACE( "At camera " + std::to_string( p.first ) );
 
+    auto orig_cam_ptr =
+      std::dynamic_pointer_cast<camera_perspective>( original_cams[p.first] );
+    auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>( p.second );
     // Difference in camera center
-    EXPECT_MATRIX_NEAR( original_cams[p.first]->center(),
-                        p.second->center(), noisy_center_tolerance );
+    EXPECT_MATRIX_NEAR( orig_cam_ptr->center(),
+                        cam_ptr->center(), noisy_center_tolerance );
 
     // Difference in camera rotation
     EXPECT_MATRIX_SIMILAR(
-      vector_4d{ original_cams[p.first]->rotation().quaternion().coeffs() },
-      vector_4d{ p.second->rotation().quaternion().coeffs() },
+      vector_4d{ orig_cam_ptr->rotation().quaternion().coeffs() },
+      vector_4d{ cam_ptr->rotation().quaternion().coeffs() },
       noisy_rotation_tolerance );
 
     // difference in camera intrinsics
-    EXPECT_MATRIX_NEAR( original_cams[p.first]->intrinsics()->as_matrix(),
-                        p.second->intrinsics()->as_matrix(),
+    EXPECT_MATRIX_NEAR( orig_cam_ptr->intrinsics()->as_matrix(),
+                        cam_ptr->intrinsics()->as_matrix(),
                         noisy_intrinsics_tolerance );
   }
 }

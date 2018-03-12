@@ -41,6 +41,7 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/types/camera_map.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/metadata_map.h>
@@ -96,7 +97,7 @@ public:
    *                          optimization.
    */
   virtual void
-  optimize(kwiver::vital::camera_sptr& camera,
+  optimize(kwiver::vital::camera_perspective_sptr& camera,
            const std::vector<kwiver::vital::feature_sptr>& features,
            const std::vector<kwiver::vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata

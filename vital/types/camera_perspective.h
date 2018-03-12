@@ -44,6 +44,7 @@
 #include <memory>
 
 #include <vital/vital_config.h>
+#include <vital/types/camera.h>
 #include <vital/types/camera_intrinsics.h>
 #include <vital/types/covariance.h>
 #include <vital/types/rotation.h>
@@ -68,7 +69,7 @@ typedef std::shared_ptr< camera_perspective > camera_perspective_sptr;
  * double precision interface.  The templated derived class
  * can store values in either single or double precision.
  */
-class VITAL_EXPORT camera_perspective
+class VITAL_EXPORT camera_perspective : public camera
 {
 public:
   /// Destructor

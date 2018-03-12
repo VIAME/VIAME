@@ -47,7 +47,7 @@ namespace vital {
 
 
 /// Read in a KRTD file, producing a camera object
-camera_sptr
+camera_perspective_sptr
 read_krtd_file( path_t const& file_path )
 {
   // Check that file exists
@@ -70,14 +70,14 @@ read_krtd_file( path_t const& file_path )
   }
 
   // Read the file
-  simple_camera* cam = new simple_camera();
+  simple_camera_perspective* cam = new simple_camera_perspective();
   input_stream >> *cam;
-  return camera_sptr(cam);
+  return camera_perspective_sptr(cam);
 }
 
 
 /// Read in a KRTD file, producing a camera object
-camera_sptr
+camera_perspective_sptr
 read_krtd_file( path_t const& image_file, path_t const& camera_dir )
 {
   std::string adj_path =
@@ -91,7 +91,7 @@ read_krtd_file( path_t const& image_file, path_t const& camera_dir )
 
 /// Output the given \c camera object to the specified file path
 void
-write_krtd_file( camera const&  cam,
+write_krtd_file( camera_perspective const&  cam,
                  path_t const&  file_path )
 {
 

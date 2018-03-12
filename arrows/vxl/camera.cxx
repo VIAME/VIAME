@@ -43,12 +43,12 @@ namespace vxl {
 
 /// Construct a camera_sptr from a vpgl_perspective_camera
 template <typename T>
-camera_sptr
+camera_perspective_sptr
 vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam)
 {
-  simple_camera* mcam = new simple_camera;
+  simple_camera_perspective* mcam = new simple_camera_perspective;
   vpgl_camera_to_vital(vcam, *mcam);
-  return camera_sptr(mcam);
+  return camera_perspective_sptr(mcam);
 }
 
 
@@ -56,7 +56,7 @@ vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam)
 template <typename T>
 void
 vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam,
-                     simple_camera& mcam)
+                     simple_camera_perspective& mcam)
 {
   simple_camera_intrinsics mk;
   vpgl_calibration_to_vital(vcam.get_calibration(), mk);
@@ -73,7 +73,7 @@ vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam,
 /// Convert a vital::camera_ to a vpgl_perspective_camera
 template <typename T>
 void
-vital_to_vpgl_camera(const camera& mcam,
+vital_to_vpgl_camera(const camera_perspective& mcam,
                      vpgl_perspective_camera<T>& vcam)
 {
   vpgl_calibration_matrix<T> vk;
@@ -124,9 +124,9 @@ vital_to_vpgl_calibration(const camera_intrinsics& mcal,
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_CAMERA(T) \
-template KWIVER_ALGO_VXL_EXPORT camera_sptr vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam); \
-template KWIVER_ALGO_VXL_EXPORT void vpgl_camera_to_vital(const vpgl_perspective_camera<T>&, simple_camera&); \
-template KWIVER_ALGO_VXL_EXPORT void vital_to_vpgl_camera(const camera&, vpgl_perspective_camera<T>&); \
+template KWIVER_ALGO_VXL_EXPORT camera_perspective_sptr vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam); \
+template KWIVER_ALGO_VXL_EXPORT void vpgl_camera_to_vital(const vpgl_perspective_camera<T>&, simple_camera_perspective&); \
+template KWIVER_ALGO_VXL_EXPORT void vital_to_vpgl_camera(const camera_perspective&, vpgl_perspective_camera<T>&); \
 template KWIVER_ALGO_VXL_EXPORT void vpgl_calibration_to_vital(const vpgl_calibration_matrix<T>& vcal, \
                                                          simple_camera_intrinsics& mcal); \
 template KWIVER_ALGO_VXL_EXPORT void vital_to_vpgl_calibration(const camera_intrinsics& mcal, \

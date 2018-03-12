@@ -87,6 +87,7 @@ set( vital_public_headers
   io/track_set_io.h
 
   types/bounding_box.h
+  types/camera.h
   types/camera_perspective.h
   types/camera_intrinsics.h
   types/camera_map.h

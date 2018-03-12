@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2013-2015 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,67 +30,50 @@
 
 /**
  * \file
- * \brief Implementation of map from frame IDs to vpgl cameras
+ * \brief Header for \link kwiver::vital::camera camera \endlink and
+ *        \link kwiver::vital::camera_ camera_<T> \endlink classes
  */
 
-#include "camera_map.h"
+#ifndef VITAL_CAMERA_H_
+#define VITAL_CAMERA_H_
 
+#include <vital/vital_export.h>
 
-#include <arrows/vxl/camera.h>
+#include <iostream>
+#include <memory>
 
-using namespace kwiver::vital;
+#include <vital/types/vector.h>
+
 
 namespace kwiver {
-namespace arrows {
-namespace vxl {
+namespace vital {
 
-/// Return a map from integer IDs to camera shared pointers
-vital::camera_map::map_camera_t
-camera_map::cameras() const
+/// forward declaration of perspective camera class
+class camera;
+/// typedef for a camera shared pointer
+typedef std::shared_ptr< camera > camera_sptr;
+
+
+// ------------------------------------------------------------------
+/// An abstract representation of perspective camera
+/**
+ * The base class of cameras.
+ */
+class VITAL_EXPORT camera
 {
-  map_camera_t vital_cameras;
+public:
+  /// Destructor
+  virtual ~camera() = default;
 
-  for(const map_vcam_t::value_type& c : data_)
-  {
-    camera_sptr cam = vpgl_camera_to_vital(c.second);
-    vital_cameras.insert(std::make_pair(c.first, cam));
-  }
+  /// Project a 3D point into a 2D image point
+  virtual vector_2d project( const vector_3d& pt ) const = 0;
 
-  return vital_cameras;
+protected:
+  camera() {};
+};
+
 }
+}   // end namespace vital
 
 
-/// Convert any camera map to a vpgl camera map
-camera_map::map_vcam_t
-camera_map_to_vpgl(const vital::camera_map& cam_map)
-{
-  // if the camera map already contains a vpgl representation
-  // then return the existing vpgl data
-  if( const vxl::camera_map* m =
-          dynamic_cast<const vxl::camera_map*>(&cam_map) )
-  {
-    return m->vpgl_cameras();
-  }
-  camera_map::map_vcam_t vmap;
-  for (const camera_map::map_camera_t::value_type& c :
-                cam_map.cameras())
-  {
-    vpgl_perspective_camera<double> vcam;
-    if( const simple_camera_perspective* mcam =
-        dynamic_cast<const simple_camera_perspective*>(c.second.get()) )
-    {
-      vital_to_vpgl_camera(*mcam, vcam);
-    }
-    else
-    {
-      //TODO should throw an exception here
-    }
-    vmap.insert(std::make_pair(c.first, vcam));
-  }
-  return vmap;
-}
-
-
-} // end namespace vxl
-} // end namespace arrows
-} // end namespace kwiver
+#endif // VITAL_CAMERA_H_

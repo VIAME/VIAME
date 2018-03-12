@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 /// Test the reprojection error of a single residual
 static void
 test_reprojection_error(
-  camera const& cam, landmark const& lm, feature const& f,
+  camera_perspective const& cam, landmark const& lm, feature const& f,
   kwiver::arrows::ceres::LensDistortionType dist_type )
 {
   ::ceres::CostFunction* cost_func =
@@ -188,8 +188,8 @@ TEST_P(reprojection_error, compare_projections)
 
       SCOPED_TRACE( "At track frame " + std::to_string( ts->frame() ) );
 
-      auto const& cam = *ci->second;
-      test_reprojection_error( cam, lm, feat, dist_type );
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(ci->second);
+      test_reprojection_error( *cam_ptr, lm, feat, dist_type );
     }
   }
 }
