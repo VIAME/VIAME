@@ -187,6 +187,12 @@ keyframe_selector_basic::priv
   for ( ; next_candidate_keyframe_id <= last_frame_id ;
         ++next_candidate_keyframe_id)
   {
+    if (tracks->active_tracks(next_candidate_keyframe_id).empty())
+    {
+      //absolutely no tracks for this frame so it was skipped when reading.
+      continue;
+    }
+
     bool is_keyframe = true;
     double percentage_tracked =
       tracks->percentage_tracked(last_keyframe_id, next_candidate_keyframe_id);
