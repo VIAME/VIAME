@@ -44,6 +44,7 @@ set( plugin_core_headers
   match_matrix.h
   metrics.h
   projected_track_set.h
+  sfm_utils.h
   track_features_core.h
   track_set_impl.h
   transform.h
@@ -105,6 +106,7 @@ set( plugin_core_sources
   match_matrix.cxx
   metrics.cxx
   projected_track_set.cxx
+  sfm_utils.cxx
   track_features_core.cxx
   track_set_impl.cxx
   transform.cxx
