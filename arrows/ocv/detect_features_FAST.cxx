@@ -48,7 +48,8 @@ public:
   /// Constructor
   priv()
     : threshold(10),
-      nonmaxSuppression(true)
+      nonmaxSuppression(true),
+      targetNumDetections(500)
   {
 #ifdef KWIVER_HAS_OPENCV_VER_3
     neighborhood_type = cv::FastFeatureDetector::TYPE_9_16;
@@ -102,6 +103,11 @@ public:
       "TYPE_9_16=" << cv::FastFeatureDetector::TYPE_9_16 << ".";
     config->set_value( "neighborhood_type", neighborhood_type , ss.str());
 #endif
+
+    config->set_value("target_num_features_detected", targetNumDetections,
+                      "algorithm tries to output approximately this many features. "
+                      "Disable by setting to negative value.");
+
   }
 
   /// Set parameter values based on given config block
@@ -113,6 +119,7 @@ public:
 #ifdef KWIVER_HAS_OPENCV_VER_3
     neighborhood_type = config->get_value<int>( "neighborhood_type" );
 #endif
+    targetNumDetections = config->get_value<int>("target_num_features_detected");
   }
 
   /// Check config parameter values
@@ -144,6 +151,7 @@ public:
 #ifdef KWIVER_HAS_OPENCV_VER_3
   int neighborhood_type;
 #endif
+  int targetNumDetections;
 };
 
 
@@ -200,6 +208,100 @@ detect_features_FAST
   return p_->check_config( config, logger() );
 }
 
+/// Extract a set of image features from the provided image
+vital::feature_set_sptr
+detect_features_FAST
+::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask)
+{
+  float close_detect_thresh = 0.1; //be within 10% of target
+  auto last_det_feat_set = ocv::detect_features::detect(image_data, mask);
+
+  if (p_->targetNumDetections <= 0)
+  {
+    return last_det_feat_set;
+  }
+
+  if (last_det_feat_set->size() > (1.0 + close_detect_thresh)*p_->targetNumDetections)
+  {
+    //we got too many features
+    while (true)
+    {
+      auto last_threshold = p_->threshold;
+      p_->threshold *= (1.0 + close_detect_thresh);  //make the threshold higer so we detect fewer features
+      auto new_conf = get_configuration();
+      set_configuration(new_conf);
+      auto higher_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
+
+      if (higher_thresh_feat_set->size() <= p_->targetNumDetections ||
+          abs(int(last_det_feat_set->size()) - int(higher_thresh_feat_set->size())) < (p_->targetNumDetections * close_detect_thresh*0.5))
+      {
+        //ok, we've crossed from too many to too few features
+        // or we aren't changing the number of detected features much
+        int higher_diff = abs(p_->targetNumDetections - int(higher_thresh_feat_set->size()));
+        int last_diff =  abs(int(last_det_feat_set->size()) - p_->targetNumDetections);
+
+        if (higher_diff < last_diff)
+        {
+          last_det_feat_set = higher_thresh_feat_set;
+          // keep existing threshold. it worked.
+        }
+        else
+        {
+          // set threshold back to one used in last detection
+          p_->threshold = last_threshold;
+          auto new_conf = get_configuration();
+          set_configuration(new_conf);
+        }
+        break;
+      }
+      last_det_feat_set = higher_thresh_feat_set;
+      last_threshold = p_->threshold;
+    }
+  }
+  else
+  {
+    if (last_det_feat_set->size() < (1.0 - close_detect_thresh) * p_->targetNumDetections)
+    {
+      //we got too few features
+      // or we aren't changing the number of detected features much
+      while (true)
+      {
+        auto last_threshold = p_->threshold;
+        p_->threshold *= (1.0 - close_detect_thresh);  //make the threshold higer so we detect fewer features
+        auto new_conf = get_configuration();
+        set_configuration(new_conf);
+        auto lower_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
+
+        if (lower_thresh_feat_set->size() >= p_->targetNumDetections ||
+          abs(int(last_det_feat_set->size()) - int(lower_thresh_feat_set->size())) < (p_->targetNumDetections * close_detect_thresh*0.5))
+        {
+          int lower_diff = abs(int(lower_thresh_feat_set->size()) - p_->targetNumDetections);
+          int last_diff = abs(int(last_det_feat_set->size()) - p_->targetNumDetections);
+
+          //ok, we've crossed from too few to too many features
+          if (lower_diff < last_diff)
+          {
+            last_det_feat_set = lower_thresh_feat_set;
+            // keep existing threshold. it worked.
+          }
+          else
+          {
+            // set threshold back to one used in last detection
+            p_->threshold = last_threshold;
+            auto new_conf = get_configuration();
+            set_configuration(new_conf);
+          }
+          break;
+        }
+        last_det_feat_set = lower_thresh_feat_set;
+        last_threshold = p_->threshold;
+      }
+    }
+  }
+
+
+  return last_det_feat_set;
+}
 
 } // end namespace ocv
 } // end namespace arrows
