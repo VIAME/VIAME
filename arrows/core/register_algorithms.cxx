@@ -109,6 +109,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   register_algorithm< class_probablity_filter >( vpm );
+  register_algorithm< close_loops_appearance_indexed >(vpm);
   register_algorithm< close_loops_bad_frames_only >( vpm );
   register_algorithm< close_loops_exhaustive >( vpm );
   register_algorithm< close_loops_keyframe >( vpm );
