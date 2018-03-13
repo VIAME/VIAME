@@ -69,7 +69,7 @@ public:
    */
   virtual vital::feature_set_sptr
   detect(vital::image_container_sptr image_data,
-         vital::image_container_sptr mask = vital::image_container_sptr()) const;
+         vital::image_container_sptr mask = vital::image_container_sptr());
 
 protected:
   /// the feature detector algorithm
