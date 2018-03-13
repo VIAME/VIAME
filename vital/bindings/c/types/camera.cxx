@@ -111,8 +111,7 @@ vital_camera_new_from_string( char const *s, vital_error_handle_t *eh )
   STANDARD_CATCH(
     "vital_camera_new_from_string", eh,
     auto c_sptr = std::make_shared<vital::simple_camera_perspective>();
-      vital::simple_camera_perspective *sc =
-        dynamic_cast<vital::simple_camera_perspective*>(c_sptr.get());
+      vital::simple_camera_perspective *sc = c_sptr.get();
 
       std::string input_s( s );
       std::istringstream ss( input_s );
@@ -132,7 +131,8 @@ vital_camera_clone( vital_camera_t const *cam, vital_error_handle_t *eh )
   STANDARD_CATCH(
     "vital_camera_clone", eh,
     auto cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
-    auto c2_sptr = cam_sptr->clone();
+    auto c2_sptr =
+      std::dynamic_pointer_cast< kwiver::vital::camera_perspective >( cam_sptr->clone() );
     vital_c::CAMERA_SPTR_CACHE.store( c2_sptr );
     return reinterpret_cast< vital_camera_t* >( c2_sptr.get() );
   );
@@ -259,7 +259,7 @@ vital_camera_project( vital_camera_t const *cam,
 {
   STANDARD_CATCH(
     "vital_camera_project", eh,
-    vital::camera_sptr cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
+    auto cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
     REINTERP_TYPE( vital::vector_3d const, pt, pt_ptr );
     return reinterpret_cast< vital_eigen_matrix2x1d_t* >(
       new vital::vector_2d( cam_sptr->project( *pt_ptr ) )

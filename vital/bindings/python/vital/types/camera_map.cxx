@@ -58,7 +58,8 @@ PYBIND11_MODULE(camera_map, m)
                         auto cam_list = cm.cameras();
                         for( auto item : cam_list)
                         {
-                          auto cam_ptr = std::dynamic_pointer_cast< kwiver::vital::camera_perspective >( item.second );
+                          auto cam_ptr =
+                            std::dynamic_pointer_cast<kwiver::vital::camera_perspective>( item.second );
                           kwiver::vital::simple_camera_perspective cam(*(cam_ptr));
                           dict.insert(std::make_pair(item.first, cam));
                         }

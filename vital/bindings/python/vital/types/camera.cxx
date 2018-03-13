@@ -29,7 +29,7 @@
  */
 
 #include <vital/io/camera_io.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/eigen.h>
@@ -59,7 +59,8 @@ camera_ne(std::shared_ptr<kwiver::vital::simple_camera_perspective> self,
 PYBIND11_MODULE(camera, m)
 {
 
-  py::class_<kwiver::vital::simple_camera_perspective, std::shared_ptr<kwiver::vital::simple_camera_perspective> >(m, "Camera")
+  py::class_<kwiver::vital::simple_camera_perspective,
+             std::shared_ptr<kwiver::vital::simple_camera_perspective> >(m, "Camera")
   .def(py::init<>())
   .def(py::init([](EigenArray &center)
                   {
@@ -105,7 +106,7 @@ PYBIND11_MODULE(camera, m)
                                 })
   .def_static("from_krtd_file", [](std::string path)
                                 {
-                                  kwiver::vital::camera_sptr c(kwiver::vital::read_krtd_file(path));
+                                  kwiver::vital::camera_perspective_sptr c(kwiver::vital::read_krtd_file(path));
                                   return c;
                                 })
   .def_property("center", &kwiver::vital::simple_camera_perspective::center,
