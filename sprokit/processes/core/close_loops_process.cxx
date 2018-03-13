@@ -280,9 +280,13 @@ close_loops_process::priv
   // loop_back_tracks.
   std::vector< vital::track_sptr> next_active_tracks =
     next_tracks->active_tracks(next_tracks_frame_num);
+
+
   //get the active tracks for the last frame in loop_back tracks.
+
+  vital::frame_id_t loop_back_last_frame_num = loop_back_tracks->last_frame();
   std::vector< vital::track_sptr> curr_active_tracks =
-    curr_tracks->active_tracks(next_tracks_frame_num - 1);
+    curr_tracks->active_tracks(loop_back_last_frame_num);
 
   // Note, track ids from next_tracks and loop_back_tracks do not correspond.
   // KLT tracker never sees detected feature tracks and so it won't increment
