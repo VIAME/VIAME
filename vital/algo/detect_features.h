@@ -71,7 +71,7 @@ public:
    */
   virtual kwiver::vital::feature_set_sptr
   detect(kwiver::vital::image_container_sptr image_data,
-         kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) const = 0;
+         kwiver::vital::image_container_sptr mask = kwiver::vital::image_container_sptr()) = 0;
 
 protected:
   detect_features();
