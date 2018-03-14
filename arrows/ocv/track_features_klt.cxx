@@ -77,7 +77,8 @@ public:
     tracked_feat_mask_downsample_fact(1),
     exclude_rad_pixels(1),
     erp2(1),
-    max_pyramid_level(3)
+    max_pyramid_level(3),
+    target_number_of_features(512)
   {
   }
 
@@ -172,6 +173,10 @@ public:
 
     config->set_value("max_pyramid_level", max_pyramid_level,
                       "maximum pyramid level used in klt feature tracking");
+
+    config->set_value("target_number_of_features", target_number_of_features,
+                      "number of features that detector tries to find.  May be "
+                      "more or less depending on image content.");
   }
 
   /// Set our parameters based on the given config block
@@ -196,6 +201,9 @@ public:
     half_win_size = win_size / 2;
 
     max_pyramid_level = config->get_value<int>("max_pyramid_level");
+
+    target_number_of_features = config->get_value<int>("target_number_of_features");
+
   }
 
   bool check_configuration(vital::config_block_sptr config) const
@@ -381,6 +389,7 @@ public:
   int exclude_rad_pixels;
   int erp2;
   int max_pyramid_level;
+  int target_number_of_features;
 };
 
 
@@ -632,7 +641,7 @@ track_features_klt
 
     int dist_im_rows, dist_im_cols;
     d_->dist_image.get_grid_size(dist_im_rows, dist_im_cols);
-    int target_feat_per_bin = 512 / (dist_im_rows * dist_im_cols);
+    int target_feat_per_bin = d_->target_number_of_features / (dist_im_rows * dist_im_cols);
 
 
     typedef std::vector<feature_sptr>::const_reverse_iterator feat_itr;
