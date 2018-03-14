@@ -49,7 +49,7 @@ public:
   priv()
     : threshold(10),
       nonmaxSuppression(true),
-      targetNumDetections(1500)
+      targetNumDetections(2500)
   {
 #ifdef KWIVER_HAS_OPENCV_VER_3
     neighborhood_type = cv::FastFeatureDetector::TYPE_9_16;
