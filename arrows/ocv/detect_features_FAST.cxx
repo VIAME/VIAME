@@ -49,7 +49,7 @@ public:
   priv()
     : threshold(10),
       nonmaxSuppression(true),
-      targetNumDetections(500)
+      targetNumDetections(1500)
   {
 #ifdef KWIVER_HAS_OPENCV_VER_3
     neighborhood_type = cv::FastFeatureDetector::TYPE_9_16;
@@ -228,6 +228,10 @@ detect_features_FAST
     {
       auto last_threshold = p_->threshold;
       p_->threshold *= (1.0 + close_detect_thresh);  //make the threshold higer so we detect fewer features
+      if (p_->threshold == last_threshold)
+      {
+        p_->threshold += 1;
+      }
       auto new_conf = get_configuration();
       set_configuration(new_conf);
       auto higher_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
@@ -268,6 +272,15 @@ detect_features_FAST
       {
         auto last_threshold = p_->threshold;
         p_->threshold *= (1.0 - close_detect_thresh);  //make the threshold higer so we detect fewer features
+        if (p_->threshold == last_threshold)
+        {
+          p_->threshold -= 1;
+        }
+        if (p_->threshold <= 0)
+        {
+          //can't have a non-positive detection threshold.
+          break;
+        }
         auto new_conf = get_configuration();
         set_configuration(new_conf);
         auto lower_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
