@@ -344,6 +344,20 @@ public:
       }
     }
 
+    uint16_t& get_bin_feat_count(const cv::Point2f &pt, image_container_sptr image_data)
+    {
+      const int dist_bin_x_len = int(image_data->width() / cols);
+      const int dist_bin_y_len = int(image_data->height() / rows);
+      int dist_bin_x =
+        std::min<int>(std::max<int>(pt.x / dist_bin_x_len, 0), cols - 1);
+      int dist_bin_y =
+        std::min<int>(std::max<int>(pt.y / dist_bin_y_len, 0), rows - 1);
+
+      uint16_t& numFeatInBin =
+        dist_image.at<uint16_t>(dist_bin_y, dist_bin_x);
+      return numFeatInBin;
+    }
+
     cv::Mat dist_image;
     float bad_bins_frac_to_redetect;
   private:
@@ -437,6 +451,10 @@ track_features_klt
   return success;
 }
 
+bool feat_stren_less(feature_sptr a, feature_sptr b)
+{
+  return a->magnitude() < b->magnitude();
+}
 
 /// Extend a previous set of feature tracks using the current frame
 feature_track_set_sptr
@@ -607,8 +625,17 @@ track_features_klt
     // features from being kept that are detected near existing tracks.
     d_->set_tracked_feature_location_mask(next_points, image_data);
 
-    typedef std::vector<feature_sptr>::const_iterator feat_itr;
-    for(feat_itr fit = vf.begin(); fit != vf.end(); ++fit)
+    //randomize order of features returned from detector.  This is to
+    //ensure that their distribution across the image is random.
+    std::sort(vf.begin(), vf.end(), feat_stren_less);
+
+    int dist_im_rows, dist_im_cols;
+    d_->dist_image.get_grid_size(dist_im_rows, dist_im_cols);
+    int target_feat_per_bin = 512 / (dist_im_rows * dist_im_cols);
+
+
+    typedef std::vector<feature_sptr>::const_reverse_iterator feat_itr;
+    for(feat_itr fit = vf.crbegin(); fit != vf.crend(); ++fit)
     {
       if (d_->exclude_mask_is_set((*fit)->loc()))
         continue;
@@ -621,13 +648,28 @@ track_features_klt
         continue;  //mask out features at the edge of the image.
       }
 
+      cv::Point2f new_pt = cv::Point2f((*fit)->loc().x(), (*fit)->loc().y());
+
+      uint16_t &bin_count = d_->dist_image.get_bin_feat_count(new_pt,image_data);
+      if (bin_count >= target_feat_per_bin)
+      {
+        //too many features in this bin already.  Go to another bin.
+        continue;
+      }
+      else
+      {
+        if (bin_count < UINT16_MAX)
+        {
+          ++bin_count;
+        }
+      }
+
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
       auto t = vital::track::create();  //make a new track
       t->append(fts);  //put the feature in this new track
       t->set_id(next_track_id++); //set the new track id
       cur_tracks->insert(t);
-      cv::Point2f new_pt = cv::Point2f((*fit)->loc().x(), (*fit)->loc().y());
       next_points.push_back(new_pt);
 
       d_->set_exclude_mask(new_pt);      //this makes the points earlier in the
