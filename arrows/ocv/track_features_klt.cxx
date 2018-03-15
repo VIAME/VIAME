@@ -580,6 +580,7 @@ track_features_klt
       // append the feature's current location to it's track.  Track was picked
       // up with active_tracks() call on previous_tracks.
       t->append(fts);
+      cur_tracks->notify_new_state(fts);
       next_points.push_back(tracked_points[kf_feat_i]);
       //increment the feature distribution bins
     }
