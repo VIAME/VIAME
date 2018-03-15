@@ -247,12 +247,30 @@ keyframe_selection_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //clone next tracks tracks so we can change it.
+  //clone the loop back tracks
   vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
-  //copy loop back frame data into curr_tracks
-  curr_tracks->set_frame_data(loop_back_tracks->all_frame_data());
+  //now add the next tracks to it
+  auto nt = next_tracks->tracks();
+  for (auto &t : nt)
+  {
+    auto ct = curr_tracks->get_track(t->id());
+    if (!ct)
+    {
+      curr_tracks->insert(t->clone());
+    }
+    else
+    {
+      for (auto ts : *t)
+      {
+        auto ts_clone = ts->clone();
+        ct->append(ts_clone);
+        curr_tracks->notify_new_state(ts_clone);
+      }
+    }
+  }
+
 
   return curr_tracks;
 }
