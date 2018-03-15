@@ -130,10 +130,13 @@ frame_index_track_set_impl
 {
   all_tracks_.push_back( t );
 
-  // update the frame map with the new track
-  for(auto const& ts : *t)
+  if (!frame_map_.empty())
   {
-    frame_map_[ts->frame()].insert(ts);
+    // update the frame map with the new track
+    for (auto const& ts : *t)
+    {
+      frame_map_[ts->frame()].insert(ts);
+    }
   }
 }
 
@@ -143,8 +146,11 @@ void
 frame_index_track_set_impl
 ::notify_new_state( vital::track_state_sptr ts )
 {
-  // update the frame map with the new state
-  frame_map_[ts->frame()].insert(ts);
+  if (!frame_map_.empty())
+  {
+    // update the frame map with the new state
+    frame_map_[ts->frame()].insert(ts);
+  }
 }
 
 
@@ -160,10 +166,13 @@ frame_index_track_set_impl
   }
   all_tracks_.erase(itr);
 
-  // remove from the frame map
-  for(auto const& ts : *t)
+  if (!frame_map_.empty())
   {
-    frame_map_[ts->frame()].erase(ts);
+    // remove from the frame map
+    for (auto const& ts : *t)
+    {
+      frame_map_[ts->frame()].erase(ts);
+    }
   }
 
   return true;
