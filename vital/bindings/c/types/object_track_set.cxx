@@ -51,6 +51,7 @@ using namespace kwiver;
 /// Create a new track state
 vital_track_state_t*
 vital_object_track_state_new( int64_t frame,
+                              int64_t time,
                               vital_detected_object_t *d,
                               vital_error_handle_t *eh )
 {
@@ -59,7 +60,7 @@ vital_object_track_state_new( int64_t frame,
     vital::detected_object_sptr d_sptr;
     if( d ) d_sptr = vital_c::DOBJ_SPTR_CACHE.get( d );
     vital::track_state_sptr td_sptr(
-      new vital::object_track_state( frame, d_sptr ) );
+      new vital::object_track_state( frame, time, d_sptr ) );
     vital_c::TRACK_STATE_SPTR_CACHE.store( td_sptr );
     return reinterpret_cast<vital_track_state_t*>( td_sptr.get() );
   );

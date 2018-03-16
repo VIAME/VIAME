@@ -109,7 +109,7 @@ public:
 
   // ------------------------------------------------------------------
   cv::Mat
-  annotate_image( cv::Mat cv_img, kwiver::vital::timestamp::frame_t frame)
+  annotate_image( cv::Mat cv_img, kwiver::vital::frame_id_t frame)
   {
     static const int font_face = cv::FONT_HERSHEY_SIMPLEX;
     static const double font_scale( 1.0 );

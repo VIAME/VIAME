@@ -573,11 +573,11 @@ config_block_get_value_cast( config_block_value_t const& value )
   std::stringstream str;
   str << value;
 
-  timestamp::time_t t;
+  kwiver::vital::time_us_t t;
   str >> t;
   obj.set_time( t );
 
-  timestamp::frame_t f;
+  kwiver::vital::frame_id_t f;
   str >> f;
   obj.set_frame( f );
 

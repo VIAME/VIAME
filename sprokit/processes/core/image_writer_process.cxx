@@ -83,7 +83,7 @@ public:
   std::string m_file_template;
 
   // Number for current image.
-  kwiver::vital::timestamp::frame_t m_frame_number;
+  kwiver::vital::frame_id_t m_frame_number;
 
   // processing classes
   algo::image_io_sptr m_image_writer;
@@ -145,7 +145,7 @@ void image_writer_process
     frame_time = grab_from_port_using_trait( timestamp );
     if (frame_time.has_valid_frame() )
     {
-      kwiver::vital::timestamp::frame_t next_frame;
+      kwiver::vital::frame_id_t next_frame;
       next_frame = frame_time.get_frame();
 
       if ( next_frame <= d->m_frame_number )

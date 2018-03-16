@@ -51,8 +51,8 @@ public:
   { }
 
   // Configuration values
-  vital::timestamp::frame_t c_start_at_frame;
-  vital::timestamp::frame_t c_stop_after_frame;
+  vital::frame_id_t c_start_at_frame;
+  vital::frame_id_t c_stop_after_frame;
   double c_frame_rate;
 
   // local state
@@ -92,11 +92,11 @@ video_input_filter
                      "If set to zero, start at the beginning of the video." );
 
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "End the video after passing this frame number. " 
+                     "End the video after passing this frame number. "
                      "Set this value to 0 to disable filter.");
 
   config->set_value( "frame_rate", d->c_frame_rate, "Number of frames per second. "
-                     "If the video does not provide a valid time, use this rate " 
+                     "If the video does not provide a valid time, use this rate "
                      "to compute frame time.  Set 0 to disable.");
 
   vital::algo::video_input::
@@ -114,10 +114,10 @@ video_input_filter
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_start_at_frame = config->get_value<vital::frame_id_t>(
     "start_at_frame", d->c_start_at_frame );
 
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_stop_after_frame = config->get_value<vital::frame_id_t>(
     "stop_after_frame", d->c_stop_after_frame );
 
   // get frame time

@@ -173,7 +173,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
   if (d->m_first)
   {
-    time_t rawtime;
+    std::time_t rawtime;
     struct tm * timeinfo;
 
     time ( &rawtime );
