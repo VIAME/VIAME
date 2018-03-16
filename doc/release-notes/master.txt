@@ -117,6 +117,11 @@ Vital
    moved into vital/io, and the KLV conversion functions have moved into
    vital/klv.
 
+ * Refactor timestamp types for time and frame number. Standardized on
+   the base kwiver::vital types for frame_id and time. Renamed time_t
+   to time_us_t to provide some distance from std::time_t and make the
+   units apparent.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
@@ -178,10 +183,10 @@ Tools
 
 Unit Tests
 
- * KWIVER is in the process of transitioning to Google Test as its primary
-   testing framework.  This means that Google Test is now a hard dependency
-   when KWIVER_ENABLE_TESTS is ON.  (Recent versions of Fletch include Google
-   Test.)  The Sprokit tests will continue to use their own framework.
+ * KWIVER now uses Google Test as its primary testing framework.  This means
+   that Google Test is now a hard dependency when KWIVER_ENABLE_TESTS is ON.
+   (Recent versions of Fletch include Google Test.)  The Sprokit tests will
+   continue to use their own framework.
 
 
 Fixes since v1.1.0

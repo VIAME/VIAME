@@ -41,7 +41,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <boost/math/common_factor_rt.hpp>
+#include <boost/integer/common_factor_rt.hpp>
 
 #include <functional>
 #include <map>
@@ -2175,7 +2175,7 @@ pipeline::priv
     process::port_frequency_t const& freq = proc_freq.second;
     process::frequency_component_t const denom = freq.denominator();
 
-    freq_gcd = boost::math::lcm(freq_gcd, denom);
+    freq_gcd = boost::integer::lcm(freq_gcd, denom);
   }
 
   for (process_frequency_map_t::value_type const& proc_freq : freq_map)

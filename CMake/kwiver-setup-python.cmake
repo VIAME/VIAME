@@ -85,7 +85,16 @@ endfunction()
 ###
 # Python major version user option
 #
-set(KWIVER_PYTHON_MAJOR_VERSION "2" CACHE STRING "Python version to use: 3 or 2")
+
+# Respect the PYTHON_VERSION_MAJOR version if it is set
+if (PYTHON_VERSION_MAJOR)
+  set(DEFAULT_PYTHON_MAJOR ${PYTHON_VERSION_MAJOR})
+else()
+  set(DEFAULT_PYTHON_MAJOR "2")
+endif()
+
+
+set(KWIVER_PYTHON_MAJOR_VERSION "${DEFAULT_PYTHON_MAJOR}" CACHE STRING "Python version to use: 3 or 2")
 set_property(CACHE KWIVER_PYTHON_MAJOR_VERSION PROPERTY STRINGS "3" "2")
 
 
@@ -138,10 +147,7 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 # Get canonical directory for python site packages (relative to install
 # location).  It varys from system to system.
 #
-_pycmd(python_site_packages "\
-from distutils import sysconfig
-print(sysconfig.get_python_lib(prefix=''))
-")
+_pycmd(python_site_packages "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix=''))")
 message(STATUS "python_site_packages = ${python_site_packages}")
 # Current usage determines most of the path in alternate ways.
 # All we need to supply is the '*-packages' directory name.
@@ -155,12 +161,11 @@ get_filename_component(python_sitename ${python_site_packages} NAME)
 # Use the executable to find the major/minor version.
 # If you want to change this, then change the executable.
 #
-_pycmd(PYTHON_VERSION "\
-import sys
-print(sys.version[0:3])
-")
+_pycmd(PYTHON_VERSION "import sys; print(sys.version[0:3])")
 # assert that the right python version was found
 if(NOT PYTHON_VERSION MATCHES "^${KWIVER_PYTHON_MAJOR_VERSION}.*")
+  message(STATUS "KWIVER_PYTHON_MAJOR_VERSION = ${KWIVER_PYTHON_MAJOR_VERSION}")
+  message(STATUS "PYTHON_VERSION = ${PYTHON_VERSION}")
   message(FATAL_ERROR "Requested python \"${KWIVER_PYTHON_MAJOR_VERSION}\" but got \"${PYTHON_VERSION}\"")
 endif()
 
@@ -173,10 +178,7 @@ endif()
 #
 if (KWIVER_PYTHON_MAJOR_VERSION STREQUAL "3")
   # In python 3, we can determine what the ABI flags are
-  _pycmd(_python_abi_flags "\
-from distutils import sysconfig
-print(sysconfig.get_config_var('ABIFLAGS'))
-")
+  _pycmd(_python_abi_flags "from distutils import sysconfig; print(sysconfig.get_config_var('ABIFLAGS'))")
 else()
   # Not sure if ABI flags are easilly found (or are even used in python2)
   set(_python_abi_flags, "")
@@ -202,8 +204,13 @@ mark_as_advanced(PYTHON_ABIFLAGS)
 # packages will be generated in the build tree. (TODO: python modules should
 # use a setup.py file to install themselves to the right location)
 #
-set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}")
+#set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
+
+# Instead of contructing the directory with ABIFLAGS just use what python gives us
+get_filename_component(python_lib_subdir ${python_site_packages} DIRECTORY)
+get_filename_component(python_subdir ${python_lib_subdir} NAME)
+set(kwiver_python_subdir ${python_subdir})
+set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/${python_lib_subdir}")
 
 # Currently needs to be separate because sprokit may have CONFIGURATIONS that
 # are placed between lib and `kwiver_python_subdir`
