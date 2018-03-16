@@ -38,6 +38,7 @@
 #ifndef VITAL_OBJECT_TRACK_SET_H_
 #define VITAL_OBJECT_TRACK_SET_H_
 
+#include "timestamp.h"
 #include "track_set.h"
 #include "detected_object.h"
 
@@ -64,6 +65,14 @@ public:
     : track_state( frame )
     , detection( d )
     , time_( time )
+  {}
+
+  /// Alternative constructor
+  object_track_state( const timestamp& ts,
+                      detected_object_sptr d = nullptr )
+    : track_state( ts.get_frame() )
+    , detection( d )
+    , time_( ts.get_time_usec() )
   {}
 
   /// Copy constructor
