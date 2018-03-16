@@ -184,19 +184,22 @@ close_loops_process
   vital::feature_track_set_sptr next_tracks =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first)
   {
     vital::feature_track_set_sptr loob_back_tracks =
       grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
 
+    loob_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loob_back_tracks->clone());
+
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
                    next_tracks, frame_time.get_frame(), loob_back_tracks);
   }
   else
   {
-    curr_tracks =
-      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = next_tracks;
   }
   d->first = false;
 
@@ -269,9 +272,7 @@ close_loops_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //clone loop back tracks so we can change it.
-  vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
+  vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
   //need to pull the key-frame data from next_tracks
   curr_tracks->set_frame_data(next_tracks->all_frame_data());
