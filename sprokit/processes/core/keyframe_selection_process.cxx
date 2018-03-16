@@ -158,11 +158,15 @@ keyframe_selection_process
   vital::feature_track_set_sptr next_tracks =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first_frame)
   {
     vital::feature_track_set_sptr loop_back_tracks =
       grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
+
+    loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
     //merging does the clone of next tracks
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
@@ -170,8 +174,7 @@ keyframe_selection_process
   }
   else
   {
-    curr_tracks =
-      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = next_tracks;
   }
 
 
@@ -247,12 +250,26 @@ keyframe_selection_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //clone the loop back tracks
-  vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
+  vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
   //now add the next tracks to it
   auto nt = next_tracks->tracks();
+  auto cct = curr_tracks->tracks();
+  std::vector<kwiver::vital::track_id_t> nt_id, ct_id, diff_id;
+  for (auto &t : nt)
+  {
+    nt_id.push_back(t->id());
+  }
+  for (auto &t : cct)
+  {
+    ct_id.push_back(t->id());
+  }
+  std::sort(nt_id.begin(), nt_id.end());
+  std::sort(ct_id.begin(), ct_id.end());
+  std::set_symmetric_difference(nt_id.begin(), nt_id.end(), ct_id.begin(), ct_id.end(), std::inserter(diff_id, diff_id.begin()));
+
+  auto ndif = diff_id.size();
+
   for (auto &t : nt)
   {
     auto ct = curr_tracks->get_track(t->id());
