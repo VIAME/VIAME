@@ -112,12 +112,12 @@ public:
   // Configuration values
   int m_config_error_mode; // error mode
   std::vector< std::string > m_config_path;
-  kwiver::vital::timestamp::time_t m_config_frame_time;
+  kwiver::vital::time_us_t m_config_frame_time;
   bool m_no_path_in_name;
 
   // local state
-  kwiver::vital::timestamp::frame_t m_frame_number;
-  kwiver::vital::timestamp::time_t m_frame_time;
+  kwiver::vital::frame_id_t m_frame_number;
+  kwiver::vital::time_us_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;

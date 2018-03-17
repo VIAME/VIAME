@@ -184,9 +184,12 @@ function (sprokit_create_python_init    modpath)
   file(WRITE "${init_template}"
     "${copyright_header}\n\n")
 
+  file(APPEND "${init_template}"
+    "from __future__ import absolute_import\n\n")
+
   foreach (module IN LISTS ARGN)
     file(APPEND "${init_template}"
-      "from ${module} import *\n")
+      "from .${module} import *\n")
   endforeach ()
 
   sprokit_add_python_module("${init_template}"

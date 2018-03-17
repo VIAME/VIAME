@@ -21,6 +21,7 @@ set(__testable_modnames
   test_landmark
   test_rotation
   test_similarity
+  test_timestamp
   test_track
   test_track_set
   test_track_state

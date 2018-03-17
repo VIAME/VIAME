@@ -152,7 +152,7 @@ handle_descriptor_request_core
   vital::detected_object_sptr det(
     new vital::detected_object( dims ) );
   vital::track_state_sptr state1(
-    new vital::object_track_state( fake_ts.get_frame(), fake_ts.get_time_usec(), det ) );
+    new vital::object_track_state( fake_ts, det ) );
 
   ff_track->append( state1 );
 

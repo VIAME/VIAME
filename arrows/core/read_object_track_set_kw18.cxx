@@ -89,20 +89,20 @@ public:
   bool m_batch_load;
   std::string m_delim;
 
-  int m_current_idx;
-  int m_last_idx;
+  vital::frame_id_t m_current_idx;
+  vital::frame_id_t m_last_idx;
 
   void read_all();
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
-  std::map< int, std::vector< vital::track_sptr > > m_tracks_by_frame_id;
+  std::map< vital::frame_id_t, std::vector< vital::track_sptr > > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
-  std::map< int, vital::track_sptr > m_all_tracks;
+  std::map< vital::frame_id_t, vital::track_sptr > m_all_tracks;
 
   // Compilation of all loaded track IDs, track id -> type string
-  std::map< int, std::string > m_track_ids;
+  std::map< vital::frame_id_t, std::string > m_track_ids;
 };
 
 
@@ -170,8 +170,7 @@ read_object_track_set_kw18
   {
     std::vector< vital::track_sptr > trks;
 
-    for( std::map< int, vital::track_sptr >::iterator it = d->m_all_tracks.begin();
-         it != d->m_all_tracks.end(); ++it )
+    for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
     {
       trks.push_back( it->second );
     }
@@ -262,7 +261,8 @@ read_object_track_set_kw18::priv
      * This allows for track states to be written in a non-contiguous
      * manner as may be done by streaming writers.
      */
-    int frame_index = atoi( col[COL_FRAME].c_str() );
+    vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
+    vital::time_us_t frame_time = atof( col[COL_TIME].c_str() );
     int track_index = atoi( col[COL_ID].c_str() );
 
     vital::bounding_box_d bbox(
@@ -283,9 +283,8 @@ read_object_track_set_kw18::priv
       std::make_shared< vital::detected_object >( bbox, conf );
 
     // Create new object track state
-    // TODO Write/read proper timestamp?
     vital::track_state_sptr ots =
-      std::make_shared< vital::object_track_state >( frame_index, 0, det );
+      std::make_shared< vital::object_track_state >( frame_index, frame_time, det );
 
     // Assign object track state to track
     vital::track_sptr trk;
