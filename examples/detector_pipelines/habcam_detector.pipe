@@ -47,30 +47,38 @@ process scallop_yolo_v2_detector
   :: image_object_detector
   :detector:type                     darknet
 
-  # Network config, weights, and names
-  :detector:darknet:net_config       models/habcam_yolo_v2.cfg
-  :detector:darknet:weight_file      models/habcam_yolo_v2.weights
-  :detector:darknet:class_names      models/habcam_yolo_v2.lbl
+  block detector:darknet
 
-  # Detector parameters
-  :detector:darknet:thresh           0.001
-  :detector:darknet:hier_thresh      0.001
-  :detector:darknet:gpu_index        0
+    # Network config, weights, and names
+    relativepath net_config =        models/habcam_yolo_v2.cfg
+    relativepath weight_file =       models/habcam_yolo_v2.weights
+    relativepath class_names =       models/habcam_yolo_v2.lbl
 
-  # Image scaling parameters
-  :detector:darknet:resize_option    maintain_ar
-  :detector:darknet:resize_ni        960
-  :detector:darknet:resize_nj        960
-  :detector:darknet:scale            1.0
+    # Detector parameters
+    :thresh                          0.001
+    :hier_thresh                     0.001
+    :gpu_index                       0
+
+    # Image scaling parameters
+    :resize_option                   maintain_ar
+    :resize_ni                       960
+    :resize_nj                       960
+    :scale                           1.0
+
+  endblock
 
 process scallop_yolo_v2_filter
   :: detected_object_filter
   :filter:type                       class_probablity_filter
 
-  # Filter parameters
-  :filter:class_probablity_filter:threshold        0.100
-  :filter:class_probablity_filter:keep_all_classes false
-  :filter:class_probablity_filter:keep_classes     live_scallop;dead_scallop
+  block filter:class_probablity_filter
+
+    # Filter parameters
+    :threshold                       0.100
+    :keep_all_classes                false
+    :keep_classes                    live_scallop;dead_scallop
+  
+  endblock
 
 process scallop_yolo_v2_kw18_writer
   :: detected_object_output
@@ -115,30 +123,38 @@ process skate_yolo_v2_detector
   :: image_object_detector
   :detector:type                     darknet
 
-  # Network config, weights, and names
-  :detector:darknet:net_config       models/default_yolo_v2.cfg
-  :detector:darknet:weight_file      models/default_yolo_v2.weights
-  :detector:darknet:class_names      models/default_yolo_v2.lbl
+  block detector:darknet
 
-  # Detector parameters
-  :detector:darknet:thresh           0.001
-  :detector:darknet:hier_thresh      0.001
-  :detector:darknet:gpu_index        0
+    # Network config, weights, and names
+    relativepath net_config =        models/default_yolo_v2.cfg
+    relativepath weight_file =       models/default_yolo_v2.weights
+    relativepath class_names =       models/default_yolo_v2.lbl
 
-  # Image scaling parameters
-  :detector:darknet:resize_option    maintain_ar
-  :detector:darknet:resize_ni        544
-  :detector:darknet:resize_nj        544
-  :detector:darknet:scale            1.0
+    # Detector parameters
+    :thresh                          0.001
+    :hier_thresh                     0.001
+    :gpu_index                       0
+
+    # Image scaling parameters
+    :resize_option                   maintain_ar
+    :resize_ni                       544
+    :resize_nj                       544
+    :scale                           1.0
+
+  endblock
 
 process skate_yolo_v2_filter
   :: detected_object_filter
   :filter:type                       class_probablity_filter
 
-  # Filter parameters
-  :filter:class_probablity_filter:threshold        0.100
-  :filter:class_probablity_filter:keep_all_classes false
-  :filter:class_probablity_filter:keep_classes     fish
+  block filter:class_probablity_filter
+
+    # Filter parameters
+    :threshold                       0.100
+    :keep_all_classes                false
+    :keep_classes                    fish
+
+  endblock
 
 process skate_yolo_v2_kw18_writer
   :: detected_object_output
@@ -182,7 +198,10 @@ connect from input.image_file_name
 #process scallop_tk_detector
 #  :: image_object_detector
 #  :detector:type    scallop_tk
-#  :detector:scallop_tk:config_file   models/scallop_tk/SYSTEM_SETTINGS
+#
+#  block detector:scallop_tk
+#    relativepath config_file =      models/scallop_tk/SYSTEM_SETTINGS
+#  endblock
 #
 #process scallop_tk_kw18_writer
 #  :: detected_object_output
