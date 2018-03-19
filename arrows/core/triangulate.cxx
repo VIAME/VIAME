@@ -78,7 +78,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
 }
 
 
-/// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
+/// Triangulate a m_homogeneous 3D point from a set of cameras and 2D image points
 template <typename T>
 Eigen::Matrix<T,4,1>
 triangulate_homog(const std::vector<vital::simple_camera >& cameras,

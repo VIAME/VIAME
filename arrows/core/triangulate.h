@@ -64,16 +64,16 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
                     const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 
-/// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
+/// Triangulate a m_homogeneous 3D point from a set of cameras and 2D image points
 /**
- *  This function computes a linear least squares solution find a homogeneous
+ *  This function computes a linear least squares solution find a m_homogeneous
  *  3D point that is the closest intersection of all the rays using a
- *  homogeneous system of equations.  This method is not invariant to
+ *  m_homogeneous system of equations.  This method is not invariant to
  *  tranformations but does allow for 3D points at infinity.
  *
  *  \param cameras a vector of camera objects
  *  \param points a vector of image points corresponding to each camera
- *  \return a homogeneous 3D triangulated point location
+ *  \return a m_homogeneous 3D triangulated point location
  */
 template <typename T>
 KWIVER_ALGO_CORE_EXPORT
