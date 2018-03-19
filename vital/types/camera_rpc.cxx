@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,11 @@ camera_rpc
     ( pt - world_offset() ).cwiseQuotient( world_scale() );
 
   // Calculate polynomials
-  auto polys = rpc_coeffs()*power_vector(norm_pt);
+  // TODO: why doesn't this work ?
+  // auto polys = this->rpc_coeffs()*this->power_vector(norm_pt);
+  auto rpc = this->rpc_coeffs();
+  auto pv = this->power_vector(norm_pt);
+  auto polys = rpc*pv;
   vector_2d image_pt( polys[0] / polys[1], polys[2] / polys[3]);
 
   // Un-normalize
@@ -75,7 +79,7 @@ simple_camera_rpc
 ::power_vector( const vector_3d& pt ) const
 {
   // Form the monomials in homogeneous form
-  double w  = 1;
+  double w  = 1.0;
   double x = pt.x();
   double y = pt.y();
   double z = pt.z();

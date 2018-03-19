@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,7 @@ public:
     rpc_coeffs_(1, 0) = 1.0;
     rpc_coeffs_(3, 0) = 1.0;
     rpc_coeffs_(0, 1) = 1.0;
-    rpc_coeffs_(0, 2) = 1.0;
+    rpc_coeffs_(2, 2) = 1.0;
   }
 
 /// Constructor - direct from coeffs, scales, and offset
