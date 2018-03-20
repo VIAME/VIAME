@@ -190,6 +190,8 @@ public:
   /// Return the additional data associated with all feature tracks on the given frame
   feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
 
+  virtual void merge_in_other_feature_track_set(feature_track_set_sptr other, bool do_not_append_tracks = false);
+
 };
 
 
