@@ -86,6 +86,9 @@ public:
   /// Notify the container that a new state has been added to an existing track
   virtual void notify_new_state( vital::track_state_sptr ts );
 
+  /// Notify the container that a state has been removed from an existing track
+  virtual void notify_removed_state(vital::track_state_sptr ts);
+
   /// Remove a track from the set and return true if successful
   virtual bool remove( vital::track_sptr t );
 
@@ -140,6 +143,9 @@ public:
   /// Return the additional data associated with all tracks on the given frame
   virtual vital::track_set_frame_data_sptr
   frame_data( vital::frame_id_t offset = -1 ) const;
+
+  /// Removes the frame data for the frame offset
+  virtual bool remove_frame_data(vital::frame_id_t offset);
 
   /// Set additional frame data associated with all tracks for all frames
   virtual bool set_frame_data( vital::track_set_frame_data_map_t const& fmap )

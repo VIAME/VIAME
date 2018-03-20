@@ -69,6 +69,13 @@ track_set_implementation
   // by default, notification does nothing
 }
 
+/// Notify the container that a state has been removed from an existing track
+void
+track_set_implementation
+::notify_removed_state(track_state_sptr ts)
+{
+  //by default, notification does nothing
+}
 
 /// merge the pair of tracks \p t1 and \p t2, if possible
 bool
@@ -464,6 +471,21 @@ simple_track_set_implementation
     return itr->second;
   }
   return nullptr;
+}
+
+/// Removes the frame data for the frame offset
+bool
+simple_track_set_implementation
+::remove_frame_data(frame_id_t offset)
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if (itr != frame_data_.end())
+  {
+    frame_data_.erase(itr);
+    return true;
+  }
+  return false;
 }
 
 

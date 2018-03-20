@@ -187,6 +187,22 @@ track
   return true;
 }
 
+/// Remove a track state
+bool
+track
+::remove(track_state_sptr state)
+{
+  for (auto it = this->history_.begin(); it != this->history_.end(); ++it)
+  {
+    if (state == *it)
+    {
+      this->history_.erase(it);
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Find the track state iterator matching \a frame
 track::history_const_itr
 track
