@@ -55,12 +55,12 @@ class pytorch_siamese_f_extractor(object):
 
         if GPU_list is None:
             GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0
+            self._target_GPU = 0
         else:
-            target_GPU = GPU_list[0]
+            self._target_GPU = GPU_list[0]
 
         # load siamese model
-        self._siamese_model = Siamese().cuda(device_id=target_GPU)
+        self._siamese_model = Siamese().cuda(self._target_GPU)
         self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
 
         snapshot = torch.load(siamese_model_path)
@@ -95,7 +95,7 @@ class pytorch_siamese_f_extractor(object):
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
         for idx, imgs in enumerate(bbox_loader):
-            v_imgs = Variable(imgs, volatile=True).cuda()
+            v_imgs = Variable(imgs, volatile=True).cuda(self._target_GPU)
             output = self._siamese_model(v_imgs)
 
             if idx == 0:

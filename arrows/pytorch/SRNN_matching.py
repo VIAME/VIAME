@@ -106,7 +106,7 @@ class SRNN_matching(object):
         # load target AIM model, trained with fixed variable timestep
         full_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
         self._targetRNN_full_model = TargetLSTM(model_list=full_model_list)
-        self._targetRNN_full_model = self._targetRNN_full_model.cuda(device_id=self._target_GPU)
+        self._targetRNN_full_model = self._targetRNN_full_model.cuda(self._target_GPU)
 
         snapshot = torch.load(targetRNN_full_model_path)
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
@@ -115,7 +115,7 @@ class SRNN_matching(object):
 
         # load  target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list).cuda(device_id=self._target_GPU)
+        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list).cuda(self._target_GPU)
 
         snapshot = torch.load(targetRNN_AIM_V_model_path)
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
@@ -126,7 +126,7 @@ class SRNN_matching(object):
         tracks_num = len(track_set)
         track_states_num = len(track_state_list)
 
-        self._similarity_mat = torch.FloatTensor(tracks_num, track_states_num).fill_(1.0).cuda()
+        self._similarity_mat = torch.FloatTensor(tracks_num, track_states_num).fill_(1.0).cuda(self._target_GPU)
 
         # obtain the dict: simailarity row idx->track_id
         track_idx_list = []
@@ -152,10 +152,14 @@ class SRNN_matching(object):
 
         for (app_f_list, app_target_f, motion_f_list, motion_target_f, interaction_f_list, interaction_target_f, bbar_f_list, bbar_target_f, t, ts) in loader:
 
-            v_app_seq, v_app_target = Variable(app_f_list, volatile=True).cuda(), Variable(app_target_f, volatile=True).cuda()
-            v_motion_seq, v_motion_target = Variable(motion_f_list, volatile=True).cuda(), Variable(motion_target_f, volatile=True).cuda()
-            v_interaction_seq, v_interaction_target = Variable(interaction_f_list, volatile=True).cuda(), Variable(interaction_target_f, volatile=True).cuda()
-            v_bbar_seq, v_bbar_target = Variable(bbar_f_list, volatile=True).cuda(), Variable(bbar_target_f, volatile=True).cuda()
+            v_app_seq = Variable(app_f_list, volatile=True).cuda(self._target_GPU)
+            v_app_target =  Variable(app_target_f, volatile=True).cuda(self._target_GPU)
+            v_motion_seq = Variable(motion_f_list, volatile=True).cuda(self._target_GPU) 
+            v_motion_target = Variable(motion_target_f, volatile=True).cuda(self._target_GPU)
+            v_interaction_seq = Variable(interaction_f_list, volatile=True).cuda(self._target_GPU) 
+            v_interaction_target = Variable(interaction_target_f, volatile=True).cuda(self._target_GPU)
+            v_bbar_seq = Variable(bbar_f_list, volatile=True).cuda(self._target_GPU)
+            v_bbar_target = Variable(bbar_target_f, volatile=True).cuda(self._target_GPU)
         
             if rnnType is RnnType.Target_RNN_AIM:
                 output = self._targetRNN_full_model(v_app_seq, v_app_target, v_motion_seq, v_motion_target, 
