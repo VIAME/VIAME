@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -230,7 +230,7 @@ video_input_split
 
   // Both timestamps should be the same
   ts = metadata_ts;
-  if (image_ts != metadata_ts )
+  if ( image_ts != metadata_ts )
   {
     if ( image_ts.get_frame() == metadata_ts.get_frame() )
     {
@@ -252,6 +252,45 @@ video_input_split
 
   return true;
 } // video_input_split::next_frame
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_split
+::frame_timestamp() const
+{
+  // Check for at end of data
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
+  auto const& image_ts = d->d_image_source->frame_timestamp();
+  auto const& metadata_ts = d->d_metadata_source->frame_timestamp();
+
+  auto ts = metadata_ts;
+  if ( image_ts != metadata_ts )
+  {
+    if ( image_ts.get_frame() == metadata_ts.get_frame() )
+    {
+      if ( image_ts.has_valid_time() && ! metadata_ts.has_valid_time() )
+      {
+        ts.set_time_usec( image_ts.get_time_usec() );
+      }
+      else if ( image_ts.has_valid_time() && metadata_ts.has_valid_time() )
+      {
+        LOG_WARN( logger(), "Timestamps from image and metadata sources have different time" );
+      }
+    }
+    else
+    {
+      // throw something?
+      LOG_WARN( logger(), "Timestamps from image and metadata sources are out of sync" );
+    }
+  }
+
+  return ts;
+}
 
 
 // ------------------------------------------------------------------

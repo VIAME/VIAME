@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -235,6 +235,21 @@ public:
    */
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 ) = 0;
+
+
+  /**
+   * \brief Obtain the time stamp of the current frame.
+   *
+   * This method returns the time stamp of the current frame, if any, or an
+   * invalid time stamp. The returned time stamp shall have the same value
+   * as was set by the most recent call to \c next_frame().
+   *
+   * This method is idempotent. Calling it multiple times without
+   * calling next_frame() will return the same time stamp.
+   *
+   * \return The time stamp of the current frame.
+   */
+  virtual kwiver::vital::timestamp frame_timestamp( ) const = 0;
 
 
   /**

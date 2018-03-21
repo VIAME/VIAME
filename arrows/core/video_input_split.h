@@ -80,6 +80,7 @@ public:
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
 
+  virtual kwiver::vital::timestamp frame_timestamp() const;
   virtual kwiver::vital::image_container_sptr frame_image();
   virtual kwiver::vital::metadata_vector frame_metadata();
 
