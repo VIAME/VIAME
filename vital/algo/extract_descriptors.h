@@ -66,7 +66,7 @@ public:
    */
   virtual kwiver::vital::descriptor_set_sptr
   extract(kwiver::vital::image_container_sptr image_data,
-          kwiver::vital::feature_set_sptr features,
+          kwiver::vital::feature_set_sptr &features,
           kwiver::vital::image_container_sptr image_mask = kwiver::vital::image_container_sptr()) const = 0;
 
 protected:
