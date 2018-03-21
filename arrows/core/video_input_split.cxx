@@ -229,26 +229,7 @@ video_input_split
   }
 
   // Both timestamps should be the same
-  ts = metadata_ts;
-  if ( image_ts != metadata_ts )
-  {
-    if ( image_ts.get_frame() == metadata_ts.get_frame() )
-    {
-      if ( image_ts.has_valid_time() && ! metadata_ts.has_valid_time() )
-      {
-        ts.set_time_usec( image_ts.get_time_usec() );
-      }
-      else if ( image_ts.has_valid_time() && metadata_ts.has_valid_time() )
-      {
-        LOG_WARN( logger(), "Timestamps from image and metadata sources have different time" );
-      }
-    }
-    else
-    {
-      // throw something?
-      LOG_WARN( logger(), "Timestamps from image and metadata sources are out of sync" );
-    }
-  }
+  ts = merge_timestamps( image_ts, metadata_ts );
 
   return true;
 } // video_input_split::next_frame
@@ -268,28 +249,7 @@ video_input_split
   auto const& image_ts = d->d_image_source->frame_timestamp();
   auto const& metadata_ts = d->d_metadata_source->frame_timestamp();
 
-  auto ts = metadata_ts;
-  if ( image_ts != metadata_ts )
-  {
-    if ( image_ts.get_frame() == metadata_ts.get_frame() )
-    {
-      if ( image_ts.has_valid_time() && ! metadata_ts.has_valid_time() )
-      {
-        ts.set_time_usec( image_ts.get_time_usec() );
-      }
-      else if ( image_ts.has_valid_time() && metadata_ts.has_valid_time() )
-      {
-        LOG_WARN( logger(), "Timestamps from image and metadata sources have different time" );
-      }
-    }
-    else
-    {
-      // throw something?
-      LOG_WARN( logger(), "Timestamps from image and metadata sources are out of sync" );
-    }
-  }
-
-  return ts;
+  return merge_timestamps( image_ts, metadata_ts );
 }
 
 
@@ -308,6 +268,42 @@ video_input_split
 ::frame_metadata()
 {
   return d->d_metadata_source->frame_metadata();
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_split
+::merge_timestamps(
+    kwiver::vital::timestamp const& image_ts,
+    kwiver::vital::timestamp const& metadata_ts ) const
+{
+  auto ts = metadata_ts;
+  if ( image_ts != metadata_ts )
+  {
+    if ( image_ts.get_frame() == metadata_ts.get_frame() )
+    {
+      if ( image_ts.has_valid_time() && metadata_ts.has_valid_time() )
+      {
+        LOG_WARN( logger(), "Timestamps from image and metadata sources have different time" );
+      }
+      else if ( image_ts.has_valid_time() )
+      {
+        ts.set_time_usec( image_ts.get_time_usec() );
+      }
+      else if ( metadata_ts.has_valid_time() )
+      {
+        ts.set_time_usec( metadata_ts.get_time_usec() );
+      }
+    }
+    else
+    {
+      // throw something?
+      LOG_WARN( logger(), "Timestamps from image and metadata sources are out of sync" );
+    }
+  }
+
+  return ts;
 }
 
 } } }     // end namespace

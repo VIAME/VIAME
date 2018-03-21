@@ -85,6 +85,10 @@ public:
   virtual kwiver::vital::metadata_vector frame_metadata();
 
 private:
+  kwiver::vital::timestamp merge_timestamps(
+    kwiver::vital::timestamp const& image_ts,
+    kwiver::vital::timestamp const& metadata_ts ) const;
+
   /// private implementation class
   class priv;
   const std::unique_ptr<priv> d;
