@@ -64,9 +64,9 @@ public:
   priv()
     : m_homogeneous(false),
       m_ransac(true),
-      min_angle_deg(1.0f),
-      inlier_threshold_pixels(100.0f),
-      frac_track_inliers_to_keep_triangulated_point(0.5f),
+      m_min_angle_deg(1.0f),
+      m_inlier_threshold_pixels(100.0f),
+      m_frac_track_inliers_to_keep_triangulated_point(0.5f),
       m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" )),
       m_max_ransac_samples(20),
       m_conf_thresh(0.99)
@@ -76,10 +76,10 @@ public:
   priv(const priv& other)
     : m_homogeneous(other.m_homogeneous),
       m_ransac(other.m_ransac),
-      min_angle_deg(other.min_angle_deg),
-      inlier_threshold_pixels(other.inlier_threshold_pixels),
-      frac_track_inliers_to_keep_triangulated_point(
-        other.frac_track_inliers_to_keep_triangulated_point),
+      m_min_angle_deg(other.m_min_angle_deg),
+      m_inlier_threshold_pixels(other.m_inlier_threshold_pixels),
+      m_frac_track_inliers_to_keep_triangulated_point(
+        other.m_frac_track_inliers_to_keep_triangulated_point),
       m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" )),
       m_max_ransac_samples(other.m_max_ransac_samples)
   {
@@ -95,12 +95,12 @@ public:
               const std::vector<vital::vector_2d> &lm_image_pts,
               vital::vector_3d &pt3d) const;
 
-  /// use the m_homogeneous method for triangulation
+  /// use the homogeneous method for triangulation
   bool m_homogeneous;
   bool m_ransac;
-  float min_angle_deg;
-  float inlier_threshold_pixels;
-  float frac_track_inliers_to_keep_triangulated_point;
+  float m_min_angle_deg;
+  float m_inlier_threshold_pixels;
+  float m_frac_track_inliers_to_keep_triangulated_point;
   /// logger handle
   vital::logger_handle_t m_logger;
   int m_max_ransac_samples;
@@ -142,21 +142,21 @@ triangulate_landmarks
 
   // Bad frame detection parameters
   config->set_value("homogeneous", d_->m_homogeneous,
-                    "Use the m_homogeneous method for triangulating points. "
-                    "The m_homogeneous method can triangulate points at or near "
+                    "Use the homogeneous method for triangulating points. "
+                    "The homogeneous method can triangulate points at or near "
                     "infinity and discard them.");
 
   config->set_value("ransac", d_->m_ransac,"Use RANSAC in triangulating the points");
 
-  config->set_value("min_angle_deg", d_->min_angle_deg,
+  config->set_value("min_angle_deg", d_->m_min_angle_deg,
                     "minimum angle required to triangulate a point.");
 
 
-  config->set_value("inlier_threshold_pixels", d_->inlier_threshold_pixels,
+  config->set_value("inlier_threshold_pixels", d_->m_inlier_threshold_pixels,
                    "reprojection error threshold in pixels.");
 
   config->set_value("frac_track_inliers_to_keep_triangulated_point",
-                    d_->frac_track_inliers_to_keep_triangulated_point,
+                    d_->m_frac_track_inliers_to_keep_triangulated_point,
                     "fraction of measurements in track that must be inliers to "
                     "keep the triangulated point");
 
@@ -188,15 +188,15 @@ triangulate_landmarks
 
   d_->m_ransac = config->get_value<bool>("ransac", d_->m_ransac);
 
-  d_->min_angle_deg = config->get_value<float>("min_angle_deg", d_->min_angle_deg);
+  d_->m_min_angle_deg = config->get_value<float>("min_angle_deg", d_->m_min_angle_deg);
 
-  d_->inlier_threshold_pixels =
+  d_->m_inlier_threshold_pixels =
     config->get_value<float>("inlier_threshold_pixels",
-                             d_->inlier_threshold_pixels);
+                             d_->m_inlier_threshold_pixels);
 
-  d_->frac_track_inliers_to_keep_triangulated_point =
+  d_->m_frac_track_inliers_to_keep_triangulated_point =
     config->get_value<float>("frac_track_inliers_to_keep_triangulated_point",
-                             d_->frac_track_inliers_to_keep_triangulated_point);
+                             d_->m_frac_track_inliers_to_keep_triangulated_point);
 
   d_->m_max_ransac_samples =
     config->get_value<int>("max_ransac_samples", d_->m_max_ransac_samples);
@@ -303,7 +303,7 @@ triangulate_landmarks::priv
       }
       f.set_loc(lm_image_pts[idx]);
       double reproj_err = reprojection_error(lm_cams[idx], lm, f);
-      if (reproj_err < inlier_threshold_pixels)
+      if (reproj_err < m_inlier_threshold_pixels)
       {
         ++inlier_count;
       }
@@ -361,7 +361,7 @@ triangulate_landmarks
 
 
   //minimum triangulation angle
-  double thresh_triang_cos_ang = cos(DEG_TO_RAD * d_->min_angle_deg);
+  double thresh_triang_cos_ang = cos(DEG_TO_RAD * d_->m_min_angle_deg);
 
   map_landmark_t triangulated_lms;
   for(const map_landmark_t::value_type& p : lms)
@@ -408,7 +408,7 @@ triangulate_landmarks
       if (d_->m_ransac)
       {
         pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count);
-        if (inlier_count < lm_image_pts.size() * d_->frac_track_inliers_to_keep_triangulated_point)
+        if (inlier_count < lm_image_pts.size() * d_->m_frac_track_inliers_to_keep_triangulated_point)
         {
           failed_landmarks.insert(p.first);
           failed_outlier.insert(p.first);
@@ -418,6 +418,22 @@ triangulate_landmarks
       else
       {
         if (!d_->triangulate(lm_cams, lm_image_pts, pt3d))
+        {
+          failed_landmarks.insert(p.first);
+          continue;
+        }
+        //test if the point is behind any of the cameras
+        bool behind = false;
+        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        {
+          auto depth = lm_cams[idx].depth(pt3d);
+          if (depth <= 0)
+          {
+            behind = true;
+            break;
+          }
+        }
+        if (behind)
         {
           failed_landmarks.insert(p.first);
           continue;
