@@ -20,6 +20,7 @@ ExternalProject_Add(burnout
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_VXL}
+    ${VIAME_ARGS_QT}
 
     -DBUILD_TESTING:BOOL=OFF
     -DVIDTK_BUILD_TESTS:BOOL=OFF

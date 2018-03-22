@@ -236,6 +236,12 @@ if( VIAME_ENABLE_VIVIA )
      ${VIAME_ARGS_PROJ4}
     -DPROJ4_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/install/include
     )
+  if( NOT WIN32 )
+    set(VIAME_ARGS_QT
+      ${VIAME_ARGS_QT}
+      -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/install/bin/qmake
+    )
+  endif()
   if( WIN32 )
     set(VIAME_ARGS_PROJ4
        ${VIAME_ARGS_PROJ4}
