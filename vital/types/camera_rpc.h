@@ -81,7 +81,7 @@ public:
   virtual vector_2d image_offset() const = 0;
 
   // Vector of the powers of the positions
-  virtual Eigen::Matrix<double, 20, 1> power_vector( const vector_3d& pt ) const = 0;
+  virtual Eigen::Matrix< double, 20, 1 > power_vector( const vector_3d& pt ) const = 0;
 
   /// Project a 3D point into a 2D image point
   virtual vector_2d project( const vector_3d& pt ) const;

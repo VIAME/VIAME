@@ -88,6 +88,7 @@ set( vital_public_headers
 
   types/bounding_box.h
   types/camera.h
+  types/camera_from_metadata.h
   types/camera_intrinsics.h
   types/camera_perspective.h
   types/camera_rpc.h
@@ -163,6 +164,7 @@ set( vital_sources
   io/track_set_io.cxx
 
   types/bounding_box.cxx
+  types/camera_from_metadata.cxx
   types/camera_intrinsics.cxx
   types/camera_perspective.cxx
   types/camera_rpc.cxx
