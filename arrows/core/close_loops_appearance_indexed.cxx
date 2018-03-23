@@ -59,6 +59,9 @@ class close_loops_appearance_indexed::priv
 public:
   priv();
 
+  typedef std::pair<feature_track_state_sptr, feature_track_state_sptr> fs_match;
+  typedef std::vector<fs_match> matches_vec;
+
   kwiver::vital::feature_track_set_sptr
     detect(kwiver::vital::feature_track_set_sptr feat_tracks,
       kwiver::vital::frame_id_t frame_number);
@@ -68,6 +71,21 @@ public:
       kwiver::vital::feature_track_set_sptr feat_tracks,
       kwiver::vital::frame_id_t frame_number,
       std::vector<frame_id_t> const &putative_matches);
+
+  void
+  do_matching(const std::vector<feature_track_state_sptr> &va,
+              const std::vector<feature_track_state_sptr> &vb,
+              matches_vec &matches);
+
+  kwiver::vital::feature_track_set_sptr
+    verify_and_add_image_matches_node_id_guided(
+      kwiver::vital::feature_track_set_sptr feat_tracks,
+      kwiver::vital::frame_id_t frame_number,
+      std::vector<frame_id_t> const &putative_matches);
+
+  typedef std::map<unsigned int, std::vector<feature_track_state_sptr>> node_id_to_feat_map;
+
+  node_id_to_feat_map make_node_map(const std::vector<feature_track_state_sptr> &feats);
 
   match_set_sptr
     remove_duplicate_matches(
@@ -94,6 +112,158 @@ close_loops_appearance_indexed::priv
 ::priv()
   : m_min_loop_inlier_matches(50)
 {
+}
+
+//-----------------------------------------------------------------------------
+
+close_loops_appearance_indexed::priv::node_id_to_feat_map
+close_loops_appearance_indexed::priv
+::make_node_map(const std::vector<feature_track_state_sptr> &feats)
+{
+  node_id_to_feat_map fm;
+  for (auto f : feats)
+  {
+    if (f->descriptor && f->node_id != std::numeric_limits<unsigned int>::max())
+    {
+      auto fm_it = fm.find(f->node_id);
+      if (fm_it != fm.end())
+      {
+        fm_it->second.push_back(f);
+      }
+      else
+      {
+        std::vector<feature_track_state_sptr> vec;
+        vec.push_back(f);
+        fm[f->node_id] = vec;
+      }
+    }
+  }
+  return fm;
+}
+
+void
+close_loops_appearance_indexed::priv
+::do_matching(const std::vector<feature_track_state_sptr> &va,
+              const std::vector<feature_track_state_sptr> &vb,
+              matches_vec & matches)
+{
+  const int max_int = std::numeric_limits<int>::max();
+  const int match_thresh = 25;
+  const float next_neigh_match_diff = 2;
+
+  //now loop over all the features in the same bin
+  for (auto cur_feat : va)
+  {
+    int dist1 = max_int;
+    int dist2 = max_int;
+    vital::feature_track_state_sptr best_match = nullptr;
+
+    for (auto match_feat : vb)
+    {
+      int dist = m_bow->descriptor_distance(cur_feat, match_feat);
+      if (dist < dist1)
+      {
+        dist1 = dist;
+        best_match = match_feat;
+      }
+      else if (dist < dist2)
+      {
+        dist2 = dist;
+      }
+    }
+    if (best_match && dist1 != max_int && dist2 != max_int)
+    {
+      if (dist1 < match_thresh  && dist2 > next_neigh_match_diff * dist1)
+      {
+        matches.push_back(fs_match(cur_feat, best_match));
+      }
+    }
+  }
+}
+
+
+kwiver::vital::feature_track_set_sptr
+close_loops_appearance_indexed::priv
+::verify_and_add_image_matches_node_id_guided(
+  kwiver::vital::feature_track_set_sptr feat_tracks,
+  kwiver::vital::frame_id_t frame_number,
+  std::vector<frame_id_t> const &putative_matches)
+{
+  auto cur_frame_fts = feat_tracks->frame_feature_track_states(frame_number);
+
+  int num_successfully_matched_pairs = 0;
+
+  auto cur_node_map = make_node_map(cur_frame_fts);
+
+
+
+  //loop over putatively matching frames
+  for (auto fn_match : putative_matches)
+  {
+    if (fn_match == frame_number)
+    {
+      continue; // no sense matching an image to itself
+    }
+
+    auto match_frame_fts = feat_tracks->frame_feature_track_states(fn_match);
+
+    auto match_node_map = make_node_map(match_frame_fts);
+    int num_linked = 0;
+
+    //ok now we do the matching.
+    //loop over node ids in the current frame
+    for (auto fc : cur_node_map)
+    {
+      //find the matching node id in the putative matching frame
+      auto node_id = fc.first;
+      auto fm = match_node_map.find(node_id);
+      if (fm == match_node_map.end())
+      {
+        //no features with the same node in the putative matching frame
+        continue;
+      }
+
+      auto &cur_feat_vec = fc.second;
+      auto &match_feat_vec = fm->second;
+      matches_vec matches_forward, matches_reverse;
+
+      do_matching( cur_feat_vec, match_feat_vec, matches_forward);
+      do_matching( match_feat_vec, cur_feat_vec, matches_reverse);
+
+      for (auto m_f : matches_forward)
+      {
+        for (auto m_r : matches_reverse)
+        {
+          if (m_f.first == m_r.second && m_f.second == m_r.first)
+          {
+            track_sptr t1 = m_f.first->track();
+            track_sptr t2 = m_f.second->track();
+            if (feat_tracks->merge_tracks(t1, t2))
+            {
+              ++num_linked;
+            }
+            break;
+          }
+        }
+      }
+
+    }
+    //ok, we have all the matches for this node id and the current putative matching frame.  Add them.
+
+    LOG_DEBUG(m_logger, "Stitched " << num_linked <<
+      " tracks between frames " << frame_number <<
+      " and " << fn_match);
+
+    if (num_linked > 0)
+    {
+      ++num_successfully_matched_pairs;
+    }
+  }
+
+  LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches "
+    << num_successfully_matched_pairs << " pairs were verified");
+
+  return feat_tracks;
 }
 
 //-----------------------------------------------------------------------------
@@ -203,13 +373,15 @@ close_loops_appearance_indexed::priv
   std::vector<match_with_cost> mwc_vec;
   mwc_vec.resize(orig_matches.size());
   size_t m_idx = 0;
+  auto fi1_features = fi1->features->features();
+  auto fi2_features = fi2->features->features();
   for (auto m : orig_matches)
   {
     match_with_cost & mwc = mwc_vec[m_idx++];
     mwc.m1 = m.first;
     mwc.m2 = m.second;
-    feature_sptr f1 = fi1->features->features()[mwc.m1];
-    feature_sptr f2 = fi2->features->features()[mwc.m2];
+    feature_sptr f1 = fi1_features[mwc.m1];
+    feature_sptr f2 = fi2_features[mwc.m2];
     //using relative scale as cost
     mwc.cost = f1->scale() / f2->scale();
   }
@@ -262,12 +434,19 @@ close_loops_appearance_indexed::priv
     return feat_tracks;
   }
 
-  descriptor_set_sptr desc = feat_tracks->frame_descriptors(frame_number);
+  auto fd = std::dynamic_pointer_cast<feature_track_set_frame_data>(feat_tracks->frame_data(frame_number));
+  if (!fd || !fd->is_keyframe)
+  {
+    return feat_tracks;
+  }
+
+
+  std::vector<feature_track_state_sptr> fts_vec = feat_tracks->frame_feature_track_states(frame_number);
 
   std::vector<frame_id_t> putative_matching_images =
-    m_bow->query_and_append(desc, frame_number);
+    m_bow->query_and_append(fts_vec, frame_number);
 
-  return verify_and_add_image_matches(feat_tracks, frame_number,
+  return verify_and_add_image_matches_node_id_guided(feat_tracks, frame_number,
                                       putative_matching_images);
 }
 

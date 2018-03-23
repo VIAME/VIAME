@@ -72,6 +72,11 @@ public:
   void load_features(std::string training_image_list,
     std::vector<std::vector<cv::Mat > > &features);
 
+  void feature_track_vec_to_descriptor_vec(
+    std::vector<feature_track_state_sptr>& vfeat,
+    std::vector<cv::Mat> &features,
+    std::vector<feature_track_state_sptr> &features_with_descriptors) const;
+
   void descriptor_set_to_vec(
     descriptor_set_sptr im_descriptors,
     std::vector<cv::Mat> &features) const;
@@ -79,11 +84,11 @@ public:
   cv::Mat descriptor_to_mat(descriptor_sptr) const;
 
   std::vector<frame_id_t>
-  query(kwiver::vital::descriptor_set_sptr desc,
+  query(std::vector<feature_track_state_sptr>& vfeat,
         frame_id_t frame_number,
         bool append_to_index_on_query);
 
-  void append_to_index(const vital::descriptor_set_sptr desc,
+  void append_to_index(std::vector<feature_track_state_sptr>& vfeat,
                        vital::frame_id_t frame);
 
   kwiver::vital::logger_handle_t m_logger;
@@ -161,18 +166,19 @@ match_descriptor_sets::priv
 
 void
 match_descriptor_sets::priv
-::append_to_index(const vital::descriptor_set_sptr desc,
+::append_to_index(std::vector<feature_track_state_sptr>& vfeat,
   vital::frame_id_t frame_number)
 {
   setup_voc();
 
-  if (!desc)
+  if (vfeat.empty())
   {
     return;
   }
 
   std::vector<cv::Mat> desc_mats;
-  descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
+  std::vector<feature_track_state_sptr> fts_with_desc;
+  feature_track_vec_to_descriptor_vec(vfeat, desc_mats, fts_with_desc);  // note that desc_mats can be shorter
                                            // than desc because of null
                                            // descriptors (KLT features)
 
@@ -185,6 +191,16 @@ match_descriptor_sets::priv
   DBoW2::BowVector bow_vec;
   DBoW2::FeatureVector feat_vec;
   m_voc->transform(desc_mats, bow_vec, feat_vec, 3);
+
+  //store node ids in feature_track_states
+  for (auto node_data : feat_vec)
+  {
+    auto node_id = node_data.first;
+    for (auto f_idx : node_data.second)
+    {
+      fts_with_desc[f_idx]->node_id = node_id;
+    }
+  }
 
   const DBoW2::EntryId ent = m_db->add(bow_vec, feat_vec);
   std::pair<const DBoW2::EntryId, kwiver::vital::frame_id_t>
@@ -197,7 +213,7 @@ match_descriptor_sets::priv
 
 std::vector<frame_id_t>
 match_descriptor_sets::priv
-::query( kwiver::vital::descriptor_set_sptr desc,
+::query( std::vector<feature_track_state_sptr>& vfeat,
          frame_id_t frame_number,
          bool append_to_index_on_query)
 {
@@ -205,13 +221,14 @@ match_descriptor_sets::priv
 
   std::vector<frame_id_t> putative_matches;
 
-  if (!desc)
+  if (vfeat.empty())
   {
     return putative_matches;
   }
 
   std::vector<cv::Mat> desc_mats;
-  descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
+  std::vector<feature_track_state_sptr> fts_with_desc;
+  feature_track_vec_to_descriptor_vec(vfeat, desc_mats, fts_with_desc);  // note that desc_mats can be shorter
                                            // than desc because of null
                                            // descriptors (KLT features)
 
@@ -222,8 +239,19 @@ match_descriptor_sets::priv
 
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
-  DBoW2::FeatureVector feat_vec;
+  DBoW2::FeatureVector feat_vec;  //vector of [node id][descriptor index]
   m_voc->transform(desc_mats, bow_vec, feat_vec, 3);
+
+
+  //store node ids in feature_track_states
+  for (auto node_data : feat_vec)
+  {
+    auto node_id = node_data.first;
+    for (auto f_idx : node_data.second)
+    {
+      fts_with_desc[f_idx]->node_id = node_id;
+    }
+  }
 
   int max_res = m_max_num_candidate_matches_from_vocabulary_tree;
   DBoW2::QueryResults ret;
@@ -373,6 +401,34 @@ match_descriptor_sets::priv
 
 void
 match_descriptor_sets::priv
+::feature_track_vec_to_descriptor_vec(
+  std::vector<feature_track_state_sptr>& vfeat,
+  std::vector<cv::Mat> &features,
+  std::vector<feature_track_state_sptr> &features_with_descriptors) const
+{
+  features_with_descriptors.clear();
+
+  features.resize(vfeat.size());
+  unsigned int dn = 0;
+  for (auto f : vfeat)
+  {
+    auto d = f->descriptor;
+    if (!d)
+    {
+      //skip null descriptors
+      continue;
+    }
+    features[dn++] = descriptor_to_mat(d);
+    features_with_descriptors.push_back(f);
+  }
+
+  features.resize(dn);  //resize to only return features for non-null descriptors
+}
+
+//-----------------------------------------------------------------------------
+
+void
+match_descriptor_sets::priv
 ::descriptor_set_to_vec(
   descriptor_set_sptr im_descriptors,
   std::vector<cv::Mat> &features) const
@@ -427,24 +483,56 @@ match_descriptor_sets
 
 void
 match_descriptor_sets
-::append_to_index(const descriptor_set_sptr desc, frame_id_t frame_number)
+::append_to_index(std::vector<feature_track_state_sptr>& vfeat, frame_id_t frame_number)
 {
-  d_->append_to_index(desc, frame_number);
+  d_->append_to_index(vfeat, frame_number);
 }
 
 std::vector<frame_id_t>
 match_descriptor_sets
-::query( const descriptor_set_sptr desc )
+::query(std::vector<feature_track_state_sptr>& vfeat)
 {
-  return d_->query(desc,-1,false);
+  return d_->query(vfeat,-1,false);
 }
 
 std::vector<frame_id_t>
 match_descriptor_sets
-::query_and_append( const vital::descriptor_set_sptr desc,
+::query_and_append(std::vector<feature_track_state_sptr>& vfeat,
                     frame_id_t frame)
 {
-  return d_->query(desc, frame, true);
+  return d_->query(vfeat, frame, true);
+}
+
+// Bit set count operation from
+// http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+int DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
+{
+  const int *pa = a.ptr<int32_t>();
+  const int *pb = b.ptr<int32_t>();
+
+  int dist = 0;
+
+  for (int i = 0; i<8; i++, pa++, pb++)
+  {
+    unsigned  int v = *pa ^ *pb;
+    v = v - ((v >> 1) & 0x55555555);
+    v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+    dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+  }
+
+  return dist;
+}
+
+int
+match_descriptor_sets
+::descriptor_distance(vital::feature_track_state_sptr f1, vital::feature_track_state_sptr f2) const
+{
+  auto d1 = f1->descriptor;
+  auto d2 = f2->descriptor;
+  auto m1 = d_->descriptor_to_mat(d1);
+  auto m2 = d_->descriptor_to_mat(d2);
+
+  return DescriptorDistance(m1, m2);
 }
 
 // ------------------------------------------------------------------

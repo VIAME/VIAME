@@ -73,7 +73,7 @@ public:
   */
   virtual
   void
-  append_to_index( const vital::descriptor_set_sptr desc,
+  append_to_index( std::vector<vital::feature_track_state_sptr>& vfeat,
                    vital::frame_id_t frame_number);
 
   /// Query the inverted file system for similar images.
@@ -84,7 +84,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query( const vital::descriptor_set_sptr desc);
+  query( std::vector<vital::feature_track_state_sptr>& vfeat);
 
   /// Query the inverted file system for similar images and append the querying image.
   /**
@@ -96,7 +96,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query_and_append( const vital::descriptor_set_sptr desc,
+  query_and_append( std::vector<vital::feature_track_state_sptr>& vfeat,
                     vital::frame_id_t frame);
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
@@ -133,6 +133,10 @@ public:
   * \returns true if the configuration check passed and false if it didn't.
   */
   virtual bool check_configuration(vital::config_block_sptr config) const;
+
+  //return the distance between two descriptors
+  virtual
+  int descriptor_distance(vital::feature_track_state_sptr f1, vital::feature_track_state_sptr f2) const;
 
 protected:
   /// the feature m_detector algorithm

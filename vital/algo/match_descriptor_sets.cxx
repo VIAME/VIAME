@@ -55,11 +55,11 @@ match_descriptor_sets
 
 std::vector<vital::frame_id_t>
 match_descriptor_sets
-::query_and_append(const vital::descriptor_set_sptr desc,
+::query_and_append(std::vector<feature_track_state_sptr>& vfeat,
   frame_id_t frame)
 {
-  auto putative_matching_frames = this->query(desc);
-  this->append_to_index(desc, frame);
+  auto putative_matching_frames = this->query(vfeat);
+  this->append_to_index(vfeat, frame);
   return putative_matching_frames;
 }
 

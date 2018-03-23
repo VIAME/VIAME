@@ -44,6 +44,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/descriptor_set.h>
 #include <vital/vital_types.h>
+#include <vital/types/feature_track_set.h>
 
 
 namespace kwiver {
@@ -77,7 +78,7 @@ public:
   */
   virtual
   void
-  append_to_index(const vital::descriptor_set_sptr desc,
+  append_to_index(std::vector<vital::feature_track_state_sptr>& vfeat,
                   vital::frame_id_t frame) = 0;
 
   /// Query the inverted file system for similar sets of descriptors.
@@ -90,7 +91,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query(const vital::descriptor_set_sptr desc) = 0;
+  query(std::vector<vital::feature_track_state_sptr>& vfeat) = 0;
 
   /// Query the inverted file system and append the descriptors.
   /**
@@ -104,8 +105,12 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query_and_append(const vital::descriptor_set_sptr desc,
+  query_and_append(std::vector<vital::feature_track_state_sptr>& vfeat,
                    frame_id_t frame);
+
+  //return the distance between two descriptors
+  virtual
+  int descriptor_distance(vital::feature_track_state_sptr f1, vital::feature_track_state_sptr f2) const = 0;
 
 protected:
 

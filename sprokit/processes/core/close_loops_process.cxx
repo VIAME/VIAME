@@ -181,10 +181,10 @@ close_loops_process
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
 
-  vital::feature_track_set_sptr next_tracks =
+  vital::feature_track_set_sptr next_tracks_in =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
-  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+  auto next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks_in->clone());
 
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first)
