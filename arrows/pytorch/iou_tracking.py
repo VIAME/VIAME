@@ -62,4 +62,4 @@ class IOU_tracker(object):
         size_intersection = (overlap_x1 - overlap_x0) * (overlap_y1 - overlap_y0)
         size_union = size_1 + size_2 - size_intersection
         
-        return size_intersection / size_union
+        return float(size_intersection) / size_union
