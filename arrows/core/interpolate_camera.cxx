@@ -96,8 +96,9 @@ interpolate_camera(vital::camera_perspective_sptr A,
   {
     return A;
   }
-  return interpolate_camera(vital::simple_camera_perspective(*A),
-                            vital::simple_camera_perspective(*B), f).clone();
+  return std::dynamic_pointer_cast<vital::camera_perspective>(
+    interpolate_camera(vital::simple_camera_perspective(*A),
+    vital::simple_camera_perspective(*B), f).clone());
 }
 
 

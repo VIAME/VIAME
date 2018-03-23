@@ -146,7 +146,7 @@ simple_camera_perspective
 ::clone_look_at( const vector_3d &stare_point,
                  const vector_3d &up_direction ) const
 {
-  camera_perspective_sptr c_sptr = this->clone();
+  auto c_sptr = std::dynamic_pointer_cast<camera_perspective>(this->clone());
   dynamic_cast<simple_camera_perspective *>(c_sptr.get())->look_at( stare_point,
                                                                     up_direction );
   return c_sptr;

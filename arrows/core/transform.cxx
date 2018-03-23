@@ -85,8 +85,9 @@ vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
 vital::camera_perspective_sptr transform(vital::camera_perspective_sptr cam,
                                          const vital::similarity_d& xform)
 {
-  cam = cam->clone();
-  if( vital::simple_camera_perspective* vcam = dynamic_cast<vital::simple_camera_perspective*>(cam.get()) )
+  cam = std::dynamic_pointer_cast<vital::camera_perspective>(cam->clone());
+  if( vital::simple_camera_perspective* vcam =
+      dynamic_cast<vital::simple_camera_perspective*>(cam.get()) )
   {
     transform_inplace(xform, *vcam);
   }
@@ -194,9 +195,8 @@ necker_reverse(vital::camera_map_sptr& cameras,
   vital::rotation_d Rz180(vital::vector_4d(0.0, 0.0, 1.0, 0.0));
   for(cam_map_t::value_type& p : cams)
   {
-    vital::simple_camera_perspective* flipped =
-      new vital::simple_camera_perspective(
-        dynamic_cast<vital::simple_camera_perspective&>(*p.second));
+    auto flipped =
+      std::dynamic_pointer_cast<vital::simple_camera_perspective>(p.second);
     // extract the camera center
     const vital::vector_3d cc = flipped->center();
     // extract the camera principal axis
@@ -211,7 +211,6 @@ necker_reverse(vital::camera_map_sptr& cameras,
     // axis centered at gp, also rotate the camera 180 about its principal axis
     flipped->set_center(Ra180 * (flipped->center() - gp) + gp);
     flipped->set_rotation(Rz180 * flipped->rotation() * Ra180);
-    p.second = vital::camera_perspective_sptr(flipped);
   }
 
   // mirror landmark locations about the mirroring plane

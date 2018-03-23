@@ -48,14 +48,14 @@
 namespace kwiver {
 namespace vital {
 
-/// forward declaration of perspective camera class
+/// forward declaration of camera class
 class camera;
 /// typedef for a camera shared pointer
 typedef std::shared_ptr< camera > camera_sptr;
 
 
 // ------------------------------------------------------------------
-/// An abstract representation of perspective camera
+/// An abstract representation of camera
 /**
  * The base class of cameras.
  */
@@ -64,6 +64,9 @@ class VITAL_EXPORT camera
 public:
   /// Destructor
   virtual ~camera() = default;
+
+  /// Create a clone of this camera object
+  virtual camera_sptr clone() const = 0;
 
   /// Project a 3D point into a 2D image point
   virtual vector_2d project( const vector_3d& pt ) const = 0;

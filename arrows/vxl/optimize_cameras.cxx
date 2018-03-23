@@ -136,7 +136,7 @@ optimize_cameras
   // convert back and fill in the unchanged intrinsics
   vpgl_camera_to_vital(vcamera, mcamera);
   mcamera.set_intrinsics(k);
-  camera = mcamera.clone();
+  camera = std::dynamic_pointer_cast<vital::camera_perspective>(mcamera.clone());
 }
 
 

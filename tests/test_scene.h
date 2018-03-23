@@ -187,7 +187,7 @@ noisy_cameras( kwiver::vital::camera_map_sptr cameras,
   for( camera_map::map_camera_t::value_type const& p : cameras->cameras() )
   {
     auto cam_ptr = std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
-    camera_perspective_sptr c = cam_ptr->clone();
+    auto c = std::dynamic_pointer_cast<vital::camera_perspective>(cam_ptr->clone());
 
     simple_camera_perspective& cam =
       dynamic_cast<simple_camera_perspective&>(*c);

@@ -76,7 +76,7 @@ public:
   virtual ~camera_perspective() = default;
 
   /// Create a clone of this camera_perspective object
-  virtual camera_perspective_sptr clone() const = 0;
+  virtual camera_sptr clone() const = 0;
 
   /// Accessor for the camera center of projection (position)
   virtual vector_3d center() const = 0;
@@ -179,8 +179,8 @@ public:
   {}
 
   /// Create a clone of this camera object
-  virtual camera_perspective_sptr clone() const
-  { return camera_perspective_sptr( new simple_camera_perspective( *this ) ); }
+  virtual camera_sptr clone() const
+  { return camera_sptr( new simple_camera_perspective( *this ) ); }
 
   /// Accessor for the camera center of projection (position)
   virtual vector_3d center() const

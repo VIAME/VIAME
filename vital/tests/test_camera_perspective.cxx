@@ -56,7 +56,7 @@ TEST(camera_perspective, clone)
   simple_camera_intrinsics K{ 1000, pp };
   simple_camera_perspective cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
 
-  auto cam_clone = cam.clone();
+  auto cam_clone = std::dynamic_pointer_cast<camera_perspective>( cam.clone() );
   EXPECT_MATRIX_EQ( cam.center(), cam_clone->center() );
   EXPECT_MATRIX_EQ( cam.rotation().quaternion(),
                     cam_clone->rotation().quaternion() );

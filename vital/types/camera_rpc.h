@@ -71,7 +71,7 @@ public:
   virtual ~camera_rpc() = default;
 
   /// Create a clone of this camera_rpc object
-  virtual camera_rpc_sptr clone() const = 0;
+  virtual camera_sptr clone() const = 0;
 
   // Accessors
   virtual Eigen::Matrix< double, 4, 20 > rpc_coeffs() const = 0;
@@ -140,8 +140,8 @@ public:
   { }
 
   /// Create a clone of this camera object
-  virtual camera_rpc_sptr clone() const
-  { return camera_rpc_sptr( new simple_camera_rpc( *this ) ); }
+  virtual camera_sptr clone() const
+  { return camera_sptr( new simple_camera_rpc( *this ) ); }
 
   // Accessors
   virtual Eigen::Matrix< double, 4, 20 > rpc_coeffs() const

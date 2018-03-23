@@ -75,7 +75,7 @@ TEST(camera_rpc, clone)
 
   simple_camera_rpc cam( world_scale, world_offset, image_scale, image_offset,
                          rpc_coeffs);
-  auto cam_clone = cam.clone();
+  auto cam_clone = std::dynamic_pointer_cast<camera_rpc>( cam.clone() );
 
   EXPECT_MATRIX_EQ( cam.world_scale(), cam_clone->world_scale() );
   EXPECT_MATRIX_EQ( cam.world_offset(), cam_clone->world_offset() );
