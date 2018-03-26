@@ -529,10 +529,38 @@ match_descriptor_sets
 {
   auto d1 = f1->descriptor;
   auto d2 = f2->descriptor;
-  auto m1 = d_->descriptor_to_mat(d1);
-  auto m2 = d_->descriptor_to_mat(d2);
 
-  return DescriptorDistance(m1, m2);
+  auto dv1 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d1);
+  auto dv2 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d2);
+
+  if (dv1 && dv2 )
+  {
+    // Bit set count operation from
+    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+
+    const int *pa = (int*)dv1->raw_data();
+    const int *pb = (int*)dv2->raw_data();
+
+    int dist = 0;
+
+    for (int i = 0; i < 8; i++, pa++, pb++)
+    {
+      unsigned  int v = *pa ^ *pb;
+      v = v - ((v >> 1) & 0x55555555);
+      v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+      dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+    }
+
+    return dist;
+  }
+  else
+  {
+    auto m1 = d_->descriptor_to_mat(d1);
+    auto m2 = d_->descriptor_to_mat(d2);
+
+    return DescriptorDistance(m1, m2);
+  }
+
 }
 
 // ------------------------------------------------------------------
