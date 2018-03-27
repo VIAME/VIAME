@@ -89,7 +89,7 @@ tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 }
 
 /// Extract coefficient metadata to a matrix
-Eigen::Matrix< double, 4, 20 >
+rpc_matrix
 tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 {
   metadata_traits md_traits;
@@ -98,7 +98,7 @@ tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
     throw metadata_exception("Should have 4 metadata tags for RPC coefficients");
   }
 
-  Eigen::Matrix< double, 4, 20 > rslt;
+  rpc_matrix rslt;
 
   for (int i=0; i<4; ++i)
   {
@@ -122,7 +122,7 @@ VITAL_EXPORT camera_from_metadata( metadata_sptr const& md )
 {
   vector_3d world_scale, world_offset;
   vector_2d image_scale, image_offset;
-  Eigen::Matrix< double, 4, 20 > rpc_coeffs;
+  rpc_matrix rpc_coeffs;
 
   metadata_traits md_traits;
 

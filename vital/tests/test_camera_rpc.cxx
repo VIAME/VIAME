@@ -68,8 +68,7 @@ TEST(camera_rpc, clone)
   vector_3d world_offset(5.0, 0.0, 10.0);
   vector_2d image_scale(400.0, 300.0);
   vector_2d image_offset(100.0, 50.0);
-  Eigen::Matrix< double, 4, 20 > rpc_coeffs =
-  Eigen::Matrix< double, 4, 20 >::Zero();
+  rpc_matrix rpc_coeffs = rpc_matrix::Zero();
   rpc_coeffs(0, 0) = 0.3; rpc_coeffs(1, 2) = 0.1; rpc_coeffs(3, 15) = 0.9;
   rpc_coeffs(0, 10) = 0.05; rpc_coeffs(1, 14) = 0.09; rpc_coeffs(2, 16) = 0.2;
 
@@ -91,8 +90,7 @@ TEST(camera_rpc, projection)
   vector_3d world_offset(150.0, 100.0, 10.0);
   vector_2d image_scale(1000.0, 500.0);
   vector_2d image_offset(500.0, 200.0);
-  Eigen::Matrix< double, 4, 20 > rpc_coeffs =
-    Eigen::Matrix< double, 4, 20 >::Zero();
+  rpc_matrix rpc_coeffs = rpc_matrix::Zero();
   rpc_coeffs(0, 0) = 0.75; rpc_coeffs(0, 1) = 0.3; rpc_coeffs(0, 2) = 1.0;
   rpc_coeffs(0, 3) = 1.0; rpc_coeffs(0, 11) = 0.1; rpc_coeffs(0, 13) = 0.01;
   rpc_coeffs(0, 15) = 0.071;

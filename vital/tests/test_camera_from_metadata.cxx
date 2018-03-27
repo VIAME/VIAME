@@ -140,7 +140,7 @@ TEST(camera_from_metadata, valid_metadata)
   vector_2d image_scale( ROW_SCALE, COL_SCALE );
   vector_2d image_offset( ROW_OFFSET, COL_OFFSET );
 
-  Eigen::Matrix< double, 4, 20 > rpc_coeff;
+  rpc_matrix rpc_coeff;
   rpc_coeff.row(0) = string_to_vector( row_num_coeff );
   rpc_coeff.row(1) = string_to_vector( row_den_coeff );
   rpc_coeff.row(2) = string_to_vector( col_num_coeff );

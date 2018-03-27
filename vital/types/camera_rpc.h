@@ -51,6 +51,8 @@
 namespace kwiver {
 namespace vital {
 
+typedef Eigen::Matrix< double, 4, 20 > rpc_matrix;
+
 /// forward declaration of perspective camera class
 class camera_rpc;
 /// typedef for a camera_rpc shared pointer
@@ -74,7 +76,7 @@ public:
   virtual camera_sptr clone() const = 0;
 
   // Accessors
-  virtual Eigen::Matrix< double, 4, 20 > rpc_coeffs() const = 0;
+  virtual rpc_matrix rpc_coeffs() const = 0;
   virtual vector_3d world_scale() const = 0;
   virtual vector_3d world_offset() const = 0;
   virtual vector_2d image_scale() const = 0;
@@ -109,7 +111,7 @@ public:
     image_scale_(1.0, 1.0),
     image_offset_(0.0, 0.0)
   {
-    rpc_coeffs_ = Eigen::MatrixXd::Zero(4, 20);
+    rpc_coeffs_ = rpc_matrix::Zero();
     rpc_coeffs_(1, 0) = 1.0;
     rpc_coeffs_(3, 0) = 1.0;
     rpc_coeffs_(0, 1) = 1.0;
@@ -122,7 +124,7 @@ public:
    */
   simple_camera_rpc ( vector_3d &world_scale, vector_3d &world_offset,
                       vector_2d &image_scale, vector_2d &image_offset,
-                      Eigen::Matrix< double, 4, 20 > &rpc_coeffs ) :
+                      rpc_matrix &rpc_coeffs ) :
     world_scale_( world_scale ),
     world_offset_( world_offset ),
     image_scale_( image_scale ),
@@ -144,7 +146,7 @@ public:
   { return camera_sptr( new simple_camera_rpc( *this ) ); }
 
   // Accessors
-  virtual Eigen::Matrix< double, 4, 20 > rpc_coeffs() const
+  virtual rpc_matrix rpc_coeffs() const
     { return rpc_coeffs_; }
   virtual vector_3d world_scale() const { return world_scale_; }
   virtual vector_3d world_offset() const { return world_offset_; }
@@ -152,8 +154,7 @@ public:
   virtual vector_2d image_offset() const { return image_offset_; }
 
   // Setters
-  void set_rpc_coeffs(Eigen::Matrix< double, 4, 20 > coeffs)
-    { rpc_coeffs_ = coeffs; }
+  void set_rpc_coeffs(rpc_matrix coeffs) { rpc_coeffs_ = coeffs; }
   void set_world_scale(vector_3d& scale) { world_scale_ = scale; }
   void set_world_offset(vector_3d& offset) { world_offset_ = offset; }
   void set_image_scale(vector_2d& scale) { image_scale_ = scale; }
@@ -165,7 +166,7 @@ protected:
   virtual Eigen::Matrix<double, 20, 1> power_vector( const vector_3d& pt ) const;
 
   // The RPC coefficients
-  Eigen::Matrix< double, 4, 20 > rpc_coeffs_;
+  rpc_matrix rpc_coeffs_;
   // The world scale and offset
   vector_3d world_scale_;
   vector_3d world_offset_;
