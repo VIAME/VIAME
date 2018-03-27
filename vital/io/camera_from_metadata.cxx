@@ -42,8 +42,28 @@
 namespace kwiver {
 namespace vital {
 
-/// Extract scale or offset metadata to a vector
+/// Convert space separated strings to Eigen vector
+Eigen::VectorXd
+string_to_vector( std::string const& s )
+{
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
+  while (std::getline(tokenStream, token, ' '))
+  {
+     tokens.push_back(token);
+  }
 
+  Eigen::VectorXd result(tokens.size());
+  for (int i = 0; i<tokens.size(); ++i)
+  {
+    result[i] = std::stod(tokens[i]);
+  }
+
+  return result;
+}
+
+/// Extract scale or offset metadata to a vector
 Eigen::VectorXd
 tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 {
@@ -56,7 +76,7 @@ tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
   {
    if (md->has(tags[i]))
     {
-      rslt[0] = md->find(tags[i]).as_double();
+      rslt[i] = md->find(tags[i]).as_double();
     }
     else
     {
@@ -68,6 +88,7 @@ tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
   return rslt;
 }
 
+/// Extract coefficient metadata to a matrix
 Eigen::Matrix< double, 4, 20 >
 tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 {
@@ -77,16 +98,13 @@ tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
     throw metadata_exception("Should have 4 metadata tags for RPC coefficients");
   }
 
-  // Eigen::Matrix< double, 4, 20 > rslt;
-  matrix_d rslt;
+  Eigen::Matrix< double, 4, 20 > rslt;
 
   for (int i=0; i<4; ++i)
   {
    if (md->has(tags[i]))
     {
-      matrix_d currRow;
-      md->find(tags[i]).data(currRow);
-      rslt.row(i) = currRow;
+      rslt.row(i) = string_to_vector(md->find(tags[i]).as_string());
     }
     else
     {

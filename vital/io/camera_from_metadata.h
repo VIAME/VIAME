@@ -44,6 +44,14 @@
 namespace kwiver {
 namespace vital {
 
+/// Convert space separated sting to Eigen vector
+/**
+ * \param s The string to be converted.
+ * \return The converted vector.
+ */
+Eigen::VectorXd
+VITAL_EXPORT string_to_vector( std::string const& s );
+
 /// Produce RPC camera from metadata
 /**
  * \param file_path   The path to the file to read in.

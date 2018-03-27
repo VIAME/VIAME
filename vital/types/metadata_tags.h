@@ -136,10 +136,10 @@ CALL( RPC_ROW_OFFSET,              "RPC row offset",                  double ) \
 CALL( RPC_ROW_SCALE,               "RPC row scale",                   double ) \
 CALL( RPC_COL_OFFSET,              "RPC column offset",               double ) \
 CALL( RPC_COL_SCALE ,              "RPC column scale",                double ) \
-CALL( RPC_ROW_NUM_COEFF,           "RPC row numerator coefficients",       matrix_d ) \
-CALL( RPC_ROW_DEN_COEFF,           "RPC row denominator coefficients",     matrix_d ) \
-CALL( RPC_COL_NUM_COEFF,           "RPC column numerator coefficients",    matrix_d ) \
-CALL( RPC_COL_DEN_COEFF,           "RPC column denominator coefficients",  matrix_d )
+CALL( RPC_ROW_NUM_COEFF,           "RPC row numerator coefficients",       std::string ) \
+CALL( RPC_ROW_DEN_COEFF,           "RPC row denominator coefficients",     std::string ) \
+CALL( RPC_COL_NUM_COEFF,           "RPC column numerator coefficients",    std::string ) \
+CALL( RPC_COL_DEN_COEFF,           "RPC column denominator coefficients",  std::string )
 
 // ------------------------------------------------------------------
 //
