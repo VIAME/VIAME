@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Functions to generate \ref kwiver::vital::camera_rpc from metadata
+ * \brief Function to generate \ref kwiver::vital::camera_rpc from metadata
  */
 
 #ifndef VITAL_CAMERA_FROM_METADATA_H_
@@ -57,7 +57,7 @@ VITAL_EXPORT string_to_vector( std::string const& s );
  * \param file_path   The path to the file to read in.
  * \return A new camera object representing the contents of the read-in file.
  */
-camera_rpc_sptr
+camera_sptr
 VITAL_EXPORT camera_from_metadata( metadata_sptr const& md );
 
 

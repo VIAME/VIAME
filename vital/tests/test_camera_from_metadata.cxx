@@ -159,8 +159,7 @@ TEST(camera_from_metadata, valid_metadata)
 TEST(camera_from_metadata, projection)
 {
   auto rpc_metadata = generate_metadata();
-  auto cam = std::dynamic_pointer_cast<camera_rpc>(
-    camera_from_metadata( rpc_metadata ) );
+  auto cam = camera_from_metadata( rpc_metadata );
 
   std::vector<vector_3d> wld_pts;
   std::vector<vector_2d> img_pts;

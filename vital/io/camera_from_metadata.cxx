@@ -30,9 +30,7 @@
 
 /**
  * \file
- * \brief Implementation of file IO functions for a \ref kwiver::vital::camera
- *
- * File format is the KRTD file.
+ * \brief Function to generate \ref kwiver::vital::camera_rpc from metadata
  */
 
 #include "camera_from_metadata.h"
@@ -41,27 +39,6 @@
 
 namespace kwiver {
 namespace vital {
-
-/// Convert space separated strings to Eigen vector
-Eigen::VectorXd
-string_to_vector( std::string const& s )
-{
-  std::vector<std::string> tokens;
-  std::string token;
-  std::istringstream tokenStream(s);
-  while (std::getline(tokenStream, token, ' '))
-  {
-     tokens.push_back(token);
-  }
-
-  Eigen::VectorXd result(tokens.size());
-  for (int i = 0; i<tokens.size(); ++i)
-  {
-    result[i] = std::stod(tokens[i]);
-  }
-
-  return result;
-}
 
 /// Extract scale or offset metadata to a vector
 Eigen::VectorXd
@@ -116,8 +93,29 @@ tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
   return rslt;
 }
 
+/// Convert space separated strings to Eigen vector
+Eigen::VectorXd
+VITAL_EXPORT string_to_vector( std::string const& s )
+{
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
+  while (std::getline(tokenStream, token, ' '))
+  {
+     tokens.push_back(token);
+  }
+
+  Eigen::VectorXd result(tokens.size());
+  for (int i = 0; i<tokens.size(); ++i)
+  {
+    result[i] = std::stod(tokens[i]);
+  }
+
+  return result;
+}
+
 /// Produce RPC camera from metadata
-camera_rpc_sptr
+camera_sptr
 VITAL_EXPORT camera_from_metadata( metadata_sptr const& md )
 {
   vector_3d world_scale, world_offset;
@@ -160,10 +158,9 @@ VITAL_EXPORT camera_from_metadata( metadata_sptr const& md )
   };
   rpc_coeffs = tags_to_matrix(md, rpc_coeffs_tags);
 
-  simple_camera_rpc* cam = new simple_camera_rpc(world_scale, world_offset,
-                                                 image_scale, image_offset,
-                                                 rpc_coeffs);
-  return camera_rpc_sptr(cam);
+  return std::make_shared<simple_camera_rpc>(world_scale, world_offset,
+                                             image_scale, image_offset,
+                                             rpc_coeffs);
 }
 
 } } // end of namespace
