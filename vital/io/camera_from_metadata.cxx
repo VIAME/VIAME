@@ -49,7 +49,7 @@ tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 
   Eigen::VectorXd rslt(vec_length);
 
-  for (int i=0; i<vec_length; ++i)
+  for (unsigned int i=0; i<vec_length; ++i)
   {
    if (md->has(tags[i]))
     {
@@ -106,7 +106,7 @@ VITAL_EXPORT string_to_vector( std::string const& s )
   }
 
   Eigen::VectorXd result(tokens.size());
-  for (int i = 0; i<tokens.size(); ++i)
+  for (unsigned int i = 0; i<tokens.size(); ++i)
   {
     result[i] = std::stod(tokens[i]);
   }

@@ -181,7 +181,7 @@ TEST(camera_from_metadata, projection)
   img_pts.push_back( vector_2d( 15461.20973047, 16377.35597454 ) );
   img_pts.push_back( vector_2d( 15462.29884238, 16347.72126206 ) );
 
-  for (int i=0; i<wld_pts.size(); ++i)
+  for (unsigned int i=0; i<wld_pts.size(); ++i)
   {
     auto img_pt = cam->project( wld_pts[i] );
     EXPECT_MATRIX_EQ( img_pt, img_pts[i] );
