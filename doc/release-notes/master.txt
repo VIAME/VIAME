@@ -122,6 +122,8 @@ Vital
    to time_us_t to provide some distance from std::time_t and make the
    units apparent.
 
+ * Added frame_time() method to video_input to access the current time stamp.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring

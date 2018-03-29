@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -647,9 +647,28 @@ vidl_ffmpeg_video_input
   d->d_frame_time = d->meta_ts + pts_diff;
   d->d_frame_number = d->d_video_stream.frame_number();
 
+  ts = this->frame_timestamp();
+
+  // ---- process metadata ---
+  d->metadata_collection.clear(); // erase old metadata packets
+
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+vidl_ffmpeg_video_input
+::frame_timestamp() const
+{
+  if (d->d_at_eov)
+  {
+    return {};
+  }
+
   // We don't always have all components of a timestamp, so start with
   // an invalid TS and add the data we have.
-  ts.set_invalid();
+  kwiver::vital::timestamp ts;
   ts.set_frame( d->d_frame_number );
 
   if ( d->d_have_frame_time )
@@ -657,10 +676,7 @@ vidl_ffmpeg_video_input
     ts.set_time_usec( d->d_frame_time );
   }
 
-  // ---- process metadata ---
-  d->metadata_collection.clear(); // erase old metadata packets
-
-  return true;
+  return ts;
 }
 
 

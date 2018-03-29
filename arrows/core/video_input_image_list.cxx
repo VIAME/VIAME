@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -276,9 +276,6 @@ video_input_image_list
   // clear the last loaded image
   d->m_image = nullptr;
 
-  // Return timestamp
-  ts = kwiver::vital::timestamp();
-
   // If this is the first call to next_frame() then
   // do not increment the file iteration.
   // next_frame() must be called once before accessing the first frame.
@@ -288,9 +285,29 @@ video_input_image_list
   }
 
   ++d->m_frame_number;
-  ts.set_frame( d->m_frame_number );
+
+  // Return timestamp
+  ts = this->frame_timestamp();
 
   return ! this->end_of_video();
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_image_list
+::frame_timestamp() const
+{
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
+  kwiver::vital::timestamp ts;
+
+  ts.set_frame( d->m_frame_number );
+
+  return ts;
 }
 
 
