@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief OCV image_container implementation
+ * \brief GDAL image_container implementation
  */
 
 #include "image_container.h"

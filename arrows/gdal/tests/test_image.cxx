@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,51 +30,38 @@
 
 /**
  * \file
- * \brief GDAL image_io implementation
+ * \brief test GDAL image class
  */
 
-#include "image_io.h"
+#include <arrows/tests/test_image.h>
 
-#include <gdal_priv.h>
+#include <arrows/gdal/image_container.h>
+#include <arrows/gdal/image_io.h>
 
-namespace kwiver {
-namespace arrows {
-namespace gdal {
+#include <vital/plugin_loader/plugin_manager.h>
 
-/// Load image image from the file
-/**
- * \param filename the path to the file the load
- * \returns an image container refering to the loaded image
- */
-vital::image_container_sptr
-image_io
-::load_(const std::string& filename) const
+#include <gtest/gtest.h>
+
+using namespace kwiver::vital;
+using namespace kwiver::arrows;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  GDALAllRegister();
-
-  std::shared_ptr<GDALDataset> gdalDataset;
-
-  gdalDataset.reset( static_cast<GDALDataset*>(
-    GDALOpen( filename.c_str(), GA_ReadOnly ) ) );
-
-  vital::image img;
-  return std::make_shared<vital::simple_image_container>(img);
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-
-/// Save image image to a file
-/**
- * \param filename the path to the file to save.
- * \param data The image container refering to the image to write.
- */
-void
-image_io
-::save_(const std::string& filename,
-       vital::image_container_sptr data) const
+// ----------------------------------------------------------------------------
+TEST(image, create)
 {
+  plugin_manager::instance().load_all_plugins();
 
+  std::shared_ptr<algo::image_io> img_io;
+  ASSERT_NE(nullptr, img_io = algo::image_io::create("gdal"));
+
+  algo::image_io* img_io_ptr = img_io.get();
+  EXPECT_EQ(typeid(gdal::image_io), typeid(*img_io_ptr))
+    << "Factory method did not construct the correct type";
 }
 
-} // end namespace gdal
-} // end namespace arrows
-} // end namespace kwiver

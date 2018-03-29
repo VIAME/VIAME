@@ -1,4 +1,4 @@
-# Build / Install plugin containing OpenCV algorithm implementations + support
+# Build / Install plugin containing GDAL algorithm implementations + support
 # structures
 
 set( gdal_headers_public
@@ -33,3 +33,7 @@ target_link_libraries( kwiver_algo_gdal
 algorithms_create_plugin( kwiver_algo_gdal
   register_algorithms.cxx
   )
+
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()

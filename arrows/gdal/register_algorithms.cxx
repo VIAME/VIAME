@@ -56,7 +56,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // add factory               implementation-name       type-to-create
   auto fact = vpm.ADD_ALGORITHM( "gdal", kwiver::arrows::gdal::image_io );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Read and write image using OpenCV." )
+                    "Read and write image using GDAL." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
