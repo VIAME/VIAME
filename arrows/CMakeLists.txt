@@ -66,6 +66,11 @@ if( KWIVER_ENABLE_KPF )
   add_subdirectory( kpf )
 endif()
 
+# if GDAL is enabled
+if ( KWIVER_ENABLE_GDAL )
+  add_subdirectory( gdal )
+endif()
+
 # if uuid is enabled
 if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )
