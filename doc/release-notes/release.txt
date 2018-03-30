@@ -67,3 +67,11 @@ Testing
 Tools
 
  * Fixed the name of the video_reader in the dump_klv tool.
+
+CMake
+
+ * The kwiver_configure_file CMake macro was ignoring all values except the
+   first for list arguments like the KWIVER_INCLUDE_DIRS and
+   KWIVER_LIBRARY_DIRS. This would prevent consumer projects from using some of
+   the include/library paths. Changes to the argument parsing in the macro have
+   fixed this issue.
