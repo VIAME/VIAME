@@ -202,3 +202,8 @@ Sprokit
    directory and file name that represent the location of the pipeline
    definition and can be used to supply needed directory for
    relativepath.
+
+Vital
+
+ * Fixed problem #503 where relativepath modifier in a config entry
+   would not supply the correct directory. See MR #504.
