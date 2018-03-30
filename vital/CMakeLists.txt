@@ -285,6 +285,7 @@ configure_file(
 #
 add_subdirectory( algo )
 add_subdirectory( util )
+add_subdirectory( range )
 add_subdirectory( bindings )
 add_subdirectory( config )
 add_subdirectory( klv )
