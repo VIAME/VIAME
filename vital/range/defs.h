@@ -31,6 +31,8 @@
 #ifndef VITAL_RANGE_DEFS_H
 #define VITAL_RANGE_DEFS_H
 
+#include <tuple>
+
 namespace kwiver {
 namespace vital {
 namespace range {
@@ -58,6 +60,23 @@ namespace range {
   name();
 
 // ----------------------------------------------------------------------------
+#define KWIVER_RANGE_ADAPTER_FUNCTION( name ) \
+  template < typename... Args > \
+  name##_view_adapter_t< Args... > \
+  name( Args... args ) \
+  { return { args... }; } \
+  \
+  template < typename Range, typename... Args > \
+  auto \
+  operator|( \
+    Range const& range, \
+    name##_view_adapter_t< Args... > const& adapter ) \
+  -> decltype( adapter.adapt( range ) ) \
+  { \
+    return adapter.adapt( range ); \
+  }
+
+// ----------------------------------------------------------------------------
 template < typename GenericAdapter >
 struct range_adapter_t {};
 
@@ -71,6 +90,35 @@ operator|(
 {
   return Adapter::adapt( range );
 }
+
+// ----------------------------------------------------------------------------
+template < typename Functor >
+struct function_detail : function_detail< decltype( &Functor::operator() ) >
+{};
+
+// ----------------------------------------------------------------------------
+template < typename ReturnType, typename... ArgsType >
+struct function_detail< ReturnType (&)( ArgsType... ) >
+{
+  using arg_type_t = std::tuple< ArgsType... >;
+  using return_type_t = ReturnType;
+};
+
+// ----------------------------------------------------------------------------
+template < typename ReturnType, typename... ArgsType >
+struct function_detail< ReturnType (*)( ArgsType... ) >
+{
+  using arg_type_t = std::tuple< ArgsType... >;
+  using return_type_t = ReturnType;
+};
+
+// ----------------------------------------------------------------------------
+template < typename Object, typename ReturnType, typename... ArgsType >
+struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
+{
+  using arg_type_t = std::tuple< ArgsType... >;
+  using return_type_t = ReturnType;
+};
 
 } } } // end namespace
 

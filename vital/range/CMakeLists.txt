@@ -13,6 +13,7 @@ set( public_headers
   defs.h
   integer_sequence.h
   sliding.h
+  transform.h
   )
 
 kwiver_install_headers(
