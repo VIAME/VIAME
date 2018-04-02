@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
+#include <vital/range/transform.h>
+
 #include <vector>
 #include <memory>
 
@@ -86,6 +88,12 @@ public:
 
   detected_object_sptr detection;
 
+  static std::shared_ptr< object_track_state > downcast(
+    track_state_sptr const& sp )
+  {
+    return std::dynamic_pointer_cast< object_track_state >( sp );
+  }
+
 private:
   time_us_t time_;
 };
@@ -117,6 +125,9 @@ public:
 
 /// Shared pointer for object_track_set type
 typedef std::shared_ptr< object_track_set > object_track_set_sptr;
+
+/// Helper to iterate over the states of a track as object track states
+inline auto as_object_track = range::transform( object_track_state::downcast );
 
 } } // end namespace vital
 
