@@ -56,9 +56,9 @@ namespace range {
     { return { range }; } \
   }; \
   \
-  template < KWIVER_UNPACK_TOKENS args > \
+  template < KWIVER_UNPACK_TOKENS args > inline \
   range_adapter_t< name##_view_adapter_t< KWIVER_UNPACK_TOKENS arg_names > > \
-  name();
+  name() { return {}; }
 
 // ----------------------------------------------------------------------------
 #define KWIVER_RANGE_ADAPTER_FUNCTION( name ) \
@@ -87,6 +87,17 @@ auto
 operator|(
   Range const& range,
   range_adapter_t< Adapter >(*)() )
+-> decltype( Adapter::adapt( range ) )
+{
+  return Adapter::adapt( range );
+}
+
+// ----------------------------------------------------------------------------
+template < typename Range, typename Adapter >
+auto
+operator|(
+  Range const& range,
+  range_adapter_t< Adapter > )
 -> decltype( Adapter::adapt( range ) )
 {
   return Adapter::adapt( range );
