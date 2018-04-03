@@ -52,12 +52,11 @@ template < size_t Size, typename Range >
 class sliding_view
 {
 protected:
-  using range_iterator_t = decltype( std::declval< Range const >().begin() );
-  using range_value_ref_t = decltype( *( std::declval< range_iterator_t >() ) );
-  using range_value_t = typename std::remove_reference< range_value_ref_t >::type;
+  using detail = range_detail< Range >;
+  using range_iterator_t = typename detail::iterator_t;
 
 public:
-  using value_t = std::array< range_value_t, Size >;
+  using value_t = std::array< typename detail::value_t, Size >;
 
   class const_iterator
   {
@@ -91,8 +90,11 @@ public:
 
   sliding_view( Range const& range ) : m_range( range ) {}
 
-  const_iterator begin() const { return { m_range.begin(), m_range.end() }; }
-  const_iterator end() const { return { m_range.end(), m_range.end() }; }
+  const_iterator begin() const
+  { return { detail::begin( m_range ), detail::end( m_range ) }; }
+
+  const_iterator end() const
+  { return { detail::end( m_range ), detail::end( m_range ) }; }
 
 protected:
   Range const& m_range;

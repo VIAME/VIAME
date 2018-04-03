@@ -50,11 +50,11 @@ template < typename FilterFunction, typename Range >
 class filter_view
 {
 protected:
-  using range_iterator_t = decltype( std::declval< Range const >().begin() );
-  using range_value_ref_t = decltype( *( std::declval< range_iterator_t >() ) );
+  using detail = range_detail< Range >;
+  using range_iterator_t = typename detail::iterator_t;
 
 public:
-  using value_t = typename std::remove_reference< range_value_ref_t >::type;
+  using value_t = typename detail::value_t;
   using filter_function_t = FilterFunction;
 
   class const_iterator
@@ -87,7 +87,7 @@ public:
   const_iterator begin() const;
 
   const_iterator end() const
-  { return { m_range.end(), m_range.end(), m_func }; }
+  { return { detail::end( m_range ), detail::end( m_range ), m_func }; }
 
 protected:
   Range const& m_range;
@@ -100,7 +100,9 @@ typename filter_view< FilterFunction, Range >::const_iterator
 filter_view< FilterFunction, Range >
 ::begin() const
 {
-  auto iter = const_iterator{ m_range.begin(), m_range.end(), m_func };
+  auto iter =
+    const_iterator{ detail::begin( m_range ), detail::end( m_range ), m_func };
+
   return ( m_func( *iter ) ? iter : ++iter );
 }
 

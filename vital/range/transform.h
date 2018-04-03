@@ -48,8 +48,9 @@ template < typename TransformedValue, typename Range >
 class transform_view
 {
 protected:
-  using range_iterator_t = decltype( std::declval< Range const >().begin() );
-  using range_value_ref_t = decltype( *( std::declval< range_iterator_t >() ) );
+  using detail = range_detail< Range >;
+  using range_iterator_t = typename detail::iterator_t;
+  using range_value_ref_t = typename detail::value_ref_t;
 
 public:
   using value_t = TransformedValue;
@@ -81,8 +82,8 @@ public:
   transform_view( Range const& range, transform_function_t func )
     : m_range( range ), m_func{ func } {}
 
-  const_iterator begin() const { return { m_range.begin(), m_func }; }
-  const_iterator end() const { return { m_range.end(), m_func }; }
+  const_iterator begin() const { return { detail::begin( m_range ), m_func }; }
+  const_iterator end() const { return { detail::end( m_range ), m_func }; }
 
 protected:
   Range const& m_range;

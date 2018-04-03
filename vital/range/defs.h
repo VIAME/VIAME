@@ -31,6 +31,7 @@
 #ifndef VITAL_RANGE_DEFS_H
 #define VITAL_RANGE_DEFS_H
 
+#include <iterator>
 #include <tuple>
 
 namespace kwiver {
@@ -118,6 +119,57 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
 {
   using arg_type_t = std::tuple< ArgsType... >;
   using return_type_t = ReturnType;
+};
+
+// ----------------------------------------------------------------------------
+template < typename Range >
+struct range_detail_helper
+{
+protected:
+  // https://stackoverflow.com/questions/11725881
+  template < typename T >
+  static constexpr auto get_address( T&& t )
+  -> typename std::remove_reference< T >::type*
+  { return &t; }
+
+  static constexpr auto* get_iterator_p = 0 ? get_address(
+    []( Range const& r ){
+      using namespace std;
+      return begin( r );
+    } ) : nullptr;
+
+  using get_iterator_t = decltype( *get_iterator_p );
+
+  using iterator_t =
+    decltype( ( *get_iterator_p )( std::declval< Range >() ) );
+
+  static iterator_t begin_helper( Range const& r )
+  {
+    using namespace std;
+    return begin( r );
+  }
+
+  static iterator_t end_helper( Range const& r )
+  {
+    using namespace std;
+    return end( r );
+  }
+};
+
+// ----------------------------------------------------------------------------
+template < typename Range >
+struct range_detail : protected range_detail_helper< Range >
+{
+public:
+  using iterator_t = typename range_detail_helper< Range >::iterator_t;
+  using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
+  using value_t = typename std::remove_reference< value_ref_t >::type;
+
+  static iterator_t begin( Range const& r )
+  { return range_detail_helper< Range >::begin_helper( r ); }
+
+  static iterator_t end( Range const& r )
+  { return range_detail_helper< Range >::end_helper( r ); }
 };
 
 } } } // end namespace
