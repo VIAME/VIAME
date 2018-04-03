@@ -11,6 +11,7 @@
 #
 set( public_headers
   defs.h
+  filter.h
   integer_sequence.h
   sliding.h
   transform.h
