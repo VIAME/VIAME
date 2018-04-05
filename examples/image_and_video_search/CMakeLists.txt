@@ -2,7 +2,7 @@
 # Example image and appearance querying examples
 ##
 
-if( VIAME_ENABLE_SMQTK AND NOT WIN32 )
+if( VIAME_ENABLE_SMQTK )
 
   add_subdirectory( smqtk_on_chips )
 
