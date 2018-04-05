@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 
 #include "image_io.h"
 
-#include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
 #include <vital/types/vector.h>
 #include <vital/exceptions/image.h>
@@ -55,7 +54,7 @@ namespace vxl {
 namespace
 {
 
-/// Helper function to convert images based on configuration
+// Helper function to convert images based on configuration
 template <typename inP, typename outP>
 void
 convert_image_helper(const vil_image_view<inP>& src,
@@ -94,7 +93,7 @@ convert_image_helper(const vil_image_view<inP>& src,
 }
 
 
-/// Helper function to convert images based on configuration - specialized for byte output
+// Helper function to convert images based on configuration - specialized for byte output
 template <typename inP>
 void
 convert_image_helper(const vil_image_view<inP>& src,
@@ -119,7 +118,7 @@ convert_image_helper(const vil_image_view<inP>& src,
 }
 
 
-/// Helper function to convert images based on configuration - specialization for bool
+// Helper function to convert images based on configuration - specialization for bool
 template <typename outP>
 void
 convert_image_helper(const vil_image_view<bool>& src,
@@ -140,7 +139,7 @@ convert_image_helper(const vil_image_view<bool>& src,
 }
 
 
-/// Helper function to convert images based on configuration - resolve specialization ambiguity
+// Helper function to convert images based on configuration - resolve specialization ambiguity
 void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<vxl_byte>& dest,
@@ -151,7 +150,7 @@ convert_image_helper(const vil_image_view<bool>& src,
 }
 
 
-/// Helper function to convert images based on configuration - specialization for bool/bool
+// Helper function to convert images based on configuration - specialization for bool/bool
 void
 convert_image_helper(const vil_image_view<bool>& src,
                      vil_image_view<bool>& dest,
@@ -167,17 +166,16 @@ convert_image_helper(const vil_image_view<bool>& src,
 
 
 
-/// Private implementation class
+// Private implementation class
 class image_io::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
   : force_byte(false),
     auto_stretch(false),
     manual_stretch(false),
-    intensity_range(0, 255),
-    m_logger( vital::get_logger( "arrows.vxl.image_io" ) )
+    intensity_range(0, 255)
   {
   }
 
@@ -196,29 +194,28 @@ public:
   bool auto_stretch;
   bool manual_stretch;
   vector_2d intensity_range;
-
-  vital::logger_handle_t m_logger;
 };
 
 
-
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 image_io
 ::image_io()
 : d_(new priv)
 {
+  attach_logger( "arrows.vxl.image_io" );
 }
 
 
-/// Destructor
+// Destructor
 image_io
 ::~image_io()
 {
 }
 
 
-
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 image_io
 ::get_configuration() const
@@ -257,7 +254,8 @@ image_io
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 image_io
 ::set_configuration(vital::config_block_sptr in_config)
@@ -278,7 +276,8 @@ image_io
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 image_io
 ::check_configuration(vital::config_block_sptr config) const
@@ -289,7 +288,7 @@ image_io
                                                   d_->manual_stretch);
   if( auto_stretch && manual_stretch)
   {
-    LOG_ERROR( d_->m_logger, "can not enable both manual and auto stretching");
+    LOG_ERROR( logger(), "can not enable both manual and auto stretching");
     return false;
   }
   if( manual_stretch )
@@ -298,7 +297,7 @@ image_io
                                         d_->intensity_range.transpose());
     if( range[0] >= range[1] )
     {
-      LOG_ERROR( d_->m_logger, "stretching range minimum not less than maximum"
+      LOG_ERROR( logger(), "stretching range minimum not less than maximum"
                 <<" ("<<range[0]<<", "<<range[1]<<")");
       return false;
     }
@@ -307,12 +306,13 @@ image_io
 }
 
 
-/// Load image image from the file
+// ----------------------------------------------------------------------------
+// Load image image from the file
 image_container_sptr
 image_io
 ::load_(const std::string& filename) const
 {
-  LOG_DEBUG( d_->m_logger, "Loading image from file: " << filename );
+  LOG_DEBUG( logger(), "Loading image from file: " << filename );
 
   vil_image_resource_sptr img_rsc = vil_load_image_resource(filename.c_str());
 
@@ -362,7 +362,7 @@ image_io
     }
     else if( d_->manual_stretch )
     {
-      LOG_ERROR( d_->m_logger, "Unable to manually stretch pixel type: "
+      LOG_ERROR( logger(), "Unable to manually stretch pixel type: "
                 << img_rsc->pixel_format());
       throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_io::load_()");
     }
@@ -377,7 +377,8 @@ image_io
 }
 
 
-/// Save image image to a file
+// ----------------------------------------------------------------------------
+// Save image image to a file
 void
 image_io
 ::save_(const std::string& filename,
@@ -435,7 +436,7 @@ image_io
     }
     else if( d_->manual_stretch )
     {
-      LOG_ERROR( d_->m_logger, "Unable to manually stretch pixel type: "
+      LOG_ERROR( logger(), "Unable to manually stretch pixel type: "
                 << view->pixel_format());
       throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_io::save_()");
     }
