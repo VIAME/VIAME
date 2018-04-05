@@ -60,6 +60,7 @@ public:
   class const_iterator
   {
   public:
+    const_iterator() = default;
     const_iterator( const_iterator const& ) = default;
     const_iterator& operator=( const_iterator const& ) = default;
 
@@ -78,7 +79,7 @@ public:
       : m_iter{ iter }, m_end{ end }, m_func( func ) {}
 
     range_iterator_t m_iter, m_end;
-    filter_function_t const& m_func;
+    filter_function_t m_func;
   };
 
   filter_view( Range const& range, filter_function_t func )

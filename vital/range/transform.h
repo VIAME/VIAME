@@ -59,6 +59,7 @@ public:
   class const_iterator
   {
   public:
+    const_iterator() = default;
     const_iterator( const_iterator const& ) = default;
     const_iterator& operator=( const_iterator const& ) = default;
 
@@ -76,7 +77,7 @@ public:
       : m_iter{ iter }, m_func( func ) {}
 
     range_iterator_t m_iter;
-    transform_function_t const& m_func;
+    transform_function_t m_func;
   };
 
   transform_view( Range const& range, transform_function_t func )

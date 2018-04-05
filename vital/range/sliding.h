@@ -61,6 +61,7 @@ public:
   class const_iterator
   {
   public:
+    const_iterator() = default;
     const_iterator( const_iterator const& ) = default;
     const_iterator& operator=( const_iterator const& ) = default;
 
