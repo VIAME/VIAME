@@ -45,15 +45,16 @@ namespace range {
  * filter functor returns \c true) will be seen.
  */
 template < typename Functor, typename Range >
-class filter_view
+class filter_view : public generic_view
 {
 protected:
-  using detail = range_detail< Range >;
-  using range_iterator_t = typename detail::iterator_t;
+  using range_iterator_t = typename range_ref< Range >::iterator_t;
 
 public:
-  using value_t = typename detail::value_t;
+  using value_t = typename range_ref< Range >::value_t;
   using filter_function_t = Functor;
+
+  filter_view( filter_view const& ) = default;
 
   class const_iterator
   {
@@ -81,15 +82,15 @@ public:
   };
 
   filter_view( Range const& range, filter_function_t func )
-    : m_range( range ), m_func{ func } {}
+    : m_range{ range }, m_func{ func } {}
 
   const_iterator begin() const;
 
   const_iterator end() const
-  { return { detail::end( m_range ), detail::end( m_range ), m_func }; }
+  { return { m_range.end(), m_range.end(), m_func }; }
 
 protected:
-  Range const& m_range;
+  range_ref< Range > m_range;
   filter_function_t m_func;
 };
 
@@ -99,9 +100,7 @@ typename filter_view< FilterFunction, Range >::const_iterator
 filter_view< FilterFunction, Range >
 ::begin() const
 {
-  auto iter =
-    const_iterator{ detail::begin( m_range ), detail::end( m_range ), m_func };
-
+  auto iter = const_iterator{ m_range.begin(), m_range.end(), m_func };
   return ( m_func( *iter ) ? iter : ++iter );
 }
 

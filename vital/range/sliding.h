@@ -49,14 +49,13 @@ namespace range {
  * input range has fewer than \c Size elements, the output range will be empty.
  */
 template < size_t Size, typename Range >
-class sliding_view
+class sliding_view : public generic_view
 {
 protected:
-  using detail = range_detail< Range >;
-  using range_iterator_t = typename detail::iterator_t;
+  using range_iterator_t = typename range_ref< Range >::iterator_t;
 
 public:
-  using value_t = std::array< typename detail::value_t, Size >;
+  using value_t = std::array< typename range_ref< Range >::value_t, Size >;
 
   class const_iterator
   {
@@ -89,16 +88,16 @@ public:
     std::array< range_iterator_t, Size > m_iter;
   };
 
-  sliding_view( Range const& range ) : m_range( range ) {}
+  sliding_view( Range const& range ) : m_range{ range } {}
 
   const_iterator begin() const
-  { return { detail::begin( m_range ), detail::end( m_range ) }; }
+  { return { m_range.begin(), m_range.end() }; }
 
   const_iterator end() const
-  { return { detail::end( m_range ), detail::end( m_range ) }; }
+  { return { m_range.end(), m_range.end() }; }
 
 protected:
-  Range const& m_range;
+  range_ref< Range > m_range;
 };
 
 // ----------------------------------------------------------------------------

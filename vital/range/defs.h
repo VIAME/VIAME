@@ -78,6 +78,9 @@ namespace range {
   }
 
 // ----------------------------------------------------------------------------
+struct generic_view {};
+
+// ----------------------------------------------------------------------------
 template < typename GenericAdapter >
 struct range_adapter_t {};
 
@@ -134,7 +137,7 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
 
 // ----------------------------------------------------------------------------
 template < typename Range >
-struct range_detail_helper
+struct range_detail
 {
 protected:
   // https://stackoverflow.com/questions/11725881
@@ -154,33 +157,58 @@ protected:
   using iterator_t =
     decltype( ( *get_iterator_p )( std::declval< Range >() ) );
 
-  static iterator_t begin_helper( Range const& r )
+  iterator_t begin_helper( Range const& range ) const
   {
     using namespace std;
-    return begin( r );
+    return begin( range );
   }
 
-  static iterator_t end_helper( Range const& r )
+  iterator_t end_helper( Range const& range ) const
   {
     using namespace std;
-    return end( r );
+    return end( range );
   }
 };
 
 // ----------------------------------------------------------------------------
-template < typename Range >
-struct range_detail : protected range_detail_helper< Range >
+template < typename Range,
+           bool = std::is_base_of< generic_view, Range >::value >
+class range_ref : range_detail< Range >
 {
 public:
-  using iterator_t = typename range_detail_helper< Range >::iterator_t;
+  using iterator_t = typename range_detail< Range >::iterator_t;
   using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
   using value_t = typename std::remove_reference< value_ref_t >::type;
 
-  static iterator_t begin( Range const& r )
-  { return range_detail_helper< Range >::begin_helper( r ); }
+  range_ref( Range const& range ) : m_range( range ) {}
+  range_ref( range_ref const& ) = default;
 
-  static iterator_t end( Range const& r )
-  { return range_detail_helper< Range >::end_helper( r ); }
+  iterator_t begin() const { return detail::begin_helper( m_range ); }
+  iterator_t end() const{ return detail::end_helper( m_range ); }
+
+protected:
+  using detail = range_detail< Range >;
+
+  Range const& m_range;
+};
+
+// ----------------------------------------------------------------------------
+template < typename Range >
+class range_ref< Range, true >
+{
+public:
+  using iterator_t = typename Range::const_iterator;
+  using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
+  using value_t = typename std::remove_reference< value_ref_t >::type;
+
+  range_ref( Range const& range ) : m_range( range ) {}
+  range_ref( range_ref const& ) = default;
+
+  iterator_t begin() const { return m_range.begin(); }
+  iterator_t end() const { return m_range.end(); }
+
+protected:
+  Range m_range;
 };
 
 } } } // end namespace
