@@ -33,8 +33,6 @@
 
 #include <vital/range/defs.h>
 
-#include <functional>
-
 namespace kwiver {
 namespace vital {
 namespace range {
@@ -46,7 +44,7 @@ namespace range {
  * iterating over the range, only elements which pass the filter (that is, the
  * filter functor returns \c true) will be seen.
  */
-template < typename FilterFunction, typename Range >
+template < typename Functor, typename Range >
 class filter_view
 {
 protected:
@@ -55,7 +53,7 @@ protected:
 
 public:
   using value_t = typename detail::value_t;
-  using filter_function_t = FilterFunction;
+  using filter_function_t = Functor;
 
   class const_iterator
   {

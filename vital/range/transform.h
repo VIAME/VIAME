@@ -33,8 +33,6 @@
 
 #include <vital/range/defs.h>
 
-#include <functional>
-
 namespace kwiver {
 namespace vital {
 namespace range {
@@ -44,7 +42,7 @@ namespace range {
 /**
  * This range adapter applies a transformation to the elements of a range.
  */
-template < typename TransformedValue, typename Range >
+template < typename Functor, typename Range >
 class transform_view
 {
 protected:
@@ -53,8 +51,8 @@ protected:
   using range_value_ref_t = typename detail::value_ref_t;
 
 public:
-  using value_t = TransformedValue;
-  using transform_function_t = std::function< value_t ( range_value_ref_t ) >;
+  using value_t = typename function_detail< Functor >::return_type_t;
+  using transform_function_t = Functor;
 
   class const_iterator
   {
@@ -97,10 +95,8 @@ protected:
 template < typename Functor >
 struct transform_view_adapter_t
 {
-  using value_t = typename function_detail< Functor >::return_type_t;
-
   template < typename Range >
-  transform_view< value_t, Range >
+  transform_view< Functor, Range >
   adapt( Range const& range ) const
   { return { range, m_func }; }
 
