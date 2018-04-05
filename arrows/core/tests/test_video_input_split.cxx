@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,6 +143,8 @@ TEST_F(video_input_split, read_list)
       << "Frame numbers should be sequential";
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
+    EXPECT_EQ( ts.get_time_usec(), vis.frame_timestamp().get_time_usec() );
+    EXPECT_EQ( ts.get_frame(), vis.frame_timestamp().get_frame() );
   }
   EXPECT_EQ( num_expected_frames, num_frames );
   EXPECT_EQ( num_expected_frames, vis.num_frames() );
