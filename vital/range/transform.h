@@ -41,6 +41,24 @@ namespace range {
 /// Transforming range adapter.
 /**
  * This range adapter applies a transformation to the elements of a range.
+ *
+ * \par Example:
+ \code
+ namespace r = kwiver::vital::range;
+
+ std::vector<int> values = { 1, 2, 3, 4, 5 };
+ auto times_3 = []( int x ){ return x * 3; };
+
+ for ( auto x : values | r::transform( times_3 ) )
+   std::cout << x << std::endl;
+
+ // Output:
+ //  3
+ //  6
+ //  9
+ //  12
+ //  15
+ \endcode
  */
 template < typename Functor, typename Range >
 class transform_view : public generic_view

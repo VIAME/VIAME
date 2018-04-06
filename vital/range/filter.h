@@ -43,6 +43,23 @@ namespace range {
  * This range adapter applies a filter to the elements of a range. When
  * iterating over the range, only elements which pass the filter (that is, the
  * filter functor returns \c true) will be seen.
+ *
+ * \par Example:
+ \code
+ namespace r = kwiver::vital::range;
+
+ std::vector<int> values = { 1, 2, 3, 4, 5, 6, 7, 8 };
+ auto is_even = []( int x ){ return ( x % 2 ) == 0; };
+
+ for ( auto x : values | r::filter( is_even ) )
+   std::cout << x << std::endl;
+
+ // Output:
+ //  2
+ //  4
+ //  6
+ //  8
+ \endcode
  */
 template < typename Functor, typename Range >
 class filter_view : public generic_view

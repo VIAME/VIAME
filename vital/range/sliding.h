@@ -47,6 +47,25 @@ namespace range {
  * first iteration will return that number of elements, in the same order as
  * the input range. Each subsequent step will shift this window by one. If the
  * input range has fewer than \c Size elements, the output range will be empty.
+ *
+ * \par Example:
+ \code
+ namespace r = kwiver::vital::range;
+
+ std::vector<int> values = { 1, 2, 3, 4, 5 };
+
+ for ( auto x : values | r::sliding< 3 > )
+   std::cout << x[0] << x[1] << x[2] << std::endl;
+
+ // Output:
+ //  123
+ //  234
+ //  345
+ \endcode
+
+ \note Due to C++ limitations, if \c sliding is applied immediately to a
+       C-style array, the template parameter list must be followed by
+       <code>()</code>.
  */
 template < size_t Size, typename Range >
 class sliding_view : public generic_view

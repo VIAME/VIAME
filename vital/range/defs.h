@@ -43,6 +43,8 @@ namespace range {
  * \brief core types and macros for implementing range utilities.
  */
 
+/// \cond Internal
+
 #define KWIVER_UNPACK_TOKENS(...) __VA_ARGS__
 
 // ----------------------------------------------------------------------------
@@ -84,6 +86,20 @@ struct generic_view {};
 template < typename GenericAdapter >
 struct range_adapter_t {};
 
+/// \endcond
+
+#ifdef DOXYGEN
+
+// ----------------------------------------------------------------------------
+/**
+ * Apply a range adapter to a range.
+ */
+template < typename Range, typename Adapter >
+auto
+operator|( Range const&, Adapter );
+
+#else
+
 // ----------------------------------------------------------------------------
 template < typename Range, typename Adapter >
 auto
@@ -105,6 +121,10 @@ operator|(
 {
   return Adapter::adapt( range );
 }
+
+#endif
+
+/// \cond Internal
 
 // ----------------------------------------------------------------------------
 template < typename Functor >
@@ -192,6 +212,10 @@ protected:
   Range const& m_range;
 };
 
+/// \endcond
+
+/// \cond DoxygenSuppress
+
 // ----------------------------------------------------------------------------
 template < typename Range >
 class range_ref< Range, true >
@@ -210,6 +234,8 @@ public:
 protected:
   Range m_range;
 };
+
+/// \endcond
 
 } } } // end namespace
 

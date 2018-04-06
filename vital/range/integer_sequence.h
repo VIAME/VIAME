@@ -49,6 +49,8 @@ struct integer_sequence_t
 ///////////////////////////////////////////////////////////////////////////////
 //BEGIN Implementation details
 
+/// \cond DoxygenSuppress
+
 namespace integer_sequence_detail {
 
 // Adapted from https://stackoverflow.com/questions/17424477 and
@@ -94,6 +96,8 @@ struct generator< T, Count, typename std::enable_if< Count == 1 >::type >
 {};
 
 } // end implementation detail namespace
+
+/// \endcond
 
 //END Implementation details
 ///////////////////////////////////////////////////////////////////////////////
