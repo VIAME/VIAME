@@ -137,18 +137,6 @@ filter_view< FilterFunction, Range >::const_iterator
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// ----------------------------------------------------------------------------
-template < typename Functor >
-struct filter_view_adapter_t
-{
-  template < typename Range >
-  filter_view< Functor, Range >
-  adapt( Range const& range ) const
-  { return { range, m_func }; }
-
-  Functor m_func;
-};
-
 KWIVER_RANGE_ADAPTER_FUNCTION( filter )
 
 } } } // end namespace

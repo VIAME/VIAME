@@ -64,6 +64,17 @@ namespace range {
 
 // ----------------------------------------------------------------------------
 #define KWIVER_RANGE_ADAPTER_FUNCTION( name ) \
+  template < typename Functor > \
+  struct name##_view_adapter_t \
+  { \
+    template < typename Range > \
+    name##_view< Functor, Range > \
+    adapt( Range const& range ) const \
+    { return { range, m_func }; } \
+    \
+    Functor m_func; \
+  }; \
+  \
   template < typename... Args > \
   name##_view_adapter_t< Args... > \
   name( Args... args ) \

@@ -110,18 +110,6 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// ----------------------------------------------------------------------------
-template < typename Functor >
-struct transform_view_adapter_t
-{
-  template < typename Range >
-  transform_view< Functor, Range >
-  adapt( Range const& range ) const
-  { return { range, m_func }; }
-
-  Functor m_func;
-};
-
 KWIVER_RANGE_ADAPTER_FUNCTION( transform )
 
 } } } // end namespace
