@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,47 +37,42 @@
 
 #include <set>
 
-#include <vital/logger/logger.h>
-
 #include <arrows/core/triangulate.h>
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Private implementation class
+// Private implementation class
 class triangulate_landmarks::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
-    : homogeneous(false),
-      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
+    : homogeneous(false)
   {
   }
 
   priv(const priv& other)
-    : homogeneous(other.homogeneous),
-      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
+    : homogeneous(other.homogeneous)
   {
   }
 
-  /// use the homogeneous method for triangulation
+  // use the homogeneous method for triangulation
   bool homogeneous;
-  /// logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// Constructor
 triangulate_landmarks
 ::triangulate_landmarks()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.triangulate_landmarks" );
 }
 
 
-/// Copy Constructor
+// Copy Constructor
 triangulate_landmarks
 ::triangulate_landmarks(const triangulate_landmarks& other)
 : d_(new priv(*other.d_))
@@ -85,14 +80,14 @@ triangulate_landmarks
 }
 
 
-/// Destructor
+// Destructor
 triangulate_landmarks
 ::~triangulate_landmarks()
 {
 }
 
 
-/// Get this alg's \link vital::config_block configuration block \endlink
+// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 triangulate_landmarks
 ::get_configuration() const
@@ -111,7 +106,7 @@ triangulate_landmarks
 }
 
 
-/// Set this algorithm's properties via a config block
+// Set this algorithm's properties via a config block
 void
 triangulate_landmarks
 ::set_configuration(vital::config_block_sptr in_config)
@@ -126,7 +121,7 @@ triangulate_landmarks
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
 ::check_configuration(vital::config_block_sptr config) const
@@ -135,7 +130,7 @@ triangulate_landmarks
 }
 
 
-/// Triangulate the landmark locations given sets of cameras and tracks
+// Triangulate the landmark locations given sets of cameras and tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
@@ -255,7 +250,7 @@ triangulate_landmarks
   }
   if( !failed_landmarks.empty() )
   {
-    LOG_WARN( d_->m_logger,
+    LOG_WARN( logger(),
               "failed to triangulate " << failed_landmarks.size()
               << " of " << lms.size() << " landmarks");
   }

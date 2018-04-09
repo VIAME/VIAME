@@ -57,9 +57,6 @@ public:
   /// Destructor
   virtual ~optimize_cameras();
 
-  /// Copy Constructor
-  optimize_cameras(const optimize_cameras& other);
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
