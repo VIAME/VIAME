@@ -58,7 +58,7 @@ namespace range {
     { return { range }; } \
   }; \
   \
-  template < KWIVER_UNPACK_TOKENS args > inline \
+  template < KWIVER_UNPACK_TOKENS args > inline constexpr \
   range_adapter_t< name##_view_adapter_t< KWIVER_UNPACK_TOKENS arg_names > > \
   name() { return {}; }
 
@@ -76,7 +76,7 @@ namespace range {
   }; \
   \
   template < typename... Args > \
-  name##_view_adapter_t< Args... > \
+  constexpr name##_view_adapter_t< Args... > \
   name( Args... args ) \
   { return { args... }; } \
   \

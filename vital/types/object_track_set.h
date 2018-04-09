@@ -94,6 +94,8 @@ public:
     return std::dynamic_pointer_cast< object_track_state >( sp );
   }
 
+  static constexpr auto downcast_transform = range::transform( downcast );
+
 private:
   time_us_t time_;
 };
@@ -127,7 +129,7 @@ public:
 typedef std::shared_ptr< object_track_set > object_track_set_sptr;
 
 /// Helper to iterate over the states of a track as object track states
-inline auto as_object_track = range::transform( object_track_state::downcast );
+static constexpr auto as_object_track = object_track_state::downcast_transform;
 
 } } // end namespace vital
 
