@@ -52,6 +52,7 @@
 #include "image_writer_process.h"
 #include "keyframe_selection_process.h"
 #include "matcher_process.h"
+#include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "refine_detections_process.h"
 #include "split_image_process.h"
@@ -277,7 +278,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-
   fact = vpm.ADD_PROCESS(kwiver::track_features_process);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_tracker");
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name);
@@ -305,6 +305,18 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Detects loops in a track set using features with descriptors.");
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0");
+
+  fact = vpm.ADD_PROCESS( kwiver::print_config_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "print_config" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Print process configuration.\n\n"
+                    "This process is a debugging aide and performs no other function in a pipeline. "
+                    "The supplied configuration is printed when it is presented to the process. "
+                    "All ports connections to the process are accepted and the supplied data is taken from the port and "
+                    "discarded. This process produces no outputs and has no output ports.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
