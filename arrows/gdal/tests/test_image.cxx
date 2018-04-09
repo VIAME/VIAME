@@ -65,3 +65,21 @@ TEST(image, create)
     << "Factory method did not construct the correct type";
 }
 
+TEST(image, open)
+{
+  plugin_manager::instance().load_all_plugins();
+
+  auto img_io = algo::image_io::create("gdal");
+
+  // TODO: Hard code for now until we settle on a test file
+  std::string filepath =
+    "/Users/chet.nieter/projects/ComputerVision/Core3D/data_fouo/"
+    "16JAN26183049-M1BS-500647790060_01_P001.tif";
+
+  auto img_ptr = img_io->load(filepath);
+
+  EXPECT_EQ( img_ptr->width(), 300 );
+  EXPECT_EQ( img_ptr->height(), 300 );
+  EXPECT_EQ( img_ptr->depth(), 2 );
+}
+

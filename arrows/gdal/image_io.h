@@ -49,6 +49,13 @@ class KWIVER_ALGO_GDAL_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
+public:
+  /// Constructor
+  image_io();
+
+  /// Destructor
+  virtual ~image_io();
+
   // No configuration for this class yet
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }
@@ -70,6 +77,10 @@ private:
    */
   virtual void save_(const std::string& filename,
                      vital::image_container_sptr data) const;
+
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
 };
 
 } // end namespace gdal
