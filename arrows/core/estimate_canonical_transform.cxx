@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@
 
 #include "estimate_canonical_transform.h"
 
-#include <vital/logger/logger.h>
-
 #include <algorithm>
 
 using namespace kwiver::vital;
@@ -53,33 +51,32 @@ public:
   /// Constructor
   priv()
     : estimate_scale(true),
-      height_percentile(0.05),
-      m_logger( vital::get_logger( "arrows.core.estimate_canonical_transform" ))
+      height_percentile(0.05)
   {
   }
 
   priv(const priv& other)
     : estimate_scale(other.estimate_scale),
-      height_percentile(other.height_percentile),
-      m_logger( vital::get_logger( "arrows.core.estimate_canonical_transform" ))
+      height_percentile(other.height_percentile)
   {
   }
 
   bool estimate_scale;
   double height_percentile;
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 estimate_canonical_transform
 ::estimate_canonical_transform()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.estimate_canonical_transform" );
 }
 
 
-/// Copy Constructor
+// Copy Constructor
 estimate_canonical_transform
 ::estimate_canonical_transform(const estimate_canonical_transform& other)
 : d_(new priv(*other.d_))
@@ -87,14 +84,15 @@ estimate_canonical_transform
 }
 
 
-/// Destructor
+// Destructor
 estimate_canonical_transform
 ::~estimate_canonical_transform()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 estimate_canonical_transform
 ::get_configuration() const
@@ -117,7 +115,8 @@ estimate_canonical_transform
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 estimate_canonical_transform
 ::set_configuration(vital::config_block_sptr config)
@@ -127,7 +126,8 @@ estimate_canonical_transform
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 estimate_canonical_transform
 ::check_configuration(vital::config_block_sptr config) const
@@ -136,7 +136,8 @@ estimate_canonical_transform
 }
 
 
-/// Estimate a canonical similarity transform for cameras and points
+// ----------------------------------------------------------------------------
+// Estimate a canonical similarity transform for cameras and points
 kwiver::vital::similarity_d
 estimate_canonical_transform
 ::estimate_transform(kwiver::vital::camera_map_sptr const cameras,

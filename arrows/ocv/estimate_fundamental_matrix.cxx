@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,43 +41,41 @@
 
 namespace kwiver {
 namespace arrows {
+namespace ocv {
 
-namespace ocv
-{
-
-/// Private implementation class
+// Private implementation class
 class estimate_fundamental_matrix::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
-    : confidence_threshold(0.99),
-      m_logger( vital::get_logger( "arrows.ocv.estimate_fundamental_matrix" ))
+    : confidence_threshold(0.99)
   {
   }
 
   double confidence_threshold;
-
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 estimate_fundamental_matrix
 ::estimate_fundamental_matrix()
 : d_(new priv)
 {
+  attach_logger( "arrows.ocv.estimate_fundamental_matrix" );
 }
 
 
-/// Destructor
+// Destructor
 estimate_fundamental_matrix
 ::~estimate_fundamental_matrix()
 {
 }
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 estimate_fundamental_matrix
 ::get_configuration() const
@@ -93,7 +91,8 @@ estimate_fundamental_matrix
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 estimate_fundamental_matrix
 ::set_configuration(vital::config_block_sptr config)
@@ -102,7 +101,8 @@ estimate_fundamental_matrix
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 estimate_fundamental_matrix
 ::check_configuration(vital::config_block_sptr config) const
@@ -110,7 +110,7 @@ estimate_fundamental_matrix
   double confidence_threshold = config->get_value<double>("confidence_threshold", d_->confidence_threshold);
   if( confidence_threshold <= 0.0 || confidence_threshold > 1.0 )
   {
-    LOG_ERROR(d_->m_logger, "confidence_threshold parameter is "
+    LOG_ERROR(logger(), "confidence_threshold parameter is "
                             << confidence_threshold
                             << ", needs to be in (0.0, 1.0].");
     return false;
@@ -120,7 +120,8 @@ estimate_fundamental_matrix
 }
 
 
-/// Estimate a fundamental matrix from corresponding points
+// ----------------------------------------------------------------------------
+// Estimate a fundamental matrix from corresponding points
 vital::fundamental_matrix_sptr
 estimate_fundamental_matrix
 ::estimate(const std::vector<vital::vector_2d>& pts1,
@@ -130,7 +131,7 @@ estimate_fundamental_matrix
 {
   if (pts1.size() < 8 || pts2.size() < 8)
   {
-    LOG_ERROR(d_->m_logger, "Not enough points to estimate a fundamental matrix");
+    LOG_ERROR(logger(), "Not enough points to estimate a fundamental matrix");
     return vital::fundamental_matrix_sptr();
   }
 

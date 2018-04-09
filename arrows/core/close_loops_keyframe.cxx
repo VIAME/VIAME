@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,8 +61,7 @@ public:
     : match_req(100),
       search_bandwidth(10),
       min_keyframe_misses(5),
-      stop_after_match(false),
-      m_logger( vital::get_logger( "arrows.core.close_loops_keyframe" ))
+      stop_after_match(false)
   {
   }
 
@@ -89,9 +88,6 @@ public:
 
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr matcher;
-
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
@@ -101,6 +97,7 @@ close_loops_keyframe
 ::close_loops_keyframe()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.close_loops_keyframe" );
 }
 
 
@@ -306,10 +303,10 @@ close_loops_keyframe
       ++kitr;
       frame_name = "keyframe ";
     }
-    LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to "
-                           << frame_name << f
-                           << " has "<< num_matched << " matches and "
-                           << num_linked << " joined tracks");
+    LOG_INFO(logger(), "Matching frame " << frame_number << " to "
+                        << frame_name << f
+                        << " has "<< num_matched << " matches and "
+                        << num_linked << " joined tracks");
   }
   // divide by number of matched frames to get the average
   d_->frame_matches[frame_number] /=
@@ -336,9 +333,9 @@ close_loops_keyframe
         }
       }
     }
-    LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to keyframe "<< *kitr
-                           << " has "<< num_matched << " matches and "
-                           << num_linked << " joined tracks");
+    LOG_INFO(logger(), "Matching frame " << frame_number << " to keyframe "<< *kitr
+                       << " has "<< num_matched << " matches and "
+                       << num_linked << " joined tracks");
     if( num_matched > max_keyframe_matched )
     {
       max_keyframe_matched = num_matched;
@@ -359,8 +356,8 @@ close_loops_keyframe
   if (max_keyframe_matched < d_->match_req)
   {
     d_->keyframe_misses.push_back(frame_number);
-    LOG_DEBUG(d_->m_logger, "Frame " << frame_number << " added to keyframe misses. "
-                            << "Count: "<<d_->keyframe_misses.size());
+    LOG_DEBUG(logger(), "Frame " << frame_number << " added to keyframe misses. "
+                         << "Count: "<<d_->keyframe_misses.size());
   }
 
   // If we've seen enough keyframe misses and the first miss has passed outside
@@ -385,7 +382,7 @@ close_loops_keyframe
     if( max_matches > static_cast<unsigned int>(d_->match_req) )
     {
       // create the new keyframe and clear the list of misses
-      LOG_INFO(d_->m_logger, "creating new keyframe on frame " << max_id);
+      LOG_INFO(logger(), "creating new keyframe on frame " << max_id);
       d_->keyframes.push_back(max_id);
       d_->keyframe_misses.clear();
     }
