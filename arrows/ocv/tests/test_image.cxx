@@ -179,7 +179,9 @@ run_ocv_conversion_tests( cv::Mat const& img )
       {
         for( int i = 0; i < img.cols; ++i )
         {
-          ASSERT_EQ( img.ptr<T>( j )[ num_c * i + c ], vimg.at<T>( i, j, c ) );
+          auto img_pix = img.ptr<T>( j )[ num_c * i + c ];
+          auto vimg_pix = vimg.at<T>( i, j, c );
+          ASSERT_EQ( img_pix, vimg_pix  );
         }
       }
     }
