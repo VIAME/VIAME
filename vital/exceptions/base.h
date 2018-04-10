@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #define VITAL_CORE_EXCEPTIONS_BASE_H
 
 #include <vital/vital_config.h>
-#include <vital/vital_export.h>
+#include <vital/exceptions/vital_exceptions_export.h>
 
 #include <string>
 #include <exception>
@@ -50,15 +50,15 @@ namespace vital {
 /**
  * \ingroup exceptions
  */
-class VITAL_EXPORT vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT vital_exception
   : public std::exception
 {
 public:
   /// Constructor
-  vital_core_base_exception() noexcept;
+  vital_exception() noexcept;
 
   /// Destructor
-  virtual ~vital_core_base_exception() noexcept;
+  virtual ~vital_exception() noexcept;
 
   /**
    * \brief Description of the exception
@@ -78,29 +78,29 @@ public:
    * \param line Line number in file.
    */
   void set_location( std::string const& file, int line );
+
 protected:
   /// descriptive string as to what happened to cause the exception.
   std::string m_what;
+
   std::string m_file_name;
   int m_line_number;
 };
+
 
 // ------------------------------------------------------------------
 /// Exception for incorrect input values
 /**
  * \ingroup exceptions
  */
-class VITAL_EXPORT invalid_value
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT invalid_value
+  : public vital_exception
 {
 public:
   /// Constructor
   invalid_value(std::string reason) noexcept;
   /// Destructor
   virtual ~invalid_value() noexcept;
-protected:
-  /// Reason for invalidity
-  std::string m_reason;
 };
 
 } } // end namespace vital

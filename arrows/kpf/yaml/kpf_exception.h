@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace vital {
 // ------------------------------------------------------------------
 /// Generic kpf exception
 class  KPF_YAML_EXPORT kpf_exception
-  : public vital_core_base_exception
+  : public vital_exception
 {
 public:
   /// Constructor

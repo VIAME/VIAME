@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,23 +38,23 @@
 namespace kwiver {
 namespace vital {
 
-vital_core_base_exception
-::vital_core_base_exception() noexcept
+vital_exception
+::vital_exception() noexcept
   : std::exception()
   , m_line_number(0)
 {
 }
 
 
-vital_core_base_exception
-::~vital_core_base_exception() noexcept
+vital_exception
+::~vital_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-vital_core_base_exception
+vital_exception
 ::set_location( std::string const& file, int line )
 {
   m_file_name = file;
@@ -64,20 +64,20 @@ vital_core_base_exception
 
 // ------------------------------------------------------------------
 char const*
-vital_core_base_exception
+vital_exception
 ::what() const noexcept
 {
   return this->m_what.c_str();
 }
 
 
-// ------------------------------------------------------------------
+// ============================================================================
 invalid_value
 ::invalid_value(std::string reason) noexcept
-  : m_reason(reason)
 {
   m_what = "Invalid value(s): " + reason;
 }
+
 
 invalid_value
 ::~invalid_value() noexcept
