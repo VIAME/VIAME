@@ -30,8 +30,8 @@
 
 /**
  * \file
- * \brief Header for \link kwiver::vital::camera_perspective camera_perspective \endlink and
- *        \link kwiver::vital::camera_perspective_ camera_perspective_<T> \endlink classes
+ * \brief Header for \link kwiver::vital::camera_rpc camera_rpc \endlink and
+ *        \link kwiver::vital::camera_rpc_ camera_rpc_<T> \endlink classes
  */
 
 #ifndef VITAL_CAMERA_RPC_H_
@@ -53,14 +53,14 @@ namespace vital {
 
 typedef Eigen::Matrix< double, 4, 20 > rpc_matrix;
 
-/// forward declaration of perspective camera class
+/// forward declaration of rpc camera class
 class camera_rpc;
 /// typedef for a camera_rpc shared pointer
 typedef std::shared_ptr< camera_rpc > camera_rpc_sptr;
 
 
 // ------------------------------------------------------------------
-/// An abstract representation of perspective camera
+/// An abstract representation of rpc camera
 /**
  * The base class of camera_rpcs is abstract and provides a
  * double precision interface.  The templated derived class
@@ -98,7 +98,7 @@ protected:
 
 /// A representation of a camera
 /**
- * Contains camera location, orientation, and intrinsics
+ * Contains camera rpc coefficients, offsets, and scales
  */
 class VITAL_EXPORT simple_camera_rpc :
   public camera_rpc
@@ -143,7 +143,7 @@ public:
 
   /// Create a clone of this camera object
   virtual camera_sptr clone() const
-  { return camera_sptr( new simple_camera_rpc( *this ) ); }
+  { return camera_sptr( std::make_shared< simple_camera_rpc >( *this ) ); }
 
   // Accessors
   virtual rpc_matrix rpc_coeffs() const
