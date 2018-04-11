@@ -124,6 +124,10 @@ Vital
 
  * Added frame_time() method to video_input to access the current time stamp.
 
+ * Added an assortment of types and algorithms in support of a basic object
+   tracker, including readers/writers, a matrix-based associate detections to
+   tracks process, a generic track initializer, and others.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
@@ -144,6 +148,10 @@ Arrows: Core
 
  * Removed description() methods from some implementations. This
    method is no longer used.
+
+ * Added an assortment of algorithm implementations in support of a basic object
+   tracking support, including readers/writers, a matrix-based associate detections
+   to tracks process, a generic track initializer, and others.
 
 Sprokit
 
