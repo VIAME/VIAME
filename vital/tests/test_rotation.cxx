@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
  * \brief test core rotation class
  */
 
+#define _USE_MATH_DEFINES
+
 #include <test_eigen.h>
 
 #include <vital/types/rotation.h>
@@ -40,7 +42,6 @@
 #include <iostream>
 #include <vector>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #if defined M_PIl
