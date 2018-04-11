@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Canonical KPF types.
- */
+#ifndef ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
+#define ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
 
-#include "kpf_canonical_types.h"
-#include <arrows/kpf/yaml/kpf_packet.h>
+#include <sprokit/pipeline/process.h>
 
-#include <vital/logger/logger.h>
-static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( "arrows.kpf.kpf_canonical_types" ) );
+#include "kwiver_processes_export.h"
 
-using std::string;
+#include <vital/config/config_block.h>
 
 namespace kwiver {
-namespace vital {
-namespace kpf {
 
-namespace canonical
+// ----------------------------------------------------------------
+/**
+ * @brief Image object detector process.
+ *
+ */
+class KWIVER_PROCESSES_NO_EXPORT print_config_process
+  : public sprokit::process
 {
+public:
+  print_config_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~print_config_process();
 
-kv_t
-::kv_t( const string& k, const string& v )
-  : key(k), val(v)
-{
-  if ( str2style( k ) != packet_style::INVALID )
-  {
-    LOG_ERROR( main_logger, "KV packet '" << k << "' / '" << v << "'; key value is already a KPF packet type-- file won't parse" );
-    // throw an error?
-  }
-}
 
-} // ...canonical
-} // ...kpf
-} // ...vital
-} // ...kwiver
+protected:
+  virtual void _configure();
+  virtual void _step();
+
+  // This is used to intercept connections and make ports JIT
+  virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
+
+private:
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class object_detector_process
+
+
+
+} // end namespace
+
+#endif // ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
