@@ -217,6 +217,20 @@ bundle_adjust
   return true;
 }
 
+/// Optimize the camera and landmark parameters given a set of tracks
+void
+bundle_adjust
+::optimize(camera_map_sptr& cameras,
+  landmark_map_sptr& landmarks,
+  feature_track_set_sptr tracks,
+  metadata_map_sptr metadata) const
+{
+  //both fixed cameras and fixed landmarks are empty for default call.
+  std::set<vital::frame_id_t> fixed_cameras;
+  std::set<vital::landmark_id_t> fixed_landmarks;
+  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, metadata);
+}
+
 
 // ----------------------------------------------------------------------------
 // Optimize the camera and landmark parameters given a set of tracks
@@ -225,6 +239,8 @@ bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
            feature_track_set_sptr tracks,
+           const std::set<vital::frame_id_t>& to_fix_cameras,
+           const std::set<vital::landmark_id_t>& to_fix_landmarks,
            metadata_map_sptr metadata) const
 {
   if( !cameras || !landmarks || !tracks )
@@ -232,6 +248,8 @@ bundle_adjust
     // TODO throw an exception for missing input data
     return;
   }
+
+  std::set<frame_id_t> fixed_cameras;
 
   // extract data from containers
   d_->cams = cameras->cameras();
@@ -310,7 +328,39 @@ bundle_adjust
                                intr_params_ptr,
                                &cam_itr->second[0],
                                &lm_itr->second[0]);
+
       loss_func_used = true;
+    }
+  }
+
+  //fix all the cameras in the to_fix_cameras list
+  for (auto tfc : to_fix_cameras)
+  {
+    cam_param_map_t::iterator cam_itr = d_->camera_params.find(tfc);
+    if (cam_itr == d_->camera_params.end())
+    {
+      continue;
+    }
+    double *state_ptr = &cam_itr->second[0];
+    if (problem.HasParameterBlock(state_ptr))
+    {
+      problem.SetParameterBlockConstant(state_ptr);
+      fixed_cameras.insert(tfc);
+    }
+  }
+
+  //fix all the landmarks in the to_fix_landmarks list
+  for (auto tfl: to_fix_landmarks)
+  {
+    lm_param_map_t::iterator lm_itr = d_->landmark_params.find(tfl);
+    if (lm_itr == d_->landmark_params.end())
+    {
+      continue;
+    }
+    double *state_ptr = &lm_itr->second[0];
+    if (problem.HasParameterBlock(state_ptr))
+    {
+      problem.SetParameterBlockConstant(state_ptr);
     }
   }
 

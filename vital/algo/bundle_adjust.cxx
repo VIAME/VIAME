@@ -55,6 +55,18 @@ bundle_adjust
   this->m_callback = cb;
 }
 
+void
+bundle_adjust
+::optimize(vital::camera_map_sptr& cameras,
+  vital::landmark_map_sptr& landmarks,
+  vital::feature_track_set_sptr tracks,
+  const std::set<vital::frame_id_t>& fixed_cameras,
+  const std::set<vital::landmark_id_t>& fixed_landmarks,
+  vital::metadata_map_sptr metadata) const
+{
+  optimize(cameras, landmarks, tracks, metadata);
+}
+
 } } }
 
 /// \cond DoxygenSuppress
