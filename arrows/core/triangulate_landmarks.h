@@ -94,6 +94,8 @@ private:
   const std::unique_ptr<priv> d_;
 };
 
+typedef std::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
+
 } // end namespace core
 } // end namespace arrows
 } // end namespace kwiver

@@ -35,7 +35,7 @@
 
 #include "metrics.h"
 #include <vital/types/feature_track_set.h>
-
+#include <limits>
 
 namespace kwiver {
 namespace arrows {
@@ -51,6 +51,36 @@ reprojection_error_vec(const camera& cam,
   vector_2d pt(0.0, 0.0);
   pt = cam.project(lm.loc());
   return pt - f.loc();
+}
+
+double
+bundle_angle_max(const std::vector<vital::simple_camera> &cameras,
+                 const vital::vector_3d &X)
+{
+  double min_cos_ang = std::numeric_limits<double>::infinity();
+  for(size_t i = 0; i < cameras.size(); ++i)
+  {
+    // the first camera
+    const vital::simple_camera& cam_i = cameras[i];
+    const vital::vector_3d c_i(cam_i.center().cast<double>());
+    const vital::vector_3d ray_i = (c_i - X).normalized();
+
+    for(size_t j = i+1; j < cameras.size(); ++j)
+    {
+      // the second camera
+      const vital::simple_camera& cam_j = cameras[j];
+      const vital::vector_3d c_j(cam_j.center().cast<double>());
+      const vital::vector_3d ray_j = (c_j - X).normalized();
+
+      double cos_ang = ray_i.dot(ray_j);
+
+      if (cos_ang <= min_cos_ang)
+      {
+        min_cos_ang = cos_ang;
+      }
+    }
+  }
+  return min_cos_ang;
 }
 
 
