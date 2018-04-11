@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <fstream>
 
-#include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 #include <cereal/archives/portable_binary.hpp>
 
@@ -49,41 +48,39 @@ namespace arrows {
 namespace core {
 
 
-/// Private implementation class
+// Private implementation class
 class feature_descriptor_io::priv
 {
 public:
   /// Constructor
   priv()
-  : write_float_features(false),
-    m_logger( vital::get_logger( "arrows.vxl.feature_descriptor_io" ) )
+  : write_float_features(false)
   {
   }
 
   bool write_float_features;
-
-  vital::logger_handle_t m_logger;
 };
 
 
 
-/// Constructor
+// Constructor
 feature_descriptor_io
 ::feature_descriptor_io()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.feature_descriptor_io" );
 }
 
 
-/// Destructor
+// Destructor
 feature_descriptor_io
 ::~feature_descriptor_io()
 {
 }
 
 
-
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 feature_descriptor_io
 ::get_configuration() const
@@ -99,7 +96,8 @@ feature_descriptor_io
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 feature_descriptor_io
 ::set_configuration(vital::config_block_sptr in_config)
@@ -114,7 +112,8 @@ feature_descriptor_io
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 feature_descriptor_io
 ::check_configuration(vital::config_block_sptr config) const
@@ -147,6 +146,7 @@ save_features(Archive & ar, std::vector<feature_sptr> const& features)
 }
 
 
+// ----------------------------------------------------------------------------
 // Helper function to unserialized a vector of N features of known type
 template <typename Archive, typename T>
 vital::feature_set_sptr
@@ -164,6 +164,7 @@ read_features(Archive & ar, size_t num_feat)
 }
 
 
+// ----------------------------------------------------------------------------
 // Helper function to serialized a vector of descriptors of known type
 template <typename Archive, typename T>
 void
@@ -202,6 +203,7 @@ save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
 }
 
 
+// ----------------------------------------------------------------------------
 // Helper function to unserialized a vector of N descriptors of known type
 template <typename Archive, typename T>
 vital::descriptor_set_sptr
@@ -239,14 +241,15 @@ read_descriptors(Archive & ar, size_t num_desc)
 }
 
 
-
-
+// ----------------------------------------------------------------------------
 // compute base 2 log of integers at compile time
 constexpr size_t log2(size_t n)
 {
   return ( (n<2) ? 0 : 1+log2(n/2));
 }
 
+
+// ----------------------------------------------------------------------------
 // compute a unique byte code for built-in types
 template <typename T>
 struct type_traits
@@ -257,6 +260,8 @@ struct type_traits
     log2(sizeof(T)));
 };
 
+
+// ----------------------------------------------------------------------------
 uint8_t code_from_typeid(std::type_info const& tid)
 {
 #define CODE_TYPE(T) \
@@ -282,7 +287,9 @@ uint8_t code_from_typeid(std::type_info const& tid)
 
 }
 
-/// Implementation specific load functionality.
+
+// ----------------------------------------------------------------------------
+// Implementation specific load functionality.
 void
 feature_descriptor_io
 ::load_(std::string const& filename,
@@ -374,8 +381,8 @@ feature_descriptor_io
 }
 
 
-
-/// Implementation specific save functionality.
+// ----------------------------------------------------------------------------
+// Implementation specific save functionality.
 void
 feature_descriptor_io
 ::save_(std::string const& filename,
@@ -385,7 +392,7 @@ feature_descriptor_io
   if( !(feat && feat->size() > 0) &&
       !(desc && desc->size() > 0) )
   {
-    LOG_WARN(d_->m_logger, "Not writing file, no features or descriptors");
+    LOG_WARN(logger(), "Not writing file, no features or descriptors");
     return;
   }
 

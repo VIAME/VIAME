@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -248,14 +248,34 @@ video_input_pos
     d->d_metadata = vital::read_pos_file( d->d_current_files->second );
   }
 
+  // Return timestamp
+  ts = this->frame_timestamp();
+
   // Include the path to the image
   if ( d->d_metadata )
   {
+    d->d_metadata->set_timestamp( ts );
     d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
                                            d->d_current_files->first ) );
   }
 
-  // Return timestamp
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_pos
+::frame_timestamp() const
+{
+  // Check for at end of video
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
+  kwiver::vital::timestamp ts;
+
   ts.set_frame( d->d_frame_number );
   if ( d->d_metadata )
   {
@@ -266,10 +286,9 @@ video_input_pos
       // or subtract off first frame time to get time relative to start
       ts.set_time_seconds( gps_sec );
     }
-    d->d_metadata->set_timestamp( ts );
   }
 
-  return true;
+  return ts;
 }
 
 

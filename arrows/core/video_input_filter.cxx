@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -245,6 +245,29 @@ video_input_filter
   }
 
   return status;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_filter
+::frame_timestamp() const
+{
+  // Check for at end of data
+  if( d->d_at_eov )
+  {
+    return {};
+  }
+
+  auto ts = d->d_video_input->frame_timestamp();
+
+  // set the frame time base on rate if missing
+  if( d->c_frame_rate > 0 && ts.has_valid_frame() && !ts.has_valid_time() )
+  {
+    ts.set_time_seconds( ts.get_frame() / d->c_frame_rate );
+  }
+
+  return ts;
 }
 
 

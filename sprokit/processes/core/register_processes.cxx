@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
 #include "image_writer_process.h"
 #include "initialize_object_tracks_process.h"
 #include "matcher_process.h"
+#include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
 #include "read_track_descriptor_process.h"
@@ -286,6 +287,19 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Reads object track sets from an input file." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::print_config_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "print_config" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Print process configuration.\n\n"
+                    "This process is a debugging aide and performs no other function in a pipeline. "
+                    "The supplied configuration is printed when it is presented to the process. "
+                    "All ports connections to the process are accepted and the supplied data is taken from the port and "
+                    "discarded. This process produces no outputs and has no output ports.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
