@@ -217,6 +217,41 @@ bundle_adjust
   return true;
 }
 
+class distance_constraint
+{
+public:
+  /// Constructor
+  distance_constraint(const double distance_squared)
+    : distance_squared_(distance_squared) {}
+
+  template <typename T> bool operator()(
+    const T* const pose_0,
+    const T* const pose_1,
+    T* residuals) const
+  {
+    const T* center_0 = pose_0 + 3;
+    const T* center_1 = pose_1 + 3;
+    T dx = center_0[0] - center_1[0];
+    T dy = center_0[1] - center_1[1];
+    T dz = center_0[2] - center_1[2];
+
+    T dist = dx*dx + dy*dy + dz*dz;
+
+    residuals[0] = 1000000.0*(dist - distance_squared_);
+
+    return true;
+  }
+
+  /// Cost function factory
+  static ::ceres::CostFunction* create(const double distance)
+  {
+    typedef distance_constraint Self;
+    return new ::ceres::AutoDiffCostFunction<Self, 1, 6, 6>(new Self(distance));
+  }
+
+  double distance_squared_;
+};
+
 /// Optimize the camera and landmark parameters given a set of tracks
 void
 bundle_adjust
@@ -362,6 +397,46 @@ bundle_adjust
     {
       problem.SetParameterBlockConstant(state_ptr);
     }
+  }
+
+  if (fixed_cameras.size() == 0)
+  {
+    //fix a camera
+    for (auto &fix : d_->camera_params)
+    {
+      auto fixed_fid = fix.first;
+      auto state = &fix.second[0];
+      if (problem.HasParameterBlock(state))
+      {
+        problem.SetParameterBlockConstant(state);
+        fixed_cameras.insert(fixed_fid);
+        break;
+      }
+    }
+  }
+
+  if (fixed_cameras.size() == 1)
+  {
+    //add measurement between the one fixed camera and another arbitrary camera to fix the scale
+    cam_param_map_t::iterator cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
+    //get another arbitrary camera
+    auto cam_itr_1 = d_->camera_params.begin();
+    for (; cam_itr_1 != d_->camera_params.end(); ++cam_itr_1)
+    {
+      if (cam_itr_1->first != cam_itr_0->first && problem.HasParameterBlock(&cam_itr_1->second[0]))
+      {
+        break;
+      }
+    }
+
+    double *param0 = &cam_itr_0->second[0];
+    double *param1 = &cam_itr_1->second[0];
+    double dx = param0[3] - param1[3];
+    double dy = param0[4] - param1[4];
+    double dz = param0[5] - param1[5];
+    double distance_squared = dx*dx + dy*dy + dz*dz;
+
+    problem.AddResidualBlock(distance_constraint::create(distance_squared), NULL, param0, param1);
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
