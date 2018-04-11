@@ -143,15 +143,27 @@ image_io
         break;
       }
     }
+
+    // Loop over bands and copy data
+    CPLErr err;
+    for (int i = 1; i <= imgDepth; ++i)
+    {
+      GDALRasterBand* band = gdalDataset->GetRasterBand(i);
+      bandType = band->GetRasterDataType();
+      err = band->RasterIO(GF_Read, 0, 0, imgWidth, imgHeight,
+        static_cast<void*>(
+          reinterpret_cast<GByte*>(img.first_pixel()) + (i-1)*img.d_step()),
+        imgWidth, imgHeight, bandType, 0, 0);
+    }
   }
 
   // Get and translate metadata
-  char** mdDomains = gdalDataset->GetMetadataDomainList();
-  if (CSLCount(mdDomains) > 0)
+  char** rpc_metadata = gdalDataset->GetMetadata("RPC");
+  if (CSLCount(rpc_metadata) > 0)
   {
-    for (int i = 0; mdDomains[i] != NULL; ++i)
+    for (int i = 0; rpc_metadata[i] != NULL; ++i)
     {
-      std::cout << mdDomains[i] << std::endl;
+      std::cout << rpc_metadata[i] << std::endl;
     }
   }
 
