@@ -464,6 +464,7 @@ triangulate_landmarks
       {
         lm = std::make_shared<vital::landmark_d>(pt3d);
       }
+      lm->set_cos_observation_angle(triang_cos_ang);
       lm->set_observations(lm_observations);
       triangulated_lms[p.first] = lm;
     }
