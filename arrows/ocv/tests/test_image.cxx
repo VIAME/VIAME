@@ -179,9 +179,20 @@ run_ocv_conversion_tests( cv::Mat const& img )
       {
         for( int i = 0; i < img.cols; ++i )
         {
-          auto img_pix = img.ptr<T>( j )[ num_c * i + c ];
-          auto vimg_pix = vimg.at<T>( i, j, c );
-          ASSERT_EQ( img_pix, vimg_pix  );
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 9
+          // GCC 4.9.x has a really screwy bug where using sizeof inside of a
+          // lambda inside of a template function (e.g. here) on an expression
+          // which contains an explicit template parameter (whether or not
+          // said parameter depends on the outer function's template parameter)
+          // causes an error. This bug gets tripped by GTEST_IS_NULL_LITERAL_.
+          // Work around the issue by expanding out ASSERT_EQ and substituting
+          // false for the GTEST_IS_NULL_LITERAL_ invocation.
+          ASSERT_PRED_FORMAT2(
+            ::testing::internal::EqHelper<false>::Compare,
+            img.ptr<T>( j )[ num_c * i + c ], vimg.at<T>( i, j, c ) );
+#else
+          ASSERT_EQ( img.ptr<T>( j )[ num_c * i + c ], vimg.at<T>( i, j, c ) );
+#endif
         }
       }
     }
