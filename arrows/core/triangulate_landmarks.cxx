@@ -63,7 +63,7 @@ public:
     : m_homogeneous(false),
       m_ransac(true),
       m_min_angle_deg(1.0f),
-      m_inlier_threshold_pixels(100.0f),
+      m_inlier_threshold_pixels(10.0),
       m_frac_track_inliers_to_keep_triangulated_point(0.5f),
       m_max_ransac_samples(20),
       m_conf_thresh(0.99)
