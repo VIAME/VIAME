@@ -10,6 +10,12 @@ release version, and the content of this file will be reset.
 Updates since last public release
 ---------------------------------
 
+Arrows - Core
+
+ * Improved triangulate_landmarks implementation with an option to use
+   RANSAC for robustness to outliers and additional checks to reject
+   poorly constrainted landmarks with minimal view angle variation.
+
 
 Fixes since last public release
 -------------------------------
