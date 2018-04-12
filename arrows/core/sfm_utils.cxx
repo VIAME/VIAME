@@ -78,7 +78,6 @@ image_coverages(const track_set_sptr tracks,
     }
   }
 
-
   for (const track_sptr& t : tks)
   {
     if (lms.find(t->id()) != lms.end())
@@ -142,11 +141,10 @@ image_coverages(const track_set_sptr tracks,
 
 /// remove landmarks with IDs in the set
 /**
-* set the landmarks with the associated track ids to null
+* Erases the landmarks with the associated ids from lms
 * \param [in] to_remove track ids for landmarks to set null
 * \param [in,out] lms landmark map to remove landmarks from
 */
-
 void
 remove_landmarks(const std::set<track_id_t>& to_remove,
   landmark_map::map_landmark_t& lms)
@@ -165,7 +163,7 @@ typedef std::vector<std::set<frame_id_t>> camera_components;
 
 /// find connected components of cameras
 /**
-* Find connected components in the view graph.  Cameras that vew the same
+* Find connected components in the view graph.  Cameras that view the same
 * landmark are connected in the graph.
 * \param [in] logger the logger to write debug info to
 * \param [in] cams the cameras in the view graph.
@@ -174,7 +172,6 @@ typedef std::vector<std::set<frame_id_t>> camera_components;
 * \return camera_components vector.  Each set in the vector represents a
 * different connected component.
 */
-
 camera_components
 connected_camera_components(
   kwiver::vital::logger_handle_t logger,
@@ -280,10 +277,11 @@ connected_camera_components(
   return comps;
 }
 
-/// clean a set of tracks.
+/// clean a set of landmarks.
 /**
-* Find connected components in the view graph.  Cameras that vew the same
-* landmark are connected in the graph.
+* Checks landmark reprojection errors, triangulation angles and whether or not
+* landmark is adequately constrained (2+ rays).  If not it is returned as a
+* landmark to be removed
 * \param [in] logger the logger to write debug info to
 * \param [in] cams the cameras in the view graph.
 * \param [in] lms the landmarks in the view graph.
@@ -293,7 +291,6 @@ connected_camera_components(
 * \param [in] error_tol reprojection error threshold
 * \return set of landmark ids (track_ids) that were bad and should be removed
 */
-
 std::set<track_id_t>
 clean_landmarks(
   kwiver::vital::logger_handle_t logger,
@@ -409,7 +406,6 @@ clean_landmarks(
 *             of coverage are included in the return set
 * \return set of frames that do not meet the coverage requirement
 */
-
 std::set<frame_id_t>
 clean_cameras(
   kwiver::vital::logger_handle_t logger,
@@ -432,8 +428,6 @@ clean_cameras(
   }
   return rem_frames;
 }
-
-
 
 bool
 clean_cameras_and_landmarks(
@@ -535,7 +529,5 @@ clean_cameras_and_landmarks(
 
   return true;
 }
-
-
 }
 }
