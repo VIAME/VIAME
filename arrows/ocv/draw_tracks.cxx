@@ -35,7 +35,6 @@
 
 #include "draw_tracks.h"
 
-#include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/util/string.h>

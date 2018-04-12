@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -277,7 +277,8 @@ video_input_pos
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               uint32_t                  timeout ) // not supported
 {
-  // reset timestamp
+  // reset current metadata packet and timestamp
+  d->d_metadata = nullptr;
   ts = kwiver::vital::timestamp();
 
   // Check for at end of video
@@ -299,8 +300,22 @@ video_input_pos
     return false;
   }
 
-  // this will reset current metadata packet
-  d->d_metadata = d->process_metadata(*d->d_current_files, d->d_frame_number, ts);
+  if ( ! d->d_current_files->second.empty() )
+  {
+    // Open next file in the list
+    d->d_metadata = vital::read_pos_file( d->d_current_files->second );
+  }
+
+  // Return timestamp
+  ts = this->frame_timestamp();
+
+  // Include the path to the image
+  if ( d->d_metadata )
+  {
+    d->d_metadata->set_timestamp( ts );
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+                                           d->d_current_files->first ) );
+  }
 
   return true;
 }
@@ -312,7 +327,8 @@ video_input_pos
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
-  // reset current timestamp
+  // reset current metadata packet and timestamp
+  d->d_metadata = nullptr;
   ts = kwiver::vital::timestamp();
 
   // Check if requested frame exists
@@ -333,10 +349,53 @@ video_input_pos
   d->d_current_files += frame_diff;
   d->d_frame_number = frame_number;
 
-  // this will reset current metadata packet
-  d->d_metadata = d->process_metadata(*d->d_current_files, d->d_frame_number, ts);
+  if ( ! d->d_current_files->second.empty() )
+  {
+    // Open next file in the list
+    d->d_metadata = vital::read_pos_file( d->d_current_files->second );
+  }
+
+  // Return timestamp
+  ts = this->frame_timestamp();
+
+  // Include the path to the image
+  if ( d->d_metadata )
+  {
+    d->d_metadata->set_timestamp( ts );
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+                                           d->d_current_files->first ) );
+  }
 
   return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_pos
+::frame_timestamp() const
+{
+  // Check for at end of video
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
+  kwiver::vital::timestamp ts;
+
+  ts.set_frame( d->d_frame_number );
+  if ( d->d_metadata )
+  {
+    if ( d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
+    {
+      double gps_sec = d->d_metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+      // TODO: also use gps_week and convert to UTC to get abosolute time
+      // or subtract off first frame time to get time relative to start
+      ts.set_time_seconds( gps_sec );
+    }
+  }
+
+  return ts;
 }
 
 // ------------------------------------------------------------------
