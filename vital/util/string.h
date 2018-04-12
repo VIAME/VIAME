@@ -127,7 +127,8 @@ right_trim( std::string& s )
  * @brief Removes whitespace from both ends of a string.
  *
  * @param[in,out] s String to be trimmed in place
- */inline void
+ */
+inline void
 string_trim( std::string& s )
 {
   right_trim(s);

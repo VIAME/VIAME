@@ -72,7 +72,7 @@ public:
     : m_fstream( file_name ) // open file stream
     , m_stream( &m_fstream )
     , m_reader( m_fstream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >(file_name) )
+    , m_filename( std::make_shared< std::string >( kwiversys::SystemTools::GetRealPath(file_name) ) )
   {
     if ( ! m_stream )
     {
@@ -84,7 +84,7 @@ public:
   include_context( std::istream& str, const std::string& file_name )
     : m_stream( &str ) // open file stream
     , m_reader( *m_stream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >(file_name) )
+    , m_filename( std::make_shared< std::string >( kwiversys::SystemTools::GetRealPath(file_name) ) )
   {
   }
 
@@ -419,7 +419,7 @@ get_next_token()
     if ( ! m_priv->m_absorb_eol )
     {
       auto t = std::make_shared< token > ( TK_EOL, "" );
-      t->set_location( m_priv->current_loc() );
+      t->set_location( current_location() );
       return t;
     }
   } // end of EOL handling
@@ -504,7 +504,7 @@ get_next_token()
       std::string text( m_priv->m_cur_char, m_priv->m_input_line.end() );
       m_priv->trim_string( text );
       t = std::make_shared< token > ( TK_ASSIGN, text );
-      t->set_location( m_priv->current_loc() );
+      t->set_location( current_location() );
 
       m_priv->flush_line();
       return t;
@@ -513,7 +513,7 @@ get_next_token()
     if ( ':' == c )  // old style config line
     {
       t = std::make_shared< token > ( TK_COLON, ":" );
-      t->set_location( m_priv->current_loc() );
+      t->set_location( current_location() );
       return t;
     }
 
@@ -531,7 +531,7 @@ get_next_token()
     // At this point,just pass all single characters
     // as tokens.  Let the parser decide what to do.
     t = std::make_shared< token > ( c );
-    t->set_location( m_priv->current_loc() );
+    t->set_location( current_location() );
     return t;
   }   // end while
 

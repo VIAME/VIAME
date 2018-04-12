@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ namespace matlab {
 // ------------------------------------------------------------------
 matlab_engine::
 matlab_engine()
-  : m_logger( kwiver::vital::get_logger( "vital.matlab_engine" ) )
+  : m_logger( kwiver::vital::get_logger( "arrows.matlab.matlab_engine" ) )
   , m_engine_handle( 0 )
   , m_output_buffer( 0 )
 {

@@ -27,6 +27,7 @@ set( sources
   initialize_object_tracks_process.cxx
   matcher_process.cxx
   perform_query_process.cxx
+  print_config_process.cxx
   read_descriptor_process.cxx
   read_object_track_process.cxx
   read_track_descriptor_process.cxx
@@ -60,6 +61,7 @@ set( private_headers
   initialize_object_tracks_process.h
   matcher_process.h
   perform_query_process.h
+  print_config_process.h
   read_descriptor_process.h
   read_object_track_process.h
   read_track_descriptor_process.h

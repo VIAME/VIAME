@@ -43,7 +43,6 @@
 #include <deque>
 
 #include <vital/vital_config.h>
-#include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 
 #include <kwiversys/SystemTools.hxx>
