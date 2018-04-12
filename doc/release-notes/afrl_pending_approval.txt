@@ -15,6 +15,9 @@ Arrows - Core
  * Improved triangulate_landmarks implementation with an option to use
    RANSAC for robustness to outliers and additional checks to reject
    poorly constrainted landmarks with minimal view angle variation.
+   
+ * Switched track_set_impl from using a vector to store track_sptr to 
+   using an unordered map.  This allows for more efficient search for tracks.
 
 General - 
 
