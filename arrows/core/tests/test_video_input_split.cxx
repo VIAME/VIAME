@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,6 +123,9 @@ TEST_F(video_input_split, read_list)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+
+    EXPECT_EQ( ts.get_time_usec(), vis.frame_timestamp().get_time_usec() );
+    EXPECT_EQ( ts.get_frame(), vis.frame_timestamp().get_frame() );
   }
   EXPECT_EQ( 5, num_frames );
 }

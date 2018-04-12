@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,11 +120,11 @@ public:
   bool d_have_metadata;
 
   double pts_of_meta_ts;            // probably seconds
-  vital::timestamp::time_t meta_ts; // time in usec
+  vital::time_us_t meta_ts; // time in usec
 
   // used to create timestamp output
-  vital::timestamp::time_t d_frame_time; // usec
-  vital::timestamp::frame_t d_frame_number;
+  vital::time_us_t d_frame_time; // usec
+  vital::frame_id_t d_frame_number;
 
   std::string video_path; // name of video we opened
 
@@ -439,10 +439,10 @@ vidl_ffmpeg_video_input
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d->c_start_at_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_start_at_frame = config->get_value<vital::frame_id_t>(
     "start_at_frame", d->c_start_at_frame );
 
-  d->c_stop_after_frame = config->get_value<vital::timestamp::frame_t>(
+  d->c_stop_after_frame = config->get_value<vital::frame_id_t>(
     "stop_after_frame", d->c_stop_after_frame );
 
   kwiver::vital::tokenize( config->get_value<std::string>( "time_source", d->c_time_source ),
@@ -485,7 +485,7 @@ vidl_ffmpeg_video_input
   // validate start frame
   if (config->has_value("start_at_frame"))
   {
-    vital::timestamp::frame_t frame = config->get_value<vital::timestamp::frame_t>("start_at_frame");
+    vital::frame_id_t frame = config->get_value<vital::frame_id_t>("start_at_frame");
     //  zero indicates not set, otherwise must be 1 or greater
     if (frame < 0)
     {
@@ -647,9 +647,28 @@ vidl_ffmpeg_video_input
   d->d_frame_time = d->meta_ts + pts_diff;
   d->d_frame_number = d->d_video_stream.frame_number();
 
+  ts = this->frame_timestamp();
+
+  // ---- process metadata ---
+  d->metadata_collection.clear(); // erase old metadata packets
+
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+vidl_ffmpeg_video_input
+::frame_timestamp() const
+{
+  if (d->d_at_eov)
+  {
+    return {};
+  }
+
   // We don't always have all components of a timestamp, so start with
   // an invalid TS and add the data we have.
-  ts.set_invalid();
+  kwiver::vital::timestamp ts;
   ts.set_frame( d->d_frame_number );
 
   if ( d->d_have_frame_time )
@@ -657,10 +676,7 @@ vidl_ffmpeg_video_input
     ts.set_time_usec( d->d_frame_time );
   }
 
-  // ---- process metadata ---
-  d->metadata_collection.clear(); // erase old metadata packets
-
-  return true;
+  return ts;
 }
 
 

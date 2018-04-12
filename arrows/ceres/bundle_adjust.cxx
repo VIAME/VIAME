@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@
 #include <iostream>
 #include <set>
 
-
-#include <vital/logger/logger.h>
 #include <vital/io/eigen_io.h>
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
@@ -54,7 +52,8 @@ namespace arrows {
 namespace ceres {
 
 
-/// A class to register callbacks with Ceres
+// ============================================================================
+// A class to register callbacks with Ceres
 class StateCallback
   : public ::ceres::IterationCallback
 {
@@ -73,69 +72,69 @@ public:
 };
 
 
-/// Private implementation class
+// ============================================================================
+// Private implementation class
 class bundle_adjust::priv
   : public solver_options,
     public camera_options
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
   : solver_options(),
     camera_options(),
     verbose(false),
     loss_function_type(TRIVIAL_LOSS),
     loss_function_scale(1.0),
-    ceres_callback(),
-    m_logger( vital::get_logger( "arrows.ceres.bundle_adjust" ))
+    ceres_callback()
   {
   }
 
-  /// verbose output
+  // verbose output
   bool verbose;
-  /// the robust loss function type to use
+  // the robust loss function type to use
   LossFunctionType loss_function_type;
-  /// the scale of the loss function
+  // the scale of the loss function
   double loss_function_scale;
 
 
-  /// the input cameras to update in place
+  // the input cameras to update in place
   camera_map::map_camera_t cams;
-  /// the input landmarks to update in place
+  // the input landmarks to update in place
   landmark_map::map_landmark_t lms;
-  /// a map from track id to landmark parameters
+  // a map from track id to landmark parameters
   std::map<track_id_t, std::vector<double> > landmark_params;
-  /// a map from frame number to extrinsic parameters
+  // a map from frame number to extrinsic parameters
   std::map<frame_id_t, std::vector<double> > camera_params;
-  /// vector of unique camera intrinsic parameters
+  // vector of unique camera intrinsic parameters
   std::vector<std::vector<double> > camera_intr_params;
-  /// a map from frame number to index of unique camera intrinsics in camera_intr_params
+  // a map from frame number to index of unique camera intrinsics in camera_intr_params
   std::map<frame_id_t, unsigned int> frame_to_intr_map;
-  /// the ceres callback class
+  // the ceres callback class
   StateCallback ceres_callback;
-
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 bundle_adjust
 ::bundle_adjust()
 : d_(new priv)
 {
+  attach_logger( "arrows.ceres.bundle_adjust" );
   d_->ceres_callback.bap = this;
 }
 
 
-/// Destructor
+// Destructor
 bundle_adjust
 ::~bundle_adjust()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 config_block_sptr
 bundle_adjust
 ::get_configuration() const
@@ -161,7 +160,8 @@ bundle_adjust
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 bundle_adjust
 ::set_configuration(config_block_sptr in_config)
@@ -202,7 +202,8 @@ bundle_adjust
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 bundle_adjust
 ::check_configuration(config_block_sptr config) const
@@ -210,14 +211,15 @@ bundle_adjust
   std::string msg;
   if( !d_->options.IsValid(&msg) )
   {
-    LOG_ERROR( d_->m_logger, msg);
+    LOG_ERROR( logger(), msg);
     return false;
   }
   return true;
 }
 
 
-/// Optimize the camera and landmark parameters given a set of tracks
+// ----------------------------------------------------------------------------
+// Optimize the camera and landmark parameters given a set of tracks
 void
 bundle_adjust
 ::optimize(camera_map_sptr& cameras,
@@ -342,7 +344,7 @@ bundle_adjust
   ::ceres::Solve(d_->options, &problem, &summary);
   if( d_->verbose )
   {
-    LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+    LOG_DEBUG(logger(), "Ceres Full Report:\n" << summary.FullReport());
   }
 
   // Update the landmarks with the optimized values
@@ -362,7 +364,8 @@ bundle_adjust
 }
 
 
-/// Set a callback function to report intermediate progress
+// ----------------------------------------------------------------------------
+// Set a callback function to report intermediate progress
 void
 bundle_adjust
 ::set_callback(callback_t cb)
@@ -382,7 +385,8 @@ bundle_adjust
 }
 
 
-/// This function is called by a Ceres callback to trigger a kwiver callback
+// ----------------------------------------------------------------------------
+// This function is called by a Ceres callback to trigger a kwiver callback
 bool
 bundle_adjust
 ::trigger_callback()

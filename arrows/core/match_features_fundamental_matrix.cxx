@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,16 +49,15 @@ namespace arrows {
 namespace core
 {
 
-/// Private implementation class
+// Private implementation class
 class match_features_fundamental_matrix::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
   : inlier_scale(10.0),
     min_required_inlier_count(0),
-    min_required_inlier_percent(0.0),
-    m_logger( vital::get_logger( "arrows.core.match_features_fundamental_matrix" ))
+    min_required_inlier_percent(0.0)
   {
   }
 
@@ -71,33 +70,36 @@ public:
   // min inlier percent required to make any matches
   double min_required_inlier_percent;
 
-  /// The feature matching algorithm to use
+  // The feature matching algorithm to use
   vital::algo::match_features_sptr matcher_;
 
-  /// The fundamental matrix estimation algorithm to use
+  // The fundamental matrix estimation algorithm to use
   vital::algo::estimate_fundamental_matrix_sptr f_estimator_;
 
-  /// Logger handle
+  // Logger handle
   vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 match_features_fundamental_matrix
 ::match_features_fundamental_matrix()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.match_features_fundamental_matrix" );
 }
 
 
-/// Destructor
+// Destructor
 match_features_fundamental_matrix
 ::~match_features_fundamental_matrix()
 {
 }
 
 
-/// Get this alg's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 match_features_fundamental_matrix
 ::get_configuration() const
@@ -124,6 +126,7 @@ match_features_fundamental_matrix
 }
 
 
+// ----------------------------------------------------------------------------
 void
 match_features_fundamental_matrix
 ::set_configuration(vital::config_block_sptr in_config)
@@ -144,6 +147,8 @@ match_features_fundamental_matrix
   d_->min_required_inlier_percent = config->get_value<double>("min_required_inlier_percent");
 }
 
+
+// ----------------------------------------------------------------------------
 bool
 match_features_fundamental_matrix
 ::check_configuration(vital::config_block_sptr config) const
@@ -167,7 +172,8 @@ match_features_fundamental_matrix
 }
 
 
-/// Match one set of features and corresponding descriptors to another
+// ----------------------------------------------------------------------------
+// Match one set of features and corresponding descriptors to another
 match_set_sptr
 match_features_fundamental_matrix
 ::match(feature_set_sptr feat1, descriptor_set_sptr desc1,
@@ -186,7 +192,7 @@ match_features_fundamental_matrix
   fundamental_matrix_sptr F = d_->f_estimator_->estimate(feat1, feat2, init_matches,
                                                      inliers, d_->inlier_scale);
   int inlier_count = static_cast<int>(std::count(inliers.begin(), inliers.end(), true));
-  LOG_INFO(d_->m_logger, "inlier ratio: " << inlier_count << "/" << inliers.size());
+  LOG_INFO(logger(), "inlier ratio: " << inlier_count << "/" << inliers.size());
 
   // verify matching criteria are met
   if( !inlier_count || inlier_count < d_->min_required_inlier_count ||

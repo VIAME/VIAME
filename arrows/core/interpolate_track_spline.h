@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,68 +28,65 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_VIDEO_INPUT_FILTER_H
-#define ARROWS_CORE_VIDEO_INPUT_FILTER_H
+/**
+ * \file
+ * \brief Header defining the core interpolate_track_spline algorithm
+ */
 
-#include <vital/algo/video_input.h>
+#ifndef KWIVER_ARROWS_CORE_INTERPOLATE_TRACK_SPLINE_H_
+#define KWIVER_ARROWS_CORE_INTERPOLATE_TRACK_SPLINE_H_
 
 #include <arrows/core/kwiver_algo_core_export.h>
+
+#include <vital/algo/interpolate_track.h>
+
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// A video reader that filters the frames and metadata
-// ----------------------------------------------------------------
+/// Fills in missing track segments using spline interpolation
 /**
- * This class implements a video input that down selects frames
- * ready by another video reader.  It may down sample the framerate,
- * remove frames before or after indicated frames, etc.
+ * This class generates additional track states in between known states using
+ * a configurable variety of spline-based interpolation techniques that do not
+ * depend on imagery.
  */
-class KWIVER_ALGO_CORE_EXPORT video_input_filter
-  : public vital::algorithm_impl < video_input_filter, vital::algo::video_input >
+class KWIVER_ALGO_CORE_EXPORT interpolate_track_spline
+  : public vital::algorithm_impl<interpolate_track_spline,
+                                 vital::algo::interpolate_track>
 {
 public:
   /// Name of the algorithm
-  static constexpr char const* name = "filter";
+  static constexpr char const* name = "spline";
 
   /// Description of the algorithm
   static constexpr char const* description =
-    "A video input that calls another video input"
-    " and filters the output on frame range and other parameters.";
+    "Fill in missing object track intervals using spline-based interpolation.";
 
-  /// Constructor
-  video_input_filter();
-  virtual ~video_input_filter();
+  /// Default Constructor
+  interpolate_track_spline();
 
-  /// Get this algorithm's \link vital::config_block configuration block \endlink
-  virtual vital::config_block_sptr get_configuration() const;
+  /// Destructor
+  virtual ~interpolate_track_spline();
 
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration(vital::config_block_sptr config);
+  /// Set this algo's properties via a config block
+  virtual void set_configuration(
+    vital::config_block_sptr config ) override;
 
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  virtual bool check_configuration(
+    vital::config_block_sptr config ) const override;
 
-  virtual void open( std::string name );
-  virtual void close();
+  /// Interpolates the states between track states
+  virtual kwiver::vital::track_sptr interpolate(
+    kwiver::vital::track_sptr init_states ) override;
 
-  virtual bool end_of_video() const;
-  virtual bool good() const;
-
-  virtual bool next_frame( kwiver::vital::timestamp& ts,
-                           uint32_t timeout = 0 );
-
-  virtual kwiver::vital::timestamp frame_timestamp() const;
-  virtual kwiver::vital::image_container_sptr frame_image();
-  virtual kwiver::vital::metadata_vector frame_metadata();
-
-private:
+protected:
   /// private implementation class
   class priv;
-  const std::unique_ptr<priv> d;
+  std::unique_ptr<priv> const d_;
 };
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_FILTER_H */
+#endif /* KWIVER_ARROWS_CORE_INTERPOLATE_TRACK_SPLINE_H_ */

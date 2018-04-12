@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 #include "matlab_engine.h"
 #include "matlab_util.h"
 
-#include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <arrows/ocv/image_container.h>
@@ -89,8 +88,7 @@ class matlab_image_filter::priv
 public:
   // -- CONSTRUCTORS --
   priv()
-    : m_logger( kwiver::vital::get_logger( "vital.matlab_image_filter" ) )
-    , m_first( true )
+    : m_first( true )
   {}
 
   ~priv()
@@ -195,7 +193,10 @@ private:
 matlab_image_filter::
 matlab_image_filter()
   : d( new priv )
-{ }
+{
+  attach_logger( "arrows.matlab.matlab_image_filter" );
+  d->m_logger = logger();
+}
 
 
  matlab_image_filter::

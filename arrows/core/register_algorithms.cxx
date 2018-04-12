@@ -60,6 +60,7 @@
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
+#include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/read_object_track_set_kw18.h>
@@ -135,6 +136,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< hierarchical_bundle_adjust >( vpm );
   register_algorithm< initialize_cameras_landmarks >( vpm );
   register_algorithm< initialize_object_tracks_threshold >( vpm );
+  register_algorithm< interpolate_track_spline >( vpm );
   register_algorithm< match_features_fundamental_matrix >( vpm );
   register_algorithm< match_features_homography >( vpm );
   register_algorithm< read_object_track_set_kw18 >( vpm );
