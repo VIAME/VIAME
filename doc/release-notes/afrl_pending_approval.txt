@@ -16,6 +16,16 @@ Arrows - Core
    RANSAC for robustness to outliers and additional checks to reject
    poorly constrainted landmarks with minimal view angle variation.
 
+General - 
+
+ * Improved speed of klt/ORB feature tracking by choosing which features
+   to tray and match with visual vocabulary node ID.  Made klt feature 
+   tracker in sprokit return just the most recent tracked features, notes
+   the entire history at each step.  Made keyframe selector remove non
+   keyframes temporally between keyframes to improve speed.  That way
+   matcher process needs only get keyframes.  After sprokit klt tracks
+   and keyframe orb feature tracks are merged into a single final track set.
+
 
 Fixes since last public release
 -------------------------------
