@@ -33,8 +33,8 @@
  * \brief VITAL base exception interface
  */
 
-#ifndef VITAL_CORE_EXCEPTIONS_BASE_H
-#define VITAL_CORE_EXCEPTIONS_BASE_H
+#ifndef VITAL_EXCEPTIONS_BASE_H
+#define VITAL_EXCEPTIONS_BASE_H
 
 #include <vital/vital_config.h>
 #include <vital/exceptions/vital_exceptions_export.h>
@@ -64,7 +64,19 @@ public:
    * \brief Description of the exception
    * \returns A string describing what went wrong.
    */
-  char const* what() const noexcept;
+  virtual char const* what() const noexcept;
+
+  /**
+   * \brief Description of the exception with source location.
+   *
+   * This method returns the description of the exception with the
+   * source location from whence it is thrown, if available. If the
+   * source location is not available, then the return value looks
+   * like that from the what() method.
+   *
+   * \return A string with the origin and description of the exception.
+   */
+  std::string what_loc() const noexcept;
 
   /**
    * \brief Set optional location of exception.
@@ -85,6 +97,9 @@ protected:
 
   std::string m_file_name;
   int m_line_number;
+
+private:
+  mutable std::string m_what_loc;
 };
 
 
@@ -109,18 +124,18 @@ public:
 // ------------------------------------------------------------------
 ///Exception helper macro.
 /**
- * Macro to simplify creating exception messages using stream
- * operators. The source location of this macro is also recorded in
- * the exception.
+ * Macro to simplify creating exceptions. The source
+ * location of this macro is also recorded in the exception.
+ *
+ * The number and type of parameters depends on the type of exception
+ * being thrown.
  *
  * @param E       Exception type.
- * @param MSG     Stream constructed exception message.
+ * @param ...     exception parameters
  */
-#define VITAL_THROW_MSG(E, MSG) do {            \
-    std::stringstream _oss_;                    \
-    _oss_ << MSG;                               \
-    E except( _oss.str() );                     \
-    except.set_location( __file, __line );      \
+#define VITAL_THROW(E, ...) do {                \
+    E except{ __VA_ARGS__ };                    \
+    except.set_location( __FILE__, __LINE__ );  \
     throw except;                               \
   } while (0)
 

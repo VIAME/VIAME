@@ -34,6 +34,7 @@
  */
 
 #include "base.h"
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
@@ -67,13 +68,23 @@ char const*
 vital_exception
 ::what() const noexcept
 {
-  return this->m_what.c_str();
+  std::ostringstream sstr;
+  sstr << m_what;
+
+  if ( ! m_file_name.empty() )
+  {
+    sstr << ", thrown from " << m_file_name << ":" << m_line_number;
+  }
+
+  m_what_loc = sstr.str();
+
+  return this->m_what_loc.c_str();
 }
 
 
-// ============================================================================
+// ==================================================================
 invalid_value
-::invalid_value(std::string reason) noexcept
+::invalid_value( std::string reason ) noexcept
 {
   m_what = "Invalid value(s): " + reason;
 }

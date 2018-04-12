@@ -44,6 +44,9 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Base class for all algorithm related exceptions
+/**
+ * \ingroup exceptions
+ */
 class VITAL_EXCEPTIONS_EXPORT algorithm_exception
   : public vital_exception
 {
@@ -68,6 +71,9 @@ class VITAL_EXCEPTIONS_EXPORT algorithm_exception
 
 // ------------------------------------------------------------------
 /// Exception for when an algorithm receives an invalid configuration
+/**
+ * \ingroup exceptions
+ */
 class VITAL_EXCEPTIONS_EXPORT algorithm_configuration_exception
   : public algorithm_exception
 {
@@ -83,6 +89,9 @@ class VITAL_EXCEPTIONS_EXPORT algorithm_configuration_exception
 
 // ------------------------------------------------------------------
 /// Exception for when checking an invalid impl name against an algo def
+/**
+ * \ingroup exceptions
+ */
 class VITAL_EXCEPTIONS_EXPORT invalid_name_exception
   : public algorithm_exception
 {

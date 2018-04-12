@@ -52,9 +52,9 @@ class  KPF_YAML_EXPORT kpf_exception
 {
 public:
   /// Constructor
-  kpf_exception() VITAL_NOTHROW;
+  kpf_exception() noexcept;
   /// Destructor
-  virtual ~kpf_exception() VITAL_NOTHROW;
+  virtual ~kpf_exception() noexcept;
 };
 
 // ------------------------------------------------------------------
@@ -71,9 +71,9 @@ public:
   /**
    * \param message     Description of the parsing circumstances
    */
-  kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW;
+  kpf_token_underrun_exception(std::string const& message) noexcept;
   /// Destructor
-  virtual ~kpf_token_underrun_exception() VITAL_NOTHROW;
+  virtual ~kpf_token_underrun_exception() noexcept;
 
   /// Given error message string
   std::string m_message;

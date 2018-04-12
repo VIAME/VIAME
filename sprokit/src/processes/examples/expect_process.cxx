@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -135,7 +135,8 @@ expect_process
     {
       static std::string const reason = "The expected key was not present on a reconfigure";
 
-      throw invalid_configuration_exception(name(), reason);
+      VITAL_THROW( invalid_configuration_exception,
+                   name(), reason);
     }
   }
   else // expect new value
@@ -145,7 +146,8 @@ expect_process
     {
       std::string const reason = "Did not get expected value: " + d->expect;
 
-      throw invalid_configuration_value_exception(name(), priv::config_tunable, cur_value, reason);
+      VITAL_THROW( invalid_configuration_value_exception,
+                   name(), priv::config_tunable, cur_value, reason);
     }
   }
 
