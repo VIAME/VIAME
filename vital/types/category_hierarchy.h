@@ -38,6 +38,7 @@
 
 #include <vital/vital_export.h>
 
+#include <string>
 #include <vector>
 #include <map>
 #include <memory>
