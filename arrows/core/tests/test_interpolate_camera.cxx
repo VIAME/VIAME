@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,14 @@
  * \brief test camera interpolation
  */
 
+#define _USE_MATH_DEFINES
+
 #include <arrows/core/interpolate_camera.h>
 
 #include <gtest/gtest.h>
 
 #include <iostream>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #if defined M_PIl
