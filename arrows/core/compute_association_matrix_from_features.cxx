@@ -84,7 +84,7 @@ compute_association_matrix_from_features
 
 /// Destructor
 compute_association_matrix_from_features
-::~compute_association_matrix_from_features() VITAL_NOTHROW
+::~compute_association_matrix_from_features() noexcept
 {
 }
 

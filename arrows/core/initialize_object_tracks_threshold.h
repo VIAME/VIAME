@@ -57,7 +57,7 @@ public:
   initialize_object_tracks_threshold();
 
   /// Destructor
-  virtual ~initialize_object_tracks_threshold() VITAL_NOTHROW;
+  virtual ~initialize_object_tracks_threshold() noexcept;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

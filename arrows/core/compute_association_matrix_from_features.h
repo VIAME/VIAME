@@ -57,7 +57,7 @@ public:
   compute_association_matrix_from_features();
 
   /// Destructor
-  virtual ~compute_association_matrix_from_features() VITAL_NOTHROW;
+  virtual ~compute_association_matrix_from_features() noexcept;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
