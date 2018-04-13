@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -143,7 +143,8 @@ public:
     std::ifstream in_stream( file_path.c_str() );
     if ( ! in_stream )
     {
-      throw config_file_not_found_exception( file_path, std::strerror( errno ) );
+      VITAL_THROW( config_file_not_found_exception,
+                   file_path, std::strerror( errno ) );
     }
 
     // update file count
@@ -196,7 +197,8 @@ public:
 
           if ( m_parse_error )
           {
-            throw config_file_not_parsed_exception( file_path, "Errors in config file" );
+            VITAL_THROW( config_file_not_parsed_exception,
+                         file_path, "Errors in config file" );
           }
         } // end of main file EOF handling
         return;
@@ -220,7 +222,8 @@ public:
           sstr << "file included from " << file_path << ":" << m_line_number
                << " could not be found in search path.";
 
-          throw config_file_not_found_exception( exp_filename, sstr.str() );
+          VITAL_THROW( config_file_not_found_exception,
+                       exp_filename, sstr.str() );
         }
 
         flush_line(); // force read of new line
@@ -235,7 +238,8 @@ public:
           sstr << "file included from " << file_path << ":" << m_line_number
                << " could not be found in search path.";
 
-          throw config_file_not_found_exception( exp_filename, sstr.str() );
+          VITAL_THROW( config_file_not_found_exception,
+                       exp_filename, sstr.str() );
         }
 
         if ( kwiversys::SystemTools::FileIsDirectory( resolv_filename ) )
@@ -244,7 +248,8 @@ public:
           sstr << "file included from " << file_path << ":" << m_line_number
                << " is not a regular file!";
 
-          throw config_file_not_found_exception( resolv_filename, sstr.str() );
+          VITAL_THROW( config_file_not_found_exception,
+                       resolv_filename, sstr.str() );
         }
 
         process_file( resolv_filename ); // process included file
@@ -305,7 +310,8 @@ public:
           reason << "\"endblock\" found without matching \"block\" at "
                  << file_path << ":" << m_line_number;
 
-          throw config_file_not_parsed_exception( file_path, reason.str() );
+          VITAL_THROW( config_file_not_parsed_exception,
+                       file_path, reason.str() );
         }
 
         // Restore previous block context

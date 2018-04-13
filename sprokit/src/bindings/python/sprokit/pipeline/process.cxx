@@ -50,7 +50,7 @@ PYBIND11_MAKE_OPAQUE(string_set)
 
 using namespace pybind11;
 
-// Publicist class to access protected methods 
+// Publicist class to access protected methods
 class wrap_process
   : public sprokit::process
 {
@@ -62,7 +62,7 @@ class wrap_process
     using process::_reset;
     using process::_flush;
     using process::_step;
-    using process::_reconfigure; 
+    using process::_reconfigure;
     using process::_properties;
     using process::_input_ports;
     using process::_output_ports;

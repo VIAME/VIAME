@@ -43,8 +43,7 @@ function(kwiver_configure_file name source dest)
 
   set(gen_command_args)
   foreach(arg IN LISTS mcf_UNPARSED_ARGUMENTS)
-    set(gen_command_args
-      ${gen_command_args}
+    list(APPEND gen_command_args
       "-D${arg}=\"${${arg}}\""
       )
   endforeach()

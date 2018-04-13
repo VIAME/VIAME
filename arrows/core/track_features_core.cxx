@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -252,7 +252,7 @@ track_features_core
       ( image_data->width() != mask->width() ||
         image_data->height() != mask->height() ) )
   {
-    throw image_size_mismatch_exception(
+    VITAL_THROW( image_size_mismatch_exception,
         "Core track feature algorithm given a non-zero mask image that is "
         "not the same shape as the provided image data.",
         image_data->width(), image_data->height(),

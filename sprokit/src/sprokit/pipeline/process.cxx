@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -263,12 +263,14 @@ process
 {
   if (d->initialized)
   {
-    throw already_initialized_exception(d->name);
+    VITAL_THROW( already_initialized_exception,
+                 d->name);
   }
 
   if (d->configured)
   {
-    throw reconfigured_exception(d->name);
+    VITAL_THROW( reconfigured_exception,
+                 d->name);
   }
 
   _configure();
@@ -284,12 +286,14 @@ process
 {
   if (!d->configured)
   {
-    throw unconfigured_exception(d->name);
+    VITAL_THROW( unconfigured_exception,
+                 d->name);
   }
 
   if (d->initialized)
   {
-    throw reinitialization_exception(d->name);
+    VITAL_THROW( reinitialization_exception,
+                 d->name);
   }
 
   _init();
@@ -328,12 +332,14 @@ process
 {
   if (!d->configured)
   {
-    throw unconfigured_exception(d->name);
+    VITAL_THROW( unconfigured_exception,
+                 d->name);
   }
 
   if (!d->initialized || !d->output_stamps_made)
   {
-    throw uninitialized_exception(d->name);
+    VITAL_THROW( uninitialized_exception,
+                 d->name);
   }
 
   /// \todo Make reentrant.
@@ -419,12 +425,14 @@ process
 {
   if (!edge)
   {
-    throw null_edge_port_connection_exception(d->name, port);
+    VITAL_THROW( null_edge_port_connection_exception,
+                 d->name, port);
   }
 
   if (d->initialized)
   {
-    throw connect_to_initialized_process_exception(d->name, port);
+    VITAL_THROW( connect_to_initialized_process_exception,
+                 d->name, port);
   }
 
   d->connect_input_port(port, edge);
@@ -438,7 +446,8 @@ process
 {
   if (!edge)
   {
-    throw null_edge_port_connection_exception(d->name, port);
+    VITAL_THROW( null_edge_port_connection_exception,
+                 d->name, port);
   }
 
   d->connect_output_port(port, edge);
@@ -504,7 +513,8 @@ process
 {
   if (d->initialized)
   {
-    throw set_type_on_initialized_process_exception(d->name, port, new_type);
+    VITAL_THROW( set_type_on_initialized_process_exception,
+                 d->name, port, new_type);
   }
 
   if (new_type == type_any)
@@ -523,7 +533,8 @@ process
 {
   if (d->initialized)
   {
-    throw set_type_on_initialized_process_exception(d->name, port, new_type);
+    VITAL_THROW( set_type_on_initialized_process_exception,
+                 d->name, port, new_type);
   }
 
   if (new_type == type_any)
@@ -618,7 +629,7 @@ process
 {
   if (!config)
   {
-    throw null_process_config_exception();
+    VITAL_THROW( null_process_config_exception );
   }
 
   d.reset(new priv(this, config));
@@ -769,7 +780,8 @@ process
     return i->second;
   }
 
-  throw no_such_port_exception(d->name, port, input_ports());
+  VITAL_THROW( no_such_port_exception,
+               d->name, port, input_ports());
 }
 
 
@@ -785,7 +797,8 @@ process
     return i->second;
   }
 
-  throw no_such_port_exception(d->name, port, output_ports());
+  VITAL_THROW( no_such_port_exception,
+               d->name, port, output_ports());
 }
 
 
@@ -808,7 +821,8 @@ process
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
   {
-    throw static_type_reset_exception(name(), port, old_type, new_type);
+    VITAL_THROW( static_type_reset_exception,
+                 name(), port, old_type, new_type);
   }
 
   if (is_flow_dependent)
@@ -881,7 +895,8 @@ process
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
   {
-    throw static_type_reset_exception(name(), port, old_type, new_type);
+    VITAL_THROW( static_type_reset_exception,
+                 name(), port, old_type, new_type);
   }
 
   if (is_flow_dependent)
@@ -956,7 +971,8 @@ process
     return i->second;
   }
 
-  throw unknown_configuration_value_exception(d->name, key);
+  VITAL_THROW( unknown_configuration_value_exception,
+               d->name, key);
 }
 
 
@@ -967,7 +983,8 @@ process
 {
   if (!info)
   {
-    throw null_input_port_info_exception(d->name, port);
+    VITAL_THROW( null_input_port_info_exception,
+                 d->name, port);
   }
 
   port_type_t const& port_type = info->type;
@@ -1004,7 +1021,8 @@ process
   {
     static std::string const reason = "An input port cannot be required and static";
 
-    throw flag_mismatch_exception(d->name, port, reason);
+    VITAL_THROW( flag_mismatch_exception,
+                 d->name, port, reason);
   }
 
   if (static_)
@@ -1037,7 +1055,8 @@ process
     static std::string const reason = "An input port cannot be shared and const "
                                       "(\'const\' is a stricter \'shared\')";
 
-    throw flag_mismatch_exception(d->name, port, reason);
+    VITAL_THROW( flag_mismatch_exception,
+                 d->name, port, reason);
   }
 
   d->input_ports[port] = info;
@@ -1068,7 +1087,8 @@ process
 {
   if (!info)
   {
-    throw null_output_port_info_exception(d->name, port);
+    VITAL_THROW( null_output_port_info_exception,
+                 d->name, port);
   }
 
   port_type_t const& port_type = info->type;
@@ -1132,7 +1152,8 @@ process
 {
   if (d->initialized)
   {
-    throw set_frequency_on_initialized_process_exception(d->name, port, new_frequency);
+    VITAL_THROW( set_frequency_on_initialized_process_exception,
+                 d->name, port, new_frequency);
   }
 
   port_info_t const info = input_port_info(port);
@@ -1159,7 +1180,8 @@ process
 {
   if (d->initialized)
   {
-    throw set_frequency_on_initialized_process_exception(d->name, port, new_frequency);
+    VITAL_THROW( set_frequency_on_initialized_process_exception,
+                 d->name, port, new_frequency);
   }
 
   port_info_t const info = output_port_info(port);
@@ -1187,7 +1209,8 @@ process
   // Ensure the port exists.
   if (!d->input_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   // Remove from known ports.
@@ -1228,7 +1251,8 @@ process
   // Ensure the port exists.
   if (!d->output_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   // Remove from known ports.
@@ -1272,7 +1296,8 @@ process
 {
   if (!info)
   {
-    throw null_conf_info_exception(d->name, key);
+    VITAL_THROW( null_conf_info_exception,
+                 d->name, key);
   }
 
   d->config_keys[key] = info;
@@ -1319,7 +1344,8 @@ process
 {
   if (!d->input_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   return (0 != d->input_edges.count(port));
@@ -1333,7 +1359,8 @@ process
 {
   if (!d->output_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   priv::shared_lock_t lock(d->output_edges_mut);
@@ -1368,7 +1395,8 @@ process
 {
   if (!d->input_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
@@ -1377,7 +1405,8 @@ process
   {
     static std::string const reason = "Data was requested from the port";
 
-    throw missing_connection_exception(d->name, port, reason);
+    VITAL_THROW( missing_connection_exception,
+                 d->name, port, reason);
   }
 
   priv::input_port_info_t const& info = *e->second;
@@ -1405,7 +1434,8 @@ process
 {
   if (!d->input_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   priv::input_edge_map_t::const_iterator const e = d->input_edges.find(port);
@@ -1414,7 +1444,8 @@ process
   {
     static std::string const reason = "Data was requested from the port";
 
-    throw missing_connection_exception(d->name, port, reason);
+    VITAL_THROW( missing_connection_exception,
+                 d->name, port, reason);
   }
 
   priv::input_port_info_t const& info = *e->second;
@@ -1442,7 +1473,8 @@ process
 {
   if (!d->output_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   priv::shared_lock_t lock(d->output_edges_mut);
@@ -1480,7 +1512,8 @@ process
 {
   if (!d->output_ports.count(port))
   {
-    throw no_such_port_exception(d->name, port);
+    VITAL_THROW( no_such_port_exception,
+                 d->name, port);
   }
 
   stamp_t push_stamp;
@@ -1586,7 +1619,8 @@ process
 
   if (i == d->config_keys.end())
   {
-    throw unknown_configuration_value_exception(d->name, key);
+    VITAL_THROW( unknown_configuration_value_exception,
+                 d->name, key);
   }
 
   if (d->conf->has_value(key))
@@ -1905,12 +1939,14 @@ process::priv
 {
   if (!input_ports.count(port))
   {
-    throw no_such_port_exception(name, port);
+    VITAL_THROW( no_such_port_exception,
+                 name, port);
   }
 
   if (input_edges.count(port))
   {
-    throw port_reconnect_exception(name, port);
+    VITAL_THROW( port_reconnect_exception,
+                 name, port);
   }
 
   boost::assign::ptr_map_insert<input_port_info_t>(input_edges)(port, edge);
@@ -1924,7 +1960,8 @@ process::priv
 {
   if (!output_ports.count(port))
   {
-    throw no_such_port_exception(name, port);
+    VITAL_THROW( no_such_port_exception,
+                 name, port);
   }
 
   unique_lock_t lock(output_edges_mut);

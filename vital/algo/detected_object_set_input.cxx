@@ -79,12 +79,12 @@ detected_object_set_input
     // Make sure that the given file path exists and is a file.
   if ( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists(filename);
+    VITAL_THROW( path_not_exists, filename);
   }
 
   if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file(filename);
+    VITAL_THROW( path_not_a_file, filename);
   }
 
   // try to open the file

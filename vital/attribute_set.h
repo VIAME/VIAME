@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ namespace vital {
 
 // ------------------------
 class VITAL_EXPORT attribute_set_exception
-  : public vital_core_base_exception
+  : public vital_exception
 {
 public:
   attribute_set_exception( std::string const& str );

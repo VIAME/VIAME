@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Generic image exception
-class VITAL_EXPORT image_exception
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT image_exception
+  : public vital_exception
 {
 public:
   /// Constructor
@@ -61,7 +61,7 @@ public:
 /**
  * For when image type equality must be asserted.
  */
-class VITAL_EXPORT image_type_mismatch_exception
+class VITAL_EXCEPTIONS_EXPORT image_type_mismatch_exception
   : public image_exception
 {
 public:
@@ -83,7 +83,7 @@ public:
 /**
  * For when image shape/size equality must be asserted.
  */
-class VITAL_EXPORT image_size_mismatch_exception
+class VITAL_EXCEPTIONS_EXPORT image_size_mismatch_exception
   : public image_exception
 {
 public:
