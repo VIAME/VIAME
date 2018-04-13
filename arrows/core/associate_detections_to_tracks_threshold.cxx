@@ -87,7 +87,7 @@ associate_detections_to_tracks_threshold
 
 /// Destructor
 associate_detections_to_tracks_threshold
-::~associate_detections_to_tracks_threshold() VITAL_NOTHROW
+::~associate_detections_to_tracks_threshold() noexcept
 {
 }
 

@@ -57,7 +57,7 @@ public:
   associate_detections_to_tracks_threshold();
 
   /// Destructor
-  virtual ~associate_detections_to_tracks_threshold() VITAL_NOTHROW;
+  virtual ~associate_detections_to_tracks_threshold() noexcept;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**
