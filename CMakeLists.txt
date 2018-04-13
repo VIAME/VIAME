@@ -311,7 +311,7 @@ get_property(kwiver_libs GLOBAL PROPERTY kwiver_libraries)
 string(REPLACE ";" " " kwiver_libs "${kwiver_libs}")
 
 # setup general paths to includes and libs for packages we use/provide
-set( KWIVER_INCLUDE_DIRS "${EIGEN3_INCLUDE_DIR}")
+list(APPEND KWIVER_INCLUDE_DIRS "${EIGEN3_INCLUDE_DIR}")
 set( KWIVER_LIBRARY_DIRS "")
 
 if ( NOT fletch_ENABLED_Boost)

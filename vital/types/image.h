@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,7 +154,7 @@ struct image_pixel_traits_of<bool> : public image_pixel_traits
 
 
 // ==================================================================
-/// Provide compile-time look-up of data type from pixel_type enum and size 
+/// Provide compile-time look-up of data type from pixel_type enum and size
 /*
  * This struct and its specializations provide compile-time mapping from
  * image_pixel_traits properties (pixel_type and num_bytes) to a concrete type
@@ -482,6 +482,7 @@ public:
   image_of()
   : image(image_pixel_traits_of<T>()) {}
 
+  // ----------------------------------------------------------------------------
   /// Constructor that allocates image memory
   /**
    * Create a new blank (empty) image of specified size.
@@ -494,6 +495,7 @@ public:
   image_of( size_t width, size_t height, size_t depth = 1, bool interleave = false )
   : image( width, height, depth, interleave, image_pixel_traits_of<T>() ) {}
 
+  // ----------------------------------------------------------------------------
   /// Constructor that points at existing memory
   /**
    * Create a new image from supplied memory.
@@ -514,6 +516,7 @@ public:
   : image( first_pixel, width, height, depth,
            w_step, h_step, d_step, image_pixel_traits_of<T>() ) {}
 
+  // ----------------------------------------------------------------------------
   /// Constructor that shares memory with another image
   /**
    * Create a new image from existing image.
@@ -535,6 +538,7 @@ public:
   : image( mem, first_pixel, width, height, depth,
            w_step, h_step, d_step, image_pixel_traits_of<T>() ) {}
 
+  // ----------------------------------------------------------------------------
   /// Constructor from base class
   /**
    * The new image will share the same memory as the old image
@@ -545,21 +549,25 @@ public:
   {
     if ( other.pixel_traits() != image_pixel_traits_of<T>() )
     {
-      throw image_type_mismatch_exception("kwiver::vital::image_of<T>(kwiver::vital::image)");
+      VITAL_THROW( image_type_mismatch_exception,
+                   "kwiver::vital::image_of<T>(kwiver::vital::image)");
     }
   }
 
+  // ----------------------------------------------------------------------------
   /// Assignment operator
   const image_of<T>& operator=( const image& other )
   {
     if ( other.pixel_traits() != image_pixel_traits_of<T>() )
     {
-      throw image_type_mismatch_exception("kwiver::vital::image_of<T>::operator=(kwiver::vital::image)");
+      VITAL_THROW( image_type_mismatch_exception,
+                   "kwiver::vital::image_of<T>::operator=(kwiver::vital::image)");
     }
     image::operator=(other);
     return *this;
   }
 
+  // ----------------------------------------------------------------------------
   /// Const access to the pointer to first image pixel
   /**
    * This may differ from \a data() if the image is a
@@ -567,6 +575,7 @@ public:
    */
   const T* first_pixel() const { return reinterpret_cast<const T*>(first_pixel_); }
 
+  // ----------------------------------------------------------------------------
   /// Access to the pointer to first image pixel
   /**
    * This may differ from \a data() if the image is a
@@ -574,6 +583,7 @@ public:
    */
   T* first_pixel() { return reinterpret_cast<T*>(first_pixel_); }
 
+  // ----------------------------------------------------------------------------
   /// Const access pixels in the image
   /**
    * This returns the specified pixel in the image as an rgb_color. This
@@ -606,7 +616,7 @@ public:
     return { r, g, b };
   }
 
-
+  // ----------------------------------------------------------------------------
   /// Access pixels in the first channel of the image
   /**
    * \param i width position (x)
@@ -617,21 +627,21 @@ public:
     return image::at<T>(i,j);
   }
 
-
+  // ----------------------------------------------------------------------------
   /// Const access pixels in the first channel of the image
   inline const T& operator()( unsigned i, unsigned j ) const
   {
     return image::at<T>(i,j);
   }
 
-
+  // ----------------------------------------------------------------------------
   /// Access pixels in the image (width, height, channel)
   inline T& operator()( unsigned i, unsigned j, unsigned k )
   {
     return image::at<T>(i,j,k);
   }
 
-
+  // ----------------------------------------------------------------------------
   /// Const access pixels in the image (width, height, channel)
   inline const T& operator()( unsigned i, unsigned j, unsigned k ) const
   {

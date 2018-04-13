@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -189,7 +189,7 @@ plugin_loader
             << old_file << ".  This factory from "
             << m_impl->m_current_filename << " will not be registered.";
 
-        throw plugin_already_exists( str.str() );
+        VITAL_THROW( plugin_already_exists, str.str() );
       }
     } // end foreach
   }

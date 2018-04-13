@@ -92,7 +92,7 @@ initialize_object_tracks_threshold
 
 /// Destructor
 initialize_object_tracks_threshold
-::~initialize_object_tracks_threshold() VITAL_NOTHROW
+::~initialize_object_tracks_threshold() noexcept
 {
 }
 

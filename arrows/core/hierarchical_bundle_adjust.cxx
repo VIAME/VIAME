@@ -315,7 +315,7 @@ hierarchical_bundle_adjust
   // need to have at least 2 cameras
   if (active_cam_map->size() < 2)
   {
-    throw invalid_value("Camera map given is of insufficient length.");
+    VITAL_THROW( invalid_value,"Camera map given is of insufficient length.");
   }
 
   bool done = false;
