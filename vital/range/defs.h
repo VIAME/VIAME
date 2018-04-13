@@ -167,47 +167,35 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
 };
 
 // ----------------------------------------------------------------------------
-template < typename Range >
-struct range_detail
-{
-protected:
-  // https://stackoverflow.com/questions/11725881
-  template < typename T >
-  static constexpr auto get_address( T&& t )
-  -> typename std::remove_reference< T >::type*
-  { return &t; }
+namespace range_detail {
+  using namespace std;
 
-  static constexpr auto* get_iterator_p = 0 ? get_address(
-    []( Range const& r ){
-      using namespace std;
-      return begin( r );
-    } ) : nullptr;
-
-  using get_iterator_t = decltype( *get_iterator_p );
-
-  using iterator_t =
-    decltype( ( *get_iterator_p )( std::declval< Range >() ) );
-
-  iterator_t begin_helper( Range const& range ) const
+  template < typename Range >
+  struct range_helper
   {
-    using namespace std;
-    return begin( range );
-  }
+    static auto begin_helper( Range const& range )
+    -> decltype( begin( range ) )
+    {
+      return begin( range );
+    }
 
-  iterator_t end_helper( Range const& range ) const
-  {
-    using namespace std;
-    return end( range );
-  }
-};
+    static auto end_helper( Range const& range )
+    -> decltype( end( range ) )
+    {
+      return end( range );
+    }
+
+    using iterator_t = decltype( begin_helper( std::declval< Range >() ) );
+  };
+}
 
 // ----------------------------------------------------------------------------
 template < typename Range,
            bool = std::is_base_of< generic_view, Range >::value >
-class range_ref : range_detail< Range >
+class range_ref : range_detail::range_helper< Range >
 {
 public:
-  using iterator_t = typename range_detail< Range >::iterator_t;
+  using iterator_t = typename range_detail::range_helper< Range >::iterator_t;
   using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
   using value_t = typename std::remove_reference< value_ref_t >::type;
 
@@ -218,7 +206,7 @@ public:
   iterator_t end() const{ return detail::end_helper( m_range ); }
 
 protected:
-  using detail = range_detail< Range >;
+  using detail = range_detail::range_helper< Range >;
 
   Range const& m_range;
 };
