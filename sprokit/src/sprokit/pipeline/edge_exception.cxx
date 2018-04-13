@@ -52,6 +52,7 @@ edge_exception
 {
 }
 
+// ----------------------------------------------------------------------------
 null_edge_config_exception
 ::null_edge_config_exception() noexcept
   : edge_exception()
@@ -68,6 +69,7 @@ null_edge_config_exception
 {
 }
 
+// ----------------------------------------------------------------------------
 datum_requested_after_complete
 ::datum_requested_after_complete() noexcept
   : edge_exception()
@@ -85,6 +87,7 @@ datum_requested_after_complete
 {
 }
 
+// ----------------------------------------------------------------------------
 edge_connection_exception
 ::edge_connection_exception() noexcept
   : edge_exception()
@@ -96,6 +99,7 @@ edge_connection_exception
 {
 }
 
+// ----------------------------------------------------------------------------
 null_process_connection_exception
 ::null_process_connection_exception() noexcept
   : edge_connection_exception()
@@ -112,6 +116,7 @@ null_process_connection_exception
 {
 }
 
+// ----------------------------------------------------------------------------
 duplicate_edge_connection_exception
 ::duplicate_edge_connection_exception(process::name_t const& name, process::name_t const& new_name, std::string const& type) noexcept
   : edge_connection_exception()
@@ -121,9 +126,8 @@ duplicate_edge_connection_exception
   std::ostringstream sstr;
 
   sstr << "An edge was given a process for the "
-       << type << " input "
-          "(\'" << m_new_name << "\') when one already "
-          "exists (\'" << m_name << "\')";
+       << type << " input (\'" << m_new_name
+       << "\') when one already exists (\'" << m_name << "\')";
 
   m_what = sstr.str();
 }
@@ -133,6 +137,7 @@ duplicate_edge_connection_exception
 {
 }
 
+// ----------------------------------------------------------------------------
 input_already_connected_exception
 ::input_already_connected_exception(process::name_t const& name, process::name_t const& new_name) noexcept
   : duplicate_edge_connection_exception(name, new_name, "input")
@@ -144,6 +149,7 @@ input_already_connected_exception
 {
 }
 
+// ----------------------------------------------------------------------------
 output_already_connected_exception
 ::output_already_connected_exception(process::name_t const& name, process::name_t const& new_name) noexcept
   : duplicate_edge_connection_exception(name, new_name, "output")

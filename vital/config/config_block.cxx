@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2014 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -179,7 +179,7 @@ config_block
   store_t::const_iterator i = m_descr_store.find( key );
   if ( i == m_descr_store.end() )
   {
-    throw no_such_configuration_value_exception( key );
+    VITAL_THROW( no_such_configuration_value_exception, key );
   }
 
   return i->second;
@@ -202,7 +202,7 @@ config_block
     {
       config_block_value_t const current_value = get_value< config_block_value_t > ( key, config_block_value_t() );
 
-      throw unset_on_read_only_value_exception( key, current_value );
+      VITAL_THROW( unset_on_read_only_value_exception, key, current_value );
     }
 
     store_t::iterator const i = m_store.find( key );
@@ -213,7 +213,7 @@ config_block
     // value store, there will be no parallel value in the descr store.
     if ( i == m_store.end() )
     {
-      throw no_such_configuration_value_exception( key );
+      VITAL_THROW( no_such_configuration_value_exception, key );
     }
 
     m_store.erase( i );
@@ -406,7 +406,7 @@ config_block
     {
       config_block_value_t const current_value = get_value< config_block_value_t > ( key, config_block_value_t() );
 
-      throw set_on_read_only_value_exception( key, current_value, value );
+      VITAL_THROW( set_on_read_only_value_exception, key, current_value, value );
     }
 
     config_block_value_t temp( value );
@@ -569,8 +569,9 @@ config_block_get_value_cast( config_block_value_t const& value )
     return false;
   }
 
-  throw bad_config_block_cast( "failed to convert from string representation \""
-                                + value + "\" to boolean" );
+  VITAL_THROW( bad_config_block_cast,
+               "failed to convert from string representation \""
+               + value + "\" to boolean" );
 }
 
 

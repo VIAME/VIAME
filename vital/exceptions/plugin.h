@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,8 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Generic plugin exception
-class VITAL_EXPORT plugin_exception
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT plugin_exception
+  : public vital_exception
 {
 public:
   /// Constructor
@@ -57,7 +57,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Requested factory not found.
-class VITAL_EXPORT plugin_factory_not_found
+class VITAL_EXCEPTIONS_EXPORT plugin_factory_not_found
   : public plugin_exception
 {
 public:
@@ -71,7 +71,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Unable to create desired type.
-class VITAL_EXPORT plugin_factory_type_creation_error
+class VITAL_EXCEPTIONS_EXPORT plugin_factory_type_creation_error
   : public plugin_exception
 {
 public:
@@ -85,7 +85,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Plugin already registered
-class VITAL_EXPORT plugin_already_exists
+class VITAL_EXCEPTIONS_EXPORT plugin_already_exists
   : public plugin_exception
 {
 public:

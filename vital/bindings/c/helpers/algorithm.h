@@ -60,7 +60,7 @@ SharedPointerCache< kwiver::vital::algorithm, vital_algorithm_t >
 
 
 class invalid_algorithm_pointer
-  : public kwiver::vital::vital_core_base_exception
+  : public vital::vital_exception
 {
 public:
   invalid_algorithm_pointer( std::string reason )
