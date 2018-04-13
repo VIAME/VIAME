@@ -51,6 +51,7 @@ image_container
 {
   if(cm != RGB)
   {
+    CV_Assert( d.depth() == CV_8U || d.depth() == CV_16U || d.depth() == CV_32F );
     if ( data_.channels() == 3 )
     {
       cv::Mat new_color;
@@ -85,7 +86,7 @@ image_container
   }
   else
   {
-    this->data_ = vital_to_ocv(image_cont.get_image());
+    this->data_ = vital_to_ocv(image_cont.get_image(), RGB);
   }
 }
 
@@ -103,7 +104,7 @@ image_container
 /// Convert an OpenCV cv::Mat to a VITAL image
 image
 image_container
-::ocv_to_vital(const cv::Mat& img)
+::ocv_to_vital(const cv::Mat& img, ColorMode cm)
 {
   // if the cv::Mat has reference counted memory then wrap it to keep a
   // counted reference too it.  If it doesn't own its memory, then the
@@ -196,8 +197,9 @@ image_container
     {
       return out;
     }
-    else
+    else if( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F )
     {
+      CV_Assert( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F );
       cv::Mat bgr;
       if ( out.channels() == 3 )
       {
@@ -209,20 +211,25 @@ image_container
       }
       return bgr;
     }
+    else
+    {
+      //TODO: fix conversion when other cv types
+      CV_Assert( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F );
+    }
   }
 
   // allocated a new cv::Mat
   cv::Mat out(static_cast<int>(img.height()), static_cast<int>(img.width()),
               CV_MAKETYPE(cv_type, static_cast<int>(img.depth())));
   // wrap the new image as a VITAL image (always a shallow copy)
-  image new_img = ocv_to_vital(out);
+  image new_img = ocv_to_vital(out, RGB);
   new_img.copy_from(img);
 
   if(cm == RGB || out.channels() == 1 )
   {
       return out;
   }
-  else
+  else if( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F )
   {
     cv::Mat bgr;
     if ( out.channels() == 3 )
@@ -235,6 +242,11 @@ image_container
       cv::cvtColor(out, bgr, CV_RGBA2BGRA);
       return bgr;
     }
+  }
+  else
+  {
+    //TODO: fix conversion when other cv types
+    CV_Assert( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F );
   }
   return out;
 }
@@ -316,6 +328,7 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
   }
   if(cm == image_container::BGR)
   {
+    CV_Assert( result.depth() == CV_8U || result.depth() == CV_16U || result.depth() == CV_32F );
     if ( result.channels() == 3 )
     {
       cv::cvtColor(result, result, CV_RGB2BGR);

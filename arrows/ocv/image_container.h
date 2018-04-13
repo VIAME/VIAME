@@ -57,11 +57,11 @@ public:
   enum ColorMode{RGB,BGR};
 
   /// Constructor - from a cv::Mat
-  explicit image_container(const cv::Mat& d, ColorMode cm = BGR);
+  explicit image_container(const cv::Mat& d, ColorMode cm);
 
   /// Constructor - convert kwiver image to cv::Mat
   explicit image_container(const vital::image& vital_image)
-  : data_(vital_to_ocv(vital_image)) {}
+  : data_(vital_to_ocv(vital_image, RGB)) {}
 
   /// Constructor - convert base image container to cv::Mat
   explicit image_container(const vital::image_container& image_cont);
@@ -87,19 +87,19 @@ public:
   virtual size_t depth() const { return data_.channels(); }
 
   /// Get and in-memory image class to access the data
-  virtual vital::image get_image() const { return ocv_to_vital(data_); }
+  virtual vital::image get_image() const { return ocv_to_vital(data_, RGB); }
 
   /// Access the underlying cv::Mat data structure
   cv::Mat get_Mat() const { return data_; }
 
   /// Convert an OpenCV cv::Mat to a VITAL image
-  static vital::image ocv_to_vital(const cv::Mat& img);
+  static vital::image ocv_to_vital(const cv::Mat& img, ColorMode cm);
 
   /// Convert an OpenCV cv::Mat type value to a vital::image_pixel_traits
   static vital::image_pixel_traits ocv_to_vital(int type);
 
   /// Convert a VITAL image to an OpenCV cv::Mat
-  static cv::Mat vital_to_ocv(const vital::image& img, ColorMode cm = BGR);
+  static cv::Mat vital_to_ocv(const vital::image& img, ColorMode cm);
 
   /// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
   static int vital_to_ocv(const vital::image_pixel_traits& pt);

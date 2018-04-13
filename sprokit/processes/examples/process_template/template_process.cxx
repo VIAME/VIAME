@@ -171,10 +171,10 @@ template_process
 
     LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-    cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+    cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image(), kwiver::arrows::ocv::image_container::RGB );
 
     //++ Here is where the process does its work.
-    out_image = std::make_shared<kwiver::arrows::ocv::image_container>( d->process_image( in_image ) );
+    out_image = std::make_shared<kwiver::arrows::ocv::image_container>( d->process_image( in_image ), kwiver::arrows::ocv::image_container::RGB );
   }
 
 
