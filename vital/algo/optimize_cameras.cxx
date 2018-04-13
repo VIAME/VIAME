@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ optimize_cameras
 {
   if (!cameras || !tracks || !landmarks)
   {
-    throw invalid_value("One or more input data pieces are Null!");
+    VITAL_THROW( invalid_value, "One or more input data pieces are Null!");
   }
   typedef camera_map::map_camera_t map_camera_t;
   typedef landmark_map::map_landmark_t map_landmark_t;

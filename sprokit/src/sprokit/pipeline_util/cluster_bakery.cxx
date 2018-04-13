@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ cluster_bakery
   // an error.  Only one cluster can be baked at a time.
   if ( m_cluster )
   {
-    throw multiple_cluster_blocks_exception();
+    VITAL_THROW( multiple_cluster_blocks_exception );
   }
 
   m_type = cluster_block_.type;

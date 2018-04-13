@@ -228,7 +228,7 @@ initialize_cameras_landmarks::priv
   camera_map::map_camera_t::const_iterator ci = cams.find(last_frame);
   if( ci == cams.end() )
   {
-    throw invalid_value("Camera for last frame not provided.");
+    VITAL_THROW( invalid_value,"Camera for last frame not provided.");
   }
   camera_sptr prev_cam = ci->second;
   camera_intrinsics_sptr cal_right = prev_cam->intrinsics();
@@ -901,15 +901,15 @@ initialize_cameras_landmarks
 {
   if( !tracks )
   {
-    throw invalid_value("Some required input data is NULL.");
+    VITAL_THROW( invalid_value,"Some required input data is NULL.");
   }
   if( !d_->e_estimator )
   {
-    throw invalid_value("Essential matrix estimator not initialized.");
+    VITAL_THROW( invalid_value,"Essential matrix estimator not initialized.");
   }
   if( !d_->lm_triangulator )
   {
-    throw invalid_value("Landmark triangulator not initialized.");
+    VITAL_THROW( invalid_value,"Landmark triangulator not initialized.");
   }
   typedef vital::camera_map::map_camera_t map_cam_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;

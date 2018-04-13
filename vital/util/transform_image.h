@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -213,8 +213,11 @@ void cast_image( image const& img_in, image_of<T>& img_out )
   TRY_TYPE(int64_t)
   TRY_TYPE(float)
   TRY_TYPE(double)
+
 #undef TRY_TYPE
-  throw image_type_mismatch_exception("kwiver::vital::cast_image() cannot cast unknown type");
+
+  VITAL_THROW( image_type_mismatch_exception,
+               "kwiver::vital::cast_image() cannot cast unknown type");
 }
 
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
  * \brief test core essential matrix class
  */
 
+#define _USE_MATH_DEFINES
+
 #include <test_eigen.h>
 
 #include <vital/types/essential_matrix.h>
@@ -42,7 +44,6 @@
 #include <iostream>
 #include <vector>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #if defined M_PIl
