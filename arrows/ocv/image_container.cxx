@@ -49,24 +49,26 @@ image_container
 ::image_container(const cv::Mat& d, ColorMode cm)
   : data_(d)
 {
-  if(cm != RGB)
+  if(cm != RGB && data_.channels() != 1)
   {
-    CV_Assert( d.depth() == CV_8U || d.depth() == CV_16U || d.depth() == CV_32F );
-    if ( data_.channels() == 3 )
+    switch(d.depth())
     {
-      cv::Mat new_color;
-      new_color.create( d.rows, d.cols, d.type() );
+      case CV_8U:
+      case CV_16U:
+      case CV_32F:
+      {
+        cv::Mat new_color;
+        new_color.create( d.rows, d.cols, d.type() );
 
-      cv::cvtColor(data_, new_color, CV_BGR2RGB);
-      data_ = new_color;
-    }
-    else if ( data_.channels() == 4 )
-    {
-      cv::Mat new_color;
-      new_color.create( d.rows, d.cols, d.type() );
-
-      cv::cvtColor(data_, new_color, CV_BGRA2RGBA);
-      data_ = new_color;
+        cv::cvtColor(data_, new_color, (data_.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        data_ = new_color;
+        break;
+      }
+      case CV_8S:
+      case CV_16S:
+      case CV_32S:
+      case CV_64F:
+        VITAL_THROW( image_type_mismatch_exception,"Only CV_8U, CV_16U, and CV_32F are supported for BGR and RGB conversion");
     }
   }
 }
@@ -197,24 +199,24 @@ image_container
     {
       return out;
     }
-    else if( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F )
-    {
-      CV_Assert( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F );
-      cv::Mat bgr;
-      if ( out.channels() == 3 )
-      {
-        cv::cvtColor(out, bgr, CV_RGB2BGR);
-      }
-      else if ( out.channels() == 4 )
-      {
-        cv::cvtColor(out, bgr, CV_RGBA2BGRA);
-      }
-      return bgr;
-    }
     else
     {
-      //TODO: fix conversion when other cv types
-      CV_Assert( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F );
+      switch(out.depth())
+      {
+        case CV_8U:
+        case CV_16U:
+        case CV_32F:
+        {
+          cv::Mat bgr;
+          cv::cvtColor(out, bgr, (out.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+          return bgr;
+        }
+        case CV_8S:
+        case CV_16S:
+        case CV_32S:
+        case CV_64F:
+          VITAL_THROW( image_type_mismatch_exception,"Only CV_8U, CV_16U, and CV_32F are supported for BGR and RGB conversion");
+      }
     }
   }
 
@@ -229,24 +231,24 @@ image_container
   {
       return out;
   }
-  else if( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F )
-  {
-    cv::Mat bgr;
-    if ( out.channels() == 3 )
-    {
-      cv::cvtColor(out, bgr, CV_RGB2BGR);
-      return bgr;
-    }
-    if ( out.channels() == 4 )
-    {
-      cv::cvtColor(out, bgr, CV_RGBA2BGRA);
-      return bgr;
-    }
-  }
   else
   {
-    //TODO: fix conversion when other cv types
-    CV_Assert( out.depth() == CV_8U || out.depth() == CV_16U || out.depth() == CV_32F );
+    switch(out.depth())
+    {
+      case CV_8U:
+      case CV_16U:
+      case CV_32F:
+      {
+        cv::Mat bgr;
+        cv::cvtColor(out, bgr, (out.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        return bgr;
+      }
+      case CV_8S:
+      case CV_16S:
+      case CV_32S:
+      case CV_64F:
+        VITAL_THROW( image_type_mismatch_exception,"Only CV_8U, CV_16U, and CV_32F are supported for BGR and RGB conversion");
+    }
   }
   return out;
 }
@@ -326,16 +328,20 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
   {
     return ocv::image_container::vital_to_ocv(img.get_image(), cm);
   }
-  if(cm == image_container::BGR)
+  if(cm == image_container::BGR && result.channels() != 1 )
   {
-    CV_Assert( result.depth() == CV_8U || result.depth() == CV_16U || result.depth() == CV_32F );
-    if ( result.channels() == 3 )
+    switch(result.depth())
     {
-      cv::cvtColor(result, result, CV_RGB2BGR);
-    }
-    else if ( result.channels() == 4 )
-    {
-      cv::cvtColor(result, result, CV_RGBA2BGRA);
+      case CV_8U:
+      case CV_16U:
+      case CV_32F:
+        cv::cvtColor(result, result, (result.channels() == 3)?CV_BGR2RGB:CV_BGRA2RGBA);
+        break;
+      case CV_8S:
+      case CV_16S:
+      case CV_32S:
+      case CV_64F:
+        VITAL_THROW( image_type_mismatch_exception,"Only CV_8U, CV_16U, and CV_32F are supported for BGR and RGB conversion");
     }
   }
   return result;
