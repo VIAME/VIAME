@@ -381,7 +381,7 @@ track_features_klt
 
 /// Destructor
 track_features_klt
-::~track_features_klt() VITAL_NOTHROW
+::~track_features_klt() noexcept
 {
 }
 
