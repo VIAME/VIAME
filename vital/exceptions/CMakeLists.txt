@@ -32,6 +32,11 @@ kwiver_install_headers(
   NOPATH
   )
 
+kwiver_install_headers(
+  ${vital_public_headers}
+  SUBDIR vital/exceptions
+  )
+
 kwiver_add_library( vital_exceptions
   ${public_headers}
   ${sources}
