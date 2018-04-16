@@ -57,16 +57,23 @@ public:
 
   /// Extract from the image a descriptor corresoponding to each feature
   /**
-   * \param image_data contains the image data to process
-   * \param features the feature locations at which descriptors are extracted
-   * \param image_mask Mask image of the same dimensions as \p image_data where
-   *                   positive values indicate regions of \p image_data to
-   *                   consider.
-   * \returns a set of feature descriptors
-   */
+  * \param [in]     image_data contains the image data to process
+  * \param [in,out] features the feature locations at which descriptors
+  *                 are extracted (may be modified).
+  * \param [in]     image_mask Mask image of the same dimensions as
+  *                            \p image_data where positive values indicate
+  *                            regions of \p image_data to consider.
+  * \returns a set of feature descriptors
+  *
+  * \note The feature_set passed into this function may modified to
+  *       reorder, remove, or duplicate some features to align with the
+  *       set of descriptors detected.  If the feature_set needs to change,
+  *       a new feature_set is created and returned by reference.
+  */
+
   virtual kwiver::vital::descriptor_set_sptr
   extract(kwiver::vital::image_container_sptr image_data,
-          kwiver::vital::feature_set_sptr features,
+          kwiver::vital::feature_set_sptr &features,
           kwiver::vital::image_container_sptr image_mask = kwiver::vital::image_container_sptr()) const = 0;
 
 protected:

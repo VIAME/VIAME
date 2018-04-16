@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
 {
   if (!pipe)
   {
-    throw null_pipeline_export_dot_exception();
+    VITAL_THROW( null_pipeline_export_dot_exception );
   }
 
   ostr << "strict digraph \"" << graph_name << "\" {" << std::endl;
@@ -127,7 +127,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   {
     if (name.empty())
     {
-      throw empty_name_export_dot_exception();
+      VITAL_THROW( empty_name_export_dot_exception );
     }
 
     process::name_t const parent = pipe->parent_cluster(name);
@@ -141,7 +141,7 @@ export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_
   {
     if (name.empty())
     {
-      throw empty_name_export_dot_exception();
+      VITAL_THROW( empty_name_export_dot_exception );
     }
 
     process::name_t const parent = pipe->parent_cluster(name);
@@ -228,7 +228,7 @@ export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string con
 {
   if (!cluster)
   {
-    throw null_cluster_export_dot_exception();
+    VITAL_THROW( null_cluster_export_dot_exception );
   }
 
   pipeline_t const pipe = std::make_shared<pipeline>();

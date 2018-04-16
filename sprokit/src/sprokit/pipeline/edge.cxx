@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,7 @@ edge
 {
   if (!config)
   {
-    throw null_edge_config_exception();
+    VITAL_THROW( null_edge_config_exception );
   }
 
   bool const depends    = config->get_value<bool>(config_dependency, true);
@@ -364,14 +364,15 @@ edge
 {
   if (!process)
   {
-    throw null_process_connection_exception();
+    VITAL_THROW( null_process_connection_exception );
   }
 
   if (!d->upstream.expired())
   {
     process_t const up = d->upstream.lock();
 
-    throw input_already_connected_exception(up->name(), process->name());
+    VITAL_THROW( input_already_connected_exception,
+                 up->name(), process->name());
   }
 
   d->upstream = process;
@@ -385,14 +386,15 @@ edge
 {
   if (!process)
   {
-    throw null_process_connection_exception();
+    VITAL_THROW( null_process_connection_exception );
   }
 
   if (!d->downstream.expired())
   {
     process_t const down = d->downstream.lock();
 
-    throw output_already_connected_exception(down->name(), process->name());
+    VITAL_THROW( output_already_connected_exception,
+                 down->name(), process->name());
   }
 
   d->downstream = process;
@@ -450,7 +452,7 @@ edge::priv
 
   if (downstream_complete)
   {
-    throw datum_requested_after_complete();
+    VITAL_THROW( datum_requested_after_complete );
   }
 }
 

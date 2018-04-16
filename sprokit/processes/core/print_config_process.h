@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,33 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CORE_CORE_CONFIG_H
-#define KWIVER_CORE_CORE_CONFIG_H
+#ifndef ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
+#define ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
 
-// Support macros.
-#if defined(_WIN32) || defined(_WIN64)
-#define KWIVER_NO_RETURN __declspec(noreturn)
-// Unsupported.
-#define KWIVER_MUST_USE_RESULT
-// Unsupported.
-#define KWIVER_UNUSED
-#elif defined(__GNUC__)
-#define KWIVER_NO_RETURN __attribute__((__noreturn__))
-#define KWIVER_MUST_USE_RESULT __attribute__((__warn_unused_result__))
-#define KWIVER_UNUSED __attribute__((__unused__))
-#else
-// Unsupported.
-#define KWIVER_NO_RETURN
-// Unsupported.
-#define KWIVER_MUST_USE_RESULT
-// Unsupported.
-#define KWIVER_UNUSED
-#endif
+#include <sprokit/pipeline/process.h>
 
-#if __cplusplus < 201103L
-#define KWIVER_NOTHROW throw ()
-#else
-#define KWIVER_NOTHROW noexcept
-#endif
+#include "kwiver_processes_export.h"
 
-#endif // KWIVER_CORE_CORE_CONFIG_H
+#include <vital/config/config_block.h>
+
+namespace kwiver {
+
+// ----------------------------------------------------------------
+/**
+ * @brief Image object detector process.
+ *
+ */
+class KWIVER_PROCESSES_NO_EXPORT print_config_process
+  : public sprokit::process
+{
+public:
+  print_config_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~print_config_process();
+
+
+protected:
+  virtual void _configure();
+  virtual void _step();
+
+  // This is used to intercept connections and make ports JIT
+  virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
+
+private:
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class object_detector_process
+
+
+
+} // end namespace
+
+#endif // ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H

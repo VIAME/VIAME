@@ -63,7 +63,7 @@ public:
    */
   virtual vital::descriptor_set_sptr
   extract(vital::image_container_sptr image_data,
-          vital::feature_set_sptr features,
+          vital::feature_set_sptr &features,
           vital::image_container_sptr image_mask = vital::image_container_sptr()) const;
 
 protected:

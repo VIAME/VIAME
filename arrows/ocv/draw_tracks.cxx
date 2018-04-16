@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 
 #include "draw_tracks.h"
 
-#include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/util/string.h>
@@ -532,9 +531,9 @@ draw_tracks
       {
         if( ! ST::MakeDirectory( parent_dir ) )
         {
-          throw file_write_exception(parent_dir, "Attempted directory creation, "
-                                                 "but no directory created! No "
-                                                 "idea what happened here...");
+          VITAL_THROW( file_write_exception,parent_dir,
+                       "Attempted directory creation, but no directory created! "
+                       "No idea what happened here...");
         }
       }
       cv::imwrite( ofn.c_str(), output_image );

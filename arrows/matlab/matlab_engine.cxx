@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,21 +45,21 @@ namespace matlab {
 // ------------------------------------------------------------------
 matlab_engine::
 matlab_engine()
-  : m_logger( kwiver::vital::get_logger( "vital.matlab_engine" ) )
+  : m_logger( kwiver::vital::get_logger( "arrows.matlab.matlab_engine" ) )
   , m_engine_handle( 0 )
   , m_output_buffer( 0 )
 {
   m_engine_handle = engOpen( "" );
   if ( 0 == m_engine_handle)
   {
-    throw matlab_exception( "Error opening MatLab engine" );
+    VITAL_THROW( matlab_exception, "Error opening MatLab engine" );
   }
 
   m_output_buffer = static_cast< char * >(malloc( 4096 ));
   int status = engOutputBuffer( m_engine_handle, m_output_buffer, 4096 );
   if ( status )
   {
-    throw matlab_exception("Invalid engine handle in engOutputBuffer() call" );
+    VITAL_THROW( matlab_exception,"Invalid engine handle in engOutputBuffer() call" );
   }
 }
 
@@ -89,7 +89,7 @@ eval( const std::string& cmd )
   int status = engEvalString( m_engine_handle, cmd.c_str() );
   if ( 1 == status )
   {
-    throw matlab_exception( "Engine session no longer active" );
+    VITAL_THROW( matlab_exception, "Engine session no longer active" );
   }
 }
 
@@ -104,7 +104,7 @@ get_variable( const std::string& name )
   {
     std::stringstream str;
     str << "Variable \"" << name << "\" does not exist.";
-    throw matlab_exception( str.str() );
+    VITAL_THROW( matlab_exception, str.str() );
   }
 
   return MxArraySptr( new MxArray( var ) );
@@ -121,7 +121,7 @@ put_variable( const std::string& name, MxArraySptr val )
   {
     std::stringstream str;
     str << "Error assigning value to variable \"" << name << "\"";
-    throw matlab_exception( str.str() );
+    VITAL_THROW( matlab_exception, str.str() );
   }
 }
 

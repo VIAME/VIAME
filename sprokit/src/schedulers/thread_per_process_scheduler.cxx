@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,8 @@ thread_per_process_scheduler
     std::string const reason = "The process \'" + proc->name() + "\' of type \'" + proc->type()
       + "\' is a python process and that type of process is not supported by this scheduler.";
 
-    throw incompatible_pipeline_exception(reason);
+    VITAL_THROW( incompatible_pipeline_exception,
+                 reason);
   }
 
   process::names_t const names = p->process_names();
@@ -104,7 +105,8 @@ thread_per_process_scheduler
       std::string const reason =
         "The process \'" + name + "\' does not support being in its own thread.";
 
-      throw incompatible_pipeline_exception(reason);
+      VITAL_THROW( incompatible_pipeline_exception,
+                   reason);
     }
   }
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,28 @@
  */
 
 #include "base.h"
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
 
-vital_core_base_exception
-::vital_core_base_exception() noexcept
+vital_exception
+::vital_exception() noexcept
   : std::exception()
   , m_line_number(0)
 {
 }
 
 
-vital_core_base_exception
-::~vital_core_base_exception() noexcept
+vital_exception
+::~vital_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-vital_core_base_exception
+vital_exception
 ::set_location( std::string const& file, int line )
 {
   m_file_name = file;
@@ -64,20 +65,30 @@ vital_core_base_exception
 
 // ------------------------------------------------------------------
 char const*
-vital_core_base_exception
+vital_exception
 ::what() const noexcept
 {
-  return this->m_what.c_str();
+  std::ostringstream sstr;
+  sstr << m_what;
+
+  if ( ! m_file_name.empty() )
+  {
+    sstr << ", thrown from " << m_file_name << ":" << m_line_number;
+  }
+
+  m_what_loc = sstr.str();
+
+  return this->m_what_loc.c_str();
 }
 
 
-// ------------------------------------------------------------------
+// ==================================================================
 invalid_value
-::invalid_value(std::string reason) noexcept
-  : m_reason(reason)
+::invalid_value( std::string reason ) noexcept
 {
   m_what = "Invalid value(s): " + reason;
 }
+
 
 invalid_value
 ::~invalid_value() noexcept

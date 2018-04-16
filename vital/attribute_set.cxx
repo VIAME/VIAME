@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,7 +159,7 @@ data( const std::string& name ) const
   {
     std::stringstream str;
     str << "Attribute name \"" << name << "\" is not in the set.";
-    throw attribute_set_exception( str.str() );
+    VITAL_THROW( attribute_set_exception, str.str() );
   }
 
   return *(ix->second);

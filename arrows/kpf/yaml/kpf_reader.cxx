@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include <vital/logger/logger.h>
 #include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
 
 using std::istream;
@@ -51,8 +50,6 @@ using std::string;
 using std::vector;
 using std::pair;
 using std::make_pair;
-
-static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
 namespace kwiver {
 namespace vital {
