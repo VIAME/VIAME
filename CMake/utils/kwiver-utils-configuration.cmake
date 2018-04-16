@@ -48,20 +48,13 @@ function(kwiver_configure_file name source dest)
       )
   endforeach()
   set(temp_file "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.output")
-  add_custom_command(
-    OUTPUT  "${dest}"
-    COMMAND "${CMAKE_COMMAND}"
-            ${gen_command_args}
-            "-D__SOURCE_PATH__:PATH=${source}"
-            "-D__TEMP_PATH__:PATH=${temp_file}"
-            "-D__OUTPUT_PATH__:PATH=${dest}"
-            -P "${KWIVER_CMAKE_ROOT}/tools/kwiver-configure-helper.cmake"
-    DEPENDS
-            "${source}" ${mcf_DEPENDS}
-    WORKING_DIRECTORY
-            "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\""
-    )
+
+  configure_file(
+  "${source}"
+  "${dest}"
+  @ONLY
+  )
+
   # also clean the intermediate generated file
   set_property(DIRECTORY APPEND PROPERTY
     ADDITIONAL_MAKE_CLEAN_FILES "${temp_file}"
