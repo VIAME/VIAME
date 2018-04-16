@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -264,7 +264,8 @@ datum::get_datum() const
     std::string const req_type_name = typeid(T).name();
     std::string const type_name = m_datum.type().name();
 
-    throw bad_datum_cast_exception(req_type_name, type_name, m_type, m_error, e.what());
+    VITAL_THROW( bad_datum_cast_exception,
+                 req_type_name, type_name, m_type, m_error, e.what());
   }
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ config_block_get_value_cast(config_block_value_t const& value)          \
   NS::ceres_type cet;                                                   \
   if(!NS::StringTo##ceres_type(value, &cet))                            \
   {                                                                     \
-    throw bad_config_block_cast(value);                                 \
+    VITAL_THROW( bad_config_block_cast,value);                          \
   }                                                                     \
   return cet;                                                           \
 }                                                                       \

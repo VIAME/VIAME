@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,8 @@ sync_scheduler
         std::string const reason = "The process \'" + proc->name() + "\' of type \'" + proc->type()
       + "\' is a python process and that type of process is not supported by this scheduler.";
 
-      throw incompatible_pipeline_exception(reason);
+      VITAL_THROW( incompatible_pipeline_exception,
+                   reason);
   }
 
   process::names_t const names = p->process_names();
@@ -109,7 +110,8 @@ sync_scheduler
       std::string const reason = "The process \'" + name + "\' does not output "
                                  "consistent data across all its output ports";
 
-      throw incompatible_pipeline_exception(reason);
+      VITAL_THROW( incompatible_pipeline_exception,
+                   reason);
     }
 
     if (consts.count(process::property_unsync_input))
@@ -117,7 +119,8 @@ sync_scheduler
       std::string const reason = "The process \'" + name + "\' does not expect "
                                  "consistent data across all its input ports";
 
-      throw incompatible_pipeline_exception(reason);
+      VITAL_THROW( incompatible_pipeline_exception,
+                   reason);
     }
   }
 }

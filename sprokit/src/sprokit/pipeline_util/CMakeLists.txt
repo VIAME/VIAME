@@ -103,6 +103,7 @@ target_link_libraries(sprokit_pipeline_util
             ${Boost_SYSTEM_LIBRARY}
   PRIVATE     vital_config
               vital_util
+              vital_exceptions
             ${Boost_CHRONO_LIBRARY}
             ${Boost_THREAD_LIBRARY}
             ${CMAKE_THREAD_LIBS_INIT}
