@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
 {
   if ( ! kwiversys::SystemTools::FileExists( dir ) )
   {
-    throw path_not_exists( dir );
+    VITAL_THROW( path_not_exists, dir );
   }
 
   camera_map::map_camera_t cameras;
@@ -67,7 +67,7 @@ read_krtd_files( std::vector< path_t > const& img_files, path_t const& dir )
 
   if ( cameras.empty() )
   {
-    throw invalid_data( "No krtd files found" );
+    VITAL_THROW( invalid_data, "No krtd files found" );
   }
 
   return camera_map_sptr( new simple_camera_map( cameras ) );

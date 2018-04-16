@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ namespace vital {
 
 
 /// VITAL Generic math exception
-class VITAL_EXPORT math_exception
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT math_exception
+  : public vital_exception
 {
 public:
   /// Constructor
@@ -57,7 +57,7 @@ public:
 
 
 /// Exception for when a matrix is non-invertible
-class VITAL_EXPORT non_invertible_matrix
+class VITAL_EXCEPTIONS_EXPORT non_invertible_matrix
   : public math_exception
 {
 public:
@@ -69,7 +69,7 @@ public:
 
 
 /// Exception for when some point maps to infinity
-class VITAL_EXPORT point_maps_to_infinity
+class VITAL_EXCEPTIONS_EXPORT point_maps_to_infinity
   : public math_exception
 {
 public:
@@ -81,7 +81,7 @@ public:
 
 
 /// We cannot perfom some operation on a matrix
-class VITAL_EXPORT invalid_matrix_operation
+class VITAL_EXCEPTIONS_EXPORT invalid_matrix_operation
   : public math_exception
 {
 public:

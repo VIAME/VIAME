@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 #include <sprokit/pipeline/sprokit_pipeline_export.h>
 
 #include <vital/vital_config.h>
+#include <vital/exceptions/base.h>
 #include <exception>
 #include <string>
 #include <memory>
@@ -93,7 +94,7 @@ typedef std::shared_ptr<stamp const> stamp_t;
  * \ingroup exceptions
  */
 class SPROKIT_PIPELINE_EXPORT pipeline_exception
-  : public std::exception
+  : public kwiver::vital::vital_exception
 {
   public:
     /**
@@ -104,17 +105,6 @@ class SPROKIT_PIPELINE_EXPORT pipeline_exception
      * \brief Destructor.
      */
     virtual ~pipeline_exception() noexcept;
-
-    /**
-     * \brief A description of the exception.
-     *
-     * \returns A string describing what went wrong.
-     */
-    char const* what() const noexcept;
-
-protected:
-    /// The text of the exception.
-    std::string m_what;
 };
 
 }

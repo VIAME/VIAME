@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,7 +149,7 @@ image_container
     case CV_64F:
       return pixel_traits_t(vital::image_pixel_traits::FLOAT, 8);
     default:
-      throw image_type_mismatch_exception("kwiver::arrows::ocv::image_container::ocv_to_vital(int)");
+      VITAL_THROW( image_type_mismatch_exception,"kwiver::arrows::ocv::image_container::ocv_to_vital(int)");
   }
 }
 
@@ -291,7 +291,7 @@ image_container
     default:
       break;
   }
-  throw image_type_mismatch_exception("kwiver::arrows::ocv::image_container::vital_to_ocv(pixel_traits_t)");
+  VITAL_THROW( image_type_mismatch_exception,"kwiver::arrows::ocv::image_container::vital_to_ocv(pixel_traits_t)");
 }
 
 

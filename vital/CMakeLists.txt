@@ -68,16 +68,6 @@ set( vital_public_headers
   attribute_set.h
   iterator.h
 
-  exceptions.h
-  exceptions/algorithm.h
-  exceptions/base.h
-  exceptions/image.h
-  exceptions/io.h
-  exceptions/math.h
-  exceptions/metadata.h
-  exceptions/video.h
-  exceptions/plugin.h
-
   io/camera_from_metadata.h
   io/camera_io.h
   io/camera_map_io.h
@@ -147,15 +137,6 @@ set( vital_sources
   algorithm_capabilities.cxx
   attribute_set.cxx
 
-  exceptions/algorithm.cxx
-  exceptions/base.cxx
-  exceptions/image.cxx
-  exceptions/io.cxx
-  exceptions/math.cxx
-  exceptions/metadata.cxx
-  exceptions/video.cxx
-  exceptions/plugin.cxx
-
   io/camera_from_metadata.cxx
   io/camera_io.cxx
   io/camera_map_io.cxx
@@ -223,6 +204,7 @@ kwiver_add_library( vital
 target_link_libraries( vital
   PRIVATE         kwiversys
   PUBLIC          vital_config
+                  vital_exceptions
                   vital_logger
                   vital_util
   )
@@ -288,6 +270,7 @@ configure_file(
 
 ###
 #
+add_subdirectory( exceptions )
 add_subdirectory( algo )
 add_subdirectory( util )
 add_subdirectory( bindings )

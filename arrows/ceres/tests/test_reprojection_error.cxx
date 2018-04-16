@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ static Eigen::VectorXd distortion_coefficients( int dim )
 {
   Eigen::VectorXd dc{ 8 };
   dc << -0.01, 0.002, 0.001, -0.005, -0.004, 0.02, -0.007, 0.0001;
-  dc.resize( dim );
+  dc.conservativeResize( dim );
   return dc;
 }
 

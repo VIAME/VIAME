@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -232,13 +232,13 @@ read_config_file( config_path_t const&     file_path,
   // The file specified really must be a file.
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
-    throw config_file_not_found_exception( file_path,
+    VITAL_THROW( config_file_not_found_exception, file_path,
           "File does not exist." );
   }
 
   if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw config_file_not_found_exception( file_path,
+    VITAL_THROW( config_file_not_found_exception, file_path,
           "Path given doesn't point to a regular file." );
   }
 
@@ -322,7 +322,7 @@ read_config_file( std::string const& file_name,
   // Throw file-not-found if we ran out of paths without finding anything
   if ( ! result )
   {
-    throw config_file_not_found_exception(
+    VITAL_THROW( config_file_not_found_exception,
       file_name, "No matching file found in the search paths." );
   }
 
@@ -342,7 +342,7 @@ write_config_file( config_block_sptr const& config,
   // If the given path is a directory, we obviously can't write to it.
   if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw config_file_write_exception( file_path,
+    VITAL_THROW( config_file_write_exception, file_path,
           "Path given is a directory, to which we clearly can't write." );
   }
 
@@ -355,7 +355,7 @@ write_config_file( config_block_sptr const& config,
     //std::cerr << "at least one containing directory not found, creating them..." << std::endl;
     if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw config_file_write_exception( parent_dir,
+      VITAL_THROW( config_file_write_exception, parent_dir,
             "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
@@ -375,7 +375,7 @@ void write_config( config_block_sptr const& config,
   // If there are no config parameters in the given config_block, throw
   if ( ! config->available_values().size() )
   {
-    throw config_file_write_exception( "<stream>",
+    VITAL_THROW( config_file_write_exception, "<stream>",
           "No parameters in the given config_block!" );
   }
 
