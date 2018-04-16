@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,53 +30,37 @@
 
 /**
  * \file
- * \brief Header for \link kwiver::vital::camera camera \endlink and
- *        \link kwiver::vital::camera_ camera_<T> \endlink classes
+ * \brief Function to generate \ref kwiver::vital::camera_rpc from metadata
  */
 
-#ifndef VITAL_CAMERA_H_
-#define VITAL_CAMERA_H_
+#ifndef VITAL_CAMERA_FROM_METADATA_H_
+#define VITAL_CAMERA_FROM_METADATA_H_
 
 #include <vital/vital_export.h>
 
-#include <iostream>
-#include <memory>
-
-#include <vital/types/vector.h>
-
+#include <vital/types/camera_rpc.h>
+#include <vital/types/metadata.h>
 
 namespace kwiver {
 namespace vital {
 
-/// forward declaration of camera class
-class camera;
-/// typedef for a camera shared pointer
-typedef std::shared_ptr< camera > camera_sptr;
-
-
-// ------------------------------------------------------------------
-/// An abstract representation of camera
+/// Convert space separated sting to Eigen vector
 /**
- * The base class of cameras.
+ * \param s The string to be converted.
+ * \return The converted vector.
  */
-class VITAL_EXPORT camera
-{
-public:
-  /// Destructor
-  virtual ~camera() = default;
+Eigen::VectorXd
+VITAL_EXPORT string_to_vector( std::string const& s );
 
-  /// Create a clone of this camera object
-  virtual camera_sptr clone() const = 0;
-
-  /// Project a 3D point into a 2D image point
-  virtual vector_2d project( const vector_3d& pt ) const = 0;
-
-protected:
-  camera() {};
-};
-
-}
-}   // end namespace vital
+/// Produce RPC camera from metadata
+/**
+ * \param file_path   The path to the file to read in.
+ * \return A new camera object representing the contents of the read-in file.
+ */
+camera_sptr
+VITAL_EXPORT camera_from_metadata( metadata_sptr const& md );
 
 
-#endif // VITAL_CAMERA_H_
+} } // end namespace
+
+#endif // VITAL_CAMERA_FROM_METADATA_H_

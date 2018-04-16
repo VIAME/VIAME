@@ -116,7 +116,7 @@ void test_convert_camera(T eps)
   using namespace kwiver::arrows;
   vpgl_perspective_camera<T> vcam = sample_vpgl_camera<T>();
 
-  simple_camera mcam;
+  simple_camera_perspective mcam;
   vxl::vpgl_camera_to_vital(vcam, mcam);
 
   std::cerr << "rotation: " << mcam.rotation().quaternion().coeffs() << std::endl;

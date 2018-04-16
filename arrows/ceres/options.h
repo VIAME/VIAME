@@ -38,7 +38,7 @@
 
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/camera_map.h>
 #include <arrows/ceres/types.h>
 
@@ -106,7 +106,7 @@ public:
    *
    *  This function is the inverse of update_camera_extrinsics
    */
-  void extract_camera_extrinsics(const vital::camera_sptr camera,
+  void extract_camera_extrinsics(const vital::camera_perspective_sptr camera,
                                  double* params) const;
 
   /// Update a camera object to use extrinsic parameters from an array
@@ -116,8 +116,9 @@ public:
    *
    *  This function is the inverse of extract_camera_extrinsics
    */
-  void update_camera_extrinsics(std::shared_ptr<vital::simple_camera> camera,
-                                double const* params) const;
+  void update_camera_extrinsics(
+    std::shared_ptr<vital::simple_camera_perspective> camera,
+    double const* params) const;
 
   /// extract the paramters from camera intrinsics into the parameter array
   /**

@@ -42,6 +42,7 @@
 #include "test_random_point.h"
 
 #include <vital/types/camera_map.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/feature_track_set.h>
 
@@ -122,7 +123,8 @@ camera_seq(kwiver::vital::frame_id_t num_cams,
     double frac = static_cast< double > ( i ) / num_cams;
     double x = 4 * std::cos( 2 * frac );
     double y = 3 * std::sin( 2 * frac );
-    simple_camera* cam = new simple_camera(vector_3d(x,y,2+frac), R, K);
+    simple_camera_perspective* cam =
+      new simple_camera_perspective(vector_3d(x,y,2+frac), R, K);
     // look at the origin
     cam->look_at( vector_3d( 0, 0, 0 ) );
     cameras[i] = camera_sptr( cam );
@@ -155,7 +157,7 @@ init_cameras(kwiver::vital::frame_id_t num_cams,
   vector_3d c( 0, 0, 1 );
   for ( frame_id_t i = 0; i < num_cams; ++i )
   {
-    simple_camera* cam = new simple_camera(c, R, K);
+    simple_camera_perspective* cam = new simple_camera_perspective(c, R, K);
     // look at the origin
     cam->look_at( vector_3d( 0, 0, 0 ), vector_3d( 0, 1, 0 ) );
     cameras[i] = camera_sptr( cam );
@@ -184,9 +186,11 @@ noisy_cameras( kwiver::vital::camera_map_sptr cameras,
   camera_map::map_camera_t cam_map;
   for( camera_map::map_camera_t::value_type const& p : cameras->cameras() )
   {
-    camera_sptr c = p.second->clone();
+    auto cam_ptr = std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
+    auto c = std::dynamic_pointer_cast<vital::camera_perspective>(cam_ptr->clone());
 
-    simple_camera& cam = dynamic_cast<simple_camera&>(*c);
+    simple_camera_perspective& cam =
+      dynamic_cast<simple_camera_perspective&>(*c);
 
     cam.set_center( cam.get_center() + random_point3d( pos_stdev ) );
     rotation_d rand_rot( random_point3d( rot_stdev ) );
