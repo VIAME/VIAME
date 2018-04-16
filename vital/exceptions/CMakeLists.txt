@@ -33,7 +33,7 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${vital_public_headers}
+  ${public_headers}
   SUBDIR vital/exceptions
   )
 
