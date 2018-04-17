@@ -276,8 +276,19 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map)
   // Get metadata map
   auto md_map = vfvi.metadata_map()->metadata();
 
-  // Currently test video has no metadata
-  EXPECT_EQ( md_map.size(), 0 );
+  // Each frame of video should have some metadata
+  // at a minimum this is just the video name and timestamp
+  EXPECT_EQ( md_map.size(), vfvi.num_frames() );
+
+  if ( md_map.size() != vfvi.num_frames() )
+  {
+    std::cout << "Found metadata on these frames: ";
+    for (auto md : md_map)
+    {
+      std::cout << md.first << ", ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 // ----------------------------------------------------------------------------
