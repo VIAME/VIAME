@@ -46,7 +46,7 @@ namespace arrows {
 /// Transform the camera by applying a similarity transformation in place
 void
 transform_inplace(const vital::similarity_d& xform,
-                  vital::simple_camera& cam)
+                  vital::simple_camera_perspective& cam)
 {
   cam.set_center( xform * cam.get_center() );
   cam.set_rotation( cam.get_rotation() * xform.rotation().inverse() );
@@ -69,7 +69,7 @@ transform_inplace(const vital::similarity_<T>& xform,
 /// Transform a 3D covariance matrix with a similarity transformation
 template <typename T>
 vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
-                           const vital::similarity_<T>& xform)
+                                  const vital::similarity_<T>& xform)
 {
   // TODO trasform covariance parameters directly
   // instead of converting to matrix form and back
@@ -82,22 +82,23 @@ vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
 
 
 /// construct a transformed camera by applying a similarity transformation
-vital::camera_sptr transform(vital::camera_sptr cam,
-                      const vital::similarity_d& xform)
+vital::camera_perspective_sptr transform(vital::camera_perspective_sptr cam,
+                                         const vital::similarity_d& xform)
 {
-  cam = cam->clone();
-  if( vital::simple_camera* vcam = dynamic_cast<vital::simple_camera*>(cam.get()) )
+  cam = std::dynamic_pointer_cast<vital::camera_perspective>(cam->clone());
+  if( vital::simple_camera_perspective* vcam =
+      dynamic_cast<vital::simple_camera_perspective*>(cam.get()) )
   {
     transform_inplace(xform, *vcam);
   }
   else
   {
-    vital::simple_camera* new_cam =
-        new vital::simple_camera( xform * cam->center(),
+    vital::simple_camera_perspective* new_cam =
+        new vital::simple_camera_perspective( xform * cam->center(),
                                   cam->rotation() * xform.rotation().inverse(),
                                   cam->intrinsics() );
     new_cam->set_center_covar( transform(cam->center_covar(), xform) );
-    cam = vital::camera_sptr( new_cam );
+    cam = vital::camera_perspective_sptr( new_cam );
   }
   return cam;
 }
@@ -105,12 +106,13 @@ vital::camera_sptr transform(vital::camera_sptr cam,
 
 /// construct a transformed map of cameras by applying a similarity transformation
 vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
-                          const vital::similarity_d& xform)
+                                 const vital::similarity_d& xform)
 {
   vital::camera_map::map_camera_t cam_map = cameras->cameras();
   for(vital::camera_map::map_camera_t::value_type& p : cam_map)
   {
-    p.second = transform(p.second, xform);
+    auto cam_ptr = std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
+    p.second = transform(cam_ptr, xform);
   }
   return vital::camera_map_sptr(new vital::simple_camera_map(cam_map));
 }
@@ -118,7 +120,7 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
 
 /// construct a transformed landmark by applying a similarity transformation
 vital::landmark_sptr transform(vital::landmark_sptr lm,
-                        const vital::similarity_d& xform)
+                               const vital::similarity_d& xform)
 {
   if (!lm)
   {
@@ -147,7 +149,7 @@ vital::landmark_sptr transform(vital::landmark_sptr lm,
 
 /// construct a transformed map of landmarks by applying a similarity transformation
 vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
-                            const vital::similarity_d& xform)
+                                   const vital::similarity_d& xform)
 {
   vital::landmark_map::map_landmark_t lm_map = landmarks->landmarks();
   for(vital::landmark_map::map_landmark_t::value_type& p : lm_map)
@@ -193,7 +195,8 @@ necker_reverse(vital::camera_map_sptr& cameras,
   vital::rotation_d Rz180(vital::vector_4d(0.0, 0.0, 1.0, 0.0));
   for(cam_map_t::value_type& p : cams)
   {
-    vital::simple_camera* flipped = new vital::simple_camera(*p.second);
+    auto flipped = std::make_shared<vital::simple_camera_perspective>(
+      dynamic_cast<vital::simple_camera_perspective&>(*p.second));
     // extract the camera center
     const vital::vector_3d cc = flipped->center();
     // extract the camera principal axis
@@ -208,7 +211,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
     // axis centered at gp, also rotate the camera 180 about its principal axis
     flipped->set_center(Ra180 * (flipped->center() - gp) + gp);
     flipped->set_rotation(Rz180 * flipped->rotation() * Ra180);
-    p.second = vital::camera_sptr(flipped);
+    p.second = vital::camera_perspective_sptr(flipped);
   }
 
   // mirror landmark locations about the mirroring plane

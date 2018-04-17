@@ -314,7 +314,7 @@ optimize_cameras
 // Optimize a single camera given corresponding features and landmarks
 void
 optimize_cameras
-::optimize(vital::camera_sptr& camera,
+::optimize(vital::camera_perspective_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata) const
@@ -395,7 +395,7 @@ optimize_cameras
     d_->update_camera_intrinsics(new_K, &cam_intrinsic_params[0]);
     K = new_K;
   }
-  auto new_camera = std::make_shared<simple_camera>();
+  auto new_camera = std::make_shared<simple_camera_perspective>();
   new_camera->set_intrinsics(K);
   d_->update_camera_extrinsics(new_camera, &cam_extrinsic_params[0]);
   camera = new_camera;

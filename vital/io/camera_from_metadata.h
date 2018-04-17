@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,67 +30,37 @@
 
 /**
  * \file
- * \brief Implementation of map from frame IDs to vpgl cameras
+ * \brief Function to generate \ref kwiver::vital::camera_rpc from metadata
  */
 
-#include "camera_map.h"
+#ifndef VITAL_CAMERA_FROM_METADATA_H_
+#define VITAL_CAMERA_FROM_METADATA_H_
 
+#include <vital/vital_export.h>
 
-#include <arrows/vxl/camera.h>
-
-using namespace kwiver::vital;
+#include <vital/types/camera_rpc.h>
+#include <vital/types/metadata.h>
 
 namespace kwiver {
-namespace arrows {
-namespace vxl {
+namespace vital {
 
-/// Return a map from integer IDs to camera shared pointers
-vital::camera_map::map_camera_t
-camera_map::cameras() const
-{
-  map_camera_t vital_cameras;
+/// Convert space separated sting to Eigen vector
+/**
+ * \param s The string to be converted.
+ * \return The converted vector.
+ */
+Eigen::VectorXd
+VITAL_EXPORT string_to_vector( std::string const& s );
 
-  for(const map_vcam_t::value_type& c : data_)
-  {
-    camera_sptr cam = vpgl_camera_to_vital(c.second);
-    vital_cameras.insert(std::make_pair(c.first, cam));
-  }
-
-  return vital_cameras;
-}
-
-
-/// Convert any camera map to a vpgl camera map
-camera_map::map_vcam_t
-camera_map_to_vpgl(const vital::camera_map& cam_map)
-{
-  // if the camera map already contains a vpgl representation
-  // then return the existing vpgl data
-  if( const vxl::camera_map* m =
-          dynamic_cast<const vxl::camera_map*>(&cam_map) )
-  {
-    return m->vpgl_cameras();
-  }
-  camera_map::map_vcam_t vmap;
-  for (const camera_map::map_camera_t::value_type& c :
-                cam_map.cameras())
-  {
-    vpgl_perspective_camera<double> vcam;
-    if( const simple_camera_perspective* mcam =
-        dynamic_cast<const simple_camera_perspective*>(c.second.get()) )
-    {
-      vital_to_vpgl_camera(*mcam, vcam);
-    }
-    else
-    {
-      //TODO should throw an exception here
-    }
-    vmap.insert(std::make_pair(c.first, vcam));
-  }
-  return vmap;
-}
+/// Produce RPC camera from metadata
+/**
+ * \param file_path   The path to the file to read in.
+ * \return A new camera object representing the contents of the read-in file.
+ */
+camera_sptr
+VITAL_EXPORT camera_from_metadata( metadata_sptr const& md );
 
 
-} // end namespace vxl
-} // end namespace arrows
-} // end namespace kwiver
+} } // end namespace
+
+#endif // VITAL_CAMERA_FROM_METADATA_H_

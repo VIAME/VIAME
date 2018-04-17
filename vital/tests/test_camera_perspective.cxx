@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #include <test_eigen.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/io/camera_io.h>
 
 #include <iostream>
@@ -50,13 +50,13 @@ int main(int argc, char** argv)
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera, clone)
+TEST(camera_perspective, clone)
 {
   vector_2d pp{ 300, 400 };
   simple_camera_intrinsics K{ 1000, pp };
-  simple_camera cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
+  simple_camera_perspective cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
 
-  auto cam_clone = cam.clone();
+  auto cam_clone = std::dynamic_pointer_cast<camera_perspective>( cam.clone() );
   EXPECT_MATRIX_EQ( cam.center(), cam_clone->center() );
   EXPECT_MATRIX_EQ( cam.rotation().quaternion(),
                     cam_clone->rotation().quaternion() );
@@ -64,13 +64,13 @@ TEST(camera, clone)
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera, clone_look_at)
+TEST(camera_perspective, clone_look_at)
 {
   vector_2d pp{ 300, 400 };
   simple_camera_intrinsics K{ 1000, pp };
   vector_3d focus{ 0, 1, -2 };
 
-  auto cam_in = simple_camera{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
+  auto cam_in = simple_camera_perspective{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
   auto cam = cam_in.clone_look_at( focus );
 
   EXPECT_MATRIX_NEAR( pp, cam->project( focus ), 1e-12 );
@@ -85,12 +85,12 @@ TEST(camera, clone_look_at)
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera, look_at)
+TEST(camera_perspective, look_at)
 {
   vector_2d pp{ 300, 400 };
   simple_camera_intrinsics K{ 1000, pp };
   vector_3d focus{ 0, 1, -2 };
-  simple_camera cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
+  simple_camera_perspective cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
   cam.look_at( focus );
 
   EXPECT_MATRIX_NEAR( pp, cam.project( focus ), 1e-12 );
@@ -105,12 +105,12 @@ TEST(camera, look_at)
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera, projection)
+TEST(camera_perspective, projection)
 {
   vector_2d pp{ 300, 400 };
   simple_camera_intrinsics K{ 1000, pp };
   vector_3d focus{ 0, 1, -2 };
-  simple_camera cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
+  simple_camera_perspective cam{ vector_3d{ 3, -4, 7 }, rotation_d{}, K };
   cam.look_at( focus );
 
   matrix_3x4d P{ cam.as_matrix() };
