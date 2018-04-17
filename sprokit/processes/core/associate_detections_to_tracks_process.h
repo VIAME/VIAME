@@ -28,49 +28,55 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+#ifndef _KWIVER_ASSOCIATE_DETECTIONS_TO_TRACKS_PROCESS_H_
+#define _KWIVER_ASSOCIATE_DETECTIONS_TO_TRACKS_PROCESS_H_
 
-#include <arrows/burnout/kwiver_algo_burnout_export.h>
+#include "kwiver_processes_export.h"
 
-#include <vital/algo/compute_track_descriptors.h>
+#include <sprokit/pipeline/process.h>
 
-namespace kwiver {
-namespace arrows {
-namespace burnout {
+#include <memory>
 
-// ----------------------------------------------------------------
-/**
- * @brief burnout_track_descriptors
- *
- */
-class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+namespace kwiver
 {
-public:
 
-  burnout_track_descriptors();
-  virtual ~burnout_track_descriptors();
+// -----------------------------------------------------------------------------
+/**
+ * \class associate_detections_to_tracks_process
+ *
+ * \brief Associates new object detections to existing tracks.
+ *
+ * \iports
+ * \iport{timestamp}
+ * \iport{image}
+ * \iport{tracks}
+ * \iport{detections}
+ * \iport{matrix_d}
+ *
+ * \oports
+ * \oport{tracks}
+ * \oport{unused_detections}
+ * \oport{all_detections}
+ */
+class KWIVER_PROCESSES_NO_EXPORT associate_detections_to_tracks_process
+  : public sprokit::process
+{
+  public:
+  associate_detections_to_tracks_process( vital::config_block_sptr const& config );
+  virtual ~associate_detections_to_tracks_process();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  protected:
+    virtual void _configure();
+    virtual void _step();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  private:
+    void make_ports();
+    void make_config();
 
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class associate_detections_to_tracks_process
 
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
 
-private:
-
-  class priv;
-  const std::unique_ptr<priv> d;
-};
-
-} } }
-
-#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */
+} // end namespace
+#endif /* _KWIVER_ASSOCIATE_DETECTIONS_TO_TRACKS_PROCESS_H_ */

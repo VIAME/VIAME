@@ -30,66 +30,54 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief initialize_object_tracks algorithm definition
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#ifndef VITAL_ALGO_INITIALIZE_OBJECT_TRACKS_MATRIX_H_
+#define VITAL_ALGO_INITIALIZE_OBJECT_TRACKS_MATRIX_H_
 
 #include <vital/vital_config.h>
-
 #include <vital/algo/algorithm.h>
 
-#include <vital/types/track_set.h>
+#include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
+/// An abstract base class for computing association cost matrices for tracking
+class VITAL_ALGO_EXPORT initialize_object_tracks
+  : public kwiver::vital::algorithm_def<initialize_object_tracks>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
+  static std::string static_type_name() { return "initialize_object_tracks"; }
 
-  /// Compute track descriptors given an image and tracks
+  /// Initialize new object tracks given detections.
   /**
-   * \param ts timestamp for the current frame
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
+   * \param ts frame ID
+   * \param image contains the input image for the current frame
+   * \param detections detected object sets from the current frame
+   * \returns newly initialized tracks
    */
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks ) = 0;
-
-  /// Flush any remaining in-progress descriptors
-  /**
-   * This is typically called at the end of a video, in case
-   * any temporal descriptors and currently in progress and
-   * still need to be output.
-   *
-   * \returns a set of track descriptors
-   */
-  virtual kwiver::vital::track_descriptor_set_sptr flush() = 0;
+  virtual kwiver::vital::object_track_set_sptr
+  initialize( kwiver::vital::timestamp ts,
+              kwiver::vital::image_container_sptr image,
+              kwiver::vital::detected_object_set_sptr detections ) const = 0;
 
 protected:
-  compute_track_descriptors();
+  initialize_object_tracks();
 
 };
 
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
+/// Shared pointer for initialize_object_tracks algorithm definition class
+typedef std::shared_ptr<initialize_object_tracks> initialize_object_tracks_sptr;
 
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#endif // VITAL_ALGO_INITIALIZE_OBJECT_TRACKS_H_

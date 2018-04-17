@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface for track_descriptor_set_output_csv
- */
+#ifndef _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
+#define _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
 
-#ifndef KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
-#define KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
+#include "kwiver_processes_export.h"
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <sprokit/pipeline/process.h>
 
-#include <vital/algo/track_descriptor_set_output.h>
+#include <vital/types/track_descriptor_set.h>
 
-namespace kwiver {
-namespace arrows {
-namespace core {
+#include <memory>
 
-class KWIVER_ALGO_CORE_EXPORT track_descriptor_set_output_csv
-  : public vital::algorithm_impl<track_descriptor_set_output_csv,
-      vital::algo::track_descriptor_set_output>
+namespace kwiver
 {
-public:
-  static constexpr char const* name = "csv";
 
-  static constexpr char const* description =
-    "Track descriptor csv writer\n";
+// -----------------------------------------------------------------------------
+/**
+ * \class compute_track_descriptors_process
+ *
+ * \brief Computes track descriptors along object tracks or object detections.
+ *
+ * \iports
+ * \iport{timestamp}
+ * \iport{image}
+ * \iport{tracks}
+ * \iport{detections}
+ *
+ * \oports
+ * \oport{track_descriptor_set}
+ */
+class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
+  : public sprokit::process
+{
+  public:
+  compute_track_descriptors_process( vital::config_block_sptr const& config );
+  virtual ~compute_track_descriptors_process();
 
-  track_descriptor_set_output_csv();
-  virtual ~track_descriptor_set_output_csv();
+  protected:
+    virtual void _configure();
+    virtual void _step();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  private:
+    void make_ports();
+    void make_config();
 
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
-    std::string const& image_name );
+    void push_outputs( vital::track_descriptor_set_sptr& to_output );
 
-private:
-  class priv;
-  std::unique_ptr< priv > d;
-};
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class compute_track_descriptors_process
 
-} } } // end namespace
 
-#endif // KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H
+} // end namespace
+#endif /* _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_ */
