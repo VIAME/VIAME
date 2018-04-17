@@ -47,7 +47,7 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// A class that uses OpenCV to estimate a camera's pose from 3D feature 
+/// A class that uses OpenCV to estimate a camera's pose from 3D feature
 /// and point projection pairs.
 class KWIVER_ALGO_OCV_EXPORT estimate_pnp
   : public vital::algorithm_impl<estimate_pnp, vital::algo::estimate_pnp>
@@ -77,7 +77,7 @@ public:
   *                      this pair is an inlier to the estimate
   */
   virtual
-  kwiver::vital::camera_sptr
+  kwiver::vital::camera_perspective_sptr
   estimate(const std::vector<vital::vector_2d>& pts2d,
            const std::vector<vital::vector_3d>& pts3d,
            const kwiver::vital::camera_intrinsics_sptr cal,

@@ -41,6 +41,7 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include <vital/types/vector.h>
 
