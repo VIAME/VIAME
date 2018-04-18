@@ -32,28 +32,43 @@
 
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
+#include <vital/util/data_stream_reader.h>
+#include <vital/util/tokenize.h>
 
+#include <kwiversys/SystemTools.hxx>
+
+#include <fstream>
 
 namespace kwiver {
 namespace arrows {
 namespace core {
+
+std::string source_name(size_t n)
+{
+  return "video_source_" + std::to_string(n);
+}
 
 class video_input_splice::priv
 {
 public:
   priv() :
   d_has_timeout(false),
-  d_is_seekable(false)
+  d_is_seekable(false),
+  d_frame_offset(0)
   { }
 
+  std::vector< std::string > d_search_path;
   bool d_has_timeout;
   bool d_is_seekable;
+
+  // Frame offset to get frame numbers correct
+  kwiver::vital::timestamp::frame_t d_frame_offset;
 
   // Vector of video sources
   std::vector< vital::algo::video_input_sptr > d_video_sources;
 
-  // Pointer to the active source
-  vital::algo::video_input_sptr d_active_source;
+  // Iterator to the active source
+  std::vector< vital::algo::video_input_sptr >::iterator d_active_source;
 };
 
 
@@ -81,9 +96,12 @@ video_input_splice
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
-  // Names of the other video sources - TODO
-
-  // Configure the dependent video sources - TODO
+  size_t n = 1;
+  for ( auto const& vs : d->d_video_sources )
+  {
+    vital::algo::video_input::
+      get_nested_algo_configuration( source_name( n ), config, vs );
+  }
 
   return config;
 }
@@ -94,7 +112,64 @@ void
 video_input_splice
 ::set_configuration( vital::config_block_sptr config )
 {
-  // Set the configs for the other video sources - TODO
+  // Extract string and create vector of directories
+  std::string path = config->get_value<std::string>( "path", "" );
+  kwiver::vital::tokenize(
+      path, d->d_search_path, ":", kwiver::vital::TokenizeTrimEmpty );
+  d->d_search_path.push_back( "." ); // add current directory
+
+  bool has_eov = true;
+  bool has_frame_numbers = true;
+  bool has_frame_data = true;
+  bool has_frame_time = true;
+  bool has_metadata = true;
+  bool has_abs_fr_time = true;
+  bool has_timeout = true;
+  bool is_seekable = true;
+
+  typedef vital::algo::video_input vi;
+
+  size_t n = 1;
+  vital::config_block_sptr source_config = config->subblock( source_name( n ) );
+
+  while ( source_config->available_values().size() > 0 )
+  {
+    // Make sure the corresponding sources exists
+    while ( d->d_video_sources.size() < n )
+    {
+      d->d_video_sources.push_back( vital::algo::video_input_sptr() );
+    }
+
+    vital::algo::video_input::set_nested_algo_configuration(
+      source_name( n ), config, d->d_video_sources[n-1] );
+
+    auto& caps = d->d_video_sources[n-1]->get_implementation_capabilities();
+
+    has_eov = has_eov && caps.capability( vi::HAS_EOV );
+    has_frame_numbers = has_frame_numbers && caps.capability( vi::HAS_FRAME_NUMBERS);
+    has_frame_data = has_frame_data && caps.capability( vi::HAS_FRAME_DATA );
+    has_frame_time = has_frame_time && caps.capability( vi::HAS_FRAME_TIME );
+    has_metadata = has_metadata && caps.capability( vi::HAS_METADATA );
+    has_abs_fr_time = has_abs_fr_time && caps.capability( vi::HAS_ABSOLUTE_FRAME_TIME);
+    has_timeout = has_timeout && caps.capability( vi::HAS_TIMEOUT );
+    is_seekable = is_seekable && caps.capability( vi::IS_SEEKABLE );
+
+    ++n;
+    source_config = config->subblock( source_name( n ) );
+  }
+
+  set_capability( vi::HAS_EOV, has_eov );
+  set_capability( vi::HAS_FRAME_NUMBERS, has_frame_numbers );
+  set_capability( vi::HAS_FRAME_DATA, has_frame_data );
+  set_capability( vi::HAS_FRAME_TIME, has_frame_time );
+  set_capability( vi::HAS_METADATA, has_metadata );
+  set_capability( vi::HAS_ABSOLUTE_FRAME_TIME, has_abs_fr_time );
+  set_capability( vi::HAS_TIMEOUT, has_timeout );
+  set_capability( vi::IS_SEEKABLE, is_seekable );
+
+  d->d_is_seekable = is_seekable;
+
+  d->d_active_source = d->d_video_sources.begin();
 }
 
 
@@ -103,42 +178,74 @@ bool
 video_input_splice
 ::check_configuration( vital::config_block_sptr config ) const
 {
-  bool retVal = true;
-  // Check the configurations. - TODO
+  bool status = true;
 
-  return retVal;
+  size_t n = 1;
+  while ( config->has_value( source_name( n ) ) )
+  {
+    status = status && vital::algo::video_input::
+      check_nested_algo_configuration( source_name( n ), config );
+  }
+
+  return status;
 }
 
 
 // ------------------------------------------------------------------
 void
 video_input_splice
-::open( std::string name )
+::open( std::string list_name )
 {
-  // Loop through and open them - TODO
-  // Do we open them all at once or just when needed.
+  // Close sources in case they are already open
+  for ( auto& vs : d->d_video_sources)
+  {
+    vs->close();
+  }
 
-  // Set capability if it is common to all sources.
-  // set_capability( vi::HAS_EOV,
-  //                 is_caps.capability( vi::HAS_EOV) ||
-  //                 ms_caps.capability( vi::HAS_EOV) );
-  // set_capability( vi::HAS_FRAME_NUMBERS,
-  //                 is_caps.capability( vi::HAS_FRAME_NUMBERS ) ||
-  //                 ms_caps.capability( vi::HAS_FRAME_NUMBERS ) );
-  // set_capability( vi::HAS_FRAME_DATA,
-  //                 is_caps.capability( vi::HAS_FRAME_DATA ) );
-  // set_capability( vi::HAS_FRAME_TIME,
-  //                 ms_caps.capability( vi::HAS_FRAME_TIME ) );
-  // set_capability( vi::HAS_METADATA,
-  //                 ms_caps.capability( vi::HAS_METADATA ) );
-  // set_capability( vi::HAS_ABSOLUTE_FRAME_TIME,
-  //                 ms_caps.capability( vi::HAS_ABSOLUTE_FRAME_TIME ) );
-  // d->d_has_timeout = ms_caps.capability( vi::HAS_TIMEOUT ) &&
-  //                    is_caps.capability( vi::HAS_TIMEOUT );
-  // set_capability( vi::HAS_TIMEOUT, d->d_has_timeout );
-  // set_capability( vi::IS_SEEKABLE,
-  //                 is_caps.capability( vi::IS_SEEKABLE) &&
-  //                 ms_caps.capability( vi::IS_SEEKABLE) );
+  // Open file and read lines
+  std::ifstream ifs( list_name.c_str() );
+  if ( ! ifs )
+  {
+    throw kwiver::vital::invalid_file( list_name, "Could not open file" );
+  }
+
+  // Add directory that contains the list file to the path
+  std::string list_path = kwiversys::SystemTools::GetFilenamePath( list_name );
+  if ( ! list_path.empty() )
+  {
+    d->d_search_path.push_back( list_path );
+  }
+
+  kwiver::vital::data_stream_reader stream_reader( ifs );
+  auto vs_iter = d->d_video_sources.begin();
+  std::string filepath;
+
+  while ( stream_reader.getline( filepath ) && vs_iter != d->d_video_sources.end() )
+  {
+    if ( ! kwiversys::SystemTools::FileExists( filepath ) )
+    {
+      filepath = kwiversys::SystemTools::FindFile( filepath, d->d_search_path, true );
+      if ( filepath.empty() )
+      {
+        throw kwiver::vital::
+          file_not_found_exception( filepath, "could not locate file in path" );
+      }
+    }
+    (*vs_iter)->open( filepath );
+    ++vs_iter;
+  }
+
+  if ( vs_iter != d->d_video_sources.end() )
+  {
+    LOG_WARN( logger(), "Not enough entries in list file. Some of the video "
+                        "source entries in the config file will not be used.");
+  }
+
+  if ( stream_reader.getline( filepath ) )
+  {
+    LOG_WARN( logger(), "Not enough video sources in config file. Some "
+                        "entries from the list file will not be used.");
+  }
 }
 
 
@@ -163,8 +270,7 @@ bool
 video_input_splice
 ::end_of_video() const
 {
-  // TODO: add logic to see if we are on the last source and it is at its end.
-  return true;
+  return ( d->d_active_source == d->d_video_sources.end() );
 }
 
 
@@ -173,9 +279,9 @@ bool
 video_input_splice
 ::good() const
 {
-  if ( d->d_active_source )
+  if ( *d->d_active_source )
   {
-    return d->d_active_source->good();
+    return (*d->d_active_source)->good();
   }
   else
   {
@@ -196,8 +302,14 @@ size_t
 video_input_splice
 ::num_frames() const
 {
-  // TODO: Pre-calculate?
-  return 0;
+  size_t num_frames = 0;
+
+  for ( auto const& vs : d->d_video_sources )
+  {
+    num_frames += vs->num_frames();
+  }
+
+  return num_frames;
 }
 
 // ------------------------------------------------------------------
@@ -206,10 +318,42 @@ video_input_splice
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               uint32_t                  timeout )
 {
-  // TODO: lots!
-  kwiver::vital::timestamp image_ts;
+  // if timeout is not supported by both sources
+  // then do not pass a time out value to either
+  if ( ! d->d_has_timeout )
+  {
+    timeout = 0;
+  }
 
-  return true;
+  bool status;
+
+  status = (*d->d_active_source)->next_frame(ts, timeout);
+
+  if ( ! status )
+  {
+    // Move to next source if needed
+    if ( (*d->d_active_source)->end_of_video() )
+    {
+      (*d->d_active_source)->seek_frame(ts, 1, timeout);
+      d->d_active_source++;
+      if ( d->d_active_source != d->d_video_sources.end() )
+      {
+        d->d_frame_offset += (*d->d_active_source)->num_frames();
+        if ( ! (*d->d_active_source)->good() )
+        {
+          status = (*d->d_active_source)->next_frame(ts, timeout);
+        }
+        else
+        {
+          // TODO: get timestamp with new api from rebase/merge
+          status = true;
+        }
+      }
+    }
+  }
+
+  ts.set_frame( ts.get_frame() + d->d_frame_offset );
+  return status;
 } // video_input_splice::next_frame
 
 // ------------------------------------------------------------------
@@ -237,7 +381,7 @@ kwiver::vital::timestamp
 video_input_splice
 ::frame_timestamp() const
 {
-  return d->d_active_source->frame_timestamp();
+  return (*d->d_active_source)->frame_timestamp();
 }
 
 // ------------------------------------------------------------------
@@ -245,7 +389,7 @@ kwiver::vital::image_container_sptr
 video_input_splice
 ::frame_image()
 {
-  return d->d_active_source->frame_image();
+  return (*d->d_active_source)->frame_image();
 }
 
 
@@ -254,7 +398,7 @@ kwiver::vital::metadata_vector
 video_input_splice
 ::frame_metadata()
 {
-  return d->d_active_source->frame_metadata();
+  return (*d->d_active_source)->frame_metadata();
 }
 
 kwiver::vital::metadata_map_sptr
@@ -262,7 +406,7 @@ video_input_splice
 ::metadata_map()
 {
   // TODO: pre-calculate
-  return d->d_active_source->metadata_map();
+  return (*d->d_active_source)->metadata_map();
 }
 
 } } }     // end namespace
