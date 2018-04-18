@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 namespace kwiver
 {
 
-// ----------------------------------------------------------------
+// -------------------------------------------------------------------------------
 /**
  * @brief Display images
  *
@@ -58,6 +58,7 @@ public:
   virtual ~read_descriptor_process();
 
 protected:
+  virtual void _configure();
   virtual void _step();
 
 private:

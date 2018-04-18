@@ -28,55 +28,56 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface for track_descriptor_set_input process
- */
-
-#ifndef _KWIVER_TRACK_DESCRIPTOR_INPUT_PROCESS_H
-#define _KWIVER_TRACK_DESCRIPTOR_INPUT_PROCESS_H
-
-#include <sprokit/pipeline/process.h>
+#ifndef _KWIVER_INITIALIZE_OBJECT_TRACKS_PROCESS_H_
+#define _KWIVER_INITIALIZE_OBJECT_TRACKS_PROCESS_H_
 
 #include "kwiver_processes_export.h"
+
+#include <sprokit/pipeline/process.h>
 
 #include <memory>
 
 namespace kwiver
 {
 
-  // ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /**
- * \class track_descriptor_input_process
+ * \class initialize_object_tracks_process
  *
- * \brief Reads a series of images
+ * \brief Initialized new tracks given object detections.
  *
+ *  On optional input track port will union the input track set and newly
+ *  initialized tracks.
+ * 
  * \iports
- * \iport{image_name}
- * \iport{track descriptor_set}
+ * \iport{timestamp}
+ * \iport{image}
+ * \iport{detections}
+ * \iport{tracks}
  *
+ * \oports
+ * \oport{tracks}
  */
-class KWIVER_PROCESSES_NO_EXPORT track_descriptor_input_process
+class KWIVER_PROCESSES_NO_EXPORT initialize_object_tracks_process
   : public sprokit::process
 {
-public:
-  track_descriptor_input_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~track_descriptor_input_process();
+  public:
+  initialize_object_tracks_process( vital::config_block_sptr const& config );
+  virtual ~initialize_object_tracks_process();
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
+  protected:
+    virtual void _configure();
+    virtual void _step();
+    virtual void _init();
 
-private:
-  void make_ports();
-  void make_config();
+  private:
+    void make_ports();
+    void make_config();
 
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class track_descriptor_input_process
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class initialize_object_tracks_process
 
 
 } // end namespace
-
-#endif // _KWIVER_TRACK_DESCRIPTOR_INPUT_PROCESS_H
+#endif /* _KWIVER_INITIALIZE_OBJECT_TRACKS_PROCESS_H_ */

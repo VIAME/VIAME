@@ -30,66 +30,62 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief associate_detections_to_tracks algorithm definition
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#ifndef VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_
+#define VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_
 
 #include <vital/vital_config.h>
-
 #include <vital/algo/algorithm.h>
 
-#include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
+#include <vital/types/matrix.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
+/// An abstract base class for using cost matrices to assign detections to tracks
+class VITAL_ALGO_EXPORT associate_detections_to_tracks
+  : public kwiver::vital::algorithm_def<associate_detections_to_tracks>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
+  static std::string static_type_name() { return "associate_detections_to_tracks"; }
 
-  /// Compute track descriptors given an image and tracks
+  /// Use cost matrices to assign detections to existing tracks
   /**
-   * \param ts timestamp for the current frame
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
+   * \param ts frame ID
+   * \param image contains the input image for the current frame
+   * \param tracks active track set from the last frame
+   * \param detections detected object sets from the current frame
+   * \param matrix matrix containing detection to track association scores
+   * \param output the output updated detection set
+   * \param unused output detection set for any detections not associated
+   * \returns whether or not any tracks were updated
    */
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks ) = 0;
-
-  /// Flush any remaining in-progress descriptors
-  /**
-   * This is typically called at the end of a video, in case
-   * any temporal descriptors and currently in progress and
-   * still need to be output.
-   *
-   * \returns a set of track descriptors
-   */
-  virtual kwiver::vital::track_descriptor_set_sptr flush() = 0;
+  virtual bool
+  associate( kwiver::vital::timestamp ts,
+             kwiver::vital::image_container_sptr image,
+             kwiver::vital::object_track_set_sptr tracks,
+             kwiver::vital::detected_object_set_sptr detections,
+             kwiver::vital::matrix_d matrix,
+             kwiver::vital::object_track_set_sptr& output,
+             kwiver::vital::detected_object_set_sptr& unused ) const = 0;
 
 protected:
-  compute_track_descriptors();
+  associate_detections_to_tracks();
 
 };
 
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
+/// Shared pointer for associate_detections_to_tracks algorithm definition class
+typedef std::shared_ptr<associate_detections_to_tracks> associate_detections_to_tracks_sptr;
 
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#endif // VITAL_ALGO_ASSOCIATE_DETECTIONS_TO_TRACKS_H_

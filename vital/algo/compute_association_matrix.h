@@ -30,66 +30,61 @@
 
 /**
  * \file
- * \brief compute_track_descriptors algorithm definition
+ * \brief compute_association_matrix algorithm definition
  */
 
-#ifndef VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
-#define VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#ifndef VITAL_ALGO_COMPUTE_ASSOCIATION_MATRIX_H_
+#define VITAL_ALGO_COMPUTE_ASSOCIATION_MATRIX_H_
 
 #include <vital/vital_config.h>
-
 #include <vital/algo/algorithm.h>
 
-#include <vital/types/track_set.h>
+#include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
+#include <vital/types/matrix.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for computing track descriptors
-class VITAL_ALGO_EXPORT compute_track_descriptors
-  : public kwiver::vital::algorithm_def<compute_track_descriptors>
+/// An abstract base class for computing association cost matrices for tracking
+class VITAL_ALGO_EXPORT compute_association_matrix
+  : public kwiver::vital::algorithm_def<compute_association_matrix>
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_track_descriptors"; }
+  static std::string static_type_name() { return "compute_association_matrix"; }
 
-  /// Compute track descriptors given an image and tracks
+  /// Compute an association matrix given detections and tracks
   /**
-   * \param ts timestamp for the current frame
-   * \param image_data contains the image data to process
-   * \param tracks the tracks to extract descriptors around
-   *
-   * \returns a set of track descriptors
+   * \param ts frame ID
+   * \param image contains the input image for the current frame
+   * \param tracks active track set from the last frame
+   * \param detections input detected object sets from the current frame
+   * \param matrix output matrix
+   * \param considered output detections used in matrix
+   * \return returns whether a matrix was successfully computed
    */
-  virtual kwiver::vital::track_descriptor_set_sptr
+  virtual bool
   compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks ) = 0;
-
-  /// Flush any remaining in-progress descriptors
-  /**
-   * This is typically called at the end of a video, in case
-   * any temporal descriptors and currently in progress and
-   * still need to be output.
-   *
-   * \returns a set of track descriptors
-   */
-  virtual kwiver::vital::track_descriptor_set_sptr flush() = 0;
+           kwiver::vital::image_container_sptr image,
+           kwiver::vital::object_track_set_sptr tracks,
+           kwiver::vital::detected_object_set_sptr detections,
+           kwiver::vital::matrix_d& matrix,
+           kwiver::vital::detected_object_set_sptr& considered ) const = 0;
 
 protected:
-  compute_track_descriptors();
+  compute_association_matrix();
 
 };
 
 
-/// Shared pointer for base compute_track_descriptors algorithm definition class
-typedef std::shared_ptr<compute_track_descriptors> compute_track_descriptors_sptr;
+/// Shared pointer for compute_association_matrix algorithm definition class
+typedef std::shared_ptr<compute_association_matrix> compute_association_matrix_sptr;
 
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_COMPUTE_TRACK_DESCRIPTORS_H_
+#endif // VITAL_ALGO_COMPUTE_ASSOCIATION_MATRIX_MAP_H_

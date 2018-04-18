@@ -28,49 +28,48 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+/**
+ * \file
+ * \brief Interface for write_track_descriptor_set_csv
+ */
 
-#include <arrows/burnout/kwiver_algo_burnout_export.h>
+#ifndef KWIVER_ARROWS_WRITE_TRACK_DESCRIPTOR_SET_CSV_H
+#define KWIVER_ARROWS_WRITE_TRACK_DESCRIPTOR_SET_CSV_H
 
-#include <vital/algo/compute_track_descriptors.h>
+#include <vital/vital_config.h>
+#include <arrows/core/kwiver_algo_core_export.h>
+
+#include <vital/algo/write_track_descriptor_set.h>
+
+#include <memory>
 
 namespace kwiver {
 namespace arrows {
-namespace burnout {
+namespace core {
 
-// ----------------------------------------------------------------
-/**
- * @brief burnout_track_descriptors
- *
- */
-class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+class KWIVER_ALGO_CORE_EXPORT write_track_descriptor_set_csv
+  : public vital::algorithm_impl< write_track_descriptor_set_csv,
+      vital::algo::write_track_descriptor_set >
 {
 public:
+  static constexpr char const* name = "csv";
 
-  burnout_track_descriptors();
-  virtual ~burnout_track_descriptors();
+  static constexpr char const* description =
+    "Track descriptor set csv writer.";
 
-  virtual vital::config_block_sptr get_configuration() const;
+  write_track_descriptor_set_csv();
+  virtual ~write_track_descriptor_set_csv();
 
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
-
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
+  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set );
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+  std::unique_ptr< priv > d;
 };
 
-} } }
+} } } // end namespace
 
-#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */
+#endif // KWIVER_ARROWS_TRACK_DESCRIPTOR_SET_OUTPUT_CSV_H

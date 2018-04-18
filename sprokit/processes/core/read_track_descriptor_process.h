@@ -28,49 +28,54 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-
-#include <arrows/burnout/kwiver_algo_burnout_export.h>
-
-#include <vital/algo/compute_track_descriptors.h>
-
-namespace kwiver {
-namespace arrows {
-namespace burnout {
-
-// ----------------------------------------------------------------
 /**
- * @brief burnout_track_descriptors
- *
+ * \file
+ * \brief Interface for read_track_descriptor process
  */
-class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+
+#ifndef _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H
+#define _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H
+
+#include <sprokit/pipeline/process.h>
+
+#include "kwiver_processes_export.h"
+
+#include <memory>
+
+namespace kwiver
+{
+
+// -------------------------------------------------------------------------------
+/**
+ * \class read_track_descriptor_process
+ *
+ * \brief Reads a series or single set of track descriptors
+ *
+ * \iports
+ * \iport{image_name}
+ * \oport{track descriptor_set}
+ */
+class KWIVER_PROCESSES_NO_EXPORT read_track_descriptor_process
+  : public sprokit::process
 {
 public:
+  read_track_descriptor_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~read_track_descriptor_process();
 
-  burnout_track_descriptors();
-  virtual ~burnout_track_descriptors();
-
-  virtual vital::config_block_sptr get_configuration() const;
-
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
-
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
-
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
+protected:
+  virtual void _configure();
+  virtual void _init();
+  virtual void _step();
 
 private:
+  void make_ports();
+  void make_config();
 
   class priv;
   const std::unique_ptr<priv> d;
-};
+}; // end class read_track_descriptor_process
 
-} } }
 
-#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */
+} // end namespace
+
+#endif // _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H

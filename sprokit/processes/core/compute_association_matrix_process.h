@@ -28,49 +28,55 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+#ifndef _KWIVER_COMPUTE_ASSOCIATION_MATRIX_PROCESS_H_
+#define _KWIVER_COMPUTE_ASSOCIATION_MATRIX_PROCESS_H_
 
-#include <arrows/burnout/kwiver_algo_burnout_export.h>
+#include "kwiver_processes_export.h"
 
-#include <vital/algo/compute_track_descriptors.h>
+#include <sprokit/pipeline/process.h>
 
-namespace kwiver {
-namespace arrows {
-namespace burnout {
+#include <memory>
 
-// ----------------------------------------------------------------
-/**
- * @brief burnout_track_descriptors
- *
- */
-class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+namespace kwiver
 {
-public:
 
-  burnout_track_descriptors();
-  virtual ~burnout_track_descriptors();
+// -----------------------------------------------------------------------------
+/**
+ * \class compute_association_matrix_process
+ *
+ * \brief Generates association matrix between old tracks and new detections
+ *        for use in object tracking.
+ *
+ * \iports
+ * \iport{timestamp}
+ * \iport{image}
+ * \iport{tracks}
+ * \iport{detections}
+ *
+ * \oports
+ * \oport{matrix_d}
+ * \oport{tracks}
+ * \oport{detections}
+ */
+class KWIVER_PROCESSES_NO_EXPORT compute_association_matrix_process
+  : public sprokit::process
+{
+  public:
+  compute_association_matrix_process( vital::config_block_sptr const& config );
+  virtual ~compute_association_matrix_process();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  protected:
+    virtual void _configure();
+    virtual void _step();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  private:
+    void make_ports();
+    void make_config();
 
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class compute_association_matrix_process
 
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
 
-private:
-
-  class priv;
-  const std::unique_ptr<priv> d;
-};
-
-} } }
-
-#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */
+} // end namespace
+#endif /* _KWIVER_COMPUTE_ASSOCIATION_MATRIX_PROCESS_H_ */

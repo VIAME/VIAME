@@ -139,6 +139,10 @@ Vital
  * Added a track_set_frame_data class to store frame-level data along side
    the tracks.  The feature_track_set uses this to mark frames as key frames.
 
+ * Added an assortment of types and algorithms in support of a basic object
+   tracker, including readers/writers, a matrix-based associate detections to
+   tracks process, a generic track initializer, and others.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
@@ -186,6 +190,10 @@ Arrows: Core
    detections.  This tracker does not actually "track" anything but runs
    a feature detector and descriptor only on key frames and creates single
    frame tracks for later matching and linking.
+
+ * Added an assortment of algorithm implementations in support of a basic object
+   tracking support, including readers/writers, a matrix-based associate detections
+   to tracks process, a generic track initializer, and others.
 
 Arrows: OpenCV
 
