@@ -430,7 +430,7 @@ public:
   void push_metadata_to_map(vital::timestamp::frame_t fn)
   {
     if (fn >= c_start_at_frame &&
-        (c_stop_after_frame == 0 || fn < c_stop_after_frame) &&
+        (c_stop_after_frame == 0 || fn <= c_stop_after_frame) &&
         c_use_metadata)
     {
       metadata_collection.clear();
