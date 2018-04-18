@@ -459,14 +459,7 @@ public:
       {
         std::lock_guard< std::mutex > lock( s_open_mutex );
 
-        if (d_frame_advanced)
-        {
-          d_num_frames = d_frame_number;
-        }
-        else
-        {
-          d_num_frames = 1;
-        }
+        d_num_frames = d_frame_number;
 
         // Add metadata for current frame
         push_metadata_to_map(d_num_frames);
