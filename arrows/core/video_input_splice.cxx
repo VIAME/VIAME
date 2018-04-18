@@ -335,10 +335,10 @@ video_input_splice
     if ( (*d->d_active_source)->end_of_video() )
     {
       (*d->d_active_source)->seek_frame(ts, 1, timeout);
+      d->d_frame_offset += (*d->d_active_source)->num_frames();
       d->d_active_source++;
       if ( d->d_active_source != d->d_video_sources.end() )
       {
-        d->d_frame_offset += (*d->d_active_source)->num_frames();
         if ( ! (*d->d_active_source)->good() )
         {
           status = (*d->d_active_source)->next_frame(ts, timeout);
@@ -363,6 +363,7 @@ video_input_splice
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
+  bool status = false;
   // if timeout is not supported by all sources
   // then do not pass a time out value to active source
   if ( ! d->d_has_timeout )
@@ -370,10 +371,28 @@ video_input_splice
     timeout = 0;
   }
 
-  kwiver::vital::timestamp image_ts;
-  // TODO: a lot!!
+  // Determine which source is responsible for this frame
+  size_t frames_prior = 0;
+  for ( auto vs_iter = d->d_video_sources.begin();
+        vs_iter != d->d_video_sources.end();
+        vs_iter++ )
+  {
+    if ( frame_number <= (*vs_iter)->num_frames() + frames_prior )
+    {
+      (*d->d_active_source)->seek_frame( ts, 0 );
+      d->d_active_source = vs_iter;
+      status =
+        (*d->d_active_source)->seek_frame( ts, frame_number - frames_prior );
+      break;
+    }
+    else
+    {
+      frames_prior += (*vs_iter)->num_frames();
+    }
+  }
 
-  return true;
+  ts.set_frame( ts.get_frame() + frames_prior );
+  return status;
 } // video_input_splice::seek_frame
 
 // ------------------------------------------------------------------

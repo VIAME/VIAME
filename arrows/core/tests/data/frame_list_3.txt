@@ -13,3 +13,8 @@ images/frame_0042.png
 images/frame_0043.png
 images/frame_0044.png
 images/frame_0045.png
+images/frame_0046.png
+images/frame_0047.png
+images/frame_0048.png
+images/frame_0049.png
+images/frame_0050.png

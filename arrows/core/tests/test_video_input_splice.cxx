@@ -52,7 +52,7 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
-static int num_expected_frames = 45;
+static int num_expected_frames = 50;
 static std::string list_file_name = "source_list.txt";
 
 // ----------------------------------------------------------------------------
@@ -148,6 +148,31 @@ TEST_F(video_input_splice, next_frame)
   }
   EXPECT_EQ( num_expected_frames, num_frames );
   EXPECT_EQ( num_expected_frames, vis.num_frames() );
+}
+
+TEST_F(video_input_splice, seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  test_seek_frame( vis );
+
+  vis.close();
 }
 
 // ----------------------------------------------------------------------------

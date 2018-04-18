@@ -47,7 +47,8 @@ void test_seek_frame(kwiver::vital::algo::video_input& vi)
     {3, 23, 46, 34, 50, 1};
   for (auto requested_frame : valid_seeks)
   {
-    EXPECT_TRUE( vi.seek_frame( ts, requested_frame) );
+    EXPECT_TRUE( vi.seek_frame( ts, requested_frame) )
+      << "seek_frame should return true for requested_frame " << requested_frame;
 
     auto img = vi.frame_image();
 
