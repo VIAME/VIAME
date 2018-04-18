@@ -465,16 +465,13 @@ public:
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        unsigned int frames_left_to_skip = c_frame_skip - 1;
         while ( d_video_stream.advance())
         {
           d_num_frames++;
-          if (frames_left_to_skip == 0)
+          if ( (d_num_frames - 1) % c_frame_skip == 0 )
           {
             push_metadata_to_map(d_num_frames);
-            frames_left_to_skip = c_frame_skip;
           }
-          frames_left_to_skip--;
         }
 
         metadata_collection.clear();
@@ -483,16 +480,16 @@ public:
         d_video_stream.open( video_path );
 
         // Advance back to original frame number
-        frames_left_to_skip = 0;
-        for (int i=0; i < d_frame_number; ++i)
+        unsigned int frame_num = d_video_stream.frame_number()
+                               + d_frame_number_offset + 1;
+        while ( frame_num < d_frame_number &&
+                d_video_stream.advance() )
         {
-          if (frames_left_to_skip == 0)
+          ++frame_num;
+          if ((frame_num - 1) % c_frame_skip == 0 )
           {
-            d_video_stream.advance();
-            push_metadata_to_map(i);
-            frames_left_to_skip = c_frame_skip;
+            push_metadata_to_map(frame_num);
           }
-          frames_left_to_skip--;
         }
       }
 
@@ -793,14 +790,16 @@ vidl_ffmpeg_video_input
   }
   else
   {
-    for (unsigned int i = 0; i < d->c_frame_skip; i++)
+    do
     {
       if( ! d->d_video_stream.advance() )
       {
         d->d_at_eov = true;
         return false;
       }
-    }
+      d->d_frame_number = d->d_video_stream.frame_number()
+                        + d->d_frame_number_offset + 1;
+    } while ( (d->d_frame_number - 1) % d->c_frame_skip != 0 );
   }
 
   // ---- Calculate time stamp ----
@@ -808,8 +807,7 @@ vidl_ffmpeg_video_input
   // presentation time stamps to foward the first metadata time stamp.
   double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
   d->d_frame_time = d->meta_ts + pts_diff;
-  d->d_frame_number = d->d_video_stream.frame_number()
-                    + d->d_frame_number_offset + 1;
+
 
   ts = this->frame_timestamp();
 
