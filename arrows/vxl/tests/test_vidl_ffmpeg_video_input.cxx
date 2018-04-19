@@ -258,6 +258,46 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
   vfvi.close();
 }
 
+TEST_F(vidl_ffmpeg_video_input, seek_then_next_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open( list_file );
+
+  test_seek_then_next( vfvi );
+
+  vfvi.close();
+}
+
+TEST_F(vidl_ffmpeg_video_input, next_then_seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open( list_file );
+
+  test_next_then_seek( vfvi );
+
+  vfvi.close();
+}
+
 TEST_F(vidl_ffmpeg_video_input, metadata_map)
 {
   // make config block

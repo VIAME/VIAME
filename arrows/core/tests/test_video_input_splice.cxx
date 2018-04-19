@@ -225,36 +225,6 @@ TEST_F(video_input_splice, next_then_seek_frame)
   vis.close();
 }
 
-// ----------------------------------------------------------------------------
-TEST_F(video_input_splice, test_capabilities)
-{
-  // make config block
-  auto config = kwiver::vital::config_block::empty_config();
-
-  if( !set_config(config, data_dir) )
-  {
-    return;
-  }
-
-  kwiver::arrows::core::video_input_splice vis;
-
-  EXPECT_TRUE( vis.check_configuration( config ) );
-  vis.set_configuration( config );
-
-  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
-  vis.open( list_file );
-
-  auto cap = vis.get_implementation_capabilities();
-  auto cap_list = cap.capability_list();
-
-  for( auto one : cap_list )
-  {
-    std::cout << one << " -- "
-              << ( cap.capability( one ) ? "true" : "false" )
-              << std::endl;
-  }
-}
-
 TEST_F(video_input_splice, metadata_map)
 {
   // make config block
@@ -296,4 +266,34 @@ TEST_F(video_input_splice, metadata_map)
   list_file_stream.close();
 
   vis.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_splice, test_capabilities)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vis.open( list_file );
+
+  auto cap = vis.get_implementation_capabilities();
+  auto cap_list = cap.capability_list();
+
+  for( auto one : cap_list )
+  {
+    std::cout << one << " -- "
+              << ( cap.capability( one ) ? "true" : "false" )
+              << std::endl;
+  }
 }
