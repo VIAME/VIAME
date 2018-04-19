@@ -68,6 +68,7 @@ set( vital_public_headers
   attribute_set.h
   iterator.h
 
+  io/camera_from_metadata.h
   io/camera_io.h
   io/camera_map_io.h
   io/eigen_io.h
@@ -79,6 +80,8 @@ set( vital_public_headers
   types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
+  types/camera_perspective.h
+  types/camera_rpc.h
   types/camera_map.h
   types/color.h
   types/covariance.h
@@ -136,6 +139,7 @@ set( vital_sources
   algorithm_capabilities.cxx
   attribute_set.cxx
 
+  io/camera_from_metadata.cxx
   io/camera_io.cxx
   io/camera_map_io.cxx
   io/landmark_map_io.cxx
@@ -144,8 +148,9 @@ set( vital_sources
   io/track_set_io.cxx
 
   types/bounding_box.cxx
-  types/camera.cxx
   types/camera_intrinsics.cxx
+  types/camera_perspective.cxx
+  types/camera_rpc.cxx
   types/database_query.cxx
   types/descriptor_request.cxx
   types/detected_object.cxx

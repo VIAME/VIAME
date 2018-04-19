@@ -84,6 +84,18 @@ main()
     }
 
     // Test to see if this process does not work well with this test.
+    //
+    // There are some processes that, due to their design, will fail
+    // some of these tests even though they are performing as
+    // expected. Specifically, processes that dynamically create input
+    // or output ports will fail to throw an exception when a
+    // non-existent port is tested. Processes of this type should be
+    // marked as not testable, as determined in the following if
+    // statement. This attribute can be set when the process is
+    // registered as follows:
+    //
+    // .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+
     std::string attrib;
     if ( fact->get_attribute( "no-test", attrib ) && ( attrib == "introspect" ) )
     {
@@ -361,6 +373,14 @@ test_process_invalid_input_port( sprokit::process_t const process )
   static sprokit::process::port_t const non_existent_port = sprokit::process::port_t( "does_not_exist" );
   static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
+  // If you find a process that does not throw this exception, that
+  // process is, most likely, dynamically creating input or output
+  // ports. In this case, there is no such thing as a non-existent
+  // port so it will never throw. The current best solution is to mark
+  // that process as non testable. This is done by adding an attribute
+  // to the process when is is registered, as follows:
+  // .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,
                     process->input_port_info( non_existent_port ),
                     "requesting the info for a non-existent input port" );
@@ -379,6 +399,8 @@ test_process_invalid_output_port( sprokit::process_t const process )
 {
   static sprokit::process::port_t const non_existent_port = sprokit::process::port_t( "does_not_exist" );
   static kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
+
+  // See comment above about unexpected failing tests.
 
   // Output ports.
   EXPECT_EXCEPTION( sprokit::no_such_port_exception,

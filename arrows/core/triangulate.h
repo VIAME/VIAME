@@ -39,7 +39,7 @@
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 
 namespace kwiver {
@@ -60,7 +60,7 @@ namespace arrows {
 template <typename T>
 KWIVER_ALGO_CORE_EXPORT
 Eigen::Matrix<T,3,1>
-triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
+triangulate_inhomog(const std::vector<vital::simple_camera_perspective >& cameras,
                     const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 
@@ -78,7 +78,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
 template <typename T>
 KWIVER_ALGO_CORE_EXPORT
 Eigen::Matrix<T,4,1>
-triangulate_homog(const std::vector<vital::simple_camera >& cameras,
+triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
                   const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 
