@@ -69,6 +69,9 @@ public:
 
   // Iterator to the active source
   std::vector< vital::algo::video_input_sptr >::iterator d_active_source;
+
+  // Cached metadata map
+  vital::metadata_map::map_metadata_t d_metadata_map;
 };
 
 
@@ -168,6 +171,7 @@ video_input_splice
   set_capability( vi::IS_SEEKABLE, is_seekable );
 
   d->d_is_seekable = is_seekable;
+  d->d_has_timeout = has_timeout;
 
   d->d_active_source = d->d_video_sources.begin();
 }
@@ -262,6 +266,12 @@ video_input_splice
       vs->close();
     }
   }
+
+  d->d_metadata_map.clear();
+
+  d->d_frame_offset = 0;
+  d->d_has_timeout = false;
+  d->d_is_seekable = false;
 }
 
 
@@ -345,7 +355,7 @@ video_input_splice
         }
         else
         {
-          // TODO: get timestamp with new api from rebase/merge
+          ts = (*d->d_active_source)->frame_timestamp();
           status = true;
         }
       }
@@ -424,8 +434,22 @@ kwiver::vital::metadata_map_sptr
 video_input_splice
 ::metadata_map()
 {
-  // TODO: pre-calculate
-  return (*d->d_active_source)->metadata_map();
+  if ( d->d_metadata_map.empty() && d->d_video_sources.size() > 0 )
+  {
+    auto frame_offset = 0;
+    for ( auto vs_iter = d->d_video_sources.begin();
+          vs_iter != d->d_video_sources.end();
+          vs_iter++ )
+    {
+      auto curr_metadata = (*vs_iter)->metadata_map()->metadata();
+      for ( auto const& md : curr_metadata )
+      {
+        d->d_metadata_map[md.first + frame_offset] = md.second;
+      }
+      frame_offset += (*vs_iter)->num_frames();
+    }
+  }
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
 }
 
 } } }     // end namespace

@@ -254,3 +254,46 @@ TEST_F(video_input_splice, test_capabilities)
               << std::endl;
   }
 }
+
+TEST_F(video_input_splice, metadata_map)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  // Get metadata map
+  auto md_map = vis.metadata_map()->metadata();
+
+  EXPECT_EQ( md_map.size(), num_expected_frames )
+    << "There should be metadata for every frame";
+
+  // Open the frame list file directly and compare name to metadata
+  std::ifstream list_file_stream( data_dir + "/frame_list.txt" );
+  int frame_number = 1;
+  std::string file_name;
+  while ( std::getline( list_file_stream, file_name ) )
+  {
+    auto md_file_name = md_map[frame_number][0]->find(
+        kwiver::vital::VITAL_META_IMAGE_FILENAME).as_string();
+    EXPECT_TRUE( md_file_name.find( file_name ) != std::string::npos )
+      << "File path in metadata should contain " << file_name;
+    frame_number++;
+  }
+  list_file_stream.close();
+
+  vis.close();
+}
