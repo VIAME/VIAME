@@ -49,6 +49,10 @@ add_library( ${PLUGIN_NAME}
 
 target_link_libraries( ${PLUGIN_NAME}
   PUBLIC               vital
+                       vital_algo
+                       vital_config
+                       vital_exceptions
+                       vital_logger
                        kwiver_algo_ocv
   )
 

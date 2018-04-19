@@ -42,6 +42,7 @@ target_link_libraries( viame_opencv
   PUBLIC               vital
                        vital_algo
                        vital_config
+                       vital_exceptions
                        vital_logger
                        vital_util
                        kwiversys

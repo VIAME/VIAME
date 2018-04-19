@@ -26,6 +26,10 @@ kwiver_add_library( viame_@template_lib@
 
 target_link_libraries( viame_@template_lib@
   PUBLIC               vital
+                       vital_algo
+                       vital_config
+                       vital_exceptions
+                       vital_logger
   )
 
 algorithms_create_plugin( viame_@template_lib@

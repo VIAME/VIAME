@@ -27,6 +27,7 @@ target_link_libraries( viame_core
   PUBLIC               vital
                        vital_algo
                        vital_config
+                       vital_exceptions
                        vital_logger
                        vital_util
   )
@@ -55,6 +56,7 @@ target_link_libraries( viame_train_detector
   PRIVATE      vital
                vital_vpm
                vital_config
+               vital_exceptions
                vital_logger
                vital_algo
                kwiversys

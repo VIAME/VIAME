@@ -30,6 +30,7 @@ target_link_libraries( viame_hello_world
   PUBLIC               vital
                        vital_algo
                        vital_config
+                       vital_exceptions
                        vital_logger
                        vital_util
                        ${OpenCV_LIBRARIES}
