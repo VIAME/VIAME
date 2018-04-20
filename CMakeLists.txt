@@ -323,9 +323,16 @@ if( VIAME_BUILD_DEPENDENCIES )
 else()
 
 if( VIAME_ENABLE_FISHTRACKER )
+  set(FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data" CACHE STRING "Where fishtracker data is stored")
   file(COPY "packages/FishTracker"
        DESTINATION "static"
-       PATTERN "fishtracker.py" EXCLUDE)
+       PATTERN "*.in" EXCLUDE)
+  configure_file("packages/FishTracker/flask/fishtracker.py.in"
+                 "static/FishTracker/flask/fishtracker.py"
+                 )
+  configure_file("packages/FishTracker/Python/run_python_script.sh.in"
+                 "static/FishTracker/Python/run_python_script.sh"
+                 )
 endif()
 
   ###

@@ -76,8 +76,7 @@ def download_file(filename, attach = False ):
 @app.route('/')
 def index():
     reset_config()
-    #set_config('fs_root', '/home/junhu/Projects/flaskfs')
-    set_config('fs_root', '/docker/data/flaskfs')
+    set_config('fs_root', '${FT_DATA_ROOT}/flaskfs')
     set_config('active_model', 'mbari_type')
     return render_template('index.html')
 
