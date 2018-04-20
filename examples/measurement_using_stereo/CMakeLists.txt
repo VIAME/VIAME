@@ -1,6 +1,16 @@
 set( EXAMPLE_INSTALL_FILES
-     camtrawl_demo.pipe
+     measurement_example.pipe
      README.rst )
+
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_measurer.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_measurer.sh )
+endif()
 
 DownloadAndExtract(
   https://data.kitware.com/api/v1/item/5a8607858d777f068578345e/download
