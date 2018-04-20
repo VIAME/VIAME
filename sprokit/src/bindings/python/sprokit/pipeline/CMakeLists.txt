@@ -14,7 +14,7 @@ _sprokit_add_python_library(datum
 target_link_libraries(python-sprokit.pipeline-datum
   PRIVATE             sprokit_pipeline
                       sprokit_python_util
-                      vital_util)
+                      vital)
 
 _sprokit_add_python_library(edge
   sprokit/pipeline
