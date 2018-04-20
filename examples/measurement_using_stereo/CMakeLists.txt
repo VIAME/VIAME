@@ -13,8 +13,8 @@ else()
 endif()
 
 DownloadAndExtract(
-  https://data.kitware.com/api/v1/item/5ada33b18d777f0685794bf4/download
-  c91d16b9b0ae4e59b3e0e54ac4369d4e
+  https://data.kitware.com/api/v1/item/5ada492b8d777f0685794c86/download
+  fef401788fbba63d530ae6fda05b129b
   ${VIAME_DOWNLOAD_DIR}/camtrawl_set1.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR} )
 
