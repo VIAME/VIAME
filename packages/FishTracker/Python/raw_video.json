@@ -1,0 +1,20 @@
+{
+    "python_file": "Inference.py", 
+    "shell_script": "run_fish_type.sh", 
+    "arguments": {
+        "input_file": ""
+    }, 
+    "options": {
+        "model_def": "model/fish_type/deploy.prototxt", 
+        "flowEnable": "False", 
+        "linearStretch": "False", 
+        "mean_file": "model/ilsvrc_2012_mean.npy", 
+        "removeDominateMotion": "False", 
+        "ks": "400", 
+        "flowthr": "40.0", 
+        "mode": "flow", 
+        "model_type": "model/fish_type/fish_type.json", 
+        "gpu": "True", 
+        "pretrained_model": "model/snapshot/fish_type_iter_80000.caffemodel"
+    }
+}
