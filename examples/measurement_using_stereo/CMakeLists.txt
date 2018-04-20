@@ -1,5 +1,24 @@
+set( EXAMPLE_INSTALL_FILES
+     measurement_example.pipe
+     README.rst )
+
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_measurer.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_measurer.sh )
+endif()
+
 DownloadAndExtract(
-  https://data.kitware.com/api/v1/item/5a8607858d777f068578345e/download
-  d7ad144ec148d214626103be8929e369ffcd874dd3d68207aacc631e4b65ff8540a9f575281c65a4edfc28ee639d41508f3224fdcbdfc92dfe8f98d6d534e71f
-  ${VIAME_DOWNLOAD_DIR}/camtrawl_demodata.zip
+  https://data.kitware.com/api/v1/item/5ada492b8d777f0685794c86/download
+  fef401788fbba63d530ae6fda05b129b
+  ${VIAME_DOWNLOAD_DIR}/camtrawl_set1.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR} )
+
+install( FILES       ${EXAMPLE_INSTALL_FILES}
+         DESTINATION examples/measurement_using_stereo )
+install( DIRECTORY   camtrawl_data
+         DESTINATION examples/measurement_using_stereo )

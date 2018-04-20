@@ -1,11 +1,21 @@
 # ----------------------
+# global configs
+#
+
+config _pipeline:_edge
+  :capacity 5
+
+config _scheduler
+  :type pythread_per_process
+
+# ----------------------
 # nodes
 #
 
 process cam1_imread
   :: frame_list_input
   :image_reader:type ocv
-  :image_list_file ./camtrawl_demodata/cam1_images.txt
+  :image_list_file ./camtrawl_data/cam1_images.txt
   :frame_time 0.03333333
 
 process cam1_detect
@@ -14,7 +24,7 @@ process cam1_detect
 process cam2_imread
   :: frame_list_input
   :image_reader:type ocv
-  :image_list_file ./camtrawl_demodata/cam2_images.txt
+  :image_list_file ./camtrawl_data/cam2_images.txt
   :frame_time 0.03333333
 
 process cam2_detect
@@ -23,7 +33,7 @@ process cam2_detect
 process measure
   :: camtrawl_measure
   :output_fpath ./camtrawl_out.csv
-  :cal_fpath ./camtrawl_demodata/cal.npz
+  :cal_fpath ./camtrawl_data/cal.npz
 
 # ----------------------
 # connections
