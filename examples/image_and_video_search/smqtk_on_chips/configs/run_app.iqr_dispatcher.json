@@ -132,7 +132,7 @@
         "server": "127.0.0.1:27017"
     },
     "server": {
-        "host": "0.0.0.0",
+        "host": "localhost",
         "port": 5000
     }
 }
