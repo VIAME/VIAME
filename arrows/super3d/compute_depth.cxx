@@ -181,7 +181,7 @@ compute_depth::check_configuration(vital::config_block_sptr config) const
 
 image_container_sptr
 compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
-                       const std::vector<camera_sptr> &cameras_in,
+                       const std::vector<camera_perspective_sptr> &cameras_in,
                        const std::vector<landmark_sptr> &landmarks_in,
                        unsigned int ref_frame,
                        const std::vector<image_container_sptr> &masks_in) const

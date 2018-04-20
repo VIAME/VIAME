@@ -49,7 +49,7 @@ uint32_t decode_barcode(kwiver::vital::image_container& img_ct)
 
   uint32_t retVal = 0;
   uint32_t bit_shift = 0;
-  int width = img.width();
+  int width = static_cast<int>(img.width());
   // Start at the back
   for (int i=width-bc_buffer-1; i > bc_buffer; i-=bc_width)
   {

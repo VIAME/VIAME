@@ -276,8 +276,104 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map)
   // Get metadata map
   auto md_map = vfvi.metadata_map()->metadata();
 
-  // Currently test video has no metadata
-  EXPECT_EQ( md_map.size(), 0 );
+  // Each frame of video should have some metadata
+  // at a minimum this is just the video name and timestamp
+  EXPECT_EQ( md_map.size(), vfvi.num_frames() );
+
+  if ( md_map.size() != vfvi.num_frames() )
+  {
+    std::cout << "Found metadata on these frames: ";
+    for (auto md : md_map)
+    {
+      std::cout << md.first << ", ";
+    }
+    std::cout << std::endl;
+  }
+}
+
+TEST_F(vidl_ffmpeg_video_input, metadata_map_subset)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  config->set_value("start_at_frame", "11");
+  config->set_value("stop_after_frame", "30");
+
+  vfvi.check_configuration(config);
+  vfvi.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open(video_file);
+
+  // Advance into the video to make sure these methods work
+  // even when not called on the first frame
+  kwiver::vital::timestamp ts;
+  for (int j = 0; j < 10; ++j)
+    vfvi.next_frame(ts);
+
+  // Get metadata map
+  auto md_map = vfvi.metadata_map()->metadata();
+
+  // Each frame of video should have some metadata
+  // at a minimum this is just the video name and timestamp
+  EXPECT_EQ(md_map.size(), vfvi.num_frames());
+
+  if (md_map.size() != vfvi.num_frames())
+  {
+    std::cout << "Found metadata on these frames: ";
+    for (auto md : md_map)
+    {
+      std::cout << md.first << ", ";
+    }
+    std::cout << std::endl;
+  }
+}
+
+TEST_F(vidl_ffmpeg_video_input, metadata_map_nth_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  config->set_value("start_at_frame", "11");
+  config->set_value("stop_after_frame", "30");
+  config->set_value("output_nth_frame", nth_frame_output);
+
+  vfvi.check_configuration(config);
+  vfvi.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open(video_file);
+
+  // Advance into the video to make sure these methods work
+  // even when not called on the first frame
+  kwiver::vital::timestamp ts;
+  for (int j = 0; j < 3; ++j)
+    vfvi.next_frame(ts);
+
+  // Get metadata map
+  auto md_map = vfvi.metadata_map()->metadata();
+
+  // Each frame of video should have some metadata
+  // at a minimum this is just the video name and timestamp
+  EXPECT_EQ(md_map.size(), 6);
+
+  if (md_map.size() != 6)
+  {
+    std::cout << "Found metadata on these frames: ";
+    for (auto md : md_map)
+    {
+      std::cout << md.first << ", ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 // ----------------------------------------------------------------------------

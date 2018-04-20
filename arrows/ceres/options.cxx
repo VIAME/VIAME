@@ -325,7 +325,8 @@ camera_options
 /// extract the extrinsic paramters from a camera into the parameter array
 void
 camera_options
-::extract_camera_extrinsics(const vital::camera_sptr camera, double* params) const
+::extract_camera_extrinsics(const vital::camera_perspective_sptr camera,
+                            double* params) const
 {
   vector_3d rot = camera->rotation().rodrigues();
   vector_3d center = camera->center();
@@ -337,7 +338,7 @@ camera_options
 /// Update a camera object to use extrinsic parameters from an array
 void
 camera_options
-::update_camera_extrinsics(std::shared_ptr<vital::simple_camera> camera,
+::update_camera_extrinsics(std::shared_ptr<vital::simple_camera_perspective> camera,
                            double const* params) const
 {
   camera->set_rotation(rotation_d(vector_3d(Eigen::Map<const vector_3d>(params))));
@@ -409,8 +410,9 @@ camera_options
   for(const camera_map::map_camera_t::value_type& c : cameras)
   {
     std::vector<double> params(6);
-    this->extract_camera_extrinsics(c.second, &params[0]);
-    camera_intrinsics_sptr K = c.second->intrinsics();
+    auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(c.second);
+    this->extract_camera_extrinsics(cam_ptr, &params[0]);
+    camera_intrinsics_sptr K = cam_ptr->intrinsics();
     ext_params[c.first] = params;
 
     // add a new set of intrisic parameter if one of the following:
@@ -467,11 +469,11 @@ camera_options
   typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
   for(const cam_param_map_t::value_type& cp : ext_params)
   {
-    auto orig_cam = cameras[cp.first];
-    auto simp_cam = std::dynamic_pointer_cast<simple_camera>(orig_cam);
+    auto orig_cam = std::dynamic_pointer_cast<camera_perspective>(cameras[cp.first]);
+    auto simp_cam = std::dynamic_pointer_cast<simple_camera_perspective>(orig_cam);
     if( !simp_cam )
     {
-      simp_cam = std::make_shared<simple_camera>();
+      simp_cam = std::make_shared<simple_camera_perspective>();
       cameras[cp.first] = simp_cam;
     }
     camera_intrinsics_sptr K = orig_cam->intrinsics();

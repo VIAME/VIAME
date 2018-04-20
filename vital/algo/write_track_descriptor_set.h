@@ -33,8 +33,8 @@
  * \brief Interface for track_descriptor_set output
  */
 
-#ifndef VITAL_TRACK_DESCRIPTOR_SET_OUTPUT_H
-#define VITAL_TRACK_DESCRIPTOR_SET_OUTPUT_H
+#ifndef VITAL_WRITE_TRACK_DESCRIPTOR_SET_H
+#define VITAL_WRITE_TRACK_DESCRIPTOR_SET_H
 
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
@@ -48,7 +48,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 /**
  * @brief Read and write detected object sets
  *
@@ -60,14 +60,14 @@ namespace algo {
  * usually the file name, and an associated wet of track descriptors.
  *
  */
-class VITAL_ALGO_EXPORT track_descriptor_set_output
-  : public kwiver::vital::algorithm_def<track_descriptor_set_output>
+class VITAL_ALGO_EXPORT write_track_descriptor_set
+  : public kwiver::vital::algorithm_def<write_track_descriptor_set>
 {
 public:
-  virtual ~track_descriptor_set_output();
+  virtual ~write_track_descriptor_set();
 
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "track_descriptor_set_output"; }
+  static std::string static_type_name() { return "write_track_descriptor_set"; }
 
   /// Open a file of track descriptor sets.
   /**
@@ -101,18 +101,15 @@ public:
 
   /// Write detected object set.
   /**
-   * This method writes the specified detected object set and image
-   * name to the currently open file.
+   * This method writes the specified detected object to file.
    *
    * \param set Detected object set
-   * \param image_path File path to image associated with the track descriptors.
    */
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
-                          std::string const& image_path ) = 0;
+  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set ) = 0;
 
 
 protected:
-  track_descriptor_set_output();
+  write_track_descriptor_set();
 
   std::ostream& stream();
   std::string const& filename();
@@ -125,9 +122,9 @@ private:
 };
 
 
-/// Shared pointer type for generic track_descriptor_set_output definition type.
-typedef std::shared_ptr<track_descriptor_set_output> track_descriptor_set_output_sptr;
+/// Shared pointer type for generic write_track_descriptor_set definition type.
+typedef std::shared_ptr<write_track_descriptor_set> write_track_descriptor_set_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_TRACK_DESCRIPTOR_SET_OUTPUT_H
+#endif // VITAL_WRITE_TRACK_DESCRIPTOR_SET_H

@@ -82,12 +82,12 @@ public:
   }
 
   vital::vector_3d
-  ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
+  ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
     const std::vector<vital::vector_2d> &lm_image_pts,
     int &best_inlier_count) const;
 
   bool
-  triangulate(const std::vector<vital::simple_camera> &lm_cams,
+  triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
               const std::vector<vital::vector_2d> &lm_image_pts,
               vital::vector_3d &pt3d) const;
 
@@ -211,7 +211,7 @@ triangulate_landmarks
 
 bool
 triangulate_landmarks::priv
-::triangulate(const std::vector<vital::simple_camera> &lm_cams,
+::triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
   const std::vector<vital::vector_2d> &lm_image_pts, vital::vector_3d &pt3d) const
 {
   if (m_homogeneous)
@@ -236,12 +236,12 @@ triangulate_landmarks::priv
 /// Triangulate the landmark with RANSAC robust estimation
 vital::vector_3d
 triangulate_landmarks::priv
-::ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
+::ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
   const std::vector<vital::vector_2d> &lm_image_pts,
   int &best_inlier_count) const
 {
   double conf = 0;
-  std::vector<vital::simple_camera> cam_sample(2);
+  std::vector<vital::simple_camera_perspective> cam_sample(2);
   std::vector<vital::vector_2d> proj_sample(2);
   vital::vector_3d best_pt3d;
   best_inlier_count = 0;
@@ -372,7 +372,7 @@ triangulate_landmarks
     const vital::track& t = *t_itr->second;
 
     // extract the cameras and image points for this landmarks
-    std::vector<vital::simple_camera> lm_cams;
+    std::vector<vital::simple_camera_perspective> lm_cams;
     std::vector<vital::vector_2d> lm_image_pts;
 
     auto lm_observations = unsigned{0};
@@ -390,7 +390,9 @@ triangulate_landmarks
         // there is no camera for this track state.
         continue;
       }
-      lm_cams.push_back(vital::simple_camera(*c_itr->second));
+      auto cam_ptr =
+        std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
+      lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
       lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }

@@ -44,13 +44,13 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_set.h>
 #include <vital/types/match_set.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class to estimate a camera's pose from 3D feature 
+/// An abstract base class to estimate a camera's pose from 3D feature
 /// and point projection pairs.
 
 class VITAL_ALGO_EXPORT estimate_pnp
@@ -66,13 +66,13 @@ public:
    * \param [in]  pts3d 3d landmarks in the same order as pts2d.  Both must be same size.
    * \param [in]  cal the intrinsic parameters of the camera
    * \param [out] inliers for each point, the value is true if
-   *                      this pair is an inlier to the estimate   
+   *                      this pair is an inlier to the estimate
    */
   virtual
-  kwiver::vital::camera_sptr
+  kwiver::vital::camera_perspective_sptr
   estimate(const std::vector<vector_2d>& pts2d,
            const std::vector<vector_3d>& pts3d,
-           const kwiver::vital::camera_intrinsics_sptr cal,           
+           const kwiver::vital::camera_intrinsics_sptr cal,
            std::vector<bool>& inliers) const = 0;
 
 protected:

@@ -71,7 +71,16 @@ PyObject* double_vector_to_datum( PyObject* list );
 VITAL_TYPE_CONVERTERS_EXPORT
 vital_trackset_t* vital_trackset_from_datum( PyObject* dptr );
 
-/// Convert a sprokit::datum vital::any value into an array of null-terminated
+VITAL_TYPE_CONVERTERS_EXPORT
+PyObject* vital_trackset_to_datum( vital_trackset_t* handle );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+vital_trackset_t* vital_object_trackset_from_datum( PyObject* dptr );
+
+VITAL_TYPE_CONVERTERS_EXPORT
+PyObject* vital_object_trackset_to_datum( vital_trackset_t* handle );
+
+/// Convert a sprokit::datum boost::any value into an array of null-terminated
 /// strings.
 /**
  * \param args sprokit datum wrapped in a PyCapsule object.
