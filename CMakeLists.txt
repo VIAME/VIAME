@@ -63,6 +63,7 @@ option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
+option( VIAME_ENABLE_FISHTRACKER    "Enable SRI GUI"                OFF )
 
 
 ###
@@ -320,6 +321,12 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( build_package )
   endif()
 else()
+
+if( VIAME_ENABLE_FISHTRACKER )
+  file(COPY "packages/FishTracker"
+       DESTINATION "static"
+       PATTERN "fishtracker.py" EXCLUDE)
+endif()
 
   ###
   # Look for and use Fletch to find dependencies
