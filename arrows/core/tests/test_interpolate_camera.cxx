@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,14 @@
  * \brief test camera interpolation
  */
 
-#define _USE_MATH_DEFINES
-
 #include <arrows/core/interpolate_camera.h>
 
 #include <gtest/gtest.h>
 
 #include <iostream>
 
-#include <cmath>
 
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
+static constexpr double pi = 3.14159265358979323846;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -66,7 +59,6 @@ TEST(interpolate_camera, interpolation)
   using vital::rotation_d;
   using vital::simple_camera_perspective;
 
-  const double pi = LOCAL_PI;
   simple_camera_perspective a(vector_3d(-1, -1, -1),
                   rotation_d(vector_4d(0, 0, 0, 1))),  // no rotation
                 b(vector_3d(3, 3, 3),
@@ -100,7 +92,6 @@ TEST(interpolate_camera, multiple_interpolations)
   using vital::rotation_d;
   using vital::simple_camera_perspective;
 
-  const double pi = LOCAL_PI;
   simple_camera_perspective a(vector_3d(-1, -1, -1),
                   rotation_d(vector_4d(0, 0, 0, 1))),        // no rotation
                 b(vector_3d(3, 3, 3),

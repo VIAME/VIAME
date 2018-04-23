@@ -3,6 +3,7 @@
 set( plugin_core_headers
   associate_detections_to_tracks_threshold.h
   class_probablity_filter.h
+  close_loops_appearance_indexed.h
   close_loops_bad_frames_only.h
   close_loops_exhaustive.h
   close_loops_keyframe.h
@@ -25,11 +26,13 @@ set( plugin_core_headers
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
   initialize_object_tracks_threshold.h
+  keyframe_selector_basic.h
   match_features_fundamental_matrix.h
   match_features_homography.h
   match_tracks.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
+  track_features_augment_keyframes.h
   track_features_core.h
   transform.h
   triangulate_landmarks.h
@@ -67,6 +70,7 @@ kwiver_install_headers(
 set( plugin_core_sources
   associate_detections_to_tracks_threshold.cxx
   class_probablity_filter.cxx
+  close_loops_appearance_indexed.cxx
   close_loops_bad_frames_only.cxx
   close_loops_exhaustive.cxx
   close_loops_keyframe.cxx
@@ -89,11 +93,13 @@ set( plugin_core_sources
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
   initialize_object_tracks_threshold.cxx
+  keyframe_selector_basic.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
+  track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
   triangulate_landmarks.cxx

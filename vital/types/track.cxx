@@ -187,7 +187,6 @@ track
   return true;
 }
 
-
 /// Find the track state iterator matching \a frame
 track::history_const_itr
 track

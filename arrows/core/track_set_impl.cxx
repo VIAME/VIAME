@@ -45,6 +45,11 @@ namespace core {
 
 using namespace kwiver::vital;
 
+frame_index_track_set_impl
+::frame_index_track_set_impl()
+{
+}
+
 
 /// Constructor from a vector of tracks
 frame_index_track_set_impl
@@ -52,7 +57,6 @@ frame_index_track_set_impl
   : all_tracks_( tracks )
 {
 }
-
 
 /// Populate frame_map_ with data from all_tracks_
 void
@@ -395,6 +399,71 @@ frame_index_track_set_impl
     }
   }
   return vdata;
+}
+
+/// Return the additional data associated with all tracks on the given frame
+track_set_frame_data_sptr
+frame_index_track_set_impl
+::frame_data( frame_id_t offset ) const
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if ( itr != frame_data_.end() )
+  {
+    return itr->second;
+  }
+  return nullptr;
+}
+
+
+/// Set additional data associated with all tracks on the given frame
+bool
+frame_index_track_set_impl
+::set_frame_data( track_set_frame_data_sptr data,
+                  frame_id_t offset )
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  if ( !data )
+  {
+    // remove the data on the specified frame
+    auto itr = frame_data_.find(frame_number);
+    if ( itr == frame_data_.end() )
+    {
+      return false;
+    }
+    frame_data_.erase(itr);
+  }
+  else
+  {
+    frame_data_[frame_number] = data;
+  }
+  return true;
+}
+
+
+track_set_implementation_uptr
+frame_index_track_set_impl
+::clone() const
+{
+  std::unique_ptr<frame_index_track_set_impl> the_clone =
+    std::unique_ptr<frame_index_track_set_impl>(new frame_index_track_set_impl());
+
+  // clone the track data
+  for (auto trk : all_tracks_)
+  {
+    the_clone->all_tracks_.push_back(trk->clone());
+  }
+
+  // clone the frame data
+  for (auto fd : frame_data_)
+  {
+    if (fd.second)
+    {
+      the_clone->frame_data_[fd.first] = fd.second->clone();
+    }
+  }
+
+  return std::unique_ptr<track_set_implementation>(static_cast<track_set_implementation*>(the_clone.release()));
 }
 
 
