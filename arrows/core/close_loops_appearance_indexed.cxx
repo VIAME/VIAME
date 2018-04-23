@@ -35,6 +35,7 @@
 
 #include <map>
 #include <algorithm>
+#include <limits>
 
 #include "close_loops_appearance_indexed.h"
 
@@ -185,7 +186,7 @@ close_loops_appearance_indexed::priv
     match_with_cost()
       : m1(0)
       , m2(0)
-      , cost(DBL_MAX)
+      , cost(std::numeric_limits<double>::infinity())
     {}
 
     match_with_cost(unsigned _m1, unsigned _m2, double _cost)
