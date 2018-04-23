@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief OCV detect_features algorithm impl interface
+ * \brief Appearance indexed close loops algorithm impl interface
  */
 
 #ifndef KWIVER_CORE_CLOSE_LOOPS_APPEARANCE_INDEXED_H_
@@ -43,17 +43,11 @@
 
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <opencv2/features2d/features2d.hpp>
-
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// OCV Specific base definition for algorithms that detect feature points
-/**
- * This extended algorithm_def provides a common implementation for the detect
- * method.
- */
+/// Loop closure algorithm that using appearance indexing for fast matching
 class KWIVER_ALGO_CORE_EXPORT close_loops_appearance_indexed
   : public kwiver::vital::algo::close_loops
 {
@@ -121,7 +115,7 @@ protected:
   std::shared_ptr<priv> d_;
 };
 
-} // end namespace ocv
+} // end namespace core
 } // end namespace arrows
 } // end namespace kwiver
 
