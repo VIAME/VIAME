@@ -81,5 +81,13 @@ TEST(image, open)
   EXPECT_EQ( img_ptr->width(), 300 );
   EXPECT_EQ( img_ptr->height(), 300 );
   EXPECT_EQ( img_ptr->depth(), 2 );
+
+  auto md = img_ptr->get_metadata();
+
+  if (md->size() > 0)
+  {
+    std::cout << "-----------------------------------\n" << std::endl;
+    kwiver::vital::print_metadata( std::cout, *md );
+  }
 }
 

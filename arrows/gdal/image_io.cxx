@@ -35,11 +35,68 @@
 
 #include "image_io.h"
 
+#include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
+
 #include <gdal_priv.h>
+
+#include <sstream>
 
 namespace kwiver {
 namespace arrows {
 namespace gdal {
+
+void add_metadata(char* raw_md, vital::metadata_sptr md)
+{
+  std::istringstream md_string(raw_md);
+
+  // Get the key
+  std::string key;
+  if ( !std::getline( md_string, key, '=') )
+  {
+    return;
+  }
+
+  // Get the value
+  std::string value;
+  if ( !std::getline( md_string, value, '=') )
+  {
+    return;
+  }
+
+#define MAP_METADATA_SCALAR( GN, KN )                       \
+if ( key == #GN)                                            \
+{                                                           \
+  md->add( NEW_METADATA_ITEM(                               \
+    vital::VITAL_META_RPC_ ## KN, std::stod( value ) ) ) ;  \
+}                                                           \
+
+#define MAP_METADATA_COEFF( GN, KN )          \
+if ( key == #GN)                              \
+{                                             \
+  md->add( NEW_METADATA_ITEM(                 \
+    vital::VITAL_META_RPC_ ## KN, value ) );  \
+}                                             \
+
+  MAP_METADATA_SCALAR( HEIGHT_OFF,   HEIGHT_OFFSET )
+  MAP_METADATA_SCALAR( HEIGHT_SCALE, HEIGHT_SCALE )
+  MAP_METADATA_SCALAR( LONG_OFF,     LONG_OFFSET )
+  MAP_METADATA_SCALAR( LONG_SCALE,   LONG_SCALE )
+  MAP_METADATA_SCALAR( LAT_OFF,      LAT_OFFSET )
+  MAP_METADATA_SCALAR( LAT_SCALE,    LAT_SCALE )
+  MAP_METADATA_SCALAR( LINE_OFF,     ROW_OFFSET )
+  MAP_METADATA_SCALAR( LINE_SCALE,   ROW_SCALE )
+  MAP_METADATA_SCALAR( SAMP_OFF,     COL_OFFSET )
+  MAP_METADATA_SCALAR( SAMP_SCALE,   COL_SCALE )
+
+  MAP_METADATA_COEFF( LINE_NUM_COEFF, ROW_NUM_COEFF )
+  MAP_METADATA_COEFF( LINE_DEN_COEFF, ROW_DEN_COEFF )
+  MAP_METADATA_COEFF( SAMP_NUM_COEFF, COL_NUM_COEFF )
+  MAP_METADATA_COEFF( SAMP_DEN_COEFF, COL_DEN_COEFF )
+
+#undef MAP_METADATA_SCALAR
+#undef MAP_METADATA_COEFF
+}
 
 /// Private implementation class
 class image_io::priv
@@ -158,16 +215,18 @@ image_io
   }
 
   // Get and translate metadata
+  vital::metadata_sptr md = std::make_shared<vital::metadata>();
+
   char** rpc_metadata = gdalDataset->GetMetadata("RPC");
   if (CSLCount(rpc_metadata) > 0)
   {
     for (int i = 0; rpc_metadata[i] != NULL; ++i)
     {
-      std::cout << rpc_metadata[i] << std::endl;
+      add_metadata( rpc_metadata[i] , md);
     }
   }
 
-  return std::make_shared<vital::simple_image_container>(img);
+  return std::make_shared<vital::simple_image_container>(img, md);
 }
 
 
