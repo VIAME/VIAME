@@ -325,39 +325,21 @@ if (fletch_FOUND)
   list( APPEND KWIVER_LIBRARY_DIRS "${fletch_ROOT}/lib")
 endif()
 
-kwiver_configure_file(kwiver-config
+configure_file(
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-build.cmake.in"
   "${KWIVER_CONFIG_FILE}"
-  KWIVER_SOURCE_DIR
-  KWIVER_BINARY_DIR
-  KWIVER_ENABLE_PYTHON
-  BUILD_SHARED_LIBS
-  KWIVER_CMAKE_DIR
-  kwiver_libs
-  fletch_DIR
-  KWIVER_INCLUDE_DIRS
-  KWIVER_LIBRARY_DIRS
+  @ONLY
   )
-
-kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
 
 # Configure install-tree CMake config file and export associated targets file
 set(KWIVER_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/kwiver-config-install.cmake")
-kwiver_configure_file(kwiver-install-config
+configure_file(
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-install.cmake.in"
   "${KWIVER_CONFIG_INSTALL_FILE}"
-  KWIVER_SOURCE_DIR
-  KWIVER_BINARY_DIR
-  KWIVER_ENABLE_PYTHON
-  BUILD_SHARED_LIBS
-  CMAKE_INSTALL_PREFIX
-  kwiver_libs
-  fletch_DIR
-  KWIVER_INCLUDE_DIRS
-  KWIVER_LIBRARY_DIRS
-  LIB_SUFFIX
-  KWIVER_VERSION
+  @ONLY
   )
+
+kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
 
 kwiver_install(
   FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
