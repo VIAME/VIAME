@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -382,6 +382,6 @@ close_loops_appearance_indexed
 
 //-----------------------------------------------------------------------------
 
-} // end namespace ocv
+} // end namespace core
 } // end namespace arrows
 } // end namespace kwiver
