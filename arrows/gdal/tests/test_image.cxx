@@ -35,7 +35,6 @@
 
 #include <arrows/tests/test_image.h>
 
-#include <arrows/gdal/image_container.h>
 #include <arrows/gdal/image_io.h>
 
 #include <vital/plugin_loader/plugin_manager.h>

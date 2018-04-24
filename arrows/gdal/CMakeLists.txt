@@ -2,7 +2,6 @@
 # structures
 
 set( gdal_headers_public
-  image_container.h
   image_io.h
   )
 
@@ -17,7 +16,6 @@ kwiver_install_headers(
   )
 
 set( gdal_sources
-  image_container.cxx
   image_io.cxx
   )
 
