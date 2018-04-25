@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -212,7 +212,7 @@ pipeline
 {
   if (!config)
   {
-    throw null_pipeline_config_exception();
+    VITAL_THROW( null_pipeline_config_exception );
   }
 
   d.reset(new priv(this, config));
@@ -231,12 +231,13 @@ pipeline
 {
   if (!process)
   {
-    throw null_process_addition_exception();
+    VITAL_THROW( null_process_addition_exception );
   }
 
   if (d->setup)
   {
-    throw add_after_setup_exception(process->name());
+    VITAL_THROW( add_after_setup_exception,
+                 process->name());
   }
 
   process::name_t const name = process->name();
@@ -301,7 +302,8 @@ pipeline
 {
   if (d->setup)
   {
-    throw remove_after_setup_exception(name);
+    VITAL_THROW( remove_after_setup_exception,
+                 name);
   }
 
   priv::cluster_map_t::iterator const i = d->cluster_map.find(name);
@@ -328,7 +330,8 @@ pipeline
 
   if (!d->process_map.count(name))
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,
+                 name);
   }
 
   d->process_map.erase(name);
@@ -347,8 +350,9 @@ pipeline
 {
   if (d->setup && !d->setup_in_progress)
   {
-    throw connection_after_setup_exception(upstream_name, upstream_port,
-                                           downstream_name, downstream_port);
+    VITAL_THROW( connection_after_setup_exception,
+                 upstream_name, upstream_port,
+                 downstream_name, downstream_port);
   }
 
   process::port_addr_t const up_addr = process::port_addr_t(upstream_name, upstream_port);
@@ -388,8 +392,9 @@ pipeline
 
   if (!d->check_connection_flags(connection, up_flags, down_flags))
   {
-    throw connection_flag_mismatch_exception(upstream_name, upstream_port,
-                                             downstream_name, downstream_port);
+    VITAL_THROW( connection_flag_mismatch_exception,
+                 upstream_name, upstream_port,
+                 downstream_name, downstream_port);
   }
 
   process::port_type_t const& up_type = up_info->type;
@@ -401,8 +406,9 @@ pipeline
     return;
 
   case priv::type_mismatch:
-    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
-                                             downstream_name, downstream_port, down_type);
+    VITAL_THROW( connection_type_mismatch_exception,
+                 upstream_name, upstream_port, up_type,
+                 downstream_name, downstream_port, down_type);
   case priv::type_compatible:
   default:
     break;
@@ -422,8 +428,9 @@ pipeline
 {
   if (d->setup)
   {
-    throw disconnection_after_setup_exception(upstream_name, upstream_port,
-                                              downstream_name, downstream_port);
+    VITAL_THROW( disconnection_after_setup_exception,
+                 upstream_name, upstream_port,
+                 downstream_name, downstream_port);
   }
 
   process::port_addr_t const upstream_addr = process::port_addr_t(upstream_name, upstream_port);
@@ -459,7 +466,7 @@ pipeline
 {
   if (d->setup)
   {
-    throw pipeline_duplicate_setup_exception();
+    VITAL_THROW( pipeline_duplicate_setup_exception );
   }
 
   d->check_for_processes();
@@ -519,7 +526,7 @@ pipeline
 {
   if (d->running)
   {
-    throw reset_running_pipeline_exception();
+    VITAL_THROW( reset_running_pipeline_exception );
   }
 
   d->setup = false;
@@ -572,7 +579,7 @@ pipeline
 {
   if (!d->setup)
   {
-    throw reconfigure_before_setup_exception();
+    VITAL_THROW( reconfigure_before_setup_exception );
   }
 
   // reconfigure all top level processes
@@ -642,7 +649,7 @@ pipeline
 
   if (i == d->process_map.end())
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,name);
   }
 
   return i->second;
@@ -658,7 +665,7 @@ pipeline
 
   if (i == d->process_parent_map.end())
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,name);
   }
 
   return i->second;
@@ -692,7 +699,8 @@ pipeline
 
   if (i == d->cluster_map.end())
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,
+                 name);
   }
 
   return i->second;
@@ -1188,7 +1196,8 @@ pipeline::priv
 {
   if (process_map.count(name) || cluster_map.count(name))
   {
-    throw duplicate_process_name_exception(name);
+    VITAL_THROW( duplicate_process_name_exception,
+                 name);
   }
 }
 
@@ -1354,9 +1363,10 @@ pipeline::priv
 
           if (!up_proc->set_output_port_type(upstream_port, type))
           {
-            throw propagation_exception(upstream_name, upstream_port,
-                                        downstream_name, downstream_port,
-                                        type, true);
+            VITAL_THROW( propagation_exception,
+                         upstream_name, upstream_port,
+                         downstream_name, downstream_port,
+                         type, true);
           }
 
           resolved = true;
@@ -1381,9 +1391,10 @@ pipeline::priv
 
           if (!down_proc->set_input_port_type(downstream_port, type))
           {
-            throw propagation_exception(upstream_name, upstream_port,
-                                        downstream_name, downstream_port,
-                                        type, false);
+            VITAL_THROW( propagation_exception,
+                         upstream_name, upstream_port,
+                         downstream_name, downstream_port,
+                         type, false);
           }
 
           resolved = true;
@@ -1412,7 +1423,7 @@ pipeline::priv
 {
   if (process_map.empty())
   {
-    throw no_processes_exception();
+    VITAL_THROW( no_processes_exception );
   }
 }
 
@@ -1451,7 +1462,8 @@ pipeline::priv
 
           if (cluster_it == cluster_map.end())
           {
-            throw no_such_process_exception(cluster_name);
+            VITAL_THROW( no_such_process_exception,
+                         cluster_name);
           }
 
           process_cluster_t const& cluster = cluster_it->second;
@@ -1467,7 +1479,8 @@ pipeline::priv
 
           if (mapped_connections.empty())
           {
-            throw no_such_port_exception(cluster_name, cluster_port);
+            VITAL_THROW( no_such_port_exception,
+                         cluster_name, cluster_port);
           }
           else if (mapped_connections.size() != 1)
           {
@@ -1498,7 +1511,8 @@ pipeline::priv
 
           if (cluster_it == cluster_map.end())
           {
-            throw no_such_process_exception(cluster_name);
+            VITAL_THROW( no_such_process_exception,
+                         cluster_name);
           }
 
           process_cluster_t const& cluster = cluster_it->second;
@@ -1514,7 +1528,8 @@ pipeline::priv
 
           if (mapped_connections.empty())
           {
-            throw no_such_port_exception(cluster_name, cluster_port);
+            VITAL_THROW( no_such_port_exception,
+                         cluster_name, cluster_port);
           }
 
           for (process::connection_t const& mapped_port_conn : mapped_connections)
@@ -1576,7 +1591,8 @@ pipeline::priv
 
         if (info->type == process::type_data_dependent)
         {
-          throw untyped_data_dependent_exception(data_name, data_port);
+          VITAL_THROW( untyped_data_dependent_exception,
+                       data_name, data_port);
         }
 
         resolved_types = true;
@@ -1659,9 +1675,10 @@ pipeline::priv
       case push_upstream:
         if (!up_proc->set_output_port_type(upstream_port, down_type))
         {
-          throw connection_dependent_type_exception(upstream_name, upstream_port,
-                                                    downstream_name, downstream_port,
-                                                    down_type, true);
+          VITAL_THROW( connection_dependent_type_exception,
+                       upstream_name, upstream_port,
+                       downstream_name, downstream_port,
+                       down_type, true);
         }
 
         name = upstream_name;
@@ -1673,9 +1690,10 @@ pipeline::priv
       case push_downstream:
         if (!down_proc->set_input_port_type(downstream_port, up_type))
         {
-          throw connection_dependent_type_exception(upstream_name, upstream_port,
-                                                    downstream_name, downstream_port,
-                                                    up_type, false);
+          VITAL_THROW( connection_dependent_type_exception,
+                       upstream_name, upstream_port,
+                       downstream_name, downstream_port,
+                       up_type, false);
         }
 
         name = downstream_name;
@@ -1694,10 +1712,11 @@ pipeline::priv
     }
     catch (propagation_exception const& e)
     {
-      throw connection_dependent_type_cascade_exception(name, port, type,
-                                                        e.m_upstream_name, e.m_upstream_port,
-                                                        e.m_downstream_name, e.m_downstream_port,
-                                                        e.m_type, e.m_push_upstream);
+      VITAL_THROW( connection_dependent_type_cascade_exception,
+                   name, port, type,
+                   e.m_upstream_name, e.m_upstream_port,
+                   e.m_downstream_name, e.m_downstream_port,
+                   e.m_type, e.m_push_upstream);
     }
 
     // Retry the connection.
@@ -1719,7 +1738,7 @@ pipeline::priv
 {
   if (!untyped_connections.empty())
   {
-    throw untyped_connection_exception();
+    VITAL_THROW( untyped_connection_exception );
   }
 }
 
@@ -1906,7 +1925,8 @@ pipeline::priv
             {
               static std::string const reason = "The input port has the required flag";
 
-              throw missing_connection_exception(cur_proc, port, reason);
+              VITAL_THROW( missing_connection_exception,
+                           cur_proc, port, reason);
             }
           }
         }
@@ -1924,7 +1944,8 @@ pipeline::priv
             {
               static std::string const reason = "The output port has the required flag";
 
-              throw missing_connection_exception(cur_proc, port, reason);
+              VITAL_THROW( missing_connection_exception,
+                           cur_proc, port, reason);
             }
           }
         }
@@ -1950,7 +1971,7 @@ pipeline::priv
 
   if (procs.size() != process_map.size())
   {
-    throw orphaned_processes_exception();
+    VITAL_THROW( orphaned_processes_exception );
   }
 }
 
@@ -2021,7 +2042,7 @@ pipeline::priv
   }
   catch (boost::not_a_dag const&)
   {
-    throw not_a_dag_exception();
+    VITAL_THROW( not_a_dag_exception );
   }
 }
 
@@ -2137,8 +2158,9 @@ pipeline::priv
 
       if (down_proc_freq != expect_freq)
       {
-        throw frequency_mismatch_exception(upstream_name, upstream_port, up_proc_freq, up_port_freq,
-                                           downstream_name, downstream_port, down_proc_freq, down_port_freq);
+        VITAL_THROW( frequency_mismatch_exception,
+                     upstream_name, upstream_port, up_proc_freq, up_port_freq,
+                     downstream_name, downstream_port, down_proc_freq, down_port_freq);
       }
     }
     // Propagate the frequency downstream.
@@ -2199,12 +2221,12 @@ pipeline::priv
 {
   if (!setup)
   {
-    throw pipeline_not_setup_exception();
+    VITAL_THROW( pipeline_not_setup_exception );
   }
 
   if (!setup_in_progress && !setup_successful)
   {
-    throw pipeline_not_ready_exception();
+    VITAL_THROW( pipeline_not_ready_exception );
   }
 }
 

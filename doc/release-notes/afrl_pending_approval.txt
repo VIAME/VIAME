@@ -12,83 +12,9 @@ Updates since last public release
 
 Arrows - Core
 
- * Implemented the seekable() and seek_frame() methods for the various
-   video_input implementations. In general this means most of these
-   implementations now support seeking to a specific frame in the video.
-
- * Implemented a num_frames() method for the various video_input
-   implementations. This method returns the number of frames available in
-   the video or 0 if the video is not seekable.
-
- * Expanding the tests for the video_input implementations to test the new
-   seek frame functionality.
-
- * Tests of the video_input implementations now test against new test imagery
-   that allows an additional check that the video source is on the correct
-   frame. This done using barcodes embedded in the test imagery that encode
-   the frame number.
-   
- * Added keyframe selection classes.  These facilitate choosing particularly
-   important frames in an image sequence and then only doing later operations
-   (e.g. structure from motion) on these frames.
-   
- * Added a new loop closure algorithm that uses bag of words image matching.
-
- * Added a special feature tracker that augments keyframes with additional
-   detections.  This tracker does not actually "track" anything but runs
-   a feature detector and descriptor only on key frames and creates single
-   frame tracks for later matching and linking.
-
-Arrows - OpenCV
-
- * Added an OpenCV based KLT feature tracker.
-
- * Added perspective three point pose estimation.
-
-Arrows - DBoW2
-
- * Added bag of words image matching based on DBoW2 library.  Includes a new vital
-   algorithm base class bag_of_words_matching.
-
-Arrows - VXL
-
- * Implemented the seekable() and seek_frame() methods for the
-   vidl_ffmpeg_video_input video source. This source now supports seeking by
-   frame if the underlying video stream supports it.
-
- * Implemented a num_frames() method for the vidl_ffmpeg_video_input video
-   source. This method returns the number of frames available in the video or
-   0 if the video is not seekable.
-
- * Added a test for the vidl_ffmpeg_video_input. This test tests the same
-   functionality as the tests for video_input implementations in Core. This
-   includes the new seek frame functionality.
-
-Sprokit - Processes
-
- * Added sprokit processes corresponding the feature tracker and keyframe
-   selection vital algorithms.
-
- * Added a detect_feature_if_keyframe process that calls the new augment
-   features tracker and also merges tracks.  This may be refactored in the
-   future to split out track merging and reuse the feature tracker process.
-
-Vital
-
- * Expanded video_input API to include a seek_frame() method which will seek
-   the video source to specific frame and a seekable() method which returns
-   true if the video source supports frame seeking. This allows
-   implementations to support seeking to a specific frame if possible.
-
- * Added a new abstract algorithm, integrate_depth_maps, for the integration
-   of depth map images into an implicit surface volume using truncated signed
-   distance functions (TSDF) or similar approaches.
-
- * Added clone() functions to the track_set and the class that it contains
-   to allow deep copies of track sets.
-
- * Added a track_set_frame_data class to store frame-level data along side
-   the tracks.  The feature_track_set uses this to mark frames as key frames.
+ * Improved triangulate_landmarks implementation with an option to use
+   RANSAC for robustness to outliers and additional checks to reject
+   poorly constrainted landmarks with minimal view angle variation.
 
 
 Fixes since last public release

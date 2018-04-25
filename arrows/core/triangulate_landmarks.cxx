@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,66 +39,79 @@
 #include <random>
 #include <ctime>
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-#include <vital/logger/logger.h>
-
 #include <arrows/core/triangulate.h>
 #include <arrows/core/metrics.h>
+
+#ifndef M_PI
+ // Source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
+#define M_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406
+#endif
+
+#define DEG_TO_RAD (M_PI/180.0)
+#define RAD_TO_DEG (180.0/M_PI)
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Private implementation class
+// Private implementation class
 class triangulate_landmarks::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
-    : homogeneous(false),
-      min_angle_deg(1.0f),
-      inlier_threshold_pixels(100.0f),
-      frac_track_inliers_to_keep_triangulated_point(0.5),
-      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
+    : m_homogeneous(false),
+      m_ransac(true),
+      m_min_angle_deg(1.0f),
+      m_inlier_threshold_pixels(100.0f),
+      m_frac_track_inliers_to_keep_triangulated_point(0.5f),
+      m_max_ransac_samples(20),
+      m_conf_thresh(0.99)
   {
   }
 
   priv(const priv& other)
-    : homogeneous(other.homogeneous),
-      min_angle_deg(other.min_angle_deg),
-      inlier_threshold_pixels(other.inlier_threshold_pixels),
-      frac_track_inliers_to_keep_triangulated_point(
-        other.frac_track_inliers_to_keep_triangulated_point),
-      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
+    : m_homogeneous(other.m_homogeneous),
+      m_ransac(other.m_ransac),
+      m_min_angle_deg(other.m_min_angle_deg),
+      m_inlier_threshold_pixels(other.m_inlier_threshold_pixels),
+      m_frac_track_inliers_to_keep_triangulated_point(
+        other.m_frac_track_inliers_to_keep_triangulated_point),
+      m_max_ransac_samples(other.m_max_ransac_samples)
   {
   }
 
   vital::vector_3d
-  ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
+  ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
     const std::vector<vital::vector_2d> &lm_image_pts,
     int &best_inlier_count) const;
 
-  /// use the homogeneous method for triangulation
-  bool homogeneous;
-  float min_angle_deg;
-  float inlier_threshold_pixels;
-  float frac_track_inliers_to_keep_triangulated_point;
-  /// logger handle
-  vital::logger_handle_t m_logger;
+  bool
+  triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
+              const std::vector<vital::vector_2d> &lm_image_pts,
+              vital::vector_3d &pt3d) const;
+
+  // use the homogeneous method for triangulation
+  bool m_homogeneous;
+  bool m_ransac;
+  float m_min_angle_deg;
+  float m_inlier_threshold_pixels;
+  float m_frac_track_inliers_to_keep_triangulated_point;
+  int m_max_ransac_samples;
+  double m_conf_thresh;
 };
 
 
-/// Constructor
+// Constructor
 triangulate_landmarks
 ::triangulate_landmarks()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.triangulate_landmarks" );
 }
 
 
-/// Copy Constructor
+// Copy Constructor
 triangulate_landmarks
 ::triangulate_landmarks(const triangulate_landmarks& other)
 : d_(new priv(*other.d_))
@@ -106,14 +119,14 @@ triangulate_landmarks
 }
 
 
-/// Destructor
+// Destructor
 triangulate_landmarks
 ::~triangulate_landmarks()
 {
 }
 
 
-/// Get this alg's \link vital::config_block configuration block \endlink
+// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 triangulate_landmarks
 ::get_configuration() const
@@ -123,28 +136,39 @@ triangulate_landmarks
     = vital::algo::triangulate_landmarks::get_configuration();
 
   // Bad frame detection parameters
-  config->set_value("homogeneous", d_->homogeneous,
+  config->set_value("homogeneous", d_->m_homogeneous,
                     "Use the homogeneous method for triangulating points. "
                     "The homogeneous method can triangulate points at or near "
                     "infinity and discard them.");
 
-  config->set_value("min_angle_deg", d_->min_angle_deg,
+  config->set_value("ransac", d_->m_ransac,"Use RANSAC in triangulating the points");
+
+  config->set_value("min_angle_deg", d_->m_min_angle_deg,
                     "minimum angle required to triangulate a point.");
 
 
-  config->set_value("inlier_threshold_pixels", d_->inlier_threshold_pixels,
+  config->set_value("inlier_threshold_pixels", d_->m_inlier_threshold_pixels,
                    "reprojection error threshold in pixels.");
 
   config->set_value("frac_track_inliers_to_keep_triangulated_point",
-                    d_->frac_track_inliers_to_keep_triangulated_point,
+                    d_->m_frac_track_inliers_to_keep_triangulated_point,
                     "fraction of measurements in track that must be inliers to "
                     "keep the triangulated point");
+
+  config->set_value("max_ransac_samples",
+                    d_->m_max_ransac_samples,
+                    "maximum number of samples to take in RANSAC triangulation");
+
+  config->set_value("ransac_confidence_threshold",
+                    d_->m_conf_thresh,
+                    "RANSAC sampling terminates when this confidences in the "
+                    "solution is reached.");
 
   return config;
 }
 
 
-/// Set this algorithm's properties via a config block
+// Set this algorithm's properties via a config block
 void
 triangulate_landmarks
 ::set_configuration(vital::config_block_sptr in_config)
@@ -155,19 +179,29 @@ triangulate_landmarks
   config->merge_config(in_config);
 
   // Settings for bad frame detection
-  d_->homogeneous = config->get_value<bool>("homogeneous", d_->homogeneous);
+  d_->m_homogeneous = config->get_value<bool>("homogeneous", d_->m_homogeneous);
 
-  d_->min_angle_deg = config->get_value<float>("min_angle_deg", d_->min_angle_deg);
+  d_->m_ransac = config->get_value<bool>("ransac", d_->m_ransac);
 
-  d_->inlier_threshold_pixels = config->get_value<float>("inlier_threshold_pixels", d_->inlier_threshold_pixels);
+  d_->m_min_angle_deg = config->get_value<float>("min_angle_deg", d_->m_min_angle_deg);
 
-  d_->frac_track_inliers_to_keep_triangulated_point =
+  d_->m_inlier_threshold_pixels =
+    config->get_value<float>("inlier_threshold_pixels",
+                             d_->m_inlier_threshold_pixels);
+
+  d_->m_frac_track_inliers_to_keep_triangulated_point =
     config->get_value<float>("frac_track_inliers_to_keep_triangulated_point",
-                             d_->frac_track_inliers_to_keep_triangulated_point);
+                             d_->m_frac_track_inliers_to_keep_triangulated_point);
+
+  d_->m_max_ransac_samples =
+    config->get_value<int>("max_ransac_samples", d_->m_max_ransac_samples);
+
+  d_->m_conf_thresh =
+    config->get_value<double>("ransac_confidence_threshold", d_->m_conf_thresh);
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
 ::check_configuration(vital::config_block_sptr config) const
@@ -175,24 +209,43 @@ triangulate_landmarks
   return true;
 }
 
+bool
+triangulate_landmarks::priv
+::triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
+  const std::vector<vital::vector_2d> &lm_image_pts, vital::vector_3d &pt3d) const
+{
+  if (m_homogeneous)
+  {
+    vital::vector_4d pt4d = kwiver::arrows::triangulate_homog(lm_cams, lm_image_pts);
+    if (std::abs(pt4d[3]) < 1e-6)
+    {
+      pt3d.setZero();
+      return false;
+    }
+    pt3d = pt4d.segment(0, 3) / pt4d[3];
+  }
+  else
+  {
+    pt3d = kwiver::arrows::triangulate_inhomog(lm_cams, lm_image_pts);
+  }
+
+  return true;
+}
+
+
 /// Triangulate the landmark with RANSAC robust estimation
 vital::vector_3d
 triangulate_landmarks::priv
-::ransac_triangulation(const std::vector<vital::simple_camera> &lm_cams,
+::ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
   const std::vector<vital::vector_2d> &lm_image_pts,
   int &best_inlier_count) const
 {
-  int max_samples = 20;
-  double conf_thresh = 0.99;
   double conf = 0;
-  std::vector<vital::simple_camera> cam_sample;
-  std::vector<vital::vector_2d> proj_sample;
-  cam_sample.resize(2);
-  proj_sample.resize(2);
+  std::vector<vital::simple_camera_perspective> cam_sample(2);
+  std::vector<vital::vector_2d> proj_sample(2);
   vital::vector_3d best_pt3d;
-  best_inlier_count = -1;
+  best_inlier_count = 0;
   double best_inlier_ratio = 0;
-  int num_samples = 0;
 
   std::random_device rd;
   std::mt19937_64 gen(rd());
@@ -212,9 +265,8 @@ triangulate_landmarks::priv
   vital::landmark_d lm;
   vital::feature_d f;
 
-  while (conf < conf_thresh)
+  for (int num_samples = 1; num_samples <= m_max_ransac_samples && conf < m_conf_thresh; ++num_samples)
   {
-    ++num_samples;
     //pick two random points
     int inlier_count = 0;
     s_idx[0] = dis(gen);
@@ -223,12 +275,17 @@ triangulate_landmarks::priv
     {
       s_idx[1] = dis(gen);
     }
-    for (int i = 0; i < 2; ++i)
+
+    cam_sample[0] = lm_cams[s_idx[0]];
+    cam_sample[1] = lm_cams[s_idx[1]];
+    proj_sample[0] = lm_image_pts[s_idx[0]];
+    proj_sample[1] = lm_image_pts[s_idx[1]];
+
+    vital::vector_3d pt3d;
+    if (!triangulate(cam_sample, proj_sample, pt3d))
     {
-      cam_sample[i] = lm_cams[s_idx[i]];
-      proj_sample[i] = lm_image_pts[s_idx[i]];
+      continue;
     }
-    vital::vector_3d pt3d = kwiver::arrows::triangulate_inhomog(cam_sample, proj_sample);
 
     lm.set_loc(pt3d);
     //count inliers
@@ -241,7 +298,7 @@ triangulate_landmarks::priv
       }
       f.set_loc(lm_image_pts[idx]);
       double reproj_err = reprojection_error(lm_cams[idx], lm, f);
-      if (reproj_err < inlier_threshold_pixels)
+      if (reproj_err < m_inlier_threshold_pixels)
       {
         ++inlier_count;
       }
@@ -259,16 +316,12 @@ triangulate_landmarks::priv
     {
       break;  //2 choose 2 only happens one way
     }
-    if (num_samples >= max_samples)
-    {
-      break;
-    }
   }
 
   return best_pt3d;
 }
 
-/// Triangulate the landmark locations given sets of cameras and tracks
+// Triangulate the landmark locations given sets of cameras and tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
@@ -299,11 +352,11 @@ triangulate_landmarks
 
   // the set of landmark ids which failed to triangulate
   std::set<vital::landmark_id_t> failed_landmarks;
-  std::set<vital::landmark_id_t> failed_behind, failed_angle;
+  std::set<vital::landmark_id_t> failed_outlier, failed_angle;
 
 
   //minimum triangulation angle
-  double thresh_triang_cos_ang = cos((M_PI / 180.0) * d_->min_angle_deg);
+  double thresh_triang_cos_ang = cos(DEG_TO_RAD * d_->m_min_angle_deg);
 
   map_landmark_t triangulated_lms;
   for(const map_landmark_t::value_type& p : lms)
@@ -319,7 +372,7 @@ triangulate_landmarks
     const vital::track& t = *t_itr->second;
 
     // extract the cameras and image points for this landmarks
-    std::vector<vital::simple_camera> lm_cams;
+    std::vector<vital::simple_camera_perspective> lm_cams;
     std::vector<vital::vector_2d> lm_image_pts;
 
     auto lm_observations = unsigned{0};
@@ -337,7 +390,9 @@ triangulate_landmarks
         // there is no camera for this track state.
         continue;
       }
-      lm_cams.push_back(vital::simple_camera(*c_itr->second));
+      auto cam_ptr =
+        std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
+      lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
       lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }
@@ -345,33 +400,51 @@ triangulate_landmarks
     // if we found at least two views of this landmark, triangulate
     if (lm_cams.size() > 1)
     {
-      bool bad_triangulation = false;
       int inlier_count = 0;
       vital::vector_3d pt3d;
-      if (d_->homogeneous)
+      if (d_->m_ransac)
       {
-        vital::vector_4d pt4d = kwiver::arrows::triangulate_homog(lm_cams, lm_image_pts);
-        if (std::abs(pt4d[3]) < 1e-6)
+        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count);
+        if (inlier_count < lm_image_pts.size() * d_->m_frac_track_inliers_to_keep_triangulated_point)
         {
-          bad_triangulation = true;
           failed_landmarks.insert(p.first);
+          failed_outlier.insert(p.first);
+          continue;
         }
-        pt3d = pt4d.segment(0,3) / pt4d[3];
       }
       else
       {
-        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts,inlier_count);
+        if (!d_->triangulate(lm_cams, lm_image_pts, pt3d))
+        {
+          failed_landmarks.insert(p.first);
+          continue;
+        }
+        //test if the point is behind any of the cameras
+        bool behind = false;
+        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        {
+          auto depth = lm_cams[idx].depth(pt3d);
+          if (depth <= 0)
+          {
+            behind = true;
+            break;
+          }
+        }
+        if (behind)
+        {
+          failed_landmarks.insert(p.first);
+          continue;
+        }
       }
-      if (inlier_count < lm_image_pts.size() * d_->frac_track_inliers_to_keep_triangulated_point)
+
+      if (!pt3d.allFinite())
       {
-        bad_triangulation = true;
         failed_landmarks.insert(p.first);
-        failed_behind.insert(p.first);
         continue;
       }
 
       double triang_cos_ang = kwiver::arrows::bundle_angle_max(lm_cams, pt3d);
-      bad_triangulation = triang_cos_ang > thresh_triang_cos_ang;
+      bool bad_triangulation = triang_cos_ang > thresh_triang_cos_ang;
       if (bad_triangulation)
       {
         failed_angle.insert(p.first);
@@ -397,8 +470,10 @@ triangulate_landmarks
   }
   if( !failed_landmarks.empty() )
   {
-    LOG_WARN(d_->m_logger,
-      "failed to triangulate " << failed_angle.size() << " landmarks for angle, " << failed_behind.size() << " landmarks behind");
+    LOG_WARN( logger(),
+              "failed to triangulate " << failed_landmarks.size()
+              << " with " << failed_angle.size() << " for angle, "
+              << failed_outlier.size() << " outliers");
   }
   landmarks = vital::landmark_map_sptr(new vital::simple_landmark_map(triangulated_lms));
 }

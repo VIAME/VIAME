@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -347,41 +347,6 @@ public:
   } // init_timestamp
 
 // ------------------------------------------------------------------
-  /*
-   * @brief Calculate timestamp for frame.
-   *
-   * This method calculates the timestamp for a frame after a call to
-   * next_frame() or skip_frame(). This also clears old metadata packets
-   * and marks that the frame has been advanced after creation.
-   *
-   */
-  void process_frame_timestamp( kwiver::vital::timestamp& ts )
-  {
-    // ---- Calculate time stamp ----
-    // Metadata packets may not exist for each frame, so use the diff in
-    // presentation time stamps to foward the first metadata time stamp.
-    double pts_diff = ( d_video_stream.current_pts() - pts_of_meta_ts ) * 1e6;
-    d_frame_time = meta_ts + pts_diff;
-    d_frame_number = d_video_stream.frame_number()
-                   + d_frame_number_offset + 1;
-
-    // We don't always have all components of a timestamp, so start with
-    // an invalid TS and add the data we have.
-    ts.set_invalid();
-    ts.set_frame( d_frame_number );
-
-    if ( d_have_frame_time )
-    {
-      ts.set_time_usec( d_frame_time );
-    }
-
-    // ---- process metadata ---
-    metadata_collection.clear(); // erase old metadata packets
-
-    d_frame_advanced = true;
-  }
-
-// ------------------------------------------------------------------
   bool misp_time()
   {
     int frame_count( c_time_scan_frame_limit );
@@ -465,7 +430,7 @@ public:
   void push_metadata_to_map(vital::timestamp::frame_t fn)
   {
     if (fn >= c_start_at_frame &&
-        (c_stop_after_frame == 0 || fn < c_stop_after_frame) &&
+        (c_stop_after_frame == 0 || fn <= c_stop_after_frame) &&
         c_use_metadata)
     {
       metadata_collection.clear();
@@ -494,29 +459,19 @@ public:
       {
         std::lock_guard< std::mutex > lock( s_open_mutex );
 
-        if (d_frame_advanced)
-        {
-          d_num_frames = d_frame_number;
-        }
-        else
-        {
-          d_num_frames = 1;
-        }
+        d_num_frames = d_frame_number;
 
         // Add metadata for current frame
         push_metadata_to_map(d_num_frames);
 
         // Advance video stream to end
-        unsigned int frames_left_to_skip = c_frame_skip - 1;
         while ( d_video_stream.advance())
         {
           d_num_frames++;
-          if (frames_left_to_skip == 0)
+          if ( (d_num_frames - 1) % c_frame_skip == 0 )
           {
             push_metadata_to_map(d_num_frames);
-            frames_left_to_skip = c_frame_skip;
           }
-          frames_left_to_skip--;
         }
 
         metadata_collection.clear();
@@ -525,16 +480,16 @@ public:
         d_video_stream.open( video_path );
 
         // Advance back to original frame number
-        frames_left_to_skip = 0;
-        for (int i=0; i < d_frame_number; ++i)
+        unsigned int frame_num = d_video_stream.frame_number()
+                               + d_frame_number_offset + 1;
+        while ( frame_num < d_frame_number &&
+                d_video_stream.advance() )
         {
-          if (frames_left_to_skip == 0)
+          ++frame_num;
+          if ((frame_num - 1) % c_frame_skip == 0 )
           {
-            d_video_stream.advance();
-            push_metadata_to_map(i);
-            frames_left_to_skip = c_frame_skip;
+            push_metadata_to_map(frame_num);
           }
-          frames_left_to_skip--;
         }
       }
 
@@ -835,23 +790,34 @@ vidl_ffmpeg_video_input
   }
   else
   {
-    for (unsigned int i = 0; i < d->c_frame_skip; i++)
+    do
     {
       if( ! d->d_video_stream.advance() )
       {
         d->d_at_eov = true;
         return false;
       }
-    }
+      d->d_frame_number = d->d_video_stream.frame_number()
+                        + d->d_frame_number_offset + 1;
+    } while ( (d->d_frame_number - 1) % d->c_frame_skip != 0 );
   }
 
-  d->process_frame_timestamp( ts );
+  // ---- Calculate time stamp ----
+  // Metadata packets may not exist for each frame, so use the diff in
+  // presentation time stamps to foward the first metadata time stamp.
+  double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
+  d->d_frame_time = d->meta_ts + pts_diff;
+
+
+  ts = this->frame_timestamp();
 
   if( (d->c_stop_after_frame != 0) && (ts.get_frame() > d->c_stop_after_frame))
   {
     d->d_at_eov = true;  // logical end of file
     return false;
   }
+
+  d->d_frame_advanced = true;
 
   return true;
 }
@@ -923,9 +889,40 @@ vidl_ffmpeg_video_input
     d->d_have_frame = false;
   }
 
-  d->process_frame_timestamp( ts );
+  // ---- Calculate time stamp ----
+  // Metadata packets may not exist for each frame, so use the diff in
+  // presentation time stamps to foward the first metadata time stamp.
+  double pts_diff = ( d->d_video_stream.current_pts() - d->pts_of_meta_ts ) * 1e6;
+  d->d_frame_time = d->meta_ts + pts_diff;
+  d->d_frame_number = d->d_video_stream.frame_number()
+                    + d->d_frame_number_offset + 1;
+
+
+  ts = this->frame_timestamp();
+
+  // ---- process metadata ---
+  d->metadata_collection.clear(); // erase old metadata packets
 
   return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+vidl_ffmpeg_video_input
+::frame_timestamp() const
+{
+  if (d->d_at_eov)
+  {
+    return {};
+  }
+
+  // We don't always have all components of a timestamp, so start with
+  // an invalid TS and add the data we have.
+  kwiver::vital::timestamp ts;
+  ts.set_frame( d->d_frame_number );
+
+  return ts;
 }
 
 // ------------------------------------------------------------------

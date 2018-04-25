@@ -73,7 +73,7 @@ mark_fm_inliers(vital::fundamental_matrix const& fm,
 
 
 /// Compute a valid left camera from an essential matrix
-kwiver::vital::simple_camera
+kwiver::vital::simple_camera_perspective
 extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
                           const kwiver::vital::vector_2d& left_pt,
                           const kwiver::vital::vector_2d& right_pt)
@@ -88,11 +88,11 @@ extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
   pts.push_back(right_pt);
   pts.push_back(left_pt);
 
-  std::vector<vital::simple_camera> cams(2);
-  const vital::simple_camera& left_camera = cams[1];
+  std::vector<vital::simple_camera_perspective> cams(2);
+  const vital::simple_camera_perspective& left_camera = cams[1];
 
   // option 1
-  cams[1] = vital::simple_camera(R.inverse()*-t, R);
+  cams[1] = vital::simple_camera_perspective(R.inverse()*-t, R);
   vector_3d pt3 = triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
@@ -100,7 +100,7 @@ extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
   }
 
   // option 2, with negated translation
-  cams[1] = vital::simple_camera(R.inverse()*t, R);
+  cams[1] = vital::simple_camera_perspective(R.inverse()*t, R);
   pt3 = triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
@@ -109,7 +109,7 @@ extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
 
   // option 3, with the twisted pair rotation
   R = e.twisted_rotation();
-  cams[1] = vital::simple_camera(R.inverse()*-t, R);
+  cams[1] = vital::simple_camera_perspective(R.inverse()*-t, R);
   pt3 = triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
@@ -117,22 +117,22 @@ extract_valid_left_camera(const kwiver::vital::essential_matrix_d& e,
   }
 
   // option 4, with negated translation
-  cams[1] = vital::simple_camera(R.inverse()*t, R);
+  cams[1] = vital::simple_camera_perspective(R.inverse()*t, R);
   pt3 = triangulate_inhomog(cams, pts);
   if( pt3.z() > 0.0 && left_camera.depth(pt3) > 0.0 )
   {
     return left_camera;
   }
   // should never get here
-  return vital::simple_camera();
+  return vital::simple_camera_perspective();
 }
 
 
 
 // Compute the fundamental matrix from a pair of cameras
 kwiver::vital::fundamental_matrix_sptr
-fundamental_matrix_from_cameras(kwiver::vital::camera const& right_cam,
-                                kwiver::vital::camera const& left_cam)
+fundamental_matrix_from_cameras(kwiver::vital::camera_perspective const& right_cam,
+                                kwiver::vital::camera_perspective const& left_cam)
 {
   using namespace kwiver::vital;
   essential_matrix_sptr em = essential_matrix_from_cameras(right_cam, left_cam);
@@ -143,8 +143,8 @@ fundamental_matrix_from_cameras(kwiver::vital::camera const& right_cam,
 
 // Compute the essential matrix from a pair of cameras
 kwiver::vital::essential_matrix_sptr
-essential_matrix_from_cameras(kwiver::vital::camera const& right_cam,
-                              kwiver::vital::camera const& left_cam)
+essential_matrix_from_cameras(kwiver::vital::camera_perspective const& right_cam,
+                              kwiver::vital::camera_perspective const& left_cam)
 {
   using namespace kwiver::vital;
   rotation_d R1 = right_cam.rotation();

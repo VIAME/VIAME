@@ -57,9 +57,9 @@ TEST(interpolate_camera, interpolation)
   using vital::vector_3d;
   using vital::vector_4d;
   using vital::rotation_d;
-  using vital::simple_camera;
+  using vital::simple_camera_perspective;
 
-  simple_camera a(vector_3d(-1, -1, -1),
+  simple_camera_perspective a(vector_3d(-1, -1, -1),
                   rotation_d(vector_4d(0, 0, 0, 1))),  // no rotation
                 b(vector_3d(3, 3, 3),
                   rotation_d(-pi / 2, vector_3d(0, 0, 1))),  // rotated around z-axis 90 degrees
@@ -90,13 +90,13 @@ TEST(interpolate_camera, multiple_interpolations)
   using vital::vector_3d;
   using vital::vector_4d;
   using vital::rotation_d;
-  using vital::simple_camera;
+  using vital::simple_camera_perspective;
 
-  simple_camera a(vector_3d(-1, -1, -1),
+  simple_camera_perspective a(vector_3d(-1, -1, -1),
                   rotation_d(vector_4d(0, 0, 0, 1))),        // no rotation
                 b(vector_3d(3, 3, 3),
                   rotation_d(-pi / 2, vector_3d(0, 0, 1)));  // rotated around z-axis 90 degrees
-  vector<simple_camera> cams;
+  vector<simple_camera_perspective> cams;
 
   cams.push_back(a);
   kwiver::arrows::interpolated_cameras(a, b, 3, cams);
@@ -109,9 +109,9 @@ TEST(interpolate_camera, multiple_interpolations)
     cerr << "\t" << cam.center() << " :: " << cam.rotation().axis() << " " << cam.rotation().angle() << endl;
   }
 
-  simple_camera i1 = cams[1],
-           i2 = cams[2],
-           i3 = cams[3];
+  simple_camera_perspective i1 = cams[1],
+                            i2 = cams[2],
+                            i3 = cams[3];
   cerr << "i1 .25 c : " << i1.center() << " :: " << i1.rotation().axis() << ' ' << i1.rotation().angle() << endl;
   cerr << "i2 .25 c : " << i2.center() << " :: " << i2.rotation().axis() << ' ' << i2.rotation().angle() << endl;
   cerr << "i3 .25 c : " << i3.center() << " :: " << i3.rotation().axis() << ' ' << i3.rotation().angle() << endl;

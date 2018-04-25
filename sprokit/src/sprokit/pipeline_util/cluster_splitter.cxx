@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ cluster_splitter
 
   if (m_input_ports.count(port))
   {
-    throw duplicate_cluster_input_port_exception(port);
+    VITAL_THROW( duplicate_cluster_input_port_exception, port);
   }
 
   m_input_ports.insert(port);
@@ -85,7 +85,7 @@ cluster_splitter
 
   if (m_output_ports.count(port))
   {
-    throw duplicate_cluster_output_port_exception(port);
+    VITAL_THROW( duplicate_cluster_output_port_exception, port);
   }
 
   m_output_ports.insert(port);

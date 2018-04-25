@@ -189,9 +189,9 @@ void FORB::toMat32F(const std::vector<TDescriptor> &descriptors,
     return;
   }
 
-  const int N = static_cast<int>(descriptors.size());
+  const size_t N = descriptors.size();
 
-  mat.create(N, FORB::L*8, CV_32F);
+  mat.create(static_cast<int>(N), FORB::L*8, CV_32F);
   float *p = mat.ptr<float>();
 
   for(size_t i = 0; i < N; ++i)

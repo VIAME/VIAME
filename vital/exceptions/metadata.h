@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Generic metadata exception
-class VITAL_EXPORT metadata_exception
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT metadata_exception
+  : public vital_exception
 {
 public:
   /// Constructor

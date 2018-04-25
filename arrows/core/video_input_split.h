@@ -86,11 +86,16 @@ public:
                            kwiver::vital::timestamp::frame_t frame_number,
                            uint32_t timeout = 0 );
 
+  virtual kwiver::vital::timestamp frame_timestamp() const;
   virtual kwiver::vital::image_container_sptr frame_image();
   virtual kwiver::vital::metadata_vector frame_metadata();
   virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
+  kwiver::vital::timestamp merge_timestamps(
+    kwiver::vital::timestamp const& image_ts,
+    kwiver::vital::timestamp const& metadata_ts ) const;
+
   /// private implementation class
   class priv;
   const std::unique_ptr<priv> d;

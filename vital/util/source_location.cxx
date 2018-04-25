@@ -48,8 +48,8 @@ source_location()
 // ------------------------------------------------------------------
 source_location::
 source_location( std::shared_ptr< std::string > f, int l)
-: m_file_name(f)
-, m_line_num(l)
+  : m_file_name(f)
+  , m_line_num(l)
 { }
 
 

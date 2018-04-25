@@ -36,7 +36,7 @@
 #include "camera.h"
 
 #include <vital/io/camera_io.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/camera.h>
@@ -46,7 +46,7 @@
 namespace kwiver {
 namespace vital_c {
 
-  SharedPointerCache< vital::camera,
+  SharedPointerCache< vital::camera_perspective,
                       vital_camera_t > CAMERA_SPTR_CACHE( "camera" );
 
 }
@@ -80,7 +80,7 @@ vital_camera_new( vital_eigen_matrix3x1d_t const *center,
     REINTERP_TYPE( vital::rotation_d const, rotation, rotation_ptr );
     vital::camera_intrinsics_sptr intrinsics_sptr
     = vital_c::CAMERA_INTRINSICS_SPTR_CACHE.get(intrinsics);
-    auto c_sptr = std::make_shared<kwiver::vital::simple_camera>(
+    auto c_sptr = std::make_shared<kwiver::vital::simple_camera_perspective>(
       *center_ptr, *rotation_ptr, intrinsics_sptr
     );
     vital_c::CAMERA_SPTR_CACHE.store(c_sptr);
@@ -96,7 +96,7 @@ vital_camera_new_default( vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_camera.new_default", eh,
-    vital::camera_sptr c_sptr = std::make_shared<vital::simple_camera>();
+    auto c_sptr = std::make_shared<vital::simple_camera_perspective>();
     vital_c::CAMERA_SPTR_CACHE.store(c_sptr);
     return reinterpret_cast< vital_camera_t* >( c_sptr.get() );
   );
@@ -110,8 +110,8 @@ vital_camera_new_from_string( char const *s, vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_camera_new_from_string", eh,
-    vital::camera_sptr c_sptr = std::make_shared<vital::simple_camera>();
-      vital::simple_camera *sc = dynamic_cast<vital::simple_camera*>(c_sptr.get());
+    auto c_sptr = std::make_shared<vital::simple_camera_perspective>();
+      vital::simple_camera_perspective *sc = c_sptr.get();
 
       std::string input_s( s );
       std::istringstream ss( input_s );
@@ -131,7 +131,8 @@ vital_camera_clone( vital_camera_t const *cam, vital_error_handle_t *eh )
   STANDARD_CATCH(
     "vital_camera_clone", eh,
     auto cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
-    auto c2_sptr = cam_sptr->clone();
+    auto c2_sptr =
+      std::dynamic_pointer_cast< kwiver::vital::camera_perspective >( cam_sptr->clone() );
     vital_c::CAMERA_SPTR_CACHE.store( c2_sptr );
     return reinterpret_cast< vital_camera_t* >( c2_sptr.get() );
   );
@@ -258,7 +259,7 @@ vital_camera_project( vital_camera_t const *cam,
 {
   STANDARD_CATCH(
     "vital_camera_project", eh,
-    vital::camera_sptr cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
+    auto cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
     REINTERP_TYPE( vital::vector_3d const, pt, pt_ptr );
     return reinterpret_cast< vital_eigen_matrix2x1d_t* >(
       new vital::vector_2d( cam_sptr->project( *pt_ptr ) )
@@ -276,7 +277,7 @@ vital_camera_depth( vital_camera_t const *cam,
 {
   STANDARD_CATCH(
     "vital_camera_depth", eh,
-    vital::camera_sptr cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
+    auto cam_sptr = vital_c::CAMERA_SPTR_CACHE.get( cam );
     REINTERP_TYPE( vital::vector_3d const, pt, pt_ptr );
     return cam_sptr->depth( *pt_ptr );
   );
@@ -309,7 +310,7 @@ vital_camera_t* vital_camera_read_krtd_file( char const *filepath,
 {
   STANDARD_CATCH(
     "C::camera::read_krtd_file", eh,
-    kwiver::vital::camera_sptr c( kwiver::vital::read_krtd_file(filepath) );
+    auto c( kwiver::vital::read_krtd_file(filepath) );
     kwiver::vital_c::CAMERA_SPTR_CACHE.store( c );
     return reinterpret_cast<vital_camera_t*>( c.get() );
   );
@@ -324,7 +325,8 @@ void vital_camera_write_krtd_file( vital_camera_t const *cam,
 {
   STANDARD_CATCH(
     "C::camera::write_krtd_file", eh,
-    kwiver::vital::camera *m_cam = kwiver::vital_c::CAMERA_SPTR_CACHE.get( cam ).get();
+    kwiver::vital::camera_perspective *m_cam =
+      kwiver::vital_c::CAMERA_SPTR_CACHE.get( cam ).get();
     kwiver::vital::write_krtd_file( *m_cam, filepath );
   );
 }

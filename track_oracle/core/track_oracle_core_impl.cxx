@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2010-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2010-2018 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -276,7 +276,7 @@ track_oracle_core_impl
        ++i)
   {
     auto exists_list = i->second->exists( rows );
-    for (auto j=0; j<exists_list.size(); ++j)
+    for (size_t j=0; j<exists_list.size(); ++j)
     {
       if (exists_list[j])
       {

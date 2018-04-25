@@ -36,12 +36,14 @@
 #include <arrows/core/kwiver_algo_core_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/core/associate_detections_to_tracks_threshold.h>
 #include <arrows/core/class_probablity_filter.h>
 #include <arrows/core/close_loops_bad_frames_only.h>
 #include <arrows/core/close_loops_appearance_indexed.h>
 #include <arrows/core/close_loops_exhaustive.h>
 #include <arrows/core/close_loops_keyframe.h>
 #include <arrows/core/close_loops_multi_method.h>
+#include <arrows/core/compute_association_matrix_from_features.h>
 #include <arrows/core/compute_ref_homography_core.h>
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/detected_object_set_input_csv.h>
@@ -58,11 +60,13 @@
 #include <arrows/core/formulate_query_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/core/initialize_object_tracks_threshold.h>
 #include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/keyframe_selector_basic.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
 #include <arrows/core/match_features_homography.h>
-#include <arrows/core/track_descriptor_set_output_csv.h>
+#include <arrows/core/read_object_track_set_kw18.h>
+#include <arrows/core/read_track_descriptor_set_csv.h>
 #include <arrows/core/track_features_augment_keyframes.h>
 #include <arrows/core/track_features_core.h>
 #include <arrows/core/triangulate_landmarks.h>
@@ -70,6 +74,9 @@
 #include <arrows/core/video_input_image_list.h>
 #include <arrows/core/video_input_pos.h>
 #include <arrows/core/video_input_split.h>
+#include <arrows/core/write_object_track_set_kw18.h>
+#include <arrows/core/write_track_descriptor_set_csv.h>
+
 
 namespace kwiver {
 namespace arrows {
@@ -108,11 +115,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
+  register_algorithm< associate_detections_to_tracks_threshold >( vpm );
   register_algorithm< class_probablity_filter >( vpm );
   register_algorithm< close_loops_bad_frames_only >( vpm );
   register_algorithm< close_loops_exhaustive >( vpm );
   register_algorithm< close_loops_keyframe >( vpm );
   register_algorithm< close_loops_multi_method >( vpm );
+  register_algorithm< compute_association_matrix_from_features >( vpm );
   register_algorithm< compute_ref_homography_core >( vpm );
   register_algorithm< convert_image_bypass >( vpm );
   register_algorithm< detected_object_set_input_csv >( vpm );
@@ -129,11 +138,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< formulate_query_core >( vpm );
   register_algorithm< hierarchical_bundle_adjust >( vpm );
   register_algorithm< initialize_cameras_landmarks >( vpm );
+  register_algorithm< initialize_object_tracks_threshold >( vpm );
   register_algorithm< interpolate_track_spline >( vpm );
   register_algorithm< keyframe_selector_basic >( vpm );
   register_algorithm< match_features_fundamental_matrix >( vpm );
   register_algorithm< match_features_homography >( vpm );
-  register_algorithm< track_descriptor_set_output_csv >( vpm );
+  register_algorithm< read_object_track_set_kw18 >( vpm );
+  register_algorithm< read_track_descriptor_set_csv >( vpm );
   register_algorithm< track_features_augment_keyframes >( vpm );
   register_algorithm< track_features_core >( vpm );
   register_algorithm< triangulate_landmarks >( vpm );
@@ -141,6 +152,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< video_input_image_list >( vpm );
   register_algorithm< video_input_pos >( vpm );
   register_algorithm< video_input_split >( vpm );
+  register_algorithm< write_object_track_set_kw18 >( vpm );
+  register_algorithm< write_track_descriptor_set_csv >( vpm );
 
   vpm.mark_module_as_loaded( module_name );
 }
