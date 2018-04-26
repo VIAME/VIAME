@@ -389,13 +389,11 @@ detect_bad_landmarks(
       }
     }
   }
-  if (logger)
-  {
-    LOG_DEBUG(logger, "num landmarks " << lms.size() << " num unconstrained " <<
-      num_unconstrained_landmarks_found << " found from tracks " <<
-      num_lm_found_from_tracks << " removed bad angle " <<
-      num_lm_removed_bad_angle);
-  }
+
+  LOG_DEBUG(logger, "num landmarks " << lms.size() << " num unconstrained " <<
+    num_unconstrained_landmarks_found << " found from tracks " <<
+    num_lm_found_from_tracks << " removed bad angle " <<
+    num_lm_removed_bad_angle);
 
   return landmarks_to_remove;
 }
@@ -476,10 +474,7 @@ clean_cameras_and_landmarks(
     {
       cams[frame_id] = nullptr;
       removed_cams.push_back(frame_id);
-      if (logger)
-      {
-        LOG_DEBUG(logger, "removing camera " << frame_id);
-      }
+      LOG_DEBUG(logger, "removing camera " << frame_id);
     }
 
     camera_components comps =
@@ -490,19 +485,15 @@ clean_cameras_and_landmarks(
       //only one component so no need to remove disconnected cameras
       continue;
     }
-    if (logger)
-    {
-      LOG_DEBUG(logger, "found " << comps.size() << " components");
-    }
+    LOG_DEBUG(logger, "found " << comps.size() << " components");
+
     int max_comp_idx = -1;
     size_t max_comp_size = 0;
     for (int ci = 0; ci < comps.size(); ++ci)
     {
       std::set<frame_id_t> &comp = comps[ci];
-      if (logger)
-      {
-        LOG_DEBUG(logger, " comp size " << comp.size());
-      }
+      LOG_DEBUG(logger, " comp size " << comp.size());
+
       if (comp.size() > max_comp_size)
       {
         max_comp_size = comp.size();
@@ -522,18 +513,14 @@ clean_cameras_and_landmarks(
     //remove cameras in disconnected components
     for (auto frame_id : cams_to_remove)
     {
-      if (logger)
-      {
-        LOG_DEBUG(logger, "removing disconnected camera " << frame_id);
-      }
+
+      LOG_DEBUG(logger, "removing disconnected camera " << frame_id);
+
       keep_cleaning = true;
       cams[frame_id] = nullptr;
       removed_cams.push_back(frame_id);
     }
-    if (logger)
-    {
-      LOG_DEBUG(logger, "remaining cameras size " << cams.size());
-    }
+    LOG_DEBUG(logger, "remaining cameras size " << cams.size());
   }
 }
 }
