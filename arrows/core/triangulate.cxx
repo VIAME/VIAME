@@ -43,7 +43,7 @@ namespace arrows {
 /// Triangulate a 3D point from a set of cameras and 2D image points
 template <typename T>
 Eigen::Matrix<T,3,1>
-triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
+triangulate_inhomog(const std::vector<vital::simple_camera_perspective >& cameras,
                     const std::vector<Eigen::Matrix<T,2,1> >& points)
 {
   typedef Eigen::Matrix<T,2,1> vector_2;
@@ -57,7 +57,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
   for( unsigned int i=0; i<points.size(); ++i )
   {
     // the camera
-    const vital::simple_camera& cam = cameras[i];
+    const vital::simple_camera_perspective& cam = cameras[i];
     const matrix_3x3 R(cam.get_rotation().matrix().cast<T>());
     const vector_3 t(cam.translation().cast<T>());
     // the point in normalized coordinates
@@ -81,7 +81,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera >& cameras,
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 template <typename T>
 Eigen::Matrix<T,4,1>
-triangulate_homog(const std::vector<vital::simple_camera >& cameras,
+triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
                   const std::vector<Eigen::Matrix<T,2,1> >& points)
 {
   typedef Eigen::Matrix<T,2,1> vector_2;
@@ -93,7 +93,7 @@ triangulate_homog(const std::vector<vital::simple_camera >& cameras,
   for( unsigned int i=0; i<points.size(); ++i )
   {
     // the camera
-    const vital::simple_camera& cam = cameras[i];
+    const vital::simple_camera_perspective& cam = cameras[i];
     const matrix_3x3 R(cam.get_rotation().matrix().cast<T>());
     const vector_3 t(cam.translation().cast<T>());
     // the point in normalized coordinates
@@ -117,11 +117,13 @@ triangulate_homog(const std::vector<vital::simple_camera >& cameras,
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRIANGULATE(T) \
 template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,4,1> \
-         triangulate_homog(const std::vector<vital::simple_camera >& cameras, \
-                           const std::vector<Eigen::Matrix<T,2,1> >& points); \
+         triangulate_homog( \
+            const std::vector<vital::simple_camera_perspective >& cameras, \
+            const std::vector<Eigen::Matrix<T,2,1> >& points); \
 template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,3,1> \
-         triangulate_inhomog(const std::vector<vital::simple_camera >& cameras, \
-                             const std::vector<Eigen::Matrix<T,2,1> >& points);
+         triangulate_inhomog( \
+            const std::vector<vital::simple_camera_perspective >& cameras, \
+            const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 INSTANTIATE_TRIANGULATE(double);
 INSTANTIATE_TRIANGULATE(float);

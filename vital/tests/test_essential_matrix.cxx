@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2018 by Kitware, Inc.
+ * Copyright 2015-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@
  * \brief test core essential matrix class
  */
 
-#define _USE_MATH_DEFINES
-
 #include <test_eigen.h>
 
 #include <vital/types/essential_matrix.h>
@@ -44,13 +42,8 @@
 #include <iostream>
 #include <vector>
 
-#include <cmath>
 
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
+static constexpr double pi = 3.14159265358979323846;
 
 using namespace kwiver::vital;
 
@@ -120,7 +113,7 @@ TEST(essential_matrix, twisted_pair)
   vector_3d t1 = em.translation();
   vector_3d t2 = -t1;
 
-  rotation_d rot_t_180{ LOCAL_PI, t.normalized() };
+  rotation_d rot_t_180{ pi, t.normalized() };
   EXPECT_MATRIX_NEAR( ( rot_t_180 * R1 ).matrix(), R2.matrix(), 1e-14 )
     << "Twisted pair rotation should be 180 degree rotation around t";
 

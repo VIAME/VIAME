@@ -70,7 +70,7 @@ basename_from_metadata(metadata_sptr md,
     }
     char frame_str[6];
     std::snprintf(frame_str, 6, "%05d", static_cast<int>(frame));
-    basename += std::string(frame_str);
+    basename += "-" + std::string(frame_str);
   }
   return basename;
 }

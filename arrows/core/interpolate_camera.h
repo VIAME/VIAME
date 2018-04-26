@@ -41,7 +41,7 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vector>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 
 namespace kwiver {
@@ -58,9 +58,9 @@ namespace arrows {
  * \param f Decimal fraction in between A and B for the returned camera to represent.
  */
 KWIVER_ALGO_CORE_EXPORT
-vital::simple_camera
-interpolate_camera(vital::simple_camera const& A,
-                   vital::simple_camera const& B, double f);
+vital::simple_camera_perspective
+interpolate_camera(vital::simple_camera_perspective const& A,
+                   vital::simple_camera_perspective const& B, double f);
 
 
 /// Genreate an interpolated camera from sptrs
@@ -69,9 +69,9 @@ interpolate_camera(vital::simple_camera const& A,
  *
  */
 KWIVER_ALGO_CORE_EXPORT
-vital::camera_sptr
-interpolate_camera(vital::camera_sptr A,
-                   vital::camera_sptr B, double f);
+vital::camera_perspective_sptr
+interpolate_camera(vital::camera_perspective_sptr A,
+                   vital::camera_perspective_sptr B, double f);
 
 
 /// Generate N evenly interpolated cameras in between \c A and \c B
@@ -79,10 +79,10 @@ interpolate_camera(vital::camera_sptr A,
  * \c n must be >= 1.
  */
 KWIVER_ALGO_CORE_EXPORT
-void interpolated_cameras(vital::simple_camera const& A,
-                          vital::simple_camera const& B,
+void interpolated_cameras(vital::simple_camera_perspective const& A,
+                          vital::simple_camera_perspective const& B,
                           size_t n,
-                          std::vector< vital::simple_camera > & interp_cams);
+                          std::vector< vital::simple_camera_perspective > & interp_cams);
 
 
 } // end namespace arrows

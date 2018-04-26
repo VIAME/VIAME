@@ -64,7 +64,8 @@ class camera_io : public ::testing::Test
 TEST_F(camera_io, KRTD_format_read)
 {
   kwiver::vital::path_t test_read_file = data_dir + "/test_camera_io-valid_format.krtd";
-  kwiver::vital::camera_sptr read_camera = kwiver::vital::read_krtd_file( test_read_file );
+  kwiver::vital::camera_perspective_sptr read_camera =
+    kwiver::vital::read_krtd_file( test_read_file );
 
   Eigen::Matrix<double,3,3> expected_intrinsics;
   expected_intrinsics << 1, 2, 3,
@@ -103,7 +104,8 @@ TEST_F(camera_io, invalid_file_content)
 {
   kwiver::vital::path_t invalid_content_file = data_dir + "/test_camera_io-invalid_file.krtd";
   EXPECT_THROW(
-    kwiver::vital::camera_sptr cam = kwiver::vital::read_krtd_file( invalid_content_file ),
+    kwiver::vital::camera_perspective_sptr cam =
+      kwiver::vital::read_krtd_file( invalid_content_file ),
     kwiver::vital::invalid_data )
     << "Tried loading a file with invalid data";
 }
@@ -111,7 +113,7 @@ TEST_F(camera_io, invalid_file_content)
 // ----------------------------------------------------------------------------
 TEST_F(camera_io, output_format_test)
 {
-  kwiver::vital::simple_camera cam;
+  kwiver::vital::simple_camera_perspective cam;
   std::cerr << "Default constructed camera\n" << cam << std::endl;
   std::cerr << "cam.get_center()     : " << kwiver::vital::vector_3d(cam.get_center()).transpose() << std::endl;
   std::cerr << "cam.get_rotation()   : " << cam.get_rotation() << std::endl;

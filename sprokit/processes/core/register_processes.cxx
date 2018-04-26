@@ -39,7 +39,9 @@
 #include "compute_homography_process.h"
 #include "compute_stereo_depth_map_process.h"
 #include "compute_track_descriptors_process.h"
+#include "detect_features_if_keyframe_process.h"
 #include "detect_features_process.h"
+#include "close_loops_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
@@ -53,6 +55,7 @@
 #include "image_object_detector_process.h"
 #include "image_writer_process.h"
 #include "initialize_object_tracks_process.h"
+#include "keyframe_selection_process.h"
 #include "matcher_process.h"
 #include "perform_query_process.h"
 #include "print_config_process.h"
@@ -62,6 +65,7 @@
 #include "refine_detections_process.h"
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
+#include "track_features_process.h"
 #include "video_input_process.h"
 #include "write_object_track_process.h"
 #include "write_track_descriptor_process.h"
@@ -285,6 +289,42 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
+  fact = vpm.ADD_PROCESS( kwiver::track_features_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_tracker")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Tracks features from frame to frame.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::keyframe_selection_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection_process")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Selects keyframes from a track set.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::detect_features_if_keyframe_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features_if_keyframe_process")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Detects feautres in an image if it is a keyframe.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::close_loops_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "close_loops_process")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Detects loops in a track set using features with descriptors.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
   fact = vpm.ADD_PROCESS( kwiver::read_object_track_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_object_track" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -304,6 +344,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "All ports connections to the process are accepted and the supplied data is taken from the port and "
                     "discarded. This process produces no outputs and has no output ports.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
 
 

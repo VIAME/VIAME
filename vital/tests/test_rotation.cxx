@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,6 @@
  * \brief test core rotation class
  */
 
-#define _USE_MATH_DEFINES
-
 #include <test_eigen.h>
 
 #include <vital/types/rotation.h>
@@ -42,13 +40,8 @@
 #include <iostream>
 #include <vector>
 
-#include <cmath>
 
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
+static constexpr double pi = 3.14159265358979323846;
 
 using namespace kwiver::vital;
 
@@ -159,8 +152,6 @@ TEST(rotation, compose)
 // ----------------------------------------------------------------------------
 TEST(rotation, interpolation)
 {
-  constexpr static double pi = LOCAL_PI;
-
   rotation_d x{ 0, vector_3d{ 1, 0, 0 } };
   rotation_d y{ pi / 2, vector_3d{ 0, 1, 0 } };
   rotation_d z = interpolate_rotation( x, y, 0.5 );
@@ -176,7 +167,6 @@ TEST(rotation, interpolation)
 // ----------------------------------------------------------------------------
 TEST(rotation, multiple_interpolations)
 {
-  constexpr static double pi = LOCAL_PI;
   rotation_d x{ 0, vector_3d{ 1, 0, 0 } };
   rotation_d y{ pi / 2, vector_3d{ 0, 1, 0 } };
   std::vector<rotation_d> rots;

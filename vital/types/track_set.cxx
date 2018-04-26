@@ -226,6 +226,25 @@ track_set_implementation
   return active_tracks;
 }
 
+/// Return all tracks active on a frame.
+size_t
+track_set_implementation
+::num_active_tracks(frame_id_t offset) const
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  const std::vector<track_sptr> all_tracks = this->tracks();
+  size_t num_active_tracks_ = 0;
+
+  for (track_sptr t : all_tracks)
+  {
+    if (t->find(frame_number) != t->end())
+    {
+      ++num_active_tracks_;
+    }
+  }
+
+  return num_active_tracks_;
+}
 
 /// Return all tracks active on a frame.
 std::vector< track_sptr >
@@ -359,7 +378,7 @@ track_set_implementation
   return frame_number;
 }
 
-
+//=============================================================================
 
 /// Default Constructor
 track_set
@@ -379,14 +398,35 @@ track_set
 
 /// Constructor from a vector of tracks
 track_set
-::track_set(std::vector< track_sptr > const& tracks)
-  : impl_(new simple_track_set_implementation(tracks))
+::track_set(std::vector< track_sptr > const& tracks,
+            track_set_frame_data_map_t const& frame_data)
+  : impl_(new simple_track_set_implementation(tracks, frame_data))
 {
 }
+
+track_set_sptr
+track_set
+::clone() const {
+
+  track_set_implementation_uptr my_impl = impl_->clone();
+
+  track_set_sptr ts = std::make_shared<track_set>(std::move(my_impl));
+
+  return ts;
+}
+
 
 
 //===================================================================
 
+/// Constructor from a vector of tracks
+simple_track_set_implementation
+::simple_track_set_implementation(std::vector< track_sptr > const& tracks,
+                                  track_set_frame_data_map_t const& frame_data)
+  : data_(tracks)
+  , frame_data_(frame_data)
+{
+}
 
 /// Return true if the set contains a specific track
 bool
@@ -409,6 +449,74 @@ simple_track_set_implementation
   }
   data_.erase(itr);
   return true;
+}
+
+
+/// Return the additional data associated with all tracks on the given frame
+track_set_frame_data_sptr
+simple_track_set_implementation
+::frame_data( frame_id_t offset ) const
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if ( itr != frame_data_.end() )
+  {
+    return itr->second;
+  }
+  return nullptr;
+}
+
+
+/// Set additional data associated with all tracks on the given frame
+bool
+simple_track_set_implementation
+::set_frame_data( track_set_frame_data_sptr data,
+                  frame_id_t offset )
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  if ( !data )
+  {
+    // remove the data on the specified frame
+    auto itr = frame_data_.find(frame_number);
+    if ( itr == frame_data_.end() )
+    {
+      return false;
+    }
+    frame_data_.erase(itr);
+  }
+  else
+  {
+    frame_data_[frame_number] = data;
+  }
+  return true;
+}
+
+
+track_set_implementation_uptr
+simple_track_set_implementation
+::clone() const
+{
+  std::unique_ptr<simple_track_set_implementation> new_stsi =
+    std::unique_ptr<simple_track_set_implementation>(new simple_track_set_implementation());
+
+  for (auto trk : data_)
+  {
+    new_stsi->data_.push_back(trk->clone());
+  }
+  for (auto fd : frame_data_)
+  {
+    if ( fd.second )
+    {
+      new_stsi->frame_data_[fd.first] = fd.second->clone();
+    }
+  }
+
+  std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());
+  if (new_tsi) {
+    new_stsi.release();
+  }
+
+  return new_tsi;
 }
 
 

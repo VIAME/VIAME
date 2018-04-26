@@ -50,7 +50,7 @@
 #include <arrows/core/metrics.h>
 #include <arrows/core/interpolate_camera.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/exceptions.h>
 #include <vital/vital_types.h>
 
@@ -357,7 +357,7 @@ hierarchical_bundle_adjust
       double f;
       frame_id_t i2;
       frame_id_t cur_frm, next_frm;
-      camera_sptr cur_cam, next_cam;
+      camera_perspective_sptr cur_cam, next_cam;
 
       // Iterate through frames and cameras, interpolating across gaps when found
       // ASSUMING even interpolation for now
@@ -367,14 +367,14 @@ hierarchical_bundle_adjust
         while (it != ac_map.end())
         {
           cur_frm = it->first;
-          cur_cam = it->second;
+          cur_cam = std::dynamic_pointer_cast<camera_perspective>(it->second);
           ++it;
 
           // If we're not at the end of the active camera sequence
           if (it != ac_map.end())
           {
             next_frm = it->first;
-            next_cam = it->second;
+            next_cam = std::dynamic_pointer_cast<camera_perspective>(it->second);
 
             // this specific gap's interpolation rate -- gap may be smaller than ir
             ir_l = std::min(ir, next_frm - cur_frm - 1);
