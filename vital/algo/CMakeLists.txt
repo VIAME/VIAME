@@ -15,6 +15,7 @@ set( public_headers
   bundle_adjust.h
   close_loops.h
   compute_association_matrix.h
+  compute_depth.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
   compute_track_descriptors.h
@@ -30,6 +31,7 @@ set( public_headers
   estimate_essential_matrix.h
   estimate_fundamental_matrix.h
   estimate_homography.h
+  estimate_pnp.h
   estimate_similarity_transform.h
   extract_descriptors.h
   feature_descriptor_io.h
@@ -41,7 +43,10 @@ set( public_headers
   image_object_detector.h
   initialize_cameras_landmarks.h
   initialize_object_tracks.h
+  integrate_depth_maps.h
   interpolate_track.h
+  keyframe_selection.h
+  match_descriptor_sets.h
   match_features.h
   optimize_cameras.h
   read_object_track_set.h
@@ -66,6 +71,7 @@ set( sources
   bundle_adjust.cxx
   close_loops.cxx
   compute_association_matrix.cxx
+  compute_depth.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
   compute_track_descriptors.cxx
@@ -81,6 +87,7 @@ set( sources
   estimate_essential_matrix.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
+  estimate_pnp.cxx
   estimate_similarity_transform.cxx
   extract_descriptors.cxx
   feature_descriptor_io.cxx
@@ -92,7 +99,10 @@ set( sources
   image_object_detector.cxx
   initialize_object_tracks.cxx
   initialize_cameras_landmarks.cxx
+  integrate_depth_maps.cxx
   interpolate_track.cxx
+  keyframe_selection.cxx
+  match_descriptor_sets.cxx
   match_features.cxx
   optimize_cameras.cxx
   read_object_track_set.cxx

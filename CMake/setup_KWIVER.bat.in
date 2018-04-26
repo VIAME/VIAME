@@ -15,6 +15,7 @@ if exist %~dp0/bin/kwiversys.dll (
 set config=%1
 if /I (%1)==(debug) GOTO Start
 if /I (%1)==(release) GOTO Start
+if /I (%1)==(relwithDebInfo) GOTO Start
 echo usage: [debug ^| release]
 echo defaulting to release
 set config=release

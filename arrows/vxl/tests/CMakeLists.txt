@@ -18,6 +18,7 @@ kwiver_discover_gtests(vxl image                       LIBRARIES ${test_librarie
 kwiver_discover_gtests(vxl optimize_cameras            LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl polygon                     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vxl triangulate_landmarks       LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vxl vidl_ffmpeg_video_input     LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 
 # This test is really for an algorithm in core, but it's here
 # because the test depends on availablity of VXL sub-algorithms

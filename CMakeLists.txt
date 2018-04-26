@@ -332,9 +332,10 @@ configure_file(
   )
 
 # Configure install-tree CMake config file and export associated targets file
+set(KWIVER_CONFIG_INSTALL_FILE "${KWIVER_BINARY_DIR}/kwiver-config-install.cmake")
 configure_file(
   "${KWIVER_SOURCE_DIR}/CMake/kwiver-config-install.cmake.in"
-  "${KWIVER_BINARY_DIR}/kwiver-config-install.cmake"
+  "${KWIVER_CONFIG_INSTALL_FILE}"
   @ONLY
   )
 
