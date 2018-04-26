@@ -44,6 +44,7 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
+namespace core {
 
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
@@ -534,6 +535,7 @@ clean_cameras_and_landmarks(
       LOG_DEBUG(logger, "remaining cameras size " << cams.size());
     }
   }
+}
 }
 }
 }

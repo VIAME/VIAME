@@ -50,6 +50,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace core{
 
 typedef std::pair<vital::frame_id_t, float> coverage_pair;
 typedef std::vector<coverage_pair> frame_coverage_vec;
@@ -65,7 +66,6 @@ typedef std::vector<coverage_pair> frame_coverage_vec;
 * \param [in] cams the set of frames to have coverage calculated on
 * \return     the image coverages
 */
-
 KWIVER_ALGO_CORE_EXPORT
 frame_coverage_vec
 image_coverages(
@@ -147,7 +147,7 @@ detect_bad_cameras(
 /**
 * Clean up the structure from motion solution by checking landmark
 * reprojection errors, removing under-constrained landmarks, removing
-* under-constrained cameras and keeping only the largest connected compoent
+* under-constrained cameras and keeping only the largest connected component
 * of cameras.
 * \param [in,out] cams the cameras in the view graph.  Removed cameras are set to null.
 * \param [in,out] lms the landmarks in the view graph.  Removed landmarks are set to null.
@@ -155,13 +155,10 @@ detect_bad_cameras(
 * \param [in] triang_cos_ang_thresh largest angle rays intersecting landmark must
 *             have less than this cos angle for landmkark to be kept.
 * \param [out] removed_cams frame ids of cameras that are removed while cleaning
-* \param [in] logger the logger to write debug info to
 * \param [in] image_coverage_threshold images must have this fraction [0 - 1] of
 *             coverage to be kept in the solution
 * \param [in] error_tol maximum reprojection error to keep features
-* \return true on success
 */
-
 KWIVER_ALGO_CORE_EXPORT
 void
 clean_cameras_and_landmarks(
@@ -173,6 +170,7 @@ clean_cameras_and_landmarks(
   float image_coverage_threshold = 0.25,
   double error_tol = 5.0);
 
+}
 }
 }
 
