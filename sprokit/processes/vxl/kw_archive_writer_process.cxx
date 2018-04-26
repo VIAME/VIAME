@@ -89,8 +89,6 @@ create_config_trait( stream_id, std::string,
 create_config_trait( compress_image, bool,
   "true", "Whether to compress image data stored in archive" );
 
-create_type_trait( bool,
-  "kwiver:bool", bool );
 create_port_trait( filename, file_name,
   "KWA input filename" );
 create_port_trait( stream_id, string,
