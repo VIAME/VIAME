@@ -47,6 +47,7 @@
 #include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
+#include <sprokit/processes/kwiver_type_traits.h>
 
 #include <fstream>
 #include <vector>
